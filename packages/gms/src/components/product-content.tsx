@@ -1,8 +1,12 @@
-import { type ProductContent, productFields, productTitle } from "../products";
+import {
+  displayProductFields,
+  type ProductContent,
+  productTitle,
+} from "../products";
 
 const DATE_SEPARATOR = /^(\d{4}-\d{2}-\d{2})T/;
 export function ProductContentView({ content }: { content: ProductContent }) {
-  const fields = productFields(content.kind);
+  const fields = displayProductFields(content.kind);
   const sections = [...new Set(fields.map((f) => f.section))];
   return (
     <article className="space-y-6">

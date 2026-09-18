@@ -34,7 +34,10 @@ export function weatherImageApiV1WxwatchImagesStoragePathGet<
     request({
       method: "GET",
       url: "/api/v1/wxwatch/images/{storage_path}",
-      security: [{ type: "oauth2" }],
+      security: [
+        { type: "apiKey", name: "grenmet_session", in: "cookie" },
+        { type: "http", scheme: "bearer" },
+      ],
       ...config,
     }) as Promise<
       RequestResult<

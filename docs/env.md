@@ -90,6 +90,16 @@ in `infra/docker/.env.local.example`.
 
 ### FastAPI backend (`apps/api/fastapi/.env.local`)
 
+Weather database migrations run with
+`uv run --frozen --package fast-back alembic -c src/wxproducts/alembic.ini upgrade head`
+from `apps/api/fastapi`. Set `WXPRODUCTS_DB_NAME` when the database name differs
+from `wxproducts` (local/production) or `wxproducts_staging` (staging). The runner
+rejects the main application database and mismatched target names. Local prestart
+migrates weather when its URL is configured; staging/production require it.
+The separate migration configuration is packaged under `src/wxproducts`, so both
+the API image and the local source mount contain the same migration assets.
+
+
 | Variable | Purpose |
 |---|---|
 | `ENVIRONMENT` | One of `local`, `staging`, `production` |
@@ -115,6 +125,7 @@ in `infra/docker/.env.local.example`.
 | `POSTGRES_DB` | FastAPI database name (matches `APP_DB_NAME` in infra file) |
 | `POSTGRES_USER` | FastAPI DB user (matches `APP_DB_USER` in infra file) |
 | `POSTGRES_PASSWORD` | FastAPI DB password (matches `APP_DB_PASSWORD` in infra file) |
+| `WXPRODUCTS_DATABASE_URL` | PostgreSQL URL for the separate existing weather-products database; required to serve the public product feed. Use a hostname reachable from FastAPI (`grenmet-postgres` in local Compose, `host.docker.internal` from the devcontainer). The API role needs read/write access to authored products, revisions and their identity sequence; the migration runner needs schema ownership. Weather migrations are owned by FastAPI. Missing configuration returns 503, not an empty feed. |
 | `RESEND_API_KEY` | Email provider key — takes priority over SMTP when set |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_TLS`, `SMTP_SSL` | Fallback email via SMTP (MailCatcher in local dev) |
 | `EMAILS_FROM_EMAIL` | Sender address for outgoing emails |
@@ -166,6 +177,7 @@ The Hono API is an optional service and is not started by the root `pnpm start`.
 
 | Variable | Purpose |
 |---|---|
+| `AUTH_APP_URL` | Public URL of the auth app (e.g. `http://localhost:3000`); used for OAuth callback redirects |
 | `AUTH_API_URL` | FastAPI base URL (e.g. `http://localhost:8000`) |
 | `AUTH_API_V1_STR` | API version prefix (e.g. `/api/v1`) |
 | `SESSION_COOKIE_NAME` | Cookie name shared across all apps (e.g. `grenmet_session`) |
@@ -236,8 +248,8 @@ gaa-admin hosts the consolidated CAP/HR/wxwatch/wxproducts/salesbus modules (202
 | `NEXT_PUBLIC_API_URL` | FastAPI public URL for client-side requests |
 | `RESEND_API_KEY` | Email sending (server-side only) |
 | `CAP_API_URL` | FastAPI base URL for the consolidated CAP module |
-| `WXWATCH_DATABASE_URL` | Postgres connection string for the wxwatch database (Drizzle) |
-| `WXPRODUCTS_DATABASE_URL` | Postgres connection string for the wxproducts database (Drizzle) |
+| `WXWATCH_DATABASE_URL` | Retired from web runtime; configure in FastAPI for archive reads, writes and migrations |
+| `WXPRODUCTS_DATABASE_URL` | Retired from gaa-admin. Configure this only for FastAPI; gaa-admin reads/writes weather products through the API. |
 | `JANITORIAL_DATABASE_URL` | Postgres connection string for the janitorial database (Drizzle) |
 | `TRANSPORT_DATABASE_URL` | Postgres connection string for the transport database (Drizzle) |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Optional browser error reporting |
@@ -268,11 +280,10 @@ Its typed defaults allow it to run without an env file.
 
 | Variable | Purpose |
 |---|---|
-| `DB_HOST` | Postgres host for Scrapy pipeline (default: `127.0.0.1`) |
-| `DB_PORT` | Postgres port |
-| `DB_NAME` | Target database name |
-| `DB_USER` | Database user |
-| `DB_PASSWORD` | Database password |
+| `WXWATCH_API_URL` | Archive endpoint base; default `http://127.0.0.1:8000/api/v1/wxwatch` |
+| `WXWATCH_INGEST_TOKEN` | Random secret of at least 32 characters, also configured in FastAPI |
+
+Collector `DB_*` variables are retired. Only FastAPI uses `WXWATCH_DATABASE_URL`.
 
 ---
 
@@ -548,3 +559,12 @@ proof of connectivity: verify OAuth callbacks, email delivery, storage upload
 and download, Stripe webhook signatures, analytics events, and Sentry events
 separately. Browser `NEXT_PUBLIC_*` values require a new web image build after
 they change.
+
+
+### WxWatch read migration
+
+Configure `WXWATCH_DATABASE_URL` in the FastAPI environment with access to the separate wxwatch database. In local Docker use the database hostname reachable by the API (`grenmet-postgres`); the devcontainer uses `host.docker.internal`. FastAPI owns migrations and writes as well as reads, so its database role needs schema ownership. Missing configuration returns 503. Neither gaa-admin nor Scrapy needs database credentials for WxWatch. Set `WXWATCH_INGEST_TOKEN` in both API and collector environments; set `WXWATCH_LOCAL_IMAGES_DIR` only for local/shared filesystem storage. Local Compose mounts the collector images read-only automatically. No env files are changed automatically.
+
+### eRegister database
+
+`EREGISTER_DATABASE_URL` is the PostgreSQL URL for the dedicated manual observation register. `EREGISTER_DB_NAME` is the expected database name used by its Alembic guard (default `eregister`). Provision `EREGISTER_DB_USER`, `EREGISTER_DB_PASSWORD` and `EREGISTER_DB_NAME` alongside the other domain databases. The register stores manual SYNOP, METAR and SPECI entries, revisions, QC decisions and WIS2box publication state; it does not replace SURFACE's automated observation store.

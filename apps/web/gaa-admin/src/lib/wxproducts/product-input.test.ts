@@ -1,18 +1,17 @@
+import { readFileSync } from "node:fs";
 import {
   emptyProduct,
   grenadaDate,
   ISSUE_TIMES,
   isCurrentProduct,
+  isProductKind,
   localDateTime,
+  PRODUCT_KINDS,
   type ProductKind,
   productFields,
-  validateProduct,
 } from "@barrelsgd/gms/products";
 import { describe, expect, it } from "vitest";
-import {
-  productInputSchema,
-  validateProductInput,
-} from "@/lib/wxproducts/product-input";
+import { productInputSchema } from "@/lib/wxproducts/product-input";
 
 function complete(kind: ProductKind) {
   const values = emptyProduct(kind, "2026-09-08");
@@ -27,45 +26,7 @@ function complete(kind: ProductKind) {
   if (values.nextUpdate) values.nextUpdate = "2026-09-09T02:00";
   return values;
 }
-describe("authored product publication", () => {
-  it.each([
-    "morning",
-    "midday",
-    "evening",
-    "outlook",
-    "cyclone",
-    "marine",
-    "flood",
-    "thunderstorm",
-    "wind",
-    "heat",
-    "dust",
-    "coastal",
-    "tsunami",
-  ] as const)("validates a complete %s product", (kind) => {
-    expect(validateProduct({ kind, values: complete(kind) }, true)).toEqual([]);
-  });
-  it("allows incomplete drafts but rejects publication", () => {
-    const content = {
-      kind: "marine" as const,
-      values: emptyProduct("marine", "2026-09-08"),
-    };
-    expect(validateProduct(content, false)).toEqual([]);
-    expect(validateProduct(content, true)).toContain(
-      "Bulletin: Synopsis is required"
-    );
-  });
-  it("requires the fourth day, with consecutive dates, in an evening publication", () => {
-    const values = complete("evening");
-    expect(values.day4Date).toBe("2026-09-12");
-    values.day4Weather = "";
-    values.day3Date = "2026-09-12";
-    const errors = validateProduct({ kind: "evening", values }, true);
-    expect(errors).toContain("Day 4: Weather is required");
-    expect(errors).toContain(
-      "Day 3 must be 2026-09-11 (the following four days)"
-    );
-  });
+describe("product presentation and transport", () => {
   it("handles four-day outlooks across month and year boundaries", () => {
     expect(emptyProduct("evening", "2026-12-30").day4Date).toBe("2027-01-03");
   });
@@ -88,49 +49,24 @@ describe("authored product publication", () => {
     );
     expect(localDateTime("2026-02-30T07:00")).toBeNaN();
   });
-  it("rejects impossible temperatures, invalid levels and reversed validity", () => {
-    const values = complete("marine");
-    values.level = "purple";
-    values.validTo = values.validFrom;
-    expect(validateProduct({ kind: "marine", values }, true)).toContain(
-      "Colour level: select a listed option"
-    );
-    expect(validateProduct({ kind: "marine", values }, true)).toContain(
-      "Validity must end after it starts"
-    );
-  });
-  it("requires review, a revision note and an unexpired publication", () => {
-    const input = productInputSchema.parse({
-      id: "7d517fe0-a25b-4f12-a2b4-eaaed8116010",
-      expectedRevision: 1,
-      kind: "marine",
-      values: complete("marine"),
-      action: "publish",
-      changeSummary: "",
-      reviewed: false,
-    });
-    const errors = validateProductInput(
-      input,
-      Date.parse("2026-09-14T00:00:00Z")
-    );
-    expect(errors).toContain("Review the preview before publishing");
-    expect(errors).toContain("Describe this issue or revision");
-    expect(errors).toContain("An expired product cannot be published");
-  });
-  it("rejects unknown types and fields at the write boundary", () => {
-    expect(productInputSchema.safeParse({ kind: "__proto__" }).success).toBe(
-      false
-    );
-    const input = productInputSchema.parse({
+  it("leaves schedule normalization and publication rules to FastAPI", () => {
+    const values = {
+      issuedAt: "2026-09-08T13:00",
+      validTo: "2026-09-08T14:00",
+    };
+    const parsed = productInputSchema.parse({
       id: "7d517fe0-a25b-4f12-a2b4-eaaed8116010",
       expectedRevision: 0,
-      kind: "marine",
-      values: { forged: "value" },
+      kind: "morning",
+      values,
       action: "draft",
       changeSummary: "",
       reviewed: false,
     });
-    expect(validateProductInput(input)).toEqual(["Unknown product field"]);
+    expect(parsed.values).toEqual(values);
+    expect(
+      productInputSchema.safeParse({ ...parsed, kind: "__proto__" }).success
+    ).toBe(false);
   });
   it("excludes future and expired issues from the current feed", () => {
     const product = {
@@ -150,4 +86,29 @@ describe("authored product publication", () => {
       isCurrentProduct(product, localDateTime(product.values.validTo))
     ).toBe(false);
   });
+});
+
+it("keeps editor field definitions aligned with FastAPI publication rules", () => {
+  const backend: unknown = JSON.parse(
+    readFileSync(
+      new URL(
+        "../../../../../api/fastapi/src/wxproducts/fields.json",
+        import.meta.url
+      ),
+      "utf8"
+    )
+  );
+  const expected = Object.fromEntries(
+    Object.keys(PRODUCT_KINDS).map((kind) => {
+      if (!isProductKind(kind)) throw new Error("Unknown kind");
+      return [
+        kind,
+        productFields(kind).map((field) => ({
+          ...field,
+          requiredOnPublish: !!field.required,
+        })),
+      ];
+    })
+  );
+  expect(backend).toEqual(expected);
 });

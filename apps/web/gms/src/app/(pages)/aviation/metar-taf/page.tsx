@@ -21,6 +21,7 @@ export default function MetarTafPage() {
       <PageSection heading="Latest bulletins">
         <InfoTable
           headers={["Aerodrome", "Type", "Bulletin"]}
+          monoColumns={[2]}
           rows={[
             [
               "TGPY",
@@ -39,6 +40,7 @@ export default function MetarTafPage() {
       <PageSection heading="Reading a METAR">
         <InfoTable
           headers={["Group", "Example", "Meaning"]}
+          monoColumns={[1]}
           rows={[
             ["Station", "TGPY", "Maurice Bishop International"],
             ["Time", "061600Z", "6th of the month, 16:00 UTC"],

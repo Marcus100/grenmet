@@ -344,3 +344,24 @@ class CapAuditEventListPublic(BaseModel):
     count: int
     page: int = 1
     size: int = 100
+
+
+class PublicWarning(BaseModel):
+    identifier: str
+    event: str
+    headline: str
+    areas: list[str]
+    expires: UtcDateTime | None
+    severity: CapSeverity
+    status: CapStatus
+
+
+class PublicWarningGroup(BaseModel):
+    name: str
+    alerts: list[PublicWarning]
+
+
+class PublicWarnings(BaseModel):
+    as_of: UtcDateTime
+    groups: list[PublicWarningGroup]
+    activeCount: int = Field(ge=0)

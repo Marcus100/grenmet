@@ -2,7 +2,7 @@
 
 Port **3001**. The heaviest app in the monorepo.
 
-**Design-system role: internal dashboard lane.** Preserve operational density; map TailAdmin aliases back to GrenMet `--gm-*` tokens (highest migration debt). Charts use `var(--gm-*)` directly. See `docs/design-workflow.md`.
+**Design-system role: internal dashboard lane.** Preserve operational density; map TailAdmin aliases back to GMS `--gm-*` tokens (highest migration debt). Charts use `var(--gm-*)` directly. See `docs/design-workflow.md`.
 
 ## Key dependencies
 
@@ -62,16 +62,13 @@ path-prefixed, auth-gated routes under `(admin)/`. All are gated by
 | `/hr` | hr | FastAPI `/api/v1/hr/*` via `@barrelsgd/api-client` | Editors, submissions tables, approvals inbox, duty roster and HR Setup are all wired. The `/hr` dashboard reads `/api/v1/hr/dashboard` on the server; figures come from the leave ledger, personal requests, published roster and scoped approvals. `*-document.tsx` print components stay pure presentation. Components in `components/hr/` |
 | `/cap` | cap | FastAPI `/api/cap/*` (server-side direct) | `CAP_API_URL` env + `getCapApiBaseUrl()`; components in `components/cap/` |
 | `/salesbus` | salesbus | mock data (api-client planned) | `CartProvider` scoped via `(admin)/salesbus/layout.tsx`; keeps own `AppShell`; PWA dropped |
-| `/wxwatch` | wxwatch | wxwatch Postgres (`WXWATCH_DATABASE_URL`) | client `src/db/wxwatch/` → `wxwatchDb`; `getImageUrl` serves `/wxwatch/<path>` assets |
-| `/wxproducts` | wxproducts | wxproducts Postgres (`WXPRODUCTS_DATABASE_URL`) | client `src/db/wxproducts/` → `wxproductsDb`; PDF via `scripts/wxproducts-export-pdf.mjs` (auth-gated; pass `PDF_SESSION_COOKIE`) |
+| `/wxwatch` | wxwatch | FastAPI `/api/v1/wxwatch/*` | generated metadata contracts; authenticated image downloads through `/_backend/wxwatch/` |
+| `/wxproducts` | wxproducts | FastAPI `/api/v1/wxproducts/*`, separate wxproducts Postgres | Kubb-generated contracts; saved-revision PDFs via FastAPI `/products/{id}/revisions/{revision}/pdf` |
 
-- **DB conventions:** two separate Drizzle clients (never merged). Configs
-  `drizzle.{wxwatch,wxproducts}.config.ts`, output `drizzle/{wxwatch,wxproducts}/`,
-  scripts `db:{wxwatch,wxproducts}:{generate,migrate}`. Production migrations run from
-  the `migrate` Dockerfile stage (image `barrelsgd-web-gaa-admin-migrate`, compose service
-  `web-migrate`) via `scripts/migrate-{wxwatch,wxproducts}.mjs`.
-- **Fonts:** `Noto_Sans` is loaded in the root layout to back the `--gm-font-document`
-  token used by wxproducts forecast/bulletin documents.
+- **Weather ownership:** authored products and wxproducts migrations belong to FastAPI; do not introduce weather Drizzle writers or migrations.
+- **DB conventions:** keep separate domain databases (never merged). FastAPI owns weather migrations via `src/wxproducts/alembic.ini`. Historical weather Drizzle files remain adoption references only. WxWatch now uses `src/wxwatch/alembic.ini`; its historical Drizzle files are adoption references only. Hono requires no ORM.
+- **Fonts:** `Noto_Sans` is loaded in the root layout to back the `--brand-font-document`
+  token (`font-document` Tailwind alias) used by wxproducts forecast/bulletin documents.
 
 ## Testing
 
@@ -105,3 +102,13 @@ Test setup: `src/test/setup.ts`. Uses `jsdom`, `@testing-library/react`, `msw` f
   (CI does not `next build` first). Ambient decls tsc needs must be **committed**
   (e.g. `src/types/next-image.d.ts` for `*.png`), never relied on from `next-env.d.ts`.
   `next dev`/`next build` regenerates `next-env.d.ts` afterward.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

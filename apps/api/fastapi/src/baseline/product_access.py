@@ -24,6 +24,7 @@ class ProductPolicyError(AppException):
 
 
 PRODUCT_KINDS = (
+    "aviation",
     "morning",
     "midday",
     "evening",

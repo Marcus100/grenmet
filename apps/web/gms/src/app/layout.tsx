@@ -1,6 +1,6 @@
 import { PostHogProvider } from "@barrelsgd/ui/components/posthog-provider";
 import type { Metadata } from "next";
-import { Inter, Noto_Sans } from "next/font/google";
+import { Noto_Sans } from "next/font/google";
 import { Footer } from "@/components/footer";
 import { GoogleAnalytics } from "@/components/google-analytics";
 import { Header } from "@/components/header";
@@ -13,8 +13,6 @@ const notoSans = Noto_Sans({
   variable: "--font-noto-sans",
   display: "swap",
 });
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
   title: "Grenada Meteorological Service",
@@ -37,7 +35,7 @@ export default async function RootLayout({
 
   return (
     <html
-      className={`${inter.variable} ${notoSans.variable}`}
+      className={notoSans.variable}
       lang="en"
       style={{ colorScheme: "light" }}
     >

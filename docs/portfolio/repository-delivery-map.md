@@ -30,7 +30,7 @@ acceptance.
 | `apps/web/signal` | Barrels Signal media product | Active | Maintain separately; deepen according to product evidence |
 | `apps/web/mbia` | GAA/MBIA passenger public service | Active | Keep distinct from GAA corporate and staff applications |
 | `apps/api/fastapi` | Barrels-operated shared API serving client and product domains | Active | Preserve domain boundaries; make authorization product/organisation aware |
-| `apps/api/honoapi` | Reserved Barrels weather-data proxy | Prototype health stub | Explore only after a real consumer and contract exist |
+| `apps/api/honoapi` | Barrels browser-facing BFF for web apps and PWAs | Prototype health stub; migration planned | Prove one existing private journey, sessions and contracts before wider adoption |
 
 The current `gaa-admin` module ownership is intentionally mixed during the
 transition:
@@ -134,6 +134,7 @@ references rather than duplicated here.
 | `README.md` | Repository entry point | Active | Orientation only; links to authoritative specialist documents |
 | `VENDORED.md` | Third-party provenance policy | Active | Defines upgrade and local-change boundaries for vendored stacks |
 | `.agents/skills`, `.claude/skills`, and `.claude/commands` | Agent workflow playbooks | Active tooling | Support engineering work; they do not set portfolio priority |
+| `.codex` | Codex agent configuration and hooks | Active tooling | Preserve the same repository guardrails used by supported agent tools |
 | `.claude/hooks`, `.claude/settings.json`, `.agents/commands`, `.agents/rules`, and `.agents/hooks.json` | Agent/editor configuration | Active tooling | Must preserve repository guardrails across supported tools |
 | `.devcontainer` and `.vscode` | Developer environment | Active tooling | Reproducible local setup; not a deployment environment |
 | `.husky`, `.lintstagedrc.mjs`, and `.turbo` | Local quality and task orchestration | Active tooling | Fast feedback supplements, but does not replace, CI |
@@ -220,3 +221,14 @@ retired, an ADR changes the boundary, or institutional acceptance is recorded.
 Do not infer production status from a package manifest, passing tests, or a
 completed interface.
 
+
+### Planned PWA surfaces
+
+Separate Janitor, Bus and GMS PWAs are planned; paths/deployments are not yet selected. Janitor and Bus belong to GAA departmental operations; the GMS PWA belongs to GMS public services. They share FastAPI business capabilities through Hono, with Payload retaining CMS ownership. See the [implementation guide](../exec-plans/gaa-modular-monolith-implementation.md).
+
+### Local architecture review artifacts
+
+| Surface | Ownership | Maturity / treatment |
+| --- | --- | --- |
+| `architecture-review-gaa-admin-20260914.html` | Barrels engineering research for GAA Admin | Existing local review artifact; not an accepted architecture decision or deployed application |
+| `architecture-review-gaa-admin-detailed.html` | Barrels engineering research for GAA Admin | Existing local review artifact; recommendations require reconciliation with approved scope |

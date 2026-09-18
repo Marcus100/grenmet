@@ -14,7 +14,7 @@ docker info >/dev/null
 "${compose[@]}" exec -T postgres bash /docker-entrypoint-initdb.d/01-init.sh
 # Same prestart/Alembic runner used by deployment. Existing pnpm start remains available.
 docker compose -p grenmet-api --env-file apps/api/fastapi/.env.local -f apps/api/fastapi/docker-compose.yml run --rm --build prestart
-for domain in wxwatch wxproducts janitorial transport; do
+for domain in wxwatch janitorial transport; do
   pnpm --filter @barrelsgd/web-gaa-admin "db:$domain:migrate"
 done
 pnpm --filter @barrelsgd/web-gaa-admin db:transport:seed

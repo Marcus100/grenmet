@@ -1,0 +1,3054 @@
+{
+  "morning": [
+    {
+      "section": "Issue details",
+      "key": "issuedAt",
+      "label": "Issue date and time (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validFrom",
+      "label": "Valid from (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validTo",
+      "label": "Valid until (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validity",
+      "label": "Validity description",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Issue details",
+      "key": "area",
+      "label": "Area covered",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "forecaster",
+      "label": "Forecaster on duty",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Weather",
+      "key": "summary",
+      "label": "Weather summary",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Weather",
+      "key": "weatherAlert",
+      "label": "Weather alert",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather",
+      "key": "maxTemperature",
+      "label": "Maximum temperature (°C)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather",
+      "key": "minTemperature",
+      "label": "Minimum temperature (°C)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Wind",
+      "key": "wind",
+      "label": "Wind direction, speed and gusts (include units)",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Wind",
+      "key": "windAlert",
+      "label": "Wind alert",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine",
+      "key": "seaState",
+      "label": "Sea state, wave height and swell (include units)",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Marine",
+      "key": "marineAlert",
+      "label": "Marine alert",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather impacts",
+      "key": "weatherLikelihood",
+      "label": "Likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather impacts",
+      "key": "weatherLevel",
+      "label": "Impact level",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather impacts",
+      "key": "weatherImpact",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather impacts",
+      "key": "weatherResponse",
+      "label": "Recommended response",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind impacts",
+      "key": "windLikelihood",
+      "label": "Likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind impacts",
+      "key": "windLevel",
+      "label": "Impact level",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind impacts",
+      "key": "windImpact",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind impacts",
+      "key": "windResponse",
+      "label": "Recommended response",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine impacts",
+      "key": "marineLikelihood",
+      "label": "Likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine impacts",
+      "key": "marineLevel",
+      "label": "Impact level",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine impacts",
+      "key": "marineImpact",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine impacts",
+      "key": "marineResponse",
+      "label": "Recommended response",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Heat impacts",
+      "key": "heatLikelihood",
+      "label": "Likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Heat impacts",
+      "key": "heatLevel",
+      "label": "Impact level",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Heat impacts",
+      "key": "heatImpact",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Heat impacts",
+      "key": "heatResponse",
+      "label": "Recommended response",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Dust impacts",
+      "key": "dustLikelihood",
+      "label": "Likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Dust impacts",
+      "key": "dustLevel",
+      "label": "Impact level",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Dust impacts",
+      "key": "dustImpact",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Dust impacts",
+      "key": "dustResponse",
+      "label": "Recommended response",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "highTides",
+      "label": "High tides (times)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "lowTides",
+      "label": "Low tides (times)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "sunrise",
+      "label": "Sunrise",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "sunset",
+      "label": "Sunset",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Risk assessment",
+      "key": "likelihood",
+      "label": "Overall likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Risk assessment",
+      "key": "impact",
+      "label": "Overall impact",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Risk assessment",
+      "key": "response",
+      "label": "Overall response",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Word of the day",
+      "key": "word",
+      "label": "Term",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Word of the day",
+      "key": "definition",
+      "label": "Meaning",
+      "type": "textarea",
+      "requiredOnPublish": false
+    }
+  ],
+  "midday": [
+    {
+      "section": "Issue details",
+      "key": "issuedAt",
+      "label": "Issue date and time (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validFrom",
+      "label": "Valid from (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validTo",
+      "label": "Valid until (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validity",
+      "label": "Validity description",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Issue details",
+      "key": "area",
+      "label": "Area covered",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "forecaster",
+      "label": "Forecaster on duty",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Weather",
+      "key": "summary",
+      "label": "Weather summary",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Weather",
+      "key": "weatherAlert",
+      "label": "Weather alert",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather",
+      "key": "maxTemperature",
+      "label": "Maximum temperature (°C)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather",
+      "key": "minTemperature",
+      "label": "Minimum temperature (°C)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Weather",
+      "key": "observedTemperature",
+      "label": "Midday temperature at MBIA (°C)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Wind",
+      "key": "wind",
+      "label": "Wind direction, speed and gusts (include units)",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Wind",
+      "key": "windAlert",
+      "label": "Wind alert",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine",
+      "key": "seaState",
+      "label": "Sea state, wave height and swell (include units)",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Marine",
+      "key": "marineAlert",
+      "label": "Marine alert",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather impacts",
+      "key": "weatherLikelihood",
+      "label": "Likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather impacts",
+      "key": "weatherLevel",
+      "label": "Impact level",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather impacts",
+      "key": "weatherImpact",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather impacts",
+      "key": "weatherResponse",
+      "label": "Recommended response",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind impacts",
+      "key": "windLikelihood",
+      "label": "Likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind impacts",
+      "key": "windLevel",
+      "label": "Impact level",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind impacts",
+      "key": "windImpact",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind impacts",
+      "key": "windResponse",
+      "label": "Recommended response",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine impacts",
+      "key": "marineLikelihood",
+      "label": "Likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine impacts",
+      "key": "marineLevel",
+      "label": "Impact level",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine impacts",
+      "key": "marineImpact",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine impacts",
+      "key": "marineResponse",
+      "label": "Recommended response",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Heat impacts",
+      "key": "heatLikelihood",
+      "label": "Likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Heat impacts",
+      "key": "heatLevel",
+      "label": "Impact level",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Heat impacts",
+      "key": "heatImpact",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Heat impacts",
+      "key": "heatResponse",
+      "label": "Recommended response",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Dust impacts",
+      "key": "dustLikelihood",
+      "label": "Likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Dust impacts",
+      "key": "dustLevel",
+      "label": "Impact level",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Dust impacts",
+      "key": "dustImpact",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Dust impacts",
+      "key": "dustResponse",
+      "label": "Recommended response",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "highTides",
+      "label": "High tides (times)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "lowTides",
+      "label": "Low tides (times)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "sunrise",
+      "label": "Sunrise",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "sunset",
+      "label": "Sunset",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Risk assessment",
+      "key": "likelihood",
+      "label": "Overall likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Risk assessment",
+      "key": "impact",
+      "label": "Overall impact",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Risk assessment",
+      "key": "response",
+      "label": "Overall response",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Word of the day",
+      "key": "word",
+      "label": "Term",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Word of the day",
+      "key": "definition",
+      "label": "Meaning",
+      "type": "textarea",
+      "requiredOnPublish": false
+    }
+  ],
+  "evening": [
+    {
+      "section": "Issue details",
+      "key": "issuedAt",
+      "label": "Issue date and time (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validFrom",
+      "label": "Valid from (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validTo",
+      "label": "Valid until (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validity",
+      "label": "Validity description",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Issue details",
+      "key": "area",
+      "label": "Area covered",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "forecaster",
+      "label": "Forecaster on duty",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Weather",
+      "key": "summary",
+      "label": "Tonight's weather",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Weather",
+      "key": "weatherAlert",
+      "label": "Weather alert",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather",
+      "key": "maxTemperature",
+      "label": "Maximum temperature (°C)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather",
+      "key": "minTemperature",
+      "label": "Minimum temperature (°C)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Wind",
+      "key": "wind",
+      "label": "Wind direction, speed and gusts (include units)",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Wind",
+      "key": "windAlert",
+      "label": "Wind alert",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine",
+      "key": "seaState",
+      "label": "Sea state, wave height and swell (include units)",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Marine",
+      "key": "marineAlert",
+      "label": "Marine alert",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather impacts",
+      "key": "weatherLikelihood",
+      "label": "Likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather impacts",
+      "key": "weatherLevel",
+      "label": "Impact level",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather impacts",
+      "key": "weatherImpact",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather impacts",
+      "key": "weatherResponse",
+      "label": "Recommended response",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind impacts",
+      "key": "windLikelihood",
+      "label": "Likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind impacts",
+      "key": "windLevel",
+      "label": "Impact level",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind impacts",
+      "key": "windImpact",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind impacts",
+      "key": "windResponse",
+      "label": "Recommended response",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine impacts",
+      "key": "marineLikelihood",
+      "label": "Likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine impacts",
+      "key": "marineLevel",
+      "label": "Impact level",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine impacts",
+      "key": "marineImpact",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine impacts",
+      "key": "marineResponse",
+      "label": "Recommended response",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Heat impacts",
+      "key": "heatLikelihood",
+      "label": "Likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Heat impacts",
+      "key": "heatLevel",
+      "label": "Impact level",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Heat impacts",
+      "key": "heatImpact",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Heat impacts",
+      "key": "heatResponse",
+      "label": "Recommended response",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Dust impacts",
+      "key": "dustLikelihood",
+      "label": "Likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Dust impacts",
+      "key": "dustLevel",
+      "label": "Impact level",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Dust impacts",
+      "key": "dustImpact",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Dust impacts",
+      "key": "dustResponse",
+      "label": "Recommended response",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "highTides",
+      "label": "High tides (times)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "lowTides",
+      "label": "Low tides (times)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "sunrise",
+      "label": "Sunrise",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "sunset",
+      "label": "Sunset",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Risk assessment",
+      "key": "likelihood",
+      "label": "Overall likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Risk assessment",
+      "key": "impact",
+      "label": "Overall impact",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Risk assessment",
+      "key": "response",
+      "label": "Overall response",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Word of the day",
+      "key": "word",
+      "label": "Term",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Word of the day",
+      "key": "definition",
+      "label": "Meaning",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1",
+      "key": "day1Date",
+      "label": "Date",
+      "type": "date",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 1",
+      "key": "day1Weather",
+      "label": "Weather",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 1",
+      "key": "day1Max",
+      "label": "Maximum temperature (°C)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 1",
+      "key": "day1Min",
+      "label": "Minimum temperature (°C)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 1",
+      "key": "day1Wind",
+      "label": "Wind (include units)",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 1",
+      "key": "day1SeaState",
+      "label": "Sea state and swell (include units)",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 1",
+      "key": "day1Alerts",
+      "label": "Weather, wind and marine alerts",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1",
+      "key": "day1Impact",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1",
+      "key": "day1Response",
+      "label": "Recommended response",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1",
+      "key": "day1Sunrise",
+      "label": "Sunrise",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1",
+      "key": "day1Sunset",
+      "label": "Sunset",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1",
+      "key": "day1HighTides",
+      "label": "High tides (times)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1",
+      "key": "day1LowTides",
+      "label": "Low tides (times)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2",
+      "key": "day2Date",
+      "label": "Date",
+      "type": "date",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 2",
+      "key": "day2Weather",
+      "label": "Weather",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 2",
+      "key": "day2Max",
+      "label": "Maximum temperature (°C)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 2",
+      "key": "day2Min",
+      "label": "Minimum temperature (°C)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 2",
+      "key": "day2Wind",
+      "label": "Wind (include units)",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 2",
+      "key": "day2SeaState",
+      "label": "Sea state and swell (include units)",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 2",
+      "key": "day2Alerts",
+      "label": "Weather, wind and marine alerts",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2",
+      "key": "day2Impact",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2",
+      "key": "day2Response",
+      "label": "Recommended response",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2",
+      "key": "day2Sunrise",
+      "label": "Sunrise",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2",
+      "key": "day2Sunset",
+      "label": "Sunset",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2",
+      "key": "day2HighTides",
+      "label": "High tides (times)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2",
+      "key": "day2LowTides",
+      "label": "Low tides (times)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3",
+      "key": "day3Date",
+      "label": "Date",
+      "type": "date",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 3",
+      "key": "day3Weather",
+      "label": "Weather",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 3",
+      "key": "day3Max",
+      "label": "Maximum temperature (°C)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 3",
+      "key": "day3Min",
+      "label": "Minimum temperature (°C)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 3",
+      "key": "day3Wind",
+      "label": "Wind (include units)",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 3",
+      "key": "day3SeaState",
+      "label": "Sea state and swell (include units)",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 3",
+      "key": "day3Alerts",
+      "label": "Weather, wind and marine alerts",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3",
+      "key": "day3Impact",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3",
+      "key": "day3Response",
+      "label": "Recommended response",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3",
+      "key": "day3Sunrise",
+      "label": "Sunrise",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3",
+      "key": "day3Sunset",
+      "label": "Sunset",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3",
+      "key": "day3HighTides",
+      "label": "High tides (times)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3",
+      "key": "day3LowTides",
+      "label": "Low tides (times)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4",
+      "key": "day4Date",
+      "label": "Date",
+      "type": "date",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 4",
+      "key": "day4Weather",
+      "label": "Weather",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 4",
+      "key": "day4Max",
+      "label": "Maximum temperature (°C)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 4",
+      "key": "day4Min",
+      "label": "Minimum temperature (°C)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 4",
+      "key": "day4Wind",
+      "label": "Wind (include units)",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 4",
+      "key": "day4SeaState",
+      "label": "Sea state and swell (include units)",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 4",
+      "key": "day4Alerts",
+      "label": "Weather, wind and marine alerts",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4",
+      "key": "day4Impact",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4",
+      "key": "day4Response",
+      "label": "Recommended response",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4",
+      "key": "day4Sunrise",
+      "label": "Sunrise",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4",
+      "key": "day4Sunset",
+      "label": "Sunset",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4",
+      "key": "day4HighTides",
+      "label": "High tides (times)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4",
+      "key": "day4LowTides",
+      "label": "Low tides (times)",
+      "requiredOnPublish": false
+    }
+  ],
+  "outlook": [
+    {
+      "section": "Issue details",
+      "key": "issuedAt",
+      "label": "Issue date and time (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validFrom",
+      "label": "Valid from (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validTo",
+      "label": "Valid until (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validity",
+      "label": "Validity description",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Issue details",
+      "key": "area",
+      "label": "Area covered",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "forecaster",
+      "label": "Forecaster on duty",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Outlook",
+      "key": "source",
+      "label": "Source / attribution",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Outlook",
+      "key": "specialInterest",
+      "label": "Area of special interest",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Outlook",
+      "key": "systems",
+      "label": "Tropical waves and systems — name, position, movement, convection and local effects",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Outlook",
+      "key": "formation",
+      "label": "Cyclone formation outlook and forecast period",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Outlook",
+      "key": "nextUpdate",
+      "label": "Next update (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    }
+  ],
+  "cyclone": [
+    {
+      "section": "Issue details",
+      "key": "issuedAt",
+      "label": "Issue date and time (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validFrom",
+      "label": "Valid from (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validTo",
+      "label": "Valid until (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validity",
+      "label": "Validity description",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Issue details",
+      "key": "area",
+      "label": "Area covered",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "forecaster",
+      "label": "Forecaster on duty",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "bulletinNumber",
+      "label": "Bulletin number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Bulletin",
+      "key": "level",
+      "label": "Colour level",
+      "options": [
+        "Green",
+        "Yellow",
+        "Amber",
+        "Red"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "notice",
+      "label": "Notice type",
+      "options": [
+        "Information",
+        "Advisory",
+        "Watch",
+        "Warning",
+        "All clear"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "synopsis",
+      "label": "Synopsis",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Conditions",
+      "key": "systemName",
+      "label": "System name / identifier",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Conditions",
+      "key": "position",
+      "label": "Location / coordinates",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Conditions",
+      "key": "movement",
+      "label": "Movement (include units)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Conditions",
+      "key": "wind",
+      "label": "Maximum winds and gusts (include units)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Conditions",
+      "key": "pressure",
+      "label": "Central pressure (hPa)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Conditions",
+      "key": "track",
+      "label": "Expected track and timing",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Impact and response",
+      "key": "likelihood",
+      "label": "Likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "impact",
+      "label": "Impact level",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "impacts",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "response",
+      "label": "Recommended response",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "nextUpdate",
+      "label": "Next update (Grenada)",
+      "type": "datetime-local",
+      "requiredOnPublish": false
+    }
+  ],
+  "marine": [
+    {
+      "section": "Issue details",
+      "key": "issuedAt",
+      "label": "Issue date and time (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validFrom",
+      "label": "Valid from (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validTo",
+      "label": "Valid until (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validity",
+      "label": "Validity description",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Issue details",
+      "key": "area",
+      "label": "Area covered",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "forecaster",
+      "label": "Forecaster on duty",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "bulletinNumber",
+      "label": "Bulletin number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Bulletin",
+      "key": "level",
+      "label": "Colour level",
+      "options": [
+        "Green",
+        "Yellow",
+        "Amber",
+        "Red"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "notice",
+      "label": "Notice type",
+      "options": [
+        "Information",
+        "Advisory",
+        "Watch",
+        "Warning",
+        "All clear"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "synopsis",
+      "label": "Synopsis",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Conditions",
+      "key": "weather",
+      "label": "Weather",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Conditions",
+      "key": "seaState",
+      "label": "Sea state and wave heights (include units)",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Conditions",
+      "key": "visibility",
+      "label": "Visibility (include units)",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Conditions",
+      "key": "wind",
+      "label": "Wind direction, speed and gusts (include units)",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Astronomy",
+      "key": "highTides",
+      "label": "High tides (times)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "lowTides",
+      "label": "Low tides (times)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "sunrise",
+      "label": "Sunrise",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "sunset",
+      "label": "Sunset",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "moonrise",
+      "label": "Moonrise",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "moonset",
+      "label": "Moonset",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "lastMoonPhase",
+      "label": "Last moon phase and date",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Astronomy",
+      "key": "nextMoonPhase",
+      "label": "Next moon phase and date",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Impact and response",
+      "key": "likelihood",
+      "label": "Likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "impact",
+      "label": "Impact level",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "impacts",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "response",
+      "label": "Recommended response",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "nextUpdate",
+      "label": "Next update (Grenada)",
+      "type": "datetime-local",
+      "requiredOnPublish": false
+    }
+  ],
+  "flood": [
+    {
+      "section": "Issue details",
+      "key": "issuedAt",
+      "label": "Issue date and time (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validFrom",
+      "label": "Valid from (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validTo",
+      "label": "Valid until (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validity",
+      "label": "Validity description",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Issue details",
+      "key": "area",
+      "label": "Area covered",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "forecaster",
+      "label": "Forecaster on duty",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "bulletinNumber",
+      "label": "Bulletin number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Bulletin",
+      "key": "level",
+      "label": "Colour level",
+      "options": [
+        "Green",
+        "Yellow",
+        "Amber",
+        "Red"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "notice",
+      "label": "Notice type",
+      "options": [
+        "Information",
+        "Advisory",
+        "Watch",
+        "Warning",
+        "All clear"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "synopsis",
+      "label": "Synopsis",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Conditions",
+      "key": "rainfall",
+      "label": "Expected rainfall, duration and units",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Conditions",
+      "key": "flooding",
+      "label": "Flood-prone areas / river conditions",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Impact and response",
+      "key": "likelihood",
+      "label": "Likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "impact",
+      "label": "Impact level",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "impacts",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "response",
+      "label": "Recommended response",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "nextUpdate",
+      "label": "Next update (Grenada)",
+      "type": "datetime-local",
+      "requiredOnPublish": false
+    }
+  ],
+  "thunderstorm": [
+    {
+      "section": "Issue details",
+      "key": "issuedAt",
+      "label": "Issue date and time (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validFrom",
+      "label": "Valid from (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validTo",
+      "label": "Valid until (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validity",
+      "label": "Validity description",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Issue details",
+      "key": "area",
+      "label": "Area covered",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "forecaster",
+      "label": "Forecaster on duty",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "bulletinNumber",
+      "label": "Bulletin number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Bulletin",
+      "key": "level",
+      "label": "Colour level",
+      "options": [
+        "Green",
+        "Yellow",
+        "Amber",
+        "Red"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "notice",
+      "label": "Notice type",
+      "options": [
+        "Information",
+        "Advisory",
+        "Watch",
+        "Warning",
+        "All clear"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "synopsis",
+      "label": "Synopsis",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Conditions",
+      "key": "storms",
+      "label": "Storm timing, coverage and intensity",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Conditions",
+      "key": "hazards",
+      "label": "Lightning, gusts, hail and rainfall",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Impact and response",
+      "key": "likelihood",
+      "label": "Likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "impact",
+      "label": "Impact level",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "impacts",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "response",
+      "label": "Recommended response",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "nextUpdate",
+      "label": "Next update (Grenada)",
+      "type": "datetime-local",
+      "requiredOnPublish": false
+    }
+  ],
+  "wind": [
+    {
+      "section": "Issue details",
+      "key": "issuedAt",
+      "label": "Issue date and time (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validFrom",
+      "label": "Valid from (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validTo",
+      "label": "Valid until (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validity",
+      "label": "Validity description",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Issue details",
+      "key": "area",
+      "label": "Area covered",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "forecaster",
+      "label": "Forecaster on duty",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "bulletinNumber",
+      "label": "Bulletin number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Bulletin",
+      "key": "level",
+      "label": "Colour level",
+      "options": [
+        "Green",
+        "Yellow",
+        "Amber",
+        "Red"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "notice",
+      "label": "Notice type",
+      "options": [
+        "Information",
+        "Advisory",
+        "Watch",
+        "Warning",
+        "All clear"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "synopsis",
+      "label": "Synopsis",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Conditions",
+      "key": "wind",
+      "label": "Wind direction, sustained speed and gusts (include units)",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "likelihood",
+      "label": "Likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "impact",
+      "label": "Impact level",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "impacts",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "response",
+      "label": "Recommended response",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "nextUpdate",
+      "label": "Next update (Grenada)",
+      "type": "datetime-local",
+      "requiredOnPublish": false
+    }
+  ],
+  "heat": [
+    {
+      "section": "Issue details",
+      "key": "issuedAt",
+      "label": "Issue date and time (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validFrom",
+      "label": "Valid from (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validTo",
+      "label": "Valid until (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validity",
+      "label": "Validity description",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Issue details",
+      "key": "area",
+      "label": "Area covered",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "forecaster",
+      "label": "Forecaster on duty",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "bulletinNumber",
+      "label": "Bulletin number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Bulletin",
+      "key": "level",
+      "label": "Colour level",
+      "options": [
+        "Green",
+        "Yellow",
+        "Orange",
+        "Red"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "notice",
+      "label": "Notice type",
+      "options": [
+        "Outlook",
+        "Watch",
+        "Warning",
+        "Information",
+        "All clear"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "synopsis",
+      "label": "Synopsis",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Heat assessment",
+      "key": "eventType",
+      "label": "Event classification",
+      "options": [
+        "Hot Spell",
+        "Heatwave"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Heat assessment",
+      "key": "assessmentBasis",
+      "label": "Assessment basis",
+      "options": [
+        "Observed",
+        "Forecast",
+        "Observed and forecast"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Heat assessment",
+      "key": "maxTemperature",
+      "label": "Expected daytime maximum (°C)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Heat assessment",
+      "key": "minTemperature",
+      "label": "Expected nighttime minimum (°C)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Heat assessment",
+      "key": "observedMax",
+      "label": "Observed daytime maximum (°C)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Heat assessment",
+      "key": "observedMin",
+      "label": "Observed nighttime minimum (°C)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Heat assessment",
+      "key": "consecutiveDays",
+      "label": "Consecutive days",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Heat assessment",
+      "key": "nightThreshold",
+      "label": "Approved nighttime 90th-percentile threshold (°C)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Heat assessment",
+      "key": "thresholdBasis",
+      "label": "Threshold reference period, season and station / area",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Heat assessment",
+      "key": "nightRecovery",
+      "label": "Nighttime recovery assessment",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Supporting guidance",
+      "key": "healthGuidance",
+      "label": "Supporting heat-health / activity guidance",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Impact and response",
+      "key": "likelihood",
+      "label": "Likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "impact",
+      "label": "Impact level",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "impacts",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "response",
+      "label": "Recommended response",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "nextUpdate",
+      "label": "Next update (Grenada)",
+      "type": "datetime-local",
+      "requiredOnPublish": false
+    }
+  ],
+  "dust": [
+    {
+      "section": "Issue details",
+      "key": "issuedAt",
+      "label": "Issue date and time (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validFrom",
+      "label": "Valid from (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validTo",
+      "label": "Valid until (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validity",
+      "label": "Validity description",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Issue details",
+      "key": "area",
+      "label": "Area covered",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "forecaster",
+      "label": "Forecaster on duty",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "bulletinNumber",
+      "label": "Bulletin number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Bulletin",
+      "key": "level",
+      "label": "Colour level",
+      "options": [
+        "Green",
+        "Yellow",
+        "Amber",
+        "Red"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "notice",
+      "label": "Notice type",
+      "options": [
+        "Information",
+        "Advisory",
+        "Watch",
+        "Warning",
+        "All clear"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "synopsis",
+      "label": "Synopsis",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Conditions",
+      "key": "dust",
+      "label": "Dust / haze concentration and extent",
+      "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Conditions",
+      "key": "visibility",
+      "label": "Visibility (include units)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Impact and response",
+      "key": "likelihood",
+      "label": "Likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "impact",
+      "label": "Impact level",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "impacts",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "response",
+      "label": "Recommended response",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "nextUpdate",
+      "label": "Next update (Grenada)",
+      "type": "datetime-local",
+      "requiredOnPublish": false
+    }
+  ],
+  "coastal": [
+    {
+      "section": "Issue details",
+      "key": "issuedAt",
+      "label": "Issue date and time (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validFrom",
+      "label": "Valid from (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validTo",
+      "label": "Valid until (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validity",
+      "label": "Validity description",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Issue details",
+      "key": "area",
+      "label": "Area covered",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "forecaster",
+      "label": "Forecaster on duty",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "bulletinNumber",
+      "label": "Bulletin number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Bulletin",
+      "key": "level",
+      "label": "Colour level",
+      "options": [
+        "Green",
+        "Yellow",
+        "Amber",
+        "Red"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "notice",
+      "label": "Notice type",
+      "options": [
+        "Information",
+        "Advisory",
+        "Watch",
+        "Warning",
+        "All clear"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "synopsis",
+      "label": "Synopsis",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Conditions",
+      "key": "swell",
+      "label": "Swell height, period and direction (include units)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Conditions",
+      "key": "surge",
+      "label": "Surge / coastal inundation (include units)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Conditions",
+      "key": "tides",
+      "label": "High tides and affected coastlines",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Impact and response",
+      "key": "likelihood",
+      "label": "Likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "impact",
+      "label": "Impact level",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "impacts",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "response",
+      "label": "Recommended response",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "nextUpdate",
+      "label": "Next update (Grenada)",
+      "type": "datetime-local",
+      "requiredOnPublish": false
+    }
+  ],
+  "tsunami": [
+    {
+      "section": "Issue details",
+      "key": "issuedAt",
+      "label": "Issue date and time (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validFrom",
+      "label": "Valid from (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validTo",
+      "label": "Valid until (Grenada)",
+      "type": "datetime-local",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "validity",
+      "label": "Validity description",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Issue details",
+      "key": "area",
+      "label": "Area covered",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Issue details",
+      "key": "forecaster",
+      "label": "Forecaster on duty",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "bulletinNumber",
+      "label": "Bulletin number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Bulletin",
+      "key": "level",
+      "label": "Colour level",
+      "options": [
+        "Green",
+        "Yellow",
+        "Amber",
+        "Red"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "notice",
+      "label": "Notice type",
+      "options": [
+        "Information",
+        "Advisory",
+        "Watch",
+        "Warning",
+        "All clear"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Bulletin",
+      "key": "synopsis",
+      "label": "Synopsis",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Conditions",
+      "key": "source",
+      "label": "Event source / official bulletin reference",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Conditions",
+      "key": "eventTime",
+      "label": "Event date and time (include time zone)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Conditions",
+      "key": "location",
+      "label": "Event location and magnitude",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Conditions",
+      "key": "arrival",
+      "label": "Expected arrival times (include time zone)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Conditions",
+      "key": "waveHeight",
+      "label": "Expected wave heights (include units)",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Impact and response",
+      "key": "likelihood",
+      "label": "Likelihood",
+      "options": [
+        "Very low",
+        "Low",
+        "Medium",
+        "High"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "impact",
+      "label": "Impact level",
+      "options": [
+        "Minimal",
+        "Minor",
+        "Significant",
+        "Severe"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "impacts",
+      "label": "Expected impacts",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "response",
+      "label": "Recommended response",
+      "type": "textarea",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Impact and response",
+      "key": "nextUpdate",
+      "label": "Next update (Grenada)",
+      "type": "datetime-local",
+      "requiredOnPublish": false
+    }
+  ]
+}

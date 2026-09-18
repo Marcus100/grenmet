@@ -52,7 +52,12 @@ export function WeatherDateNav({ days }: { days: ForecastDay[] }) {
                   isSunny ? "text-gm-lime-ink" : "text-gm-text-muted"
                 )}
                 strokeWidth={1.6}
-                style={{ visibility: day.high === null ? "hidden" : "visible" }}
+                style={{
+                  visibility:
+                    day.high === null && day.low === null
+                      ? "hidden"
+                      : "visible",
+                }}
               />
               <span className="text-caption leading-caption">
                 <span

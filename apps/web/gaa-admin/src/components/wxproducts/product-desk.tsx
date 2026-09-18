@@ -6,11 +6,11 @@ import {
   grenadaDate,
   ISSUE_TIMES,
   isBulletin,
+  isForecastKind,
   type ProductKind,
   type ProductValues,
   productTitle,
   type StoredProduct,
-  validateProduct,
 } from "@barrelsgd/gms/products";
 import {
   AlertDialog,
@@ -37,11 +37,14 @@ import { useEffect, useState, useTransition } from "react";
 import {
   loadProductHistoryAction,
   loadProductsAction,
+  previewProductAction,
   saveProductAction,
 } from "@/app/(admin)/wxproducts/product-actions";
 import { ProductPdfPreview } from "@/components/wxproducts/product-pdf-preview";
 import { bulletinExample } from "@/lib/wxproducts/bulletin-examples";
 import { visibleProductFields } from "@/lib/wxproducts/visible-fields";
+
+import { CapForecastPicker } from "./cap-forecast-picker";
 
 interface HistoryItem {
   action: string;
@@ -50,6 +53,7 @@ interface HistoryItem {
   createdAt: string;
   revision: number;
 }
+const EVENING_DAY_DATE = /^day[1-4]Date$/;
 function ProductEditor({
   kind,
   initial,
@@ -84,9 +88,14 @@ function ProductEditor({
   const [message, setMessage] = useState("");
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [pending, startTransition] = useTransition();
-  const form = useForm({
-    defaultValues: initial?.values ?? emptyProduct(kind, issueDate, issueTime),
-  });
+  const [defaultValues, setDefaultValues] = useState(
+    () => initial?.values ?? emptyProduct(kind, issueDate, issueTime)
+  );
+  const form = useForm({ defaultValues });
+  function replaceValues(values: ProductValues) {
+    setDefaultValues(values);
+    form.reset(values);
+  }
   const fields = visibleProductFields(kind);
   const sections = [...new Set(fields.map((f) => f.section))];
   async function save(
@@ -109,7 +118,7 @@ function ProductEditor({
     setRevision(result.product.revision);
     setPublishedRevision(result.product.publishedRevision);
     setBaseline(JSON.stringify(result.product.values));
-    if (action === "withdraw") form.reset(result.product.values);
+    replaceValues(result.product.values);
     setPreview(null);
     setReviewed(false);
     setChangeSummary("");
@@ -138,15 +147,34 @@ function ProductEditor({
     });
   }
   function review(values: ProductValues) {
-    const errors = validateProduct({ kind, values }, true);
-    if (errors.length) {
-      setMessage(errors.join("\n"));
-      setPreview(null);
-      return;
-    }
-    setMessage("");
+    setPreview(null);
     setReviewed(false);
-    setPreview(structuredClone(values));
+    onBusy(true);
+    const submitted = JSON.stringify(values);
+    startTransition(async () => {
+      try {
+        const result = await previewProductAction({
+          kind,
+          values,
+          expectedRevision: revision,
+          changeSummary,
+        });
+        if (JSON.stringify(form.state.values) !== submitted) return;
+        if (!result.ok) {
+          setMessage(result.error);
+          return;
+        }
+        if (result.preview.errors.length) {
+          setMessage(result.preview.errors.join("\n"));
+          return;
+        }
+        replaceValues(result.preview.values);
+        setMessage("");
+        setPreview(result.preview.values);
+      } finally {
+        onBusy(false);
+      }
+    });
   }
   return (
     <form.Subscribe selector={(s) => s.values}>
@@ -184,7 +212,7 @@ function ProductEditor({
                 {isBulletin(kind) && revision === 0 ? (
                   <Button
                     onClick={() => {
-                      form.reset(bulletinExample(kind, issueDate));
+                      replaceValues(bulletinExample(kind, issueDate));
                       setMessage(
                         "Illustrative draft loaded. Replace the example wording and review before issuing."
                       );
@@ -220,6 +248,23 @@ function ProductEditor({
                     className="space-y-4"
                     disabled={pending || disabled}
                   >
+                    {isForecastKind(kind) ? (
+                      <CapForecastPicker
+                        evening={kind === "evening"}
+                        onInsert={(target, text) => {
+                          const appended = [values[target], text]
+                            .filter(Boolean)
+                            .join("\n\n");
+                          if (appended.length > 12_000)
+                            throw new Error(
+                              "This would exceed the forecast field limit. Select less text or shorten the existing forecast."
+                            );
+                          form.setFieldValue(target, appended);
+                          setReviewed(false);
+                          setPreview(null);
+                        }}
+                      />
+                    ) : null}
                     {sections.map((section) => (
                       <section
                         className="space-y-4 rounded-xl border bg-card p-4"
@@ -283,6 +328,16 @@ function ProductEditor({
                                           onChange={(e) =>
                                             input.handleChange(e.target.value)
                                           }
+                                          readOnly={
+                                            isForecastKind(kind) &&
+                                            ([
+                                              "issuedAt",
+                                              "validFrom",
+                                              "validTo",
+                                              "validity",
+                                            ].includes(f.key) ||
+                                              EVENING_DAY_DATE.test(f.key))
+                                          }
                                           step={
                                             f.type === "number"
                                               ? "any"
@@ -303,6 +358,9 @@ function ProductEditor({
                     <p className="text-muted-foreground text-sm">
                       * Required to publish. All issue and validity times use
                       Grenada time (UTC−04:00).
+                      {isForecastKind(kind)
+                        ? " Coverage is calculated from the selected issue date. Early publications appear at their scheduled issue time. Warnings are supplied separately through CAP."
+                        : ""}
                     </p>
                     <Field>
                       <FieldLabel htmlFor="change-summary">
@@ -406,7 +464,11 @@ function ProductEditor({
                 ) : null}
               </div>
               <aside className="@4xl:sticky @4xl:top-4 min-w-0">
-                <ProductPdfPreview content={{ kind, values }} />
+                <ProductPdfPreview
+                  content={{ kind, values }}
+                  dirty={dirty}
+                  saved={{ id, revision, publishedRevision }}
+                />
               </aside>
             </div>
           </div>

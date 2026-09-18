@@ -1,7 +1,7 @@
 "use client";
 
+import type { WeatherImage } from "@barrelsgd/api-client";
 import Image from "next/image";
-import type { WeatherImage } from "@/db/wxwatch/schema";
 import { getImageUrl } from "@/lib/wxwatch/utils";
 
 interface ImageRowProps {
@@ -96,7 +96,9 @@ function SynopticImageSlot({
         fill
         sizes="(max-width: 640px) 50vw, (max-width: 1280px) 25vw, 12.5vw"
         src={imageUrl}
-        unoptimized={image.fileFormat === "gif" || imageUrl.startsWith("/api/")}
+        unoptimized={
+          image.fileFormat === "gif" || imageUrl.startsWith("/_backend/")
+        }
       />
       {/* Time label overlay */}
       <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/70 to-transparent p-2 text-left">

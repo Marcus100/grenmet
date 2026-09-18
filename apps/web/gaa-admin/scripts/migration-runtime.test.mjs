@@ -1,3 +1,5 @@
+const FASTAPI_OWNER = /owned by FastAPI/;
+
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
@@ -12,8 +14,6 @@ for (const domain of ["WXWATCH", "WXPRODUCTS", "TRANSPORT", "JANITORIAL"]) {
   environment[`${domain}_DATABASE_URL`] = "";
 }
 for (const [script, domain] of [
-  ["migrate-wxwatch", "WXWATCH"],
-  ["migrate-wxproducts", "WXPRODUCTS"],
   ["migrate-transport", "TRANSPORT"],
   ["migrate-janitorial", "JANITORIAL"],
   ["seed-transport", "TRANSPORT"],
@@ -35,7 +35,7 @@ for (const [script, domain] of [
   });
 }
 
-for (const domain of ["wxwatch", "wxproducts", "transport", "janitorial"]) {
+for (const domain of ["wxwatch", "transport", "janitorial"]) {
   test(`${domain} migration journal and SQL files are packaged`, () => {
     const migrations = readMigrationFiles({
       migrationsFolder: fileURLToPath(
@@ -46,3 +46,23 @@ for (const domain of ["wxwatch", "wxproducts", "transport", "janitorial"]) {
     assert.ok(migrations.every((migration) => migration.sql.length > 0));
   });
 }
+
+test("retired weather migration entrypoint cannot write", () => {
+  const result = spawnSync(
+    process.execPath,
+    [fileURLToPath(new URL("./migrate-wxproducts.mjs", import.meta.url))],
+    { env: environment, encoding: "utf8" }
+  );
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, FASTAPI_OWNER);
+});
+
+test("retired wxwatch migration entrypoint cannot write", () => {
+  const result = spawnSync(
+    process.execPath,
+    [fileURLToPath(new URL("./migrate-wxwatch.mjs", import.meta.url))],
+    { env: environment, encoding: "utf8" }
+  );
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, FASTAPI_OWNER);
+});

@@ -1,7 +1,7 @@
 import { PostHogProvider } from "@barrelsgd/ui/components/posthog-provider";
 import { allHurricanepages } from "content-collections";
 import type { Metadata } from "next";
-import { Inter, Noto_Sans } from "next/font/google";
+import { Noto_Sans } from "next/font/google";
 
 import { Providers } from "@/app/providers";
 import { Layout } from "@/components/Layout";
@@ -13,12 +13,6 @@ import "@/styles/tailwind.css";
 const notoSans = Noto_Sans({
   subsets: ["latin"],
   variable: "--font-noto-sans",
-  display: "swap",
-});
-
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
   display: "swap",
 });
 
@@ -51,7 +45,7 @@ export default function RootLayout({
 
   return (
     <html
-      className={`${inter.variable} ${notoSans.variable} h-full`}
+      className={`${notoSans.variable} h-full`}
       lang="en"
       style={{ colorScheme: "light" }}
       suppressHydrationWarning

@@ -29,7 +29,7 @@ SELECT pg_advisory_unlock(73190507);
 SQL
 }
 
-for domain in APP WXWATCH WXPRODUCTS JANITORIAL TRANSPORT CMS; do
+for domain in APP WXWATCH WXPRODUCTS EREGISTER JANITORIAL TRANSPORT CMS; do
   user_key="${domain}_DB_USER"; password_key="${domain}_DB_PASSWORD"; name_key="${domain}_DB_NAME"
   if [[ -z "${!user_key:-}${!password_key:-}${!name_key:-}" ]]; then
     echo "$domain: unconfigured"

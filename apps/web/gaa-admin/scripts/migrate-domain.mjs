@@ -22,6 +22,10 @@ export function verifyHistory(applied, committed) {
 }
 
 export async function migrateDomain(domain) {
+  if (domain === "wxproducts" || domain === "wxwatch")
+    throw new Error(
+      `Domain migrations are owned by FastAPI; run alembic -c src/${domain}/alembic.ini upgrade head from apps/api/fastapi`
+    );
   const pool = new pg.Pool(databaseConfig(domain));
   let client;
   try {

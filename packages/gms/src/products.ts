@@ -18,6 +18,9 @@ export const PRODUCT_KINDS = {
   ...BULLETIN_CATEGORIES,
 } as const;
 export type ProductKind = keyof typeof PRODUCT_KINDS;
+export function isForecastKind(kind: ProductKind) {
+  return kind === "morning" || kind === "midday" || kind === "evening";
+}
 export type ProductValues = Record<string, string>;
 export interface ProductField {
   key: string;
@@ -55,6 +58,7 @@ export function productTitle(kind: ProductKind) {
 }
 const levels = ["Minimal", "Minor", "Significant", "Severe"];
 const likelihoods = ["Very low", "Low", "Medium", "High"];
+const DAY_ALERT_FIELD = /^day[1-4](Alerts|Impact|Response)$/;
 function field(
   section: string,
   key: string,
@@ -143,15 +147,12 @@ function forecastFields(kind: ProductKind): ProductField[] {
     ...astronomy,
     field("Risk assessment", "likelihood", "Overall likelihood", {
       options: likelihoods,
-      required: true,
     }),
     field("Risk assessment", "impact", "Overall impact", {
       options: levels,
-      required: true,
     }),
     field("Risk assessment", "response", "Overall response", {
       type: "textarea",
-      required: true,
     }),
     field("Word of the day", "word", "Term"),
     field("Word of the day", "definition", "Meaning", { type: "textarea" }),
@@ -198,6 +199,8 @@ function forecastFields(kind: ProductKind): ProductField[] {
             }),
             field(section, `${prefix}Sunrise`, "Sunrise"),
             field(section, `${prefix}Sunset`, "Sunset"),
+            field(section, `${prefix}HighTides`, "High tides (times)"),
+            field(section, `${prefix}LowTides`, "Low tides (times)"),
           ];
         }).flat()
       : []),
@@ -452,6 +455,80 @@ export function followingDate(date: string, days: number) {
     .toISOString()
     .slice(0, 10);
 }
+
+/** Forecast issue and coverage boundaries in Grenada local time (UTC−04:00). */
+export function forecastSchedule(kind: ProductKind, date: string) {
+  if (
+    !(isForecastKind(kind) && Number.isFinite(localDateTime(`${date}T07:00`)))
+  )
+    return null;
+  const issuedAt = `${date}T${ISSUE_TIMES[kind]?.[0]}`;
+  const periods = [
+    {
+      date,
+      prefix: "",
+      label: kind === "evening" ? "Tonight" : productTitle(kind),
+      validFrom: issuedAt,
+      validTo: `${followingDate(date, 1)}T07:00`,
+    },
+  ];
+  if (kind === "evening") {
+    for (let day = 1; day <= 4; day++) {
+      periods.push({
+        date: followingDate(date, day),
+        prefix: `day${day}`,
+        label: `Day ${day}`,
+        validFrom: `${followingDate(date, day)}T07:00`,
+        validTo: `${followingDate(date, day + 1)}T07:00`,
+      });
+    }
+  }
+  return {
+    issuedAt,
+    validFrom: issuedAt,
+    validTo: periods.at(-1)?.validTo ?? `${followingDate(date, 1)}T07:00`,
+    periods,
+  };
+}
+
+export function withForecastSchedule(
+  kind: ProductKind,
+  values: ProductValues
+): ProductValues {
+  const schedule = forecastSchedule(kind, values.issuedAt?.slice(0, 10));
+  if (!schedule) return values;
+  const result: ProductValues = {
+    ...values,
+    issuedAt: schedule.issuedAt,
+    validFrom: schedule.validFrom,
+    validTo: schedule.validTo,
+    validity:
+      kind === "evening"
+        ? "Tonight (18:00–07:00) and four following days (07:00–07:00)"
+        : kind === "morning"
+          ? "Today and tonight (07:00–07:00)"
+          : "This afternoon and tonight (12:00–07:00)",
+  };
+  for (const period of schedule.periods) {
+    if (period.prefix) result[`${period.prefix}Date`] = period.date;
+  }
+  return result;
+}
+
+/** Legacy forecast assessments remain stored; CAP is the warning source. */
+export function isForecastAlertField(field: ProductField) {
+  return (
+    field.section.endsWith(" impacts") ||
+    field.section === "Risk assessment" ||
+    ["weatherAlert", "windAlert", "marineAlert"].includes(field.key) ||
+    DAY_ALERT_FIELD.test(field.key)
+  );
+}
+export function displayProductFields(kind: ProductKind) {
+  return productFields(kind).filter(
+    (f) => !(isForecastKind(kind) && isForecastAlertField(f))
+  );
+}
 export function emptyProduct(
   kind: ProductKind,
   date = grenadaDate(),
@@ -484,7 +561,7 @@ export function emptyProduct(
       values[`day${day}Date`] = followingDate(date, day);
     values.validity = "Tonight and the following four days";
   }
-  return values;
+  return withForecastSchedule(kind, values);
 }
 const LOCAL_DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 /** Grenada uses UTC−04:00 year round. Reject malformed calendar values. */
@@ -497,68 +574,12 @@ export function localDateTime(value: string): number {
     ? time
     : Number.NaN;
 }
-export function validateProduct(
-  content: ProductContent,
-  publish: boolean
-): string[] {
-  const errors: string[] = [];
-  const { values, kind } = content;
-  for (const f of productFields(kind)) {
-    const value = values[f.key]?.trim() ?? "";
-    if (publish && f.required && !value)
-      errors.push(`${f.section}: ${f.label} is required`);
-    if (value && f.options && !f.options.includes(value))
-      errors.push(`${f.label}: select a listed option`);
-    if (
-      value &&
-      f.type === "datetime-local" &&
-      !Number.isFinite(localDateTime(value))
-    )
-      errors.push(`${f.label}: enter a valid date and time`);
-    if (value && f.type === "number" && !Number.isFinite(Number(value)))
-      errors.push(`${f.label}: enter a number`);
-  }
-  if (localDateTime(values.validTo) <= localDateTime(values.validFrom))
-    errors.push("Validity must end after it starts");
-  if (localDateTime(values.validTo) <= localDateTime(values.issuedAt))
-    errors.push("Validity must end after the issue time");
-  if (
-    values.nextUpdate &&
-    localDateTime(values.nextUpdate) <= localDateTime(values.issuedAt)
-  )
-    errors.push("Next update must follow the issue time");
-  if (
-    kind === "evening" &&
-    publish &&
-    Number.isFinite(localDateTime(values.issuedAt))
-  ) {
-    const issueDay = values.issuedAt.slice(0, 10);
-    for (let day = 1; day <= 4; day++) {
-      const expected = new Date(
-        Date.parse(`${issueDay}T12:00:00Z`) + day * 86_400_000
-      )
-        .toISOString()
-        .slice(0, 10);
-      if (values[`day${day}Date`] !== expected)
-        errors.push(`Day ${day} must be ${expected} (the following four days)`);
-      const min = values[`day${day}Min`];
-      const max = values[`day${day}Max`];
-      if (min && max && Number(min) > Number(max))
-        errors.push(`Day ${day}: minimum temperature exceeds maximum`);
-    }
-  }
-  if (
-    values.minTemperature &&
-    values.maxTemperature &&
-    Number(values.minTemperature) > Number(values.maxTemperature)
-  )
-    errors.push("Minimum temperature exceeds maximum");
-  return errors;
-}
 export function isCurrentProduct(product: PublishedProduct, now = Date.now()) {
+  const values = withForecastSchedule(product.kind, product.values);
   return (
-    localDateTime(product.values.issuedAt) <= now &&
-    localDateTime(product.values.validFrom) <= now &&
-    localDateTime(product.values.validTo) > now
+    Date.parse(product.publishedAt) <= now &&
+    localDateTime(values.issuedAt) <= now &&
+    localDateTime(values.validFrom) <= now &&
+    localDateTime(values.validTo) > now
   );
 }

@@ -58,4 +58,5 @@ class ImageItem(scrapy.Item):
     # ═══════════════════════════════════════════════════════════════════
     # ANALYSIS: Raw Scrape Data
     # ═══════════════════════════════════════════════════════════════════
+    time_basis = scrapy.Field()
     raw_metadata = scrapy.Field()  # Dict of HTTP headers, server info, etc.

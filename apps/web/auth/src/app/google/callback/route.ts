@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
+import { env } from "@/lib/env";
 import { googleComplete, modernCookieOptions } from "@/lib/modern-auth";
 
 export async function GET(request: NextRequest) {
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
       browser_binding: createHash("sha256").update(binding).digest("hex"),
     });
     jar.set("google_challenge", result.challenge, modernCookieOptions);
-    const destination = new URL("/google/confirm", request.url);
+    const destination = new URL("/google/confirm", env.AUTH_APP_URL);
     destination.searchParams.set("mfa", result.requires_totp ? "1" : "0");
     return NextResponse.redirect(destination);
   } catch {

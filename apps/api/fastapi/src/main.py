@@ -16,6 +16,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 
+from src.auth.browser import router as browser_auth_router
 from src.auth.modern import router as modern_auth_router
 from src.auth.routers.login import router as login_router
 from src.auth.routers.permissions import router as permissions_router
@@ -29,6 +30,8 @@ from src.billing.router import router as billing_router
 from src.cap.router import public_router as cap_public_router
 from src.cap.router import router as cap_router
 from src.config import settings
+from src.eregister import database as eregister_database
+from src.eregister.router import router as eregister_router
 from src.exceptions import (
     AppException,
     app_exception_handler,
@@ -57,6 +60,11 @@ from src.storage.router import router as weather_images_router
 from src.telemetry import sentry_options
 from src.utils.router import router as utils_router
 from src.webhooks.router import router as webhooks_router
+from src.wxproducts import database as wxproducts_database
+from src.wxproducts.router import router as wxproducts_router
+from src.wxwatch import database as wxwatch_database
+from src.wxwatch.ingestion import router as wxwatch_ingestion_router
+from src.wxwatch.router import router as wxwatch_router
 
 configure_logging()
 
@@ -76,8 +84,12 @@ SHOW_DOCS_ENVIRONMENTS = ("local", "staging")
 async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
     """Lifespan context manager for startup and shutdown (preferred over on_event)."""
     # Startup
-    yield
-    # Shutdown (e.g. close pools, flush logs)
+    try:
+        yield
+    finally:
+        await wxproducts_database.close_engine()
+        await eregister_database.close_engine()
+        await wxwatch_database.close_engine()
 
 
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
@@ -176,6 +188,11 @@ app.include_router(cap_public_router)
 app.include_router(utils_router, prefix="/api/v1")
 app.include_router(weather_images_router, prefix="/api/v1")
 app.include_router(webhooks_router, prefix="/api/v1")
+app.include_router(wxproducts_router, prefix=settings.API_V1_STR)
+app.include_router(eregister_router, prefix=settings.API_V1_STR)
+app.include_router(wxwatch_router, prefix=settings.API_V1_STR)
+app.include_router(wxwatch_ingestion_router, prefix=settings.API_V1_STR)
+app.include_router(browser_auth_router, prefix=settings.API_V1_STR)
 
 # Register exception handlers
 app.add_exception_handler(AppException, app_exception_handler)  # type: ignore[arg-type]

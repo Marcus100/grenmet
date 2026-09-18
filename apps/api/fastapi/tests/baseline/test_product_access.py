@@ -39,6 +39,9 @@ async def test_grade_policy_changes_apply_immediately_and_stay_product_specific(
         db_async.add(employment)
         await db_async.flush()
         assert bool(await product_access.allowed_kinds(db_async, staff)) == allowed
+        assert (
+            "aviation" in await product_access.allowed_kinds(db_async, staff)
+        ) == allowed
 
     employment.grade_id = "GMS_MID_TECH"
     db_async.add(employment)
@@ -78,7 +81,9 @@ async def test_grade_policy_changes_apply_immediately_and_stay_product_specific(
     grade.is_active = False
     assert await product_access.allowed_kinds(db_async, staff) == []
     admin.is_active = True
-    assert len(await product_access.allowed_kinds(db_async, admin)) == 13
+    assert len(await product_access.allowed_kinds(db_async, admin)) == len(
+        product_access.PRODUCT_KINDS
+    )
 
 
 @pytest.mark.asyncio
@@ -102,7 +107,9 @@ async def test_policy_api_is_admin_only_and_rejects_unknown_products_and_grades(
         )
         assert response.status_code == 400
     response = await async_client.get(url, headers=superuser_token_headers_async)
-    assert response.status_code == 200 and len(response.json()) == 13
+    assert response.status_code == 200 and len(response.json()) == len(
+        product_access.PRODUCT_KINDS
+    )
     response = await async_client.get(
         "/api/v1/hr/product-access/me", headers=normal_user_token_headers_async
     )

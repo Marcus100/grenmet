@@ -13,7 +13,7 @@ module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 with tempfile.TemporaryDirectory() as directory:
     env = Path(directory) / ".env.local"
-    env.write_text("DB_HOST=10.10.0.5\\nDB_NAME=wxwatch_staging\\nDB_USER=wxwatch\\nDB_PASSWORD=test\\nSTORAGE_ENDPOINT_URL=https://example.test\\nSTORAGE_BUCKET=staging\\nSTORAGE_ACCESS_KEY_ID=test\\nSTORAGE_SECRET_ACCESS_KEY=test\\n")
+    env.write_text("WXWATCH_API_URL=https://api.example.test/api/v1/wxwatch\\nWXWATCH_INGEST_TOKEN=abcdefghijklmnopqrstuvwxyz1234567890\\nSTORAGE_ENDPOINT_URL=https://example.test\\nSTORAGE_BUCKET=staging\\nSTORAGE_ACCESS_KEY_ID=test\\nSTORAGE_SECRET_ACCESS_KEY=test\\n")
     env.chmod(0o600)
     good = dict(enabled=True, image="ghcr.io/example/wxwatch@sha256:" + "a" * 64, env_file=str(env), kind="wxwatch", args=["goes19"])
     prefix, image, args = module.command("goes19", good)
@@ -25,13 +25,13 @@ with tempfile.TemporaryDirectory() as directory:
             pass
         else:
             raise AssertionError("unsafe/unconfigured job accepted")
-    env.write_text(env.read_text().replace("10.10.0.5", "167.71.24.42"))
+    env.write_text(env.read_text().replace("https://api.example.test", "http://api.example.test"))
     try:
         module.command("goes19", good)
     except ValueError:
         pass
     else:
-        raise AssertionError("public database accepted")
+        raise AssertionError("insecure archive API accepted")
 `,
   ]);
 });
