@@ -47,9 +47,9 @@ CAP operations rely on permission keys:
 | `cap.alert.read` | Read CAP alert records and audit events |
 | `cap.alert.create` | Create or duplicate alerts |
 | `cap.alert.edit` | Edit draft, submitted, or approved alerts |
-| `cap.alert.submit` | Move draft alerts to submitted |
-| `cap.alert.approve` | Approve submitted alerts |
-| `cap.alert.publish` | Publish, cancel, or expire alerts |
+| `cap.alert.submit` | Move draft alerts to submitted (optional review step, not required before publish — ADR-0013) |
+| `cap.alert.approve` | Approve submitted alerts (optional review step, not required before publish — ADR-0013) |
+| `cap.alert.publish` | Publish (from draft, submitted, or approved), cancel, or expire alerts |
 | `cap.settings.manage` | Manage CAP settings and predefined areas |
 | `cap.integrations.manage` | Read integration and job-event state |
 

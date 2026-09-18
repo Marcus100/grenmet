@@ -4,6 +4,7 @@ import {
   type CapAlertPublic,
   capAlertListPublicSchema,
 } from "@barrelsgd/api-client";
+import type { CapInsertTarget } from "@barrelsgd/gms/products";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { useId, useState } from "react";
 
@@ -21,17 +22,17 @@ async function loadAlerts() {
 }
 
 export function CapForecastPicker({
-  evening,
+  targets,
   onInsert,
 }: {
-  evening: boolean;
+  targets: CapInsertTarget[];
   onInsert: (target: string, text: string) => void;
 }) {
   const id = useId();
   const [alerts, setAlerts] = useState<CapAlertPublic[]>([]);
   const [selection, setSelection] = useState("");
   const [parts, setParts] = useState<Part[]>([]);
-  const [target, setTarget] = useState("summary");
+  const [target, setTarget] = useState(targets[0]?.value ?? "");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const options = alerts.flatMap((alert) =>
@@ -176,14 +177,11 @@ export function CapForecastPicker({
                 onChange={(event) => setTarget(event.target.value)}
                 value={target}
               >
-                <option value="summary">Forecast summary</option>
-                {evening
-                  ? [1, 2, 3, 4].map((day) => (
-                      <option key={day} value={`day${day}Weather`}>
-                        Day {day} weather
-                      </option>
-                    ))
-                  : null}
+                {targets.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
               </select>
               <Button
                 disabled={busy || !parts.length}

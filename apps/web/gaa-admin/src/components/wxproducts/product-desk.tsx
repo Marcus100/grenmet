@@ -2,6 +2,7 @@
 
 import { ProductContentView } from "@barrelsgd/gms/components/product-content";
 import {
+  capInsertTargets,
   emptyProduct,
   grenadaDate,
   ISSUE_TIMES,
@@ -194,7 +195,9 @@ function ProductEditor({
                     <AlertDialogTitle>Withdraw publication?</AlertDialogTitle>
                     <AlertDialogDescription>
                       This removes the published product from GMS. Its revision
-                      history remains.
+                      history remains. If this had an escalated CAP Alert,
+                      cancel it separately in CAP Admin — withdrawing here does
+                      not do that automatically.
                     </AlertDialogDescription>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -249,9 +252,8 @@ function ProductEditor({
                     className="space-y-4"
                     disabled={pending || disabled}
                   >
-                    {isForecastKind(kind) ? (
+                    {capInsertTargets(kind).length ? (
                       <CapForecastPicker
-                        evening={kind === "evening"}
                         onInsert={(target, text) => {
                           const appended = [values[target], text]
                             .filter(Boolean)
@@ -264,6 +266,7 @@ function ProductEditor({
                           setReviewed(false);
                           setPreview(null);
                         }}
+                        targets={capInsertTargets(kind)}
                       />
                     ) : null}
                     {sections.map((section) => (

@@ -61,6 +61,8 @@ const server = setupServer(
       submit: "SUBMITTED",
       approve: "APPROVED",
       publish: "PUBLISHED",
+      cancel: "CANCELLED",
+      expire: "EXPIRED",
     } as const;
     if (!(action in states)) return new HttpResponse(null, { status: 404 });
     alert = {
@@ -103,11 +105,11 @@ async function review() {
 it("validates and reviews each step through publication using the backend responses", async () => {
   show();
   expect(
-    await screen.findByRole("button", { name: "Submit for approval" })
+    await screen.findByRole("button", { name: "Request review" })
   ).toBeDisabled();
   expect(
-    screen.queryByRole("button", { name: "Publish CAP bulletin" })
-  ).not.toBeInTheDocument();
+    screen.getByRole("button", { name: "Publish CAP bulletin" })
+  ).toBeDisabled();
   await review();
   expect(
     screen.getByText("Warning: Check affected areas.")
@@ -115,12 +117,12 @@ it("validates and reviews each step through publication using the backend respon
   fireEvent.change(screen.getByLabelText("Workflow note"), {
     target: { value: "Reviewed" },
   });
-  fireEvent.click(screen.getByRole("button", { name: "Submit for approval" }));
+  fireEvent.click(screen.getByRole("button", { name: "Request review" }));
   expect(
-    await screen.findByRole("button", { name: "Approve alert" })
+    await screen.findByRole("button", { name: "Record approval" })
   ).toBeDisabled();
   await review();
-  fireEvent.click(screen.getByRole("button", { name: "Approve alert" }));
+  fireEvent.click(screen.getByRole("button", { name: "Record approval" }));
   expect(
     await screen.findByRole("button", { name: "Publish CAP bulletin" })
   ).toBeDisabled();
@@ -131,6 +133,14 @@ it("validates and reviews each step through publication using the backend respon
   expect(
     screen.queryByRole("button", { name: "Publish CAP bulletin" })
   ).not.toBeInTheDocument();
+});
+
+it("publishes straight from Draft without going through review", async () => {
+  show();
+  await review();
+  fireEvent.click(screen.getByRole("button", { name: "Publish CAP bulletin" }));
+  await screen.findByText("CAP state: PUBLISHED.");
+  expect(actions).toEqual(["publish"]);
 });
 
 it("shows validation errors and prevents submission", async () => {
@@ -148,8 +158,9 @@ it("shows validation errors and prevents submission", async () => {
     await screen.findByRole("button", { name: "Validate alert" })
   );
   await screen.findByText("Error: Expiry is required.");
+  expect(screen.getByRole("button", { name: "Request review" })).toBeDisabled();
   expect(
-    screen.getByRole("button", { name: "Submit for approval" })
+    screen.getByRole("button", { name: "Publish CAP bulletin" })
   ).toBeDisabled();
   expect(actions).toEqual([]);
 });
@@ -166,11 +177,30 @@ it("shows backend self-approval denial without advancing state", async () => {
   );
   show();
   await review();
-  fireEvent.click(screen.getByRole("button", { name: "Approve alert" }));
+  fireEvent.click(screen.getByRole("button", { name: "Record approval" }));
   await screen.findByText("Another authorised person must approve this alert");
   expect(
-    screen.queryByRole("button", { name: "Publish CAP bulletin" })
-  ).not.toBeInTheDocument();
+    screen.getByRole("button", { name: "Record approval" })
+  ).toBeInTheDocument();
+});
+
+it("cancels a published alert after confirming, and issuing a Cancel message", async () => {
+  alert.lifecycle_state = "PUBLISHED";
+  show();
+  fireEvent.click(await screen.findByRole("button", { name: "Cancel alert" }));
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Confirm cancellation" })
+  );
+  await screen.findByText("CAP state: CANCELLED.");
+  expect(actions).toEqual(["cancel"]);
+});
+
+it("marks a published alert expired without a confirmation dialog", async () => {
+  alert.lifecycle_state = "PUBLISHED";
+  show();
+  fireEvent.click(await screen.findByRole("button", { name: "Mark expired" }));
+  await screen.findByText("CAP state: EXPIRED.");
+  expect(actions).toEqual(["expire"]);
 });
 
 it("reloads state after a conflict without automatically repeating publication", async () => {
@@ -181,7 +211,9 @@ it("reloads state after a conflict without automatically repeating publication",
       attempts++;
       alert.lifecycle_state = "PUBLISHED";
       return HttpResponse.json(
-        { detail: "Only approved CAP alerts can be published." },
+        {
+          detail: "Only a draft, submitted or approved alert can be published.",
+        },
         { status: 409 }
       );
     })
@@ -189,7 +221,9 @@ it("reloads state after a conflict without automatically repeating publication",
   show();
   await review();
   fireEvent.click(screen.getByRole("button", { name: "Publish CAP bulletin" }));
-  await screen.findByText("Only approved CAP alerts can be published.");
+  await screen.findByText(
+    "Only a draft, submitted or approved alert can be published."
+  );
   await waitFor(() =>
     expect(
       screen.queryByRole("button", { name: "Publish CAP bulletin" })
@@ -207,6 +241,6 @@ it("does not expose actions when loading the alert fails", async () => {
   show();
   await screen.findByText("Permission denied");
   expect(
-    screen.queryByRole("button", { name: "Submit for approval" })
+    screen.queryByRole("button", { name: "Request review" })
   ).not.toBeInTheDocument();
 });

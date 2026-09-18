@@ -56,6 +56,46 @@ export function productTitle(kind: ProductKind) {
     ? `${PRODUCT_KINDS[kind]} Bulletin`
     : PRODUCT_KINDS[kind];
 }
+export interface CapInsertTarget {
+  label: string;
+  value: string;
+}
+/**
+ * Fields on this product kind that CAP text can be copied into. Forecast
+ * kinds carry `summary` (plus `dayNWeather` on evening); bulletins share the
+ * generic `Impact and response` fields from `productFields`; outlook has its
+ * own narrative fields. Empty for a kind with no sensible insertion point.
+ */
+export function capInsertTargets(kind: ProductKind): CapInsertTarget[] {
+  if (isForecastKind(kind)) {
+    const targets: CapInsertTarget[] = [
+      { label: "Forecast summary", value: "summary" },
+    ];
+    if (kind === "evening") {
+      for (let day = 1; day <= 4; day++) {
+        targets.push({
+          label: `Day ${day} weather`,
+          value: `day${day}Weather`,
+        });
+      }
+    }
+    return targets;
+  }
+  if (kind === "outlook") {
+    return [
+      { label: "Tropical waves and systems", value: "systems" },
+      { label: "Cyclone formation outlook", value: "formation" },
+    ];
+  }
+  if (isBulletin(kind)) {
+    return [
+      { label: "Synopsis", value: "synopsis" },
+      { label: "Expected impacts", value: "impacts" },
+      { label: "Recommended response", value: "response" },
+    ];
+  }
+  return [];
+}
 const levels = ["Minimal", "Minor", "Significant", "Severe"];
 const likelihoods = ["Very low", "Low", "Medium", "High"];
 const DAY_ALERT_FIELD = /^day[1-4](Alerts|Impact|Response)$/;
