@@ -1,0 +1,48 @@
+# Codex hook configuration for this repo.
+#
+# Mirrors .claude/settings.json's hooks so Claude Code and Codex enforce the
+# same Never-tier rules (see CLAUDE.md/AGENTS.md). Scripts are shared from
+# .claude/hooks/ — do not fork them per tool.
+#
+# Reference: https://learn.chatgpt.com/docs/hooks
+# Review changed hook definitions in /hooks; trust is tied to their hashes.
+# These scripts are supplementary safeguards, not a substitute for sandbox
+# permissions or approval policy. Keep one hook representation in this layer.
+
+[[hooks.PreToolUse]]
+matcher = "^Bash$"
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = 'hook_root=$(git rev-parse --show-toplevel) && node "$hook_root/.claude/hooks/block-dangerous-git.mjs"'
+timeout = 30
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = 'hook_root=$(git rev-parse --show-toplevel) && node "$hook_root/.claude/hooks/protect-files.mjs"'
+timeout = 30
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = 'hook_root=$(git rev-parse --show-toplevel) && node "$hook_root/.claude/hooks/audit-log.mjs"'
+timeout = 30
+
+[[hooks.PreToolUse]]
+matcher = "^apply_patch$"
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = 'hook_root=$(git rev-parse --show-toplevel) && node "$hook_root/.claude/hooks/protect-files.mjs"'
+timeout = 30
+
+[[hooks.Stop]]
+# This formatter includes ALL dirty/untracked files, not just session edits.
+# Keep explicit file-scoped formatting for isolated work in a shared checkout.
+[[hooks.Stop.hooks]]
+type = "command"
+# Keep formatter diagnostics on stderr; successful Stop output must be JSON.
+command = "hook_root=$(git rev-parse --show-toplevel) && cd \"$hook_root\" && pnpm fix:changed >&2 && printf '{}'"
+timeout = 60
+
+[[hooks.SessionStart]]
+matcher = "^(startup|resume|clear|compact)$"
+[[hooks.SessionStart.hooks]]
+type = "command"
+command = "hook_root=$(git rev-parse --show-toplevel) && cd \"$hook_root\" && { test ! -f SESSION_LOG.md || tail -c 50000 SESSION_LOG.md | tail -n 40; }"
+timeout = 10
