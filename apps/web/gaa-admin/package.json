@@ -55,7 +55,8 @@
     "@turf/helpers": "catalog:",
     "@turf/buffer": "catalog:",
     "@turf/distance": "catalog:",
-    "@turf/boolean-point-in-polygon": "catalog:"
+    "@turf/boolean-point-in-polygon": "catalog:",
+    "motion": "catalog:"
   },
   "devDependencies": {
     "@barrelsgd/tsconfig": "workspace:*",
@@ -69,6 +70,7 @@
     "@testing-library/react": "catalog:",
     "@testing-library/user-event": "catalog:",
     "@total-typescript/ts-reset": "catalog:",
+    "@types/geojson": "catalog:",
     "@types/node": "catalog:",
     "@types/pg": "catalog:",
     "@types/react": "catalog:",

@@ -15,6 +15,7 @@ import type { ReactNode } from "react";
 import { AppSidebar } from "./app-sidebar";
 import { LayoutControls } from "./layout-controls";
 import type { NavUserData } from "./nav-user";
+import { PageTransition } from "./page-transition";
 import { SearchDialog } from "./search-dialog";
 import { ThemeSwitcher } from "./theme-switcher";
 
@@ -74,7 +75,7 @@ export async function AppShell({
           </div>
         </header>
         <div className="min-h-0 min-w-0 flex-1 overflow-x-hidden p-4 has-data-[content-padding=false]:p-0 md:p-6 md:has-data-[content-padding=false]:p-0">
-          {children}
+          <PageTransition>{children}</PageTransition>
         </div>
       </SidebarInset>
     </SidebarProvider>
