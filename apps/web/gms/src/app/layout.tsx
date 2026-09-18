@@ -4,6 +4,7 @@ import { Noto_Sans } from "next/font/google";
 import { Footer } from "@/components/footer";
 import { GoogleAnalytics } from "@/components/google-analytics";
 import { Header } from "@/components/header";
+import { MotionProvider } from "@/components/motion-provider";
 import { fetchActiveAlerts } from "@/lib/cap";
 import { env } from "@/lib/env";
 import "./globals.css";
@@ -44,9 +45,11 @@ export default async function RootLayout({
           apiHost={env.NEXT_PUBLIC_POSTHOG_HOST}
           apiKey={env.NEXT_PUBLIC_POSTHOG_KEY}
         >
-          <Header alerts={alerts} />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <MotionProvider>
+            <Header alerts={alerts} />
+            <main className="flex-1">{children}</main>
+            <Footer />
+          </MotionProvider>
           <GoogleAnalytics
             environment={env.NEXT_PUBLIC_SENTRY_ENVIRONMENT}
             measurementId={env.NEXT_PUBLIC_GA_MEASUREMENT_ID}
