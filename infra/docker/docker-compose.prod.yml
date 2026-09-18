@@ -180,7 +180,6 @@ services:
       db:
         condition: service_healthy
     environment:
-      WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL}
       WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL}
       JANITORIAL_DATABASE_URL: ${JANITORIAL_DB_URL}
       TRANSPORT_DATABASE_URL: ${TRANSPORT_DB_URL}
@@ -233,7 +232,6 @@ services:
       RESEND_API_KEY: ${RESEND_API_KEY}
       NEXT_PUBLIC_API_URL: https://api.barrels.gd
       # Consolidated apps' dedicated Postgres databases.
-      WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL}
       WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL}
       JANITORIAL_DATABASE_URL: ${JANITORIAL_DB_URL}
       TRANSPORT_DATABASE_URL: ${TRANSPORT_DB_URL}

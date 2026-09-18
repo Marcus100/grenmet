@@ -52,12 +52,16 @@ from src.hr.signatures.router import router as hr_signatures_router
 from src.hr.timesheet.router import router as hr_timesheet_router
 from src.hr.training.router import router as hr_training_router
 from src.hr.workflow.router import router as hr_workflow_router
+from src.janitorial import database as janitorial_database
+from src.janitorial.router import router as janitorial_router
 from src.logging_config import configure_logging
 from src.rate_limit import limiter
 
 # from src.shipments.router import router as shipments_router
 from src.storage.router import router as weather_images_router
 from src.telemetry import sentry_options
+from src.transport import database as transport_database
+from src.transport.router import router as transport_router
 from src.utils.router import router as utils_router
 from src.webhooks.router import router as webhooks_router
 from src.wxproducts import database as wxproducts_database
@@ -90,6 +94,8 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
         await wxproducts_database.close_engine()
         await eregister_database.close_engine()
         await wxwatch_database.close_engine()
+        await janitorial_database.close_engine()
+        await transport_database.close_engine()
 
 
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
@@ -193,6 +199,8 @@ app.include_router(eregister_router, prefix=settings.API_V1_STR)
 app.include_router(wxwatch_router, prefix=settings.API_V1_STR)
 app.include_router(wxwatch_ingestion_router, prefix=settings.API_V1_STR)
 app.include_router(browser_auth_router, prefix=settings.API_V1_STR)
+app.include_router(janitorial_router, prefix=settings.API_V1_STR)
+app.include_router(transport_router, prefix=settings.API_V1_STR)
 
 # Register exception handlers
 app.add_exception_handler(AppException, app_exception_handler)  # type: ignore[arg-type]

@@ -48,7 +48,7 @@ Everything built to establish the platform before domain-specific features.
 ### Infrastructure and CI/CD
 - ✅ pnpm v10 + Turborepo v2 monorepo with 8 Next.js applications (consolidated to 5 in 2026-06 — wxwatch/wxproducts/hr/salesbus/cap folded into gaa-admin)
 - ✅ FastAPI backend — authentication and HR domains, PostgreSQL via SQLModel/asyncpg
-- ✅ Drizzle ORM for wxwatch and wxproducts (separate DB per app)
+- ✅ FastAPI/Alembic ownership for wxwatch, wxproducts, eRegister, Janitorial, and Transport (separate DB per domain)
 - ✅ Docker + Docker Compose for FastAPI, PostgreSQL, and infrastructure services
 - ✅ 10 GitHub Actions workflows: web builds, API image builds, deploy to staging and production, database backup, code quality (Biome), type checking, security scanning (CodeQL), API client sync check
 - ✅ Automated database backup pipeline

@@ -909,6 +909,16 @@ export {
   useSaveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPut,
 } from "./useSaveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPut.js";
 export {
+  specApiV1JanitorialSpecGetQueryKey,
+  specApiV1JanitorialSpecGetQueryOptions,
+  useSpecApiV1JanitorialSpecGet,
+} from "./useSpecApiV1JanitorialSpecGet.js";
+export {
+  specApiV1TransportSpecGetQueryKey,
+  specApiV1TransportSpecGetQueryOptions,
+  useSpecApiV1TransportSpecGet,
+} from "./useSpecApiV1TransportSpecGet.js";
+export {
   startRunApiV1WxwatchRunsPostMutationKey,
   startRunApiV1WxwatchRunsPostMutationOptions,
   useStartRunApiV1WxwatchRunsPost,

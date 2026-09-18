@@ -1,5 +1,3 @@
-const FASTAPI_OWNER = /owned by FastAPI/;
-
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import test from "node:test";
@@ -10,7 +8,7 @@ import { readMigrationFiles } from "drizzle-orm/migrator";
 // load its real dependencies/assets and reach configuration validation. Empty
 // domain URLs prevent database access even if the parent has live credentials.
 const environment = { ...process.env };
-for (const domain of ["WXWATCH", "WXPRODUCTS", "TRANSPORT", "JANITORIAL"]) {
+for (const domain of ["TRANSPORT", "JANITORIAL"]) {
   environment[`${domain}_DATABASE_URL`] = "";
 }
 for (const [script, domain] of [
@@ -18,7 +16,7 @@ for (const [script, domain] of [
   ["migrate-janitorial", "JANITORIAL"],
   ["seed-transport", "TRANSPORT"],
   ["seed-janitorial", "JANITORIAL"],
-  ["verify-databases", "WXWATCH"],
+  ["verify-databases", "TRANSPORT"],
 ]) {
   test(`${script} loads in the migration runtime and rejects missing configuration`, () => {
     const result = spawnSync(
@@ -35,7 +33,7 @@ for (const [script, domain] of [
   });
 }
 
-for (const domain of ["wxwatch", "transport", "janitorial"]) {
+for (const domain of ["transport", "janitorial"]) {
   test(`${domain} migration journal and SQL files are packaged`, () => {
     const migrations = readMigrationFiles({
       migrationsFolder: fileURLToPath(
@@ -46,23 +44,3 @@ for (const domain of ["wxwatch", "transport", "janitorial"]) {
     assert.ok(migrations.every((migration) => migration.sql.length > 0));
   });
 }
-
-test("retired weather migration entrypoint cannot write", () => {
-  const result = spawnSync(
-    process.execPath,
-    [fileURLToPath(new URL("./migrate-wxproducts.mjs", import.meta.url))],
-    { env: environment, encoding: "utf8" }
-  );
-  assert.equal(result.status, 1);
-  assert.match(result.stderr, FASTAPI_OWNER);
-});
-
-test("retired wxwatch migration entrypoint cannot write", () => {
-  const result = spawnSync(
-    process.execPath,
-    [fileURLToPath(new URL("./migrate-wxwatch.mjs", import.meta.url))],
-    { env: environment, encoding: "utf8" }
-  );
-  assert.equal(result.status, 1);
-  assert.match(result.stderr, FASTAPI_OWNER);
-});

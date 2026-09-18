@@ -113,6 +113,7 @@ export type {
   ArchiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostStatus404,
   ArchiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostStatus422,
 } from "./ArchiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePost.js";
+export type { AreaView } from "./AreaView.js";
 export type { AuthoredProducts } from "./AuthoredProducts.js";
 export type { AuthoringError } from "./AuthoringError.js";
 export type { AviationDraftList } from "./AviationDraftList.js";
@@ -142,6 +143,7 @@ export type {
   BrowserSessionApiV1AuthBrowserSessionGetResponses,
   BrowserSessionApiV1AuthBrowserSessionGetStatus200,
 } from "./BrowserSessionApiV1AuthBrowserSessionGet.js";
+export type { BuildingView } from "./BuildingView.js";
 export type {
   BulkAssignmentsApiV1HrRostersAssignmentsBulkPostBody,
   BulkAssignmentsApiV1HrRostersAssignmentsBulkPostOptions,
@@ -160,6 +162,8 @@ export type {
   BulletinApiV1WxwatchArchiveEditionIdBulletinGetStatus200,
   BulletinApiV1WxwatchArchiveEditionIdBulletinGetStatus422,
 } from "./BulletinApiV1WxwatchArchiveEditionIdBulletinGet.js";
+export type { BundleItem } from "./BundleItem.js";
+export type { BundleView } from "./BundleView.js";
 export type { CalendarEventCreate } from "./CalendarEventCreate.js";
 export type { CalendarEventKind } from "./CalendarEventKind.js";
 export { calendarEventKind } from "./CalendarEventKind.js";
@@ -741,6 +745,7 @@ export type {
   ForecastSourceKindEnum,
 } from "./ForecastSource.js";
 export { forecastSourceKindEnum } from "./ForecastSource.js";
+export type { Frequency } from "./Frequency.js";
 export type { Gender } from "./Gender.js";
 export { gender } from "./Gender.js";
 export type {
@@ -1932,6 +1937,7 @@ export type { RosterRevisionAction } from "./RosterRevisionAction.js";
 export { rosterRevisionAction } from "./RosterRevisionAction.js";
 export type { RosterRevisionPublic } from "./RosterRevisionPublic.js";
 export type { RosterRevisionsPublic } from "./RosterRevisionsPublic.js";
+export type { RouteView } from "./RouteView.js";
 export type { RunFinish, RunFinishStatusEnum } from "./RunFinish.js";
 export { runFinishStatusEnum } from "./RunFinish.js";
 export type { RunInput, RunInputSourceEnum } from "./RunInput.js";
@@ -1991,6 +1997,7 @@ export type {
   SaveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutStatus409,
   SaveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutStatus422,
 } from "./SaveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPut.js";
+export type { SectionView } from "./SectionView.js";
 export type { SecurityProof } from "./SecurityProof.js";
 export type { SecuritySessionPublic } from "./SecuritySessionPublic.js";
 export type { SessionAccessTokenResponse } from "./SessionAccessTokenResponse.js";
@@ -2014,10 +2021,23 @@ export type { ShiftSwapRequestCreate } from "./ShiftSwapRequestCreate.js";
 export type { ShiftSwapRequestPublic } from "./ShiftSwapRequestPublic.js";
 export type { ShiftSwapRequestsPublic } from "./ShiftSwapRequestsPublic.js";
 export type { ShiftSwapSubmit } from "./ShiftSwapSubmit.js";
+export type { ShiftView } from "./ShiftView.js";
 export type { SignatureInput } from "./SignatureInput.js";
 export type { SignaturePublic } from "./SignaturePublic.js";
 export type { SignedDocumentList } from "./SignedDocumentList.js";
 export type { SignedDocumentPublic } from "./SignedDocumentPublic.js";
+export type {
+  SpecApiV1JanitorialSpecGetOptions,
+  SpecApiV1JanitorialSpecGetResponse,
+  SpecApiV1JanitorialSpecGetResponses,
+  SpecApiV1JanitorialSpecGetStatus200,
+} from "./SpecApiV1JanitorialSpecGet.js";
+export type {
+  SpecApiV1TransportSpecGetOptions,
+  SpecApiV1TransportSpecGetResponse,
+  SpecApiV1TransportSpecGetResponses,
+  SpecApiV1TransportSpecGetStatus200,
+} from "./SpecApiV1TransportSpecGet.js";
 export type { SrcAuthSchemasRolePublic } from "./SrcAuthSchemasRolePublic.js";
 export type { SrcHrSchemasRolePublic } from "./SrcHrSchemasRolePublic.js";
 export type { StaffCard } from "./StaffCard.js";
@@ -2039,6 +2059,7 @@ export type { StatusReportEntryPublic } from "./StatusReportEntryPublic.js";
 export type { StatusReportListPublic } from "./StatusReportListPublic.js";
 export type { StatusReportPublic } from "./StatusReportPublic.js";
 export type { StatusReportSubmit } from "./StatusReportSubmit.js";
+export type { StopView } from "./StopView.js";
 export type { StoredProduct, StoredProductKindEnum } from "./StoredProduct.js";
 export { storedProductKindEnum } from "./StoredProduct.js";
 export type { SubmissionMode } from "./SubmissionMode.js";
@@ -2133,6 +2154,7 @@ export type {
   TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus404,
   TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus422,
 } from "./TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost.js";
+export type { TaskView } from "./TaskView.js";
 export type {
   TestEmailApiV1UtilsTestEmailPostOptions,
   TestEmailApiV1UtilsTestEmailPostQuery,
@@ -2174,6 +2196,7 @@ export type {
   TrainingRecordPublicResultEnum,
 } from "./TrainingRecordPublic.js";
 export { trainingRecordPublicResultEnum } from "./TrainingRecordPublic.js";
+export type { TripView } from "./TripView.js";
 export type { TwoFactorCodeRequest } from "./TwoFactorCodeRequest.js";
 export type { TwoFactorDisableRequest } from "./TwoFactorDisableRequest.js";
 export type { TwoFactorSetupResponse } from "./TwoFactorSetupResponse.js";

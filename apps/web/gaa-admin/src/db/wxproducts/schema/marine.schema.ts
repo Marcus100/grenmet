@@ -1,6 +1,5 @@
 /**
  * Marine forecast type and Zod schema.
- * For a full product example, import gmsMarineBulletinExample from @/data/wxproducts/gms-marine-bulletin.example.
  */
 
 import { z } from "zod";

@@ -144,12 +144,12 @@ export function formatTime(value: string): string {
 }
 
 /** Human label for a trip direction. */
-export function formatDirection(direction: Direction): string {
+export function formatDirection(direction: string): string {
   return direction === "inbound" ? "To MBIA" : "From MBIA";
 }
 
 /** Human label for a trip's day-type applicability. */
-export function formatDayType(dayType: DayType): string {
+export function formatDayType(dayType: string): string {
   switch (dayType) {
     case "daily":
       return "Daily";

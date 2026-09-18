@@ -73,7 +73,7 @@ together as end-to-end elapsed time:
 | Build | BuildKit compilation vertices, excluding image export; record cache hits per image |
 | Export | Docker load/export and registry push vertices in BuildKit records |
 | Queue | Workflow/job timestamps and runner/environment approval waiting time, separately from execution |
-| Migration | Timestamped log interval for each of `prestart`, `web-migrate`, and `cms-migrate` |
+| Migration | Timestamped log interval for `prestart` and `cms-migrate` |
 | Startup | Timestamped interval from application start to Compose readiness |
 | Functional verification | External readiness and page-content smoke interval |
 | Feedback and deployment | Commit-to-required-check completion and trigger-to-successful-deployment elapsed times |
@@ -133,8 +133,8 @@ rounded to the nearest tenth where useful. They are not CPU time.
 | Image resolution, pull and label validation | 4m26.4s | Resolve/pull marker to database provisioning marker |
 | Database provisioning | 2.2s | Provisioning marker to migration marker |
 | Migrations and catalogue initialization | 1m05.3s | Migration marker to runtime-permission marker |
-| API prestart | About 19.8s | Migration marker to web-migrate container creation; includes invocation overhead |
-| Admin migrations/baselines | About 22.0s | web-migrate creation to cms-migrate creation; includes invocation overhead |
+| API prestart | About 19.8s | Migration marker to CMS migration marker; includes invocation overhead |
+| Admin migrations/baselines | About 22.0s | Included in the FastAPI prestart interval; catalogue seeds run in the same container |
 | CMS migration | About 23.5s | cms-migrate creation to runtime-permission marker; includes invocation overhead |
 | Runtime permissions | 2.2s | Permission marker to application-start marker |
 | Application startup/readiness | 2m09.6s | Application-start marker to external smoke marker |
