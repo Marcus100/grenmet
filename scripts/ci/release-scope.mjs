@@ -15,12 +15,6 @@ export const webImages = [
     path: "apps/web/cms",
     target: "migrate",
   },
-  {
-    app: "admin-migrate",
-    image: "web-gaa-admin-migrate",
-    path: "apps/web/gaa-admin",
-    target: "migrate",
-  },
   { app: "signal", image: "web-signal", path: "apps/web/signal", port: 3004 },
   { app: "mbia", image: "web-mbia", path: "apps/web/mbia", port: 3005 },
   { app: "events", image: "web-events", path: "apps/web/events", port: 3009 },
@@ -48,7 +42,6 @@ export const coreServices = [
   "prestart",
   "worker",
   ...webImages.map((image) => {
-    if (image.app === "admin-migrate") return "web-migrate";
     if (image.app === "cms-migrate") return "cms-migrate";
     if (image.app === "hono") return "api-hono";
     return `web-${image.app}`;

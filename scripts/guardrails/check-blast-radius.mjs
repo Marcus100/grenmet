@@ -60,16 +60,6 @@ const isFastApiContractFile = (file) =>
   fastApiContractFilePattern.test(file) ||
   fastApiContractDirectoryFilePattern.test(file);
 
-const drizzleFamilies = ["janitorial", "transport", "wxproducts", "wxwatch"];
-
-const isDrizzleSchemaFile = (file, family) => {
-  const schemaRoot = `apps/web/gaa-admin/src/db/${family}/schema`;
-  return file === `${schemaRoot}.ts` || file.startsWith(`${schemaRoot}/`);
-};
-
-const drizzleMigrationRoot = (family) =>
-  `apps/web/gaa-admin/drizzle/${family}/`;
-
 const collectChanges = (comparison) => {
   const range =
     comparison.mode === "staged"
@@ -167,24 +157,6 @@ const evaluateChanges = (changes, comparison) => {
     });
   }
 
-  for (const family of drizzleFamilies) {
-    const schemaTriggers = [...files]
-      .filter((file) => isDrizzleSchemaFile(file, family))
-      .sort();
-    const migrationRoot = drizzleMigrationRoot(family);
-    if (
-      schemaTriggers.length > 0 &&
-      ![...files].some((file) => file.startsWith(migrationRoot))
-    ) {
-      violations.push({
-        missing: [migrationRoot],
-        resolution: `Run pnpm db:${family}:generate from apps/web/gaa-admin and commit the generated migration.`,
-        rule: `Drizzle ${family} migration`,
-        triggers: schemaTriggers,
-      });
-    }
-  }
-
   return violations;
 };
 
@@ -211,16 +183,6 @@ const reportConsumerValidation = (changes) => {
   ) {
     console.log(
       `Admin route validation required: validate cap, hr, wxwatch, wxproducts, and salesbus. CI enforces ${ciGates}.`
-    );
-  }
-
-  if (
-    [...files].some((file) =>
-      drizzleFamilies.some((family) => isDrizzleSchemaFile(file, family))
-    )
-  ) {
-    console.log(
-      "Drizzle production validation required: validate the generated migration through the web-migrate production service and against the wxwatch and wxproducts databases."
     );
   }
 };

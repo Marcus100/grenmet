@@ -1,9 +1,9 @@
 /**
  * Pure parser for the staff-transportation timetable seed CSV
- * (apps/web/gaa-admin/seed/transport-routes.csv).
+ * (apps/api/fastapi/seed/transport-routes.csv).
  *
  * Kept dependency-free and side-effect-free so it can be unit-tested with Vitest
- * and imported by the Node seed runner (scripts/seed-transport.mjs). It does NOT
+ * and imported by the FastAPI seeder (scripts/seed_catalogues.py). It does NOT
  * touch the database — it normalises rows into deduplicated entities keyed for the
  * seed runner to resolve into foreign keys.
  *

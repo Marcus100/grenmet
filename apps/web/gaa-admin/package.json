@@ -15,15 +15,7 @@
     "type-check": "rm -f next-env.d.ts && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage",
-    "db:janitorial:generate": "drizzle-kit generate --config=drizzle.janitorial.config.ts",
-    "db:janitorial:migrate": "node --env-file-if-exists=.env.local scripts/migrate-janitorial.mjs",
-    "db:janitorial:seed": "node --env-file-if-exists=.env.local scripts/seed-janitorial.mjs",
-    "db:transport:generate": "drizzle-kit generate --config=drizzle.transport.config.ts",
-    "db:transport:migrate": "node --env-file-if-exists=.env.local scripts/migrate-transport.mjs",
-    "db:transport:seed": "node --env-file-if-exists=.env.local scripts/seed-transport.mjs",
-    "db:transport:seed:apply": "node --env-file-if-exists=.env.local scripts/seed-transport.mjs --apply",
-    "db:janitorial:seed:apply": "node --env-file-if-exists=.env.local scripts/seed-janitorial.mjs --apply"
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@epic-web/invariant": "^1.0.0",
@@ -84,7 +76,6 @@
     "@vitest/coverage-v8": "catalog:",
     "dotenv": "^17.4.2",
     "dotenv-cli": "catalog:",
-    "drizzle-kit": "catalog:",
     "jsdom": "catalog:",
     "msw": "catalog:",
     "playwright": "^1.63.0",

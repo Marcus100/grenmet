@@ -63,8 +63,6 @@ services:
       WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL:?WXPRODUCTS_DB_URL required}
       WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL:?WXWATCH_DB_URL required}
       EREGISTER_DATABASE_URL: ${EREGISTER_DATABASE_URL:?EREGISTER_DATABASE_URL required}
-      JANITORIAL_DATABASE_URL: ${JANITORIAL_DB_URL:?JANITORIAL_DB_URL required}
-      TRANSPORT_DATABASE_URL: ${TRANSPORT_DB_URL:?TRANSPORT_DB_URL required}
       WXPRODUCTS_DB_NAME: ${WXPRODUCTS_DB_NAME:-wxproducts_staging}
       POSTGRES_SERVER: db
       POSTGRES_PORT: ${POSTGRES_PORT:-5432}
@@ -90,8 +88,6 @@ services:
       WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL:?WXPRODUCTS_DB_URL required}
       WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL:?WXWATCH_DB_URL required}
       EREGISTER_DATABASE_URL: ${EREGISTER_DATABASE_URL:?EREGISTER_DATABASE_URL required}
-      JANITORIAL_DATABASE_URL: ${JANITORIAL_DB_URL:?JANITORIAL_DB_URL required}
-      TRANSPORT_DATABASE_URL: ${TRANSPORT_DB_URL:?TRANSPORT_DB_URL required}
       WXPRODUCTS_DB_NAME: ${WXPRODUCTS_DB_NAME:-wxproducts_staging}
       POSTGRES_SERVER: db
       POSTGRES_PORT: ${POSTGRES_PORT:-5432}
@@ -172,21 +168,6 @@ services:
     networks:
       - grenmet-staging
 
-  # ── Web-owned Drizzle migrations ─────────────────────────────────────────────
-  # Janitorial and transport remain in the admin migration image. Weather domains
-  # are owned by FastAPI and migrate through the prestart service.
-  web-migrate:
-    image: ghcr.io/${GHCR_OWNER}/grenmet-web-admin-migrate:${WEB_TAG:-staging}
-    restart: "no"
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      JANITORIAL_DATABASE_URL: ${JANITORIAL_DB_URL}
-      TRANSPORT_DATABASE_URL: ${TRANSPORT_DB_URL}
-    networks:
-      - grenmet-staging
-
   # ── Web Apps ─────────────────────────────────────────────────────────────────
   web-auth:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-auth:${WEB_TAG:-staging}
@@ -222,9 +203,6 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
-    depends_on:
-      web-migrate:
-        condition: service_completed_successfully
     environment:
       AUTH_APP_URL: https://auth.staging.barrels.gd
       AUTH_API_URL: https://api.staging.barrels.gd
@@ -234,8 +212,6 @@ services:
       RESEND_API_KEY: ${RESEND_API_KEY}
       NEXT_PUBLIC_API_URL: https://api.staging.barrels.gd
       # Consolidated apps' dedicated Postgres databases.
-      JANITORIAL_DATABASE_URL: ${JANITORIAL_DB_URL}
-      TRANSPORT_DATABASE_URL: ${TRANSPORT_DB_URL}
       CAP_API_URL: https://api.staging.barrels.gd
     labels:
       - "traefik.enable=true"
