@@ -766,3 +766,12 @@ Section 1 global groups, and Section 3 regional/national groups and returns
 remains available through `POST /api/v1/eregister/observations`; validation is
 currently advisory while the full WMO code-table encoder is being added. The
 validation endpoint does not save, publish, or transmit an observation.
+
+### GAA operational catalogues
+
+`GET /api/v1/janitorial/spec` and `GET /api/v1/transport/spec` are authenticated
+read contracts for the GAA Admin Janitorial and Staff Transportation pages.
+FastAPI owns the database connections, Alembic histories, SQL reads, and
+response shapes; the web app only renders the generated Kubb contracts. Existing
+catalogue rows are adopted in place by the domain migrations, and no write or
+seed operation is exposed by these routes.

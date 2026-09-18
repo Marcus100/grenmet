@@ -3,7 +3,7 @@ import { readMigrationFiles } from "drizzle-orm/migrator";
 import pg from "pg";
 import { databaseConfig } from "./database-config.mjs";
 
-for (const domain of ["wxwatch", "transport", "janitorial"]) {
+for (const domain of ["transport", "janitorial"]) {
   const pool = new pg.Pool(databaseConfig(domain));
   try {
     const migrations = readMigrationFiles({

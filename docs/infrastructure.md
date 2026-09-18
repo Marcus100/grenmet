@@ -15,9 +15,8 @@ Each stack includes:
 
 - `db`: PostgreSQL 17. The same server hosts separate databases for FastAPI, `wxwatch`, `wxproducts`, `janitorial`, and `transport`.
 - `api`: FastAPI backend on internal port `8000`.
-- `prestart`: one-shot FastAPI migration/bootstrap container.
+- `prestart`: one-shot FastAPI migration/bootstrap container, including all domain Alembic histories and create-once catalogue seeds.
 - `redis` + `worker`: Redis and the arq background worker (CAP outbox).
-- `web-migrate`: one-shot Drizzle migration runner for the `wxwatch` + `wxproducts` databases, built from the gaa-admin `migrate` image stage; runs before `web-admin`.
 - `web-auth`, `web-admin`, `web-docs`, `web-gms`, `web-signal`, `web-mbia`, and `web-events`: seven configured web services. The former `wxwatch`/`wxproducts`/`hr`/`salesbus` apps remain path-prefixed routes inside `web-admin`.
 - `api-hono`: Node API on internal port `4000`, routed through `hapi`.
 - `proxy`: Traefik v3, terminating HTTPS and routing by host.

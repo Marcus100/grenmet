@@ -374,7 +374,7 @@ compose=(docker compose --env-file staging.env --env-file .env.secrets
 "${compose[@]}" pull
 "${compose[@]}" up -d --pull always --remove-orphans
 "${compose[@]}" ps
-"${compose[@]}" logs --tail 50 prestart web-migrate api
+"${compose[@]}" logs --tail 50 prestart cms-migrate api
 ```
 
 For production, use `production.env` and project `grenmet`. Check API liveness,

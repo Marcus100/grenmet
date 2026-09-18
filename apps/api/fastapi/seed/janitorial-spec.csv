@@ -1,0 +1,407 @@
+kind,building,section,area,mode,activity,frequency
+bundle_item,,,Terrazzo Maintenance and Floor Care,,"Sweep and Mop Terrazzo Floor",2/1
+bundle_item,,,Terrazzo Maintenance and Floor Care,,"Buff Terrazzo Floor",3/5
+bundle_item,,,Terrazzo Maintenance and Floor Care,,"Polish Terrazzo Floor",1/120
+bundle_item,,,Terrazzo Maintenance and Floor Care,,"Strip Terrazzo",1/120
+bundle_item,,,Terrazzo Maintenance and Floor Care,,"Seal Terrazzo",1/120
+task,Air Terminal Building (ATB),,Restrooms,,"Clean and sanitize Hand Basin & Sinks",1/15min
+task,Air Terminal Building (ATB),,Restrooms,,"Clean and sanitize Toilet Bowls & Urinals",1/15min
+task,Air Terminal Building (ATB),,Restrooms,,"Clean and sanitize stall doors / partitions",2/5
+task,Air Terminal Building (ATB),,Restrooms,,"Clean and Refill Soap Dispensers",1/15min
+task,Air Terminal Building (ATB),,Restrooms,,"Clean Mirrors",1/15min
+task,Air Terminal Building (ATB),,Restrooms,,"Empty Bins/Dispose of Litter",4/1
+task,Air Terminal Building (ATB),,Restrooms,,"Sweep and Mop Floors",2/1
+task,Air Terminal Building (ATB),,Restrooms,,"Spot clean walls and light switches",1/5
+task,Air Terminal Building (ATB),,Restrooms,,"Cobweb Ceiling",1/30
+task,Air Terminal Building (ATB),,Restrooms,,"Wipe & disinfect baby changing tables",2/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Reception Area,,"Empty Bins/Dispose of Litter",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Reception Area,,"Clean and sanitize chairs, tables and telephones",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Reception Area,,"Sweep and mop floors",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Reception Area,,"Vacuum carpets and rugs",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Reception Area,,"Vacuum upholstered furniture",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Reception Area,,"Wipe Glass doors and windows",2/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Reception Area,,"Spot clean walls and light switches",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Reception Area,,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Reception Area,,"Spot clean / vacuum carpets, rugs and floor mats",2/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Reception Area,,"Cobweb Ceilings",1/60
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Reception Area,,"Deep clean carpets",1/90
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Reception Area,,"Wipe walls & ledges",1/90
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Reception Area,,"Interior / exterior window washing",1/90
+bundle_ref,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Reception Area,,"Terrazzo Maintenance and Floor Care",
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Training / Conference Rooms,,"Empty Bins/Dispose of Litter",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Training / Conference Rooms,,"Clean and sanitize chairs, tables and telephones",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Training / Conference Rooms,,"Sweep and mop floors",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Training / Conference Rooms,,"Clean Glass windows and doors",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Training / Conference Rooms,,"Spot clean walls and light switches",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Training / Conference Rooms,,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Training / Conference Rooms,,"Spot clean / vacuum carpets, rugs and floor mats",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Training / Conference Rooms,,"Wipe Walls",1/90
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Training / Conference Rooms,,"Cobweb Ceilings",1/60
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Administrative Wing Offices,,"Empty Bins/Dispose of Litter",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Administrative Wing Offices,,"Clean and sanitize chairs, tables and telephones",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Administrative Wing Offices,,"Sweep and mop floors",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Administrative Wing Offices,,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Administrative Wing Offices,,"Clean Glass Doors & Windows",2/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Administrative Wing Offices,,"Spot clean walls and light switches",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Administrative Wing Offices,,"Cobweb Ceilings",1/60
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Administrative Wing Offices,,"Wipe walls & ledges",1/90
+bundle_ref,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Administrative Wing Offices,,"Terrazzo Maintenance and Floor Care",
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Security Offices,,"Empty Bins/Dispose of litter",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Security Offices,,"Clean and sanitize chairs, tables and telephones",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Security Offices,,"Clean Glass Doors & Windows",2/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Security Offices,,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Security Offices,,"Spot clean walls and light switches",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Security Offices,,"Cobweb Ceilings",1/60
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Security Offices,,"Wipe walls & ledges",1/90
+bundle_ref,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Security Offices,,"Terrazzo Maintenance and Floor Care",
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Maintenance - Air-Condition & Electrical Offices,,"Empty Bins/Dispose of Litter",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Maintenance - Air-Condition & Electrical Offices,,"Clean and sanitize chairs, tables and telephones",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Maintenance - Air-Condition & Electrical Offices,,"Sweep and Mop floors",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Maintenance - Air-Condition & Electrical Offices,,"Clean Windows & Doors",2/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Maintenance - Air-Condition & Electrical Offices,,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Maintenance - Air-Condition & Electrical Offices,,"Spot clean walls and light switches",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Maintenance - Air-Condition & Electrical Offices,,"Cobweb Ceilings",1/60
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Maintenance - Air-Condition & Electrical Offices,,"Wipe walls & ledges",1/90
+bundle_ref,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Maintenance - Air-Condition & Electrical Offices,,"Terrazzo Maintenance and Floor Care",
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Immigration & Passport Office & Lunchroom,,"Empty Bins/Dispose of Litter",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Immigration & Passport Office & Lunchroom,,"Clean and sanitize chairs, tables and telephones",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Immigration & Passport Office & Lunchroom,,"Sweep and mop floor (tiles)",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Immigration & Passport Office & Lunchroom,,"Clean windows and doors",2/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Immigration & Passport Office & Lunchroom,,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Immigration & Passport Office & Lunchroom,,"Spot clean wall and light switches",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Immigration & Passport Office & Lunchroom,,"Spot clean / vacuum carpets, rugs and floor mats",2/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Immigration & Passport Office & Lunchroom,,"Cobweb Ceilings",1/60
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Immigration & Passport Office & Lunchroom,,"Wipe walls & ledges",1/90
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Customs & Excise Office & Lunchroom,,"Empty Bins/Dispose of Litter",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Customs & Excise Office & Lunchroom,,"Clean and sanitize Chairs, tables and telephones",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Customs & Excise Office & Lunchroom,,"Clean lunchroom countertops",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Customs & Excise Office & Lunchroom,,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Customs & Excise Office & Lunchroom,,"Spot clean walls and light switches",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Customs & Excise Office & Lunchroom,,"Spot clean / vacuum carpets, rugs and floor mats",2/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Customs & Excise Office & Lunchroom,,"Clean Glass Windows & Doors",1/30
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Customs & Excise Office & Lunchroom,,"Cobweb Ceilings",1/60
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Customs & Excise Office & Lunchroom,,"Wipe walls & ledges",1/90
+bundle_ref,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Customs & Excise Office & Lunchroom,,"Terrazzo Maintenance and Floor Care",
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Staff Lunchrooms,,"Empty Bins/Dispose of Litter",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Staff Lunchrooms,,"Sweep and mop floors",2/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Staff Lunchrooms,,"Clean and sanitize tables & chairs",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Staff Lunchrooms,,"Clean and disinfect countertop",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Staff Lunchrooms,,"Wipe placemats",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Staff Lunchrooms,,"Clean Glass windows & doors",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Staff Lunchrooms,,"Clean and disinfect appliances (microwave and refrigerator)",2/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Staff Lunchrooms,,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Staff Lunchrooms,,"Spot clean walls and light switches",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Staff Lunchrooms,,"Cobweb Ceilings",1/30
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Staff Lunchrooms,,"Clean Ledges",1/60
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Staff Lunchrooms,,"Clean Walls / partitions",1/90
+bundle_ref,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Staff Lunchrooms,,"Terrazzo Maintenance and Floor Care",
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Agricultural Control Office,,"Empty Bins/Dispose of Litter",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Agricultural Control Office,,"Clean and sanitize chairs, tables and telephones",2/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Agricultural Control Office,,"Sweep and mop floors",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Agricultural Control Office,,"Clean Glass Louvers",2/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Agricultural Control Office,,"Clean refrigerator and microwave",2/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Agricultural Control Office,,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Agricultural Control Office,,"Spot clean walls and light switches",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Agricultural Control Office,,"Spot clean / vacuum carpets, rugs and floor mats",2/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Agricultural Control Office,,"Clean glass windows and doors",1/30
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Agricultural Control Office,,"Cobweb Ceilings",1/60
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Agricultural Control Office,,"Wipe walls & ledges",1/90
+bundle_ref,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Agricultural Control Office,,"Terrazzo Maintenance and Floor Care",
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Port Health Office,,"Empty Bins/Dispose of Litter",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Port Health Office,,"Clean and sanitize chairs, tables and telephones",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Port Health Office,,"Sweep and Mop floors",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Port Health Office,,"Clean glass windows and doors",2/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Port Health Office,,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Port Health Office,,"Spot clean walls and light switches",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Port Health Office,,"Spot clean / vacuum carpets, rugs and floor mats",2/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Port Health Office,,"Cobweb Ceilings",1/60
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Port Health Office,,"Wipe walls & ledges",1/90
+bundle_ref,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Port Health Office,,"Terrazzo Maintenance and Floor Care",
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Doctor / Nurse Station,,"Empty Bins/Dispose of Litter",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Doctor / Nurse Station,,"Clean and sanitize chairs, tables and telephones",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Doctor / Nurse Station,,"Sweep and Mop floors",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Doctor / Nurse Station,,"Vacuum carpets and rugs (if applicable)",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Doctor / Nurse Station,,"Clean and sanitize Sick Bay",2/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Doctor / Nurse Station,,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Doctor / Nurse Station,,"Clean Windows & Doors",2/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Doctor / Nurse Station,,"Spot clean walls and light switches",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Doctor / Nurse Station,,"Spot clean / vacuum carpets, rugs and floor mats",2/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Doctor / Nurse Station,,"Cobweb Ceilings",1/60
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Doctor / Nurse Station,,"Wipe walls & ledges",1/90
+bundle_ref,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Doctor / Nurse Station,,"Terrazzo Maintenance and Floor Care",
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,GTA (Tourism) Office,,"Empty Bins/Dispose of Litter",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,GTA (Tourism) Office,,"Clean and sanitize chairs, tables and telephones",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,GTA (Tourism) Office,,"Sweep and mop floor",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,GTA (Tourism) Office,,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,GTA (Tourism) Office,,"Clean Glass windows and doors",2/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,GTA (Tourism) Office,,"Spot clean walls and light switches",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,GTA (Tourism) Office,,"Cobweb Ceilings",1/60
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,GTA (Tourism) Office,,"Wipe walls & ledges",1/90
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,AIS Office & Met Office & Lunchroom,,"Empty Bins/Dispose of Litter",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,AIS Office & Met Office & Lunchroom,,"Clean and sanitize chairs, tables and telephones",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,AIS Office & Met Office & Lunchroom,,"Sweep and Mop floors",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,AIS Office & Met Office & Lunchroom,,"Clean and sanitize lunchroom countertops",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,AIS Office & Met Office & Lunchroom,,"Clean Glass windows and doors",2/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,AIS Office & Met Office & Lunchroom,,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,AIS Office & Met Office & Lunchroom,,"Spot clean walls and light switches",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,AIS Office & Met Office & Lunchroom,,"Spot clean / vacuum carpets, rugs and floor mats",2/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,AIS Office & Met Office & Lunchroom,,"Cobweb Ceilings",1/60
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,AIS Office & Met Office & Lunchroom,,"Wipe walls & ledges",1/90
+bundle_ref,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,AIS Office & Met Office & Lunchroom,,"Terrazzo Maintenance and Floor Care",
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Waving Art Gallery,,"Empty Bins/Dispose of Litter",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Waving Art Gallery,,"Clean and sanitize chairs and tables",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Waving Art Gallery,,"Sweep & Mop Floor",1/1
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Waving Art Gallery,,"Clean Glass windows & doors",2/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Waving Art Gallery,,"Spot clean walls and light switches",1/5
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Waving Art Gallery,,"Clean Walls",1/90
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Waving Art Gallery,,"Cobweb Ceilings",1/60
+task,Air Terminal Building (ATB),Meeting Rooms & Office Spaces,Waving Art Gallery,,"Clean Aluminum Frames",2/180
+task,Air Terminal Building (ATB),Passenger Facilitation,GAA Executive Lounge,Light Cleaning,"Empty Bins/Dispose of Litter",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,GAA Executive Lounge,Light Cleaning,"Sweep & Mop floors",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,GAA Executive Lounge,Light Cleaning,"Vacuum Carpets and rugs",1/1
+task,Air Terminal Building (ATB),Passenger Facilitation,GAA Executive Lounge,Light Cleaning,"Clean and sanitize Toilets",1/1
+task,Air Terminal Building (ATB),Passenger Facilitation,GAA Executive Lounge,Light Cleaning,"Clean and sanitize Kitchenette",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,GAA Executive Lounge,Light Cleaning,"Vacuum upholstered furniture",1/5
+task,Air Terminal Building (ATB),Passenger Facilitation,GAA Executive Lounge,Deep Cleaning,"Empty Bins/Dispose of Litter",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,GAA Executive Lounge,Deep Cleaning,"Vacuum Carpets and rugs",1/1
+task,Air Terminal Building (ATB),Passenger Facilitation,GAA Executive Lounge,Deep Cleaning,"Sweep & Mop floors",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,GAA Executive Lounge,Deep Cleaning,"Deep Clean Toilets & Tiles",1/1
+task,Air Terminal Building (ATB),Passenger Facilitation,GAA Executive Lounge,Deep Cleaning,"Deep Clean Pantry Area",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,GAA Executive Lounge,Deep Cleaning,"Deep Clean Kitchenette",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,GAA Executive Lounge,Deep Cleaning,"Wipe Glass Doors & Windows",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,GAA Executive Lounge,Deep Cleaning,"Spot clean walls and light switches",1/5
+task,Air Terminal Building (ATB),Passenger Facilitation,GAA Executive Lounge,Deep Cleaning,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Air Terminal Building (ATB),Passenger Facilitation,GAA Executive Lounge,Deep Cleaning,"Wipes the leaves of potted plants",1/5
+task,Air Terminal Building (ATB),Passenger Facilitation,GAA Executive Lounge,Deep Cleaning,"Spot clean / vacuum carpets, rugs and floor mats",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,GAA Executive Lounge,Deep Cleaning,"Wipe walls",1/30
+task,Air Terminal Building (ATB),Passenger Facilitation,GAA Executive Lounge,Deep Cleaning,"Deep Clean / Steam Clean upholstered furniture",1/30
+task,Air Terminal Building (ATB),Passenger Facilitation,GAA Executive Lounge,Deep Cleaning,"Cobweb Ceiling",1/30
+task,Air Terminal Building (ATB),Passenger Facilitation,GAA Executive Lounge,Deep Cleaning,"Deep clean carpets / rugs",1/90
+task,Air Terminal Building (ATB),Passenger Facilitation,Gov't VIP Lounge (Ministry of Foreign Affairs),,"Empty Bins/Dispose of Litter",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Gov't VIP Lounge (Ministry of Foreign Affairs),,"Vacuum Carpets and rugs",1/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Gov't VIP Lounge (Ministry of Foreign Affairs),,"Sweep & Mop floors",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Gov't VIP Lounge (Ministry of Foreign Affairs),,"Clean and sanitize Toilets & Tiles",1/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Gov't VIP Lounge (Ministry of Foreign Affairs),,"Clean Pantry / storage area",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Gov't VIP Lounge (Ministry of Foreign Affairs),,"Clean Kitchenette",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Gov't VIP Lounge (Ministry of Foreign Affairs),,"Wipe Glass Doors & Windows",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Gov't VIP Lounge (Ministry of Foreign Affairs),,"Pressure wash ramp in front of the Lounge",1/5
+task,Air Terminal Building (ATB),Passenger Facilitation,Gov't VIP Lounge (Ministry of Foreign Affairs),,"Spot clean walls and light switches",1/5
+task,Air Terminal Building (ATB),Passenger Facilitation,Gov't VIP Lounge (Ministry of Foreign Affairs),,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Air Terminal Building (ATB),Passenger Facilitation,Gov't VIP Lounge (Ministry of Foreign Affairs),,"Spot clean / vacuum carpets, rugs and floor mats",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Gov't VIP Lounge (Ministry of Foreign Affairs),,"Wipe walls",1/30
+task,Air Terminal Building (ATB),Passenger Facilitation,Gov't VIP Lounge (Ministry of Foreign Affairs),,"Deep Clean / steam clean upholstered furniture",1/30
+task,Air Terminal Building (ATB),Passenger Facilitation,Gov't VIP Lounge (Ministry of Foreign Affairs),,"Deep clean carpets / rugs",1/90
+task,Air Terminal Building (ATB),Passenger Facilitation,Check-In Hall,,"Empty & Wipe Bins/Dispose of Litter",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Check-In Hall,,"Clean and sanitize check in counters",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Check-In Hall,,"Clean and sanitize chairs and benches",1/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Check-In Hall,,"Wipe Glass windows and doors",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Check-In Hall,,"Sweep and mop Floor (tiles)",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Check-In Hall,,"Spot clean walls",1/5
+task,Air Terminal Building (ATB),Passenger Facilitation,Check-In Hall,,"Spot clean / vacuum carpets, rugs and floor mats",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Check-In Hall,,"Wipe Walls",1/90
+task,Air Terminal Building (ATB),Passenger Facilitation,Check-In Hall,,"Deep clean carpets / rugs",1/90
+task,Air Terminal Building (ATB),Passenger Facilitation,Check-In Hall,,"Cobweb Ceiling",1/120
+task,Air Terminal Building (ATB),Passenger Facilitation,Check-In Hall,,"Clean Chair Covers & Frames",1/120
+bundle_ref,Air Terminal Building (ATB),Passenger Facilitation,Check-In Hall,,"Terrazzo Maintenance and Floor Care",
+task,Air Terminal Building (ATB),Passenger Facilitation,Departure Hall,,"Empty & Wipe Bins/Dispose of Litter",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Departure Hall,,"Clean and sanitize chairs and benches",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Departure Hall,,"Clean and sanitize boarding gate counters",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Departure Hall,,"Sweep and Mop Floor",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Departure Hall,,"Clean the Stairs at Gate 5 including glass areas",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Departure Hall,,"Wipe Glass windows and doors",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Departure Hall,,"Spot clean walls",1/5
+task,Air Terminal Building (ATB),Passenger Facilitation,Departure Hall,,"Spot clean / vacuum carpets, rugs and floor mats",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Departure Hall,,"Deep clean carpets / rugs",1/90
+task,Air Terminal Building (ATB),Passenger Facilitation,Departure Hall,,"Wipe Walls",1/90
+task,Air Terminal Building (ATB),Passenger Facilitation,Departure Hall,,"Clean Chair Covers & Frames",1/120
+bundle_ref,Air Terminal Building (ATB),Passenger Facilitation,Departure Hall,,"Terrazzo Maintenance and Floor Care",
+task,Air Terminal Building (ATB),Passenger Facilitation,Arrival Hall,,"Empty & Wipe Bins/Dispose of Litter",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Arrival Hall,,"Sweep and Mop Floor",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Arrival Hall,,"Wipe Glass windows and doors",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Arrival Hall,,"Clean and sanitize benches and chairs",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Arrival Hall,,"Clean and sanitize writing ledges",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Arrival Hall,,"Clean and sanitize tables and chairs inside the Booths",1/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Arrival Hall,,"Spot clean / vacuum carpets, rugs and floor mats",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Arrival Hall,,"Spot clean walls and light switches",1/5
+task,Air Terminal Building (ATB),Passenger Facilitation,Arrival Hall,,"Deep clean carpets / rugs",1/90
+bundle_ref,Air Terminal Building (ATB),Passenger Facilitation,Arrival Hall,,"Terrazzo Maintenance and Floor Care",
+task,Air Terminal Building (ATB),Passenger Facilitation,Customs Hall,,"Empty & wipe Bins / Dispose of Litter",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Customs Hall,,"Sweep and Mop Floor",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Customs Hall,,"Clean Glass windows and doors",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Customs Hall,,"Clean and sanitize public telephone",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Customs Hall,,"Clean and sanitize benches and chairs",1/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Customs Hall,,"Clean and sanitize tables and chairs and telephones inside Booths",1/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Customs Hall,,"Spot clean walls and light switches",1/5
+task,Air Terminal Building (ATB),Passenger Facilitation,Customs Hall,,"Spot clean / vacuum carpets, rugs and floor mats",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Customs Hall,,"Cobweb Ceiling",1/30
+task,Air Terminal Building (ATB),Passenger Facilitation,Customs Hall,,"Wipe Ledges",1/60
+task,Air Terminal Building (ATB),Passenger Facilitation,Customs Hall,,"Wipe Walls",1/90
+bundle_ref,Air Terminal Building (ATB),Passenger Facilitation,Customs Hall,,"Terrazzo Maintenance and Floor Care",
+task,Air Terminal Building (ATB),Passenger Facilitation,Security Screening Checkpoints,,"Empty & Wash Bins/Dispose Litter",1/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Security Screening Checkpoints,,"Clean and sanitize chairs, tabletops and telephones",1/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Security Screening Checkpoints,,"Clean glass doors and windows",1/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Security Screening Checkpoints,,"Clean and sanitize tables and chairs and telephones at Security Podium",1/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Security Screening Checkpoints,,"Vacuum carpets and rugs",1/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Security Screening Checkpoints,,"Spot clean walls and light switches",1/5
+task,Air Terminal Building (ATB),Passenger Facilitation,Security Screening Checkpoints,,"Spot clean / Vacuum carpets, rugs and floor mats",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Security Screening Checkpoints,,"Cobweb Ceiling",1/30
+task,Air Terminal Building (ATB),Passenger Facilitation,Security Screening Checkpoints,,"Wipe Walls",1/90
+bundle_ref,Air Terminal Building (ATB),Passenger Facilitation,Security Screening Checkpoints,,"Terrazzo Maintenance and Floor Care",
+task,Air Terminal Building (ATB),Passenger Facilitation,Baggage Make-Up Areas (Arrival & Departure),,"Empty & Wipe Bins/Dispose of Litter",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Baggage Make-Up Areas (Arrival & Departure),,"Sweep Floors",1/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Baggage Make-Up Areas (Arrival & Departure),,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Air Terminal Building (ATB),Passenger Facilitation,Baggage Make-Up Areas (Arrival & Departure),,"Pressure Wash Concrete Floors",1/30
+task,Air Terminal Building (ATB),Passenger Facilitation,Baggage Make-Up Areas (Arrival & Departure),,"Clean Walls",1/30
+task,Air Terminal Building (ATB),Passenger Facilitation,Passenger Boarding Bridges (PBBs),,"Empty Bins/Dispose of Litter",1/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Passenger Boarding Bridges (PBBs),,"Clean and sanitize chairs, tables and telephones",1/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Passenger Boarding Bridges (PBBs),,"Clean and sanitize handrails",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Passenger Boarding Bridges (PBBs),,"Clean Glass windows and doors",1/5
+task,Air Terminal Building (ATB),Passenger Facilitation,Passenger Boarding Bridges (PBBs),,"Sweep and Mop Floor",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Passenger Boarding Bridges (PBBs),,"Spot clean walls and light switches",1/5
+task,Air Terminal Building (ATB),Passenger Facilitation,Passenger Boarding Bridges (PBBs),,"Spot clean / vacuum carpets, rugs and floor mats",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Passenger Boarding Bridges (PBBs),,"Wipe Walls",1/90
+task,Air Terminal Building (ATB),Passenger Facilitation,Passenger Boarding Bridges (PBBs),,"Cobweb Ceilings",1/60
+task,Air Terminal Building (ATB),Passenger Facilitation,Elevators,,"Clean and sanitize handrails",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Elevators,,"Clean and sanitize push buttons",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Elevators,,"Sweep and Mop Floor",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Elevators,,"Vacuum carpeted areas (if applicable)",2/5
+task,Air Terminal Building (ATB),Passenger Facilitation,Elevators,,"Wipe doors and walls",1/90
+task,Air Terminal Building (ATB),Passenger Facilitation,Elevators,,"Cobweb Ceilings",1/60
+task,Air Terminal Building (ATB),Passenger Facilitation,Escalators,,"Clean and sanitize handrails",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Escalators,,"Wipe doors and walls",1/5
+task,Air Terminal Building (ATB),Passenger Facilitation,Escalators,,"Sweep and Mop treaders / steps",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Escalators,,"Spot clean / vacuum carpets, rugs and floor mats",2/1
+task,Air Terminal Building (ATB),Passenger Facilitation,Escalators,,"Wipe Walls",1/90
+task,Air Terminal Building (ATB),Public Concourse Areas,Public Concourses,,"Empty & Wash Bins/Dispose Litter",2/1
+task,Air Terminal Building (ATB),Public Concourse Areas,Public Concourses,,"Clean and sanitize chairs and benches",2/1
+task,Air Terminal Building (ATB),Public Concourse Areas,Public Concourses,,"Cobweb Ceiling",1/30
+task,Air Terminal Building (ATB),Public Concourse Areas,Public Concourses,,"Wipe Ledges",1/60
+task,Air Terminal Building (ATB),Public Concourse Areas,Public Concourses,,"Pressure Wash Concrete Area",1/60
+task,Air Terminal Building (ATB),Public Concourse Areas,Public Concourses,,"Wipe Walls",1/90
+task,Air Terminal Building (ATB),Public Concourse Areas,Public Concourses,,"Wash Overhead Steel Beams and Railings",1/90
+bundle_ref,Air Terminal Building (ATB),Public Concourse Areas,Public Concourses,,"Terrazzo Maintenance and Floor Care",
+task,Air Terminal Building (ATB),Public Concourse Areas,Common Use Seating Area - Passenger Pick-Up Zone,,"Sweep Concrete Area",1/1
+task,Air Terminal Building (ATB),Public Concourse Areas,Common Use Seating Area - Passenger Pick-Up Zone,,"Clean and sanitize tables & benches",2/1
+task,Air Terminal Building (ATB),Public Concourse Areas,Common Use Seating Area - Passenger Pick-Up Zone,,"Clean the Canopy",2/5
+task,Air Terminal Building (ATB),Public Concourse Areas,Common Use Seating Area - Passenger Pick-Up Zone,,"Cobweb ceilings",2/5
+task,Air Terminal Building (ATB),Public Concourse Areas,Common Use Seating Area - Passenger Pick-Up Zone,,"Wipe overhead beams",2/5
+task,Air Terminal Building (ATB),Public Concourse Areas,Common Use Seating Area - Passenger Pick-Up Zone,,"Pressure Wash Concrete Area",1/120
+bundle_ref,Air Terminal Building (ATB),Public Concourse Areas,Common Use Seating Area - Passenger Pick-Up Zone,,"Terrazzo Maintenance and Floor Care",
+task,Air Terminal Building (ATB),Public Concourse Areas,Walkways & Corridors,,"Empty Bins/Dispose of Litter",2/1
+task,Air Terminal Building (ATB),Public Concourse Areas,Walkways & Corridors,,"Sweep and Mop Floor",2/1
+task,Air Terminal Building (ATB),Public Concourse Areas,Walkways & Corridors,,"Clean Glass windows and doors",2/1
+task,Air Terminal Building (ATB),Public Concourse Areas,Walkways & Corridors,,"Spot clean walls",1/5
+task,Air Terminal Building (ATB),Public Concourse Areas,Walkways & Corridors,,"Spot clean / vacuum carpets, rugs and floor mats",2/1
+task,Air Terminal Building (ATB),Public Concourse Areas,Walkways & Corridors,,"Cobweb Ceiling",1/30
+task,Air Terminal Building (ATB),Public Concourse Areas,Walkways & Corridors,,"Wipe Walls",1/90
+task,Air Terminal Building (ATB),Public Concourse Areas,Walkways & Corridors,,"Pressure Wash Concrete Area",1/120
+bundle_ref,Air Terminal Building (ATB),Public Concourse Areas,Walkways & Corridors,,"Terrazzo Maintenance and Floor Care",
+task,Air Terminal Building (ATB),Public Concourse Areas,Stairwells,,"Clean and sanitize handrails",2/1
+task,Air Terminal Building (ATB),Public Concourse Areas,Stairwells,,"Sweep and Mop treaders / steps",2/1
+task,Air Terminal Building (ATB),Public Concourse Areas,Stairwells,,"Spot clean walls",1/5
+task,Air Terminal Building (ATB),Public Concourse Areas,Stairwells,,"Wipe walls",1/30
+task,Air Terminal Building (ATB),Public Concourse Areas,Stairwells,,"Cobweb Ceilings",1/60
+task,Air Terminal Building (ATB),Public Concourse Areas,Canopies / Ceilings,,"Sweep Concrete Area",1/1
+task,Air Terminal Building (ATB),Public Concourse Areas,Canopies / Ceilings,,"Wipe overhead beams",2/5
+task,Air Terminal Building (ATB),Public Concourse Areas,Canopies / Ceilings,,"Cobweb Ceiling",1/30
+task,Air Terminal Building (ATB),Public Concourse Areas,Canopies / Ceilings,,"Wipe Ledges",1/30
+task,Air Terminal Building (ATB),Public Concourse Areas,Canopies / Ceilings,,"Pressure Wash Concrete Area",1/120
+task,Air Terminal Building (ATB),Public Concourse Areas,Canopies / Ceilings,,"Wash Overhead Steel Beams and Railings",1/90
+task,Auxiliary Buildings,,Maintenance Complex & Lunchroom,,"Empty Bins/Dispose of Litter",1/1
+task,Auxiliary Buildings,,Maintenance Complex & Lunchroom,,"Clean and sanitize chairs, tables & telephones",1/1
+task,Auxiliary Buildings,,Maintenance Complex & Lunchroom,,"Sweep and mop floor area",1/1
+task,Auxiliary Buildings,,Maintenance Complex & Lunchroom,,"Clean Windows and Doors",2/5
+task,Auxiliary Buildings,,Maintenance Complex & Lunchroom,,"Clean microwave & refrigerator",2/5
+task,Auxiliary Buildings,,Maintenance Complex & Lunchroom,,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Auxiliary Buildings,,Maintenance Complex & Lunchroom,,"Spot clean walls and light switches",1/5
+task,Auxiliary Buildings,,Maintenance Complex & Lunchroom,,"Cobweb Ceilings",1/60
+task,Auxiliary Buildings,,Maintenance Complex & Lunchroom,,"Wipe walls & ledges",1/90
+task,Auxiliary Buildings,,Air Traffic Control Tower & ECCAA Tech Block,,"Empty Bins/Dispose of Litter",1/1
+task,Auxiliary Buildings,,Air Traffic Control Tower & ECCAA Tech Block,,"Clean and sanitize tables, chairs and telephones",1/1
+task,Auxiliary Buildings,,Air Traffic Control Tower & ECCAA Tech Block,,"Sweep & Mop floor and Staircase",1/1
+task,Auxiliary Buildings,,Air Traffic Control Tower & ECCAA Tech Block,,"Clean Glass Windows & Doors",2/5
+task,Auxiliary Buildings,,Air Traffic Control Tower & ECCAA Tech Block,,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Auxiliary Buildings,,Air Traffic Control Tower & ECCAA Tech Block,,"Spot clean walls and light switches",1/5
+task,Auxiliary Buildings,,Air Traffic Control Tower & ECCAA Tech Block,,"Spot clean / vacuum carpets, rugs and floor mats",2/1
+task,Auxiliary Buildings,,Air Traffic Control Tower & ECCAA Tech Block,,"Cobweb Ceiling",1/30
+task,Auxiliary Buildings,,Air Traffic Control Tower & ECCAA Tech Block,,"Clean Ledges",1/60
+task,Auxiliary Buildings,,Air Traffic Control Tower & ECCAA Tech Block,,"Clean Walls",1/90
+task,Auxiliary Buildings,,Air Traffic Control Tower & ECCAA Tech Block,,"Clean Aluminum Frames",2/180
+bundle_ref,Auxiliary Buildings,,Air Traffic Control Tower & ECCAA Tech Block,,"Terrazzo Maintenance and Floor Care",
+task,Auxiliary Buildings,,Stores Building (Office),,"Sweep and Mop Floors",1/1
+task,Auxiliary Buildings,,Stores Building (Office),,"Clean Toilets/Sinks",1/1
+task,Auxiliary Buildings,,Stores Building (Office),,"Sanitize tables and countertops",1/1
+task,Auxiliary Buildings,,Stores Building (Office),,"Clean kitchenette",1/1
+task,Auxiliary Buildings,,Stores Building (Office),,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Auxiliary Buildings,,Stores Building (Office),,"Spot clean walls and light switches",1/5
+task,Auxiliary Buildings,,Stores Building (Office),,"Cobweb Ceilings",1/60
+task,Auxiliary Buildings,,Stores Building (Warehouse),,"Sweep Floors",1/1
+task,Auxiliary Buildings,,Stores Building (Warehouse),,"Dust high surfaces (ledges, partitions, top of shelves)",1/30
+task,Auxiliary Buildings,,Stores Building (Warehouse),,"Cobweb ceiling",1/60
+task,Auxiliary Buildings,,Car Park Attendant Booth,,"Empty Bins/Dispose of Litter",1/1
+task,Auxiliary Buildings,,Car Park Attendant Booth,,"Sweep and mop floors",1/1
+task,Auxiliary Buildings,,Car Park Attendant Booth,,"Clean windows and doors",1/1
+task,Auxiliary Buildings,,Car Park Attendant Booth,,"Clean Glass surfaces",1/1
+task,Auxiliary Buildings,,Car Park Attendant Booth,,"Clean and sanitize tables, chairs and telephone",1/1
+task,Auxiliary Buildings,,Car Park Attendant Booth,,"Spot clean walls and light switches",1/5
+task,Auxiliary Buildings,,Car Park Attendant Booth,,"Spot clean / vacuum carpets, rugs and floor mats",2/1
+task,Auxiliary Buildings,,Car Park Attendant Booth,,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Auxiliary Buildings,,Car Park Attendant Booth,,"Cobweb Ceiling",1/30
+task,Auxiliary Buildings,,Security Guard Hut,,"Empty Bins/Dispose of Litter",1/1
+task,Auxiliary Buildings,,Security Guard Hut,,"Sweep and mop floors",1/1
+task,Auxiliary Buildings,,Security Guard Hut,,"Clean windows and doors",1/1
+task,Auxiliary Buildings,,Security Guard Hut,,"Clean Glass surfaces",1/1
+task,Auxiliary Buildings,,Security Guard Hut,,"Clean and sanitize tables, chairs and telephone",1/1
+task,Auxiliary Buildings,,Security Guard Hut,,"Spot clean walls and light switches",1/5
+task,Auxiliary Buildings,,Security Guard Hut,,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Auxiliary Buildings,,Security Guard Hut,,"Spot clean / vacuum carpets, rugs and floor mats",2/1
+task,Auxiliary Buildings,,Security Guard Hut,,"Cobweb Ceilings",1/30
+task,Auxiliary Buildings,,Amerijet Guard Hut,,"Empty Bins/Dispose of Litter",1/1
+task,Auxiliary Buildings,,Amerijet Guard Hut,,"Sweep and Mop Floors",1/1
+task,Auxiliary Buildings,,Amerijet Guard Hut,,"Clean Windows & Doors",1/1
+task,Auxiliary Buildings,,Amerijet Guard Hut,,"Clean Glass surfaces",1/1
+task,Auxiliary Buildings,,Amerijet Guard Hut,,"Clean and disinfect tables, chairs and telephone",1/1
+task,Auxiliary Buildings,,Amerijet Guard Hut,,"Spot clean walls and light switches",1/5
+task,Auxiliary Buildings,,Amerijet Guard Hut,,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Auxiliary Buildings,,Amerijet Guard Hut,,"Spot clean / vacuum carpets, rugs and floor mats",2/1
+task,Auxiliary Buildings,,Amerijet Guard Hut,,"Cobweb Ceilings",1/30
+task,Auxiliary Buildings,,Project House,,"Empty Bins/Dispose of Litter",1/1
+task,Auxiliary Buildings,,Project House,,"Clean and sanitize tables and chairs",1/1
+task,Auxiliary Buildings,,Project House,,"Sweep & Mop floors (tile / concrete)",1/1
+task,Auxiliary Buildings,,Project House,,"Clean windows & doors",1/5
+task,Auxiliary Buildings,,Project House,,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Auxiliary Buildings,,Project House,,"Spot clean walls and light switches",1/5
+task,Auxiliary Buildings,,Project House,,"Spot clean / vacuum carpets, rugs and floor mats",2/1
+task,Auxiliary Buildings,,Project House,,"Cobweb Ceilings",1/30
+task,Auxiliary Buildings,,Project House,,"Clean Ledges",1/60
+task,Auxiliary Buildings,,Project House,,"Clean Walls",1/90
+task,Auxiliary Buildings,,Project Office,,"Empty Bins/Dispose of Litter",1/1
+task,Auxiliary Buildings,,Project Office,,"Clean and sanitize desks, chairs and telephones",1/1
+task,Auxiliary Buildings,,Project Office,,"Sweep & Mop Stairs",1/1
+task,Auxiliary Buildings,,Project Office,,"Sweep & Mop Floor (wooden tile strips)",1/1
+task,Auxiliary Buildings,,Project Office,,"Clean windows & doors",1/5
+task,Auxiliary Buildings,,Project Office,,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Auxiliary Buildings,,Project Office,,"Spot clean walls and light switches",1/5
+task,Auxiliary Buildings,,Project Office,,"Spot clean / vacuum carpets, rugs and floor mats",2/1
+task,Auxiliary Buildings,,Project Office,,"Clean Ledges",1/60
+task,Auxiliary Buildings,,Project Office,,"Clean Walls",1/90
+task,Auxiliary Buildings,,Amerijet Cargo Shed,,"Empty Bins/Dispose of Litter",1/1
+task,Auxiliary Buildings,,Amerijet Cargo Shed,,"Clean and sanitize tables, chairs and telephone",1/1
+task,Auxiliary Buildings,,Amerijet Cargo Shed,,"Sweep & Mop Floors",1/1
+task,Auxiliary Buildings,,Amerijet Cargo Shed,,"Sweep & Mop Staircase",1/1
+task,Auxiliary Buildings,,Amerijet Cargo Shed,,"Clean Glass windows and doors",2/5
+task,Auxiliary Buildings,,Amerijet Cargo Shed,,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Auxiliary Buildings,,Amerijet Cargo Shed,,"Clean Ledges",1/60
+task,Auxiliary Buildings,,Amerijet Cargo Shed,,"Clean Walls",1/90
+task,Auxiliary Buildings,,Amerijet Cargo Shed,,"Clean Aluminum Frames",2/180
+task,Auxiliary Buildings,,Plumbing Lab & Lunchroom,,"Empty Bins/Dispose of Litter",1/1
+task,Auxiliary Buildings,,Plumbing Lab & Lunchroom,,"Clean and sanitize Chairs, tables and telephones",1/1
+task,Auxiliary Buildings,,Plumbing Lab & Lunchroom,,"Sweep and mop Floor Area",1/1
+task,Auxiliary Buildings,,Plumbing Lab & Lunchroom,,"Clean windows & Doors",1/5
+task,Auxiliary Buildings,,Plumbing Lab & Lunchroom,,"Clean Glass Louvers",2/5
+task,Auxiliary Buildings,,Plumbing Lab & Lunchroom,,"Wipe & sanitize lunchroom countertop",2/5
+task,Auxiliary Buildings,,Plumbing Lab & Lunchroom,,"Clean kitchen appliances (microwave & refrigerator)",2/5
+task,Auxiliary Buildings,,Plumbing Lab & Lunchroom,,"Spot clean walls and light switches",1/5
+task,Auxiliary Buildings,,Plumbing Lab & Lunchroom,,"Dust high surfaces (ledges, partitions, top of shelves)",1/5
+task,Auxiliary Buildings,,Plumbing Lab & Lunchroom,,"Cobweb Ceilings",1/60
+task,Auxiliary Buildings,,Plumbing Lab & Lunchroom,,"Wipe walls & ledges",1/90

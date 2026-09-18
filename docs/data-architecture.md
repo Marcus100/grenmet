@@ -7,10 +7,13 @@ Barrels Grenada currently uses a modular-monolith data model: several applicatio
 | Database | Owner | Main code | Migration tool | Notes |
 | --- | --- | --- | --- | --- |
 | FastAPI DB: local `app`, staging `app_staging`, production `app_prod` | FastAPI | `apps/api/fastapi/src` | Alembic | Auth, HR, and FastAPI CAP domain tables |
-| `wxwatch` | `@barrelsgd/web-gaa-admin` (gaa-admin) + Scrapy pipeline | `apps/web/gaa-admin/src/db/wxwatch/schema.ts` | Drizzle Kit | Weather image archive metadata |
-| `wxproducts` | FastAPI | `apps/api/fastapi/src/wxproducts/` | Dedicated Alembic configuration | Authored products, revision history, and preserved legacy weather tables |
+| `wxwatch` | FastAPI + Scrapy pipeline | `apps/api/fastapi/src/wxwatch/` | Alembic | Weather image archive metadata |
+| `wxproducts` | FastAPI | `apps/api/fastapi/src/wxproducts/` | Dedicated Alembic configuration | Authored products, observations, revisions, and preserved legacy weather tables |
+| `eregister` | FastAPI | `apps/api/fastapi/src/eregister/` | Dedicated Alembic configuration | Observation register, QC, TAC, BUFR/IWXXM and WIS2 provenance |
+| `janitorial` | FastAPI | `apps/api/fastapi/src/janitorial/` | Dedicated Alembic configuration | Staff catalogue and task definitions |
+| `transport` | FastAPI | `apps/api/fastapi/src/transport/` | Dedicated Alembic configuration | Staff timetable and route catalogue |
 
-> Since the 2026-06 consolidation, the `wxwatch` and `wxproducts` databases (formerly owned by the standalone `wxwatch`/`wxproducts` web apps) are owned by **gaa-admin**. WxWatch migrations run via `web-migrate`; wxproducts migrations now run through FastAPI prestart. The databases and their backups are otherwise unchanged.
+> FastAPI owns weather, eRegister, janitorial, and transport databases. GAA Admin consumes generated API contracts; it does not connect directly to those databases. The databases and their backups remain separate.
 
 The databases are provisioned by `infra/postgres/init-databases.sh` on first PostgreSQL volume initialization.
 
@@ -23,6 +26,7 @@ Current FastAPI domains:
 - Auth: users, sessions, roles, permissions, role assignments.
 - HR: profiles, employment, rosters, leave, timesheets, workflows, status reports, absentee reports, shift swaps.
 - CAP: alerts, info, areas, resources, references, incidents, snapshots, settings, hazards, predefined areas, integrations, job events, audit events.
+- WxWatch, WxProducts, eRegister, Janitorial, and Transport: dedicated database boundaries and API contracts.
 
 Rules:
 
@@ -33,14 +37,13 @@ Rules:
 
 ## WxWatch Database
 
-`wxwatch` owns a Drizzle table named `weather_images` with indexes for observation time, spider/fetch time, fetch time, and URL/checksum lookup.
+`wxwatch` owns the `weather_images` table through FastAPI Alembic with indexes for observation time, spider/fetch time, fetch time, and URL/checksum lookup.
 
 Rules:
 
-- Edit `apps/web/gaa-admin/src/db/wxwatch/schema.ts` for schema changes.
-- Run `pnpm db:wxwatch:generate` from `apps/web/gaa-admin`.
-- Run `pnpm db:wxwatch:migrate` from `apps/web/gaa-admin`.
-- Commit schema and generated migration output together.
+- Edit `apps/api/fastapi/src/wxwatch/` for schema and route changes.
+- Run `alembic -c src/wxwatch/alembic.ini upgrade head` from `apps/api/fastapi`.
+- Regenerate the API client after route or schema changes.
 
 The Scrapy pipeline writes weather image metadata into this database. Do not couple `wxwatch` data directly to FastAPI tables.
 
@@ -62,16 +65,19 @@ Rules:
 - Edit models and migrations under `apps/api/fastapi/src/wxproducts/`.
 - From `apps/api/fastapi`, run `uv run --frozen --package fast-back alembic -c src/wxproducts/alembic.ini revision -m "description"` and implement the migration.
 - Apply with `uv run --frozen --package fast-back alembic -c src/wxproducts/alembic.ini upgrade head`.
-- Do not generate new Drizzle migrations. Hono does not require Drizzle.
+- Do not generate new Drizzle migrations for these domains. Hono does not require Drizzle.
 - Keep fixed-output PDF requirements in the document lane; do not force those dimensions into generic UI tokens.
 
 ## Backups
 
-Production backup automation covers all three production databases:
+Production backup automation covers all six core production databases:
 
 - `app_prod`
 - `wxwatch`
 - `wxproducts`
+- `eregister`
+- `janitorial`
+- `transport`
 
 The workflow uses custom-format `pg_dump`, verifies each dump by restoring into a temporary database, uploads to DigitalOcean Spaces, and keeps local files for 30 days. See [infrastructure.md](infrastructure.md#backups-and-restore).
 

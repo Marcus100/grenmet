@@ -8,10 +8,11 @@ Local commands use each workspace's `.env.local`. No developer secret file is wr
 | --- | --- | --- | --- | --- | --- |
 | FastAPI auth, HR, CAP | `app` / `app_staging` / `app_prod` (confirm actual host) | `POSTGRES_*`, optional provisioning `APP_DB_*` | Alembic; staff/account baseline is explicit | core `pgdata`; preserve existing named volumes | API ready plus migration verification; custom pg_dump |
 | Test runner | `app_test` only | test configuration | pytest setup | local core volume only | never provisioned or backed up as deployed data |
-| wxwatch | `wxwatch` / `wxwatch_staging` / `wxwatch` | `WXWATCH_DATABASE_URL`, `WXWATCH_DB_*` | Drizzle | core `pgdata` | admin ready; pg_dump plus image objects |
-| wxproducts | `wxproducts` / `wxproducts_staging` / `wxproducts` | `WXPRODUCTS_DATABASE_URL`, `WXPRODUCTS_DB_*` | Drizzle | core `pgdata` | admin ready; pg_dump |
-| Transport | `transport` / `transport_staging` / `transport` | `TRANSPORT_DATABASE_URL`, `TRANSPORT_DB_*` | Drizzle; `transport-v1` catalogue | core `pgdata` | admin ready; pg_dump |
-| Janitorial | `janitorial` / `janitorial_staging` / `janitorial` | `JANITORIAL_DATABASE_URL`, `JANITORIAL_DB_*` | Drizzle; `janitorial-v1` catalogue | core `pgdata` | admin ready; pg_dump |
+| wxwatch | `wxwatch` / `wxwatch_staging` / `wxwatch` | FastAPI `WXWATCH_DATABASE_URL`, `WXWATCH_DB_*` | FastAPI Alembic | core `pgdata` | API ready; pg_dump plus image objects |
+| wxproducts | `wxproducts` / `wxproducts_staging` / `wxproducts` | FastAPI `WXPRODUCTS_DATABASE_URL`, `WXPRODUCTS_DB_*` | FastAPI Alembic | core `pgdata` | API ready; pg_dump |
+| eRegister | `eregister` / `eregister_staging` / `eregister` | FastAPI `EREGISTER_DATABASE_URL`, `EREGISTER_DB_*` | FastAPI Alembic | core `pgdata` | API ready; pg_dump |
+| Transport | `transport` / `transport_staging` / `transport` | FastAPI `TRANSPORT_DATABASE_URL`, `TRANSPORT_DB_*` | FastAPI Alembic; create-once `transport-v1` seed | core `pgdata` | API ready; pg_dump |
+| Janitorial | `janitorial` / `janitorial_staging` / `janitorial` | FastAPI `JANITORIAL_DATABASE_URL`, `JANITORIAL_DB_*` | FastAPI Alembic; create-once `janitorial-v1` seed | core `pgdata` | API ready; pg_dump |
 | Payload CMS | `gms_cms` / `gms_cms_staging` / `gms_cms` | workspace `DATABASE_URL`; deploy `CMS_DATABASE_URL`, `CMS_DB_*`, stable `PAYLOAD_SECRET` | Payload committed migrations; explicit schema adoption | core `pgdata` | CMS ready + public content API; pg_dump |
 | Core Redis / CAP queue | per environment | `REDIS_URL` | no schema migrations | preserve `REDIS_VOLUME`; AOF every second | PING; reconcile queue work with authoritative CAP outbox |
 | SURFACE / GMS observations | existing `POSTGRES_DB`; inventory before rollout | SURFACE database config | Django migrations; explicit GMS reference catalogue | existing `surface/data/postgresql`; Timescale/PostGIS PG13 initially | Django checks + pg_dump with matching engine/extensions |
@@ -24,7 +25,7 @@ Local commands use each workspace's `.env.local`. No developer secret file is wr
 | Sutron / edge collector | SQLite archive | collector CLI/config | collector schema | edge persistent archive and handoff files | collector tests; SQLite backup API and file archives |
 | Uploaded files / weather images | environment-specific Spaces buckets | `STORAGE_*` | no database migration | immutable object keys plus local collector files | object retrieval + gallery; separate bucket backups |
 | GEONETCast and GMS ingestion | mounted inputs / output stores | source-specific collector config | bounded collectors | preserve receiver inputs and generated outputs | source freshness and handoff checks; archive required files |
-| Events / Salesbus | subsequent releases | dedicated URLs planned | separate Drizzle migrations planned | core PostgreSQL | independent release acceptance required |
+| Events / Salesbus | subsequent releases | dedicated URLs planned | separate FastAPI domain migrations planned | core PostgreSQL | independent release acceptance required |
 
 Run `bash scripts/production/inventory.sh` on each host. It inspects configured stacks even when stopped and outputs only approved fields, database versions, extensions, migration history and catalogue markers. `--configured-only` does not require daemon access. Compare actual names and owners before rollout; this document does not prove live provisioning.
 

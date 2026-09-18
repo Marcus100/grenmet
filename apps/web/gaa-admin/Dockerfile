@@ -84,7 +84,8 @@ ENV NODE_ENV=production
 COPY --from=migration-package /migration-runtime/node_modules ./apps/web/gaa-admin/node_modules
 COPY --from=source /app/apps/web/gaa-admin/package.json ./apps/web/gaa-admin/package.json
 COPY --from=source /app/apps/web/gaa-admin/scripts ./apps/web/gaa-admin/scripts
-COPY --from=source /app/apps/web/gaa-admin/drizzle ./apps/web/gaa-admin/drizzle
+COPY --from=source /app/apps/web/gaa-admin/drizzle/janitorial ./apps/web/gaa-admin/drizzle/janitorial
+COPY --from=source /app/apps/web/gaa-admin/drizzle/transport ./apps/web/gaa-admin/drizzle/transport
 COPY --from=source /app/apps/web/gaa-admin/seed ./apps/web/gaa-admin/seed
 COPY --from=source /app/apps/web/gaa-admin/src/db ./apps/web/gaa-admin/src/db
 USER node

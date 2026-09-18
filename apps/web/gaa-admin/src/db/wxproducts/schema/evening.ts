@@ -1,6 +1,5 @@
 /**
  * Evening forecast type (multi-day periods) and Zod schema.
- * For a full product example, import gmsEveningForecastExample from @/data/wxproducts/gms-evening-forecast.example.
  */
 
 import { z } from "zod";

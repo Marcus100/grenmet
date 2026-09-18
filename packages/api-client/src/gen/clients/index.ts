@@ -180,6 +180,8 @@ export { saveHazardProfileApiV1CapHazardProfilesKeyVersionsPost } from "./saveHa
 export { saveMySignatureApiV1HrSignatureMePut } from "./saveMySignatureApiV1HrSignatureMePut.js";
 export { saveProductApiV1WxproductsProductsPost } from "./saveProductApiV1WxproductsProductsPost.js";
 export { saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPut } from "./saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPut.js";
+export { specApiV1JanitorialSpecGet } from "./specApiV1JanitorialSpecGet.js";
+export { specApiV1TransportSpecGet } from "./specApiV1TransportSpecGet.js";
 export { startRunApiV1WxwatchRunsPost } from "./startRunApiV1WxwatchRunsPost.js";
 export { submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost } from "./submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost.js";
 export { submitAlertApiV1CapAlertsAlertIdSubmitPost } from "./submitAlertApiV1CapAlertsAlertIdSubmitPost.js";

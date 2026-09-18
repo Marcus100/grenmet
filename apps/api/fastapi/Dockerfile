@@ -46,6 +46,7 @@ COPY --chown=appuser:appuser apps/api/fastapi/alembic ./alembic
 COPY --chown=appuser:appuser apps/api/fastapi/alembic.ini ./alembic.ini
 COPY --chown=appuser:appuser apps/api/fastapi/email-templates ./email-templates
 COPY --chown=appuser:appuser apps/api/fastapi/scripts ./scripts
+COPY --chown=appuser:appuser apps/api/fastapi/seed ./seed
 
 # Install the FastAPI workspace member now that its source is present.
 RUN --mount=type=cache,target=/home/appuser/.cache/uv,uid=1000,gid=1000 \
