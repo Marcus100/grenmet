@@ -33,7 +33,7 @@ import {
 } from "@barrelsgd/ui/components/ui/select";
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { useForm } from "@tanstack/react-form";
-import { useEffect, useState, useTransition } from "react";
+import { type ReactNode, useEffect, useState, useTransition } from "react";
 import {
   loadProductHistoryAction,
   loadProductsAction,
@@ -45,6 +45,7 @@ import { bulletinExample } from "@/lib/wxproducts/bulletin-examples";
 import { visibleProductFields } from "@/lib/wxproducts/visible-fields";
 
 import { CapForecastPicker } from "./cap-forecast-picker";
+import { ProductList } from "./product-list";
 
 interface HistoryItem {
   action: string;
@@ -125,13 +126,13 @@ function ProductEditor({
     setHistory([]);
     onDirty(false);
     onSaved(result.product);
-    setMessage(
-      action === "publish"
-        ? "Published. GMS will show this product during its validity period."
-        : action === "withdraw"
-          ? "Withdrawn from the public website."
-          : "Draft saved."
-    );
+    const messageByAction = {
+      draft: "Draft saved.",
+      publish:
+        "Published. GMS will show this product during its validity period.",
+      withdraw: "Withdrawn from the public website.",
+    } as const;
+    setMessage(messageByAction[action]);
   }
   function submit(
     values: ProductValues,
@@ -278,6 +279,70 @@ function ProductEditor({
                               <form.Field key={f.key} name={f.key}>
                                 {(input) => {
                                   const inputId = `${kind}-${f.key}`;
+                                  let control: ReactNode;
+                                  if (f.options) {
+                                    control = (
+                                      <Select
+                                        onValueChange={(value) =>
+                                          input.handleChange(value ?? "")
+                                        }
+                                        value={input.state.value}
+                                      >
+                                        <SelectTrigger id={inputId}>
+                                          <SelectValue placeholder="Select…" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {f.options.map((option) => (
+                                            <SelectItem
+                                              key={option}
+                                              value={option}
+                                            >
+                                              {option}
+                                            </SelectItem>
+                                          ))}
+                                        </SelectContent>
+                                      </Select>
+                                    );
+                                  } else if (f.type === "textarea") {
+                                    control = (
+                                      <Textarea
+                                        id={inputId}
+                                        maxLength={12_000}
+                                        onChange={(e) =>
+                                          input.handleChange(e.target.value)
+                                        }
+                                        rows={4}
+                                        value={input.state.value ?? ""}
+                                      />
+                                    );
+                                  } else {
+                                    control = (
+                                      <Input
+                                        id={inputId}
+                                        maxLength={12_000}
+                                        onChange={(e) =>
+                                          input.handleChange(e.target.value)
+                                        }
+                                        readOnly={
+                                          isForecastKind(kind) &&
+                                          ([
+                                            "issuedAt",
+                                            "validFrom",
+                                            "validTo",
+                                            "validity",
+                                          ].includes(f.key) ||
+                                            EVENING_DAY_DATE.test(f.key))
+                                        }
+                                        step={
+                                          f.type === "number"
+                                            ? "any"
+                                            : undefined
+                                        }
+                                        type={f.type ?? "text"}
+                                        value={input.state.value ?? ""}
+                                      />
+                                    );
+                                  }
                                   return (
                                     <Field
                                       className={
@@ -290,63 +355,7 @@ function ProductEditor({
                                         {f.label}
                                         {f.required ? " *" : ""}
                                       </FieldLabel>
-                                      {f.options ? (
-                                        <Select
-                                          onValueChange={(value) =>
-                                            input.handleChange(value ?? "")
-                                          }
-                                          value={input.state.value}
-                                        >
-                                          <SelectTrigger id={inputId}>
-                                            <SelectValue placeholder="Select…" />
-                                          </SelectTrigger>
-                                          <SelectContent>
-                                            {f.options.map((option) => (
-                                              <SelectItem
-                                                key={option}
-                                                value={option}
-                                              >
-                                                {option}
-                                              </SelectItem>
-                                            ))}
-                                          </SelectContent>
-                                        </Select>
-                                      ) : f.type === "textarea" ? (
-                                        <Textarea
-                                          id={inputId}
-                                          maxLength={12_000}
-                                          onChange={(e) =>
-                                            input.handleChange(e.target.value)
-                                          }
-                                          rows={4}
-                                          value={input.state.value ?? ""}
-                                        />
-                                      ) : (
-                                        <Input
-                                          id={inputId}
-                                          maxLength={12_000}
-                                          onChange={(e) =>
-                                            input.handleChange(e.target.value)
-                                          }
-                                          readOnly={
-                                            isForecastKind(kind) &&
-                                            ([
-                                              "issuedAt",
-                                              "validFrom",
-                                              "validTo",
-                                              "validity",
-                                            ].includes(f.key) ||
-                                              EVENING_DAY_DATE.test(f.key))
-                                          }
-                                          step={
-                                            f.type === "number"
-                                              ? "any"
-                                              : undefined
-                                          }
-                                          type={f.type ?? "text"}
-                                          value={input.state.value ?? ""}
-                                        />
-                                      )}
+                                      {control}
                                     </Field>
                                   );
                                 }}
@@ -655,73 +664,28 @@ export function ProductDesk({
           </Field>
         ) : null}
       </div>
-      <div className="space-y-3 rounded-xl border bg-card p-4">
-        <h2 className="font-semibold">Saved products</h2>
-        {loading ? (
-          <p role="status">Loading…</p>
-        ) : loadError ? (
-          <div role="status">
-            <p>{loadError}</p>
-            <Button
-              onClick={() => setReload((r) => r + 1)}
-              type="button"
-              variant="outline"
-            >
-              Retry
-            </Button>
-          </div>
-        ) : products.some(
-            (product) =>
-              !product.values.issuedAt ||
-              product.values.issuedAt.startsWith(issueDate)
-          ) ? (
-          <ul className="flex flex-wrap gap-2">
-            {products
-              .filter(
-                (product) =>
-                  !product.values.issuedAt ||
-                  product.values.issuedAt.startsWith(issueDate)
-              )
-              .map((product) => (
-                <li key={product.id}>
-                  <Button
-                    onClick={() => {
-                      leave(() => {
-                        setSelected(product);
-                        setDirty(false);
-                        setEditorKey((key) => key + 1);
-                      });
-                    }}
-                    type="button"
-                    variant="outline"
-                  >
-                    {product.values.issuedAt?.replace("T", " ") ||
-                      "Undated draft"}{" "}
-                    · {product.values.area || "No area"} · r{product.revision}
-                    {product.publishedRevision ? " · Published" : " · Draft"}
-                  </Button>
-                </li>
-              ))}
-          </ul>
-        ) : (
-          <p className="text-muted-foreground text-sm">
-            No saved products of this type.
-          </p>
-        )}
-        <Button
-          onClick={() => {
-            leave(() => {
-              setSelected(null);
-              setDirty(false);
-              setEditorKey((key) => key + 1);
-            });
-          }}
-          type="button"
-          variant="outline"
-        >
-          New {productTitle(kind)}
-        </Button>
-      </div>
+      <ProductList
+        error={loadError}
+        issueDate={issueDate}
+        loading={loading}
+        onNew={() => {
+          leave(() => {
+            setSelected(null);
+            setDirty(false);
+            setEditorKey((key) => key + 1);
+          });
+        }}
+        onRetry={() => setReload((value) => value + 1)}
+        onSelect={(product) => {
+          leave(() => {
+            setSelected(product);
+            setDirty(false);
+            setEditorKey((key) => key + 1);
+          });
+        }}
+        productKind={kind}
+        products={products}
+      />
       <ProductEditor
         disabled={loading}
         initial={selected}
