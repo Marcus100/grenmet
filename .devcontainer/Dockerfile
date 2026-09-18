@@ -1,7 +1,10 @@
 # Dev container image for running coding agents (Claude Code, Codex) fully
 # inside Docker. Everything the agent edits or executes happens in here, not
 # on your Windows host.
-FROM node:24-bookworm
+FROM node:24-bookworm@sha256:6dac556d980b7f0e5498d08f08cee0ca67798b4ad6c23964a9214920e67758d0
+
+# Avoids apt-get prompting for input (e.g. tzdata) during unattended builds.
+ENV DEBIAN_FRONTEND=noninteractive
 
 # System tools the agents commonly shell out to (git, search, curl, etc.)
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -38,8 +41,9 @@ RUN uv python install 3.13
 # pnpm v12 via corepack (matches the monorepo's package manager)
 RUN corepack enable && corepack prepare pnpm@12.3.4 --activate
 
-# The coding agents themselves
-RUN npm install -g @anthropic-ai/claude-code @openai/codex
+# The coding agents themselves. Pinned so a rebuild doesn't silently drift —
+# bump deliberately (check current versions with `npm view <pkg> version`).
+RUN npm install -g @anthropic-ai/claude-code@2.1.277 @openai/codex@0.155.1
 
 # GitHub CLI (gh) — used by the repo's issue/PR workflow. Official apt repo.
 RUN mkdir -p -m 755 /etc/apt/keyrings \
@@ -67,6 +71,12 @@ RUN chmod 755 /usr/local/bin/prepare-agent-dependencies \
     && echo 'node ALL=(root) NOPASSWD: /usr/local/bin/prepare-agent-dependencies' > /etc/sudoers.d/grenmet-dependencies \
     && chmod 440 /etc/sudoers.d/grenmet-dependencies \
     && visudo -cf /etc/sudoers.d/grenmet-dependencies
+
+# bubblewrap — unprivileged sandboxing (bwrap); libcap-dev provides the
+# capability headers it links against.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends bubblewrap libcap-dev \
+    && rm -rf /var/lib/apt/lists/*
 
 # Run as the unprivileged 'node' user, not root
 USER node
