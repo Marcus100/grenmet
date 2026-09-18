@@ -12,4 +12,5 @@ Run typechecking regularly, single test files regularly, and the full test suite
 
 Once done, use /review to review the work.
 
-Commit your work to the current branch.
+Do not commit, push, or open a PR — leave the working tree for the user to
+review and commit themselves (see the Never tier in `CLAUDE.md`/`AGENTS.md`).

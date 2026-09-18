@@ -1,95 +1,42 @@
 ---
 name: git-guardrails-claude-code
-description: Set up Claude Code hooks to block dangerous git commands (push, reset --hard, clean, branch -D, etc.) before they execute. Use when user wants to prevent destructive git operations, add git safety hooks, or block git push/reset in Claude Code.
+description: Git guardrails are already installed in this repo. Use when the user asks to add git safety hooks, block dangerous git commands, or asks whether this protection exists — point them at the existing setup instead of reinstalling it.
 ---
 
-# Setup Git Guardrails
+# Git Guardrails — Already Installed
 
-Sets up a PreToolUse hook that intercepts and blocks dangerous git commands before Claude executes them.
+This repo already has this skill's original job done, for both Claude Code
+and Codex, not just Claude Code:
 
-## What Gets Blocked
+- `.claude/hooks/block-dangerous-git.mjs` — blocks `git commit`, `git push`,
+  `git reset --hard`, `git clean -f(d)`, `git branch -D`,
+  `git checkout .`/`git restore .`, `gh pr merge`, quote-aware (won't false-positive
+  on a `grep` for these phrases — see `scripts/guardrails/agent-hook-behavior.test.mjs`
+  for the regression that made this necessary).
+- Wired as a `PreToolUse` hook on `Bash` in `.claude/settings.json` (Claude
+  Code) and `.codex/config.toml` (Codex) — same script, not a fork.
+- Regression-tested: `scripts/guardrails/agent-hook-behavior.test.mjs`,
+  picked up automatically by `pnpm test:guardrails` and CI.
 
-- `git push` (all variants including `--force`)
-- `git reset --hard`
-- `git clean -f` / `git clean -fd`
-- `git branch -D`
-- `git checkout .` / `git restore .`
+**Do not re-run this skill's original bash+jq setup procedure** — it would
+write a second, worse copy (this devcontainer has no `jq`; a jq-based script
+fails *open*, silently allowing everything, which is why the current version
+is plain Node) and could add a duplicate/conflicting `PreToolUse` entry.
 
-When blocked, Claude sees a message telling it that it does not have authority to access these commands.
+## When the user asks to extend the blocked-pattern list
 
-## Steps
+Edit `.claude/hooks/block-dangerous-git.mjs`'s `DANGEROUS_PATTERNS` array
+directly (both tools share this one file). Add a test case to
+`scripts/guardrails/agent-hook-behavior.test.mjs` covering the new pattern —
+both a case that should block and, if the phrase is plausible inside a quoted
+string (a commit message, a grep pattern, a code comment), a case that proves
+it doesn't false-positive. Run `node --test scripts/guardrails/agent-hook-behavior.test.mjs`
+before calling it done.
 
-### 1. Ask scope
+## When the user asks to set this up in a *different* repo
 
-Ask the user: install for **this project only** (`.claude/settings.json`) or **all projects** (`~/.claude/settings.json`)?
-
-### 2. Copy the hook script
-
-The bundled script is at: [scripts/block-dangerous-git.sh](scripts/block-dangerous-git.sh)
-
-Copy it to the target location based on scope:
-
-- **Project**: `.claude/hooks/block-dangerous-git.sh`
-- **Global**: `~/.claude/hooks/block-dangerous-git.sh`
-
-Make it executable with `chmod +x`.
-
-### 3. Add hook to settings
-
-Add to the appropriate settings file:
-
-**Project** (`.claude/settings.json`):
-
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$CLAUDE_PROJECT_DIR\"/.claude/hooks/block-dangerous-git.sh"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-**Global** (`~/.claude/settings.json`):
-
-```json
-{
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/block-dangerous-git.sh"
-          }
-        ]
-      }
-    ]
-  }
-}
-```
-
-If the settings file already exists, merge the hook into existing `hooks.PreToolUse` array — don't overwrite other settings.
-
-### 4. Ask about customization
-
-Ask if user wants to add or remove any patterns from the blocked list. Edit the copied script accordingly.
-
-### 5. Verify
-
-Run a quick test:
-
-```bash
-echo '{"tool_input":{"command":"git push origin main"}}' | <path-to-script>
-```
-
-Should exit with code 2 and print a BLOCKED message to stderr.
+That's this skill's original job. Read git history on this file (or ask the
+user) for the last version of the bash+jq setup procedure, adapt it: prefer
+plain Node over bash+jq for the hook script itself (portability — don't
+assume `jq` is installed), and wire it for whichever of Claude Code/Codex that
+repo actually uses.
