@@ -43,7 +43,7 @@
     "react-error-boundary": "^6.1.5",
     "react-hook-form": "catalog:",
     "recharts": "catalog:",
-    "resend": "^6.26.0",
+    "resend": "^6.28.1",
     "server-only": "catalog:",
     "sonner": "catalog:",
     "spin-delay": "^2.0.1",
