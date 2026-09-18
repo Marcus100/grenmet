@@ -3,7 +3,11 @@ import { z } from "zod";
 
 export const env = createEnv({
   server: {
-    WXPRODUCTS_API_URL: z.string().url().optional(),
+    WXPRODUCTS_API_URL: z
+      .string()
+      .url()
+      .optional()
+      .default("http://localhost:3001"),
     CMS_API_URL: z.string().url().optional(),
     // Auth-delegating — redirects to web-auth for login
     AUTH_API_URL: z.string().url().optional().default("http://localhost:8000"),

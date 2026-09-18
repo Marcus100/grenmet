@@ -75,6 +75,7 @@ from src.cap.schemas import (
     CapSettingsUpdate,
     CapSnapshotPublic,
     CapValidationResult,
+    PublicWarnings,
 )
 from src.cap.sign import is_signing_enabled, sign_xml, signing_key_ref
 from src.cap.tasks import enqueue_publish_side_effects
@@ -1373,3 +1374,102 @@ async def ingest_all_active_feeds(
         if owns_client:
             await client.aclose()
     return len(feeds)
+
+
+# Existing public-site display groups, not authoritative CAP event codes.
+PUBLIC_HAZARD_GROUPS = (
+    ("Tropical Cyclone", r"cyclone|hurricane|tropical storm|depression"),
+    ("Marine / Small Craft", r"marine|small craft|sea|swell|surf|wave"),
+    ("Flood / Heavy Rain", r"flood|rain|flash"),
+    ("Thunderstorm", r"thunder|lightning|storm(?! surge)"),
+    ("Wind", r"wind|gale|gust"),
+    ("Heat", r"heat|high temperature"),
+    ("Dust / Haze", r"dust|haze|saharan|smoke"),
+    ("Coastal Hazard", r"coastal|storm surge|rip current|inundation"),
+    ("Tsunami", r"tsunami|seismic sea wave"),
+)
+
+
+def select_public_warnings(
+    alerts: list[CapAlertPublic], now: datetime
+) -> PublicWarnings:
+    import re
+
+    from src.cap.schemas import PublicWarning, PublicWarningGroup
+
+    if now.tzinfo is None:
+        raise ValueError("An aware selection clock is required")
+    instant = _as_naive(now)
+    groups = [
+        PublicWarningGroup(name=name, alerts=[]) for name, _ in PUBLIC_HAZARD_GROUPS
+    ]
+    other = PublicWarningGroup(name="Other warnings", alerts=[])
+    order = {"Extreme": 0, "Severe": 1, "Moderate": 2, "Minor": 3, "Unknown": 4}
+    for alert in alerts:
+        if (
+            alert.scope != CapScope.PUBLIC
+            or alert.lifecycle_state != CapLifecycleState.PUBLISHED
+            or alert.msg_type not in {CapMessageType.ALERT, CapMessageType.UPDATE}
+            or _as_naive(alert.sent) > instant
+        ):
+            continue
+        candidates = [
+            info
+            for info in alert.info
+            if (info.effective is None or _as_naive(info.effective) <= instant)
+            and (info.expires is None or _as_naive(info.expires) > instant)
+        ]
+        if not candidates:
+            continue
+        info = min(
+            candidates,
+            key=lambda item: (
+                not item.language.lower().startswith("en"),
+                item.sequence,
+                str(item.id),
+            ),
+        )
+        warning = PublicWarning(
+            identifier=alert.identifier,
+            event=info.event,
+            headline=info.headline,
+            areas=[area.area_desc for area in info.areas],
+            expires=info.expires,
+            severity=info.severity,
+            status=alert.status,
+        )
+        group = next(
+            (
+                groups[index]
+                for index, (_, pattern) in enumerate(PUBLIC_HAZARD_GROUPS)
+                if re.search(pattern, info.event, re.IGNORECASE)
+            ),
+            other,
+        )
+        group.alerts.append(warning)
+    if other.alerts:
+        groups.append(other)
+    for group in groups:
+        group.alerts.sort(
+            key=lambda item: (order[item.severity.value], item.identifier)
+        )
+    return PublicWarnings(
+        as_of=now, groups=groups, activeCount=sum(len(group.alerts) for group in groups)
+    )
+
+
+async def public_warnings(*, session: AsyncSession) -> PublicWarnings:
+    from datetime import UTC
+
+    statement = (
+        select(CapAlert)
+        .where(
+            CapAlert.lifecycle_state == CapLifecycleState.PUBLISHED,
+            CapAlert.scope == CapScope.PUBLIC,
+        )
+        .options(*_alert_selectinload_options())
+    )
+    rows = (await session.execute(statement)).scalars().all()
+    return select_public_warnings(
+        [_to_public_from_loaded(row) for row in rows], datetime.now(UTC)
+    )

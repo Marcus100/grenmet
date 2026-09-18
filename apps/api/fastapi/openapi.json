@@ -8398,6 +8398,30 @@
         }
       }
     },
+    "/api/cap/warnings": {
+      "get": {
+        "tags": [
+          "cap-public"
+        ],
+        "summary": "Read Public Warnings",
+        "operationId": "read_public_warnings_api_cap_warnings_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicWarnings"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Warning feed unavailable"
+          }
+        }
+      }
+    },
     "/api/cap/latest-active": {
       "get": {
         "tags": [
@@ -8716,7 +8740,10 @@
         "operationId": "weather_image_api_v1_wxwatch_images__storage_path__get",
         "security": [
           {
-            "OAuth2PasswordBearer": []
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
           }
         ],
         "parameters": [
@@ -8745,6 +8772,1814 @@
             }
           }
         }
+      }
+    },
+    "/api/v1/wxwatch/assets/{asset_id}": {
+      "get": {
+        "tags": [
+          "weather-images"
+        ],
+        "summary": "Archive Asset",
+        "description": "Deliver verified bytes by stable asset ID; storage locations stay private.",
+        "operationId": "archive_asset_api_v1_wxwatch_assets__asset_id__get",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "asset_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Asset Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wxproducts/observations": {
+      "get": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "List time-aligned meteorological observations",
+        "description": "Read-only compatibility view for SYNOP, METAR and SPECI. Original payloads and representation provenance are preserved.",
+        "operationId": "load_observations_api_v1_wxproducts_observations_get",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "enum": [
+                "SYNOP",
+                "METAR",
+                "SPECI"
+              ],
+              "type": "string",
+              "title": "Kind"
+            }
+          },
+          {
+            "name": "station",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 32
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Station"
+            }
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Start"
+            }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "End"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObservationList"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wxproducts/public/products": {
+      "get": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "List current published weather products",
+        "description": "Anonymous feed of published snapshots, excluding drafts and expired products.",
+        "operationId": "list_public_products_api_v1_wxproducts_public_products_get",
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublishedProducts"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFeedError"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFeedError"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wxproducts/products": {
+      "get": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "Load saved weather products",
+        "description": "Load drafts for an authorized product kind and issue date, including undated drafts.",
+        "operationId": "load_products_api_v1_wxproducts_products_get",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "enum": [
+                "morning",
+                "midday",
+                "evening",
+                "outlook",
+                "cyclone",
+                "marine",
+                "flood",
+                "thunderstorm",
+                "wind",
+                "heat",
+                "dust",
+                "coastal",
+                "tsunami"
+              ],
+              "type": "string",
+              "title": "Kind"
+            }
+          },
+          {
+            "name": "issue_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Issue Date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoredProducts"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign-in required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Product access denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Weather database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "Save, publish or withdraw a weather product",
+        "description": "Checks live product access and expected revision; commits the product and actor history atomically.",
+        "operationId": "save_product_api_v1_wxproducts_products_post",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductWrite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StoredProduct"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign-in required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Product access denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Revision conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid product",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Weather database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wxproducts/products/{product_id}/history": {
+      "get": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "Load weather product history",
+        "description": "Returns up to 100 latest revisions for products the actor may author; never returns stored revision content.",
+        "operationId": "load_history_api_v1_wxproducts_products__product_id__history_get",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Product Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductHistory"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign-in required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Product access denied",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Weather database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wxproducts/public/forecast": {
+      "get": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "Select the public forecast periods",
+        "description": "Five forecast periods selected using the server clock, with source revisions and explicit UTC validity times.",
+        "operationId": "public_forecast_api_v1_wxproducts_public_forecast_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicForecast"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFeedError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wxproducts/aviation/drafts": {
+      "get": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "Load Aviation Drafts",
+        "operationId": "load_aviation_drafts_api_v1_wxproducts_aviation_drafts_get",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "kind",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "enum": [
+                "METAR",
+                "SPECI",
+                "TAF"
+              ],
+              "type": "string",
+              "title": "Kind"
+            }
+          },
+          {
+            "name": "station",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Z]{4}$",
+              "title": "Station"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AviationDraftList"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "Save Aviation Draft",
+        "operationId": "save_aviation_draft_api_v1_wxproducts_aviation_drafts_post",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AviationDraftWrite"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AviationDraftRead"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wxproducts/aviation/drafts/{draft_id}/history": {
+      "get": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "Load Aviation History",
+        "operationId": "load_aviation_history_api_v1_wxproducts_aviation_drafts__draft_id__history_get",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "draft_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Draft Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AviationHistory"
+                }
+              }
+            }
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wxproducts/products/preview": {
+      "post": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "Validate and preview a weather product",
+        "description": "Normalizes the schedule and checks publication content without saving. Publication still requires review and revalidation.",
+        "operationId": "preview_product_api_v1_wxproducts_products_preview_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductPreviewInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductPreview"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/wxproducts/products/{product_id}/revisions/{revision}/pdf": {
+      "get": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "Download a saved weather revision PDF",
+        "description": "Staff-only saved revision export; drafts and historical publications are explicitly labelled. Does not publish or change records.",
+        "operationId": "product_revision_pdf_api_v1_wxproducts_products__product_id__revisions__revision__pdf_get",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Product Id"
+            }
+          },
+          {
+            "name": "revision",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Revision"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/eregister/observations": {
+      "get": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "List Register Observations",
+        "operationId": "list_register_observations_api_v1_eregister_observations_get",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "station_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 64
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Station Id"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^(SYNOP|METAR|SPECI)$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 500,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterObservationList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Create Register Observation",
+        "operationId": "create_register_observation_api_v1_eregister_observations_post",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterObservationCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegisterObservationRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/eregister/observations/validate-synop": {
+      "post": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Validate Synop Observation",
+        "operationId": "validate_synop_observation_api_v1_eregister_observations_validate_synop_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SynopValidationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SynopValidationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/wxwatch/metadata": {
+      "get": {
+        "tags": [
+          "wxwatch"
+        ],
+        "summary": "Metadata",
+        "description": "Authenticated gallery metadata for one UTC date, grouped into eight synoptic slots.",
+        "operationId": "metadata_api_v1_wxwatch_metadata_get",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "day",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Day"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SynopticImageGroups"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wxwatch/ready": {
+      "get": {
+        "tags": [
+          "wxwatch"
+        ],
+        "summary": "Ready",
+        "description": "Availability only; no image metadata or database details are exposed.",
+        "operationId": "ready_api_v1_wxwatch_ready_get",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        }
+      }
+    },
+    "/api/v1/wxwatch/archive": {
+      "get": {
+        "tags": [
+          "wxwatch"
+        ],
+        "summary": "Archive",
+        "operationId": "archive_api_v1_wxwatch_archive_get",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "source",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Source"
+            }
+          },
+          {
+            "name": "product",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 300
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Product"
+            }
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Start"
+            }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "End"
+            }
+          },
+          {
+            "name": "unknown_time",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Unknown Time"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100000,
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 30,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArchivePage"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wxwatch/archive/{edition_id}/retrievals": {
+      "get": {
+        "tags": [
+          "wxwatch"
+        ],
+        "summary": "Retrievals",
+        "operationId": "retrievals_api_v1_wxwatch_archive__edition_id__retrievals_get",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "edition_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Edition Id"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100000,
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 30,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArchiveHistory"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wxwatch/archive/{edition_id}/bulletin": {
+      "get": {
+        "tags": [
+          "wxwatch"
+        ],
+        "summary": "Bulletin",
+        "operationId": "bulletin_api_v1_wxwatch_archive__edition_id__bulletin_get",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "edition_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Edition Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArchiveBulletin"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wxwatch/archive/{edition_id}/assets": {
+      "get": {
+        "tags": [
+          "wxwatch"
+        ],
+        "summary": "Edition Assets",
+        "operationId": "edition_assets_api_v1_wxwatch_archive__edition_id__assets_get",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "edition_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Edition Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EditionAsset"
+                  },
+                  "title": "Response Edition Assets Api V1 Wxwatch Archive  Edition Id  Assets Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wxwatch/runs": {
+      "post": {
+        "tags": [
+          "wxwatch"
+        ],
+        "summary": "Start Run",
+        "operationId": "start_run_api_v1_wxwatch_runs_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RunResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wxwatch/runs/{run_id}/finish": {
+      "post": {
+        "tags": [
+          "wxwatch"
+        ],
+        "summary": "Finish Run",
+        "operationId": "finish_run_api_v1_wxwatch_runs__run_id__finish_post",
+        "parameters": [
+          {
+            "name": "run_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Run Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunFinish"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wxwatch/ingest": {
+      "post": {
+        "tags": [
+          "wxwatch"
+        ],
+        "summary": "Ingest",
+        "operationId": "ingest_api_v1_wxwatch_ingest_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ImageInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ImageResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/wxwatch/derivations": {
+      "post": {
+        "tags": [
+          "wxwatch"
+        ],
+        "summary": "Register Derivation",
+        "operationId": "register_derivation_api_v1_wxwatch_derivations_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DerivationInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DerivationResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/browser/session": {
+      "get": {
+        "tags": [
+          "browser-auth"
+        ],
+        "summary": "Browser Session",
+        "description": "Validate the cookie and return a session-bound CSRF token, never the session secret.",
+        "operationId": "browser_session_api_v1_auth_browser_session_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BrowserSession"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          }
+        ]
       }
     },
     "/api/v1/auth/modern/email/request": {
@@ -11084,6 +12919,677 @@
         "type": "object",
         "title": "ApprovalAuthorityUpdate"
       },
+      "ArchiveBulletin": {
+        "properties": {
+          "edition_id": {
+            "type": "string",
+            "title": "Edition Id"
+          },
+          "text": {
+            "type": "string",
+            "title": "Text"
+          }
+        },
+        "type": "object",
+        "required": [
+          "edition_id",
+          "text"
+        ],
+        "title": "ArchiveBulletin"
+      },
+      "ArchiveEdition": {
+        "properties": {
+          "image_asset_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Image Asset Id"
+          },
+          "issued_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued At"
+          },
+          "storm_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Storm Id"
+          },
+          "bulletin_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bulletin Code"
+          },
+          "has_bulletin": {
+            "type": "boolean",
+            "title": "Has Bulletin",
+            "default": false
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "product_key": {
+            "type": "string",
+            "title": "Product Key"
+          },
+          "nominal_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nominal Time"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
+          },
+          "time_basis": {
+            "type": "string",
+            "title": "Time Basis"
+          },
+          "first_received_at": {
+            "type": "string",
+            "title": "First Received At"
+          },
+          "storage_path": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Storage Path"
+          },
+          "verification_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verification Status"
+          },
+          "replica_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replica State"
+          },
+          "sha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sha256"
+          },
+          "byte_size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Byte Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "source",
+          "product_key",
+          "nominal_time",
+          "observed_at",
+          "time_basis",
+          "first_received_at",
+          "storage_path",
+          "verification_status",
+          "replica_state",
+          "sha256",
+          "byte_size"
+        ],
+        "title": "ArchiveEdition"
+      },
+      "ArchiveHistory": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ArchiveRetrieval"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "has_more",
+          "offset"
+        ],
+        "title": "ArchiveHistory"
+      },
+      "ArchivePage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ArchiveEdition"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "has_more",
+          "offset"
+        ],
+        "title": "ArchivePage"
+      },
+      "ArchiveRetrieval": {
+        "properties": {
+          "event_kind": {
+            "type": "string",
+            "title": "Event Kind",
+            "default": "downloaded"
+          },
+          "checked_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checked At"
+          },
+          "is_imported": {
+            "type": "boolean",
+            "title": "Is Imported",
+            "default": false
+          },
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "retrieved_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retrieved At"
+          },
+          "recorded_at": {
+            "type": "string",
+            "title": "Recorded At"
+          },
+          "image_url": {
+            "type": "string",
+            "title": "Image Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "retrieved_at",
+          "recorded_at",
+          "image_url"
+        ],
+        "title": "ArchiveRetrieval"
+      },
+      "AuthoredProducts": {
+        "properties": {
+          "products": {
+            "items": {
+              "$ref": "#/components/schemas/StoredProduct"
+            },
+            "type": "array",
+            "title": "Products"
+          }
+        },
+        "type": "object",
+        "required": [
+          "products"
+        ],
+        "title": "AuthoredProducts"
+      },
+      "AuthoringError": {
+        "properties": {
+          "detail": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            ],
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "title": "AuthoringError"
+      },
+      "AviationDraftList": {
+        "properties": {
+          "drafts": {
+            "items": {
+              "$ref": "#/components/schemas/AviationDraftRead"
+            },
+            "type": "array",
+            "title": "Drafts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "drafts"
+        ],
+        "title": "AviationDraftList"
+      },
+      "AviationDraftRead": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "METAR",
+              "SPECI",
+              "TAF"
+            ],
+            "title": "Kind"
+          },
+          "station": {
+            "type": "string",
+            "pattern": "^[A-Z]{4}$",
+            "title": "Station"
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 6000,
+            "minLength": 1,
+            "title": "Message"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
+          },
+          "issued_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued At"
+          },
+          "valid_from": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid From"
+          },
+          "valid_to": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid To"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "actor_id": {
+            "type": "string",
+            "title": "Actor Id"
+          },
+          "actor_name": {
+            "type": "string",
+            "title": "Actor Name"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          },
+          "state": {
+            "type": "string",
+            "const": "draft",
+            "title": "State",
+            "default": "draft"
+          },
+          "time_basis": {
+            "type": "string",
+            "const": "staff_supplied",
+            "title": "Time Basis",
+            "default": "staff_supplied"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "station",
+          "message",
+          "id",
+          "revision",
+          "actor_id",
+          "actor_name",
+          "updated_at"
+        ],
+        "title": "AviationDraftRead"
+      },
+      "AviationDraftWrite": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "METAR",
+              "SPECI",
+              "TAF"
+            ],
+            "title": "Kind"
+          },
+          "station": {
+            "type": "string",
+            "pattern": "^[A-Z]{4}$",
+            "title": "Station"
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 6000,
+            "minLength": 1,
+            "title": "Message"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
+          },
+          "issued_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued At"
+          },
+          "valid_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid From"
+          },
+          "valid_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid To"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expected Revision"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "station",
+          "message",
+          "id",
+          "expected_revision"
+        ],
+        "title": "AviationDraftWrite"
+      },
+      "AviationHistory": {
+        "properties": {
+          "revisions": {
+            "items": {
+              "$ref": "#/components/schemas/AviationRevisionRead"
+            },
+            "type": "array",
+            "title": "Revisions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "revisions"
+        ],
+        "title": "AviationHistory"
+      },
+      "AviationRevisionRead": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "METAR",
+              "SPECI",
+              "TAF"
+            ],
+            "title": "Kind"
+          },
+          "station": {
+            "type": "string",
+            "pattern": "^[A-Z]{4}$",
+            "title": "Station"
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 6000,
+            "minLength": 1,
+            "title": "Message"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
+          },
+          "issued_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued At"
+          },
+          "valid_from": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid From"
+          },
+          "valid_to": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid To"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "actor_id": {
+            "type": "string",
+            "title": "Actor Id"
+          },
+          "actor_name": {
+            "type": "string",
+            "title": "Actor Name"
+          },
+          "recorded_at": {
+            "type": "string",
+            "title": "Recorded At"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "station",
+          "message",
+          "revision",
+          "actor_id",
+          "actor_name",
+          "recorded_at"
+        ],
+        "title": "AviationRevisionRead"
+      },
       "BalanceInput": {
         "properties": {
           "leave_type": {
@@ -11302,6 +13808,25 @@
           "title"
         ],
         "title": "Body_upload_document_api_v1_hr_documents_post"
+      },
+      "BrowserSession": {
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Userid"
+          },
+          "csrfToken": {
+            "type": "string",
+            "title": "Csrftoken"
+          }
+        },
+        "type": "object",
+        "required": [
+          "userId",
+          "csrfToken"
+        ],
+        "title": "BrowserSession"
       },
       "CalendarEventCreate": {
         "properties": {
@@ -14684,6 +17209,78 @@
         ],
         "title": "DepartmentsPublic"
       },
+      "DerivationInput": {
+        "properties": {
+          "input_asset_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "minItems": 1,
+            "title": "Input Asset Ids"
+          },
+          "output_asset_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Output Asset Id"
+          },
+          "processor": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Processor"
+          },
+          "processor_version": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Processor Version"
+          },
+          "options": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "type": "object",
+            "title": "Options"
+          },
+          "generated_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "input_asset_ids",
+          "output_asset_id",
+          "processor",
+          "processor_version"
+        ],
+        "title": "DerivationInput"
+      },
+      "DerivationResult": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "DerivationResult"
+      },
       "DocumentCategory": {
         "type": "string",
         "enum": [
@@ -14767,6 +17364,45 @@
           "RESTRICTED"
         ],
         "title": "DocumentSensitivity"
+      },
+      "EditionAsset": {
+        "properties": {
+          "asset_id": {
+            "type": "string",
+            "title": "Asset Id"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "sha256": {
+            "type": "string",
+            "title": "Sha256"
+          },
+          "byte_size": {
+            "type": "integer",
+            "title": "Byte Size"
+          },
+          "media_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Media Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "asset_id",
+          "role",
+          "sha256",
+          "byte_size"
+        ],
+        "title": "EditionAsset"
       },
       "EffectiveAccess": {
         "properties": {
@@ -15652,6 +18288,145 @@
         "type": "object",
         "title": "EmploymentUpdate"
       },
+      "ForecastObservation": {
+        "properties": {
+          "temperature": {
+            "type": "number",
+            "title": "Temperature"
+          },
+          "source": {
+            "$ref": "#/components/schemas/ForecastSource"
+          },
+          "time_basis": {
+            "type": "string",
+            "const": "product_issue",
+            "title": "Time Basis",
+            "default": "product_issue"
+          }
+        },
+        "type": "object",
+        "required": [
+          "temperature",
+          "source"
+        ],
+        "title": "ForecastObservation"
+      },
+      "ForecastPeriod": {
+        "properties": {
+          "date": {
+            "type": "string",
+            "title": "Date"
+          },
+          "valid_from": {
+            "type": "string",
+            "title": "Valid From"
+          },
+          "valid_to": {
+            "type": "string",
+            "title": "Valid To"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ForecastSource"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "period_key": {
+            "type": "string",
+            "title": "Period Key",
+            "default": ""
+          },
+          "high": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "High"
+          },
+          "low": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Low"
+          },
+          "details": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Details"
+          }
+        },
+        "type": "object",
+        "required": [
+          "date",
+          "valid_from",
+          "valid_to"
+        ],
+        "title": "ForecastPeriod"
+      },
+      "ForecastSource": {
+        "properties": {
+          "product_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Product Id"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "morning",
+              "midday",
+              "evening",
+              "outlook",
+              "cyclone",
+              "marine",
+              "flood",
+              "thunderstorm",
+              "wind",
+              "heat",
+              "dust",
+              "coastal",
+              "tsunami"
+            ],
+            "title": "Kind"
+          },
+          "issued_at": {
+            "type": "string",
+            "title": "Issued At"
+          },
+          "published_at": {
+            "type": "string",
+            "title": "Published At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_id",
+          "revision",
+          "kind",
+          "issued_at",
+          "published_at"
+        ],
+        "title": "ForecastSource"
+      },
       "Gender": {
         "type": "string",
         "enum": [
@@ -16015,6 +18790,242 @@
         ],
         "title": "HrDashboardPublic"
       },
+      "ImageInput": {
+        "properties": {
+          "time_basis": {
+            "type": "string",
+            "enum": [
+              "filename",
+              "source_observation",
+              "estimated_analysis",
+              "rounded_source_modified",
+              "source_modified",
+              "unknown",
+              "legacy_unknown"
+            ],
+            "title": "Time Basis",
+            "default": "legacy_unknown"
+          },
+          "raw_metadata": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "type": "object",
+            "title": "Raw Metadata"
+          },
+          "run_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Run Id"
+          },
+          "storage_path": {
+            "type": "string",
+            "maxLength": 1500,
+            "minLength": 1,
+            "title": "Storage Path"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "image_url": {
+            "type": "string",
+            "maxLength": 3000,
+            "minLength": 1,
+            "title": "Image Url"
+          },
+          "checksum": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Checksum"
+          },
+          "fetched_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Fetched At"
+          },
+          "observation_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observation Time"
+          },
+          "source_modified": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Modified"
+          },
+          "width": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Width"
+          },
+          "height": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Height"
+          },
+          "file_size_bytes": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File Size Bytes"
+          },
+          "frame_count": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Frame Count"
+          },
+          "file_format": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "File Format"
+          },
+          "is_animated": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Animated"
+          },
+          "parent_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Url"
+          },
+          "page_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page Title"
+          },
+          "etag": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Etag"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mode"
+          },
+          "download_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Download Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "run_id",
+          "storage_path",
+          "name",
+          "image_url",
+          "checksum",
+          "fetched_at"
+        ],
+        "title": "ImageInput"
+      },
+      "ImageResult": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "created": {
+            "type": "boolean",
+            "title": "Created"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "created"
+        ],
+        "title": "ImageResult"
+      },
       "ImportStatus": {
         "type": "string",
         "enum": [
@@ -16025,6 +19036,7 @@
         ],
         "title": "ImportStatus"
       },
+      "JsonValue": {},
       "LeavePublic": {
         "properties": {
           "balances": {
@@ -16588,6 +19600,180 @@
           "new_password"
         ],
         "title": "NewPassword"
+      },
+      "ObservationList": {
+        "properties": {
+          "observations": {
+            "items": {
+              "$ref": "#/components/schemas/ObservationRecord"
+            },
+            "type": "array",
+            "title": "Observations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "observations"
+        ],
+        "title": "ObservationList"
+      },
+      "ObservationProvenance": {
+        "properties": {
+          "source_system": {
+            "type": "string",
+            "title": "Source System"
+          },
+          "time_basis": {
+            "type": "string",
+            "enum": [
+              "source_observation",
+              "source_issue",
+              "unknown"
+            ],
+            "title": "Time Basis"
+          },
+          "raw_tac": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Tac"
+          },
+          "bufr": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bufr"
+          },
+          "iwxxm": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Iwxxm"
+          },
+          "quality_flags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Quality Flags"
+          },
+          "wis2_topic": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wis2 Topic"
+          },
+          "wis2_message_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wis2 Message Id"
+          },
+          "publication_state": {
+            "type": "string",
+            "enum": [
+              "not_published",
+              "published",
+              "failed",
+              "unknown"
+            ],
+            "title": "Publication State",
+            "default": "unknown"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source_system",
+          "time_basis"
+        ],
+        "title": "ObservationProvenance"
+      },
+      "ObservationRecord": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "SYNOP",
+              "METAR",
+              "SPECI"
+            ],
+            "title": "Kind"
+          },
+          "station": {
+            "type": "string",
+            "title": "Station"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
+          },
+          "issued_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued At"
+          },
+          "payload": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Payload"
+          },
+          "provenance": {
+            "$ref": "#/components/schemas/ObservationProvenance"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "station",
+          "payload",
+          "provenance"
+        ],
+        "title": "ObservationRecord"
       },
       "OrganisationCatalogue": {
         "properties": {
@@ -17530,6 +20716,229 @@
         ],
         "title": "ProductAccessPublic"
       },
+      "ProductFeedError": {
+        "properties": {
+          "error": {
+            "type": "string",
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "title": "ProductFeedError"
+      },
+      "ProductHistory": {
+        "properties": {
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/ProductHistoryEntry"
+            },
+            "type": "array",
+            "title": "History"
+          }
+        },
+        "type": "object",
+        "required": [
+          "history"
+        ],
+        "title": "ProductHistory"
+      },
+      "ProductHistoryEntry": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "publish",
+              "withdraw"
+            ],
+            "title": "Action"
+          },
+          "actorName": {
+            "type": "string",
+            "title": "Actorname"
+          },
+          "changeSummary": {
+            "type": "string",
+            "title": "Changesummary"
+          },
+          "createdAt": {
+            "type": "string",
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "revision",
+          "action",
+          "actorName",
+          "changeSummary",
+          "createdAt"
+        ],
+        "title": "ProductHistoryEntry"
+      },
+      "ProductPreview": {
+        "properties": {
+          "values": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Values"
+          },
+          "errors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Errors"
+          },
+          "checked_at": {
+            "type": "string",
+            "title": "Checked At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "values",
+          "errors",
+          "checked_at"
+        ],
+        "title": "ProductPreview"
+      },
+      "ProductPreviewInput": {
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "morning",
+              "midday",
+              "evening",
+              "outlook",
+              "cyclone",
+              "marine",
+              "flood",
+              "thunderstorm",
+              "wind",
+              "heat",
+              "dust",
+              "coastal",
+              "tsunami"
+            ],
+            "title": "Kind"
+          },
+          "values": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 12000
+            },
+            "propertyNames": {
+              "maxLength": 80
+            },
+            "type": "object",
+            "title": "Values"
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expectedrevision"
+          },
+          "changeSummary": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Changesummary"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "values",
+          "expectedRevision",
+          "changeSummary"
+        ],
+        "title": "ProductPreviewInput"
+      },
+      "ProductWrite": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expectedrevision"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "morning",
+              "midday",
+              "evening",
+              "outlook",
+              "cyclone",
+              "marine",
+              "flood",
+              "thunderstorm",
+              "wind",
+              "heat",
+              "dust",
+              "coastal",
+              "tsunami"
+            ],
+            "title": "Kind"
+          },
+          "values": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 12000
+            },
+            "propertyNames": {
+              "maxLength": 80
+            },
+            "type": "object",
+            "title": "Values"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "publish",
+              "withdraw"
+            ],
+            "title": "Action"
+          },
+          "changeSummary": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Changesummary"
+          },
+          "reviewed": {
+            "type": "boolean",
+            "title": "Reviewed"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "expectedRevision",
+          "kind",
+          "values",
+          "action",
+          "changeSummary",
+          "reviewed"
+        ],
+        "title": "ProductWrite"
+      },
       "ProfAppointmentType": {
         "type": "string",
         "enum": [
@@ -17807,6 +21216,50 @@
         ],
         "title": "ProfileIdentityPublic"
       },
+      "PublicForecast": {
+        "properties": {
+          "as_of": {
+            "type": "string",
+            "title": "As Of"
+          },
+          "timezone": {
+            "type": "string",
+            "const": "America/Grenada",
+            "title": "Timezone",
+            "default": "America/Grenada"
+          },
+          "base_date": {
+            "type": "string",
+            "title": "Base Date"
+          },
+          "periods": {
+            "items": {
+              "$ref": "#/components/schemas/ForecastPeriod"
+            },
+            "type": "array",
+            "maxItems": 5,
+            "minItems": 5,
+            "title": "Periods"
+          },
+          "observation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ForecastObservation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "as_of",
+          "base_date",
+          "periods"
+        ],
+        "title": "PublicForecast"
+      },
       "PublicHolidayCreate": {
         "properties": {
           "name": {
@@ -17903,6 +21356,174 @@
         ],
         "title": "PublicHolidaysPublic"
       },
+      "PublicWarning": {
+        "properties": {
+          "identifier": {
+            "type": "string",
+            "title": "Identifier"
+          },
+          "event": {
+            "type": "string",
+            "title": "Event"
+          },
+          "headline": {
+            "type": "string",
+            "title": "Headline"
+          },
+          "areas": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Areas"
+          },
+          "expires": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/CapSeverity"
+          },
+          "status": {
+            "$ref": "#/components/schemas/CapStatus"
+          }
+        },
+        "type": "object",
+        "required": [
+          "identifier",
+          "event",
+          "headline",
+          "areas",
+          "expires",
+          "severity",
+          "status"
+        ],
+        "title": "PublicWarning"
+      },
+      "PublicWarningGroup": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "alerts": {
+            "items": {
+              "$ref": "#/components/schemas/PublicWarning"
+            },
+            "type": "array",
+            "title": "Alerts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "alerts"
+        ],
+        "title": "PublicWarningGroup"
+      },
+      "PublicWarnings": {
+        "properties": {
+          "as_of": {
+            "type": "string",
+            "title": "As Of"
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/PublicWarningGroup"
+            },
+            "type": "array",
+            "title": "Groups"
+          },
+          "activeCount": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Activecount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "as_of",
+          "groups",
+          "activeCount"
+        ],
+        "title": "PublicWarnings"
+      },
+      "PublishedProduct": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "revision": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Revision"
+          },
+          "publishedAt": {
+            "type": "string",
+            "title": "Publishedat"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "morning",
+              "midday",
+              "evening",
+              "outlook",
+              "cyclone",
+              "marine",
+              "flood",
+              "thunderstorm",
+              "wind",
+              "heat",
+              "dust",
+              "coastal",
+              "tsunami"
+            ],
+            "title": "Kind"
+          },
+          "values": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Values"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "revision",
+          "publishedAt",
+          "kind",
+          "values"
+        ],
+        "title": "PublishedProduct"
+      },
+      "PublishedProducts": {
+        "properties": {
+          "products": {
+            "items": {
+              "$ref": "#/components/schemas/PublishedProduct"
+            },
+            "type": "array",
+            "title": "Products"
+          }
+        },
+        "type": "object",
+        "required": [
+          "products"
+        ],
+        "title": "PublishedProducts"
+      },
       "RecoveryCodesPublic": {
         "properties": {
           "codes": {
@@ -17918,6 +21539,332 @@
           "codes"
         ],
         "title": "RecoveryCodesPublic"
+      },
+      "RegisterObservationCreate": {
+        "properties": {
+          "station_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Station Id"
+          },
+          "station_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station Name"
+          },
+          "aerodrome_icao": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4,
+                "minLength": 4
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aerodrome Icao"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "SYNOP",
+              "METAR",
+              "SPECI"
+            ],
+            "title": "Kind"
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Observed At"
+          },
+          "issued_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued At"
+          },
+          "body": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Body"
+          },
+          "raw_tac": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 12000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Tac"
+          },
+          "bufr": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bufr"
+          },
+          "iwxxm": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Iwxxm"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "station_id",
+          "kind",
+          "observed_at"
+        ],
+        "title": "RegisterObservationCreate"
+      },
+      "RegisterObservationList": {
+        "properties": {
+          "observations": {
+            "items": {
+              "$ref": "#/components/schemas/RegisterObservationRead"
+            },
+            "type": "array",
+            "title": "Observations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "observations"
+        ],
+        "title": "RegisterObservationList"
+      },
+      "RegisterObservationRead": {
+        "properties": {
+          "station_id": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Station Id"
+          },
+          "station_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station Name"
+          },
+          "aerodrome_icao": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4,
+                "minLength": 4
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Aerodrome Icao"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "SYNOP",
+              "METAR",
+              "SPECI"
+            ],
+            "title": "Kind"
+          },
+          "observed_at": {
+            "type": "string",
+            "title": "Observed At"
+          },
+          "issued_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued At"
+          },
+          "body": {
+            "additionalProperties": true,
+            "type": "object",
+            "title": "Body"
+          },
+          "raw_tac": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 12000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Raw Tac"
+          },
+          "bufr": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bufr"
+          },
+          "iwxxm": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Iwxxm"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "qc_pending",
+              "accepted",
+              "rejected",
+              "superseded"
+            ],
+            "title": "State"
+          },
+          "qc_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qc Notes"
+          },
+          "wis2_topic": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wis2 Topic"
+          },
+          "wis2_message_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wis2 Message Id"
+          },
+          "wis2_published_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wis2 Published At"
+          },
+          "supersedes_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supersedes Id"
+          },
+          "actor_id": {
+            "type": "string",
+            "title": "Actor Id"
+          },
+          "created_at": {
+            "type": "string",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "station_id",
+          "kind",
+          "observed_at",
+          "id",
+          "state",
+          "actor_id",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "RegisterObservationRead"
       },
       "RequestStatus": {
         "type": "string",
@@ -18917,6 +22864,57 @@
           "count"
         ],
         "title": "RosterRevisionsPublic"
+      },
+      "RunFinish": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "finished",
+              "failed"
+            ],
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "RunFinish"
+      },
+      "RunInput": {
+        "properties": {
+          "source": {
+            "type": "string",
+            "enum": [
+              "goes19",
+              "sfcana",
+              "cimss",
+              "trackthetropics",
+              "uwyo"
+            ],
+            "title": "Source"
+          }
+        },
+        "type": "object",
+        "required": [
+          "source"
+        ],
+        "title": "RunInput"
+      },
+      "RunResult": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id"
+        ],
+        "title": "RunResult"
       },
       "SecurityProof": {
         "properties": {
@@ -20942,6 +24940,70 @@
         "type": "object",
         "title": "StatusReportSubmit"
       },
+      "StoredProduct": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "morning",
+              "midday",
+              "evening",
+              "outlook",
+              "cyclone",
+              "marine",
+              "flood",
+              "thunderstorm",
+              "wind",
+              "heat",
+              "dust",
+              "coastal",
+              "tsunami"
+            ],
+            "title": "Kind"
+          },
+          "values": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Values"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "publishedRevision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publishedrevision"
+          },
+          "updatedAt": {
+            "type": "string",
+            "title": "Updatedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "values",
+          "revision",
+          "publishedRevision",
+          "updatedAt"
+        ],
+        "title": "StoredProduct"
+      },
       "SubmissionMode": {
         "type": "string",
         "enum": [
@@ -20957,6 +25019,806 @@
           "PERMANENT"
         ],
         "title": "SwapType"
+      },
+      "SynopValidationIssue": {
+        "properties": {
+          "field": {
+            "type": "string",
+            "title": "Field"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "field",
+          "code",
+          "message"
+        ],
+        "title": "SynopValidationIssue"
+      },
+      "SynopValidationRequest": {
+        "properties": {
+          "workbook": {
+            "$ref": "#/components/schemas/SynopWorkbook"
+          }
+        },
+        "type": "object",
+        "required": [
+          "workbook"
+        ],
+        "title": "SynopValidationRequest"
+      },
+      "SynopValidationResponse": {
+        "properties": {
+          "valid": {
+            "type": "boolean",
+            "title": "Valid"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/SynopValidationIssue"
+            },
+            "type": "array",
+            "title": "Issues"
+          },
+          "normalized": {
+            "$ref": "#/components/schemas/SynopWorkbook"
+          }
+        },
+        "type": "object",
+        "required": [
+          "valid",
+          "normalized"
+        ],
+        "title": "SynopValidationResponse"
+      },
+      "SynopWorkbook": {
+        "properties": {
+          "report_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Report Type"
+          },
+          "day": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Day"
+          },
+          "time_utc": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time Utc"
+          },
+          "station_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station Id"
+          },
+          "wind_indicator": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Indicator"
+          },
+          "precip_indicator": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Precip Indicator"
+          },
+          "station_wx_indicator": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station Wx Indicator"
+          },
+          "cloud_base": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cloud Base"
+          },
+          "visibility": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visibility"
+          },
+          "total_cloud": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Cloud"
+          },
+          "wind_dir": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Dir"
+          },
+          "wind_speed": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Speed"
+          },
+          "air_temp": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Air Temp"
+          },
+          "dew_point": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dew Point"
+          },
+          "station_pressure": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station Pressure"
+          },
+          "msl_pressure": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Msl Pressure"
+          },
+          "pressure_tendency": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pressure Tendency"
+          },
+          "pressure_change": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pressure Change"
+          },
+          "precip_amount": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Precip Amount"
+          },
+          "precip_period": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Precip Period"
+          },
+          "present_wx": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Present Wx"
+          },
+          "past_wx_1": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Past Wx 1"
+          },
+          "past_wx_2": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Past Wx 2"
+          },
+          "low_cloud_amount": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Low Cloud Amount"
+          },
+          "low_cloud_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Low Cloud Type"
+          },
+          "mid_cloud_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mid Cloud Type"
+          },
+          "high_cloud_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "High Cloud Type"
+          },
+          "s3_state_of_sky": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 State Of Sky"
+          },
+          "s3_cloud_dir_low": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Cloud Dir Low"
+          },
+          "s3_cloud_dir_mid": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Cloud Dir Mid"
+          },
+          "s3_cloud_dir_high": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Cloud Dir High"
+          },
+          "s3_max_temp": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Max Temp"
+          },
+          "s3_min_temp": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Min Temp"
+          },
+          "s3_baro_change_24h": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Baro Change 24H"
+          },
+          "s3_rainfall_24h": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Rainfall 24H"
+          },
+          "s3_layer1_amount": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Layer1 Amount"
+          },
+          "s3_layer1_form": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Layer1 Form"
+          },
+          "s3_layer1_height": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Layer1 Height"
+          },
+          "s3_layer2_amount": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Layer2 Amount"
+          },
+          "s3_layer2_form": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Layer2 Form"
+          },
+          "s3_layer2_height": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Layer2 Height"
+          },
+          "s3_layer3_amount": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Layer3 Amount"
+          },
+          "s3_layer3_form": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Layer3 Form"
+          },
+          "s3_layer3_height": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Layer3 Height"
+          },
+          "s3_layer4_amount": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Layer4 Amount"
+          },
+          "s3_layer4_form": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Layer4 Form"
+          },
+          "s3_layer4_height": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Layer4 Height"
+          },
+          "s3_special_phenomena": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 32
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Special Phenomena"
+          },
+          "s3_remarks": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "S3 Remarks"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "title": "SynopWorkbook",
+        "description": "Structured FM-12 workbook values before TAC/BUFR encoding."
+      },
+      "SynopticImageGroup": {
+        "properties": {
+          "productKey": {
+            "type": "string",
+            "title": "Productkey",
+            "default": ""
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "synopticImages": {
+            "$ref": "#/components/schemas/SynopticSlots"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "synopticImages"
+        ],
+        "title": "SynopticImageGroup"
+      },
+      "SynopticImageGroups": {
+        "properties": {
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/SynopticImageGroup"
+            },
+            "type": "array",
+            "title": "Groups"
+          }
+        },
+        "type": "object",
+        "required": [
+          "groups"
+        ],
+        "title": "SynopticImageGroups"
+      },
+      "SynopticSlots": {
+        "properties": {
+          "00": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WeatherImage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "03": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WeatherImage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "06": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WeatherImage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "09": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WeatherImage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "12": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WeatherImage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "15": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WeatherImage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "18": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WeatherImage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "21": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WeatherImage"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "00",
+          "03",
+          "06",
+          "09",
+          "12",
+          "15",
+          "18",
+          "21"
+        ],
+        "title": "SynopticSlots"
       },
       "TimesheetCreate": {
         "properties": {
@@ -22677,6 +27539,349 @@
         ],
         "title": "ValidationError"
       },
+      "WeatherImage": {
+        "properties": {
+          "archiveObservedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archiveobservedat"
+          },
+          "archiveNominalTime": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Archivenominaltime"
+          },
+          "firstRetrievedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Firstretrievedat"
+          },
+          "latestRetrievedAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latestretrievedat"
+          },
+          "verificationStatus": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verificationstatus"
+          },
+          "verifiedSha256": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verifiedsha256"
+          },
+          "verifiedByteSize": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verifiedbytesize"
+          },
+          "replicaState": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replicastate"
+          },
+          "productKey": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Productkey"
+          },
+          "timeBasis": {
+            "type": "string",
+            "title": "Timebasis",
+            "default": "legacy_unknown"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "storagePath": {
+            "type": "string",
+            "title": "Storagepath"
+          },
+          "width": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Width"
+          },
+          "height": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Height"
+          },
+          "spiderName": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spidername"
+          },
+          "fileFormat": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fileformat"
+          },
+          "isAnimated": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Isanimated"
+          },
+          "fileSizeBytes": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Filesizebytes"
+          },
+          "fetchedAt": {
+            "type": "string",
+            "title": "Fetchedat"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "imageUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Imageurl"
+          },
+          "parentUrl": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parenturl"
+          },
+          "pageTitle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pagetitle"
+          },
+          "sourceModified": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sourcemodified"
+          },
+          "observationTime": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observationtime"
+          },
+          "etag": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Etag"
+          },
+          "checksum": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Checksum"
+          },
+          "downloadStatus": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Downloadstatus"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mode"
+          },
+          "frameCount": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Framecount"
+          },
+          "createdAt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Createdat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "storagePath",
+          "width",
+          "height",
+          "spiderName",
+          "fileFormat",
+          "isAnimated",
+          "fileSizeBytes",
+          "fetchedAt",
+          "name",
+          "imageUrl",
+          "parentUrl",
+          "pageTitle",
+          "sourceModified",
+          "observationTime",
+          "etag",
+          "checksum",
+          "downloadStatus",
+          "mode",
+          "frameCount",
+          "createdAt"
+        ],
+        "title": "WeatherImage"
+      },
       "WorkflowAction": {
         "type": "string",
         "enum": [
@@ -23505,6 +28710,15 @@
             "tokenUrl": "/api/v1/login/access-token"
           }
         }
+      },
+      "APIKeyCookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "grenmet_session"
+      },
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
       }
     }
   }

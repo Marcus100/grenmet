@@ -7,9 +7,13 @@ export { approveAlertApiV1CapAlertsAlertIdApprovePost } from "./clients/approveA
 export { approveHazardProfileApiV1CapHazardProfilesProfileIdApprovePost } from "./clients/approveHazardProfileApiV1CapHazardProfilesProfileIdApprovePost.js";
 export { approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost } from "./clients/approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost.js";
 export { approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch } from "./clients/approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch.js";
+export { archiveApiV1WxwatchArchiveGet } from "./clients/archiveApiV1WxwatchArchiveGet.js";
+export { archiveAssetApiV1WxwatchAssetsAssetIdGet } from "./clients/archiveAssetApiV1WxwatchAssetsAssetIdGet.js";
 export { archiveDocumentApiV1HrDocumentsDocumentIdArchivePost } from "./clients/archiveDocumentApiV1HrDocumentsDocumentIdArchivePost.js";
 export { archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePost } from "./clients/archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePost.js";
+export { browserSessionApiV1AuthBrowserSessionGet } from "./clients/browserSessionApiV1AuthBrowserSessionGet.js";
 export { bulkAssignmentsApiV1HrRostersAssignmentsBulkPost } from "./clients/bulkAssignmentsApiV1HrRostersAssignmentsBulkPost.js";
+export { bulletinApiV1WxwatchArchiveEditionIdBulletinGet } from "./clients/bulletinApiV1WxwatchArchiveEditionIdBulletinGet.js";
 export { cancelAlertApiV1CapAlertsAlertIdCancelPost } from "./clients/cancelAlertApiV1CapAlertsAlertIdCancelPost.js";
 export { closePeriodApiV1HrRostersPeriodsPeriodIdClosePatch } from "./clients/closePeriodApiV1HrRostersPeriodsPeriodIdClosePatch.js";
 export { createAbsenteeReportApiV1HrAbsenteeReportsPost } from "./clients/createAbsenteeReportApiV1HrAbsenteeReportsPost.js";
@@ -25,6 +29,7 @@ export { createParkingPermitApiV1HrParkingPermitsPost } from "./clients/createPa
 export { createPeriodApiV1HrRostersPeriodsPost } from "./clients/createPeriodApiV1HrRostersPeriodsPost.js";
 export { createPermissionApiV1AuthPermissionsPost } from "./clients/createPermissionApiV1AuthPermissionsPost.js";
 export { createPredefinedAreaApiV1CapAreasPredefinedPost } from "./clients/createPredefinedAreaApiV1CapAreasPredefinedPost.js";
+export { createRegisterObservationApiV1EregisterObservationsPost } from "./clients/createRegisterObservationApiV1EregisterObservationsPost.js";
 export { createRoleApiV1AuthRolesPost } from "./clients/createRoleApiV1AuthRolesPost.js";
 export { createRoleAssignmentApiV1AuthRoleAssignmentsPost } from "./clients/createRoleAssignmentApiV1AuthRoleAssignmentsPost.js";
 export { createShiftApiV1HrRostersShiftsPost } from "./clients/createShiftApiV1HrRostersShiftsPost.js";
@@ -50,10 +55,12 @@ export { downloadDocumentApiV1HrDocumentsDocumentIdDownloadGet } from "./clients
 export { downloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGet } from "./clients/downloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGet.js";
 export { draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPost } from "./clients/draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPost.js";
 export { duplicateAlertApiV1CapAlertsAlertIdDuplicatePost } from "./clients/duplicateAlertApiV1CapAlertsAlertIdDuplicatePost.js";
+export { editionAssetsApiV1WxwatchArchiveEditionIdAssetsGet } from "./clients/editionAssetsApiV1WxwatchArchiveEditionIdAssetsGet.js";
 export { emailConfirmApiV1AuthModernEmailConfirmPost } from "./clients/emailConfirmApiV1AuthModernEmailConfirmPost.js";
 export { emailRequestApiV1AuthModernEmailRequestPost } from "./clients/emailRequestApiV1AuthModernEmailRequestPost.js";
 export { exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost } from "./clients/exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost.js";
 export { expireAlertApiV1CapAlertsAlertIdExpirePost } from "./clients/expireAlertApiV1CapAlertsAlertIdExpirePost.js";
+export { finishRunApiV1WxwatchRunsRunIdFinishPost } from "./clients/finishRunApiV1WxwatchRunsRunIdFinishPost.js";
 export { getPeriodApiV1HrRostersPeriodsPeriodIdGet } from "./clients/getPeriodApiV1HrRostersPeriodsPeriodIdGet.js";
 export { getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet } from "./clients/getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGet.js";
 export { googleCompleteApiV1AuthModernGoogleCompletePost } from "./clients/googleCompleteApiV1AuthModernGoogleCompletePost.js";
@@ -65,6 +72,7 @@ export { importCatalogueApiV1HrSetupCataloguePost } from "./clients/importCatalo
 export { importCsvApiV1HrRostersImportCsvPost } from "./clients/importCsvApiV1HrRostersImportCsvPost.js";
 export { importGridApiV1HrRostersImportGridPost } from "./clients/importGridApiV1HrRostersImportGridPost.js";
 export { importOrganisationApiV1HrSetupOrganisationPost } from "./clients/importOrganisationApiV1HrSetupOrganisationPost.js";
+export { ingestApiV1WxwatchIngestPost } from "./clients/ingestApiV1WxwatchIngestPost.js";
 export { issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost } from "./clients/issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost.js";
 export { listAssignmentsApiV1HrRostersAssignmentsGet } from "./clients/listAssignmentsApiV1HrRostersAssignmentsGet.js";
 export { listCalendarEventsApiV1HrCalendarEventsGet } from "./clients/listCalendarEventsApiV1HrCalendarEventsGet.js";
@@ -73,15 +81,26 @@ export { listDepartmentsEndpointApiV1HrDepartmentsGet } from "./clients/listDepa
 export { listHolidaysApiV1HrRostersPublicHolidaysGet } from "./clients/listHolidaysApiV1HrRostersPublicHolidaysGet.js";
 export { listMyShiftSwapsApiV1HrShiftSwapsMeGet } from "./clients/listMyShiftSwapsApiV1HrShiftSwapsMeGet.js";
 export { listPeriodsApiV1HrRostersPeriodsGet } from "./clients/listPeriodsApiV1HrRostersPeriodsGet.js";
+export { listPublicProductsApiV1WxproductsPublicProductsGet } from "./clients/listPublicProductsApiV1WxproductsPublicProductsGet.js";
+export { listRegisterObservationsApiV1EregisterObservationsGet } from "./clients/listRegisterObservationsApiV1EregisterObservationsGet.js";
 export { listShiftCatalogApiV1HrRostersShiftsGet } from "./clients/listShiftCatalogApiV1HrRostersShiftsGet.js";
+export { loadAviationDraftsApiV1WxproductsAviationDraftsGet } from "./clients/loadAviationDraftsApiV1WxproductsAviationDraftsGet.js";
+export { loadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGet } from "./clients/loadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGet.js";
+export { loadHistoryApiV1WxproductsProductsProductIdHistoryGet } from "./clients/loadHistoryApiV1WxproductsProductsProductIdHistoryGet.js";
+export { loadObservationsApiV1WxproductsObservationsGet } from "./clients/loadObservationsApiV1WxproductsObservationsGet.js";
+export { loadProductsApiV1WxproductsProductsGet } from "./clients/loadProductsApiV1WxproductsProductsGet.js";
 export { loginAccessTokenApiV1LoginAccessTokenPost } from "./clients/loginAccessTokenApiV1LoginAccessTokenPost.js";
 export { loginSessionApiV1LoginSessionPost } from "./clients/loginSessionApiV1LoginSessionPost.js";
 export { logoutAllSessionsApiV1LoginSessionLogoutAllPost } from "./clients/logoutAllSessionsApiV1LoginSessionLogoutAllPost.js";
 export { logoutSessionApiV1LoginSessionLogoutPost } from "./clients/logoutSessionApiV1LoginSessionLogoutPost.js";
+export { metadataApiV1WxwatchMetadataGet } from "./clients/metadataApiV1WxwatchMetadataGet.js";
 export { offboardStaffApiV1HrSetupStaffUserIdOffboardPost } from "./clients/offboardStaffApiV1HrSetupStaffUserIdOffboardPost.js";
 export { patchDocumentApiV1HrDocumentsDocumentIdPatch } from "./clients/patchDocumentApiV1HrDocumentsDocumentIdPatch.js";
 export { previewCatalogueApiV1HrSetupCatalogueGet } from "./clients/previewCatalogueApiV1HrSetupCatalogueGet.js";
 export { previewOrganisationApiV1HrSetupOrganisationGet } from "./clients/previewOrganisationApiV1HrSetupOrganisationGet.js";
+export { previewProductApiV1WxproductsProductsPreviewPost } from "./clients/previewProductApiV1WxproductsProductsPreviewPost.js";
+export { productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGet } from "./clients/productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGet.js";
+export { publicForecastApiV1WxproductsPublicForecastGet } from "./clients/publicForecastApiV1WxproductsPublicForecastGet.js";
 export { publishAlertApiV1CapAlertsAlertIdPublishPost } from "./clients/publishAlertApiV1CapAlertsAlertIdPublishPost.js";
 export { publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch } from "./clients/publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch.js";
 export { readAbsenteeReportsApiV1HrAbsenteeReportsGet } from "./clients/readAbsenteeReportsApiV1HrAbsenteeReportsGet.js";
@@ -124,6 +143,7 @@ export { readPublicAlertApiCapAlertsIdentifierGet } from "./clients/readPublicAl
 export { readPublicAlertsApiCapAlertsGet } from "./clients/readPublicAlertsApiCapAlertsGet.js";
 export { readPublicLatestActiveApiCapLatestActiveGet } from "./clients/readPublicLatestActiveApiCapLatestActiveGet.js";
 export { readPublicPastAlertsApiCapPastGet } from "./clients/readPublicPastAlertsApiCapPastGet.js";
+export { readPublicWarningsApiCapWarningsGet } from "./clients/readPublicWarningsApiCapWarningsGet.js";
 export { readRoleApiV1AuthRolesRoleIdGet } from "./clients/readRoleApiV1AuthRolesRoleIdGet.js";
 export { readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet } from "./clients/readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGet.js";
 export { readRoleAssignmentsApiV1AuthRoleAssignmentsGet } from "./clients/readRoleAssignmentsApiV1AuthRoleAssignmentsGet.js";
@@ -146,18 +166,24 @@ export { readUserMeApiV1AuthUsersMeGet } from "./clients/readUserMeApiV1AuthUser
 export { readUsersApiV1AuthUsersGet } from "./clients/readUsersApiV1AuthUsersGet.js";
 export { readWorkflowConfigurationApiV1HrSetupWorkflowsGet } from "./clients/readWorkflowConfigurationApiV1HrSetupWorkflowsGet.js";
 export { readyApiV1UtilsReadyGet } from "./clients/readyApiV1UtilsReadyGet.js";
+export { readyApiV1WxwatchReadyGet } from "./clients/readyApiV1WxwatchReadyGet.js";
 export { recordAccessReviewApiV1AuthAccessReviewsAssignmentIdPost } from "./clients/recordAccessReviewApiV1AuthAccessReviewsAssignmentIdPost.js";
 export { recoverPasswordApiV1PasswordRecoveryEmailPost } from "./clients/recoverPasswordApiV1PasswordRecoveryEmailPost.js";
 export { recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost } from "./clients/recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPost.js";
 export { refreshSessionApiV1LoginSessionRefreshPost } from "./clients/refreshSessionApiV1LoginSessionRefreshPost.js";
+export { registerDerivationApiV1WxwatchDerivationsPost } from "./clients/registerDerivationApiV1WxwatchDerivationsPost.js";
 export { registerUserApiV1AuthUsersSignupPost } from "./clients/registerUserApiV1AuthUsersSignupPost.js";
 export { removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete } from "./clients/removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDelete.js";
 export { replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost } from "./clients/replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost.js";
 export { resetPasswordApiV1ResetPasswordPost } from "./clients/resetPasswordApiV1ResetPasswordPost.js";
+export { retrievalsApiV1WxwatchArchiveEditionIdRetrievalsGet } from "./clients/retrievalsApiV1WxwatchArchiveEditionIdRetrievalsGet.js";
 export { revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete } from "./clients/revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete.js";
+export { saveAviationDraftApiV1WxproductsAviationDraftsPost } from "./clients/saveAviationDraftApiV1WxproductsAviationDraftsPost.js";
 export { saveHazardProfileApiV1CapHazardProfilesKeyVersionsPost } from "./clients/saveHazardProfileApiV1CapHazardProfilesKeyVersionsPost.js";
 export { saveMySignatureApiV1HrSignatureMePut } from "./clients/saveMySignatureApiV1HrSignatureMePut.js";
+export { saveProductApiV1WxproductsProductsPost } from "./clients/saveProductApiV1WxproductsProductsPost.js";
 export { saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPut } from "./clients/saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPut.js";
+export { startRunApiV1WxwatchRunsPost } from "./clients/startRunApiV1WxwatchRunsPost.js";
 export { submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost } from "./clients/submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost.js";
 export { submitAlertApiV1CapAlertsAlertIdSubmitPost } from "./clients/submitAlertApiV1CapAlertsAlertIdSubmitPost.js";
 export { submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost } from "./clients/submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost.js";
@@ -198,6 +224,7 @@ export { uploadDocumentApiV1HrDocumentsPost } from "./clients/uploadDocumentApiV
 export { validateAlertApiV1CapAlertsAlertIdValidatePost } from "./clients/validateAlertApiV1CapAlertsAlertIdValidatePost.js";
 export { validateCsvApiV1HrRostersImportCsvValidatePost } from "./clients/validateCsvApiV1HrRostersImportCsvValidatePost.js";
 export { validateGridApiV1HrRostersImportGridValidatePost } from "./clients/validateGridApiV1HrRostersImportGridValidatePost.js";
+export { validateSynopObservationApiV1EregisterObservationsValidateSynopPost } from "./clients/validateSynopObservationApiV1EregisterObservationsValidateSynopPost.js";
 export { weatherImageApiV1WxwatchImagesStoragePathGet } from "./clients/weatherImageApiV1WxwatchImagesStoragePathGet.js";
 export {
   actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchMutationKey,
@@ -230,6 +257,16 @@ export {
   useApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch,
 } from "./hooks/useApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch.js";
 export {
+  archiveApiV1WxwatchArchiveGetQueryKey,
+  archiveApiV1WxwatchArchiveGetQueryOptions,
+  useArchiveApiV1WxwatchArchiveGet,
+} from "./hooks/useArchiveApiV1WxwatchArchiveGet.js";
+export {
+  archiveAssetApiV1WxwatchAssetsAssetIdGetQueryKey,
+  archiveAssetApiV1WxwatchAssetsAssetIdGetQueryOptions,
+  useArchiveAssetApiV1WxwatchAssetsAssetIdGet,
+} from "./hooks/useArchiveAssetApiV1WxwatchAssetsAssetIdGet.js";
+export {
   archiveDocumentApiV1HrDocumentsDocumentIdArchivePostMutationKey,
   archiveDocumentApiV1HrDocumentsDocumentIdArchivePostMutationOptions,
   useArchiveDocumentApiV1HrDocumentsDocumentIdArchivePost,
@@ -240,10 +277,20 @@ export {
   useArchiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePost,
 } from "./hooks/useArchiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePost.js";
 export {
+  browserSessionApiV1AuthBrowserSessionGetQueryKey,
+  browserSessionApiV1AuthBrowserSessionGetQueryOptions,
+  useBrowserSessionApiV1AuthBrowserSessionGet,
+} from "./hooks/useBrowserSessionApiV1AuthBrowserSessionGet.js";
+export {
   bulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationKey,
   bulkAssignmentsApiV1HrRostersAssignmentsBulkPostMutationOptions,
   useBulkAssignmentsApiV1HrRostersAssignmentsBulkPost,
 } from "./hooks/useBulkAssignmentsApiV1HrRostersAssignmentsBulkPost.js";
+export {
+  bulletinApiV1WxwatchArchiveEditionIdBulletinGetQueryKey,
+  bulletinApiV1WxwatchArchiveEditionIdBulletinGetQueryOptions,
+  useBulletinApiV1WxwatchArchiveEditionIdBulletinGet,
+} from "./hooks/useBulletinApiV1WxwatchArchiveEditionIdBulletinGet.js";
 export {
   cancelAlertApiV1CapAlertsAlertIdCancelPostMutationKey,
   cancelAlertApiV1CapAlertsAlertIdCancelPostMutationOptions,
@@ -319,6 +366,11 @@ export {
   createPredefinedAreaApiV1CapAreasPredefinedPostMutationOptions,
   useCreatePredefinedAreaApiV1CapAreasPredefinedPost,
 } from "./hooks/useCreatePredefinedAreaApiV1CapAreasPredefinedPost.js";
+export {
+  createRegisterObservationApiV1EregisterObservationsPostMutationKey,
+  createRegisterObservationApiV1EregisterObservationsPostMutationOptions,
+  useCreateRegisterObservationApiV1EregisterObservationsPost,
+} from "./hooks/useCreateRegisterObservationApiV1EregisterObservationsPost.js";
 export {
   createRoleApiV1AuthRolesPostMutationKey,
   createRoleApiV1AuthRolesPostMutationOptions,
@@ -445,6 +497,11 @@ export {
   useDuplicateAlertApiV1CapAlertsAlertIdDuplicatePost,
 } from "./hooks/useDuplicateAlertApiV1CapAlertsAlertIdDuplicatePost.js";
 export {
+  editionAssetsApiV1WxwatchArchiveEditionIdAssetsGetQueryKey,
+  editionAssetsApiV1WxwatchArchiveEditionIdAssetsGetQueryOptions,
+  useEditionAssetsApiV1WxwatchArchiveEditionIdAssetsGet,
+} from "./hooks/useEditionAssetsApiV1WxwatchArchiveEditionIdAssetsGet.js";
+export {
   emailConfirmApiV1AuthModernEmailConfirmPostMutationKey,
   emailConfirmApiV1AuthModernEmailConfirmPostMutationOptions,
   useEmailConfirmApiV1AuthModernEmailConfirmPost,
@@ -464,6 +521,11 @@ export {
   expireAlertApiV1CapAlertsAlertIdExpirePostMutationOptions,
   useExpireAlertApiV1CapAlertsAlertIdExpirePost,
 } from "./hooks/useExpireAlertApiV1CapAlertsAlertIdExpirePost.js";
+export {
+  finishRunApiV1WxwatchRunsRunIdFinishPostMutationKey,
+  finishRunApiV1WxwatchRunsRunIdFinishPostMutationOptions,
+  useFinishRunApiV1WxwatchRunsRunIdFinishPost,
+} from "./hooks/useFinishRunApiV1WxwatchRunsRunIdFinishPost.js";
 export {
   getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey,
   getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryOptions,
@@ -520,6 +582,11 @@ export {
   useImportOrganisationApiV1HrSetupOrganisationPost,
 } from "./hooks/useImportOrganisationApiV1HrSetupOrganisationPost.js";
 export {
+  ingestApiV1WxwatchIngestPostMutationKey,
+  ingestApiV1WxwatchIngestPostMutationOptions,
+  useIngestApiV1WxwatchIngestPost,
+} from "./hooks/useIngestApiV1WxwatchIngestPost.js";
+export {
   issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationKey,
   issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostMutationOptions,
   useIssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost,
@@ -560,10 +627,45 @@ export {
   useListPeriodsApiV1HrRostersPeriodsGet,
 } from "./hooks/useListPeriodsApiV1HrRostersPeriodsGet.js";
 export {
+  listPublicProductsApiV1WxproductsPublicProductsGetQueryKey,
+  listPublicProductsApiV1WxproductsPublicProductsGetQueryOptions,
+  useListPublicProductsApiV1WxproductsPublicProductsGet,
+} from "./hooks/useListPublicProductsApiV1WxproductsPublicProductsGet.js";
+export {
+  listRegisterObservationsApiV1EregisterObservationsGetQueryKey,
+  listRegisterObservationsApiV1EregisterObservationsGetQueryOptions,
+  useListRegisterObservationsApiV1EregisterObservationsGet,
+} from "./hooks/useListRegisterObservationsApiV1EregisterObservationsGet.js";
+export {
   listShiftCatalogApiV1HrRostersShiftsGetQueryKey,
   listShiftCatalogApiV1HrRostersShiftsGetQueryOptions,
   useListShiftCatalogApiV1HrRostersShiftsGet,
 } from "./hooks/useListShiftCatalogApiV1HrRostersShiftsGet.js";
+export {
+  loadAviationDraftsApiV1WxproductsAviationDraftsGetQueryKey,
+  loadAviationDraftsApiV1WxproductsAviationDraftsGetQueryOptions,
+  useLoadAviationDraftsApiV1WxproductsAviationDraftsGet,
+} from "./hooks/useLoadAviationDraftsApiV1WxproductsAviationDraftsGet.js";
+export {
+  loadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetQueryKey,
+  loadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetQueryOptions,
+  useLoadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGet,
+} from "./hooks/useLoadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGet.js";
+export {
+  loadHistoryApiV1WxproductsProductsProductIdHistoryGetQueryKey,
+  loadHistoryApiV1WxproductsProductsProductIdHistoryGetQueryOptions,
+  useLoadHistoryApiV1WxproductsProductsProductIdHistoryGet,
+} from "./hooks/useLoadHistoryApiV1WxproductsProductsProductIdHistoryGet.js";
+export {
+  loadObservationsApiV1WxproductsObservationsGetQueryKey,
+  loadObservationsApiV1WxproductsObservationsGetQueryOptions,
+  useLoadObservationsApiV1WxproductsObservationsGet,
+} from "./hooks/useLoadObservationsApiV1WxproductsObservationsGet.js";
+export {
+  loadProductsApiV1WxproductsProductsGetQueryKey,
+  loadProductsApiV1WxproductsProductsGetQueryOptions,
+  useLoadProductsApiV1WxproductsProductsGet,
+} from "./hooks/useLoadProductsApiV1WxproductsProductsGet.js";
 export {
   loginAccessTokenApiV1LoginAccessTokenPostMutationKey,
   loginAccessTokenApiV1LoginAccessTokenPostMutationOptions,
@@ -585,6 +687,11 @@ export {
   useLogoutSessionApiV1LoginSessionLogoutPost,
 } from "./hooks/useLogoutSessionApiV1LoginSessionLogoutPost.js";
 export {
+  metadataApiV1WxwatchMetadataGetQueryKey,
+  metadataApiV1WxwatchMetadataGetQueryOptions,
+  useMetadataApiV1WxwatchMetadataGet,
+} from "./hooks/useMetadataApiV1WxwatchMetadataGet.js";
+export {
   offboardStaffApiV1HrSetupStaffUserIdOffboardPostMutationKey,
   offboardStaffApiV1HrSetupStaffUserIdOffboardPostMutationOptions,
   useOffboardStaffApiV1HrSetupStaffUserIdOffboardPost,
@@ -604,6 +711,21 @@ export {
   previewOrganisationApiV1HrSetupOrganisationGetQueryOptions,
   usePreviewOrganisationApiV1HrSetupOrganisationGet,
 } from "./hooks/usePreviewOrganisationApiV1HrSetupOrganisationGet.js";
+export {
+  previewProductApiV1WxproductsProductsPreviewPostMutationKey,
+  previewProductApiV1WxproductsProductsPreviewPostMutationOptions,
+  usePreviewProductApiV1WxproductsProductsPreviewPost,
+} from "./hooks/usePreviewProductApiV1WxproductsProductsPreviewPost.js";
+export {
+  productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetQueryKey,
+  productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetQueryOptions,
+  useProductRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGet,
+} from "./hooks/useProductRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGet.js";
+export {
+  publicForecastApiV1WxproductsPublicForecastGetQueryKey,
+  publicForecastApiV1WxproductsPublicForecastGetQueryOptions,
+  usePublicForecastApiV1WxproductsPublicForecastGet,
+} from "./hooks/usePublicForecastApiV1WxproductsPublicForecastGet.js";
 export {
   publishAlertApiV1CapAlertsAlertIdPublishPostMutationKey,
   publishAlertApiV1CapAlertsAlertIdPublishPostMutationOptions,
@@ -815,6 +937,11 @@ export {
   useReadPublicPastAlertsApiCapPastGet,
 } from "./hooks/useReadPublicPastAlertsApiCapPastGet.js";
 export {
+  readPublicWarningsApiCapWarningsGetQueryKey,
+  readPublicWarningsApiCapWarningsGetQueryOptions,
+  useReadPublicWarningsApiCapWarningsGet,
+} from "./hooks/useReadPublicWarningsApiCapWarningsGet.js";
+export {
   readRoleApiV1AuthRolesRoleIdGetQueryKey,
   readRoleApiV1AuthRolesRoleIdGetQueryOptions,
   useReadRoleApiV1AuthRolesRoleIdGet,
@@ -925,6 +1052,11 @@ export {
   useReadyApiV1UtilsReadyGet,
 } from "./hooks/useReadyApiV1UtilsReadyGet.js";
 export {
+  readyApiV1WxwatchReadyGetQueryKey,
+  readyApiV1WxwatchReadyGetQueryOptions,
+  useReadyApiV1WxwatchReadyGet,
+} from "./hooks/useReadyApiV1WxwatchReadyGet.js";
+export {
   recordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostMutationKey,
   recordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostMutationOptions,
   useRecordAccessReviewApiV1AuthAccessReviewsAssignmentIdPost,
@@ -944,6 +1076,11 @@ export {
   refreshSessionApiV1LoginSessionRefreshPostMutationOptions,
   useRefreshSessionApiV1LoginSessionRefreshPost,
 } from "./hooks/useRefreshSessionApiV1LoginSessionRefreshPost.js";
+export {
+  registerDerivationApiV1WxwatchDerivationsPostMutationKey,
+  registerDerivationApiV1WxwatchDerivationsPostMutationOptions,
+  useRegisterDerivationApiV1WxwatchDerivationsPost,
+} from "./hooks/useRegisterDerivationApiV1WxwatchDerivationsPost.js";
 export {
   registerUserApiV1AuthUsersSignupPostMutationKey,
   registerUserApiV1AuthUsersSignupPostMutationOptions,
@@ -965,10 +1102,20 @@ export {
   useResetPasswordApiV1ResetPasswordPost,
 } from "./hooks/useResetPasswordApiV1ResetPasswordPost.js";
 export {
+  retrievalsApiV1WxwatchArchiveEditionIdRetrievalsGetQueryKey,
+  retrievalsApiV1WxwatchArchiveEditionIdRetrievalsGetQueryOptions,
+  useRetrievalsApiV1WxwatchArchiveEditionIdRetrievalsGet,
+} from "./hooks/useRetrievalsApiV1WxwatchArchiveEditionIdRetrievalsGet.js";
+export {
   revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationKey,
   revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteMutationOptions,
   useRevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete,
 } from "./hooks/useRevokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete.js";
+export {
+  saveAviationDraftApiV1WxproductsAviationDraftsPostMutationKey,
+  saveAviationDraftApiV1WxproductsAviationDraftsPostMutationOptions,
+  useSaveAviationDraftApiV1WxproductsAviationDraftsPost,
+} from "./hooks/useSaveAviationDraftApiV1WxproductsAviationDraftsPost.js";
 export {
   saveHazardProfileApiV1CapHazardProfilesKeyVersionsPostMutationKey,
   saveHazardProfileApiV1CapHazardProfilesKeyVersionsPostMutationOptions,
@@ -980,10 +1127,20 @@ export {
   useSaveMySignatureApiV1HrSignatureMePut,
 } from "./hooks/useSaveMySignatureApiV1HrSignatureMePut.js";
 export {
+  saveProductApiV1WxproductsProductsPostMutationKey,
+  saveProductApiV1WxproductsProductsPostMutationOptions,
+  useSaveProductApiV1WxproductsProductsPost,
+} from "./hooks/useSaveProductApiV1WxproductsProductsPost.js";
+export {
   saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutMutationKey,
   saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutMutationOptions,
   useSaveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPut,
 } from "./hooks/useSaveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPut.js";
+export {
+  startRunApiV1WxwatchRunsPostMutationKey,
+  startRunApiV1WxwatchRunsPostMutationOptions,
+  useStartRunApiV1WxwatchRunsPost,
+} from "./hooks/useStartRunApiV1WxwatchRunsPost.js";
 export {
   submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationKey,
   submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostMutationOptions,
@@ -1185,6 +1342,11 @@ export {
   validateGridApiV1HrRostersImportGridValidatePostMutationOptions,
 } from "./hooks/useValidateGridApiV1HrRostersImportGridValidatePost.js";
 export {
+  useValidateSynopObservationApiV1EregisterObservationsValidateSynopPost,
+  validateSynopObservationApiV1EregisterObservationsValidateSynopPostMutationKey,
+  validateSynopObservationApiV1EregisterObservationsValidateSynopPostMutationOptions,
+} from "./hooks/useValidateSynopObservationApiV1EregisterObservationsValidateSynopPost.js";
+export {
   useWeatherImageApiV1WxwatchImagesStoragePathGet,
   weatherImageApiV1WxwatchImagesStoragePathGetQueryKey,
   weatherImageApiV1WxwatchImagesStoragePathGetQueryOptions,
@@ -1263,6 +1425,23 @@ export type {
   ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus422,
 } from "./models/ApproveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatch.js";
 export type {
+  ArchiveApiV1WxwatchArchiveGetOptions,
+  ArchiveApiV1WxwatchArchiveGetQuery,
+  ArchiveApiV1WxwatchArchiveGetResponse,
+  ArchiveApiV1WxwatchArchiveGetResponses,
+  ArchiveApiV1WxwatchArchiveGetStatus200,
+  ArchiveApiV1WxwatchArchiveGetStatus422,
+} from "./models/ArchiveApiV1WxwatchArchiveGet.js";
+export type {
+  ArchiveAssetApiV1WxwatchAssetsAssetIdGetOptions,
+  ArchiveAssetApiV1WxwatchAssetsAssetIdGetPath,
+  ArchiveAssetApiV1WxwatchAssetsAssetIdGetResponse,
+  ArchiveAssetApiV1WxwatchAssetsAssetIdGetResponses,
+  ArchiveAssetApiV1WxwatchAssetsAssetIdGetStatus200,
+  ArchiveAssetApiV1WxwatchAssetsAssetIdGetStatus422,
+} from "./models/ArchiveAssetApiV1WxwatchAssetsAssetIdGet.js";
+export type { ArchiveBulletin } from "./models/ArchiveBulletin.js";
+export type {
   ArchiveDocumentApiV1HrDocumentsDocumentIdArchivePostOptions,
   ArchiveDocumentApiV1HrDocumentsDocumentIdArchivePostPath,
   ArchiveDocumentApiV1HrDocumentsDocumentIdArchivePostResponse,
@@ -1272,6 +1451,10 @@ export type {
   ArchiveDocumentApiV1HrDocumentsDocumentIdArchivePostStatus404,
   ArchiveDocumentApiV1HrDocumentsDocumentIdArchivePostStatus422,
 } from "./models/ArchiveDocumentApiV1HrDocumentsDocumentIdArchivePost.js";
+export type { ArchiveEdition } from "./models/ArchiveEdition.js";
+export type { ArchiveHistory } from "./models/ArchiveHistory.js";
+export type { ArchivePage } from "./models/ArchivePage.js";
+export type { ArchiveRetrieval } from "./models/ArchiveRetrieval.js";
 export type {
   ArchiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostBody,
   ArchiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostOptions,
@@ -1283,9 +1466,35 @@ export type {
   ArchiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostStatus404,
   ArchiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostStatus422,
 } from "./models/ArchiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePost.js";
+export type { AuthoredProducts } from "./models/AuthoredProducts.js";
+export type { AuthoringError } from "./models/AuthoringError.js";
+export type { AviationDraftList } from "./models/AviationDraftList.js";
+export type {
+  AviationDraftRead,
+  AviationDraftReadKindEnum,
+} from "./models/AviationDraftRead.js";
+export { aviationDraftReadKindEnum } from "./models/AviationDraftRead.js";
+export type {
+  AviationDraftWrite,
+  AviationDraftWriteKindEnum,
+} from "./models/AviationDraftWrite.js";
+export { aviationDraftWriteKindEnum } from "./models/AviationDraftWrite.js";
+export type { AviationHistory } from "./models/AviationHistory.js";
+export type {
+  AviationRevisionRead,
+  AviationRevisionReadKindEnum,
+} from "./models/AviationRevisionRead.js";
+export { aviationRevisionReadKindEnum } from "./models/AviationRevisionRead.js";
 export type { BalanceInput } from "./models/BalanceInput.js";
 export type { BodyLoginAccessTokenApiV1LoginAccessTokenPost } from "./models/BodyLoginAccessTokenApiV1LoginAccessTokenPost.js";
 export type { BodyUploadDocumentApiV1HrDocumentsPost } from "./models/BodyUploadDocumentApiV1HrDocumentsPost.js";
+export type { BrowserSession } from "./models/BrowserSession.js";
+export type {
+  BrowserSessionApiV1AuthBrowserSessionGetOptions,
+  BrowserSessionApiV1AuthBrowserSessionGetResponse,
+  BrowserSessionApiV1AuthBrowserSessionGetResponses,
+  BrowserSessionApiV1AuthBrowserSessionGetStatus200,
+} from "./models/BrowserSessionApiV1AuthBrowserSessionGet.js";
 export type {
   BulkAssignmentsApiV1HrRostersAssignmentsBulkPostBody,
   BulkAssignmentsApiV1HrRostersAssignmentsBulkPostOptions,
@@ -1296,6 +1505,14 @@ export type {
   BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus404,
   BulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus422,
 } from "./models/BulkAssignmentsApiV1HrRostersAssignmentsBulkPost.js";
+export type {
+  BulletinApiV1WxwatchArchiveEditionIdBulletinGetOptions,
+  BulletinApiV1WxwatchArchiveEditionIdBulletinGetPath,
+  BulletinApiV1WxwatchArchiveEditionIdBulletinGetResponse,
+  BulletinApiV1WxwatchArchiveEditionIdBulletinGetResponses,
+  BulletinApiV1WxwatchArchiveEditionIdBulletinGetStatus200,
+  BulletinApiV1WxwatchArchiveEditionIdBulletinGetStatus422,
+} from "./models/BulletinApiV1WxwatchArchiveEditionIdBulletinGet.js";
 export type { CalendarEventCreate } from "./models/CalendarEventCreate.js";
 export type { CalendarEventKind } from "./models/CalendarEventKind.js";
 export { calendarEventKind } from "./models/CalendarEventKind.js";
@@ -1533,6 +1750,14 @@ export type {
   CreatePredefinedAreaApiV1CapAreasPredefinedPostStatus422,
 } from "./models/CreatePredefinedAreaApiV1CapAreasPredefinedPost.js";
 export type {
+  CreateRegisterObservationApiV1EregisterObservationsPostBody,
+  CreateRegisterObservationApiV1EregisterObservationsPostOptions,
+  CreateRegisterObservationApiV1EregisterObservationsPostResponse,
+  CreateRegisterObservationApiV1EregisterObservationsPostResponses,
+  CreateRegisterObservationApiV1EregisterObservationsPostStatus201,
+  CreateRegisterObservationApiV1EregisterObservationsPostStatus422,
+} from "./models/CreateRegisterObservationApiV1EregisterObservationsPost.js";
+export type {
   CreateRoleApiV1AuthRolesPostBody,
   CreateRoleApiV1AuthRolesPostOptions,
   CreateRoleApiV1AuthRolesPostResponse,
@@ -1741,6 +1966,8 @@ export type { DepartmentMembersPublic } from "./models/DepartmentMembersPublic.j
 export type { DepartmentPublic } from "./models/DepartmentPublic.js";
 export type { DepartmentsPublic } from "./models/DepartmentsPublic.js";
 export type { DepartmentUpdate } from "./models/DepartmentUpdate.js";
+export type { DerivationInput } from "./models/DerivationInput.js";
+export type { DerivationResult } from "./models/DerivationResult.js";
 export type { DocumentCategory } from "./models/DocumentCategory.js";
 export { documentCategory } from "./models/DocumentCategory.js";
 export type { DocumentEmployeeListPublic } from "./models/DocumentEmployeeListPublic.js";
@@ -1787,6 +2014,15 @@ export type {
   DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus200,
   DuplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus422,
 } from "./models/DuplicateAlertApiV1CapAlertsAlertIdDuplicatePost.js";
+export type { EditionAsset } from "./models/EditionAsset.js";
+export type {
+  EditionAssetsApiV1WxwatchArchiveEditionIdAssetsGetOptions,
+  EditionAssetsApiV1WxwatchArchiveEditionIdAssetsGetPath,
+  EditionAssetsApiV1WxwatchArchiveEditionIdAssetsGetResponse,
+  EditionAssetsApiV1WxwatchArchiveEditionIdAssetsGetResponses,
+  EditionAssetsApiV1WxwatchArchiveEditionIdAssetsGetStatus200,
+  EditionAssetsApiV1WxwatchArchiveEditionIdAssetsGetStatus422,
+} from "./models/EditionAssetsApiV1WxwatchArchiveEditionIdAssetsGet.js";
 export type { EffectiveAccess } from "./models/EffectiveAccess.js";
 export type { EmailConfirm } from "./models/EmailConfirm.js";
 export type {
@@ -1841,6 +2077,23 @@ export type {
   ExpireAlertApiV1CapAlertsAlertIdExpirePostStatus200,
   ExpireAlertApiV1CapAlertsAlertIdExpirePostStatus422,
 } from "./models/ExpireAlertApiV1CapAlertsAlertIdExpirePost.js";
+export type {
+  FinishRunApiV1WxwatchRunsRunIdFinishPostBody,
+  FinishRunApiV1WxwatchRunsRunIdFinishPostHeaders,
+  FinishRunApiV1WxwatchRunsRunIdFinishPostOptions,
+  FinishRunApiV1WxwatchRunsRunIdFinishPostPath,
+  FinishRunApiV1WxwatchRunsRunIdFinishPostResponse,
+  FinishRunApiV1WxwatchRunsRunIdFinishPostResponses,
+  FinishRunApiV1WxwatchRunsRunIdFinishPostStatus204,
+  FinishRunApiV1WxwatchRunsRunIdFinishPostStatus422,
+} from "./models/FinishRunApiV1WxwatchRunsRunIdFinishPost.js";
+export type { ForecastObservation } from "./models/ForecastObservation.js";
+export type { ForecastPeriod } from "./models/ForecastPeriod.js";
+export type {
+  ForecastSource,
+  ForecastSourceKindEnum,
+} from "./models/ForecastSource.js";
+export { forecastSourceKindEnum } from "./models/ForecastSource.js";
 export type { Gender } from "./models/Gender.js";
 export { gender } from "./models/Gender.js";
 export type {
@@ -1910,6 +2163,12 @@ export type {
 export type { HrDashboardPublic } from "./models/HrDashboardPublic.js";
 export type { HTTPValidationError } from "./models/HTTPValidationError.js";
 export type {
+  ImageInput,
+  ImageInputTimeBasisEnum,
+} from "./models/ImageInput.js";
+export { imageInputTimeBasisEnum } from "./models/ImageInput.js";
+export type { ImageResult } from "./models/ImageResult.js";
+export type {
   ImportAlertApiV1CapAlertsImportPostBody,
   ImportAlertApiV1CapAlertsImportPostOptions,
   ImportAlertApiV1CapAlertsImportPostResponse,
@@ -1961,6 +2220,15 @@ export type {
 export type { ImportStatus } from "./models/ImportStatus.js";
 export { importStatus } from "./models/ImportStatus.js";
 export type {
+  IngestApiV1WxwatchIngestPostBody,
+  IngestApiV1WxwatchIngestPostHeaders,
+  IngestApiV1WxwatchIngestPostOptions,
+  IngestApiV1WxwatchIngestPostResponse,
+  IngestApiV1WxwatchIngestPostResponses,
+  IngestApiV1WxwatchIngestPostStatus200,
+  IngestApiV1WxwatchIngestPostStatus422,
+} from "./models/IngestApiV1WxwatchIngestPost.js";
+export type {
   IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostBody,
   IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostOptions,
   IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostPath,
@@ -1971,6 +2239,7 @@ export type {
   IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus404,
   IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus422,
 } from "./models/IssueParkingDecalApiV1HrParkingPermitsPermitIdIssuePost.js";
+export type { JsonValue } from "./models/JsonValue.js";
 export type { LeavePublic } from "./models/LeavePublic.js";
 export type { LeaveRequestAction } from "./models/LeaveRequestAction.js";
 export type { LeaveRequestCreate } from "./models/LeaveRequestCreate.js";
@@ -2049,6 +2318,24 @@ export type {
   ListPeriodsApiV1HrRostersPeriodsGetStatus422,
 } from "./models/ListPeriodsApiV1HrRostersPeriodsGet.js";
 export type {
+  ListPublicProductsApiV1WxproductsPublicProductsGetOptions,
+  ListPublicProductsApiV1WxproductsPublicProductsGetQuery,
+  ListPublicProductsApiV1WxproductsPublicProductsGetResponse,
+  ListPublicProductsApiV1WxproductsPublicProductsGetResponses,
+  ListPublicProductsApiV1WxproductsPublicProductsGetStatus200,
+  ListPublicProductsApiV1WxproductsPublicProductsGetStatus400,
+  ListPublicProductsApiV1WxproductsPublicProductsGetStatus422,
+  ListPublicProductsApiV1WxproductsPublicProductsGetStatus503,
+} from "./models/ListPublicProductsApiV1WxproductsPublicProductsGet.js";
+export type {
+  ListRegisterObservationsApiV1EregisterObservationsGetOptions,
+  ListRegisterObservationsApiV1EregisterObservationsGetQuery,
+  ListRegisterObservationsApiV1EregisterObservationsGetResponse,
+  ListRegisterObservationsApiV1EregisterObservationsGetResponses,
+  ListRegisterObservationsApiV1EregisterObservationsGetStatus200,
+  ListRegisterObservationsApiV1EregisterObservationsGetStatus422,
+} from "./models/ListRegisterObservationsApiV1EregisterObservationsGet.js";
+export type {
   ListShiftCatalogApiV1HrRostersShiftsGetOptions,
   ListShiftCatalogApiV1HrRostersShiftsGetQuery,
   ListShiftCatalogApiV1HrRostersShiftsGetResponse,
@@ -2057,6 +2344,64 @@ export type {
   ListShiftCatalogApiV1HrRostersShiftsGetStatus403,
   ListShiftCatalogApiV1HrRostersShiftsGetStatus422,
 } from "./models/ListShiftCatalogApiV1HrRostersShiftsGet.js";
+export type {
+  LoadAviationDraftsApiV1WxproductsAviationDraftsGetKind,
+  LoadAviationDraftsApiV1WxproductsAviationDraftsGetOptions,
+  LoadAviationDraftsApiV1WxproductsAviationDraftsGetQuery,
+  LoadAviationDraftsApiV1WxproductsAviationDraftsGetResponse,
+  LoadAviationDraftsApiV1WxproductsAviationDraftsGetResponses,
+  LoadAviationDraftsApiV1WxproductsAviationDraftsGetStatus200,
+  LoadAviationDraftsApiV1WxproductsAviationDraftsGetStatus403,
+  LoadAviationDraftsApiV1WxproductsAviationDraftsGetStatus422,
+  LoadAviationDraftsApiV1WxproductsAviationDraftsGetStatus503,
+} from "./models/LoadAviationDraftsApiV1WxproductsAviationDraftsGet.js";
+export { loadAviationDraftsApiV1WxproductsAviationDraftsGetKind } from "./models/LoadAviationDraftsApiV1WxproductsAviationDraftsGet.js";
+export type {
+  LoadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetOptions,
+  LoadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetPath,
+  LoadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetResponse,
+  LoadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetResponses,
+  LoadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetStatus200,
+  LoadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetStatus403,
+  LoadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetStatus422,
+  LoadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetStatus503,
+} from "./models/LoadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGet.js";
+export type {
+  LoadHistoryApiV1WxproductsProductsProductIdHistoryGetOptions,
+  LoadHistoryApiV1WxproductsProductsProductIdHistoryGetPath,
+  LoadHistoryApiV1WxproductsProductsProductIdHistoryGetResponse,
+  LoadHistoryApiV1WxproductsProductsProductIdHistoryGetResponses,
+  LoadHistoryApiV1WxproductsProductsProductIdHistoryGetStatus200,
+  LoadHistoryApiV1WxproductsProductsProductIdHistoryGetStatus401,
+  LoadHistoryApiV1WxproductsProductsProductIdHistoryGetStatus403,
+  LoadHistoryApiV1WxproductsProductsProductIdHistoryGetStatus422,
+  LoadHistoryApiV1WxproductsProductsProductIdHistoryGetStatus503,
+} from "./models/LoadHistoryApiV1WxproductsProductsProductIdHistoryGet.js";
+export type {
+  LoadObservationsApiV1WxproductsObservationsGetKind,
+  LoadObservationsApiV1WxproductsObservationsGetOptions,
+  LoadObservationsApiV1WxproductsObservationsGetQuery,
+  LoadObservationsApiV1WxproductsObservationsGetResponse,
+  LoadObservationsApiV1WxproductsObservationsGetResponses,
+  LoadObservationsApiV1WxproductsObservationsGetStatus200,
+  LoadObservationsApiV1WxproductsObservationsGetStatus401,
+  LoadObservationsApiV1WxproductsObservationsGetStatus403,
+  LoadObservationsApiV1WxproductsObservationsGetStatus422,
+} from "./models/LoadObservationsApiV1WxproductsObservationsGet.js";
+export { loadObservationsApiV1WxproductsObservationsGetKind } from "./models/LoadObservationsApiV1WxproductsObservationsGet.js";
+export type {
+  LoadProductsApiV1WxproductsProductsGetKind,
+  LoadProductsApiV1WxproductsProductsGetOptions,
+  LoadProductsApiV1WxproductsProductsGetQuery,
+  LoadProductsApiV1WxproductsProductsGetResponse,
+  LoadProductsApiV1WxproductsProductsGetResponses,
+  LoadProductsApiV1WxproductsProductsGetStatus200,
+  LoadProductsApiV1WxproductsProductsGetStatus401,
+  LoadProductsApiV1WxproductsProductsGetStatus403,
+  LoadProductsApiV1WxproductsProductsGetStatus422,
+  LoadProductsApiV1WxproductsProductsGetStatus503,
+} from "./models/LoadProductsApiV1WxproductsProductsGet.js";
+export { loadProductsApiV1WxproductsProductsGetKind } from "./models/LoadProductsApiV1WxproductsProductsGet.js";
 export type {
   LoginAccessTokenApiV1LoginAccessTokenPostBody,
   LoginAccessTokenApiV1LoginAccessTokenPostOptions,
@@ -2094,7 +2439,30 @@ export type {
   LogoutSessionApiV1LoginSessionLogoutPostStatus422,
 } from "./models/LogoutSessionApiV1LoginSessionLogoutPost.js";
 export type { Message } from "./models/Message.js";
+export type {
+  MetadataApiV1WxwatchMetadataGetOptions,
+  MetadataApiV1WxwatchMetadataGetQuery,
+  MetadataApiV1WxwatchMetadataGetResponse,
+  MetadataApiV1WxwatchMetadataGetResponses,
+  MetadataApiV1WxwatchMetadataGetStatus200,
+  MetadataApiV1WxwatchMetadataGetStatus422,
+} from "./models/MetadataApiV1WxwatchMetadataGet.js";
 export type { NewPassword } from "./models/NewPassword.js";
+export type { ObservationList } from "./models/ObservationList.js";
+export type {
+  ObservationProvenance,
+  ObservationProvenancePublicationStateEnum,
+  ObservationProvenanceTimeBasisEnum,
+} from "./models/ObservationProvenance.js";
+export {
+  observationProvenancePublicationStateEnum,
+  observationProvenanceTimeBasisEnum,
+} from "./models/ObservationProvenance.js";
+export type {
+  ObservationRecord,
+  ObservationRecordKindEnum,
+} from "./models/ObservationRecord.js";
+export { observationRecordKindEnum } from "./models/ObservationRecord.js";
 export type {
   OffboardStaffApiV1HrSetupStaffUserIdOffboardPostOptions,
   OffboardStaffApiV1HrSetupStaffUserIdOffboardPostPath,
@@ -2159,18 +2527,73 @@ export type {
   PreviewOrganisationApiV1HrSetupOrganisationGetStatus403,
   PreviewOrganisationApiV1HrSetupOrganisationGetStatus409,
 } from "./models/PreviewOrganisationApiV1HrSetupOrganisationGet.js";
+export type {
+  PreviewProductApiV1WxproductsProductsPreviewPostBody,
+  PreviewProductApiV1WxproductsProductsPreviewPostOptions,
+  PreviewProductApiV1WxproductsProductsPreviewPostResponse,
+  PreviewProductApiV1WxproductsProductsPreviewPostResponses,
+  PreviewProductApiV1WxproductsProductsPreviewPostStatus200,
+  PreviewProductApiV1WxproductsProductsPreviewPostStatus401,
+  PreviewProductApiV1WxproductsProductsPreviewPostStatus403,
+  PreviewProductApiV1WxproductsProductsPreviewPostStatus422,
+} from "./models/PreviewProductApiV1WxproductsProductsPreviewPost.js";
 export type { ProductAccessCurrent } from "./models/ProductAccessCurrent.js";
 export type { ProductAccessInput } from "./models/ProductAccessInput.js";
 export type { ProductAccessPublic } from "./models/ProductAccessPublic.js";
+export type { ProductFeedError } from "./models/ProductFeedError.js";
+export type { ProductHistory } from "./models/ProductHistory.js";
+export type {
+  ProductHistoryEntry,
+  ProductHistoryEntryActionEnum,
+} from "./models/ProductHistoryEntry.js";
+export { productHistoryEntryActionEnum } from "./models/ProductHistoryEntry.js";
+export type { ProductPreview } from "./models/ProductPreview.js";
+export type {
+  ProductPreviewInput,
+  ProductPreviewInputKindEnum,
+} from "./models/ProductPreviewInput.js";
+export { productPreviewInputKindEnum } from "./models/ProductPreviewInput.js";
+export type {
+  ProductRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetOptions,
+  ProductRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetPath,
+  ProductRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetResponse,
+  ProductRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetResponses,
+  ProductRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus200,
+  ProductRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus401,
+  ProductRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus403,
+  ProductRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus404,
+  ProductRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus422,
+  ProductRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus503,
+} from "./models/ProductRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGet.js";
+export type {
+  ProductWrite,
+  ProductWriteActionEnum,
+  ProductWriteKindEnum,
+} from "./models/ProductWrite.js";
+export {
+  productWriteActionEnum,
+  productWriteKindEnum,
+} from "./models/ProductWrite.js";
 export type { ProfAppointmentType } from "./models/ProfAppointmentType.js";
 export { profAppointmentType } from "./models/ProfAppointmentType.js";
 export type { ProfileAuditPublic } from "./models/ProfileAuditPublic.js";
 export type { ProfileDetailsPublic } from "./models/ProfileDetailsPublic.js";
 export type { ProfileDetailsUpdate } from "./models/ProfileDetailsUpdate.js";
 export type { ProfileIdentityPublic } from "./models/ProfileIdentityPublic.js";
+export type { PublicForecast } from "./models/PublicForecast.js";
+export type {
+  PublicForecastApiV1WxproductsPublicForecastGetOptions,
+  PublicForecastApiV1WxproductsPublicForecastGetResponse,
+  PublicForecastApiV1WxproductsPublicForecastGetResponses,
+  PublicForecastApiV1WxproductsPublicForecastGetStatus200,
+  PublicForecastApiV1WxproductsPublicForecastGetStatus503,
+} from "./models/PublicForecastApiV1WxproductsPublicForecastGet.js";
 export type { PublicHolidayCreate } from "./models/PublicHolidayCreate.js";
 export type { PublicHolidayPublic } from "./models/PublicHolidayPublic.js";
 export type { PublicHolidaysPublic } from "./models/PublicHolidaysPublic.js";
+export type { PublicWarning } from "./models/PublicWarning.js";
+export type { PublicWarningGroup } from "./models/PublicWarningGroup.js";
+export type { PublicWarnings } from "./models/PublicWarnings.js";
 export type {
   PublishAlertApiV1CapAlertsAlertIdPublishPostBody,
   PublishAlertApiV1CapAlertsAlertIdPublishPostOptions,
@@ -2180,6 +2603,12 @@ export type {
   PublishAlertApiV1CapAlertsAlertIdPublishPostStatus200,
   PublishAlertApiV1CapAlertsAlertIdPublishPostStatus422,
 } from "./models/PublishAlertApiV1CapAlertsAlertIdPublishPost.js";
+export type {
+  PublishedProduct,
+  PublishedProductKindEnum,
+} from "./models/PublishedProduct.js";
+export { publishedProductKindEnum } from "./models/PublishedProduct.js";
+export type { PublishedProducts } from "./models/PublishedProducts.js";
 export type {
   PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchOptions,
   PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPath,
@@ -2504,6 +2933,13 @@ export type {
   ReadPublicPastAlertsApiCapPastGetStatus200,
 } from "./models/ReadPublicPastAlertsApiCapPastGet.js";
 export type {
+  ReadPublicWarningsApiCapWarningsGetOptions,
+  ReadPublicWarningsApiCapWarningsGetResponse,
+  ReadPublicWarningsApiCapWarningsGetResponses,
+  ReadPublicWarningsApiCapWarningsGetStatus200,
+  ReadPublicWarningsApiCapWarningsGetStatus503,
+} from "./models/ReadPublicWarningsApiCapWarningsGet.js";
+export type {
   ReadRoleApiV1AuthRolesRoleIdGetOptions,
   ReadRoleApiV1AuthRolesRoleIdGetPath,
   ReadRoleApiV1AuthRolesRoleIdGetResponse,
@@ -2694,6 +3130,12 @@ export type {
   ReadyApiV1UtilsReadyGetStatus503,
 } from "./models/ReadyApiV1UtilsReadyGet.js";
 export type {
+  ReadyApiV1WxwatchReadyGetOptions,
+  ReadyApiV1WxwatchReadyGetResponse,
+  ReadyApiV1WxwatchReadyGetResponses,
+  ReadyApiV1WxwatchReadyGetStatus204,
+} from "./models/ReadyApiV1WxwatchReadyGet.js";
+export type {
   RecordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostBody,
   RecordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostOptions,
   RecordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostPath,
@@ -2731,6 +3173,30 @@ export type {
   RefreshSessionApiV1LoginSessionRefreshPostStatus200,
   RefreshSessionApiV1LoginSessionRefreshPostStatus422,
 } from "./models/RefreshSessionApiV1LoginSessionRefreshPost.js";
+export type {
+  RegisterDerivationApiV1WxwatchDerivationsPostBody,
+  RegisterDerivationApiV1WxwatchDerivationsPostHeaders,
+  RegisterDerivationApiV1WxwatchDerivationsPostOptions,
+  RegisterDerivationApiV1WxwatchDerivationsPostResponse,
+  RegisterDerivationApiV1WxwatchDerivationsPostResponses,
+  RegisterDerivationApiV1WxwatchDerivationsPostStatus200,
+  RegisterDerivationApiV1WxwatchDerivationsPostStatus422,
+} from "./models/RegisterDerivationApiV1WxwatchDerivationsPost.js";
+export type {
+  RegisterObservationCreate,
+  RegisterObservationCreateKindEnum,
+} from "./models/RegisterObservationCreate.js";
+export { registerObservationCreateKindEnum } from "./models/RegisterObservationCreate.js";
+export type { RegisterObservationList } from "./models/RegisterObservationList.js";
+export type {
+  RegisterObservationRead,
+  RegisterObservationReadKindEnum,
+  RegisterObservationReadStateEnum,
+} from "./models/RegisterObservationRead.js";
+export {
+  registerObservationReadKindEnum,
+  registerObservationReadStateEnum,
+} from "./models/RegisterObservationRead.js";
 export type {
   RegisterUserApiV1AuthUsersSignupPostBody,
   RegisterUserApiV1AuthUsersSignupPostOptions,
@@ -2770,6 +3236,15 @@ export type {
   ResetPasswordApiV1ResetPasswordPostStatus422,
   ResetPasswordApiV1ResetPasswordPostStatus429,
 } from "./models/ResetPasswordApiV1ResetPasswordPost.js";
+export type {
+  RetrievalsApiV1WxwatchArchiveEditionIdRetrievalsGetOptions,
+  RetrievalsApiV1WxwatchArchiveEditionIdRetrievalsGetPath,
+  RetrievalsApiV1WxwatchArchiveEditionIdRetrievalsGetQuery,
+  RetrievalsApiV1WxwatchArchiveEditionIdRetrievalsGetResponse,
+  RetrievalsApiV1WxwatchArchiveEditionIdRetrievalsGetResponses,
+  RetrievalsApiV1WxwatchArchiveEditionIdRetrievalsGetStatus200,
+  RetrievalsApiV1WxwatchArchiveEditionIdRetrievalsGetStatus422,
+} from "./models/RetrievalsApiV1WxwatchArchiveEditionIdRetrievalsGet.js";
 export type { ReviewAssignment } from "./models/ReviewAssignment.js";
 export type {
   ReviewInput,
@@ -2816,6 +3291,22 @@ export type { RosterRevisionAction } from "./models/RosterRevisionAction.js";
 export { rosterRevisionAction } from "./models/RosterRevisionAction.js";
 export type { RosterRevisionPublic } from "./models/RosterRevisionPublic.js";
 export type { RosterRevisionsPublic } from "./models/RosterRevisionsPublic.js";
+export type { RunFinish, RunFinishStatusEnum } from "./models/RunFinish.js";
+export { runFinishStatusEnum } from "./models/RunFinish.js";
+export type { RunInput, RunInputSourceEnum } from "./models/RunInput.js";
+export { runInputSourceEnum } from "./models/RunInput.js";
+export type { RunResult } from "./models/RunResult.js";
+export type {
+  SaveAviationDraftApiV1WxproductsAviationDraftsPostBody,
+  SaveAviationDraftApiV1WxproductsAviationDraftsPostOptions,
+  SaveAviationDraftApiV1WxproductsAviationDraftsPostResponse,
+  SaveAviationDraftApiV1WxproductsAviationDraftsPostResponses,
+  SaveAviationDraftApiV1WxproductsAviationDraftsPostStatus200,
+  SaveAviationDraftApiV1WxproductsAviationDraftsPostStatus403,
+  SaveAviationDraftApiV1WxproductsAviationDraftsPostStatus409,
+  SaveAviationDraftApiV1WxproductsAviationDraftsPostStatus422,
+  SaveAviationDraftApiV1WxproductsAviationDraftsPostStatus503,
+} from "./models/SaveAviationDraftApiV1WxproductsAviationDraftsPost.js";
 export type {
   SaveHazardProfileApiV1CapHazardProfilesKeyVersionsPostBody,
   SaveHazardProfileApiV1CapHazardProfilesKeyVersionsPostOptions,
@@ -2835,6 +3326,18 @@ export type {
   SaveMySignatureApiV1HrSignatureMePutStatus401,
   SaveMySignatureApiV1HrSignatureMePutStatus422,
 } from "./models/SaveMySignatureApiV1HrSignatureMePut.js";
+export type {
+  SaveProductApiV1WxproductsProductsPostBody,
+  SaveProductApiV1WxproductsProductsPostOptions,
+  SaveProductApiV1WxproductsProductsPostResponse,
+  SaveProductApiV1WxproductsProductsPostResponses,
+  SaveProductApiV1WxproductsProductsPostStatus200,
+  SaveProductApiV1WxproductsProductsPostStatus401,
+  SaveProductApiV1WxproductsProductsPostStatus403,
+  SaveProductApiV1WxproductsProductsPostStatus409,
+  SaveProductApiV1WxproductsProductsPostStatus422,
+  SaveProductApiV1WxproductsProductsPostStatus503,
+} from "./models/SaveProductApiV1WxproductsProductsPost.js";
 export type {
   SaveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutBody,
   SaveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutOptions,
@@ -2879,6 +3382,15 @@ export type { SrcHrSchemasRolePublic } from "./models/SrcHrSchemasRolePublic.js"
 export type { StaffCard } from "./models/StaffCard.js";
 export type { StaffInput } from "./models/StaffInput.js";
 export type { StaffSetup } from "./models/StaffSetup.js";
+export type {
+  StartRunApiV1WxwatchRunsPostBody,
+  StartRunApiV1WxwatchRunsPostHeaders,
+  StartRunApiV1WxwatchRunsPostOptions,
+  StartRunApiV1WxwatchRunsPostResponse,
+  StartRunApiV1WxwatchRunsPostResponses,
+  StartRunApiV1WxwatchRunsPostStatus200,
+  StartRunApiV1WxwatchRunsPostStatus422,
+} from "./models/StartRunApiV1WxwatchRunsPost.js";
 export type { StatusReportCreate } from "./models/StatusReportCreate.js";
 export type { StatusReportDetails } from "./models/StatusReportDetails.js";
 export type { StatusReportEntryInput } from "./models/StatusReportEntryInput.js";
@@ -2886,6 +3398,11 @@ export type { StatusReportEntryPublic } from "./models/StatusReportEntryPublic.j
 export type { StatusReportListPublic } from "./models/StatusReportListPublic.js";
 export type { StatusReportPublic } from "./models/StatusReportPublic.js";
 export type { StatusReportSubmit } from "./models/StatusReportSubmit.js";
+export type {
+  StoredProduct,
+  StoredProductKindEnum,
+} from "./models/StoredProduct.js";
+export { storedProductKindEnum } from "./models/StoredProduct.js";
 export type { SubmissionMode } from "./models/SubmissionMode.js";
 export { submissionMode } from "./models/SubmissionMode.js";
 export type {
@@ -2959,6 +3476,13 @@ export type {
 } from "./models/SubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch.js";
 export type { SwapType } from "./models/SwapType.js";
 export { swapType } from "./models/SwapType.js";
+export type { SynopticImageGroup } from "./models/SynopticImageGroup.js";
+export type { SynopticImageGroups } from "./models/SynopticImageGroups.js";
+export type { SynopticSlots } from "./models/SynopticSlots.js";
+export type { SynopValidationIssue } from "./models/SynopValidationIssue.js";
+export type { SynopValidationRequest } from "./models/SynopValidationRequest.js";
+export type { SynopValidationResponse } from "./models/SynopValidationResponse.js";
+export type { SynopWorkbook } from "./models/SynopWorkbook.js";
 export type {
   TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostBody,
   TakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostOptions,
@@ -3353,7 +3877,16 @@ export type {
   ValidateGridApiV1HrRostersImportGridValidatePostStatus404,
   ValidateGridApiV1HrRostersImportGridValidatePostStatus422,
 } from "./models/ValidateGridApiV1HrRostersImportGridValidatePost.js";
+export type {
+  ValidateSynopObservationApiV1EregisterObservationsValidateSynopPostBody,
+  ValidateSynopObservationApiV1EregisterObservationsValidateSynopPostOptions,
+  ValidateSynopObservationApiV1EregisterObservationsValidateSynopPostResponse,
+  ValidateSynopObservationApiV1EregisterObservationsValidateSynopPostResponses,
+  ValidateSynopObservationApiV1EregisterObservationsValidateSynopPostStatus200,
+  ValidateSynopObservationApiV1EregisterObservationsValidateSynopPostStatus422,
+} from "./models/ValidateSynopObservationApiV1EregisterObservationsValidateSynopPost.js";
 export type { ValidationError } from "./models/ValidationError.js";
+export type { WeatherImage } from "./models/WeatherImage.js";
 export type {
   WeatherImageApiV1WxwatchImagesStoragePathGetOptions,
   WeatherImageApiV1WxwatchImagesStoragePathGetPath,
@@ -3461,6 +3994,27 @@ export {
   approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus422Schema,
 } from "./zod/approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchSchema.js";
 export {
+  archiveApiV1WxwatchArchiveGetErrorSchema,
+  archiveApiV1WxwatchArchiveGetQueryEndSchema,
+  archiveApiV1WxwatchArchiveGetQueryLimitSchema,
+  archiveApiV1WxwatchArchiveGetQueryOffsetSchema,
+  archiveApiV1WxwatchArchiveGetQueryProductSchema,
+  archiveApiV1WxwatchArchiveGetQuerySourceSchema,
+  archiveApiV1WxwatchArchiveGetQueryStartSchema,
+  archiveApiV1WxwatchArchiveGetQueryUnknownTimeSchema,
+  archiveApiV1WxwatchArchiveGetResponseSchema,
+  archiveApiV1WxwatchArchiveGetStatus200Schema,
+  archiveApiV1WxwatchArchiveGetStatus422Schema,
+} from "./zod/archiveApiV1WxwatchArchiveGetSchema.js";
+export {
+  archiveAssetApiV1WxwatchAssetsAssetIdGetErrorSchema,
+  archiveAssetApiV1WxwatchAssetsAssetIdGetPathAssetIdSchema,
+  archiveAssetApiV1WxwatchAssetsAssetIdGetResponseSchema,
+  archiveAssetApiV1WxwatchAssetsAssetIdGetStatus200Schema,
+  archiveAssetApiV1WxwatchAssetsAssetIdGetStatus422Schema,
+} from "./zod/archiveAssetApiV1WxwatchAssetsAssetIdGetSchema.js";
+export { archiveBulletinSchema } from "./zod/archiveBulletinSchema.js";
+export {
   archiveDocumentApiV1HrDocumentsDocumentIdArchivePostErrorSchema,
   archiveDocumentApiV1HrDocumentsDocumentIdArchivePostPathDocumentIdSchema,
   archiveDocumentApiV1HrDocumentsDocumentIdArchivePostResponseSchema,
@@ -3469,6 +4023,10 @@ export {
   archiveDocumentApiV1HrDocumentsDocumentIdArchivePostStatus404Schema,
   archiveDocumentApiV1HrDocumentsDocumentIdArchivePostStatus422Schema,
 } from "./zod/archiveDocumentApiV1HrDocumentsDocumentIdArchivePostSchema.js";
+export { archiveEditionSchema } from "./zod/archiveEditionSchema.js";
+export { archiveHistorySchema } from "./zod/archiveHistorySchema.js";
+export { archivePageSchema } from "./zod/archivePageSchema.js";
+export { archiveRetrievalSchema } from "./zod/archiveRetrievalSchema.js";
 export {
   archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostBodySchema,
   archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostErrorSchema,
@@ -3479,9 +4037,21 @@ export {
   archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostStatus404Schema,
   archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostStatus422Schema,
 } from "./zod/archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostSchema.js";
+export { authoredProductsSchema } from "./zod/authoredProductsSchema.js";
+export { authoringErrorSchema } from "./zod/authoringErrorSchema.js";
+export { aviationDraftListSchema } from "./zod/aviationDraftListSchema.js";
+export { aviationDraftReadSchema } from "./zod/aviationDraftReadSchema.js";
+export { aviationDraftWriteSchema } from "./zod/aviationDraftWriteSchema.js";
+export { aviationHistorySchema } from "./zod/aviationHistorySchema.js";
+export { aviationRevisionReadSchema } from "./zod/aviationRevisionReadSchema.js";
 export { balanceInputSchema } from "./zod/balanceInputSchema.js";
 export { bodyLoginAccessTokenApiV1LoginAccessTokenPostSchema } from "./zod/bodyLoginAccessTokenApiV1LoginAccessTokenPostSchema.js";
 export { bodyUploadDocumentApiV1HrDocumentsPostSchema } from "./zod/bodyUploadDocumentApiV1HrDocumentsPostSchema.js";
+export {
+  browserSessionApiV1AuthBrowserSessionGetResponseSchema,
+  browserSessionApiV1AuthBrowserSessionGetStatus200Schema,
+} from "./zod/browserSessionApiV1AuthBrowserSessionGetSchema.js";
+export { browserSessionSchema } from "./zod/browserSessionSchema.js";
 export {
   bulkAssignmentsApiV1HrRostersAssignmentsBulkPostBodySchema,
   bulkAssignmentsApiV1HrRostersAssignmentsBulkPostErrorSchema,
@@ -3491,6 +4061,13 @@ export {
   bulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus404Schema,
   bulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus422Schema,
 } from "./zod/bulkAssignmentsApiV1HrRostersAssignmentsBulkPostSchema.js";
+export {
+  bulletinApiV1WxwatchArchiveEditionIdBulletinGetErrorSchema,
+  bulletinApiV1WxwatchArchiveEditionIdBulletinGetPathEditionIdSchema,
+  bulletinApiV1WxwatchArchiveEditionIdBulletinGetResponseSchema,
+  bulletinApiV1WxwatchArchiveEditionIdBulletinGetStatus200Schema,
+  bulletinApiV1WxwatchArchiveEditionIdBulletinGetStatus422Schema,
+} from "./zod/bulletinApiV1WxwatchArchiveEditionIdBulletinGetSchema.js";
 export { calendarEventCreateSchema } from "./zod/calendarEventCreateSchema.js";
 export { calendarEventKindSchema } from "./zod/calendarEventKindSchema.js";
 export { calendarEventPublicSchema } from "./zod/calendarEventPublicSchema.js";
@@ -3673,6 +4250,13 @@ export {
   createPredefinedAreaApiV1CapAreasPredefinedPostStatus201Schema,
   createPredefinedAreaApiV1CapAreasPredefinedPostStatus422Schema,
 } from "./zod/createPredefinedAreaApiV1CapAreasPredefinedPostSchema.js";
+export {
+  createRegisterObservationApiV1EregisterObservationsPostBodySchema,
+  createRegisterObservationApiV1EregisterObservationsPostErrorSchema,
+  createRegisterObservationApiV1EregisterObservationsPostResponseSchema,
+  createRegisterObservationApiV1EregisterObservationsPostStatus201Schema,
+  createRegisterObservationApiV1EregisterObservationsPostStatus422Schema,
+} from "./zod/createRegisterObservationApiV1EregisterObservationsPostSchema.js";
 export {
   createRoleApiV1AuthRolesPostBodySchema,
   createRoleApiV1AuthRolesPostErrorSchema,
@@ -3861,6 +4445,8 @@ export { departmentMembersPublicSchema } from "./zod/departmentMembersPublicSche
 export { departmentPublicSchema } from "./zod/departmentPublicSchema.js";
 export { departmentsPublicSchema } from "./zod/departmentsPublicSchema.js";
 export { departmentUpdateSchema } from "./zod/departmentUpdateSchema.js";
+export { derivationInputSchema } from "./zod/derivationInputSchema.js";
+export { derivationResultSchema } from "./zod/derivationResultSchema.js";
 export { documentCategorySchema } from "./zod/documentCategorySchema.js";
 export { documentEmployeeListPublicSchema } from "./zod/documentEmployeeListPublicSchema.js";
 export { documentEmployeePublicSchema } from "./zod/documentEmployeePublicSchema.js";
@@ -3901,6 +4487,14 @@ export {
   duplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus200Schema,
   duplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus422Schema,
 } from "./zod/duplicateAlertApiV1CapAlertsAlertIdDuplicatePostSchema.js";
+export { editionAssetSchema } from "./zod/editionAssetSchema.js";
+export {
+  editionAssetsApiV1WxwatchArchiveEditionIdAssetsGetErrorSchema,
+  editionAssetsApiV1WxwatchArchiveEditionIdAssetsGetPathEditionIdSchema,
+  editionAssetsApiV1WxwatchArchiveEditionIdAssetsGetResponseSchema,
+  editionAssetsApiV1WxwatchArchiveEditionIdAssetsGetStatus200Schema,
+  editionAssetsApiV1WxwatchArchiveEditionIdAssetsGetStatus422Schema,
+} from "./zod/editionAssetsApiV1WxwatchArchiveEditionIdAssetsGetSchema.js";
 export { effectiveAccessSchema } from "./zod/effectiveAccessSchema.js";
 export {
   emailConfirmApiV1AuthModernEmailConfirmPostBodySchema,
@@ -3949,6 +4543,18 @@ export {
   expireAlertApiV1CapAlertsAlertIdExpirePostStatus200Schema,
   expireAlertApiV1CapAlertsAlertIdExpirePostStatus422Schema,
 } from "./zod/expireAlertApiV1CapAlertsAlertIdExpirePostSchema.js";
+export {
+  finishRunApiV1WxwatchRunsRunIdFinishPostBodySchema,
+  finishRunApiV1WxwatchRunsRunIdFinishPostErrorSchema,
+  finishRunApiV1WxwatchRunsRunIdFinishPostHeaderAuthorizationSchema,
+  finishRunApiV1WxwatchRunsRunIdFinishPostPathRunIdSchema,
+  finishRunApiV1WxwatchRunsRunIdFinishPostResponseSchema,
+  finishRunApiV1WxwatchRunsRunIdFinishPostStatus204Schema,
+  finishRunApiV1WxwatchRunsRunIdFinishPostStatus422Schema,
+} from "./zod/finishRunApiV1WxwatchRunsRunIdFinishPostSchema.js";
+export { forecastObservationSchema } from "./zod/forecastObservationSchema.js";
+export { forecastPeriodSchema } from "./zod/forecastPeriodSchema.js";
+export { forecastSourceSchema } from "./zod/forecastSourceSchema.js";
 export { genderSchema } from "./zod/genderSchema.js";
 export {
   getPeriodApiV1HrRostersPeriodsPeriodIdGetErrorSchema,
@@ -4009,6 +4615,8 @@ export {
   healthCheckApiV1UtilsHealthCheckGetStatus200Schema,
 } from "./zod/healthCheckApiV1UtilsHealthCheckGetSchema.js";
 export { hrDashboardPublicSchema } from "./zod/hrDashboardPublicSchema.js";
+export { imageInputSchema } from "./zod/imageInputSchema.js";
+export { imageResultSchema } from "./zod/imageResultSchema.js";
 export {
   importAlertApiV1CapAlertsImportPostBodySchema,
   importAlertApiV1CapAlertsImportPostErrorSchema,
@@ -4055,6 +4663,14 @@ export {
 } from "./zod/importOrganisationApiV1HrSetupOrganisationPostSchema.js";
 export { importStatusSchema } from "./zod/importStatusSchema.js";
 export {
+  ingestApiV1WxwatchIngestPostBodySchema,
+  ingestApiV1WxwatchIngestPostErrorSchema,
+  ingestApiV1WxwatchIngestPostHeaderAuthorizationSchema,
+  ingestApiV1WxwatchIngestPostResponseSchema,
+  ingestApiV1WxwatchIngestPostStatus200Schema,
+  ingestApiV1WxwatchIngestPostStatus422Schema,
+} from "./zod/ingestApiV1WxwatchIngestPostSchema.js";
+export {
   issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostBodySchema,
   issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostErrorSchema,
   issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostPathPermitIdSchema,
@@ -4064,6 +4680,7 @@ export {
   issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus404Schema,
   issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus422Schema,
 } from "./zod/issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostSchema.js";
+export { jsonValueSchema } from "./zod/jsonValueSchema.js";
 export { leavePublicSchema } from "./zod/leavePublicSchema.js";
 export { leaveRequestActionSchema } from "./zod/leaveRequestActionSchema.js";
 export { leaveRequestCreateSchema } from "./zod/leaveRequestCreateSchema.js";
@@ -4140,6 +4757,24 @@ export {
   listPeriodsApiV1HrRostersPeriodsGetStatus422Schema,
 } from "./zod/listPeriodsApiV1HrRostersPeriodsGetSchema.js";
 export {
+  listPublicProductsApiV1WxproductsPublicProductsGetErrorSchema,
+  listPublicProductsApiV1WxproductsPublicProductsGetQueryKindSchema,
+  listPublicProductsApiV1WxproductsPublicProductsGetResponseSchema,
+  listPublicProductsApiV1WxproductsPublicProductsGetStatus200Schema,
+  listPublicProductsApiV1WxproductsPublicProductsGetStatus400Schema,
+  listPublicProductsApiV1WxproductsPublicProductsGetStatus422Schema,
+  listPublicProductsApiV1WxproductsPublicProductsGetStatus503Schema,
+} from "./zod/listPublicProductsApiV1WxproductsPublicProductsGetSchema.js";
+export {
+  listRegisterObservationsApiV1EregisterObservationsGetErrorSchema,
+  listRegisterObservationsApiV1EregisterObservationsGetQueryKindSchema,
+  listRegisterObservationsApiV1EregisterObservationsGetQueryLimitSchema,
+  listRegisterObservationsApiV1EregisterObservationsGetQueryStationIdSchema,
+  listRegisterObservationsApiV1EregisterObservationsGetResponseSchema,
+  listRegisterObservationsApiV1EregisterObservationsGetStatus200Schema,
+  listRegisterObservationsApiV1EregisterObservationsGetStatus422Schema,
+} from "./zod/listRegisterObservationsApiV1EregisterObservationsGetSchema.js";
+export {
   listShiftCatalogApiV1HrRostersShiftsGetErrorSchema,
   listShiftCatalogApiV1HrRostersShiftsGetQueryIncludeInactiveSchema,
   listShiftCatalogApiV1HrRostersShiftsGetResponseSchema,
@@ -4147,6 +4782,59 @@ export {
   listShiftCatalogApiV1HrRostersShiftsGetStatus403Schema,
   listShiftCatalogApiV1HrRostersShiftsGetStatus422Schema,
 } from "./zod/listShiftCatalogApiV1HrRostersShiftsGetSchema.js";
+export {
+  loadAviationDraftsApiV1WxproductsAviationDraftsGetErrorSchema,
+  loadAviationDraftsApiV1WxproductsAviationDraftsGetQueryKindSchema,
+  loadAviationDraftsApiV1WxproductsAviationDraftsGetQueryStationSchema,
+  loadAviationDraftsApiV1WxproductsAviationDraftsGetResponseSchema,
+  loadAviationDraftsApiV1WxproductsAviationDraftsGetStatus200Schema,
+  loadAviationDraftsApiV1WxproductsAviationDraftsGetStatus403Schema,
+  loadAviationDraftsApiV1WxproductsAviationDraftsGetStatus422Schema,
+  loadAviationDraftsApiV1WxproductsAviationDraftsGetStatus503Schema,
+} from "./zod/loadAviationDraftsApiV1WxproductsAviationDraftsGetSchema.js";
+export {
+  loadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetErrorSchema,
+  loadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetPathDraftIdSchema,
+  loadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetResponseSchema,
+  loadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetStatus200Schema,
+  loadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetStatus403Schema,
+  loadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetStatus422Schema,
+  loadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetStatus503Schema,
+} from "./zod/loadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetSchema.js";
+export {
+  loadHistoryApiV1WxproductsProductsProductIdHistoryGetErrorSchema,
+  loadHistoryApiV1WxproductsProductsProductIdHistoryGetPathProductIdSchema,
+  loadHistoryApiV1WxproductsProductsProductIdHistoryGetResponseSchema,
+  loadHistoryApiV1WxproductsProductsProductIdHistoryGetStatus200Schema,
+  loadHistoryApiV1WxproductsProductsProductIdHistoryGetStatus401Schema,
+  loadHistoryApiV1WxproductsProductsProductIdHistoryGetStatus403Schema,
+  loadHistoryApiV1WxproductsProductsProductIdHistoryGetStatus422Schema,
+  loadHistoryApiV1WxproductsProductsProductIdHistoryGetStatus503Schema,
+} from "./zod/loadHistoryApiV1WxproductsProductsProductIdHistoryGetSchema.js";
+export {
+  loadObservationsApiV1WxproductsObservationsGetErrorSchema,
+  loadObservationsApiV1WxproductsObservationsGetQueryEndSchema,
+  loadObservationsApiV1WxproductsObservationsGetQueryKindSchema,
+  loadObservationsApiV1WxproductsObservationsGetQueryLimitSchema,
+  loadObservationsApiV1WxproductsObservationsGetQueryStartSchema,
+  loadObservationsApiV1WxproductsObservationsGetQueryStationSchema,
+  loadObservationsApiV1WxproductsObservationsGetResponseSchema,
+  loadObservationsApiV1WxproductsObservationsGetStatus200Schema,
+  loadObservationsApiV1WxproductsObservationsGetStatus401Schema,
+  loadObservationsApiV1WxproductsObservationsGetStatus403Schema,
+  loadObservationsApiV1WxproductsObservationsGetStatus422Schema,
+} from "./zod/loadObservationsApiV1WxproductsObservationsGetSchema.js";
+export {
+  loadProductsApiV1WxproductsProductsGetErrorSchema,
+  loadProductsApiV1WxproductsProductsGetQueryIssueDateSchema,
+  loadProductsApiV1WxproductsProductsGetQueryKindSchema,
+  loadProductsApiV1WxproductsProductsGetResponseSchema,
+  loadProductsApiV1WxproductsProductsGetStatus200Schema,
+  loadProductsApiV1WxproductsProductsGetStatus401Schema,
+  loadProductsApiV1WxproductsProductsGetStatus403Schema,
+  loadProductsApiV1WxproductsProductsGetStatus422Schema,
+  loadProductsApiV1WxproductsProductsGetStatus503Schema,
+} from "./zod/loadProductsApiV1WxproductsProductsGetSchema.js";
 export {
   loginAccessTokenApiV1LoginAccessTokenPostBodySchema,
   loginAccessTokenApiV1LoginAccessTokenPostErrorSchema,
@@ -4180,7 +4868,17 @@ export {
   logoutSessionApiV1LoginSessionLogoutPostStatus422Schema,
 } from "./zod/logoutSessionApiV1LoginSessionLogoutPostSchema.js";
 export { messageSchema } from "./zod/messageSchema.js";
+export {
+  metadataApiV1WxwatchMetadataGetErrorSchema,
+  metadataApiV1WxwatchMetadataGetQueryDaySchema,
+  metadataApiV1WxwatchMetadataGetResponseSchema,
+  metadataApiV1WxwatchMetadataGetStatus200Schema,
+  metadataApiV1WxwatchMetadataGetStatus422Schema,
+} from "./zod/metadataApiV1WxwatchMetadataGetSchema.js";
 export { newPasswordSchema } from "./zod/newPasswordSchema.js";
+export { observationListSchema } from "./zod/observationListSchema.js";
+export { observationProvenanceSchema } from "./zod/observationProvenanceSchema.js";
+export { observationRecordSchema } from "./zod/observationRecordSchema.js";
 export {
   offboardStaffApiV1HrSetupStaffUserIdOffboardPostErrorSchema,
   offboardStaffApiV1HrSetupStaffUserIdOffboardPostPathUserIdSchema,
@@ -4238,17 +4936,54 @@ export {
   previewOrganisationApiV1HrSetupOrganisationGetStatus403Schema,
   previewOrganisationApiV1HrSetupOrganisationGetStatus409Schema,
 } from "./zod/previewOrganisationApiV1HrSetupOrganisationGetSchema.js";
+export {
+  previewProductApiV1WxproductsProductsPreviewPostBodySchema,
+  previewProductApiV1WxproductsProductsPreviewPostErrorSchema,
+  previewProductApiV1WxproductsProductsPreviewPostResponseSchema,
+  previewProductApiV1WxproductsProductsPreviewPostStatus200Schema,
+  previewProductApiV1WxproductsProductsPreviewPostStatus401Schema,
+  previewProductApiV1WxproductsProductsPreviewPostStatus403Schema,
+  previewProductApiV1WxproductsProductsPreviewPostStatus422Schema,
+} from "./zod/previewProductApiV1WxproductsProductsPreviewPostSchema.js";
 export { productAccessCurrentSchema } from "./zod/productAccessCurrentSchema.js";
 export { productAccessInputSchema } from "./zod/productAccessInputSchema.js";
 export { productAccessPublicSchema } from "./zod/productAccessPublicSchema.js";
+export { productFeedErrorSchema } from "./zod/productFeedErrorSchema.js";
+export { productHistoryEntrySchema } from "./zod/productHistoryEntrySchema.js";
+export { productHistorySchema } from "./zod/productHistorySchema.js";
+export { productPreviewInputSchema } from "./zod/productPreviewInputSchema.js";
+export { productPreviewSchema } from "./zod/productPreviewSchema.js";
+export {
+  productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetErrorSchema,
+  productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetPathProductIdSchema,
+  productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetPathRevisionSchema,
+  productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetResponseSchema,
+  productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus200Schema,
+  productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus401Schema,
+  productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus403Schema,
+  productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus404Schema,
+  productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus422Schema,
+  productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus503Schema,
+} from "./zod/productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetSchema.js";
+export { productWriteSchema } from "./zod/productWriteSchema.js";
 export { profAppointmentTypeSchema } from "./zod/profAppointmentTypeSchema.js";
 export { profileAuditPublicSchema } from "./zod/profileAuditPublicSchema.js";
 export { profileDetailsPublicSchema } from "./zod/profileDetailsPublicSchema.js";
 export { profileDetailsUpdateSchema } from "./zod/profileDetailsUpdateSchema.js";
 export { profileIdentityPublicSchema } from "./zod/profileIdentityPublicSchema.js";
+export {
+  publicForecastApiV1WxproductsPublicForecastGetErrorSchema,
+  publicForecastApiV1WxproductsPublicForecastGetResponseSchema,
+  publicForecastApiV1WxproductsPublicForecastGetStatus200Schema,
+  publicForecastApiV1WxproductsPublicForecastGetStatus503Schema,
+} from "./zod/publicForecastApiV1WxproductsPublicForecastGetSchema.js";
+export { publicForecastSchema } from "./zod/publicForecastSchema.js";
 export { publicHolidayCreateSchema } from "./zod/publicHolidayCreateSchema.js";
 export { publicHolidayPublicSchema } from "./zod/publicHolidayPublicSchema.js";
 export { publicHolidaysPublicSchema } from "./zod/publicHolidaysPublicSchema.js";
+export { publicWarningGroupSchema } from "./zod/publicWarningGroupSchema.js";
+export { publicWarningSchema } from "./zod/publicWarningSchema.js";
+export { publicWarningsSchema } from "./zod/publicWarningsSchema.js";
 export {
   publishAlertApiV1CapAlertsAlertIdPublishPostBodySchema,
   publishAlertApiV1CapAlertsAlertIdPublishPostErrorSchema,
@@ -4257,6 +4992,8 @@ export {
   publishAlertApiV1CapAlertsAlertIdPublishPostStatus200Schema,
   publishAlertApiV1CapAlertsAlertIdPublishPostStatus422Schema,
 } from "./zod/publishAlertApiV1CapAlertsAlertIdPublishPostSchema.js";
+export { publishedProductSchema } from "./zod/publishedProductSchema.js";
+export { publishedProductsSchema } from "./zod/publishedProductsSchema.js";
 export {
   publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchErrorSchema,
   publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPathPeriodIdSchema,
@@ -4551,6 +5288,12 @@ export {
   readPublicPastAlertsApiCapPastGetStatus200Schema,
 } from "./zod/readPublicPastAlertsApiCapPastGetSchema.js";
 export {
+  readPublicWarningsApiCapWarningsGetErrorSchema,
+  readPublicWarningsApiCapWarningsGetResponseSchema,
+  readPublicWarningsApiCapWarningsGetStatus200Schema,
+  readPublicWarningsApiCapWarningsGetStatus503Schema,
+} from "./zod/readPublicWarningsApiCapWarningsGetSchema.js";
+export {
   readRoleApiV1AuthRolesRoleIdGetErrorSchema,
   readRoleApiV1AuthRolesRoleIdGetPathRoleIdSchema,
   readRoleApiV1AuthRolesRoleIdGetResponseSchema,
@@ -4728,6 +5471,10 @@ export {
   readyApiV1UtilsReadyGetStatus503Schema,
 } from "./zod/readyApiV1UtilsReadyGetSchema.js";
 export {
+  readyApiV1WxwatchReadyGetResponseSchema,
+  readyApiV1WxwatchReadyGetStatus204Schema,
+} from "./zod/readyApiV1WxwatchReadyGetSchema.js";
+export {
   recordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostBodySchema,
   recordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostErrorSchema,
   recordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostPathAssignmentIdSchema,
@@ -4762,6 +5509,17 @@ export {
   refreshSessionApiV1LoginSessionRefreshPostStatus422Schema,
 } from "./zod/refreshSessionApiV1LoginSessionRefreshPostSchema.js";
 export {
+  registerDerivationApiV1WxwatchDerivationsPostBodySchema,
+  registerDerivationApiV1WxwatchDerivationsPostErrorSchema,
+  registerDerivationApiV1WxwatchDerivationsPostHeaderAuthorizationSchema,
+  registerDerivationApiV1WxwatchDerivationsPostResponseSchema,
+  registerDerivationApiV1WxwatchDerivationsPostStatus200Schema,
+  registerDerivationApiV1WxwatchDerivationsPostStatus422Schema,
+} from "./zod/registerDerivationApiV1WxwatchDerivationsPostSchema.js";
+export { registerObservationCreateSchema } from "./zod/registerObservationCreateSchema.js";
+export { registerObservationListSchema } from "./zod/registerObservationListSchema.js";
+export { registerObservationReadSchema } from "./zod/registerObservationReadSchema.js";
+export {
   registerUserApiV1AuthUsersSignupPostBodySchema,
   registerUserApiV1AuthUsersSignupPostErrorSchema,
   registerUserApiV1AuthUsersSignupPostResponseSchema,
@@ -4795,6 +5553,15 @@ export {
   resetPasswordApiV1ResetPasswordPostStatus422Schema,
   resetPasswordApiV1ResetPasswordPostStatus429Schema,
 } from "./zod/resetPasswordApiV1ResetPasswordPostSchema.js";
+export {
+  retrievalsApiV1WxwatchArchiveEditionIdRetrievalsGetErrorSchema,
+  retrievalsApiV1WxwatchArchiveEditionIdRetrievalsGetPathEditionIdSchema,
+  retrievalsApiV1WxwatchArchiveEditionIdRetrievalsGetQueryLimitSchema,
+  retrievalsApiV1WxwatchArchiveEditionIdRetrievalsGetQueryOffsetSchema,
+  retrievalsApiV1WxwatchArchiveEditionIdRetrievalsGetResponseSchema,
+  retrievalsApiV1WxwatchArchiveEditionIdRetrievalsGetStatus200Schema,
+  retrievalsApiV1WxwatchArchiveEditionIdRetrievalsGetStatus422Schema,
+} from "./zod/retrievalsApiV1WxwatchArchiveEditionIdRetrievalsGetSchema.js";
 export { reviewAssignmentSchema } from "./zod/reviewAssignmentSchema.js";
 export { reviewInputSchema } from "./zod/reviewInputSchema.js";
 export { reviewPublicSchema } from "./zod/reviewPublicSchema.js";
@@ -4833,6 +5600,19 @@ export { rosterPreferencesUpdateSchema } from "./zod/rosterPreferencesUpdateSche
 export { rosterRevisionActionSchema } from "./zod/rosterRevisionActionSchema.js";
 export { rosterRevisionPublicSchema } from "./zod/rosterRevisionPublicSchema.js";
 export { rosterRevisionsPublicSchema } from "./zod/rosterRevisionsPublicSchema.js";
+export { runFinishSchema } from "./zod/runFinishSchema.js";
+export { runInputSchema } from "./zod/runInputSchema.js";
+export { runResultSchema } from "./zod/runResultSchema.js";
+export {
+  saveAviationDraftApiV1WxproductsAviationDraftsPostBodySchema,
+  saveAviationDraftApiV1WxproductsAviationDraftsPostErrorSchema,
+  saveAviationDraftApiV1WxproductsAviationDraftsPostResponseSchema,
+  saveAviationDraftApiV1WxproductsAviationDraftsPostStatus200Schema,
+  saveAviationDraftApiV1WxproductsAviationDraftsPostStatus403Schema,
+  saveAviationDraftApiV1WxproductsAviationDraftsPostStatus409Schema,
+  saveAviationDraftApiV1WxproductsAviationDraftsPostStatus422Schema,
+  saveAviationDraftApiV1WxproductsAviationDraftsPostStatus503Schema,
+} from "./zod/saveAviationDraftApiV1WxproductsAviationDraftsPostSchema.js";
 export {
   saveHazardProfileApiV1CapHazardProfilesKeyVersionsPostBodySchema,
   saveHazardProfileApiV1CapHazardProfilesKeyVersionsPostErrorSchema,
@@ -4850,6 +5630,17 @@ export {
   saveMySignatureApiV1HrSignatureMePutStatus401Schema,
   saveMySignatureApiV1HrSignatureMePutStatus422Schema,
 } from "./zod/saveMySignatureApiV1HrSignatureMePutSchema.js";
+export {
+  saveProductApiV1WxproductsProductsPostBodySchema,
+  saveProductApiV1WxproductsProductsPostErrorSchema,
+  saveProductApiV1WxproductsProductsPostResponseSchema,
+  saveProductApiV1WxproductsProductsPostStatus200Schema,
+  saveProductApiV1WxproductsProductsPostStatus401Schema,
+  saveProductApiV1WxproductsProductsPostStatus403Schema,
+  saveProductApiV1WxproductsProductsPostStatus409Schema,
+  saveProductApiV1WxproductsProductsPostStatus422Schema,
+  saveProductApiV1WxproductsProductsPostStatus503Schema,
+} from "./zod/saveProductApiV1WxproductsProductsPostSchema.js";
 export {
   saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutBodySchema,
   saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutErrorSchema,
@@ -4890,6 +5681,14 @@ export { srcHrSchemasRolePublicSchema } from "./zod/srcHrSchemasRolePublicSchema
 export { staffCardSchema } from "./zod/staffCardSchema.js";
 export { staffInputSchema } from "./zod/staffInputSchema.js";
 export { staffSetupSchema } from "./zod/staffSetupSchema.js";
+export {
+  startRunApiV1WxwatchRunsPostBodySchema,
+  startRunApiV1WxwatchRunsPostErrorSchema,
+  startRunApiV1WxwatchRunsPostHeaderAuthorizationSchema,
+  startRunApiV1WxwatchRunsPostResponseSchema,
+  startRunApiV1WxwatchRunsPostStatus200Schema,
+  startRunApiV1WxwatchRunsPostStatus422Schema,
+} from "./zod/startRunApiV1WxwatchRunsPostSchema.js";
 export { statusReportCreateSchema } from "./zod/statusReportCreateSchema.js";
 export { statusReportDetailsSchema } from "./zod/statusReportDetailsSchema.js";
 export { statusReportEntryInputSchema } from "./zod/statusReportEntryInputSchema.js";
@@ -4897,6 +5696,7 @@ export { statusReportEntryPublicSchema } from "./zod/statusReportEntryPublicSche
 export { statusReportListPublicSchema } from "./zod/statusReportListPublicSchema.js";
 export { statusReportPublicSchema } from "./zod/statusReportPublicSchema.js";
 export { statusReportSubmitSchema } from "./zod/statusReportSubmitSchema.js";
+export { storedProductSchema } from "./zod/storedProductSchema.js";
 export { submissionModeSchema } from "./zod/submissionModeSchema.js";
 export {
   submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostBodySchema,
@@ -4962,6 +5762,13 @@ export {
   submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus422Schema,
 } from "./zod/submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchSchema.js";
 export { swapTypeSchema } from "./zod/swapTypeSchema.js";
+export { synopticImageGroupSchema } from "./zod/synopticImageGroupSchema.js";
+export { synopticImageGroupsSchema } from "./zod/synopticImageGroupsSchema.js";
+export { synopticSlotsSchema } from "./zod/synopticSlotsSchema.js";
+export { synopValidationIssueSchema } from "./zod/synopValidationIssueSchema.js";
+export { synopValidationRequestSchema } from "./zod/synopValidationRequestSchema.js";
+export { synopValidationResponseSchema } from "./zod/synopValidationResponseSchema.js";
+export { synopWorkbookSchema } from "./zod/synopWorkbookSchema.js";
 export {
   takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostBodySchema,
   takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostErrorSchema,
@@ -5308,6 +6115,13 @@ export {
   validateGridApiV1HrRostersImportGridValidatePostStatus404Schema,
   validateGridApiV1HrRostersImportGridValidatePostStatus422Schema,
 } from "./zod/validateGridApiV1HrRostersImportGridValidatePostSchema.js";
+export {
+  validateSynopObservationApiV1EregisterObservationsValidateSynopPostBodySchema,
+  validateSynopObservationApiV1EregisterObservationsValidateSynopPostErrorSchema,
+  validateSynopObservationApiV1EregisterObservationsValidateSynopPostResponseSchema,
+  validateSynopObservationApiV1EregisterObservationsValidateSynopPostStatus200Schema,
+  validateSynopObservationApiV1EregisterObservationsValidateSynopPostStatus422Schema,
+} from "./zod/validateSynopObservationApiV1EregisterObservationsValidateSynopPostSchema.js";
 export { validationErrorSchema } from "./zod/validationErrorSchema.js";
 export {
   weatherImageApiV1WxwatchImagesStoragePathGetErrorSchema,
@@ -5316,6 +6130,7 @@ export {
   weatherImageApiV1WxwatchImagesStoragePathGetStatus307Schema,
   weatherImageApiV1WxwatchImagesStoragePathGetStatus422Schema,
 } from "./zod/weatherImageApiV1WxwatchImagesStoragePathGetSchema.js";
+export { weatherImageSchema } from "./zod/weatherImageSchema.js";
 export { workflowActionRequestSchema } from "./zod/workflowActionRequestSchema.js";
 export { workflowActionSchema } from "./zod/workflowActionSchema.js";
 export { workflowConfigurationInputSchema } from "./zod/workflowConfigurationInputSchema.js";

@@ -154,3 +154,35 @@ Tests exercise parsing, conditional requests, partial publication, archive reuse
 vector conversion, real synthetic GRIB decoding/point queries, and reconnaissance
 fields. Live checks use current products; labelled historical samples used for
 format verification belong in temporary test directories, not the operational index.
+
+## Import existing text products into the FastAPI catalogue
+
+The additive WxWatch migration `wxwatch_0005` must be applied before importing.
+From the repository root, with the API running:
+
+```bash
+docker compose -p grenmet-api --env-file apps/api/fastapi/.env.local -f apps/api/fastapi/docker-compose.yml exec api uv run --frozen --package fast-back alembic -c src/wxwatch/alembic.ini upgrade head
+```
+
+The NHC directory is on the host, so run the importer on the host too. From
+`apps/api/fastapi`, preview an existing per-run manifest (replace the run name):
+
+```bash
+uv run --frozen --package fast-back python scripts/import_nhc_archive.py \
+  --root ../../../data/gms-ingest/nhc \
+  --manifest runs/RUN_NAME/manifest.json
+```
+
+Preview is read-only and needs no database connection. To apply, append
+`--apply --db-host 127.0.0.1` when PostgreSQL is published on the local host.
+This host override avoids trying to resolve Docker's `grenmet-postgres` name
+from WSL; it leaves environment files untouched. Connection credentials and
+port still come from the configured `WXWATCH_DATABASE_URL`.
+
+Import manifests individually. Repeat imports are safe; preview counts report
+eligible input records, not newly inserted rows. Missing/corrupt artifacts
+abort a manifest rather than silently dropping evidence. Failed attempts are
+recorded separately without importing their cached prior files. HTTP 304 checks
+retain both the earlier download time and later check time. The command never
+starts a collector, modifies source files or uploads anything. NHC text display
+and event history in gaa-admin are a later integration step.

@@ -23,9 +23,12 @@ export default async function ForecastDayPage({ params }: Props) {
     );
   return (
     <>
+      <h2 className="p-4 font-semibold">{forecast.title}</h2>
       <p className="border-b p-4 text-gm-text-secondary">{forecast.summary}</p>
       <WeatherConditions conditions={forecast.conditions} />
-      <p className="p-3 text-muted-foreground text-xs">{forecast.source}</p>
+      {forecast.source ? (
+        <p className="p-3 text-muted-foreground text-xs">{forecast.source}</p>
+      ) : null}
     </>
   );
 }

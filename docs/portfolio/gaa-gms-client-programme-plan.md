@@ -149,6 +149,26 @@ These additions retain Programme A sequencing and reuse the staff portal, SURFAC
 
 ## Programme B — GAA Staff and Operations Platform
 
+### September 2026 product and migration baseline
+
+The user-directed [implementation guide](../exec-plans/gaa-modular-monolith-implementation.md)
+sets the migration sequence: shared foundations → Janitor → Bus → GMS PWA,
+then IT service desk/PIMU and wider GAA workflows. GMS public delivery remains
+Programme A; its PWA shares approved products with the website. Existing warning,
+aviation and observation obligations remain protected.
+
+The goal is simpler everyday GAA work, growing toward comprehensive airport
+management through modules and selective specialist-system integration. Prioritise
+requests/resources in the wider expansion, then linked operational records and
+coordination. Departments own their part of each linked workflow.
+
+Pilot each new workflow with its relevant MBIA team, then expand to Lauriston.
+This amends universal Meteorology-first rollout for cleaning/transport; existing
+HR/GMS pilots remain valid. Separate personal/work accounts, explicit app grants
+and restricted sensitive cases are confirmed planning requirements, not deployed
+behaviour or institutional UAT. The [source register](gaa-source-and-capability-register.md)
+tracks new evidence and conflicts; unresolved rules block only dependent work.
+
 ### Outcome and boundary
 
 Deliver one modular GAA staff platform with shared identity, organisation
@@ -171,8 +191,8 @@ gate.
 | Audit, documents, and notifications | Audit/document behavior partial; notifications mostly planned | Next | Required actions are traceable and users receive reliable, accessible notifications |
 | Attendance/time-check | Architecture direction only | Next | GMS pilot proves shift matching, corrections, device fallback, and privacy rules |
 | Staff requests | Planned shared-workflow module | Later | Routing, service levels, ownership, and naming approved; never conflated with event tickets |
-| Janitorial operations | Existing portal prototype/data surface | Later | Janitorial department validates phone-first tasks, exceptions, reporting, and no-phone fallback |
-| Staff transport | Existing portal prototype/data surface | Later | Transport validates schedules, eligibility, sign-up, exceptions, and operational ownership |
+| Janitorial operations | Existing portal prototype/data surface; first selected PWA | Next, after shared foundation | Janitorial department validates phone-first tasks, exceptions, reporting, and no-phone fallback |
+| Staff transport | Existing portal prototype/data surface; second selected PWA | Next, after Janitor pilot | Transport validates schedules, eligibility, sign-up, exceptions, and operational ownership |
 | Payroll readiness | Deferred | Explore | GAA decides export versus in-platform computation after attendance and leave data prove reliable |
 
 ### Department rollout

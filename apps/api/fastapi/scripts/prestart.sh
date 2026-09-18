@@ -59,6 +59,25 @@ else
 fi
 echo ""
 
+# Weather schema has its own URL, migration history and metadata.
+if [ -n "${WXPRODUCTS_DATABASE_URL:-}" ]; then
+    echo "Migrating separate weather-products database..."
+    alembic -c src/wxproducts/alembic.ini upgrade head
+elif [ "${ENVIRONMENT:-local}" != "local" ]; then
+    echo "WXPRODUCTS_DATABASE_URL is required for weather schema migration" >&2
+    exit 1
+else
+    echo "Weather database is unconfigured; weather endpoints will be unavailable"
+fi
+
+# WxWatch retains a separate database and migration history.
+if [ -n "${WXWATCH_DATABASE_URL:-}" ]; then
+    alembic -c src/wxwatch/alembic.ini upgrade head
+elif [ "${ENVIRONMENT:-local}" != "local" ]; then
+    echo "WXWATCH_DATABASE_URL is required for archive migration" >&2
+    exit 1
+fi
+
 # Required bootstrap errors must fail deployment. Development users are opt-in.
 if [ "${ENVIRONMENT:-local}" = "local" ]; then
     python scripts/initial_data.py

@@ -10,20 +10,6 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
-INSERT_SQL = """
-    INSERT INTO weather_images (
-        storage_path, width, height, spider_name, file_format,
-        is_animated, file_size_bytes, fetched_at, name, image_url,
-        parent_url, page_title, source_modified, observation_time,
-        etag, checksum, download_status, mode, frame_count, raw_metadata
-    ) VALUES (
-        %s, %s, %s, %s, %s,
-        %s, %s, %s, %s, %s,
-        %s, %s, %s, %s,
-        %s, %s, %s, %s, %s, %s
-    )
-"""
-
 
 def parse_iso_datetime(value):
     if not value:
@@ -50,13 +36,6 @@ def resolve_images_root(explicit):
     if store and "://" not in store:
         return Path(store).expanduser()
     return None
-
-
-def load_existing_keys(conn):
-    """Return every (image_url, checksum) pair already recorded."""
-    with conn.cursor() as cur:
-        cur.execute("SELECT image_url, checksum FROM weather_images")
-        return {(row[0], row[1]) for row in cur}
 
 
 def build_row(item):
@@ -125,114 +104,50 @@ def collect_rows(items, seen, images_root, counters):
 
 
 def main(argv=None):
-    import psycopg
+    # Historical entry point retained, but database access belongs to FastAPI.
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+    from app.api import ArchiveClient, image_payload
 
     parser = argparse.ArgumentParser(
-        description="Import archived JSON crawl output into weather_images"
+        description="Import saved crawl feeds through FastAPI"
     )
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Report what would be imported without writing to the database",
-    )
-    parser.add_argument(
-        "--images-root",
-        help="Directory holding stored images (defaults to IMAGES_STORE)",
-    )
+    parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--images-root")
     args = parser.parse_args(argv)
-
-    # Load local development settings from the project root
-    project_root = Path(__file__).resolve().parent.parent
+    project_root = Path(__file__).resolve().parents[1]
     load_dotenv(project_root / ".env.local")
-
-    data_dir = project_root / "data"
-    if not data_dir.exists():
-        print(f"No data directory found at {data_dir}")
-        sys.exit(1)
-
-    json_files = sorted(data_dir.glob("*.json"))
-    if not json_files:
-        print("No JSON files found in data/")
-        sys.exit(1)
-
-    images_root = resolve_images_root(args.images_root)
-    if images_root is None:
-        print("IMAGES_STORE is unset or remote — skipping file existence checks")
-    elif not images_root.is_dir():
-        print(f"Images root does not exist: {images_root}", file=sys.stderr)
-        sys.exit(2)
-    else:
-        print(f"Verifying images under {images_root}")
-
-    db_host = os.getenv("DB_HOST", "127.0.0.1")
-    db_port = int(os.getenv("DB_PORT", "5432"))
-    db_name = os.getenv("DB_NAME", "wxwatch")
-    db_user = os.getenv("DB_USER", "wxwatch")
-    db_password = os.getenv("DB_PASSWORD")
-    if not db_password:
-        print("DB_PASSWORD is required", file=sys.stderr)
-        sys.exit(2)
-
-    conn = psycopg.connect(
-        host=db_host,
-        port=db_port,
-        dbname=db_name,
-        user=db_user,
-        password=db_password,
-    )
-    print(f"Connected to {db_name}@{db_host}:{db_port}")
-    if args.dry_run:
-        print("DRY RUN — no rows will be written")
-
-    seen = load_existing_keys(conn)
-    print(f"{len(seen)} records already in weather_images")
-
-    counters = {
-        "inserted": 0,
-        "duplicate": 0,
-        "missing_file": 0,
-        "no_image": 0,
-        "no_timestamp": 0,
-    }
-
-    for json_file in json_files:
-        try:
-            with open(json_file, "r", encoding="utf-8") as f:
-                items = json.load(f)
-        except json.JSONDecodeError as e:
-            print(f"  {json_file.name}: SKIPPED (invalid JSON: {e})")
-            continue
-
-        rows = collect_rows(items, seen, images_root, counters)
-        if not rows:
-            continue
-
-        if args.dry_run:
-            counters["inserted"] += len(rows)
-            continue
-
-        try:
-            with conn.cursor() as cur:
-                cur.executemany(INSERT_SQL, rows)
-            conn.commit()
-            counters["inserted"] += len(rows)
-        except psycopg.Error as e:
-            print(f"  {json_file.name}: ERROR {e}")
-            conn.rollback()
-            # These rows were never written, so let a rerun retry them.
-            for row in rows:
-                seen.discard((row[9], row[15]))
-
-    conn.close()
-
-    verb = "would insert" if args.dry_run else "inserted"
-    print(
-        f"\nDone across {len(json_files)} files: {counters['inserted']} {verb}, "
-        f"{counters['duplicate']} already present, "
-        f"{counters['missing_file']} skipped (image not on disk), "
-        f"{counters['no_image']} skipped (no download), "
-        f"{counters['no_timestamp']} skipped (no fetched_at)"
-    )
+    root = resolve_images_root(args.images_root) or project_root / "data/images"
+    client = None if args.dry_run else ArchiveClient()
+    runs = {}
+    failed = False
+    try:
+        for path in sorted((project_root / "data").rglob("*.json")):
+            for item in json.loads(path.read_text()):
+                images = item.get("images", [])
+                if not images or not images[0].get("path"):
+                    continue
+                relative = images[0]["path"]
+                resolved = (root / relative).resolve()
+                if (
+                    not resolved.is_relative_to(root.resolve())
+                    or not resolved.is_file()
+                ):
+                    raise ValueError("Feed references a missing or unsafe local file")
+                source = item["spider_name"]
+                if client is not None:
+                    if source not in runs:
+                        runs[source] = client.post("/runs", {"source": source})["id"]
+                    client.post("/ingest", image_payload(item, runs[source]))
+    except Exception:
+        failed = True
+        raise
+    finally:
+        if client is not None:
+            for run_id in runs.values():
+                client.post(
+                    f"/runs/{run_id}/finish",
+                    {"status": "failed" if failed else "finished"},
+                )
 
 
 if __name__ == "__main__":

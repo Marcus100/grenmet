@@ -183,6 +183,12 @@ artifacts/
 # Agent local settings — per-machine overrides, never commit
 .claude/settings.local.json
 
+# Cross-tool session handoff log — local scratch, not project docs
+/SESSION_LOG.md
+
+# Bash command audit trail (defense-in-depth for the git-guardrail hook) — local scratch
+/.agents-bash-audit.log
+
 
 next-shadcn-admin-dashboard-baseui/
 

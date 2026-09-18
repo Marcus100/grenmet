@@ -1,29 +1,78 @@
-import EveningFcst from "@/components/wxproducts/eveningfcst";
-import Hourly from "@/components/wxproducts/hourly";
-import MarineBulletin from "@/components/wxproducts/marinebulletin";
-import MiddayFcst from "@/components/wxproducts/middayfcst";
-import MorningFcst from "@/components/wxproducts/morningfcst";
+import Link from "next/link";
 
-export default function Home() {
+export const metadata = { title: "Weather products" };
+
+const desks = [
+  {
+    href: "/wxproducts/fcsts",
+    title: "Forecasts",
+    description:
+      "Prepare morning, midday and evening forecasts. Review saved revisions, publish issues and download PDFs.",
+  },
+  {
+    href: "/wxproducts/nhc",
+    title: "NHC Products",
+    description:
+      "Browse archived NHC guidance and bulletins, or open the tropical outlook editor.",
+  },
+  {
+    href: "/wxproducts/bulletins",
+    title: "Bulletins",
+    description:
+      "Prepare marine and other hazard bulletins. Save drafts and review them before publication.",
+  },
+  {
+    href: "/wxproducts/aviation",
+    title: "Aviation",
+    description:
+      "Compose and save TAF, METAR and SPECI working drafts. Operational transmission is not available.",
+  },
+];
+
+export default function WeatherProductsPage() {
   return (
-    <div className="flex flex-col gap-8 bg-zinc-50 sm:px-6 sm:py-16">
-      <div className="mx-auto max-w-lg">
-        <Hourly />
-      </div>
-      <div className="print:page-break-after-always mx-auto box-border h-[297mm] max-h-[297mm] min-h-[297mm] w-[210mm] min-w-[210mm] max-w-[210mm] overflow-hidden border">
-        <MorningFcst />
-      </div>
-
-      <div className="print:page-break-after-always mx-auto box-border h-[297mm] max-h-[297mm] min-h-[297mm] w-[210mm] min-w-[210mm] max-w-[210mm] overflow-hidden border">
-        <MiddayFcst />
-      </div>
-
-      <div className="print:page-break-after-always mx-auto box-border h-[297mm] max-h-[297mm] min-h-[297mm] w-[210mm] min-w-[210mm] max-w-[210mm] overflow-hidden border">
-        <EveningFcst />
-      </div>
-      <div className="print:page-break-before-always mx-auto box-border h-[297mm] max-h-[297mm] min-h-[297mm] w-[210mm] min-w-[210mm] max-w-[210mm] overflow-hidden border">
-        <MarineBulletin />
-      </div>
+    <div className="mx-auto w-full max-w-5xl space-y-8 p-4 sm:p-6">
+      <header className="space-y-2">
+        <h1 className="font-semibold text-heading-lg">Weather products</h1>
+        <p className="text-body text-muted-foreground">
+          Choose a desk to prepare products or review guidance.
+        </p>
+      </header>
+      <nav aria-label="Weather product desks">
+        <ul className="grid gap-4 sm:grid-cols-2">
+          {desks.map((desk) => (
+            <li key={desk.href}>
+              <Link
+                className="block h-full space-y-2 rounded-lg border bg-card p-6 text-card-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                href={desk.href}
+              >
+                <h2 className="font-semibold text-heading-sm">{desk.title}</h2>
+                <p className="text-body text-muted-foreground">
+                  {desk.description}
+                </p>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <section
+        aria-labelledby="hourly-prototype"
+        className="space-y-3 rounded-lg border border-dashed p-6"
+      >
+        <h2 className="font-semibold text-heading-sm" id="hourly-prototype">
+          Hourly register — prototype
+        </h2>
+        <p className="text-body text-muted-foreground">
+          Development example with sample observations. It is not a live
+          observation register.
+        </p>
+        <Link
+          className="inline-block rounded-sm text-body underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          href="/wxproducts/hourly"
+        >
+          View hourly register prototype
+        </Link>
+      </section>
     </div>
   );
 }

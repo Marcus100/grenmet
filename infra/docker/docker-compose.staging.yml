@@ -57,6 +57,9 @@ services:
       db:
         condition: service_healthy
     environment:
+      WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL:?WXWATCH_DB_URL required}
+      WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL:?WXPRODUCTS_DB_URL required}
+      WXPRODUCTS_DB_NAME: ${WXPRODUCTS_DB_NAME:-wxproducts_staging}
       POSTGRES_SERVER: db
       POSTGRES_PORT: ${POSTGRES_PORT:-5432}
       POSTGRES_DB: ${POSTGRES_DB}
@@ -77,6 +80,10 @@ services:
       prestart:
         condition: service_completed_successfully
     environment:
+      WXWATCH_INGEST_TOKEN: ${WXWATCH_INGEST_TOKEN:-}
+      WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL:?WXWATCH_DB_URL required}
+      WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL:?WXPRODUCTS_DB_URL required}
+      WXPRODUCTS_DB_NAME: ${WXPRODUCTS_DB_NAME:-wxproducts_staging}
       POSTGRES_SERVER: db
       POSTGRES_PORT: ${POSTGRES_PORT:-5432}
       POSTGRES_DB: ${POSTGRES_DB}
@@ -157,7 +164,7 @@ services:
       - grenmet-staging
 
   # ── Drizzle migrations ───────────────────────────────────────────────────────
-  # The wxwatch + wxproducts databases are now consumed by web-admin. Their
+  # WxWatch and the remaining web-owned domain databases are consumed by web-admin. Their
   # Drizzle migrations run from the admin-migrate image (built target=migrate),
   # which carries both schema folders and runs both migration scripts.
   web-migrate:
@@ -168,7 +175,6 @@ services:
         condition: service_healthy
     environment:
       WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL}
-      WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL}
       JANITORIAL_DATABASE_URL: ${JANITORIAL_DB_URL}
       TRANSPORT_DATABASE_URL: ${TRANSPORT_DB_URL}
     networks:
@@ -185,6 +191,7 @@ services:
       retries: 3
       start_period: 20s
     environment:
+      AUTH_APP_URL: https://auth.staging.barrels.gd
       AUTH_API_URL: https://api.staging.barrels.gd
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
@@ -221,7 +228,6 @@ services:
       NEXT_PUBLIC_API_URL: https://api.staging.barrels.gd
       # Consolidated apps' dedicated Postgres databases.
       WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL}
-      WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL}
       JANITORIAL_DATABASE_URL: ${JANITORIAL_DB_URL}
       TRANSPORT_DATABASE_URL: ${TRANSPORT_DB_URL}
       CAP_API_URL: https://api.staging.barrels.gd

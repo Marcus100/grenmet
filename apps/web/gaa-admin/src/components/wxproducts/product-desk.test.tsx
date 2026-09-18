@@ -1,68 +1,82 @@
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, expect, it, vi } from "vitest";
+import { ProductDesk } from "./product-desk";
 
 const actions = vi.hoisted(() => ({
-  load: vi.fn(),
-  save: vi.fn(),
-  history: vi.fn(),
+  loadProductsAction: vi.fn(),
+  loadProductHistoryAction: vi.fn(),
+  previewProductAction: vi.fn(),
+  saveProductAction: vi.fn(),
 }));
-vi.mock("@/app/(admin)/wxproducts/product-actions", () => ({
-  loadProductsAction: actions.load,
-  saveProductAction: actions.save,
-  loadProductHistoryAction: actions.history,
+vi.mock("@/app/(admin)/wxproducts/product-actions", () => actions);
+vi.mock("./cap-forecast-picker", () => ({ CapForecastPicker: () => null }));
+vi.mock("@/components/wxproducts/product-pdf-preview", () => ({
+  ProductPdfPreview: () => null,
 }));
-
-import { ProductDesk } from "./product-desk";
+vi.mock("@barrelsgd/gms/components/product-content", () => ({
+  ProductContentView: ({
+    content,
+  }: {
+    content: { values: Record<string, string> };
+  }) => <p>{content.values.summary}</p>,
+}));
 
 beforeEach(() => {
   vi.resetAllMocks();
-  actions.load.mockResolvedValue({ ok: true, products: [] });
-  actions.save.mockResolvedValue({ ok: false, error: "Storage unavailable" });
+  actions.loadProductsAction.mockResolvedValue({ ok: true, products: [] });
 });
-describe("product desk", () => {
-  it("allows saving an incomplete draft but validates before exposing publication", async () => {
-    render(<ProductDesk kinds={["marine"]} title="Bulletins" />);
-    await screen.findByText("No saved products of this type.");
-    fireEvent.click(
-      screen.getByRole("button", { name: "Validate and preview" })
-    );
-    expect(
-      screen.queryByRole("button", { name: "Publish to GMS" })
-    ).not.toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Synopsis is required"
-    );
-    fireEvent.click(screen.getByRole("button", { name: "Save draft" }));
-    await waitFor(() =>
-      expect(actions.save).toHaveBeenCalledWith(
-        expect.objectContaining({ action: "draft", reviewed: false })
-      )
-    );
-    await screen.findByText("Storage unavailable");
+async function openEditor() {
+  render(<ProductDesk kinds={["morning"]} title="Forecasts" />);
+  const button = await screen.findByRole("button", {
+    name: "Validate and preview",
   });
-  it("provides four dated days and an evening issue at 18:00", async () => {
-    render(<ProductDesk kinds={["evening"]} title="Impact-Based Forecasts" />);
-    await screen.findByText("No saved products of this type.");
-    expect(screen.getByRole("heading", { name: "Day 4" })).toBeInTheDocument();
-    expect(
-      screen.queryByRole("heading", { name: "Day 5" })
-    ).not.toBeInTheDocument();
-    const date = screen.getByLabelText("Forecast / issue date");
-    await act(async () => {
-      fireEvent.change(date, { target: { value: "2026-09-08" } });
-      await actions.load.mock.results.at(-1)?.value;
-    });
-    expect(
-      screen.getByLabelText("Issue date and time (Grenada) *")
-    ).toHaveValue("2026-09-08T18:00");
-    expect(document.getElementById("evening-day4Date")).toHaveValue(
-      "2026-09-12"
-    );
+  await waitFor(() => expect(button).toBeEnabled());
+  return button;
+}
+it("reviews the backend's normalized content and invalidates it after editing", async () => {
+  actions.previewProductAction.mockImplementation(async ({ values }) => ({
+    ok: true,
+    preview: {
+      values: { ...values, summary: "Backend normalized forecast" },
+      errors: [],
+      checked_at: "2026-09-17T12:00:00Z",
+    },
+  }));
+  fireEvent.click(await openEditor());
+  const region = await screen.findByRole("region", {
+    name: "Publication preview",
   });
+  expect(region).toHaveTextContent("Backend normalized forecast");
+  expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeDisabled();
+  fireEvent.click(screen.getByRole("checkbox"));
+  expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeEnabled();
+  fireEvent.change(screen.getByDisplayValue("Backend normalized forecast"), {
+    target: { value: "Edited forecast" },
+  });
+  expect(
+    screen.queryByRole("region", { name: "Publication preview" })
+  ).toBeNull();
+  expect(actions.saveProductAction).not.toHaveBeenCalled();
+});
+it("shows backend validation errors without offering publication", async () => {
+  actions.previewProductAction.mockResolvedValue({
+    ok: true,
+    preview: {
+      values: {},
+      errors: ["An expired product cannot be published"],
+      checked_at: "2026-09-17T12:00:00Z",
+    },
+  });
+  fireEvent.click(await openEditor());
+  await screen.findByText("An expired product cannot be published");
+  expect(screen.queryByRole("button", { name: "Publish to GMS" })).toBeNull();
+});
+it("does not offer publication when preview is unavailable", async () => {
+  actions.previewProductAction.mockResolvedValue({
+    ok: false,
+    error: "Preview unavailable",
+  });
+  fireEvent.click(await openEditor());
+  await screen.findByText("Preview unavailable");
+  expect(screen.queryByRole("button", { name: "Publish to GMS" })).toBeNull();
 });

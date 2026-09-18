@@ -2,12 +2,10 @@ import asyncio
 import inspect
 import re
 from datetime import datetime, timezone
-import logging
 from io import BytesIO
 from types import SimpleNamespace
 
 import pytest
-import psycopg
 
 from PIL import Image
 from scrapy.http import Request, Response
@@ -16,9 +14,7 @@ from twisted.internet.defer import Deferred
 
 from app.items import ImageItem
 from app.pipelines import (
-    ConcurrentCrawlError,
     MinutePathImagesPipeline,
-    PostgresPipeline,
 )
 
 
@@ -56,7 +52,7 @@ def test_download_persists_image_and_metadata_from_stored_bytes(tmp_path):
 
     asyncio.run(pipeline.image_downloaded(response, request, object(), item=item))
 
-    stored_path = tmp_path / pipeline.file_path(request, item=item)
+    stored_path = tmp_path / pipeline.file_path(request, response=response, item=item)
     assert {
         "width": item.get("width"),
         "height": item.get("height"),
@@ -70,8 +66,8 @@ def test_download_persists_image_and_metadata_from_stored_bytes(tmp_path):
     } == {
         "width": 8,
         "height": 6,
-        "file_format": "jpeg",
-        "mode": "RGB",
+        "file_format": "png",
+        "mode": "RGBA",
         "is_animated": False,
         "frame_count": 1,
         "file_size_bytes": stored_path.stat().st_size,
@@ -100,7 +96,7 @@ def test_pipeline_order_has_no_filesystem_only_metadata_stage():
     assert list(ITEM_PIPELINES) == [
         "app.pipelines.SpiderNamePipeline",
         "app.pipelines.MinutePathImagesPipeline",
-        "app.pipelines.PostgresPipeline",
+        "app.pipelines.FastApiPipeline",
     ]
 
 
@@ -184,137 +180,6 @@ def test_scrapy_settings_apply_validated_object_storage(monkeypatch):
     importlib.reload(settings)
 
 
-class FailingConnection:
-    def __init__(self):
-        self.rolled_back = False
-
-    def execute(self, _query, _params=None):
-        raise psycopg.OperationalError("database unavailable")
-
-    def rollback(self):
-        self.rolled_back = True
-
-
-def test_database_write_failure_fails_the_item():
-    pipeline = PostgresPipeline("db", 5432, "wxwatch", "user", "password")
-    connection = FailingConnection()
-    pipeline.conn = connection
-    item = ImageItem(
-        images=[
-            {
-                "path": "goes19/2026/07/17/12/image.jpg",
-                "checksum": "checksum",
-                "status": "downloaded",
-            }
-        ],
-        image_urls=["https://images.example.test/image.jpg"],
-        fetched_at="2026-07-17T12:00:00+00:00",
-    )
-    spider = SimpleNamespace(logger=logging.getLogger("test"))
-
-    with pytest.raises(psycopg.OperationalError, match="database unavailable"):
-        pipeline.process_item(item, spider)
-
-    assert connection.rolled_back is True
-
-
-class FakeCursor:
-    def __init__(self, row=None):
-        self.row = row
-
-    def fetchone(self):
-        return self.row
-
-
-class AlreadyLockedConnection:
-    def __init__(self):
-        self.closed = False
-
-    def execute(self, query, params=None):
-        return FakeCursor((False,))
-
-    def close(self):
-        self.closed = True
-
-
-def test_concurrent_run_of_the_same_spider_fails_fast(monkeypatch):
-    connection = AlreadyLockedConnection()
-    monkeypatch.setattr(psycopg, "connect", lambda **kwargs: connection)
-    pipeline = PostgresPipeline("db", 5432, "wxwatch", "user", "password")
-    spider = SimpleNamespace(
-        name="goes19",
-        logger=logging.getLogger("test"),
-    )
-
-    with pytest.raises(ConcurrentCrawlError, match="already running"):
-        pipeline.open_spider(spider)
-
-    assert connection.closed is True
-    assert pipeline.conn is None
-
-
-class InMemoryWeatherImagesConnection:
-    def __init__(self):
-        self.identities = set()
-        self.inserted = 0
-
-    def execute(self, query, params=None):
-        statement = " ".join(query.split())
-        if "FROM weather_images" in statement:
-            return FakeCursor((1,) if tuple(params) in self.identities else None)
-        if statement.startswith("INSERT INTO weather_images"):
-            identity = (params[9], params[15])
-            self.identities.add(identity)
-            self.inserted += 1
-        return FakeCursor()
-
-    def commit(self):
-        return None
-
-    def rollback(self):
-        return None
-
-
-def test_repeated_image_is_recorded_once():
-    pipeline = PostgresPipeline("db", 5432, "wxwatch", "user", "password")
-    connection = InMemoryWeatherImagesConnection()
-    pipeline.conn = connection
-    item = ImageItem(
-        images=[
-            {
-                "path": "goes19/2026/07/17/12/image.jpg",
-                "checksum": "same-checksum",
-                "status": "downloaded",
-            }
-        ],
-        image_urls=["https://images.example.test/image.jpg"],
-        fetched_at="2026-07-17T12:00:00+00:00",
-    )
-    spider = SimpleNamespace(logger=logging.getLogger("test"))
-
-    pipeline.process_item(item, spider)
-    pipeline.process_item(item, spider)
-
-    assert connection.inserted == 1
-
-
-def test_database_configuration_requires_a_password():
-    crawler = SimpleNamespace(
-        settings=Settings(
-            {
-                "DB_HOST": "db",
-                "DB_PORT": 5432,
-                "DB_NAME": "wxwatch",
-                "DB_USER": "wxwatch",
-                "DB_PASSWORD": "",
-            }
-        )
-    )
-
-    with pytest.raises(ValueError, match="DB_PASSWORD"):
-        PostgresPipeline.from_crawler(crawler)
-
-
 def test_feed_exports_are_opt_in(tmp_path):
     from run_crawlers import build_feed_exports
 
@@ -369,29 +234,6 @@ def test_crawl_outcome_watches_bootstrap_failures():
     deferred.errback(RuntimeError("pipeline bootstrap failed"))
 
     assert outcome.exit_code == 1
-
-
-class ClosableConnection:
-    def __init__(self):
-        self.closed = False
-
-    def close(self):
-        self.closed = True
-
-
-def test_closing_the_pipeline_releases_its_run_lock_with_the_connection():
-    pipeline = PostgresPipeline("db", 5432, "wxwatch", "user", "password")
-    connection = ClosableConnection()
-    pipeline.conn = connection
-    spider = SimpleNamespace(
-        name="goes19",
-        logger=logging.getLogger("test"),
-    )
-
-    pipeline.close_spider(spider)
-
-    assert connection.closed is True
-    assert pipeline.conn is None
 
 
 def test_production_crawls_do_not_reuse_stale_http_cache():

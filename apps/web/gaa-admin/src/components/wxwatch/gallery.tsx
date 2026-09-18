@@ -1,5 +1,6 @@
 "use client";
 
+import type { WeatherImage } from "@barrelsgd/api-client";
 import {
   Empty,
   EmptyDescription,
@@ -10,7 +11,6 @@ import {
 import { ImageOff } from "lucide-react";
 import { useState } from "react";
 import type { ImagesBySynoptic } from "@/db/wxwatch/queries";
-import type { WeatherImage } from "@/db/wxwatch/schema";
 import { ImageRow } from "./image-row";
 import { Lightbox } from "./lightbox";
 
@@ -42,7 +42,7 @@ export function Gallery({ imagesBySynoptic }: GalleryProps) {
       <div className="space-y-6">
         {imagesBySynoptic.map((group) => (
           <ImageRow
-            key={group.name}
+            key={group.productKey || group.name}
             onImageClick={setSelectedImage}
             synopticImages={group.synopticImages}
             title={group.name}

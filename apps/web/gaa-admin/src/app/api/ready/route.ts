@@ -1,15 +1,17 @@
 import { checkDatabase } from "@/db/readiness";
+import { listPublishedProducts } from "@/db/wxproducts/authored-queries";
+import { checkImageryReady } from "@/db/wxwatch/queries";
 import { env } from "@/env";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   const results = await Promise.all([
-    checkDatabase(env.WXWATCH_DATABASE_URL, ["public.weather_images"]),
-    checkDatabase(env.WXPRODUCTS_DATABASE_URL, [
-      "public.products",
-      "public.product_suites",
-    ]),
+    checkImageryReady(),
+    listPublishedProducts().then(
+      () => true,
+      () => false
+    ),
     checkDatabase(
       env.TRANSPORT_DATABASE_URL,
       ["public.routes", "public.trips", "public.trip_stops"],

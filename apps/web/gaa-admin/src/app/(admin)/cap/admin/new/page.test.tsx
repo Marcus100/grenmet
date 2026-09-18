@@ -63,7 +63,7 @@ function clickSaveDraft() {
 }
 
 describe("NewAlertPage", () => {
-  it("submits a CapAlertCreate payload and redirects to the dashboard", async () => {
+  it("submits a CapAlertCreate payload and opens the saved draft", async () => {
     render(<NewAlertPage />);
     fireEvent.click(screen.getByText("Edit CAP category mappings"));
 
@@ -112,7 +112,9 @@ describe("NewAlertPage", () => {
       { kind: "AREA", area_desc: "Saint George" },
     ]);
 
-    await waitFor(() => expect(pushMock).toHaveBeenCalledWith("/cap"));
+    await waitFor(() =>
+      expect(pushMock).toHaveBeenCalledWith("/cap/admin/alert_new")
+    );
   });
 
   it("narrows events by family and clears stale selections when switching families", async () => {

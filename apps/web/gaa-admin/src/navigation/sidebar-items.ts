@@ -133,7 +133,7 @@ export const sidebarItems: NavGroup[] = [
       { id: "wxwatch", title: "WxWatch", url: "/wxwatch", icon: Radar },
       {
         id: "forecasts",
-        title: "Impact-Based Forecasts",
+        title: "Forecasts",
         url: "/wxproducts/fcsts",
         icon: CloudSun,
       },

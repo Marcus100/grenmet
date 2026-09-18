@@ -2,6 +2,7 @@ import { Suspense } from "react";
 import { AlertsPanel } from "@/components/alerts-panel";
 import { CurrentAlertsAccordion } from "@/components/current-alerts-accordion";
 import { ExploringWebsite } from "@/components/exploring-website";
+import { ForecastRefresh } from "@/components/forecast-refresh";
 import { GmsNews } from "@/components/gms-news";
 import { Hero } from "@/components/hero";
 import { IssuedStamp } from "@/components/issued-stamp";
@@ -26,6 +27,7 @@ export default async function WeatherLayout({
   return (
     // Responsive container — intentional layout exception, not a spacing token
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <ForecastRefresh />
       <h1 className="mb-4 pt-6 font-bold text-gm-navy text-heading-md lg:hidden">
         Your spice weather
       </h1>
