@@ -1,8 +1,3 @@
-import {
-  followingDate,
-  grenadaDate,
-  type PublishedProduct,
-} from "@barrelsgd/gms/products";
 import type { WeatherCondition } from "@/lib/weather-icons";
 export interface Condition {
   label: string;
@@ -18,6 +13,7 @@ export interface ForecastDayData extends DayForecast {
   date: string;
   source: string;
   summary: string;
+  title?: string;
 }
 export interface WeatherSnapshot {
   baseDate: string;
@@ -146,96 +142,4 @@ export const DAY_CONDITIONS = REFERENCE_WEATHER.days.map(
   (day) => day.conditions
 );
 export const TODAY_CONDITIONS = DAY_CONDITIONS[0];
-function number(value: string | undefined): number | null {
-  if (!value?.trim()) return null;
-  const n = Number(value);
-  return Number.isFinite(n) ? n : null;
-}
-function conditionFor(summary: string): WeatherCondition {
-  const text = summary.toLowerCase();
-  if (text.includes("shower") || text.includes("rain")) return "showers";
-  if (text.includes("partly")) return "partly-cloudy";
-  if (text.includes("sunny") || text.includes("fair")) return "sunny";
-  return "cloudy";
-}
-export function weatherFromProducts(
-  products: PublishedProduct[],
-  now = Date.now()
-): WeatherSnapshot {
-  const baseDate = grenadaDate(now);
-  const forecasts = products
-    .filter((p) => ["morning", "midday", "evening"].includes(p.kind))
-    .sort((a, b) => b.values.issuedAt.localeCompare(a.values.issuedAt));
-  const days = Array.from({ length: 5 }, (_, index) => {
-    const date = followingDate(baseDate, index);
-    for (const product of forecasts) {
-      const v = product.values;
-      const offset = Array.from({ length: 4 }, (_, i) => i + 1).find(
-        (i) => v[`day${i}Date`] === date
-      );
-      const sameDay = v.issuedAt.startsWith(date);
-      if (!sameDay && (product.kind !== "evening" || !offset)) continue;
-      const prefix = sameDay ? "" : `day${offset}`;
-      const summary = (prefix ? v[`${prefix}Weather`] : v.summary) || "";
-      const high = number(prefix ? v[`${prefix}Max`] : v.maxTemperature),
-        low = number(prefix ? v[`${prefix}Min`] : v.minTemperature);
-      const rows: Condition[] = [
-        {
-          label: "Max Temp",
-          value: high === null ? "Not supplied" : `${high}°C`,
-        },
-        {
-          label: "Min Temp",
-          value: low === null ? "Not supplied" : `${low}°C`,
-        },
-        {
-          label: "Wind",
-          value: (prefix ? v[`${prefix}Wind`] : v.wind) || "Not supplied",
-        },
-        {
-          label: "Sea State",
-          value:
-            (prefix ? v[`${prefix}SeaState`] : v.seaState) || "Not supplied",
-        },
-      ];
-      return {
-        date,
-        condition: conditionFor(summary),
-        high,
-        low,
-        summary,
-        conditions: rows,
-        source: `${product.kind} forecast · ${v.issuedAt.replace("T", " ")} AST`,
-      };
-    }
-    return {
-      date,
-      condition: "cloudy" as const,
-      high: null,
-      low: null,
-      summary: "No current issued forecast is available for this date.",
-      conditions: [{ label: "Forecast", value: "Not available" }],
-      source: "No current issued forecast",
-    };
-  });
-  const observed = forecasts.find(
-    (p) =>
-      p.kind === "midday" &&
-      p.values.issuedAt.startsWith(baseDate) &&
-      number(p.values.observedTemperature) !== null
-  );
-  const observation = observed
-    ? {
-        temperature: Number(observed.values.observedTemperature),
-        observedAt: `${observed.values.issuedAt.replace("T", " ")} AST`,
-      }
-    : null;
-  return {
-    baseDate,
-    days,
-    observation,
-    label: forecasts[0]
-      ? `Latest issue: ${forecasts[0].values.issuedAt.replace("T", " ")} AST. Morning 07:00 · Midday 12:00 · Evening 18:00.`
-      : "Current forecast information is not available.",
-  };
-}
+export { weatherFromForecast } from "@/lib/forecast-selection";

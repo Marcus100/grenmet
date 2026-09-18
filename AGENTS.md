@@ -20,13 +20,17 @@ pnpm dev:web:gaa-admin      # gaa-admin      :3001
 pnpm dev:web:docs  # docs  :3002
 pnpm dev:web:gms    # gms        :3003
 pnpm dev:web:signal     # signal         :3004
+pnpm dev:web:mbia       # mbia           :3005
+pnpm dev:web:cms        # cms            :3006
+pnpm dev:web:events     # events         :3009
 ```
 
 ### Quality — run both before finishing any task
 
 ```bash
-pnpm fix                                          # Auto-fix lint + format
+pnpm fix:changed                                  # Auto-fix lint + format, scoped to this session's changed files
 pnpm type-check                                   # TypeScript across all packages
+pnpm fix                                          # Repo-wide fix — only when you deliberately want that (see Top 6 Conventions)
 turbo run check --filter=@barrelsgd/<package>       # Single package
 turbo run type-check --filter=@barrelsgd/<package>  # Single package
 ```
@@ -83,7 +87,7 @@ pnpm check:drift            # Verify API client is in sync with openapi.json
 
 ## Top 6 Conventions
 
-1. Run `pnpm fix` then `pnpm type-check` before marking any task done — no exceptions.
+1. Run `pnpm fix:changed` then `pnpm type-check` before marking any task done — no exceptions. `pnpm fix:changed` scopes formatting to this session's changed files; repo-wide `pnpm fix` reformats unrelated in-progress work as a side effect and can bust turbo's cache for untouched packages.
 2. Use Biome/Ultracite through `pnpm fix` for linting and formatting — never invoke Prettier.
 3. Reference shared deps with `catalog:` in `package.json` — never hardcode a version for a dep in the catalog.
 4. Import UI primitives from `@barrelsgd/ui/components/ui/<name>`, utils from `@barrelsgd/ui/lib/utils`.
@@ -92,9 +96,9 @@ pnpm check:drift            # Verify API client is in sync with openapi.json
 
 ## Top 6 Anti-Patterns
 
-1. Never manually edit `packages/api-client/src/gen/` — always regenerate via `pnpm generate:api-client`.
-2. Never write to `.env.*` or `.env.local` files.
-3. Never run `git commit`, `git push`, `gh pr merge`, or any deploy command.
+1. Never manually edit `packages/api-client/src/gen/` — always regenerate via `pnpm generate:api-client`. Mechanically blocked by a `PreToolUse` hook (`.codex/config.toml`, script shared with Claude Code at `.claude/hooks/protect-files.mjs`).
+2. Never write to `.env.*` or `.env.local` files. Mechanically blocked by the same hook.
+3. Never run `git commit`, `git push`, `gh pr merge`, or any deploy command. Mechanically blocked by a `PreToolUse` hook on `Bash` (`.claude/hooks/block-dangerous-git.mjs`, same script Claude Code uses).
 4. Never touch a file not explicitly named in the request without stopping and asking first.
 5. Never implement after analysis — stop and wait for explicit approval before writing code.
 6. Never declare a task done after editing only the named file — grep every callsite of changed symbols and verify each affected layer first (see the Blast-Radius Gate in `CLAUDE.md`).
@@ -105,6 +109,24 @@ Reusable step-by-step playbooks live in `.claude/skills/*/SKILL.md` and
 `.claude/commands/*.md` — plain markdown, not Claude-specific. Before improvising
 a multi-step workflow (CI triage, pre-merge checks, release promotion, environment
 diagnosis, teaching), check whether a playbook already covers it and follow it.
+`.agents/skills` is a symlink to `.claude/skills` — `.claude/skills` is the one
+canonical source; edit there, never write into `.agents/skills` directly.
+
+## Hooks
+
+Codex hooks live in `.codex/config.toml` (`[hooks]` table) — not `.agents/`.
+Scripts are shared with Claude Code from `.claude/hooks/`; edit them once, both
+tools pick up the change. If a hook doesn't seem to fire, check whether this
+repo's `.codex/` directory needs to be trusted first (varies by Codex version).
+
+## Session Handoff
+
+Claude Code and Codex share one working tree. A `SessionStart` hook tails
+`SESSION_LOG.md` (repo root, gitignored) into context at the start of every
+session — read it before assuming a task is untouched. After a meaningful
+chunk of work, append one entry: timestamp, tool used, one-line summary, files
+touched, next step if any. See `CLAUDE.md`'s Session Handoff rule for the full
+convention.
 
 ## Communication & Diagnosis
 
@@ -117,7 +139,7 @@ diagnosis, teaching), check whether a playbook already covers it and follow it.
 |----------------------------------|------------------------------|
 | Cross-cutting change impact      | Blast-Radius Gate in `CLAUDE.md` |
 | Monorepo structure and auth flow | `docs/technical-overview.md` |
-| Service architecture             | `docs/architecture.md`       |
+| GMS service strategy (not codebase architecture) | `docs/architecture.md` |
 | Auth package API                 | `packages/auth/README.md`    |
 | Auth package rules (agent)       | `packages/auth/CLAUDE.md`    |
 | UI package rules (agent)         | `packages/ui/CLAUDE.md`      |

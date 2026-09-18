@@ -1,0 +1,7 @@
+[
+  {
+    "hash": "f8cc855bae92e533bf7f7044a1790ffd15827a3b550e49f592032ffe69a7277e",
+    "created_at": 1771337288752,
+    "sql": "CREATE TABLE \"weather_images\" (\n\t\"id\" serial PRIMARY KEY NOT NULL,\n\t\"storage_path\" text NOT NULL,\n\t\"width\" integer DEFAULT 0,\n\t\"height\" integer DEFAULT 0,\n\t\"spider_name\" text,\n\t\"file_format\" text,\n\t\"is_animated\" boolean DEFAULT false,\n\t\"file_size_bytes\" bigint,\n\t\"fetched_at\" timestamp with time zone NOT NULL,\n\t\"name\" text,\n\t\"image_url\" text,\n\t\"parent_url\" text,\n\t\"page_title\" text,\n\t\"source_modified\" timestamp with time zone,\n\t\"observation_time\" timestamp with time zone,\n\t\"etag\" text,\n\t\"checksum\" text,\n\t\"download_status\" text,\n\t\"mode\" text,\n\t\"frame_count\" integer DEFAULT 1,\n\t\"raw_metadata\" jsonb DEFAULT '{}'::jsonb,\n\t\"created_at\" timestamp with time zone DEFAULT now()\n);\n--> statement-breakpoint\nCREATE INDEX \"idx_observation_time\" ON \"weather_images\" USING btree (\"observation_time\");--> statement-breakpoint\nCREATE INDEX \"idx_spider_fetched\" ON \"weather_images\" USING btree (\"spider_name\",\"fetched_at\");--> statement-breakpoint\nCREATE INDEX \"idx_fetched_at\" ON \"weather_images\" USING btree (\"fetched_at\");--> statement-breakpoint\nCREATE INDEX \"idx_url_checksum\" ON \"weather_images\" USING btree (\"image_url\",\"checksum\");"
+  }
+]

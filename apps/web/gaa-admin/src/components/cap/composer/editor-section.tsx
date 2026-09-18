@@ -86,9 +86,12 @@ export async function EditorSection() {
               className="grid grid-cols-[1fr_120px_120px] gap-3 border-gm-border border-b px-4 py-3 text-body leading-body last:border-b-0"
               key={alert.id}
             >
-              <span className="min-w-0 truncate text-gm-text-primary">
+              <Link
+                className="min-w-0 truncate text-gm-text-primary underline"
+                href={`/cap/admin/${alert.id}`}
+              >
                 {alert.info?.[0]?.headline ?? alert.identifier}
-              </span>
+              </Link>
               <span className="text-gm-text-secondary">
                 {alert.lifecycle_state}
               </span>

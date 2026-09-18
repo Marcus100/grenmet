@@ -1,0 +1,550 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title>gaa-admin architecture review</title>
+    <script defer src="https://cdn.tailwindcss.com"></script>
+    <style>
+    body {
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      color: #172033;
+      background: #f8fafc;
+    }
+    .card {
+      padding: 24px;
+      background: white;
+      border: 1px solid #dbe3ef;
+      border-radius: 18px;
+      box-shadow: 0 5px 18px #1720330b;
+    }
+    .pill {
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 999px;
+    }
+    .diagram {
+      min-height: 150px;
+      padding: 14px;
+      background: #f8fafc;
+      border: 1px solid #dbe3ef;
+      border-radius: 12px;
+    }
+    .node {
+      padding: 8px;
+      font-size: 12px;
+      background: white;
+      border: 1px solid #93a4bc;
+      border-radius: 9px;
+    }
+    .arrow {
+      padding: 4px;
+      font-size: 20px;
+      color: #64748b;
+      text-align: center;
+    }
+    </style>
+  </head>
+  <body>
+    <main class="mx-auto max-w-6xl space-y-8 px-5 py-10">
+      <header class="space-y-3">
+        <p class="text-sm font-bold uppercase tracking-widest text-blue-700">
+          Architecture review · 14 September 2026
+        </p>
+        <h1 class="text-4xl font-bold tracking-tight">
+          Deepening opportunities in gaa-admin
+        </h1>
+        <p class="max-w-3xl text-lg text-slate-600">
+          This review identifies modules whose interface asks callers and
+          maintainers to understand too many responsibilities at once. It uses
+          the codebase-design vocabulary: module, interface, depth, seam,
+          adapter, leverage, and locality.
+        </p>
+        <div class="rounded-xl bg-amber-50 p-4 text-sm text-amber-900">
+          Scope: read-only scan of <code>apps/web/gaa-admin</code>. No files in
+          the repository were changed for this report. Existing ADRs support a
+          modular monolith and separate domain databases; these candidates
+          preserve those decisions.
+        </div>
+      </header>
+      <section class="card">
+        <h2 class="text-2xl font-bold">Top recommendation</h2>
+        <p class="mt-3 text-slate-700">
+          <strong
+            >Deepen the forecast authoring module and retire the duplicate
+            legacy forecast editor.</strong
+          >
+          The same concept currently appears in <code>product-desk.tsx</code>,
+          <code>forecast-editor.tsx</code>, <code>forecast-document.tsx</code>,
+          and two data paths. One interface should own schedule, validation,
+          publication, and presentation rules; the public GMS adapter should
+          consume the published product contract. This has the highest leverage
+          because it spans the exact workflow that motivated the recent work and
+          currently has two competing implementations.
+        </p>
+      </section>
+
+      <article class="card space-y-5">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <span class="pill bg-red-100 text-red-800">Strong</span>
+            <h2 class="mt-3 text-2xl font-bold">
+              1. Forecast authoring has two competing modules
+            </h2>
+          </div>
+          <span class="text-sm text-slate-500">Highest leverage</span>
+        </div>
+        <p>
+          <strong>Files:</strong>
+          <code>src/components/wxproducts/product-desk.tsx</code>
+          (706 lines),
+          <code>src/components/wxproducts/forecast-editor.tsx</code>
+          (470),
+          <code>src/components/wxproducts/forecast-document.tsx</code>
+          (268),
+          <code>src/app/(admin)/wxproducts/product-actions.ts</code>,
+          <code>src/lib/wxproducts/product-input.ts</code>.
+        </p>
+        <p>
+          <strong>Problem:</strong>
+          The product desk is the live authored-product module, while the older
+          forecast editor has a separate form model and save action. Schedule
+          rules, field names, PDF adaptation, validation, and persistence are
+          distributed across both paths. The deletion test says deleting the old
+          editor would remove a full alternate implementation rather than
+          concentrate required complexity; that is a duplication smell. The
+          interface is shallow because each caller must know which forecast
+          representation and save path it is using.
+        </p>
+        <p>
+          <strong>Deepening opportunity:</strong>
+          Make one forecast authoring module own the issue schedule, coverage
+          periods, field visibility, validation, and publication result. Keep
+          the PDF/document renderer as an internal adapter. Remove or explicitly
+          quarantine the unused editor after callsite verification.
+        </p>
+        <p>
+          <strong>Benefits:</strong>
+          Higher locality for schedule changes and CAP separation; one public
+          adapter for GMS; fewer regression seams; tests can cross the authoring
+          interface instead of separately testing two form models.
+        </p>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="diagram">
+            <h3 class="mb-3 font-bold">Before</h3>
+            <div class="node">
+              ProductDesk: form + load + revision + preview
+            </div>
+            <div class="arrow">↕</div>
+            <div class="node">product-actions + authored DB</div>
+            <div class="arrow">＋</div>
+            <div class="node">
+              ForecastEditor: second form + second save action
+            </div>
+          </div>
+          <div class="diagram">
+            <h3 class="mb-3 font-bold">After</h3>
+            <div class="node">Forecast authoring interface</div>
+            <div class="arrow">↓</div>
+            <div class="node">
+              schedule · validation · publication lifecycle
+            </div>
+            <div class="arrow">↙　↓　↘</div>
+            <div class="node">admin form</div>
+            <div class="node">document adapter</div>
+            <div class="node">public GMS adapter</div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card space-y-5">
+        <div>
+          <span class="pill bg-red-100 text-red-800">Strong</span>
+          <h2 class="mt-3 text-2xl font-bold">
+            2. ProductDesk is a whole workflow hidden in one client module
+          </h2>
+        </div>
+        <p>
+          <strong>Files:</strong>
+          <code>src/components/wxproducts/product-desk.tsx</code>
+          (706 lines),
+          <code>product-actions.ts</code>, <code>visible-fields.ts</code>,
+          <code>product-pdf-preview.tsx</code>.
+        </p>
+        <p>
+          <strong>Problem:</strong>
+          One module owns product kind/date selection, dirty-state protection,
+          async loading, editor state, revision concurrency, validation/review,
+          publication, withdrawal, history, and PDF preview. A caller cannot use
+          a smaller interface because all of those concerns are wired directly
+          into one component. This is a deep implementation hidden behind a very
+          large interface to its own JSX and event handlers, which reduces
+          locality.
+        </p>
+        <p>
+          <strong>Deepening opportunity:</strong>
+          Keep <code>ProductDesk</code> as the small orchestration interface,
+          with internal modules for product selection/loading, editor lifecycle,
+          review/publication actions, and revision history. The seam should be
+          the product lifecycle result, not individual button callbacks.
+        </p>
+        <p>
+          <strong>Benefits:</strong>
+          Each change has a local home; the publication lifecycle becomes
+          testable through one seam; the page shell becomes easy to navigate;
+          reuse across forecasts, bulletins, and NHC products improves leverage.
+        </p>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="diagram">
+            <h3 class="mb-3 font-bold">Before</h3>
+            <div class="node">ProductDesk</div>
+            <div class="arrow">↓</div>
+            <div class="node">
+              selection + fetch + form + dirty state + review + save + history +
+              preview
+            </div>
+          </div>
+          <div class="diagram">
+            <h3 class="mb-3 font-bold">After</h3>
+            <div class="node">
+              ProductDesk interface: selected product + lifecycle events
+            </div>
+            <div class="arrow">↓</div>
+            <div class="flex flex-wrap gap-2">
+              <div class="node">Product selection adapter</div>
+              <div class="node">Product editor</div>
+              <div class="node">Publication lifecycle</div>
+              <div class="node">Revision history</div>
+              <div class="node">Preview adapter</div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card space-y-5">
+        <div>
+          <span class="pill bg-amber-100 text-amber-800">Worth exploring</span>
+          <h2 class="mt-3 text-2xl font-bold">
+            3. HR dashboard combines data assembly and four operational panels
+          </h2>
+        </div>
+        <p>
+          <strong>Files:</strong>
+          <code>src/components/hr/dashboard/hr-dashboard.tsx</code>
+          (681 lines),
+          <code>src/components/hr/dashboard/dashboard-data.ts</code>
+          (324),
+          <code>src/app/(admin)/_components/home-data.ts</code>
+          (324).
+        </p>
+        <p>
+          <strong>Problem:</strong>
+          Dashboard modules mix data loading, permission/empty/error states,
+          date interpretation, summary calculations, and dense panel layout. The
+          same operational facts are assembled in adjacent data modules with
+          overlapping terminology. The deletion test on the presentational shell
+          says deleting the panel markup would not remove the domain
+          calculations; those responsibilities can be concentrated behind a
+          dashboard snapshot interface.
+        </p>
+        <p>
+          <strong>Deepening opportunity:</strong>
+          Create one dashboard snapshot adapter that returns named operational
+          facts, then keep each panel as a focused rendering module. Move date
+          and aggregation rules behind the snapshot seam.
+        </p>
+        <p>
+          <strong>Benefits:</strong>
+          Better locality when HR metrics change; panel tests can use a small
+          snapshot; the data adapter can be reused by status strips without
+          importing dashboard layout knowledge.
+        </p>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="diagram">
+            <h3 class="mb-3 font-bold">Before</h3>
+            <div class="node">HR dashboard</div>
+            <div class="arrow">↕</div>
+            <div class="node">
+              queries + aggregation + loading states + panel JSX
+            </div>
+          </div>
+          <div class="diagram">
+            <h3 class="mb-3 font-bold">After</h3>
+            <div class="node">HR dashboard snapshot adapter</div>
+            <div class="arrow">↓</div>
+            <div class="flex flex-wrap gap-2">
+              <div class="node">Leave panel</div>
+              <div class="node">Roster panel</div>
+              <div class="node">Approvals panel</div>
+              <div class="node">Status panel</div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card space-y-5">
+        <div>
+          <span class="pill bg-amber-100 text-amber-800">Worth exploring</span>
+          <h2 class="mt-3 text-2xl font-bold">
+            4. CAP creation page is both a form engine and a map editor
+          </h2>
+        </div>
+        <p>
+          <strong>Files:</strong>
+          <code>src/app/(admin)/cap/admin/new/page.tsx</code>
+          (544 lines),
+          <code>src/components/cap/composer/cap-composer.tsx</code>,
+          <code>src/components/cap/composer/map-section.tsx</code>,
+          <code>src/components/cap/alert-map-preview.tsx</code>.
+        </p>
+        <p>
+          <strong>Problem:</strong>
+          The route owns primitive form state, area collection editing, geometry
+          conversion, validation, submission, and page composition. The
+          interface of the route is effectively every field and map interaction.
+          Geometry is a distinct domain calculation with a useful internal seam,
+          but it is currently coupled to page state.
+        </p>
+        <p>
+          <strong>Deepening opportunity:</strong>
+          Put CAP draft construction and geometry normalization behind a
+          composer interface. Let the route compose focused sections: identity,
+          timing, affected areas, severity, review, and submission.
+        </p>
+        <p>
+          <strong>Benefits:</strong>
+          Geometry tests become local; CAP lifecycle rules stay aligned with
+          ADR-0007; the route becomes a page composition module with high
+          locality.
+        </p>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="diagram">
+            <h3 class="mb-3 font-bold">Before</h3>
+            <div class="node">New alert route</div>
+            <div class="arrow">↓</div>
+            <div class="node">
+              fields + area array + map geometry + validation + submit
+            </div>
+          </div>
+          <div class="diagram">
+            <h3 class="mb-3 font-bold">After</h3>
+            <div class="node">CAP composer interface</div>
+            <div class="arrow">↓</div>
+            <div class="flex flex-wrap gap-2">
+              <div class="node">identity</div>
+              <div class="node">timing</div>
+              <div class="node">areas adapter</div>
+              <div class="node">validation</div>
+              <div class="node">publication</div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card space-y-5">
+        <div>
+          <span class="pill bg-amber-100 text-amber-800">Worth exploring</span>
+          <h2 class="mt-3 text-2xl font-bold">
+            5. Setup and user management modules are orchestration-heavy
+          </h2>
+        </div>
+        <p>
+          <strong>Files:</strong>
+          <code>src/components/hr/setup/staff-setup.tsx</code>
+          (549),
+          <code>src/components/users/manage-user-dialog.tsx</code>
+          (463),
+          <code>src/components/users/users-manager.tsx</code>
+          (282),
+          <code>src/components/hr/setup/shift-types-manager.tsx</code>
+          (461),
+          <code>src/components/roles/workflow-panel.tsx</code>
+          (314).
+        </p>
+        <p>
+          <strong>Problem:</strong>
+          These modules combine table/query state, dialogs, mutation sequencing,
+          policy rules, and feedback rendering. “Manage user” and “staff setup”
+          are not single concepts at the implementation level: they are
+          coordination shells around several distinct operations.
+        </p>
+        <p>
+          <strong>Deepening opportunity:</strong>
+          Keep thin route-facing orchestration modules and give each operation a
+          focused interface: employment lifecycle, role assignment, activation,
+          shift catalogue, department tree, and policy configuration. Use one
+          mutation adapter per operation rather than one dialog knowing every
+          mutation.
+        </p>
+        <p>
+          <strong>Benefits:</strong>
+          More locality around authorization-sensitive changes; operation-level
+          tests exercise the real seams; future platform-wide reuse follows
+          ADR-0009 without importing UI state.
+        </p>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="diagram">
+            <h3 class="mb-3 font-bold">Before</h3>
+            <div class="node">Setup/user module</div>
+            <div class="arrow">↓</div>
+            <div class="node">
+              table + dialogs + role rules + employment + mutations + messages
+            </div>
+          </div>
+          <div class="diagram">
+            <h3 class="mb-3 font-bold">After</h3>
+            <div class="node">Staff administration orchestration</div>
+            <div class="arrow">↓</div>
+            <div class="flex flex-wrap gap-2">
+              <div class="node">employment adapter</div>
+              <div class="node">role adapter</div>
+              <div class="node">activation adapter</div>
+              <div class="node">catalogue adapter</div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card space-y-5">
+        <div>
+          <span class="pill bg-amber-100 text-amber-800">Worth exploring</span>
+          <h2 class="mt-3 text-2xl font-bold">
+            6. Calendar and roster views repeat interaction/state patterns
+          </h2>
+        </div>
+        <p>
+          <strong>Files:</strong>
+          <code>src/components/calendar/event-calendar-views.tsx</code>
+          (532),
+          <code>src/components/calendar/event-calendar.tsx</code>
+          (265),
+          <code>src/components/hr/roster/duty-roster.tsx</code>
+          (510),
+          <code>src/components/hr/shift/shift-exchange-editor.tsx</code>
+          (510),
+          <code>src/components/hr/status/daily-status-editor.tsx</code>
+          (500).
+        </p>
+        <p>
+          <strong>Problem:</strong>
+          Calendar/roster modules contain both domain-specific scheduling rules
+          and generic navigation, selection, dialog, and pending-state
+          mechanics. The shared-looking behaviour has not yet become a real seam
+          because the adapters are not clearly separated from the domain rules.
+        </p>
+        <p>
+          <strong>Deepening opportunity:</strong>
+          First isolate a schedule snapshot and edit-command interface. Keep
+          calendar rendering, roster assignment, exchange eligibility, and daily
+          status rules as separate adapters over that interface. Do not extract
+          generic UI primitives until two concrete adapters share a real
+          contract.
+        </p>
+        <p>
+          <strong>Benefits:</strong>
+          This respects “one adapter is hypothetical, two adapters is real”; it
+          creates leverage only where calendar and roster actually vary; tests
+          can target schedule invariants through the seam.
+        </p>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="diagram">
+            <h3 class="mb-3 font-bold">Before</h3>
+            <div class="node">calendar / roster / exchange / status</div>
+            <div class="arrow">↕</div>
+            <div class="node">
+              navigation + schedule rules + mutations + dialogs
+            </div>
+          </div>
+          <div class="diagram">
+            <h3 class="mb-3 font-bold">After</h3>
+            <div class="node">Schedule snapshot + edit-command seam</div>
+            <div class="arrow">↓</div>
+            <div class="flex flex-wrap gap-2">
+              <div class="node">calendar adapter</div>
+              <div class="node">roster adapter</div>
+              <div class="node">exchange adapter</div>
+              <div class="node">status adapter</div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="card space-y-5">
+        <div>
+          <span class="pill bg-slate-200 text-slate-800">Speculative</span>
+          <h2 class="mt-3 text-2xl font-bold">
+            7. wxproducts schema files have unclear one-file purposes
+          </h2>
+        </div>
+        <p>
+          <strong>Files:</strong>
+          <code>src/db/wxproducts/schema/bufr.ts</code>
+          and
+          <code>bufr.schema.ts</code>
+          (3,050 lines each),
+          <code>metarSpeci.ts</code>
+          (873),
+          <code>metar-speci.schema.ts</code>
+          (835), <code>taf.ts</code> (676),
+          <code>taf.schema.ts</code>
+          (648), plus model/type companions.
+        </p>
+        <p>
+          <strong>Problem:</strong>
+          The schema area contains parallel filenames and large hand-authored
+          type/schema definitions. A maintainer must inspect imports to know
+          whether a file is a runtime validator, TypeScript model, example, or
+          database adapter. The interface of the schema cluster is therefore
+          hard to discover even where each individual export is valid.
+        </p>
+        <p>
+          <strong>Deepening opportunity:</strong>
+          Establish one clear purpose per file family—runtime validation, domain
+          types, database model, and examples—and make the public barrel the
+          only cross-family interface. This may be documentation and naming
+          first; merging files could reduce locality if it creates giant
+          modules.
+        </p>
+        <p>
+          <strong>Benefits:</strong>
+          Better AI navigability and locality; fewer accidental imports across
+          representation layers; schema tests can state which seam they
+          exercise.
+        </p>
+        <div class="grid gap-4 md:grid-cols-2">
+          <div class="diagram">
+            <h3 class="mb-3 font-bold">Before</h3>
+            <div class="node">bufr.ts ↔ bufr.schema.ts ↔ model ↔ examples</div>
+            <div class="arrow">?</div>
+            <div class="node">caller must infer representation purpose</div>
+          </div>
+          <div class="diagram">
+            <h3 class="mb-3 font-bold">After</h3>
+            <div class="node">schema/index interface</div>
+            <div class="arrow">↓</div>
+            <div class="flex flex-wrap gap-2">
+              <div class="node">types/</div>
+              <div class="node">validation/</div>
+              <div class="node">db/</div>
+              <div class="node">examples/</div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <section class="card">
+        <h2 class="text-2xl font-bold">How to use this report</h2>
+        <p class="mt-3 text-slate-700">
+          The strongest first seam is forecast authoring. The next step is to
+          choose one candidate and inspect its constraints, dependencies, and
+          surviving tests before designing an interface. This report
+          intentionally does not prescribe an interface yet.
+        </p>
+        <p class="mt-4 font-semibold">
+          Which of these would you like to explore?
+        </p>
+      </section>
+    </main>
+  </body>
+</html>

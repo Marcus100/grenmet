@@ -96,6 +96,7 @@ class UwyoSpider(WeatherSpider):
         item["page_title"] = self._clean_text(response.xpath("//title/text()").get())
         item["source_modified"] = None  # Will be set from HTTP headers
         item["observation_time"] = observation_time
+        item["time_basis"] = "source_observation"
         item["fetched_at"] = datetime.now(timezone.utc).isoformat()
         item["image_urls"] = [image_url]
         item["etag"] = None

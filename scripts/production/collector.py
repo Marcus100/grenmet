@@ -34,13 +34,15 @@ def command(name, spec):
         if args not in [[source] for source in SOURCES]:
             raise ValueError("Schedule exactly one supported wxwatch source")
         values = dict(line.split("=", 1) for line in env_file.read_text().splitlines() if line and not line.startswith("#") and "=" in line)
-        for key in ["DB_HOST", "DB_NAME", "DB_USER", "DB_PASSWORD", "STORAGE_ENDPOINT_URL", "STORAGE_BUCKET", "STORAGE_ACCESS_KEY_ID", "STORAGE_SECRET_ACCESS_KEY"]:
+        for key in ["WXWATCH_API_URL", "WXWATCH_INGEST_TOKEN", "STORAGE_ENDPOINT_URL", "STORAGE_BUCKET", "STORAGE_ACCESS_KEY_ID", "STORAGE_SECRET_ACCESS_KEY"]:
             if not values.get(key):
                 raise ValueError(f"Collector requires {key}")
-        import ipaddress
-        address = ipaddress.ip_address(values["DB_HOST"])
-        if not any(address in ipaddress.ip_network(network) for network in ["10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16"]):
-            raise ValueError("wxwatch must connect to the private core address")
+        from urllib.parse import urlparse
+        api_url = urlparse(values["WXWATCH_API_URL"])
+        if api_url.scheme != "https" or not api_url.hostname or api_url.username or api_url.password:
+            raise ValueError("Production wxwatch requires an HTTPS archive API URL")
+        if len(values["WXWATCH_INGEST_TOKEN"]) < 32:
+            raise ValueError("Collector secret must contain at least 32 characters")
     elif kind == "gms-ingest":
         if args != ["collect", "--output-dir", "/data/nhc"]:
             raise ValueError("GMS ingestion must write to the mounted /data/nhc output")

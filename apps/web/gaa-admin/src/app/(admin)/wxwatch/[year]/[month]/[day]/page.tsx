@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { unstable_noStore as noStore } from "next/cache";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DateNavigation } from "@/components/wxwatch/date-navigation";
 import { Gallery } from "@/components/wxwatch/gallery";
@@ -51,7 +52,12 @@ export default async function DatePage({ params }: PageProps) {
             UTC — imagery at the eight synoptic hours.
           </p>
         </div>
-        <DateNavigation currentDate={date} />
+        <div className="space-y-2">
+          <Link className="text-sm underline" href="/wxwatch/archive">
+            Browse all editions
+          </Link>
+          <DateNavigation currentDate={date} />
+        </div>
       </div>
 
       <Gallery imagesBySynoptic={images} />

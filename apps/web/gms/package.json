@@ -34,7 +34,8 @@
     "@turf/helpers": "catalog:",
     "@turf/buffer": "catalog:",
     "@turf/distance": "catalog:",
-    "@turf/boolean-point-in-polygon": "catalog:"
+    "@turf/boolean-point-in-polygon": "catalog:",
+    "@barrelsgd/api-client": "workspace:*"
   },
   "devDependencies": {
     "@barrelsgd/tsconfig": "workspace:*",

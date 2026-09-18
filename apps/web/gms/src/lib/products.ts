@@ -1,59 +1,57 @@
 import {
-  isCurrentProduct,
-  isProductKind,
-  type ProductKind,
+  type PublicForecast,
   type PublishedProduct,
-  validateProduct,
-} from "@barrelsgd/gms/products";
+  publicForecastSchema,
+  publishedProductsSchema,
+} from "@barrelsgd/api-client";
+import type { ProductKind } from "@barrelsgd/gms/products";
 import { cache } from "react";
-import { z } from "zod";
 import { env } from "@/lib/env";
 
-const publicProductSchema = z.object({
-  id: z.string().uuid(),
-  revision: z.number().int().positive(),
-  publishedAt: z.string().datetime(),
-  kind: z
-    .string()
-    .refine(isProductKind)
-    .transform((value) => {
-      if (!isProductKind(value)) throw new Error("Unknown product");
-      return value;
-    }),
-  values: z.record(z.string(), z.string()),
-});
 export type ProductsResult =
   | { status: "ok"; products: PublishedProduct[] }
   | { status: "unavailable"; products: [] };
+
+function endpoint(path: string) {
+  const configured = env.AUTH_API_V1_STR.trim() || "/api/v1";
+  const prefix = configured.startsWith("/") ? configured : `/${configured}`;
+  const normalized = prefix.endsWith("/") ? prefix.slice(0, -1) : prefix;
+  return new URL(`${normalized}/wxproducts/public/${path}`, env.AUTH_API_URL);
+}
+const requestOptions = () => ({
+  cache: "no-store" as const,
+  credentials: "omit" as const,
+  redirect: "error" as const,
+  signal: AbortSignal.timeout(5000),
+});
+
 export const fetchPublishedProducts = cache(
   async function fetchPublishedProducts(
     kind?: ProductKind
   ): Promise<ProductsResult> {
-    if (!env.WXPRODUCTS_API_URL) return { status: "unavailable", products: [] };
     try {
-      const url = new URL("/api/public/products", env.WXPRODUCTS_API_URL);
+      const url = endpoint("products");
       if (kind) url.searchParams.set("kind", kind);
-      const response = await fetch(url, {
-        cache: "no-store",
-        signal: AbortSignal.timeout(5000),
-      });
+      const response = await fetch(url, requestOptions());
       if (!response.ok) return { status: "unavailable", products: [] };
-      const parsed = z
-        .object({ products: z.array(publicProductSchema) })
-        .safeParse(await response.json());
-      if (
-        !parsed.success ||
-        parsed.data.products.some((p) => validateProduct(p, true).length > 0)
-      )
-        return { status: "unavailable", products: [] };
-      return {
-        status: "ok",
-        products: parsed.data.products.filter(
-          (p) => (!kind || p.kind === kind) && isCurrentProduct(p)
-        ),
-      };
+      const parsed = publishedProductsSchema.safeParse(await response.json());
+      if (!parsed.success) return { status: "unavailable", products: [] };
+      return { status: "ok", products: parsed.data.products };
     } catch {
       return { status: "unavailable", products: [] };
+    }
+  }
+);
+
+export const fetchPublicForecast = cache(
+  async function fetchPublicForecast(): Promise<PublicForecast | null> {
+    try {
+      const response = await fetch(endpoint("forecast"), requestOptions());
+      if (!response.ok) return null;
+      const parsed = publicForecastSchema.safeParse(await response.json());
+      return parsed.success ? parsed.data : null;
+    } catch {
+      return null;
     }
   }
 );

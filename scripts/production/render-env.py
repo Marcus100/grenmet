@@ -23,7 +23,7 @@ def read_config(path):
 
 def render(config, environment):
     required = ["POSTGRES_USER", "POSTGRES_PASSWORD", "FASTAPI_DB_PASSWORD", "SECRET_KEY", "FIRST_SUPERUSER", "FIRST_SUPERUSER_PASSWORD", "SESSION_COOKIE_NAME", "RESEND_API_KEY", "EMAIL", "USERNAME", "HASHED_PASSWORD", "PAYLOAD_SECRET"]
-    required += [f"{domain}_DB_PASSWORD" for domain in ["WXWATCH", "WXPRODUCTS", "TRANSPORT", "JANITORIAL", "CMS"]]
+    required += [f"{domain}_DB_PASSWORD" for domain in ["WXWATCH", "WXPRODUCTS", "EREGISTER", "TRANSPORT", "JANITORIAL", "CMS"]]
     values = {}
     for key in required:
         if not environment.get(key):
@@ -31,13 +31,19 @@ def render(config, environment):
         values[key] = environment[key]
     if len(values["PAYLOAD_SECRET"]) < 32:
         raise ValueError("PAYLOAD_SECRET must contain at least 32 characters")
-    for key in ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "SENTRY_DSN", "STORAGE_ENDPOINT_URL", "STORAGE_REGION", "STORAGE_BUCKET", "STORAGE_ACCESS_KEY_ID", "STORAGE_SECRET_ACCESS_KEY", "STORAGE_PUBLIC_BASE_URL", "WXPRODUCTS_API_URL", 'BILLING_STRIPE_SECRET_KEY', 'BILLING_STRIPE_WEBHOOK_SECRET', 'BILLING_STRIPE_PRICE_ID', 'BILLING_CHECKOUT_SUCCESS_URL', 'BILLING_CHECKOUT_CANCEL_URL', 'RESEND_WEBHOOK_SECRET', 'EMAIL_RENDER_SECRET', 'NEXT_PUBLIC_POSTHOG_KEY', 'NEXT_PUBLIC_POSTHOG_HOST', 'CAP_SIGNING_CERT', 'CAP_SIGNING_KEY', 'CAP_SIGNING_KEY_REF']:
+    for key in ["WXWATCH_INGEST_TOKEN", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "SENTRY_DSN", "STORAGE_ENDPOINT_URL", "STORAGE_REGION", "STORAGE_BUCKET", "STORAGE_ACCESS_KEY_ID", "STORAGE_SECRET_ACCESS_KEY", "STORAGE_PUBLIC_BASE_URL", "WXPRODUCTS_API_URL", 'BILLING_STRIPE_SECRET_KEY', 'BILLING_STRIPE_WEBHOOK_SECRET', 'BILLING_STRIPE_PRICE_ID', 'BILLING_CHECKOUT_SUCCESS_URL', 'BILLING_CHECKOUT_CANCEL_URL', 'RESEND_WEBHOOK_SECRET', 'EMAIL_RENDER_SECRET', 'NEXT_PUBLIC_POSTHOG_KEY', 'NEXT_PUBLIC_POSTHOG_HOST', 'CAP_SIGNING_CERT', 'CAP_SIGNING_KEY', 'CAP_SIGNING_KEY_REF']:
         values[key] = environment.get(key, "")
-    for domain in ["WXWATCH", "WXPRODUCTS", "TRANSPORT", "JANITORIAL", "CMS"]:
+    for domain in ["WXWATCH", "WXPRODUCTS", "EREGISTER", "TRANSPORT", "JANITORIAL", "CMS"]:
         user = quote(config[f"{domain}_DB_USER"], safe="")
         password = quote(values[f"{domain}_DB_PASSWORD"], safe="")
         name = quote(config[f"{domain}_DB_NAME"], safe="")
-        key = "CMS_DATABASE_URL" if domain == "CMS" else f"{domain}_DB_URL"
+        key = (
+            "CMS_DATABASE_URL"
+            if domain == "CMS"
+            else "EREGISTER_DATABASE_URL"
+            if domain == "EREGISTER"
+            else f"{domain}_DB_URL"
+        )
         values[key] = f"postgresql://{user}:{password}@db:5432/{name}"
     runtime_user = config.get("FASTAPI_DB_USER", "")
     if not re.fullmatch(r"[a-zA-Z_][a-zA-Z0-9_]*", runtime_user) or runtime_user in {values["POSTGRES_USER"], "postgres", "app", "gms_cms", "wxwatch", "wxproducts", "transport", "janitorial"}:

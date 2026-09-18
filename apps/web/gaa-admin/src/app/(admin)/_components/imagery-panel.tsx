@@ -1,4 +1,4 @@
-import type { WeatherImage } from "@/db/wxwatch/schema";
+import type { WeatherImage } from "@barrelsgd/api-client";
 import { relativeTime, summarizeImagery } from "./home-data";
 import { loadImagery } from "./home-loaders";
 import { ImageryStrip } from "./imagery-strip";

@@ -126,26 +126,40 @@ Check that all env vars used in `turbo.json` `env` arrays are declared. If you a
 
 ## Database
 
-### Drizzle migration fails (`wxwatch` or `wxproducts`)
+### Alembic migration fails (`wxwatch` or `wxproducts`)
 
-1. Make sure `DATABASE_URL` in `.env.local` points to the correct database (wxwatch and wxproducts use different DBs — check `infra/docker/docker-compose.yml` for the database names).
-2. Run migrations from inside the app directory:
+`wxwatch` and `wxproducts` are owned by FastAPI via Alembic, not Drizzle — the
+former standalone apps were folded into `gaa-admin` in June 2026, and weather
+migrations moved to FastAPI at the same time. Historical Drizzle files under
+`apps/web/gaa-admin` are adoption references only; do not add new Drizzle
+migrations for these domains.
+
+1. Make sure `POSTGRES_SERVER`/`DATABASE_URL` points to the correct database
+   (wxwatch and wxproducts use different DBs — check
+   `apps/api/fastapi/docker-compose.yml` for the database names).
+2. Run migrations from `apps/web/gaa-admin` (these scripts `cd` into
+   `apps/api/fastapi` internally and run Alembic there):
 
 ```bash
-cd apps/web/wxwatch    # or wxproducts
-pnpm db:migrate
+cd apps/web/gaa-admin
+pnpm db:wxwatch:migrate       # or: pnpm db:wxproducts:migrate
 ```
 
-3. If the migration is conflicting with an existing schema, inspect `src/db/migrations/` — do not delete migration files; fix forward.
+3. If the migration is conflicting with an existing schema, inspect
+   `apps/api/fastapi/src/wxwatch/migrations/versions/` (or
+   `src/wxproducts/migrations/versions/`) — do not delete migration files; fix
+   forward.
 
 ### Schema change isn't reflected after editing a schema file
 
-You must run `pnpm db:generate` after every schema change. Skipping this step means the migration file is not created and the change will not apply.
+You must generate a new Alembic revision after every schema change. Skipping
+this step means the migration file is not created and the change will not
+apply.
 
 ```bash
-cd apps/web/wxproducts    # or wxwatch
-pnpm db:generate
-pnpm db:migrate
+cd apps/web/gaa-admin
+pnpm db:wxwatch:generate      # or: pnpm db:wxproducts:generate
+pnpm db:wxwatch:migrate       # or: pnpm db:wxproducts:migrate
 ```
 
 Commit both the schema file and the generated migration.
@@ -154,8 +168,9 @@ Commit both the schema file and the generated migration.
 
 `pnpm reset` wipes volumes. You need to re-run seed scripts if you need test data:
 
-- FastAPI: `cd apps/api/fastapi && uv run --frozen --package fast-back python -m scripts.seed_data`
-- wxproducts: `cd apps/web/wxproducts && pnpm db:migrate` (seeds are in `src/db/seed.ts`)
+- FastAPI core domains: `cd apps/api/fastapi && uv run --frozen --package fast-back python -m scripts.seed_data`
+- wxwatch / wxproducts: no seed script exists yet for these domains — data
+  comes from running the domain's normal ingestion/import flow after migrating
 
 ---
 

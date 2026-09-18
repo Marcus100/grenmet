@@ -171,8 +171,10 @@ export default function NewAlertPage() {
     };
 
     try {
-      await createAlertApiV1CapAlertsPost({ body: payload }).unwrap();
-      router.push("/cap");
+      const saved = await createAlertApiV1CapAlertsPost({
+        body: payload,
+      }).unwrap();
+      router.push(`/cap/admin/${saved.id}`);
       router.refresh();
     } catch (err) {
       setError(

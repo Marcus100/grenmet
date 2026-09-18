@@ -26,6 +26,7 @@ from src.cap.schemas import (
     CapSettingsPublic,
     CapSettingsUpdate,
     CapValidationResult,
+    PublicWarnings,
 )
 from src.dependencies import CurrentUser, SessionDep
 from src.pagination import PaginationDep
@@ -342,6 +343,26 @@ async def delete_feed(
     await service.delete_feed(
         session=session, current_user=current_user, feed_id=feed_id
     )
+
+
+@public_router.get(
+    "/warnings",
+    response_model=PublicWarnings,
+    responses={503: {"description": "Warning feed unavailable"}},
+)
+async def read_public_warnings(
+    *, session: SessionDep, response: Response
+) -> PublicWarnings:
+    from pydantic import ValidationError
+    from sqlalchemy.exc import SQLAlchemyError
+
+    from src.exceptions import AppException
+
+    response.headers["Cache-Control"] = "no-store"
+    try:
+        return await service.public_warnings(session=session)
+    except (SQLAlchemyError, OSError, TimeoutError, ValidationError):
+        raise AppException("Warning information is unavailable", 503)
 
 
 @public_router.get("/latest-active", response_model=CapAlertListPublic)

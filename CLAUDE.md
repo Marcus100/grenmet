@@ -7,7 +7,12 @@ For app-specific rules: see `apps/web/<app>/CLAUDE.md`.
 ## Behavioral Tiers
 
 ### Always (no confirmation needed)
-- Run `pnpm fix` then `pnpm type-check` before marking any task done
+- Run `pnpm fix:changed` (formats only this session's changed files) then
+  `pnpm type-check` before marking any task done. Use repo-wide `pnpm fix`
+  only when you deliberately want that (e.g. after a dependency bump) —
+  it reformats unrelated in-progress files as a side effect and can bust
+  turbo's cache for untouched packages, surfacing pre-existing issues as if
+  they were new
 - Treat GAA as the client organisation and GMS as its meteorological department; never describe either as a Barrels product
 - Use Biome/Ultracite through `pnpm fix` for linting and formatting; never invoke Prettier
 - Before marking a task done, grep every importer/callsite of changed symbols and confirm the change is complete across all affected layers — see Blast-Radius Gate
@@ -25,9 +30,13 @@ For app-specific rules: see `apps/web/<app>/CLAUDE.md`.
 - Introducing a new pattern, abstraction, or design approach
 
 ### Never
-- `git commit`, `git push`, `gh pr merge`, or any deploy command
-- Write to `.env.*` or `.env.local` files
-- Manually edit `packages/api-client/src/gen/` files
+- `git commit`, `git push`, `gh pr merge`, or any deploy command — mechanically
+  blocked by a `PreToolUse` hook (`.claude/hooks/block-dangerous-git.mjs`,
+  mirrored for Codex in `.codex/config.toml`), not just documented
+- Write to `.env.*` or `.env.local` files — mechanically blocked by
+  `.claude/hooks/protect-files.mjs` (same Codex mirror)
+- Manually edit `packages/api-client/src/gen/` files — mechanically blocked by
+  the same hook
 - Implement after analysis without explicit approval
 
 ## Behavioral Rules
@@ -48,10 +57,15 @@ Before acting on any setup/diagnosis theory, confirm the environment with a chea
 
 ### Blast-Radius Gate
 A change is not done when the named file passes `pnpm fix` + `pnpm type-check`.
-Before declaring done, grep for every consumer of the symbols you touched and
-verify each affected layer. gaa-admin is a cross-cutting surface — it hosts five
-formerly-separate apps, so treat any change there as potentially affecting
-cap/hr/wxwatch/wxproducts/salesbus, not one isolated app.
+Before declaring done, run `pnpm guardrails:staged` — it mechanically checks
+staged changes against FastAPI contract files and Drizzle schema/migration
+pairing (same check CI runs) — then grep for every remaining consumer of the
+symbols you touched and verify each affected layer; the script covers two
+specific cases, not the general one. Use the `api-change` skill for FastAPI
+contract changes and the `gaa-admin-change` skill before touching
+`apps/web/gaa-admin` — it hosts five formerly-separate apps, so treat any
+change there as potentially affecting cap/hr/wxwatch/wxproducts/salesbus, not
+one isolated app.
 
 This gate finds impact; it does not override the Scope Gate. When the search
 surfaces a file you were not asked to change, report it and ask — do not silently
@@ -61,7 +75,7 @@ edit it. Find and report, never silently expand scope.
 |---------------------------------|-------------------------------------------------------------------------------------------------|
 | A FastAPI route or schema       | regen `openapi.json` → `pnpm generate:api-client` → `pnpm check:drift`; `docs/api/contracts.md` |
 | Auth behavior (`packages/auth`) | all 5 apps + delegating apps (docs, gms via `AUTH_API_URL`)                         |
-| A Drizzle schema                | migration + `web-migrate` prod service + wxwatch & wxproducts DBs                                |
+| A Drizzle schema                | migration + `web-migrate` prod service + janitorial & transport DBs (wxwatch/wxproducts moved to FastAPI/Alembic in the June 2026 consolidation — see `apps/web/gaa-admin/CLAUDE.md`) |
 | A consolidated admin route      | the other folded modules in gaa-admin (cap/hr/wxwatch/wxproducts/salesbus)                       |
 | A `@barrelsgd/ui` primitive       | every app importing it (shared — already an Ask-First trigger)                                   |
 
@@ -86,6 +100,15 @@ When adding to this file, follow this structure:
 - **CI/CD fact** → add to CI/CD Conventions
 - **Lookup pointer** → add a row to the Where to Look table
 - Keep each entry to one line or two where an example is essential. Do not add narrative prose — this file is machine-read first.
+
+### Session Handoff
+Claude Code and Codex share one working tree; either can pick up where the
+other left off. A `SessionStart` hook tails `SESSION_LOG.md` (repo root,
+gitignored) into context automatically at the start of every session — read it
+before assuming a task is untouched. After a meaningful chunk of work (a task
+completed, a non-obvious decision made, a blocker hit), append one entry:
+timestamp, tool used, one-line summary, files touched, next step if any.
+Newest entries at the bottom. Don't log trivial single-file tweaks.
 
 ## Tool Usage
 
@@ -144,7 +167,8 @@ When adding to this file, follow this structure:
 |------------------------------------|------------------------------------|
 | Monorepo structure and auth flow   | `docs/technical-overview.md`       |
 | Portfolio, client programmes, repository ownership | `docs/portfolio/`       |
-| Service architecture               | `docs/architecture.md`             |
+| Monorepo structure and codebase architecture | `docs/technical-overview.md` |
+| GMS service strategy (not codebase architecture) | `docs/architecture.md` |
 | Auth package API                   | `packages/auth/README.md`          |
 | Auth package rules (agent)         | `packages/auth/CLAUDE.md`          |
 | UI package rules (agent)           | `packages/ui/CLAUDE.md`            |

@@ -1,29 +1,16 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import {
+  downloadProductPdfAction,
+  loadProductHistoryAction,
+  loadProductsAction,
+  previewProductAction,
+  saveProductAction,
+} from "./product-actions";
 
-const mocks = vi.hoisted(() => ({
-  access: vi.fn(),
-  cookie: vi.fn(),
-  exchange: vi.fn(),
-  write: vi.fn(),
-  list: vi.fn(),
-  history: vi.fn(),
-}));
-vi.mock("@/lib/server-session", () => ({
-  authApiFetch: mocks.access,
-  readSessionCookie: mocks.cookie,
-  exchangeSessionForAccessToken: mocks.exchange,
-}));
-vi.mock("@/db/wxproducts/authored-queries", () => ({
-  writeAuthoredProduct: mocks.write,
-  listAuthoredProducts: mocks.list,
-  getProductHistory: mocks.history,
-  RevisionConflict: class extends Error {},
-}));
-
-import { loadProductsAction, saveProductAction } from "./product-actions";
-
+const fetcher = vi.fn();
+const id = "7d517fe0-a25b-4f12-a2b4-eaaed8116010";
 const input = {
-  id: "7d517fe0-a25b-4f12-a2b4-eaaed8116010",
+  id,
   expectedRevision: 0,
   kind: "marine",
   values: {},
@@ -32,69 +19,127 @@ const input = {
   reviewed: false,
 };
 beforeEach(() => {
-  vi.resetAllMocks();
-  mocks.cookie.mockResolvedValue("session");
-  mocks.access.mockResolvedValue({ allowed_kinds: ["marine"] });
-  mocks.exchange.mockResolvedValue({
-    user: {
-      id: "staff-id",
-      full_name: "Duty Forecaster",
-      email: "staff@example.test",
-      is_active: true,
-    },
-  });
-  mocks.write.mockResolvedValue({ revision: 1 });
+  fetcher.mockReset();
+  vi.stubGlobal("fetch", fetcher);
 });
-describe("product actions", () => {
-  it("does not trust the presence of a cookie", async () => {
-    mocks.exchange.mockRejectedValue(new Error("revoked"));
-    expect((await saveProductAction(input)).ok).toBe(false);
-    expect(mocks.write).not.toHaveBeenCalled();
-  });
-  it("blocks inactive users and anonymous reads", async () => {
-    mocks.exchange.mockResolvedValue({ user: { is_active: false } });
-    expect((await saveProductAction(input)).ok).toBe(false);
-    mocks.cookie.mockResolvedValue(null);
-    expect((await loadProductsAction("marine", "2026-09-08")).ok).toBe(false);
-    expect(mocks.list).not.toHaveBeenCalled();
-  });
-  it("rejects active accounts without product-author access", async () => {
-    mocks.access.mockResolvedValue({ allowed_kinds: [] });
-    mocks.exchange.mockResolvedValue({
-      user: { id: "unrelated-user", is_active: true, is_superuser: false },
-    });
-    expect((await saveProductAction(input)).ok).toBe(false);
-    expect(mocks.write).not.toHaveBeenCalled();
-  });
-  it("records the verified actor, not client supplied identity", async () => {
-    expect((await saveProductAction({ ...input, actorId: "forged" })).ok).toBe(
-      true
+afterEach(() => vi.unstubAllGlobals());
+it("obtains CSRF proof and sends a cookie-authenticated mutation without actor identity", async () => {
+  fetcher
+    .mockResolvedValueOnce(Response.json({ userId: id, csrfToken: "proof" }))
+    .mockResolvedValueOnce(
+      Response.json({
+        id,
+        kind: "marine",
+        values: {},
+        revision: 1,
+        publishedRevision: null,
+        updatedAt: "2026-09-17T12:00:00Z",
+      })
     );
-    expect(mocks.write).toHaveBeenCalledWith(
-      expect.not.objectContaining({ actorId: "forged" }),
-      { id: "staff-id", name: "Duty Forecaster" }
-    );
+  expect((await saveProductAction({ ...input, actorId: "forged" })).ok).toBe(
+    true
+  );
+  expect(fetcher.mock.calls[0][0]).toBe("/_backend/browser-session");
+  expect(fetcher.mock.calls[1][1]).toMatchObject({
+    credentials: "same-origin",
+    cache: "no-store",
+    method: "POST",
+    headers: { "X-CSRF-Token": "proof" },
   });
-  it("cannot publish an incomplete draft by bypassing the form", async () => {
-    expect(
-      (await saveProductAction({ ...input, action: "publish", reviewed: true }))
-        .ok
-    ).toBe(false);
-    expect(mocks.write).not.toHaveBeenCalled();
-  });
+  expect(JSON.parse(fetcher.mock.calls[1][1].body)).toEqual(input);
 });
-
-it("checks the selected product against live grade policy", async () => {
-  expect((await saveProductAction({ ...input, kind: "morning" })).ok).toBe(
+it("does not write when session validation fails", async () => {
+  fetcher.mockResolvedValue(
+    Response.json({ detail: "Sign in again" }, { status: 401 })
+  );
+  expect((await saveProductAction(input)).ok).toBe(false);
+  expect(fetcher).toHaveBeenCalledTimes(1);
+});
+it("surfaces revision conflicts without retrying writes", async () => {
+  fetcher
+    .mockResolvedValueOnce(Response.json({ userId: id, csrfToken: "proof" }))
+    .mockResolvedValueOnce(
+      Response.json({ detail: "Reload the newer revision" }, { status: 409 })
+    );
+  expect(await saveProductAction(input)).toEqual({
+    ok: false,
+    error: "Reload the newer revision",
+  });
+  expect(fetcher).toHaveBeenCalledTimes(2);
+});
+it("loads products and history using backend contracts", async () => {
+  fetcher
+    .mockResolvedValueOnce(Response.json({ products: [] }))
+    .mockResolvedValueOnce(Response.json({ history: [] }));
+  expect(await loadProductsAction("marine", "2026-09-17")).toEqual({
+    ok: true,
+    products: [],
+  });
+  expect(await loadProductHistoryAction(id)).toEqual({ ok: true, history: [] });
+});
+it("rejects invalid inputs without a request", async () => {
+  expect((await loadProductsAction("unknown", "2026-09-17")).ok).toBe(false);
+  expect((await loadProductHistoryAction("../other")).ok).toBe(false);
+  expect((await saveProductAction({ ...input, expectedRevision: -1 })).ok).toBe(
     false
   );
-  expect(mocks.write).not.toHaveBeenCalled();
-  expect(mocks.access).toHaveBeenCalledWith("/hr/product-access/me", {
-    cache: "no-store",
-  });
+  expect(fetcher).not.toHaveBeenCalled();
 });
-it("fails closed when the policy API is unavailable", async () => {
-  mocks.access.mockRejectedValue(new Error("unavailable"));
-  expect((await saveProductAction(input)).ok).toBe(false);
-  expect(mocks.write).not.toHaveBeenCalled();
+
+it("previews through FastAPI and preserves normalized values and errors", async () => {
+  const preview = {
+    values: { issuedAt: "2026-09-17T07:00" },
+    errors: ["Complete the forecast"],
+    checked_at: "2026-09-17T12:00:00Z",
+  };
+  fetcher
+    .mockResolvedValueOnce(Response.json({ userId: id, csrfToken: "proof" }))
+    .mockResolvedValueOnce(Response.json(preview));
+  expect(
+    await previewProductAction({
+      kind: "morning",
+      values: {},
+      expectedRevision: 0,
+      changeSummary: "",
+    })
+  ).toEqual({ ok: true, preview });
+  expect(fetcher.mock.calls[1][0]).toBe("/_backend/weather/products/preview");
+  expect(fetcher.mock.calls[1][1].headers["X-CSRF-Token"]).toBe("proof");
+});
+it("does not provide a valid preview during an outage", async () => {
+  fetcher.mockRejectedValue(new Error("offline"));
+  expect(
+    (
+      await previewProductAction({
+        kind: "morning",
+        values: {},
+        expectedRevision: 0,
+        changeSummary: "",
+      })
+    ).ok
+  ).toBe(false);
+});
+
+it("downloads a saved PDF through the authenticated backend proxy", async () => {
+  fetcher.mockResolvedValue(
+    new Response("%PDF-test", {
+      headers: { "content-type": "application/pdf" },
+    })
+  );
+  const result = await downloadProductPdfAction(id, 2);
+  expect(result.ok).toBe(true);
+  expect(fetcher).toHaveBeenCalledWith(
+    `/_backend/weather/products/${id}/revisions/2/pdf`,
+    expect.objectContaining({
+      credentials: "same-origin",
+      cache: "no-store",
+      redirect: "error",
+    })
+  );
+});
+it("does not download an error response as a PDF", async () => {
+  fetcher.mockResolvedValue(
+    Response.json({ detail: "Unauthorized" }, { status: 401 })
+  );
+  expect((await downloadProductPdfAction(id, 2)).ok).toBe(false);
 });

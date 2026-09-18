@@ -1,5 +1,12 @@
 "use client";
-import { type ProductContent, productTitle } from "@barrelsgd/gms/products";
+import {
+  isForecastKind,
+  type ProductContent,
+  productTitle,
+} from "@barrelsgd/gms/products";
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import { useState } from "react";
+import { downloadProductPdfAction } from "@/app/(admin)/wxproducts/product-actions";
 import { DocumentPreview } from "@/components/document/document-preview";
 import { Paper } from "@/components/document/paper";
 import {
@@ -92,8 +99,42 @@ function originalDocument(content: ProductContent) {
     />
   );
 }
-export function ProductPdfPreview({ content }: { content: ProductContent }) {
-  const original = originalDocument(content);
+export function ProductPdfPreview({
+  content,
+  saved,
+  dirty = false,
+}: {
+  content: ProductContent;
+  saved?: { id: string; revision: number; publishedRevision: number | null };
+  dirty?: boolean;
+}) {
+  const [downloading, setDownloading] = useState(false);
+  const [error, setError] = useState("");
+  async function download(revision: number) {
+    if (!saved) return;
+    setDownloading(true);
+    setError("");
+    try {
+      const result = await downloadProductPdfAction(saved.id, revision);
+      if (!result.ok) {
+        setError(result.error);
+        return;
+      }
+      const url = URL.createObjectURL(result.blob);
+      const anchor = window.document.createElement("a");
+      anchor.href = url;
+      anchor.download = `gms-${content.kind}-${saved.id}-r${revision}.pdf`;
+      anchor.click();
+      setTimeout(() => URL.revokeObjectURL(url), 30_000);
+    } catch {
+      setError("Could not download this saved revision. Try again.");
+    } finally {
+      setDownloading(false);
+    }
+  }
+  const original = isForecastKind(content.kind)
+    ? null
+    : originalDocument(content);
   const document = (
     <div className="[&_[data-print-paper]]:h-auto! [&_[data-print-paper]]:min-h-[1056px]">
       {original ? <div className="break-after-page">{original}</div> : null}
@@ -123,8 +164,43 @@ export function ProductPdfPreview({ content }: { content: ProductContent }) {
     </div>
   );
   return (
-    <DocumentPreview continuous title="PDF preview">
-      {document}
-    </DocumentPreview>
+    <div className="space-y-3">
+      <div className="flex flex-wrap gap-2">
+        <Button
+          disabled={!saved?.revision || dirty || downloading}
+          onClick={() => saved && download(saved.revision)}
+          type="button"
+          variant="outline"
+        >
+          Download saved revision PDF
+        </Button>
+        {saved?.publishedRevision &&
+        saved.publishedRevision !== saved.revision ? (
+          <Button
+            disabled={downloading}
+            onClick={() =>
+              saved.publishedRevision && download(saved.publishedRevision)
+            }
+            type="button"
+            variant="outline"
+          >
+            Download published revision {saved.publishedRevision}
+          </Button>
+        ) : null}
+      </div>
+      {dirty || !saved?.revision ? (
+        <p className="text-muted-foreground text-sm">
+          Save draft to download these changes.
+        </p>
+      ) : null}
+      {error ? <p role="alert">{error}</p> : null}
+      <DocumentPreview
+        continuous
+        showDownloadPdf={false}
+        title="Document preview"
+      >
+        {document}
+      </DocumentPreview>
+    </div>
   );
 }

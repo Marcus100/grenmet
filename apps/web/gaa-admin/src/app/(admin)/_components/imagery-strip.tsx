@@ -1,9 +1,9 @@
 "use client";
 
+import type { WeatherImage } from "@barrelsgd/api-client";
 import Image from "next/image";
 import { useState } from "react";
 import { Lightbox } from "@/components/wxwatch/lightbox";
-import type { WeatherImage } from "@/db/wxwatch/schema";
 import { getImageUrl } from "@/lib/wxwatch/utils";
 
 /** Horizontally scrolling strip of the newest frames; clicking one opens the
@@ -30,7 +30,7 @@ export function ImageryStrip({ images }: { images: WeatherImage[] }) {
                 sizes="160px"
                 src={url}
                 unoptimized={
-                  image.fileFormat === "gif" || url.startsWith("/api/")
+                  image.fileFormat === "gif" || url.startsWith("/_backend/")
                 }
               />
               <span className="absolute inset-x-0 bottom-0 truncate bg-linear-to-t from-black/70 to-transparent p-1.5 text-left text-white text-xs">

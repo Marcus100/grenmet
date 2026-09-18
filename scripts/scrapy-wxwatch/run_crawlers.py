@@ -52,7 +52,12 @@ class CrawlOutcome:
         self._now = now or (lambda: datetime.now(timezone.utc))
 
     def record_error(self, *args, **kwargs):
+        import logging
+
         self.failed = True
+        logging.getLogger(__name__).error(
+            "Collection failed; check the source and archive API configuration"
+        )
 
     def watch(self, deferred: Deferred[None]) -> None:
         """Mark the run failed when a crawl cannot finish bootstrapping."""

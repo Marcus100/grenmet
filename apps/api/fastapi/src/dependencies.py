@@ -98,6 +98,11 @@ async def get_current_user(session: SessionDep, token: TokenDep) -> User:
         user_id = uuid.UUID(token_data.sub)
     except ValueError:
         raise _unauthorized(ERROR_INVALID_CREDENTIALS)
+    return await get_authenticated_user(session, user_id)
+
+
+async def get_authenticated_user(session: AsyncSession, user_id: uuid.UUID) -> User:
+    """Apply the same live account and role checks for every credential type."""
     stmt = (
         select(User)
         .where(User.id == user_id)

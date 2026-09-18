@@ -47,6 +47,7 @@ class WeatherSpider(scrapy.Spider):
         # If observation_time not already set by spider, use source_modified
         if not item.get("observation_time") and item.get("source_modified"):
             item["observation_time"] = item["source_modified"]
+            item["time_basis"] = "source_modified"
 
         yield item
 

@@ -10,11 +10,7 @@ import {
   alertsSummary,
   exerciseStatuses,
   fetchActiveAlerts,
-  groupAlerts,
-  HAZARD_GROUPS,
-  OTHER_HAZARD,
   type PublicAlert,
-  toPublicAlerts,
 } from "@/lib/cap";
 
 function alert(overrides: Partial<PublicAlert> = {}): PublicAlert {
@@ -29,58 +25,6 @@ function alert(overrides: Partial<PublicAlert> = {}): PublicAlert {
     ...overrides,
   };
 }
-
-describe("groupAlerts", () => {
-  it("keeps every hazard name, in order, even when empty", () => {
-    const groups = groupAlerts([]);
-    // Derived from the source so adding a hazard cannot silently break this.
-    expect(groups).toHaveLength(HAZARD_GROUPS.length);
-    expect(groups.map((g) => g.name)).toEqual(HAZARD_GROUPS.map((g) => g.name));
-    expect(groups[0].name).toBe("Tropical Cyclone");
-    expect(groups.every((g) => g.alerts.length === 0)).toBe(true);
-  });
-
-  it("files a tsunami message under its own hazard, not the catch-all", () => {
-    const groups = groupAlerts([
-      alert({ event: "Tsunami Warning", identifier: "id-tsunami" }),
-    ]);
-    expect(groups.find((g) => g.name === "Tsunami")?.alerts).toHaveLength(1);
-    expect(groups.find((g) => g.name === OTHER_HAZARD)).toBeUndefined();
-  });
-
-  it("files an alert under the hazard its event name matches", () => {
-    const groups = groupAlerts([alert()]);
-    const marine = groups.find((g) => g.name === "Marine / Small Craft");
-    expect(marine?.alerts).toHaveLength(1);
-  });
-
-  it("never loses an alert whose event matches no hazard", () => {
-    const groups = groupAlerts([
-      alert({ event: "Volcanic Ashfall", identifier: "id-ash" }),
-    ]);
-    const other = groups.find((g) => g.name === OTHER_HAZARD);
-    expect(other?.alerts.map((a) => a.identifier)).toEqual(["id-ash"]);
-  });
-
-  it("omits the catch-all group when everything matched", () => {
-    const groups = groupAlerts([alert()]);
-    expect(groups.some((g) => g.name === OTHER_HAZARD)).toBe(false);
-  });
-
-  it("orders alerts within a hazard by descending severity", () => {
-    const groups = groupAlerts([
-      alert({ identifier: "minor", severity: "Minor" }),
-      alert({ identifier: "extreme", severity: "Extreme" }),
-      alert({ identifier: "moderate", severity: "Moderate" }),
-    ]);
-    const marine = groups.find((g) => g.name === "Marine / Small Craft");
-    expect(marine?.alerts.map((a) => a.identifier)).toEqual([
-      "extreme",
-      "moderate",
-      "minor",
-    ]);
-  });
-});
 
 describe("alertsSummary", () => {
   it("never presents an outage as an all-clear", () => {
@@ -100,54 +44,6 @@ describe("alertsSummary", () => {
   });
 });
 
-describe("toPublicAlerts", () => {
-  it("flattens the CAP alert/info structure", () => {
-    const [result] = toPublicAlerts([
-      {
-        identifier: "GD-2026-001",
-        info: [
-          {
-            areas: [{ area_desc: "Grenada coastal waters" }],
-            event: "Gale Warning",
-            expires: "2026-08-19T18:00:00Z",
-            headline: "Gale force winds expected",
-            severity: "Severe",
-          },
-        ],
-      },
-    ]);
-    expect(result).toEqual({
-      areas: ["Grenada coastal waters"],
-      event: "Gale Warning",
-      expires: "2026-08-19T18:00:00Z",
-      headline: "Gale force winds expected",
-      identifier: "GD-2026-001",
-      severity: "Severe",
-      status: "Actual",
-    });
-  });
-
-  it("treats an unrecognised severity as Unknown rather than trusting it", () => {
-    const [result] = toPublicAlerts([
-      { identifier: "x", info: [{ event: "Wind", severity: "Catastrophic" }] },
-    ]);
-    expect(result.severity).toBe("Unknown");
-  });
-
-  it("skips records with no event or identifier", () => {
-    expect(
-      toPublicAlerts([{ identifier: "x" }, { info: [{ event: "Wind" }] }])
-    ).toEqual([]);
-  });
-
-  it("falls back to the event name when no headline is given", () => {
-    const [result] = toPublicAlerts([
-      { identifier: "x", info: [{ event: "Heat Advisory" }] },
-    ]);
-    expect(result.headline).toBe("Heat Advisory");
-  });
-});
-
 describe("fetchActiveAlerts", () => {
   const originalFetch = globalThis.fetch;
 
@@ -160,7 +56,12 @@ describe("fetchActiveAlerts", () => {
     globalThis.fetch = ((_url: string, init: RequestInit) => {
       calls.push(init);
       return Promise.resolve({
-        json: () => Promise.resolve({ data: [] }),
+        json: () =>
+          Promise.resolve({
+            as_of: "2026-09-17T12:00:00Z",
+            groups: [],
+            activeCount: 0,
+          }),
         ok: true,
       } as Response);
     }) as typeof fetch;
@@ -192,37 +93,11 @@ describe("fetchActiveAlerts", () => {
   });
 });
 
-describe("toPublicAlerts status", () => {
-  function raw(status?: string) {
-    return [
-      {
-        identifier: "id-1",
-        status,
-        info: [{ event: "Tsunami Warning", headline: "Move to high ground" }],
-      },
-    ];
-  }
-
-  it("reads the CAP status off the alert", () => {
-    expect(toPublicAlerts(raw("Exercise"))[0].status).toBe("Exercise");
-  });
-
-  it("falls back to Actual when the status is missing", () => {
-    expect(toPublicAlerts(raw(undefined))[0].status).toBe("Actual");
-  });
-
-  it("falls back to Actual for an unrecognised status", () => {
-    // Safe direction: a real warning shown plainly beats a real warning
-    // wrongly badged as a drill.
-    expect(toPublicAlerts(raw("Nonsense"))[0].status).toBe("Actual");
-  });
-});
-
 describe("exerciseStatuses", () => {
   function ok(alerts: PublicAlert[]) {
     return {
       status: "ok" as const,
-      groups: groupAlerts(alerts),
+      groups: [{ name: "Warnings", alerts }],
       activeCount: alerts.length,
     };
   }
@@ -251,7 +126,7 @@ describe("exerciseStatuses", () => {
 describe("alertsLevel", () => {
   const ok = (alerts: PublicAlert[]) => ({
     activeCount: alerts.length,
-    groups: groupAlerts(alerts),
+    groups: [{ name: "Warnings", alerts }],
     status: "ok" as const,
   });
 
@@ -288,4 +163,62 @@ describe("alertsLevel", () => {
   it("never reports an outage as 'none'", () => {
     expect(alertsLevel({ status: "unavailable" })).toBe("unknown");
   });
+});
+
+it("rejects malformed warning data rather than treating missing status as Actual", async () => {
+  const original = globalThis.fetch;
+  try {
+    globalThis.fetch = (() =>
+      Promise.resolve(
+        Response.json({
+          as_of: "2026-09-17T12:00:00Z",
+          activeCount: 1,
+          groups: [
+            {
+              name: "Wind",
+              alerts: [
+                {
+                  identifier: "id",
+                  event: "Wind",
+                  headline: "Warning",
+                  severity: "Severe",
+                  expires: null,
+                  areas: [],
+                },
+              ],
+            },
+          ],
+        })
+      )) as typeof fetch;
+    expect(await fetchActiveAlerts()).toEqual({ status: "unavailable" });
+  } finally {
+    globalThis.fetch = original;
+  }
+});
+
+it("uses backend groups without classifying the event again", async () => {
+  const original = globalThis.fetch;
+  const groups = [
+    {
+      name: "Backend category",
+      alerts: [alert({ event: "Novel hazard", status: "Exercise" })],
+    },
+  ];
+  try {
+    globalThis.fetch = (() =>
+      Promise.resolve(
+        Response.json({
+          as_of: "2026-09-17T12:00:00Z",
+          activeCount: 1,
+          groups,
+        })
+      )) as typeof fetch;
+    expect(await fetchActiveAlerts()).toEqual({
+      status: "ok",
+      activeCount: 1,
+      groups,
+    });
+  } finally {
+    globalThis.fetch = original;
+  }
 });

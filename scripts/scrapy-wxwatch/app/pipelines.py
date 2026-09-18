@@ -4,17 +4,16 @@
 # See: https://docs.scrapy.org/en/latest/topics/item-pipeline.html
 
 
-import json
 import hashlib
 import re
 from datetime import datetime, timezone
 from pathlib import PurePosixPath
 from urllib.parse import unquote, urlparse
 
-import psycopg
 from itemadapter import ItemAdapter
 
 from scrapy.pipelines.images import ImagesPipeline
+from scrapy.utils.defer import ensure_awaitable
 
 
 class ConcurrentCrawlError(RuntimeError):
@@ -91,8 +90,30 @@ class MinutePathImagesPipeline(ImagesPipeline):
             safe_spider = "unknown"
 
         source_hash = hashlib.sha256(request.url.encode("utf-8")).hexdigest()[:12]
+        # Response content makes keys immutable across corrections at the same URL/time.
+        if response is not None:
+            source_hash += "_" + hashlib.sha256(response.body).hexdigest()
         filename = f"{dt:%Y%m%d%H%M}_{source_hash}_{safe_stem}{extension}"
         return f"{safe_spider}/{dt:%Y/%m/%d/%H}/{filename}"
+
+    def media_to_download(self, request, info, *, item=None):
+        # A reused source URL may carry a correction at the same observation time.
+        # Fetch bytes before deciding identity; the API deduplicates by checksum.
+        return None
+
+    def get_images(self, response, request, info, *, item=None):
+        from io import BytesIO
+
+        buffer = BytesIO(response.body)
+        image = self._Image.open(buffer)
+        image.verify()
+        buffer.seek(0)
+        image = self._Image.open(buffer)
+        yield (
+            self.file_path(request, response=response, info=info, item=item),
+            image,
+            buffer,
+        )
 
     async def image_downloaded(self, response, request, info, *, item=None):
         """Persist an image and attach metadata for the bytes that were stored."""
@@ -107,12 +128,14 @@ class MinutePathImagesPipeline(ImagesPipeline):
                 content_type = self._set_stored_image_metadata(item, buffer)
 
             width, height = image.size
-            self.store.persist_file(
-                path,
-                buffer,
-                info,
-                meta={"width": width, "height": height},
-                headers={"Content-Type": content_type},
+            await ensure_awaitable(
+                self.store.persist_file(
+                    path,
+                    buffer,
+                    info,
+                    meta={"width": width, "height": height},
+                    headers={"Content-Type": content_type},
+                )
             )
 
         if checksum is None:
@@ -140,191 +163,61 @@ class MinutePathImagesPipeline(ImagesPipeline):
         return f"image/{file_format}"
 
 
-class PostgresPipeline:
-    """
-    Write scraped items directly to PostgreSQL using psycopg (v3).
+class FastApiPipeline:
+    """Collect files separately; FastAPI owns all archive database writes."""
 
-    It runs after the image pipeline, reuses existing records for previously
-    downloaded content, and fails the crawl when persistence fails.
-    """
+    def __init__(self, crawler):
+        from app.api import ArchiveClient
+        from run_crawlers import CrawlOutcome
 
-    def __init__(
-        self,
-        db_host: str,
-        db_port: int,
-        db_name: str,
-        db_user: str,
-        db_password: str,
-    ):
-        self.db_host = db_host
-        self.db_port = db_port
-        self.db_name = db_name
-        self.db_user = db_user
-        self.db_password = db_password
-        self.conn: psycopg.Connection | None = None
+        self.crawler = crawler
+        self.client = ArchiveClient()
+        self.outcome = CrawlOutcome()
+        self.run_id: str | None = None
 
     @classmethod
     def from_crawler(cls, crawler):
-        db_password = crawler.settings.get("DB_PASSWORD")
-        if not db_password:
-            raise ValueError("DB_PASSWORD is required for PostgresPipeline")
+        from scrapy import signals
 
-        return cls(
-            db_host=crawler.settings.get("DB_HOST", "127.0.0.1"),
-            db_port=crawler.settings.getint("DB_PORT", 5432),
-            db_name=crawler.settings.get("DB_NAME", "wxwatch"),
-            db_user=crawler.settings.get("DB_USER", "wxwatch"),
-            db_password=db_password,
+        instance = cls(crawler)
+        crawler.signals.connect(instance.spider_closed, signal=signals.spider_closed)
+        crawler.signals.connect(
+            instance.outcome.record_error, signal=signals.spider_error
         )
+        crawler.signals.connect(
+            instance.outcome.record_error, signal=signals.item_error
+        )
+        return instance
 
-    def _require_connection(self) -> psycopg.Connection:
-        if self.conn is None:
-            raise RuntimeError("PostgresPipeline has not been opened")
-        return self.conn
+    async def open_spider(self):
+        import asyncio
 
-    def open_spider(self, spider):
-        """Connect to PostgreSQL when spider opens."""
-        try:
-            connection = psycopg.connect(
-                host=self.db_host,
-                port=self.db_port,
-                dbname=self.db_name,
-                user=self.db_user,
-                password=self.db_password,
-            )
-            self.conn = connection
-            lock_name = f"wxwatch-run:{spider.name}"
-            lock_row = connection.execute(
-                "SELECT pg_try_advisory_lock(hashtextextended(%s, 0))",
-                (lock_name,),
-            ).fetchone()
-            if not lock_row or not lock_row[0]:
-                connection.close()
-                self.conn = None
-                raise ConcurrentCrawlError(
-                    f"Crawler {spider.name!r} is already running"
-                )
-            spider.logger.info(
-                "PostgresPipeline: Connected to %s@%s:%s/%s",
-                self.db_user,
-                self.db_host,
-                self.db_port,
-                self.db_name,
-            )
-        except psycopg.Error as e:
-            spider.logger.error(
-                "PostgresPipeline: Failed to connect to database: %s", e
-            )
-            raise
+        result = await asyncio.to_thread(
+            self.client.post, "/runs", {"source": self.crawler.spider.name}
+        )
+        self.run_id = result["id"]
 
-    def close_spider(self, spider):
-        """Close the database connection after all per-item commits finish."""
-        if self.conn is not None:
-            self.conn.close()
-            self.conn = None
-            spider.logger.info("PostgresPipeline: Connection closed")
+    async def process_item(self, item):
+        import asyncio
+        from app.api import image_payload
 
-    def process_item(self, item, spider):
-        """Insert item into PostgreSQL database."""
         adapter = ItemAdapter(item)
-
-        # Skip if no image was downloaded
         images = adapter.get("images", [])
         if not images or not images[0].get("path"):
-            spider.logger.debug("PostgresPipeline: No downloaded image, skipping")
             return item
-
-        image_info = images[0]
-        image_url = adapter.get("image_urls", [None])[0]
-        connection = self._require_connection()
-
-        try:
-            checksum = image_info.get("checksum")
-            record_identity = "\x1f".join((image_url or "", checksum or ""))
-            connection.execute(
-                "SELECT pg_advisory_xact_lock(hashtextextended(%s, 0))",
-                (record_identity,),
-            )
-            existing = connection.execute(
-                """
-                SELECT 1
-                FROM weather_images
-                WHERE image_url IS NOT DISTINCT FROM %s
-                  AND checksum IS NOT DISTINCT FROM %s
-                LIMIT 1
-                """,
-                (image_url, checksum),
-            ).fetchone()
-            if existing:
-                connection.commit()
-                spider.logger.debug(
-                    "PostgresPipeline: Already recorded %s",
-                    image_info.get("path"),
-                )
-                return item
-
-            # Parse timestamps
-            fetched_at = parse_iso_datetime(adapter.get("fetched_at"))
-            source_modified = parse_iso_datetime(adapter.get("source_modified"))
-            observation_time = parse_iso_datetime(adapter.get("observation_time"))
-
-            if not fetched_at:
-                spider.logger.warning(
-                    "PostgresPipeline: Missing fetched_at, using now()"
-                )
-                fetched_at = datetime.now(timezone.utc)
-
-            # Convert raw_metadata to JSON string for psycopg3
-            raw_metadata = adapter.get("raw_metadata") or {}
-            raw_metadata_json = json.dumps(raw_metadata)
-
-            # Insert new record
-            connection.execute(
-                """
-                INSERT INTO weather_images (
-                    storage_path, width, height, spider_name, file_format,
-                    is_animated, file_size_bytes, fetched_at, name, image_url,
-                    parent_url, page_title, source_modified, observation_time,
-                    etag, checksum, download_status, mode, frame_count, raw_metadata
-                ) VALUES (
-                    %s, %s, %s, %s, %s,
-                    %s, %s, %s, %s, %s,
-                    %s, %s, %s, %s,
-                    %s, %s, %s, %s, %s, %s
-                )
-                """,
-                (
-                    image_info.get("path"),
-                    adapter.get("width", 0),
-                    adapter.get("height", 0),
-                    adapter.get("spider_name"),
-                    adapter.get("file_format"),
-                    adapter.get("is_animated", False),
-                    adapter.get("file_size_bytes"),
-                    fetched_at,
-                    adapter.get("name"),
-                    image_url,
-                    adapter.get("parent_url"),
-                    adapter.get("page_title"),
-                    source_modified,
-                    observation_time,
-                    adapter.get("etag"),
-                    image_info.get("checksum"),
-                    image_info.get("status"),
-                    adapter.get("mode"),
-                    adapter.get("frame_count", 1),
-                    raw_metadata_json,
-                ),
-            )
-            connection.commit()
-            spider.logger.debug(
-                "PostgresPipeline: Inserted %s",
-                image_info.get("path"),
-            )
-        except psycopg.Error as e:
-            spider.logger.error("PostgresPipeline: Database error: %s", e)
-            # Rollback to clear the failed transaction state
-            connection.rollback()
-            raise
-
+        await asyncio.to_thread(
+            self.client.post, "/ingest", image_payload(adapter, self.run_id)
+        )
+        self.outcome.record_item(adapter, None, self.crawler.spider)
         return item
+
+    async def spider_closed(self, spider, reason):
+        import asyncio
+
+        if self.run_id is not None:
+            self.outcome.record_closed(spider, reason)
+            await asyncio.to_thread(
+                self.client.post,
+                f"/runs/{self.run_id}/finish",
+                {"status": "failed" if self.outcome.failed else "finished"},
+            )
