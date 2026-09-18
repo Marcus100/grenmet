@@ -3,6 +3,7 @@
  * not from schema files, to avoid pulling large constants into every consumer.
  */
 
+export * from "./authored";
 export * from "./bufr";
 export * from "./cap";
 export * from "./db-helpers";
@@ -23,7 +24,3 @@ export * from "./suite-types";
 export * from "./synop";
 export * from "./taf";
 export * from "./zod-primitives";
-
-// Suite example: import { gmsDailySuiteExample } from "@/data/wxproducts/gms-suite.example";
-
-export * from "./authored";

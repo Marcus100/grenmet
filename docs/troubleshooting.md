@@ -126,26 +126,29 @@ Check that all env vars used in `turbo.json` `env` arrays are declared. If you a
 
 ## Database
 
-### Alembic migration fails (`wxwatch` or `wxproducts`)
+### FastAPI domain migration fails
 
-`wxwatch` and `wxproducts` are owned by FastAPI via Alembic, not Drizzle — the
-former standalone apps were folded into `gaa-admin` in June 2026, and weather
-migrations moved to FastAPI at the same time. Historical Drizzle files under
+`wxwatch`, `wxproducts`, `eregister`, `janitorial`, and `transport` are owned by
+FastAPI via dedicated Alembic histories. The web portal consumes them through
+the generated API client. Historical weather Drizzle files under
 `apps/web/gaa-admin` are adoption references only; do not add new Drizzle
 migrations for these domains.
 
 1. Make sure `POSTGRES_SERVER`/`DATABASE_URL` points to the correct database
    (wxwatch and wxproducts use different DBs — check
    `apps/api/fastapi/docker-compose.yml` for the database names).
-2. Run migrations from `apps/web/gaa-admin` (these scripts `cd` into
-   `apps/api/fastapi` internally and run Alembic there):
+2. Run the relevant migrations from `apps/api/fastapi`:
 
 ```bash
-cd apps/web/gaa-admin
-pnpm db:wxwatch:migrate       # or: pnpm db:wxproducts:migrate
+cd apps/api/fastapi
+uv run --frozen --package fast-back alembic -c src/wxwatch/alembic.ini upgrade head
+uv run --frozen --package fast-back alembic -c src/wxproducts/alembic.ini upgrade head
+uv run --frozen --package fast-back alembic -c src/eregister/alembic.ini upgrade head
+uv run --frozen --package fast-back alembic -c src/janitorial/alembic.ini upgrade head
+uv run --frozen --package fast-back alembic -c src/transport/alembic.ini upgrade head
 ```
 
-3. If the migration is conflicting with an existing schema, inspect
+3. If a migration conflicts with an existing schema, inspect
    `apps/api/fastapi/src/wxwatch/migrations/versions/` (or
    `src/wxproducts/migrations/versions/`) — do not delete migration files; fix
    forward.
@@ -157,9 +160,9 @@ this step means the migration file is not created and the change will not
 apply.
 
 ```bash
-cd apps/web/gaa-admin
-pnpm db:wxwatch:generate      # or: pnpm db:wxproducts:generate
-pnpm db:wxwatch:migrate       # or: pnpm db:wxproducts:migrate
+cd apps/api/fastapi
+uv run --frozen --package fast-back alembic -c src/wxwatch/alembic.ini revision -m "message"
+uv run --frozen --package fast-back alembic -c src/wxwatch/alembic.ini upgrade head
 ```
 
 Commit both the schema file and the generated migration.
@@ -169,8 +172,10 @@ Commit both the schema file and the generated migration.
 `pnpm reset` wipes volumes. You need to re-run seed scripts if you need test data:
 
 - FastAPI core domains: `cd apps/api/fastapi && uv run --frozen --package fast-back python -m scripts.seed_data`
-- wxwatch / wxproducts: no seed script exists yet for these domains — data
-  comes from running the domain's normal ingestion/import flow after migrating
+- wxwatch / wxproducts / eRegister: data comes from the normal ingestion or
+  observation-entry flow after migrating
+- janitorial / transport: FastAPI prestart runs the create-once catalogue seeder
+  from `scripts/seed_catalogues.py`; it preserves existing rows
 
 ---
 

@@ -1,6 +1,5 @@
 /**
  * Midday forecast type and Zod schema.
- * For a full product example, import gmsMiddayWeatherReportExample from @/data/wxproducts/gms-midday-weather-report.example.
  */
 
 import { z } from "zod";

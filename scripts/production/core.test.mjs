@@ -59,7 +59,7 @@ case "$*" in
     echo ghcr.io/example/api@sha256:abc ;;
   *"image inspect"*)
     if [[ "$*" == *gd.barrels.environment* ]]; then if [[ "$TEST_FAILURE" == environment ]]; then echo wrong; else echo "$DEPLOY_ENV"; fi; elif [[ "$TEST_FAILURE" == revision ]]; then echo wrong; else echo "$GITHUB_SHA"; fi ;;
-  *"run --rm --no-deps web-migrate"*) [[ "$TEST_FAILURE" != migration ]] || exit 1 ;;
+  *"run --rm --no-deps prestart"*) [[ "$TEST_FAILURE" != migration ]] || exit 1 ;;
 esac
 exit 0
 `,

@@ -145,7 +145,7 @@ jobs:
       - name: Smoke-test image before publishing
         env:
           IMAGE: ghcr.io/${{ steps.ctx.outputs.owner }}/barrelsgd-${{ matrix.image }}:${{ steps.ctx.outputs.environment }}-sha-${{ github.sha }}
-          KIND: ${{ matrix.image == 'web-cms-migrate' && 'cms-migrate' || matrix.image == 'web-gaa-admin-migrate' && 'admin-migrate' || matrix.image == 'web-auth' && 'auth' || 'web' }}
+          KIND: ${{ matrix.image == 'web-cms-migrate' && 'cms-migrate' || matrix.image == 'web-auth' && 'auth' || 'web' }}
           PORT: ${{ matrix.port }}
           HEALTH: ${{ matrix.image == 'api-hono' && '/health' || '/api/health' }}
         run: |

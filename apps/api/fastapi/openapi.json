@@ -10582,6 +10582,72 @@
         ]
       }
     },
+    "/api/v1/janitorial/spec": {
+      "get": {
+        "tags": [
+          "janitorial"
+        ],
+        "summary": "Spec",
+        "operationId": "spec_api_v1_janitorial_spec_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BuildingView"
+                  },
+                  "type": "array",
+                  "title": "Response Spec Api V1 Janitorial Spec Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/transport/spec": {
+      "get": {
+        "tags": [
+          "transport"
+        ],
+        "summary": "Spec",
+        "operationId": "spec_api_v1_transport_spec_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/RouteView"
+                  },
+                  "type": "array",
+                  "title": "Response Spec Api V1 Transport Spec Get"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/auth/modern/email/request": {
       "post": {
         "tags": [
@@ -13216,6 +13282,40 @@
         ],
         "title": "ArchiveRetrieval"
       },
+      "AreaView": {
+        "properties": {
+          "bundles": {
+            "items": {
+              "$ref": "#/components/schemas/BundleView"
+            },
+            "type": "array",
+            "title": "Bundles"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/TaskView"
+            },
+            "type": "array",
+            "title": "Tasks"
+          }
+        },
+        "type": "object",
+        "required": [
+          "bundles",
+          "id",
+          "name",
+          "tasks"
+        ],
+        "title": "AreaView"
+      },
       "AuthoredProducts": {
         "properties": {
           "products": {
@@ -13827,6 +13927,75 @@
           "csrfToken"
         ],
         "title": "BrowserSession"
+      },
+      "BuildingView": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/SectionView"
+            },
+            "type": "array",
+            "title": "Sections"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "sections"
+        ],
+        "title": "BuildingView"
+      },
+      "BundleItem": {
+        "properties": {
+          "activity": {
+            "type": "string",
+            "title": "Activity"
+          },
+          "frequency": {
+            "$ref": "#/components/schemas/Frequency"
+          }
+        },
+        "type": "object",
+        "required": [
+          "activity",
+          "frequency"
+        ],
+        "title": "BundleItem"
+      },
+      "BundleView": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BundleItem"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "items",
+          "name"
+        ],
+        "title": "BundleView"
       },
       "CalendarEventCreate": {
         "properties": {
@@ -18427,6 +18596,29 @@
         ],
         "title": "ForecastSource"
       },
+      "Frequency": {
+        "properties": {
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          },
+          "periodValue": {
+            "type": "integer",
+            "title": "Periodvalue"
+          },
+          "periodUnit": {
+            "type": "string",
+            "title": "Periodunit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "count",
+          "periodValue",
+          "periodUnit"
+        ],
+        "title": "Frequency"
+      },
       "Gender": {
         "type": "string",
         "enum": [
@@ -22865,6 +23057,37 @@
         ],
         "title": "RosterRevisionsPublic"
       },
+      "RouteView": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
+          "shifts": {
+            "items": {
+              "$ref": "#/components/schemas/ShiftView"
+            },
+            "type": "array",
+            "title": "Shifts"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "number",
+          "shifts"
+        ],
+        "title": "RouteView"
+      },
       "RunFinish": {
         "properties": {
           "status": {
@@ -22915,6 +23138,46 @@
           "id"
         ],
         "title": "RunResult"
+      },
+      "SectionView": {
+        "properties": {
+          "areas": {
+            "items": {
+              "$ref": "#/components/schemas/AreaView"
+            },
+            "type": "array",
+            "title": "Areas"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "areas",
+          "id",
+          "name"
+        ],
+        "title": "SectionView"
       },
       "SecurityProof": {
         "properties": {
@@ -23881,6 +24144,42 @@
         },
         "type": "object",
         "title": "ShiftSwapSubmit"
+      },
+      "ShiftView": {
+        "properties": {
+          "endTime": {
+            "type": "string",
+            "title": "Endtime"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "startTime": {
+            "type": "string",
+            "title": "Starttime"
+          },
+          "trips": {
+            "items": {
+              "$ref": "#/components/schemas/TripView"
+            },
+            "type": "array",
+            "title": "Trips"
+          }
+        },
+        "type": "object",
+        "required": [
+          "endTime",
+          "id",
+          "name",
+          "startTime",
+          "trips"
+        ],
+        "title": "ShiftView"
       },
       "SignatureInput": {
         "properties": {
@@ -24940,6 +25239,36 @@
         "type": "object",
         "title": "StatusReportSubmit"
       },
+      "StopView": {
+        "properties": {
+          "groupTime": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grouptime"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "groupTime",
+          "id",
+          "name"
+        ],
+        "title": "StopView"
+      },
       "StoredProduct": {
         "properties": {
           "id": {
@@ -25820,6 +26149,40 @@
         ],
         "title": "SynopticSlots"
       },
+      "TaskView": {
+        "properties": {
+          "activity": {
+            "type": "string",
+            "title": "Activity"
+          },
+          "frequency": {
+            "$ref": "#/components/schemas/Frequency"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mode"
+          }
+        },
+        "type": "object",
+        "required": [
+          "activity",
+          "frequency",
+          "id",
+          "mode"
+        ],
+        "title": "TaskView"
+      },
       "TimesheetCreate": {
         "properties": {
           "user_id": {
@@ -26659,6 +27022,54 @@
           "created_at"
         ],
         "title": "TrainingRecordPublic"
+      },
+      "TripView": {
+        "properties": {
+          "arriveTime": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arrivetime"
+          },
+          "dayType": {
+            "type": "string",
+            "title": "Daytype"
+          },
+          "departTime": {
+            "type": "string",
+            "title": "Departtime"
+          },
+          "direction": {
+            "type": "string",
+            "title": "Direction"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "stops": {
+            "items": {
+              "$ref": "#/components/schemas/StopView"
+            },
+            "type": "array",
+            "title": "Stops"
+          }
+        },
+        "type": "object",
+        "required": [
+          "arriveTime",
+          "dayType",
+          "departTime",
+          "direction",
+          "id",
+          "stops"
+        ],
+        "title": "TripView"
       },
       "TwoFactorCodeRequest": {
         "properties": {

@@ -49,8 +49,8 @@ strength: check all five modules, not just the one you started in.
   products belong to FastAPI (Alembic) — never introduce a Drizzle writer or
   migration for these two. Historical Drizzle files under
   `src/db/wxwatch`/`src/db/wxproducts` are adoption references only.
-- **Database separation**: `janitorial`, `transport` (Drizzle),
-  `wxwatch`/`wxproducts` (FastAPI/Alembic) are separate domain databases —
+- **Database separation**: `janitorial`, `transport`,
+  `wxwatch`/`wxproducts` (all FastAPI/Alembic) are separate domain databases —
   never merge them, even if a query would be simpler joined.
 - **salesbus** keeps its own `CartProvider` and `AppShell`, scoped via
   `(admin)/salesbus/layout.tsx` — don't lift its state into a shared provider.

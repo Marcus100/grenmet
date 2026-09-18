@@ -73,10 +73,12 @@ their statuses or contribute to CAP warning counts. Linking is deferred.
 
 ## Configuration and rollout
 
-Run the existing wxproducts migration command before using the desk:
+The FastAPI prestart container applies the wxproducts migration before the desk
+starts. For a manual local migration, run:
 
 ```sh
-pnpm --filter @barrelsgd/web-gaa-admin db:wxproducts:migrate
+cd apps/api/fastapi
+uv run --frozen --package fast-back alembic -c src/wxproducts/alembic.ini upgrade head
 ```
 
 Set `WXPRODUCTS_API_URL` for the gms server to the reachable gaa-admin origin.

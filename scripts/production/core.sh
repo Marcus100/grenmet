@@ -63,7 +63,7 @@ docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" exec -T db bash 
 
 printf "%s\n" "Required migrations and catalogue initialization"
 set -euo pipefail
-for service in prestart web-migrate cms-migrate; do
+for service in prestart cms-migrate; do
   docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" run --rm --no-deps "$service"
 done
 

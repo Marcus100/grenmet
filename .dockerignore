@@ -37,6 +37,10 @@ yarn-error.log*
 **/.playwright/
 
 # Python
+# FastAPI catalogue seed inputs are required by the API image.
+!apps/api/fastapi/seed/
+!apps/api/fastapi/seed/**
+
 **/__pycache__/
 **/*.pyc
 **/.venv/
