@@ -9,14 +9,6 @@ import {
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@barrelsgd/ui/components/ui/card";
-import { Input } from "@barrelsgd/ui/components/ui/input";
-import { Label } from "@barrelsgd/ui/components/ui/label";
-import {
   Table,
   TableBody,
   TableCell,
@@ -41,6 +33,15 @@ import {
   Wind,
 } from "lucide-react";
 import { type FormEvent, useEffect, useState } from "react";
+import {
+  type CodedGroup,
+  CodedStrip,
+  GRID_CELL,
+  HEAD_ROW,
+  SectionCard,
+  SummaryHead,
+} from "./eregister-ui";
+import { ERegisterWorkbook } from "./eregister-workbook";
 
 // Modernised Meteorological Observations eRegister (station 78958, MBIA).
 // The register is backed by the dedicated FastAPI eRegister database; the
@@ -116,13 +117,6 @@ const CURRENT_READINGS: Reading[] = [
     icon: CloudSun,
   },
 ];
-
-interface CodedGroup {
-  code: string;
-  id: string;
-  label: string;
-  value: string;
-}
 
 const SECTION_1: CodedGroup[] = [
   { id: "mimi", code: "MiMiMjMj", label: "Report ind.", value: "AAXX" },
@@ -289,86 +283,6 @@ const REGISTER_DEFAULTS: Record<string, string> = Object.fromEntries(
   REGISTER_GROUPS.flatMap((group) => group.fields.map(([, key]) => [key, ""]))
 );
 
-// Shared spreadsheet-style cell chrome: vertical gridlines between columns.
-const GRID_CELL = "border-border border-r last:border-r-0";
-const HEAD_ROW = "bg-muted/50 hover:bg-muted/50";
-
-function SectionCard({
-  action,
-  children,
-  title,
-}: {
-  action?: React.ReactNode;
-  children: React.ReactNode;
-  title: React.ReactNode;
-}) {
-  return (
-    <Card className="gap-0 py-0">
-      <CardHeader className="flex flex-row items-center justify-between gap-2 border-b py-3.5">
-        <CardTitle className="text-sm">{title}</CardTitle>
-        {action}
-      </CardHeader>
-      <CardContent className="overflow-hidden rounded-b-xl p-0">
-        {children}
-      </CardContent>
-    </Card>
-  );
-}
-
-// Horizontal coding strip like the legacy register sheet: SYNOP code letters
-// as column headers, the coded values in the row beneath.
-function CodedStrip({ groups }: { groups: CodedGroup[] }) {
-  return (
-    <Table>
-      <TableHeader>
-        <TableRow className={HEAD_ROW}>
-          {groups.map((group) => (
-            <TableHead
-              className={`${GRID_CELL} h-auto px-3 py-2 text-center`}
-              key={group.id}
-            >
-              <div className="text-xs">{group.label}</div>
-              <div className="font-mono font-normal text-[10px] text-muted-foreground">
-                {group.code}
-              </div>
-            </TableHead>
-          ))}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        <TableRow>
-          {groups.map((group) => (
-            <TableCell
-              className={`${GRID_CELL} px-3 py-2.5 text-center font-medium font-mono text-sm tabular-nums`}
-              key={group.id}
-            >
-              {group.value}
-            </TableCell>
-          ))}
-        </TableRow>
-      </TableBody>
-    </Table>
-  );
-}
-
-function SummaryHead({
-  icon: Icon,
-  label,
-  unit,
-}: {
-  icon: LucideIcon;
-  label: string;
-  unit: string;
-}) {
-  return (
-    <span className="inline-flex items-center gap-1.5">
-      <Icon className="size-3.5 text-muted-foreground" />
-      <span>{label}</span>
-      <span className="font-normal text-muted-foreground text-xs">{unit}</span>
-    </span>
-  );
-}
-
 export function ERegister() {
   const [view, setView] = useState<"archive" | "new">("archive");
   const [liveObservations, setLiveObservations] = useState<
@@ -485,193 +399,36 @@ export function ERegister() {
     : OBS_LOG;
 
   if (view === "new") {
-    const updateValue = (key: keyof typeof structuredValues, value: string) =>
-      setStructuredValues((current) => ({ ...current, [key]: value }));
     const iso = new Date(observedAt).toISOString();
     const metarPreview = `TGPY ${iso.slice(8, 10)}${iso.slice(11, 15)}Z ${structuredValues.wind_dir}${structuredValues.wind_speed.padStart(2, "0")}KT ${structuredValues.visibility === "10" ? "9999" : structuredValues.visibility} ${structuredValues.present_wx || "NSW"} ${structuredValues.total_cloud === "0" ? "NSC" : `BKN${structuredValues.total_cloud}00`} ${structuredValues.air_temp}/${structuredValues.dew_point} Q${structuredValues.msl_pressure.replace(".", "")}`;
 
     return (
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-              Meteorological Observations Register
-            </p>
-            <h1 className="mt-1 font-semibold text-2xl tracking-tight">
-              New observation
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              {STATION.name} · {STATION.icao} · structured WMO entry
-            </p>
-          </div>
-          <Button onClick={() => setView("archive")} variant="outline">
-            Observation archive
-          </Button>
-        </div>
-        <SectionCard
-          action={<Badge variant="light-info">Draft · QC required</Badge>}
-          title="Hourly observation workbook"
-        >
-          <form className="space-y-5 p-4" onSubmit={saveDraft}>
-            <div className="grid gap-4 border-b pb-5 md:grid-cols-3">
-              <div className="grid gap-2">
-                <Label htmlFor="new-observed-at">Observation time (UTC)</Label>
-                <Input
-                  id="new-observed-at"
-                  onChange={(event) => setObservedAt(event.target.value)}
-                  type="datetime-local"
-                  value={observedAt}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label>Station</Label>
-                <Input disabled value={`${STATION.icao} · ${STATION.number}`} />
-              </div>
-              <div className="grid gap-2">
-                <Label>Observer</Label>
-                <Input disabled value={STATION.observer} />
-              </div>
-            </div>
-            <div className="grid gap-4">
-              {REGISTER_GROUPS.map((group) => (
-                <Card className="gap-0 overflow-hidden py-0" key={group.title}>
-                  <CardHeader className="border-b bg-muted/30 px-3 py-2">
-                    <CardTitle className="font-semibold text-xs uppercase tracking-wide">
-                      {group.title}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="overflow-x-auto p-0">
-                    <Table className="min-w-max border-collapse">
-                      <TableHeader>
-                        <TableRow className="bg-muted/40 hover:bg-muted/40">
-                          {group.fields.map(([label, key, code]) => (
-                            <TableHead
-                              className="h-28 min-w-10 border-border border-r p-0 align-bottom"
-                              key={key}
-                            >
-                              <div className="flex h-28 flex-col items-center justify-end gap-1 pb-1">
-                                <span className="block rotate-180 whitespace-nowrap text-[11px] [writing-mode:vertical-rl]">
-                                  {label}
-                                </span>
-                                <span className="block whitespace-nowrap font-mono font-normal text-[10px] text-muted-foreground">
-                                  {code}
-                                </span>
-                              </div>
-                            </TableHead>
-                          ))}
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        <TableRow className="align-top">
-                          {group.fields.map(([label, key]) => (
-                            <TableCell
-                              className="border-border border-r p-0"
-                              key={key}
-                            >
-                              <Input
-                                aria-label={label}
-                                className={`h-7 min-w-10 rounded-none border-0 bg-transparent px-0.5 font-mono text-[11px] shadow-none focus-visible:ring-1 ${validationIssues.some((issue) => issue.field === key) ? "bg-destructive/10 text-destructive" : ""}`}
-                                onChange={(event) => {
-                                  updateValue(key, event.target.value);
-                                  setValidationIssues((issues) =>
-                                    issues.filter(
-                                      (issue) => issue.field !== key
-                                    )
-                                  );
-                                  setValidationState("idle");
-                                }}
-                                value={structuredValues[key] ?? ""}
-                              />
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            {validationIssues.length > 0 && (
-              <div
-                className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-destructive text-xs"
-                role="alert"
-              >
-                {validationIssues.map((issue) => (
-                  <p key={`${issue.field}-${issue.message}`}>
-                    <strong>{issue.field}</strong>: {issue.message}
-                  </p>
-                ))}
-              </div>
-            )}
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-muted-foreground text-xs">
-                {validationState === "valid"
-                  ? "WMO checks passed for the current workbook."
-                  : "Validate before saving to identify WMO field errors."}
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  disabled={validationState === "checking"}
-                  onClick={validateDraft}
-                  type="button"
-                  variant="outline"
-                >
-                  {validationState === "checking"
-                    ? "Checking…"
-                    : "Validate observation"}
-                </Button>
-                <Button disabled={saveState === "saving"} type="submit">
-                  <Save />
-                  {saveState === "saving" ? "Saving…" : "Save draft"}
-                </Button>
-              </div>
-            </div>
-            {saveState === "saved" && (
-              <p className="text-muted-foreground text-xs" role="status">
-                Draft saved to eRegister. QC approval is still required.
-              </p>
-            )}
-            {saveState === "error" && (
-              <p className="text-destructive text-xs" role="alert">
-                Draft could not be saved. Check the API and try again.
-              </p>
-            )}
-          </form>
-        </SectionCard>
-        <div className="grid gap-6 xl:grid-cols-2">
-          <SectionCard
-            action={<Badge variant="secondary">Preview</Badge>}
-            title="SYNOP"
-          >
-            <div className="space-y-3 p-4">
-              <p className="text-muted-foreground text-xs">
-                WMO encoder will generate this after code-table and cross-field
-                validation.
-              </p>
-              <code className="block rounded-lg bg-muted px-3 py-3 font-mono text-muted-foreground text-xs">
-                Pending validation · {STATION.number} ·{" "}
-                {observedAt.replace("T", " ")} UTC
-              </code>
-            </div>
-          </SectionCard>
-          <SectionCard
-            action={<Badge variant="secondary">Preview</Badge>}
-            title="METAR / SPECI"
-          >
-            <div className="space-y-3 p-4">
-              <p className="text-muted-foreground text-xs">
-                SPECI appears only when a configured special-report trigger
-                applies.
-              </p>
-              <code className="block overflow-x-auto whitespace-nowrap rounded-lg bg-muted px-3 py-3 font-mono text-xs">
-                {metarPreview}
-              </code>
-            </div>
-          </SectionCard>
-        </div>
-      </div>
+      <ERegisterWorkbook
+        groups={REGISTER_GROUPS}
+        issues={validationIssues}
+        metarPreview={metarPreview}
+        observedAt={observedAt}
+        onBack={() => setView("archive")}
+        onObservedAtChange={setObservedAt}
+        onSubmit={saveDraft}
+        onValidate={validateDraft}
+        onValidationIssuesChange={setValidationIssues}
+        onValidationStateChange={setValidationState}
+        onValueChange={(key, value) =>
+          setStructuredValues((current) => ({ ...current, [key]: value }))
+        }
+        saveStatus={saveState}
+        station={STATION}
+        validationStatus={validationState}
+        values={structuredValues}
+      />
     );
   }
+
+  let liveLabel = "Sample register data";
+  if (liveState === "ready")
+    liveLabel = `${liveObservations.length} live SYNOP records`;
+  if (liveState === "loading") liveLabel = "Loading live SYNOP";
 
   return (
     <div className="flex flex-col gap-6">
@@ -729,11 +486,7 @@ export function ERegister() {
         </span>
         <Badge variant="light-success">QC passed</Badge>
         <Badge variant={liveState === "ready" ? "light-info" : "secondary"}>
-          {liveState === "ready"
-            ? `${liveObservations.length} live SYNOP records`
-            : liveState === "loading"
-              ? "Loading live SYNOP"
-              : "Sample register data"}
+          {liveLabel}
         </Badge>
         <Badge variant="light-info">CL backed up · {STATION.backedUp}</Badge>
         <a
