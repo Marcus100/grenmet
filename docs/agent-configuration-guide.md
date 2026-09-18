@@ -78,7 +78,7 @@ The following sections preserve the detailed concepts, resources, and repository
 | `CLAUDE.md` | Persistent Claude Code instructions | [`CLAUDE.md`](../CLAUDE.md) |
 | Skill | Reusable knowledge or workflow | [`.claude/skills/implement/SKILL.md`](../.claude/skills/implement/SKILL.md) |
 | Command | Older Claude slash-command format | [`.claude/commands/pre-merge.md`](../.claude/commands/pre-merge.md) |
-| Hook | Automatic lifecycle action | [`.agents/hooks.json`](../.agents/hooks.json) |
+| Hook | Automatic lifecycle action | [`.agents/hooks.json`](../.codex/config.toml) |
 | Settings | Tool permissions and configuration | [`.claude/settings.json`](../.claude/settings.json) |
 | MCP | Connection to external tools and data | No MCP servers are permitted in `settings.json` |
 | Subagent | Isolated worker for a focused task | Claude Code agent feature |
@@ -391,7 +391,7 @@ Read:
 Inspect:
 
 - [`settings.json`](../.claude/settings.json)
-- [`hooks.json`](../.agents/hooks.json)
+- [`hooks.json`](../.codex/config.toml)
 
 ### Stage 4: hooks and MCP
 

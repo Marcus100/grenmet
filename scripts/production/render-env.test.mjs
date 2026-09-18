@@ -38,6 +38,7 @@ function fixture(directory) {
   for (const domain of [
     "WXWATCH",
     "WXPRODUCTS",
+    "EREGISTER",
     "TRANSPORT",
     "JANITORIAL",
     "CMS",

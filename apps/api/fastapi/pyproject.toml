@@ -110,6 +110,7 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+addopts = "--import-mode=importlib"
 norecursedirs = ["scripts", ".git", ".tox", "dist", "build"]
 asyncio_mode = "auto"
 

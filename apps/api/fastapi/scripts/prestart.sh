@@ -78,6 +78,14 @@ elif [ "${ENVIRONMENT:-local}" != "local" ]; then
     exit 1
 fi
 
+# The staff eRegister has its own database and migration history.
+if [ -n "${EREGISTER_DATABASE_URL:-}" ]; then
+    alembic -c src/eregister/alembic.ini upgrade head
+elif [ "${ENVIRONMENT:-local}" != "local" ]; then
+    echo "EREGISTER_DATABASE_URL is required for observation-register migration" >&2
+    exit 1
+fi
+
 # Required bootstrap errors must fail deployment. Development users are opt-in.
 if [ "${ENVIRONMENT:-local}" = "local" ]; then
     python scripts/initial_data.py
