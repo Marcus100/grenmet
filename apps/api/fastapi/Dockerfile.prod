@@ -98,6 +98,7 @@ COPY --chown=appuser:appuser apps/api/fastapi/alembic apps/api/fastapi/alembic
 COPY --chown=appuser:appuser apps/api/fastapi/alembic.ini apps/api/fastapi/alembic.ini
 COPY --chown=appuser:appuser apps/api/fastapi/email-templates apps/api/fastapi/email-templates
 COPY --chown=appuser:appuser apps/api/fastapi/scripts apps/api/fastapi/scripts
+COPY --chown=appuser:appuser apps/api/fastapi/seed apps/api/fastapi/seed
 
 # Switch to non-root user
 USER appuser
