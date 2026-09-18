@@ -24,7 +24,6 @@ COPY apps/web/gaa-admin/package.json apps/web/gaa-admin/
 COPY apps/web/gms/package.json apps/web/gms/
 COPY apps/web/mbia/package.json apps/web/mbia/
 COPY apps/web/signal/package.json apps/web/signal/
-COPY packages/admin-migrations/package.json packages/admin-migrations/
 COPY packages/api-client/package.json packages/api-client/
 COPY packages/auth/package.json packages/auth/
 COPY packages/cms-migrations/package.json packages/cms-migrations/

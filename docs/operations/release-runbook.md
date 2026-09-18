@@ -259,10 +259,7 @@ That establishes a lower observed median probe time, not sole causation for the
 pipeline improvement.
 
 Admin migrations previously deployed the full web application's production
-graph. The dependency-only `packages/admin-migrations` workspace now declares
-`pg` and `drizzle-orm` from the existing catalog. SQL, seeds, script paths,
-database checks and the non-root runtime user remain in the existing app image.
-The Docker dependency-packaging stage precedes application-source copying so
+The FastAPI service now owns GAA domain migrations and seeds. Web images no longer package or execute the deleted admin-migrations workspace; deployment migration steps run through the FastAPI migration service.
 source-only changes can reuse the packaged dependency layer.
 
 Local `pnpm deploy --legacy --prod` measurements for the original and minimal
