@@ -1,6 +1,10 @@
+import { capInsertTargets } from "@barrelsgd/gms/products";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { CapForecastPicker } from "./cap-forecast-picker";
+
+const EVENING_TARGETS = capInsertTargets("evening");
+const MORNING_TARGETS = capInsertTargets("morning");
 
 const INSTRUCTION = /instruction:/i;
 const HEADLINE = /headline:/i;
@@ -43,7 +47,7 @@ it("copies only selected text with attribution after checking the bulletin again
     .mockImplementation(() => Promise.resolve(response([bulletin])));
   vi.stubGlobal("fetch", fetcher);
   const onInsert = vi.fn();
-  render(<CapForecastPicker evening onInsert={onInsert} />);
+  render(<CapForecastPicker onInsert={onInsert} targets={EVENING_TARGETS} />);
   fireEvent.click(screen.getByText("Load active CAP bulletins"));
   fireEvent.change(await screen.findByLabelText("CAP bulletin"), {
     target: { value: `${uuid}/${uuid}` },
@@ -75,7 +79,7 @@ it("does not copy a bulletin that is no longer active", async () => {
       .mockResolvedValueOnce(response([]))
   );
   const onInsert = vi.fn();
-  render(<CapForecastPicker evening={false} onInsert={onInsert} />);
+  render(<CapForecastPicker onInsert={onInsert} targets={MORNING_TARGETS} />);
   fireEvent.click(screen.getByText("Load active CAP bulletins"));
   fireEvent.change(await screen.findByLabelText("CAP bulletin"), {
     target: { value: `${uuid}/${uuid}` },
@@ -91,7 +95,7 @@ it("reports an unavailable CAP service", async () => {
     "fetch",
     vi.fn().mockResolvedValue(new Response(null, { status: 503 }))
   );
-  render(<CapForecastPicker evening={false} onInsert={vi.fn()} />);
+  render(<CapForecastPicker onInsert={vi.fn()} targets={MORNING_TARGETS} />);
   fireEvent.click(screen.getByText("Load active CAP bulletins"));
   await screen.findByText("CAP bulletins could not be loaded. Try again.");
 });
