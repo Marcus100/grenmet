@@ -1,64 +1,72 @@
-import type { GeoJSONFeatureCollection } from "@/lib/cap-api";
+"use client";
 
-interface Point {
-  x: number;
-  y: number;
+import type { CapSeverity } from "@barrelsgd/api-client";
+import type { Feature, FeatureCollection, Polygon } from "geojson";
+import { useMemo } from "react";
+import { Layer, Source } from "react-map-gl/maplibre";
+import type { GeoJSONFeatureCollection } from "@/lib/cap-api";
+import { circleToRingCoordinates } from "@/lib/cap-areas";
+import { SEVERITY_HEX, severityRank } from "@/lib/cap-severity";
+import { CapMap } from "./cap-map";
+
+interface AreaProperties {
+  headline: string;
+  identifier: string;
+  severity: CapSeverity;
 }
 
+/**
+ * Renders the real CAP area geometry the API already computes
+ * (geo.py's alerts_to_feature_collection) on the bundled Grenada base map,
+ * coloured by severity. A CIRCLE area arrives as a Point + radiusKm — that
+ * gets expanded into a real ring client-side so it reads at the correct
+ * geographic scale instead of a fixed-pixel dot.
+ *
+ * Areas selected purely by parish geocode (no polygon/circle geometry) have
+ * no shape to draw yet — same limitation the free-text area model had before
+ * this redesign. They still show correctly in the alert list beside the map.
+ */
 export function AlertMapPreview({
   featureCollection,
 }: {
   featureCollection: GeoJSONFeatureCollection;
 }) {
-  const polygons = extractPolygons(featureCollection);
-  const bounds = getBounds(polygons);
-  const paths = polygons.map((polygon) =>
-    polygon
-      .map((point) => projectPoint(point, bounds))
-      .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`)
-      .join(" ")
-      .concat(" Z")
+  const areaFeatures = useMemo(
+    () => toAreaFeatures(featureCollection),
+    [featureCollection]
+  );
+  const bySeverity = useMemo(
+    () => groupBySeverity(areaFeatures),
+    [areaFeatures]
   );
 
   return (
-    <div className="relative min-h-96 overflow-hidden border border-gm-border bg-gm-surface">
-      <svg
-        aria-label="Active CAP alert map"
-        className="absolute inset-0 size-full"
-        preserveAspectRatio="xMidYMid meet"
-        viewBox="0 0 720 420"
-      >
-        <defs>
-          <pattern
-            height="48"
-            id="map-grid"
-            patternUnits="userSpaceOnUse"
-            width="48"
+    <div className="relative overflow-hidden border border-gm-border">
+      <CapMap height={420}>
+        {bySeverity.map(([severity, collection]) => (
+          <Source
+            data={collection}
+            id={`cap-active-${severity}`}
+            key={severity}
+            type="geojson"
           >
-            <path
-              className="stroke-gm-border"
-              d="M 48 0 L 0 0 0 48"
-              fill="none"
-              strokeWidth="1"
+            <Layer
+              id={`cap-active-${severity}-fill`}
+              paint={{
+                "fill-color": SEVERITY_HEX[severity],
+                "fill-opacity": 0.38,
+              }}
+              type="fill"
             />
-          </pattern>
-        </defs>
-        <rect fill="url(#map-grid)" height="420" width="720" />
-        <path
-          className="fill-gm-surface-panel stroke-gm-blue"
-          d="M120 92 C210 36 340 54 465 96 C560 128 640 210 602 288 C558 382 390 390 245 348 C106 308 58 168 120 92Z"
-          strokeWidth="2"
-        />
-        {paths.map((path) => (
-          <path
-            className="fill-gm-risk-red/[0.32] stroke-gm-risk-red"
-            d={path}
-            key={path}
-            strokeWidth="3"
-          />
+            <Layer
+              id={`cap-active-${severity}-line`}
+              paint={{ "line-color": SEVERITY_HEX[severity], "line-width": 2 }}
+              type="line"
+            />
+          </Source>
         ))}
-      </svg>
-      <div className="absolute right-4 bottom-4 left-4 flex flex-wrap items-center justify-between gap-2 bg-card/90 px-3 py-2 text-body-sm text-gm-text-secondary shadow-card backdrop-blur">
+      </CapMap>
+      <div className="pointer-events-none absolute right-4 bottom-4 left-4 flex flex-wrap items-center justify-between gap-2 bg-card/90 px-3 py-2 text-body-sm text-gm-text-secondary shadow-card backdrop-blur">
         <span>{featureCollection.features.length} active map features</span>
         <span>GeoJSON / CAP 1.2</span>
       </div>
@@ -66,56 +74,69 @@ export function AlertMapPreview({
   );
 }
 
-function extractPolygons(
+function toAreaFeatures(
   featureCollection: GeoJSONFeatureCollection
-): Point[][] {
-  const polygons: Point[][] = [];
+): Feature<Polygon, AreaProperties>[] {
+  const features: Feature<Polygon, AreaProperties>[] = [];
   for (const feature of featureCollection.features) {
+    const properties: AreaProperties = {
+      identifier: String(feature.properties.identifier ?? ""),
+      headline: String(feature.properties.headline ?? ""),
+      severity:
+        (feature.properties.severity as CapSeverity | null) ?? "Unknown",
+    };
     const geometry = feature.geometry;
-    if (!(geometry && "coordinates" in geometry)) {
+    if (!geometry) {
       continue;
     }
     if (geometry.type === "Polygon") {
-      const coordinates = geometry.coordinates as number[][][];
-      polygons.push(toPoints(coordinates[0] ?? []));
-    }
-    if (geometry.type === "MultiPolygon") {
+      features.push({
+        type: "Feature",
+        properties,
+        geometry: geometry as Polygon,
+      });
+    } else if (geometry.type === "MultiPolygon") {
       const coordinates = geometry.coordinates as number[][][][];
       for (const polygon of coordinates) {
-        polygons.push(toPoints(polygon[0] ?? []));
+        features.push({
+          type: "Feature",
+          properties,
+          geometry: { type: "Polygon", coordinates: polygon },
+        });
+      }
+    } else if (geometry.type === "Point") {
+      const [lon, lat] = geometry.coordinates as [number, number];
+      const radiusKm = Number(feature.properties.radiusKm ?? 0);
+      if (radiusKm > 0) {
+        const ring = circleToRingCoordinates({ lat, lon, radiusKm });
+        features.push({
+          type: "Feature",
+          properties,
+          geometry: { type: "Polygon", coordinates: [ring] },
+        });
       }
     }
   }
-  return polygons;
+  return features;
 }
 
-function toPoints(coordinates: number[][]): Point[] {
-  return coordinates
-    .filter((coordinate) => coordinate.length >= 2)
-    .map(([lon, lat]) => ({ x: lon, y: lat }));
-}
-
-function getBounds(polygons: Point[][]) {
-  const points = polygons.flat();
-  if (points.length === 0) {
-    return { minX: -62.2, maxX: -61.3, minY: 11.7, maxY: 12.7 };
+function groupBySeverity(
+  features: Feature<Polygon, AreaProperties>[]
+): [CapSeverity, FeatureCollection<Polygon, AreaProperties>][] {
+  const groups = new Map<CapSeverity, Feature<Polygon, AreaProperties>[]>();
+  for (const feature of features) {
+    const existing = groups.get(feature.properties.severity) ?? [];
+    existing.push(feature);
+    groups.set(feature.properties.severity, existing);
   }
-  return {
-    minX: Math.min(...points.map((point) => point.x)),
-    maxX: Math.max(...points.map((point) => point.x)),
-    minY: Math.min(...points.map((point) => point.y)),
-    maxY: Math.max(...points.map((point) => point.y)),
-  };
-}
-
-function projectPoint(
-  point: Point,
-  bounds: { minX: number; maxX: number; minY: number; maxY: number }
-): Point {
-  const width = Math.max(bounds.maxX - bounds.minX, 0.1);
-  const height = Math.max(bounds.maxY - bounds.minY, 0.1);
-  return {
-    x: 90 + ((point.x - bounds.minX) / width) * 540,
-    y: 350 - ((point.y - bounds.minY) / height) * 260,
-  };
+  // Highest severity drawn last so it sits on top where alerts overlap.
+  return [...groups.entries()]
+    .sort((a, b) => severityRank(a[0]) - severityRank(b[0]))
+    .map(
+      ([severity, list]) =>
+        [severity, { type: "FeatureCollection", features: list }] as [
+          CapSeverity,
+          FeatureCollection<Polygon, AreaProperties>,
+        ]
+    );
 }

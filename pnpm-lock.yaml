@@ -195,6 +195,9 @@ catalogs:
     '@turf/helpers':
       specifier: ^7.4.0
       version: 7.4.0
+    '@types/geojson':
+      specifier: ^7946.0.16
+      version: 7946.0.16
     '@types/node':
       specifier: ^24.13.3
       version: 24.13.3
@@ -803,6 +806,9 @@ importers:
       maplibre-gl:
         specifier: 'catalog:'
         version: 6.9.0
+      motion:
+        specifier: 'catalog:'
+        version: 13.2.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       next:
         specifier: 'catalog:'
         version: 16.3.4(@babel/core@7.28.6(supports-color@8.1.1))(@opentelemetry/api@1.9.1)(@playwright/test@1.63.0)(@types/node@24.13.3)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(sass@1.77.4)
@@ -885,6 +891,9 @@ importers:
       '@total-typescript/ts-reset':
         specifier: 'catalog:'
         version: 0.6.1
+      '@types/geojson':
+        specifier: 'catalog:'
+        version: 7946.0.16
       '@types/node':
         specifier: 'catalog:'
         version: 24.13.3
@@ -969,6 +978,9 @@ importers:
       maplibre-gl:
         specifier: 'catalog:'
         version: 6.9.0
+      motion:
+        specifier: 'catalog:'
+        version: 13.2.0(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
       next:
         specifier: 'catalog:'
         version: 16.3.4(@babel/core@7.28.6(supports-color@8.1.1))(@opentelemetry/api@1.9.1)(@playwright/test@1.63.0)(@types/node@24.13.3)(babel-plugin-macros@3.1.0)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)(sass@1.77.4)

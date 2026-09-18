@@ -23,6 +23,20 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: pushMock, refresh: refreshMock }),
 }));
 
+// jsdom has no WebGL context, so the real maplibre-gl Map can't mount in
+// tests. AreaPicker's map is a click surface here — the parish/circle/polygon
+// buttons beside it carry the actually-testable interaction.
+vi.mock("react-map-gl/maplibre", () => ({
+  Map: ({ children }: { children?: React.ReactNode }) => (
+    <div data-testid="cap-map">{children}</div>
+  ),
+  Source: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+  Layer: () => null,
+  NavigationControl: () => null,
+  ScaleControl: () => null,
+  AttributionControl: () => null,
+}));
+
 const BASE = "http://localhost";
 const CREATE_URL = `${BASE}/api/v1/cap/alerts`;
 const SAVE_DRAFT = /save draft/i;
@@ -73,7 +87,7 @@ describe("NewAlertPage", () => {
       "Describe the hazard and expected impact…",
       "Rapid flooding expected."
     );
-    fill("Area 1 description", "Saint George");
+    fireEvent.click(screen.getByRole("button", { name: "St. George" }));
     clickSaveDraft();
 
     await waitFor(() => expect(capturedBody).not.toBeNull());
@@ -109,7 +123,11 @@ describe("NewAlertPage", () => {
       ],
     });
     expect(body.info[0]?.areas).toEqual([
-      { kind: "AREA", area_desc: "Saint George" },
+      {
+        kind: "GEOCODE",
+        area_desc: "Saint George",
+        geocodes: [{ value_name: "ISO3166-2:GD", value: "GD-03" }],
+      },
     ]);
 
     await waitFor(() =>
