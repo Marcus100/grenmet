@@ -1,3 +1,8 @@
+"use client";
+
+import { motion } from "motion/react";
+import { fadeUp, staggerContainer } from "@/lib/motion";
+
 export interface Stat {
   detail?: string;
   label: string;
@@ -7,11 +12,18 @@ export interface Stat {
 /** Small figure grid — station counts, normals, totals at a glance. */
 export function StatTiles({ stats }: { stats: readonly Stat[] }) {
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <motion.div
+      className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4"
+      initial="hidden"
+      variants={staggerContainer}
+      viewport={{ once: true, margin: "-40px" }}
+      whileInView="show"
+    >
       {stats.map((stat) => (
-        <div
+        <motion.div
           className="rounded border border-gm-border bg-background p-4 lg:p-5"
           key={stat.label}
+          variants={fadeUp}
         >
           <p className="text-gm-text-muted text-label leading-label">
             {stat.label}
@@ -24,8 +36,8 @@ export function StatTiles({ stats }: { stats: readonly Stat[] }) {
               {stat.detail}
             </p>
           )}
-        </div>
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
 }
