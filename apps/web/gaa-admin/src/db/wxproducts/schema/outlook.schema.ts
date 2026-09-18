@@ -1,7 +1,6 @@
 /**
  * Tropical weather outlook forecast type and Zod schema.
  * geojson is typed as unknown for flexibility; use a GeoJSON type if you need stricter validation.
- * For a full product example, import gmsTropicalOutlookExample from @/data/wxproducts/gms-tropical-outlook.example.
  */
 
 import { z } from "zod";

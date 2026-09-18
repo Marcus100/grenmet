@@ -29,7 +29,7 @@ acceptance.
 | `apps/web/events` | Barrels Events product | Prototype | Approved Events discovery/ticketing pilot after transition gates |
 | `apps/web/signal` | Barrels Signal media product | Active | Maintain separately; deepen according to product evidence |
 | `apps/web/mbia` | GAA/MBIA passenger public service | Active | Keep distinct from GAA corporate and staff applications |
-| `apps/api/fastapi` | Barrels-operated shared API serving client and product domains | Active | Preserve domain boundaries; make authorization product/organisation aware |
+| `apps/api/fastapi` | Barrels-operated shared API serving client and product domains | Active | Preserve domain boundaries; own migrations, catalogue seeds, authorization, and generated contracts |
 | `apps/api/honoapi` | Barrels browser-facing BFF for web apps and PWAs | Prototype health stub; migration planned | Prove one existing private journey, sessions and contracts before wider adoption |
 
 The current `gaa-admin` module ownership is intentionally mixed during the
@@ -48,7 +48,6 @@ transition:
 | Repository surface | Primary classification and owner | Lifecycle | Dependency rule |
 | --- | --- | --- | --- |
 | `packages/cms-migrations` | Barrels delivery tooling for GMS content | Active | Dependency-only package for the canonical CMS migration config; excludes web UI dependencies |
-| `packages/admin-migrations` | Barrels delivery tooling for GAA | Active | Dependency-only package for admin migrations and baselines; no web runtime dependencies |
 | `packages/auth` | Barrels platform | Active | May serve products and clients; grants no application access by default |
 | `packages/ui` | Barrels platform, brand-neutral primitives | Active; separation complete at boundaries 3-5 | Carries no brand prefix; must not depend on a brand package or select GMS branding by default |
 | `packages/theme` | Barrels platform display infrastructure | Active | Brand-neutral; product packages supply mappings |
@@ -69,9 +68,11 @@ transition:
 | Storage | Barrels platform | Multiple domains | Preserve domain ownership, access controls, retention, and audit |
 | Worker and webhooks | Barrels platform runtime | Async product/client operations | Add consumers only with retry, idempotency, monitoring, and ownership |
 
-Drizzle-owned WxWatch/WxProducts data currently lives with the staff portal;
-this is an implementation location, not a transfer of operational ownership
-away from GMS.
+WxWatch, WxProducts, eRegister, Janitorial, and Transport data remain in
+separate domain databases, but FastAPI now owns their schemas, migrations,
+seeding, and runtime access. The staff portal is a generated-contract client;
+this implementation location does not transfer operational ownership away from
+GMS or GAA.
 
 ## Operational pipelines, tools, and automation
 

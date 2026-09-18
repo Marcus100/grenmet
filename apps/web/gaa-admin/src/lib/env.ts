@@ -11,10 +11,6 @@ export const env = createEnv({
     SESSION_COOKIE_DOMAIN: z.string().optional(),
     // CAP alert API base URL (falls back to AUTH_API_URL when unset).
     CAP_API_URL: z.string().url().optional(),
-    // Dedicated Postgres connection for the janitorial cleaning-spec catalogue.
-    JANITORIAL_DATABASE_URL: z.string().min(1).optional(),
-    // Dedicated Postgres connection for the staff transportation timetable.
-    TRANSPORT_DATABASE_URL: z.string().min(1).optional(),
   },
   client: {
     NEXT_PUBLIC_WXWATCH_OBJECT_STORAGE: z
@@ -40,8 +36,6 @@ export const env = createEnv({
     SESSION_COOKIE_NAME: process.env.SESSION_COOKIE_NAME,
     SESSION_COOKIE_DOMAIN: process.env.SESSION_COOKIE_DOMAIN,
     CAP_API_URL: process.env.CAP_API_URL,
-    JANITORIAL_DATABASE_URL: process.env.JANITORIAL_DATABASE_URL,
-    TRANSPORT_DATABASE_URL: process.env.TRANSPORT_DATABASE_URL,
     NEXT_PUBLIC_WXWATCH_OBJECT_STORAGE:
       process.env.NEXT_PUBLIC_WXWATCH_OBJECT_STORAGE,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL ?? "",

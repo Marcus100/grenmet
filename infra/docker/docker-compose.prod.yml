@@ -169,24 +169,6 @@ services:
     networks:
       - grenmet
 
-  # ── Drizzle migrations ───────────────────────────────────────────────────────
-  # The wxwatch + wxproducts databases are now consumed by web-admin. Their
-  # Drizzle migrations run from the admin-migrate image (built target=migrate),
-  # which carries both schema folders and runs both migration scripts.
-  web-migrate:
-    image: ghcr.io/${GHCR_OWNER}/grenmet-web-admin-migrate:${WEB_TAG:-latest}
-    restart: "no"
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL}
-      WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL}
-      JANITORIAL_DATABASE_URL: ${JANITORIAL_DB_URL}
-      TRANSPORT_DATABASE_URL: ${TRANSPORT_DB_URL}
-    networks:
-      - grenmet
-
   # ── Web Apps ─────────────────────────────────────────────────────────────────
   web-auth:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-auth:${WEB_TAG:-latest}
@@ -221,9 +203,6 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
-    depends_on:
-      web-migrate:
-        condition: service_completed_successfully
     environment:
       AUTH_APP_URL: https://auth.barrels.gd
       AUTH_API_URL: https://api.barrels.gd
@@ -233,10 +212,7 @@ services:
       RESEND_API_KEY: ${RESEND_API_KEY}
       NEXT_PUBLIC_API_URL: https://api.barrels.gd
       # Consolidated apps' dedicated Postgres databases.
-      WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL}
       WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL}
-      JANITORIAL_DATABASE_URL: ${JANITORIAL_DB_URL}
-      TRANSPORT_DATABASE_URL: ${TRANSPORT_DB_URL}
       CAP_API_URL: https://api.barrels.gd
     labels:
       - "traefik.enable=true"

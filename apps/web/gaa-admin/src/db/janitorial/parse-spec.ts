@@ -1,9 +1,9 @@
 /**
  * Pure parser for the janitorial cleaning-spec seed CSV
- * (apps/web/gaa-admin/seed/janitorial-spec.csv).
+ * (apps/api/fastapi/seed/janitorial-spec.csv).
  *
  * Kept dependency-free and side-effect-free so it can be unit-tested with Vitest
- * and imported by the Node seed runner (scripts/seed-janitorial.mjs). It does NOT
+ * and imported by the FastAPI seeder (scripts/seed_catalogues.py). It does NOT
  * touch the database — it normalises rows into deduplicated entities keyed for the
  * seed runner to resolve into foreign keys.
  */
@@ -96,7 +96,11 @@ export function parseFrequency(raw: string): Frequency {
 }
 
 /** Human-readable cadence, e.g. "2×/day", "3×/5 days", "1×/15 min". */
-export function formatFrequency(freq: Frequency): string {
+export function formatFrequency(freq: {
+  count: number;
+  periodValue: number;
+  periodUnit: string;
+}): string {
   const unit = freq.periodUnit === "minute" ? "min" : "day";
   const period = freq.periodValue === 1 ? unit : `${freq.periodValue} ${unit}s`;
   return `${freq.count}×/${period}`;

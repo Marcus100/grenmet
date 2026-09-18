@@ -1,6 +1,5 @@
 /**
  * Morning forecast type and Zod schema.
- * For a full product example, import gmsMorningForecastExample from @/data/wxproducts/gms-morning-forecast.example.
  */
 
 import { z } from "zod";

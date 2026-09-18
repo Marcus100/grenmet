@@ -39,9 +39,10 @@ Never commit `.env.local`. Never write to it programmatically.
 
 - **docs**: Uses Turbopack. Content lives in `src/content/` via
   `@content-collections/next`. MDX plugins run in a separate Node.js process.
-- **gaa-admin**: Owns the consolidated `wxwatch` + `wxproducts` Drizzle ORM +
-  Postgres DBs (and Playwright PDF export). Run `pnpm db:wxwatch:migrate` and
-  `pnpm db:wxproducts:migrate` from within `apps/web/gaa-admin/` before first use.
+- **gaa-admin**: Presents the consolidated CAP, HR, WxWatch, WxProducts,
+  eRegister, Janitorial, and Transport modules. FastAPI owns their databases,
+  Alembic histories, and catalogue seeding. Run `pnpm start` before first use;
+  the API prestart container applies migrations and create-once catalogue seeds.
   (The former standalone wxwatch/wxproducts/hr/salesbus apps were folded in here in 2026-06.)
 - **All apps**: React Compiler is enabled — do not add `useMemo`/`useCallback`
   for performance; the compiler handles it.

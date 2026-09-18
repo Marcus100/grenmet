@@ -236,7 +236,7 @@ These apps redirect to `web-auth` for sign-in. They do not manage sessions direc
 
 ### gaa-admin (`apps/web/gaa-admin/.env.local`)
 
-gaa-admin hosts the consolidated CAP/HR/wxwatch/wxproducts/salesbus modules (2026-06), so it owns their env vars — including the two Drizzle database URLs and the CAP API base.
+gaa-admin hosts the consolidated CAP/HR/wxwatch/wxproducts/eRegister/janitorial/transport/salesbus modules (2026-06), but FastAPI owns their database connections. The web app only needs API and auth settings.
 
 | Variable | Purpose |
 |---|---|
@@ -248,10 +248,6 @@ gaa-admin hosts the consolidated CAP/HR/wxwatch/wxproducts/salesbus modules (202
 | `NEXT_PUBLIC_API_URL` | FastAPI public URL for client-side requests |
 | `RESEND_API_KEY` | Email sending (server-side only) |
 | `CAP_API_URL` | FastAPI base URL for the consolidated CAP module |
-| `WXWATCH_DATABASE_URL` | Retired from web runtime; configure in FastAPI for archive reads, writes and migrations |
-| `WXPRODUCTS_DATABASE_URL` | Retired from gaa-admin. Configure this only for FastAPI; gaa-admin reads/writes weather products through the API. |
-| `JANITORIAL_DATABASE_URL` | Postgres connection string for the janitorial database (Drizzle) |
-| `TRANSPORT_DATABASE_URL` | Postgres connection string for the transport database (Drizzle) |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Optional browser error reporting |
 | `NEXT_PUBLIC_POSTHOG_KEY` / `NEXT_PUBLIC_POSTHOG_HOST` | Optional browser analytics |
 

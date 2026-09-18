@@ -26,7 +26,6 @@ COPY apps/web/gaa-admin/package.json apps/web/gaa-admin/
 COPY apps/web/gms/package.json apps/web/gms/
 COPY apps/web/mbia/package.json apps/web/mbia/
 COPY apps/web/signal/package.json apps/web/signal/
-COPY packages/admin-migrations/package.json packages/admin-migrations/
 COPY packages/api-client/package.json packages/api-client/
 COPY packages/auth/package.json packages/auth/
 COPY packages/cms-migrations/package.json packages/cms-migrations/
@@ -60,7 +59,6 @@ ENV NEXT_PUBLIC_SENTRY_ENVIRONMENT=$NEXT_PUBLIC_SENTRY_ENVIRONMENT
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Explicit application sources and workspace dependency closure.
-COPY packages/admin-migrations/ packages/admin-migrations/
 COPY packages/api-client/ packages/api-client/
 COPY packages/auth/ packages/auth/
 COPY packages/gms/ packages/gms/
@@ -72,23 +70,6 @@ COPY apps/web/gaa-admin/ apps/web/gaa-admin/
 FROM source AS builder
 RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN,env=SENTRY_AUTH_TOKEN RESEND_API_KEY=build-only-placeholder pnpm exec turbo run build --filter=@barrelsgd/web-gaa-admin
 RUN mkdir -p apps/web/gaa-admin/public
-
-# ── Migration runner ─────────────────────────────────────────────────────────
-# One-off migrations use source and installed dependencies without a Next.js build.
-FROM dependencies AS migration-package
-RUN pnpm --filter @barrelsgd/admin-migrations deploy --legacy --prod /migration-runtime
-
-FROM runtime-base AS migrate
-WORKDIR /app
-ENV NODE_ENV=production
-COPY --from=migration-package /migration-runtime/node_modules ./apps/web/gaa-admin/node_modules
-COPY --from=source /app/apps/web/gaa-admin/package.json ./apps/web/gaa-admin/package.json
-COPY --from=source /app/apps/web/gaa-admin/scripts ./apps/web/gaa-admin/scripts
-COPY --from=source /app/apps/web/gaa-admin/drizzle ./apps/web/gaa-admin/drizzle
-COPY --from=source /app/apps/web/gaa-admin/seed ./apps/web/gaa-admin/seed
-COPY --from=source /app/apps/web/gaa-admin/src/db ./apps/web/gaa-admin/src/db
-USER node
-CMD ["sh", "-c", "node apps/web/gaa-admin/scripts/migrate-janitorial.mjs && node apps/web/gaa-admin/scripts/migrate-transport.mjs && node apps/web/gaa-admin/scripts/seed-transport.mjs --apply && node apps/web/gaa-admin/scripts/seed-janitorial.mjs --apply && node apps/web/gaa-admin/scripts/verify-databases.mjs"]
 
 FROM runtime-base AS runner
 WORKDIR /app

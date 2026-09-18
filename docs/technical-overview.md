@@ -27,7 +27,7 @@ For the directory layout, see [Workspace Layout in the root README](../README.md
 | App | Package | Port | Auth model | Database |
 |---|---|---|---|---|
 | `auth` | `@barrelsgd/web-auth` | 3000 | Owns sign-in/sign-up | — |
-| `gaa-admin` | `@barrelsgd/web-gaa-admin` | 3001 | Deep integration | FastAPI DB via API + wxwatch & wxproducts Drizzle DBs |
+| `gaa-admin` | `@barrelsgd/web-gaa-admin` | 3001 | Deep integration | FastAPI databases through generated API contracts |
 | `docs` | `@barrelsgd/web-docs` | 3002 | Delegates to auth | — |
 | `gms` | `@barrelsgd/web-gms` | 3003 | Delegates to auth | — |
 | `signal` | `@barrelsgd/web-signal` | 3004 | None (static MDX) | — |
@@ -39,8 +39,8 @@ For the directory layout, see [Workspace Layout in the root README](../README.md
 > **Current mixed portal boundary:** the former `cap`, `hr`, `wxwatch`, `wxproducts`, and
 > `salesbus` apps were folded into `gaa-admin` as path-prefixed, auth-gated routes
 > (`/cap`, `/hr`, `/wxwatch`, `/wxproducts`, `/salesbus`). Their dedicated Postgres
-> databases (wxwatch, wxproducts) are unchanged and are now consumed by `gaa-admin`;
-> migrations run from the `barrelsgd-web-gaa-admin-migrate` image. The old subdomains
+> databases remain separate, while FastAPI owns schema changes, seeds, reads, and writes;
+> `gaa-admin` consumes those domains through generated API contracts. The old subdomains
 > (`wxwatch.barrels.gd`, `hr.barrels.gd`, `sales.barrels.gd`, `wxproducts.barrels.gd`)
 > are retired. The application is the GAA staff-portal implementation, piloted
 > in GMS; it is not the future Barrels superuser admin.
@@ -147,23 +147,9 @@ Two presets: `tsconfig.json` (base, for packages/API) and `tsconfig.nextjs.json`
 
 ## Database architecture
 
-There are **three separate PostgreSQL databases**. They share the same Postgres server but are completely isolated from each other.
+The application, weather archive, weather products, eRegister, janitorial catalogue, and staff transport timetable use separate PostgreSQL databases. FastAPI owns the weather, eRegister, janitorial, and transport boundaries through dedicated SQLAlchemy sessions and Alembic histories. GAA Admin renders generated API contracts and does not connect directly to those databases.
 
-| Database | Managed by | Used by | ORM |
-|---|---|---|---|
-| FastAPI DB (`app_db`) | FastAPI / Alembic | `gaa-admin` (HR + CAP management and public CAP feeds, via API) | SQLModel + asyncpg |
-| wxwatch DB | Drizzle Kit | `gaa-admin` (`/wxwatch`), scrapy-wxwatch pipeline | Drizzle ORM |
-| wxproducts DB | Drizzle Kit | `gaa-admin` (`/wxproducts`) | Drizzle ORM |
-
-**Why separate?** Domain isolation — forecast products, weather images, and HR/auth data have nothing in common. Each schema evolves independently. Since the 2026-06 consolidation, `gaa-admin` consumes all three (the wxwatch/wxproducts Drizzle clients live at `apps/web/gaa-admin/src/db/{wxwatch,wxproducts}/` via `WXWATCH_DATABASE_URL` / `WXPRODUCTS_DATABASE_URL`).
-
-The `infra/docker/docker-compose.yml` provisions all three databases (and their users) on startup via init scripts.
-
-### Drizzle workflow (wxwatch / wxproducts)
-
-Run from `apps/web/gaa-admin`. After every schema change: `pnpm db:wxwatch:generate` or `pnpm db:wxproducts:generate` to create a migration file (under `drizzle/wxwatch/` or `drizzle/wxproducts/`), then `pnpm db:wxwatch:migrate` / `pnpm db:wxproducts:migrate` to apply it. In staging/prod the `barrelsgd-web-gaa-admin-migrate` image runs both migration sets before `web-admin` starts. Never skip generate — the migration file must be committed with the schema change. See [CONTRIBUTING.md — Database](../CONTRIBUTING.md#database-owned-by-gaa-admin) for the rule on committing migrations.
-
----
+The web migration image and legacy catalogue scripts are being retired. New schema, migration, seed, and read changes belong in `apps/api/fastapi`; the Python catalogue seeder is `scripts/seed_catalogues.py`.
 
 ## React Compiler
 

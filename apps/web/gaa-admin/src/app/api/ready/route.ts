@@ -1,7 +1,6 @@
-import { checkDatabase } from "@/db/readiness";
 import { listPublishedProducts } from "@/db/wxproducts/authored-queries";
 import { checkImageryReady } from "@/db/wxwatch/queries";
-import { env } from "@/env";
+import { getAuthApiBaseUrl, getAuthApiPrefix } from "@/lib/auth-config";
 
 export const dynamic = "force-dynamic";
 
@@ -12,15 +11,13 @@ export async function GET() {
       () => true,
       () => false
     ),
-    checkDatabase(
-      env.TRANSPORT_DATABASE_URL,
-      ["public.routes", "public.trips", "public.trip_stops"],
-      "transport-v1"
-    ),
-    checkDatabase(
-      env.JANITORIAL_DATABASE_URL,
-      ["public.buildings", "public.areas", "public.area_tasks"],
-      "janitorial-v1"
+    fetch(new URL(`${getAuthApiPrefix()}/utils/ready/`, getAuthApiBaseUrl()), {
+      cache: "no-store",
+      redirect: "error",
+      signal: AbortSignal.timeout(5000),
+    }).then(
+      (response) => response.ok,
+      () => false
     ),
   ]);
   const ready = results.every(Boolean);

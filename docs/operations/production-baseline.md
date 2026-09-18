@@ -7,10 +7,11 @@ The existing production database is authoritative. Do not reset it or replace it
 | Store | Initial configuration | Records entered or ingested later |
 | --- | --- | --- |
 | Main API | Accounts, GAA/GMS department, six approved grade definitions, roles and permissions, eight shift types, approval templates and policies, permanent staff credentials | Verified personnel fields, opening leave balances, requests, approved rosters, CAP alerts |
-| wxwatch | Existing Drizzle schema and indexes | Images from configured real feeds |
-| wxproducts | Existing Drizzle schema and product configuration | Forecasts and published products |
-| Transport | Existing migration plus approved catalogue seed | Bookings and operational history |
-| Janitorial | Existing migration plus approved catalogue seed | Tasks, inspections and operational history |
+| wxwatch | FastAPI Alembic schema and indexes | Images from configured real feeds |
+| wxproducts | FastAPI Alembic schema and product configuration | Forecasts and published products |
+| eRegister | FastAPI Alembic schema | Observations, QC decisions and publication provenance |
+| Transport | FastAPI Alembic schema plus approved create-once catalogue seed | Bookings and operational history |
+| Janitorial | FastAPI Alembic schema plus approved create-once catalogue seed | Tasks, inspections and operational history |
 | SURFACE | Its own migrations and reviewed reference fixtures | Observations and summaries from real feeds |
 | wis2box | Reviewed station/dataset metadata and retained integration settings | Observations, publication state and notifications |
 
@@ -20,7 +21,7 @@ Do not manufacture observations, leave balances, employee numbers, employment da
 
 1. Inventory the exact environment, database names, volumes, images and migration revisions. `bash scripts/production/inventory.sh` is read-only and must run on the host with Docker access.
 2. Take database and uploaded-file backups before migrations. Verify that a backup restores into an isolated environment; configure off-host retention and monitoring. The earlier one-hour recovery target is not met merely by having a daily backup. A 30-minute backup cadence and 30-day retention still need to be configured and restore-tested if that target is retained.
-3. Review and apply pending migrations for each store using the existing release runbook. Main API migrations and Drizzle migrations are separate. Starting FastAPI does not create the wxwatch tables.
+3. Review and apply pending Alembic migrations for each FastAPI store using the existing release runbook. FastAPI prestart applies these serially before dependent applications start.
 4. Preview the approved staff baseline with `scripts/seed_production.py --profile <approved-profile.json> --environment production` from the API workspace using the production runtime configuration. Check every reported account conflict. Do not change account names, privileges or passwords just to make a seed pass.
 5. Apply a reviewed seed only where the corresponding baseline has not been initialised. The main seed, transport and janitorial seeds track completion; repeat runs preserve online edits. Existing unmarked catalogue data must be reviewed rather than truncated. `scripts/production/seed-main.sh` is an operator helper; its preview describes targets and does not replace record-level review.
 6. Verify login, employee profile, staff card, roster, online edits, approval separation, session revocation and the real feeds in staging before production promotion. No deployment is performed by these instructions automatically.
