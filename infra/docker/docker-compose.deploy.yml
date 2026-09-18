@@ -331,11 +331,13 @@ services:
       NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_KEY:-}
       NEXT_PUBLIC_POSTHOG_HOST: ${NEXT_PUBLIC_POSTHOG_HOST:-https://us.i.posthog.com}
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
-      AUTH_API_URL: https://api.${BASE_DOMAIN}
+      # Server-side readiness and API calls use the internal FastAPI service.
+      AUTH_API_URL: http://api:8000
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
       SESSION_COOKIE_DOMAIN: .${BASE_DOMAIN}
       RESEND_API_KEY: ${RESEND_API_KEY}
+      # Browser calls still use the public API hostname.
       NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
       # Consolidated apps' dedicated Postgres databases.
       ENVIRONMENT: ${ENVIRONMENT}
