@@ -23,17 +23,21 @@ import {
   SelectValue,
 } from "@barrelsgd/ui/components/ui/select";
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
-import { ArrowLeft, Plus, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, Save } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { AreaPicker } from "@/components/cap/area-picker";
 import { HazardClassification } from "@/components/cap/hazard-classification";
-
-interface AreaRow {
-  desc: string;
-  id: string;
-}
+import { LivePreview, ReadinessChecklist } from "@/components/cap/live-preview";
+import { RiskLadder } from "@/components/cap/risk-ladder";
+import {
+  CERTAINTY_ORDER,
+  SEVERITY_ORDER,
+  URGENCY_ORDER,
+} from "@/lib/cap-severity";
 
 const INITIAL_FORM = {
   headline: "",
@@ -41,9 +45,9 @@ const INITIAL_FORM = {
   msgType: "Alert",
   status: "Actual",
   scope: "Public",
-  severity: "Unknown",
-  urgency: "Unknown",
-  certainty: "Unknown",
+  severity: "Unknown" as CapSeverity,
+  urgency: "Unknown" as CapUrgency,
+  certainty: "Unknown" as CapCertainty,
   language: "en",
   description: "",
   instruction: "",
@@ -87,11 +91,25 @@ function Field({
   );
 }
 
-function SectionHeading({ children }: { children: React.ReactNode }) {
+function Section({
+  title,
+  children,
+}: {
+  children: React.ReactNode;
+  title: string;
+}) {
   return (
-    <h2 className="text-gm-text-primary text-heading-sm leading-heading-sm">
+    <motion.section
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-4 border border-gm-border bg-card p-6 shadow-card"
+      initial={{ opacity: 0, y: 8 }}
+      transition={{ duration: 0.2 }}
+    >
+      <h2 className="text-gm-text-primary text-heading-sm leading-heading-sm">
+        {title}
+      </h2>
       {children}
-    </h2>
+    </motion.section>
   );
 }
 
@@ -99,24 +117,12 @@ export default function NewAlertPage() {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [categories, setCategories] = useState<CapCategory[]>([]);
-  const [areas, setAreas] = useState<AreaRow[]>([{ id: "1", desc: "" }]);
+  const [areas, setAreas] = useState<CapAreaCreate[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function update<K extends keyof FormState>(key: K, value: string) {
+  function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));
-  }
-
-  function addArea() {
-    setAreas((prev) => [...prev, { id: String(prev.length + 1), desc: "" }]);
-  }
-
-  function removeArea(id: string) {
-    setAreas((prev) => prev.filter((a) => a.id !== id));
-  }
-
-  function updateArea(id: string, desc: string) {
-    setAreas((prev) => prev.map((a) => (a.id === id ? { ...a, desc } : a)));
   }
 
   async function handleSubmit() {
@@ -139,10 +145,6 @@ export default function NewAlertPage() {
     setError(null);
     setSubmitting(true);
 
-    const areaPayload: CapAreaCreate[] = areas
-      .filter((a) => a.desc.trim())
-      .map((a) => ({ kind: "AREA", area_desc: a.desc.trim() }));
-
     const payload: CapAlertCreate = {
       status: form.status as CapStatus,
       msg_type: form.msgType as CapMessageType,
@@ -156,16 +158,16 @@ export default function NewAlertPage() {
           headline: form.headline.trim(),
           description: form.description.trim(),
           instruction: form.instruction.trim() || null,
-          severity: form.severity as CapSeverity,
-          urgency: form.urgency as CapUrgency,
-          certainty: form.certainty as CapCertainty,
+          severity: form.severity,
+          urgency: form.urgency,
+          certainty: form.certainty,
           effective: toIsoOrNull(form.effective),
           onset: toIsoOrNull(form.onset),
           expires: toIsoOrNull(form.expires),
           sender_name: form.senderName.trim() || null,
           contact: form.contact.trim() || null,
           web: form.web.trim() || null,
-          areas: areaPayload,
+          areas,
         },
       ],
     };
@@ -183,6 +185,8 @@ export default function NewAlertPage() {
       setSubmitting(false);
     }
   }
+
+  const areaDesc = areas[0]?.area_desc ?? "";
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
@@ -223,30 +227,33 @@ export default function NewAlertPage() {
       {/* A non-Actual status must be impossible to miss while drafting: the
           public site badges these as a drill, so a status set by accident
           either suppresses a real warning or dresses a drill as a real one. */}
-      {form.status === "Actual" ? null : (
-        <div
-          className="mt-4 border-2 border-gm-risk-red bg-gm-risk-yellow px-4 py-3"
-          role="alert"
-        >
-          <p className="font-bold text-body-sm text-gm-text-primary uppercase leading-body-sm">
-            Status: {form.status} — this is not a live warning
-          </p>
-          <p className="mt-1 text-body-sm text-gm-text-primary leading-body-sm">
-            The public site will label this message as a drill and tell readers
-            to take no protective action. Set the status to Actual before
-            issuing a real warning.
-          </p>
-        </div>
-      )}
+      <AnimatePresence initial={false}>
+        {form.status === "Actual" ? null : (
+          <motion.div
+            animate={{ opacity: 1, height: "auto", marginTop: 16 }}
+            className="overflow-hidden border-2 border-gm-risk-red bg-gm-risk-yellow px-4 py-3"
+            exit={{ opacity: 0, height: 0, marginTop: 0 }}
+            initial={{ opacity: 0, height: 0, marginTop: 0 }}
+            role="alert"
+            transition={{ duration: 0.18 }}
+          >
+            <p className="font-bold text-body-sm text-gm-text-primary uppercase leading-body-sm">
+              Status: {form.status} — this is not a live warning
+            </p>
+            <p className="mt-1 text-body-sm text-gm-text-primary leading-body-sm">
+              The public site will label this message as a drill and tell
+              readers to take no protective action. Set the status to Actual
+              before issuing a real warning.
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Form body */}
-      <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
+      <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_372px]">
         {/* Main column */}
-        <div className="space-y-8">
-          {/* Message block */}
-          <section className="space-y-4 border border-gm-border bg-white p-6 shadow-card">
-            <SectionHeading>Message</SectionHeading>
-
+        <div className="space-y-6">
+          <Section title="Message">
             <Field label="Headline" required>
               <Input
                 onChange={(e) => update("headline", e.target.value)}
@@ -258,7 +265,9 @@ export default function NewAlertPage() {
             <div className="grid gap-4 sm:grid-cols-3">
               <Field label="Message type" required>
                 <Select
-                  onValueChange={(v) => update("msgType", v ?? "")}
+                  onValueChange={(v) =>
+                    update("msgType", (v ?? "") as FormState["msgType"])
+                  }
                   value={form.msgType}
                 >
                   <SelectTrigger>
@@ -276,7 +285,9 @@ export default function NewAlertPage() {
 
               <Field label="Status" required>
                 <Select
-                  onValueChange={(v) => update("status", v ?? "")}
+                  onValueChange={(v) =>
+                    update("status", (v ?? "") as FormState["status"])
+                  }
                   value={form.status}
                 >
                   <SelectTrigger>
@@ -294,7 +305,9 @@ export default function NewAlertPage() {
 
               <Field label="Scope" required>
                 <Select
-                  onValueChange={(v) => update("scope", v ?? "")}
+                  onValueChange={(v) =>
+                    update("scope", (v ?? "") as FormState["scope"])
+                  }
                   value={form.scope}
                 >
                   <SelectTrigger>
@@ -308,10 +321,9 @@ export default function NewAlertPage() {
                 </Select>
               </Field>
             </div>
-          </section>
+          </Section>
 
-          <section className="space-y-4 border border-gm-border bg-card p-6 shadow-card">
-            <SectionHeading>Hazard identification</SectionHeading>
+          <Section title="Hazard identification">
             <HazardClassification
               categories={categories}
               event={form.event}
@@ -321,71 +333,34 @@ export default function NewAlertPage() {
                 setCategories(nextCategories);
               }}
             />
-          </section>
+          </Section>
 
-          <section className="space-y-4 border border-gm-border bg-card p-6 shadow-card">
-            <SectionHeading>Risk assessment</SectionHeading>
+          <Section title="Risk assessment">
             <p className="text-body-sm text-gm-text-muted">
               Review the assessment and sender for the responsible authority.
               Unknown means not assessed; it does not mean low risk.
             </p>
-
             <div className="grid gap-4 sm:grid-cols-3">
-              <Field label="Severity">
-                <Select
-                  onValueChange={(v) => update("severity", v ?? "")}
-                  value={form.severity}
-                >
-                  <SelectTrigger aria-label="Severity">
-                    <SelectValue>{(value) => value || "Select…"}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Extreme">Extreme</SelectItem>
-                    <SelectItem value="Severe">Severe</SelectItem>
-                    <SelectItem value="Moderate">Moderate</SelectItem>
-                    <SelectItem value="Minor">Minor</SelectItem>
-                    <SelectItem value="Unknown">Unknown</SelectItem>
-                  </SelectContent>
-                </Select>
-              </Field>
-
-              <Field label="Urgency">
-                <Select
-                  onValueChange={(v) => update("urgency", v ?? "")}
-                  value={form.urgency}
-                >
-                  <SelectTrigger aria-label="Urgency">
-                    <SelectValue>{(value) => value || "Select…"}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Immediate">Immediate</SelectItem>
-                    <SelectItem value="Expected">Expected</SelectItem>
-                    <SelectItem value="Future">Future</SelectItem>
-                    <SelectItem value="Past">Past</SelectItem>
-                    <SelectItem value="Unknown">Unknown</SelectItem>
-                  </SelectContent>
-                </Select>
-              </Field>
-
-              <Field label="Certainty">
-                <Select
-                  onValueChange={(v) => update("certainty", v ?? "")}
-                  value={form.certainty}
-                >
-                  <SelectTrigger aria-label="Certainty">
-                    <SelectValue>{(value) => value || "Select…"}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Observed">Observed</SelectItem>
-                    <SelectItem value="Likely">Likely</SelectItem>
-                    <SelectItem value="Possible">Possible</SelectItem>
-                    <SelectItem value="Unlikely">Unlikely</SelectItem>
-                    <SelectItem value="Unknown">Unknown</SelectItem>
-                  </SelectContent>
-                </Select>
-              </Field>
+              <RiskLadder
+                colored
+                label="Severity"
+                onChange={(value) => update("severity", value)}
+                options={SEVERITY_ORDER}
+                value={form.severity}
+              />
+              <RiskLadder
+                label="Urgency"
+                onChange={(value) => update("urgency", value)}
+                options={URGENCY_ORDER}
+                value={form.urgency}
+              />
+              <RiskLadder
+                label="Certainty"
+                onChange={(value) => update("certainty", value)}
+                options={CERTAINTY_ORDER}
+                value={form.certainty}
+              />
             </div>
-
             <Field label="Language">
               <Input
                 onChange={(e) => update("language", e.target.value)}
@@ -393,88 +368,55 @@ export default function NewAlertPage() {
                 value={form.language}
               />
             </Field>
-          </section>
+          </Section>
 
-          {/* Description */}
-          <section className="space-y-4 border border-gm-border bg-white p-6 shadow-card">
-            <SectionHeading>Description</SectionHeading>
-
-            <Field label="Description" required>
-              <Textarea
-                className="min-h-28 resize-y"
-                onChange={(e) => update("description", e.target.value)}
-                placeholder="Describe the hazard and expected impact…"
-                value={form.description}
-              />
-            </Field>
-
-            <Field label="Instruction">
-              <Textarea
-                className="min-h-20 resize-y"
-                onChange={(e) => update("instruction", e.target.value)}
-                placeholder="Actions the public should take…"
-                value={form.instruction}
-              />
-            </Field>
-
-            <Field label="Note">
-              <Input
-                onChange={(e) => update("note", e.target.value)}
-                placeholder="Internal note (not published)"
-                value={form.note}
-              />
-            </Field>
-          </section>
-
-          {/* Areas */}
-          <section className="space-y-4 border border-gm-border bg-white p-6 shadow-card">
-            <div className="flex items-center justify-between">
-              <SectionHeading>Affected areas</SectionHeading>
-              <Button
-                onClick={addArea}
-                size="sm"
-                type="button"
-                variant="outline"
-              >
-                <Plus aria-hidden="true" />
-                Add area
-              </Button>
-            </div>
-
-            {areas.map((area, index) => (
-              <div className="flex items-center gap-2" key={area.id}>
-                <Input
-                  className="flex-1"
-                  onChange={(e) => updateArea(area.id, e.target.value)}
-                  placeholder={`Area ${index + 1} description`}
-                  value={area.desc}
-                />
-                {areas.length > 1 && (
-                  <Button
-                    onClick={() => removeArea(area.id)}
-                    size="sm"
-                    type="button"
-                    variant="ghost"
-                  >
-                    <Trash2
-                      aria-hidden="true"
-                      className="size-4 text-gm-text-muted"
-                    />
-                    <span className="sr-only">Remove area</span>
-                  </Button>
-                )}
-              </div>
-            ))}
-          </section>
-        </div>
-
-        {/* Sidebar — timing & sender */}
-        <div className="space-y-4">
-          <div className="border border-gm-border bg-white p-4 shadow-card">
-            <p className="mb-4 text-gm-text-muted text-label uppercase leading-label">
-              Timing
+          <Section title="Affected areas">
+            <p className="text-body-sm text-gm-text-muted">
+              Pick the shape that matches how this hazard spreads — parishes for
+              most warnings, a circle for a point source, a polygon for anything
+              else.
             </p>
+            <AreaPicker onAreasChange={setAreas} severity={form.severity} />
+          </Section>
+
+          <Section title="Description">
             <div className="space-y-4">
+              <Field label="Description" required>
+                <Textarea
+                  className="min-h-28 resize-y"
+                  onChange={(e) => update("description", e.target.value)}
+                  placeholder="Describe the hazard and expected impact…"
+                  value={form.description}
+                />
+              </Field>
+              <Field label="Instruction">
+                <Textarea
+                  className="min-h-20 resize-y"
+                  onChange={(e) => update("instruction", e.target.value)}
+                  placeholder="Actions the public should take…"
+                  value={form.instruction}
+                />
+              </Field>
+              <Field label="Note">
+                <Input
+                  onChange={(e) => update("note", e.target.value)}
+                  placeholder="Internal note (not published). Escalating a bulletin? Record it as: Escalated from {kind} {product ID} rev {revision}"
+                  value={form.note}
+                />
+                <p className="text-body-sm text-gm-text-muted">
+                  If this alert escalates a Hazard Bulletin or Marine Bulletin,
+                  record which one here — there is no automatic link between
+                  them. If you cancel this alert later and it escalated a Hazard
+                  Bulletin (not a scheduled forecast or Marine Bulletin),
+                  withdraw that bulletin too — it has no standing reason to stay
+                  public once the hazard it flagged has been called off.
+                </p>
+              </Field>
+            </div>
+          </Section>
+
+          <Section title="Timing & sender">
+            <div className="grid gap-4 sm:grid-cols-3">
               <Field label="Effective">
                 <Input
                   onChange={(e) => update("effective", e.target.value)}
@@ -497,13 +439,7 @@ export default function NewAlertPage() {
                 />
               </Field>
             </div>
-          </div>
-
-          <div className="border border-gm-border bg-white p-4 shadow-card">
-            <p className="mb-4 text-gm-text-muted text-label uppercase leading-label">
-              Sender
-            </p>
-            <div className="space-y-4">
+            <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Sender name">
                 <Input
                   onChange={(e) => update("senderName", e.target.value)}
@@ -518,16 +454,46 @@ export default function NewAlertPage() {
                   value={form.contact}
                 />
               </Field>
-              <Field label="Web URL">
-                <Input
-                  onChange={(e) => update("web", e.target.value)}
-                  placeholder="https://…"
-                  type="url"
-                  value={form.web}
-                />
-              </Field>
             </div>
-          </div>
+            <Field label="Web URL">
+              <Input
+                onChange={(e) => update("web", e.target.value)}
+                placeholder="https://…"
+                type="url"
+                value={form.web}
+              />
+            </Field>
+          </Section>
+        </div>
+
+        {/* Sidebar — live preview & readiness */}
+        <div className="space-y-4 lg:sticky lg:top-6 lg:self-start">
+          <LivePreview
+            areaDesc={areaDesc}
+            contact={form.contact}
+            description={form.description}
+            effective={form.effective || "Not set"}
+            expires={form.expires || "Not set"}
+            headline={form.headline}
+            instruction={form.instruction}
+            senderName={form.senderName}
+            severity={form.severity}
+            urgency={form.urgency}
+          />
+          <ReadinessChecklist
+            hasArea={areas.length > 0}
+            hasMessage={Boolean(
+              form.headline.trim() &&
+                form.event.trim() &&
+                form.description.trim()
+            )}
+            isActualStatus={form.status === "Actual"}
+            riskAssessed={
+              form.severity !== "Unknown" ||
+              form.urgency !== "Unknown" ||
+              form.certainty !== "Unknown"
+            }
+          />
         </div>
       </div>
 
