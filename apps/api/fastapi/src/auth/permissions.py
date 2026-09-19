@@ -97,6 +97,22 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("workflow.template.view", "View workflow templates"),
     PermissionDef("workflow.instance.action", "Act on workflow instances"),
     PermissionDef("workflow.instance.view", "View workflow instances"),
+    # CMS editorial publishing
+    PermissionDef("cms.article.create", "Create CMS articles"),
+    PermissionDef("cms.article.edit.own", "Edit own CMS article drafts"),
+    PermissionDef("cms.article.edit.all", "Edit all CMS articles"),
+    PermissionDef("cms.article.submit", "Submit CMS articles for review"),
+    PermissionDef(
+        "cms.article.publish.latest-from-us", "Publish Latest from us articles"
+    ),
+    PermissionDef("cms.article.publish.weather-news", "Publish Weather News articles"),
+    PermissionDef(
+        "cms.article.publish.latest-publications",
+        "Publish Latest publications articles",
+    ),
+    PermissionDef("cms.article.unpublish", "Unpublish CMS articles"),
+    PermissionDef("cms.article.social.manage", "Manage CMS social publishing"),
+    PermissionDef("cms.article.manage", "Manage CMS editorial settings"),
     # CAP — alert lifecycle
     PermissionDef("cap.alert.create", "Create CAP alerts"),
     PermissionDef("cap.alert.edit", "Edit CAP alerts"),
