@@ -6,7 +6,7 @@ import pytest
 from pydantic import ValidationError
 
 from src.wxproducts import validation
-from src.wxproducts.schemas import ProductKind, ProductWrite
+from src.wxproducts.schemas import ProductKind, ProductWrite, ProductWriteAdapter
 
 NOW = datetime(2026, 9, 8, 23, tzinfo=UTC)
 
@@ -33,7 +33,7 @@ def complete(kind: ProductKind) -> dict[str, str]:
 
 
 def body(kind: ProductKind = "marine", **changes) -> ProductWrite:
-    return ProductWrite.model_validate(
+    return ProductWriteAdapter.validate_python(
         {
             "id": str(uuid4()),
             "expectedRevision": 0,
@@ -108,3 +108,33 @@ def test_rejects_forged_actor_and_oversized_or_coerced_inputs() -> None:
     ]:
         with pytest.raises(ValidationError):
             body(**changes)
+
+
+def test_outlook_values_match_authoritative_field_catalog() -> None:
+    from src.wxproducts.schemas import OutlookValuesDraft
+
+    catalog = {field.key for field in validation.FIELDS["outlook"]}
+    assert set(OutlookValuesDraft.model_fields) == catalog
+
+
+@pytest.mark.parametrize("values", [{}, {"seaState": "rough"}])
+def test_outlook_draft_shape_is_strict(values: dict[str, str]) -> None:
+    payload = {
+        "id": str(uuid4()),
+        "expectedRevision": 0,
+        "kind": "outlook",
+        "values": values,
+        "action": "draft",
+        "changeSummary": "",
+        "reviewed": False,
+    }
+    if values:
+        with pytest.raises(ValidationError):
+            ProductWriteAdapter.validate_python(payload)
+    else:
+        assert (
+            ProductWriteAdapter.validate_python(payload).values.model_dump(
+                exclude_none=True
+            )
+            == {}
+        )

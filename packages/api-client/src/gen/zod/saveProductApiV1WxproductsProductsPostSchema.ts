@@ -5,11 +5,33 @@
 
 import * as z from "zod";
 import { authoringErrorSchema } from "./authoringErrorSchema.js";
-import { productWriteSchema } from "./productWriteSchema.js";
-import { storedProductSchema } from "./storedProductSchema.js";
+import { legacyProductWriteSchema } from "./legacyProductWriteSchema.js";
+import { legacyStoredProductSchema } from "./legacyStoredProductSchema.js";
+import { outlookProductWriteSchema } from "./outlookProductWriteSchema.js";
+import { outlookStoredProductSchema } from "./outlookStoredProductSchema.js";
 
 export const saveProductApiV1WxproductsProductsPostStatus200Schema =
-  storedProductSchema;
+  z.discriminatedUnion("kind", [
+    outlookStoredProductSchema.extend({
+      kind: z.enum(["outlook"]),
+    }),
+    legacyStoredProductSchema.extend({
+      kind: z.enum([
+        "morning",
+        "midday",
+        "evening",
+        "cyclone",
+        "marine",
+        "flood",
+        "thunderstorm",
+        "wind",
+        "heat",
+        "dust",
+        "coastal",
+        "tsunami",
+      ]),
+    }),
+  ]);
 
 export const saveProductApiV1WxproductsProductsPostStatus401Schema =
   authoringErrorSchema;
@@ -38,4 +60,24 @@ export const saveProductApiV1WxproductsProductsPostErrorSchema = z.union([
 ]);
 
 export const saveProductApiV1WxproductsProductsPostBodySchema =
-  productWriteSchema;
+  z.discriminatedUnion("kind", [
+    outlookProductWriteSchema.extend({
+      kind: z.enum(["outlook"]),
+    }),
+    legacyProductWriteSchema.extend({
+      kind: z.enum([
+        "morning",
+        "midday",
+        "evening",
+        "cyclone",
+        "marine",
+        "flood",
+        "thunderstorm",
+        "wind",
+        "heat",
+        "dust",
+        "coastal",
+        "tsunami",
+      ]),
+    }),
+  ]);

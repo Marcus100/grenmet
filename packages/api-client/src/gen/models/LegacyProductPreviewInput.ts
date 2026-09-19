@@ -3,11 +3,10 @@
  * Do not edit manually.
  */
 
-export const productPreviewInputKindEnum = {
+export const legacyProductPreviewInputKindEnum = {
   morning: "morning",
   midday: "midday",
   evening: "evening",
-  outlook: "outlook",
   cyclone: "cyclone",
   marine: "marine",
   flood: "flood",
@@ -19,11 +18,10 @@ export const productPreviewInputKindEnum = {
   tsunami: "tsunami",
 } as const;
 
-export type ProductPreviewInputKindEnum =
-  (typeof productPreviewInputKindEnum)[keyof typeof productPreviewInputKindEnum];
+export type LegacyProductPreviewInputKindEnum =
+  (typeof legacyProductPreviewInputKindEnum)[keyof typeof legacyProductPreviewInputKindEnum];
 
-export type ProductPreviewInput = {
-  kind: ProductPreviewInputKindEnum;
+export type LegacyProductPreviewInput = {
   values: {
     [key: string]: string;
   };
@@ -37,4 +35,5 @@ export type ProductPreviewInput = {
    * @type string
    */
   changeSummary: string;
+  kind: LegacyProductPreviewInputKindEnum;
 };

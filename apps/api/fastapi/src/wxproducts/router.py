@@ -32,8 +32,10 @@ from .schemas import (
     ProductPreviewInput,
     ProductWrite,
     PublicForecast,
+    PublicPublishedProduct,
     PublishedProducts,
     StoredProduct,
+    StoredProductAdapter,
 )
 
 router = APIRouter()
@@ -92,7 +94,14 @@ async def list_public_products(
         try:
             selected = TypeAdapter(ProductKind).validate_python(kind) if kind else None
             products = await service.list_published_products(session, selected)
-            return PublishedProducts(products=products)
+            return PublishedProducts(
+                products=[
+                    PublicPublishedProduct.model_validate(
+                        product.model_dump(mode="json", exclude_none=True)
+                    )
+                    for product in products
+                ]
+            )
         except (SQLAlchemyError, OSError, TimeoutError, ValidationError):
             logger.warning("Weather product feed unavailable")
     return JSONResponse(
@@ -128,7 +137,7 @@ async def load_products(
     try:
         products = await service.list_authored(session, kind, issue_date)
         return AuthoredProducts(
-            products=[StoredProduct.model_validate(row) for row in products]
+            products=[StoredProductAdapter.validate_python(row) for row in products]
         )
     except (SQLAlchemyError, OSError, TimeoutError):
         raise WeatherUnavailable()
@@ -160,7 +169,7 @@ async def save_product(
     author.require_kind(body.kind)
     try:
         product = await service.write_product(session, body, author.user)
-        return StoredProduct.model_validate(product)
+        return StoredProductAdapter.validate_python(product)
     except (SQLAlchemyError, OSError, TimeoutError):
         raise WeatherUnavailable()
 

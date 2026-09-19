@@ -3,17 +3,34 @@ import {
   authoredProductsSchema,
   browserSessionSchema,
   productHistorySchema,
-  productPreviewInputSchema,
-  productPreviewSchema,
   productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetPathProductIdSchema,
   productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetPathRevisionSchema,
-  storedProductSchema,
 } from "@barrelsgd/api-client";
+import type { ProductValues, StoredProduct } from "@barrelsgd/gms/products";
 import { isProductKind } from "@barrelsgd/gms/products";
 import { z } from "zod";
+import {
+  productPreviewInputSchema,
+  productPreviewSchema,
+  storedProductSchema,
+} from "@/lib/wxproducts/api-schemas";
 import { productInputSchema } from "@/lib/wxproducts/product-input";
 
 class ProductApiError extends Error {}
+
+function toUiValues(
+  values: Record<string, string | null | undefined>
+): ProductValues {
+  return Object.fromEntries(
+    Object.entries(values).map(([key, value]) => [key, value ?? ""])
+  );
+}
+
+function toUiStoredProduct(
+  product: z.infer<typeof storedProductSchema>
+): StoredProduct {
+  return { ...product, values: toUiValues(product.values) };
+}
 export async function downloadProductPdfAction(id: string, revision: number) {
   try {
     productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetPathProductIdSchema.parse(
@@ -89,7 +106,7 @@ export async function saveProductAction(raw: unknown) {
         body: JSON.stringify(input.data),
       })
     );
-    return { ok: true as const, product };
+    return { ok: true as const, product: toUiStoredProduct(product) };
   } catch (error) {
     return {
       ok: false as const,
@@ -110,7 +127,7 @@ export async function loadProductsAction(kind: string, issueDate: string) {
     const { products } = authoredProductsSchema.parse(
       await request(`/_backend/weather/products?${query}`)
     );
-    return { ok: true as const, products };
+    return { ok: true as const, products: products.map(toUiStoredProduct) };
   } catch {
     return {
       ok: false as const,
@@ -147,7 +164,10 @@ export async function previewProductAction(raw: unknown) {
         body: JSON.stringify(input),
       })
     );
-    return { ok: true as const, preview };
+    return {
+      ok: true as const,
+      preview: { ...preview, values: toUiValues(preview.values) },
+    };
   } catch (error) {
     return {
       ok: false as const,

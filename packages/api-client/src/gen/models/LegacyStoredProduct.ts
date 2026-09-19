@@ -3,11 +3,10 @@
  * Do not edit manually.
  */
 
-export const publishedProductKindEnum = {
+export const legacyStoredProductKindEnum = {
   morning: "morning",
   midday: "midday",
   evening: "evening",
-  outlook: "outlook",
   cyclone: "cyclone",
   marine: "marine",
   flood: "flood",
@@ -19,20 +18,21 @@ export const publishedProductKindEnum = {
   tsunami: "tsunami",
 } as const;
 
-export type PublishedProductKindEnum =
-  (typeof publishedProductKindEnum)[keyof typeof publishedProductKindEnum];
+export type LegacyStoredProductKindEnum =
+  (typeof legacyStoredProductKindEnum)[keyof typeof legacyStoredProductKindEnum];
 
-export type PublishedProduct = {
+export type LegacyStoredProduct = {
   /**
    * @description
    * Format: `uuid`
    * @type string
    */
   id: string;
-  revision: number;
-  publishedAt: string;
-  kind: PublishedProductKindEnum;
   values: {
     [key: string]: string;
   };
+  revision: number;
+  publishedRevision: number | null;
+  updatedAt: string;
+  kind: LegacyStoredProductKindEnum;
 };

@@ -5,11 +5,33 @@
 
 import * as z from "zod";
 import { authoringErrorSchema } from "./authoringErrorSchema.js";
-import { productPreviewInputSchema } from "./productPreviewInputSchema.js";
-import { productPreviewSchema } from "./productPreviewSchema.js";
+import { legacyProductPreviewInputSchema } from "./legacyProductPreviewInputSchema.js";
+import { legacyProductPreviewSchema } from "./legacyProductPreviewSchema.js";
+import { outlookProductPreviewInputSchema } from "./outlookProductPreviewInputSchema.js";
+import { outlookProductPreviewSchema } from "./outlookProductPreviewSchema.js";
 
 export const previewProductApiV1WxproductsProductsPreviewPostStatus200Schema =
-  productPreviewSchema;
+  z.discriminatedUnion("kind", [
+    outlookProductPreviewSchema.extend({
+      kind: z.enum(["outlook"]),
+    }),
+    legacyProductPreviewSchema.extend({
+      kind: z.enum([
+        "morning",
+        "midday",
+        "evening",
+        "cyclone",
+        "marine",
+        "flood",
+        "thunderstorm",
+        "wind",
+        "heat",
+        "dust",
+        "coastal",
+        "tsunami",
+      ]),
+    }),
+  ]);
 
 export const previewProductApiV1WxproductsProductsPreviewPostStatus401Schema =
   authoringErrorSchema;
@@ -31,4 +53,24 @@ export const previewProductApiV1WxproductsProductsPreviewPostErrorSchema =
   ]);
 
 export const previewProductApiV1WxproductsProductsPreviewPostBodySchema =
-  productPreviewInputSchema;
+  z.discriminatedUnion("kind", [
+    outlookProductPreviewInputSchema.extend({
+      kind: z.enum(["outlook"]),
+    }),
+    legacyProductPreviewInputSchema.extend({
+      kind: z.enum([
+        "morning",
+        "midday",
+        "evening",
+        "cyclone",
+        "marine",
+        "flood",
+        "thunderstorm",
+        "wind",
+        "heat",
+        "dust",
+        "coastal",
+        "tsunami",
+      ]),
+    }),
+  ]);

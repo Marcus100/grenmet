@@ -4,11 +4,30 @@
  */
 
 import type { AuthoringError } from "./AuthoringError.js";
-import type { ProductPreview } from "./ProductPreview.js";
-import type { ProductPreviewInput } from "./ProductPreviewInput.js";
+import type { LegacyProductPreview } from "./LegacyProductPreview.js";
+import type { LegacyProductPreviewInput } from "./LegacyProductPreviewInput.js";
+import type { OutlookProductPreview } from "./OutlookProductPreview.js";
+import type { OutlookProductPreviewInput } from "./OutlookProductPreviewInput.js";
 
 export type PreviewProductApiV1WxproductsProductsPreviewPostStatus200 =
-  ProductPreview;
+  | (OutlookProductPreview & {
+      kind: "outlook";
+    })
+  | (LegacyProductPreview & {
+      kind:
+        | "morning"
+        | "midday"
+        | "evening"
+        | "cyclone"
+        | "marine"
+        | "flood"
+        | "thunderstorm"
+        | "wind"
+        | "heat"
+        | "dust"
+        | "coastal"
+        | "tsunami";
+    });
 
 export type PreviewProductApiV1WxproductsProductsPreviewPostStatus401 =
   AuthoringError;
@@ -20,7 +39,24 @@ export type PreviewProductApiV1WxproductsProductsPreviewPostStatus422 =
   AuthoringError;
 
 export type PreviewProductApiV1WxproductsProductsPreviewPostBody =
-  ProductPreviewInput;
+  | (OutlookProductPreviewInput & {
+      kind: "outlook";
+    })
+  | (LegacyProductPreviewInput & {
+      kind:
+        | "morning"
+        | "midday"
+        | "evening"
+        | "cyclone"
+        | "marine"
+        | "flood"
+        | "thunderstorm"
+        | "wind"
+        | "heat"
+        | "dust"
+        | "coastal"
+        | "tsunami";
+    });
 
 export type PreviewProductApiV1WxproductsProductsPreviewPostOptions = {
   body: PreviewProductApiV1WxproductsProductsPreviewPostBody;

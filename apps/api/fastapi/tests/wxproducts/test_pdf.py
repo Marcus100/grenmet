@@ -7,7 +7,7 @@ from src.exceptions import NotFoundError
 from src.main import app
 from src.wxproducts import pdf, service
 from src.wxproducts.dependencies import ProductAuthor, get_author
-from src.wxproducts.schemas import ProductPdfSource
+from src.wxproducts.schemas import ProductPdfSourceAdapter
 from tests.wxproducts.test_authoring import actor as actor
 from tests.wxproducts.test_authoring import current_input
 from tests.wxproducts.test_authoring import weather_sessions as weather_sessions
@@ -15,17 +15,20 @@ from tests.wxproducts.test_migrations import weather_engine as weather_engine
 
 
 def test_unicode_long_text_and_legacy_fields():
-    source = ProductPdfSource(
-        product_id=uuid4(),
-        revision=1,
-        kind="morning",
-        values={
-            "summary": "Rain — 30°C. CAP: issued warning; source bulletin ABC.\n" * 300,
-            "weatherImpact": "legacy hidden",
-        },
-        action="draft",
-        recorded_at=datetime.now(UTC),
-        current_publication=False,
+    source = ProductPdfSourceAdapter.validate_python(
+        {
+            "product_id": uuid4(),
+            "revision": 1,
+            "kind": "morning",
+            "values": {
+                "summary": "Rain — 30°C. CAP: issued warning; source bulletin ABC.\n"
+                * 300,
+                "weatherImpact": "legacy hidden",
+            },
+            "action": "draft",
+            "recorded_at": datetime.now(UTC),
+            "current_publication": False,
+        }
     )
     fields = pdf.document_fields(source)
     assert not any(value == "legacy hidden" for _, value in fields)

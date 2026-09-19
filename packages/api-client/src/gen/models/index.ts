@@ -898,6 +898,30 @@ export type { LeaveRequestSubmit } from "./LeaveRequestSubmit.js";
 export type { LeaveType } from "./LeaveType.js";
 export { leaveType } from "./LeaveType.js";
 export type {
+  LegacyProductPreview,
+  LegacyProductPreviewKindEnum,
+} from "./LegacyProductPreview.js";
+export { legacyProductPreviewKindEnum } from "./LegacyProductPreview.js";
+export type {
+  LegacyProductPreviewInput,
+  LegacyProductPreviewInputKindEnum,
+} from "./LegacyProductPreviewInput.js";
+export { legacyProductPreviewInputKindEnum } from "./LegacyProductPreviewInput.js";
+export type {
+  LegacyProductWrite,
+  LegacyProductWriteActionEnum,
+  LegacyProductWriteKindEnum,
+} from "./LegacyProductWrite.js";
+export {
+  legacyProductWriteActionEnum,
+  legacyProductWriteKindEnum,
+} from "./LegacyProductWrite.js";
+export type {
+  LegacyStoredProduct,
+  LegacyStoredProductKindEnum,
+} from "./LegacyStoredProduct.js";
+export { legacyStoredProductKindEnum } from "./LegacyStoredProduct.js";
+export type {
   ListAssignmentsApiV1HrRostersAssignmentsGetOptions,
   ListAssignmentsApiV1HrRostersAssignmentsGetQuery,
   ListAssignmentsApiV1HrRostersAssignmentsGetResponse,
@@ -1126,6 +1150,15 @@ export type {
 export type { OrganisationCatalogue } from "./OrganisationCatalogue.js";
 export type { OrganisationPreview } from "./OrganisationPreview.js";
 export type { OrganisationPublic } from "./OrganisationPublic.js";
+export type { OutlookProductPreview } from "./OutlookProductPreview.js";
+export type { OutlookProductPreviewInput } from "./OutlookProductPreviewInput.js";
+export type {
+  OutlookProductWrite,
+  OutlookProductWriteActionEnum,
+} from "./OutlookProductWrite.js";
+export { outlookProductWriteActionEnum } from "./OutlookProductWrite.js";
+export type { OutlookStoredProduct } from "./OutlookStoredProduct.js";
+export type { OutlookValuesDraft } from "./OutlookValuesDraft.js";
 export type { PaginatedResponsePermissionPublic } from "./PaginatedResponsePermissionPublic.js";
 export type { PaginatedResponseRolePublic } from "./PaginatedResponseRolePublic.js";
 export type { PaginatedResponseUserPublic } from "./PaginatedResponseUserPublic.js";
@@ -1196,12 +1229,6 @@ export type {
   ProductHistoryEntryActionEnum,
 } from "./ProductHistoryEntry.js";
 export { productHistoryEntryActionEnum } from "./ProductHistoryEntry.js";
-export type { ProductPreview } from "./ProductPreview.js";
-export type {
-  ProductPreviewInput,
-  ProductPreviewInputKindEnum,
-} from "./ProductPreviewInput.js";
-export { productPreviewInputKindEnum } from "./ProductPreviewInput.js";
 export type {
   ProductRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetOptions,
   ProductRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetPath,
@@ -1214,15 +1241,6 @@ export type {
   ProductRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus422,
   ProductRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus503,
 } from "./ProductRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGet.js";
-export type {
-  ProductWrite,
-  ProductWriteActionEnum,
-  ProductWriteKindEnum,
-} from "./ProductWrite.js";
-export {
-  productWriteActionEnum,
-  productWriteKindEnum,
-} from "./ProductWrite.js";
 export type { ProfAppointmentType } from "./ProfAppointmentType.js";
 export { profAppointmentType } from "./ProfAppointmentType.js";
 export type { ProfileAuditPublic } from "./ProfileAuditPublic.js";
@@ -1240,6 +1258,11 @@ export type {
 export type { PublicHolidayCreate } from "./PublicHolidayCreate.js";
 export type { PublicHolidayPublic } from "./PublicHolidayPublic.js";
 export type { PublicHolidaysPublic } from "./PublicHolidaysPublic.js";
+export type {
+  PublicPublishedProduct,
+  PublicPublishedProductKindEnum,
+} from "./PublicPublishedProduct.js";
+export { publicPublishedProductKindEnum } from "./PublicPublishedProduct.js";
 export type { PublicWarning } from "./PublicWarning.js";
 export type { PublicWarningGroup } from "./PublicWarningGroup.js";
 export type { PublicWarnings } from "./PublicWarnings.js";
@@ -1252,11 +1275,6 @@ export type {
   PublishAlertApiV1CapAlertsAlertIdPublishPostStatus200,
   PublishAlertApiV1CapAlertsAlertIdPublishPostStatus422,
 } from "./PublishAlertApiV1CapAlertsAlertIdPublishPost.js";
-export type {
-  PublishedProduct,
-  PublishedProductKindEnum,
-} from "./PublishedProduct.js";
-export { publishedProductKindEnum } from "./PublishedProduct.js";
 export type { PublishedProducts } from "./PublishedProducts.js";
 export type {
   PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchOptions,
@@ -2060,8 +2078,6 @@ export type { StatusReportListPublic } from "./StatusReportListPublic.js";
 export type { StatusReportPublic } from "./StatusReportPublic.js";
 export type { StatusReportSubmit } from "./StatusReportSubmit.js";
 export type { StopView } from "./StopView.js";
-export type { StoredProduct, StoredProductKindEnum } from "./StoredProduct.js";
-export { storedProductKindEnum } from "./StoredProduct.js";
 export type { SubmissionMode } from "./SubmissionMode.js";
 export { submissionMode } from "./SubmissionMode.js";
 export type {

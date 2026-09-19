@@ -2266,6 +2266,30 @@ export type { LeaveRequestSubmit } from "./models/LeaveRequestSubmit.js";
 export type { LeaveType } from "./models/LeaveType.js";
 export { leaveType } from "./models/LeaveType.js";
 export type {
+  LegacyProductPreview,
+  LegacyProductPreviewKindEnum,
+} from "./models/LegacyProductPreview.js";
+export { legacyProductPreviewKindEnum } from "./models/LegacyProductPreview.js";
+export type {
+  LegacyProductPreviewInput,
+  LegacyProductPreviewInputKindEnum,
+} from "./models/LegacyProductPreviewInput.js";
+export { legacyProductPreviewInputKindEnum } from "./models/LegacyProductPreviewInput.js";
+export type {
+  LegacyProductWrite,
+  LegacyProductWriteActionEnum,
+  LegacyProductWriteKindEnum,
+} from "./models/LegacyProductWrite.js";
+export {
+  legacyProductWriteActionEnum,
+  legacyProductWriteKindEnum,
+} from "./models/LegacyProductWrite.js";
+export type {
+  LegacyStoredProduct,
+  LegacyStoredProductKindEnum,
+} from "./models/LegacyStoredProduct.js";
+export { legacyStoredProductKindEnum } from "./models/LegacyStoredProduct.js";
+export type {
   ListAssignmentsApiV1HrRostersAssignmentsGetOptions,
   ListAssignmentsApiV1HrRostersAssignmentsGetQuery,
   ListAssignmentsApiV1HrRostersAssignmentsGetResponse,
@@ -2494,6 +2518,15 @@ export type {
 export type { OrganisationCatalogue } from "./models/OrganisationCatalogue.js";
 export type { OrganisationPreview } from "./models/OrganisationPreview.js";
 export type { OrganisationPublic } from "./models/OrganisationPublic.js";
+export type { OutlookProductPreview } from "./models/OutlookProductPreview.js";
+export type { OutlookProductPreviewInput } from "./models/OutlookProductPreviewInput.js";
+export type {
+  OutlookProductWrite,
+  OutlookProductWriteActionEnum,
+} from "./models/OutlookProductWrite.js";
+export { outlookProductWriteActionEnum } from "./models/OutlookProductWrite.js";
+export type { OutlookStoredProduct } from "./models/OutlookStoredProduct.js";
+export type { OutlookValuesDraft } from "./models/OutlookValuesDraft.js";
 export type { PaginatedResponsePermissionPublic } from "./models/PaginatedResponsePermissionPublic.js";
 export type { PaginatedResponseRolePublic } from "./models/PaginatedResponseRolePublic.js";
 export type { PaginatedResponseUserPublic } from "./models/PaginatedResponseUserPublic.js";
@@ -2564,12 +2597,6 @@ export type {
   ProductHistoryEntryActionEnum,
 } from "./models/ProductHistoryEntry.js";
 export { productHistoryEntryActionEnum } from "./models/ProductHistoryEntry.js";
-export type { ProductPreview } from "./models/ProductPreview.js";
-export type {
-  ProductPreviewInput,
-  ProductPreviewInputKindEnum,
-} from "./models/ProductPreviewInput.js";
-export { productPreviewInputKindEnum } from "./models/ProductPreviewInput.js";
 export type {
   ProductRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetOptions,
   ProductRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetPath,
@@ -2582,15 +2609,6 @@ export type {
   ProductRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus422,
   ProductRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus503,
 } from "./models/ProductRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGet.js";
-export type {
-  ProductWrite,
-  ProductWriteActionEnum,
-  ProductWriteKindEnum,
-} from "./models/ProductWrite.js";
-export {
-  productWriteActionEnum,
-  productWriteKindEnum,
-} from "./models/ProductWrite.js";
 export type { ProfAppointmentType } from "./models/ProfAppointmentType.js";
 export { profAppointmentType } from "./models/ProfAppointmentType.js";
 export type { ProfileAuditPublic } from "./models/ProfileAuditPublic.js";
@@ -2608,6 +2626,11 @@ export type {
 export type { PublicHolidayCreate } from "./models/PublicHolidayCreate.js";
 export type { PublicHolidayPublic } from "./models/PublicHolidayPublic.js";
 export type { PublicHolidaysPublic } from "./models/PublicHolidaysPublic.js";
+export type {
+  PublicPublishedProduct,
+  PublicPublishedProductKindEnum,
+} from "./models/PublicPublishedProduct.js";
+export { publicPublishedProductKindEnum } from "./models/PublicPublishedProduct.js";
 export type { PublicWarning } from "./models/PublicWarning.js";
 export type { PublicWarningGroup } from "./models/PublicWarningGroup.js";
 export type { PublicWarnings } from "./models/PublicWarnings.js";
@@ -2620,11 +2643,6 @@ export type {
   PublishAlertApiV1CapAlertsAlertIdPublishPostStatus200,
   PublishAlertApiV1CapAlertsAlertIdPublishPostStatus422,
 } from "./models/PublishAlertApiV1CapAlertsAlertIdPublishPost.js";
-export type {
-  PublishedProduct,
-  PublishedProductKindEnum,
-} from "./models/PublishedProduct.js";
-export { publishedProductKindEnum } from "./models/PublishedProduct.js";
 export type { PublishedProducts } from "./models/PublishedProducts.js";
 export type {
   PublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchOptions,
@@ -3431,11 +3449,6 @@ export type { StatusReportListPublic } from "./models/StatusReportListPublic.js"
 export type { StatusReportPublic } from "./models/StatusReportPublic.js";
 export type { StatusReportSubmit } from "./models/StatusReportSubmit.js";
 export type { StopView } from "./models/StopView.js";
-export type {
-  StoredProduct,
-  StoredProductKindEnum,
-} from "./models/StoredProduct.js";
-export { storedProductKindEnum } from "./models/StoredProduct.js";
 export type { SubmissionMode } from "./models/SubmissionMode.js";
 export { submissionMode } from "./models/SubmissionMode.js";
 export type {
@@ -4728,6 +4741,10 @@ export { leaveRequestListPublicSchema } from "./zod/leaveRequestListPublicSchema
 export { leaveRequestPublicSchema } from "./zod/leaveRequestPublicSchema.js";
 export { leaveRequestSubmitSchema } from "./zod/leaveRequestSubmitSchema.js";
 export { leaveTypeSchema } from "./zod/leaveTypeSchema.js";
+export { legacyProductPreviewInputSchema } from "./zod/legacyProductPreviewInputSchema.js";
+export { legacyProductPreviewSchema } from "./zod/legacyProductPreviewSchema.js";
+export { legacyProductWriteSchema } from "./zod/legacyProductWriteSchema.js";
+export { legacyStoredProductSchema } from "./zod/legacyStoredProductSchema.js";
 export {
   listAssignmentsApiV1HrRostersAssignmentsGetErrorSchema,
   listAssignmentsApiV1HrRostersAssignmentsGetQueryDepartmentIdSchema,
@@ -4932,6 +4949,11 @@ export {
 export { organisationCatalogueSchema } from "./zod/organisationCatalogueSchema.js";
 export { organisationPreviewSchema } from "./zod/organisationPreviewSchema.js";
 export { organisationPublicSchema } from "./zod/organisationPublicSchema.js";
+export { outlookProductPreviewInputSchema } from "./zod/outlookProductPreviewInputSchema.js";
+export { outlookProductPreviewSchema } from "./zod/outlookProductPreviewSchema.js";
+export { outlookProductWriteSchema } from "./zod/outlookProductWriteSchema.js";
+export { outlookStoredProductSchema } from "./zod/outlookStoredProductSchema.js";
+export { outlookValuesDraftSchema } from "./zod/outlookValuesDraftSchema.js";
 export { paginatedResponsePermissionPublicSchema } from "./zod/paginatedResponsePermissionPublicSchema.js";
 export { paginatedResponseRolePublicSchema } from "./zod/paginatedResponseRolePublicSchema.js";
 export { paginatedResponseUserPublicSchema } from "./zod/paginatedResponseUserPublicSchema.js";
@@ -4991,8 +5013,6 @@ export { productAccessPublicSchema } from "./zod/productAccessPublicSchema.js";
 export { productFeedErrorSchema } from "./zod/productFeedErrorSchema.js";
 export { productHistoryEntrySchema } from "./zod/productHistoryEntrySchema.js";
 export { productHistorySchema } from "./zod/productHistorySchema.js";
-export { productPreviewInputSchema } from "./zod/productPreviewInputSchema.js";
-export { productPreviewSchema } from "./zod/productPreviewSchema.js";
 export {
   productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetErrorSchema,
   productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetPathProductIdSchema,
@@ -5005,7 +5025,6 @@ export {
   productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus422Schema,
   productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus503Schema,
 } from "./zod/productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetSchema.js";
-export { productWriteSchema } from "./zod/productWriteSchema.js";
 export { profAppointmentTypeSchema } from "./zod/profAppointmentTypeSchema.js";
 export { profileAuditPublicSchema } from "./zod/profileAuditPublicSchema.js";
 export { profileDetailsPublicSchema } from "./zod/profileDetailsPublicSchema.js";
@@ -5021,6 +5040,7 @@ export { publicForecastSchema } from "./zod/publicForecastSchema.js";
 export { publicHolidayCreateSchema } from "./zod/publicHolidayCreateSchema.js";
 export { publicHolidayPublicSchema } from "./zod/publicHolidayPublicSchema.js";
 export { publicHolidaysPublicSchema } from "./zod/publicHolidaysPublicSchema.js";
+export { publicPublishedProductSchema } from "./zod/publicPublishedProductSchema.js";
 export { publicWarningGroupSchema } from "./zod/publicWarningGroupSchema.js";
 export { publicWarningSchema } from "./zod/publicWarningSchema.js";
 export { publicWarningsSchema } from "./zod/publicWarningsSchema.js";
@@ -5032,7 +5052,6 @@ export {
   publishAlertApiV1CapAlertsAlertIdPublishPostStatus200Schema,
   publishAlertApiV1CapAlertsAlertIdPublishPostStatus422Schema,
 } from "./zod/publishAlertApiV1CapAlertsAlertIdPublishPostSchema.js";
-export { publishedProductSchema } from "./zod/publishedProductSchema.js";
 export { publishedProductsSchema } from "./zod/publishedProductsSchema.js";
 export {
   publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchErrorSchema,
@@ -5748,7 +5767,6 @@ export { statusReportListPublicSchema } from "./zod/statusReportListPublicSchema
 export { statusReportPublicSchema } from "./zod/statusReportPublicSchema.js";
 export { statusReportSubmitSchema } from "./zod/statusReportSubmitSchema.js";
 export { stopViewSchema } from "./zod/stopViewSchema.js";
-export { storedProductSchema } from "./zod/storedProductSchema.js";
 export { submissionModeSchema } from "./zod/submissionModeSchema.js";
 export {
   submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostBodySchema,

@@ -9154,7 +9154,33 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProductWrite"
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/OutlookProductWrite"
+                  },
+                  {
+                    "$ref": "#/components/schemas/LegacyProductWrite"
+                  }
+                ],
+                "discriminator": {
+                  "propertyName": "kind",
+                  "mapping": {
+                    "outlook": "#/components/schemas/OutlookProductWrite",
+                    "morning": "#/components/schemas/LegacyProductWrite",
+                    "midday": "#/components/schemas/LegacyProductWrite",
+                    "evening": "#/components/schemas/LegacyProductWrite",
+                    "cyclone": "#/components/schemas/LegacyProductWrite",
+                    "marine": "#/components/schemas/LegacyProductWrite",
+                    "flood": "#/components/schemas/LegacyProductWrite",
+                    "thunderstorm": "#/components/schemas/LegacyProductWrite",
+                    "wind": "#/components/schemas/LegacyProductWrite",
+                    "heat": "#/components/schemas/LegacyProductWrite",
+                    "dust": "#/components/schemas/LegacyProductWrite",
+                    "coastal": "#/components/schemas/LegacyProductWrite",
+                    "tsunami": "#/components/schemas/LegacyProductWrite"
+                  }
+                },
+                "title": "Body"
               }
             }
           }
@@ -9165,7 +9191,33 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/StoredProduct"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/OutlookStoredProduct"
+                    },
+                    {
+                      "$ref": "#/components/schemas/LegacyStoredProduct"
+                    }
+                  ],
+                  "discriminator": {
+                    "propertyName": "kind",
+                    "mapping": {
+                      "outlook": "#/components/schemas/OutlookStoredProduct",
+                      "morning": "#/components/schemas/LegacyStoredProduct",
+                      "midday": "#/components/schemas/LegacyStoredProduct",
+                      "evening": "#/components/schemas/LegacyStoredProduct",
+                      "cyclone": "#/components/schemas/LegacyStoredProduct",
+                      "marine": "#/components/schemas/LegacyStoredProduct",
+                      "flood": "#/components/schemas/LegacyStoredProduct",
+                      "thunderstorm": "#/components/schemas/LegacyStoredProduct",
+                      "wind": "#/components/schemas/LegacyStoredProduct",
+                      "heat": "#/components/schemas/LegacyStoredProduct",
+                      "dust": "#/components/schemas/LegacyStoredProduct",
+                      "coastal": "#/components/schemas/LegacyStoredProduct",
+                      "tsunami": "#/components/schemas/LegacyStoredProduct"
+                    }
+                  },
+                  "title": "Response Save Product Api V1 Wxproducts Products Post"
                 }
               }
             }
@@ -9582,7 +9634,33 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ProductPreviewInput"
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/OutlookProductPreviewInput"
+                  },
+                  {
+                    "$ref": "#/components/schemas/LegacyProductPreviewInput"
+                  }
+                ],
+                "title": "Body",
+                "discriminator": {
+                  "propertyName": "kind",
+                  "mapping": {
+                    "outlook": "#/components/schemas/OutlookProductPreviewInput",
+                    "morning": "#/components/schemas/LegacyProductPreviewInput",
+                    "midday": "#/components/schemas/LegacyProductPreviewInput",
+                    "evening": "#/components/schemas/LegacyProductPreviewInput",
+                    "cyclone": "#/components/schemas/LegacyProductPreviewInput",
+                    "marine": "#/components/schemas/LegacyProductPreviewInput",
+                    "flood": "#/components/schemas/LegacyProductPreviewInput",
+                    "thunderstorm": "#/components/schemas/LegacyProductPreviewInput",
+                    "wind": "#/components/schemas/LegacyProductPreviewInput",
+                    "heat": "#/components/schemas/LegacyProductPreviewInput",
+                    "dust": "#/components/schemas/LegacyProductPreviewInput",
+                    "coastal": "#/components/schemas/LegacyProductPreviewInput",
+                    "tsunami": "#/components/schemas/LegacyProductPreviewInput"
+                  }
+                }
               }
             }
           },
@@ -9594,7 +9672,33 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ProductPreview"
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/OutlookProductPreview"
+                    },
+                    {
+                      "$ref": "#/components/schemas/LegacyProductPreview"
+                    }
+                  ],
+                  "title": "Response Preview Product Api V1 Wxproducts Products Preview Post",
+                  "discriminator": {
+                    "propertyName": "kind",
+                    "mapping": {
+                      "outlook": "#/components/schemas/OutlookProductPreview",
+                      "morning": "#/components/schemas/LegacyProductPreview",
+                      "midday": "#/components/schemas/LegacyProductPreview",
+                      "evening": "#/components/schemas/LegacyProductPreview",
+                      "cyclone": "#/components/schemas/LegacyProductPreview",
+                      "marine": "#/components/schemas/LegacyProductPreview",
+                      "flood": "#/components/schemas/LegacyProductPreview",
+                      "thunderstorm": "#/components/schemas/LegacyProductPreview",
+                      "wind": "#/components/schemas/LegacyProductPreview",
+                      "heat": "#/components/schemas/LegacyProductPreview",
+                      "dust": "#/components/schemas/LegacyProductPreview",
+                      "coastal": "#/components/schemas/LegacyProductPreview",
+                      "tsunami": "#/components/schemas/LegacyProductPreview"
+                    }
+                  }
                 }
               }
             }
@@ -13320,7 +13424,32 @@
         "properties": {
           "products": {
             "items": {
-              "$ref": "#/components/schemas/StoredProduct"
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/OutlookStoredProduct"
+                },
+                {
+                  "$ref": "#/components/schemas/LegacyStoredProduct"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "kind",
+                "mapping": {
+                  "coastal": "#/components/schemas/LegacyStoredProduct",
+                  "cyclone": "#/components/schemas/LegacyStoredProduct",
+                  "dust": "#/components/schemas/LegacyStoredProduct",
+                  "evening": "#/components/schemas/LegacyStoredProduct",
+                  "flood": "#/components/schemas/LegacyStoredProduct",
+                  "heat": "#/components/schemas/LegacyStoredProduct",
+                  "marine": "#/components/schemas/LegacyStoredProduct",
+                  "midday": "#/components/schemas/LegacyStoredProduct",
+                  "morning": "#/components/schemas/LegacyStoredProduct",
+                  "outlook": "#/components/schemas/OutlookStoredProduct",
+                  "thunderstorm": "#/components/schemas/LegacyStoredProduct",
+                  "tsunami": "#/components/schemas/LegacyStoredProduct",
+                  "wind": "#/components/schemas/LegacyStoredProduct"
+                }
+              }
             },
             "type": "array",
             "title": "Products"
@@ -19760,6 +19889,242 @@
         ],
         "title": "LeaveType"
       },
+      "LegacyProductPreview": {
+        "properties": {
+          "values": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Values"
+          },
+          "errors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Errors"
+          },
+          "checked_at": {
+            "type": "string",
+            "title": "Checked At"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "morning",
+              "midday",
+              "evening",
+              "cyclone",
+              "marine",
+              "flood",
+              "thunderstorm",
+              "wind",
+              "heat",
+              "dust",
+              "coastal",
+              "tsunami"
+            ],
+            "title": "Kind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "values",
+          "errors",
+          "checked_at",
+          "kind"
+        ],
+        "title": "LegacyProductPreview"
+      },
+      "LegacyProductPreviewInput": {
+        "properties": {
+          "values": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 12000
+            },
+            "propertyNames": {
+              "maxLength": 80
+            },
+            "type": "object",
+            "title": "Values"
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expectedrevision"
+          },
+          "changeSummary": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Changesummary"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "morning",
+              "midday",
+              "evening",
+              "cyclone",
+              "marine",
+              "flood",
+              "thunderstorm",
+              "wind",
+              "heat",
+              "dust",
+              "coastal",
+              "tsunami"
+            ],
+            "title": "Kind"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "values",
+          "expectedRevision",
+          "changeSummary",
+          "kind"
+        ],
+        "title": "LegacyProductPreviewInput"
+      },
+      "LegacyProductWrite": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expectedrevision"
+          },
+          "values": {
+            "additionalProperties": {
+              "type": "string",
+              "maxLength": 12000
+            },
+            "propertyNames": {
+              "maxLength": 80
+            },
+            "type": "object",
+            "title": "Values"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "publish",
+              "withdraw"
+            ],
+            "title": "Action"
+          },
+          "changeSummary": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Changesummary"
+          },
+          "reviewed": {
+            "type": "boolean",
+            "title": "Reviewed"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "morning",
+              "midday",
+              "evening",
+              "cyclone",
+              "marine",
+              "flood",
+              "thunderstorm",
+              "wind",
+              "heat",
+              "dust",
+              "coastal",
+              "tsunami"
+            ],
+            "title": "Kind"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "expectedRevision",
+          "values",
+          "action",
+          "changeSummary",
+          "reviewed",
+          "kind"
+        ],
+        "title": "LegacyProductWrite"
+      },
+      "LegacyStoredProduct": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "values": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Values"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "publishedRevision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publishedrevision"
+          },
+          "updatedAt": {
+            "type": "string",
+            "title": "Updatedat"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "morning",
+              "midday",
+              "evening",
+              "cyclone",
+              "marine",
+              "flood",
+              "thunderstorm",
+              "wind",
+              "heat",
+              "dust",
+              "coastal",
+              "tsunami"
+            ],
+            "title": "Kind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "values",
+          "revision",
+          "publishedRevision",
+          "updatedAt",
+          "kind"
+        ],
+        "title": "LegacyStoredProduct"
+      },
       "Message": {
         "properties": {
           "message": {
@@ -20090,6 +20455,298 @@
           "name"
         ],
         "title": "OrganisationPublic"
+      },
+      "OutlookProductPreview": {
+        "properties": {
+          "values": {
+            "$ref": "#/components/schemas/OutlookValuesDraft"
+          },
+          "errors": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Errors"
+          },
+          "checked_at": {
+            "type": "string",
+            "title": "Checked At"
+          },
+          "kind": {
+            "type": "string",
+            "const": "outlook",
+            "title": "Kind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "values",
+          "errors",
+          "checked_at",
+          "kind"
+        ],
+        "title": "OutlookProductPreview"
+      },
+      "OutlookProductPreviewInput": {
+        "properties": {
+          "values": {
+            "$ref": "#/components/schemas/OutlookValuesDraft"
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expectedrevision"
+          },
+          "changeSummary": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Changesummary"
+          },
+          "kind": {
+            "type": "string",
+            "const": "outlook",
+            "title": "Kind"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "values",
+          "expectedRevision",
+          "changeSummary",
+          "kind"
+        ],
+        "title": "OutlookProductPreviewInput"
+      },
+      "OutlookProductWrite": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expectedrevision"
+          },
+          "values": {
+            "$ref": "#/components/schemas/OutlookValuesDraft"
+          },
+          "action": {
+            "type": "string",
+            "enum": [
+              "draft",
+              "publish",
+              "withdraw"
+            ],
+            "title": "Action"
+          },
+          "changeSummary": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Changesummary"
+          },
+          "reviewed": {
+            "type": "boolean",
+            "title": "Reviewed"
+          },
+          "kind": {
+            "type": "string",
+            "const": "outlook",
+            "title": "Kind"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "expectedRevision",
+          "values",
+          "action",
+          "changeSummary",
+          "reviewed",
+          "kind"
+        ],
+        "title": "OutlookProductWrite"
+      },
+      "OutlookStoredProduct": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "values": {
+            "$ref": "#/components/schemas/OutlookValuesDraft"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "publishedRevision": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publishedrevision"
+          },
+          "updatedAt": {
+            "type": "string",
+            "title": "Updatedat"
+          },
+          "kind": {
+            "type": "string",
+            "const": "outlook",
+            "title": "Kind"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "values",
+          "revision",
+          "publishedRevision",
+          "updatedAt",
+          "kind"
+        ],
+        "title": "OutlookStoredProduct"
+      },
+      "OutlookValuesDraft": {
+        "properties": {
+          "issuedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issuedat"
+          },
+          "validFrom": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Validfrom"
+          },
+          "validTo": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Validto"
+          },
+          "validity": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Validity"
+          },
+          "area": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Area"
+          },
+          "forecaster": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Forecaster"
+          },
+          "source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source"
+          },
+          "specialInterest": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Specialinterest"
+          },
+          "systems": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Systems"
+          },
+          "formation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formation"
+          },
+          "nextUpdate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nextupdate"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "OutlookValuesDraft"
       },
       "PaginatedResponse_PermissionPublic_": {
         "properties": {
@@ -20975,162 +21632,6 @@
         ],
         "title": "ProductHistoryEntry"
       },
-      "ProductPreview": {
-        "properties": {
-          "values": {
-            "additionalProperties": {
-              "type": "string"
-            },
-            "type": "object",
-            "title": "Values"
-          },
-          "errors": {
-            "items": {
-              "type": "string"
-            },
-            "type": "array",
-            "title": "Errors"
-          },
-          "checked_at": {
-            "type": "string",
-            "title": "Checked At"
-          }
-        },
-        "type": "object",
-        "required": [
-          "values",
-          "errors",
-          "checked_at"
-        ],
-        "title": "ProductPreview"
-      },
-      "ProductPreviewInput": {
-        "properties": {
-          "kind": {
-            "type": "string",
-            "enum": [
-              "morning",
-              "midday",
-              "evening",
-              "outlook",
-              "cyclone",
-              "marine",
-              "flood",
-              "thunderstorm",
-              "wind",
-              "heat",
-              "dust",
-              "coastal",
-              "tsunami"
-            ],
-            "title": "Kind"
-          },
-          "values": {
-            "additionalProperties": {
-              "type": "string",
-              "maxLength": 12000
-            },
-            "propertyNames": {
-              "maxLength": 80
-            },
-            "type": "object",
-            "title": "Values"
-          },
-          "expectedRevision": {
-            "type": "integer",
-            "minimum": 0.0,
-            "title": "Expectedrevision"
-          },
-          "changeSummary": {
-            "type": "string",
-            "maxLength": 1000,
-            "title": "Changesummary"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "kind",
-          "values",
-          "expectedRevision",
-          "changeSummary"
-        ],
-        "title": "ProductPreviewInput"
-      },
-      "ProductWrite": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
-          },
-          "expectedRevision": {
-            "type": "integer",
-            "minimum": 0.0,
-            "title": "Expectedrevision"
-          },
-          "kind": {
-            "type": "string",
-            "enum": [
-              "morning",
-              "midday",
-              "evening",
-              "outlook",
-              "cyclone",
-              "marine",
-              "flood",
-              "thunderstorm",
-              "wind",
-              "heat",
-              "dust",
-              "coastal",
-              "tsunami"
-            ],
-            "title": "Kind"
-          },
-          "values": {
-            "additionalProperties": {
-              "type": "string",
-              "maxLength": 12000
-            },
-            "propertyNames": {
-              "maxLength": 80
-            },
-            "type": "object",
-            "title": "Values"
-          },
-          "action": {
-            "type": "string",
-            "enum": [
-              "draft",
-              "publish",
-              "withdraw"
-            ],
-            "title": "Action"
-          },
-          "changeSummary": {
-            "type": "string",
-            "maxLength": 1000,
-            "title": "Changesummary"
-          },
-          "reviewed": {
-            "type": "boolean",
-            "title": "Reviewed"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "id",
-          "expectedRevision",
-          "kind",
-          "values",
-          "action",
-          "changeSummary",
-          "reviewed"
-        ],
-        "title": "ProductWrite"
-      },
       "ProfAppointmentType": {
         "type": "string",
         "enum": [
@@ -21548,6 +22049,60 @@
         ],
         "title": "PublicHolidaysPublic"
       },
+      "PublicPublishedProduct": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "revision": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Revision"
+          },
+          "publishedAt": {
+            "type": "string",
+            "title": "Publishedat"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "morning",
+              "midday",
+              "evening",
+              "outlook",
+              "cyclone",
+              "marine",
+              "flood",
+              "thunderstorm",
+              "wind",
+              "heat",
+              "dust",
+              "coastal",
+              "tsunami"
+            ],
+            "title": "Kind"
+          },
+          "values": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Values"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "revision",
+          "publishedAt",
+          "kind",
+          "values"
+        ],
+        "title": "PublicPublishedProduct",
+        "description": "Compatibility response shape for anonymous public consumers."
+      },
       "PublicWarning": {
         "properties": {
           "identifier": {
@@ -21647,64 +22202,11 @@
         ],
         "title": "PublicWarnings"
       },
-      "PublishedProduct": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
-          },
-          "revision": {
-            "type": "integer",
-            "exclusiveMinimum": 0.0,
-            "title": "Revision"
-          },
-          "publishedAt": {
-            "type": "string",
-            "title": "Publishedat"
-          },
-          "kind": {
-            "type": "string",
-            "enum": [
-              "morning",
-              "midday",
-              "evening",
-              "outlook",
-              "cyclone",
-              "marine",
-              "flood",
-              "thunderstorm",
-              "wind",
-              "heat",
-              "dust",
-              "coastal",
-              "tsunami"
-            ],
-            "title": "Kind"
-          },
-          "values": {
-            "additionalProperties": {
-              "type": "string"
-            },
-            "type": "object",
-            "title": "Values"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "revision",
-          "publishedAt",
-          "kind",
-          "values"
-        ],
-        "title": "PublishedProduct"
-      },
       "PublishedProducts": {
         "properties": {
           "products": {
             "items": {
-              "$ref": "#/components/schemas/PublishedProduct"
+              "$ref": "#/components/schemas/PublicPublishedProduct"
             },
             "type": "array",
             "title": "Products"
@@ -25268,70 +25770,6 @@
           "name"
         ],
         "title": "StopView"
-      },
-      "StoredProduct": {
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "title": "Id"
-          },
-          "kind": {
-            "type": "string",
-            "enum": [
-              "morning",
-              "midday",
-              "evening",
-              "outlook",
-              "cyclone",
-              "marine",
-              "flood",
-              "thunderstorm",
-              "wind",
-              "heat",
-              "dust",
-              "coastal",
-              "tsunami"
-            ],
-            "title": "Kind"
-          },
-          "values": {
-            "additionalProperties": {
-              "type": "string"
-            },
-            "type": "object",
-            "title": "Values"
-          },
-          "revision": {
-            "type": "integer",
-            "title": "Revision"
-          },
-          "publishedRevision": {
-            "anyOf": [
-              {
-                "type": "integer"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Publishedrevision"
-          },
-          "updatedAt": {
-            "type": "string",
-            "title": "Updatedat"
-          }
-        },
-        "type": "object",
-        "required": [
-          "id",
-          "kind",
-          "values",
-          "revision",
-          "publishedRevision",
-          "updatedAt"
-        ],
-        "title": "StoredProduct"
       },
       "SubmissionMode": {
         "type": "string",

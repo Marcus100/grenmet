@@ -11,7 +11,15 @@ from pydantic import TypeAdapter
 
 from src.models import BaseModel
 
-from .schemas import ProductKind, ProductPreview, ProductPreviewInput, ProductWrite
+from .schemas import (
+    ProductKind,
+    ProductPreview,
+    ProductPreviewAdapter,
+    ProductPreviewInput,
+    ProductWrite,
+    ProductWriteAdapter,
+    values_as_dict,
+)
 
 GRENADA = timezone(timedelta(hours=-4))
 ISSUE_HOURS = {"morning": 7, "midday": 12, "evening": 18}
@@ -88,7 +96,7 @@ def normalize(kind: ProductKind, values: dict[str, str]) -> dict[str, str]:
 
 
 def validate(body: ProductWrite, *, now: datetime | None = None) -> list[str]:
-    values, kind = body.values, body.kind
+    values, kind = values_as_dict(body.values), body.kind
     rules = FIELDS[kind]
     if set(values) - {rule.key for rule in rules}:
         return ["Unknown product field"]
@@ -159,17 +167,24 @@ def preview(
     body: ProductPreviewInput, *, now: datetime | None = None
 ) -> ProductPreview:
     instant = now or datetime.now(UTC)
-    values = normalize(body.kind, body.values)
+    values = normalize(body.kind, values_as_dict(body.values))
     # Preview checks content before the human acknowledgement, without saving it.
-    candidate = ProductWrite(
-        id=UUID(int=0),
-        expectedRevision=body.expectedRevision,
-        kind=body.kind,
-        values=values,
-        action="publish",
-        changeSummary=body.changeSummary,
-        reviewed=True,
+    candidate = ProductWriteAdapter.validate_python(
+        {
+            "id": UUID(int=0),
+            "expectedRevision": body.expectedRevision,
+            "kind": body.kind,
+            "values": values,
+            "action": "publish",
+            "changeSummary": body.changeSummary,
+            "reviewed": True,
+        }
     )
-    return ProductPreview(
-        values=values, errors=validate(candidate, now=instant), checked_at=instant
+    return ProductPreviewAdapter.validate_python(
+        {
+            "kind": body.kind,
+            "values": values,
+            "errors": validate(candidate, now=instant),
+            "checked_at": instant,
+        }
     )

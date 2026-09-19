@@ -5,13 +5,18 @@
 
 import * as z from "zod";
 
-export const productPreviewInputSchema = z
+export const legacyProductWriteSchema = z
   .object({
+    id: z.uuid(),
+    expectedRevision: z.int().min(0),
+    values: z.object({}).catchall(z.string().max(12000)),
+    action: z.enum(["draft", "publish", "withdraw"]),
+    changeSummary: z.string().max(1000),
+    reviewed: z.boolean(),
     kind: z.enum([
       "morning",
       "midday",
       "evening",
-      "outlook",
       "cyclone",
       "marine",
       "flood",
@@ -22,8 +27,5 @@ export const productPreviewInputSchema = z
       "coastal",
       "tsunami",
     ]),
-    values: z.object({}).catchall(z.string().max(12000)),
-    expectedRevision: z.int().min(0),
-    changeSummary: z.string().max(1000),
   })
   .strict();

@@ -4,10 +4,30 @@
  */
 
 import type { AuthoringError } from "./AuthoringError.js";
-import type { ProductWrite } from "./ProductWrite.js";
-import type { StoredProduct } from "./StoredProduct.js";
+import type { LegacyProductWrite } from "./LegacyProductWrite.js";
+import type { LegacyStoredProduct } from "./LegacyStoredProduct.js";
+import type { OutlookProductWrite } from "./OutlookProductWrite.js";
+import type { OutlookStoredProduct } from "./OutlookStoredProduct.js";
 
-export type SaveProductApiV1WxproductsProductsPostStatus200 = StoredProduct;
+export type SaveProductApiV1WxproductsProductsPostStatus200 =
+  | (OutlookStoredProduct & {
+      kind: "outlook";
+    })
+  | (LegacyStoredProduct & {
+      kind:
+        | "morning"
+        | "midday"
+        | "evening"
+        | "cyclone"
+        | "marine"
+        | "flood"
+        | "thunderstorm"
+        | "wind"
+        | "heat"
+        | "dust"
+        | "coastal"
+        | "tsunami";
+    });
 
 export type SaveProductApiV1WxproductsProductsPostStatus401 = AuthoringError;
 
@@ -19,7 +39,25 @@ export type SaveProductApiV1WxproductsProductsPostStatus422 = AuthoringError;
 
 export type SaveProductApiV1WxproductsProductsPostStatus503 = AuthoringError;
 
-export type SaveProductApiV1WxproductsProductsPostBody = ProductWrite;
+export type SaveProductApiV1WxproductsProductsPostBody =
+  | (OutlookProductWrite & {
+      kind: "outlook";
+    })
+  | (LegacyProductWrite & {
+      kind:
+        | "morning"
+        | "midday"
+        | "evening"
+        | "cyclone"
+        | "marine"
+        | "flood"
+        | "thunderstorm"
+        | "wind"
+        | "heat"
+        | "dust"
+        | "coastal"
+        | "tsunami";
+    });
 
 export type SaveProductApiV1WxproductsProductsPostOptions = {
   body: SaveProductApiV1WxproductsProductsPostBody;

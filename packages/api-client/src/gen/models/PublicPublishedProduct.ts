@@ -3,7 +3,7 @@
  * Do not edit manually.
  */
 
-export const storedProductKindEnum = {
+export const publicPublishedProductKindEnum = {
   morning: "morning",
   midday: "midday",
   evening: "evening",
@@ -19,21 +19,24 @@ export const storedProductKindEnum = {
   tsunami: "tsunami",
 } as const;
 
-export type StoredProductKindEnum =
-  (typeof storedProductKindEnum)[keyof typeof storedProductKindEnum];
+export type PublicPublishedProductKindEnum =
+  (typeof publicPublishedProductKindEnum)[keyof typeof publicPublishedProductKindEnum];
 
-export type StoredProduct = {
+/**
+ * @description Compatibility response shape for anonymous public consumers.
+ * @type object
+ */
+export type PublicPublishedProduct = {
   /**
    * @description
    * Format: `uuid`
    * @type string
    */
   id: string;
-  kind: StoredProductKindEnum;
+  revision: number;
+  publishedAt: string;
+  kind: PublicPublishedProductKindEnum;
   values: {
     [key: string]: string;
   };
-  revision: number;
-  publishedRevision: number | null;
-  updatedAt: string;
 };
