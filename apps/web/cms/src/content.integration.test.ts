@@ -40,6 +40,7 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
       }),
     });
     editor = await payload.create({
+      draft: true,
       collection: "users",
       data: {
         email: "editor@example.test",
@@ -49,6 +50,7 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
       },
     });
     author = await payload.create({
+      draft: true,
       collection: "users",
       overrideAccess: true,
       data: {
@@ -109,6 +111,7 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
     await expect(
       payload.create({
         collection: "users",
+        draft: true,
         overrideAccess: false,
         data: {
           email: "public@example.test",
@@ -139,14 +142,14 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
   });
   it("keeps Markdown private until an editor publishes a reviewed article", async () => {
     const article = await payload.create({
+      draft: true,
       collection: "content",
       overrideAccess: false,
       user: author,
       data: {
         title: "Preparing for the season",
         slug: "season-preparation",
-        kind: "article",
-        body: "# Prepare\n\n- Check supplies",
+        body: "# Prepare\n\n- Check supplies" as any,
         status: "draft",
         author: editor.id,
       },
@@ -202,7 +205,7 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
         id: article.id,
         overrideAccess: false,
         user: author,
-        data: { body: "Bypass review" },
+        data: { body: "Bypass review" as any },
       })
     ).rejects.toThrow();
     await expect(
@@ -211,15 +214,15 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
   });
   it("prevents authors from editing each other and allows general pages", async () => {
     const page = await payload.create({
+      draft: true,
       collection: "content",
       overrideAccess: false,
       user: editor,
       data: {
         title: "About GMS",
         slug: "about-gms",
-        kind: "page",
         status: "draft",
-        body: "About **GMS**",
+        body: "About **GMS**" as any,
         author: editor.id,
       },
     });
@@ -229,7 +232,7 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
         id: page.id,
         overrideAccess: false,
         user: author,
-        data: { body: "Changed" },
+        data: { body: "Changed" as any },
       })
     ).rejects.toThrow();
   });

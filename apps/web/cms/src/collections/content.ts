@@ -4,15 +4,32 @@ import {
   type CollectionConfig,
 } from "payload";
 import {
+  canPublishSection,
   editContent,
   editorsOnly,
-  isEditor,
   readContent,
   staffField,
   staffOnly,
 } from "../access";
 
-const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const SLUG = /^[a-z0-9]+(?:[/-][a-z0-9]+)*$/;
+const slugPart = (value: unknown) =>
+  String(value ?? "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+const articleCategory = (data: Record<string, unknown>) =>
+  data.updateType ?? data.newsType ?? data.publicationType ?? "article";
+const buildArticlePath = (data: Record<string, unknown>) => {
+  const date = new Date(String(data.publishedAt ?? new Date().toISOString()));
+  const year = date.getUTCFullYear();
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  return [data.section, articleCategory(data), year, month, data.title]
+    .map(slugPart)
+    .filter(Boolean)
+    .join("/");
+};
 
 export const enforceReview: CollectionBeforeChangeHook = ({
   data,
@@ -21,8 +38,11 @@ export const enforceReview: CollectionBeforeChangeHook = ({
 }) => {
   if (!req.user) throw new APIError("Sign in to edit content.", 403);
   if (data.status === "published") {
-    if (!isEditor(req.user))
-      throw new APIError("An editor must publish this content.", 403);
+    if (!canPublishSection(req.user, data.section))
+      throw new APIError(
+        "You do not have permission to publish this article section.",
+        403
+      );
     if (
       originalDoc?.status !== "review" &&
       originalDoc?.status !== "published"
@@ -40,7 +60,7 @@ export const Content: CollectionConfig = {
   labels: { singular: "Content", plural: "Content" },
   admin: {
     useAsTitle: "title",
-    defaultColumns: ["title", "kind", "status", "updatedAt"],
+    defaultColumns: ["title", "section", "status", "updatedAt"],
     description: "Articles and general pages for the GMS website.",
   },
   access: {
@@ -53,6 +73,26 @@ export const Content: CollectionConfig = {
   versions: { maxPerDoc: 20 },
   hooks: {
     beforeValidate: [
+      async ({ data, originalDoc, req }) => {
+        if (data) {
+          if (!data.publishedAt && data.status === "published")
+            data.publishedAt = new Date().toISOString();
+          if (!originalDoc?.slug || originalDoc.status !== "published") {
+            const base = buildArticlePath(data);
+            const existing = await req.payload.find({
+              collection: "content",
+              where: { slug: { equals: base } },
+              limit: 1,
+              overrideAccess: true,
+            });
+            data.slug =
+              existing.docs[0] && existing.docs[0].id !== originalDoc?.id
+                ? `${base}-${Date.now().toString(36)}`
+                : base;
+          }
+        }
+        return data;
+      },
       ({ data, operation, originalDoc, req }) => {
         if (data)
           data.author =
@@ -79,32 +119,91 @@ export const Content: CollectionConfig = {
           : "Use lowercase letters, numbers, and single hyphens.",
     },
     {
-      name: "kind",
+      name: "section",
       type: "select",
       required: true,
-      defaultValue: "article",
-      options: [
-        { label: "Article / blog", value: "article" },
-        { label: "General page", value: "page" },
-      ],
-    },
-    {
-      name: "placement",
-      type: "select",
-      required: true,
-      defaultValue: "news",
+      defaultValue: "latest-from-us",
       options: [
         {
-          label: "Latest from us — short conversational update",
-          value: "latest",
+          label: "Latest from us — GMS updates and announcements",
+          value: "latest-from-us",
         },
-        { label: "Weather news — long-form article or report", value: "news" },
-        { label: "Both sections", value: "both" },
+        {
+          label: "Weather News — Grenada weather coverage",
+          value: "weather-news",
+        },
+        {
+          label: "Latest publications — long-form explanations and documents",
+          value: "latest-publications",
+        },
       ],
       admin: {
-        condition: (data) => data.kind === "article",
-        description:
-          "Choose where this published article appears on the GMS website.",
+        description: "Choose one editorial section for this article.",
+      },
+    },
+    {
+      name: "kicker",
+      type: "text",
+      admin: { description: "Short label above the headline." },
+    },
+    {
+      name: "heroCaption",
+      type: "text",
+      admin: { description: "Caption for the hero image." },
+    },
+    {
+      name: "updateType",
+      type: "select",
+      options: [
+        "Product update",
+        "Service update",
+        "Announcement",
+        "Public notice",
+        "Community update",
+      ],
+      admin: { condition: (data) => data.section === "latest-from-us" },
+    },
+    {
+      name: "newsType",
+      type: "select",
+      options: [
+        "Local weather story",
+        "Weather event",
+        "Climate story",
+        "Weather explainer",
+        "Community impact",
+      ],
+      admin: { condition: (data) => data.section === "weather-news" },
+    },
+    {
+      name: "officialDocument",
+      type: "upload",
+      relationTo: "media",
+      admin: {
+        condition: (data) => data.section === "latest-publications",
+        description: "Official document associated with this article.",
+      },
+    },
+    {
+      name: "publicationType",
+      type: "select",
+      options: [
+        "Report",
+        "Guide",
+        "Bulletin",
+        "Policy",
+        "Research paper",
+        "Dataset",
+        "Other",
+      ],
+      admin: { condition: (data) => data.section === "latest-publications" },
+    },
+    {
+      name: "publishedAt",
+      type: "date",
+      admin: {
+        position: "sidebar",
+        description: "Used to build the public article URL.",
       },
     },
     { name: "summary", type: "textarea" },
@@ -118,20 +217,70 @@ export const Content: CollectionConfig = {
     },
     {
       name: "body",
-      label: "Markdown",
-      type: "textarea",
+      label: "Article body",
+      type: "richText",
       required: true,
       admin: {
-        rows: 20,
-        description: "Write Markdown. Open Preview below to check formatting.",
+        description:
+          "Write the article with headings, links, images, quotes, tables, and emoji.",
       },
     },
     {
-      name: "preview",
-      type: "ui",
+      name: "socialCaption",
+      type: "textarea",
+      admin: { description: "Shared starting caption for social posts." },
+    },
+    {
+      name: "social",
+      type: "group",
+      label: "Social media sharing",
       admin: {
-        components: { Field: "/components/markdown-preview#MarkdownPreview" },
+        description:
+          "Prepare platform-specific copy. Automatic delivery can be added later.",
       },
+      fields: [
+        {
+          name: "enabledPlatforms",
+          type: "select",
+          hasMany: true,
+          options: [
+            "X",
+            "Facebook",
+            "Instagram",
+            "YouTube",
+            "LinkedIn",
+            "WhatsApp Channel",
+          ],
+        },
+        {
+          name: "publishAt",
+          type: "date",
+          admin: {
+            description: "Leave empty for manual or immediate sharing.",
+          },
+        },
+        { name: "xText", type: "textarea", label: "X post" },
+        { name: "facebookText", type: "textarea", label: "Facebook post" },
+        { name: "instagramText", type: "textarea", label: "Instagram caption" },
+        { name: "linkedinText", type: "textarea", label: "LinkedIn post" },
+        {
+          name: "whatsappText",
+          type: "textarea",
+          label: "WhatsApp Channel message",
+        },
+        {
+          name: "youtubeTitle",
+          type: "text",
+          label: "YouTube title",
+          admin: { condition: (data) => Boolean(data?.videoUrl) },
+        },
+        {
+          name: "youtubeDescription",
+          type: "textarea",
+          label: "YouTube description",
+          admin: { condition: (data) => Boolean(data?.videoUrl) },
+        },
+      ],
     },
     {
       name: "status",

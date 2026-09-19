@@ -2,6 +2,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { resendAdapter } from "@payloadcms/email-resend";
+import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import { buildConfig } from "payload";
 import { Content } from "./collections/content";
 import { Media } from "./collections/media";
@@ -12,6 +13,7 @@ const env = getEnv();
 const baseDir = path.dirname(fileURLToPath(import.meta.url));
 export default buildConfig({
   secret: env.PAYLOAD_SECRET,
+  editor: lexicalEditor(),
   email:
     env.RESEND_API_KEY && env.EMAILS_FROM_EMAIL
       ? resendAdapter({

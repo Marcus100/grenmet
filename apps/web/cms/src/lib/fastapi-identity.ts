@@ -2,6 +2,7 @@ import {
   createClient,
   exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost,
   ResponseError,
+  readEffectiveAccessApiV1AuthAccessMeGet,
   readHrProfileMeApiV1HrProfileMeGet,
   readUserMeApiV1AuthUsersMeGet,
 } from "@barrelsgd/api-client";
@@ -11,6 +12,7 @@ export interface StaffIdentity {
   email: string;
   fastapiUserId: string;
   isSuperuser: boolean;
+  permissionKeys?: string[];
   username: string;
 }
 export async function readFastApiIdentity(
@@ -69,11 +71,16 @@ export async function readFastApiIdentity(
       )
         return null;
     }
+    const access = await readEffectiveAccessApiV1AuthAccessMeGet({
+      client,
+      signal: AbortSignal.timeout(10_000),
+    }).unwrap();
     return {
       fastapiUserId: user.id,
       username: user.username,
       email: user.email,
       isSuperuser: Boolean(user.is_superuser),
+      permissionKeys: access?.permission_keys ?? [],
     };
   } catch (error) {
     if (
