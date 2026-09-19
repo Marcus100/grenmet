@@ -143,6 +143,7 @@ references rather than duplicated here.
 
 | Root configuration | Classification | Lifecycle rule |
 | --- | --- | --- |
+| `CONTEXT.md` | Domain vocabulary and decisions | Active reference; update when the project's ubiquitous language or domain decisions change |
 | `package.json`, `pnpm-workspace.yaml`, `turbo.json`, and `biome.jsonc` | JavaScript workspace and quality policy | Change with affected workspaces and CI |
 | `pyproject.toml`, `.python-version`, and `uv.lock` | Python workspace and dependency lock | Keep all Python members synchronized |
 | `pnpm-lock.yaml`, `.node-version`, and `.npmrc` | JavaScript runtime/dependency lock | Regenerate only through approved package-manager work |
