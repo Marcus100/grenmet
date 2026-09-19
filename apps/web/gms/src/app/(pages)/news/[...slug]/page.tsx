@@ -12,25 +12,27 @@ async function findArticle(slug: string) {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string[] }>;
 }) {
-  const { slug } = await params;
+  const { slug: slugParts } = await params;
+  const slug = slugParts.join("/");
   const article = await findArticle(slug);
-  return { title: article?.title ?? "Weather news" };
+  return { title: article?.title ?? "Latest publications" };
 }
 export default async function ArticlePage({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ slug: string[] }>;
 }) {
-  const { slug } = await params;
+  const { slug: slugParts } = await params;
+  const slug = slugParts.join("/");
   const article = await findArticle(slug);
   if (!article) notFound();
   return (
     <article className="mx-auto max-w-3xl space-y-8">
       <header className="space-y-4">
         <p className="font-semibold text-muted-foreground">
-          Weather news · GMS · {article.published}
+          Latest publications · GMS · {article.published}
         </p>
         <h1 className="font-bold text-3xl">{article.title}</h1>
         <p className="text-lg">{article.summary}</p>
@@ -60,7 +62,7 @@ export default async function ArticlePage({
         </p>
       ))}
       <Link className="underline" href="/news">
-        More weather news
+        More from Latest publications
       </Link>
     </article>
   );
