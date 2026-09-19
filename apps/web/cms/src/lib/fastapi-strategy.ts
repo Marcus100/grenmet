@@ -29,6 +29,7 @@ export const fastApiStrategy: AuthStrategy = {
       // Unique FastAPI ID prevents duplicate identities on concurrent first requests.
       try {
         user = await payload.create({
+          draft: true,
           collection: "users",
           data: { ...identity, role: "author" },
           overrideAccess: true,
@@ -47,7 +48,9 @@ export const fastApiStrategy: AuthStrategy = {
     if (
       user.email !== identity.email ||
       user.username !== identity.username ||
-      user.isSuperuser !== identity.isSuperuser
+      user.isSuperuser !== identity.isSuperuser ||
+      JSON.stringify(user.permissionKeys ?? []) !==
+        JSON.stringify(identity.permissionKeys)
     ) {
       user = await payload.update({
         collection: "users",

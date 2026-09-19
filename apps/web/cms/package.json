@@ -36,6 +36,7 @@
     "@barrelsgd/api-client": "workspace:*",
     "@barrelsgd/auth": "workspace:*",
     "pg": "catalog:",
+    "@payloadcms/richtext-lexical": "catalog:",
     "@payloadcms/email-resend": "catalog:"
   },
   "devDependencies": {

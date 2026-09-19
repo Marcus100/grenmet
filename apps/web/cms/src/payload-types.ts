@@ -139,6 +139,15 @@ export interface User {
   fastapiUserId: string;
   id: number;
   isSuperuser?: boolean | null;
+  permissionKeys?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   role: "author" | "editor";
   updatedAt: string;
   username: string;
@@ -152,24 +161,103 @@ export interface User {
 export interface Content {
   author: number | User;
   /**
-   * Write Markdown. Open Preview below to check formatting.
+   * Write the article with headings, links, images, quotes, tables, and emoji.
    */
-  body: string;
+  body: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ("ltr" | "rtl") | null;
+      format: "left" | "start" | "center" | "right" | "end" | "justify" | "";
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
   createdAt: string;
+  /**
+   * Caption for the hero image.
+   */
+  heroCaption?: string | null;
   id: number;
   /**
    * Shown on news cards and the article header.
    */
   image?: (number | null) | Media;
-  kind: "article" | "page";
   /**
-   * Choose where this published article appears on the GMS website.
+   * Short label above the headline.
    */
-  placement?: ("latest" | "news" | "both") | null;
+  kicker?: string | null;
+  newsType?:
+    | (
+        | "Local weather story"
+        | "Weather event"
+        | "Climate story"
+        | "Weather explainer"
+        | "Community impact"
+      )
+    | null;
+  /**
+   * Official document associated with this article.
+   */
+  officialDocument?: (number | null) | Media;
+  publicationType?:
+    | (
+        | "Report"
+        | "Guide"
+        | "Bulletin"
+        | "Policy"
+        | "Research paper"
+        | "Dataset"
+        | "Other"
+      )
+    | null;
+  /**
+   * Used to build the public article URL.
+   */
+  publishedAt?: string | null;
+  /**
+   * Choose one editorial section for this article.
+   */
+  section: "latest-from-us" | "weather-news" | "latest-publications";
   /**
    * A URL name such as hurricane-season-preparation.
    */
   slug: string;
+  /**
+   * Prepare platform-specific copy. Automatic delivery can be added later.
+   */
+  social?: {
+    enabledPlatforms?:
+      | (
+          | "X"
+          | "Facebook"
+          | "Instagram"
+          | "YouTube"
+          | "LinkedIn"
+          | "WhatsApp Channel"
+        )[]
+      | null;
+    /**
+     * Leave empty for manual or immediate sharing.
+     */
+    publishAt?: string | null;
+    xText?: string | null;
+    facebookText?: string | null;
+    instagramText?: string | null;
+    linkedinText?: string | null;
+    whatsappText?: string | null;
+    youtubeTitle?: string | null;
+    youtubeDescription?: string | null;
+  };
+  /**
+   * Shared starting caption for social posts.
+   */
+  socialCaption?: string | null;
   /**
    * Save as Ready for review. An editor checks it and publishes.
    */
@@ -177,6 +265,15 @@ export interface Content {
   summary?: string | null;
   title: string;
   updatedAt: string;
+  updateType?:
+    | (
+        | "Product update"
+        | "Service update"
+        | "Announcement"
+        | "Public notice"
+        | "Community update"
+      )
+    | null;
 }
 /**
  * Images for GMS website articles and pages.
@@ -289,6 +386,7 @@ export interface UsersSelect<T extends boolean = true> {
   email?: T;
   fastapiUserId?: T;
   isSuperuser?: T;
+  permissionKeys?: T;
   role?: T;
   updatedAt?: T;
   username?: T;
@@ -301,14 +399,34 @@ export interface ContentSelect<T extends boolean = true> {
   author?: T;
   body?: T;
   createdAt?: T;
+  heroCaption?: T;
   image?: T;
-  kind?: T;
-  placement?: T;
+  kicker?: T;
+  newsType?: T;
+  officialDocument?: T;
+  publicationType?: T;
+  publishedAt?: T;
+  section?: T;
   slug?: T;
+  social?:
+    | T
+    | {
+        enabledPlatforms?: T;
+        publishAt?: T;
+        xText?: T;
+        facebookText?: T;
+        instagramText?: T;
+        linkedinText?: T;
+        whatsappText?: T;
+        youtubeTitle?: T;
+        youtubeDescription?: T;
+      };
+  socialCaption?: T;
   status?: T;
   summary?: T;
   title?: T;
   updatedAt?: T;
+  updateType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
