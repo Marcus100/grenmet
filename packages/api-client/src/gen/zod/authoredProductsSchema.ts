@@ -4,8 +4,31 @@
  */
 
 import * as z from "zod";
-import { storedProductSchema } from "./storedProductSchema.js";
+import { legacyStoredProductSchema } from "./legacyStoredProductSchema.js";
+import { outlookStoredProductSchema } from "./outlookStoredProductSchema.js";
 
 export const authoredProductsSchema = z.object({
-  products: z.array(storedProductSchema),
+  products: z.array(
+    z.discriminatedUnion("kind", [
+      outlookStoredProductSchema.extend({
+        kind: z.enum(["outlook"]),
+      }),
+      legacyStoredProductSchema.extend({
+        kind: z.enum([
+          "coastal",
+          "cyclone",
+          "dust",
+          "evening",
+          "flood",
+          "heat",
+          "marine",
+          "midday",
+          "morning",
+          "thunderstorm",
+          "tsunami",
+          "wind",
+        ]),
+      }),
+    ])
+  ),
 });

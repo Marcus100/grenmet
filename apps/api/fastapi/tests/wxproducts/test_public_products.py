@@ -11,21 +11,27 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.main import app
 from src.wxproducts import database, service
 from src.wxproducts.dependencies import get_session
-from src.wxproducts.schemas import ProductKind, PublishedProduct
+from src.wxproducts.schemas import (
+    ProductKind,
+    PublishedProduct,
+    PublishedProductAdapter,
+)
 
 
-def snapshot(kind: ProductKind = "marine", **values: str) -> PublishedProduct:
-    return PublishedProduct(
-        id=uuid4(),
-        revision=1,
-        publishedAt="2026-09-08T09:00:00Z",
-        kind=kind,
-        values={
-            "issuedAt": "2026-09-08T05:00",
-            "validFrom": "2026-09-08T05:00",
-            "validTo": "2026-09-09T05:00",
-            **values,
-        },
+def snapshot(kind: ProductKind = "marine", **values: str):
+    return PublishedProductAdapter.validate_python(
+        {
+            "id": uuid4(),
+            "revision": 1,
+            "publishedAt": "2026-09-08T09:00:00Z",
+            "kind": kind,
+            "values": {
+                "issuedAt": "2026-09-08T05:00",
+                "validFrom": "2026-09-08T05:00",
+                "validTo": "2026-09-09T05:00",
+                **values,
+            },
+        }
     )
 
 

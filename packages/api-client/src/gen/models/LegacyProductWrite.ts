@@ -3,11 +3,19 @@
  * Do not edit manually.
  */
 
-export const productWriteKindEnum = {
+export const legacyProductWriteActionEnum = {
+  draft: "draft",
+  publish: "publish",
+  withdraw: "withdraw",
+} as const;
+
+export type LegacyProductWriteActionEnum =
+  (typeof legacyProductWriteActionEnum)[keyof typeof legacyProductWriteActionEnum];
+
+export const legacyProductWriteKindEnum = {
   morning: "morning",
   midday: "midday",
   evening: "evening",
-  outlook: "outlook",
   cyclone: "cyclone",
   marine: "marine",
   flood: "flood",
@@ -19,19 +27,10 @@ export const productWriteKindEnum = {
   tsunami: "tsunami",
 } as const;
 
-export type ProductWriteKindEnum =
-  (typeof productWriteKindEnum)[keyof typeof productWriteKindEnum];
+export type LegacyProductWriteKindEnum =
+  (typeof legacyProductWriteKindEnum)[keyof typeof legacyProductWriteKindEnum];
 
-export const productWriteActionEnum = {
-  draft: "draft",
-  publish: "publish",
-  withdraw: "withdraw",
-} as const;
-
-export type ProductWriteActionEnum =
-  (typeof productWriteActionEnum)[keyof typeof productWriteActionEnum];
-
-export type ProductWrite = {
+export type LegacyProductWrite = {
   /**
    * @description
    * Format: `uuid`
@@ -43,15 +42,15 @@ export type ProductWrite = {
    * @type integer
    */
   expectedRevision: number;
-  kind: ProductWriteKindEnum;
   values: {
     [key: string]: string;
   };
-  action: ProductWriteActionEnum;
+  action: LegacyProductWriteActionEnum;
   /**
    * @maxLength 1000
    * @type string
    */
   changeSummary: string;
   reviewed: boolean;
+  kind: LegacyProductWriteKindEnum;
 };

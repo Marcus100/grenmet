@@ -84,6 +84,14 @@ Kubb generates the request and response types from these Pydantic/OpenAPI schema
 The editor's field definitions are checked against FastAPI's `fields.json`; browser
 validation provides feedback, while FastAPI enforces the publication rules.
 
+During the typed-products rollout, the `outlook` kind uses a discriminated union
+with a typed `OutlookValuesDraft` payload for authoring and preview requests. Its
+published values require the fields marked `requiredOnPublish` in `fields.json`.
+The remaining kinds temporarily use the legacy string-value branch and will be
+migrated independently. The anonymous public feed intentionally retains its
+legacy-compatible `values: { [key: string]: string }` response until external
+consumers of that feed have been inventoried.
+
 ## Documentation Endpoints
 
 FastAPI docs are enabled only when `ENVIRONMENT` is `local` or `staging`:

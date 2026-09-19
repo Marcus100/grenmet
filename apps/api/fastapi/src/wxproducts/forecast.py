@@ -12,17 +12,19 @@ from .schemas import (
     ForecastSource,
     PublicForecast,
     PublishedProduct,
+    values_as_dict,
 )
 from .validation import GRENADA, ISSUE_HOURS, local_time, number
 
 
 def source(product: PublishedProduct) -> ForecastSource:
+    values = values_as_dict(product.values)
     return ForecastSource(
         product_id=product.id,
         revision=product.revision,
         kind=product.kind,
         issued_at=local_time(
-            f"{product.values['issuedAt'][:10]}T{ISSUE_HOURS[product.kind]:02}:00"
+            f"{values['issuedAt'][:10]}T{ISSUE_HOURS[product.kind]:02}:00"
         ).astimezone(UTC),
         published_at=datetime.fromisoformat(product.publishedAt).astimezone(UTC),
     )
@@ -35,23 +37,20 @@ def temperature(value: str) -> float | None:
 
 def period(product: PublishedProduct, day: datetime, prefix: str) -> ForecastPeriod:
     provenance = source(product)
+    values = values_as_dict(product.values)
 
     def value(key: str) -> str:
-        return product.values.get(
-            prefix + key[0].upper() + key[1:] if prefix else key, ""
-        )
+        return values.get(prefix + key[0].upper() + key[1:] if prefix else key, "")
 
     details = {
         key: value(key)
         for key in ("wind", "seaState", "highTides", "lowTides", "sunrise", "sunset")
     }
-    details["summary"] = product.values.get(
-        prefix + "Weather" if prefix else "summary", ""
-    )
+    details["summary"] = values.get(prefix + "Weather" if prefix else "summary", "")
     if not prefix:
         for key in ("observedTemperature", "word", "definition"):
-            if product.values.get(key):
-                details[key] = product.values[key]
+            if values.get(key):
+                details[key] = values[key]
     return ForecastPeriod(
         date=day.date().isoformat(),
         valid_from=day.astimezone(UTC) if prefix else provenance.issued_at,
@@ -59,11 +58,9 @@ def period(product: PublishedProduct, day: datetime, prefix: str) -> ForecastPer
         source=provenance,
         period_key=prefix,
         high=temperature(
-            product.values.get(prefix + "Max" if prefix else "maxTemperature", "")
+            values.get(prefix + "Max" if prefix else "maxTemperature", "")
         ),
-        low=temperature(
-            product.values.get(prefix + "Min" if prefix else "minTemperature", "")
-        ),
+        low=temperature(values.get(prefix + "Min" if prefix else "minTemperature", "")),
         details=details,
     )
 

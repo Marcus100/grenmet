@@ -16,6 +16,7 @@ from typing import Annotated, get_args, get_origin
 from pydantic import PlainSerializer
 
 import src.main  # noqa: F401  # imports every router so all schemas register
+from src.main import app
 from src.models import CustomModel
 
 
@@ -68,3 +69,17 @@ def test_serialization_schemas_are_not_empty() -> None:
         "Models with empty serialization schema (breaks OpenAPI/TS client): "
         + ", ".join(sorted(offenders))
     )
+
+
+def test_wxproducts_typed_contract_has_discriminator() -> None:
+    save = app.openapi()["paths"]["/api/v1/wxproducts/products"]["post"]
+    preview = app.openapi()["paths"]["/api/v1/wxproducts/products/preview"]["post"]
+    for operation in (save, preview):
+        schema = operation["requestBody"]["content"]["application/json"]["schema"]
+        assert schema["discriminator"]["propertyName"] == "kind"
+        assert len(schema["oneOf"]) == 2
+
+    preview_response = app.openapi()["paths"]["/api/v1/wxproducts/products/preview"][
+        "post"
+    ]["responses"]["200"]["content"]["application/json"]["schema"]
+    assert preview_response["discriminator"]["propertyName"] == "kind"

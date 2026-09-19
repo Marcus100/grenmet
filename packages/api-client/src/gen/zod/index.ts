@@ -764,6 +764,10 @@ export { leaveRequestListPublicSchema } from "./leaveRequestListPublicSchema.js"
 export { leaveRequestPublicSchema } from "./leaveRequestPublicSchema.js";
 export { leaveRequestSubmitSchema } from "./leaveRequestSubmitSchema.js";
 export { leaveTypeSchema } from "./leaveTypeSchema.js";
+export { legacyProductPreviewInputSchema } from "./legacyProductPreviewInputSchema.js";
+export { legacyProductPreviewSchema } from "./legacyProductPreviewSchema.js";
+export { legacyProductWriteSchema } from "./legacyProductWriteSchema.js";
+export { legacyStoredProductSchema } from "./legacyStoredProductSchema.js";
 export {
   listAssignmentsApiV1HrRostersAssignmentsGetErrorSchema,
   listAssignmentsApiV1HrRostersAssignmentsGetQueryDepartmentIdSchema,
@@ -968,6 +972,11 @@ export {
 export { organisationCatalogueSchema } from "./organisationCatalogueSchema.js";
 export { organisationPreviewSchema } from "./organisationPreviewSchema.js";
 export { organisationPublicSchema } from "./organisationPublicSchema.js";
+export { outlookProductPreviewInputSchema } from "./outlookProductPreviewInputSchema.js";
+export { outlookProductPreviewSchema } from "./outlookProductPreviewSchema.js";
+export { outlookProductWriteSchema } from "./outlookProductWriteSchema.js";
+export { outlookStoredProductSchema } from "./outlookStoredProductSchema.js";
+export { outlookValuesDraftSchema } from "./outlookValuesDraftSchema.js";
 export { paginatedResponsePermissionPublicSchema } from "./paginatedResponsePermissionPublicSchema.js";
 export { paginatedResponseRolePublicSchema } from "./paginatedResponseRolePublicSchema.js";
 export { paginatedResponseUserPublicSchema } from "./paginatedResponseUserPublicSchema.js";
@@ -1027,8 +1036,6 @@ export { productAccessPublicSchema } from "./productAccessPublicSchema.js";
 export { productFeedErrorSchema } from "./productFeedErrorSchema.js";
 export { productHistoryEntrySchema } from "./productHistoryEntrySchema.js";
 export { productHistorySchema } from "./productHistorySchema.js";
-export { productPreviewInputSchema } from "./productPreviewInputSchema.js";
-export { productPreviewSchema } from "./productPreviewSchema.js";
 export {
   productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetErrorSchema,
   productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetPathProductIdSchema,
@@ -1041,7 +1048,6 @@ export {
   productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus422Schema,
   productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus503Schema,
 } from "./productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetSchema.js";
-export { productWriteSchema } from "./productWriteSchema.js";
 export { profAppointmentTypeSchema } from "./profAppointmentTypeSchema.js";
 export { profileAuditPublicSchema } from "./profileAuditPublicSchema.js";
 export { profileDetailsPublicSchema } from "./profileDetailsPublicSchema.js";
@@ -1057,6 +1063,7 @@ export { publicForecastSchema } from "./publicForecastSchema.js";
 export { publicHolidayCreateSchema } from "./publicHolidayCreateSchema.js";
 export { publicHolidayPublicSchema } from "./publicHolidayPublicSchema.js";
 export { publicHolidaysPublicSchema } from "./publicHolidaysPublicSchema.js";
+export { publicPublishedProductSchema } from "./publicPublishedProductSchema.js";
 export { publicWarningGroupSchema } from "./publicWarningGroupSchema.js";
 export { publicWarningSchema } from "./publicWarningSchema.js";
 export { publicWarningsSchema } from "./publicWarningsSchema.js";
@@ -1068,7 +1075,6 @@ export {
   publishAlertApiV1CapAlertsAlertIdPublishPostStatus200Schema,
   publishAlertApiV1CapAlertsAlertIdPublishPostStatus422Schema,
 } from "./publishAlertApiV1CapAlertsAlertIdPublishPostSchema.js";
-export { publishedProductSchema } from "./publishedProductSchema.js";
 export { publishedProductsSchema } from "./publishedProductsSchema.js";
 export {
   publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchErrorSchema,
@@ -1784,7 +1790,6 @@ export { statusReportListPublicSchema } from "./statusReportListPublicSchema.js"
 export { statusReportPublicSchema } from "./statusReportPublicSchema.js";
 export { statusReportSubmitSchema } from "./statusReportSubmitSchema.js";
 export { stopViewSchema } from "./stopViewSchema.js";
-export { storedProductSchema } from "./storedProductSchema.js";
 export { submissionModeSchema } from "./submissionModeSchema.js";
 export {
   submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostBodySchema,

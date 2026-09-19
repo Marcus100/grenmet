@@ -5,15 +5,16 @@
 
 import * as z from "zod";
 
-export const publishedProductSchema = z.object({
+export const legacyStoredProductSchema = z.object({
   id: z.uuid(),
-  revision: z.int().gt(0),
-  publishedAt: z.string(),
+  values: z.object({}).catchall(z.string()),
+  revision: z.int(),
+  publishedRevision: z.union([z.int(), z.null()]),
+  updatedAt: z.string(),
   kind: z.enum([
     "morning",
     "midday",
     "evening",
-    "outlook",
     "cyclone",
     "marine",
     "flood",
@@ -24,5 +25,4 @@ export const publishedProductSchema = z.object({
     "coastal",
     "tsunami",
   ]),
-  values: z.object({}).catchall(z.string()),
 });

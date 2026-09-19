@@ -6,7 +6,7 @@ from pathlib import Path
 from fpdf import FPDF
 from fpdf.enums import WrapMode
 
-from .schemas import ProductPdfSource
+from .schemas import ProductPdfSource, values_as_dict
 from .validation import FIELDS, ISSUE_HOURS
 
 
@@ -22,6 +22,7 @@ def publication_label(source: ProductPdfSource) -> str:
 
 def document_fields(source: ProductPdfSource) -> list[tuple[str, str]]:
     fields = []
+    values = values_as_dict(source.values)
     for field in FIELDS[source.kind]:
         hidden = (
             field.section.endswith(" impacts")
@@ -34,7 +35,7 @@ def document_fields(source: ProductPdfSource) -> list[tuple[str, str]]:
         fields.append(
             (
                 f"{field.section} · {field.label}",
-                source.values.get(field.key, "") or "—",
+                values.get(field.key, "") or "—",
             )
         )
     return fields

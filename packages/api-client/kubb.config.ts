@@ -10,7 +10,11 @@ export default defineConfig(({ watch }) => ({
   name: "api-client",
   root: ".",
   input: "../../apps/api/fastapi/openapi.json",
-  adapter: adapterOas({ validate: true, integerType: "number" }),
+  adapter: adapterOas({
+    validate: true,
+    integerType: "number",
+    discriminator: "propagate",
+  }),
   output: {
     path: "./src/gen",
     clean: !watch,

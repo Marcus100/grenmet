@@ -1,6 +1,6 @@
 import "server-only";
 import {
-  type PublishedProduct,
+  type PublicPublishedProduct,
   publishedProductsSchema,
 } from "@barrelsgd/api-client";
 import type { ProductKind } from "@barrelsgd/gms/products";
@@ -9,7 +9,7 @@ import { getAuthApiBaseUrl, getAuthApiPrefix } from "@/lib/auth-config";
 /** Compatibility entrypoint for the dashboard; FastAPI owns product storage. */
 export async function listPublishedProducts(
   kind?: ProductKind
-): Promise<PublishedProduct[]> {
+): Promise<PublicPublishedProduct[]> {
   const url = new URL(
     `${getAuthApiPrefix()}/wxproducts/public/products`,
     getAuthApiBaseUrl()

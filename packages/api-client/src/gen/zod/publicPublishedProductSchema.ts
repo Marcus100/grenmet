@@ -5,10 +5,11 @@
 
 import * as z from "zod";
 
-export const productWriteSchema = z
+export const publicPublishedProductSchema = z
   .object({
     id: z.uuid(),
-    expectedRevision: z.int().min(0),
+    revision: z.int().gt(0),
+    publishedAt: z.string(),
     kind: z.enum([
       "morning",
       "midday",
@@ -24,9 +25,6 @@ export const productWriteSchema = z
       "coastal",
       "tsunami",
     ]),
-    values: z.object({}).catchall(z.string().max(12000)),
-    action: z.enum(["draft", "publish", "withdraw"]),
-    changeSummary: z.string().max(1000),
-    reviewed: z.boolean(),
+    values: z.object({}).catchall(z.string()),
   })
-  .strict();
+  .describe("Compatibility response shape for anonymous public consumers.");
