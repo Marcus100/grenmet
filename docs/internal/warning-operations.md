@@ -21,13 +21,24 @@ The domain stores:
 
 ## Lifecycle
 
-The implemented lifecycle states are:
+Per [ADR-0013](../adr/0013-cap-alert-self-publish-and-bulletin-linkage.md)
+(supersedes [ADR-0007](../adr/0007-cap-warning-lifecycle.md)'s mandatory
+approval gate), CAP Alerts self-publish like every other authored product.
+Submit/Approve remain implemented but are an **optional, non-blocking**
+review path — recording that someone looked at a draft — not a required
+step before Publish:
 
 ```text
-DRAFT -> SUBMITTED -> APPROVED -> PUBLISHED -> EXPIRED
-                                      |
-                                      v
-                                  CANCELLED
+DRAFT ---------------------------------> PUBLISHED -> EXPIRED
+  |                                          ^
+  v                                          |
+SUBMITTED -----------------------------------+
+  |                                          |
+  v                                          |
+APPROVED -------------------------------------
+                                              |
+                                              v
+                                          CANCELLED
 ```
 
 Supported actions:
@@ -38,13 +49,29 @@ Supported actions:
 | Edit | `PATCH /api/v1/cap/alerts/{alert_id}` | `DRAFT`, `SUBMITTED`, `APPROVED` | unchanged | `cap.alert.edit` |
 | Duplicate | `POST /api/v1/cap/alerts/{alert_id}/duplicate` | any readable alert | `DRAFT` copy | `cap.alert.create` |
 | Validate | `POST /api/v1/cap/alerts/{alert_id}/validate` | any readable alert | unchanged | `cap.alert.read` |
-| Submit | `POST /api/v1/cap/alerts/{alert_id}/submit` | `DRAFT` | `SUBMITTED` | `cap.alert.submit` |
-| Approve | `POST /api/v1/cap/alerts/{alert_id}/approve` | `SUBMITTED` | `APPROVED` | `cap.alert.approve` |
-| Publish | `POST /api/v1/cap/alerts/{alert_id}/publish` | `APPROVED` | `PUBLISHED` or `CANCELLED` for cancel messages | `cap.alert.publish` |
+| Submit (optional review) | `POST /api/v1/cap/alerts/{alert_id}/submit` | `DRAFT` | `SUBMITTED` | `cap.alert.submit` |
+| Approve (optional review) | `POST /api/v1/cap/alerts/{alert_id}/approve` | `SUBMITTED` | `APPROVED` | `cap.alert.approve` |
+| Publish | `POST /api/v1/cap/alerts/{alert_id}/publish` | `DRAFT`, `SUBMITTED`, or `APPROVED` | `PUBLISHED` or `CANCELLED` for cancel messages | `cap.alert.publish` |
 | Cancel | `POST /api/v1/cap/alerts/{alert_id}/cancel` | `PUBLISHED` | `CANCELLED` | `cap.alert.publish` |
 | Expire | `POST /api/v1/cap/alerts/{alert_id}/expire` | `PUBLISHED` | `EXPIRED` | `cap.alert.publish` |
 
 Publishing validates the alert, generates CAP XML, stores a snapshot, queues publish side-effect records, and writes an audit event.
+
+### Linkage to authored bulletins (ADR-0013)
+
+When a CAP Alert escalates a Marine Bulletin or a Hazard Bulletin
+(`wxproducts`), the author records the source product's kind, ID, and
+revision in the CAP Alert's `note` field — a manual convention, not a
+database relationship. There is no automated cascade: withdrawing the source
+bulletin does not automatically cancel its CAP Alert, and vice versa. The
+admin UI shows a reminder at both withdraw (bulletin side) and cancel
+(CAP side) prompting the author to check the other one — for a
+Hazard-Bulletin-sourced alert specifically, cancelling the CAP Alert should
+be followed by withdrawing the bulletin, since it has no standing reason to
+stay public once the hazard it flagged has been called off. A PWS-sourced
+alert (Marine Bulletin, a general forecast) does not need its source
+withdrawn on cancellation — the source remains a valid scheduled record
+regardless.
 
 ## Validation
 
@@ -93,7 +120,7 @@ The current code records these jobs in Postgres. A worker is not enabled in the 
 
 ## Operational Rules
 
-- A forecaster should not publish directly from draft. Use submit and approve separation.
+- A forecaster may publish directly from draft. Submit and approve are available as an optional, non-blocking review step, not a requirement.
 - Every official published alert must have a validation result with no errors.
 - Use cancel for active published alerts that need cancellation. Use expire when the valid period has ended.
 - Do not delete official warning records as a normal workflow. Archive through state and snapshot history.

@@ -1,3 +1,7 @@
+"use client";
+
+import { motion } from "motion/react";
+
 /**
  * Headline and decorative waves for the brand surface. The surface itself —
  * background, radius and padding — belongs to the weather layout, so the
@@ -6,10 +10,16 @@
 export function Hero() {
   return (
     <>
-      <svg
+      <motion.svg
+        animate={{ x: [0, -24, 0] }}
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 block h-full w-full"
         preserveAspectRatio="none"
+        transition={{
+          duration: 18,
+          ease: "easeInOut",
+          repeat: Number.POSITIVE_INFINITY,
+        }}
         viewBox="0 0 1440 420"
       >
         <title>Decorative wave pattern</title>
@@ -23,12 +33,17 @@ export function Hero() {
           <path d="M-60 350C160 320 320 200 600 196s380 140 640 84 300-120 340-140" />
           <path d="M-60 240C140 180 280 60 520 66s400 160 660 110 300-140 340-160" />
         </g>
-      </svg>
+      </motion.svg>
       {/* heading-md, not heading-lg: the temperature is the page's largest
           element, and the slogan should not compete with it. */}
-      <h1 className="relative font-bold text-gm-text-inverse text-heading-md leading-heading-md tracking-tight">
+      <motion.h1
+        animate={{ opacity: 1, y: 0 }}
+        className="relative font-bold text-gm-text-inverse text-heading-md leading-heading-md tracking-tight"
+        initial={{ opacity: 0, y: 12 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+      >
         Your spice weather
-      </h1>
+      </motion.h1>
     </>
   );
 }

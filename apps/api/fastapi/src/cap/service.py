@@ -522,8 +522,17 @@ async def publish_alert(
 ) -> tuple[CapAlertPublic, CapSnapshotPublic]:
     require_permission(current_user=current_user, permission_key="cap.alert.publish")
     alert = await get_alert_or_404(session=session, alert_id=alert_id)
-    if alert.lifecycle_state != CapLifecycleState.APPROVED:
-        raise CapStateError("Only approved CAP alerts can be published.")
+    # Submit/approve remain available as an optional, non-blocking review step
+    # (ADR-0013) rather than a required gate: publish is allowed straight from
+    # Draft, or from Submitted/Approved for whoever chose to route through them.
+    if alert.lifecycle_state not in {
+        CapLifecycleState.DRAFT,
+        CapLifecycleState.SUBMITTED,
+        CapLifecycleState.APPROVED,
+    }:
+        raise CapStateError(
+            "Only a draft, submitted or approved alert can be published."
+        )
     public = await _to_public(session=session, alert=alert)
     validation = validate_cap_alert(public)
     if not validation.is_valid:

@@ -23,6 +23,7 @@
     "@t3-oss/env-nextjs": "catalog:",
     "class-variance-authority": "catalog:",
     "lucide-react": "catalog:",
+    "motion": "catalog:",
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",

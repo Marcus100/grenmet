@@ -131,7 +131,7 @@
   // Lets in-container health checks reach host-published ports (SURFACE :8081,
   // wis2box :80, grenmet infra) as host.docker.internal on any Docker engine,
   // not just Docker Desktop.
-  "runArgs": ["--add-host=host.docker.internal:host-gateway"],
+  "runArgs": ["--add-host=host.docker.internal:host-gateway", "--privileged"],
 
   // No appPort: the app stack (Docker infra via `pnpm start` and the web dev
   // servers via `pnpm dev:web:*`) runs on the HOST, which owns ports 3000-3004,

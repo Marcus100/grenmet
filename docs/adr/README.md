@@ -18,6 +18,7 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0010](0010-wis2-publishing-via-surface-builtin.md) | Publish observations to WIS2 via SURFACE's built-in publisher |
 | [0011](0011-brand-neutral-design-tokens.md) | Separate brand palettes from shared UI primitives (supersedes 0006) |
 | [0012](0012-decouple-design-tooling-from-figma.md) | Decouple design tooling from Figma (supersedes the Figma coupling in 0006/0011) |
+| [0013](0013-cap-alert-self-publish-and-bulletin-linkage.md) | Self-publish CAP alerts and link them to their source bulletin (supersedes 0007) |
 
 ## Template
 

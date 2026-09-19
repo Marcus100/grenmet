@@ -7,6 +7,7 @@ import { GmsNews } from "@/components/gms-news";
 import { Hero } from "@/components/hero";
 import { IssuedStamp } from "@/components/issued-stamp";
 import { News } from "@/components/news";
+import { PageTransition } from "@/components/page-transition";
 import { RightNow } from "@/components/right-now";
 import { TodayOnly } from "@/components/today-only";
 import { WeatherDateNav } from "@/components/weather-date-nav";
@@ -59,7 +60,7 @@ export default async function WeatherLayout({
                 <RightNow observation={weather.observation} />
               </div>
             </TodayOnly>
-            {children}
+            <PageTransition>{children}</PageTransition>
             <div className="border-gm-border border-t bg-gm-surface px-4 py-3 lg:px-7">
               <IssuedStamp label={weather.label} />
             </div>

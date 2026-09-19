@@ -127,11 +127,39 @@ async def test_approve_from_draft_raises(db_async: AsyncSession) -> None:
         )
 
 
-async def test_publish_from_submitted_raises(db_async: AsyncSession) -> None:
-    """Publishing without approval raises CapStateError."""
+async def test_publish_from_draft_succeeds(db_async: AsyncSession) -> None:
+    """Self-publish (ADR-0013): Draft publishes directly, no submit/approve required."""
+    user = await make_user(db_async, superuser=True)
+    alert = await _create_alert_for_test(db_async, user)
+
+    result, snapshot = await publish_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
+    assert result.lifecycle_state == CapLifecycleState.PUBLISHED
+    assert snapshot.content_hash
+
+
+async def test_publish_from_submitted_succeeds(db_async: AsyncSession) -> None:
+    """Submit/approve remain an optional, non-blocking review path (ADR-0013):
+    publishing from Submitted (without ever being approved) still succeeds."""
     user = await make_user(db_async, superuser=True)
     alert = await _create_alert_for_test(db_async, user)
     await submit_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
+
+    result, snapshot = await publish_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
+    assert result.lifecycle_state == CapLifecycleState.PUBLISHED
+    assert snapshot.content_hash
+
+
+async def test_publish_from_published_raises(db_async: AsyncSession) -> None:
+    """Publishing an already-published alert raises CapStateError."""
+    user = await make_user(db_async, superuser=True)
+    alert = await _create_alert_for_test(db_async, user)
+    await publish_alert(
         session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
     )
 

@@ -68,8 +68,13 @@ Forecast warnings and impacts are optional legacy fields, excluded from forecast
 displays; CAP remains the independent warning source. No missing assessment is
 rendered as “Minimal” or an all-clear.
 
-CAP is independent. These bulletins do not create CAP messages, synchronize
-their statuses or contribute to CAP warning counts. Linking is deferred.
+CAP is independent: these bulletins do not automatically create CAP messages,
+synchronize their statuses, or contribute to CAP warning counts. Per
+[ADR-0013](../adr/0013-cap-alert-self-publish-and-bulletin-linkage.md), an
+author who escalates a bulletin to a CAP Alert records the source product's
+kind, ID and revision in the CAP Alert's `note` field as a manual convention
+— not a database relationship. The admin UI reminds the author to check the
+other side on withdraw/cancel, but nothing cascades automatically.
 
 ## Configuration and rollout
 
