@@ -4,7 +4,7 @@ import { fetchPublishedContent } from "@/lib/cms";
 import { contentToArticle } from "@/lib/editorial";
 
 export async function GmsNews() {
-  const result = await fetchPublishedContent("article", "latest");
+  const result = await fetchPublishedContent("latest");
   const posts = result.articles.slice(0, 5).map((content) => ({
     id: content.id,
     title: content.title,

@@ -11,7 +11,7 @@ export default function PagesLayout({
 }) {
   return (
     // Responsive container — intentional layout exception, not a spacing token
-    <div className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:px-8">
       <PageTransition>{children}</PageTransition>
     </div>
   );

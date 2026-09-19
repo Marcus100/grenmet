@@ -74,7 +74,7 @@ export function Footer() {
   const copyright = `Copyright © Grenada Airports Authority ${new Date().getFullYear()}, Grenada Meteorological Service`;
 
   return (
-    <footer className="flex flex-col bg-background lg:mx-auto lg:max-w-7xl lg:px-8">
+    <footer className="flex flex-col bg-background lg:mx-auto lg:max-w-6xl lg:px-8">
       {DIVIDER}
 
       {/* Links — mobile: stacked pairs */}
@@ -99,7 +99,7 @@ export function Footer() {
 
       {/* Links — desktop: description + 3-col grid */}
       <div className="hidden gap-20 pt-14 pb-14 lg:flex">
-        <div className="flex w-155 min-w-0 flex-col gap-6">
+        <div className="flex w-130 min-w-0 flex-col gap-6">
           <p className="text-body-base text-gm-text-primary leading-body-base">
             {ABOUT_SERVICES_COPY}
           </p>
@@ -125,8 +125,8 @@ export function Footer() {
 
       {MOBILE_DIVIDER}
 
-      {/* Social — mobile */}
-      <div className="flex gap-3 px-6 py-7 lg:hidden">
+      {/* Social — mobile/tablet */}
+      <div className="flex gap-3 px-6 py-7 md:hidden">
         {SOCIAL.map((s) => (
           <a
             aria-label={s.label}
@@ -141,8 +141,8 @@ export function Footer() {
         ))}
       </div>
 
-      {/* Social + institutional lockup — desktop, same row */}
-      <div className="hidden items-end justify-between py-10 lg:flex">
+      {/* Social + institutional lockup — desktop/tablet, same row */}
+      <div className="hidden items-end justify-between py-10 md:flex">
         <div className="flex gap-3.5">
           {SOCIAL.map((s) => (
             <a
@@ -165,10 +165,10 @@ export function Footer() {
         </div>
       </div>
 
-      {MOBILE_DIVIDER}
+      <div className="h-px w-full bg-gm-border md:hidden" />
 
       {/* Institutional lockup — mobile */}
-      <div className="flex flex-col gap-2.5 px-6 py-7 lg:hidden">
+      <div className="flex flex-col gap-2.5 px-6 py-7 md:hidden">
         <Logo className="h-11 w-auto" variant="primary" />
         <p className="font-semibold text-body-sm text-gm-text-primary">
           Grenada Airports Authority

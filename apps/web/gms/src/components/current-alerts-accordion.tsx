@@ -104,7 +104,7 @@ export function CurrentAlertsAccordion({
         <Accordion.Header className="flex">
           <Accordion.Trigger
             className={cn(
-              "group flex min-h-11 w-full shrink-0 items-center justify-between gap-3 rounded-tl-md rounded-tr-md border-2 border-gm-navy px-4 py-2 sm:px-5",
+              "group flex min-h-11 w-full shrink-0 items-center justify-between gap-3 rounded-tl-md rounded-tr-md border-2 border-gm-navy px-4 py-2 sm:px-5 md:px-6 md:py-3",
               WARNING_LEVEL_SURFACE[level]
             )}
           >
@@ -143,7 +143,7 @@ export function CurrentAlertsAccordion({
             } as React.CSSProperties
           }
         >
-          <div className="w-full rounded-br-md rounded-bl-md border border-gm-navy bg-gm-navy px-6 pt-5 pb-6">
+          <div className="w-full rounded-br-md rounded-bl-md border border-gm-navy bg-gm-navy px-6 pt-5 pb-6 md:px-8 md:pt-6 md:pb-7">
             {unavailable ? (
               <p className="text-body-base text-gm-text-inverse leading-body-base">
                 Warning information cannot be retrieved right now. This does not

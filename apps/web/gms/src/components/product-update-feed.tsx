@@ -1,9 +1,18 @@
 "use client";
+import { Logo } from "@barrelsgd/gms/components/logo";
 import { Button } from "@barrelsgd/ui/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@barrelsgd/ui/components/ui/dropdown-menu";
+import { MoreHorizontal } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import type { ProductPost } from "@/lib/editorial";
+
 export function ProductUpdateFeed({
   posts,
   mobileCarousel = false,
@@ -29,12 +38,12 @@ export function ProductUpdateFeed({
   }
   return (
     <div className="space-y-4">
-      {mobileCarousel ? <DesktopUpdates onShare={share} posts={posts} /> : null}
       {status ? (
-        <p className="text-sm" role="status">
+        <p className="text-body leading-body" role="status">
           {status}
         </p>
       ) : null}
+      {mobileCarousel ? <DesktopFeed onShare={share} posts={posts} /> : null}
       <div
         className={
           mobileCarousel
@@ -44,7 +53,7 @@ export function ProductUpdateFeed({
       >
         {posts.map((post, index) => (
           <article
-            className={`space-y-4 rounded-lg border border-gm-border bg-background p-5 ${mobileCarousel ? "max-lg:w-[84%] max-lg:shrink-0 max-lg:snap-start max-lg:space-y-5 max-lg:rounded-2xl max-lg:border-0 max-lg:p-5 max-lg:shadow-card" : ""} ${index === 0 ? "md:col-span-2" : ""}`}
+            className={`space-y-4 rounded-lg border border-gm-border bg-background p-5 ${mobileCarousel ? "max-lg:w-[84%] max-lg:shrink-0 max-lg:snap-start max-lg:space-y-5 max-lg:rounded-2xl max-lg:border-0 max-lg:p-5 max-lg:shadow-card md:max-lg:w-[45%]" : ""} ${index === 0 ? "md:col-span-2" : ""}`}
             key={post.id}
           >
             <header className="flex items-center gap-3">
@@ -53,23 +62,16 @@ export function ProductUpdateFeed({
               </span>
               <div>
                 <p className="font-semibold">
-                  {mobileCarousel ? (
-                    <>
-                      <span className="lg:hidden">GMS forecasters</span>
-                      <span className="hidden lg:inline">
-                        GMS · From the forecast desk
-                      </span>
-                    </>
-                  ) : (
-                    "GMS · From the forecast desk"
-                  )}
+                  {mobileCarousel
+                    ? "GMS forecasters"
+                    : "GMS · From the forecast desk"}
                 </p>
-                <p className="text-muted-foreground text-sm">
+                <p className="text-body-sm text-gm-text-muted leading-body-sm">
                   {post.issuedAt.replace("T", " ")} AST
                 </p>
               </div>
             </header>
-            <h3 className="font-bold text-xl">
+            <h3 className="font-bold text-gm-navy text-nav leading-nav">
               <Link href={post.href}>{post.title}</Link>
             </h3>
             {mobileCarousel ? (
@@ -100,7 +102,7 @@ export function ProductUpdateFeed({
                 Illustrative image
               </span>
             </Link>
-            <p className="text-muted-foreground text-xs">
+            <p className="text-caption text-gm-text-muted leading-caption">
               {post.source}
               {post.reference ? " · Supplied report, 8 September 2026" : ""}
             </p>
@@ -126,7 +128,13 @@ export function ProductUpdateFeed({
   );
 }
 
-function DesktopUpdates({
+/**
+ * Desktop rendering for the homepage feed — a plain feed card per post
+ * (source, body, image), matching the reference "Latest from the
+ * meteorologists" design rather than the magazine treatment the mobile
+ * carousel and the standalone update page use.
+ */
+function DesktopFeed({
   posts,
   onShare,
 }: {
@@ -135,69 +143,70 @@ function DesktopUpdates({
 }) {
   return (
     <div className="hidden lg:grid lg:grid-cols-4 lg:gap-6">
-      {posts.map((post, index) => (
+      {posts.slice(0, 4).map((post) => (
         <article
-          className={
-            index === 0
-              ? "col-span-2 row-span-2 flex flex-col overflow-hidden rounded-lg border border-gm-border bg-background"
-              : "flex flex-col overflow-hidden rounded-lg border border-gm-border bg-background"
-          }
+          className="flex flex-col gap-3 rounded-xl border border-gm-border bg-background p-4"
           key={post.id}
         >
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-2.5">
+              <Logo className="size-10 shrink-0" variant="submark" />
+              <div className="min-w-0">
+                <p className="truncate font-semibold text-body-base text-gm-text-primary leading-body-base">
+                  GMS · From the forecast desk
+                </p>
+                <p className="text-body-sm text-gm-text-muted leading-body-sm">
+                  {post.issuedAt.replace("T", " ")} AST
+                </p>
+              </div>
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    aria-label={`Actions for ${post.title}`}
+                    size="icon-sm"
+                    variant="ghost"
+                  />
+                }
+              >
+                <MoreHorizontal aria-hidden="true" className="size-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onShare(post)}>
+                  Share update
+                </DropdownMenuItem>
+                <DropdownMenuItem render={<Link href={post.href} />}>
+                  Open update
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+          <div className="flex flex-col gap-1">
+            <Link
+              className="font-bold text-body-base text-gm-text-primary leading-body-base"
+              href={post.href}
+            >
+              {post.title}
+            </Link>
+            <p className="text-body-base text-gm-text-secondary leading-body-base">
+              {post.summary}
+            </p>
+          </div>
           <Link
             aria-label={`Read ${post.title}`}
-            className="relative block shrink-0"
+            className="relative mt-auto block overflow-hidden rounded-lg"
             href={post.href}
           >
             <Image
               alt=""
-              className={
-                index === 0
-                  ? "h-75 w-full object-cover"
-                  : "h-30 w-full object-cover"
-              }
-              height={500}
-              sizes={index === 0 ? "50vw" : "25vw"}
+              className="aspect-[4/3] w-full object-cover"
+              height={600}
+              sizes="25vw"
               src={post.imageUrl}
               width={800}
             />
           </Link>
-          <div
-            className={
-              index === 0
-                ? "flex flex-1 flex-col gap-4 p-6"
-                : "flex flex-1 flex-col gap-3 p-4"
-            }
-          >
-            <p className="font-semibold text-gm-text-muted text-xs uppercase">
-              {post.issuedAt.replace("T", " ")} AST
-            </p>
-            <Link
-              className={
-                index === 0
-                  ? "text-gm-text-primary text-lg leading-relaxed"
-                  : "text-gm-text-primary text-sm leading-relaxed"
-              }
-              href={post.href}
-            >
-              {post.summary}
-            </Link>
-            <Button
-              onClick={() => onShare(post)}
-              type="button"
-              variant="outline"
-            >
-              Share update
-            </Button>
-            {index === 0 ? (
-              <Link
-                className="mt-auto pt-6 font-semibold text-gm-blue-ink"
-                href={post.href}
-              >
-                Read more <span aria-hidden="true">→</span>
-              </Link>
-            ) : null}
-          </div>
         </article>
       ))}
     </div>
