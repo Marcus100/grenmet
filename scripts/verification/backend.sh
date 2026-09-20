@@ -6,7 +6,7 @@ cd "$(dirname "$0")/../../apps/api/fastapi"
 : "${POSTGRES_PASSWORD:?Set the test database password}"
 mkdir -p reports
 uv run --frozen --package fast-back pytest \
-  -n "${TEST_WORKERS:-2}" --dist loadfile \
+  -n "${TEST_WORKERS:-2}" --dist load \
   --cov=src --cov-context=test --cov-report=term-missing \
   --cov-report=xml --cov-report=html --junitxml=reports/pytest.xml \
   --tb=short --durations=20 --durations-min=0.1 "$@"

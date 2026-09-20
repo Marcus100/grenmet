@@ -12,16 +12,14 @@ import math
 import platform
 import sys
 from collections import defaultdict
+from collections.abc import Sequence
 from datetime import UTC, date, datetime, time, timedelta
 from pathlib import Path
 from statistics import median
-from typing import Iterable, Sequence
 
 import numpy as np
 import scipy
 import utide
-from scipy.signal import savgol_filter
-
 from build_pric_tide_table import (
     AST,
     CANDIDATES,
@@ -42,7 +40,7 @@ from build_pric_tide_table import (
     write_artifact_manifest,
     write_coefficients,
 )
-
+from scipy.signal import savgol_filter
 
 QC_FLAGS = (
     "missing",
@@ -194,7 +192,7 @@ def datum_crosswalk(
         yearly.append(
             {
                 "year": int(year),
-                "days": int(len(selected)),
+                "days": len(selected),
                 "median_radar_minus_uhslc_m": round(float(np.median(selected)), 6),
                 "mad_m": round(
                     float(np.median(np.abs(selected - np.median(selected)))), 6

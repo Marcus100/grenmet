@@ -1,21 +1,19 @@
 import asyncio
 import inspect
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from io import BytesIO
 from types import SimpleNamespace
 
 import pytest
-
-from PIL import Image
-from scrapy.http import Request, Response
-from scrapy.settings import Settings
-from twisted.internet.defer import Deferred
-
 from app.items import ImageItem
 from app.pipelines import (
     MinutePathImagesPipeline,
 )
+from PIL import Image
+from scrapy.http import Request, Response
+from scrapy.settings import Settings
+from twisted.internet.defer import Deferred
 
 
 def test_image_key_is_deterministic_partitioned_and_safe():
@@ -183,7 +181,7 @@ def test_scrapy_settings_apply_validated_object_storage(monkeypatch):
 def test_feed_exports_are_opt_in(tmp_path):
     from run_crawlers import build_feed_exports
 
-    timestamp = datetime(2026, 7, 17, 12, 30, tzinfo=timezone.utc)
+    timestamp = datetime(2026, 7, 17, 12, 30, tzinfo=UTC)
 
     assert build_feed_exports(None, timestamp) == {}
     assert build_feed_exports(tmp_path, timestamp) == {

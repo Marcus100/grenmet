@@ -3,7 +3,6 @@
 import csv
 from pathlib import Path
 
-
 TABLE_HEADER = (
     "| Date (AST) | Time (AST) | Event | Provisional UHSLC MLLW (m) |"
 )
