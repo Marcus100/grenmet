@@ -42,6 +42,7 @@ from src.auth.schemas import (
     SessionLoginResponse,
     SessionPublic,
     SessionTokenRequest,
+    SessionUserPublic,
     UserPublic,
 )
 from src.dependencies import CurrentUser, SessionDep
@@ -101,7 +102,7 @@ def _session_auth_response(
         "access_token_expires_at": access_token_expires_at,
         "session_expires_at": db_session.expires_at,
         "session": SessionPublic.model_validate(db_session, from_attributes=True),
-        "user": UserPublic.model_validate(user, from_attributes=True),
+        "user": SessionUserPublic.model_validate(user, from_attributes=True),
     }
     if session_token is not None:
         return SessionLoginResponse(session_token=session_token, **payload)

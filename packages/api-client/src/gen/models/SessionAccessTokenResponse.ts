@@ -4,7 +4,7 @@
  */
 
 import type { SessionPublic } from "./SessionPublic.js";
-import type { UserPublic } from "./UserPublic.js";
+import type { SessionUserPublic } from "./SessionUserPublic.js";
 
 export type SessionAccessTokenResponse = {
   access_token: string;
@@ -12,9 +12,13 @@ export type SessionAccessTokenResponse = {
    * @default 'bearer'
    * @type string | undefined
    */
-  token_type?: string;
+  token_type?: "bearer";
   access_token_expires_at: string;
   session_expires_at: string;
   session: SessionPublic;
-  user: UserPublic;
+  /**
+   * @description Minimal user projection returned with browser session credentials.
+   * @type object
+   */
+  user: SessionUserPublic;
 };

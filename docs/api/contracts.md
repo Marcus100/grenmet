@@ -137,6 +137,11 @@ The API supports two auth paths:
 
 Browser apps should store only the opaque session token in an `httpOnly` cookie. Server Components or route handlers exchange that session token for a short-lived bearer token before calling FastAPI.
 
+Session login, refresh, and session-token exchange responses return the deliberately
+reduced `SessionUserPublic` projection (`id`, `email`, `full_name`, `is_active`, and
+`is_superuser`), not the full `UserPublic` profile. `token_type` is the literal
+`"bearer"`; both shapes are generated into the shared client.
+
 ## Error Shape
 
 The current API uses FastAPI-style JSON errors, not RFC 7807 Problem Details.

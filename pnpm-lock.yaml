@@ -1285,6 +1285,9 @@ importers:
 
   packages/auth:
     dependencies:
+      '@barrelsgd/api-client':
+        specifier: workspace:*
+        version: link:../api-client
       server-only:
         specifier: 'catalog:'
         version: 0.0.1
@@ -14796,7 +14799,7 @@ snapshots:
 
   jest-worker@27.5.1:
     dependencies:
-      '@types/node': 26.6.1
+      '@types/node': 26.6.2
       merge-stream: 2.0.0
       supports-color: 8.1.1
 

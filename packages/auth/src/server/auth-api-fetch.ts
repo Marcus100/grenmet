@@ -9,6 +9,10 @@ interface AuthApiErrorPayload {
   detail?: unknown;
 }
 
+interface ResponseParser<T> {
+  parse: (payload: unknown) => T;
+}
+
 /** Default cap on how long an auth-API request may block before aborting. */
 const DEFAULT_AUTH_API_TIMEOUT_MS = 10_000;
 
@@ -167,6 +171,7 @@ export async function authApiFormFetch<T>(
   config: AuthConfig,
   path: string,
   formFields: Record<string, string>,
+  parser: ResponseParser<T>,
   init: Omit<RequestInit, "body" | "headers" | "method"> = {}
 ): Promise<T> {
   const requestHeaders = await getForwardHeaders();
@@ -189,7 +194,7 @@ export async function authApiFormFetch<T>(
     throw new AuthApiError(response.status, detail);
   }
 
-  return (await response.json()) as T;
+  return parser.parse(await response.json());
 }
 
 export async function authApiFetchResponse(
@@ -226,11 +231,12 @@ export async function authApiFetchResponse(
 export async function authApiFetch<T>(
   config: AuthConfig,
   path: string,
+  parser: ResponseParser<T>,
   init: Omit<RequestInit, "body" | "headers"> & {
     body?: unknown;
     accessToken?: string;
   } = {}
 ): Promise<T> {
   const response = await authApiFetchResponse(config, path, init);
-  return (await response.json()) as T;
+  return parser.parse(await response.json());
 }

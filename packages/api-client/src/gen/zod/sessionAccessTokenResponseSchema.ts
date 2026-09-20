@@ -5,13 +5,15 @@
 
 import * as z from "zod";
 import { sessionPublicSchema } from "./sessionPublicSchema.js";
-import { userPublicSchema } from "./userPublicSchema.js";
+import { sessionUserPublicSchema } from "./sessionUserPublicSchema.js";
 
 export const sessionAccessTokenResponseSchema = z.object({
   access_token: z.string(),
-  token_type: z.string().optional().default("bearer"),
+  token_type: z.enum(["bearer"]).optional().default("bearer"),
   access_token_expires_at: z.string(),
   session_expires_at: z.string(),
   session: sessionPublicSchema,
-  user: userPublicSchema,
+  user: sessionUserPublicSchema.describe(
+    "Minimal user projection returned with browser session credentials."
+  ),
 });

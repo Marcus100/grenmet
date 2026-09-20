@@ -31,7 +31,7 @@ from src.auth.modern_schemas import (
     GoogleStartPublic,
     SecuritySessionPublic,
 )
-from src.auth.schemas import SessionLoginResponse, SessionPublic, UserPublic
+from src.auth.schemas import SessionLoginResponse, SessionPublic, SessionUserPublic
 from src.auth.utils import get_password_hash_async
 from src.dependencies import SessionDep
 from src.email import send_email
@@ -318,7 +318,7 @@ async def google_finish(
         session_token=session_token,
         session_expires_at=db_session.expires_at,
         session=SessionPublic.model_validate(db_session, from_attributes=True),
-        user=UserPublic.model_validate(user, from_attributes=True),
+        user=SessionUserPublic.model_validate(user, from_attributes=True),
     )
 
 

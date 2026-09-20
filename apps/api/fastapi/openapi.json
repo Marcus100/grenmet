@@ -23750,6 +23750,7 @@
           },
           "token_type": {
             "type": "string",
+            "const": "bearer",
             "title": "Token Type",
             "default": "bearer"
           },
@@ -23765,7 +23766,7 @@
             "$ref": "#/components/schemas/SessionPublic"
           },
           "user": {
-            "$ref": "#/components/schemas/UserPublic"
+            "$ref": "#/components/schemas/SessionUserPublic"
           }
         },
         "type": "object",
@@ -23838,6 +23839,7 @@
           },
           "token_type": {
             "type": "string",
+            "const": "bearer",
             "title": "Token Type",
             "default": "bearer"
           },
@@ -23853,7 +23855,7 @@
             "$ref": "#/components/schemas/SessionPublic"
           },
           "user": {
-            "$ref": "#/components/schemas/UserPublic"
+            "$ref": "#/components/schemas/SessionUserPublic"
           },
           "session_token": {
             "type": "string",
@@ -23952,6 +23954,42 @@
           "session_token"
         ],
         "title": "SessionTokenRequest"
+      },
+      "SessionUserPublic": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "full_name": {
+            "type": "string",
+            "title": "Full Name"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "is_superuser": {
+            "type": "boolean",
+            "title": "Is Superuser"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "full_name",
+          "id",
+          "is_active",
+          "is_superuser"
+        ],
+        "title": "SessionUserPublic",
+        "description": "Minimal user projection returned with browser session credentials."
       },
       "ShiftCatalogCreate": {
         "properties": {
