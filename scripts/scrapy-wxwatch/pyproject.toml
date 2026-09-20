@@ -3,7 +3,7 @@ name = "wxwatch"
 version = "0.1.0"
 description = "Weather images downloader"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "botocore>=1.37.0",
     "scrapy>=2.15",
@@ -23,7 +23,7 @@ dev = [
 pythonpath = ["."]
 
 [tool.mypy]
-python_version = "3.13"
+python_version = "3.14"
 check_untyped_defs = true
 no_implicit_optional = true
 warn_unused_ignores = true

@@ -31,12 +31,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # uv — Python package manager used by apps/api/fastapi. Installed system-wide
 # so the agent can work on the FastAPI app too.
-COPY --from=ghcr.io/astral-sh/uv:0.11.26@sha256:3d868e555f8f1dbc324afa005066cd11e1053fc4743b9808ca8025283e65efa5 /uv /uvx /usr/local/bin/
+COPY --from=ghcr.io/astral-sh/uv:0.12.17@sha256:10787c682e4184e4f290de1171fd4703dc63de99221f10fe1c99002ce7fa9acc /uv /uvx /usr/local/bin/
 
 # Keep the Python interpreter in the image, outside mutable login/cache volumes.
 ENV UV_PYTHON_INSTALL_DIR=/opt/uv/python
-ENV UV_PYTHON=3.13
-RUN uv python install 3.13
+ENV UV_PYTHON=3.14.7
+RUN uv python install 3.14.7
 
 # pnpm v12 via corepack (matches the monorepo's package manager)
 RUN corepack enable && corepack prepare pnpm@12.3.4 --activate
