@@ -44,7 +44,13 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Stage 2: Runtime - Minimal production image
 FROM python:3.14-slim-bookworm@sha256:82bc3c539b8813ada9d68c63b40158fa002f7f33de9bf3312a3dfdc0620dff56
 # Patch packages inherited from the Python runtime image before vulnerability scanning.
-RUN python -m pip install --no-cache-dir --upgrade "msgpack>=1.2.1" "setuptools>=78.1.1"
+# Also strip pip's own vendored CycloneDX SBOM: pip>=26.2 ships pip/_vendor/bom.cdx.json
+# listing ITS bundled msgpack/setuptools versions. Trivy treats that file as authoritative
+# for the whole Python target and reports those stale versions as "installed" even after
+# the upgrade above — the file is inert metadata, not something pip needs to run, so
+# removing it doesn't affect pip itself (kept as an escape hatch, see below).
+RUN python -m pip install --no-cache-dir --upgrade "msgpack>=1.2.1" "setuptools>=78.1.1" \
+    && find /usr/local/lib -name "bom.cdx.json" -delete
 
 
 # uv is no longer on any startup path — prestart and the worker run straight off
