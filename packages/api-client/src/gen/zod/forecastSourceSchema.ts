@@ -4,25 +4,12 @@
  */
 
 import * as z from "zod";
+import { forecastSourcePropertiesKindEnumSchema } from "./forecastSourcePropertiesKindEnumSchema.js";
 
 export const forecastSourceSchema = z.object({
   product_id: z.uuid(),
   revision: z.int(),
-  kind: z.enum([
-    "morning",
-    "midday",
-    "evening",
-    "outlook",
-    "cyclone",
-    "marine",
-    "flood",
-    "thunderstorm",
-    "wind",
-    "heat",
-    "dust",
-    "coastal",
-    "tsunami",
-  ]),
-  issued_at: z.string(),
-  published_at: z.string(),
+  kind: forecastSourcePropertiesKindEnumSchema,
+  issued_at: z.iso.datetime(),
+  published_at: z.iso.datetime(),
 });

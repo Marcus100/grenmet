@@ -11,8 +11,8 @@ from urllib.parse import urlencode
 import httpx
 import jwt
 from fastapi.concurrency import run_in_threadpool
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, delete, select
 from starlette.requests import Request
 
 from src.auth import service
@@ -71,7 +71,7 @@ async def consume(session: AsyncSession, token: str, purpose: str) -> AuthChalle
         select(AuthChallenge)
         .where(
             AuthChallenge.token_hash == digest(token),
-            col(AuthChallenge.purpose) == purpose,
+            AuthChallenge.purpose == purpose,
         )
         .with_for_update()
     )
@@ -95,8 +95,8 @@ async def email_request(
     if user and user.is_active:
         await session.execute(
             delete(AuthChallenge).where(
-                col(AuthChallenge.user_id) == user.id,
-                col(AuthChallenge.purpose) == "email",
+                AuthChallenge.user_id == user.id,
+                AuthChallenge.purpose == "email",
             )
         )
         token = await issue(
@@ -131,15 +131,11 @@ async def email_confirm(
     user.hashed_password = await get_password_hash_async(body.new_password)
     user.email_verified_at = utc_now()
     user.password_setup_pending = False
-    await session.execute(
-        delete(AuthChallenge).where(col(AuthChallenge.user_id) == user.id)
-    )
+    await session.execute(delete(AuthChallenge).where(AuthChallenge.user_id == user.id))
     session.add(user)
     from src.auth.models import Session as LoginSession
 
-    await session.execute(
-        delete(LoginSession).where(col(LoginSession.user_id) == user.id)
-    )
+    await session.execute(delete(LoginSession).where(LoginSession.user_id == user.id))
     await session.commit()
     return Message(
         message="Email verified. Your registration is awaiting administrator approval."
@@ -325,7 +321,6 @@ async def google_finish(
 async def account_security(
     *, session: AsyncSession, user: User
 ) -> AccountSecurityPublic:
-    from sqlmodel import col
 
     from src.auth.models import Session as LoginSession
 
@@ -347,10 +342,10 @@ async def account_security(
                 select(LoginSession)
                 .where(
                     LoginSession.user_id == user.id,
-                    col(LoginSession.revoked_at).is_(None),
+                    LoginSession.revoked_at.is_(None),
                     LoginSession.expires_at > utc_now(),
                 )
-                .order_by(col(LoginSession.last_used_at).desc())
+                .order_by(LoginSession.last_used_at.desc())
             )
         )
         .scalars()

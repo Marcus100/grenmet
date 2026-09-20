@@ -3,8 +3,8 @@
 import secrets
 from typing import Any
 
-from sqlalchemy import text
-from sqlmodel import Session, col, select
+from sqlalchemy import select, text
+from sqlalchemy.orm import Session
 
 from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
 from src.auth.utils import get_password_hash
@@ -31,7 +31,7 @@ def seed_baseline(
         raise ValueError("Unknown roster grade")
     if "ewhint" not in {p["username"] for p in people}:
         raise ValueError("Approved administrator ewhint is missing")
-    roles = {r.name: r for r in session.exec(select(Role)).all()}
+    roles = {r.name: r for r in session.execute(select(Role)).scalars().all()}
     required = {
         "staff",
         "hr-supervisor",
@@ -48,10 +48,14 @@ def seed_baseline(
     ]
     for person in people:
         email = f"{person['username']}@weather.gd"
-        existing_email = session.exec(select(User).where(User.email == email)).first()
-        existing_name = session.exec(
-            select(User).where(User.username == person["username"])
-        ).first()
+        existing_email = (
+            session.execute(select(User).where(User.email == email)).scalars().first()
+        )
+        existing_name = (
+            session.execute(select(User).where(User.username == person["username"]))
+            .scalars()
+            .first()
+        )
         if existing_name and existing_name.email != email:
             raise ValueError(f"Username conflict: {person['username']}")
         if existing_email and (
@@ -81,14 +85,20 @@ def seed_baseline(
         ):
             raise ValueError(f"Grade conflict requires review: {gid}")
     for person in people:
-        user = session.exec(
-            select(User).where(User.username == person["username"])
-        ).first()
+        user = (
+            session.execute(select(User).where(User.username == person["username"]))
+            .scalars()
+            .first()
+        )
         if user is None or session.get(StaffCredential, user.id) is not None:
             continue
-        employment = session.exec(
-            select(EmploymentRecord).where(EmploymentRecord.user_id == user.id)
-        ).first()
+        employment = (
+            session.execute(
+                select(EmploymentRecord).where(EmploymentRecord.user_id == user.id)
+            )
+            .scalars()
+            .first()
+        )
         expected_grade = f"{profile['department']['code'].upper()}_{person['grade']}"
         if employment and (
             employment.department_id != dept_id or employment.grade_id != expected_grade
@@ -134,11 +144,15 @@ def seed_baseline(
     session.flush()
     for person in people:
         email = f"{person['username']}@weather.gd"
-        user = session.exec(select(User).where(User.email == email)).first()
+        user = (
+            session.execute(select(User).where(User.email == email)).scalars().first()
+        )
         if user is None:
-            if session.exec(
-                select(User).where(User.username == person["username"])
-            ).first():
+            if (
+                session.execute(select(User).where(User.username == person["username"]))
+                .scalars()
+                .first()
+            ):
                 raise ValueError(f"Username conflict: {person['username']}")
             names = person["full_name"].split()
             user = User(
@@ -169,9 +183,13 @@ def seed_baseline(
                 grade_id=f"{profile['department']['code'].upper()}_{person['grade']}",
             )
         )
-        employment = session.exec(
-            select(EmploymentRecord).where(EmploymentRecord.user_id == user.id)
-        ).first()
+        employment = (
+            session.execute(
+                select(EmploymentRecord).where(EmploymentRecord.user_id == user.id)
+            )
+            .scalars()
+            .first()
+        )
         if employment is None:
             session.add(
                 EmploymentRecord(
@@ -192,14 +210,18 @@ def seed_baseline(
             role = roles[name]
             if role.id not in {r.id for r in user.roles}:
                 user.roles.append(role)
-            exists = session.exec(
-                select(UserRoleAssignment).where(
-                    UserRoleAssignment.user_id == user.id,
-                    UserRoleAssignment.role_id == role.id,
-                    UserRoleAssignment.organisation_id == "gaa",
-                    UserRoleAssignment.scope == RoleAssignmentScope.SELF,
+            exists = (
+                session.execute(
+                    select(UserRoleAssignment).where(
+                        UserRoleAssignment.user_id == user.id,
+                        UserRoleAssignment.role_id == role.id,
+                        UserRoleAssignment.organisation_id == "gaa",
+                        UserRoleAssignment.scope == RoleAssignmentScope.SELF,
+                    )
                 )
-            ).first()
+                .scalars()
+                .first()
+            )
             if exists is None:
                 scope = (
                     RoleAssignmentScope.SELF
@@ -218,13 +240,17 @@ def seed_baseline(
                     )
                 )
     for kind in WorkflowType:
-        template = session.exec(
-            select(WorkflowTemplate).where(
-                WorkflowTemplate.department_id == dept_id,
-                WorkflowTemplate.workflow_type == kind,
-                col(WorkflowTemplate.is_active).is_(True),
+        template = (
+            session.execute(
+                select(WorkflowTemplate).where(
+                    WorkflowTemplate.department_id == dept_id,
+                    WorkflowTemplate.workflow_type == kind,
+                    WorkflowTemplate.is_active.is_(True),
+                )
             )
-        ).first()  # noqa: E712
+            .scalars()
+            .first()
+        )  # noqa: E712
         if template is None:
             template = WorkflowTemplate(
                 department_id=dept_id,

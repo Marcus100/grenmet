@@ -86,7 +86,7 @@ class CapInfoBase(BaseModel):
     parameters: list[CapNameValue] = Field(default_factory=list)
 
     @model_validator(mode="after")
-    def _validate_time_order(self) -> "CapInfoBase":
+    def _validate_time_order(self) -> CapInfoBase:
         if self.effective and self.onset and self.onset < self.effective:
             raise ValueError("onset must be on or after effective")
         if self.onset and self.expires and self.expires <= self.onset:
@@ -145,7 +145,7 @@ class CapAlertBase(BaseModel):
         return [value.strip() for value in values if value.strip()]
 
     @model_validator(mode="after")
-    def _validate_scope_and_references(self) -> "CapAlertBase":
+    def _validate_scope_and_references(self) -> CapAlertBase:
         if self.scope == CapScope.RESTRICTED and not self.restriction:
             raise ValueError("restriction is required when scope is Restricted")
         if self.scope == CapScope.PRIVATE and not self.addresses:

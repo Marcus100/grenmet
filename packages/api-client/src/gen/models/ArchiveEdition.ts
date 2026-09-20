@@ -20,6 +20,11 @@ export type ArchiveEdition = {
   nominal_time: string | null;
   observed_at: string | null;
   time_basis: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   first_received_at: string;
   storage_path: string | null;
   verification_status: string | null;

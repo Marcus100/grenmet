@@ -17,8 +17,8 @@ export const workflowInstancePublicSchema = z.object({
   requested_by_user_id: z.uuid(),
   status: workflowStatusSchema,
   current_step_order: z.int(),
-  submitted_at: z.union([z.string(), z.null()]).optional(),
-  resolved_at: z.union([z.string(), z.null()]).optional(),
-  created_at: z.string(),
-  updated_at: z.string(),
+  submitted_at: z.union([z.iso.datetime(), z.null()]).optional(),
+  resolved_at: z.union([z.iso.datetime(), z.null()]).optional(),
+  created_at: z.iso.datetime(),
+  updated_at: z.iso.datetime(),
 });

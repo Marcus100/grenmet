@@ -1,4 +1,6 @@
+import json
 import logging
+import re
 import time
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
@@ -6,6 +8,7 @@ from typing import Any, cast
 
 import sentry_sdk
 from fastapi import FastAPI
+from fastapi.openapi.utils import get_openapi
 from fastapi.routing import APIRoute
 from pydantic import ValidationError
 from scalar_fastapi import get_scalar_api_reference
@@ -55,6 +58,7 @@ from src.hr.workflow.router import router as hr_workflow_router
 from src.janitorial import database as janitorial_database
 from src.janitorial.router import router as janitorial_router
 from src.logging_config import configure_logging
+from src.models import ValidationErrorResponse
 from src.rate_limit import limiter
 
 # from src.shipments.router import router as shipments_router
@@ -73,12 +77,113 @@ from src.wxwatch.router import router as wxwatch_router
 configure_logging()
 
 
+def _camel_case(value: str) -> str:
+    parts = [part for part in re.split(r"[^a-zA-Z0-9]+", value) if part]
+    if not parts:
+        return "operation"
+    return parts[0].lower() + "".join(part.capitalize() for part in parts[1:])
+
+
+def _operation_domain(route: APIRoute) -> str:
+    path = route.path
+    if path.startswith("/api/cap") or "/cap/" in path:
+        return "cap"
+    if "/auth/" in path or "/login" in path or "/2fa/" in path:
+        return "auth"
+    for domain in (
+        "hr",
+        "wxwatch",
+        "wxproducts",
+        "eregister",
+        "billing",
+        "utils",
+        "janitorial",
+        "transport",
+    ):
+        if f"/{domain}" in path:
+            return domain
+    tag = str((route.tags or ["api"])[0])
+    if tag in {
+        "login",
+        "users",
+        "roles",
+        "permissions",
+        "role-assignments",
+        "2fa",
+        "browser-auth",
+        "modern-auth",
+    }:
+        return "auth"
+    return _camel_case(tag.split("-")[0])
+
+
 def custom_generate_unique_id(route: APIRoute) -> str:
-    return f"{route.tags[0]}-{route.name}"
+    """Generate stable, readable operation IDs for generated clients."""
+    name = route.name.removesuffix("_endpoint").removesuffix("_route")
+    words = name.split("_")
+    if words and words[0] == "read":
+        words[0] = "get"
+    operation = _camel_case("_".join(words))
+    return f"{_operation_domain(route)}{operation[0].upper()}{operation[1:]}"
 
 
 # Show docs only in selected envs (best practice: hide in production)
 SHOW_DOCS_ENVIRONMENTS = ("local", "staging")
+
+OPENAPI_TAGS = [
+    {"name": "auth", "description": "Authentication, identity, and account security."},
+    {"name": "billing", "description": "Billing and subscription operations."},
+    {
+        "name": "browser-auth",
+        "description": "Browser session authentication operations.",
+    },
+    {"name": "cap", "description": "CAP authoring and hazard alert operations."},
+    {"name": "cap-public", "description": "Public CAP alert feeds and formats."},
+    {
+        "name": "eregister",
+        "description": "Electronic weather observation registration.",
+    },
+    {"name": "governance", "description": "Access governance and policy operations."},
+    {"name": "hr", "description": "Human resources profile operations."},
+    {"name": "hr-absentee", "description": "HR absentee reporting operations."},
+    {"name": "hr-calendar", "description": "HR calendar operations."},
+    {"name": "hr-dailystatus", "description": "HR daily status reporting operations."},
+    {"name": "hr-dashboard", "description": "HR dashboard operations."},
+    {"name": "hr-documents", "description": "HR document operations."},
+    {"name": "hr-exchange", "description": "HR shift exchange operations."},
+    {"name": "hr-leave", "description": "HR leave request operations."},
+    {"name": "hr-parking", "description": "HR parking permit operations."},
+    {"name": "hr-rosters", "description": "HR roster and scheduling operations."},
+    {
+        "name": "hr-signatures",
+        "description": "HR signature and signed document operations.",
+    },
+    {"name": "hr-timesheets", "description": "HR timesheet operations."},
+    {"name": "hr-training", "description": "HR training record operations."},
+    {"name": "hr-workflows", "description": "HR workflow and approval operations."},
+    {"name": "janitorial", "description": "Janitorial catalogue operations."},
+    {"name": "login", "description": "Login, token, and password recovery operations."},
+    {
+        "name": "modern-auth",
+        "description": "Modern authentication and recovery operations.",
+    },
+    {"name": "permissions", "description": "Permission administration operations."},
+    {
+        "name": "role-assignments",
+        "description": "Role assignment administration operations.",
+    },
+    {"name": "roles", "description": "Role administration operations."},
+    {"name": "staff-setup", "description": "Staff setup and configuration operations."},
+    {"name": "transport", "description": "Transport timetable operations."},
+    {"name": "users", "description": "User administration operations."},
+    {"name": "utils", "description": "Health, readiness, and utility operations."},
+    {"name": "weather-images", "description": "Weather image retrieval operations."},
+    {"name": "wxproducts", "description": "Weather product authoring and publication."},
+    {
+        "name": "wxwatch",
+        "description": "Weather archive, ingestion, and derivation operations.",
+    },
+]
 
 # Sync SDKs: If you add a sync-only I/O library (e.g. sync HTTP/SMTP client), run its
 # calls in a threadpool via fastapi.concurrency.run_in_threadpool to avoid blocking the event loop.
@@ -110,6 +215,13 @@ app_configs: dict[str, Any] = {
     "title": settings.PROJECT_NAME,
     "version": "1.0.0",
     "generate_unique_id_function": custom_generate_unique_id,
+    "description": (
+        "Grenmet API for authenticated administration, human resources, "
+        "weather products, CAP alerts, and observation registration."
+    ),
+    "contact": {"name": "Grenmet API maintainers"},
+    "license_info": {"name": "Proprietary"},
+    "openapi_tags": OPENAPI_TAGS,
 }
 if settings.ENVIRONMENT in SHOW_DOCS_ENVIRONMENTS:
     app_configs["openapi_url"] = f"{settings.API_V1_STR}/openapi.json"
@@ -123,11 +235,25 @@ else:
 openapi_url: str | None = cast(str | None, app_configs.get("openapi_url"))
 docs_url: str | None = cast(str | None, app_configs.get("docs_url"))
 redoc_url: str | None = cast(str | None, app_configs.get("redoc_url"))
+server_url = str(
+    settings.API_BASE_URL
+    or {
+        "local": "http://localhost:8000",
+        "staging": "https://api.staging.barrels.gd",
+        "production": "https://api.barrels.gd",
+    }[settings.ENVIRONMENT]
+)
 
 app = FastAPI(
     title=str(app_configs.get("title", "")),
     description=str(app_configs.get("description", "")),
     version=str(app_configs.get("version", "")),
+    contact=cast(dict[str, Any], app_configs["contact"]),
+    license_info=cast(dict[str, Any], app_configs["license_info"]),
+    servers=[{"url": server_url}],
+    openapi_tags=cast(list[dict[str, str]], app_configs["openapi_tags"]),
+    generate_unique_id_function=custom_generate_unique_id,
+    responses={422: {"model": ValidationErrorResponse}},
     openapi_url=openapi_url,
     docs_url=docs_url,
     redoc_url=redoc_url,
@@ -136,7 +262,7 @@ app = FastAPI(
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, cast(Any, _rate_limit_exceeded_handler))
 
-# Request logging middleware (runs after CORS; logs method, path, status, duration)
+# Request logging wraps the CORS middleware, so rejected preflights are visible.
 logger = logging.getLogger("src.request")
 
 
@@ -145,11 +271,14 @@ async def request_logging_middleware(request: Request, call_next: Any) -> Any:
     response = await call_next(request)
     duration_s = time.perf_counter() - start
     logger.info(
-        "%s %s %s %.3fs",
+        "%s %s %s %.3fs origin=%s cors_allow_origin=%s requested_headers=%s",
         request.method,
         request.url.path,
         response.status_code,
         duration_s,
+        request.headers.get("origin", "-"),
+        response.headers.get("access-control-allow-origin", "-"),
+        request.headers.get("access-control-request-headers", "-"),
     )
     return response
 
@@ -161,6 +290,8 @@ if settings.all_cors_origins:
         allow_origins=settings.all_cors_origins,
         allow_credentials=True,
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        # Browser clients and observability integrations may add headers beyond
+        # the authentication and content headers used by the API itself.
         allow_headers=["Authorization", "Content-Type"],
     )
 app.add_middleware(BaseHTTPMiddleware, dispatch=request_logging_middleware)
@@ -237,3 +368,75 @@ app.include_router(hr_dashboard_router, prefix=settings.API_V1_STR)
 
 
 app.include_router(governance_router, prefix=settings.API_V1_STR)
+
+
+def _lift_inline_enums(schema: dict[str, Any]) -> None:
+    """Promote inline enum properties to reusable OpenAPI components."""
+    components = schema.setdefault("components", {}).setdefault("schemas", {})
+    known: dict[str, str] = {}
+
+    def pascal(value: str) -> str:
+        separated = re.sub(r"([a-z0-9])([A-Z])", r"\1 \2", value)
+        return "".join(
+            part.capitalize() for part in re.split(r"[^a-zA-Z0-9]+", separated) if part
+        )
+
+    def walk(node: Any, context: str, check_self: bool = True) -> Any:
+        if isinstance(node, list):
+            return [walk(value, context, True) for value in node]
+        if not isinstance(node, dict):
+            return node
+        if check_self and "enum" in node and "$ref" not in node:
+            signature = json.dumps(
+                {"type": node.get("type", "string"), "enum": node["enum"]},
+                sort_keys=True,
+            )
+            name = known.get(signature)
+            if name is None:
+                name = f"{pascal(context)}Enum" or "InlineEnum"
+                base = name
+                suffix = 2
+                while name in components and components[name] != node:
+                    name = f"{base}{suffix}"
+                    suffix += 1
+                known[signature] = name
+                components[name] = {
+                    key: value for key, value in node.items() if key != "title"
+                }
+            return {"$ref": f"#/components/schemas/{name}"}
+        return {
+            key: walk(value, f"{context}{pascal(key)}", True)
+            for key, value in node.items()
+        }
+
+    for name, model in list(components.items()):
+        components[name] = walk(model, name, False)
+    for path, path_item in schema.get("paths", {}).items():
+        for method, operation in path_item.items():
+            if not isinstance(operation, dict) or method == "parameters":
+                continue
+            context = operation.get("operationId") or f"{method}{path}"
+            path_item[method] = walk(operation, pascal(context), True)
+
+
+def _custom_openapi() -> dict[str, Any]:
+    if app.openapi_schema:
+        return app.openapi_schema
+    schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        openapi_version=app.openapi_version,
+        description=app.description,
+        routes=app.routes,
+        tags=OPENAPI_TAGS,
+        servers=app.servers,
+        terms_of_service=app.terms_of_service,
+        contact=app.contact,
+        license_info=app.license_info,
+    )
+    _lift_inline_enums(schema)
+    app.openapi_schema = schema
+    return schema
+
+
+app.openapi = _custom_openapi  # type: ignore[method-assign]

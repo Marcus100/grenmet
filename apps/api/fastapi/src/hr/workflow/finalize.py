@@ -2,8 +2,8 @@
 
 import uuid
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
 
 from src.auth.models import User
 from src.exceptions import AppException
@@ -32,7 +32,7 @@ async def finalize_entity(
                             WorkflowInstance.entity_type == "timesheet",
                             WorkflowInstance.entity_id == timesheet.id,
                         )
-                        .order_by(col(WorkflowInstance.created_at).desc())
+                        .order_by(WorkflowInstance.created_at.desc())
                         .limit(1)
                     )
                 )
@@ -116,7 +116,7 @@ async def finalize_entity(
                             LeaveBalanceEvent.user_id == entity.user_id,
                             LeaveBalanceEvent.leave_type == entity.leave_type.value,
                         )
-                        .order_by(col(LeaveBalanceEvent.created_at).desc())
+                        .order_by(LeaveBalanceEvent.created_at.desc())
                         .limit(1)
                     )
                 )

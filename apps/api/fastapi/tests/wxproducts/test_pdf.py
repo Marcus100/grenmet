@@ -11,7 +11,6 @@ from src.wxproducts.schemas import ProductPdfSourceAdapter
 from tests.wxproducts.test_authoring import actor as actor
 from tests.wxproducts.test_authoring import current_input
 from tests.wxproducts.test_authoring import weather_sessions as weather_sessions
-from tests.wxproducts.test_migrations import weather_engine as weather_engine
 
 
 def test_unicode_long_text_and_legacy_fields():

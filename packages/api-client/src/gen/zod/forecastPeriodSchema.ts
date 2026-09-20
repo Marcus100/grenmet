@@ -8,8 +8,8 @@ import { forecastSourceSchema } from "./forecastSourceSchema.js";
 
 export const forecastPeriodSchema = z.object({
   date: z.string(),
-  valid_from: z.string(),
-  valid_to: z.string(),
+  valid_from: z.iso.datetime(),
+  valid_to: z.iso.datetime(),
   source: z.union([forecastSourceSchema, z.null()]).optional(),
   period_key: z.string().optional().default(""),
   high: z.union([z.number(), z.null()]).optional(),

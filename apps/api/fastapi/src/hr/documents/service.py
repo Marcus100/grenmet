@@ -15,9 +15,8 @@ import uuid
 from datetime import date
 
 from fastapi.concurrency import run_in_threadpool
-from sqlalchemy import and_, or_
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, func, select
 
 from src.auth.models import User
 from src.auth.policy import require_permission
@@ -239,14 +238,14 @@ async def list_documents(
     access = await resolve_access(session, current_user, organisation_id)
     statement = select(EmployeeDocument).where(
         EmployeeDocument.organisation_id == access.organisation_id,
-        col(EmployeeDocument.category).in_(LAUNCH_CATEGORIES),
-        col(EmployeeDocument.sensitivity) == DocumentSensitivity.STANDARD,
+        EmployeeDocument.category.in_(LAUNCH_CATEGORIES),
+        EmployeeDocument.sensitivity == DocumentSensitivity.STANDARD,
         or_(
-            col(EmployeeDocument.user_id) == current_user.id,
-            col(EmployeeDocument.user_id).in_(access.manage_users),
+            EmployeeDocument.user_id == current_user.id,
+            EmployeeDocument.user_id.in_(access.manage_users),
             and_(
-                col(EmployeeDocument.user_id).in_(access.read_users),
-                col(EmployeeDocument.category).in_(SUPERVISOR_CATEGORIES),
+                EmployeeDocument.user_id.in_(access.read_users),
+                EmployeeDocument.category.in_(SUPERVISOR_CATEGORIES),
             ),
         ),
     )
@@ -255,29 +254,27 @@ async def list_documents(
             current_user=current_user, permission_key="hr.document.read.department"
         )
         statement = statement.where(
-            col(EmployeeDocument.user_id).in_(
+            EmployeeDocument.user_id.in_(
                 select(EmploymentRecord.user_id).where(
-                    col(EmploymentRecord.department_id) == department_id
+                    EmploymentRecord.department_id == department_id
                 )
             )
         )
     if user_id:
         if user_id != current_user.id and user_id not in access.read_users:
             raise HRPermissionDeniedError(ERROR_DOCUMENT_READ_NOT_ALLOWED)
-        statement = statement.where(col(EmployeeDocument.user_id) == user_id)
+        statement = statement.where(EmployeeDocument.user_id == user_id)
     elif not department_id:
-        statement = statement.where(col(EmployeeDocument.user_id) == current_user.id)
+        statement = statement.where(EmployeeDocument.user_id == current_user.id)
 
     if category:
-        statement = statement.where(col(EmployeeDocument.category) == category)
+        statement = statement.where(EmployeeDocument.category == category)
     if not include_archived:
-        statement = statement.where(col(EmployeeDocument.archived_at).is_(None))
+        statement = statement.where(EmployeeDocument.archived_at.is_(None))
 
     total = await session.scalar(select(func.count()).select_from(statement.subquery()))
     result = await session.execute(
-        statement.order_by(col(EmployeeDocument.created_at).desc())
-        .offset(skip)
-        .limit(limit)
+        statement.order_by(EmployeeDocument.created_at.desc()).offset(skip).limit(limit)
     )
     return list(result.scalars().all()), total or 0
 
@@ -380,10 +377,10 @@ async def list_document_employees(
     access = await resolve_access(session, current_user, organisation_id)
     query = (
         select(User, EmploymentRecord.department_id)
-        .join(EmploymentRecord, col(EmploymentRecord.user_id) == User.id)
+        .join(EmploymentRecord, EmploymentRecord.user_id == User.id)
         .where(
             EmploymentRecord.organisation_id == access.organisation_id,
-            col(User.id).in_(access.read_users | {current_user.id}),
+            User.id.in_(access.read_users | {current_user.id}),
         )
     )
     if search.strip():
@@ -395,7 +392,7 @@ async def list_document_employees(
     count = await session.scalar(select(func.count()).select_from(query.subquery()))
     rows = (
         await session.execute(
-            query.order_by(col(User.last_name), col(User.first_name), col(User.id))
+            query.order_by(User.last_name, User.first_name, User.id)
             .offset(skip)
             .limit(limit)
         )

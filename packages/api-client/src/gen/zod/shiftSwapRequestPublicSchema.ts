@@ -9,7 +9,7 @@ import { swapTypeSchema } from "./swapTypeSchema.js";
 
 export const shiftSwapRequestPublicSchema = z.object({
   signed_document_id: z.union([z.uuid(), z.null()]).optional(),
-  submitted_at: z.union([z.string(), z.null()]).optional(),
+  submitted_at: z.union([z.iso.datetime(), z.null()]).optional(),
   id: z.uuid(),
   requesting_user_id: z.uuid(),
   counterpart_user_id: z.uuid(),
@@ -23,9 +23,9 @@ export const shiftSwapRequestPublicSchema = z.object({
   restoration_date: z.union([z.iso.date(), z.null()]).optional(),
   reason: z.union([z.string(), z.null()]).optional(),
   counterpart_agreed: z.boolean(),
-  counterpart_agreed_at: z.union([z.string(), z.null()]).optional(),
+  counterpart_agreed_at: z.union([z.iso.datetime(), z.null()]).optional(),
   status: requestStatusSchema,
   workflow_instance_id: z.union([z.uuid(), z.null()]).optional(),
-  created_at: z.string(),
-  updated_at: z.string(),
+  created_at: z.iso.datetime(),
+  updated_at: z.iso.datetime(),
 });

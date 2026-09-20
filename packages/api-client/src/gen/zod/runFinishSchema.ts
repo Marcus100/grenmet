@@ -4,7 +4,8 @@
  */
 
 import * as z from "zod";
+import { runFinishPropertiesStatusEnumSchema } from "./runFinishPropertiesStatusEnumSchema.js";
 
 export const runFinishSchema = z.object({
-  status: z.enum(["finished", "failed"]),
+  status: runFinishPropertiesStatusEnumSchema,
 });

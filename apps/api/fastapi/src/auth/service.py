@@ -1,11 +1,12 @@
+import copy
 import logging
 import uuid
 from datetime import timedelta
 from typing import Any
 
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import Session as SQLModelSession
-from sqlmodel import col, func, select
+from sqlalchemy.orm import Session as SQLAlchemySession
 
 from src.auth.config import auth_settings
 from src.auth.models import (
@@ -43,10 +44,11 @@ from src.utils.datetime import utc_now
 logger = logging.getLogger(__name__)
 
 
-def create_user_sync(*, session: SQLModelSession, user_create: UserCreate) -> User:
+def create_user_sync(*, session: SQLAlchemySession, user_create: UserCreate) -> User:
     """Create a new user with hashed password (sync, for init_db and legacy callers)."""
-    db_obj = User.model_validate(
-        user_create, update={"hashed_password": get_password_hash(user_create.password)}
+    db_obj = User(
+        **user_create.model_dump(exclude={"password"}),
+        hashed_password=get_password_hash(user_create.password),
     )
     session.add(db_obj)
     session.commit()
@@ -57,8 +59,9 @@ def create_user_sync(*, session: SQLModelSession, user_create: UserCreate) -> Us
 async def create_user(*, session: AsyncSession, user_create: UserCreate) -> User:
     """Create a new user with hashed password."""
     hashed_password = await get_password_hash_async(user_create.password)
-    db_obj = User.model_validate(
-        user_create, update={"hashed_password": hashed_password}
+    db_obj = User(
+        **user_create.model_dump(exclude={"password"}),
+        hashed_password=hashed_password,
     )
     if auth_settings.ENVIRONMENT != "local":
         db_obj.email_verification_required = True
@@ -84,16 +87,16 @@ async def update_user(
     if user_in.email and user_in.email != db_user.email:
         db_user.email_verified_at = None
         db_user.email_verification_required = True
-    db_user.sqlmodel_update(user_data, update=extra_data)
+    for key, value in {**user_data, **extra_data}.items():
+        if key != "password":
+            setattr(db_user, key, value)
     if (
         user_data.get("is_active") is False
         or "password" in user_data
         or "email" in user_data
     ):
-        from sqlmodel import delete
-
         await session.execute(
-            delete(AuthSession).where(col(AuthSession.user_id) == db_user.id)
+            delete(AuthSession).where(AuthSession.user_id == db_user.id)
         )
     session.add(db_user)
     await session.commit()
@@ -112,12 +115,11 @@ async def update_user_me(
     if user_in.email and user_in.email != current_user.email:
         current_user.email_verified_at = None
         current_user.email_verification_required = True
-        from sqlmodel import delete
-
         await session.execute(
-            delete(AuthSession).where(col(AuthSession.user_id) == current_user.id)
+            delete(AuthSession).where(AuthSession.user_id == current_user.id)
         )
-    current_user.sqlmodel_update(user_data)
+    for key, value in user_data.items():
+        setattr(current_user, key, value)
     session.add(current_user)
     await session.commit()
     await session.refresh(current_user)
@@ -127,16 +129,10 @@ async def update_user_me(
 async def set_password(*, session: AsyncSession, user: User, new_password: str) -> None:
     user.hashed_password = await get_password_hash_async(new_password)
     session.add(user)
-    from sqlmodel import delete
-
     from src.auth.modern_models import AuthChallenge
 
-    await session.execute(
-        delete(AuthChallenge).where(col(AuthChallenge.user_id) == user.id)
-    )
-    await session.execute(
-        delete(AuthSession).where(col(AuthSession.user_id) == user.id)
-    )
+    await session.execute(delete(AuthChallenge).where(AuthChallenge.user_id == user.id))
+    await session.execute(delete(AuthSession).where(AuthSession.user_id == user.id))
     await session.commit()
     logger.info("Password changed", extra={"user_id": str(user.id)})
 
@@ -167,7 +163,7 @@ async def get_user_by_email(*, session: AsyncSession, email: str) -> User | None
 
 async def get_user_by_id(*, session: AsyncSession, user_id: uuid.UUID) -> User | None:
     """Get user by ID."""
-    statement = select(User).where(col(User.id) == user_id)
+    statement = select(User).where(User.id == user_id)
     result = await session.execute(statement)
     return result.scalars().first()
 
@@ -285,8 +281,8 @@ async def create_session(
     session_secret = create_session_token()
     user.last_login_at = now
     session.add(user)
-    db_session = AuthSession.model_validate(
-        SessionCreate(
+    db_session = AuthSession(
+        **SessionCreate(
             user_id=user.id,
             session_token=hash_session_token(session_secret),
             expires_at=now + (expires_delta or get_session_expires_delta()),
@@ -295,7 +291,7 @@ async def create_session(
             user_agent=user_agent,
             ip_address=ip_address,
             last_used_at=now,
-        )
+        ).model_dump()
     )
     session.add(db_session)
     await session.commit()
@@ -371,7 +367,7 @@ async def revoke_user_sessions(
         select(AuthSession)
         .where(
             AuthSession.user_id == user_id,
-            col(AuthSession.revoked_at).is_(None),
+            AuthSession.revoked_at.is_(None),
         )
         .limit(500)
     )  # a user shouldn't have more active sessions than this
@@ -447,7 +443,7 @@ async def rotate_session(
 # Role management
 async def create_role(*, session: AsyncSession, role_in: RoleCreate) -> Role:
     """Create a new role."""
-    db_role = Role.model_validate(role_in)
+    db_role = Role(**role_in.model_dump())
     session.add(db_role)
     await session.commit()
     await session.refresh(db_role)
@@ -456,7 +452,7 @@ async def create_role(*, session: AsyncSession, role_in: RoleCreate) -> Role:
 
 async def get_role(*, session: AsyncSession, role_id: uuid.UUID) -> Role | None:
     """Get a role by ID."""
-    statement = select(Role).where(col(Role.id) == role_id)
+    statement = select(Role).where(Role.id == role_id)
     result = await session.execute(statement)
     return result.scalars().first()
 
@@ -479,7 +475,8 @@ async def update_role(
 ) -> Role:
     """Update a role's name/description."""
     role_data = role_in.model_dump(exclude_unset=True)
-    db_role.sqlmodel_update(role_data)
+    for key, value in role_data.items():
+        setattr(db_role, key, value)
     session.add(db_role)
     await session.commit()
     await session.refresh(db_role)
@@ -493,7 +490,7 @@ async def count_role_assignments_for_role(
     count_stmt = (
         select(func.count())
         .select_from(UserRoleAssignment)
-        .where(col(UserRoleAssignment.role_id) == role_id)
+        .where(UserRoleAssignment.role_id == role_id)
     )
     result = await session.execute(count_stmt)
     return result.scalar() or 0
@@ -514,8 +511,6 @@ async def delete_user_role_assignment(
     *, session: AsyncSession, db_assignment: UserRoleAssignment
 ) -> None:
     """Revoke the assignment and remove legacy fallback when the last grant ends."""
-    from sqlalchemy import delete
-
     from src.auth.models import UserRoleLink
 
     await session.delete(db_assignment)
@@ -523,16 +518,16 @@ async def delete_user_role_assignment(
     remaining = (
         await session.execute(
             select(UserRoleAssignment.id).where(
-                col(UserRoleAssignment.user_id) == db_assignment.user_id,
-                col(UserRoleAssignment.role_id) == db_assignment.role_id,
+                UserRoleAssignment.user_id == db_assignment.user_id,
+                UserRoleAssignment.role_id == db_assignment.role_id,
             )
         )
     ).first()
     if remaining is None:
         await session.execute(
             delete(UserRoleLink).where(
-                col(UserRoleLink.user_id) == db_assignment.user_id,
-                col(UserRoleLink.role_id) == db_assignment.role_id,
+                UserRoleLink.user_id == db_assignment.user_id,
+                UserRoleLink.role_id == db_assignment.role_id,
             )
         )
     await session.commit()
@@ -548,7 +543,7 @@ async def create_permission(
         permission_data["key"] = (
             f"{permission_in.entity}.{permission_in.action}".strip().lower()
         )
-    db_permission = Permission.model_validate(permission_data)
+    db_permission = Permission(**permission_data)
     session.add(db_permission)
     await session.commit()
     await session.refresh(db_permission)
@@ -567,7 +562,8 @@ async def update_permission(
             f"{permission_data.get('entity', db_permission.entity)}."
             f"{permission_data.get('action', db_permission.action)}"
         ).lower()
-    db_permission.sqlmodel_update(permission_data)
+    for key, value in permission_data.items():
+        setattr(db_permission, key, value)
     session.add(db_permission)
     await session.commit()
     await session.refresh(db_permission)
@@ -639,7 +635,7 @@ async def create_user_role_assignment(
             raise AppException("Department scope requires an explicit department", 400)
         data["department_id"] = employment.department_id
     data["organisation_id"] = organisation_id
-    db_assignment = UserRoleAssignment.model_validate(data)
+    db_assignment = UserRoleAssignment(**data)
     if current_user is not None:
         await require_assignment_management(session, current_user, db_assignment)
     session.add(db_assignment)
@@ -673,10 +669,13 @@ async def update_user_role_assignment(
         and not destination_id
     ):
         raise AppException("Department scope requires an explicit department", 400)
-    candidate = UserRoleAssignment.model_validate(db_assignment, update=assignment_data)
+    candidate = copy.copy(db_assignment)
+    for key, value in assignment_data.items():
+        setattr(candidate, key, value)
     if current_user is not None:
         await require_assignment_management(session, current_user, candidate)
-    db_assignment.sqlmodel_update(assignment_data)
+    for key, value in assignment_data.items():
+        setattr(db_assignment, key, value)
     session.add(db_assignment)
     await session.commit()
     await session.refresh(db_assignment)
@@ -699,7 +698,7 @@ async def get_user_role_assignments(
 ) -> list[UserRoleAssignment]:
     statement = select(UserRoleAssignment)
     if user_id:
-        statement = statement.where(col(UserRoleAssignment.user_id) == user_id)
+        statement = statement.where(UserRoleAssignment.user_id == user_id)
     result = await session.execute(statement)
     assignments = list(result.scalars().all())
     if current_user is None or current_user.is_superuser:

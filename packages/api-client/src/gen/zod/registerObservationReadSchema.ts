@@ -4,26 +4,28 @@
  */
 
 import * as z from "zod";
+import { observationRecordPropertiesKindEnumSchema } from "./observationRecordPropertiesKindEnumSchema.js";
+import { registerObservationReadPropertiesStateEnumSchema } from "./registerObservationReadPropertiesStateEnumSchema.js";
 
 export const registerObservationReadSchema = z.object({
   station_id: z.string().min(1).max(64),
   station_name: z.union([z.string().max(200), z.null()]).optional(),
   aerodrome_icao: z.union([z.string().min(4).max(4), z.null()]).optional(),
-  kind: z.enum(["SYNOP", "METAR", "SPECI"]),
-  observed_at: z.string(),
-  issued_at: z.union([z.string(), z.null()]).optional(),
+  kind: observationRecordPropertiesKindEnumSchema,
+  observed_at: z.iso.datetime(),
+  issued_at: z.union([z.iso.datetime(), z.null()]).optional(),
   body: z.object({}).catchall(z.unknown()).optional(),
   raw_tac: z.union([z.string().max(12000), z.null()]).optional(),
   bufr: z.union([z.object({}).catchall(z.unknown()), z.null()]).optional(),
   iwxxm: z.union([z.object({}).catchall(z.unknown()), z.null()]).optional(),
   id: z.uuid(),
-  state: z.enum(["draft", "qc_pending", "accepted", "rejected", "superseded"]),
+  state: registerObservationReadPropertiesStateEnumSchema,
   qc_notes: z.union([z.string(), z.null()]).optional(),
   wis2_topic: z.union([z.string(), z.null()]).optional(),
   wis2_message_id: z.union([z.string(), z.null()]).optional(),
-  wis2_published_at: z.union([z.string(), z.null()]).optional(),
+  wis2_published_at: z.union([z.iso.datetime(), z.null()]).optional(),
   supersedes_id: z.union([z.uuid(), z.null()]).optional(),
   actor_id: z.string(),
-  created_at: z.string(),
-  updated_at: z.string(),
+  created_at: z.iso.datetime(),
+  updated_at: z.iso.datetime(),
 });

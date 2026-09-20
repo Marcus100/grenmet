@@ -2,9 +2,9 @@
 
 import uuid
 
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
 
 from src.auth.models import User
 from src.auth.policy import require_permission
@@ -74,9 +74,12 @@ def approval_errors(definition: CapProfileDefinition) -> list[str]:
 
 def public(row: CapHazardProfile) -> CapProfilePublic:
     definition = CapProfileDefinition.model_validate(row.definition)
+    row_data = {
+        key: value for key, value in vars(row).items() if not key.startswith("_")
+    }
     return CapProfilePublic.model_validate(
         {
-            **row.model_dump(),
+            **row_data,
             "definition": definition,
             "approval_errors": approval_errors(definition),
         }
@@ -89,7 +92,7 @@ async def list_versions(
     require_permission(current_user=current_user, permission_key="cap.alert.read")
     result = await session.execute(
         select(CapHazardProfile).order_by(
-            CapHazardProfile.key, col(CapHazardProfile.version).desc()
+            CapHazardProfile.key, CapHazardProfile.version.desc()
         )
     )
     return [public(row) for row in result.scalars()]
@@ -102,7 +105,7 @@ async def save_version(
     result = await session.execute(
         select(CapHazardProfile)
         .where(CapHazardProfile.key == key)
-        .order_by(col(CapHazardProfile.version).desc())
+        .order_by(CapHazardProfile.version.desc())
         .limit(1)
         .with_for_update()
     )

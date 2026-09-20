@@ -3,19 +3,9 @@
  * Do not edit manually.
  */
 
+import type { CapProfileDefinitionPropertiesChannelsItemsEnum } from "./CapProfileDefinitionPropertiesChannelsItemsEnum.js";
 import type { CapProfileSubtype } from "./CapProfileSubtype.js";
 import type { CapProfileTemplate } from "./CapProfileTemplate.js";
-
-export const capProfileDefinitionChannelsEnum = {
-  "CAP feed": "CAP feed",
-  "Email / EDIS": "Email / EDIS",
-  WIS2: "WIS2",
-  "GMS website": "GMS website",
-  "Agency channels": "Agency channels",
-} as const;
-
-export type CapProfileDefinitionChannelsEnum =
-  (typeof capProfileDefinitionChannelsEnum)[keyof typeof capProfileDefinitionChannelsEnum];
 
 export type CapProfileDefinition = {
   /**
@@ -50,7 +40,7 @@ export type CapProfileDefinition = {
    * @type string | undefined
    */
   contact?: string;
-  channels?: CapProfileDefinitionChannelsEnum[];
+  channels?: CapProfileDefinitionPropertiesChannelsItemsEnum[];
   /**
    * @maxLength 5000
    * @default ''

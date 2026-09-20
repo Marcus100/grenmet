@@ -30,6 +30,7 @@ class Settings(BaseSettings):
         extra="ignore",
     )
     API_V1_STR: str = "/api/v1"
+    API_BASE_URL: HttpUrl | None = None
     FRONTEND_HOST: str | None = None
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 

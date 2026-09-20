@@ -29,14 +29,19 @@ async def get_session() -> AsyncGenerator[AsyncSession]:
     try:
         async with session:
             yield session
-    except (SQLAlchemyError, OSError, TimeoutError):
+    except SQLAlchemyError, OSError, TimeoutError:
         raise HTTPException(503, "Janitorial catalogue is unavailable") from None
 
 
 Session = Annotated[AsyncSession, Depends(get_session)]
 
 
-@router.get("/spec", response_model=list[BuildingView])
+@router.get(
+    "/spec",
+    response_model=list[BuildingView],
+    summary="Get the janitorial catalogue",
+    description="Returns the building, section, area, and task hierarchy used by the janitorial workflow.",
+)
 async def spec(_user: BrowserUser, session: Session) -> list[BuildingView]:
     result = await session.execute(
         text("""

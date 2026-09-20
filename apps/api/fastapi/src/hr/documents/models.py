@@ -3,8 +3,10 @@ from datetime import date, datetime
 from enum import Enum
 
 import sqlalchemy as sa
-from sqlmodel import Field, SQLModel
+from sqlalchemy import ForeignKey, String
+from sqlalchemy.orm import Mapped, mapped_column
 
+from src.orm import Base
 from src.utils.datetime import utc_now
 
 
@@ -47,7 +49,7 @@ def sensitivity_for(category: DocumentCategory) -> DocumentSensitivity:
     )
 
 
-class EmployeeDocument(SQLModel, table=True):
+class EmployeeDocument(Base):
     """A stored file belonging to a person, optionally attached to an HR record.
 
     The file itself lives in object storage under ``object_key``; this row is the
@@ -64,40 +66,44 @@ class EmployeeDocument(SQLModel, table=True):
         {"schema": "hr"},
     )
 
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    organisation_id: str = Field(
-        foreign_key="hr.organisation.id", index=True, max_length=100
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("hr.organisation.id"), index=True
     )
-    user_id: uuid.UUID = Field(foreign_key="user.id", index=True, ondelete="CASCADE")
-    category: DocumentCategory = Field(default=DocumentCategory.OTHER)
-    sensitivity: DocumentSensitivity = Field(default=DocumentSensitivity.STANDARD)
-    title: str = Field(max_length=255)
-    description: str | None = Field(default=None, max_length=2000)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user.id", ondelete="CASCADE"), index=True
+    )
+    category: Mapped[DocumentCategory] = mapped_column(default=DocumentCategory.OTHER)
+    sensitivity: Mapped[DocumentSensitivity] = mapped_column(
+        default=DocumentSensitivity.STANDARD
+    )
+    title: Mapped[str] = mapped_column(String(255))
+    description: Mapped[str | None] = mapped_column(String(2000), nullable=True)
 
     # Storage location. Unique so a row is never orphaned onto another row's
     # object, and so a replayed upload cannot silently share a key.
-    object_key: str = Field(max_length=512, unique=True, index=True)
-    original_filename: str = Field(max_length=255)
-    content_type: str = Field(max_length=120)
-    size_bytes: int = Field(ge=0)
+    object_key: Mapped[str] = mapped_column(String(512), unique=True, index=True)
+    original_filename: Mapped[str] = mapped_column(String(255))
+    content_type: Mapped[str] = mapped_column(String(120))
+    size_bytes: Mapped[int]
 
-    issued_date: date | None = Field(default=None)
-    expiry_date: date | None = Field(default=None)
-    issuing_authority: str | None = Field(default=None, max_length=255)
-    reference_number: str | None = Field(default=None, max_length=120)
+    issued_date: Mapped[date | None]
+    expiry_date: Mapped[date | None]
+    issuing_authority: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    reference_number: Mapped[str | None] = mapped_column(String(120), nullable=True)
 
     # Generic attachment link, so any existing HR form (absentee report, leave
     # request, parking permit) can carry evidence without its own join table.
     # Deliberately not a FK: the target table varies by entity_type.
-    entity_type: str | None = Field(default=None, max_length=60)
-    entity_id: uuid.UUID | None = Field(default=None)
+    entity_type: Mapped[str | None] = mapped_column(String(60), nullable=True)
+    entity_id: Mapped[uuid.UUID | None]
 
-    uploaded_by_user_id: uuid.UUID | None = Field(
-        default=None, foreign_key="user.id", ondelete="SET NULL"
+    uploaded_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id", ondelete="SET NULL"), nullable=True
     )
-    archived_at: datetime | None = Field(default=None)
-    archived_by_user_id: uuid.UUID | None = Field(
-        default=None, foreign_key="user.id", ondelete="SET NULL"
+    archived_at: Mapped[datetime | None]
+    archived_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id", ondelete="SET NULL"), nullable=True
     )
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now)
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)

@@ -3,14 +3,8 @@
  * Do not edit manually.
  */
 
-export const runFinishStatusEnum = {
-  finished: "finished",
-  failed: "failed",
-} as const;
-
-export type RunFinishStatusEnum =
-  (typeof runFinishStatusEnum)[keyof typeof runFinishStatusEnum];
+import type { RunFinishPropertiesStatusEnum } from "./RunFinishPropertiesStatusEnum.js";
 
 export type RunFinish = {
-  status: RunFinishStatusEnum;
+  status: RunFinishPropertiesStatusEnum;
 };

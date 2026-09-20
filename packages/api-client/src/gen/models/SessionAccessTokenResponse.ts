@@ -13,7 +13,17 @@ export type SessionAccessTokenResponse = {
    * @type string | undefined
    */
   token_type?: "bearer";
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   access_token_expires_at: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   session_expires_at: string;
   session: SessionPublic;
   /**

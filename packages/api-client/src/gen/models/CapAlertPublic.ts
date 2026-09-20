@@ -19,6 +19,11 @@ export type CapAlertPublic = {
   id: string;
   identifier: string;
   sender: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   sent: string;
   status: CapStatus;
   msg_type: CapMessageType;
@@ -40,7 +45,17 @@ export type CapAlertPublic = {
   approved_at?: string | null;
   published_at?: string | null;
   expired_at?: string | null;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   created_at: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   updated_at: string;
   references?: CapReferencePublic[];
   incidents?: string[];

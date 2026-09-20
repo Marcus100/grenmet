@@ -11,9 +11,9 @@ Usage:
 
 import uuid
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from sqlmodel import select
 
 from src.auth.models import (
     Permission,

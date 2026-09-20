@@ -12,7 +12,7 @@ export const publicWarningSchema = z.object({
   event: z.string(),
   headline: z.string(),
   areas: z.array(z.string()),
-  expires: z.union([z.string(), z.null()]),
+  expires: z.union([z.iso.datetime(), z.null()]),
   severity: capSeveritySchema,
   status: capStatusSchema,
 });

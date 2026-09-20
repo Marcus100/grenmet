@@ -3,23 +3,7 @@
  * Do not edit manually.
  */
 
-export const legacyStoredProductKindEnum = {
-  morning: "morning",
-  midday: "midday",
-  evening: "evening",
-  cyclone: "cyclone",
-  marine: "marine",
-  flood: "flood",
-  thunderstorm: "thunderstorm",
-  wind: "wind",
-  heat: "heat",
-  dust: "dust",
-  coastal: "coastal",
-  tsunami: "tsunami",
-} as const;
-
-export type LegacyStoredProductKindEnum =
-  (typeof legacyStoredProductKindEnum)[keyof typeof legacyStoredProductKindEnum];
+import type { LegacyProductPreviewPropertiesKindEnum } from "./LegacyProductPreviewPropertiesKindEnum.js";
 
 export type LegacyStoredProduct = {
   /**
@@ -33,6 +17,11 @@ export type LegacyStoredProduct = {
   };
   revision: number;
   publishedRevision: number | null;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   updatedAt: string;
-  kind: LegacyStoredProductKindEnum;
+  kind: LegacyProductPreviewPropertiesKindEnum;
 };

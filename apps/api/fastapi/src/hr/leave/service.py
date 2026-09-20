@@ -2,8 +2,8 @@ import logging
 import uuid
 from decimal import Decimal
 
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, func, select
 
 from src.auth.models import User
 from src.auth.policy import can_act_on_user, require_permission
@@ -309,10 +309,10 @@ async def action_leave_request(
         result = await session.execute(
             select(LeaveBalanceEvent)
             .where(
-                col(LeaveBalanceEvent.user_id) == leave_request.user_id,
-                col(LeaveBalanceEvent.leave_type) == leave_type_value,
+                LeaveBalanceEvent.user_id == leave_request.user_id,
+                LeaveBalanceEvent.leave_type == leave_type_value,
             )
-            .order_by(col(LeaveBalanceEvent.created_at).desc())
+            .order_by(LeaveBalanceEvent.created_at.desc())
             .with_for_update()
         )
         last_event = result.scalars().first()
@@ -347,9 +347,9 @@ async def action_leave_request(
 async def list_leave_requests(
     *, session: AsyncSession, current_user: User, skip: int = 0, limit: int = 100
 ) -> tuple[list[LeaveRequest], int]:
-    base = select(LeaveRequest).where(col(LeaveRequest.user_id) == current_user.id)
+    base = select(LeaveRequest).where(LeaveRequest.user_id == current_user.id)
     total = await session.scalar(select(func.count()).select_from(base.subquery()))
     result = await session.execute(
-        base.order_by(col(LeaveRequest.created_at).desc()).offset(skip).limit(limit)
+        base.order_by(LeaveRequest.created_at.desc()).offset(skip).limit(limit)
     )
     return list(result.scalars().all()), total or 0

@@ -6,7 +6,6 @@ from alembic.config import Config
 from sqlalchemy import text
 
 from alembic import command
-from tests.wxproducts.test_migrations import weather_engine as weather_engine
 
 ROOT = Path(__file__).resolve().parents[2]
 

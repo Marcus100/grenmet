@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { legacyProductWritePropertiesActionEnumSchema } from "./legacyProductWritePropertiesActionEnumSchema.js";
 import { outlookValuesDraftSchema } from "./outlookValuesDraftSchema.js";
 
 export const outlookProductWriteSchema = z
@@ -11,7 +12,7 @@ export const outlookProductWriteSchema = z
     id: z.uuid(),
     expectedRevision: z.int().min(0),
     values: outlookValuesDraftSchema,
-    action: z.enum(["draft", "publish", "withdraw"]),
+    action: legacyProductWritePropertiesActionEnumSchema,
     changeSummary: z.string().max(1000),
     reviewed: z.boolean(),
     kind: z.enum(["outlook"]),

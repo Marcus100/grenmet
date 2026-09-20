@@ -3,20 +3,14 @@
  * Do not edit manually.
  */
 
-export const capAlertImportRequestSourceEnum = {
-  url: "url",
-  xml: "xml",
-} as const;
-
-export type CapAlertImportRequestSourceEnum =
-  (typeof capAlertImportRequestSourceEnum)[keyof typeof capAlertImportRequestSourceEnum];
+import type { CapAlertImportRequestPropertiesSourceEnum } from "./CapAlertImportRequestPropertiesSourceEnum.js";
 
 export type CapAlertImportRequest = {
   /**
    * @default 'xml'
    * @type string | undefined
    */
-  source?: CapAlertImportRequestSourceEnum;
+  source?: CapAlertImportRequestPropertiesSourceEnum;
   /**
    * @minLength 1
    * @type string

@@ -7,7 +7,7 @@ import * as z from "zod";
 
 export const archiveEditionSchema = z.object({
   image_asset_id: z.union([z.string(), z.null()]).optional(),
-  issued_at: z.union([z.string(), z.null()]).optional(),
+  issued_at: z.union([z.iso.datetime(), z.null()]).optional(),
   storm_id: z.union([z.string(), z.null()]).optional(),
   bulletin_code: z.union([z.string(), z.null()]).optional(),
   has_bulletin: z.boolean().optional().default(false),
@@ -15,10 +15,10 @@ export const archiveEditionSchema = z.object({
   title: z.string(),
   source: z.string(),
   product_key: z.string(),
-  nominal_time: z.union([z.string(), z.null()]),
-  observed_at: z.union([z.string(), z.null()]),
+  nominal_time: z.union([z.iso.datetime(), z.null()]),
+  observed_at: z.union([z.iso.datetime(), z.null()]),
   time_basis: z.string(),
-  first_received_at: z.string(),
+  first_received_at: z.iso.datetime(),
   storage_path: z.union([z.string(), z.null()]),
   verification_status: z.union([z.string(), z.null()]),
   replica_state: z.union([z.string(), z.null()]),

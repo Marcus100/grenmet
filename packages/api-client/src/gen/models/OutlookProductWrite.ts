@@ -3,16 +3,8 @@
  * Do not edit manually.
  */
 
+import type { LegacyProductWritePropertiesActionEnum } from "./LegacyProductWritePropertiesActionEnum.js";
 import type { OutlookValuesDraft } from "./OutlookValuesDraft.js";
-
-export const outlookProductWriteActionEnum = {
-  draft: "draft",
-  publish: "publish",
-  withdraw: "withdraw",
-} as const;
-
-export type OutlookProductWriteActionEnum =
-  (typeof outlookProductWriteActionEnum)[keyof typeof outlookProductWriteActionEnum];
 
 export type OutlookProductWrite = {
   /**
@@ -27,7 +19,7 @@ export type OutlookProductWrite = {
    */
   expectedRevision: number;
   values: OutlookValuesDraft;
-  action: OutlookProductWriteActionEnum;
+  action: LegacyProductWritePropertiesActionEnum;
   /**
    * @maxLength 1000
    * @type string

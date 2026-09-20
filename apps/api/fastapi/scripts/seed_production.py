@@ -4,7 +4,7 @@ import argparse
 import json
 from pathlib import Path
 
-from sqlmodel import Session
+from sqlalchemy.orm import Session
 
 from src.baseline.seed import seed_baseline
 from src.config import settings

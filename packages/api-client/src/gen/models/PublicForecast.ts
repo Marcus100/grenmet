@@ -7,6 +7,11 @@ import type { ForecastObservation } from "./ForecastObservation.js";
 import type { ForecastPeriod } from "./ForecastPeriod.js";
 
 export type PublicForecast = {
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   as_of: string;
   /**
    * @default 'America/Grenada'

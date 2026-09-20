@@ -1,8 +1,8 @@
 from decimal import Decimal
 
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
 
 from src.auth.models import Permission, Role, RoleAssignmentScope
 from src.auth.schemas import UserCreate
@@ -130,7 +130,7 @@ async def test_workflow_start_failure_rolls_back_entity(
     # then confirm nothing was committed for this user.
     await db_async.rollback()
     result = await db_async.execute(
-        select(LeaveRequest).where(col(LeaveRequest.user_id) == user_id)
+        select(LeaveRequest).where(LeaveRequest.user_id == user_id)
     )
     assert result.scalars().first() is None
 

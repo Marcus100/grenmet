@@ -6,7 +6,6 @@ from PIL import Image
 from sqlalchemy import text
 
 from src.wxwatch import catalogue
-from tests.wxproducts.test_migrations import weather_engine as weather_engine
 from tests.wxwatch.test_migration import migrate
 
 

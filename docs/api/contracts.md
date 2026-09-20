@@ -788,3 +788,31 @@ FastAPI owns the database connections, Alembic histories, SQL reads, and
 response shapes; the web app only renders the generated Kubb contracts. Existing
 catalogue rows are adopted in place by the domain migrations, and no write or
 seed operation is exposed by these routes.
+
+## OpenAPI and generated-client rules
+
+FastAPI is the source of truth for the committed OpenAPI document. Regenerate it
+before running Kubb:
+
+```bash
+cd apps/api/fastapi
+uv run --frozen --package fast-back python -c "from src.main import app; import json; json.dump(app.openapi(), open('openapi.json', 'w'), indent=2)"
+cd ../..
+pnpm generate:api-client
+pnpm check:drift
+```
+
+Operation IDs use a stable domain-prefixed camel-case convention such as
+`capGetAlert`, `hrCreateLeaveRequest`, and `authLogin`. They are unique public
+contract identifiers because Kubb uses them for generated clients and hooks.
+
+Public request and response shapes use Pydantic schemas derived from
+`src.models.BaseModel`; SQLAlchemy models remain persistence-layer types.
+Datetime responses use `UtcDateTime` and retain OpenAPI `format: date-time`.
+Meaningful finite values use named enums, and intentionally opaque maps must be
+listed in the schema guard exemption registry.
+
+Every operation should declare a useful summary, description, response model or
+explicit raw-media response, success status, and realistic error responses.
+Validation failures use the typed `ValidationErrorResponse` envelope; application
+errors use the typed `ApiError` envelope.

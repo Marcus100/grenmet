@@ -4,25 +4,13 @@
  */
 
 import * as z from "zod";
+import { legacyProductPreviewPropertiesKindEnumSchema } from "./legacyProductPreviewPropertiesKindEnumSchema.js";
 
 export const legacyStoredProductSchema = z.object({
   id: z.uuid(),
   values: z.object({}).catchall(z.string()),
   revision: z.int(),
   publishedRevision: z.union([z.int(), z.null()]),
-  updatedAt: z.string(),
-  kind: z.enum([
-    "morning",
-    "midday",
-    "evening",
-    "cyclone",
-    "marine",
-    "flood",
-    "thunderstorm",
-    "wind",
-    "heat",
-    "dust",
-    "coastal",
-    "tsunami",
-  ]),
+  updatedAt: z.iso.datetime(),
+  kind: legacyProductPreviewPropertiesKindEnumSchema,
 });

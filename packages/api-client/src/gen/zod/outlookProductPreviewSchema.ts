@@ -9,6 +9,6 @@ import { outlookValuesDraftSchema } from "./outlookValuesDraftSchema.js";
 export const outlookProductPreviewSchema = z.object({
   values: outlookValuesDraftSchema,
   errors: z.array(z.string()),
-  checked_at: z.string(),
+  checked_at: z.iso.datetime(),
   kind: z.enum(["outlook"]),
 });

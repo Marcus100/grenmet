@@ -48,7 +48,7 @@ def local_time(value: str) -> datetime:
 def timestamp(value: str) -> float:
     try:
         return local_time(value).timestamp()
-    except (ValueError, OverflowError):
+    except ValueError, OverflowError:
         return math.nan
 
 
@@ -64,7 +64,7 @@ def number(value: str) -> float:
         ):
             return math.nan
         return float(cleaned)
-    except (ValueError, OverflowError):
+    except ValueError, OverflowError:
         return math.nan
 
 
@@ -77,7 +77,7 @@ def normalize(kind: ProductKind, values: dict[str, str]) -> dict[str, str]:
             f"{values.get('issuedAt', '')[:10]}T{ISSUE_HOURS[kind]:02}:00"
         )
         end = issued.replace(hour=7) + timedelta(days=5 if kind == "evening" else 1)
-    except (ValueError, OverflowError):
+    except ValueError, OverflowError:
         return result
     result.update(
         issuedAt=issued.strftime("%Y-%m-%dT%H:%M"),

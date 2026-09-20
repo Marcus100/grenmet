@@ -8,14 +8,13 @@ from typing import Any
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
-from sqlmodel import SQLModel
 
 from alembic import context
 
 # Add the project root to Python path
 sys.path.append(str(Path(__file__).parent.parent))
 
-# Import all models to ensure they're registered with SQLModel
+# Import all models to ensure they're registered with SQLAlchemy metadata.
 from src.auth.models import User  # noqa: F401
 from src.cap.models import (  # noqa: F401
     CapAlert,
@@ -35,7 +34,6 @@ from src.cap.models import (  # noqa: F401
     CapWebhook,
 )
 from src.config import settings
-from src.database import POSTGRES_INDEXES_NAMING_CONVENTION
 from src.hr.absentee.models import AbsenteeReport  # noqa: F401
 from src.hr.calendar.models import CalendarEvent  # noqa: F401
 from src.hr.dailystatus.models import StatusReport, StatusReportEntry  # noqa: F401
@@ -80,6 +78,7 @@ from src.hr.workflow.models import (  # noqa: F401
     WorkflowStepTemplate,
     WorkflowTemplate,
 )
+from src.orm import POSTGRES_INDEXES_NAMING_CONVENTION, Base
 
 config = context.config
 config.set_main_option("sqlalchemy.url", str(settings.SQLALCHEMY_DATABASE_URI))
@@ -87,8 +86,8 @@ config.set_main_option("sqlalchemy.url", str(settings.SQLALCHEMY_DATABASE_URI))
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-SQLModel.metadata.naming_convention = POSTGRES_INDEXES_NAMING_CONVENTION
-target_metadata = SQLModel.metadata
+Base.metadata.naming_convention = POSTGRES_INDEXES_NAMING_CONVENTION
+target_metadata = Base.metadata
 
 # Schemas tracked by autogenerate. Extend this set when adding a new schema.
 _TRACKED_SCHEMAS = {None, "public", "hr", "cap"}

@@ -4,27 +4,14 @@
  */
 
 import * as z from "zod";
+import { forecastSourcePropertiesKindEnumSchema } from "./forecastSourcePropertiesKindEnumSchema.js";
 
 export const publicPublishedProductSchema = z
   .object({
     id: z.uuid(),
     revision: z.int().gt(0),
     publishedAt: z.string(),
-    kind: z.enum([
-      "morning",
-      "midday",
-      "evening",
-      "outlook",
-      "cyclone",
-      "marine",
-      "flood",
-      "thunderstorm",
-      "wind",
-      "heat",
-      "dust",
-      "coastal",
-      "tsunami",
-    ]),
+    kind: forecastSourcePropertiesKindEnumSchema,
     values: z.object({}).catchall(z.string()),
   })
   .describe("Compatibility response shape for anonymous public consumers.");

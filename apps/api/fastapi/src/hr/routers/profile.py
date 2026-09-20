@@ -30,6 +30,7 @@ router = APIRouter(prefix="/hr", tags=["hr"])
     "/organisations",
     response_model=list[OrganisationPublic],
     summary="List accessible organisations",
+    description="Returns the organisations that the authenticated user can access.",
 )
 async def read_organisations(
     session: SessionDep, current_user: CurrentUser

@@ -4,28 +4,17 @@
  */
 
 import * as z from "zod";
+import { legacyProductPreviewPropertiesKindEnumSchema } from "./legacyProductPreviewPropertiesKindEnumSchema.js";
+import { legacyProductWritePropertiesActionEnumSchema } from "./legacyProductWritePropertiesActionEnumSchema.js";
 
 export const legacyProductWriteSchema = z
   .object({
     id: z.uuid(),
     expectedRevision: z.int().min(0),
     values: z.object({}).catchall(z.string().max(12000)),
-    action: z.enum(["draft", "publish", "withdraw"]),
+    action: legacyProductWritePropertiesActionEnumSchema,
     changeSummary: z.string().max(1000),
     reviewed: z.boolean(),
-    kind: z.enum([
-      "morning",
-      "midday",
-      "evening",
-      "cyclone",
-      "marine",
-      "flood",
-      "thunderstorm",
-      "wind",
-      "heat",
-      "dust",
-      "coastal",
-      "tsunami",
-    ]),
+    kind: legacyProductPreviewPropertiesKindEnumSchema,
   })
   .strict();

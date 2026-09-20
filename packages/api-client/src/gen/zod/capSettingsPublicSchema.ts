@@ -15,6 +15,6 @@ export const capSettingsPublicSchema = z.object({
   feed_limit: z.int(),
   signing_enabled: z.boolean(),
   signing_certificate_ref: z.union([z.string(), z.null()]).optional(),
-  created_at: z.string(),
-  updated_at: z.string(),
+  created_at: z.iso.datetime(),
+  updated_at: z.iso.datetime(),
 });

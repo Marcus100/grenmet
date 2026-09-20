@@ -3,17 +3,10 @@
  * Do not edit manually.
  */
 
-export const aviationDraftWriteKindEnum = {
-  METAR: "METAR",
-  SPECI: "SPECI",
-  TAF: "TAF",
-} as const;
-
-export type AviationDraftWriteKindEnum =
-  (typeof aviationDraftWriteKindEnum)[keyof typeof aviationDraftWriteKindEnum];
+import type { AviationDraftReadPropertiesKindEnum } from "./AviationDraftReadPropertiesKindEnum.js";
 
 export type AviationDraftWrite = {
-  kind: AviationDraftWriteKindEnum;
+  kind: AviationDraftReadPropertiesKindEnum;
   /**
    * @pattern ^[A-Z]{4}$
    * @type string

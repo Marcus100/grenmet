@@ -1,12 +1,16 @@
+from __future__ import annotations
+
 import uuid
 from datetime import datetime
 from enum import Enum
-from typing import Optional
 
+from pydantic import BaseModel as PydanticBaseModel
 from pydantic import EmailStr
-from sqlalchemy import JSON, Column, ForeignKeyConstraint
-from sqlmodel import Field, Relationship, SQLModel
+from sqlalchemy import JSON, ForeignKey, ForeignKeyConstraint, String
+from sqlalchemy.dialects.postgresql import ENUM
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from src.orm import Base
 from src.utils.datetime import utc_now
 
 
@@ -27,45 +31,59 @@ class Title(str, Enum):
 
 
 # Shared properties
-class UserBase(SQLModel):
-    email: EmailStr = Field(unique=True, index=True, max_length=255)
-    username: str = Field(unique=True, index=True, max_length=255)
-    title: Title | None = Field(default=None)
-    first_name: str = Field(max_length=100)
-    middle_name: str | None = Field(default=None, max_length=100)
-    last_name: str = Field(max_length=100)
+class UserBase(PydanticBaseModel):
+    email: EmailStr
+    username: str
+    title: Title | None = None
+    first_name: str
+    middle_name: str | None = None
+    last_name: str
     is_active: bool = True
     is_superuser: bool = False
 
 
 # Database model, database table inferred from class name
-class User(UserBase, table=True):
+class User(Base):
     """Canonical source for identity and name; other modules (e.g. HR) extend by user_id."""
 
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    hashed_password: str
-    email_verified_at: datetime | None = None
-    email_verification_required: bool = False
-    password_setup_pending: bool = False
-    registration_pending: bool = False
-    mfa_recovery_hashes: list[str] = Field(
-        default_factory=list, sa_column=Column(JSON, nullable=False)
+    __tablename__ = "user"
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    username: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    title: Mapped[Title | None] = mapped_column(
+        ENUM(Title, name="title", create_type=False), nullable=True
+    )
+    first_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    middle_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    last_name: Mapped[str] = mapped_column(String(100), nullable=False)
+    is_active: Mapped[bool] = mapped_column(default=True)
+    is_superuser: Mapped[bool] = mapped_column(default=False)
+    hashed_password: Mapped[str]
+    email_verified_at: Mapped[datetime | None]
+    email_verification_required: Mapped[bool] = mapped_column(default=False)
+    password_setup_pending: Mapped[bool] = mapped_column(default=False)
+    registration_pending: Mapped[bool] = mapped_column(default=False)
+    mfa_recovery_hashes: Mapped[list[str]] = mapped_column(
+        JSON, nullable=False, default=list
     )
     # Two-factor auth (TOTP). Secret is plaintext for v1 — encrypt at rest in a follow-up.
-    totp_secret: str | None = Field(default=None, max_length=64)
-    totp_enabled: bool = Field(default=False)
-    last_login_at: datetime | None = Field(default=None)
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now)
+    totp_secret: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    totp_enabled: Mapped[bool] = mapped_column(default=False)
+    last_login_at: Mapped[datetime | None]
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)
 
     # Relationships
-    user_image: Optional["UserImage"] = Relationship(
-        back_populates="user", cascade_delete=True
+    user_image: Mapped[UserImage | None] = relationship(
+        back_populates="user", uselist=False, cascade="all, delete-orphan"
     )
-    roles: list["Role"] = Relationship(
-        back_populates="users", sa_relationship_kwargs={"secondary": "user_role"}
+    roles: Mapped[list[Role]] = relationship(
+        back_populates="users", secondary="user_role"
     )
-    sessions: list["Session"] = Relationship(back_populates="user", cascade_delete=True)
+    sessions: Mapped[list[Session]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
 
     @property
     def full_name(self) -> str:
@@ -81,97 +99,123 @@ class User(UserBase, table=True):
 
 
 # User Image model
-class UserImageBase(SQLModel):
-    alt_text: str | None = Field(default=None, max_length=255)
-    object_key: str = Field(max_length=500)
+class UserImageBase(PydanticBaseModel):
+    alt_text: str | None = None
+    object_key: str
 
 
-class UserImage(UserImageBase, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now)
+class UserImage(Base):
+    __tablename__ = "user_image"
 
-    user_id: uuid.UUID = Field(foreign_key="user.id", unique=True)
-    user: "User" = Relationship(back_populates="user_image")
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    alt_text: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    object_key: Mapped[str] = mapped_column(String(500), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"), unique=True)
+    user: Mapped[User] = relationship(back_populates="user_image")
 
 
 # Role model
-class RoleBase(SQLModel):
-    name: str = Field(unique=True, max_length=100)
-    description: str = Field(default="", max_length=500)
+class RoleBase(PydanticBaseModel):
+    name: str
+    description: str = ""
 
 
-class Role(RoleBase, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now)
+class Role(Base):
+    __tablename__ = "role"
 
-    users: list["User"] = Relationship(
-        back_populates="roles", sa_relationship_kwargs={"secondary": "user_role"}
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    name: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    description: Mapped[str] = mapped_column(String(500), default="")
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+    users: Mapped[list[User]] = relationship(
+        back_populates="roles", secondary="user_role"
     )
-    permissions: list["Permission"] = Relationship(
-        back_populates="roles", sa_relationship_kwargs={"secondary": "role_permission"}
+    permissions: Mapped[list[Permission]] = relationship(
+        back_populates="roles", secondary="role_permission"
     )
 
 
 # Permission model
-class PermissionBase(SQLModel):
-    key: str = Field(unique=True, index=True, max_length=120)
-    action: str = Field(max_length=50)  # e.g. create, read, update, delete
-    entity: str = Field(max_length=50)  # e.g. item, user, etc.
-    access: str = Field(max_length=50)  # e.g. own or any
-    description: str = Field(default="", max_length=500)
+class PermissionBase(PydanticBaseModel):
+    key: str
+    action: str
+    entity: str
+    access: str
+    description: str = ""
 
 
-class Permission(PermissionBase, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now)
+class Permission(Base):
+    __tablename__ = "permission"
 
-    roles: list["Role"] = Relationship(
-        back_populates="permissions",
-        sa_relationship_kwargs={"secondary": "role_permission"},
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    key: Mapped[str] = mapped_column(String(120), unique=True, index=True)
+    action: Mapped[str] = mapped_column(String(50))
+    entity: Mapped[str] = mapped_column(String(50))
+    access: Mapped[str] = mapped_column(String(50))
+    description: Mapped[str] = mapped_column(String(500), default="")
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+    roles: Mapped[list[Role]] = relationship(
+        back_populates="permissions", secondary="role_permission"
     )
 
 
 # Session model for user sessions
-class SessionBase(SQLModel):
+class SessionBase(PydanticBaseModel):
     # Stores the SHA-256 hash of the opaque session secret; raw tokens are never persisted.
-    session_token: str = Field(unique=True, max_length=500)
+    session_token: str
     expires_at: datetime
-    client_type: str = Field(default="web", max_length=50)
-    app_name: str | None = Field(default=None, max_length=100)
-    user_agent: str | None = Field(default=None, max_length=500)
-    ip_address: str | None = Field(default=None, max_length=64)
-    last_used_at: datetime = Field(default_factory=utc_now)
+    client_type: str = "web"
+    app_name: str | None = None
+    user_agent: str | None = None
+    ip_address: str | None = None
+    last_used_at: datetime = utc_now()
     revoked_at: datetime | None = None
 
 
-class Session(SessionBase, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now)
+class Session(Base):
+    __tablename__ = "session"
 
-    user_id: uuid.UUID = Field(foreign_key="user.id")
-    user: "User" = Relationship(back_populates="sessions")
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    session_token: Mapped[str] = mapped_column(String(500), unique=True)
+    expires_at: Mapped[datetime]
+    client_type: Mapped[str] = mapped_column(String(50), default="web")
+    app_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    user_agent: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    ip_address: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    last_used_at: Mapped[datetime] = mapped_column(default=utc_now)
+    revoked_at: Mapped[datetime | None]
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
+    user: Mapped[User] = relationship(back_populates="sessions")
 
 
 # Link tables for many-to-many relationships
-class UserRoleLink(SQLModel, table=True):
+class UserRoleLink(Base):
     __tablename__ = "user_role"
 
-    user_id: uuid.UUID = Field(foreign_key="user.id", primary_key=True)
-    role_id: uuid.UUID = Field(foreign_key="role.id", primary_key=True)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"), primary_key=True)
+    role_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("role.id"), primary_key=True)
 
 
-class RolePermissionLink(SQLModel, table=True):
+class RolePermissionLink(Base):
     __tablename__ = "role_permission"
 
-    role_id: uuid.UUID = Field(foreign_key="role.id", primary_key=True)
-    permission_id: uuid.UUID = Field(foreign_key="permission.id", primary_key=True)
+    role_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("role.id"), primary_key=True)
+    permission_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("permission.id"), primary_key=True
+    )
 
 
-class UserRoleAssignment(SQLModel, table=True):
+class UserRoleAssignment(Base):
     __tablename__ = "user_role_assignment"
     __table_args__ = (
         ForeignKeyConstraint(
@@ -181,16 +225,18 @@ class UserRoleAssignment(SQLModel, table=True):
         ),
     )
 
-    organisation_id: str = Field(
-        foreign_key="hr.organisation.id", index=True, max_length=100
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("hr.organisation.id"), index=True
     )
-
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
-    role_id: uuid.UUID = Field(foreign_key="role.id", index=True)
-    scope: RoleAssignmentScope = Field(default=RoleAssignmentScope.SELF)
-    department_id: str | None = Field(default=None, max_length=100)
-    effective_from: datetime = Field(default_factory=utc_now)
-    effective_to: datetime | None = None
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now)
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"), index=True)
+    role_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("role.id"), index=True)
+    scope: Mapped[RoleAssignmentScope] = mapped_column(
+        ENUM(RoleAssignmentScope, name="roleassignmentscope", create_type=False),
+        default=RoleAssignmentScope.SELF,
+    )
+    department_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    effective_from: Mapped[datetime] = mapped_column(default=utc_now)
+    effective_to: Mapped[datetime | None]
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)

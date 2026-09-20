@@ -17,7 +17,8 @@ Run from apps/api/fastapi:
 import argparse
 import logging
 
-from sqlmodel import Session, select
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
 from src.auth.permissions import seed_permissions_and_roles
@@ -101,7 +102,7 @@ def _resolve_department(session: Session) -> Department:
     """Reuse an existing Meteorology department (by id or name), else create it."""
     dept = session.get(Department, DEPARTMENT_ID)
     if dept is None:
-        dept = session.exec(
+        dept = session.scalars(
             select(Department).where(
                 Department.name == DEPARTMENT_NAME, Department.organisation_id == "gaa"
             )
@@ -125,7 +126,7 @@ def _resolve_department(session: Session) -> Department:
 def _get_or_create_user(
     session: Session, email: str, username: str, first: str, last: str
 ) -> User:
-    existing = session.exec(select(User).where(User.email == email)).first()
+    existing = session.scalars(select(User).where(User.email == email)).first()
     if existing:
         return existing
     return create_user_sync(
@@ -147,14 +148,14 @@ def _ensure_role_assignment(
     scope: RoleAssignmentScope,
     department_id: str,
 ) -> None:
-    role = session.exec(select(Role).where(Role.name == role_name)).first()
+    role = session.scalars(select(Role).where(Role.name == role_name)).first()
     if role is None:
         logger.warning("Role %s not found — skipping assignment", role_name)
         return
     if role.id not in {assigned.id for assigned in user.roles}:
         user.roles.append(role)
         session.add(user)
-    existing = session.exec(
+    existing = session.scalars(
         select(UserRoleAssignment).where(
             UserRoleAssignment.user_id == user.id,
             UserRoleAssignment.role_id == role.id,
@@ -181,7 +182,7 @@ def _ensure_role_assignment(
 def _ensure_employment(
     session: Session, user: User, position: str, department_id: str
 ) -> None:
-    existing = session.exec(
+    existing = session.scalars(
         select(EmploymentRecord).where(EmploymentRecord.user_id == user.id)
     ).first()
     if existing:
@@ -213,7 +214,7 @@ def _ensure_template(
     name: str,
 ) -> None:
     """Idempotently create a supervisor -> management template for a form type."""
-    existing = session.exec(
+    existing = session.scalars(
         select(WorkflowTemplate).where(
             WorkflowTemplate.department_id == department_id,
             WorkflowTemplate.workflow_type == workflow_type,
@@ -224,8 +225,10 @@ def _ensure_template(
             "%s template already exists for %s", workflow_type.value, department_id
         )
         return
-    supervisor = session.exec(select(Role).where(Role.name == "hr-supervisor")).first()
-    manager = session.exec(select(Role).where(Role.name == "management")).first()
+    supervisor = session.scalars(
+        select(Role).where(Role.name == "hr-supervisor")
+    ).first()
+    manager = session.scalars(select(Role).where(Role.name == "management")).first()
     if not (supervisor and manager):
         logger.warning("supervisor/management roles missing — skipping template")
         return

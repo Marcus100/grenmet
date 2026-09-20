@@ -3,24 +3,7 @@
  * Do not edit manually.
  */
 
-export const publicPublishedProductKindEnum = {
-  morning: "morning",
-  midday: "midday",
-  evening: "evening",
-  outlook: "outlook",
-  cyclone: "cyclone",
-  marine: "marine",
-  flood: "flood",
-  thunderstorm: "thunderstorm",
-  wind: "wind",
-  heat: "heat",
-  dust: "dust",
-  coastal: "coastal",
-  tsunami: "tsunami",
-} as const;
-
-export type PublicPublishedProductKindEnum =
-  (typeof publicPublishedProductKindEnum)[keyof typeof publicPublishedProductKindEnum];
+import type { ForecastSourcePropertiesKindEnum } from "./ForecastSourcePropertiesKindEnum.js";
 
 /**
  * @description Compatibility response shape for anonymous public consumers.
@@ -35,7 +18,7 @@ export type PublicPublishedProduct = {
   id: string;
   revision: number;
   publishedAt: string;
-  kind: PublicPublishedProductKindEnum;
+  kind: ForecastSourcePropertiesKindEnum;
   values: {
     [key: string]: string;
   };

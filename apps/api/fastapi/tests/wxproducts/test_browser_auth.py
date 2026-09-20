@@ -10,7 +10,6 @@ from src.auth.models import User
 from src.config import settings
 from tests.wxproducts.test_authoring import current_input
 from tests.wxproducts.test_authoring import weather_sessions as weather_sessions
-from tests.wxproducts.test_migrations import weather_engine as weather_engine
 
 
 @pytest.fixture
