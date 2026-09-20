@@ -240,10 +240,28 @@ async def test_create_leave_request(
 - Use `app.dependency_overrides` to replace auth and external service deps in tests.
 - Use a real database (the `db_async` fixture hits the actual DB). Don't mock `AsyncSession`.
 - The sync `client` and `db` fixtures are legacy — don't add new tests that use them.
-- Running from the agent dev container? There's no docker CLI and `grenmet-postgres`
-  isn't reachable — run `uv sync --frozen --package fast-back` once, then
-  `POSTGRES_SERVER=host.docker.internal REDIS_URL=redis://host.docker.internal:6379/0 uv run --frozen --package fast-back pytest`
-  against the host stack. See `AGENTS.md` → FastAPI.
+- Running from the agent dev container? There's no docker CLI and Compose service
+  names such as `db` and `grenmet-postgres` are not resolvable there. Run
+  `uv sync --frozen --package fast-back` once, then override every database/Redis
+  host used by the test process:
+
+  ```bash
+  POSTGRES_SERVER=host.docker.internal \
+  POSTGRES_PORT=5432 \
+  POSTGRES_USER=app \
+  POSTGRES_PASSWORD=changethis \
+  REDIS_URL=redis://host.docker.internal:6379/0 \
+  WXPRODUCTS_DATABASE_URL=postgresql://wxproducts:changethis@host.docker.internal:5432/wxproducts \
+    uv run --frozen --package fast-back pytest
+  ```
+
+  The passwords above are local-development placeholders; use the local stack's
+  actual values when they differ, and never commit real credentials. The main
+  suite creates a run-owned application database. wxproducts migration and
+  authoring fixtures create separate disposable `weather_test_*` databases:
+  wxproducts migration `0001` intentionally refuses to install beside the main
+  application's untracked tables. Do not point either test database at a
+  development or production database. See `AGENTS.md` → FastAPI.
 
 ## Anti-Patterns
 
