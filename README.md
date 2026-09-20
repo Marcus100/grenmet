@@ -184,7 +184,7 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 
 ### Scripts / tools (not in package.json)
 
-- **scrapy-wxwatch** – [scripts/scrapy-wxwatch](scripts/scrapy-wxwatch): Weather images downloader (Scrapy). From repo root: `uv sync --frozen --package wxwatch && uv run --frozen --package wxwatch python scripts/scrapy-wxwatch/run_crawlers.py goes19`. Replace `goes19` with another source, or pass `all` explicitly for a manual full run. Requires Python 3.13+; see [scripts/scrapy-wxwatch/pyproject.toml](scripts/scrapy-wxwatch/pyproject.toml). Optional: [scripts/scrapy-wxwatch/README.md](scripts/scrapy-wxwatch/README.md).
+- **scrapy-wxwatch** – [scripts/scrapy-wxwatch](scripts/scrapy-wxwatch): Weather images downloader (Scrapy). From repo root: `uv sync --frozen --package wxwatch && uv run --frozen --package wxwatch python scripts/scrapy-wxwatch/run_crawlers.py goes19`. Replace `goes19` with another source, or pass `all` explicitly for a manual full run. Requires Python 3.14+; see [scripts/scrapy-wxwatch/pyproject.toml](scripts/scrapy-wxwatch/pyproject.toml). Optional: [scripts/scrapy-wxwatch/README.md](scripts/scrapy-wxwatch/README.md).
 - **sutron-collector** – [scripts/sutron-collector](scripts/sutron-collector): Edge collector for the Sutron automatic weather station at Maurice Bishop International Airport. Exercise fixture mode before connecting to station hardware; see [scripts/sutron-collector/README.md](scripts/sutron-collector/README.md).
 
 ## Documentation
@@ -231,7 +231,7 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 ### Prerequisites
 
 - Docker & Docker Compose
-- Python 3.13+ (FastAPI and Python workspace tools)
+- Python 3.14+ (FastAPI and Python workspace tools)
 - Node.js 24 (for Web)
 - pnpm 10+ (for Web)
 
