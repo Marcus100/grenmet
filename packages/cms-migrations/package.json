@@ -6,6 +6,7 @@
   "files": [],
   "dependencies": {
     "payload": "catalog:",
+    "@payloadcms/richtext-lexical": "catalog:",
     "@payloadcms/db-postgres": "catalog:",
     "@payloadcms/email-resend": "catalog:",
     "graphql": "catalog:",
