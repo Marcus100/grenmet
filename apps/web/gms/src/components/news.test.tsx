@@ -39,7 +39,6 @@ for (const [name, component] of [
     });
     render(await component());
     expect(fetchPublishedContent).toHaveBeenCalledWith(
-      "article",
       name === "Latest from us" ? "latest" : "news"
     );
     expect(
