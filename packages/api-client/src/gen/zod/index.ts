@@ -1743,6 +1743,7 @@ export { sessionLoginRequestSchema } from "./sessionLoginRequestSchema.js";
 export { sessionLoginResponseSchema } from "./sessionLoginResponseSchema.js";
 export { sessionPublicSchema } from "./sessionPublicSchema.js";
 export { sessionTokenRequestSchema } from "./sessionTokenRequestSchema.js";
+export { sessionUserPublicSchema } from "./sessionUserPublicSchema.js";
 export { shiftCatalogCreateSchema } from "./shiftCatalogCreateSchema.js";
 export { shiftCatalogPublicSchema } from "./shiftCatalogPublicSchema.js";
 export { shiftCatalogsPublicSchema } from "./shiftCatalogsPublicSchema.js";

@@ -19,6 +19,10 @@ export type {
 } from "@barrelsgd/auth";
 export { AuthApiError, isAuthApiError } from "@barrelsgd/auth";
 
+interface ResponseParser<T> {
+  parse: (payload: unknown) => T;
+}
+
 export function clearSessionCookieOnResponse(response: NextResponse): void {
   _clearSessionCookieOnResponse(getAuthConfig(), response);
 }
@@ -29,12 +33,13 @@ export const readSessionCookie = cache(
 
 export function authApiFetch<T>(
   path: string,
+  parser: ResponseParser<T>,
   init: Omit<RequestInit, "body" | "headers"> & {
     body?: unknown;
     accessToken?: string;
   } = {}
 ): Promise<T> {
-  return _authApiFetch<T>(getAuthConfig(), path, init);
+  return _authApiFetch<T>(getAuthConfig(), path, parser, init);
 }
 
 export const exchangeSessionForAccessToken = cache((sessionToken: string) =>
