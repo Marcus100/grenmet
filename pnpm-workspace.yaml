@@ -190,4 +190,4 @@ overrides:
 # application build/type-check catalog on TypeScript 7.
 catalogs:
   cms-migrations:
-    typescript: 7.0.2
+    typescript: 6.0.3
