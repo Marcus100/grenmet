@@ -88,7 +88,12 @@ class ImageResult(BaseModel):
     created: bool
 
 
-@router.post("/runs", response_model=RunResult)
+@router.post(
+    "/runs",
+    response_model=RunResult,
+    summary="Start an archive ingestion run",
+    description="Opens an authenticated worker ingestion run for a configured weather-image source.",
+)
 async def start_run(body: RunInput, session: ImageSession) -> RunResult:
     await session.execute(
         text("SELECT pg_advisory_xact_lock(hashtextextended(:source, 0))"),
@@ -117,7 +122,12 @@ async def start_run(body: RunInput, session: ImageSession) -> RunResult:
     return RunResult(id=identifier)
 
 
-@router.post("/runs/{run_id}/finish", status_code=204)
+@router.post(
+    "/runs/{run_id}/finish",
+    status_code=204,
+    summary="Finish an archive ingestion run",
+    description="Closes an active ingestion run with a finished or failed status.",
+)
 async def finish_run(run_id: UUID, body: RunFinish, session: ImageSession) -> None:
     result = await session.execute(
         text(
@@ -130,7 +140,12 @@ async def finish_run(run_id: UUID, body: RunFinish, session: ImageSession) -> No
     await session.commit()
 
 
-@router.post("/ingest", response_model=ImageResult)
+@router.post(
+    "/ingest",
+    response_model=ImageResult,
+    summary="Ingest a weather image",
+    description="Stores or updates one weather image and its source metadata as part of an authenticated ingestion run.",
+)
 async def ingest(body: ImageInput, session: ImageSession) -> ImageResult:
     source = await session.scalar(
         text(
@@ -221,7 +236,12 @@ async def ingest(body: ImageInput, session: ImageSession) -> ImageResult:
     return ImageResult(id=identifier, created=existing is None)
 
 
-@router.post("/derivations", response_model=derivations.DerivationResult)
+@router.post(
+    "/derivations",
+    response_model=derivations.DerivationResult,
+    summary="Register a derived weather image",
+    description="Records a derived image relationship and provenance for an ingested weather asset.",
+)
 async def register_derivation(
     body: derivations.DerivationInput, session: ImageSession
 ) -> derivations.DerivationResult:

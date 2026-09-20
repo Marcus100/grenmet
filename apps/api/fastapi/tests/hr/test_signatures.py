@@ -6,7 +6,7 @@ from datetime import date
 
 import pytest
 from PIL import Image, ImageDraw
-from sqlmodel import select
+from sqlalchemy import select
 
 from src.auth.models import User
 from src.exceptions import AppException

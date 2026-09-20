@@ -5,142 +5,430 @@ export { absenteeReportPublicSchema } from "./absenteeReportPublicSchema.js";
 export { absenteeReportSubmitSchema } from "./absenteeReportSubmitSchema.js";
 export { accessReviewDataSchema } from "./accessReviewDataSchema.js";
 export { accountSecurityPublicSchema } from "./accountSecurityPublicSchema.js";
-export {
-  actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchBodySchema,
-  actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchErrorSchema,
-  actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchPathLeaveRequestIdSchema,
-  actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchResponseSchema,
-  actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus200Schema,
-  actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus403Schema,
-  actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus404Schema,
-  actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchStatus422Schema,
-} from "./actionLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdActionPatchSchema.js";
-export {
-  actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchBodySchema,
-  actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchErrorSchema,
-  actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchPathShiftSwapIdSchema,
-  actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchResponseSchema,
-  actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus200Schema,
-  actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus403Schema,
-  actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus404Schema,
-  actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchStatus422Schema,
-} from "./actionShiftSwapApiV1HrShiftSwapsShiftSwapIdActionPatchSchema.js";
 export { addressPublicSchema } from "./addressPublicSchema.js";
 export { addressUpdateSchema } from "./addressUpdateSchema.js";
 export { approvalAuthorityPublicSchema } from "./approvalAuthorityPublicSchema.js";
 export { approvalAuthorityUpdateSchema } from "./approvalAuthorityUpdateSchema.js";
-export {
-  approveAlertApiV1CapAlertsAlertIdApprovePostBodySchema,
-  approveAlertApiV1CapAlertsAlertIdApprovePostErrorSchema,
-  approveAlertApiV1CapAlertsAlertIdApprovePostPathAlertIdSchema,
-  approveAlertApiV1CapAlertsAlertIdApprovePostResponseSchema,
-  approveAlertApiV1CapAlertsAlertIdApprovePostStatus200Schema,
-  approveAlertApiV1CapAlertsAlertIdApprovePostStatus422Schema,
-} from "./approveAlertApiV1CapAlertsAlertIdApprovePostSchema.js";
-export {
-  approveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostErrorSchema,
-  approveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostPathProfileIdSchema,
-  approveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostResponseSchema,
-  approveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostStatus200Schema,
-  approveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostStatus422Schema,
-} from "./approveHazardProfileApiV1CapHazardProfilesProfileIdApprovePostSchema.js";
-export {
-  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostErrorSchema,
-  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostPathUserIdSchema,
-  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostResponseSchema,
-  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus200Schema,
-  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus403Schema,
-  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus404Schema,
-  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus409Schema,
-  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostStatus422Schema,
-} from "./approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPostSchema.js";
-export {
-  approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchErrorSchema,
-  approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchPathTimesheetIdSchema,
-  approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchResponseSchema,
-  approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus200Schema,
-  approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus400Schema,
-  approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus403Schema,
-  approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus404Schema,
-  approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchStatus422Schema,
-} from "./approveTimesheetApiV1HrTimesheetsTimesheetIdApprovePatchSchema.js";
-export {
-  archiveApiV1WxwatchArchiveGetErrorSchema,
-  archiveApiV1WxwatchArchiveGetQueryEndSchema,
-  archiveApiV1WxwatchArchiveGetQueryLimitSchema,
-  archiveApiV1WxwatchArchiveGetQueryOffsetSchema,
-  archiveApiV1WxwatchArchiveGetQueryProductSchema,
-  archiveApiV1WxwatchArchiveGetQuerySourceSchema,
-  archiveApiV1WxwatchArchiveGetQueryStartSchema,
-  archiveApiV1WxwatchArchiveGetQueryUnknownTimeSchema,
-  archiveApiV1WxwatchArchiveGetResponseSchema,
-  archiveApiV1WxwatchArchiveGetStatus200Schema,
-  archiveApiV1WxwatchArchiveGetStatus422Schema,
-} from "./archiveApiV1WxwatchArchiveGetSchema.js";
-export {
-  archiveAssetApiV1WxwatchAssetsAssetIdGetErrorSchema,
-  archiveAssetApiV1WxwatchAssetsAssetIdGetPathAssetIdSchema,
-  archiveAssetApiV1WxwatchAssetsAssetIdGetResponseSchema,
-  archiveAssetApiV1WxwatchAssetsAssetIdGetStatus200Schema,
-  archiveAssetApiV1WxwatchAssetsAssetIdGetStatus422Schema,
-} from "./archiveAssetApiV1WxwatchAssetsAssetIdGetSchema.js";
 export { archiveBulletinSchema } from "./archiveBulletinSchema.js";
-export {
-  archiveDocumentApiV1HrDocumentsDocumentIdArchivePostErrorSchema,
-  archiveDocumentApiV1HrDocumentsDocumentIdArchivePostPathDocumentIdSchema,
-  archiveDocumentApiV1HrDocumentsDocumentIdArchivePostResponseSchema,
-  archiveDocumentApiV1HrDocumentsDocumentIdArchivePostStatus200Schema,
-  archiveDocumentApiV1HrDocumentsDocumentIdArchivePostStatus403Schema,
-  archiveDocumentApiV1HrDocumentsDocumentIdArchivePostStatus404Schema,
-  archiveDocumentApiV1HrDocumentsDocumentIdArchivePostStatus422Schema,
-} from "./archiveDocumentApiV1HrDocumentsDocumentIdArchivePostSchema.js";
 export { archiveEditionSchema } from "./archiveEditionSchema.js";
 export { archiveHistorySchema } from "./archiveHistorySchema.js";
 export { archivePageSchema } from "./archivePageSchema.js";
 export { archiveRetrievalSchema } from "./archiveRetrievalSchema.js";
-export {
-  archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostBodySchema,
-  archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostErrorSchema,
-  archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostPathRecordIdSchema,
-  archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostResponseSchema,
-  archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostStatus200Schema,
-  archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostStatus403Schema,
-  archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostStatus404Schema,
-  archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostStatus422Schema,
-} from "./archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePostSchema.js";
 export { areaViewSchema } from "./areaViewSchema.js";
+export {
+  authBrowserSessionErrorSchema,
+  authBrowserSessionResponseSchema,
+  authBrowserSessionStatus200Schema,
+  authBrowserSessionStatus422Schema,
+} from "./authBrowserSessionSchema.js";
+export {
+  authCreatePermissionBodySchema,
+  authCreatePermissionErrorSchema,
+  authCreatePermissionResponseSchema,
+  authCreatePermissionStatus201Schema,
+  authCreatePermissionStatus422Schema,
+} from "./authCreatePermissionSchema.js";
+export {
+  authCreateRoleAssignmentBodySchema,
+  authCreateRoleAssignmentErrorSchema,
+  authCreateRoleAssignmentResponseSchema,
+  authCreateRoleAssignmentStatus201Schema,
+  authCreateRoleAssignmentStatus422Schema,
+} from "./authCreateRoleAssignmentSchema.js";
+export {
+  authCreateRoleBodySchema,
+  authCreateRoleErrorSchema,
+  authCreateRoleResponseSchema,
+  authCreateRoleStatus201Schema,
+  authCreateRoleStatus422Schema,
+} from "./authCreateRoleSchema.js";
+export {
+  authCreateUserBodySchema,
+  authCreateUserErrorSchema,
+  authCreateUserResponseSchema,
+  authCreateUserStatus201Schema,
+  authCreateUserStatus400Schema,
+  authCreateUserStatus403Schema,
+  authCreateUserStatus422Schema,
+} from "./authCreateUserSchema.js";
+export {
+  authDeleteRoleAssignmentErrorSchema,
+  authDeleteRoleAssignmentPathAssignmentIdSchema,
+  authDeleteRoleAssignmentResponseSchema,
+  authDeleteRoleAssignmentStatus204Schema,
+  authDeleteRoleAssignmentStatus404Schema,
+  authDeleteRoleAssignmentStatus422Schema,
+} from "./authDeleteRoleAssignmentSchema.js";
+export {
+  authDeleteRoleErrorSchema,
+  authDeleteRolePathRoleIdSchema,
+  authDeleteRoleResponseSchema,
+  authDeleteRoleStatus204Schema,
+  authDeleteRoleStatus400Schema,
+  authDeleteRoleStatus404Schema,
+  authDeleteRoleStatus422Schema,
+} from "./authDeleteRoleSchema.js";
+export {
+  authDeleteUserMeErrorSchema,
+  authDeleteUserMeResponseSchema,
+  authDeleteUserMeStatus200Schema,
+  authDeleteUserMeStatus403Schema,
+  authDeleteUserMeStatus422Schema,
+} from "./authDeleteUserMeSchema.js";
+export {
+  authDeleteUserErrorSchema,
+  authDeleteUserPathUserIdSchema,
+  authDeleteUserResponseSchema,
+  authDeleteUserStatus200Schema,
+  authDeleteUserStatus403Schema,
+  authDeleteUserStatus404Schema,
+  authDeleteUserStatus422Schema,
+} from "./authDeleteUserSchema.js";
+export {
+  authEmailConfirmBodySchema,
+  authEmailConfirmErrorSchema,
+  authEmailConfirmResponseSchema,
+  authEmailConfirmStatus200Schema,
+  authEmailConfirmStatus400Schema,
+  authEmailConfirmStatus403Schema,
+  authEmailConfirmStatus422Schema,
+} from "./authEmailConfirmSchema.js";
+export {
+  authEmailRequestBodySchema,
+  authEmailRequestErrorSchema,
+  authEmailRequestResponseSchema,
+  authEmailRequestStatus200Schema,
+  authEmailRequestStatus400Schema,
+  authEmailRequestStatus403Schema,
+  authEmailRequestStatus422Schema,
+} from "./authEmailRequestSchema.js";
+export {
+  authExchangeSessionForAccessTokenBodySchema,
+  authExchangeSessionForAccessTokenErrorSchema,
+  authExchangeSessionForAccessTokenResponseSchema,
+  authExchangeSessionForAccessTokenStatus200Schema,
+  authExchangeSessionForAccessTokenStatus422Schema,
+} from "./authExchangeSessionForAccessTokenSchema.js";
+export {
+  authGetAccessReviewsErrorSchema,
+  authGetAccessReviewsResponseSchema,
+  authGetAccessReviewsStatus200Schema,
+  authGetAccessReviewsStatus401Schema,
+  authGetAccessReviewsStatus403Schema,
+  authGetAccessReviewsStatus409Schema,
+  authGetAccessReviewsStatus422Schema,
+} from "./authGetAccessReviewsSchema.js";
+export {
+  authGetAccountSecurityErrorSchema,
+  authGetAccountSecurityResponseSchema,
+  authGetAccountSecurityStatus200Schema,
+  authGetAccountSecurityStatus401Schema,
+  authGetAccountSecurityStatus403Schema,
+  authGetAccountSecurityStatus422Schema,
+} from "./authGetAccountSecuritySchema.js";
+export {
+  authGetEffectiveAccessErrorSchema,
+  authGetEffectiveAccessResponseSchema,
+  authGetEffectiveAccessStatus200Schema,
+  authGetEffectiveAccessStatus401Schema,
+  authGetEffectiveAccessStatus403Schema,
+  authGetEffectiveAccessStatus409Schema,
+  authGetEffectiveAccessStatus422Schema,
+} from "./authGetEffectiveAccessSchema.js";
+export {
+  authGetPermissionErrorSchema,
+  authGetPermissionPathPermissionIdSchema,
+  authGetPermissionResponseSchema,
+  authGetPermissionStatus200Schema,
+  authGetPermissionStatus404Schema,
+  authGetPermissionStatus422Schema,
+} from "./authGetPermissionSchema.js";
+export {
+  authGetPermissionsErrorSchema,
+  authGetPermissionsQueryPageSchema,
+  authGetPermissionsQuerySizeSchema,
+  authGetPermissionsResponseSchema,
+  authGetPermissionsStatus200Schema,
+  authGetPermissionsStatus422Schema,
+} from "./authGetPermissionsSchema.js";
+export {
+  authGetRoleAssignmentErrorSchema,
+  authGetRoleAssignmentPathAssignmentIdSchema,
+  authGetRoleAssignmentResponseSchema,
+  authGetRoleAssignmentStatus200Schema,
+  authGetRoleAssignmentStatus404Schema,
+  authGetRoleAssignmentStatus422Schema,
+} from "./authGetRoleAssignmentSchema.js";
+export {
+  authGetRoleAssignmentsErrorSchema,
+  authGetRoleAssignmentsQueryUserIdSchema,
+  authGetRoleAssignmentsResponseSchema,
+  authGetRoleAssignmentsStatus200Schema,
+  authGetRoleAssignmentsStatus422Schema,
+} from "./authGetRoleAssignmentsSchema.js";
+export {
+  authGetRoleErrorSchema,
+  authGetRolePathRoleIdSchema,
+  authGetRoleResponseSchema,
+  authGetRoleStatus200Schema,
+  authGetRoleStatus404Schema,
+  authGetRoleStatus422Schema,
+} from "./authGetRoleSchema.js";
+export {
+  authGetRolesErrorSchema,
+  authGetRolesQueryPageSchema,
+  authGetRolesQuerySizeSchema,
+  authGetRolesResponseSchema,
+  authGetRolesStatus200Schema,
+  authGetRolesStatus422Schema,
+} from "./authGetRolesSchema.js";
+export {
+  authGetUserByIdErrorSchema,
+  authGetUserByIdPathUserIdSchema,
+  authGetUserByIdResponseSchema,
+  authGetUserByIdStatus200Schema,
+  authGetUserByIdStatus403Schema,
+  authGetUserByIdStatus422Schema,
+} from "./authGetUserByIdSchema.js";
+export {
+  authGetUserMeErrorSchema,
+  authGetUserMeResponseSchema,
+  authGetUserMeStatus200Schema,
+  authGetUserMeStatus422Schema,
+} from "./authGetUserMeSchema.js";
+export {
+  authGetUsersErrorSchema,
+  authGetUsersQueryPageSchema,
+  authGetUsersQuerySizeSchema,
+  authGetUsersResponseSchema,
+  authGetUsersStatus200Schema,
+  authGetUsersStatus422Schema,
+} from "./authGetUsersSchema.js";
+export {
+  authGoogleCompleteBodySchema,
+  authGoogleCompleteErrorSchema,
+  authGoogleCompleteResponseSchema,
+  authGoogleCompleteStatus200Schema,
+  authGoogleCompleteStatus400Schema,
+  authGoogleCompleteStatus403Schema,
+  authGoogleCompleteStatus422Schema,
+} from "./authGoogleCompleteSchema.js";
+export {
+  authGoogleFinishBodySchema,
+  authGoogleFinishErrorSchema,
+  authGoogleFinishResponseSchema,
+  authGoogleFinishStatus200Schema,
+  authGoogleFinishStatus400Schema,
+  authGoogleFinishStatus403Schema,
+  authGoogleFinishStatus422Schema,
+} from "./authGoogleFinishSchema.js";
+export {
+  authGoogleStartBodySchema,
+  authGoogleStartErrorSchema,
+  authGoogleStartResponseSchema,
+  authGoogleStartStatus200Schema,
+  authGoogleStartStatus400Schema,
+  authGoogleStartStatus403Schema,
+  authGoogleStartStatus422Schema,
+} from "./authGoogleStartSchema.js";
+export {
+  authLoginAccessTokenBodySchema,
+  authLoginAccessTokenErrorSchema,
+  authLoginAccessTokenResponseSchema,
+  authLoginAccessTokenStatus200Schema,
+  authLoginAccessTokenStatus400Schema,
+  authLoginAccessTokenStatus422Schema,
+  authLoginAccessTokenStatus429Schema,
+} from "./authLoginAccessTokenSchema.js";
+export {
+  authLoginSessionBodySchema,
+  authLoginSessionErrorSchema,
+  authLoginSessionResponseSchema,
+  authLoginSessionStatus200Schema,
+  authLoginSessionStatus400Schema,
+  authLoginSessionStatus422Schema,
+  authLoginSessionStatus429Schema,
+} from "./authLoginSessionSchema.js";
+export {
+  authLogoutAllSessionsBodySchema,
+  authLogoutAllSessionsErrorSchema,
+  authLogoutAllSessionsResponseSchema,
+  authLogoutAllSessionsStatus200Schema,
+  authLogoutAllSessionsStatus422Schema,
+} from "./authLogoutAllSessionsSchema.js";
+export {
+  authLogoutSessionBodySchema,
+  authLogoutSessionErrorSchema,
+  authLogoutSessionResponseSchema,
+  authLogoutSessionStatus200Schema,
+  authLogoutSessionStatus422Schema,
+} from "./authLogoutSessionSchema.js";
 export { authoredProductsSchema } from "./authoredProductsSchema.js";
 export { authoringErrorSchema } from "./authoringErrorSchema.js";
+export {
+  authRecordAccessReviewBodySchema,
+  authRecordAccessReviewErrorSchema,
+  authRecordAccessReviewPathAssignmentIdSchema,
+  authRecordAccessReviewResponseSchema,
+  authRecordAccessReviewStatus201Schema,
+  authRecordAccessReviewStatus401Schema,
+  authRecordAccessReviewStatus403Schema,
+  authRecordAccessReviewStatus409Schema,
+  authRecordAccessReviewStatus422Schema,
+} from "./authRecordAccessReviewSchema.js";
+export {
+  authRecoverPasswordHtmlContentErrorSchema,
+  authRecoverPasswordHtmlContentPathEmailSchema,
+  authRecoverPasswordHtmlContentResponseSchema,
+  authRecoverPasswordHtmlContentStatus200Schema,
+  authRecoverPasswordHtmlContentStatus422Schema,
+} from "./authRecoverPasswordHtmlContentSchema.js";
+export {
+  authRecoverPasswordErrorSchema,
+  authRecoverPasswordPathEmailSchema,
+  authRecoverPasswordResponseSchema,
+  authRecoverPasswordStatus200Schema,
+  authRecoverPasswordStatus422Schema,
+  authRecoverPasswordStatus429Schema,
+} from "./authRecoverPasswordSchema.js";
+export {
+  authRefreshSessionBodySchema,
+  authRefreshSessionErrorSchema,
+  authRefreshSessionResponseSchema,
+  authRefreshSessionStatus200Schema,
+  authRefreshSessionStatus422Schema,
+} from "./authRefreshSessionSchema.js";
+export {
+  authRegisterUserBodySchema,
+  authRegisterUserErrorSchema,
+  authRegisterUserResponseSchema,
+  authRegisterUserStatus201Schema,
+  authRegisterUserStatus400Schema,
+  authRegisterUserStatus422Schema,
+} from "./authRegisterUserSchema.js";
+export {
+  authReplaceRecoveryCodesBodySchema,
+  authReplaceRecoveryCodesErrorSchema,
+  authReplaceRecoveryCodesResponseSchema,
+  authReplaceRecoveryCodesStatus200Schema,
+  authReplaceRecoveryCodesStatus400Schema,
+  authReplaceRecoveryCodesStatus422Schema,
+} from "./authReplaceRecoveryCodesSchema.js";
+export {
+  authResetPasswordBodySchema,
+  authResetPasswordErrorSchema,
+  authResetPasswordResponseSchema,
+  authResetPasswordStatus200Schema,
+  authResetPasswordStatus422Schema,
+  authResetPasswordStatus429Schema,
+} from "./authResetPasswordSchema.js";
+export {
+  authRevokeSecuritySessionErrorSchema,
+  authRevokeSecuritySessionPathSessionIdSchema,
+  authRevokeSecuritySessionResponseSchema,
+  authRevokeSecuritySessionStatus200Schema,
+  authRevokeSecuritySessionStatus404Schema,
+  authRevokeSecuritySessionStatus422Schema,
+} from "./authRevokeSecuritySessionSchema.js";
+export {
+  authTestTokenErrorSchema,
+  authTestTokenResponseSchema,
+  authTestTokenStatus200Schema,
+  authTestTokenStatus422Schema,
+} from "./authTestTokenSchema.js";
+export {
+  authTwofaActivateBodySchema,
+  authTwofaActivateErrorSchema,
+  authTwofaActivateResponseSchema,
+  authTwofaActivateStatus200Schema,
+  authTwofaActivateStatus400Schema,
+  authTwofaActivateStatus422Schema,
+} from "./authTwofaActivateSchema.js";
+export {
+  authTwofaDisableBodySchema,
+  authTwofaDisableErrorSchema,
+  authTwofaDisableResponseSchema,
+  authTwofaDisableStatus200Schema,
+  authTwofaDisableStatus400Schema,
+  authTwofaDisableStatus422Schema,
+} from "./authTwofaDisableSchema.js";
+export {
+  authTwofaSetupErrorSchema,
+  authTwofaSetupResponseSchema,
+  authTwofaSetupStatus200Schema,
+  authTwofaSetupStatus422Schema,
+} from "./authTwofaSetupSchema.js";
+export {
+  authTwofaStatusErrorSchema,
+  authTwofaStatusResponseSchema,
+  authTwofaStatusStatus200Schema,
+  authTwofaStatusStatus422Schema,
+} from "./authTwofaStatusSchema.js";
+export {
+  authUpdatePasswordMeBodySchema,
+  authUpdatePasswordMeErrorSchema,
+  authUpdatePasswordMeResponseSchema,
+  authUpdatePasswordMeStatus200Schema,
+  authUpdatePasswordMeStatus400Schema,
+  authUpdatePasswordMeStatus422Schema,
+} from "./authUpdatePasswordMeSchema.js";
+export {
+  authUpdateRoleAssignmentBodySchema,
+  authUpdateRoleAssignmentErrorSchema,
+  authUpdateRoleAssignmentPathAssignmentIdSchema,
+  authUpdateRoleAssignmentResponseSchema,
+  authUpdateRoleAssignmentStatus200Schema,
+  authUpdateRoleAssignmentStatus404Schema,
+  authUpdateRoleAssignmentStatus422Schema,
+} from "./authUpdateRoleAssignmentSchema.js";
+export {
+  authUpdateRoleBodySchema,
+  authUpdateRoleErrorSchema,
+  authUpdateRolePathRoleIdSchema,
+  authUpdateRoleResponseSchema,
+  authUpdateRoleStatus200Schema,
+  authUpdateRoleStatus404Schema,
+  authUpdateRoleStatus422Schema,
+} from "./authUpdateRoleSchema.js";
+export {
+  authUpdateUserMeBodySchema,
+  authUpdateUserMeErrorSchema,
+  authUpdateUserMeResponseSchema,
+  authUpdateUserMeStatus200Schema,
+  authUpdateUserMeStatus409Schema,
+  authUpdateUserMeStatus422Schema,
+} from "./authUpdateUserMeSchema.js";
+export {
+  authUpdateUserBodySchema,
+  authUpdateUserErrorSchema,
+  authUpdateUserPathUserIdSchema,
+  authUpdateUserResponseSchema,
+  authUpdateUserStatus200Schema,
+  authUpdateUserStatus403Schema,
+  authUpdateUserStatus404Schema,
+  authUpdateUserStatus409Schema,
+  authUpdateUserStatus422Schema,
+} from "./authUpdateUserSchema.js";
 export { aviationDraftListSchema } from "./aviationDraftListSchema.js";
+export { aviationDraftReadPropertiesKindEnumSchema } from "./aviationDraftReadPropertiesKindEnumSchema.js";
 export { aviationDraftReadSchema } from "./aviationDraftReadSchema.js";
 export { aviationDraftWriteSchema } from "./aviationDraftWriteSchema.js";
 export { aviationHistorySchema } from "./aviationHistorySchema.js";
 export { aviationRevisionReadSchema } from "./aviationRevisionReadSchema.js";
 export { balanceInputSchema } from "./balanceInputSchema.js";
-export { bodyLoginAccessTokenApiV1LoginAccessTokenPostSchema } from "./bodyLoginAccessTokenApiV1LoginAccessTokenPostSchema.js";
-export { bodyUploadDocumentApiV1HrDocumentsPostSchema } from "./bodyUploadDocumentApiV1HrDocumentsPostSchema.js";
 export {
-  browserSessionApiV1AuthBrowserSessionGetResponseSchema,
-  browserSessionApiV1AuthBrowserSessionGetStatus200Schema,
-} from "./browserSessionApiV1AuthBrowserSessionGetSchema.js";
+  billingCreateSubscriptionCheckoutErrorSchema,
+  billingCreateSubscriptionCheckoutResponseSchema,
+  billingCreateSubscriptionCheckoutStatus201Schema,
+  billingCreateSubscriptionCheckoutStatus401Schema,
+  billingCreateSubscriptionCheckoutStatus422Schema,
+  billingCreateSubscriptionCheckoutStatus502Schema,
+  billingCreateSubscriptionCheckoutStatus503Schema,
+} from "./billingCreateSubscriptionCheckoutSchema.js";
+export { bodyAuthLoginAccessTokenSchema } from "./bodyAuthLoginAccessTokenSchema.js";
+export { bodyHrUploadDocumentSchema } from "./bodyHrUploadDocumentSchema.js";
 export { browserSessionSchema } from "./browserSessionSchema.js";
 export { buildingViewSchema } from "./buildingViewSchema.js";
-export {
-  bulkAssignmentsApiV1HrRostersAssignmentsBulkPostBodySchema,
-  bulkAssignmentsApiV1HrRostersAssignmentsBulkPostErrorSchema,
-  bulkAssignmentsApiV1HrRostersAssignmentsBulkPostResponseSchema,
-  bulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus200Schema,
-  bulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus403Schema,
-  bulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus404Schema,
-  bulkAssignmentsApiV1HrRostersAssignmentsBulkPostStatus422Schema,
-} from "./bulkAssignmentsApiV1HrRostersAssignmentsBulkPostSchema.js";
-export {
-  bulletinApiV1WxwatchArchiveEditionIdBulletinGetErrorSchema,
-  bulletinApiV1WxwatchArchiveEditionIdBulletinGetPathEditionIdSchema,
-  bulletinApiV1WxwatchArchiveEditionIdBulletinGetResponseSchema,
-  bulletinApiV1WxwatchArchiveEditionIdBulletinGetStatus200Schema,
-  bulletinApiV1WxwatchArchiveEditionIdBulletinGetStatus422Schema,
-} from "./bulletinApiV1WxwatchArchiveEditionIdBulletinGetSchema.js";
 export { bundleItemSchema } from "./bundleItemSchema.js";
 export { bundleViewSchema } from "./bundleViewSchema.js";
 export { calendarEventCreateSchema } from "./calendarEventCreateSchema.js";
@@ -148,31 +436,223 @@ export { calendarEventKindSchema } from "./calendarEventKindSchema.js";
 export { calendarEventPublicSchema } from "./calendarEventPublicSchema.js";
 export { calendarEventsPublicSchema } from "./calendarEventsPublicSchema.js";
 export { calendarEventUpdateSchema } from "./calendarEventUpdateSchema.js";
-export {
-  cancelAlertApiV1CapAlertsAlertIdCancelPostBodySchema,
-  cancelAlertApiV1CapAlertsAlertIdCancelPostErrorSchema,
-  cancelAlertApiV1CapAlertsAlertIdCancelPostPathAlertIdSchema,
-  cancelAlertApiV1CapAlertsAlertIdCancelPostResponseSchema,
-  cancelAlertApiV1CapAlertsAlertIdCancelPostStatus200Schema,
-  cancelAlertApiV1CapAlertsAlertIdCancelPostStatus422Schema,
-} from "./cancelAlertApiV1CapAlertsAlertIdCancelPostSchema.js";
 export { capAlertActionSchema } from "./capAlertActionSchema.js";
 export { capAlertCreateSchema } from "./capAlertCreateSchema.js";
+export { capAlertImportRequestPropertiesSourceEnumSchema } from "./capAlertImportRequestPropertiesSourceEnumSchema.js";
 export { capAlertImportRequestSchema } from "./capAlertImportRequestSchema.js";
 export { capAlertListPublicSchema } from "./capAlertListPublicSchema.js";
 export { capAlertPublicSchema } from "./capAlertPublicSchema.js";
 export { capAlertUpdateSchema } from "./capAlertUpdateSchema.js";
+export {
+  capApproveAlertBodySchema,
+  capApproveAlertErrorSchema,
+  capApproveAlertPathAlertIdSchema,
+  capApproveAlertResponseSchema,
+  capApproveAlertStatus200Schema,
+  capApproveAlertStatus422Schema,
+} from "./capApproveAlertSchema.js";
+export {
+  capApproveHazardProfileErrorSchema,
+  capApproveHazardProfilePathProfileIdSchema,
+  capApproveHazardProfileResponseSchema,
+  capApproveHazardProfileStatus200Schema,
+  capApproveHazardProfileStatus422Schema,
+} from "./capApproveHazardProfileSchema.js";
 export { capAreaCreateSchema } from "./capAreaCreateSchema.js";
 export { capAreaKindSchema } from "./capAreaKindSchema.js";
 export { capAreaPublicSchema } from "./capAreaPublicSchema.js";
 export { capAuditEventListPublicSchema } from "./capAuditEventListPublicSchema.js";
 export { capAuditEventPublicSchema } from "./capAuditEventPublicSchema.js";
+export {
+  capCancelAlertBodySchema,
+  capCancelAlertErrorSchema,
+  capCancelAlertPathAlertIdSchema,
+  capCancelAlertResponseSchema,
+  capCancelAlertStatus200Schema,
+  capCancelAlertStatus422Schema,
+} from "./capCancelAlertSchema.js";
 export { capCatalogsPublicSchema } from "./capCatalogsPublicSchema.js";
 export { capCategorySchema } from "./capCategorySchema.js";
 export { capCertaintySchema } from "./capCertaintySchema.js";
+export {
+  capCreateAlertBodySchema,
+  capCreateAlertErrorSchema,
+  capCreateAlertResponseSchema,
+  capCreateAlertStatus201Schema,
+  capCreateAlertStatus422Schema,
+} from "./capCreateAlertSchema.js";
+export {
+  capCreateFeedBodySchema,
+  capCreateFeedErrorSchema,
+  capCreateFeedResponseSchema,
+  capCreateFeedStatus201Schema,
+  capCreateFeedStatus422Schema,
+} from "./capCreateFeedSchema.js";
+export {
+  capCreatePredefinedAreaBodySchema,
+  capCreatePredefinedAreaErrorSchema,
+  capCreatePredefinedAreaResponseSchema,
+  capCreatePredefinedAreaStatus201Schema,
+  capCreatePredefinedAreaStatus422Schema,
+} from "./capCreatePredefinedAreaSchema.js";
+export {
+  capDeleteFeedErrorSchema,
+  capDeleteFeedPathFeedIdSchema,
+  capDeleteFeedResponseSchema,
+  capDeleteFeedStatus204Schema,
+  capDeleteFeedStatus422Schema,
+} from "./capDeleteFeedSchema.js";
+export {
+  capDraftFromHazardProfileBodySchema,
+  capDraftFromHazardProfileErrorSchema,
+  capDraftFromHazardProfilePathProfileIdSchema,
+  capDraftFromHazardProfileResponseSchema,
+  capDraftFromHazardProfileStatus201Schema,
+  capDraftFromHazardProfileStatus422Schema,
+} from "./capDraftFromHazardProfileSchema.js";
+export {
+  capDuplicateAlertErrorSchema,
+  capDuplicateAlertPathAlertIdSchema,
+  capDuplicateAlertResponseSchema,
+  capDuplicateAlertStatus200Schema,
+  capDuplicateAlertStatus422Schema,
+} from "./capDuplicateAlertSchema.js";
+export {
+  capExpireAlertBodySchema,
+  capExpireAlertErrorSchema,
+  capExpireAlertPathAlertIdSchema,
+  capExpireAlertResponseSchema,
+  capExpireAlertStatus200Schema,
+  capExpireAlertStatus422Schema,
+} from "./capExpireAlertSchema.js";
 export { capFeedImportCreateSchema } from "./capFeedImportCreateSchema.js";
 export { capFeedImportPublicSchema } from "./capFeedImportPublicSchema.js";
 export { capFeedImportUpdateSchema } from "./capFeedImportUpdateSchema.js";
+export {
+  capGetActiveMapErrorSchema,
+  capGetActiveMapResponseSchema,
+  capGetActiveMapStatus200Schema,
+  capGetActiveMapStatus422Schema,
+} from "./capGetActiveMapSchema.js";
+export {
+  capGetAlertErrorSchema,
+  capGetAlertPathAlertIdSchema,
+  capGetAlertResponseSchema,
+  capGetAlertStatus200Schema,
+  capGetAlertStatus422Schema,
+} from "./capGetAlertSchema.js";
+export {
+  capGetAlertsGeojsonErrorSchema,
+  capGetAlertsGeojsonResponseSchema,
+  capGetAlertsGeojsonStatus200Schema,
+  capGetAlertsGeojsonStatus422Schema,
+} from "./capGetAlertsGeojsonSchema.js";
+export {
+  capGetAlertsErrorSchema,
+  capGetAlertsQueryLifecycleStateSchema,
+  capGetAlertsQueryPageSchema,
+  capGetAlertsQuerySizeSchema,
+  capGetAlertsResponseSchema,
+  capGetAlertsStatus200Schema,
+  capGetAlertsStatus422Schema,
+} from "./capGetAlertsSchema.js";
+export {
+  capGetAuditErrorSchema,
+  capGetAuditQueryAlertIdSchema,
+  capGetAuditQueryPageSchema,
+  capGetAuditQuerySizeSchema,
+  capGetAuditResponseSchema,
+  capGetAuditStatus200Schema,
+  capGetAuditStatus422Schema,
+} from "./capGetAuditSchema.js";
+export {
+  capGetCapSettingsErrorSchema,
+  capGetCapSettingsResponseSchema,
+  capGetCapSettingsStatus200Schema,
+  capGetCapSettingsStatus422Schema,
+} from "./capGetCapSettingsSchema.js";
+export {
+  capGetCapXmlErrorSchema,
+  capGetCapXmlPathIdentifierSchema,
+  capGetCapXmlResponseSchema,
+  capGetCapXmlStatus200Schema,
+  capGetCapXmlStatus422Schema,
+} from "./capGetCapXmlSchema.js";
+export {
+  capGetCatalogsErrorSchema,
+  capGetCatalogsResponseSchema,
+  capGetCatalogsStatus200Schema,
+  capGetCatalogsStatus422Schema,
+} from "./capGetCatalogsSchema.js";
+export {
+  capGetFeedsErrorSchema,
+  capGetFeedsResponseSchema,
+  capGetFeedsStatus200Schema,
+  capGetFeedsStatus422Schema,
+} from "./capGetFeedsSchema.js";
+export {
+  capGetHazardProfilesErrorSchema,
+  capGetHazardProfilesResponseSchema,
+  capGetHazardProfilesStatus200Schema,
+  capGetHazardProfilesStatus422Schema,
+} from "./capGetHazardProfilesSchema.js";
+export {
+  capGetIntegrationsErrorSchema,
+  capGetIntegrationsResponseSchema,
+  capGetIntegrationsStatus200Schema,
+  capGetIntegrationsStatus422Schema,
+} from "./capGetIntegrationsSchema.js";
+export {
+  capGetPredefinedAreasErrorSchema,
+  capGetPredefinedAreasResponseSchema,
+  capGetPredefinedAreasStatus200Schema,
+  capGetPredefinedAreasStatus422Schema,
+} from "./capGetPredefinedAreasSchema.js";
+export {
+  capGetPublicAlertErrorSchema,
+  capGetPublicAlertPathIdentifierSchema,
+  capGetPublicAlertResponseSchema,
+  capGetPublicAlertStatus200Schema,
+  capGetPublicAlertStatus422Schema,
+} from "./capGetPublicAlertSchema.js";
+export {
+  capGetPublicAlertsErrorSchema,
+  capGetPublicAlertsResponseSchema,
+  capGetPublicAlertsStatus200Schema,
+  capGetPublicAlertsStatus422Schema,
+} from "./capGetPublicAlertsSchema.js";
+export {
+  capGetPublicLatestActiveErrorSchema,
+  capGetPublicLatestActiveResponseSchema,
+  capGetPublicLatestActiveStatus200Schema,
+  capGetPublicLatestActiveStatus422Schema,
+} from "./capGetPublicLatestActiveSchema.js";
+export {
+  capGetPublicPastAlertsErrorSchema,
+  capGetPublicPastAlertsResponseSchema,
+  capGetPublicPastAlertsStatus200Schema,
+  capGetPublicPastAlertsStatus422Schema,
+} from "./capGetPublicPastAlertsSchema.js";
+export {
+  capGetPublicWarningsErrorSchema,
+  capGetPublicWarningsResponseSchema,
+  capGetPublicWarningsStatus200Schema,
+  capGetPublicWarningsStatus422Schema,
+  capGetPublicWarningsStatus503Schema,
+} from "./capGetPublicWarningsSchema.js";
+export {
+  capGetRssErrorSchema,
+  capGetRssResponseSchema,
+  capGetRssStatus200Schema,
+  capGetRssStatus422Schema,
+} from "./capGetRssSchema.js";
+export {
+  capImportAlertBodySchema,
+  capImportAlertErrorSchema,
+  capImportAlertResponseSchema,
+  capImportAlertStatus201Schema,
+  capImportAlertStatus422Schema,
+} from "./capImportAlertSchema.js";
 export { capInfoCreateSchema } from "./capInfoCreateSchema.js";
 export { capInfoPublicSchema } from "./capInfoPublicSchema.js";
 export { capIntegrationStatusSchema } from "./capIntegrationStatusSchema.js";
@@ -181,339 +661,90 @@ export { capMessageTypeSchema } from "./capMessageTypeSchema.js";
 export { capNameValueSchema } from "./capNameValueSchema.js";
 export { capPredefinedAreaCreateSchema } from "./capPredefinedAreaCreateSchema.js";
 export { capPredefinedAreaPublicSchema } from "./capPredefinedAreaPublicSchema.js";
+export { capProfileDefinitionPropertiesChannelsItemsEnumSchema } from "./capProfileDefinitionPropertiesChannelsItemsEnumSchema.js";
 export { capProfileDefinitionSchema } from "./capProfileDefinitionSchema.js";
+export { capProfileDraftRequestPropertiesLevelEnumSchema } from "./capProfileDraftRequestPropertiesLevelEnumSchema.js";
 export { capProfileDraftRequestSchema } from "./capProfileDraftRequestSchema.js";
+export { capProfilePublicPropertiesStateEnumSchema } from "./capProfilePublicPropertiesStateEnumSchema.js";
 export { capProfilePublicSchema } from "./capProfilePublicSchema.js";
+export { capProfileRulePropertiesOperatorEnumSchema } from "./capProfileRulePropertiesOperatorEnumSchema.js";
 export { capProfileRuleSchema } from "./capProfileRuleSchema.js";
 export { capProfileSaveSchema } from "./capProfileSaveSchema.js";
 export { capProfileSubtypeSchema } from "./capProfileSubtypeSchema.js";
 export { capProfileTemplateSchema } from "./capProfileTemplateSchema.js";
+export {
+  capPublishAlertBodySchema,
+  capPublishAlertErrorSchema,
+  capPublishAlertPathAlertIdSchema,
+  capPublishAlertResponseSchema,
+  capPublishAlertStatus200Schema,
+  capPublishAlertStatus422Schema,
+} from "./capPublishAlertSchema.js";
 export { capPublishPublicSchema } from "./capPublishPublicSchema.js";
 export { capReferenceCreateSchema } from "./capReferenceCreateSchema.js";
 export { capReferencePublicSchema } from "./capReferencePublicSchema.js";
 export { capResourceCreateSchema } from "./capResourceCreateSchema.js";
 export { capResourcePublicSchema } from "./capResourcePublicSchema.js";
+export {
+  capSaveHazardProfileBodySchema,
+  capSaveHazardProfileErrorSchema,
+  capSaveHazardProfilePathKeySchema,
+  capSaveHazardProfileResponseSchema,
+  capSaveHazardProfileStatus201Schema,
+  capSaveHazardProfileStatus422Schema,
+} from "./capSaveHazardProfileSchema.js";
 export { capScopeSchema } from "./capScopeSchema.js";
 export { capSettingsPublicSchema } from "./capSettingsPublicSchema.js";
 export { capSettingsUpdateSchema } from "./capSettingsUpdateSchema.js";
 export { capSeveritySchema } from "./capSeveritySchema.js";
 export { capSnapshotPublicSchema } from "./capSnapshotPublicSchema.js";
 export { capStatusSchema } from "./capStatusSchema.js";
+export {
+  capSubmitAlertBodySchema,
+  capSubmitAlertErrorSchema,
+  capSubmitAlertPathAlertIdSchema,
+  capSubmitAlertResponseSchema,
+  capSubmitAlertStatus200Schema,
+  capSubmitAlertStatus422Schema,
+} from "./capSubmitAlertSchema.js";
+export {
+  capUpdateAlertBodySchema,
+  capUpdateAlertErrorSchema,
+  capUpdateAlertPathAlertIdSchema,
+  capUpdateAlertResponseSchema,
+  capUpdateAlertStatus200Schema,
+  capUpdateAlertStatus422Schema,
+} from "./capUpdateAlertSchema.js";
+export {
+  capUpdateCapSettingsBodySchema,
+  capUpdateCapSettingsErrorSchema,
+  capUpdateCapSettingsResponseSchema,
+  capUpdateCapSettingsStatus200Schema,
+  capUpdateCapSettingsStatus422Schema,
+} from "./capUpdateCapSettingsSchema.js";
+export {
+  capUpdateFeedBodySchema,
+  capUpdateFeedErrorSchema,
+  capUpdateFeedPathFeedIdSchema,
+  capUpdateFeedResponseSchema,
+  capUpdateFeedStatus200Schema,
+  capUpdateFeedStatus422Schema,
+} from "./capUpdateFeedSchema.js";
 export { capUrgencySchema } from "./capUrgencySchema.js";
+export {
+  capValidateAlertErrorSchema,
+  capValidateAlertPathAlertIdSchema,
+  capValidateAlertResponseSchema,
+  capValidateAlertStatus200Schema,
+  capValidateAlertStatus422Schema,
+} from "./capValidateAlertSchema.js";
 export { capValidationResultSchema } from "./capValidationResultSchema.js";
 export { catalogueApplySchema } from "./catalogueApplySchema.js";
 export { cataloguePreviewSchema } from "./cataloguePreviewSchema.js";
 export { checkoutSessionPublicSchema } from "./checkoutSessionPublicSchema.js";
-export {
-  closePeriodApiV1HrRostersPeriodsPeriodIdClosePatchErrorSchema,
-  closePeriodApiV1HrRostersPeriodsPeriodIdClosePatchPathPeriodIdSchema,
-  closePeriodApiV1HrRostersPeriodsPeriodIdClosePatchResponseSchema,
-  closePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus200Schema,
-  closePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus400Schema,
-  closePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus403Schema,
-  closePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus404Schema,
-  closePeriodApiV1HrRostersPeriodsPeriodIdClosePatchStatus422Schema,
-} from "./closePeriodApiV1HrRostersPeriodsPeriodIdClosePatchSchema.js";
-export {
-  createAbsenteeReportApiV1HrAbsenteeReportsPostBodySchema,
-  createAbsenteeReportApiV1HrAbsenteeReportsPostErrorSchema,
-  createAbsenteeReportApiV1HrAbsenteeReportsPostResponseSchema,
-  createAbsenteeReportApiV1HrAbsenteeReportsPostStatus201Schema,
-  createAbsenteeReportApiV1HrAbsenteeReportsPostStatus403Schema,
-  createAbsenteeReportApiV1HrAbsenteeReportsPostStatus422Schema,
-} from "./createAbsenteeReportApiV1HrAbsenteeReportsPostSchema.js";
-export {
-  createAlertApiV1CapAlertsPostBodySchema,
-  createAlertApiV1CapAlertsPostErrorSchema,
-  createAlertApiV1CapAlertsPostResponseSchema,
-  createAlertApiV1CapAlertsPostStatus201Schema,
-  createAlertApiV1CapAlertsPostStatus422Schema,
-} from "./createAlertApiV1CapAlertsPostSchema.js";
-export {
-  createCalendarEventApiV1HrCalendarEventsPostBodySchema,
-  createCalendarEventApiV1HrCalendarEventsPostErrorSchema,
-  createCalendarEventApiV1HrCalendarEventsPostResponseSchema,
-  createCalendarEventApiV1HrCalendarEventsPostStatus201Schema,
-  createCalendarEventApiV1HrCalendarEventsPostStatus400Schema,
-  createCalendarEventApiV1HrCalendarEventsPostStatus403Schema,
-  createCalendarEventApiV1HrCalendarEventsPostStatus404Schema,
-  createCalendarEventApiV1HrCalendarEventsPostStatus422Schema,
-} from "./createCalendarEventApiV1HrCalendarEventsPostSchema.js";
-export {
-  createDepartmentEndpointApiV1HrDepartmentsPostBodySchema,
-  createDepartmentEndpointApiV1HrDepartmentsPostErrorSchema,
-  createDepartmentEndpointApiV1HrDepartmentsPostResponseSchema,
-  createDepartmentEndpointApiV1HrDepartmentsPostStatus201Schema,
-  createDepartmentEndpointApiV1HrDepartmentsPostStatus400Schema,
-  createDepartmentEndpointApiV1HrDepartmentsPostStatus403Schema,
-  createDepartmentEndpointApiV1HrDepartmentsPostStatus422Schema,
-} from "./createDepartmentEndpointApiV1HrDepartmentsPostSchema.js";
-export {
-  createFeedApiV1CapFeedsPostBodySchema,
-  createFeedApiV1CapFeedsPostErrorSchema,
-  createFeedApiV1CapFeedsPostResponseSchema,
-  createFeedApiV1CapFeedsPostStatus201Schema,
-  createFeedApiV1CapFeedsPostStatus422Schema,
-} from "./createFeedApiV1CapFeedsPostSchema.js";
-export {
-  createHolidayApiV1HrRostersPublicHolidaysPostBodySchema,
-  createHolidayApiV1HrRostersPublicHolidaysPostErrorSchema,
-  createHolidayApiV1HrRostersPublicHolidaysPostResponseSchema,
-  createHolidayApiV1HrRostersPublicHolidaysPostStatus200Schema,
-  createHolidayApiV1HrRostersPublicHolidaysPostStatus201Schema,
-  createHolidayApiV1HrRostersPublicHolidaysPostStatus400Schema,
-  createHolidayApiV1HrRostersPublicHolidaysPostStatus403Schema,
-  createHolidayApiV1HrRostersPublicHolidaysPostStatus422Schema,
-} from "./createHolidayApiV1HrRostersPublicHolidaysPostSchema.js";
-export {
-  createHrEmploymentApiV1HrEmploymentUserIdPostBodySchema,
-  createHrEmploymentApiV1HrEmploymentUserIdPostErrorSchema,
-  createHrEmploymentApiV1HrEmploymentUserIdPostPathUserIdSchema,
-  createHrEmploymentApiV1HrEmploymentUserIdPostResponseSchema,
-  createHrEmploymentApiV1HrEmploymentUserIdPostStatus201Schema,
-  createHrEmploymentApiV1HrEmploymentUserIdPostStatus400Schema,
-  createHrEmploymentApiV1HrEmploymentUserIdPostStatus403Schema,
-  createHrEmploymentApiV1HrEmploymentUserIdPostStatus404Schema,
-  createHrEmploymentApiV1HrEmploymentUserIdPostStatus422Schema,
-} from "./createHrEmploymentApiV1HrEmploymentUserIdPostSchema.js";
-export {
-  createInstanceApiV1HrWorkflowsInstancesPostBodySchema,
-  createInstanceApiV1HrWorkflowsInstancesPostErrorSchema,
-  createInstanceApiV1HrWorkflowsInstancesPostResponseSchema,
-  createInstanceApiV1HrWorkflowsInstancesPostStatus200Schema,
-  createInstanceApiV1HrWorkflowsInstancesPostStatus201Schema,
-  createInstanceApiV1HrWorkflowsInstancesPostStatus403Schema,
-  createInstanceApiV1HrWorkflowsInstancesPostStatus404Schema,
-  createInstanceApiV1HrWorkflowsInstancesPostStatus422Schema,
-} from "./createInstanceApiV1HrWorkflowsInstancesPostSchema.js";
-export {
-  createLeaveRequestApiV1HrLeaveRequestsPostBodySchema,
-  createLeaveRequestApiV1HrLeaveRequestsPostErrorSchema,
-  createLeaveRequestApiV1HrLeaveRequestsPostResponseSchema,
-  createLeaveRequestApiV1HrLeaveRequestsPostStatus201Schema,
-  createLeaveRequestApiV1HrLeaveRequestsPostStatus403Schema,
-  createLeaveRequestApiV1HrLeaveRequestsPostStatus422Schema,
-} from "./createLeaveRequestApiV1HrLeaveRequestsPostSchema.js";
-export {
-  createParkingPermitApiV1HrParkingPermitsPostBodySchema,
-  createParkingPermitApiV1HrParkingPermitsPostErrorSchema,
-  createParkingPermitApiV1HrParkingPermitsPostResponseSchema,
-  createParkingPermitApiV1HrParkingPermitsPostStatus201Schema,
-  createParkingPermitApiV1HrParkingPermitsPostStatus403Schema,
-  createParkingPermitApiV1HrParkingPermitsPostStatus422Schema,
-} from "./createParkingPermitApiV1HrParkingPermitsPostSchema.js";
-export {
-  createPeriodApiV1HrRostersPeriodsPostBodySchema,
-  createPeriodApiV1HrRostersPeriodsPostErrorSchema,
-  createPeriodApiV1HrRostersPeriodsPostResponseSchema,
-  createPeriodApiV1HrRostersPeriodsPostStatus201Schema,
-  createPeriodApiV1HrRostersPeriodsPostStatus400Schema,
-  createPeriodApiV1HrRostersPeriodsPostStatus403Schema,
-  createPeriodApiV1HrRostersPeriodsPostStatus422Schema,
-} from "./createPeriodApiV1HrRostersPeriodsPostSchema.js";
-export {
-  createPermissionApiV1AuthPermissionsPostBodySchema,
-  createPermissionApiV1AuthPermissionsPostErrorSchema,
-  createPermissionApiV1AuthPermissionsPostResponseSchema,
-  createPermissionApiV1AuthPermissionsPostStatus201Schema,
-  createPermissionApiV1AuthPermissionsPostStatus422Schema,
-} from "./createPermissionApiV1AuthPermissionsPostSchema.js";
-export {
-  createPredefinedAreaApiV1CapAreasPredefinedPostBodySchema,
-  createPredefinedAreaApiV1CapAreasPredefinedPostErrorSchema,
-  createPredefinedAreaApiV1CapAreasPredefinedPostResponseSchema,
-  createPredefinedAreaApiV1CapAreasPredefinedPostStatus201Schema,
-  createPredefinedAreaApiV1CapAreasPredefinedPostStatus422Schema,
-} from "./createPredefinedAreaApiV1CapAreasPredefinedPostSchema.js";
-export {
-  createRegisterObservationApiV1EregisterObservationsPostBodySchema,
-  createRegisterObservationApiV1EregisterObservationsPostErrorSchema,
-  createRegisterObservationApiV1EregisterObservationsPostResponseSchema,
-  createRegisterObservationApiV1EregisterObservationsPostStatus201Schema,
-  createRegisterObservationApiV1EregisterObservationsPostStatus422Schema,
-} from "./createRegisterObservationApiV1EregisterObservationsPostSchema.js";
-export {
-  createRoleApiV1AuthRolesPostBodySchema,
-  createRoleApiV1AuthRolesPostErrorSchema,
-  createRoleApiV1AuthRolesPostResponseSchema,
-  createRoleApiV1AuthRolesPostStatus201Schema,
-  createRoleApiV1AuthRolesPostStatus422Schema,
-} from "./createRoleApiV1AuthRolesPostSchema.js";
-export {
-  createRoleAssignmentApiV1AuthRoleAssignmentsPostBodySchema,
-  createRoleAssignmentApiV1AuthRoleAssignmentsPostErrorSchema,
-  createRoleAssignmentApiV1AuthRoleAssignmentsPostResponseSchema,
-  createRoleAssignmentApiV1AuthRoleAssignmentsPostStatus201Schema,
-  createRoleAssignmentApiV1AuthRoleAssignmentsPostStatus422Schema,
-} from "./createRoleAssignmentApiV1AuthRoleAssignmentsPostSchema.js";
-export {
-  createShiftApiV1HrRostersShiftsPostBodySchema,
-  createShiftApiV1HrRostersShiftsPostErrorSchema,
-  createShiftApiV1HrRostersShiftsPostResponseSchema,
-  createShiftApiV1HrRostersShiftsPostStatus201Schema,
-  createShiftApiV1HrRostersShiftsPostStatus400Schema,
-  createShiftApiV1HrRostersShiftsPostStatus403Schema,
-  createShiftApiV1HrRostersShiftsPostStatus422Schema,
-} from "./createShiftApiV1HrRostersShiftsPostSchema.js";
-export {
-  createShiftSwapApiV1HrShiftSwapsPostBodySchema,
-  createShiftSwapApiV1HrShiftSwapsPostErrorSchema,
-  createShiftSwapApiV1HrShiftSwapsPostResponseSchema,
-  createShiftSwapApiV1HrShiftSwapsPostStatus201Schema,
-  createShiftSwapApiV1HrShiftSwapsPostStatus403Schema,
-  createShiftSwapApiV1HrShiftSwapsPostStatus422Schema,
-} from "./createShiftSwapApiV1HrShiftSwapsPostSchema.js";
-export {
-  createStatusReportApiV1HrStatusReportsPostBodySchema,
-  createStatusReportApiV1HrStatusReportsPostErrorSchema,
-  createStatusReportApiV1HrStatusReportsPostResponseSchema,
-  createStatusReportApiV1HrStatusReportsPostStatus201Schema,
-  createStatusReportApiV1HrStatusReportsPostStatus403Schema,
-  createStatusReportApiV1HrStatusReportsPostStatus422Schema,
-} from "./createStatusReportApiV1HrStatusReportsPostSchema.js";
-export {
-  createSubscriptionCheckoutApiV1BillingCheckoutSessionsPostErrorSchema,
-  createSubscriptionCheckoutApiV1BillingCheckoutSessionsPostResponseSchema,
-  createSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus201Schema,
-  createSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus401Schema,
-  createSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus502Schema,
-  createSubscriptionCheckoutApiV1BillingCheckoutSessionsPostStatus503Schema,
-} from "./createSubscriptionCheckoutApiV1BillingCheckoutSessionsPostSchema.js";
-export {
-  createTemplateApiV1HrWorkflowsTemplatesPostBodySchema,
-  createTemplateApiV1HrWorkflowsTemplatesPostErrorSchema,
-  createTemplateApiV1HrWorkflowsTemplatesPostResponseSchema,
-  createTemplateApiV1HrWorkflowsTemplatesPostStatus200Schema,
-  createTemplateApiV1HrWorkflowsTemplatesPostStatus201Schema,
-  createTemplateApiV1HrWorkflowsTemplatesPostStatus403Schema,
-  createTemplateApiV1HrWorkflowsTemplatesPostStatus422Schema,
-} from "./createTemplateApiV1HrWorkflowsTemplatesPostSchema.js";
-export {
-  createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostBodySchema,
-  createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostErrorSchema,
-  createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostPathTemplateIdSchema,
-  createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostResponseSchema,
-  createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus200Schema,
-  createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus201Schema,
-  createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus403Schema,
-  createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus404Schema,
-  createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostStatus422Schema,
-} from "./createTemplateStepApiV1HrWorkflowsTemplatesTemplateIdStepsPostSchema.js";
-export {
-  createTimesheetApiV1HrTimesheetsPostBodySchema,
-  createTimesheetApiV1HrTimesheetsPostErrorSchema,
-  createTimesheetApiV1HrTimesheetsPostResponseSchema,
-  createTimesheetApiV1HrTimesheetsPostStatus201Schema,
-  createTimesheetApiV1HrTimesheetsPostStatus403Schema,
-  createTimesheetApiV1HrTimesheetsPostStatus422Schema,
-} from "./createTimesheetApiV1HrTimesheetsPostSchema.js";
-export {
-  createTrainingRecordApiV1HrTrainingRecordsPostBodySchema,
-  createTrainingRecordApiV1HrTrainingRecordsPostErrorSchema,
-  createTrainingRecordApiV1HrTrainingRecordsPostResponseSchema,
-  createTrainingRecordApiV1HrTrainingRecordsPostStatus201Schema,
-  createTrainingRecordApiV1HrTrainingRecordsPostStatus400Schema,
-  createTrainingRecordApiV1HrTrainingRecordsPostStatus403Schema,
-  createTrainingRecordApiV1HrTrainingRecordsPostStatus422Schema,
-} from "./createTrainingRecordApiV1HrTrainingRecordsPostSchema.js";
-export {
-  createUserApiV1AuthUsersPostBodySchema,
-  createUserApiV1AuthUsersPostErrorSchema,
-  createUserApiV1AuthUsersPostResponseSchema,
-  createUserApiV1AuthUsersPostStatus201Schema,
-  createUserApiV1AuthUsersPostStatus400Schema,
-  createUserApiV1AuthUsersPostStatus403Schema,
-  createUserApiV1AuthUsersPostStatus422Schema,
-} from "./createUserApiV1AuthUsersPostSchema.js";
 export { dashboardApprovalSchema } from "./dashboardApprovalSchema.js";
 export { dashboardPersonSchema } from "./dashboardPersonSchema.js";
 export { dashboardRequestSchema } from "./dashboardRequestSchema.js";
-export {
-  deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteErrorSchema,
-  deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeletePathAbsenteeReportIdSchema,
-  deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteResponseSchema,
-  deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus204Schema,
-  deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus400Schema,
-  deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus403Schema,
-  deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus404Schema,
-  deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteStatus422Schema,
-} from "./deleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDeleteSchema.js";
-export {
-  deleteFeedApiV1CapFeedsFeedIdDeleteErrorSchema,
-  deleteFeedApiV1CapFeedsFeedIdDeletePathFeedIdSchema,
-  deleteFeedApiV1CapFeedsFeedIdDeleteResponseSchema,
-  deleteFeedApiV1CapFeedsFeedIdDeleteStatus204Schema,
-  deleteFeedApiV1CapFeedsFeedIdDeleteStatus422Schema,
-} from "./deleteFeedApiV1CapFeedsFeedIdDeleteSchema.js";
-export {
-  deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteErrorSchema,
-  deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeletePathLeaveRequestIdSchema,
-  deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteResponseSchema,
-  deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus204Schema,
-  deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus400Schema,
-  deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus403Schema,
-  deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus404Schema,
-  deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteStatus422Schema,
-} from "./deleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDeleteSchema.js";
-export {
-  deleteMySignatureApiV1HrSignatureMeDeleteErrorSchema,
-  deleteMySignatureApiV1HrSignatureMeDeleteResponseSchema,
-  deleteMySignatureApiV1HrSignatureMeDeleteStatus204Schema,
-  deleteMySignatureApiV1HrSignatureMeDeleteStatus400Schema,
-  deleteMySignatureApiV1HrSignatureMeDeleteStatus401Schema,
-} from "./deleteMySignatureApiV1HrSignatureMeDeleteSchema.js";
-export {
-  deleteRoleApiV1AuthRolesRoleIdDeleteErrorSchema,
-  deleteRoleApiV1AuthRolesRoleIdDeletePathRoleIdSchema,
-  deleteRoleApiV1AuthRolesRoleIdDeleteResponseSchema,
-  deleteRoleApiV1AuthRolesRoleIdDeleteStatus204Schema,
-  deleteRoleApiV1AuthRolesRoleIdDeleteStatus400Schema,
-  deleteRoleApiV1AuthRolesRoleIdDeleteStatus404Schema,
-  deleteRoleApiV1AuthRolesRoleIdDeleteStatus422Schema,
-} from "./deleteRoleApiV1AuthRolesRoleIdDeleteSchema.js";
-export {
-  deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteErrorSchema,
-  deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeletePathAssignmentIdSchema,
-  deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteResponseSchema,
-  deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus204Schema,
-  deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus404Schema,
-  deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteStatus422Schema,
-} from "./deleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDeleteSchema.js";
-export {
-  deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteErrorSchema,
-  deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeletePathShiftSwapIdSchema,
-  deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteResponseSchema,
-  deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus204Schema,
-  deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus400Schema,
-  deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus403Schema,
-  deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus404Schema,
-  deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteStatus422Schema,
-} from "./deleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDeleteSchema.js";
-export {
-  deleteStatusReportApiV1HrStatusReportsReportIdDeleteErrorSchema,
-  deleteStatusReportApiV1HrStatusReportsReportIdDeletePathReportIdSchema,
-  deleteStatusReportApiV1HrStatusReportsReportIdDeleteResponseSchema,
-  deleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus204Schema,
-  deleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus400Schema,
-  deleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus403Schema,
-  deleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus404Schema,
-  deleteStatusReportApiV1HrStatusReportsReportIdDeleteStatus422Schema,
-} from "./deleteStatusReportApiV1HrStatusReportsReportIdDeleteSchema.js";
-export {
-  deleteUserApiV1AuthUsersUserIdDeleteErrorSchema,
-  deleteUserApiV1AuthUsersUserIdDeletePathUserIdSchema,
-  deleteUserApiV1AuthUsersUserIdDeleteResponseSchema,
-  deleteUserApiV1AuthUsersUserIdDeleteStatus200Schema,
-  deleteUserApiV1AuthUsersUserIdDeleteStatus403Schema,
-  deleteUserApiV1AuthUsersUserIdDeleteStatus404Schema,
-  deleteUserApiV1AuthUsersUserIdDeleteStatus422Schema,
-} from "./deleteUserApiV1AuthUsersUserIdDeleteSchema.js";
-export {
-  deleteUserMeApiV1AuthUsersMeDeleteErrorSchema,
-  deleteUserMeApiV1AuthUsersMeDeleteResponseSchema,
-  deleteUserMeApiV1AuthUsersMeDeleteStatus200Schema,
-  deleteUserMeApiV1AuthUsersMeDeleteStatus403Schema,
-} from "./deleteUserMeApiV1AuthUsersMeDeleteSchema.js";
 export { departmentCreateSchema } from "./departmentCreateSchema.js";
 export { departmentMemberPublicSchema } from "./departmentMemberPublicSchema.js";
 export { departmentMembersPublicSchema } from "./departmentMembersPublicSchema.js";
@@ -526,70 +757,9 @@ export { documentCategorySchema } from "./documentCategorySchema.js";
 export { documentEmployeeListPublicSchema } from "./documentEmployeeListPublicSchema.js";
 export { documentEmployeePublicSchema } from "./documentEmployeePublicSchema.js";
 export { documentSensitivitySchema } from "./documentSensitivitySchema.js";
-export {
-  downloadDocumentApiV1HrDocumentsDocumentIdDownloadGetErrorSchema,
-  downloadDocumentApiV1HrDocumentsDocumentIdDownloadGetPathDocumentIdSchema,
-  downloadDocumentApiV1HrDocumentsDocumentIdDownloadGetResponseSchema,
-  downloadDocumentApiV1HrDocumentsDocumentIdDownloadGetStatus307Schema,
-  downloadDocumentApiV1HrDocumentsDocumentIdDownloadGetStatus403Schema,
-  downloadDocumentApiV1HrDocumentsDocumentIdDownloadGetStatus404Schema,
-  downloadDocumentApiV1HrDocumentsDocumentIdDownloadGetStatus422Schema,
-  downloadDocumentApiV1HrDocumentsDocumentIdDownloadGetStatus503Schema,
-} from "./downloadDocumentApiV1HrDocumentsDocumentIdDownloadGetSchema.js";
-export {
-  downloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetErrorSchema,
-  downloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetPathDocumentIdSchema,
-  downloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetResponseSchema,
-  downloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetStatus200Schema,
-  downloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetStatus200SchemaJson,
-  downloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetStatus200SchemaPdf,
-  downloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetStatus403Schema,
-  downloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetStatus404Schema,
-  downloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetStatus422Schema,
-} from "./downloadSignedDocumentApiV1HrSignedDocumentsDocumentIdPdfGetSchema.js";
-export {
-  draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostBodySchema,
-  draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostErrorSchema,
-  draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostPathProfileIdSchema,
-  draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostResponseSchema,
-  draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostStatus201Schema,
-  draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostStatus422Schema,
-} from "./draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPostSchema.js";
-export {
-  duplicateAlertApiV1CapAlertsAlertIdDuplicatePostErrorSchema,
-  duplicateAlertApiV1CapAlertsAlertIdDuplicatePostPathAlertIdSchema,
-  duplicateAlertApiV1CapAlertsAlertIdDuplicatePostResponseSchema,
-  duplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus200Schema,
-  duplicateAlertApiV1CapAlertsAlertIdDuplicatePostStatus422Schema,
-} from "./duplicateAlertApiV1CapAlertsAlertIdDuplicatePostSchema.js";
 export { editionAssetSchema } from "./editionAssetSchema.js";
-export {
-  editionAssetsApiV1WxwatchArchiveEditionIdAssetsGetErrorSchema,
-  editionAssetsApiV1WxwatchArchiveEditionIdAssetsGetPathEditionIdSchema,
-  editionAssetsApiV1WxwatchArchiveEditionIdAssetsGetResponseSchema,
-  editionAssetsApiV1WxwatchArchiveEditionIdAssetsGetStatus200Schema,
-  editionAssetsApiV1WxwatchArchiveEditionIdAssetsGetStatus422Schema,
-} from "./editionAssetsApiV1WxwatchArchiveEditionIdAssetsGetSchema.js";
 export { effectiveAccessSchema } from "./effectiveAccessSchema.js";
-export {
-  emailConfirmApiV1AuthModernEmailConfirmPostBodySchema,
-  emailConfirmApiV1AuthModernEmailConfirmPostErrorSchema,
-  emailConfirmApiV1AuthModernEmailConfirmPostResponseSchema,
-  emailConfirmApiV1AuthModernEmailConfirmPostStatus200Schema,
-  emailConfirmApiV1AuthModernEmailConfirmPostStatus400Schema,
-  emailConfirmApiV1AuthModernEmailConfirmPostStatus403Schema,
-  emailConfirmApiV1AuthModernEmailConfirmPostStatus422Schema,
-} from "./emailConfirmApiV1AuthModernEmailConfirmPostSchema.js";
 export { emailConfirmSchema } from "./emailConfirmSchema.js";
-export {
-  emailRequestApiV1AuthModernEmailRequestPostBodySchema,
-  emailRequestApiV1AuthModernEmailRequestPostErrorSchema,
-  emailRequestApiV1AuthModernEmailRequestPostResponseSchema,
-  emailRequestApiV1AuthModernEmailRequestPostStatus200Schema,
-  emailRequestApiV1AuthModernEmailRequestPostStatus400Schema,
-  emailRequestApiV1AuthModernEmailRequestPostStatus403Schema,
-  emailRequestApiV1AuthModernEmailRequestPostStatus422Schema,
-} from "./emailRequestApiV1AuthModernEmailRequestPostSchema.js";
 export { emailRequestSchema } from "./emailRequestSchema.js";
 export { emergencyContactPublicSchema } from "./emergencyContactPublicSchema.js";
 export { emergencyContactUpdateSchema } from "./emergencyContactUpdateSchema.js";
@@ -604,158 +774,1115 @@ export { employmentStatusSchema } from "./employmentStatusSchema.js";
 export { employmentTypeSchema } from "./employmentTypeSchema.js";
 export { employmentUpdateSchema } from "./employmentUpdateSchema.js";
 export {
-  exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostBodySchema,
-  exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostErrorSchema,
-  exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostResponseSchema,
-  exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus200Schema,
-  exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostStatus422Schema,
-} from "./exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPostSchema.js";
+  eregisterCreateRegisterObservationBodySchema,
+  eregisterCreateRegisterObservationErrorSchema,
+  eregisterCreateRegisterObservationResponseSchema,
+  eregisterCreateRegisterObservationStatus201Schema,
+  eregisterCreateRegisterObservationStatus422Schema,
+} from "./eregisterCreateRegisterObservationSchema.js";
 export {
-  expireAlertApiV1CapAlertsAlertIdExpirePostBodySchema,
-  expireAlertApiV1CapAlertsAlertIdExpirePostErrorSchema,
-  expireAlertApiV1CapAlertsAlertIdExpirePostPathAlertIdSchema,
-  expireAlertApiV1CapAlertsAlertIdExpirePostResponseSchema,
-  expireAlertApiV1CapAlertsAlertIdExpirePostStatus200Schema,
-  expireAlertApiV1CapAlertsAlertIdExpirePostStatus422Schema,
-} from "./expireAlertApiV1CapAlertsAlertIdExpirePostSchema.js";
+  eregisterListRegisterObservationsErrorSchema,
+  eregisterListRegisterObservationsQueryKindSchema,
+  eregisterListRegisterObservationsQueryLimitSchema,
+  eregisterListRegisterObservationsQueryStationIdSchema,
+  eregisterListRegisterObservationsResponseSchema,
+  eregisterListRegisterObservationsStatus200Schema,
+  eregisterListRegisterObservationsStatus422Schema,
+} from "./eregisterListRegisterObservationsSchema.js";
 export {
-  finishRunApiV1WxwatchRunsRunIdFinishPostBodySchema,
-  finishRunApiV1WxwatchRunsRunIdFinishPostErrorSchema,
-  finishRunApiV1WxwatchRunsRunIdFinishPostHeaderAuthorizationSchema,
-  finishRunApiV1WxwatchRunsRunIdFinishPostPathRunIdSchema,
-  finishRunApiV1WxwatchRunsRunIdFinishPostResponseSchema,
-  finishRunApiV1WxwatchRunsRunIdFinishPostStatus204Schema,
-  finishRunApiV1WxwatchRunsRunIdFinishPostStatus422Schema,
-} from "./finishRunApiV1WxwatchRunsRunIdFinishPostSchema.js";
+  eregisterValidateSynopObservationBodySchema,
+  eregisterValidateSynopObservationErrorSchema,
+  eregisterValidateSynopObservationResponseSchema,
+  eregisterValidateSynopObservationStatus200Schema,
+  eregisterValidateSynopObservationStatus422Schema,
+} from "./eregisterValidateSynopObservationSchema.js";
 export { forecastObservationSchema } from "./forecastObservationSchema.js";
 export { forecastPeriodSchema } from "./forecastPeriodSchema.js";
+export { forecastSourcePropertiesKindEnumSchema } from "./forecastSourcePropertiesKindEnumSchema.js";
 export { forecastSourceSchema } from "./forecastSourceSchema.js";
 export { frequencySchema } from "./frequencySchema.js";
 export { genderSchema } from "./genderSchema.js";
-export {
-  getPeriodApiV1HrRostersPeriodsPeriodIdGetErrorSchema,
-  getPeriodApiV1HrRostersPeriodsPeriodIdGetPathPeriodIdSchema,
-  getPeriodApiV1HrRostersPeriodsPeriodIdGetResponseSchema,
-  getPeriodApiV1HrRostersPeriodsPeriodIdGetStatus200Schema,
-  getPeriodApiV1HrRostersPeriodsPeriodIdGetStatus403Schema,
-  getPeriodApiV1HrRostersPeriodsPeriodIdGetStatus404Schema,
-  getPeriodApiV1HrRostersPeriodsPeriodIdGetStatus422Schema,
-} from "./getPeriodApiV1HrRostersPeriodsPeriodIdGetSchema.js";
-export {
-  getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetErrorSchema,
-  getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetPathPeriodIdSchema,
-  getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetResponseSchema,
-  getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus200Schema,
-  getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus403Schema,
-  getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus404Schema,
-  getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetStatus422Schema,
-} from "./getPeriodRevisionsApiV1HrRostersPeriodsPeriodIdRevisionsGetSchema.js";
 export { googleChallengePublicSchema } from "./googleChallengePublicSchema.js";
-export {
-  googleCompleteApiV1AuthModernGoogleCompletePostBodySchema,
-  googleCompleteApiV1AuthModernGoogleCompletePostErrorSchema,
-  googleCompleteApiV1AuthModernGoogleCompletePostResponseSchema,
-  googleCompleteApiV1AuthModernGoogleCompletePostStatus200Schema,
-  googleCompleteApiV1AuthModernGoogleCompletePostStatus400Schema,
-  googleCompleteApiV1AuthModernGoogleCompletePostStatus403Schema,
-  googleCompleteApiV1AuthModernGoogleCompletePostStatus422Schema,
-} from "./googleCompleteApiV1AuthModernGoogleCompletePostSchema.js";
 export { googleCompleteSchema } from "./googleCompleteSchema.js";
-export {
-  googleFinishApiV1AuthModernGoogleFinishPostBodySchema,
-  googleFinishApiV1AuthModernGoogleFinishPostErrorSchema,
-  googleFinishApiV1AuthModernGoogleFinishPostResponseSchema,
-  googleFinishApiV1AuthModernGoogleFinishPostStatus200Schema,
-  googleFinishApiV1AuthModernGoogleFinishPostStatus400Schema,
-  googleFinishApiV1AuthModernGoogleFinishPostStatus403Schema,
-  googleFinishApiV1AuthModernGoogleFinishPostStatus422Schema,
-} from "./googleFinishApiV1AuthModernGoogleFinishPostSchema.js";
 export { googleFinishSchema } from "./googleFinishSchema.js";
-export {
-  googleStartApiV1AuthModernGoogleStartPostBodySchema,
-  googleStartApiV1AuthModernGoogleStartPostErrorSchema,
-  googleStartApiV1AuthModernGoogleStartPostResponseSchema,
-  googleStartApiV1AuthModernGoogleStartPostStatus200Schema,
-  googleStartApiV1AuthModernGoogleStartPostStatus400Schema,
-  googleStartApiV1AuthModernGoogleStartPostStatus403Schema,
-  googleStartApiV1AuthModernGoogleStartPostStatus422Schema,
-} from "./googleStartApiV1AuthModernGoogleStartPostSchema.js";
 export { googleStartPublicSchema } from "./googleStartPublicSchema.js";
 export { googleStartSchema } from "./googleStartSchema.js";
 export { gradeInputSchema } from "./gradeInputSchema.js";
 export { gradePublicSchema } from "./gradePublicSchema.js";
 export { gradeSetupSchema } from "./gradeSetupSchema.js";
-export { HTTPValidationErrorSchema } from "./HTTPValidationErrorSchema.js";
 export {
-  healthCheckApiV1UtilsHealthCheckGetResponseSchema,
-  healthCheckApiV1UtilsHealthCheckGetStatus200Schema,
-} from "./healthCheckApiV1UtilsHealthCheckGetSchema.js";
+  hrActionLeaveRequestBodySchema,
+  hrActionLeaveRequestErrorSchema,
+  hrActionLeaveRequestPathLeaveRequestIdSchema,
+  hrActionLeaveRequestResponseSchema,
+  hrActionLeaveRequestStatus200Schema,
+  hrActionLeaveRequestStatus403Schema,
+  hrActionLeaveRequestStatus404Schema,
+  hrActionLeaveRequestStatus422Schema,
+} from "./hrActionLeaveRequestSchema.js";
+export {
+  hrActionShiftSwapBodySchema,
+  hrActionShiftSwapErrorSchema,
+  hrActionShiftSwapPathShiftSwapIdSchema,
+  hrActionShiftSwapResponseSchema,
+  hrActionShiftSwapStatus200Schema,
+  hrActionShiftSwapStatus403Schema,
+  hrActionShiftSwapStatus404Schema,
+  hrActionShiftSwapStatus422Schema,
+} from "./hrActionShiftSwapSchema.js";
+export {
+  hrApproveStaffRegistrationErrorSchema,
+  hrApproveStaffRegistrationPathUserIdSchema,
+  hrApproveStaffRegistrationResponseSchema,
+  hrApproveStaffRegistrationStatus200Schema,
+  hrApproveStaffRegistrationStatus403Schema,
+  hrApproveStaffRegistrationStatus404Schema,
+  hrApproveStaffRegistrationStatus409Schema,
+  hrApproveStaffRegistrationStatus422Schema,
+} from "./hrApproveStaffRegistrationSchema.js";
+export {
+  hrApproveTimesheetErrorSchema,
+  hrApproveTimesheetPathTimesheetIdSchema,
+  hrApproveTimesheetResponseSchema,
+  hrApproveTimesheetStatus200Schema,
+  hrApproveTimesheetStatus400Schema,
+  hrApproveTimesheetStatus403Schema,
+  hrApproveTimesheetStatus404Schema,
+  hrApproveTimesheetStatus422Schema,
+} from "./hrApproveTimesheetSchema.js";
+export {
+  hrArchiveDocumentErrorSchema,
+  hrArchiveDocumentPathDocumentIdSchema,
+  hrArchiveDocumentResponseSchema,
+  hrArchiveDocumentStatus200Schema,
+  hrArchiveDocumentStatus403Schema,
+  hrArchiveDocumentStatus404Schema,
+  hrArchiveDocumentStatus422Schema,
+} from "./hrArchiveDocumentSchema.js";
+export {
+  hrArchiveTrainingRecordBodySchema,
+  hrArchiveTrainingRecordErrorSchema,
+  hrArchiveTrainingRecordPathRecordIdSchema,
+  hrArchiveTrainingRecordResponseSchema,
+  hrArchiveTrainingRecordStatus200Schema,
+  hrArchiveTrainingRecordStatus403Schema,
+  hrArchiveTrainingRecordStatus404Schema,
+  hrArchiveTrainingRecordStatus422Schema,
+} from "./hrArchiveTrainingRecordSchema.js";
+export {
+  hrBulkAssignmentsBodySchema,
+  hrBulkAssignmentsErrorSchema,
+  hrBulkAssignmentsResponseSchema,
+  hrBulkAssignmentsStatus200Schema,
+  hrBulkAssignmentsStatus403Schema,
+  hrBulkAssignmentsStatus404Schema,
+  hrBulkAssignmentsStatus422Schema,
+} from "./hrBulkAssignmentsSchema.js";
+export {
+  hrClosePeriodErrorSchema,
+  hrClosePeriodPathPeriodIdSchema,
+  hrClosePeriodResponseSchema,
+  hrClosePeriodStatus200Schema,
+  hrClosePeriodStatus400Schema,
+  hrClosePeriodStatus403Schema,
+  hrClosePeriodStatus404Schema,
+  hrClosePeriodStatus422Schema,
+} from "./hrClosePeriodSchema.js";
+export {
+  hrCreateAbsenteeReportBodySchema,
+  hrCreateAbsenteeReportErrorSchema,
+  hrCreateAbsenteeReportResponseSchema,
+  hrCreateAbsenteeReportStatus201Schema,
+  hrCreateAbsenteeReportStatus403Schema,
+  hrCreateAbsenteeReportStatus422Schema,
+} from "./hrCreateAbsenteeReportSchema.js";
+export {
+  hrCreateCalendarEventBodySchema,
+  hrCreateCalendarEventErrorSchema,
+  hrCreateCalendarEventResponseSchema,
+  hrCreateCalendarEventStatus201Schema,
+  hrCreateCalendarEventStatus400Schema,
+  hrCreateCalendarEventStatus403Schema,
+  hrCreateCalendarEventStatus404Schema,
+  hrCreateCalendarEventStatus422Schema,
+} from "./hrCreateCalendarEventSchema.js";
+export {
+  hrCreateDepartmentBodySchema,
+  hrCreateDepartmentErrorSchema,
+  hrCreateDepartmentResponseSchema,
+  hrCreateDepartmentStatus201Schema,
+  hrCreateDepartmentStatus400Schema,
+  hrCreateDepartmentStatus403Schema,
+  hrCreateDepartmentStatus422Schema,
+} from "./hrCreateDepartmentSchema.js";
+export {
+  hrCreateHolidayBodySchema,
+  hrCreateHolidayErrorSchema,
+  hrCreateHolidayResponseSchema,
+  hrCreateHolidayStatus200Schema,
+  hrCreateHolidayStatus201Schema,
+  hrCreateHolidayStatus400Schema,
+  hrCreateHolidayStatus403Schema,
+  hrCreateHolidayStatus422Schema,
+} from "./hrCreateHolidaySchema.js";
+export {
+  hrCreateHrEmploymentBodySchema,
+  hrCreateHrEmploymentErrorSchema,
+  hrCreateHrEmploymentPathUserIdSchema,
+  hrCreateHrEmploymentResponseSchema,
+  hrCreateHrEmploymentStatus201Schema,
+  hrCreateHrEmploymentStatus400Schema,
+  hrCreateHrEmploymentStatus403Schema,
+  hrCreateHrEmploymentStatus404Schema,
+  hrCreateHrEmploymentStatus422Schema,
+} from "./hrCreateHrEmploymentSchema.js";
+export {
+  hrCreateInstanceBodySchema,
+  hrCreateInstanceErrorSchema,
+  hrCreateInstanceResponseSchema,
+  hrCreateInstanceStatus200Schema,
+  hrCreateInstanceStatus201Schema,
+  hrCreateInstanceStatus403Schema,
+  hrCreateInstanceStatus404Schema,
+  hrCreateInstanceStatus422Schema,
+} from "./hrCreateInstanceSchema.js";
+export {
+  hrCreateLeaveRequestBodySchema,
+  hrCreateLeaveRequestErrorSchema,
+  hrCreateLeaveRequestResponseSchema,
+  hrCreateLeaveRequestStatus201Schema,
+  hrCreateLeaveRequestStatus403Schema,
+  hrCreateLeaveRequestStatus422Schema,
+} from "./hrCreateLeaveRequestSchema.js";
+export {
+  hrCreateParkingPermitBodySchema,
+  hrCreateParkingPermitErrorSchema,
+  hrCreateParkingPermitResponseSchema,
+  hrCreateParkingPermitStatus201Schema,
+  hrCreateParkingPermitStatus403Schema,
+  hrCreateParkingPermitStatus422Schema,
+} from "./hrCreateParkingPermitSchema.js";
+export {
+  hrCreatePeriodBodySchema,
+  hrCreatePeriodErrorSchema,
+  hrCreatePeriodResponseSchema,
+  hrCreatePeriodStatus201Schema,
+  hrCreatePeriodStatus400Schema,
+  hrCreatePeriodStatus403Schema,
+  hrCreatePeriodStatus422Schema,
+} from "./hrCreatePeriodSchema.js";
+export {
+  hrCreateShiftBodySchema,
+  hrCreateShiftErrorSchema,
+  hrCreateShiftResponseSchema,
+  hrCreateShiftStatus201Schema,
+  hrCreateShiftStatus400Schema,
+  hrCreateShiftStatus403Schema,
+  hrCreateShiftStatus422Schema,
+} from "./hrCreateShiftSchema.js";
+export {
+  hrCreateShiftSwapBodySchema,
+  hrCreateShiftSwapErrorSchema,
+  hrCreateShiftSwapResponseSchema,
+  hrCreateShiftSwapStatus201Schema,
+  hrCreateShiftSwapStatus403Schema,
+  hrCreateShiftSwapStatus422Schema,
+} from "./hrCreateShiftSwapSchema.js";
+export {
+  hrCreateStatusReportBodySchema,
+  hrCreateStatusReportErrorSchema,
+  hrCreateStatusReportResponseSchema,
+  hrCreateStatusReportStatus201Schema,
+  hrCreateStatusReportStatus403Schema,
+  hrCreateStatusReportStatus422Schema,
+} from "./hrCreateStatusReportSchema.js";
+export {
+  hrCreateTemplateBodySchema,
+  hrCreateTemplateErrorSchema,
+  hrCreateTemplateResponseSchema,
+  hrCreateTemplateStatus200Schema,
+  hrCreateTemplateStatus201Schema,
+  hrCreateTemplateStatus403Schema,
+  hrCreateTemplateStatus422Schema,
+} from "./hrCreateTemplateSchema.js";
+export {
+  hrCreateTemplateStepBodySchema,
+  hrCreateTemplateStepErrorSchema,
+  hrCreateTemplateStepPathTemplateIdSchema,
+  hrCreateTemplateStepResponseSchema,
+  hrCreateTemplateStepStatus200Schema,
+  hrCreateTemplateStepStatus201Schema,
+  hrCreateTemplateStepStatus403Schema,
+  hrCreateTemplateStepStatus404Schema,
+  hrCreateTemplateStepStatus422Schema,
+} from "./hrCreateTemplateStepSchema.js";
+export {
+  hrCreateTimesheetBodySchema,
+  hrCreateTimesheetErrorSchema,
+  hrCreateTimesheetResponseSchema,
+  hrCreateTimesheetStatus201Schema,
+  hrCreateTimesheetStatus403Schema,
+  hrCreateTimesheetStatus422Schema,
+} from "./hrCreateTimesheetSchema.js";
+export {
+  hrCreateTrainingRecordBodySchema,
+  hrCreateTrainingRecordErrorSchema,
+  hrCreateTrainingRecordResponseSchema,
+  hrCreateTrainingRecordStatus201Schema,
+  hrCreateTrainingRecordStatus400Schema,
+  hrCreateTrainingRecordStatus403Schema,
+  hrCreateTrainingRecordStatus422Schema,
+} from "./hrCreateTrainingRecordSchema.js";
 export { hrDashboardPublicSchema } from "./hrDashboardPublicSchema.js";
+export {
+  hrDeleteAbsenteeReportErrorSchema,
+  hrDeleteAbsenteeReportPathAbsenteeReportIdSchema,
+  hrDeleteAbsenteeReportResponseSchema,
+  hrDeleteAbsenteeReportStatus204Schema,
+  hrDeleteAbsenteeReportStatus400Schema,
+  hrDeleteAbsenteeReportStatus403Schema,
+  hrDeleteAbsenteeReportStatus404Schema,
+  hrDeleteAbsenteeReportStatus422Schema,
+} from "./hrDeleteAbsenteeReportSchema.js";
+export {
+  hrDeleteLeaveRequestErrorSchema,
+  hrDeleteLeaveRequestPathLeaveRequestIdSchema,
+  hrDeleteLeaveRequestResponseSchema,
+  hrDeleteLeaveRequestStatus204Schema,
+  hrDeleteLeaveRequestStatus400Schema,
+  hrDeleteLeaveRequestStatus403Schema,
+  hrDeleteLeaveRequestStatus404Schema,
+  hrDeleteLeaveRequestStatus422Schema,
+} from "./hrDeleteLeaveRequestSchema.js";
+export {
+  hrDeleteMySignatureErrorSchema,
+  hrDeleteMySignatureResponseSchema,
+  hrDeleteMySignatureStatus204Schema,
+  hrDeleteMySignatureStatus400Schema,
+  hrDeleteMySignatureStatus401Schema,
+  hrDeleteMySignatureStatus422Schema,
+} from "./hrDeleteMySignatureSchema.js";
+export {
+  hrDeleteShiftSwapErrorSchema,
+  hrDeleteShiftSwapPathShiftSwapIdSchema,
+  hrDeleteShiftSwapResponseSchema,
+  hrDeleteShiftSwapStatus204Schema,
+  hrDeleteShiftSwapStatus400Schema,
+  hrDeleteShiftSwapStatus403Schema,
+  hrDeleteShiftSwapStatus404Schema,
+  hrDeleteShiftSwapStatus422Schema,
+} from "./hrDeleteShiftSwapSchema.js";
+export {
+  hrDeleteStatusReportErrorSchema,
+  hrDeleteStatusReportPathReportIdSchema,
+  hrDeleteStatusReportResponseSchema,
+  hrDeleteStatusReportStatus204Schema,
+  hrDeleteStatusReportStatus400Schema,
+  hrDeleteStatusReportStatus403Schema,
+  hrDeleteStatusReportStatus404Schema,
+  hrDeleteStatusReportStatus422Schema,
+} from "./hrDeleteStatusReportSchema.js";
+export {
+  hrDownloadDocumentErrorSchema,
+  hrDownloadDocumentPathDocumentIdSchema,
+  hrDownloadDocumentResponseSchema,
+  hrDownloadDocumentStatus307Schema,
+  hrDownloadDocumentStatus403Schema,
+  hrDownloadDocumentStatus404Schema,
+  hrDownloadDocumentStatus422Schema,
+  hrDownloadDocumentStatus503Schema,
+} from "./hrDownloadDocumentSchema.js";
+export {
+  hrDownloadSignedDocumentErrorSchema,
+  hrDownloadSignedDocumentPathDocumentIdSchema,
+  hrDownloadSignedDocumentResponseSchema,
+  hrDownloadSignedDocumentStatus200Schema,
+  hrDownloadSignedDocumentStatus200SchemaJson,
+  hrDownloadSignedDocumentStatus200SchemaPdf,
+  hrDownloadSignedDocumentStatus403Schema,
+  hrDownloadSignedDocumentStatus404Schema,
+  hrDownloadSignedDocumentStatus422Schema,
+} from "./hrDownloadSignedDocumentSchema.js";
+export {
+  hrGetAbsenteeReportsErrorSchema,
+  hrGetAbsenteeReportsQueryDepartmentIdSchema,
+  hrGetAbsenteeReportsQueryPageSchema,
+  hrGetAbsenteeReportsQuerySizeSchema,
+  hrGetAbsenteeReportsResponseSchema,
+  hrGetAbsenteeReportsStatus200Schema,
+  hrGetAbsenteeReportsStatus403Schema,
+  hrGetAbsenteeReportsStatus422Schema,
+} from "./hrGetAbsenteeReportsSchema.js";
+export {
+  hrGetDepartmentTimesheetsErrorSchema,
+  hrGetDepartmentTimesheetsQueryDepartmentIdSchema,
+  hrGetDepartmentTimesheetsQueryPageSchema,
+  hrGetDepartmentTimesheetsQuerySizeSchema,
+  hrGetDepartmentTimesheetsResponseSchema,
+  hrGetDepartmentTimesheetsStatus200Schema,
+  hrGetDepartmentTimesheetsStatus403Schema,
+  hrGetDepartmentTimesheetsStatus422Schema,
+} from "./hrGetDepartmentTimesheetsSchema.js";
+export {
+  hrGetDocumentEmployeesErrorSchema,
+  hrGetDocumentEmployeesQueryOrganisationIdSchema,
+  hrGetDocumentEmployeesQueryPageSchema,
+  hrGetDocumentEmployeesQuerySearchSchema,
+  hrGetDocumentEmployeesQuerySizeSchema,
+  hrGetDocumentEmployeesResponseSchema,
+  hrGetDocumentEmployeesStatus200Schema,
+  hrGetDocumentEmployeesStatus422Schema,
+} from "./hrGetDocumentEmployeesSchema.js";
+export {
+  hrGetDocumentErrorSchema,
+  hrGetDocumentPathDocumentIdSchema,
+  hrGetDocumentResponseSchema,
+  hrGetDocumentStatus200Schema,
+  hrGetDocumentStatus403Schema,
+  hrGetDocumentStatus404Schema,
+  hrGetDocumentStatus422Schema,
+} from "./hrGetDocumentSchema.js";
+export {
+  hrGetDocumentsErrorSchema,
+  hrGetDocumentsQueryCategorySchema,
+  hrGetDocumentsQueryDepartmentIdSchema,
+  hrGetDocumentsQueryIncludeArchivedSchema,
+  hrGetDocumentsQueryOrganisationIdSchema,
+  hrGetDocumentsQueryPageSchema,
+  hrGetDocumentsQuerySizeSchema,
+  hrGetDocumentsQueryUserIdSchema,
+  hrGetDocumentsResponseSchema,
+  hrGetDocumentsStatus200Schema,
+  hrGetDocumentsStatus403Schema,
+  hrGetDocumentsStatus422Schema,
+} from "./hrGetDocumentsSchema.js";
+export {
+  hrGetHrDashboardErrorSchema,
+  hrGetHrDashboardResponseSchema,
+  hrGetHrDashboardStatus200Schema,
+  hrGetHrDashboardStatus401Schema,
+  hrGetHrDashboardStatus403Schema,
+  hrGetHrDashboardStatus422Schema,
+} from "./hrGetHrDashboardSchema.js";
+export {
+  hrGetHrEmploymentErrorSchema,
+  hrGetHrEmploymentPathUserIdSchema,
+  hrGetHrEmploymentResponseSchema,
+  hrGetHrEmploymentStatus200Schema,
+  hrGetHrEmploymentStatus403Schema,
+  hrGetHrEmploymentStatus404Schema,
+  hrGetHrEmploymentStatus422Schema,
+} from "./hrGetHrEmploymentSchema.js";
+export {
+  hrGetHrProfileMeErrorSchema,
+  hrGetHrProfileMeResponseSchema,
+  hrGetHrProfileMeStatus200Schema,
+  hrGetHrProfileMeStatus404Schema,
+  hrGetHrProfileMeStatus422Schema,
+} from "./hrGetHrProfileMeSchema.js";
+export {
+  hrGetInboxErrorSchema,
+  hrGetInboxResponseSchema,
+  hrGetInboxStatus200Schema,
+  hrGetInboxStatus403Schema,
+  hrGetInboxStatus422Schema,
+} from "./hrGetInboxSchema.js";
+export {
+  hrGetInstanceErrorSchema,
+  hrGetInstancePathInstanceIdSchema,
+  hrGetInstanceResponseSchema,
+  hrGetInstanceStatus200Schema,
+  hrGetInstanceStatus403Schema,
+  hrGetInstanceStatus404Schema,
+  hrGetInstanceStatus422Schema,
+} from "./hrGetInstanceSchema.js";
+export {
+  hrGetMyLeaveRequestsErrorSchema,
+  hrGetMyLeaveRequestsQueryPageSchema,
+  hrGetMyLeaveRequestsQuerySizeSchema,
+  hrGetMyLeaveRequestsResponseSchema,
+  hrGetMyLeaveRequestsStatus200Schema,
+  hrGetMyLeaveRequestsStatus422Schema,
+} from "./hrGetMyLeaveRequestsSchema.js";
+export {
+  hrGetMySignatureErrorSchema,
+  hrGetMySignatureResponseSchema,
+  hrGetMySignatureStatus200Schema,
+  hrGetMySignatureStatus400Schema,
+  hrGetMySignatureStatus401Schema,
+  hrGetMySignatureStatus422Schema,
+} from "./hrGetMySignatureSchema.js";
+export {
+  hrGetMySignedDocumentsErrorSchema,
+  hrGetMySignedDocumentsQueryPageSchema,
+  hrGetMySignedDocumentsQuerySizeSchema,
+  hrGetMySignedDocumentsResponseSchema,
+  hrGetMySignedDocumentsStatus200Schema,
+  hrGetMySignedDocumentsStatus400Schema,
+  hrGetMySignedDocumentsStatus401Schema,
+  hrGetMySignedDocumentsStatus422Schema,
+} from "./hrGetMySignedDocumentsSchema.js";
+export {
+  hrGetMyTimesheetsErrorSchema,
+  hrGetMyTimesheetsQueryPageSchema,
+  hrGetMyTimesheetsQuerySizeSchema,
+  hrGetMyTimesheetsResponseSchema,
+  hrGetMyTimesheetsStatus200Schema,
+  hrGetMyTimesheetsStatus422Schema,
+} from "./hrGetMyTimesheetsSchema.js";
+export {
+  hrGetOrganisationCatalogueErrorSchema,
+  hrGetOrganisationCatalogueResponseSchema,
+  hrGetOrganisationCatalogueStatus200Schema,
+  hrGetOrganisationCatalogueStatus401Schema,
+  hrGetOrganisationCatalogueStatus403Schema,
+  hrGetOrganisationCatalogueStatus409Schema,
+  hrGetOrganisationCatalogueStatus422Schema,
+} from "./hrGetOrganisationCatalogueSchema.js";
+export {
+  hrGetOrganisationsErrorSchema,
+  hrGetOrganisationsResponseSchema,
+  hrGetOrganisationsStatus200Schema,
+  hrGetOrganisationsStatus422Schema,
+} from "./hrGetOrganisationsSchema.js";
+export {
+  hrGetParkingPermitsErrorSchema,
+  hrGetParkingPermitsQueryDepartmentIdSchema,
+  hrGetParkingPermitsQueryPageSchema,
+  hrGetParkingPermitsQuerySizeSchema,
+  hrGetParkingPermitsResponseSchema,
+  hrGetParkingPermitsStatus200Schema,
+  hrGetParkingPermitsStatus403Schema,
+  hrGetParkingPermitsStatus422Schema,
+} from "./hrGetParkingPermitsSchema.js";
+export {
+  hrGetPeriodRevisionsErrorSchema,
+  hrGetPeriodRevisionsPathPeriodIdSchema,
+  hrGetPeriodRevisionsResponseSchema,
+  hrGetPeriodRevisionsStatus200Schema,
+  hrGetPeriodRevisionsStatus403Schema,
+  hrGetPeriodRevisionsStatus404Schema,
+  hrGetPeriodRevisionsStatus422Schema,
+} from "./hrGetPeriodRevisionsSchema.js";
+export {
+  hrGetPeriodErrorSchema,
+  hrGetPeriodPathPeriodIdSchema,
+  hrGetPeriodResponseSchema,
+  hrGetPeriodStatus200Schema,
+  hrGetPeriodStatus403Schema,
+  hrGetPeriodStatus404Schema,
+  hrGetPeriodStatus422Schema,
+} from "./hrGetPeriodSchema.js";
+export {
+  hrGetProductAccessErrorSchema,
+  hrGetProductAccessResponseSchema,
+  hrGetProductAccessStatus200Schema,
+  hrGetProductAccessStatus403Schema,
+  hrGetProductAccessStatus404Schema,
+  hrGetProductAccessStatus409Schema,
+  hrGetProductAccessStatus422Schema,
+} from "./hrGetProductAccessSchema.js";
+export {
+  hrGetProductPoliciesErrorSchema,
+  hrGetProductPoliciesResponseSchema,
+  hrGetProductPoliciesStatus200Schema,
+  hrGetProductPoliciesStatus403Schema,
+  hrGetProductPoliciesStatus404Schema,
+  hrGetProductPoliciesStatus409Schema,
+  hrGetProductPoliciesStatus422Schema,
+} from "./hrGetProductPoliciesSchema.js";
+export {
+  hrGetRoleConfigurationErrorSchema,
+  hrGetRoleConfigurationResponseSchema,
+  hrGetRoleConfigurationStatus200Schema,
+  hrGetRoleConfigurationStatus403Schema,
+  hrGetRoleConfigurationStatus404Schema,
+  hrGetRoleConfigurationStatus409Schema,
+  hrGetRoleConfigurationStatus422Schema,
+} from "./hrGetRoleConfigurationSchema.js";
+export {
+  hrGetSetupGradesErrorSchema,
+  hrGetSetupGradesResponseSchema,
+  hrGetSetupGradesStatus200Schema,
+  hrGetSetupGradesStatus403Schema,
+  hrGetSetupGradesStatus404Schema,
+  hrGetSetupGradesStatus409Schema,
+  hrGetSetupGradesStatus422Schema,
+} from "./hrGetSetupGradesSchema.js";
+export {
+  hrGetSetupPoliciesErrorSchema,
+  hrGetSetupPoliciesResponseSchema,
+  hrGetSetupPoliciesStatus200Schema,
+  hrGetSetupPoliciesStatus403Schema,
+  hrGetSetupPoliciesStatus404Schema,
+  hrGetSetupPoliciesStatus409Schema,
+  hrGetSetupPoliciesStatus422Schema,
+} from "./hrGetSetupPoliciesSchema.js";
+export {
+  hrGetStaffCardErrorSchema,
+  hrGetStaffCardResponseSchema,
+  hrGetStaffCardStatus200Schema,
+  hrGetStaffCardStatus403Schema,
+  hrGetStaffCardStatus404Schema,
+  hrGetStaffCardStatus409Schema,
+  hrGetStaffCardStatus422Schema,
+} from "./hrGetStaffCardSchema.js";
+export {
+  hrGetStaffSetupErrorSchema,
+  hrGetStaffSetupResponseSchema,
+  hrGetStaffSetupStatus200Schema,
+  hrGetStaffSetupStatus403Schema,
+  hrGetStaffSetupStatus404Schema,
+  hrGetStaffSetupStatus409Schema,
+  hrGetStaffSetupStatus422Schema,
+} from "./hrGetStaffSetupSchema.js";
+export {
+  hrGetStatusReportErrorSchema,
+  hrGetStatusReportPathReportIdSchema,
+  hrGetStatusReportResponseSchema,
+  hrGetStatusReportStatus200Schema,
+  hrGetStatusReportStatus403Schema,
+  hrGetStatusReportStatus404Schema,
+  hrGetStatusReportStatus422Schema,
+} from "./hrGetStatusReportSchema.js";
+export {
+  hrGetStatusReportsErrorSchema,
+  hrGetStatusReportsQueryDepartmentIdSchema,
+  hrGetStatusReportsQueryPageSchema,
+  hrGetStatusReportsQuerySizeSchema,
+  hrGetStatusReportsResponseSchema,
+  hrGetStatusReportsStatus200Schema,
+  hrGetStatusReportsStatus403Schema,
+  hrGetStatusReportsStatus422Schema,
+} from "./hrGetStatusReportsSchema.js";
+export {
+  hrGetTemplatesErrorSchema,
+  hrGetTemplatesQueryDepartmentIdSchema,
+  hrGetTemplatesResponseSchema,
+  hrGetTemplatesStatus200Schema,
+  hrGetTemplatesStatus403Schema,
+  hrGetTemplatesStatus422Schema,
+} from "./hrGetTemplatesSchema.js";
+export {
+  hrGetTimesheetErrorSchema,
+  hrGetTimesheetPathTimesheetIdSchema,
+  hrGetTimesheetResponseSchema,
+  hrGetTimesheetStatus200Schema,
+  hrGetTimesheetStatus403Schema,
+  hrGetTimesheetStatus404Schema,
+  hrGetTimesheetStatus422Schema,
+} from "./hrGetTimesheetSchema.js";
+export {
+  hrGetTimesheetSummaryErrorSchema,
+  hrGetTimesheetSummaryPathTimesheetIdSchema,
+  hrGetTimesheetSummaryResponseSchema,
+  hrGetTimesheetSummaryStatus200Schema,
+  hrGetTimesheetSummaryStatus403Schema,
+  hrGetTimesheetSummaryStatus404Schema,
+  hrGetTimesheetSummaryStatus422Schema,
+} from "./hrGetTimesheetSummarySchema.js";
+export {
+  hrGetTrainingEmployeesErrorSchema,
+  hrGetTrainingEmployeesQueryOrganisationIdSchema,
+  hrGetTrainingEmployeesQueryPageSchema,
+  hrGetTrainingEmployeesQuerySearchSchema,
+  hrGetTrainingEmployeesQuerySizeSchema,
+  hrGetTrainingEmployeesResponseSchema,
+  hrGetTrainingEmployeesStatus200Schema,
+  hrGetTrainingEmployeesStatus403Schema,
+  hrGetTrainingEmployeesStatus422Schema,
+} from "./hrGetTrainingEmployeesSchema.js";
+export {
+  hrGetTrainingRecordsErrorSchema,
+  hrGetTrainingRecordsQueryIncludeArchivedSchema,
+  hrGetTrainingRecordsQueryOrganisationIdSchema,
+  hrGetTrainingRecordsQueryPageSchema,
+  hrGetTrainingRecordsQuerySizeSchema,
+  hrGetTrainingRecordsQueryUserIdSchema,
+  hrGetTrainingRecordsResponseSchema,
+  hrGetTrainingRecordsStatus200Schema,
+  hrGetTrainingRecordsStatus403Schema,
+  hrGetTrainingRecordsStatus422Schema,
+} from "./hrGetTrainingRecordsSchema.js";
+export {
+  hrGetWorkflowConfigurationErrorSchema,
+  hrGetWorkflowConfigurationResponseSchema,
+  hrGetWorkflowConfigurationStatus200Schema,
+  hrGetWorkflowConfigurationStatus401Schema,
+  hrGetWorkflowConfigurationStatus403Schema,
+  hrGetWorkflowConfigurationStatus409Schema,
+  hrGetWorkflowConfigurationStatus422Schema,
+} from "./hrGetWorkflowConfigurationSchema.js";
+export {
+  hrImportCatalogueBodySchema,
+  hrImportCatalogueErrorSchema,
+  hrImportCatalogueResponseSchema,
+  hrImportCatalogueStatus200Schema,
+  hrImportCatalogueStatus403Schema,
+  hrImportCatalogueStatus404Schema,
+  hrImportCatalogueStatus409Schema,
+  hrImportCatalogueStatus422Schema,
+} from "./hrImportCatalogueSchema.js";
+export {
+  hrImportCsvBodySchema,
+  hrImportCsvErrorSchema,
+  hrImportCsvResponseSchema,
+  hrImportCsvStatus200Schema,
+  hrImportCsvStatus400Schema,
+  hrImportCsvStatus403Schema,
+  hrImportCsvStatus422Schema,
+} from "./hrImportCsvSchema.js";
+export {
+  hrImportGridBodySchema,
+  hrImportGridErrorSchema,
+  hrImportGridResponseSchema,
+  hrImportGridStatus200Schema,
+  hrImportGridStatus400Schema,
+  hrImportGridStatus403Schema,
+  hrImportGridStatus404Schema,
+  hrImportGridStatus422Schema,
+} from "./hrImportGridSchema.js";
+export {
+  hrImportOrganisationErrorSchema,
+  hrImportOrganisationResponseSchema,
+  hrImportOrganisationStatus200Schema,
+  hrImportOrganisationStatus401Schema,
+  hrImportOrganisationStatus403Schema,
+  hrImportOrganisationStatus409Schema,
+  hrImportOrganisationStatus422Schema,
+} from "./hrImportOrganisationSchema.js";
+export {
+  hrIssueParkingDecalBodySchema,
+  hrIssueParkingDecalErrorSchema,
+  hrIssueParkingDecalPathPermitIdSchema,
+  hrIssueParkingDecalResponseSchema,
+  hrIssueParkingDecalStatus200Schema,
+  hrIssueParkingDecalStatus403Schema,
+  hrIssueParkingDecalStatus404Schema,
+  hrIssueParkingDecalStatus422Schema,
+} from "./hrIssueParkingDecalSchema.js";
+export { hrListAssignmentsParametersSchemaEnumSchema } from "./hrListAssignmentsParametersSchemaEnumSchema.js";
+export {
+  hrListAssignmentsErrorSchema,
+  hrListAssignmentsQueryDepartmentIdSchema,
+  hrListAssignmentsQueryEndSchema,
+  hrListAssignmentsQueryScopeSchema,
+  hrListAssignmentsQueryStartSchema,
+  hrListAssignmentsResponseSchema,
+  hrListAssignmentsStatus200Schema,
+  hrListAssignmentsStatus400Schema,
+  hrListAssignmentsStatus403Schema,
+  hrListAssignmentsStatus404Schema,
+  hrListAssignmentsStatus422Schema,
+} from "./hrListAssignmentsSchema.js";
+export {
+  hrListCalendarEventsErrorSchema,
+  hrListCalendarEventsQueryDepartmentIdSchema,
+  hrListCalendarEventsQueryEndSchema,
+  hrListCalendarEventsQueryIncludeCancelledSchema,
+  hrListCalendarEventsQueryStartSchema,
+  hrListCalendarEventsResponseSchema,
+  hrListCalendarEventsStatus200Schema,
+  hrListCalendarEventsStatus400Schema,
+  hrListCalendarEventsStatus403Schema,
+  hrListCalendarEventsStatus404Schema,
+  hrListCalendarEventsStatus422Schema,
+} from "./hrListCalendarEventsSchema.js";
+export {
+  hrListDepartmentMembersErrorSchema,
+  hrListDepartmentMembersPathDepartmentIdSchema,
+  hrListDepartmentMembersResponseSchema,
+  hrListDepartmentMembersStatus200Schema,
+  hrListDepartmentMembersStatus403Schema,
+  hrListDepartmentMembersStatus404Schema,
+  hrListDepartmentMembersStatus422Schema,
+} from "./hrListDepartmentMembersSchema.js";
+export {
+  hrListDepartmentsErrorSchema,
+  hrListDepartmentsQueryOrganisationIdSchema,
+  hrListDepartmentsResponseSchema,
+  hrListDepartmentsStatus200Schema,
+  hrListDepartmentsStatus403Schema,
+  hrListDepartmentsStatus422Schema,
+} from "./hrListDepartmentsSchema.js";
+export {
+  hrListHolidaysErrorSchema,
+  hrListHolidaysQueryYearSchema,
+  hrListHolidaysResponseSchema,
+  hrListHolidaysStatus200Schema,
+  hrListHolidaysStatus403Schema,
+  hrListHolidaysStatus422Schema,
+} from "./hrListHolidaysSchema.js";
+export {
+  hrListMyShiftSwapsErrorSchema,
+  hrListMyShiftSwapsQueryPageSchema,
+  hrListMyShiftSwapsQuerySizeSchema,
+  hrListMyShiftSwapsResponseSchema,
+  hrListMyShiftSwapsStatus200Schema,
+  hrListMyShiftSwapsStatus422Schema,
+} from "./hrListMyShiftSwapsSchema.js";
+export {
+  hrListPeriodsErrorSchema,
+  hrListPeriodsQueryDepartmentIdSchema,
+  hrListPeriodsQueryPeriodStatusSchema,
+  hrListPeriodsResponseSchema,
+  hrListPeriodsStatus200Schema,
+  hrListPeriodsStatus403Schema,
+  hrListPeriodsStatus422Schema,
+} from "./hrListPeriodsSchema.js";
+export {
+  hrListShiftCatalogErrorSchema,
+  hrListShiftCatalogQueryIncludeInactiveSchema,
+  hrListShiftCatalogResponseSchema,
+  hrListShiftCatalogStatus200Schema,
+  hrListShiftCatalogStatus403Schema,
+  hrListShiftCatalogStatus422Schema,
+} from "./hrListShiftCatalogSchema.js";
+export {
+  hrOffboardStaffErrorSchema,
+  hrOffboardStaffPathUserIdSchema,
+  hrOffboardStaffResponseSchema,
+  hrOffboardStaffStatus200Schema,
+  hrOffboardStaffStatus403Schema,
+  hrOffboardStaffStatus404Schema,
+  hrOffboardStaffStatus409Schema,
+  hrOffboardStaffStatus422Schema,
+} from "./hrOffboardStaffSchema.js";
+export {
+  hrPatchDocumentBodySchema,
+  hrPatchDocumentErrorSchema,
+  hrPatchDocumentPathDocumentIdSchema,
+  hrPatchDocumentResponseSchema,
+  hrPatchDocumentStatus200Schema,
+  hrPatchDocumentStatus400Schema,
+  hrPatchDocumentStatus403Schema,
+  hrPatchDocumentStatus404Schema,
+  hrPatchDocumentStatus422Schema,
+} from "./hrPatchDocumentSchema.js";
+export {
+  hrPreviewCatalogueErrorSchema,
+  hrPreviewCatalogueQueryDepartmentIdSchema,
+  hrPreviewCatalogueResponseSchema,
+  hrPreviewCatalogueStatus200Schema,
+  hrPreviewCatalogueStatus403Schema,
+  hrPreviewCatalogueStatus404Schema,
+  hrPreviewCatalogueStatus409Schema,
+  hrPreviewCatalogueStatus422Schema,
+} from "./hrPreviewCatalogueSchema.js";
+export {
+  hrPreviewOrganisationErrorSchema,
+  hrPreviewOrganisationResponseSchema,
+  hrPreviewOrganisationStatus200Schema,
+  hrPreviewOrganisationStatus401Schema,
+  hrPreviewOrganisationStatus403Schema,
+  hrPreviewOrganisationStatus409Schema,
+  hrPreviewOrganisationStatus422Schema,
+} from "./hrPreviewOrganisationSchema.js";
+export {
+  hrPublishPeriodErrorSchema,
+  hrPublishPeriodPathPeriodIdSchema,
+  hrPublishPeriodResponseSchema,
+  hrPublishPeriodStatus200Schema,
+  hrPublishPeriodStatus400Schema,
+  hrPublishPeriodStatus403Schema,
+  hrPublishPeriodStatus404Schema,
+  hrPublishPeriodStatus422Schema,
+} from "./hrPublishPeriodSchema.js";
+export {
+  hrRemoveHolidayErrorSchema,
+  hrRemoveHolidayPathHolidayIdSchema,
+  hrRemoveHolidayResponseSchema,
+  hrRemoveHolidayStatus204Schema,
+  hrRemoveHolidayStatus403Schema,
+  hrRemoveHolidayStatus404Schema,
+  hrRemoveHolidayStatus422Schema,
+} from "./hrRemoveHolidaySchema.js";
+export {
+  hrSaveMySignatureBodySchema,
+  hrSaveMySignatureErrorSchema,
+  hrSaveMySignatureResponseSchema,
+  hrSaveMySignatureStatus200Schema,
+  hrSaveMySignatureStatus400Schema,
+  hrSaveMySignatureStatus401Schema,
+  hrSaveMySignatureStatus422Schema,
+} from "./hrSaveMySignatureSchema.js";
+export {
+  hrSaveWorkflowConfigurationBodySchema,
+  hrSaveWorkflowConfigurationErrorSchema,
+  hrSaveWorkflowConfigurationPathTemplateIdSchema,
+  hrSaveWorkflowConfigurationResponseSchema,
+  hrSaveWorkflowConfigurationStatus200Schema,
+  hrSaveWorkflowConfigurationStatus401Schema,
+  hrSaveWorkflowConfigurationStatus403Schema,
+  hrSaveWorkflowConfigurationStatus409Schema,
+  hrSaveWorkflowConfigurationStatus422Schema,
+} from "./hrSaveWorkflowConfigurationSchema.js";
+export {
+  hrSubmitAbsenteeReportBodySchema,
+  hrSubmitAbsenteeReportErrorSchema,
+  hrSubmitAbsenteeReportPathAbsenteeReportIdSchema,
+  hrSubmitAbsenteeReportResponseSchema,
+  hrSubmitAbsenteeReportStatus200Schema,
+  hrSubmitAbsenteeReportStatus400Schema,
+  hrSubmitAbsenteeReportStatus403Schema,
+  hrSubmitAbsenteeReportStatus404Schema,
+  hrSubmitAbsenteeReportStatus422Schema,
+} from "./hrSubmitAbsenteeReportSchema.js";
+export {
+  hrSubmitLeaveRequestBodySchema,
+  hrSubmitLeaveRequestErrorSchema,
+  hrSubmitLeaveRequestPathLeaveRequestIdSchema,
+  hrSubmitLeaveRequestResponseSchema,
+  hrSubmitLeaveRequestStatus200Schema,
+  hrSubmitLeaveRequestStatus400Schema,
+  hrSubmitLeaveRequestStatus403Schema,
+  hrSubmitLeaveRequestStatus404Schema,
+  hrSubmitLeaveRequestStatus422Schema,
+} from "./hrSubmitLeaveRequestSchema.js";
+export {
+  hrSubmitShiftSwapBodySchema,
+  hrSubmitShiftSwapErrorSchema,
+  hrSubmitShiftSwapPathShiftSwapIdSchema,
+  hrSubmitShiftSwapResponseSchema,
+  hrSubmitShiftSwapStatus200Schema,
+  hrSubmitShiftSwapStatus400Schema,
+  hrSubmitShiftSwapStatus403Schema,
+  hrSubmitShiftSwapStatus404Schema,
+  hrSubmitShiftSwapStatus422Schema,
+} from "./hrSubmitShiftSwapSchema.js";
+export {
+  hrSubmitStatusReportBodySchema,
+  hrSubmitStatusReportErrorSchema,
+  hrSubmitStatusReportPathReportIdSchema,
+  hrSubmitStatusReportResponseSchema,
+  hrSubmitStatusReportStatus200Schema,
+  hrSubmitStatusReportStatus400Schema,
+  hrSubmitStatusReportStatus403Schema,
+  hrSubmitStatusReportStatus404Schema,
+  hrSubmitStatusReportStatus422Schema,
+} from "./hrSubmitStatusReportSchema.js";
+export {
+  hrSubmitTimesheetBodySchema,
+  hrSubmitTimesheetErrorSchema,
+  hrSubmitTimesheetPathTimesheetIdSchema,
+  hrSubmitTimesheetResponseSchema,
+  hrSubmitTimesheetStatus200Schema,
+  hrSubmitTimesheetStatus400Schema,
+  hrSubmitTimesheetStatus403Schema,
+  hrSubmitTimesheetStatus404Schema,
+  hrSubmitTimesheetStatus422Schema,
+} from "./hrSubmitTimesheetSchema.js";
+export {
+  hrTakeActionBodySchema,
+  hrTakeActionErrorSchema,
+  hrTakeActionPathInstanceIdSchema,
+  hrTakeActionResponseSchema,
+  hrTakeActionStatus200Schema,
+  hrTakeActionStatus400Schema,
+  hrTakeActionStatus403Schema,
+  hrTakeActionStatus404Schema,
+  hrTakeActionStatus422Schema,
+} from "./hrTakeActionSchema.js";
+export {
+  hrUpdateAbsenteeReportBodySchema,
+  hrUpdateAbsenteeReportErrorSchema,
+  hrUpdateAbsenteeReportPathAbsenteeReportIdSchema,
+  hrUpdateAbsenteeReportResponseSchema,
+  hrUpdateAbsenteeReportStatus200Schema,
+  hrUpdateAbsenteeReportStatus400Schema,
+  hrUpdateAbsenteeReportStatus403Schema,
+  hrUpdateAbsenteeReportStatus404Schema,
+  hrUpdateAbsenteeReportStatus422Schema,
+} from "./hrUpdateAbsenteeReportSchema.js";
+export {
+  hrUpdateCalendarEventBodySchema,
+  hrUpdateCalendarEventErrorSchema,
+  hrUpdateCalendarEventPathEventIdSchema,
+  hrUpdateCalendarEventResponseSchema,
+  hrUpdateCalendarEventStatus200Schema,
+  hrUpdateCalendarEventStatus400Schema,
+  hrUpdateCalendarEventStatus403Schema,
+  hrUpdateCalendarEventStatus404Schema,
+  hrUpdateCalendarEventStatus422Schema,
+} from "./hrUpdateCalendarEventSchema.js";
+export {
+  hrUpdateDepartmentBodySchema,
+  hrUpdateDepartmentErrorSchema,
+  hrUpdateDepartmentPathDepartmentIdSchema,
+  hrUpdateDepartmentResponseSchema,
+  hrUpdateDepartmentStatus200Schema,
+  hrUpdateDepartmentStatus400Schema,
+  hrUpdateDepartmentStatus403Schema,
+  hrUpdateDepartmentStatus404Schema,
+  hrUpdateDepartmentStatus422Schema,
+} from "./hrUpdateDepartmentSchema.js";
+export {
+  hrUpdateHrEmploymentBodySchema,
+  hrUpdateHrEmploymentErrorSchema,
+  hrUpdateHrEmploymentPathUserIdSchema,
+  hrUpdateHrEmploymentResponseSchema,
+  hrUpdateHrEmploymentStatus200Schema,
+  hrUpdateHrEmploymentStatus403Schema,
+  hrUpdateHrEmploymentStatus404Schema,
+  hrUpdateHrEmploymentStatus422Schema,
+} from "./hrUpdateHrEmploymentSchema.js";
+export {
+  hrUpdateHrProfileMeBodySchema,
+  hrUpdateHrProfileMeErrorSchema,
+  hrUpdateHrProfileMeResponseSchema,
+  hrUpdateHrProfileMeStatus200Schema,
+  hrUpdateHrProfileMeStatus404Schema,
+  hrUpdateHrProfileMeStatus422Schema,
+} from "./hrUpdateHrProfileMeSchema.js";
+export {
+  hrUpdateLeaveRequestBodySchema,
+  hrUpdateLeaveRequestErrorSchema,
+  hrUpdateLeaveRequestPathLeaveRequestIdSchema,
+  hrUpdateLeaveRequestResponseSchema,
+  hrUpdateLeaveRequestStatus200Schema,
+  hrUpdateLeaveRequestStatus400Schema,
+  hrUpdateLeaveRequestStatus403Schema,
+  hrUpdateLeaveRequestStatus404Schema,
+  hrUpdateLeaveRequestStatus422Schema,
+} from "./hrUpdateLeaveRequestSchema.js";
+export {
+  hrUpdateProductPolicyBodySchema,
+  hrUpdateProductPolicyErrorSchema,
+  hrUpdateProductPolicyPathKindSchema,
+  hrUpdateProductPolicyResponseSchema,
+  hrUpdateProductPolicyStatus200Schema,
+  hrUpdateProductPolicyStatus400Schema,
+  hrUpdateProductPolicyStatus401Schema,
+  hrUpdateProductPolicyStatus403Schema,
+  hrUpdateProductPolicyStatus404Schema,
+  hrUpdateProductPolicyStatus409Schema,
+  hrUpdateProductPolicyStatus422Schema,
+} from "./hrUpdateProductPolicySchema.js";
+export {
+  hrUpdateRoleConfigurationBodySchema,
+  hrUpdateRoleConfigurationErrorSchema,
+  hrUpdateRoleConfigurationPathRoleIdSchema,
+  hrUpdateRoleConfigurationResponseSchema,
+  hrUpdateRoleConfigurationStatus200Schema,
+  hrUpdateRoleConfigurationStatus403Schema,
+  hrUpdateRoleConfigurationStatus404Schema,
+  hrUpdateRoleConfigurationStatus409Schema,
+  hrUpdateRoleConfigurationStatus422Schema,
+} from "./hrUpdateRoleConfigurationSchema.js";
+export {
+  hrUpdateSetupGradeBodySchema,
+  hrUpdateSetupGradeErrorSchema,
+  hrUpdateSetupGradePathGradeIdSchema,
+  hrUpdateSetupGradeResponseSchema,
+  hrUpdateSetupGradeStatus200Schema,
+  hrUpdateSetupGradeStatus403Schema,
+  hrUpdateSetupGradeStatus404Schema,
+  hrUpdateSetupGradeStatus409Schema,
+  hrUpdateSetupGradeStatus422Schema,
+} from "./hrUpdateSetupGradeSchema.js";
+export {
+  hrUpdateSetupPolicyBodySchema,
+  hrUpdateSetupPolicyErrorSchema,
+  hrUpdateSetupPolicyPathKeySchema,
+  hrUpdateSetupPolicyResponseSchema,
+  hrUpdateSetupPolicyStatus200Schema,
+  hrUpdateSetupPolicyStatus403Schema,
+  hrUpdateSetupPolicyStatus404Schema,
+  hrUpdateSetupPolicyStatus409Schema,
+  hrUpdateSetupPolicyStatus422Schema,
+} from "./hrUpdateSetupPolicySchema.js";
+export {
+  hrUpdateShiftBodySchema,
+  hrUpdateShiftErrorSchema,
+  hrUpdateShiftPathCodeSchema,
+  hrUpdateShiftResponseSchema,
+  hrUpdateShiftStatus200Schema,
+  hrUpdateShiftStatus403Schema,
+  hrUpdateShiftStatus404Schema,
+  hrUpdateShiftStatus422Schema,
+} from "./hrUpdateShiftSchema.js";
+export {
+  hrUpdateShiftSwapBodySchema,
+  hrUpdateShiftSwapErrorSchema,
+  hrUpdateShiftSwapPathShiftSwapIdSchema,
+  hrUpdateShiftSwapResponseSchema,
+  hrUpdateShiftSwapStatus200Schema,
+  hrUpdateShiftSwapStatus400Schema,
+  hrUpdateShiftSwapStatus403Schema,
+  hrUpdateShiftSwapStatus404Schema,
+  hrUpdateShiftSwapStatus422Schema,
+} from "./hrUpdateShiftSwapSchema.js";
+export {
+  hrUpdateStaffBalanceBodySchema,
+  hrUpdateStaffBalanceErrorSchema,
+  hrUpdateStaffBalancePathUserIdSchema,
+  hrUpdateStaffBalanceResponseSchema,
+  hrUpdateStaffBalanceStatus200Schema,
+  hrUpdateStaffBalanceStatus403Schema,
+  hrUpdateStaffBalanceStatus404Schema,
+  hrUpdateStaffBalanceStatus409Schema,
+  hrUpdateStaffBalanceStatus422Schema,
+} from "./hrUpdateStaffBalanceSchema.js";
+export {
+  hrUpdateStaffSetupBodySchema,
+  hrUpdateStaffSetupErrorSchema,
+  hrUpdateStaffSetupPathUserIdSchema,
+  hrUpdateStaffSetupResponseSchema,
+  hrUpdateStaffSetupStatus200Schema,
+  hrUpdateStaffSetupStatus403Schema,
+  hrUpdateStaffSetupStatus404Schema,
+  hrUpdateStaffSetupStatus409Schema,
+  hrUpdateStaffSetupStatus422Schema,
+} from "./hrUpdateStaffSetupSchema.js";
+export {
+  hrUpdateStatusReportBodySchema,
+  hrUpdateStatusReportErrorSchema,
+  hrUpdateStatusReportPathReportIdSchema,
+  hrUpdateStatusReportResponseSchema,
+  hrUpdateStatusReportStatus200Schema,
+  hrUpdateStatusReportStatus400Schema,
+  hrUpdateStatusReportStatus403Schema,
+  hrUpdateStatusReportStatus404Schema,
+  hrUpdateStatusReportStatus422Schema,
+} from "./hrUpdateStatusReportSchema.js";
+export {
+  hrUploadDocumentBodySchema,
+  hrUploadDocumentErrorSchema,
+  hrUploadDocumentResponseSchema,
+  hrUploadDocumentStatus201Schema,
+  hrUploadDocumentStatus400Schema,
+  hrUploadDocumentStatus403Schema,
+  hrUploadDocumentStatus422Schema,
+  hrUploadDocumentStatus503Schema,
+} from "./hrUploadDocumentSchema.js";
+export {
+  hrValidateCsvBodySchema,
+  hrValidateCsvErrorSchema,
+  hrValidateCsvResponseSchema,
+  hrValidateCsvStatus200Schema,
+  hrValidateCsvStatus400Schema,
+  hrValidateCsvStatus403Schema,
+  hrValidateCsvStatus422Schema,
+} from "./hrValidateCsvSchema.js";
+export {
+  hrValidateGridBodySchema,
+  hrValidateGridErrorSchema,
+  hrValidateGridResponseSchema,
+  hrValidateGridStatus200Schema,
+  hrValidateGridStatus403Schema,
+  hrValidateGridStatus404Schema,
+  hrValidateGridStatus422Schema,
+} from "./hrValidateGridSchema.js";
+export { imageInputPropertiesTimeBasisEnumSchema } from "./imageInputPropertiesTimeBasisEnumSchema.js";
 export { imageInputSchema } from "./imageInputSchema.js";
 export { imageResultSchema } from "./imageResultSchema.js";
-export {
-  importAlertApiV1CapAlertsImportPostBodySchema,
-  importAlertApiV1CapAlertsImportPostErrorSchema,
-  importAlertApiV1CapAlertsImportPostResponseSchema,
-  importAlertApiV1CapAlertsImportPostStatus201Schema,
-  importAlertApiV1CapAlertsImportPostStatus422Schema,
-} from "./importAlertApiV1CapAlertsImportPostSchema.js";
-export {
-  importCatalogueApiV1HrSetupCataloguePostBodySchema,
-  importCatalogueApiV1HrSetupCataloguePostErrorSchema,
-  importCatalogueApiV1HrSetupCataloguePostResponseSchema,
-  importCatalogueApiV1HrSetupCataloguePostStatus200Schema,
-  importCatalogueApiV1HrSetupCataloguePostStatus403Schema,
-  importCatalogueApiV1HrSetupCataloguePostStatus404Schema,
-  importCatalogueApiV1HrSetupCataloguePostStatus409Schema,
-  importCatalogueApiV1HrSetupCataloguePostStatus422Schema,
-} from "./importCatalogueApiV1HrSetupCataloguePostSchema.js";
-export {
-  importCsvApiV1HrRostersImportCsvPostBodySchema,
-  importCsvApiV1HrRostersImportCsvPostErrorSchema,
-  importCsvApiV1HrRostersImportCsvPostResponseSchema,
-  importCsvApiV1HrRostersImportCsvPostStatus200Schema,
-  importCsvApiV1HrRostersImportCsvPostStatus400Schema,
-  importCsvApiV1HrRostersImportCsvPostStatus403Schema,
-  importCsvApiV1HrRostersImportCsvPostStatus422Schema,
-} from "./importCsvApiV1HrRostersImportCsvPostSchema.js";
-export {
-  importGridApiV1HrRostersImportGridPostBodySchema,
-  importGridApiV1HrRostersImportGridPostErrorSchema,
-  importGridApiV1HrRostersImportGridPostResponseSchema,
-  importGridApiV1HrRostersImportGridPostStatus200Schema,
-  importGridApiV1HrRostersImportGridPostStatus400Schema,
-  importGridApiV1HrRostersImportGridPostStatus403Schema,
-  importGridApiV1HrRostersImportGridPostStatus404Schema,
-  importGridApiV1HrRostersImportGridPostStatus422Schema,
-} from "./importGridApiV1HrRostersImportGridPostSchema.js";
-export {
-  importOrganisationApiV1HrSetupOrganisationPostErrorSchema,
-  importOrganisationApiV1HrSetupOrganisationPostResponseSchema,
-  importOrganisationApiV1HrSetupOrganisationPostStatus200Schema,
-  importOrganisationApiV1HrSetupOrganisationPostStatus401Schema,
-  importOrganisationApiV1HrSetupOrganisationPostStatus403Schema,
-  importOrganisationApiV1HrSetupOrganisationPostStatus409Schema,
-} from "./importOrganisationApiV1HrSetupOrganisationPostSchema.js";
 export { importStatusSchema } from "./importStatusSchema.js";
 export {
-  ingestApiV1WxwatchIngestPostBodySchema,
-  ingestApiV1WxwatchIngestPostErrorSchema,
-  ingestApiV1WxwatchIngestPostHeaderAuthorizationSchema,
-  ingestApiV1WxwatchIngestPostResponseSchema,
-  ingestApiV1WxwatchIngestPostStatus200Schema,
-  ingestApiV1WxwatchIngestPostStatus422Schema,
-} from "./ingestApiV1WxwatchIngestPostSchema.js";
-export {
-  issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostBodySchema,
-  issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostErrorSchema,
-  issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostPathPermitIdSchema,
-  issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostResponseSchema,
-  issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus200Schema,
-  issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus403Schema,
-  issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus404Schema,
-  issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostStatus422Schema,
-} from "./issueParkingDecalApiV1HrParkingPermitsPermitIdIssuePostSchema.js";
+  janitorialSpecErrorSchema,
+  janitorialSpecResponseSchema,
+  janitorialSpecStatus200Schema,
+  janitorialSpecStatus422Schema,
+} from "./janitorialSpecSchema.js";
 export { jsonValueSchema } from "./jsonValueSchema.js";
 export { leavePublicSchema } from "./leavePublicSchema.js";
 export { leaveRequestActionSchema } from "./leaveRequestActionSchema.js";
@@ -765,210 +1892,19 @@ export { leaveRequestPublicSchema } from "./leaveRequestPublicSchema.js";
 export { leaveRequestSubmitSchema } from "./leaveRequestSubmitSchema.js";
 export { leaveTypeSchema } from "./leaveTypeSchema.js";
 export { legacyProductPreviewInputSchema } from "./legacyProductPreviewInputSchema.js";
+export { legacyProductPreviewPropertiesKindEnumSchema } from "./legacyProductPreviewPropertiesKindEnumSchema.js";
 export { legacyProductPreviewSchema } from "./legacyProductPreviewSchema.js";
+export { legacyProductWritePropertiesActionEnumSchema } from "./legacyProductWritePropertiesActionEnumSchema.js";
 export { legacyProductWriteSchema } from "./legacyProductWriteSchema.js";
 export { legacyStoredProductSchema } from "./legacyStoredProductSchema.js";
-export {
-  listAssignmentsApiV1HrRostersAssignmentsGetErrorSchema,
-  listAssignmentsApiV1HrRostersAssignmentsGetQueryDepartmentIdSchema,
-  listAssignmentsApiV1HrRostersAssignmentsGetQueryEndSchema,
-  listAssignmentsApiV1HrRostersAssignmentsGetQueryScopeSchema,
-  listAssignmentsApiV1HrRostersAssignmentsGetQueryStartSchema,
-  listAssignmentsApiV1HrRostersAssignmentsGetResponseSchema,
-  listAssignmentsApiV1HrRostersAssignmentsGetStatus200Schema,
-  listAssignmentsApiV1HrRostersAssignmentsGetStatus400Schema,
-  listAssignmentsApiV1HrRostersAssignmentsGetStatus403Schema,
-  listAssignmentsApiV1HrRostersAssignmentsGetStatus404Schema,
-  listAssignmentsApiV1HrRostersAssignmentsGetStatus422Schema,
-} from "./listAssignmentsApiV1HrRostersAssignmentsGetSchema.js";
-export {
-  listCalendarEventsApiV1HrCalendarEventsGetErrorSchema,
-  listCalendarEventsApiV1HrCalendarEventsGetQueryDepartmentIdSchema,
-  listCalendarEventsApiV1HrCalendarEventsGetQueryEndSchema,
-  listCalendarEventsApiV1HrCalendarEventsGetQueryIncludeCancelledSchema,
-  listCalendarEventsApiV1HrCalendarEventsGetQueryStartSchema,
-  listCalendarEventsApiV1HrCalendarEventsGetResponseSchema,
-  listCalendarEventsApiV1HrCalendarEventsGetStatus200Schema,
-  listCalendarEventsApiV1HrCalendarEventsGetStatus400Schema,
-  listCalendarEventsApiV1HrCalendarEventsGetStatus403Schema,
-  listCalendarEventsApiV1HrCalendarEventsGetStatus404Schema,
-  listCalendarEventsApiV1HrCalendarEventsGetStatus422Schema,
-} from "./listCalendarEventsApiV1HrCalendarEventsGetSchema.js";
-export {
-  listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetErrorSchema,
-  listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetPathDepartmentIdSchema,
-  listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetResponseSchema,
-  listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus200Schema,
-  listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus403Schema,
-  listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus404Schema,
-  listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetStatus422Schema,
-} from "./listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetSchema.js";
-export {
-  listDepartmentsEndpointApiV1HrDepartmentsGetErrorSchema,
-  listDepartmentsEndpointApiV1HrDepartmentsGetQueryOrganisationIdSchema,
-  listDepartmentsEndpointApiV1HrDepartmentsGetResponseSchema,
-  listDepartmentsEndpointApiV1HrDepartmentsGetStatus200Schema,
-  listDepartmentsEndpointApiV1HrDepartmentsGetStatus403Schema,
-  listDepartmentsEndpointApiV1HrDepartmentsGetStatus422Schema,
-} from "./listDepartmentsEndpointApiV1HrDepartmentsGetSchema.js";
-export {
-  listHolidaysApiV1HrRostersPublicHolidaysGetErrorSchema,
-  listHolidaysApiV1HrRostersPublicHolidaysGetQueryYearSchema,
-  listHolidaysApiV1HrRostersPublicHolidaysGetResponseSchema,
-  listHolidaysApiV1HrRostersPublicHolidaysGetStatus200Schema,
-  listHolidaysApiV1HrRostersPublicHolidaysGetStatus403Schema,
-  listHolidaysApiV1HrRostersPublicHolidaysGetStatus422Schema,
-} from "./listHolidaysApiV1HrRostersPublicHolidaysGetSchema.js";
-export {
-  listMyShiftSwapsApiV1HrShiftSwapsMeGetErrorSchema,
-  listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryPageSchema,
-  listMyShiftSwapsApiV1HrShiftSwapsMeGetQuerySizeSchema,
-  listMyShiftSwapsApiV1HrShiftSwapsMeGetResponseSchema,
-  listMyShiftSwapsApiV1HrShiftSwapsMeGetStatus200Schema,
-  listMyShiftSwapsApiV1HrShiftSwapsMeGetStatus422Schema,
-} from "./listMyShiftSwapsApiV1HrShiftSwapsMeGetSchema.js";
-export {
-  listPeriodsApiV1HrRostersPeriodsGetErrorSchema,
-  listPeriodsApiV1HrRostersPeriodsGetQueryDepartmentIdSchema,
-  listPeriodsApiV1HrRostersPeriodsGetQueryPeriodStatusSchema,
-  listPeriodsApiV1HrRostersPeriodsGetResponseSchema,
-  listPeriodsApiV1HrRostersPeriodsGetStatus200Schema,
-  listPeriodsApiV1HrRostersPeriodsGetStatus403Schema,
-  listPeriodsApiV1HrRostersPeriodsGetStatus422Schema,
-} from "./listPeriodsApiV1HrRostersPeriodsGetSchema.js";
-export {
-  listPublicProductsApiV1WxproductsPublicProductsGetErrorSchema,
-  listPublicProductsApiV1WxproductsPublicProductsGetQueryKindSchema,
-  listPublicProductsApiV1WxproductsPublicProductsGetResponseSchema,
-  listPublicProductsApiV1WxproductsPublicProductsGetStatus200Schema,
-  listPublicProductsApiV1WxproductsPublicProductsGetStatus400Schema,
-  listPublicProductsApiV1WxproductsPublicProductsGetStatus422Schema,
-  listPublicProductsApiV1WxproductsPublicProductsGetStatus503Schema,
-} from "./listPublicProductsApiV1WxproductsPublicProductsGetSchema.js";
-export {
-  listRegisterObservationsApiV1EregisterObservationsGetErrorSchema,
-  listRegisterObservationsApiV1EregisterObservationsGetQueryKindSchema,
-  listRegisterObservationsApiV1EregisterObservationsGetQueryLimitSchema,
-  listRegisterObservationsApiV1EregisterObservationsGetQueryStationIdSchema,
-  listRegisterObservationsApiV1EregisterObservationsGetResponseSchema,
-  listRegisterObservationsApiV1EregisterObservationsGetStatus200Schema,
-  listRegisterObservationsApiV1EregisterObservationsGetStatus422Schema,
-} from "./listRegisterObservationsApiV1EregisterObservationsGetSchema.js";
-export {
-  listShiftCatalogApiV1HrRostersShiftsGetErrorSchema,
-  listShiftCatalogApiV1HrRostersShiftsGetQueryIncludeInactiveSchema,
-  listShiftCatalogApiV1HrRostersShiftsGetResponseSchema,
-  listShiftCatalogApiV1HrRostersShiftsGetStatus200Schema,
-  listShiftCatalogApiV1HrRostersShiftsGetStatus403Schema,
-  listShiftCatalogApiV1HrRostersShiftsGetStatus422Schema,
-} from "./listShiftCatalogApiV1HrRostersShiftsGetSchema.js";
-export {
-  loadAviationDraftsApiV1WxproductsAviationDraftsGetErrorSchema,
-  loadAviationDraftsApiV1WxproductsAviationDraftsGetQueryKindSchema,
-  loadAviationDraftsApiV1WxproductsAviationDraftsGetQueryStationSchema,
-  loadAviationDraftsApiV1WxproductsAviationDraftsGetResponseSchema,
-  loadAviationDraftsApiV1WxproductsAviationDraftsGetStatus200Schema,
-  loadAviationDraftsApiV1WxproductsAviationDraftsGetStatus403Schema,
-  loadAviationDraftsApiV1WxproductsAviationDraftsGetStatus422Schema,
-  loadAviationDraftsApiV1WxproductsAviationDraftsGetStatus503Schema,
-} from "./loadAviationDraftsApiV1WxproductsAviationDraftsGetSchema.js";
-export {
-  loadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetErrorSchema,
-  loadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetPathDraftIdSchema,
-  loadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetResponseSchema,
-  loadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetStatus200Schema,
-  loadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetStatus403Schema,
-  loadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetStatus422Schema,
-  loadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetStatus503Schema,
-} from "./loadAviationHistoryApiV1WxproductsAviationDraftsDraftIdHistoryGetSchema.js";
-export {
-  loadHistoryApiV1WxproductsProductsProductIdHistoryGetErrorSchema,
-  loadHistoryApiV1WxproductsProductsProductIdHistoryGetPathProductIdSchema,
-  loadHistoryApiV1WxproductsProductsProductIdHistoryGetResponseSchema,
-  loadHistoryApiV1WxproductsProductsProductIdHistoryGetStatus200Schema,
-  loadHistoryApiV1WxproductsProductsProductIdHistoryGetStatus401Schema,
-  loadHistoryApiV1WxproductsProductsProductIdHistoryGetStatus403Schema,
-  loadHistoryApiV1WxproductsProductsProductIdHistoryGetStatus422Schema,
-  loadHistoryApiV1WxproductsProductsProductIdHistoryGetStatus503Schema,
-} from "./loadHistoryApiV1WxproductsProductsProductIdHistoryGetSchema.js";
-export {
-  loadObservationsApiV1WxproductsObservationsGetErrorSchema,
-  loadObservationsApiV1WxproductsObservationsGetQueryEndSchema,
-  loadObservationsApiV1WxproductsObservationsGetQueryKindSchema,
-  loadObservationsApiV1WxproductsObservationsGetQueryLimitSchema,
-  loadObservationsApiV1WxproductsObservationsGetQueryStartSchema,
-  loadObservationsApiV1WxproductsObservationsGetQueryStationSchema,
-  loadObservationsApiV1WxproductsObservationsGetResponseSchema,
-  loadObservationsApiV1WxproductsObservationsGetStatus200Schema,
-  loadObservationsApiV1WxproductsObservationsGetStatus401Schema,
-  loadObservationsApiV1WxproductsObservationsGetStatus403Schema,
-  loadObservationsApiV1WxproductsObservationsGetStatus422Schema,
-} from "./loadObservationsApiV1WxproductsObservationsGetSchema.js";
-export {
-  loadProductsApiV1WxproductsProductsGetErrorSchema,
-  loadProductsApiV1WxproductsProductsGetQueryIssueDateSchema,
-  loadProductsApiV1WxproductsProductsGetQueryKindSchema,
-  loadProductsApiV1WxproductsProductsGetResponseSchema,
-  loadProductsApiV1WxproductsProductsGetStatus200Schema,
-  loadProductsApiV1WxproductsProductsGetStatus401Schema,
-  loadProductsApiV1WxproductsProductsGetStatus403Schema,
-  loadProductsApiV1WxproductsProductsGetStatus422Schema,
-  loadProductsApiV1WxproductsProductsGetStatus503Schema,
-} from "./loadProductsApiV1WxproductsProductsGetSchema.js";
-export {
-  loginAccessTokenApiV1LoginAccessTokenPostBodySchema,
-  loginAccessTokenApiV1LoginAccessTokenPostErrorSchema,
-  loginAccessTokenApiV1LoginAccessTokenPostResponseSchema,
-  loginAccessTokenApiV1LoginAccessTokenPostStatus200Schema,
-  loginAccessTokenApiV1LoginAccessTokenPostStatus400Schema,
-  loginAccessTokenApiV1LoginAccessTokenPostStatus422Schema,
-  loginAccessTokenApiV1LoginAccessTokenPostStatus429Schema,
-} from "./loginAccessTokenApiV1LoginAccessTokenPostSchema.js";
-export {
-  loginSessionApiV1LoginSessionPostBodySchema,
-  loginSessionApiV1LoginSessionPostErrorSchema,
-  loginSessionApiV1LoginSessionPostResponseSchema,
-  loginSessionApiV1LoginSessionPostStatus200Schema,
-  loginSessionApiV1LoginSessionPostStatus400Schema,
-  loginSessionApiV1LoginSessionPostStatus422Schema,
-  loginSessionApiV1LoginSessionPostStatus429Schema,
-} from "./loginSessionApiV1LoginSessionPostSchema.js";
-export {
-  logoutAllSessionsApiV1LoginSessionLogoutAllPostBodySchema,
-  logoutAllSessionsApiV1LoginSessionLogoutAllPostErrorSchema,
-  logoutAllSessionsApiV1LoginSessionLogoutAllPostResponseSchema,
-  logoutAllSessionsApiV1LoginSessionLogoutAllPostStatus200Schema,
-  logoutAllSessionsApiV1LoginSessionLogoutAllPostStatus422Schema,
-} from "./logoutAllSessionsApiV1LoginSessionLogoutAllPostSchema.js";
-export {
-  logoutSessionApiV1LoginSessionLogoutPostBodySchema,
-  logoutSessionApiV1LoginSessionLogoutPostErrorSchema,
-  logoutSessionApiV1LoginSessionLogoutPostResponseSchema,
-  logoutSessionApiV1LoginSessionLogoutPostStatus200Schema,
-  logoutSessionApiV1LoginSessionLogoutPostStatus422Schema,
-} from "./logoutSessionApiV1LoginSessionLogoutPostSchema.js";
 export { messageSchema } from "./messageSchema.js";
-export {
-  metadataApiV1WxwatchMetadataGetErrorSchema,
-  metadataApiV1WxwatchMetadataGetQueryDaySchema,
-  metadataApiV1WxwatchMetadataGetResponseSchema,
-  metadataApiV1WxwatchMetadataGetStatus200Schema,
-  metadataApiV1WxwatchMetadataGetStatus422Schema,
-} from "./metadataApiV1WxwatchMetadataGetSchema.js";
 export { newPasswordSchema } from "./newPasswordSchema.js";
 export { observationListSchema } from "./observationListSchema.js";
+export { observationProvenancePropertiesPublicationStateEnumSchema } from "./observationProvenancePropertiesPublicationStateEnumSchema.js";
+export { observationProvenancePropertiesTimeBasisEnumSchema } from "./observationProvenancePropertiesTimeBasisEnumSchema.js";
 export { observationProvenanceSchema } from "./observationProvenanceSchema.js";
+export { observationRecordPropertiesKindEnumSchema } from "./observationRecordPropertiesKindEnumSchema.js";
 export { observationRecordSchema } from "./observationRecordSchema.js";
-export {
-  offboardStaffApiV1HrSetupStaffUserIdOffboardPostErrorSchema,
-  offboardStaffApiV1HrSetupStaffUserIdOffboardPostPathUserIdSchema,
-  offboardStaffApiV1HrSetupStaffUserIdOffboardPostResponseSchema,
-  offboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus200Schema,
-  offboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus403Schema,
-  offboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus404Schema,
-  offboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus409Schema,
-  offboardStaffApiV1HrSetupStaffUserIdOffboardPostStatus422Schema,
-} from "./offboardStaffApiV1HrSetupStaffUserIdOffboardPostSchema.js";
 export { organisationCatalogueSchema } from "./organisationCatalogueSchema.js";
 export { organisationPreviewSchema } from "./organisationPreviewSchema.js";
 export { organisationPublicSchema } from "./organisationPublicSchema.js";
@@ -986,79 +1922,23 @@ export { parkingPermitCreateSchema } from "./parkingPermitCreateSchema.js";
 export { parkingPermitIssueSchema } from "./parkingPermitIssueSchema.js";
 export { parkingPermitListPublicSchema } from "./parkingPermitListPublicSchema.js";
 export { parkingPermitPublicSchema } from "./parkingPermitPublicSchema.js";
-export {
-  patchDocumentApiV1HrDocumentsDocumentIdPatchBodySchema,
-  patchDocumentApiV1HrDocumentsDocumentIdPatchErrorSchema,
-  patchDocumentApiV1HrDocumentsDocumentIdPatchPathDocumentIdSchema,
-  patchDocumentApiV1HrDocumentsDocumentIdPatchResponseSchema,
-  patchDocumentApiV1HrDocumentsDocumentIdPatchStatus200Schema,
-  patchDocumentApiV1HrDocumentsDocumentIdPatchStatus400Schema,
-  patchDocumentApiV1HrDocumentsDocumentIdPatchStatus403Schema,
-  patchDocumentApiV1HrDocumentsDocumentIdPatchStatus404Schema,
-  patchDocumentApiV1HrDocumentsDocumentIdPatchStatus422Schema,
-} from "./patchDocumentApiV1HrDocumentsDocumentIdPatchSchema.js";
 export { permissionCreateSchema } from "./permissionCreateSchema.js";
 export { permissionPublicSchema } from "./permissionPublicSchema.js";
 export { personnelStatusSchema } from "./personnelStatusSchema.js";
 export { policyInputSchema } from "./policyInputSchema.js";
 export { policyPublicSchema } from "./policyPublicSchema.js";
 export { positionSpecSchema } from "./positionSpecSchema.js";
-export {
-  previewCatalogueApiV1HrSetupCatalogueGetErrorSchema,
-  previewCatalogueApiV1HrSetupCatalogueGetQueryDepartmentIdSchema,
-  previewCatalogueApiV1HrSetupCatalogueGetResponseSchema,
-  previewCatalogueApiV1HrSetupCatalogueGetStatus200Schema,
-  previewCatalogueApiV1HrSetupCatalogueGetStatus403Schema,
-  previewCatalogueApiV1HrSetupCatalogueGetStatus404Schema,
-  previewCatalogueApiV1HrSetupCatalogueGetStatus409Schema,
-  previewCatalogueApiV1HrSetupCatalogueGetStatus422Schema,
-} from "./previewCatalogueApiV1HrSetupCatalogueGetSchema.js";
-export {
-  previewOrganisationApiV1HrSetupOrganisationGetErrorSchema,
-  previewOrganisationApiV1HrSetupOrganisationGetResponseSchema,
-  previewOrganisationApiV1HrSetupOrganisationGetStatus200Schema,
-  previewOrganisationApiV1HrSetupOrganisationGetStatus401Schema,
-  previewOrganisationApiV1HrSetupOrganisationGetStatus403Schema,
-  previewOrganisationApiV1HrSetupOrganisationGetStatus409Schema,
-} from "./previewOrganisationApiV1HrSetupOrganisationGetSchema.js";
-export {
-  previewProductApiV1WxproductsProductsPreviewPostBodySchema,
-  previewProductApiV1WxproductsProductsPreviewPostErrorSchema,
-  previewProductApiV1WxproductsProductsPreviewPostResponseSchema,
-  previewProductApiV1WxproductsProductsPreviewPostStatus200Schema,
-  previewProductApiV1WxproductsProductsPreviewPostStatus401Schema,
-  previewProductApiV1WxproductsProductsPreviewPostStatus403Schema,
-  previewProductApiV1WxproductsProductsPreviewPostStatus422Schema,
-} from "./previewProductApiV1WxproductsProductsPreviewPostSchema.js";
 export { productAccessCurrentSchema } from "./productAccessCurrentSchema.js";
 export { productAccessInputSchema } from "./productAccessInputSchema.js";
 export { productAccessPublicSchema } from "./productAccessPublicSchema.js";
 export { productFeedErrorSchema } from "./productFeedErrorSchema.js";
 export { productHistoryEntrySchema } from "./productHistoryEntrySchema.js";
 export { productHistorySchema } from "./productHistorySchema.js";
-export {
-  productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetErrorSchema,
-  productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetPathProductIdSchema,
-  productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetPathRevisionSchema,
-  productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetResponseSchema,
-  productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus200Schema,
-  productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus401Schema,
-  productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus403Schema,
-  productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus404Schema,
-  productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus422Schema,
-  productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetStatus503Schema,
-} from "./productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetSchema.js";
 export { profAppointmentTypeSchema } from "./profAppointmentTypeSchema.js";
 export { profileAuditPublicSchema } from "./profileAuditPublicSchema.js";
 export { profileDetailsPublicSchema } from "./profileDetailsPublicSchema.js";
 export { profileDetailsUpdateSchema } from "./profileDetailsUpdateSchema.js";
 export { profileIdentityPublicSchema } from "./profileIdentityPublicSchema.js";
-export {
-  publicForecastApiV1WxproductsPublicForecastGetErrorSchema,
-  publicForecastApiV1WxproductsPublicForecastGetResponseSchema,
-  publicForecastApiV1WxproductsPublicForecastGetStatus200Schema,
-  publicForecastApiV1WxproductsPublicForecastGetStatus503Schema,
-} from "./publicForecastApiV1WxproductsPublicForecastGetSchema.js";
 export { publicForecastSchema } from "./publicForecastSchema.js";
 export { publicHolidayCreateSchema } from "./publicHolidayCreateSchema.js";
 export { publicHolidayPublicSchema } from "./publicHolidayPublicSchema.js";
@@ -1067,594 +1947,17 @@ export { publicPublishedProductSchema } from "./publicPublishedProductSchema.js"
 export { publicWarningGroupSchema } from "./publicWarningGroupSchema.js";
 export { publicWarningSchema } from "./publicWarningSchema.js";
 export { publicWarningsSchema } from "./publicWarningsSchema.js";
-export {
-  publishAlertApiV1CapAlertsAlertIdPublishPostBodySchema,
-  publishAlertApiV1CapAlertsAlertIdPublishPostErrorSchema,
-  publishAlertApiV1CapAlertsAlertIdPublishPostPathAlertIdSchema,
-  publishAlertApiV1CapAlertsAlertIdPublishPostResponseSchema,
-  publishAlertApiV1CapAlertsAlertIdPublishPostStatus200Schema,
-  publishAlertApiV1CapAlertsAlertIdPublishPostStatus422Schema,
-} from "./publishAlertApiV1CapAlertsAlertIdPublishPostSchema.js";
 export { publishedProductsSchema } from "./publishedProductsSchema.js";
-export {
-  publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchErrorSchema,
-  publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchPathPeriodIdSchema,
-  publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchResponseSchema,
-  publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus200Schema,
-  publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus400Schema,
-  publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus403Schema,
-  publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus404Schema,
-  publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchStatus422Schema,
-} from "./publishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatchSchema.js";
-export {
-  readAbsenteeReportsApiV1HrAbsenteeReportsGetErrorSchema,
-  readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryDepartmentIdSchema,
-  readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryPageSchema,
-  readAbsenteeReportsApiV1HrAbsenteeReportsGetQuerySizeSchema,
-  readAbsenteeReportsApiV1HrAbsenteeReportsGetResponseSchema,
-  readAbsenteeReportsApiV1HrAbsenteeReportsGetStatus200Schema,
-  readAbsenteeReportsApiV1HrAbsenteeReportsGetStatus403Schema,
-  readAbsenteeReportsApiV1HrAbsenteeReportsGetStatus422Schema,
-} from "./readAbsenteeReportsApiV1HrAbsenteeReportsGetSchema.js";
-export {
-  readAccessReviewsApiV1AuthAccessReviewsGetErrorSchema,
-  readAccessReviewsApiV1AuthAccessReviewsGetResponseSchema,
-  readAccessReviewsApiV1AuthAccessReviewsGetStatus200Schema,
-  readAccessReviewsApiV1AuthAccessReviewsGetStatus401Schema,
-  readAccessReviewsApiV1AuthAccessReviewsGetStatus403Schema,
-  readAccessReviewsApiV1AuthAccessReviewsGetStatus409Schema,
-} from "./readAccessReviewsApiV1AuthAccessReviewsGetSchema.js";
-export {
-  readAccountSecurityApiV1AuthModernSecurityGetErrorSchema,
-  readAccountSecurityApiV1AuthModernSecurityGetResponseSchema,
-  readAccountSecurityApiV1AuthModernSecurityGetStatus200Schema,
-  readAccountSecurityApiV1AuthModernSecurityGetStatus401Schema,
-  readAccountSecurityApiV1AuthModernSecurityGetStatus403Schema,
-} from "./readAccountSecurityApiV1AuthModernSecurityGetSchema.js";
-export {
-  readActiveMapApiCapActiveMapGetResponseSchema,
-  readActiveMapApiCapActiveMapGetStatus200Schema,
-} from "./readActiveMapApiCapActiveMapGetSchema.js";
-export {
-  readAlertApiV1CapAlertsAlertIdGetErrorSchema,
-  readAlertApiV1CapAlertsAlertIdGetPathAlertIdSchema,
-  readAlertApiV1CapAlertsAlertIdGetResponseSchema,
-  readAlertApiV1CapAlertsAlertIdGetStatus200Schema,
-  readAlertApiV1CapAlertsAlertIdGetStatus422Schema,
-} from "./readAlertApiV1CapAlertsAlertIdGetSchema.js";
-export {
-  readAlertsApiV1CapAlertsGetErrorSchema,
-  readAlertsApiV1CapAlertsGetQueryLifecycleStateSchema,
-  readAlertsApiV1CapAlertsGetQueryPageSchema,
-  readAlertsApiV1CapAlertsGetQuerySizeSchema,
-  readAlertsApiV1CapAlertsGetResponseSchema,
-  readAlertsApiV1CapAlertsGetStatus200Schema,
-  readAlertsApiV1CapAlertsGetStatus422Schema,
-} from "./readAlertsApiV1CapAlertsGetSchema.js";
-export {
-  readAlertsGeojsonApiCapAlertsGeojsonGetResponseSchema,
-  readAlertsGeojsonApiCapAlertsGeojsonGetStatus200Schema,
-} from "./readAlertsGeojsonApiCapAlertsGeojsonGetSchema.js";
-export {
-  readAuditApiV1CapAuditGetErrorSchema,
-  readAuditApiV1CapAuditGetQueryAlertIdSchema,
-  readAuditApiV1CapAuditGetQueryPageSchema,
-  readAuditApiV1CapAuditGetQuerySizeSchema,
-  readAuditApiV1CapAuditGetResponseSchema,
-  readAuditApiV1CapAuditGetStatus200Schema,
-  readAuditApiV1CapAuditGetStatus422Schema,
-} from "./readAuditApiV1CapAuditGetSchema.js";
-export {
-  readCapSettingsApiV1CapSettingsGetResponseSchema,
-  readCapSettingsApiV1CapSettingsGetStatus200Schema,
-} from "./readCapSettingsApiV1CapSettingsGetSchema.js";
-export {
-  readCapXmlApiCapIdentifierXmlGetErrorSchema,
-  readCapXmlApiCapIdentifierXmlGetPathIdentifierSchema,
-  readCapXmlApiCapIdentifierXmlGetResponseSchema,
-  readCapXmlApiCapIdentifierXmlGetStatus200Schema,
-  readCapXmlApiCapIdentifierXmlGetStatus422Schema,
-} from "./readCapXmlApiCapIdentifierXmlGetSchema.js";
-export {
-  readCatalogsApiV1CapCatalogsGetResponseSchema,
-  readCatalogsApiV1CapCatalogsGetStatus200Schema,
-} from "./readCatalogsApiV1CapCatalogsGetSchema.js";
-export {
-  readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetErrorSchema,
-  readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryDepartmentIdSchema,
-  readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQueryPageSchema,
-  readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetQuerySizeSchema,
-  readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetResponseSchema,
-  readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus200Schema,
-  readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus403Schema,
-  readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetStatus422Schema,
-} from "./readDepartmentTimesheetsApiV1HrTimesheetsDepartmentGetSchema.js";
-export {
-  readDocumentApiV1HrDocumentsDocumentIdGetErrorSchema,
-  readDocumentApiV1HrDocumentsDocumentIdGetPathDocumentIdSchema,
-  readDocumentApiV1HrDocumentsDocumentIdGetResponseSchema,
-  readDocumentApiV1HrDocumentsDocumentIdGetStatus200Schema,
-  readDocumentApiV1HrDocumentsDocumentIdGetStatus403Schema,
-  readDocumentApiV1HrDocumentsDocumentIdGetStatus404Schema,
-  readDocumentApiV1HrDocumentsDocumentIdGetStatus422Schema,
-} from "./readDocumentApiV1HrDocumentsDocumentIdGetSchema.js";
-export {
-  readDocumentEmployeesApiV1HrDocumentEmployeesGetErrorSchema,
-  readDocumentEmployeesApiV1HrDocumentEmployeesGetQueryOrganisationIdSchema,
-  readDocumentEmployeesApiV1HrDocumentEmployeesGetQueryPageSchema,
-  readDocumentEmployeesApiV1HrDocumentEmployeesGetQuerySearchSchema,
-  readDocumentEmployeesApiV1HrDocumentEmployeesGetQuerySizeSchema,
-  readDocumentEmployeesApiV1HrDocumentEmployeesGetResponseSchema,
-  readDocumentEmployeesApiV1HrDocumentEmployeesGetStatus200Schema,
-  readDocumentEmployeesApiV1HrDocumentEmployeesGetStatus422Schema,
-} from "./readDocumentEmployeesApiV1HrDocumentEmployeesGetSchema.js";
-export {
-  readDocumentsApiV1HrDocumentsGetErrorSchema,
-  readDocumentsApiV1HrDocumentsGetQueryCategorySchema,
-  readDocumentsApiV1HrDocumentsGetQueryDepartmentIdSchema,
-  readDocumentsApiV1HrDocumentsGetQueryIncludeArchivedSchema,
-  readDocumentsApiV1HrDocumentsGetQueryOrganisationIdSchema,
-  readDocumentsApiV1HrDocumentsGetQueryPageSchema,
-  readDocumentsApiV1HrDocumentsGetQuerySizeSchema,
-  readDocumentsApiV1HrDocumentsGetQueryUserIdSchema,
-  readDocumentsApiV1HrDocumentsGetResponseSchema,
-  readDocumentsApiV1HrDocumentsGetStatus200Schema,
-  readDocumentsApiV1HrDocumentsGetStatus403Schema,
-  readDocumentsApiV1HrDocumentsGetStatus422Schema,
-} from "./readDocumentsApiV1HrDocumentsGetSchema.js";
-export {
-  readEffectiveAccessApiV1AuthAccessMeGetErrorSchema,
-  readEffectiveAccessApiV1AuthAccessMeGetResponseSchema,
-  readEffectiveAccessApiV1AuthAccessMeGetStatus200Schema,
-  readEffectiveAccessApiV1AuthAccessMeGetStatus401Schema,
-  readEffectiveAccessApiV1AuthAccessMeGetStatus403Schema,
-  readEffectiveAccessApiV1AuthAccessMeGetStatus409Schema,
-} from "./readEffectiveAccessApiV1AuthAccessMeGetSchema.js";
-export {
-  readFeedsApiV1CapFeedsGetResponseSchema,
-  readFeedsApiV1CapFeedsGetStatus200Schema,
-} from "./readFeedsApiV1CapFeedsGetSchema.js";
-export {
-  readHazardProfilesApiV1CapHazardProfilesGetResponseSchema,
-  readHazardProfilesApiV1CapHazardProfilesGetStatus200Schema,
-} from "./readHazardProfilesApiV1CapHazardProfilesGetSchema.js";
-export {
-  readHrDashboardApiV1HrDashboardGetErrorSchema,
-  readHrDashboardApiV1HrDashboardGetResponseSchema,
-  readHrDashboardApiV1HrDashboardGetStatus200Schema,
-  readHrDashboardApiV1HrDashboardGetStatus401Schema,
-  readHrDashboardApiV1HrDashboardGetStatus403Schema,
-} from "./readHrDashboardApiV1HrDashboardGetSchema.js";
-export {
-  readHrEmploymentApiV1HrEmploymentUserIdGetErrorSchema,
-  readHrEmploymentApiV1HrEmploymentUserIdGetPathUserIdSchema,
-  readHrEmploymentApiV1HrEmploymentUserIdGetResponseSchema,
-  readHrEmploymentApiV1HrEmploymentUserIdGetStatus200Schema,
-  readHrEmploymentApiV1HrEmploymentUserIdGetStatus403Schema,
-  readHrEmploymentApiV1HrEmploymentUserIdGetStatus404Schema,
-  readHrEmploymentApiV1HrEmploymentUserIdGetStatus422Schema,
-} from "./readHrEmploymentApiV1HrEmploymentUserIdGetSchema.js";
-export {
-  readHrProfileMeApiV1HrProfileMeGetErrorSchema,
-  readHrProfileMeApiV1HrProfileMeGetResponseSchema,
-  readHrProfileMeApiV1HrProfileMeGetStatus200Schema,
-  readHrProfileMeApiV1HrProfileMeGetStatus404Schema,
-} from "./readHrProfileMeApiV1HrProfileMeGetSchema.js";
-export {
-  readInboxApiV1HrWorkflowsInstancesInboxGetErrorSchema,
-  readInboxApiV1HrWorkflowsInstancesInboxGetResponseSchema,
-  readInboxApiV1HrWorkflowsInstancesInboxGetStatus200Schema,
-  readInboxApiV1HrWorkflowsInstancesInboxGetStatus403Schema,
-} from "./readInboxApiV1HrWorkflowsInstancesInboxGetSchema.js";
-export {
-  readInstanceApiV1HrWorkflowsInstancesInstanceIdGetErrorSchema,
-  readInstanceApiV1HrWorkflowsInstancesInstanceIdGetPathInstanceIdSchema,
-  readInstanceApiV1HrWorkflowsInstancesInstanceIdGetResponseSchema,
-  readInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus200Schema,
-  readInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus403Schema,
-  readInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus404Schema,
-  readInstanceApiV1HrWorkflowsInstancesInstanceIdGetStatus422Schema,
-} from "./readInstanceApiV1HrWorkflowsInstancesInstanceIdGetSchema.js";
-export {
-  readIntegrationsApiV1CapIntegrationsGetResponseSchema,
-  readIntegrationsApiV1CapIntegrationsGetStatus200Schema,
-} from "./readIntegrationsApiV1CapIntegrationsGetSchema.js";
-export {
-  readMyLeaveRequestsApiV1HrLeaveRequestsMeGetErrorSchema,
-  readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryPageSchema,
-  readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQuerySizeSchema,
-  readMyLeaveRequestsApiV1HrLeaveRequestsMeGetResponseSchema,
-  readMyLeaveRequestsApiV1HrLeaveRequestsMeGetStatus200Schema,
-  readMyLeaveRequestsApiV1HrLeaveRequestsMeGetStatus422Schema,
-} from "./readMyLeaveRequestsApiV1HrLeaveRequestsMeGetSchema.js";
-export {
-  readMySignatureApiV1HrSignatureMeGetErrorSchema,
-  readMySignatureApiV1HrSignatureMeGetResponseSchema,
-  readMySignatureApiV1HrSignatureMeGetStatus200Schema,
-  readMySignatureApiV1HrSignatureMeGetStatus400Schema,
-  readMySignatureApiV1HrSignatureMeGetStatus401Schema,
-} from "./readMySignatureApiV1HrSignatureMeGetSchema.js";
-export {
-  readMySignedDocumentsApiV1HrSignedDocumentsMeGetErrorSchema,
-  readMySignedDocumentsApiV1HrSignedDocumentsMeGetQueryPageSchema,
-  readMySignedDocumentsApiV1HrSignedDocumentsMeGetQuerySizeSchema,
-  readMySignedDocumentsApiV1HrSignedDocumentsMeGetResponseSchema,
-  readMySignedDocumentsApiV1HrSignedDocumentsMeGetStatus200Schema,
-  readMySignedDocumentsApiV1HrSignedDocumentsMeGetStatus400Schema,
-  readMySignedDocumentsApiV1HrSignedDocumentsMeGetStatus401Schema,
-  readMySignedDocumentsApiV1HrSignedDocumentsMeGetStatus422Schema,
-} from "./readMySignedDocumentsApiV1HrSignedDocumentsMeGetSchema.js";
-export {
-  readMyTimesheetsApiV1HrTimesheetsMeGetErrorSchema,
-  readMyTimesheetsApiV1HrTimesheetsMeGetQueryPageSchema,
-  readMyTimesheetsApiV1HrTimesheetsMeGetQuerySizeSchema,
-  readMyTimesheetsApiV1HrTimesheetsMeGetResponseSchema,
-  readMyTimesheetsApiV1HrTimesheetsMeGetStatus200Schema,
-  readMyTimesheetsApiV1HrTimesheetsMeGetStatus422Schema,
-} from "./readMyTimesheetsApiV1HrTimesheetsMeGetSchema.js";
-export {
-  readOrganisationCatalogueApiV1HrOrganisationGetErrorSchema,
-  readOrganisationCatalogueApiV1HrOrganisationGetResponseSchema,
-  readOrganisationCatalogueApiV1HrOrganisationGetStatus200Schema,
-  readOrganisationCatalogueApiV1HrOrganisationGetStatus401Schema,
-  readOrganisationCatalogueApiV1HrOrganisationGetStatus403Schema,
-  readOrganisationCatalogueApiV1HrOrganisationGetStatus409Schema,
-} from "./readOrganisationCatalogueApiV1HrOrganisationGetSchema.js";
-export {
-  readOrganisationsApiV1HrOrganisationsGetResponseSchema,
-  readOrganisationsApiV1HrOrganisationsGetStatus200Schema,
-} from "./readOrganisationsApiV1HrOrganisationsGetSchema.js";
-export {
-  readParkingPermitsApiV1HrParkingPermitsGetErrorSchema,
-  readParkingPermitsApiV1HrParkingPermitsGetQueryDepartmentIdSchema,
-  readParkingPermitsApiV1HrParkingPermitsGetQueryPageSchema,
-  readParkingPermitsApiV1HrParkingPermitsGetQuerySizeSchema,
-  readParkingPermitsApiV1HrParkingPermitsGetResponseSchema,
-  readParkingPermitsApiV1HrParkingPermitsGetStatus200Schema,
-  readParkingPermitsApiV1HrParkingPermitsGetStatus403Schema,
-  readParkingPermitsApiV1HrParkingPermitsGetStatus422Schema,
-} from "./readParkingPermitsApiV1HrParkingPermitsGetSchema.js";
-export {
-  readPermissionApiV1AuthPermissionsPermissionIdGetErrorSchema,
-  readPermissionApiV1AuthPermissionsPermissionIdGetPathPermissionIdSchema,
-  readPermissionApiV1AuthPermissionsPermissionIdGetResponseSchema,
-  readPermissionApiV1AuthPermissionsPermissionIdGetStatus200Schema,
-  readPermissionApiV1AuthPermissionsPermissionIdGetStatus404Schema,
-  readPermissionApiV1AuthPermissionsPermissionIdGetStatus422Schema,
-} from "./readPermissionApiV1AuthPermissionsPermissionIdGetSchema.js";
-export {
-  readPermissionsApiV1AuthPermissionsGetErrorSchema,
-  readPermissionsApiV1AuthPermissionsGetQueryPageSchema,
-  readPermissionsApiV1AuthPermissionsGetQuerySizeSchema,
-  readPermissionsApiV1AuthPermissionsGetResponseSchema,
-  readPermissionsApiV1AuthPermissionsGetStatus200Schema,
-  readPermissionsApiV1AuthPermissionsGetStatus422Schema,
-} from "./readPermissionsApiV1AuthPermissionsGetSchema.js";
-export {
-  readPredefinedAreasApiV1CapAreasPredefinedGetResponseSchema,
-  readPredefinedAreasApiV1CapAreasPredefinedGetStatus200Schema,
-} from "./readPredefinedAreasApiV1CapAreasPredefinedGetSchema.js";
-export {
-  readProductAccessApiV1HrProductAccessMeGetErrorSchema,
-  readProductAccessApiV1HrProductAccessMeGetResponseSchema,
-  readProductAccessApiV1HrProductAccessMeGetStatus200Schema,
-  readProductAccessApiV1HrProductAccessMeGetStatus403Schema,
-  readProductAccessApiV1HrProductAccessMeGetStatus404Schema,
-  readProductAccessApiV1HrProductAccessMeGetStatus409Schema,
-} from "./readProductAccessApiV1HrProductAccessMeGetSchema.js";
-export {
-  readProductPoliciesApiV1HrSetupProductAccessGetErrorSchema,
-  readProductPoliciesApiV1HrSetupProductAccessGetResponseSchema,
-  readProductPoliciesApiV1HrSetupProductAccessGetStatus200Schema,
-  readProductPoliciesApiV1HrSetupProductAccessGetStatus403Schema,
-  readProductPoliciesApiV1HrSetupProductAccessGetStatus404Schema,
-  readProductPoliciesApiV1HrSetupProductAccessGetStatus409Schema,
-} from "./readProductPoliciesApiV1HrSetupProductAccessGetSchema.js";
-export {
-  readPublicAlertApiCapAlertsIdentifierGetErrorSchema,
-  readPublicAlertApiCapAlertsIdentifierGetPathIdentifierSchema,
-  readPublicAlertApiCapAlertsIdentifierGetResponseSchema,
-  readPublicAlertApiCapAlertsIdentifierGetStatus200Schema,
-  readPublicAlertApiCapAlertsIdentifierGetStatus422Schema,
-} from "./readPublicAlertApiCapAlertsIdentifierGetSchema.js";
-export {
-  readPublicAlertsApiCapAlertsGetResponseSchema,
-  readPublicAlertsApiCapAlertsGetStatus200Schema,
-} from "./readPublicAlertsApiCapAlertsGetSchema.js";
-export {
-  readPublicLatestActiveApiCapLatestActiveGetResponseSchema,
-  readPublicLatestActiveApiCapLatestActiveGetStatus200Schema,
-} from "./readPublicLatestActiveApiCapLatestActiveGetSchema.js";
-export {
-  readPublicPastAlertsApiCapPastGetResponseSchema,
-  readPublicPastAlertsApiCapPastGetStatus200Schema,
-} from "./readPublicPastAlertsApiCapPastGetSchema.js";
-export {
-  readPublicWarningsApiCapWarningsGetErrorSchema,
-  readPublicWarningsApiCapWarningsGetResponseSchema,
-  readPublicWarningsApiCapWarningsGetStatus200Schema,
-  readPublicWarningsApiCapWarningsGetStatus503Schema,
-} from "./readPublicWarningsApiCapWarningsGetSchema.js";
-export {
-  readRoleApiV1AuthRolesRoleIdGetErrorSchema,
-  readRoleApiV1AuthRolesRoleIdGetPathRoleIdSchema,
-  readRoleApiV1AuthRolesRoleIdGetResponseSchema,
-  readRoleApiV1AuthRolesRoleIdGetStatus200Schema,
-  readRoleApiV1AuthRolesRoleIdGetStatus404Schema,
-  readRoleApiV1AuthRolesRoleIdGetStatus422Schema,
-} from "./readRoleApiV1AuthRolesRoleIdGetSchema.js";
-export {
-  readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetErrorSchema,
-  readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetPathAssignmentIdSchema,
-  readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetResponseSchema,
-  readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus200Schema,
-  readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus404Schema,
-  readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetStatus422Schema,
-} from "./readRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdGetSchema.js";
-export {
-  readRoleAssignmentsApiV1AuthRoleAssignmentsGetErrorSchema,
-  readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryUserIdSchema,
-  readRoleAssignmentsApiV1AuthRoleAssignmentsGetResponseSchema,
-  readRoleAssignmentsApiV1AuthRoleAssignmentsGetStatus200Schema,
-  readRoleAssignmentsApiV1AuthRoleAssignmentsGetStatus422Schema,
-} from "./readRoleAssignmentsApiV1AuthRoleAssignmentsGetSchema.js";
-export {
-  readRoleConfigurationApiV1HrSetupRolesGetErrorSchema,
-  readRoleConfigurationApiV1HrSetupRolesGetResponseSchema,
-  readRoleConfigurationApiV1HrSetupRolesGetStatus200Schema,
-  readRoleConfigurationApiV1HrSetupRolesGetStatus403Schema,
-  readRoleConfigurationApiV1HrSetupRolesGetStatus404Schema,
-  readRoleConfigurationApiV1HrSetupRolesGetStatus409Schema,
-} from "./readRoleConfigurationApiV1HrSetupRolesGetSchema.js";
-export {
-  readRolesApiV1AuthRolesGetErrorSchema,
-  readRolesApiV1AuthRolesGetQueryPageSchema,
-  readRolesApiV1AuthRolesGetQuerySizeSchema,
-  readRolesApiV1AuthRolesGetResponseSchema,
-  readRolesApiV1AuthRolesGetStatus200Schema,
-  readRolesApiV1AuthRolesGetStatus422Schema,
-} from "./readRolesApiV1AuthRolesGetSchema.js";
-export {
-  readRssApiCapRssXmlGetResponseSchema,
-  readRssApiCapRssXmlGetStatus200Schema,
-} from "./readRssApiCapRssXmlGetSchema.js";
-export {
-  readSetupGradesApiV1HrSetupGradesGetErrorSchema,
-  readSetupGradesApiV1HrSetupGradesGetResponseSchema,
-  readSetupGradesApiV1HrSetupGradesGetStatus200Schema,
-  readSetupGradesApiV1HrSetupGradesGetStatus403Schema,
-  readSetupGradesApiV1HrSetupGradesGetStatus404Schema,
-  readSetupGradesApiV1HrSetupGradesGetStatus409Schema,
-} from "./readSetupGradesApiV1HrSetupGradesGetSchema.js";
-export {
-  readSetupPoliciesApiV1HrSetupPoliciesGetErrorSchema,
-  readSetupPoliciesApiV1HrSetupPoliciesGetResponseSchema,
-  readSetupPoliciesApiV1HrSetupPoliciesGetStatus200Schema,
-  readSetupPoliciesApiV1HrSetupPoliciesGetStatus403Schema,
-  readSetupPoliciesApiV1HrSetupPoliciesGetStatus404Schema,
-  readSetupPoliciesApiV1HrSetupPoliciesGetStatus409Schema,
-} from "./readSetupPoliciesApiV1HrSetupPoliciesGetSchema.js";
-export {
-  readStaffCardApiV1HrStaffCardMeGetErrorSchema,
-  readStaffCardApiV1HrStaffCardMeGetResponseSchema,
-  readStaffCardApiV1HrStaffCardMeGetStatus200Schema,
-  readStaffCardApiV1HrStaffCardMeGetStatus403Schema,
-  readStaffCardApiV1HrStaffCardMeGetStatus404Schema,
-  readStaffCardApiV1HrStaffCardMeGetStatus409Schema,
-} from "./readStaffCardApiV1HrStaffCardMeGetSchema.js";
-export {
-  readStaffSetupApiV1HrSetupStaffGetErrorSchema,
-  readStaffSetupApiV1HrSetupStaffGetResponseSchema,
-  readStaffSetupApiV1HrSetupStaffGetStatus200Schema,
-  readStaffSetupApiV1HrSetupStaffGetStatus403Schema,
-  readStaffSetupApiV1HrSetupStaffGetStatus404Schema,
-  readStaffSetupApiV1HrSetupStaffGetStatus409Schema,
-} from "./readStaffSetupApiV1HrSetupStaffGetSchema.js";
-export {
-  readStatusReportApiV1HrStatusReportsReportIdGetErrorSchema,
-  readStatusReportApiV1HrStatusReportsReportIdGetPathReportIdSchema,
-  readStatusReportApiV1HrStatusReportsReportIdGetResponseSchema,
-  readStatusReportApiV1HrStatusReportsReportIdGetStatus200Schema,
-  readStatusReportApiV1HrStatusReportsReportIdGetStatus403Schema,
-  readStatusReportApiV1HrStatusReportsReportIdGetStatus404Schema,
-  readStatusReportApiV1HrStatusReportsReportIdGetStatus422Schema,
-} from "./readStatusReportApiV1HrStatusReportsReportIdGetSchema.js";
-export {
-  readStatusReportsApiV1HrStatusReportsGetErrorSchema,
-  readStatusReportsApiV1HrStatusReportsGetQueryDepartmentIdSchema,
-  readStatusReportsApiV1HrStatusReportsGetQueryPageSchema,
-  readStatusReportsApiV1HrStatusReportsGetQuerySizeSchema,
-  readStatusReportsApiV1HrStatusReportsGetResponseSchema,
-  readStatusReportsApiV1HrStatusReportsGetStatus200Schema,
-  readStatusReportsApiV1HrStatusReportsGetStatus403Schema,
-  readStatusReportsApiV1HrStatusReportsGetStatus422Schema,
-} from "./readStatusReportsApiV1HrStatusReportsGetSchema.js";
-export {
-  readTemplatesApiV1HrWorkflowsTemplatesGetErrorSchema,
-  readTemplatesApiV1HrWorkflowsTemplatesGetQueryDepartmentIdSchema,
-  readTemplatesApiV1HrWorkflowsTemplatesGetResponseSchema,
-  readTemplatesApiV1HrWorkflowsTemplatesGetStatus200Schema,
-  readTemplatesApiV1HrWorkflowsTemplatesGetStatus403Schema,
-  readTemplatesApiV1HrWorkflowsTemplatesGetStatus422Schema,
-} from "./readTemplatesApiV1HrWorkflowsTemplatesGetSchema.js";
-export {
-  readTimesheetApiV1HrTimesheetsTimesheetIdGetErrorSchema,
-  readTimesheetApiV1HrTimesheetsTimesheetIdGetPathTimesheetIdSchema,
-  readTimesheetApiV1HrTimesheetsTimesheetIdGetResponseSchema,
-  readTimesheetApiV1HrTimesheetsTimesheetIdGetStatus200Schema,
-  readTimesheetApiV1HrTimesheetsTimesheetIdGetStatus403Schema,
-  readTimesheetApiV1HrTimesheetsTimesheetIdGetStatus404Schema,
-  readTimesheetApiV1HrTimesheetsTimesheetIdGetStatus422Schema,
-} from "./readTimesheetApiV1HrTimesheetsTimesheetIdGetSchema.js";
-export {
-  readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetErrorSchema,
-  readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetPathTimesheetIdSchema,
-  readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetResponseSchema,
-  readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus200Schema,
-  readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus403Schema,
-  readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus404Schema,
-  readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetStatus422Schema,
-} from "./readTimesheetSummaryApiV1HrTimesheetsTimesheetIdSummaryGetSchema.js";
-export {
-  readTrainingEmployeesApiV1HrTrainingEmployeesGetErrorSchema,
-  readTrainingEmployeesApiV1HrTrainingEmployeesGetQueryOrganisationIdSchema,
-  readTrainingEmployeesApiV1HrTrainingEmployeesGetQueryPageSchema,
-  readTrainingEmployeesApiV1HrTrainingEmployeesGetQuerySearchSchema,
-  readTrainingEmployeesApiV1HrTrainingEmployeesGetQuerySizeSchema,
-  readTrainingEmployeesApiV1HrTrainingEmployeesGetResponseSchema,
-  readTrainingEmployeesApiV1HrTrainingEmployeesGetStatus200Schema,
-  readTrainingEmployeesApiV1HrTrainingEmployeesGetStatus403Schema,
-  readTrainingEmployeesApiV1HrTrainingEmployeesGetStatus422Schema,
-} from "./readTrainingEmployeesApiV1HrTrainingEmployeesGetSchema.js";
-export {
-  readTrainingRecordsApiV1HrTrainingRecordsGetErrorSchema,
-  readTrainingRecordsApiV1HrTrainingRecordsGetQueryIncludeArchivedSchema,
-  readTrainingRecordsApiV1HrTrainingRecordsGetQueryOrganisationIdSchema,
-  readTrainingRecordsApiV1HrTrainingRecordsGetQueryPageSchema,
-  readTrainingRecordsApiV1HrTrainingRecordsGetQuerySizeSchema,
-  readTrainingRecordsApiV1HrTrainingRecordsGetQueryUserIdSchema,
-  readTrainingRecordsApiV1HrTrainingRecordsGetResponseSchema,
-  readTrainingRecordsApiV1HrTrainingRecordsGetStatus200Schema,
-  readTrainingRecordsApiV1HrTrainingRecordsGetStatus403Schema,
-  readTrainingRecordsApiV1HrTrainingRecordsGetStatus422Schema,
-} from "./readTrainingRecordsApiV1HrTrainingRecordsGetSchema.js";
-export {
-  readUserByIdApiV1AuthUsersUserIdGetErrorSchema,
-  readUserByIdApiV1AuthUsersUserIdGetPathUserIdSchema,
-  readUserByIdApiV1AuthUsersUserIdGetResponseSchema,
-  readUserByIdApiV1AuthUsersUserIdGetStatus200Schema,
-  readUserByIdApiV1AuthUsersUserIdGetStatus403Schema,
-  readUserByIdApiV1AuthUsersUserIdGetStatus422Schema,
-} from "./readUserByIdApiV1AuthUsersUserIdGetSchema.js";
-export {
-  readUserMeApiV1AuthUsersMeGetResponseSchema,
-  readUserMeApiV1AuthUsersMeGetStatus200Schema,
-} from "./readUserMeApiV1AuthUsersMeGetSchema.js";
-export {
-  readUsersApiV1AuthUsersGetErrorSchema,
-  readUsersApiV1AuthUsersGetQueryPageSchema,
-  readUsersApiV1AuthUsersGetQuerySizeSchema,
-  readUsersApiV1AuthUsersGetResponseSchema,
-  readUsersApiV1AuthUsersGetStatus200Schema,
-  readUsersApiV1AuthUsersGetStatus422Schema,
-} from "./readUsersApiV1AuthUsersGetSchema.js";
-export {
-  readWorkflowConfigurationApiV1HrSetupWorkflowsGetErrorSchema,
-  readWorkflowConfigurationApiV1HrSetupWorkflowsGetResponseSchema,
-  readWorkflowConfigurationApiV1HrSetupWorkflowsGetStatus200Schema,
-  readWorkflowConfigurationApiV1HrSetupWorkflowsGetStatus401Schema,
-  readWorkflowConfigurationApiV1HrSetupWorkflowsGetStatus403Schema,
-  readWorkflowConfigurationApiV1HrSetupWorkflowsGetStatus409Schema,
-} from "./readWorkflowConfigurationApiV1HrSetupWorkflowsGetSchema.js";
-export {
-  readyApiV1UtilsReadyGetErrorSchema,
-  readyApiV1UtilsReadyGetResponseSchema,
-  readyApiV1UtilsReadyGetStatus200Schema,
-  readyApiV1UtilsReadyGetStatus503Schema,
-} from "./readyApiV1UtilsReadyGetSchema.js";
-export {
-  readyApiV1WxwatchReadyGetResponseSchema,
-  readyApiV1WxwatchReadyGetStatus204Schema,
-} from "./readyApiV1WxwatchReadyGetSchema.js";
-export {
-  recordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostBodySchema,
-  recordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostErrorSchema,
-  recordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostPathAssignmentIdSchema,
-  recordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostResponseSchema,
-  recordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostStatus201Schema,
-  recordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostStatus401Schema,
-  recordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostStatus403Schema,
-  recordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostStatus409Schema,
-  recordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostStatus422Schema,
-} from "./recordAccessReviewApiV1AuthAccessReviewsAssignmentIdPostSchema.js";
-export {
-  recoverPasswordApiV1PasswordRecoveryEmailPostErrorSchema,
-  recoverPasswordApiV1PasswordRecoveryEmailPostPathEmailSchema,
-  recoverPasswordApiV1PasswordRecoveryEmailPostResponseSchema,
-  recoverPasswordApiV1PasswordRecoveryEmailPostStatus200Schema,
-  recoverPasswordApiV1PasswordRecoveryEmailPostStatus422Schema,
-  recoverPasswordApiV1PasswordRecoveryEmailPostStatus429Schema,
-} from "./recoverPasswordApiV1PasswordRecoveryEmailPostSchema.js";
-export {
-  recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostErrorSchema,
-  recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostPathEmailSchema,
-  recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostResponseSchema,
-  recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus200Schema,
-  recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostStatus422Schema,
-} from "./recoverPasswordHtmlContentApiV1PasswordRecoveryHtmlContentEmailPostSchema.js";
 export { recoveryCodesPublicSchema } from "./recoveryCodesPublicSchema.js";
-export {
-  refreshSessionApiV1LoginSessionRefreshPostBodySchema,
-  refreshSessionApiV1LoginSessionRefreshPostErrorSchema,
-  refreshSessionApiV1LoginSessionRefreshPostResponseSchema,
-  refreshSessionApiV1LoginSessionRefreshPostStatus200Schema,
-  refreshSessionApiV1LoginSessionRefreshPostStatus422Schema,
-} from "./refreshSessionApiV1LoginSessionRefreshPostSchema.js";
-export {
-  registerDerivationApiV1WxwatchDerivationsPostBodySchema,
-  registerDerivationApiV1WxwatchDerivationsPostErrorSchema,
-  registerDerivationApiV1WxwatchDerivationsPostHeaderAuthorizationSchema,
-  registerDerivationApiV1WxwatchDerivationsPostResponseSchema,
-  registerDerivationApiV1WxwatchDerivationsPostStatus200Schema,
-  registerDerivationApiV1WxwatchDerivationsPostStatus422Schema,
-} from "./registerDerivationApiV1WxwatchDerivationsPostSchema.js";
 export { registerObservationCreateSchema } from "./registerObservationCreateSchema.js";
 export { registerObservationListSchema } from "./registerObservationListSchema.js";
+export { registerObservationReadPropertiesStateEnumSchema } from "./registerObservationReadPropertiesStateEnumSchema.js";
 export { registerObservationReadSchema } from "./registerObservationReadSchema.js";
-export {
-  registerUserApiV1AuthUsersSignupPostBodySchema,
-  registerUserApiV1AuthUsersSignupPostErrorSchema,
-  registerUserApiV1AuthUsersSignupPostResponseSchema,
-  registerUserApiV1AuthUsersSignupPostStatus201Schema,
-  registerUserApiV1AuthUsersSignupPostStatus400Schema,
-  registerUserApiV1AuthUsersSignupPostStatus422Schema,
-} from "./registerUserApiV1AuthUsersSignupPostSchema.js";
-export {
-  removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteErrorSchema,
-  removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeletePathHolidayIdSchema,
-  removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteResponseSchema,
-  removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus204Schema,
-  removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus403Schema,
-  removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus404Schema,
-  removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteStatus422Schema,
-} from "./removeHolidayApiV1HrRostersPublicHolidaysHolidayIdDeleteSchema.js";
-export {
-  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostBodySchema,
-  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostErrorSchema,
-  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostResponseSchema,
-  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus200Schema,
-  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus400Schema,
-  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostStatus422Schema,
-} from "./replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPostSchema.js";
 export { requestStatusSchema } from "./requestStatusSchema.js";
-export {
-  resetPasswordApiV1ResetPasswordPostBodySchema,
-  resetPasswordApiV1ResetPasswordPostErrorSchema,
-  resetPasswordApiV1ResetPasswordPostResponseSchema,
-  resetPasswordApiV1ResetPasswordPostStatus200Schema,
-  resetPasswordApiV1ResetPasswordPostStatus422Schema,
-  resetPasswordApiV1ResetPasswordPostStatus429Schema,
-} from "./resetPasswordApiV1ResetPasswordPostSchema.js";
-export {
-  retrievalsApiV1WxwatchArchiveEditionIdRetrievalsGetErrorSchema,
-  retrievalsApiV1WxwatchArchiveEditionIdRetrievalsGetPathEditionIdSchema,
-  retrievalsApiV1WxwatchArchiveEditionIdRetrievalsGetQueryLimitSchema,
-  retrievalsApiV1WxwatchArchiveEditionIdRetrievalsGetQueryOffsetSchema,
-  retrievalsApiV1WxwatchArchiveEditionIdRetrievalsGetResponseSchema,
-  retrievalsApiV1WxwatchArchiveEditionIdRetrievalsGetStatus200Schema,
-  retrievalsApiV1WxwatchArchiveEditionIdRetrievalsGetStatus422Schema,
-} from "./retrievalsApiV1WxwatchArchiveEditionIdRetrievalsGetSchema.js";
 export { reviewAssignmentSchema } from "./reviewAssignmentSchema.js";
+export { reviewInputPropertiesDecisionEnumSchema } from "./reviewInputPropertiesDecisionEnumSchema.js";
 export { reviewInputSchema } from "./reviewInputSchema.js";
 export { reviewPublicSchema } from "./reviewPublicSchema.js";
-export {
-  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteErrorSchema,
-  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeletePathSessionIdSchema,
-  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteResponseSchema,
-  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus200Schema,
-  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus404Schema,
-  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteStatus422Schema,
-} from "./revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDeleteSchema.js";
 export { roleAssignmentScopeSchema } from "./roleAssignmentScopeSchema.js";
 export { roleConfigurationSchema } from "./roleConfigurationSchema.js";
 export { roleCreateSchema } from "./roleCreateSchema.js";
@@ -1683,58 +1986,11 @@ export { rosterRevisionActionSchema } from "./rosterRevisionActionSchema.js";
 export { rosterRevisionPublicSchema } from "./rosterRevisionPublicSchema.js";
 export { rosterRevisionsPublicSchema } from "./rosterRevisionsPublicSchema.js";
 export { routeViewSchema } from "./routeViewSchema.js";
+export { runFinishPropertiesStatusEnumSchema } from "./runFinishPropertiesStatusEnumSchema.js";
 export { runFinishSchema } from "./runFinishSchema.js";
+export { runInputPropertiesSourceEnumSchema } from "./runInputPropertiesSourceEnumSchema.js";
 export { runInputSchema } from "./runInputSchema.js";
 export { runResultSchema } from "./runResultSchema.js";
-export {
-  saveAviationDraftApiV1WxproductsAviationDraftsPostBodySchema,
-  saveAviationDraftApiV1WxproductsAviationDraftsPostErrorSchema,
-  saveAviationDraftApiV1WxproductsAviationDraftsPostResponseSchema,
-  saveAviationDraftApiV1WxproductsAviationDraftsPostStatus200Schema,
-  saveAviationDraftApiV1WxproductsAviationDraftsPostStatus403Schema,
-  saveAviationDraftApiV1WxproductsAviationDraftsPostStatus409Schema,
-  saveAviationDraftApiV1WxproductsAviationDraftsPostStatus422Schema,
-  saveAviationDraftApiV1WxproductsAviationDraftsPostStatus503Schema,
-} from "./saveAviationDraftApiV1WxproductsAviationDraftsPostSchema.js";
-export {
-  saveHazardProfileApiV1CapHazardProfilesKeyVersionsPostBodySchema,
-  saveHazardProfileApiV1CapHazardProfilesKeyVersionsPostErrorSchema,
-  saveHazardProfileApiV1CapHazardProfilesKeyVersionsPostPathKeySchema,
-  saveHazardProfileApiV1CapHazardProfilesKeyVersionsPostResponseSchema,
-  saveHazardProfileApiV1CapHazardProfilesKeyVersionsPostStatus201Schema,
-  saveHazardProfileApiV1CapHazardProfilesKeyVersionsPostStatus422Schema,
-} from "./saveHazardProfileApiV1CapHazardProfilesKeyVersionsPostSchema.js";
-export {
-  saveMySignatureApiV1HrSignatureMePutBodySchema,
-  saveMySignatureApiV1HrSignatureMePutErrorSchema,
-  saveMySignatureApiV1HrSignatureMePutResponseSchema,
-  saveMySignatureApiV1HrSignatureMePutStatus200Schema,
-  saveMySignatureApiV1HrSignatureMePutStatus400Schema,
-  saveMySignatureApiV1HrSignatureMePutStatus401Schema,
-  saveMySignatureApiV1HrSignatureMePutStatus422Schema,
-} from "./saveMySignatureApiV1HrSignatureMePutSchema.js";
-export {
-  saveProductApiV1WxproductsProductsPostBodySchema,
-  saveProductApiV1WxproductsProductsPostErrorSchema,
-  saveProductApiV1WxproductsProductsPostResponseSchema,
-  saveProductApiV1WxproductsProductsPostStatus200Schema,
-  saveProductApiV1WxproductsProductsPostStatus401Schema,
-  saveProductApiV1WxproductsProductsPostStatus403Schema,
-  saveProductApiV1WxproductsProductsPostStatus409Schema,
-  saveProductApiV1WxproductsProductsPostStatus422Schema,
-  saveProductApiV1WxproductsProductsPostStatus503Schema,
-} from "./saveProductApiV1WxproductsProductsPostSchema.js";
-export {
-  saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutBodySchema,
-  saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutErrorSchema,
-  saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutPathTemplateIdSchema,
-  saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutResponseSchema,
-  saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutStatus200Schema,
-  saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutStatus401Schema,
-  saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutStatus403Schema,
-  saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutStatus409Schema,
-  saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutStatus422Schema,
-} from "./saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPutSchema.js";
 export { sectionViewSchema } from "./sectionViewSchema.js";
 export { securityProofSchema } from "./securityProofSchema.js";
 export { securitySessionPublicSchema } from "./securitySessionPublicSchema.js";
@@ -1762,27 +2018,11 @@ export { signatureInputSchema } from "./signatureInputSchema.js";
 export { signaturePublicSchema } from "./signaturePublicSchema.js";
 export { signedDocumentListSchema } from "./signedDocumentListSchema.js";
 export { signedDocumentPublicSchema } from "./signedDocumentPublicSchema.js";
-export {
-  specApiV1JanitorialSpecGetResponseSchema,
-  specApiV1JanitorialSpecGetStatus200Schema,
-} from "./specApiV1JanitorialSpecGetSchema.js";
-export {
-  specApiV1TransportSpecGetResponseSchema,
-  specApiV1TransportSpecGetStatus200Schema,
-} from "./specApiV1TransportSpecGetSchema.js";
 export { srcAuthSchemasRolePublicSchema } from "./srcAuthSchemasRolePublicSchema.js";
 export { srcHrSchemasRolePublicSchema } from "./srcHrSchemasRolePublicSchema.js";
 export { staffCardSchema } from "./staffCardSchema.js";
 export { staffInputSchema } from "./staffInputSchema.js";
 export { staffSetupSchema } from "./staffSetupSchema.js";
-export {
-  startRunApiV1WxwatchRunsPostBodySchema,
-  startRunApiV1WxwatchRunsPostErrorSchema,
-  startRunApiV1WxwatchRunsPostHeaderAuthorizationSchema,
-  startRunApiV1WxwatchRunsPostResponseSchema,
-  startRunApiV1WxwatchRunsPostStatus200Schema,
-  startRunApiV1WxwatchRunsPostStatus422Schema,
-} from "./startRunApiV1WxwatchRunsPostSchema.js";
 export { statusReportCreateSchema } from "./statusReportCreateSchema.js";
 export { statusReportDetailsSchema } from "./statusReportDetailsSchema.js";
 export { statusReportEntryInputSchema } from "./statusReportEntryInputSchema.js";
@@ -1792,69 +2032,6 @@ export { statusReportPublicSchema } from "./statusReportPublicSchema.js";
 export { statusReportSubmitSchema } from "./statusReportSubmitSchema.js";
 export { stopViewSchema } from "./stopViewSchema.js";
 export { submissionModeSchema } from "./submissionModeSchema.js";
-export {
-  submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostBodySchema,
-  submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostErrorSchema,
-  submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostPathAbsenteeReportIdSchema,
-  submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostResponseSchema,
-  submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus200Schema,
-  submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus400Schema,
-  submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus403Schema,
-  submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus404Schema,
-  submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostStatus422Schema,
-} from "./submitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPostSchema.js";
-export {
-  submitAlertApiV1CapAlertsAlertIdSubmitPostBodySchema,
-  submitAlertApiV1CapAlertsAlertIdSubmitPostErrorSchema,
-  submitAlertApiV1CapAlertsAlertIdSubmitPostPathAlertIdSchema,
-  submitAlertApiV1CapAlertsAlertIdSubmitPostResponseSchema,
-  submitAlertApiV1CapAlertsAlertIdSubmitPostStatus200Schema,
-  submitAlertApiV1CapAlertsAlertIdSubmitPostStatus422Schema,
-} from "./submitAlertApiV1CapAlertsAlertIdSubmitPostSchema.js";
-export {
-  submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostBodySchema,
-  submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostErrorSchema,
-  submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostPathLeaveRequestIdSchema,
-  submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostResponseSchema,
-  submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus200Schema,
-  submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus400Schema,
-  submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus403Schema,
-  submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus404Schema,
-  submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostStatus422Schema,
-} from "./submitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPostSchema.js";
-export {
-  submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostBodySchema,
-  submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostErrorSchema,
-  submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostPathShiftSwapIdSchema,
-  submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostResponseSchema,
-  submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus200Schema,
-  submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus400Schema,
-  submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus403Schema,
-  submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus404Schema,
-  submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostStatus422Schema,
-} from "./submitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPostSchema.js";
-export {
-  submitStatusReportApiV1HrStatusReportsReportIdSubmitPostBodySchema,
-  submitStatusReportApiV1HrStatusReportsReportIdSubmitPostErrorSchema,
-  submitStatusReportApiV1HrStatusReportsReportIdSubmitPostPathReportIdSchema,
-  submitStatusReportApiV1HrStatusReportsReportIdSubmitPostResponseSchema,
-  submitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus200Schema,
-  submitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus400Schema,
-  submitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus403Schema,
-  submitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus404Schema,
-  submitStatusReportApiV1HrStatusReportsReportIdSubmitPostStatus422Schema,
-} from "./submitStatusReportApiV1HrStatusReportsReportIdSubmitPostSchema.js";
-export {
-  submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchBodySchema,
-  submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchErrorSchema,
-  submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchPathTimesheetIdSchema,
-  submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchResponseSchema,
-  submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus200Schema,
-  submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus400Schema,
-  submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus403Schema,
-  submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus404Schema,
-  submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchStatus422Schema,
-} from "./submitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatchSchema.js";
 export { swapTypeSchema } from "./swapTypeSchema.js";
 export { synopticImageGroupSchema } from "./synopticImageGroupSchema.js";
 export { synopticImageGroupsSchema } from "./synopticImageGroupsSchema.js";
@@ -1863,29 +2040,7 @@ export { synopValidationIssueSchema } from "./synopValidationIssueSchema.js";
 export { synopValidationRequestSchema } from "./synopValidationRequestSchema.js";
 export { synopValidationResponseSchema } from "./synopValidationResponseSchema.js";
 export { synopWorkbookSchema } from "./synopWorkbookSchema.js";
-export {
-  takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostBodySchema,
-  takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostErrorSchema,
-  takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostPathInstanceIdSchema,
-  takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostResponseSchema,
-  takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus200Schema,
-  takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus400Schema,
-  takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus403Schema,
-  takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus404Schema,
-  takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostStatus422Schema,
-} from "./takeActionApiV1HrWorkflowsInstancesInstanceIdActionsPostSchema.js";
 export { taskViewSchema } from "./taskViewSchema.js";
-export {
-  testEmailApiV1UtilsTestEmailPostErrorSchema,
-  testEmailApiV1UtilsTestEmailPostQueryEmailToSchema,
-  testEmailApiV1UtilsTestEmailPostResponseSchema,
-  testEmailApiV1UtilsTestEmailPostStatus201Schema,
-  testEmailApiV1UtilsTestEmailPostStatus422Schema,
-} from "./testEmailApiV1UtilsTestEmailPostSchema.js";
-export {
-  testTokenApiV1LoginTestTokenPostResponseSchema,
-  testTokenApiV1LoginTestTokenPostStatus200Schema,
-} from "./testTokenApiV1LoginTestTokenPostSchema.js";
 export { timesheetCreateSchema } from "./timesheetCreateSchema.js";
 export { timesheetDetailsSchema } from "./timesheetDetailsSchema.js";
 export { timesheetEntryInputSchema } from "./timesheetEntryInputSchema.js";
@@ -1900,280 +2055,23 @@ export { tokenSchema } from "./tokenSchema.js";
 export { trainingArchiveInputSchema } from "./trainingArchiveInputSchema.js";
 export { trainingEmployeeListSchema } from "./trainingEmployeeListSchema.js";
 export { trainingEmployeePublicSchema } from "./trainingEmployeePublicSchema.js";
+export { trainingRecordInputPropertiesResultEnumSchema } from "./trainingRecordInputPropertiesResultEnumSchema.js";
 export { trainingRecordInputSchema } from "./trainingRecordInputSchema.js";
 export { trainingRecordListSchema } from "./trainingRecordListSchema.js";
 export { trainingRecordPublicSchema } from "./trainingRecordPublicSchema.js";
+export {
+  transportSpecErrorSchema,
+  transportSpecResponseSchema,
+  transportSpecStatus200Schema,
+  transportSpecStatus422Schema,
+} from "./transportSpecSchema.js";
 export { tripViewSchema } from "./tripViewSchema.js";
 export { twoFactorCodeRequestSchema } from "./twoFactorCodeRequestSchema.js";
 export { twoFactorDisableRequestSchema } from "./twoFactorDisableRequestSchema.js";
 export { twoFactorSetupResponseSchema } from "./twoFactorSetupResponseSchema.js";
 export { twoFactorStatusPublicSchema } from "./twoFactorStatusPublicSchema.js";
-export {
-  twofaActivateApiV12FaActivatePostBodySchema,
-  twofaActivateApiV12FaActivatePostErrorSchema,
-  twofaActivateApiV12FaActivatePostResponseSchema,
-  twofaActivateApiV12FaActivatePostStatus200Schema,
-  twofaActivateApiV12FaActivatePostStatus400Schema,
-  twofaActivateApiV12FaActivatePostStatus422Schema,
-} from "./twofaActivateApiV12FaActivatePostSchema.js";
-export {
-  twofaDisableApiV12FaDisablePostBodySchema,
-  twofaDisableApiV12FaDisablePostErrorSchema,
-  twofaDisableApiV12FaDisablePostResponseSchema,
-  twofaDisableApiV12FaDisablePostStatus200Schema,
-  twofaDisableApiV12FaDisablePostStatus400Schema,
-  twofaDisableApiV12FaDisablePostStatus422Schema,
-} from "./twofaDisableApiV12FaDisablePostSchema.js";
-export {
-  twofaSetupApiV12FaSetupPostResponseSchema,
-  twofaSetupApiV12FaSetupPostStatus200Schema,
-} from "./twofaSetupApiV12FaSetupPostSchema.js";
-export {
-  twofaStatusApiV12FaStatusGetResponseSchema,
-  twofaStatusApiV12FaStatusGetStatus200Schema,
-} from "./twofaStatusApiV12FaStatusGetSchema.js";
 export { unitSpecSchema } from "./unitSpecSchema.js";
-export {
-  updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchBodySchema,
-  updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchErrorSchema,
-  updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchPathAbsenteeReportIdSchema,
-  updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchResponseSchema,
-  updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus200Schema,
-  updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus400Schema,
-  updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus403Schema,
-  updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus404Schema,
-  updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchStatus422Schema,
-} from "./updateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatchSchema.js";
-export {
-  updateAlertApiV1CapAlertsAlertIdPatchBodySchema,
-  updateAlertApiV1CapAlertsAlertIdPatchErrorSchema,
-  updateAlertApiV1CapAlertsAlertIdPatchPathAlertIdSchema,
-  updateAlertApiV1CapAlertsAlertIdPatchResponseSchema,
-  updateAlertApiV1CapAlertsAlertIdPatchStatus200Schema,
-  updateAlertApiV1CapAlertsAlertIdPatchStatus422Schema,
-} from "./updateAlertApiV1CapAlertsAlertIdPatchSchema.js";
-export {
-  updateCalendarEventApiV1HrCalendarEventsEventIdPatchBodySchema,
-  updateCalendarEventApiV1HrCalendarEventsEventIdPatchErrorSchema,
-  updateCalendarEventApiV1HrCalendarEventsEventIdPatchPathEventIdSchema,
-  updateCalendarEventApiV1HrCalendarEventsEventIdPatchResponseSchema,
-  updateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus200Schema,
-  updateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus400Schema,
-  updateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus403Schema,
-  updateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus404Schema,
-  updateCalendarEventApiV1HrCalendarEventsEventIdPatchStatus422Schema,
-} from "./updateCalendarEventApiV1HrCalendarEventsEventIdPatchSchema.js";
-export {
-  updateCapSettingsApiV1CapSettingsPatchBodySchema,
-  updateCapSettingsApiV1CapSettingsPatchErrorSchema,
-  updateCapSettingsApiV1CapSettingsPatchResponseSchema,
-  updateCapSettingsApiV1CapSettingsPatchStatus200Schema,
-  updateCapSettingsApiV1CapSettingsPatchStatus422Schema,
-} from "./updateCapSettingsApiV1CapSettingsPatchSchema.js";
-export {
-  updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchBodySchema,
-  updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchErrorSchema,
-  updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchPathDepartmentIdSchema,
-  updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchResponseSchema,
-  updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus200Schema,
-  updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus400Schema,
-  updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus403Schema,
-  updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus404Schema,
-  updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchStatus422Schema,
-} from "./updateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatchSchema.js";
-export {
-  updateFeedApiV1CapFeedsFeedIdPatchBodySchema,
-  updateFeedApiV1CapFeedsFeedIdPatchErrorSchema,
-  updateFeedApiV1CapFeedsFeedIdPatchPathFeedIdSchema,
-  updateFeedApiV1CapFeedsFeedIdPatchResponseSchema,
-  updateFeedApiV1CapFeedsFeedIdPatchStatus200Schema,
-  updateFeedApiV1CapFeedsFeedIdPatchStatus422Schema,
-} from "./updateFeedApiV1CapFeedsFeedIdPatchSchema.js";
-export {
-  updateHrEmploymentApiV1HrEmploymentUserIdPatchBodySchema,
-  updateHrEmploymentApiV1HrEmploymentUserIdPatchErrorSchema,
-  updateHrEmploymentApiV1HrEmploymentUserIdPatchPathUserIdSchema,
-  updateHrEmploymentApiV1HrEmploymentUserIdPatchResponseSchema,
-  updateHrEmploymentApiV1HrEmploymentUserIdPatchStatus200Schema,
-  updateHrEmploymentApiV1HrEmploymentUserIdPatchStatus403Schema,
-  updateHrEmploymentApiV1HrEmploymentUserIdPatchStatus404Schema,
-  updateHrEmploymentApiV1HrEmploymentUserIdPatchStatus422Schema,
-} from "./updateHrEmploymentApiV1HrEmploymentUserIdPatchSchema.js";
-export {
-  updateHrProfileMeApiV1HrProfileMePatchBodySchema,
-  updateHrProfileMeApiV1HrProfileMePatchErrorSchema,
-  updateHrProfileMeApiV1HrProfileMePatchResponseSchema,
-  updateHrProfileMeApiV1HrProfileMePatchStatus200Schema,
-  updateHrProfileMeApiV1HrProfileMePatchStatus404Schema,
-  updateHrProfileMeApiV1HrProfileMePatchStatus422Schema,
-} from "./updateHrProfileMeApiV1HrProfileMePatchSchema.js";
-export {
-  updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchBodySchema,
-  updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchErrorSchema,
-  updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchPathLeaveRequestIdSchema,
-  updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchResponseSchema,
-  updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus200Schema,
-  updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus400Schema,
-  updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus403Schema,
-  updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus404Schema,
-  updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchStatus422Schema,
-} from "./updateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatchSchema.js";
-export {
-  updatePasswordMeApiV1AuthUsersMePasswordPatchBodySchema,
-  updatePasswordMeApiV1AuthUsersMePasswordPatchErrorSchema,
-  updatePasswordMeApiV1AuthUsersMePasswordPatchResponseSchema,
-  updatePasswordMeApiV1AuthUsersMePasswordPatchStatus200Schema,
-  updatePasswordMeApiV1AuthUsersMePasswordPatchStatus400Schema,
-  updatePasswordMeApiV1AuthUsersMePasswordPatchStatus422Schema,
-} from "./updatePasswordMeApiV1AuthUsersMePasswordPatchSchema.js";
 export { updatePasswordSchema } from "./updatePasswordSchema.js";
-export {
-  updateProductPolicyApiV1HrSetupProductAccessKindPutBodySchema,
-  updateProductPolicyApiV1HrSetupProductAccessKindPutErrorSchema,
-  updateProductPolicyApiV1HrSetupProductAccessKindPutPathKindSchema,
-  updateProductPolicyApiV1HrSetupProductAccessKindPutResponseSchema,
-  updateProductPolicyApiV1HrSetupProductAccessKindPutStatus200Schema,
-  updateProductPolicyApiV1HrSetupProductAccessKindPutStatus400Schema,
-  updateProductPolicyApiV1HrSetupProductAccessKindPutStatus401Schema,
-  updateProductPolicyApiV1HrSetupProductAccessKindPutStatus403Schema,
-  updateProductPolicyApiV1HrSetupProductAccessKindPutStatus404Schema,
-  updateProductPolicyApiV1HrSetupProductAccessKindPutStatus409Schema,
-  updateProductPolicyApiV1HrSetupProductAccessKindPutStatus422Schema,
-} from "./updateProductPolicyApiV1HrSetupProductAccessKindPutSchema.js";
-export {
-  updateRoleApiV1AuthRolesRoleIdPatchBodySchema,
-  updateRoleApiV1AuthRolesRoleIdPatchErrorSchema,
-  updateRoleApiV1AuthRolesRoleIdPatchPathRoleIdSchema,
-  updateRoleApiV1AuthRolesRoleIdPatchResponseSchema,
-  updateRoleApiV1AuthRolesRoleIdPatchStatus200Schema,
-  updateRoleApiV1AuthRolesRoleIdPatchStatus404Schema,
-  updateRoleApiV1AuthRolesRoleIdPatchStatus422Schema,
-} from "./updateRoleApiV1AuthRolesRoleIdPatchSchema.js";
-export {
-  updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchBodySchema,
-  updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchErrorSchema,
-  updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchPathAssignmentIdSchema,
-  updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchResponseSchema,
-  updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus200Schema,
-  updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus404Schema,
-  updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchStatus422Schema,
-} from "./updateRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdPatchSchema.js";
-export {
-  updateRoleConfigurationApiV1HrSetupRolesRoleIdPutBodySchema,
-  updateRoleConfigurationApiV1HrSetupRolesRoleIdPutErrorSchema,
-  updateRoleConfigurationApiV1HrSetupRolesRoleIdPutPathRoleIdSchema,
-  updateRoleConfigurationApiV1HrSetupRolesRoleIdPutResponseSchema,
-  updateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus200Schema,
-  updateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus403Schema,
-  updateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus404Schema,
-  updateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus409Schema,
-  updateRoleConfigurationApiV1HrSetupRolesRoleIdPutStatus422Schema,
-} from "./updateRoleConfigurationApiV1HrSetupRolesRoleIdPutSchema.js";
-export {
-  updateSetupGradeApiV1HrSetupGradesGradeIdPutBodySchema,
-  updateSetupGradeApiV1HrSetupGradesGradeIdPutErrorSchema,
-  updateSetupGradeApiV1HrSetupGradesGradeIdPutPathGradeIdSchema,
-  updateSetupGradeApiV1HrSetupGradesGradeIdPutResponseSchema,
-  updateSetupGradeApiV1HrSetupGradesGradeIdPutStatus200Schema,
-  updateSetupGradeApiV1HrSetupGradesGradeIdPutStatus403Schema,
-  updateSetupGradeApiV1HrSetupGradesGradeIdPutStatus404Schema,
-  updateSetupGradeApiV1HrSetupGradesGradeIdPutStatus409Schema,
-  updateSetupGradeApiV1HrSetupGradesGradeIdPutStatus422Schema,
-} from "./updateSetupGradeApiV1HrSetupGradesGradeIdPutSchema.js";
-export {
-  updateSetupPolicyApiV1HrSetupPoliciesKeyPutBodySchema,
-  updateSetupPolicyApiV1HrSetupPoliciesKeyPutErrorSchema,
-  updateSetupPolicyApiV1HrSetupPoliciesKeyPutPathKeySchema,
-  updateSetupPolicyApiV1HrSetupPoliciesKeyPutResponseSchema,
-  updateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus200Schema,
-  updateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus403Schema,
-  updateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus404Schema,
-  updateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus409Schema,
-  updateSetupPolicyApiV1HrSetupPoliciesKeyPutStatus422Schema,
-} from "./updateSetupPolicyApiV1HrSetupPoliciesKeyPutSchema.js";
-export {
-  updateShiftApiV1HrRostersShiftsCodePatchBodySchema,
-  updateShiftApiV1HrRostersShiftsCodePatchErrorSchema,
-  updateShiftApiV1HrRostersShiftsCodePatchPathCodeSchema,
-  updateShiftApiV1HrRostersShiftsCodePatchResponseSchema,
-  updateShiftApiV1HrRostersShiftsCodePatchStatus200Schema,
-  updateShiftApiV1HrRostersShiftsCodePatchStatus403Schema,
-  updateShiftApiV1HrRostersShiftsCodePatchStatus404Schema,
-  updateShiftApiV1HrRostersShiftsCodePatchStatus422Schema,
-} from "./updateShiftApiV1HrRostersShiftsCodePatchSchema.js";
-export {
-  updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchBodySchema,
-  updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchErrorSchema,
-  updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchPathShiftSwapIdSchema,
-  updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchResponseSchema,
-  updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus200Schema,
-  updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus400Schema,
-  updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus403Schema,
-  updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus404Schema,
-  updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchStatus422Schema,
-} from "./updateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatchSchema.js";
-export {
-  updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostBodySchema,
-  updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostErrorSchema,
-  updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostPathUserIdSchema,
-  updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostResponseSchema,
-  updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus200Schema,
-  updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus403Schema,
-  updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus404Schema,
-  updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus409Schema,
-  updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostStatus422Schema,
-} from "./updateStaffBalanceApiV1HrSetupStaffUserIdBalancePostSchema.js";
-export {
-  updateStaffSetupApiV1HrSetupStaffUserIdPutBodySchema,
-  updateStaffSetupApiV1HrSetupStaffUserIdPutErrorSchema,
-  updateStaffSetupApiV1HrSetupStaffUserIdPutPathUserIdSchema,
-  updateStaffSetupApiV1HrSetupStaffUserIdPutResponseSchema,
-  updateStaffSetupApiV1HrSetupStaffUserIdPutStatus200Schema,
-  updateStaffSetupApiV1HrSetupStaffUserIdPutStatus403Schema,
-  updateStaffSetupApiV1HrSetupStaffUserIdPutStatus404Schema,
-  updateStaffSetupApiV1HrSetupStaffUserIdPutStatus409Schema,
-  updateStaffSetupApiV1HrSetupStaffUserIdPutStatus422Schema,
-} from "./updateStaffSetupApiV1HrSetupStaffUserIdPutSchema.js";
-export {
-  updateStatusReportApiV1HrStatusReportsReportIdPatchBodySchema,
-  updateStatusReportApiV1HrStatusReportsReportIdPatchErrorSchema,
-  updateStatusReportApiV1HrStatusReportsReportIdPatchPathReportIdSchema,
-  updateStatusReportApiV1HrStatusReportsReportIdPatchResponseSchema,
-  updateStatusReportApiV1HrStatusReportsReportIdPatchStatus200Schema,
-  updateStatusReportApiV1HrStatusReportsReportIdPatchStatus400Schema,
-  updateStatusReportApiV1HrStatusReportsReportIdPatchStatus403Schema,
-  updateStatusReportApiV1HrStatusReportsReportIdPatchStatus404Schema,
-  updateStatusReportApiV1HrStatusReportsReportIdPatchStatus422Schema,
-} from "./updateStatusReportApiV1HrStatusReportsReportIdPatchSchema.js";
-export {
-  updateUserApiV1AuthUsersUserIdPatchBodySchema,
-  updateUserApiV1AuthUsersUserIdPatchErrorSchema,
-  updateUserApiV1AuthUsersUserIdPatchPathUserIdSchema,
-  updateUserApiV1AuthUsersUserIdPatchResponseSchema,
-  updateUserApiV1AuthUsersUserIdPatchStatus200Schema,
-  updateUserApiV1AuthUsersUserIdPatchStatus403Schema,
-  updateUserApiV1AuthUsersUserIdPatchStatus404Schema,
-  updateUserApiV1AuthUsersUserIdPatchStatus409Schema,
-  updateUserApiV1AuthUsersUserIdPatchStatus422Schema,
-} from "./updateUserApiV1AuthUsersUserIdPatchSchema.js";
-export {
-  updateUserMeApiV1AuthUsersMePatchBodySchema,
-  updateUserMeApiV1AuthUsersMePatchErrorSchema,
-  updateUserMeApiV1AuthUsersMePatchResponseSchema,
-  updateUserMeApiV1AuthUsersMePatchStatus200Schema,
-  updateUserMeApiV1AuthUsersMePatchStatus409Schema,
-  updateUserMeApiV1AuthUsersMePatchStatus422Schema,
-} from "./updateUserMeApiV1AuthUsersMePatchSchema.js";
-export {
-  uploadDocumentApiV1HrDocumentsPostBodySchema,
-  uploadDocumentApiV1HrDocumentsPostErrorSchema,
-  uploadDocumentApiV1HrDocumentsPostResponseSchema,
-  uploadDocumentApiV1HrDocumentsPostStatus201Schema,
-  uploadDocumentApiV1HrDocumentsPostStatus400Schema,
-  uploadDocumentApiV1HrDocumentsPostStatus403Schema,
-  uploadDocumentApiV1HrDocumentsPostStatus422Schema,
-  uploadDocumentApiV1HrDocumentsPostStatus503Schema,
-} from "./uploadDocumentApiV1HrDocumentsPostSchema.js";
 export { userCreateSchema } from "./userCreateSchema.js";
 export { userProfilePublicSchema } from "./userProfilePublicSchema.js";
 export { userProfileUpdateMeSchema } from "./userProfileUpdateMeSchema.js";
@@ -2187,45 +2085,27 @@ export { userStatusSchema } from "./userStatusSchema.js";
 export { userUpdateMeSchema } from "./userUpdateMeSchema.js";
 export { userUpdateSchema } from "./userUpdateSchema.js";
 export {
-  validateAlertApiV1CapAlertsAlertIdValidatePostErrorSchema,
-  validateAlertApiV1CapAlertsAlertIdValidatePostPathAlertIdSchema,
-  validateAlertApiV1CapAlertsAlertIdValidatePostResponseSchema,
-  validateAlertApiV1CapAlertsAlertIdValidatePostStatus200Schema,
-  validateAlertApiV1CapAlertsAlertIdValidatePostStatus422Schema,
-} from "./validateAlertApiV1CapAlertsAlertIdValidatePostSchema.js";
+  utilsHealthCheckErrorSchema,
+  utilsHealthCheckResponseSchema,
+  utilsHealthCheckStatus200Schema,
+  utilsHealthCheckStatus422Schema,
+} from "./utilsHealthCheckSchema.js";
 export {
-  validateCsvApiV1HrRostersImportCsvValidatePostBodySchema,
-  validateCsvApiV1HrRostersImportCsvValidatePostErrorSchema,
-  validateCsvApiV1HrRostersImportCsvValidatePostResponseSchema,
-  validateCsvApiV1HrRostersImportCsvValidatePostStatus200Schema,
-  validateCsvApiV1HrRostersImportCsvValidatePostStatus400Schema,
-  validateCsvApiV1HrRostersImportCsvValidatePostStatus403Schema,
-  validateCsvApiV1HrRostersImportCsvValidatePostStatus422Schema,
-} from "./validateCsvApiV1HrRostersImportCsvValidatePostSchema.js";
+  utilsReadyErrorSchema,
+  utilsReadyResponseSchema,
+  utilsReadyStatus200Schema,
+  utilsReadyStatus422Schema,
+  utilsReadyStatus503Schema,
+} from "./utilsReadySchema.js";
 export {
-  validateGridApiV1HrRostersImportGridValidatePostBodySchema,
-  validateGridApiV1HrRostersImportGridValidatePostErrorSchema,
-  validateGridApiV1HrRostersImportGridValidatePostResponseSchema,
-  validateGridApiV1HrRostersImportGridValidatePostStatus200Schema,
-  validateGridApiV1HrRostersImportGridValidatePostStatus403Schema,
-  validateGridApiV1HrRostersImportGridValidatePostStatus404Schema,
-  validateGridApiV1HrRostersImportGridValidatePostStatus422Schema,
-} from "./validateGridApiV1HrRostersImportGridValidatePostSchema.js";
-export {
-  validateSynopObservationApiV1EregisterObservationsValidateSynopPostBodySchema,
-  validateSynopObservationApiV1EregisterObservationsValidateSynopPostErrorSchema,
-  validateSynopObservationApiV1EregisterObservationsValidateSynopPostResponseSchema,
-  validateSynopObservationApiV1EregisterObservationsValidateSynopPostStatus200Schema,
-  validateSynopObservationApiV1EregisterObservationsValidateSynopPostStatus422Schema,
-} from "./validateSynopObservationApiV1EregisterObservationsValidateSynopPostSchema.js";
-export { validationErrorSchema } from "./validationErrorSchema.js";
-export {
-  weatherImageApiV1WxwatchImagesStoragePathGetErrorSchema,
-  weatherImageApiV1WxwatchImagesStoragePathGetPathStoragePathSchema,
-  weatherImageApiV1WxwatchImagesStoragePathGetResponseSchema,
-  weatherImageApiV1WxwatchImagesStoragePathGetStatus307Schema,
-  weatherImageApiV1WxwatchImagesStoragePathGetStatus422Schema,
-} from "./weatherImageApiV1WxwatchImagesStoragePathGetSchema.js";
+  utilsTestEmailErrorSchema,
+  utilsTestEmailQueryEmailToSchema,
+  utilsTestEmailResponseSchema,
+  utilsTestEmailStatus201Schema,
+  utilsTestEmailStatus422Schema,
+} from "./utilsTestEmailSchema.js";
+export { validationErrorItemSchema } from "./validationErrorItemSchema.js";
+export { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 export { weatherImageSchema } from "./weatherImageSchema.js";
 export { workflowActionRequestSchema } from "./workflowActionRequestSchema.js";
 export { workflowActionSchema } from "./workflowActionSchema.js";
@@ -2237,6 +2117,7 @@ export { workflowInstanceCreateSchema } from "./workflowInstanceCreateSchema.js"
 export { workflowInstanceDetailsSchema } from "./workflowInstanceDetailsSchema.js";
 export { workflowInstancePublicSchema } from "./workflowInstancePublicSchema.js";
 export { workflowStatusSchema } from "./workflowStatusSchema.js";
+export { workflowStepInstancePublicPropertiesPurposeEnumSchema } from "./workflowStepInstancePublicPropertiesPurposeEnumSchema.js";
 export { workflowStepInstancePublicSchema } from "./workflowStepInstancePublicSchema.js";
 export { workflowStepTemplateCreateSchema } from "./workflowStepTemplateCreateSchema.js";
 export { workflowStepTemplatePublicSchema } from "./workflowStepTemplatePublicSchema.js";
@@ -2244,3 +2125,217 @@ export { workflowTemplateCreateSchema } from "./workflowTemplateCreateSchema.js"
 export { workflowTemplatePublicSchema } from "./workflowTemplatePublicSchema.js";
 export { workflowTemplatesPublicSchema } from "./workflowTemplatesPublicSchema.js";
 export { workflowTypeSchema } from "./workflowTypeSchema.js";
+export {
+  wxproductsListPublicProductsErrorSchema,
+  wxproductsListPublicProductsQueryKindSchema,
+  wxproductsListPublicProductsResponseSchema,
+  wxproductsListPublicProductsStatus200Schema,
+  wxproductsListPublicProductsStatus400Schema,
+  wxproductsListPublicProductsStatus422Schema,
+  wxproductsListPublicProductsStatus503Schema,
+} from "./wxproductsListPublicProductsSchema.js";
+export {
+  wxproductsLoadAviationDraftsErrorSchema,
+  wxproductsLoadAviationDraftsQueryKindSchema,
+  wxproductsLoadAviationDraftsQueryStationSchema,
+  wxproductsLoadAviationDraftsResponseSchema,
+  wxproductsLoadAviationDraftsStatus200Schema,
+  wxproductsLoadAviationDraftsStatus403Schema,
+  wxproductsLoadAviationDraftsStatus422Schema,
+  wxproductsLoadAviationDraftsStatus503Schema,
+} from "./wxproductsLoadAviationDraftsSchema.js";
+export {
+  wxproductsLoadAviationHistoryErrorSchema,
+  wxproductsLoadAviationHistoryPathDraftIdSchema,
+  wxproductsLoadAviationHistoryResponseSchema,
+  wxproductsLoadAviationHistoryStatus200Schema,
+  wxproductsLoadAviationHistoryStatus403Schema,
+  wxproductsLoadAviationHistoryStatus422Schema,
+  wxproductsLoadAviationHistoryStatus503Schema,
+} from "./wxproductsLoadAviationHistorySchema.js";
+export {
+  wxproductsLoadHistoryErrorSchema,
+  wxproductsLoadHistoryPathProductIdSchema,
+  wxproductsLoadHistoryResponseSchema,
+  wxproductsLoadHistoryStatus200Schema,
+  wxproductsLoadHistoryStatus401Schema,
+  wxproductsLoadHistoryStatus403Schema,
+  wxproductsLoadHistoryStatus422Schema,
+  wxproductsLoadHistoryStatus503Schema,
+} from "./wxproductsLoadHistorySchema.js";
+export {
+  wxproductsLoadObservationsErrorSchema,
+  wxproductsLoadObservationsQueryEndSchema,
+  wxproductsLoadObservationsQueryKindSchema,
+  wxproductsLoadObservationsQueryLimitSchema,
+  wxproductsLoadObservationsQueryStartSchema,
+  wxproductsLoadObservationsQueryStationSchema,
+  wxproductsLoadObservationsResponseSchema,
+  wxproductsLoadObservationsStatus200Schema,
+  wxproductsLoadObservationsStatus401Schema,
+  wxproductsLoadObservationsStatus403Schema,
+  wxproductsLoadObservationsStatus422Schema,
+} from "./wxproductsLoadObservationsSchema.js";
+export {
+  wxproductsLoadProductsErrorSchema,
+  wxproductsLoadProductsQueryIssueDateSchema,
+  wxproductsLoadProductsQueryKindSchema,
+  wxproductsLoadProductsResponseSchema,
+  wxproductsLoadProductsStatus200Schema,
+  wxproductsLoadProductsStatus401Schema,
+  wxproductsLoadProductsStatus403Schema,
+  wxproductsLoadProductsStatus422Schema,
+  wxproductsLoadProductsStatus503Schema,
+} from "./wxproductsLoadProductsSchema.js";
+export {
+  wxproductsPreviewProductBodySchema,
+  wxproductsPreviewProductErrorSchema,
+  wxproductsPreviewProductResponseSchema,
+  wxproductsPreviewProductStatus200Schema,
+  wxproductsPreviewProductStatus401Schema,
+  wxproductsPreviewProductStatus403Schema,
+  wxproductsPreviewProductStatus422Schema,
+} from "./wxproductsPreviewProductSchema.js";
+export {
+  wxproductsProductRevisionPdfErrorSchema,
+  wxproductsProductRevisionPdfPathProductIdSchema,
+  wxproductsProductRevisionPdfPathRevisionSchema,
+  wxproductsProductRevisionPdfResponseSchema,
+  wxproductsProductRevisionPdfStatus200Schema,
+  wxproductsProductRevisionPdfStatus401Schema,
+  wxproductsProductRevisionPdfStatus403Schema,
+  wxproductsProductRevisionPdfStatus404Schema,
+  wxproductsProductRevisionPdfStatus422Schema,
+  wxproductsProductRevisionPdfStatus503Schema,
+} from "./wxproductsProductRevisionPdfSchema.js";
+export {
+  wxproductsPublicForecastErrorSchema,
+  wxproductsPublicForecastResponseSchema,
+  wxproductsPublicForecastStatus200Schema,
+  wxproductsPublicForecastStatus422Schema,
+  wxproductsPublicForecastStatus503Schema,
+} from "./wxproductsPublicForecastSchema.js";
+export {
+  wxproductsSaveAviationDraftBodySchema,
+  wxproductsSaveAviationDraftErrorSchema,
+  wxproductsSaveAviationDraftResponseSchema,
+  wxproductsSaveAviationDraftStatus200Schema,
+  wxproductsSaveAviationDraftStatus403Schema,
+  wxproductsSaveAviationDraftStatus409Schema,
+  wxproductsSaveAviationDraftStatus422Schema,
+  wxproductsSaveAviationDraftStatus503Schema,
+} from "./wxproductsSaveAviationDraftSchema.js";
+export {
+  wxproductsSaveProductBodySchema,
+  wxproductsSaveProductErrorSchema,
+  wxproductsSaveProductResponseSchema,
+  wxproductsSaveProductStatus200Schema,
+  wxproductsSaveProductStatus401Schema,
+  wxproductsSaveProductStatus403Schema,
+  wxproductsSaveProductStatus409Schema,
+  wxproductsSaveProductStatus422Schema,
+  wxproductsSaveProductStatus503Schema,
+} from "./wxproductsSaveProductSchema.js";
+export {
+  wxwatchArchiveAssetErrorSchema,
+  wxwatchArchiveAssetPathAssetIdSchema,
+  wxwatchArchiveAssetResponseSchema,
+  wxwatchArchiveAssetStatus200Schema,
+  wxwatchArchiveAssetStatus200SchemaGif,
+  wxwatchArchiveAssetStatus200SchemaJpeg,
+  wxwatchArchiveAssetStatus200SchemaOctetStream,
+  wxwatchArchiveAssetStatus200SchemaPng,
+  wxwatchArchiveAssetStatus200SchemaWebp,
+  wxwatchArchiveAssetStatus404Schema,
+  wxwatchArchiveAssetStatus422Schema,
+  wxwatchArchiveAssetStatus503Schema,
+} from "./wxwatchArchiveAssetSchema.js";
+export {
+  wxwatchArchiveErrorSchema,
+  wxwatchArchiveQueryEndSchema,
+  wxwatchArchiveQueryLimitSchema,
+  wxwatchArchiveQueryOffsetSchema,
+  wxwatchArchiveQueryProductSchema,
+  wxwatchArchiveQuerySourceSchema,
+  wxwatchArchiveQueryStartSchema,
+  wxwatchArchiveQueryUnknownTimeSchema,
+  wxwatchArchiveResponseSchema,
+  wxwatchArchiveStatus200Schema,
+  wxwatchArchiveStatus422Schema,
+} from "./wxwatchArchiveSchema.js";
+export {
+  wxwatchBulletinErrorSchema,
+  wxwatchBulletinPathEditionIdSchema,
+  wxwatchBulletinResponseSchema,
+  wxwatchBulletinStatus200Schema,
+  wxwatchBulletinStatus422Schema,
+} from "./wxwatchBulletinSchema.js";
+export {
+  wxwatchEditionAssetsErrorSchema,
+  wxwatchEditionAssetsPathEditionIdSchema,
+  wxwatchEditionAssetsResponseSchema,
+  wxwatchEditionAssetsStatus200Schema,
+  wxwatchEditionAssetsStatus422Schema,
+} from "./wxwatchEditionAssetsSchema.js";
+export {
+  wxwatchFinishRunBodySchema,
+  wxwatchFinishRunErrorSchema,
+  wxwatchFinishRunHeaderAuthorizationSchema,
+  wxwatchFinishRunPathRunIdSchema,
+  wxwatchFinishRunResponseSchema,
+  wxwatchFinishRunStatus204Schema,
+  wxwatchFinishRunStatus422Schema,
+} from "./wxwatchFinishRunSchema.js";
+export {
+  wxwatchIngestBodySchema,
+  wxwatchIngestErrorSchema,
+  wxwatchIngestHeaderAuthorizationSchema,
+  wxwatchIngestResponseSchema,
+  wxwatchIngestStatus200Schema,
+  wxwatchIngestStatus422Schema,
+} from "./wxwatchIngestSchema.js";
+export {
+  wxwatchMetadataErrorSchema,
+  wxwatchMetadataQueryDaySchema,
+  wxwatchMetadataResponseSchema,
+  wxwatchMetadataStatus200Schema,
+  wxwatchMetadataStatus422Schema,
+} from "./wxwatchMetadataSchema.js";
+export {
+  wxwatchReadyErrorSchema,
+  wxwatchReadyResponseSchema,
+  wxwatchReadyStatus204Schema,
+  wxwatchReadyStatus422Schema,
+} from "./wxwatchReadySchema.js";
+export {
+  wxwatchRegisterDerivationBodySchema,
+  wxwatchRegisterDerivationErrorSchema,
+  wxwatchRegisterDerivationHeaderAuthorizationSchema,
+  wxwatchRegisterDerivationResponseSchema,
+  wxwatchRegisterDerivationStatus200Schema,
+  wxwatchRegisterDerivationStatus422Schema,
+} from "./wxwatchRegisterDerivationSchema.js";
+export {
+  wxwatchRetrievalsErrorSchema,
+  wxwatchRetrievalsPathEditionIdSchema,
+  wxwatchRetrievalsQueryLimitSchema,
+  wxwatchRetrievalsQueryOffsetSchema,
+  wxwatchRetrievalsResponseSchema,
+  wxwatchRetrievalsStatus200Schema,
+  wxwatchRetrievalsStatus422Schema,
+} from "./wxwatchRetrievalsSchema.js";
+export {
+  wxwatchStartRunBodySchema,
+  wxwatchStartRunErrorSchema,
+  wxwatchStartRunHeaderAuthorizationSchema,
+  wxwatchStartRunResponseSchema,
+  wxwatchStartRunStatus200Schema,
+  wxwatchStartRunStatus422Schema,
+} from "./wxwatchStartRunSchema.js";
+export {
+  wxwatchWeatherImageErrorSchema,
+  wxwatchWeatherImagePathStoragePathSchema,
+  wxwatchWeatherImageResponseSchema,
+  wxwatchWeatherImageStatus307Schema,
+  wxwatchWeatherImageStatus422Schema,
+} from "./wxwatchWeatherImageSchema.js";

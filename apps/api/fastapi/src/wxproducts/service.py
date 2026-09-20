@@ -3,10 +3,9 @@ from datetime import UTC, date, datetime, timedelta
 from uuid import UUID
 
 from pydantic import ValidationError
-from sqlalchemy import text
+from sqlalchemy import select, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
 
 from src.auth.models import User
 
@@ -60,7 +59,7 @@ def is_current(product: PublishedProduct, now: datetime) -> bool:
             end = local_time(valid_to_value)
         published = datetime.fromisoformat(product.publishedAt)
         return published <= now and issued <= now and start <= now < end
-    except (ValueError, OverflowError):
+    except ValueError, OverflowError:
         return False
 
 
@@ -106,7 +105,7 @@ async def list_authored(
                 func.left(issued, 10) == issue_date.isoformat(),
             ),
         )
-        .order_by(col(AuthoredProduct.updated_at).desc())
+        .order_by(AuthoredProduct.updated_at.desc())
     )
     return list((await session.execute(statement)).scalars())
 
@@ -116,14 +115,12 @@ async def history(
 ) -> list[ProductRevision]:
     statement = (
         select(ProductRevision)
-        .join(
-            AuthoredProduct, col(ProductRevision.product_id) == col(AuthoredProduct.id)
-        )
+        .join(AuthoredProduct, ProductRevision.product_id == AuthoredProduct.id)
         .where(
             ProductRevision.product_id == product_id,
-            col(AuthoredProduct.kind).in_(allowed_kinds),
+            AuthoredProduct.kind.in_(allowed_kinds),
         )
-        .order_by(col(ProductRevision.revision).desc())
+        .order_by(ProductRevision.revision.desc())
         .limit(100)
     )
     return list((await session.execute(statement)).scalars())
@@ -291,9 +288,7 @@ async def list_aviation_drafts(
             await session.execute(
                 select(AviationDraft)
                 .where(AviationDraft.kind == kind, AviationDraft.station == station)
-                .order_by(
-                    col(AviationDraft.updated_at).desc(), col(AviationDraft.id).desc()
-                )
+                .order_by(AviationDraft.updated_at.desc(), AviationDraft.id.desc())
                 .limit(50)
             )
         ).scalars()
@@ -308,7 +303,7 @@ async def aviation_history(
             await session.execute(
                 select(AviationDraftRevision)
                 .where(AviationDraftRevision.draft_id == draft_id)
-                .order_by(col(AviationDraftRevision.revision).desc())
+                .order_by(AviationDraftRevision.revision.desc())
                 .limit(100)
             )
         ).scalars()
@@ -322,13 +317,11 @@ async def pdf_source(
 
     statement = (
         select(ProductRevision, AuthoredProduct)
-        .join(
-            AuthoredProduct, col(ProductRevision.product_id) == col(AuthoredProduct.id)
-        )
+        .join(AuthoredProduct, ProductRevision.product_id == AuthoredProduct.id)
         .where(
             ProductRevision.product_id == product_id,
             ProductRevision.revision == revision,
-            col(AuthoredProduct.kind).in_(allowed_kinds),
+            AuthoredProduct.kind.in_(allowed_kinds),
         )
     )
     row = (await session.execute(statement)).first()

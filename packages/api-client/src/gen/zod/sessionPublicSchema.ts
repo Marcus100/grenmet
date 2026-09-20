@@ -6,13 +6,13 @@
 import * as z from "zod";
 
 export const sessionPublicSchema = z.object({
-  expires_at: z.string(),
+  expires_at: z.iso.datetime(),
   client_type: z.string(),
   app_name: z.union([z.string(), z.null()]).optional(),
-  last_used_at: z.string(),
-  revoked_at: z.union([z.string(), z.null()]).optional(),
+  last_used_at: z.iso.datetime(),
+  revoked_at: z.union([z.iso.datetime(), z.null()]).optional(),
   id: z.uuid(),
-  created_at: z.string(),
-  updated_at: z.string(),
+  created_at: z.iso.datetime(),
+  updated_at: z.iso.datetime(),
   user_id: z.uuid(),
 });

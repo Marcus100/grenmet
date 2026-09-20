@@ -4,8 +4,9 @@
  */
 
 import * as z from "zod";
+import { reviewInputPropertiesDecisionEnumSchema } from "./reviewInputPropertiesDecisionEnumSchema.js";
 
 export const reviewInputSchema = z.object({
-  decision: z.enum(["RETAIN", "REVOKE"]),
+  decision: reviewInputPropertiesDecisionEnumSchema,
   reason: z.string().min(5).max(1000),
 });

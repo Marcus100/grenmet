@@ -8,7 +8,7 @@ import * as z from "zod";
 export const capReferencePublicSchema = z.object({
   sender: z.string().min(1).max(255),
   identifier: z.string().min(1).max(255),
-  sent: z.string(),
+  sent: z.iso.datetime(),
   id: z.uuid(),
   sequence: z.int(),
 });

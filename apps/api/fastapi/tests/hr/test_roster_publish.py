@@ -1,7 +1,7 @@
 from datetime import date
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select
 
 from src.auth.schemas import UserCreate
 from src.auth.service import create_user

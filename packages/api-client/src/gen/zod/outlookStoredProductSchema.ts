@@ -11,6 +11,6 @@ export const outlookStoredProductSchema = z.object({
   values: outlookValuesDraftSchema,
   revision: z.int(),
   publishedRevision: z.union([z.int(), z.null()]),
-  updatedAt: z.string(),
+  updatedAt: z.iso.datetime(),
   kind: z.enum(["outlook"]),
 });

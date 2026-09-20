@@ -18,6 +18,11 @@ export type CapSnapshotPublic = {
   alert_id: string;
   identifier: string;
   content_hash: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   generated_at: string;
   signed_at?: string | null;
   signing_key_ref?: string | null;

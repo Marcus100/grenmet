@@ -5,15 +5,13 @@
 
 import * as z from "zod";
 
-export const calendarEventKindSchema = z
-  .enum([
-    "MEETING",
-    "TRAINING",
-    "INSPECTION",
-    "VISIT",
-    "MAINTENANCE",
-    "OBSERVANCE",
-    "DEADLINE",
-    "OTHER",
-  ])
-  .describe("What a department puts on its calendar besides the duty roster.");
+export const calendarEventKindSchema = z.enum([
+  "MEETING",
+  "TRAINING",
+  "INSPECTION",
+  "VISIT",
+  "MAINTENANCE",
+  "OBSERVANCE",
+  "DEADLINE",
+  "OTHER",
+]);

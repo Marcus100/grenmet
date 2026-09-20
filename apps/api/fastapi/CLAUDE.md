@@ -12,7 +12,7 @@ src/
 ├── {domain}/
 │   ├── router.py       — APIRouter: endpoints only, no business logic
 │   ├── schemas.py      — Pure Pydantic API shapes (Create, Public, ListPublic)
-│   ├── models.py       — SQLModel table=True DB models + domain enums
+│   ├── models.py       — SQLAlchemy ORM table models + domain enums
 │   ├── service.py      — Business logic (async functions)
 │   ├── dependencies.py — Annotated type aliases for Depends
 │   ├── exceptions.py   — Domain-specific AppException subclasses
@@ -42,12 +42,12 @@ from src.auth.service import create_user
 
 | Layer | Base class | Location | Purpose |
 |---|---|---|---|
-| DB model | `SQLModel` with `table=True` | `{domain}/models.py` | Table definition |
+| DB model | SQLAlchemy ORM declarative model | `{domain}/models.py` | Table definition |
 | API schema | `src.models.BaseModel` | `{domain}/schemas.py` | Request/response shape |
 
 ```python
 # models.py — DB layer
-class LeaveRequest(SQLModel, table=True):
+class LeaveRequest(Base):
     __tablename__ = "leave_request"
     __table_args__ = {"schema": "hr"}
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
@@ -73,13 +73,22 @@ Services return DB models. Routes always declare `response_model` with a `Public
 # service.py — returns the DB model
 async def create_leave_request(...) -> LeaveRequest:
     ...
-    return leave_request  # SQLModel table=True instance
+    return leave_request  # SQLAlchemy ORM instance
 
 # router.py — response_model converts it to the API shape
 @router.post("/leave-requests", response_model=LeaveRequestPublic, status_code=status.HTTP_201_CREATED)
 async def create_leave_request_endpoint(...) -> Any:
     return await service.create_leave_request(...)
 ```
+
+## SQL first, Pydantic second
+
+Use SQLAlchemy statements to perform filtering, joins, aggregation, pagination,
+and database-side JSON shaping. Fetch only the columns needed by the use case;
+do not load a graph of ORM objects and then rebuild the same result in Python.
+Use Pydantic after the database has produced the result, at the HTTP input and
+output seam. This keeps query semantics in PostgreSQL and leaves Pydantic to
+validate and serialize API contracts.
 
 ## Dependencies
 

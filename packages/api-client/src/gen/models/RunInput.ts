@@ -3,17 +3,8 @@
  * Do not edit manually.
  */
 
-export const runInputSourceEnum = {
-  goes19: "goes19",
-  sfcana: "sfcana",
-  cimss: "cimss",
-  trackthetropics: "trackthetropics",
-  uwyo: "uwyo",
-} as const;
-
-export type RunInputSourceEnum =
-  (typeof runInputSourceEnum)[keyof typeof runInputSourceEnum];
+import type { RunInputPropertiesSourceEnum } from "./RunInputPropertiesSourceEnum.js";
 
 export type RunInput = {
-  source: RunInputSourceEnum;
+  source: RunInputPropertiesSourceEnum;
 };

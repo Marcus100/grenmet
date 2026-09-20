@@ -27,7 +27,7 @@ import logging
 import sys
 from datetime import date, timedelta
 
-from sqlmodel import col, select
+from sqlalchemy import select
 
 from src.auth.models import User
 from src.config import settings
@@ -90,7 +90,7 @@ def holidays_for(year: int) -> list[tuple[str, date, bool]]:
 async def run(year: int, actor_username: str, dry_run: bool) -> int:
     async with async_session_factory() as session:
         result = await session.execute(
-            select(User).where(col(User.username) == actor_username)
+            select(User).where(User.username == actor_username)
         )
         actor = result.scalars().first()
         if actor is None or not actor.is_active or not actor.is_superuser:
@@ -103,8 +103,8 @@ async def run(year: int, actor_username: str, dry_run: bool) -> int:
         for name, holiday_date, is_recurring in holidays_for(year):
             existing = await session.execute(
                 select(PublicHoliday).where(
-                    col(PublicHoliday.holiday_date) == holiday_date,
-                    col(PublicHoliday.country_code) == COUNTRY,
+                    PublicHoliday.holiday_date == holiday_date,
+                    PublicHoliday.country_code == COUNTRY,
                 )
             )
             if existing.scalars().first() is not None:

@@ -3,23 +3,7 @@
  * Do not edit manually.
  */
 
-export const legacyProductPreviewInputKindEnum = {
-  morning: "morning",
-  midday: "midday",
-  evening: "evening",
-  cyclone: "cyclone",
-  marine: "marine",
-  flood: "flood",
-  thunderstorm: "thunderstorm",
-  wind: "wind",
-  heat: "heat",
-  dust: "dust",
-  coastal: "coastal",
-  tsunami: "tsunami",
-} as const;
-
-export type LegacyProductPreviewInputKindEnum =
-  (typeof legacyProductPreviewInputKindEnum)[keyof typeof legacyProductPreviewInputKindEnum];
+import type { LegacyProductPreviewPropertiesKindEnum } from "./LegacyProductPreviewPropertiesKindEnum.js";
 
 export type LegacyProductPreviewInput = {
   values: {
@@ -35,5 +19,5 @@ export type LegacyProductPreviewInput = {
    * @type string
    */
   changeSummary: string;
-  kind: LegacyProductPreviewInputKindEnum;
+  kind: LegacyProductPreviewPropertiesKindEnum;
 };

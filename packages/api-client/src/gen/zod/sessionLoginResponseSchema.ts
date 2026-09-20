@@ -10,8 +10,8 @@ import { sessionUserPublicSchema } from "./sessionUserPublicSchema.js";
 export const sessionLoginResponseSchema = z.object({
   access_token: z.string(),
   token_type: z.enum(["bearer"]).optional().default("bearer"),
-  access_token_expires_at: z.string(),
-  session_expires_at: z.string(),
+  access_token_expires_at: z.iso.datetime(),
+  session_expires_at: z.iso.datetime(),
   session: sessionPublicSchema,
   user: sessionUserPublicSchema.describe(
     "Minimal user projection returned with browser session credentials."

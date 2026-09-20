@@ -2,10 +2,13 @@ import uuid
 from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
+from typing import ClassVar
 
-from sqlmodel import Field, SQLModel
+from sqlalchemy import ForeignKey, Numeric, String
+from sqlalchemy.orm import Mapped, mapped_column
 
-from src.hr.models import RequestStatus  # noqa: F401
+from src.hr.models import RequestStatus
+from src.orm import Base
 from src.utils.datetime import utc_now
 
 
@@ -30,58 +33,65 @@ class ProfAppointmentType(str, Enum):
     DENTAL = "DENTAL"
 
 
-class LeaveRequest(SQLModel, table=True):
+class LeaveRequest(Base):
     __tablename__ = "leave_request"
     __table_args__ = {"schema": "hr"}
 
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
-    department_id: str = Field(foreign_key="hr.department.id", index=True)
-    leave_type: LeaveType
-    start_date: date
-    end_date: date
-    days_requested: Decimal = Field(
-        default=Decimal("0.0"), decimal_places=2, max_digits=6
+    # Accepted for legacy ORM construction; signatures are stored separately.
+    signature_version: ClassVar[uuid.UUID | None] = None
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"), index=True)
+    department_id: Mapped[str] = mapped_column(
+        ForeignKey("hr.department.id"), index=True
     )
-    days_with_pay: Decimal = Field(
-        default=Decimal("0.0"), decimal_places=2, max_digits=6
+    leave_type: Mapped[LeaveType]
+    start_date: Mapped[date]
+    end_date: Mapped[date]
+    days_requested: Mapped[Decimal] = mapped_column(
+        Numeric(6, 2), default=Decimal("0.0")
     )
-    days_without_pay: Decimal = Field(
-        default=Decimal("0.0"), decimal_places=2, max_digits=6
+    days_with_pay: Mapped[Decimal] = mapped_column(
+        Numeric(6, 2), default=Decimal("0.0")
     )
-    professional_appointment_subtype: ProfAppointmentType | None = Field(default=None)
-    reason: str | None = Field(default=None, max_length=1000)
-    contact_phone: str | None = Field(default=None, max_length=30)
-    leave_address: str | None = Field(default=None, max_length=500)
-    travel_from_date: date | None = Field(default=None)
-    travel_to_date: date | None = Field(default=None)
-    salary_in_advance: bool = Field(default=False)
-    requires_acting_appointment: bool = Field(default=False)
-    acting_officer_id: uuid.UUID | None = Field(
-        default=None, foreign_key="user.id", ondelete="SET NULL"
+    days_without_pay: Mapped[Decimal] = mapped_column(
+        Numeric(6, 2), default=Decimal("0.0")
     )
-    expected_return_date: date | None = Field(default=None)
-    head_of_dept_comments: str | None = Field(default=None, max_length=1000)
-    status: RequestStatus = Field(default=RequestStatus.SUBMITTED)
-    workflow_instance_id: uuid.UUID | None = Field(
-        default=None, foreign_key="hr.workflow_instance.id"
+    professional_appointment_subtype: Mapped[ProfAppointmentType | None]
+    reason: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    contact_phone: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    leave_address: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    travel_from_date: Mapped[date | None]
+    travel_to_date: Mapped[date | None]
+    salary_in_advance: Mapped[bool] = mapped_column(default=False)
+    requires_acting_appointment: Mapped[bool] = mapped_column(default=False)
+    acting_officer_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id", ondelete="SET NULL"), nullable=True
     )
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now)
+    expected_return_date: Mapped[date | None]
+    head_of_dept_comments: Mapped[str | None] = mapped_column(
+        String(1000), nullable=True
+    )
+    status: Mapped[RequestStatus] = mapped_column(default=RequestStatus.SUBMITTED)
+    workflow_instance_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("hr.workflow_instance.id"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
-class LeaveBalanceEvent(SQLModel, table=True):
+class LeaveBalanceEvent(Base):
     __tablename__ = "leave_balance_event"
     __table_args__ = {"schema": "hr"}
 
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
-    leave_type: str = Field(max_length=30)
-    delta_days: Decimal = Field(decimal_places=2, max_digits=6)
-    balance_after_days: Decimal = Field(decimal_places=2, max_digits=6)
-    reason: str = Field(max_length=200)
-    related_leave_request_id: uuid.UUID | None = Field(
-        default=None, foreign_key="hr.leave_request.id"
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"), index=True)
+    leave_type: Mapped[str] = mapped_column(String(30))
+    delta_days: Mapped[Decimal] = mapped_column(Numeric(6, 2))
+    balance_after_days: Mapped[Decimal] = mapped_column(Numeric(6, 2))
+    reason: Mapped[str] = mapped_column(String(200))
+    related_leave_request_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("hr.leave_request.id"), nullable=True
     )
-    created_by_user_id: uuid.UUID = Field(foreign_key="user.id")
-    created_at: datetime = Field(default_factory=utc_now)
+    created_by_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)

@@ -7,7 +7,7 @@ import * as z from "zod";
 import { publicWarningGroupSchema } from "./publicWarningGroupSchema.js";
 
 export const publicWarningsSchema = z.object({
-  as_of: z.string(),
+  as_of: z.iso.datetime(),
   groups: z.array(publicWarningGroupSchema),
   activeCount: z.int().min(0),
 });

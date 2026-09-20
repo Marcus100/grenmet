@@ -4,15 +4,7 @@
  */
 
 import type { RoleAssignmentScope } from "./RoleAssignmentScope.js";
-
-export const workflowStepTemplateCreatePurposeEnum = {
-  APPROVAL: "APPROVAL",
-  REVIEW: "REVIEW",
-  RECORDING: "RECORDING",
-} as const;
-
-export type WorkflowStepTemplateCreatePurposeEnum =
-  (typeof workflowStepTemplateCreatePurposeEnum)[keyof typeof workflowStepTemplateCreatePurposeEnum];
+import type { WorkflowStepInstancePublicPropertiesPurposeEnum } from "./WorkflowStepInstancePublicPropertiesPurposeEnum.js";
 
 export type WorkflowStepTemplateCreate = {
   /**
@@ -41,7 +33,7 @@ export type WorkflowStepTemplateCreate = {
    * @default 'APPROVAL'
    * @type string | undefined
    */
-  purpose?: WorkflowStepTemplateCreatePurposeEnum;
+  purpose?: WorkflowStepInstancePublicPropertiesPurposeEnum;
   /**
    * @minLength 1
    * @maxLength 150

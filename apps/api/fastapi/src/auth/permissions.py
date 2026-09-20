@@ -13,9 +13,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
-from sqlmodel import Session, select
+from sqlalchemy.orm import Session, selectinload
 
 from src.auth.models import Permission, Role
 from src.baseline.models import BaselineStep
@@ -297,7 +297,7 @@ def seed_permissions_and_roles(session: Session) -> None:
     long-lived, session-scoped fixture in tests — an uncommitted transaction here
     would block every table-truncating test).
     """
-    existing = {p.key: p for p in session.exec(select(Permission)).all()}
+    existing = {p.key: p for p in session.execute(select(Permission)).scalars().all()}
     key_to_perm: dict[str, Permission] = {}
     for pdef in PERMISSIONS:
         perm = existing.get(pdef.key)
@@ -321,7 +321,9 @@ def seed_permissions_and_roles(session: Session) -> None:
         marker = f"role:{role_name}"
         if session.get(BaselineStep, marker):
             continue
-        role = session.exec(select(Role).where(Role.name == role_name)).first()
+        role = session.execute(
+            select(Role).where(Role.name == role_name)
+        ).scalar_one_or_none()
         if role is not None:
             session.add(BaselineStep(key=marker))
             continue
@@ -368,7 +370,7 @@ async def seed_permissions_and_roles_async(session: AsyncSession) -> None:
         role_result = await session.execute(
             select(Role)
             .where(Role.name == role_name)
-            .options(selectinload(Role.permissions))  # type: ignore[arg-type]
+            .options(selectinload(Role.permissions))
         )
         role = role_result.scalars().first()
         if role is None:

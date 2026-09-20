@@ -37,6 +37,16 @@ export type TimesheetPublic = {
   approved_by_user_id?: string | null;
   submitted_at?: string | null;
   approved_at?: string | null;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   created_at: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   updated_at: string;
 };

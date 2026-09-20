@@ -7,7 +7,17 @@ import type { ForecastSource } from "./ForecastSource.js";
 
 export type ForecastPeriod = {
   date: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   valid_from: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   valid_to: string;
   source?: ForecastSource | null;
   /**

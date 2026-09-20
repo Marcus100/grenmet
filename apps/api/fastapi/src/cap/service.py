@@ -9,9 +9,9 @@ import feedparser  # type: ignore[import-untyped]
 import httpx
 import sqlalchemy as sa
 from fastapi.concurrency import run_in_threadpool
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from sqlmodel import col, select
 
 from src.auth.models import User
 from src.auth.policy import require_permission
@@ -183,10 +183,10 @@ def _to_public_from_loaded(alert: CapAlert) -> CapAlertPublic:
 def _alert_selectinload_options() -> list[Any]:
     """Standard selectinload options for eager-loading all alert children."""
     return [
-        selectinload(CapAlert.info_blocks).selectinload(CapInfo.resources),  # type: ignore[arg-type]
-        selectinload(CapAlert.info_blocks).selectinload(CapInfo.areas),  # type: ignore[arg-type]
-        selectinload(CapAlert.cap_references),  # type: ignore[arg-type]
-        selectinload(CapAlert.incidents),  # type: ignore[arg-type]
+        selectinload(CapAlert.info_blocks).selectinload(CapInfo.resources),
+        selectinload(CapAlert.info_blocks).selectinload(CapInfo.areas),
+        selectinload(CapAlert.cap_references),
+        selectinload(CapAlert.incidents),
     ]
 
 
@@ -204,7 +204,7 @@ async def list_alerts(
         base = base.where(CapAlert.lifecycle_state == lifecycle_state)
     total = await session.scalar(select(sa.func.count()).select_from(base.subquery()))
     stmt = (
-        base.order_by(col(CapAlert.sent).desc())
+        base.order_by(CapAlert.sent.desc())
         .offset(skip)
         .limit(limit)
         .options(*_alert_selectinload_options())
@@ -269,7 +269,7 @@ async def import_alert(
     payload = xml_to_alert_data(raw_xml)  # raises CapImportError on bad XML
     if payload.identifier:
         existing = await session.execute(
-            select(CapAlert).where(col(CapAlert.identifier) == payload.identifier)
+            select(CapAlert).where(CapAlert.identifier == payload.identifier)
         )
         if existing.scalars().first() is not None:
             raise CapImportError(f"alert {payload.identifier} already exists")
@@ -661,9 +661,7 @@ async def expire_alert(
 
 
 async def get_or_create_settings(*, session: AsyncSession) -> CapSettings:
-    result = await session.execute(
-        select(CapSettings).order_by(col(CapSettings.created_at))
-    )
+    result = await session.execute(select(CapSettings).order_by(CapSettings.created_at))
     settings = result.scalars().first()
     if settings:
         return settings
@@ -764,7 +762,7 @@ async def list_audit_events(
         base = base.where(CapAuditEvent.alert_id == alert_id)
     total = await session.scalar(select(sa.func.count()).select_from(base.subquery()))
     result = await session.execute(
-        base.order_by(col(CapAuditEvent.created_at).desc()).offset(skip).limit(limit)
+        base.order_by(CapAuditEvent.created_at.desc()).offset(skip).limit(limit)
     )
     events = [
         CapAuditEventPublic.model_validate(event, from_attributes=True)
@@ -789,7 +787,7 @@ async def list_integrations(
     ).scalars()
     jobs = (
         await session.execute(
-            select(CapJobEvent).order_by(col(CapJobEvent.created_at).desc()).limit(100)
+            select(CapJobEvent).order_by(CapJobEvent.created_at.desc()).limit(100)
         )
     ).scalars()
     return {
@@ -861,7 +859,7 @@ async def public_alert_by_identifier(
         select(CapAlert)
         .where(CapAlert.identifier == identifier)
         .where(
-            col(CapAlert.lifecycle_state).in_(
+            CapAlert.lifecycle_state.in_(
                 {
                     CapLifecycleState.PUBLISHED,
                     CapLifecycleState.EXPIRED,
@@ -870,7 +868,7 @@ async def public_alert_by_identifier(
             )
         )
         # Public-scope only — Restricted/Private alerts are not anonymously readable.
-        .where(col(CapAlert.scope) == CapScope.PUBLIC)
+        .where(CapAlert.scope == CapScope.PUBLIC)
     )
     alert = result.scalars().first()
     if not alert:
@@ -885,10 +883,10 @@ async def latest_snapshot_for_identifier(
         select(CapSnapshot)
         # Gate the raw signed-XML snapshot on the parent alert's scope so
         # Restricted/Private alerts are not served on the anonymous endpoint.
-        .join(CapAlert, col(CapSnapshot.alert_id) == col(CapAlert.id))
+        .join(CapAlert, CapSnapshot.alert_id == CapAlert.id)
         .where(CapSnapshot.identifier == identifier)
-        .where(col(CapAlert.scope) == CapScope.PUBLIC)
-        .order_by(col(CapSnapshot.generated_at).desc())
+        .where(CapAlert.scope == CapScope.PUBLIC)
+        .order_by(CapSnapshot.generated_at.desc())
     )
     snapshot = result.scalars().first()
     if not snapshot:
@@ -957,12 +955,12 @@ async def _public_alerts_by_state(
 ) -> list[CapAlertPublic]:
     stmt = (
         select(CapAlert)
-        .where(col(CapAlert.lifecycle_state).in_(states))
+        .where(CapAlert.lifecycle_state.in_(states))
         # Only Public-scope alerts are distributable on the anonymous feeds.
         # Restricted/Private alerts must never surface here (they carry
         # restriction/addresses targeting fields).
-        .where(col(CapAlert.scope) == CapScope.PUBLIC)
-        .order_by(col(CapAlert.sent).desc())
+        .where(CapAlert.scope == CapScope.PUBLIC)
+        .order_by(CapAlert.sent.desc())
         .limit(100)
         .options(*_alert_selectinload_options())
     )
@@ -1055,7 +1053,7 @@ async def _replace_children(
 ) -> None:
     if references is not None:
         await session.execute(
-            sa.delete(CapReference).where(col(CapReference.alert_id) == alert_id)
+            sa.delete(CapReference).where(CapReference.alert_id == alert_id)
         )
         for index, reference in enumerate(references):
             session.add(
@@ -1065,7 +1063,7 @@ async def _replace_children(
             )
     if incidents is not None:
         await session.execute(
-            sa.delete(CapIncident).where(col(CapIncident.alert_id) == alert_id)
+            sa.delete(CapIncident).where(CapIncident.alert_id == alert_id)
         )
         for index, incident in enumerate(incidents):
             session.add(CapIncident(alert_id=alert_id, sequence=index, value=incident))
@@ -1074,14 +1072,12 @@ async def _replace_children(
         info_ids = [row.id for row in info_rows]
         if info_ids:
             await session.execute(
-                sa.delete(CapArea).where(col(CapArea.info_id).in_(info_ids))
+                sa.delete(CapArea).where(CapArea.info_id.in_(info_ids))
             )
             await session.execute(
-                sa.delete(CapResource).where(col(CapResource.info_id).in_(info_ids))
+                sa.delete(CapResource).where(CapResource.info_id.in_(info_ids))
             )
-        await session.execute(
-            sa.delete(CapInfo).where(col(CapInfo.alert_id) == alert_id)
-        )
+        await session.execute(sa.delete(CapInfo).where(CapInfo.alert_id == alert_id))
         for index, info_payload in enumerate(info):
             await _create_info(
                 session=session, alert_id=alert_id, sequence=index, payload=info_payload
@@ -1172,9 +1168,7 @@ def _area_from_payload(
 
 async def _info_rows(*, session: AsyncSession, alert_id: uuid.UUID) -> list[CapInfo]:
     result = await session.execute(
-        select(CapInfo)
-        .where(CapInfo.alert_id == alert_id)
-        .order_by(col(CapInfo.sequence))
+        select(CapInfo).where(CapInfo.alert_id == alert_id).order_by(CapInfo.sequence)
     )
     return list(result.scalars())
 
@@ -1246,7 +1240,7 @@ async def list_feeds(
 ) -> list[CapFeedImport]:
     require_permission(current_user=current_user, permission_key="cap.feed.manage")
     result = await session.execute(
-        select(CapFeedImport).order_by(col(CapFeedImport.created_at).desc()).limit(100)
+        select(CapFeedImport).order_by(CapFeedImport.created_at.desc()).limit(100)
     )
     return list(result.scalars().all())
 
@@ -1297,8 +1291,8 @@ async def _system_user(*, session: AsyncSession) -> User | None:
     """The actor for automated ingestion (first superuser; bypasses permissions)."""
     result = await session.execute(
         select(User)
-        .where(col(User.email) == app_config.FIRST_SUPERUSER)
-        .options(selectinload(User.roles))  # type: ignore[arg-type]
+        .where(User.email == app_config.FIRST_SUPERUSER)
+        .options(selectinload(User.roles))
     )
     return result.scalars().first()
 
@@ -1355,9 +1349,7 @@ async def ingest_all_active_feeds(
         logger.warning("CAP feed ingestion skipped: no superuser seeded")
         return 0
     result = await session.execute(
-        select(CapFeedImport).where(
-            col(CapFeedImport.status) == CapIntegrationStatus.ACTIVE
-        )
+        select(CapFeedImport).where(CapFeedImport.status == CapIntegrationStatus.ACTIVE)
     )
     feeds = list(result.scalars().all())
     owns_client = http_client is None

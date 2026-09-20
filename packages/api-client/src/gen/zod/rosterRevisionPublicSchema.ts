@@ -14,5 +14,5 @@ export const rosterRevisionPublicSchema = z.object({
   changed_by_user_id: z.uuid(),
   summary: z.union([z.string(), z.null()]).optional(),
   snapshot: z.object({}).catchall(z.unknown()),
-  created_at: z.string(),
+  created_at: z.iso.datetime(),
 });

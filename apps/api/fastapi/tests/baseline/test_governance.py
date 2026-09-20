@@ -4,8 +4,8 @@ import uuid
 from datetime import timedelta
 
 import pytest
+from sqlalchemy import select
 from sqlalchemy.orm import selectinload
-from sqlmodel import select
 
 from src.auth import access
 from src.auth import service as auth_service

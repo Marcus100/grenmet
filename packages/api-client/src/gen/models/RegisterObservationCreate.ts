@@ -3,14 +3,7 @@
  * Do not edit manually.
  */
 
-export const registerObservationCreateKindEnum = {
-  SYNOP: "SYNOP",
-  METAR: "METAR",
-  SPECI: "SPECI",
-} as const;
-
-export type RegisterObservationCreateKindEnum =
-  (typeof registerObservationCreateKindEnum)[keyof typeof registerObservationCreateKindEnum];
+import type { ObservationRecordPropertiesKindEnum } from "./ObservationRecordPropertiesKindEnum.js";
 
 export type RegisterObservationCreate = {
   /**
@@ -21,7 +14,7 @@ export type RegisterObservationCreate = {
   station_id: string;
   station_name?: string | null;
   aerodrome_icao?: string | null;
-  kind: RegisterObservationCreateKindEnum;
+  kind: ObservationRecordPropertiesKindEnum;
   /**
    * @description
    * Format: `date-time`

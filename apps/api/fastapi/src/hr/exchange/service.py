@@ -1,8 +1,8 @@
 import logging
 import uuid
 
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, func, select
 
 from src.auth.models import User
 from src.auth.policy import can_act_on_user, require_permission
@@ -32,12 +32,12 @@ async def list_my_shift_swap_requests(
 ) -> tuple[list[ShiftSwapRequest], int]:
     """Shift swaps the current user filed or is the counterpart of."""
     base = select(ShiftSwapRequest).where(
-        (col(ShiftSwapRequest.requesting_user_id) == current_user.id)
-        | (col(ShiftSwapRequest.counterpart_user_id) == current_user.id)
+        (ShiftSwapRequest.requesting_user_id == current_user.id)
+        | (ShiftSwapRequest.counterpart_user_id == current_user.id)
     )
     total = await session.scalar(select(func.count()).select_from(base.subquery()))
     result = await session.execute(
-        base.order_by(col(ShiftSwapRequest.created_at).desc()).offset(skip).limit(limit)
+        base.order_by(ShiftSwapRequest.created_at.desc()).offset(skip).limit(limit)
     )
     return list(result.scalars().all()), total or 0
 

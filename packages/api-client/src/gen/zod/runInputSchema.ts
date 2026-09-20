@@ -4,7 +4,8 @@
  */
 
 import * as z from "zod";
+import { runInputPropertiesSourceEnumSchema } from "./runInputPropertiesSourceEnumSchema.js";
 
 export const runInputSchema = z.object({
-  source: z.enum(["goes19", "sfcana", "cimss", "trackthetropics", "uwyo"]),
+  source: runInputPropertiesSourceEnumSchema,
 });

@@ -8,6 +8,11 @@ import type { OutlookValuesDraft } from "./OutlookValuesDraft.js";
 export type OutlookProductPreview = {
   values: OutlookValuesDraft;
   errors: string[];
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   checked_at: string;
   kind: "outlook";
 };

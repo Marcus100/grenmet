@@ -8,8 +8,8 @@ references an unknown key, or if seeding is not idempotent.
 import re
 from pathlib import Path
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select
 
 from src.auth.models import Permission, Role
 from src.auth.permissions import (

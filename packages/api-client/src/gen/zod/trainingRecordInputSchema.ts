@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { trainingRecordInputPropertiesResultEnumSchema } from "./trainingRecordInputPropertiesResultEnumSchema.js";
 
 export const trainingRecordInputSchema = z.object({
   organisation_id: z.string().min(1).max(100),
@@ -11,7 +12,7 @@ export const trainingRecordInputSchema = z.object({
   course_name: z.string().min(1).max(200),
   provider: z.string().min(1).max(200),
   completed_on: z.iso.date(),
-  result: z.enum(["completed", "attended", "failed"]),
+  result: trainingRecordInputPropertiesResultEnumSchema,
   expires_on: z.union([z.iso.date(), z.null()]).optional(),
   notes: z.union([z.string().max(2000), z.null()]).optional(),
 });

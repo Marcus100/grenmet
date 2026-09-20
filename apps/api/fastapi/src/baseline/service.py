@@ -1,9 +1,9 @@
 import uuid
 from decimal import Decimal
 
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from sqlmodel import col, delete, select
 
 from src.auth.models import Permission, Role, User, UserImage, UserRoleAssignment
 from src.auth.models import Session as LoginSession
@@ -121,7 +121,7 @@ async def list_staff(session: AsyncSession) -> list[StaffSetup]:
         await session.execute(
             select(StaffCredential, User)
             .select_from(User)
-            .outerjoin(StaffCredential, col(StaffCredential.user_id) == User.id)
+            .outerjoin(StaffCredential, StaffCredential.user_id == User.id)
             .where(User.username != "admin")
         )
     ).all()
@@ -231,7 +231,7 @@ async def save_staff(
     session.add(user)
     if not user.is_active:
         await session.execute(
-            delete(LoginSession).where(col(LoginSession.user_id) == user_id)
+            delete(LoginSession).where(LoginSession.user_id == user_id)
         )
     session.add(
         BaselineAudit(
@@ -256,7 +256,8 @@ async def save_grade(
     if grade is None:
         grade = Grade(id=grade_id, **body.model_dump())
     else:
-        grade.sqlmodel_update(body.model_dump())
+        for key, value in body.model_dump().items():
+            setattr(grade, key, value)
         grade.updated_at = utc_now()
     session.add(grade)
     session.add(
@@ -294,7 +295,7 @@ async def set_balance(
                     LeaveBalanceEvent.user_id == user_id,
                     LeaveBalanceEvent.leave_type == body.leave_type.value,
                 )
-                .order_by(col(LeaveBalanceEvent.created_at).desc())
+                .order_by(LeaveBalanceEvent.created_at.desc())
                 .limit(1)
             )
         )
@@ -337,15 +338,13 @@ async def offboard(session: AsyncSession, actor: User, user_id: uuid.UUID) -> No
     if employment:
         employment.status = EmploymentStatus.TERMINATED
         session.add(employment)
+    await session.execute(delete(LoginSession).where(LoginSession.user_id == user_id))
     await session.execute(
-        delete(LoginSession).where(col(LoginSession.user_id) == user_id)
+        delete(UserRoleAssignment).where(UserRoleAssignment.user_id == user_id)
     )
-    await session.execute(
-        delete(UserRoleAssignment).where(col(UserRoleAssignment.user_id) == user_id)
-    )
-    from sqlmodel import SQLModel
+    from src.orm import Base
 
-    link = SQLModel.metadata.tables["user_role"]
+    link = Base.metadata.tables["user_role"]
     await session.execute(delete(link).where(link.c.user_id == user_id))
     session.add(user)
     session.add(credential)
@@ -416,7 +415,7 @@ async def read_setup_grades(
 ) -> list[Grade]:
     require_admin(current_user)
     return list(
-        (await session.execute(select(Grade).order_by(col(Grade.rank)))).scalars().all()
+        (await session.execute(select(Grade).order_by(Grade.rank))).scalars().all()
     )
 
 
@@ -435,7 +434,8 @@ async def update_setup_policy(
     policy = await session.get(ApprovalPolicy, key)
     if policy is None:
         raise AppException("Policy not found", 404)
-    policy.sqlmodel_update(body.model_dump())
+    for key, value in body.model_dump().items():
+        setattr(policy, key, value)
     session.add(policy)
     session.add(
         BaselineAudit(
@@ -454,13 +454,7 @@ async def read_role_configuration(
 ) -> list[RoleConfiguration]:
     require_admin(current_user)
     roles = (
-        (
-            await session.execute(
-                select(Role).options(
-                    selectinload(Role.permissions)  # type: ignore[arg-type]
-                )
-            )
-        )
+        (await session.execute(select(Role).options(selectinload(Role.permissions))))
         .scalars()
         .all()
     )
@@ -488,9 +482,7 @@ async def update_role_configuration(
             await session.execute(
                 select(Role)
                 .where(Role.id == role_id)
-                .options(
-                    selectinload(Role.permissions)  # type: ignore[arg-type]
-                )
+                .options(selectinload(Role.permissions))
                 .with_for_update()
             )
         )

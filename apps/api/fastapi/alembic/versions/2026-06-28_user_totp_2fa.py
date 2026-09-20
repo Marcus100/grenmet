@@ -6,7 +6,6 @@ Create Date: 2026-06-28 01:30:00.000000
 """
 
 import sqlalchemy as sa
-import sqlmodel
 
 from alembic import op
 
@@ -21,7 +20,7 @@ def upgrade() -> None:
         "user",
         sa.Column(
             "totp_secret",
-            sqlmodel.sql.sqltypes.AutoString(length=64),
+            sa.String(length=64),
             nullable=True,
         ),
     )

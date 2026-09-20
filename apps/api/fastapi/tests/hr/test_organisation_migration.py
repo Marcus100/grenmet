@@ -15,12 +15,11 @@ from tests.database_target import require_owned_database
 
 
 @pytest.fixture
-async def old_schema(db, db_async):
+async def old_schema(db_async):
     # Seeding commits the rows, then refresh opens a read transaction. Release
     # its locks before a separate connection performs transactional DDL.
     # The session-wide autouse legacy fixture is a second independent session.
     # Either one can retain locks after seeding or previous tests.
-    db.rollback()
     await db_async.rollback()
     require_owned_database(settings.POSTGRES_DB, os.environ)
     scripts = ScriptDirectory.from_config(Config("alembic.ini"))

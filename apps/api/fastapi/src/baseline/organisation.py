@@ -3,9 +3,8 @@
 import logging
 from pathlib import Path
 
-from sqlalchemy import text
+from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
 
 from src.auth.models import User
 from src.baseline import service
@@ -75,7 +74,7 @@ async def preview(session: AsyncSession, actor: User) -> OrganisationPreview:
         (
             await session.execute(
                 select(Grade.code)
-                .join(EmploymentRecord, col(EmploymentRecord.grade_id) == Grade.id)
+                .join(EmploymentRecord, EmploymentRecord.grade_id == Grade.id)
                 .where(EmploymentRecord.department_id == mapping["gms"])
             )
         )
@@ -131,15 +130,10 @@ async def apply(session: AsyncSession, actor: User) -> OrganisationPreview:
             unit.parent_id = spec.parent_id
     for position_spec in CATALOGUE.positions:
         if position_spec.id in before.missing_positions:
-            session.add(
-                OrganisationPosition.model_validate(
-                    position_spec.model_dump(),
-                    update={
-                        "reports_to_position_id": None,
-                        "additional_connection_id": None,
-                    },
-                )
-            )
+            position_values = position_spec.model_dump()
+            position_values["reports_to_position_id"] = None
+            position_values["additional_connection_id"] = None
+            session.add(OrganisationPosition(**position_values))
     await session.flush()
     for position_spec in CATALOGUE.positions:
         if position_spec.id in before.missing_positions:

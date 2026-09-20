@@ -10,7 +10,8 @@ import logging
 import sys
 import time
 
-from sqlmodel import Session, create_engine, text
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import Session
 
 from src.config import settings
 
@@ -28,7 +29,7 @@ WAIT_SECONDS = 1.0
 def _check_connection() -> None:
     engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
     with Session(engine) as session:
-        result = session.exec(text("SELECT 1")).first()
+        result = session.scalars(text("SELECT 1")).first()
     if not result:
         raise RuntimeError("SELECT 1 returned no rows")
 

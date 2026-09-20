@@ -448,7 +448,7 @@ async def test_hr_management_requires_target_scope(db_async: AsyncSession) -> No
 async def test_expired_assignment_does_not_grant_access(db_async: AsyncSession) -> None:
     from datetime import timedelta
 
-    from sqlmodel import select
+    from sqlalchemy import select
 
     from src.auth.models import UserRoleAssignment
     from src.utils.datetime import utc_now

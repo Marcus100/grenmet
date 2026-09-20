@@ -3,9 +3,8 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import String, cast
+from sqlalchemy import String, cast, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, func, select
 
 from src.auth.models import User
 from src.auth.policy import has_permission
@@ -71,7 +70,7 @@ async def read_dashboard(
             await session.scalar(
                 select(func.count()).select_from(
                     base.where(
-                        cast(col(model.status), String).in_(
+                        cast(model.status, String).in_(
                             ["DRAFT", "SUBMITTED", "PENDING", "RETURNED"]
                         )
                     ).subquery()
@@ -80,11 +79,7 @@ async def read_dashboard(
             or 0
         )
         rows = (
-            (
-                await session.execute(
-                    base.order_by(col(model.updated_at).desc()).limit(6)
-                )
-            )
+            (await session.execute(base.order_by(model.updated_at.desc()).limit(6)))
             .scalars()
             .all()
         )
@@ -117,7 +112,7 @@ async def read_dashboard(
                     LeaveBalanceEvent.user_id == current_user.id,
                     LeaveBalanceEvent.leave_type == "VACATION",
                 )
-                .order_by(col(LeaveBalanceEvent.created_at).desc())
+                .order_by(LeaveBalanceEvent.created_at.desc())
                 .limit(1)
             )
         )
@@ -127,7 +122,7 @@ async def read_dashboard(
     shifts = list(
         (
             await session.execute(
-                select(ShiftCatalog).where(col(ShiftCatalog.is_active).is_(True))
+                select(ShiftCatalog).where(ShiftCatalog.is_active.is_(True))
             )
         )
         .scalars()
@@ -135,10 +130,10 @@ async def read_dashboard(
     )
     members = (
         select(EmploymentRecord)
-        .join(User, col(User.id) == col(EmploymentRecord.user_id))
+        .join(User, User.id == EmploymentRecord.user_id)
         .where(
             EmploymentRecord.status == EmploymentStatus.ACTIVE,
-            col(User.is_active).is_(True),
+            User.is_active.is_(True),
         )
     )
     if not org_wide:
@@ -157,17 +152,15 @@ async def read_dashboard(
     )
     roster = (
         select(RosterAssignment, ShiftCatalog, User, Department)
-        .join(ShiftCatalog, col(ShiftCatalog.code) == col(RosterAssignment.shift_code))
-        .join(User, col(User.id) == col(RosterAssignment.user_id))
-        .join(
-            RosterPeriod, col(RosterPeriod.id) == col(RosterAssignment.roster_period_id)
-        )
-        .join(Department, col(Department.id) == col(RosterPeriod.department_id))
+        .join(ShiftCatalog, ShiftCatalog.code == RosterAssignment.shift_code)
+        .join(User, User.id == RosterAssignment.user_id)
+        .join(RosterPeriod, RosterPeriod.id == RosterAssignment.roster_period_id)
+        .join(Department, Department.id == RosterPeriod.department_id)
         .where(
-            col(RosterPeriod.status).in_(
+            RosterPeriod.status.in_(
                 [RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED]
             ),
-            col(User.is_active).is_(True),
+            User.is_active.is_(True),
         )
     )
     if not org_wide:
@@ -180,7 +173,7 @@ async def read_dashboard(
     for assignment, shift, user, dept in (
         await session.execute(
             roster.where(RosterAssignment.assignment_date == today).order_by(
-                col(User.first_name)
+                User.first_name
             )
         )
     ).all():
@@ -209,7 +202,7 @@ async def read_dashboard(
                 RosterAssignment.assignment_date > today,
                 ShiftCatalog.category == ShiftCategory.WORK,
             )
-            .order_by(col(RosterAssignment.assignment_date))
+            .order_by(RosterAssignment.assignment_date)
             .limit(1)
         )
     ).first()

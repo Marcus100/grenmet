@@ -5,16 +5,17 @@
 
 import * as z from "zod";
 import { capProfileDefinitionSchema } from "./capProfileDefinitionSchema.js";
+import { capProfilePublicPropertiesStateEnumSchema } from "./capProfilePublicPropertiesStateEnumSchema.js";
 
 export const capProfilePublicSchema = z.object({
   id: z.uuid(),
   key: z.string(),
   version: z.int(),
   definition: capProfileDefinitionSchema,
-  state: z.enum(["DRAFT", "APPROVED"]),
+  state: capProfilePublicPropertiesStateEnumSchema,
   created_by: z.uuid(),
-  created_at: z.string(),
+  created_at: z.iso.datetime(),
   approved_by: z.union([z.uuid(), z.null()]),
-  approved_at: z.union([z.string(), z.null()]),
+  approved_at: z.union([z.iso.datetime(), z.null()]),
   approval_errors: z.array(z.string()),
 });

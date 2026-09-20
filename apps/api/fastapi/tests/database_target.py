@@ -15,6 +15,14 @@ def database_target(base: str, run_id: str, worker: str = "") -> str:
     return f"{base}_test_{run_id}" + (f"_{worker}" if worker else "")
 
 
+def template_target(base: str, run_id: str) -> str:
+    if not re.fullmatch(r"[a-z][a-z0-9_]{0,15}", base):
+        raise ValueError("Invalid test database base")
+    if not re.fullmatch(r"[a-f0-9]{32}", run_id):
+        raise ValueError("Invalid test run identifier")
+    return f"{base}_test_{run_id}_template"
+
+
 def configure_database(environment: MutableMapping[str, str]) -> str:
     base = environment.setdefault(
         "VERIFY_DB_BASE", environment.get("POSTGRES_DB") or "app"
@@ -31,7 +39,10 @@ def require_owned_database(target: str, environment: MutableMapping[str, str]) -
         environment["VERIFY_RUN_ID"],
         environment.get("PYTEST_XDIST_WORKER", ""),
     )
-    if target != expected:
+    template = template_target(
+        environment["VERIFY_DB_BASE"], environment["VERIFY_RUN_ID"]
+    )
+    if target not in {expected, template}:
         raise RuntimeError(
             "Refusing database operation outside this test run and worker"
         )

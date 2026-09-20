@@ -7,8 +7,8 @@ import types
 
 import httpx
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select
 
 from src.cap import service as cap_service
 from src.cap.models import CapAlert, CapFeedImport, CapIntegrationStatus

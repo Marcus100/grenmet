@@ -18,6 +18,11 @@ export type SignedDocumentPublic = {
    */
   entity_id: string;
   signer_name: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   signed_at: string;
   sha256: string;
 };

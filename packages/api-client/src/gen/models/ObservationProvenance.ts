@@ -3,28 +3,12 @@
  * Do not edit manually.
  */
 
-export const observationProvenanceTimeBasisEnum = {
-  source_observation: "source_observation",
-  source_issue: "source_issue",
-  unknown: "unknown",
-} as const;
-
-export type ObservationProvenanceTimeBasisEnum =
-  (typeof observationProvenanceTimeBasisEnum)[keyof typeof observationProvenanceTimeBasisEnum];
-
-export const observationProvenancePublicationStateEnum = {
-  not_published: "not_published",
-  published: "published",
-  failed: "failed",
-  unknown: "unknown",
-} as const;
-
-export type ObservationProvenancePublicationStateEnum =
-  (typeof observationProvenancePublicationStateEnum)[keyof typeof observationProvenancePublicationStateEnum];
+import type { ObservationProvenancePropertiesPublicationStateEnum } from "./ObservationProvenancePropertiesPublicationStateEnum.js";
+import type { ObservationProvenancePropertiesTimeBasisEnum } from "./ObservationProvenancePropertiesTimeBasisEnum.js";
 
 export type ObservationProvenance = {
   source_system: string;
-  time_basis: ObservationProvenanceTimeBasisEnum;
+  time_basis: ObservationProvenancePropertiesTimeBasisEnum;
   raw_tac?: string | null;
   bufr?: {
     [key: string]: unknown;
@@ -39,5 +23,5 @@ export type ObservationProvenance = {
    * @default 'unknown'
    * @type string | undefined
    */
-  publication_state?: ObservationProvenancePublicationStateEnum;
+  publication_state?: ObservationProvenancePropertiesPublicationStateEnum;
 };

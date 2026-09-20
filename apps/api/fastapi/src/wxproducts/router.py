@@ -102,7 +102,7 @@ async def list_public_products(
                     for product in products
                 ]
             )
-        except (SQLAlchemyError, OSError, TimeoutError, ValidationError):
+        except SQLAlchemyError, OSError, TimeoutError, ValidationError:
             logger.warning("Weather product feed unavailable")
     return JSONResponse(
         {"error": "Product information is unavailable"},
@@ -139,7 +139,7 @@ async def load_products(
         return AuthoredProducts(
             products=[StoredProductAdapter.validate_python(row) for row in products]
         )
-    except (SQLAlchemyError, OSError, TimeoutError):
+    except SQLAlchemyError, OSError, TimeoutError:
         raise WeatherUnavailable()
 
 
@@ -170,7 +170,7 @@ async def save_product(
     try:
         product = await service.write_product(session, body, author.user)
         return StoredProductAdapter.validate_python(product)
-    except (SQLAlchemyError, OSError, TimeoutError):
+    except SQLAlchemyError, OSError, TimeoutError:
         raise WeatherUnavailable()
 
 
@@ -200,7 +200,7 @@ async def load_history(
         return ProductHistory(
             history=[ProductHistoryEntry.model_validate(row) for row in rows]
         )
-    except (SQLAlchemyError, OSError, TimeoutError):
+    except SQLAlchemyError, OSError, TimeoutError:
         raise WeatherUnavailable()
 
 
@@ -220,7 +220,7 @@ async def public_forecast(
     if session is not None:
         try:
             return await forecast.load_forecast(session, datetime.now(UTC))
-        except (SQLAlchemyError, OSError, TimeoutError, ValidationError):
+        except SQLAlchemyError, OSError, TimeoutError, ValidationError:
             logger.warning("Public forecast unavailable")
     return JSONResponse(
         {"error": "Forecast information is unavailable"},
@@ -245,6 +245,8 @@ def aviation_view(row: AviationDraft) -> AviationDraftRead:
     response_model=AviationDraftList,
     tags=["wxproducts"],
     responses={403: {"model": AuthoringError}, 503: {"model": AuthoringError}},
+    summary="List aviation drafts",
+    description="Returns aviation product drafts for the requested product kind and station. Authoring access is required.",
 )
 async def load_aviation_drafts(
     *,
@@ -259,7 +261,7 @@ async def load_aviation_drafts(
     try:
         rows = await service.list_aviation_drafts(session, kind, station)
         return AviationDraftList(drafts=[aviation_view(row) for row in rows])
-    except (SQLAlchemyError, OSError, TimeoutError):
+    except SQLAlchemyError, OSError, TimeoutError:
         raise WeatherUnavailable()
 
 
@@ -272,6 +274,8 @@ async def load_aviation_drafts(
         409: {"model": AuthoringError},
         503: {"model": AuthoringError},
     },
+    summary="Save an aviation draft",
+    description="Creates or updates an aviation product draft for the requested station and product kind.",
 )
 async def save_aviation_draft(
     *,
@@ -286,7 +290,7 @@ async def save_aviation_draft(
         return aviation_view(
             await service.save_aviation_draft(session, body, author.user)
         )
-    except (SQLAlchemyError, OSError, TimeoutError):
+    except SQLAlchemyError, OSError, TimeoutError:
         raise WeatherUnavailable()
 
 
@@ -295,6 +299,8 @@ async def save_aviation_draft(
     response_model=AviationHistory,
     tags=["wxproducts"],
     responses={403: {"model": AuthoringError}, 503: {"model": AuthoringError}},
+    summary="List aviation draft history",
+    description="Returns the recorded revisions of an aviation product draft in revision order.",
 )
 async def load_aviation_history(
     *,
@@ -319,7 +325,7 @@ async def load_aviation_history(
                 for row in rows
             ]
         )
-    except (SQLAlchemyError, OSError, TimeoutError):
+    except SQLAlchemyError, OSError, TimeoutError:
         raise WeatherUnavailable()
 
 
@@ -371,7 +377,7 @@ async def product_revision_pdf(
             session, product_id, revision, author.allowed_kinds
         )
         content = await run_in_threadpool(pdf.render_product_pdf, source)
-    except (SQLAlchemyError, OSError, TimeoutError):
+    except SQLAlchemyError, OSError, TimeoutError:
         raise WeatherUnavailable()
     return Response(
         content,

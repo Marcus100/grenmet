@@ -12,9 +12,8 @@ from datetime import timedelta
 from typing import Any
 
 import httpx
-from sqlalchemy import or_
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
 
 from src.cap.models import CapJobEvent, CapJobStatus
 from src.utils.datetime import utc_now
@@ -103,17 +102,17 @@ async def process_due_jobs(
             select(CapJobEvent)
             .where(
                 or_(
-                    col(CapJobEvent.status) == CapJobStatus.QUEUED,
-                    (col(CapJobEvent.status) == CapJobStatus.FAILED)
-                    & (col(CapJobEvent.attempts) < max_attempts)
+                    CapJobEvent.status == CapJobStatus.QUEUED,
+                    (CapJobEvent.status == CapJobStatus.FAILED)
+                    & (CapJobEvent.attempts < max_attempts)
                     # Only retry once the backoff window has elapsed.
                     & (
-                        col(CapJobEvent.next_retry_at).is_(None)
-                        | (col(CapJobEvent.next_retry_at) <= now)
+                        CapJobEvent.next_retry_at.is_(None)
+                        | (CapJobEvent.next_retry_at <= now)
                     ),
                 )
             )
-            .order_by(col(CapJobEvent.created_at))
+            .order_by(CapJobEvent.created_at)
             .limit(limit)
         )
         jobs = list(result.scalars().all())

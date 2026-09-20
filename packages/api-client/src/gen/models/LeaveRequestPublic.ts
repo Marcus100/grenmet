@@ -64,6 +64,16 @@ export type LeaveRequestPublic = {
   head_of_dept_comments?: string | null;
   status: RequestStatus;
   workflow_instance_id?: string | null;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   created_at: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   updated_at: string;
 };

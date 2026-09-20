@@ -4,7 +4,6 @@ from src.auth.browser import get_browser_or_token_user
 from src.auth.models import User
 from src.main import app
 from src.wxwatch.config import wxwatch_settings
-from tests.wxproducts.test_migrations import weather_engine as weather_engine
 from tests.wxwatch.test_gallery import image_database as image_database
 
 TOKEN = "archive-test-token-" + "x" * 40

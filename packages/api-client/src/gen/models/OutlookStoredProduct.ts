@@ -15,6 +15,11 @@ export type OutlookStoredProduct = {
   values: OutlookValuesDraft;
   revision: number;
   publishedRevision: number | null;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   updatedAt: string;
   kind: "outlook";
 };

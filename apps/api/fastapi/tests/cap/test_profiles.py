@@ -5,7 +5,6 @@ from collections.abc import AsyncIterator
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import SQLModel
 
 from src.auth.models import User
 from src.cap import profiles
@@ -18,14 +17,16 @@ from src.cap.profile_schemas import (
 )
 from src.database import async_engine
 from src.exceptions import AuthorizationError
+from src.orm import Base
 
 
 @pytest.fixture
-async def profile_session() -> AsyncIterator[AsyncSession]:
+async def profile_session(test_database: None) -> AsyncIterator[AsyncSession]:
+    assert test_database is None
     async with async_engine.connect() as connection:
         transaction = await connection.begin()
         await connection.run_sync(
-            lambda conn: SQLModel.metadata.create_all(
+            lambda conn: Base.metadata.create_all(
                 conn, tables=[CapHazardProfile.__table__]
             )
         )
@@ -183,7 +184,7 @@ def test_numeric_and_per_level_rules_require_complete_evidence() -> None:
 async def test_approved_profile_starts_only_a_draft_with_version_provenance(
     profile_session: AsyncSession,
 ) -> None:
-    from sqlmodel import select
+    from sqlalchemy import select
 
     from src.cap.models import CapJobEvent, CapLifecycleState, CapSeverity
     from tests.factories import make_user
@@ -248,7 +249,7 @@ async def test_profile_http_contract(profile_session: AsyncSession) -> None:
         body = response.json()
         assert body["state"] == "DRAFT"
         assert body["approval_errors"]
-        assert body["created_at"].endswith("+0000")
+        assert body["created_at"].endswith("Z")
         listed = await client.get("/api/v1/cap/hazard-profiles")
         assert listed.status_code == 200
         assert any(row["id"] == body["id"] for row in listed.json())

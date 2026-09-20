@@ -3,32 +3,8 @@
  * Do not edit manually.
  */
 
-export const legacyProductWriteActionEnum = {
-  draft: "draft",
-  publish: "publish",
-  withdraw: "withdraw",
-} as const;
-
-export type LegacyProductWriteActionEnum =
-  (typeof legacyProductWriteActionEnum)[keyof typeof legacyProductWriteActionEnum];
-
-export const legacyProductWriteKindEnum = {
-  morning: "morning",
-  midday: "midday",
-  evening: "evening",
-  cyclone: "cyclone",
-  marine: "marine",
-  flood: "flood",
-  thunderstorm: "thunderstorm",
-  wind: "wind",
-  heat: "heat",
-  dust: "dust",
-  coastal: "coastal",
-  tsunami: "tsunami",
-} as const;
-
-export type LegacyProductWriteKindEnum =
-  (typeof legacyProductWriteKindEnum)[keyof typeof legacyProductWriteKindEnum];
+import type { LegacyProductPreviewPropertiesKindEnum } from "./LegacyProductPreviewPropertiesKindEnum.js";
+import type { LegacyProductWritePropertiesActionEnum } from "./LegacyProductWritePropertiesActionEnum.js";
 
 export type LegacyProductWrite = {
   /**
@@ -45,12 +21,12 @@ export type LegacyProductWrite = {
   values: {
     [key: string]: string;
   };
-  action: LegacyProductWriteActionEnum;
+  action: LegacyProductWritePropertiesActionEnum;
   /**
    * @maxLength 1000
    * @type string
    */
   changeSummary: string;
   reviewed: boolean;
-  kind: LegacyProductWriteKindEnum;
+  kind: LegacyProductPreviewPropertiesKindEnum;
 };

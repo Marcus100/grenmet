@@ -11,5 +11,10 @@ export type SignaturePublic = {
    */
   version: string;
   image_data_url: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   updated_at: string;
 };

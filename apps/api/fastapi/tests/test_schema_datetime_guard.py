@@ -17,7 +17,17 @@ from pydantic import PlainSerializer
 
 import src.main  # noqa: F401  # imports every router so all schemas register
 from src.main import app
-from src.models import CustomModel
+from src.models import CustomModel, datetime_to_gmt_str
+
+
+def test_datetime_serializer_emits_rfc3339_utc_z_suffix() -> None:
+    assert (
+        datetime_to_gmt_str(datetime(2026, 9, 20, 19, 13, 54)) == "2026-09-20T19:13:54Z"
+    )
+    assert (
+        datetime_to_gmt_str(datetime.fromisoformat("2026-09-20T15:13:54-04:00"))
+        == "2026-09-20T19:13:54Z"
+    )
 
 
 def _all_subclasses(cls: type) -> set[type]:

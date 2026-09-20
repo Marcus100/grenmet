@@ -14,7 +14,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import HTMLResponse
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlmodel import col, delete
+from sqlalchemy import delete
 from starlette.requests import Request
 
 from src.auth import modern_service, service
@@ -406,8 +406,8 @@ async def recover_password(
     if user and user.is_active:
         await session.execute(
             delete(AuthChallenge).where(
-                col(AuthChallenge.user_id) == user.id,
-                col(AuthChallenge.purpose) == "password-reset",
+                AuthChallenge.user_id == user.id,
+                AuthChallenge.purpose == "password-reset",
             )
         )
         password_reset_token = await modern_service.issue(

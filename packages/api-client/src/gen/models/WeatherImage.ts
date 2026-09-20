@@ -26,6 +26,11 @@ export type WeatherImage = {
   fileFormat: string | null;
   isAnimated: boolean | null;
   fileSizeBytes: number | null;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   fetchedAt: string;
   name: string | null;
   imageUrl: string | null;

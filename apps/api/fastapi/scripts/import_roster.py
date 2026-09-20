@@ -28,7 +28,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from sqlmodel import col, select
+from sqlalchemy import select
 
 from src.auth.models import User
 from src.database import async_session_factory
@@ -47,7 +47,7 @@ def parse_month(value: str) -> tuple[date, date]:
         year, month = int(year_str), int(month_str)
         last_day = calendar.monthrange(year, month)[1]
         return date(year, month, 1), date(year, month, last_day)
-    except (ValueError, IndexError):
+    except ValueError, IndexError:
         raise argparse.ArgumentTypeError(
             f"--month must be YYYY-MM, got {value!r}"
         ) from None
@@ -112,15 +112,13 @@ async def run(args: argparse.Namespace) -> None:
     grid = read_grid(Path(args.csv), days_in_month)
 
     async with async_session_factory() as session:
-        result = await session.execute(
-            select(User).where(col(User.username) == args.actor)
-        )
+        result = await session.execute(select(User).where(User.username == args.actor))
         actor = result.scalars().first()
         if not actor or not actor.is_superuser:
             raise SystemExit(f"Superuser {args.actor!r} not found")
 
         catalog_result = await session.execute(
-            select(ShiftCatalog).where(col(ShiftCatalog.is_active) == True)  # noqa: E712
+            select(ShiftCatalog).where(ShiftCatalog.is_active == True)  # noqa: E712
         )
         valid_codes = {shift.code for shift in catalog_result.scalars().all()}
         if not valid_codes:
@@ -164,8 +162,8 @@ async def run(args: argparse.Namespace) -> None:
 
         period_result = await session.execute(
             select(RosterPeriod).where(
-                col(RosterPeriod.department_id) == args.department,
-                col(RosterPeriod.period_start) == period_start,
+                RosterPeriod.department_id == args.department,
+                RosterPeriod.period_start == period_start,
             )
         )
         period = period_result.scalars().first()

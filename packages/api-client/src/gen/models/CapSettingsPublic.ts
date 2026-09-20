@@ -18,6 +18,16 @@ export type CapSettingsPublic = {
   feed_limit: number;
   signing_enabled: boolean;
   signing_certificate_ref?: string | null;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   created_at: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   updated_at: string;
 };

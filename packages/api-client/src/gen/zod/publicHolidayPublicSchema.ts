@@ -12,5 +12,5 @@ export const publicHolidayPublicSchema = z.object({
   is_recurring: z.boolean(),
   country_code: z.string(),
   created_by_user_id: z.uuid(),
-  created_at: z.string(),
+  created_at: z.iso.datetime(),
 });
