@@ -2,9 +2,9 @@
 "use no memo";
 
 import {
-  useReadRoleAssignmentsApiV1AuthRoleAssignmentsGet,
-  useReadRolesApiV1AuthRolesGet,
-  useReadUsersApiV1AuthUsersGet,
+  useAuthGetRoleAssignments,
+  useAuthGetRoles,
+  useAuthGetUsers,
 } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import {
@@ -63,15 +63,13 @@ import {
 import { UsersTable } from "./users-table";
 
 export function UsersManager() {
-  const usersQuery = useReadUsersApiV1AuthUsersGet({
+  const usersQuery = useAuthGetUsers({
     query: { page: 1, size: 100 },
   });
-  const rolesQuery = useReadRolesApiV1AuthRolesGet({
+  const rolesQuery = useAuthGetRoles({
     query: { page: 1, size: 100 },
   });
-  const assignmentsQuery = useReadRoleAssignmentsApiV1AuthRoleAssignmentsGet(
-    {}
-  );
+  const assignmentsQuery = useAuthGetRoleAssignments({});
 
   const roles = useMemo(() => rolesQuery.data?.data ?? [], [rolesQuery.data]);
   const rows = useMemo(

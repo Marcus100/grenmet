@@ -1,15 +1,15 @@
 "use client";
 
 import {
-  readStatusReportsApiV1HrStatusReportsGetQueryKey,
+  hrGetStatusReportsQueryKey,
   type ShiftPeriod,
   type StatusReportCreate,
   type StatusReportPublic,
-  useCreateStatusReportApiV1HrStatusReportsPost,
-  useReadHrProfileMeApiV1HrProfileMeGet,
-  useReadStatusReportsApiV1HrStatusReportsGet,
-  useSubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost,
-  useUpdateStatusReportApiV1HrStatusReportsReportIdPatch,
+  useHrCreateStatusReport,
+  useHrGetHrProfileMe,
+  useHrGetStatusReports,
+  useHrSubmitStatusReport,
+  useHrUpdateStatusReport,
 } from "@barrelsgd/api-client";
 import { useSessionUser } from "@barrelsgd/auth";
 import {
@@ -114,14 +114,12 @@ export function DailyStatusEditor() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const draftParam = searchParams.get("draft");
-  const profileQuery = useReadHrProfileMeApiV1HrProfileMeGet();
+  const profileQuery = useHrGetHrProfileMe();
   const departmentId = profileQuery.data?.employment?.department?.id;
-  const myReportsQuery = useReadStatusReportsApiV1HrStatusReportsGet({});
-  const createMutation = useCreateStatusReportApiV1HrStatusReportsPost();
-  const updateMutation =
-    useUpdateStatusReportApiV1HrStatusReportsReportIdPatch();
-  const submitMutation =
-    useSubmitStatusReportApiV1HrStatusReportsReportIdSubmitPost();
+  const myReportsQuery = useHrGetStatusReports({});
+  const createMutation = useHrCreateStatusReport();
+  const updateMutation = useHrUpdateStatusReport();
+  const submitMutation = useHrSubmitStatusReport();
   const [submission, setSubmission] = useState<SubmissionMetadata | null>(null);
   const [coApprovers, setCoApprovers] = useState<string[]>([]);
   const [statusHint, setStatusHint] = useState<string | null>(null);
@@ -191,7 +189,7 @@ export function DailyStatusEditor() {
 
   async function refreshMyReports() {
     await queryClient.invalidateQueries({
-      queryKey: readStatusReportsApiV1HrStatusReportsGetQueryKey({}),
+      queryKey: hrGetStatusReportsQueryKey({}),
     });
   }
 

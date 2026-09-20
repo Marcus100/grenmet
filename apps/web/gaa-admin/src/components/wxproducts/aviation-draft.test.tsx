@@ -20,13 +20,13 @@ const saved = {
   kind: "METAR",
   station: "TGPY",
   message: "METAR TGPY old=",
-  observed_at: "2026-09-17T12:00:45+0000",
+  observed_at: "2026-09-17T12:00:45Z",
   issued_at: null,
   valid_from: null,
   valid_to: null,
   actor_id: ID,
   actor_name: "Forecaster",
-  updated_at: "2026-09-17T13:00:00+0000",
+  updated_at: "2026-09-17T13:00:00Z",
   state: "draft",
   time_basis: "staff_supplied",
 };
@@ -129,7 +129,7 @@ it("keeps seconds when loading an existing draft and prompts before replacing ed
     await screen.findByText(`Revision 1 · ${saved.updated_at} · Forecaster`)
   );
   expect(screen.getByLabelText("Observation time (UTC)")).toHaveValue(
-    "2026-09-17T12:00:45.000"
+    "2026-09-17T12:00:45"
   );
   typeMessage("Unsaved");
   fireEvent.click(screen.getByText("TAF"));

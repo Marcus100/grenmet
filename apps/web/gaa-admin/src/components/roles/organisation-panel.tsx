@@ -1,7 +1,7 @@
 "use client";
 import {
-  importOrganisationApiV1HrSetupOrganisationPost,
-  previewOrganisationApiV1HrSetupOrganisationGet,
+  hrImportOrganisation,
+  hrPreviewOrganisation,
 } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -10,11 +10,10 @@ export function OrganisationPanel() {
   const client = useQueryClient();
   const query = useQuery({
     queryKey: ["gaa-organisation"],
-    queryFn: () => previewOrganisationApiV1HrSetupOrganisationGet({}).unwrap(),
+    queryFn: () => hrPreviewOrganisation({}).unwrap(),
   });
   const save = useMutation({
-    mutationFn: () =>
-      importOrganisationApiV1HrSetupOrganisationPost({}).unwrap(),
+    mutationFn: () => hrImportOrganisation({}).unwrap(),
     onSuccess: () =>
       client.invalidateQueries({ queryKey: ["gaa-organisation"] }),
   });

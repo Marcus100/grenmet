@@ -1,14 +1,14 @@
 "use client";
 
 import {
+  hrGetMyLeaveRequestsQueryKey,
   type LeaveRequestPublic,
   type LeaveType,
-  readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryKey,
-  useCreateLeaveRequestApiV1HrLeaveRequestsPost,
-  useReadHrProfileMeApiV1HrProfileMeGet,
-  useReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet,
-  useSubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost,
-  useUpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch,
+  useHrCreateLeaveRequest,
+  useHrGetHrProfileMe,
+  useHrGetMyLeaveRequests,
+  useHrSubmitLeaveRequest,
+  useHrUpdateLeaveRequest,
 } from "@barrelsgd/api-client";
 import { useSessionUser } from "@barrelsgd/auth";
 import {
@@ -99,14 +99,12 @@ export function LeaveApplicationEditor() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const draftParam = searchParams.get("draft");
-  const profileQuery = useReadHrProfileMeApiV1HrProfileMeGet();
+  const profileQuery = useHrGetHrProfileMe();
   const departmentId = profileQuery.data?.employment?.department?.id;
-  const myRequestsQuery = useReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet({});
-  const createMutation = useCreateLeaveRequestApiV1HrLeaveRequestsPost();
-  const updateMutation =
-    useUpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch();
-  const submitMutation =
-    useSubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost();
+  const myRequestsQuery = useHrGetMyLeaveRequests({});
+  const createMutation = useHrCreateLeaveRequest();
+  const updateMutation = useHrUpdateLeaveRequest();
+  const submitMutation = useHrSubmitLeaveRequest();
   const [submission, setSubmission] = useState<SubmissionMetadata | null>(null);
   const [coApprovers, setCoApprovers] = useState<string[]>([]);
   const [statusHint, setStatusHint] = useState<string | null>(null);
@@ -179,7 +177,7 @@ export function LeaveApplicationEditor() {
 
   async function refreshMyRequests() {
     await queryClient.invalidateQueries({
-      queryKey: readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryKey({}),
+      queryKey: hrGetMyLeaveRequestsQueryKey({}),
     });
   }
 

@@ -31,6 +31,7 @@ vi.mock("posthog-node", () => ({
 import { signInAction, signOutAction, signUpAction } from "@/app/actions";
 import {
   signInBadCredentials,
+  signInMalformedResponse,
   signInServiceDown,
   signInSuccess,
   signOutSuccess,
@@ -82,6 +83,15 @@ describe("signInAction", () => {
     );
     expect(result.error).toBe("Incorrect email or password");
     expect(mockRedirect).not.toHaveBeenCalled();
+  });
+
+  it("reports a malformed 200 response as an unavailable auth service", async () => {
+    server.use(signInMalformedResponse);
+    const result = await signInAction(
+      { email: "", error: null },
+      makeFormData({ email: "jane@example.com", password: "secret" })
+    );
+    expect(result.error).toMatch(RE_UNABLE_TO_REACH);
   });
 
   it("returns error when auth service is unreachable", async () => {

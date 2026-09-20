@@ -1,10 +1,10 @@
 "use client";
 import {
-  approveHazardProfileApiV1CapHazardProfilesProfileIdApprovePost,
   type CapProfileDefinition,
   type CapProfilePublic,
-  draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPost,
-  saveHazardProfileApiV1CapHazardProfilesKeyVersionsPost,
+  capApproveHazardProfile,
+  capDraftFromHazardProfile,
+  capSaveHazardProfile,
 } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Checkbox } from "@barrelsgd/ui/components/ui/checkbox";
@@ -89,11 +89,10 @@ export function ProfileEditor({
         0,
         ...versions.filter((v) => v.key === key).map((v) => v.version)
       );
-      const saved =
-        await saveHazardProfileApiV1CapHazardProfilesKeyVersionsPost({
-          path: { key },
-          body: { base_version: base, definition },
-        }).unwrap();
+      const saved = await capSaveHazardProfile({
+        path: { key },
+        body: { base_version: base, definition },
+      }).unwrap();
       if (!saved) throw new Error("No saved profile");
       setVersions((previous) => [saved, ...previous]);
       selectVersion(saved);
@@ -103,10 +102,9 @@ export function ProfileEditor({
   async function approve() {
     if (!selected || dirty) return;
     await action(async () => {
-      const approved =
-        await approveHazardProfileApiV1CapHazardProfilesProfileIdApprovePost({
-          path: { profile_id: selected.id },
-        }).unwrap();
+      const approved = await capApproveHazardProfile({
+        path: { profile_id: selected.id },
+      }).unwrap();
       if (!approved) throw new Error("No approved profile");
       setVersions((previous) =>
         previous.map((v) => (v.id === approved.id ? approved : v))
@@ -118,7 +116,7 @@ export function ProfileEditor({
   async function startDraft() {
     if (!selected || dirty) return;
     await action(async () => {
-      await draftFromHazardProfileApiV1CapHazardProfilesProfileIdDraftPost({
+      await capDraftFromHazardProfile({
         path: { profile_id: selected.id },
         body: { subtype: draftSubtype, level: draftLevel },
       }).unwrap();

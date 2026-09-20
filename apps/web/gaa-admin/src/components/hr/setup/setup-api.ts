@@ -1,61 +1,59 @@
 import {
-  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost,
   balanceInputSchema,
   gradeInputSchema,
-  importCatalogueApiV1HrSetupCataloguePost,
-  offboardStaffApiV1HrSetupStaffUserIdOffboardPost,
+  hrApproveStaffRegistration,
+  hrGetSetupGrades,
+  hrGetSetupPolicies,
+  hrGetStaffSetup,
+  hrImportCatalogue,
+  hrOffboardStaff,
+  hrPreviewCatalogue,
+  hrUpdateSetupGrade,
+  hrUpdateSetupPolicy,
+  hrUpdateStaffBalance,
+  hrUpdateStaffSetup,
   policyInputSchema,
-  previewCatalogueApiV1HrSetupCatalogueGet,
-  readSetupGradesApiV1HrSetupGradesGet,
-  readSetupPoliciesApiV1HrSetupPoliciesGet,
-  readStaffSetupApiV1HrSetupStaffGet,
   staffInputSchema,
-  updateSetupGradeApiV1HrSetupGradesGradeIdPut,
-  updateSetupPolicyApiV1HrSetupPoliciesKeyPut,
-  updateStaffBalanceApiV1HrSetupStaffUserIdBalancePost,
-  updateStaffSetupApiV1HrSetupStaffUserIdPut,
 } from "@barrelsgd/api-client";
 
-export const readStaff = () => readStaffSetupApiV1HrSetupStaffGet({}).unwrap();
-export const readGrades = () =>
-  readSetupGradesApiV1HrSetupGradesGet({}).unwrap();
-export const readPolicies = () =>
-  readSetupPoliciesApiV1HrSetupPoliciesGet({}).unwrap();
+export const readStaff = () => hrGetStaffSetup({}).unwrap();
+export const readGrades = () => hrGetSetupGrades({}).unwrap();
+export const readPolicies = () => hrGetSetupPolicies({}).unwrap();
 export const saveStaff = (id: string, body: unknown) =>
-  updateStaffSetupApiV1HrSetupStaffUserIdPut({
+  hrUpdateStaffSetup({
     path: { user_id: id },
     body: staffInputSchema.parse(body),
   }).unwrap();
 export const saveGrade = (id: string, body: unknown) =>
-  updateSetupGradeApiV1HrSetupGradesGradeIdPut({
+  hrUpdateSetupGrade({
     path: { grade_id: id },
     body: gradeInputSchema.parse(body),
   }).unwrap();
 export const savePolicy = (key: string, body: unknown) =>
-  updateSetupPolicyApiV1HrSetupPoliciesKeyPut({
+  hrUpdateSetupPolicy({
     path: { key },
     body: policyInputSchema.parse(body),
   }).unwrap();
 export const offboardStaff = (id: string) =>
-  offboardStaffApiV1HrSetupStaffUserIdOffboardPost({
+  hrOffboardStaff({
     path: { user_id: id },
   }).unwrap();
 export const recordBalance = (id: string, body: unknown) =>
-  updateStaffBalanceApiV1HrSetupStaffUserIdBalancePost({
+  hrUpdateStaffBalance({
     path: { user_id: id },
     body: balanceInputSchema.parse(body),
   }).unwrap();
 
 export const approveRegistration = (id: string) =>
-  approveStaffRegistrationApiV1HrSetupStaffUserIdApproveRegistrationPost({
+  hrApproveStaffRegistration({
     path: { user_id: id },
   }).unwrap();
 
 export const previewCatalogue = (departmentId: string) =>
-  previewCatalogueApiV1HrSetupCatalogueGet({
+  hrPreviewCatalogue({
     query: { department_id: departmentId },
   }).unwrap();
 export const importCatalogue = (departmentId: string) =>
-  importCatalogueApiV1HrSetupCataloguePost({
+  hrImportCatalogue({
     body: { department_id: departmentId },
   }).unwrap();

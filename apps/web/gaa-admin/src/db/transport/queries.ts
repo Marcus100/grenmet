@@ -1,6 +1,6 @@
 import "server-only";
 
-import { specApiV1TransportSpecGetResponseSchema } from "@barrelsgd/api-client";
+import { transportSpecResponseSchema } from "@barrelsgd/api-client";
 import {
   getAuthApiBaseUrl,
   getAuthApiPrefix,
@@ -30,5 +30,5 @@ export async function getTransportSpec() {
     }
   );
   if (!response.ok) throw new Error("Transport timetable unavailable");
-  return specApiV1TransportSpecGetResponseSchema.parse(await response.json());
+  return transportSpecResponseSchema.parse(await response.json());
 }

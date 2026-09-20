@@ -1,10 +1,10 @@
 import {
+  authExchangeSessionForAccessToken,
+  authGetEffectiveAccess,
+  authGetUserMe,
   createClient,
-  exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost,
+  hrGetHrProfileMe,
   ResponseError,
-  readEffectiveAccessApiV1AuthAccessMeGet,
-  readHrProfileMeApiV1HrProfileMeGet,
-  readUserMeApiV1AuthUsersMeGet,
 } from "@barrelsgd/api-client";
 import type { AuthConfig } from "@barrelsgd/auth";
 
@@ -40,25 +40,24 @@ export async function readFastApiIdentity(
       options: { cache: "no-store" },
       baseURL: config.authApiBaseUrl,
     });
-    const session =
-      await exchangeSessionForAccessTokenApiV1LoginSessionAccessTokenPost({
-        client: anonymous,
-        signal: AbortSignal.timeout(10_000),
-        body: { session_token: sessionToken },
-      }).unwrap();
+    const session = await authExchangeSessionForAccessToken({
+      client: anonymous,
+      signal: AbortSignal.timeout(10_000),
+      body: { session_token: sessionToken },
+    }).unwrap();
     if (!session.user.is_active) return null;
     const client = createClient({
       options: { cache: "no-store" },
       baseURL: config.authApiBaseUrl,
       headers: { Authorization: `Bearer ${session.access_token}` },
     });
-    const user = await readUserMeApiV1AuthUsersMeGet({
+    const user = await authGetUserMe({
       client,
       signal: AbortSignal.timeout(10_000),
     }).unwrap();
     if (!user.is_active || user.id !== session.user.id) return null;
     if (!user.is_superuser) {
-      const profile = await readHrProfileMeApiV1HrProfileMeGet({
+      const profile = await hrGetHrProfileMe({
         client,
         signal: AbortSignal.timeout(10_000),
       }).unwrap();
@@ -71,7 +70,7 @@ export async function readFastApiIdentity(
       )
         return null;
     }
-    const access = await readEffectiveAccessApiV1AuthAccessMeGet({
+    const access = await authGetEffectiveAccess({
       client,
       signal: AbortSignal.timeout(10_000),
     }).unwrap();

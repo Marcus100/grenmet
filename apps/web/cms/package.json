@@ -44,6 +44,7 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "babel-plugin-react-compiler": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

@@ -1,17 +1,17 @@
 "use client";
 
 import {
-  getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey,
-  listPeriodsApiV1HrRostersPeriodsGetQueryKey,
+  hrGetPeriodQueryKey,
+  hrListPeriodsQueryKey,
   type RosterAssignmentInput,
-  useBulkAssignmentsApiV1HrRostersAssignmentsBulkPost,
-  useCreatePeriodApiV1HrRostersPeriodsPost,
-  useGetPeriodApiV1HrRostersPeriodsPeriodIdGet,
-  useListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet,
-  useListDepartmentsEndpointApiV1HrDepartmentsGet,
-  useListPeriodsApiV1HrRostersPeriodsGet,
-  useListShiftCatalogApiV1HrRostersShiftsGet,
-  usePublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch,
+  useHrBulkAssignments,
+  useHrCreatePeriod,
+  useHrGetPeriod,
+  useHrListDepartmentMembers,
+  useHrListDepartments,
+  useHrListPeriods,
+  useHrListShiftCatalog,
+  useHrPublishPeriod,
 } from "@barrelsgd/api-client";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
@@ -89,30 +89,29 @@ export function DutyRoster() {
   const [departmentId, setDepartmentId] = useState<string>();
   const [pendingEdits, setPendingEdits] = useState<Record<string, string>>({});
 
-  const departmentsQuery = useListDepartmentsEndpointApiV1HrDepartmentsGet();
+  const departmentsQuery = useHrListDepartments();
   const departments = departmentsQuery.data?.data ?? [];
   const activeDepartmentId = departmentId ?? departments[0]?.id;
 
-  const shiftsQuery = useListShiftCatalogApiV1HrRostersShiftsGet({});
+  const shiftsQuery = useHrListShiftCatalog({});
   const catalog = shiftsQuery.data?.data ?? [];
   const cycleCodes = useMemo(() => buildCycleCodes(catalog), [catalog]);
   const workCodes = useMemo(() => workShiftCodes(catalog), [catalog]);
 
-  const membersQuery =
-    useListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet(
-      { path: { department_id: activeDepartmentId ?? "" } },
-      { query: { enabled: Boolean(activeDepartmentId) } }
-    );
+  const membersQuery = useHrListDepartmentMembers(
+    { path: { department_id: activeDepartmentId ?? "" } },
+    { query: { enabled: Boolean(activeDepartmentId) } }
+  );
   const members = membersQuery.data?.data ?? [];
   const memberGroups = useMemo(() => groupByGrade(members), [members]);
 
-  const periodsQuery = useListPeriodsApiV1HrRostersPeriodsGet(
+  const periodsQuery = useHrListPeriods(
     { query: { department_id: activeDepartmentId ?? "" } },
     { query: { enabled: Boolean(activeDepartmentId) } }
   );
   const period = findPeriodForMonth(periodsQuery.data?.data ?? [], monthDate);
 
-  const detailsQuery = useGetPeriodApiV1HrRostersPeriodsPeriodIdGet(
+  const detailsQuery = useHrGetPeriod(
     { path: { period_id: period?.id ?? "" } },
     { query: { enabled: Boolean(period) } }
   );
@@ -121,10 +120,9 @@ export function DutyRoster() {
     [detailsQuery.data?.assignments]
   );
 
-  const createPeriodMutation = useCreatePeriodApiV1HrRostersPeriodsPost();
-  const bulkMutation = useBulkAssignmentsApiV1HrRostersAssignmentsBulkPost();
-  const publishMutation =
-    usePublishPeriodApiV1HrRostersPeriodsPeriodIdPublishPatch();
+  const createPeriodMutation = useHrCreatePeriod();
+  const bulkMutation = useHrBulkAssignments();
+  const publishMutation = useHrPublishPeriod();
 
   const year = monthDate.getFullYear();
   const month = monthDate.getMonth();
@@ -185,7 +183,7 @@ export function DutyRoster() {
       },
     });
     await queryClient.invalidateQueries({
-      queryKey: listPeriodsApiV1HrRostersPeriodsGetQueryKey({
+      queryKey: hrListPeriodsQueryKey({
         query: {
           department_id: activeDepartmentId,
         },
@@ -210,7 +208,7 @@ export function DutyRoster() {
       body: { roster_period_id: period.id, assignments },
     });
     await queryClient.invalidateQueries({
-      queryKey: getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey({
+      queryKey: hrGetPeriodQueryKey({
         path: { period_id: period.id },
       }),
     });
@@ -223,14 +221,14 @@ export function DutyRoster() {
     await publishMutation.mutateAsync({ path: { period_id: period.id } });
     await Promise.all([
       queryClient.invalidateQueries({
-        queryKey: listPeriodsApiV1HrRostersPeriodsGetQueryKey({
+        queryKey: hrListPeriodsQueryKey({
           query: {
             department_id: activeDepartmentId ?? "",
           },
         }),
       }),
       queryClient.invalidateQueries({
-        queryKey: getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey({
+        queryKey: hrGetPeriodQueryKey({
           path: { period_id: period.id },
         }),
       }),
