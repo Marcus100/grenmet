@@ -43,6 +43,9 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # Stage 2: Runtime - Minimal production image
 FROM python:3.14-slim-bookworm@sha256:82bc3c539b8813ada9d68c63b40158fa002f7f33de9bf3312a3dfdc0620dff56
+# Patch packages inherited from the Python runtime image before vulnerability scanning.
+RUN python -m pip install --no-cache-dir --upgrade "msgpack>=1.2.1" "setuptools>=78.1.1"
+
 
 # uv is no longer on any startup path — prestart and the worker run straight off
 # the venv on PATH. Kept only as an escape hatch for ad-hoc `docker exec` ops.
