@@ -276,3 +276,28 @@ async def test_create_leave_request(
 | Adding domain config to global `Settings` | Create a domain `BaseSettings` subclass |
 | New test using sync `TestClient` | Use `async_client` fixture |
 | Mocking `AsyncSession` in tests | Use `db_async` fixture (real DB) + `dependency_overrides` for auth |
+
+## OpenAPI contract conventions
+
+- Keep operation IDs stable, unique, and domain-prefixed (`capGetAlert`,
+  `hrCreateLeaveRequest`, `authLogin`).
+- Use `src.models.BaseModel` for public Pydantic schemas; do not expose ORM
+  models directly.
+- Use `UtcDateTime` for API datetimes so serialization retains
+  `format: date-time`.
+- Promote meaningful finite values to named enums; document intentional open maps
+  in the OpenAPI guard exemption registry.
+- Declare response models, success statuses, summaries, descriptions, and
+  realistic error responses on public routes.
+- Regenerate `openapi.json` before Kubb and run `pnpm check:drift`; never edit
+  generated client files manually.
+
+## Python runtime
+
+The FastAPI project requires Python 3.14 (`pyproject.toml` is authoritative).
+The workspace `.venv` used by `uv run` must be created with that interpreter; do not use a
+system Python or a stale environment linked to Python 3.13 or earlier. Python
+3.14 syntax such as PEP 758's unparenthesized multiple-exception syntax is
+intentional. If a syntax check reports errors around that syntax, verify the
+interpreter before changing source code. `scripts/lint.sh` fails early when the
+active `uv` environment does not match the configured requirement.
