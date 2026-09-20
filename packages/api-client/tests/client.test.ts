@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  authGetUserMe,
+  authGetUsers,
+  authLoginAccessToken,
   configureApiClient,
   createClient,
-  createDepartmentEndpointApiV1HrDepartmentsPost,
-  loginAccessTokenApiV1LoginAccessTokenPost,
+  hrCreateDepartment,
   ResponseError,
-  readUserMeApiV1AuthUsersMeGet,
-  readUsersApiV1AuthUsersGet,
 } from "../src/index.js";
 
 beforeEach(() =>
@@ -27,9 +27,9 @@ describe("generated client integration", () => {
       requests.push(input);
       return Promise.resolve(Response.json({ data: [], total: 0 }));
     });
-    await readUsersApiV1AuthUsersGet({ query: { page: 2, size: 10 } }).unwrap();
+    await authGetUsers({ query: { page: 2, size: 10 } }).unwrap();
     token = "second";
-    const body = await readUsersApiV1AuthUsersGet().unwrap();
+    const body = await authGetUsers().unwrap();
     expect(requests[0]?.url).toBe(
       "https://api.test/api/v1/auth/users?page=2&size=10"
     );
@@ -50,7 +50,7 @@ describe("generated client integration", () => {
       return Response.json(payload, { status: 201 });
     });
     await expect(
-      createDepartmentEndpointApiV1HrDepartmentsPost({ body: payload }).unwrap()
+      hrCreateDepartment({ body: payload }).unwrap()
     ).resolves.toEqual(payload);
   });
 
@@ -66,7 +66,7 @@ describe("generated client integration", () => {
       expect(form.get("password")).toBe("secret & value");
       return Response.json({ access_token: "token", token_type: "bearer" });
     });
-    await loginAccessTokenApiV1LoginAccessTokenPost({
+    await authLoginAccessToken({
       body: { username: "a+b@example.test", password: "secret & value" },
     }).unwrap();
   });
@@ -75,7 +75,7 @@ describe("generated client integration", () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
       Response.json({ detail: "Invalid token" }, { status: 403 })
     );
-    const error = await readUserMeApiV1AuthUsersMeGet()
+    const error = await authGetUserMe()
       .unwrap()
       .catch((value: unknown) => value);
     expect(error).toBeInstanceOf(ResponseError);
@@ -102,8 +102,8 @@ describe("generated client integration", () => {
       headers: { Authorization: "Bearer second" },
     });
     await Promise.all([
-      readUserMeApiV1AuthUsersMeGet({ client: first }),
-      readUserMeApiV1AuthUsersMeGet({ client: second }),
+      authGetUserMe({ client: first }),
+      authGetUserMe({ client: second }),
     ]);
     expect(seen).toEqual(["Bearer first", "Bearer second"]);
   });
