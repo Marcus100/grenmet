@@ -25,7 +25,7 @@ top of a legacy poll.
 
 ## Blocker to resolve first: Python version
 
-The collector requires Python 3.13. The edge PC runs Python 2 for the legacy
+The collector requires Python 3.14. The edge PC runs Python 2 for the legacy
 system and may have no suitable Python 3 at all.
 
 Check what is there (the harvest already captured this in
@@ -45,7 +45,7 @@ untouched:
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
-~/.local/bin/uv python install 3.13
+~/.local/bin/uv python install 3.14.7
 ```
 
 Outbound access was verified on 2026-08-15: `pypi.org` and `github.com` both
@@ -70,7 +70,7 @@ host that does not filter by user-agent.
 mkdir -p /home/data/sutron-ng/outgoing
 cd /home/data/sutron-ng
 
-uv venv --python 3.13 venv
+uv venv --python 3.14.7 venv
 ./venv/bin/pip install /path/to/sutron_collector-*.whl
 
 sudo cp sutron-collector.service sutron-collector.timer /etc/systemd/system/
