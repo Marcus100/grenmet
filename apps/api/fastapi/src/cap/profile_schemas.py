@@ -52,7 +52,7 @@ class CapProfileDefinition(BaseModel):
     notes: str = Field(default="", max_length=5000)
 
     @model_validator(mode="after")
-    def unique_choices(self) -> "CapProfileDefinition":
+    def unique_choices(self) -> CapProfileDefinition:
         names = [s.name.strip().casefold() for s in self.subtypes]
         if not all(names) or len(names) != len(set(names)):
             raise ValueError("Subtype names must be nonempty and unique")

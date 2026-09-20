@@ -12,18 +12,17 @@ import math
 import platform
 import re
 import sys
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from datetime import UTC, date, datetime, timedelta, timezone
 from html.parser import HTMLParser
 from pathlib import Path
-from typing import Iterable, Sequence
 
 import numpy as np
 import scipy
-from scipy.signal import find_peaks, savgol_filter
 import utide
+from scipy.signal import find_peaks, savgol_filter
 from utide import reconstruct, solve
-
 
 LATITUDE = 12.005392
 AST = timezone(timedelta(hours=-4), name="AST")

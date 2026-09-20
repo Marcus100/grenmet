@@ -2,22 +2,24 @@ import uuid
 from datetime import datetime
 
 import sqlalchemy as sa
-from sqlmodel import Field, SQLModel
+from sqlalchemy import ForeignKey, LargeBinary, String
+from sqlalchemy.orm import Mapped, mapped_column
 
+from src.orm import Base
 from src.utils.datetime import utc_now
 
 
-class SavedSignature(SQLModel, table=True):
+class SavedSignature(Base):
     __tablename__ = "saved_signature"
     __table_args__ = {"schema": "hr"}
 
-    user_id: uuid.UUID = Field(primary_key=True, foreign_key="user.id")
-    version: uuid.UUID = Field(default_factory=uuid.uuid4)
-    image: bytes = Field(sa_column=sa.Column(sa.LargeBinary, nullable=False))
-    updated_at: datetime = Field(default_factory=utc_now)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"), primary_key=True)
+    version: Mapped[uuid.UUID] = mapped_column(default=uuid.uuid4)
+    image: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
-class SignedDocument(SQLModel, table=True):
+class SignedDocument(Base):
     """Immutable submission evidence, committed with the form in one transaction."""
 
     __tablename__ = "signed_document"
@@ -28,15 +30,15 @@ class SignedDocument(SQLModel, table=True):
         {"schema": "hr"},
     )
 
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    entity_type: str = Field(max_length=60)
-    entity_id: uuid.UUID = Field(index=True)
-    signer_id: uuid.UUID = Field(foreign_key="user.id", index=True)
-    subject_id: uuid.UUID = Field(foreign_key="user.id")
-    department_id: str = Field(foreign_key="hr.department.id")
-    signer_name: str = Field(max_length=255)
-    signature_version: uuid.UUID
-    signed_at: datetime = Field(default_factory=utc_now)
-    snapshot: str
-    sha256: str = Field(max_length=64)
-    pdf: bytes = Field(sa_column=sa.Column(sa.LargeBinary, nullable=False))
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    entity_type: Mapped[str] = mapped_column(String(60))
+    entity_id: Mapped[uuid.UUID] = mapped_column(index=True)
+    signer_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"), index=True)
+    subject_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
+    department_id: Mapped[str] = mapped_column(ForeignKey("hr.department.id"))
+    signer_name: Mapped[str] = mapped_column(String(255))
+    signature_version: Mapped[uuid.UUID]
+    signed_at: Mapped[datetime] = mapped_column(default=utc_now)
+    snapshot: Mapped[str]
+    sha256: Mapped[str] = mapped_column(String(64))
+    pdf: Mapped[bytes] = mapped_column(LargeBinary, nullable=False)

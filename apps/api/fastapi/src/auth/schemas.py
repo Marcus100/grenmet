@@ -183,6 +183,16 @@ class SessionTokenRequest(BaseModel):
     session_token: str = Field(min_length=32, max_length=500)
 
 
+class SessionUserPublic(BaseModel):
+    """Minimal user projection returned with browser session credentials."""
+
+    email: EmailStr
+    full_name: str
+    id: uuid.UUID
+    is_active: bool
+    is_superuser: bool
+
+
 # --- Two-factor authentication ---
 
 
@@ -206,11 +216,11 @@ class TwoFactorStatusPublic(BaseModel):
 
 class SessionAuthenticationBase(BaseModel):
     access_token: str
-    token_type: str = "bearer"
+    token_type: Literal["bearer"] = "bearer"
     access_token_expires_at: UtcDateTime
     session_expires_at: UtcDateTime
     session: SessionPublic
-    user: UserPublic
+    user: SessionUserPublic
 
 
 class SessionLoginResponse(SessionAuthenticationBase):

@@ -3,24 +3,7 @@
  * Do not edit manually.
  */
 
-export const forecastSourceKindEnum = {
-  morning: "morning",
-  midday: "midday",
-  evening: "evening",
-  outlook: "outlook",
-  cyclone: "cyclone",
-  marine: "marine",
-  flood: "flood",
-  thunderstorm: "thunderstorm",
-  wind: "wind",
-  heat: "heat",
-  dust: "dust",
-  coastal: "coastal",
-  tsunami: "tsunami",
-} as const;
-
-export type ForecastSourceKindEnum =
-  (typeof forecastSourceKindEnum)[keyof typeof forecastSourceKindEnum];
+import type { ForecastSourcePropertiesKindEnum } from "./ForecastSourcePropertiesKindEnum.js";
 
 export type ForecastSource = {
   /**
@@ -30,7 +13,17 @@ export type ForecastSource = {
    */
   product_id: string;
   revision: number;
-  kind: ForecastSourceKindEnum;
+  kind: ForecastSourcePropertiesKindEnum;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   issued_at: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   published_at: string;
 };

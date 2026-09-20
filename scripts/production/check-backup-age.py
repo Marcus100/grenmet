@@ -41,7 +41,7 @@ def main():
         raise ValueError("Invalid environment or backup kind")
     for kind in kinds:
         result = subprocess.run(["aws", "s3", "cp", f"s3://{os.environ['DO_SPACES_BUCKET']}/{environment}/{kind}/latest-success.json", "-", "--endpoint-url", os.environ["DO_SPACES_ENDPOINT"], "--only-show-errors"], capture_output=True, text=True, check=True)
-        check_marker(json.loads(result.stdout), environment, kind, datetime.datetime.now(datetime.timezone.utc))
+        check_marker(json.loads(result.stdout), environment, kind, datetime.datetime.now(datetime.UTC))
         print(f"{environment}: complete {kind} backup is within 24 hours")
 
 

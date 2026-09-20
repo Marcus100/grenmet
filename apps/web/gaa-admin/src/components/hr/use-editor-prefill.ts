@@ -1,6 +1,6 @@
 "use client";
 
-import { useReadHrProfileMeApiV1HrProfileMeGet } from "@barrelsgd/api-client";
+import { useHrGetHrProfileMe } from "@barrelsgd/api-client";
 import { useSessionUser } from "@barrelsgd/auth";
 import { format } from "date-fns";
 import { useEffect, useRef } from "react";
@@ -30,7 +30,7 @@ export function useEditorPrefill(
   options: { skip?: boolean } = {}
 ): void {
   const sessionUser = useSessionUser();
-  const profileQuery = useReadHrProfileMeApiV1HrProfileMeGet();
+  const profileQuery = useHrGetHrProfileMe();
   const appliedRef = useRef(false);
   // Track the latest apply without making it an effect dependency.
   const applyRef = useRef(apply);

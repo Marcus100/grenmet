@@ -101,7 +101,7 @@ async def test_action_leave_request_approved_writes_balance_event(
     db_async: AsyncSession,
 ) -> None:
     """Approving a leave request writes a balance event (factory-assisted version)."""
-    from sqlmodel import select
+    from sqlalchemy import select
 
     from src.hr.leave.models import LeaveBalanceEvent
 

@@ -20,6 +20,11 @@ export type ReviewAssignment = {
   role: string;
   scope: string;
   department_id: string | null;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   effective_from: string;
   effective_to: string | null;
   is_superuser: boolean;

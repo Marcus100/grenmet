@@ -3,19 +3,17 @@
  * Do not edit manually.
  */
 
-export const productHistoryEntryActionEnum = {
-  draft: "draft",
-  publish: "publish",
-  withdraw: "withdraw",
-} as const;
-
-export type ProductHistoryEntryActionEnum =
-  (typeof productHistoryEntryActionEnum)[keyof typeof productHistoryEntryActionEnum];
+import type { LegacyProductWritePropertiesActionEnum } from "./LegacyProductWritePropertiesActionEnum.js";
 
 export type ProductHistoryEntry = {
   revision: number;
-  action: ProductHistoryEntryActionEnum;
+  action: LegacyProductWritePropertiesActionEnum;
   actorName: string;
   changeSummary: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   createdAt: string;
 };

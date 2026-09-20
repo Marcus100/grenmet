@@ -1,14 +1,14 @@
 "use client";
 
 import {
-  listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey,
+  hrListMyShiftSwapsQueryKey,
   type ShiftSwapRequestPublic,
-  useCreateShiftSwapApiV1HrShiftSwapsPost,
-  useListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet,
-  useListMyShiftSwapsApiV1HrShiftSwapsMeGet,
-  useReadHrProfileMeApiV1HrProfileMeGet,
-  useSubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost,
-  useUpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch,
+  useHrCreateShiftSwap,
+  useHrGetHrProfileMe,
+  useHrListDepartmentMembers,
+  useHrListMyShiftSwaps,
+  useHrSubmitShiftSwap,
+  useHrUpdateShiftSwap,
 } from "@barrelsgd/api-client";
 import { useSessionUser } from "@barrelsgd/auth";
 import {
@@ -77,19 +77,17 @@ export function ShiftExchangeEditor() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const draftParam = searchParams.get("draft");
-  const profileQuery = useReadHrProfileMeApiV1HrProfileMeGet();
+  const profileQuery = useHrGetHrProfileMe();
   const departmentId = profileQuery.data?.employment?.department?.id;
-  const membersQuery =
-    useListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet(
-      { path: { department_id: departmentId ?? "" } },
-      { query: { enabled: Boolean(departmentId) } }
-    );
+  const membersQuery = useHrListDepartmentMembers(
+    { path: { department_id: departmentId ?? "" } },
+    { query: { enabled: Boolean(departmentId) } }
+  );
   const members = membersQuery.data?.data ?? [];
-  const myRequestsQuery = useListMyShiftSwapsApiV1HrShiftSwapsMeGet({});
-  const createMutation = useCreateShiftSwapApiV1HrShiftSwapsPost();
-  const updateMutation = useUpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch();
-  const submitMutation =
-    useSubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost();
+  const myRequestsQuery = useHrListMyShiftSwaps({});
+  const createMutation = useHrCreateShiftSwap();
+  const updateMutation = useHrUpdateShiftSwap();
+  const submitMutation = useHrSubmitShiftSwap();
   const [submission, setSubmission] = useState<SubmissionMetadata | null>(null);
   const [coApprovers, setCoApprovers] = useState<string[]>([]);
   const [statusHint, setStatusHint] = useState<string | null>(null);
@@ -162,7 +160,7 @@ export function ShiftExchangeEditor() {
 
   async function refreshMyRequests() {
     await queryClient.invalidateQueries({
-      queryKey: listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey({}),
+      queryKey: hrListMyShiftSwapsQueryKey({}),
     });
   }
 

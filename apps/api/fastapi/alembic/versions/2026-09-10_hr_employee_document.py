@@ -12,7 +12,6 @@ pre-existing cap.* drift that would have to be stripped out by hand anyway.
 """
 
 import sqlalchemy as sa
-import sqlmodel
 
 from alembic import op
 
@@ -50,25 +49,21 @@ def upgrade() -> None:
             sa.Enum("STANDARD", "RESTRICTED", name="documentsensitivity"),
             nullable=False,
         ),
-        sa.Column(
-            "title", sqlmodel.sql.sqltypes.AutoString(length=255), nullable=False
-        ),
+        sa.Column("title", sa.String(length=255), nullable=False),
         sa.Column(
             "description",
-            sqlmodel.sql.sqltypes.AutoString(length=2000),
+            sa.String(length=2000),
             nullable=True,
         ),
-        sa.Column(
-            "object_key", sqlmodel.sql.sqltypes.AutoString(length=512), nullable=False
-        ),
+        sa.Column("object_key", sa.String(length=512), nullable=False),
         sa.Column(
             "original_filename",
-            sqlmodel.sql.sqltypes.AutoString(length=255),
+            sa.String(length=255),
             nullable=False,
         ),
         sa.Column(
             "content_type",
-            sqlmodel.sql.sqltypes.AutoString(length=120),
+            sa.String(length=120),
             nullable=False,
         ),
         sa.Column("size_bytes", sa.Integer(), nullable=False),
@@ -76,17 +71,15 @@ def upgrade() -> None:
         sa.Column("expiry_date", sa.Date(), nullable=True),
         sa.Column(
             "issuing_authority",
-            sqlmodel.sql.sqltypes.AutoString(length=255),
+            sa.String(length=255),
             nullable=True,
         ),
         sa.Column(
             "reference_number",
-            sqlmodel.sql.sqltypes.AutoString(length=120),
+            sa.String(length=120),
             nullable=True,
         ),
-        sa.Column(
-            "entity_type", sqlmodel.sql.sqltypes.AutoString(length=60), nullable=True
-        ),
+        sa.Column("entity_type", sa.String(length=60), nullable=True),
         sa.Column("entity_id", sa.Uuid(), nullable=True),
         sa.Column("uploaded_by_user_id", sa.Uuid(), nullable=True),
         sa.Column("archived_at", sa.DateTime(), nullable=True),

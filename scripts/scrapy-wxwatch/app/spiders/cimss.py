@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.items import ImageItem
 from app.spiders.base import WeatherSpider
@@ -91,7 +91,7 @@ class CimssSpider(WeatherSpider):
             item["source_modified"] = source_modified
             item["observation_time"] = self._round_to_hour(source_modified)
             item["time_basis"] = "rounded_source_modified"
-            item["fetched_at"] = datetime.now(timezone.utc).isoformat()
+            item["fetched_at"] = datetime.now(UTC).isoformat()
             item["image_urls"] = [image_url]
             item["etag"] = None
             item["raw_metadata"] = {

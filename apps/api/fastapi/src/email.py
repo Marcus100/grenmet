@@ -130,7 +130,7 @@ def _render_jinja2(*, template_name: str, context: dict[str, Any]) -> str:
     template_str = (
         Path(__file__).parent.parent / "email-templates" / "build" / template_name
     ).read_text()
-    return Template(template_str).render(context)
+    return str(Template(template_str).render(context))
 
 
 # Keep the old name available for any code that imports it directly.

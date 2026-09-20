@@ -1,10 +1,10 @@
 "use client";
 
 import {
-  createRegisterObservationApiV1EregisterObservationsPost,
-  listRegisterObservationsApiV1EregisterObservationsGet,
+  eregisterCreateRegisterObservation,
+  eregisterListRegisterObservations,
+  eregisterValidateSynopObservation,
   type RegisterObservationRead,
-  validateSynopObservationApiV1EregisterObservationsValidateSynopPost,
 } from "@barrelsgd/api-client";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
@@ -321,7 +321,7 @@ export function ERegister() {
 
   useEffect(() => {
     let active = true;
-    listRegisterObservationsApiV1EregisterObservationsGet({
+    eregisterListRegisterObservations({
       query: { kind: "SYNOP", station_id: STATION.number, limit: 6 },
       throwOnError: false,
     })
@@ -344,13 +344,10 @@ export function ERegister() {
 
   async function validateDraft() {
     setValidationState("checking");
-    const result =
-      await validateSynopObservationApiV1EregisterObservationsValidateSynopPost(
-        {
-          body: { workbook: structuredValues },
-          throwOnError: false,
-        }
-      );
+    const result = await eregisterValidateSynopObservation({
+      body: { workbook: structuredValues },
+      throwOnError: false,
+    });
     if (result.error || !result.data) {
       setValidationState("error");
       return;
@@ -362,23 +359,22 @@ export function ERegister() {
   async function saveDraft(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setSaveState("saving");
-    const result =
-      await createRegisterObservationApiV1EregisterObservationsPost({
+    const result = await eregisterCreateRegisterObservation({
+      body: {
+        station_id: STATION.number,
+        station_name: STATION.name,
+        aerodrome_icao: STATION.icao,
+        kind: "SYNOP",
+        observed_at: new Date(observedAt).toISOString(),
         body: {
-          station_id: STATION.number,
-          station_name: STATION.name,
-          aerodrome_icao: STATION.icao,
-          kind: "SYNOP",
-          observed_at: new Date(observedAt).toISOString(),
-          body: {
-            ...structuredValues,
-            source: "eregister-workbook",
-            validation: "pending_wmo_encoder",
-          },
-          raw_tac: null,
+          ...structuredValues,
+          source: "eregister-workbook",
+          validation: "pending_wmo_encoder",
         },
-        throwOnError: false,
-      });
+        raw_tac: null,
+      },
+      throwOnError: false,
+    });
     if (result.error || !result.data) {
       setSaveState("error");
       return;

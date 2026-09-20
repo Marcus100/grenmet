@@ -4,8 +4,8 @@ httpx.MockTransport stands in for webhook endpoints so no real HTTP is made.
 """
 
 import httpx
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select
 
 from src.cap.models import (
     CapIntegrationStatus,

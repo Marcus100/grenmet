@@ -74,7 +74,7 @@ class ObservationStore:
         self._connection.executescript(SCHEMA)
         self._connection.commit()
 
-    def __enter__(self) -> "ObservationStore":
+    def __enter__(self) -> ObservationStore:
         return self
 
     def __exit__(

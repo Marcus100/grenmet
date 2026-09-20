@@ -41,17 +41,11 @@ function conditions(period: ForecastPeriod): Condition[] {
   ]) {
     if (v[key]) result.push({ label, value: v[key] });
   }
-  if (!period.period_key) {
-    if (v.observedTemperature)
-      result.push({
-        label: "Midday observation at MBIA",
-        value: `${v.observedTemperature}°C`,
-      });
-    if (v.word) {
-      result.push({ label: "Word of the day", value: v.word });
-      if (v.definition) result.push({ label: "Meaning", value: v.definition });
-    }
-  }
+  if (!period.period_key && v.observedTemperature)
+    result.push({
+      label: "Midday observation at MBIA",
+      value: `${v.observedTemperature}°C`,
+    });
   return result;
 }
 function periodData(period: ForecastPeriod, index: number): ForecastDayData {

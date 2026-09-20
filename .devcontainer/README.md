@@ -2,7 +2,7 @@
 
 Open the repository in VS Code using **Dev Containers: Reopen in Container**. Run application servers and Docker infrastructure from your host terminal with the existing pnpm commands. Use `/workspace` in the container for editing, tests, linting and type-checks.
 
-Source files are shared. Each dev container has its own named volumes for the root and every workspace `node_modules`, the root Python `.venv`, Next.js `.next` directories and the root Turbo cache. Both `/workspace` and the host-path mirror use those same container-only volumes. Dependency checks remain enabled. A new container installs frozen Node dependencies and the FastAPI Python workspace (including development tools) before VS Code attaches. Python 3.13 lives in the image; the virtual environment never references the host interpreter. A new container installs its dependencies once; subsequent installs are needed when dependencies change. The host keeps its own installation and caches.
+Source files are shared. Each dev container has its own named volumes for the root and every workspace `node_modules`, the root Python `.venv`, Next.js `.next` directories and the root Turbo cache. Both `/workspace` and the host-path mirror use those same container-only volumes. Dependency checks remain enabled. A new container installs frozen Node dependencies and the FastAPI Python workspace (including development tools) before VS Code attaches. Python 3.14.7 lives in the image; the virtual environment never references the host interpreter. A new container installs its dependencies once; subsequent installs are needed when dependencies change. The host keeps its own installation and caches.
 
 ## Apply this change
 

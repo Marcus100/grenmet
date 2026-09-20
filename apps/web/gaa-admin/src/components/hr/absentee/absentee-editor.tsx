@@ -4,12 +4,12 @@ import {
   type AbsenceReason,
   type AbsenteeReportCreate,
   type AbsenteeReportPublic,
-  readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryKey,
-  useCreateAbsenteeReportApiV1HrAbsenteeReportsPost,
-  useReadAbsenteeReportsApiV1HrAbsenteeReportsGet,
-  useReadHrProfileMeApiV1HrProfileMeGet,
-  useSubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost,
-  useUpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch,
+  hrGetAbsenteeReportsQueryKey,
+  useHrCreateAbsenteeReport,
+  useHrGetAbsenteeReports,
+  useHrGetHrProfileMe,
+  useHrSubmitAbsenteeReport,
+  useHrUpdateAbsenteeReport,
 } from "@barrelsgd/api-client";
 import { useSessionUser } from "@barrelsgd/auth";
 import {
@@ -101,15 +101,13 @@ export function AbsenteeEditor() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const draftParam = searchParams.get("draft");
-  const profileQuery = useReadHrProfileMeApiV1HrProfileMeGet();
+  const profileQuery = useHrGetHrProfileMe();
   const userId = profileQuery.data?.id;
   const departmentId = profileQuery.data?.employment?.department?.id;
-  const myReportsQuery = useReadAbsenteeReportsApiV1HrAbsenteeReportsGet({});
-  const createMutation = useCreateAbsenteeReportApiV1HrAbsenteeReportsPost();
-  const updateMutation =
-    useUpdateAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdPatch();
-  const submitMutation =
-    useSubmitAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdSubmitPost();
+  const myReportsQuery = useHrGetAbsenteeReports({});
+  const createMutation = useHrCreateAbsenteeReport();
+  const updateMutation = useHrUpdateAbsenteeReport();
+  const submitMutation = useHrSubmitAbsenteeReport();
   const [submission, setSubmission] = useState<SubmissionMetadata | null>(null);
   const [coApprovers, setCoApprovers] = useState<string[]>([]);
   const [statusHint, setStatusHint] = useState<string | null>(null);
@@ -182,7 +180,7 @@ export function AbsenteeEditor() {
 
   async function refreshMyReports() {
     await queryClient.invalidateQueries({
-      queryKey: readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryKey({}),
+      queryKey: hrGetAbsenteeReportsQueryKey({}),
     });
   }
 

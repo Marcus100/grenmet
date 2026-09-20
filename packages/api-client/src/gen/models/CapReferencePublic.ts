@@ -16,6 +16,11 @@ export type CapReferencePublic = {
    * @type string
    */
   identifier: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   sent: string;
   /**
    * @description

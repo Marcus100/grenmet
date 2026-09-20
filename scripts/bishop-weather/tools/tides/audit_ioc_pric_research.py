@@ -11,7 +11,6 @@ from collections import Counter
 from datetime import UTC, datetime
 from pathlib import Path
 
-
 FLAGS = (
     "missing",
     "out_of_range",

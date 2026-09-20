@@ -17,6 +17,11 @@ export type ArchiveRetrieval = {
   is_imported?: boolean;
   id: string;
   retrieved_at: string | null;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   recorded_at: string;
   image_url: string;
 };

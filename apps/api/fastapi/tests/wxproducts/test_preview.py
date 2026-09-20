@@ -5,13 +5,13 @@ import pytest
 from src.main import app
 from src.wxproducts import validation
 from src.wxproducts.dependencies import ProductAuthor, get_author
-from src.wxproducts.schemas import ProductPreviewInput
+from src.wxproducts.schemas import ProductPreviewInputAdapter
 from tests.wxproducts.test_authoring import actor as actor
 from tests.wxproducts.test_validation import NOW, body, complete
 
 
 def payload(kind="marine", **changes):
-    return ProductPreviewInput.model_validate(
+    return ProductPreviewInputAdapter.validate_python(
         {
             "kind": kind,
             "values": complete(kind),
@@ -78,6 +78,7 @@ async def test_preview_endpoint_requires_kind_access(async_client, actor):
         )
         assert response.status_code == 200, response.text
         assert response.headers["cache-control"] == "no-store"
+        assert response.json()["kind"] == "marine"
         assert "checked_at" in response.json()
         denied = await async_client.post(
             "/api/v1/wxproducts/products/preview",

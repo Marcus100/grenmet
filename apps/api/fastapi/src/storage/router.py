@@ -46,7 +46,24 @@ async def weather_image(storage_path: str, _current_user: BrowserUser) -> Respon
     )
 
 
-@router.get("/assets/{asset_id}", response_class=StreamingResponse)
+@router.get(
+    "/assets/{asset_id}",
+    response_class=StreamingResponse,
+    responses={
+        200: {
+            "description": "Verified image bytes",
+            "content": {
+                "image/png": {},
+                "image/jpeg": {},
+                "image/gif": {},
+                "image/webp": {},
+                "application/octet-stream": {},
+            },
+        },
+        404: {"description": "Asset not found"},
+        503: {"description": "No verified asset replica is available"},
+    },
+)
 async def archive_asset(
     asset_id: UUID, _user: BrowserUser, session: ImageSession
 ) -> Response:

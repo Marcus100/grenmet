@@ -16,7 +16,6 @@ practice — both were optional and unset). The enum types are created/dropped h
 """
 
 import sqlalchemy as sa
-import sqlmodel
 
 from alembic import op
 
@@ -68,7 +67,7 @@ def upgrade() -> None:
         "user_profile",
         "created_by",
         schema="hr",
-        existing_type=sqlmodel.sql.sqltypes.AutoString(length=255),
+        existing_type=sa.String(length=255),
         type_=sa.Uuid(),
         existing_nullable=True,
         postgresql_using="created_by::uuid",
@@ -87,7 +86,7 @@ def upgrade() -> None:
         "user_profile",
         sa.Column(
             "emergency_contact_name",
-            sqlmodel.sql.sqltypes.AutoString(length=255),
+            sa.String(length=255),
             nullable=True,
         ),
         schema="hr",
@@ -96,7 +95,7 @@ def upgrade() -> None:
         "user_profile",
         sa.Column(
             "emergency_contact_phone",
-            sqlmodel.sql.sqltypes.AutoString(length=30),
+            sa.String(length=30),
             nullable=True,
         ),
         schema="hr",
@@ -105,7 +104,7 @@ def upgrade() -> None:
         "user_profile",
         sa.Column(
             "emergency_contact_relationship",
-            sqlmodel.sql.sqltypes.AutoString(length=100),
+            sa.String(length=100),
             nullable=True,
         ),
         schema="hr",
@@ -122,7 +121,7 @@ def upgrade() -> None:
         "user_address",
         "country",
         schema="hr",
-        existing_type=sqlmodel.sql.sqltypes.AutoString(length=100),
+        existing_type=sa.String(length=100),
         existing_nullable=True,
         server_default="Grenada",
     )
@@ -134,7 +133,7 @@ def downgrade() -> None:
         "user_address",
         "country",
         schema="hr",
-        existing_type=sqlmodel.sql.sqltypes.AutoString(length=100),
+        existing_type=sa.String(length=100),
         existing_nullable=True,
         server_default=None,
     )
@@ -143,7 +142,7 @@ def downgrade() -> None:
         "user_address",
         sa.Column(
             "parish",
-            sqlmodel.sql.sqltypes.AutoString(length=100),
+            sa.String(length=100),
             nullable=True,
         ),
         schema="hr",
@@ -165,7 +164,7 @@ def downgrade() -> None:
         "created_by",
         schema="hr",
         existing_type=sa.Uuid(),
-        type_=sqlmodel.sql.sqltypes.AutoString(length=255),
+        type_=sa.String(length=255),
         existing_nullable=True,
         postgresql_using="created_by::text",
     )
@@ -175,7 +174,7 @@ def downgrade() -> None:
         "user_profile",
         sa.Column(
             "gender",
-            sqlmodel.sql.sqltypes.AutoString(length=50),
+            sa.String(length=50),
             nullable=True,
         ),
         schema="hr",
@@ -196,7 +195,7 @@ def downgrade() -> None:
         "user_profile",
         sa.Column(
             "avatar_url",
-            sqlmodel.sql.sqltypes.AutoString(length=500),
+            sa.String(length=500),
             nullable=True,
         ),
         schema="hr",

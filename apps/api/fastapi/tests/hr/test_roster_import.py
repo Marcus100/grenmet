@@ -1,5 +1,5 @@
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select
 
 from src.auth.models import Permission, Role
 from src.auth.schemas import UserCreate

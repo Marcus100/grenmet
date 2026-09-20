@@ -14,5 +14,5 @@ export const capAuditEventPublicSchema = z.object({
   next_state: z.union([z.string(), z.null()]).optional(),
   note: z.union([z.string(), z.null()]).optional(),
   payload: z.object({}).catchall(z.unknown()).optional(),
-  created_at: z.string(),
+  created_at: z.iso.datetime(),
 });

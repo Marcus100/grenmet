@@ -4,8 +4,8 @@ from collections.abc import Sequence
 from typing import Protocol
 from uuid import UUID
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
 
 from src.hr.signatures.models import SignedDocument
 from src.hr.workflow.models import WorkflowInstance
@@ -29,7 +29,7 @@ async def submission_list[T: SubmittedFormPublic](
     workflows = {}
     if ids:
         result = await session.execute(
-            select(WorkflowInstance).where(col(WorkflowInstance.id).in_(ids))
+            select(WorkflowInstance).where(WorkflowInstance.id.in_(ids))
         )
         workflows = {item.id: item for item in result.scalars()}
     signed = await signed_document_ids(session, [row.id for row in rows])
@@ -61,7 +61,7 @@ async def signed_document_ids(
         return {}
     result = await session.execute(
         select(SignedDocument.entity_id, SignedDocument.id).where(
-            col(SignedDocument.entity_id).in_(entity_ids)
+            SignedDocument.entity_id.in_(entity_ids)
         )
     )
     signed: dict[UUID, UUID] = {}

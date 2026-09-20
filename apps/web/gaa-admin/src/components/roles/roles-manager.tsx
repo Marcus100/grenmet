@@ -2,8 +2,8 @@
 "use no memo";
 
 import {
-  useReadRoleAssignmentsApiV1AuthRoleAssignmentsGet,
-  useReadRolesApiV1AuthRolesGet,
+  useAuthGetRoleAssignments,
+  useAuthGetRoles,
 } from "@barrelsgd/api-client";
 import {
   InputGroup,
@@ -48,12 +48,10 @@ import { RolesTable } from "./roles-table";
 import { WorkflowPanel } from "./workflow-panel";
 
 export function RolesManager() {
-  const rolesQuery = useReadRolesApiV1AuthRolesGet({
+  const rolesQuery = useAuthGetRoles({
     query: { page: 1, size: 100 },
   });
-  const assignmentsQuery = useReadRoleAssignmentsApiV1AuthRoleAssignmentsGet(
-    {}
-  );
+  const assignmentsQuery = useAuthGetRoleAssignments({});
 
   const rows = useMemo(
     () =>

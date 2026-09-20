@@ -5,12 +5,12 @@ import datetime
 import hashlib
 import json
 import os
-from pathlib import Path
 import sqlite3
 import subprocess
 import sys
 import tarfile
 import tempfile
+from pathlib import Path
 from uuid import uuid4
 
 
@@ -48,7 +48,7 @@ def backup(config):
     lifecycle = json.loads(run(["aws", "s3api", "get-bucket-lifecycle-configuration", "--bucket", bucket, "--endpoint-url", endpoint], capture_output=True, text=True).stdout)
     if not any(rule.get("Status") == "Enabled" and rule.get("Expiration", {}).get("Days") == 30 and set(rule.get("Filter", {})) <= {"Prefix"} and prefix.startswith(rule.get("Filter", {}).get("Prefix", rule.get("Prefix", ""))) for rule in lifecycle.get("Rules", [])):
         raise ValueError("Backup destination requires 30-day retention")
-    cutoff = datetime.datetime.now(datetime.timezone.utc)
+    cutoff = datetime.datetime.now(datetime.UTC)
     prefix += cutoff.strftime("%Y%m%dT%H%M%SZ") + "-" + uuid4().hex[:8] + "/"
     manifest = {"environment": environment, "kind": kind, "snapshot_at": cutoff.isoformat(), "artifacts": []}
 
@@ -101,7 +101,7 @@ def backup(config):
                 manifest["artifacts"].append(artifact)
             if selected != versions_at(source_api("list-object-versions"), cutoff):
                 raise ValueError("Source version history changed during backup; retry required")
-        manifest["completed_at"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        manifest["completed_at"] = datetime.datetime.now(datetime.UTC).isoformat()
         marker = root / "success.json"
         marker.write_text(json.dumps(manifest))
         upload(marker, prefix + "success.json")

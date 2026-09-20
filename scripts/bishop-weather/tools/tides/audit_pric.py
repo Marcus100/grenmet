@@ -10,9 +10,10 @@ import json
 import math
 import statistics
 from collections import Counter, defaultdict
+from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Iterator, NamedTuple
+from typing import NamedTuple
 
 
 class Observation(NamedTuple):

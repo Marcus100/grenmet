@@ -22,7 +22,7 @@ class DerivationInput(BaseModel):
     generated_at: UtcDateTime | None = None
 
     @model_validator(mode="after")
-    def validate_lineage(self) -> "DerivationInput":
+    def validate_lineage(self) -> DerivationInput:
         if len(set(self.input_asset_ids)) != len(self.input_asset_ids):
             raise ValueError("Input assets must be unique")
         if self.output_asset_id in self.input_asset_ids:

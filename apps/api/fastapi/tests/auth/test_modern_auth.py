@@ -50,7 +50,7 @@ async def test_google_start_never_exposes_verifier(async_client, db_async, monke
 async def test_email_confirmation_verifies_address_once_and_revokes_sessions(
     async_client, db_async
 ):
-    from sqlmodel import select
+    from sqlalchemy import select
 
     from src.auth import service
     from src.auth.models import Session as LoginSession

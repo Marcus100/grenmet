@@ -2,8 +2,8 @@ import uuid
 from datetime import date
 
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select
 
 from src.auth.models import Permission, Role, RoleAssignmentScope, UserRoleAssignment
 from src.auth.policy import can_act_on_user

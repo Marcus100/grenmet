@@ -1,5 +1,5 @@
 import pytest
-from sqlmodel import select
+from sqlalchemy import select
 
 from scripts.seed_department import run
 from src.auth.models import User

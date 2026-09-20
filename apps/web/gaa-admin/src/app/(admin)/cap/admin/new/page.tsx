@@ -10,7 +10,7 @@ import {
   type CapSeverity,
   type CapStatus,
   type CapUrgency,
-  createAlertApiV1CapAlertsPost,
+  capCreateAlert,
 } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
@@ -173,7 +173,7 @@ export default function NewAlertPage() {
     };
 
     try {
-      const saved = await createAlertApiV1CapAlertsPost({
+      const saved = await capCreateAlert({
         body: payload,
       }).unwrap();
       router.push(`/cap/admin/${saved.id}`);

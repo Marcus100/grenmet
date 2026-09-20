@@ -32,7 +32,7 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
       {open && (
         <motion.div
           animate="show"
-          className="fixed inset-0 z-50 flex flex-col bg-background"
+          className="fixed inset-0 z-50 flex flex-col bg-background md:inset-6 md:overflow-hidden md:rounded-xl md:border md:border-gm-border md:shadow-2xl"
           exit="exit"
           initial="hidden"
           variants={drawerBackdrop}

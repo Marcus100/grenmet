@@ -4,11 +4,12 @@
  */
 
 import * as z from "zod";
+import { legacyProductWritePropertiesActionEnumSchema } from "./legacyProductWritePropertiesActionEnumSchema.js";
 
 export const productHistoryEntrySchema = z.object({
   revision: z.int(),
-  action: z.enum(["draft", "publish", "withdraw"]),
+  action: legacyProductWritePropertiesActionEnumSchema,
   actorName: z.string(),
   changeSummary: z.string(),
-  createdAt: z.string(),
+  createdAt: z.iso.datetime(),
 });

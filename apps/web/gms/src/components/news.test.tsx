@@ -19,7 +19,7 @@ afterEach(() => {
 });
 
 for (const [name, component] of [
-  ["Weather news", News],
+  ["Latest publications", News],
   ["Latest from us", GmsNews],
 ] as const) {
   it(`${name} renders published CMS articles`, async () => {
@@ -30,7 +30,6 @@ for (const [name, component] of [
           id: "1",
           title: "Marine Bulletin",
           slug: "marine-test",
-          kind: "article",
           summary: "Marine",
           body: "Bulletin",
           imageUrl: null,
@@ -40,7 +39,6 @@ for (const [name, component] of [
     });
     render(await component());
     expect(fetchPublishedContent).toHaveBeenCalledWith(
-      "article",
       name === "Latest from us" ? "latest" : "news"
     );
     expect(
@@ -83,7 +81,6 @@ it("lets Latest visitors copy the article link when native sharing is unavailabl
         id: "1",
         title: "Marine Bulletin",
         slug: "marine-test",
-        kind: "article",
         summary: "Marine",
         body: "Bulletin",
         imageUrl: null,

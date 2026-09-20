@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { capProfileDefinitionPropertiesChannelsItemsEnumSchema } from "./capProfileDefinitionPropertiesChannelsItemsEnumSchema.js";
 import { capProfileSubtypeSchema } from "./capProfileSubtypeSchema.js";
 import { capProfileTemplateSchema } from "./capProfileTemplateSchema.js";
 
@@ -20,15 +21,7 @@ export const capProfileDefinitionSchema = z.object({
     .optional()
     .default("meteorology@gaa.gd; 1-473-444-4142"),
   channels: z
-    .array(
-      z.enum([
-        "CAP feed",
-        "Email / EDIS",
-        "WIS2",
-        "GMS website",
-        "Agency channels",
-      ])
-    )
+    .array(capProfileDefinitionPropertiesChannelsItemsEnumSchema)
     .optional(),
   notes: z.string().max(5000).optional().default(""),
 });

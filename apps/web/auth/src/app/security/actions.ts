@@ -1,13 +1,13 @@
 "use server";
 import {
+  authGetAccountSecurity,
+  authReplaceRecoveryCodes,
+  authRevokeSecuritySession,
+  authTwofaActivate,
+  authTwofaDisable,
+  authTwofaSetup,
+  authUpdatePasswordMe,
   createClient,
-  readAccountSecurityApiV1AuthModernSecurityGet,
-  replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost,
-  revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete,
-  twofaActivateApiV12FaActivatePost,
-  twofaDisableApiV12FaDisablePost,
-  twofaSetupApiV12FaSetupPost,
-  updatePasswordMeApiV1AuthUsersMePasswordPatch,
 } from "@barrelsgd/api-client";
 import { getEffectiveAccess } from "@barrelsgd/auth/server";
 import { getAuthConfig } from "@/lib/auth-config";
@@ -42,19 +42,19 @@ async function securityClient() {
   return client;
 }
 export async function loadSecurity() {
-  return readAccountSecurityApiV1AuthModernSecurityGet({
+  return authGetAccountSecurity({
     ...{
       client: await securityClient(),
     },
   }).unwrap();
 }
 export async function beginMfa() {
-  return twofaSetupApiV12FaSetupPost({
+  return authTwofaSetup({
     client: await securityClient(),
   }).unwrap();
 }
 export async function activateMfa(code: string) {
-  return twofaActivateApiV12FaActivatePost({
+  return authTwofaActivate({
     body: { code },
     client: await securityClient(),
   }).unwrap();
@@ -64,26 +64,26 @@ export async function changeAccountPassword(
   currentPassword: string,
   newPassword: string
 ) {
-  await updatePasswordMeApiV1AuthUsersMePasswordPatch({
+  await authUpdatePasswordMe({
     body: { current_password: currentPassword, new_password: newPassword },
     client: await securityClient(),
   }).unwrap();
   await clearSessionCookie();
 }
 export async function replaceRecoveryCodes(password: string, code: string) {
-  return replaceRecoveryCodesApiV1AuthModernSecurityRecoveryCodesPost({
+  return authReplaceRecoveryCodes({
     body: { password, code },
     client: await securityClient(),
   }).unwrap();
 }
 export async function disableMfa(password: string, code: string) {
-  return twofaDisableApiV12FaDisablePost({
+  return authTwofaDisable({
     body: { password, code },
     client: await securityClient(),
   }).unwrap();
 }
 export async function revokeSecuritySession(id: string) {
-  return revokeSecuritySessionApiV1AuthModernSecuritySessionsSessionIdDelete({
+  return authRevokeSecuritySession({
     path: { session_id: id },
     client: await securityClient(),
   }).unwrap();

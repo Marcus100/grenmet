@@ -1,11 +1,12 @@
 import sys
 from typing import Any
 
+from sqlalchemy import create_engine, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import Session
 from sqlalchemy.pool import NullPool
-from sqlmodel import Session, SQLModel, create_engine, select
 
-# Import all models to ensure they're registered with SQLModel
+# Import all models so their SQLAlchemy tables are registered before startup.
 from src.auth.models import User  # noqa: F401
 from src.auth.modern_models import AuthChallenge, ExternalIdentity  # noqa: F401
 from src.baseline.models import (  # noqa: F401
@@ -74,20 +75,6 @@ from src.hr.workflow.models import (  # noqa: F401
     WorkflowTemplate,
 )
 
-# Database naming conventions
-# This ensures consistent, predictable names for indexes, constraints, etc.
-# Following PostgreSQL naming conventions as recommended by best practices
-POSTGRES_INDEXES_NAMING_CONVENTION = {
-    "ix": "%(column_0_label)s_idx",
-    "uq": "%(table_name)s_%(column_0_name)s_key",
-    "ck": "%(table_name)s_%(constraint_name)s_check",
-    "fk": "%(table_name)s_%(column_0_name)s_fkey",
-    "pk": "%(table_name)s_pkey",
-}
-
-# Apply naming convention to SQLModel metadata
-SQLModel.metadata.naming_convention = POSTGRES_INDEXES_NAMING_CONVENTION
-
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
 # Async engine and session for request path (Phase 2)
@@ -113,11 +100,6 @@ async_session_factory = async_sessionmaker(
 )
 
 
-# make sure all SQLModel models are imported before initializing DB
-# otherwise, SQLModel might fail to initialize relationships properly
-# for more details: https://github.com/fastapi/full-stack-fastapi-template/issues/28
-
-
 def init_db(session: Session) -> None:
     from src.baseline.organisation_root import seed_organisation
 
@@ -125,17 +107,15 @@ def init_db(session: Session) -> None:
     # Tables should be created with Alembic migrations
     # But if you don't want to use migrations, create
     # the tables un-commenting the next lines
-    # from sqlmodel import SQLModel
 
     # This works because the models are already imported and registered from modules
-    # SQLModel.metadata.create_all(engine)
 
     from src.auth import service
     from src.auth.schemas import UserCreate
 
-    user = session.exec(
+    user = session.execute(
         select(User).where(User.email == settings.FIRST_SUPERUSER)
-    ).first()
+    ).scalar_one_or_none()
     if not user:
         user_in = UserCreate(
             email=settings.FIRST_SUPERUSER,

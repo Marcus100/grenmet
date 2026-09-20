@@ -14,7 +14,7 @@ export const workflowInboxItemSchema = z.object({
   department_id: z.string(),
   requested_by_user_id: z.uuid(),
   requester_name: z.union([z.string(), z.null()]).optional(),
-  submitted_at: z.union([z.string(), z.null()]).optional(),
+  submitted_at: z.union([z.iso.datetime(), z.null()]).optional(),
   current_step_order: z.int(),
   step_is_named: z.boolean(),
   step_id: z.union([z.uuid(), z.null()]).optional(),

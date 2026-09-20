@@ -12,9 +12,7 @@ export const calendarEventPublicSchema = z
     department_id: z.string(),
     title: z.string(),
     description: z.union([z.string(), z.null()]).optional(),
-    kind: calendarEventKindSchema.describe(
-      "What a department puts on its calendar besides the duty roster."
-    ),
+    kind: calendarEventKindSchema,
     starts_at_local: z.string(),
     ends_at_local: z.string(),
     all_day: z.boolean(),
@@ -22,7 +20,7 @@ export const calendarEventPublicSchema = z
     is_cancelled: z.boolean(),
     created_by_user_id: z.uuid(),
     created_by_name: z.union([z.string(), z.null()]).optional(),
-    created_at: z.string(),
+    created_at: z.iso.datetime(),
   })
   .describe(
     "A department calendar entry.\n\n`starts_at_local`/`ends_at_local` are ISO-8601 without an offset — the same\ndepartment-local wall clock the roster feed uses, so both layers of the\ncalendar read on one time base. `created_at` is a real timestamp and is UTC."

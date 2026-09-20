@@ -4,19 +4,11 @@
  */
 
 import * as z from "zod";
+import { imageInputPropertiesTimeBasisEnumSchema } from "./imageInputPropertiesTimeBasisEnumSchema.js";
 import { jsonValueSchema } from "./jsonValueSchema.js";
 
 export const imageInputSchema = z.object({
-  time_basis: z
-    .enum([
-      "filename",
-      "source_observation",
-      "estimated_analysis",
-      "rounded_source_modified",
-      "source_modified",
-      "unknown",
-      "legacy_unknown",
-    ])
+  time_basis: imageInputPropertiesTimeBasisEnumSchema
     .optional()
     .default("legacy_unknown"),
   raw_metadata: z.object({}).catchall(jsonValueSchema).optional(),

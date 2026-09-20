@@ -13,13 +13,15 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import type { RefObject } from "react";
-import { type AlertsResult, alertsSummary } from "@/lib/cap";
+import { type AlertsResult, alertsLevel, alertsSummary } from "@/lib/cap";
 
 import {
   NAV_SECTIONS,
   type NavFeature,
   type NavSection,
 } from "@/lib/nav-sections";
+import { cn } from "@/lib/utils";
+import { WARNING_LEVEL_SURFACE } from "@/lib/warning-level";
 import { weatherIcon } from "@/lib/weather-icons";
 
 interface DesktopNavProps {
@@ -45,15 +47,21 @@ function FeaturedCard({
 }) {
   if (feature === "alerts") {
     const unavailable = alerts.status === "unavailable";
+    const level = alertsLevel(alerts);
     return (
       <NavigationMenuPrimitive.Link
         className={CARD}
         render={<Link href="/warnings" />}
       >
-        <span className="flex size-11 items-center justify-center rounded-md bg-gm-risk-yellow">
+        <span
+          className={cn(
+            "flex size-11 items-center justify-center rounded-md",
+            WARNING_LEVEL_SURFACE[level]
+          )}
+        >
           <TriangleAlertIcon
             aria-hidden="true"
-            className="size-6 text-gm-text-primary"
+            className="size-6"
             strokeWidth={1.8}
           />
         </span>

@@ -4,8 +4,8 @@
  */
 
 import * as z from "zod";
-import { publishedProductSchema } from "./publishedProductSchema.js";
+import { publicPublishedProductSchema } from "./publicPublishedProductSchema.js";
 
 export const publishedProductsSchema = z.object({
-  products: z.array(publishedProductSchema),
+  products: z.array(publicPublishedProductSchema),
 });

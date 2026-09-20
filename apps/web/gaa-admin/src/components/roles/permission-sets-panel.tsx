@@ -1,9 +1,9 @@
 "use client";
 import {
+  authGetPermissions,
+  hrGetRoleConfiguration,
+  hrUpdateRoleConfiguration,
   type RoleConfiguration,
-  readPermissionsApiV1AuthPermissionsGet,
-  readRoleConfigurationApiV1HrSetupRolesGet,
-  updateRoleConfigurationApiV1HrSetupRolesRoleIdPut,
 } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -20,7 +20,7 @@ function PermissionEditor({
   const [keys, setKeys] = useState(role.permission_keys);
   const save = useMutation({
     mutationFn: () =>
-      updateRoleConfigurationApiV1HrSetupRolesRoleIdPut({
+      hrUpdateRoleConfiguration({
         path: { role_id: role.id },
         body: { permission_keys: keys },
       }).unwrap(),
@@ -77,17 +77,17 @@ function PermissionEditor({
 export function PermissionSetsPanel() {
   const roles = useQuery({
     queryKey: ["permission-bundles"],
-    queryFn: () => readRoleConfigurationApiV1HrSetupRolesGet({}).unwrap(),
+    queryFn: () => hrGetRoleConfiguration({}).unwrap(),
   });
   const permissions = useQuery({
     queryKey: ["permission-catalogue"],
     queryFn: async () => {
-      const first = await readPermissionsApiV1AuthPermissionsGet({
+      const first = await authGetPermissions({
         query: { page: 1, size: 100 },
       }).unwrap();
       const all = [...first.data];
       for (let page = 2; all.length < first.count; page++) {
-        const next = await readPermissionsApiV1AuthPermissionsGet({
+        const next = await authGetPermissions({
           query: { page, size: 100 },
         }).unwrap();
         if (!next.data.length) break;

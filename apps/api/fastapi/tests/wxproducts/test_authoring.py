@@ -20,7 +20,6 @@ from src.wxproducts.dependencies import get_session
 from src.wxproducts.exceptions import RevisionConflict
 from src.wxproducts.schemas import ProductWrite
 from tests.wxproducts.test_migrations import migrate
-from tests.wxproducts.test_migrations import weather_engine as weather_engine
 from tests.wxproducts.test_validation import body, complete
 
 

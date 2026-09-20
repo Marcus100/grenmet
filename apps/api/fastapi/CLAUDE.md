@@ -12,7 +12,7 @@ src/
 ├── {domain}/
 │   ├── router.py       — APIRouter: endpoints only, no business logic
 │   ├── schemas.py      — Pure Pydantic API shapes (Create, Public, ListPublic)
-│   ├── models.py       — SQLModel table=True DB models + domain enums
+│   ├── models.py       — SQLAlchemy ORM table models + domain enums
 │   ├── service.py      — Business logic (async functions)
 │   ├── dependencies.py — Annotated type aliases for Depends
 │   ├── exceptions.py   — Domain-specific AppException subclasses
@@ -42,12 +42,12 @@ from src.auth.service import create_user
 
 | Layer | Base class | Location | Purpose |
 |---|---|---|---|
-| DB model | `SQLModel` with `table=True` | `{domain}/models.py` | Table definition |
+| DB model | SQLAlchemy ORM declarative model | `{domain}/models.py` | Table definition |
 | API schema | `src.models.BaseModel` | `{domain}/schemas.py` | Request/response shape |
 
 ```python
 # models.py — DB layer
-class LeaveRequest(SQLModel, table=True):
+class LeaveRequest(Base):
     __tablename__ = "leave_request"
     __table_args__ = {"schema": "hr"}
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
@@ -73,13 +73,22 @@ Services return DB models. Routes always declare `response_model` with a `Public
 # service.py — returns the DB model
 async def create_leave_request(...) -> LeaveRequest:
     ...
-    return leave_request  # SQLModel table=True instance
+    return leave_request  # SQLAlchemy ORM instance
 
 # router.py — response_model converts it to the API shape
 @router.post("/leave-requests", response_model=LeaveRequestPublic, status_code=status.HTTP_201_CREATED)
 async def create_leave_request_endpoint(...) -> Any:
     return await service.create_leave_request(...)
 ```
+
+## SQL first, Pydantic second
+
+Use SQLAlchemy statements to perform filtering, joins, aggregation, pagination,
+and database-side JSON shaping. Fetch only the columns needed by the use case;
+do not load a graph of ORM objects and then rebuild the same result in Python.
+Use Pydantic after the database has produced the result, at the HTTP input and
+output seam. This keeps query semantics in PostgreSQL and leaves Pydantic to
+validate and serialize API contracts.
 
 ## Dependencies
 
@@ -240,10 +249,28 @@ async def test_create_leave_request(
 - Use `app.dependency_overrides` to replace auth and external service deps in tests.
 - Use a real database (the `db_async` fixture hits the actual DB). Don't mock `AsyncSession`.
 - The sync `client` and `db` fixtures are legacy — don't add new tests that use them.
-- Running from the agent dev container? There's no docker CLI and `grenmet-postgres`
-  isn't reachable — run `uv sync --frozen --package fast-back` once, then
-  `POSTGRES_SERVER=host.docker.internal REDIS_URL=redis://host.docker.internal:6379/0 uv run --frozen --package fast-back pytest`
-  against the host stack. See `AGENTS.md` → FastAPI.
+- Running from the agent dev container? There's no docker CLI and Compose service
+  names such as `db` and `grenmet-postgres` are not resolvable there. Run
+  `uv sync --frozen --package fast-back` once, then override every database/Redis
+  host used by the test process:
+
+  ```bash
+  POSTGRES_SERVER=host.docker.internal \
+  POSTGRES_PORT=5432 \
+  POSTGRES_USER=app \
+  POSTGRES_PASSWORD=changethis \
+  REDIS_URL=redis://host.docker.internal:6379/0 \
+  WXPRODUCTS_DATABASE_URL=postgresql://wxproducts:changethis@host.docker.internal:5432/wxproducts \
+    uv run --frozen --package fast-back pytest
+  ```
+
+  The passwords above are local-development placeholders; use the local stack's
+  actual values when they differ, and never commit real credentials. The main
+  suite creates a run-owned application database. wxproducts migration and
+  authoring fixtures create separate disposable `weather_test_*` databases:
+  wxproducts migration `0001` intentionally refuses to install beside the main
+  application's untracked tables. Do not point either test database at a
+  development or production database. See `AGENTS.md` → FastAPI.
 
 ## Anti-Patterns
 
@@ -258,3 +285,28 @@ async def test_create_leave_request(
 | Adding domain config to global `Settings` | Create a domain `BaseSettings` subclass |
 | New test using sync `TestClient` | Use `async_client` fixture |
 | Mocking `AsyncSession` in tests | Use `db_async` fixture (real DB) + `dependency_overrides` for auth |
+
+## OpenAPI contract conventions
+
+- Keep operation IDs stable, unique, and domain-prefixed (`capGetAlert`,
+  `hrCreateLeaveRequest`, `authLogin`).
+- Use `src.models.BaseModel` for public Pydantic schemas; do not expose ORM
+  models directly.
+- Use `UtcDateTime` for API datetimes so serialization retains
+  `format: date-time`.
+- Promote meaningful finite values to named enums; document intentional open maps
+  in the OpenAPI guard exemption registry.
+- Declare response models, success statuses, summaries, descriptions, and
+  realistic error responses on public routes.
+- Regenerate `openapi.json` before Kubb and run `pnpm check:drift`; never edit
+  generated client files manually.
+
+## Python runtime
+
+The FastAPI project requires Python 3.14 (`pyproject.toml` is authoritative).
+The workspace `.venv` used by `uv run` must be created with that interpreter; do not use a
+system Python or a stale environment linked to Python 3.13 or earlier. Python
+3.14 syntax such as PEP 758's unparenthesized multiple-exception syntax is
+intentional. If a syntax check reports errors around that syntax, verify the
+interpreter before changing source code. `scripts/lint.sh` fails early when the
+active `uv` environment does not match the configured requirement.

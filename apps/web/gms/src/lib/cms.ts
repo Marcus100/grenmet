@@ -6,7 +6,10 @@ const contentSchema = z.object({
   id: z.string(),
   title: z.string(),
   slug: z.string(),
-  kind: z.enum(["article", "page"]),
+  section: z
+    .enum(["latest-from-us", "weather-news", "latest-publications"])
+    .nullable()
+    .optional(),
   summary: z.string().nullable(),
   body: z.string(),
   imageUrl: z.string().nullable(),
@@ -19,15 +22,16 @@ export type ContentResult =
   | { status: "unavailable"; articles: [] };
 
 async function getContent(params: {
-  kind?: "article" | "page";
   slug?: string;
-  placement?: "latest" | "news";
+  placement?: "latest" | "news" | "weather-news";
 }): Promise<ContentResult> {
   if (!env.CMS_API_URL) return { status: "unavailable", articles: [] };
   try {
     const url = new URL("/api/public/content", env.CMS_API_URL);
-    if (params.kind) url.searchParams.set("kind", params.kind);
-    if (params.placement) url.searchParams.set("placement", params.placement);
+    if (params.placement === "weather-news")
+      url.searchParams.set("section", "weather-news");
+    else if (params.placement)
+      url.searchParams.set("placement", params.placement);
     if (params.slug) url.searchParams.set("slug", params.slug);
     const response = await fetch(url, {
       cache: "no-store",
@@ -45,10 +49,9 @@ async function getContent(params: {
 }
 
 export const fetchPublishedContent = cache(function fetchPublishedContent(
-  kind?: "article" | "page",
-  placement?: "latest" | "news"
+  placement?: "latest" | "news" | "weather-news"
 ): Promise<ContentResult> {
-  return getContent({ kind, placement });
+  return getContent({ placement });
 });
 
 export const fetchContentBySlug = cache(async function fetchContentBySlug(

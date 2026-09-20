@@ -88,6 +88,7 @@ it("rejects invalid inputs without a request", async () => {
 
 it("previews through FastAPI and preserves normalized values and errors", async () => {
   const preview = {
+    kind: "morning",
     values: { issuedAt: "2026-09-17T07:00" },
     errors: ["Complete the forecast"],
     checked_at: "2026-09-17T12:00:00Z",

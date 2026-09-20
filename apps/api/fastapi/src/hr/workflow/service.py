@@ -1,9 +1,8 @@
 import logging
 import uuid
 
-from sqlalchemy import or_
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
 
 from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
 from src.auth.policy import can_act_on_user_for_role, require_permission
@@ -47,11 +46,8 @@ async def create_workflow_template(
     require_permission(
         current_user=current_user, permission_key="workflow.template.manage"
     )
-    db_template = WorkflowTemplate.model_validate(
-        template_in,
-        update={
-            "created_by": current_user.id,
-        },
+    db_template = WorkflowTemplate(
+        **template_in.model_dump(), created_by=current_user.id
     )
     session.add(db_template)
     await session.commit()
@@ -72,9 +68,11 @@ async def create_workflow_step_template(
     workflow_template = await session.get(WorkflowTemplate, workflow_template_id)
     if not workflow_template:
         raise WorkflowTemplateNotFoundError()
-    db_step = WorkflowStepTemplate.model_validate(
-        step_in,
-        update={"workflow_template_id": workflow_template_id, "scope_enforced": True},
+    step_values = step_in.model_dump()
+    step_values["scope_enforced"] = True
+    db_step = WorkflowStepTemplate(
+        **step_values,
+        workflow_template_id=workflow_template_id,
     )
     session.add(db_step)
     await session.commit()
@@ -90,9 +88,7 @@ async def read_workflow_templates(
     )
     statement = select(WorkflowTemplate)
     if department_id:
-        statement = statement.where(
-            col(WorkflowTemplate.department_id) == department_id
-        )
+        statement = statement.where(WorkflowTemplate.department_id == department_id)
     result = await session.execute(statement.limit(100))
     return list(result.scalars().all())
 
@@ -127,8 +123,8 @@ async def _create_step_instances_for_workflow(
 
     result = await session.execute(
         select(WorkflowStepTemplate)
-        .where(col(WorkflowStepTemplate.workflow_template_id) == workflow_template_id)
-        .order_by(col(WorkflowStepTemplate.step_order))
+        .where(WorkflowStepTemplate.workflow_template_id == workflow_template_id)
+        .order_by(WorkflowStepTemplate.step_order)
     )
     steps = list(result.scalars().all())
     orders = sorted({step.step_order for step in steps})
@@ -249,8 +245,8 @@ async def read_workflow_instance_details(
         raise WorkflowInstanceNotFoundError()
     result = await session.execute(
         select(WorkflowStepInstance)
-        .where(col(WorkflowStepInstance.workflow_instance_id) == workflow_instance_id)
-        .order_by(col(WorkflowStepInstance.step_order))
+        .where(WorkflowStepInstance.workflow_instance_id == workflow_instance_id)
+        .order_by(WorkflowStepInstance.step_order)
     )
     steps = list(result.scalars().all())
     return workflow_instance, steps
@@ -276,7 +272,7 @@ async def _is_actor_allowed_for_step(
             select(WorkflowStepInstance).where(
                 WorkflowStepInstance.workflow_instance_id == workflow_instance.id,
                 WorkflowStepInstance.approver_user_id == current_user.id,
-                col(WorkflowStepInstance.action) == WorkflowAction.APPROVE,
+                WorkflowStepInstance.action == WorkflowAction.APPROVE,
                 WorkflowStepInstance.purpose != "RECORDING",
             )
         )
@@ -573,19 +569,19 @@ async def _hr_admin_emails(*, session: AsyncSession, department_id: str) -> list
         return []
     user_result = await session.execute(
         select(User)
-        .join(UserRoleAssignment, col(UserRoleAssignment.user_id) == col(User.id))
+        .join(UserRoleAssignment, UserRoleAssignment.user_id == User.id)
         .where(
-            col(UserRoleAssignment.role_id) == role.id,
+            UserRoleAssignment.role_id == role.id,
             UserRoleAssignment.organisation_id == department.organisation_id,
-            col(UserRoleAssignment.effective_from) <= now,
-            col(UserRoleAssignment.effective_to).is_(None)
-            | (col(UserRoleAssignment.effective_to) > now),
+            UserRoleAssignment.effective_from <= now,
+            UserRoleAssignment.effective_to.is_(None)
+            | (UserRoleAssignment.effective_to > now),
             (UserRoleAssignment.scope == RoleAssignmentScope.ALL)
             | (
                 (UserRoleAssignment.scope == RoleAssignmentScope.DEPARTMENT)
                 & (UserRoleAssignment.department_id == department_id)
             ),
-            col(User.is_active).is_(True),
+            User.is_active.is_(True),
         )
     )
     return [user.email for user in user_result.scalars().unique().all() if user.email]
@@ -640,28 +636,26 @@ async def list_actionable_instances(
     my_role_ids = (
         set() if current_user.is_superuser else {role.id for role in current_user.roles}
     )
-    match_conditions = [col(WorkflowStepInstance.required_user_id) == current_user.id]
+    match_conditions = [WorkflowStepInstance.required_user_id == current_user.id]
     if current_user.is_superuser:
-        match_conditions.append(col(WorkflowStepInstance.required_role_id).is_not(None))
+        match_conditions.append(WorkflowStepInstance.required_role_id.is_not(None))
     if my_role_ids:
-        match_conditions.append(
-            col(WorkflowStepInstance.required_role_id).in_(my_role_ids)
-        )
+        match_conditions.append(WorkflowStepInstance.required_role_id.in_(my_role_ids))
 
     result = await session.execute(
         select(WorkflowInstance, WorkflowStepInstance)
         .join(
             WorkflowStepInstance,
-            col(WorkflowStepInstance.workflow_instance_id) == col(WorkflowInstance.id),
+            WorkflowStepInstance.workflow_instance_id == WorkflowInstance.id,
         )
         .where(
-            col(WorkflowInstance.status).in_(
+            WorkflowInstance.status.in_(
                 [WorkflowStatus.PENDING, WorkflowStatus.APPROVED]
             ),
-            col(WorkflowStepInstance.action).is_(None),
+            WorkflowStepInstance.action.is_(None),
             or_(*match_conditions),
         )
-        .order_by(col(WorkflowInstance.submitted_at))
+        .order_by(WorkflowInstance.submitted_at)
     )
 
     actionable: list[tuple[WorkflowInstance, WorkflowStepInstance]] = []
@@ -678,11 +672,11 @@ async def list_actionable_instances(
                 await session.execute(
                     select(WorkflowStepInstance.id).where(
                         WorkflowStepInstance.workflow_instance_id == instance.id,
-                        col(WorkflowStepInstance.is_required).is_(True),
+                        WorkflowStepInstance.is_required.is_(True),
                         WorkflowStepInstance.step_order < step.step_order,
                         or_(
-                            col(WorkflowStepInstance.action).is_(None),
-                            col(WorkflowStepInstance.action) != WorkflowAction.APPROVE,
+                            WorkflowStepInstance.action.is_(None),
+                            WorkflowStepInstance.action != WorkflowAction.APPROVE,
                         ),
                     )
                 )
@@ -701,7 +695,7 @@ async def list_actionable_instances(
     requesters: dict[uuid.UUID, User] = {}
     if requester_ids:
         requester_result = await session.execute(
-            select(User).where(col(User.id).in_(requester_ids))
+            select(User).where(User.id.in_(requester_ids))
         )
         requesters = {user.id: user for user in requester_result.scalars().all()}
 
@@ -732,9 +726,9 @@ async def start_workflow_for_entity(
     """
     result = await session.execute(
         select(WorkflowTemplate).where(
-            col(WorkflowTemplate.department_id) == department_id,
-            col(WorkflowTemplate.workflow_type) == workflow_type,
-            col(WorkflowTemplate.is_active) == True,  # noqa: E712
+            WorkflowTemplate.department_id == department_id,
+            WorkflowTemplate.workflow_type == workflow_type,
+            WorkflowTemplate.is_active == True,  # noqa: E712
         )
     )
     template = result.scalars().first()

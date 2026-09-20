@@ -2,7 +2,7 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
-from sqlmodel import select
+from sqlalchemy import select
 
 from src.auth.models import Role, User
 from src.exceptions import AppException

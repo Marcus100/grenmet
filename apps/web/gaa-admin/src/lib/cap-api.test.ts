@@ -23,8 +23,11 @@ const ALERTS = {
   count: 1,
   data: [
     {
-      id: "alert_1",
+      id: "11111111-1111-4111-8111-111111111111",
       identifier: "GD-2026-001",
+      created_by_user_id: "22222222-2222-4222-8222-222222222222",
+      created_at: "2026-07-06T00:00:00Z",
+      updated_at: "2026-07-06T00:00:00Z",
       incidents: [],
       info: [],
       lifecycle_state: "DRAFT",
@@ -74,5 +77,15 @@ describe("fetchAdminAlerts", () => {
     await expect(fetchAdminAlerts("test-access-token")).rejects.toThrow(
       LOAD_FAILURE
     );
+  });
+
+  it("rejects a successful response that does not match the CAP schema", async () => {
+    server.use(
+      http.get(ALERTS_URL, () =>
+        HttpResponse.json({ count: 1, data: [{ identifier: "incomplete" }] })
+      )
+    );
+
+    await expect(fetchAdminAlerts("test-access-token")).rejects.toThrow();
   });
 });

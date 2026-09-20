@@ -4,14 +4,7 @@
  */
 
 import type { CapProfileDefinition } from "./CapProfileDefinition.js";
-
-export const capProfilePublicStateEnum = {
-  DRAFT: "DRAFT",
-  APPROVED: "APPROVED",
-} as const;
-
-export type CapProfilePublicStateEnum =
-  (typeof capProfilePublicStateEnum)[keyof typeof capProfilePublicStateEnum];
+import type { CapProfilePublicPropertiesStateEnum } from "./CapProfilePublicPropertiesStateEnum.js";
 
 export type CapProfilePublic = {
   /**
@@ -23,13 +16,18 @@ export type CapProfilePublic = {
   key: string;
   version: number;
   definition: CapProfileDefinition;
-  state: CapProfilePublicStateEnum;
+  state: CapProfilePublicPropertiesStateEnum;
   /**
    * @description
    * Format: `uuid`
    * @type string
    */
   created_by: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   created_at: string;
   approved_by: string | null;
   approved_at: string | null;

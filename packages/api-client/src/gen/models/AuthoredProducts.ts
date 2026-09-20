@@ -3,8 +3,28 @@
  * Do not edit manually.
  */
 
-import type { StoredProduct } from "./StoredProduct.js";
+import type { LegacyStoredProduct } from "./LegacyStoredProduct.js";
+import type { OutlookStoredProduct } from "./OutlookStoredProduct.js";
 
 export type AuthoredProducts = {
-  products: StoredProduct[];
+  products: (
+    | (OutlookStoredProduct & {
+        kind: "outlook";
+      })
+    | (LegacyStoredProduct & {
+        kind:
+          | "coastal"
+          | "cyclone"
+          | "dust"
+          | "evening"
+          | "flood"
+          | "heat"
+          | "marine"
+          | "midday"
+          | "morning"
+          | "thunderstorm"
+          | "tsunami"
+          | "wind";
+      })
+  )[];
 };

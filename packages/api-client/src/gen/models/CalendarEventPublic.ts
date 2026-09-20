@@ -19,10 +19,6 @@ export type CalendarEventPublic = {
   department_id: string;
   title: string;
   description?: string | null;
-  /**
-   * @description What a department puts on its calendar besides the duty roster.
-   * @type string
-   */
   kind: CalendarEventKind;
   starts_at_local: string;
   ends_at_local: string;
@@ -36,5 +32,10 @@ export type CalendarEventPublic = {
    */
   created_by_user_id: string;
   created_by_name?: string | null;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   created_at: string;
 };

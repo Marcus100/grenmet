@@ -2,7 +2,7 @@
 name = "fast-back"
 version = "0.1.0"
 description = ""
-requires-python = ">=3.13,<4.0"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     # Upgrade the HTTP layer together; frozen lockfile records the tested pair.
     "fastapi[standard]>=0.141.1,<0.142.0",
@@ -15,7 +15,6 @@ dependencies = [
     "httpx>=0.27,<1.0.0",
     "psycopg[binary]>=3.1.13,<4.0.0",
     "asyncpg>=0.29.0,<1.0.0",
-    "sqlmodel>=0.0.21,<1.0.0",
     "bcrypt>=4.2.0,<5.0.0",
     "sentry-sdk[fastapi]>=2.64.0,<3.0.0",
     "pyjwt>=2.9,<3.0.0",
@@ -26,6 +25,8 @@ dependencies = [
     "boto3>=1.43.36",
     "arq>=0.28.0",
     "redis>=5.3.1",
+    "msgpack>=1.2.1",
+    "setuptools>=78.1.1",
     "fpdf2>=2.8.7",
     "pyotp>=2.10.0",
     "shapely>=2.1.2",
@@ -58,11 +59,11 @@ packages = ["src"]
 
 [tool.mypy]
 strict = true
-python_version = "3.13"
+python_version = "3.14"
 exclude = ["venv", ".venv", "alembic"]
 
 [tool.ruff]
-target-version = "py313"
+target-version = "py314"
 exclude = ["alembic"]
 
 [tool.ruff.lint]
@@ -104,6 +105,7 @@ keep-runtime-typing = true
 
 [tool.coverage.run]
 source = ["src"]
+branch = true
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -113,6 +115,18 @@ python_functions = ["test_*"]
 addopts = "--import-mode=importlib"
 norecursedirs = ["scripts", ".git", ".tox", "dist", "build"]
 asyncio_mode = "auto"
+asyncio_default_test_loop_scope = "function"
+asyncio_default_fixture_loop_scope = "function"
+xfail_strict = true
+markers = [
+    "unit: no database required",
+    "integration: requires Postgres",
+]
+filterwarnings = [
+    "error::DeprecationWarning:src.*",
+    "error::DeprecationWarning:tests.*",
+    "ignore::DeprecationWarning:slowapi.*",
+]
 
 [tool.coverage.report]
 show_missing = true

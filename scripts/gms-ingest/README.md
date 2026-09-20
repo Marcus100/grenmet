@@ -6,7 +6,7 @@ every changed version. It does not issue GMS warnings or backfill history.
 
 ## Commands
 
-Run from the repository root with Python 3.13+ and uv on Linux or macOS:
+Run from the repository root with Python 3.14+ and uv on Linux or macOS:
 
 ```bash
 uv run --frozen --package gms-ingest nhc collect

@@ -4,21 +4,22 @@
  */
 
 import * as z from "zod";
+import { aviationDraftReadPropertiesKindEnumSchema } from "./aviationDraftReadPropertiesKindEnumSchema.js";
 
 export const aviationDraftReadSchema = z
   .object({
-    kind: z.enum(["METAR", "SPECI", "TAF"]),
+    kind: aviationDraftReadPropertiesKindEnumSchema,
     station: z.string().regex(/^[A-Z]{4}$/),
     message: z.string().min(1).max(6000),
-    observed_at: z.union([z.string(), z.null()]).optional(),
-    issued_at: z.union([z.string(), z.null()]).optional(),
-    valid_from: z.union([z.string(), z.null()]).optional(),
-    valid_to: z.union([z.string(), z.null()]).optional(),
+    observed_at: z.union([z.iso.datetime(), z.null()]).optional(),
+    issued_at: z.union([z.iso.datetime(), z.null()]).optional(),
+    valid_from: z.union([z.iso.datetime(), z.null()]).optional(),
+    valid_to: z.union([z.iso.datetime(), z.null()]).optional(),
     id: z.uuid(),
     revision: z.int(),
     actor_id: z.string(),
     actor_name: z.string(),
-    updated_at: z.string(),
+    updated_at: z.iso.datetime(),
     state: z.enum(["draft"]).optional().default("draft"),
     time_basis: z.enum(["staff_supplied"]).optional().default("staff_supplied"),
   })

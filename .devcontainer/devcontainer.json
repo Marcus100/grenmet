@@ -152,6 +152,6 @@
   },
 
   // On create: install workspace deps, then print every tool's version.
-  "postCreateCommand": "sudo /usr/local/bin/prepare-agent-dependencies && node .devcontainer/check-dependency-isolation.mjs && pnpm install --frozen-lockfile && uv sync --frozen --package fast-back && pnpm exec turbo --version && node -v && pnpm -v && uv --version && claude --version && codex --version",
+  "postCreateCommand": "sudo /usr/local/bin/prepare-agent-dependencies && node .devcontainer/check-dependency-isolation.mjs && pnpm install --frozen-lockfile && uv sync --frozen --package fast-back --python 3.14.7 && pnpm exec turbo --version && node -v && pnpm -v && uv --version && claude --version && codex --version",
   "postStartCommand": "node /workspace/.devcontainer/check-dependency-isolation.mjs"
 }

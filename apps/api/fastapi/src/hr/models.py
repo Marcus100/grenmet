@@ -3,8 +3,10 @@ from datetime import date, datetime
 from enum import Enum
 
 import sqlalchemy as sa
-from sqlmodel import Field, SQLModel
+from sqlalchemy import ForeignKey, String
+from sqlalchemy.orm import Mapped, mapped_column
 
+from src.orm import Base
 from src.utils.datetime import utc_now
 
 
@@ -60,16 +62,16 @@ class ShiftPattern(str, Enum):
     FLEX = "FLEX"
 
 
-class Organisation(SQLModel, table=True):
+class Organisation(Base):
     __tablename__ = "organisation"
     __table_args__ = {"schema": "hr"}
 
-    id: str = Field(primary_key=True, max_length=100)
-    code: str = Field(max_length=100, unique=True)
-    name: str = Field(max_length=255)
+    id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    code: Mapped[str] = mapped_column(String(100), unique=True)
+    name: Mapped[str] = mapped_column(String(255))
 
 
-class Department(SQLModel, table=True):
+class Department(Base):
     __tablename__ = "department"
     __table_args__ = (
         sa.UniqueConstraint("id", "organisation_id", name="uq_hr_department_id_org"),
@@ -82,17 +84,17 @@ class Department(SQLModel, table=True):
         {"schema": "hr"},
     )
 
-    id: str = Field(primary_key=True, max_length=100)
-    organisation_id: str = Field(
-        foreign_key="hr.organisation.id", index=True, max_length=100
+    id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("hr.organisation.id"), index=True
     )
-    code: str = Field(max_length=100)
-    name: str = Field(max_length=255)
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now)
+    code: Mapped[str] = mapped_column(String(100))
+    name: Mapped[str] = mapped_column(String(255))
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
-class Grade(SQLModel, table=True):
+class Grade(Base):
     """A department's seniority band, in the order the printed roster groups them.
 
     Grades are department-scoped, like the shift catalog: Meteorology's bands
@@ -111,60 +113,68 @@ class Grade(SQLModel, table=True):
         {"schema": "hr"},
     )
 
-    id: str = Field(primary_key=True, max_length=120)
-    department_id: str = Field(foreign_key="hr.department.id", index=True)
-    code: str = Field(max_length=50)
-    label: str = Field(max_length=150)
-    rank: int = Field(ge=1)
-    establishment_band: str | None = Field(default=None, max_length=100)
-    is_active: bool = True
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now)
+    id: Mapped[str] = mapped_column(String(120), primary_key=True)
+    department_id: Mapped[str] = mapped_column(
+        ForeignKey("hr.department.id"), index=True
+    )
+    code: Mapped[str] = mapped_column(String(50))
+    label: Mapped[str] = mapped_column(String(150))
+    rank: Mapped[int]
+    establishment_band: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    is_active: Mapped[bool] = mapped_column(default=True)
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
-class UserProfile(SQLModel, table=True):
+class UserProfile(Base):
     """HR profile extension by user_id. Names come from auth User (canonical source)."""
 
     __tablename__ = "user_profile"
     __table_args__ = {"schema": "hr"}
 
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    user_id: uuid.UUID = Field(
-        foreign_key="user.id", unique=True, index=True, ondelete="CASCADE"
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user.id", ondelete="CASCADE"), unique=True, index=True
     )
-    phone: str | None = Field(default=None, max_length=30)
-    date_of_birth: date | None = Field(default=None)
-    nationality: str | None = Field(default=None, max_length=100)
-    gender: Gender | None = Field(default=None)
-    emergency_contact_name: str | None = Field(default=None, max_length=255)
-    emergency_contact_phone: str | None = Field(default=None, max_length=30)
-    emergency_contact_relationship: str | None = Field(default=None, max_length=100)
-    created_by: uuid.UUID | None = Field(
-        default=None, foreign_key="user.id", ondelete="SET NULL"
+    phone: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    date_of_birth: Mapped[date | None]
+    nationality: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    gender: Mapped[Gender | None]
+    emergency_contact_name: Mapped[str | None] = mapped_column(
+        String(255), nullable=True
     )
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now)
+    emergency_contact_phone: Mapped[str | None] = mapped_column(
+        String(30), nullable=True
+    )
+    emergency_contact_relationship: Mapped[str | None] = mapped_column(
+        String(100), nullable=True
+    )
+    created_by: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
-class UserAddress(SQLModel, table=True):
+class UserAddress(Base):
     __tablename__ = "user_address"
     __table_args__ = {"schema": "hr"}
 
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    user_id: uuid.UUID = Field(
-        foreign_key="user.id", unique=True, index=True, ondelete="CASCADE"
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user.id", ondelete="CASCADE"), unique=True, index=True
     )
-    line_1: str | None = Field(default=None, max_length=255)
-    line_2: str | None = Field(default=None, max_length=255)
-    city: str | None = Field(default=None, max_length=100)
-    parish: Parish | None = Field(default=None)
-    postal_code: str | None = Field(default=None, max_length=20)
-    country: str | None = Field(default="Grenada", max_length=100)
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now)
+    line_1: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    line_2: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    city: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    parish: Mapped[Parish | None]
+    postal_code: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    country: Mapped[str | None] = mapped_column(String(100), default="Grenada")
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
-class EmploymentRecord(SQLModel, table=True):
+class EmploymentRecord(Base):
     __tablename__ = "employment_record"
     __table_args__ = (
         sa.Index("ix_hr_employment_record_department_id", "department_id"),
@@ -182,50 +192,52 @@ class EmploymentRecord(SQLModel, table=True):
         {"schema": "hr"},
     )
 
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    user_id: uuid.UUID = Field(
-        foreign_key="user.id", unique=True, index=True, ondelete="CASCADE"
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user.id", ondelete="CASCADE"), unique=True, index=True
     )
-    employee_number: str | None = Field(default=None, max_length=50, index=True)
-    organisation_id: str = Field(
-        foreign_key="hr.organisation.id", index=True, max_length=100
+    employee_number: Mapped[str | None] = mapped_column(String(50), index=True)
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("hr.organisation.id"), index=True
     )
-    department_id: str = Field(foreign_key="hr.department.id")
-    grade_id: str | None = Field(
-        default=None, foreign_key="hr.grade.id", ondelete="SET NULL"
+    department_id: Mapped[str] = mapped_column(ForeignKey("hr.department.id"))
+    grade_id: Mapped[str | None] = mapped_column(
+        ForeignKey("hr.grade.id", ondelete="SET NULL"), nullable=True
     )
     # What the printed duty roster prints for this person. It is not always the
     # personnel record's initial + surname: the GMS roster prints "J. Charles"
     # for Jude Andre Charles (acharles) and "K. Bedeau" for Kenrick Dieonne
     # Bedeau (dbedeau). Null means "derive it from the personnel record".
-    roster_name: str | None = Field(default=None, max_length=60)
-    position: str | None = Field(default=None, max_length=150)
-    employment_type: EmploymentType | None = Field(default=None)
-    start_date: date | None = Field(default=None)
-    supervisor_id: uuid.UUID | None = Field(
-        default=None, foreign_key="user.id", ondelete="SET NULL"
+    roster_name: Mapped[str | None] = mapped_column(String(60), nullable=True)
+    position: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    employment_type: Mapped[EmploymentType | None]
+    start_date: Mapped[date | None]
+    supervisor_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id", ondelete="SET NULL"), nullable=True
     )
-    work_location: str | None = Field(default=None, max_length=255)
-    status: EmploymentStatus = Field(default=EmploymentStatus.ACTIVE)
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now)
+    work_location: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    status: Mapped[EmploymentStatus] = mapped_column(default=EmploymentStatus.ACTIVE)
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
-class RosterPreference(SQLModel, table=True):
+class RosterPreference(Base):
     __tablename__ = "roster_preference"
     __table_args__ = {"schema": "hr"}
 
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    user_id: uuid.UUID = Field(
-        foreign_key="user.id", unique=True, index=True, ondelete="CASCADE"
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user.id", ondelete="CASCADE"), unique=True, index=True
     )
-    default_shift_pattern: ShiftPattern = Field(default=ShiftPattern.ROTATION)
-    max_night_shifts_per_month: int = Field(default=6, ge=0, le=31)
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now)
+    default_shift_pattern: Mapped[ShiftPattern] = mapped_column(
+        default=ShiftPattern.ROTATION
+    )
+    max_night_shifts_per_month: Mapped[int] = mapped_column(default=6)
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
-class RosterPreferredShift(SQLModel, table=True):
+class RosterPreferredShift(Base):
     __tablename__ = "roster_preferred_shift"
     __table_args__ = (
         sa.UniqueConstraint(
@@ -236,13 +248,15 @@ class RosterPreferredShift(SQLModel, table=True):
         {"schema": "hr"},
     )
 
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    user_id: uuid.UUID = Field(foreign_key="user.id", index=True, ondelete="CASCADE")
-    shift_code: str = Field(max_length=10)
-    created_at: datetime = Field(default_factory=utc_now)
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user.id", ondelete="CASCADE"), index=True
+    )
+    shift_code: Mapped[str] = mapped_column(String(10))
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
-class RosterRestrictedShift(SQLModel, table=True):
+class RosterRestrictedShift(Base):
     __tablename__ = "roster_restricted_shift"
     __table_args__ = (
         sa.UniqueConstraint(
@@ -253,13 +267,15 @@ class RosterRestrictedShift(SQLModel, table=True):
         {"schema": "hr"},
     )
 
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    user_id: uuid.UUID = Field(foreign_key="user.id", index=True, ondelete="CASCADE")
-    shift_code: str = Field(max_length=10)
-    created_at: datetime = Field(default_factory=utc_now)
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user.id", ondelete="CASCADE"), index=True
+    )
+    shift_code: Mapped[str] = mapped_column(String(10))
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
-class LeaveBalance(SQLModel, table=True):
+class LeaveBalance(Base):
     __tablename__ = "leave_balance"
     __table_args__ = (
         sa.UniqueConstraint(
@@ -268,14 +284,16 @@ class LeaveBalance(SQLModel, table=True):
         {"schema": "hr"},
     )
 
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    user_id: uuid.UUID = Field(foreign_key="user.id", index=True, ondelete="CASCADE")
-    leave_type: str = Field(max_length=50)
-    balance: int = Field(default=0, ge=0)
-    updated_at: datetime = Field(default_factory=utc_now)
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user.id", ondelete="CASCADE"), index=True
+    )
+    leave_type: Mapped[str] = mapped_column(String(50))
+    balance: Mapped[int] = mapped_column(default=0)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
-class LeaveCarryOver(SQLModel, table=True):
+class LeaveCarryOver(Base):
     __tablename__ = "leave_carry_over"
     __table_args__ = (
         sa.UniqueConstraint(
@@ -286,25 +304,27 @@ class LeaveCarryOver(SQLModel, table=True):
         {"schema": "hr"},
     )
 
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    user_id: uuid.UUID = Field(foreign_key="user.id", index=True, ondelete="CASCADE")
-    leave_type: str = Field(max_length=50)
-    days: int = Field(default=0, ge=0)
-    updated_at: datetime = Field(default_factory=utc_now)
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user.id", ondelete="CASCADE"), index=True
+    )
+    leave_type: Mapped[str] = mapped_column(String(50))
+    days: Mapped[int] = mapped_column(default=0)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
-class ApprovalAuthority(SQLModel, table=True):
+class ApprovalAuthority(Base):
     __tablename__ = "approval_authority"
     __table_args__ = {"schema": "hr"}
 
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    user_id: uuid.UUID = Field(
-        foreign_key="user.id", unique=True, index=True, ondelete="CASCADE"
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user.id", ondelete="CASCADE"), unique=True, index=True
     )
-    can_approve_leave: bool = False
-    can_approve_shift_swap: bool = False
-    can_approve_timesheets: bool = False
-    can_approve_absentee_reports: bool = False
-    can_approve_parking: bool = False
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now)
+    can_approve_leave: Mapped[bool] = mapped_column(default=False)
+    can_approve_shift_swap: Mapped[bool] = mapped_column(default=False)
+    can_approve_timesheets: Mapped[bool] = mapped_column(default=False)
+    can_approve_absentee_reports: Mapped[bool] = mapped_column(default=False)
+    can_approve_parking: Mapped[bool] = mapped_column(default=False)
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)

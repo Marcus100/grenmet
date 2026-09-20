@@ -28,9 +28,9 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
 from pydantic import ValidationError
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from sqlmodel import select
 
 from src.auth.config import auth_settings
 from src.auth.constants import (
@@ -90,7 +90,7 @@ async def get_current_user(session: SessionDep, token: TokenDep) -> User:
     try:
         payload = jwt.decode(token, auth_settings.SECRET_KEY, algorithms=[ALGORITHM])
         token_data = TokenPayload(**payload)
-    except (InvalidTokenError, ValidationError):
+    except InvalidTokenError, ValidationError:
         raise _unauthorized(ERROR_INVALID_CREDENTIALS)
     if not token_data.sub:
         raise _unauthorized(ERROR_INVALID_CREDENTIALS)

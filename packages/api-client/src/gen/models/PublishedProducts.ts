@@ -3,8 +3,8 @@
  * Do not edit manually.
  */
 
-import type { PublishedProduct } from "./PublishedProduct.js";
+import type { PublicPublishedProduct } from "./PublicPublishedProduct.js";
 
 export type PublishedProducts = {
-  products: PublishedProduct[];
+  products: PublicPublishedProduct[];
 };

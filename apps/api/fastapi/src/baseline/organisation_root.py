@@ -1,7 +1,7 @@
 """Explicit installation seed; application models have no default organisation."""
 
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import Session
+from sqlalchemy.orm import Session
 
 from src.hr.models import Organisation
 

@@ -1,9 +1,9 @@
 "use client";
 
 import {
-  archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePost,
-  createTrainingRecordApiV1HrTrainingRecordsPost,
-  readTrainingRecordsApiV1HrTrainingRecordsGet,
+  hrArchiveTrainingRecord,
+  hrCreateTrainingRecord,
+  hrGetTrainingRecords,
   type TrainingRecordPublic,
 } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
@@ -37,7 +37,7 @@ export function TrainingRecords({
       includeArchived,
     ],
     queryFn: () =>
-      readTrainingRecordsApiV1HrTrainingRecordsGet({
+      hrGetTrainingRecords({
         query: {
           organisation_id: organisationId,
           user_id: userId,
@@ -113,7 +113,7 @@ export function TrainingRecords({
             }
             setBusy(true);
             try {
-              await createTrainingRecordApiV1HrTrainingRecordsPost({
+              await hrCreateTrainingRecord({
                 body: {
                   organisation_id: organisationId,
                   user_id: userId,
@@ -294,9 +294,10 @@ export function TrainingRecords({
             setBusy(true);
             setError("");
             try {
-              await archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePost(
-                { path: { record_id: archive.id }, body: { reason } }
-              ).unwrap();
+              await hrArchiveTrainingRecord({
+                path: { record_id: archive.id },
+                body: { reason },
+              }).unwrap();
               if (page > 1 && query.data?.data.length === 1) setPage(page - 1);
               await refresh();
             } catch {

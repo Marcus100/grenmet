@@ -1,9 +1,9 @@
 "use client";
 
 import {
-  readInboxApiV1HrWorkflowsInstancesInboxGetQueryKey,
-  useReadInboxApiV1HrWorkflowsInstancesInboxGet,
-  useTakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost,
+  hrGetInboxQueryKey,
+  useHrGetInbox,
+  useHrTakeAction,
   type WorkflowAction,
   type WorkflowType,
 } from "@barrelsgd/api-client";
@@ -48,9 +48,8 @@ function formatDate(value: string | null | undefined): string {
 
 export function ApprovalsInbox() {
   const queryClient = useQueryClient();
-  const inboxQuery = useReadInboxApiV1HrWorkflowsInstancesInboxGet();
-  const actionMutation =
-    useTakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost();
+  const inboxQuery = useHrGetInbox();
+  const actionMutation = useHrTakeAction();
   const [pendingId, setPendingId] = useState<string | null>(null);
 
   const items = inboxQuery.data?.data ?? [];
@@ -67,7 +66,7 @@ export function ApprovalsInbox() {
         body: { action, step_id: stepId },
       });
       await queryClient.invalidateQueries({
-        queryKey: readInboxApiV1HrWorkflowsInstancesInboxGetQueryKey(),
+        queryKey: hrGetInboxQueryKey(),
       });
       const doneLabel: Record<string, string> = {
         APPROVE: "Approved",
