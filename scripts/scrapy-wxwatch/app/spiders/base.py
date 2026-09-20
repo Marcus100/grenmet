@@ -1,6 +1,6 @@
 """Base spider class with shared utilities for weather image spiders."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 
 import scrapy
@@ -105,7 +105,7 @@ class WeatherSpider(scrapy.Spider):
             return None
         try:
             dt = parsedate_to_datetime(value)
-            return dt.astimezone(timezone.utc).isoformat()
+            return dt.astimezone(UTC).isoformat()
         except (ValueError, TypeError):
             return None
 

@@ -49,7 +49,7 @@ def backup(environment, project, config_path, before_provisioning=False):
     previous = json.loads(run(["aws", "s3api", "list-objects-v2", "--bucket", bucket, "--prefix", f"{environment}/core/latest-success.json", "--endpoint-url", endpoint], capture_output=True, text=True).stdout)
     has_complete_backup = any(item["Key"] == f"{environment}/core/latest-success.json" for item in previous.get("Contents", []))
     names, missing = select_databases(names, actual, config["CMS_DB_NAME"], before_provisioning, os.environ.get("BOOTSTRAP_CMS") == "true", has_complete_backup)
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
     batch = now.strftime("%Y%m%dT%H%M%SZ") + "-" + uuid4().hex[:8]
     directory = Path(os.environ.get("BACKUP_DIR", "/var/backups/grenmet")) / environment / batch
     directory.mkdir(mode=0o700, parents=True)
@@ -71,7 +71,7 @@ def backup(environment, project, config_path, before_provisioning=False):
         manifest["databases"].append({"database": name, "key": key, "bytes": destination.stat().st_size})
         print(f"{name}: verified off-host upload")
     # Upload a completion marker only after every authoritative database succeeds.
-    manifest["completed_at"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    manifest["completed_at"] = datetime.datetime.now(datetime.UTC).isoformat()
     marker = directory / "success.json"
     marker.write_text(json.dumps(manifest, indent=2) + "\n")
     run(["aws", "s3", "cp", str(marker), f"s3://{bucket}/{prefix}/success.json", "--endpoint-url", endpoint, "--only-show-errors"])

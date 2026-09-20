@@ -29,7 +29,7 @@ import hashlib
 import json
 import re
 import sys
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -307,7 +307,7 @@ def main() -> int:
             "filename": args.pdf.name,
             "sha256": hashlib.sha256(args.pdf.read_bytes()).hexdigest(),
             "converter": CONVERTER_VERSION,
-            "converted_at": datetime.now(timezone.utc).isoformat(),
+            "converted_at": datetime.now(UTC).isoformat(),
             "overflow_discarded": bool(args.allow_overflow),
         },
         "legend": legend,

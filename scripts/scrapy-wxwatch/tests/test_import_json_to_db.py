@@ -1,5 +1,4 @@
 import pytest
-
 from scripts.import_json_to_db import collect_rows, resolve_images_root
 
 

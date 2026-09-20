@@ -5,13 +5,14 @@ import copy
 import fcntl
 import json
 import os
-from pathlib import Path
-from collector import command as collector_command
 import re
 import subprocess
 import sys
-from uuid import uuid4
 import urllib.request
+from pathlib import Path
+from uuid import uuid4
+
+from collector import command as collector_command
 
 ROOT = Path(__file__).resolve().parents[2]
 
