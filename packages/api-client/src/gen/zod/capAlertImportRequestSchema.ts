@@ -4,8 +4,11 @@
  */
 
 import * as z from "zod";
+import { capAlertImportRequestPropertiesSourceEnumSchema } from "./capAlertImportRequestPropertiesSourceEnumSchema.js";
 
 export const capAlertImportRequestSchema = z.object({
-  source: z.enum(["url", "xml"]).optional().default("xml"),
+  source: capAlertImportRequestPropertiesSourceEnumSchema
+    .optional()
+    .default("xml"),
   value: z.string().min(1),
 });

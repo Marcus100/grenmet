@@ -3,7 +3,7 @@
 Downloads Skew-T PNG soundings from https://weather.uwyo.edu/upperair/sounding.shtml
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import scrapy
 
@@ -33,7 +33,7 @@ class UwyoSpider(WeatherSpider):
         if date:
             self.target_date = datetime.strptime(date, "%Y-%m-%d").date()
         else:
-            self.target_date = datetime.now(timezone.utc).date()
+            self.target_date = datetime.now(UTC).date()
 
     def parse(self, response):
         """Parse the form page and submit requests for each station/time combo."""
@@ -84,7 +84,7 @@ class UwyoSpider(WeatherSpider):
 
         # Build observation time ISO string
         obs_dt = datetime.strptime(f"{date_str} {hour:02d}:00:00", "%Y-%m-%d %H:%M:%S")
-        obs_dt = obs_dt.replace(tzinfo=timezone.utc)
+        obs_dt = obs_dt.replace(tzinfo=UTC)
         observation_time = obs_dt.isoformat()
 
         # Generate filename: YYYYMMDDHHMM_skewt_STATION.png
@@ -97,7 +97,7 @@ class UwyoSpider(WeatherSpider):
         item["source_modified"] = None  # Will be set from HTTP headers
         item["observation_time"] = observation_time
         item["time_basis"] = "source_observation"
-        item["fetched_at"] = datetime.now(timezone.utc).isoformat()
+        item["fetched_at"] = datetime.now(UTC).isoformat()
         item["image_urls"] = [image_url]
         item["etag"] = None
         item["raw_metadata"] = {

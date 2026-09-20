@@ -1,5 +1,5 @@
 from datetime import UTC, datetime
-from typing import Annotated, Any, Literal, Self
+from typing import Annotated, Any, Literal, Self, TypeVar
 from uuid import UUID
 
 from pydantic import (
@@ -32,14 +32,46 @@ ProductKind = Literal[
     "coastal",
     "tsunami",
 ]
+LegacyProductKind = Literal[
+    "morning",
+    "midday",
+    "evening",
+    "cyclone",
+    "marine",
+    "flood",
+    "thunderstorm",
+    "wind",
+    "heat",
+    "dust",
+    "coastal",
+    "tsunami",
+]
+LocalDateTime = Annotated[
+    str, StringConstraints(pattern=r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$")
+]
+ValuesT = TypeVar("ValuesT")
+WriteValues = dict[
+    Annotated[str, StringConstraints(max_length=80)],
+    Annotated[str, StringConstraints(max_length=12_000)],
+]
 
 
-class PublishedProduct(BaseModel):
+class IssueDetails(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    issuedAt: LocalDateTime | None = None
+    validFrom: LocalDateTime | None = None
+    validTo: LocalDateTime | None = None
+    validity: str | None = None
+    area: str | None = None
+    forecaster: str | None = None
+
+
+class PublishedProductBase[ValuesT](BaseModel):
     id: UUID
     revision: int = Field(gt=0)
     publishedAt: str
-    kind: ProductKind
-    values: dict[str, str]
+    values: ValuesT
 
     @field_validator("publishedAt")
     @classmethod
@@ -48,34 +80,9 @@ class PublishedProduct(BaseModel):
         return value
 
 
-class PublishedProducts(BaseModel):
-    products: list[PublishedProduct]
-
-
-class ProductFeedError(BaseModel):
-    error: str
-
-
-class ProductWrite(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+class StoredProductBase[ValuesT](BaseModel):
     id: UUID
-    expectedRevision: Annotated[int, Field(strict=True, ge=0)]
-    kind: ProductKind
-    values: dict[
-        Annotated[str, StringConstraints(max_length=80)],
-        Annotated[str, StringConstraints(max_length=12_000)],
-    ]
-    action: Literal["draft", "publish", "withdraw"]
-    changeSummary: Annotated[
-        str, StringConstraints(strip_whitespace=True, max_length=1000)
-    ]
-    reviewed: StrictBool
-
-
-class StoredProduct(BaseModel):
-    id: UUID
-    kind: ProductKind
-    values: dict[str, str]
+    values: ValuesT
     revision: int
     publishedRevision: int | None
     updatedAt: UtcDateTime
@@ -96,12 +103,175 @@ class StoredProduct(BaseModel):
         return value
 
 
+class ProductWriteBase[ValuesT](BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: UUID
+    expectedRevision: Annotated[int, Field(strict=True, ge=0)]
+    values: ValuesT
+    action: Literal["draft", "publish", "withdraw"]
+    changeSummary: Annotated[
+        str, StringConstraints(strip_whitespace=True, max_length=1000)
+    ]
+    reviewed: StrictBool
+
+
+class ProductPreviewInputBase[ValuesT](BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    values: ValuesT
+    expectedRevision: Annotated[int, Field(strict=True, ge=0)]
+    changeSummary: Annotated[
+        str, StringConstraints(strip_whitespace=True, max_length=1000)
+    ]
+
+
+class ProductPreviewBase[ValuesT](BaseModel):
+    values: ValuesT
+    errors: list[str]
+    checked_at: UtcDateTime
+
+
+class ProductPdfSourceBase[ValuesT](BaseModel):
+    product_id: UUID
+    revision: int
+    values: ValuesT
+    action: Literal["draft", "publish", "withdraw"]
+    recorded_at: UtcDateTime
+    current_publication: bool
+
+
+class OutlookValuesDraft(IssueDetails):
+    model_config = ConfigDict(extra="forbid")
+
+    source: str | None = None
+    specialInterest: str | None = None
+    systems: str | None = None
+    formation: str | None = None
+    nextUpdate: LocalDateTime | None = None
+
+
+class OutlookValuesPublished(OutlookValuesDraft):
+    issuedAt: LocalDateTime
+    validFrom: LocalDateTime
+    validTo: LocalDateTime
+    area: str
+    forecaster: str
+    source: str
+    specialInterest: str
+    systems: str
+    formation: str
+    nextUpdate: LocalDateTime
+
+
+class OutlookPublishedProduct(PublishedProductBase[OutlookValuesPublished]):
+    kind: Literal["outlook"]
+
+
+class OutlookStoredProduct(StoredProductBase[OutlookValuesDraft]):
+    kind: Literal["outlook"]
+
+
+class OutlookProductWrite(ProductWriteBase[OutlookValuesDraft]):
+    kind: Literal["outlook"]
+
+
+class OutlookProductPreviewInput(ProductPreviewInputBase[OutlookValuesDraft]):
+    kind: Literal["outlook"]
+
+
+class OutlookProductPreview(ProductPreviewBase[OutlookValuesDraft]):
+    kind: Literal["outlook"]
+
+
+class OutlookProductPdfSource(ProductPdfSourceBase[OutlookValuesDraft]):
+    kind: Literal["outlook"]
+
+
+class LegacyPublishedProduct(PublishedProductBase[dict[str, str]]):
+    kind: LegacyProductKind
+
+
+class LegacyStoredProduct(StoredProductBase[dict[str, str]]):
+    kind: LegacyProductKind
+
+
+class LegacyProductWrite(ProductWriteBase[WriteValues]):
+    kind: LegacyProductKind
+
+
+class LegacyProductPreviewInput(ProductPreviewInputBase[WriteValues]):
+    kind: LegacyProductKind
+
+
+class LegacyProductPreview(ProductPreviewBase[dict[str, str]]):
+    kind: LegacyProductKind
+
+
+class LegacyProductPdfSource(ProductPdfSourceBase[dict[str, str]]):
+    kind: LegacyProductKind
+
+
+PublishedProduct = Annotated[
+    OutlookPublishedProduct | LegacyPublishedProduct, Field(discriminator="kind")
+]
+StoredProduct = Annotated[
+    OutlookStoredProduct | LegacyStoredProduct, Field(discriminator="kind")
+]
+ProductWrite = Annotated[
+    OutlookProductWrite | LegacyProductWrite, Field(discriminator="kind")
+]
+ProductPreviewInput = Annotated[
+    OutlookProductPreviewInput | LegacyProductPreviewInput, Field(discriminator="kind")
+]
+ProductPreview = Annotated[
+    OutlookProductPreview | LegacyProductPreview, Field(discriminator="kind")
+]
+ProductPdfSource = Annotated[
+    OutlookProductPdfSource | LegacyProductPdfSource, Field(discriminator="kind")
+]
+
+PublishedProductAdapter: TypeAdapter[PublishedProduct] = TypeAdapter(PublishedProduct)
+StoredProductAdapter: TypeAdapter[StoredProduct] = TypeAdapter(StoredProduct)
+ProductWriteAdapter: TypeAdapter[ProductWrite] = TypeAdapter(ProductWrite)
+ProductPreviewInputAdapter: TypeAdapter[ProductPreviewInput] = TypeAdapter(
+    ProductPreviewInput
+)
+ProductPreviewAdapter: TypeAdapter[ProductPreview] = TypeAdapter(ProductPreview)
+ProductPdfSourceAdapter: TypeAdapter[ProductPdfSource] = TypeAdapter(ProductPdfSource)
+
+
+def values_as_dict(values: BaseModel | dict[str, str]) -> dict[str, str]:
+    if isinstance(values, BaseModel):
+        return values.model_dump(mode="json", exclude_none=True)
+    return dict(values)
+
+
+class PublicPublishedProduct(BaseModel):
+    """Compatibility response shape for anonymous public consumers."""
+
+    id: UUID
+    revision: int = Field(gt=0)
+    publishedAt: str
+    kind: ProductKind
+    values: dict[str, str]
+
+
+class PublishedProducts(BaseModel):
+    products: list[PublicPublishedProduct]
+
+
+class ProductFeedError(BaseModel):
+    error: str
+
+
 class AuthoredProducts(BaseModel):
     products: list[StoredProduct]
 
 
 class ProductHistoryEntry(BaseModel):
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
     revision: int
     action: Literal["draft", "publish", "withdraw"]
     actorName: str = Field(validation_alias="actor_name")
@@ -216,32 +386,3 @@ class AviationRevisionRead(AviationContent):
 
 class AviationHistory(BaseModel):
     revisions: list[AviationRevisionRead]
-
-
-class ProductPreviewInput(BaseModel):
-    model_config = ConfigDict(extra="forbid")
-    kind: ProductKind
-    values: dict[
-        Annotated[str, StringConstraints(max_length=80)],
-        Annotated[str, StringConstraints(max_length=12_000)],
-    ]
-    expectedRevision: Annotated[int, Field(strict=True, ge=0)]
-    changeSummary: Annotated[
-        str, StringConstraints(strip_whitespace=True, max_length=1000)
-    ]
-
-
-class ProductPreview(BaseModel):
-    values: dict[str, str]
-    errors: list[str]
-    checked_at: UtcDateTime
-
-
-class ProductPdfSource(BaseModel):
-    product_id: UUID
-    revision: int
-    kind: ProductKind
-    values: dict[str, str]
-    action: Literal["draft", "publish", "withdraw"]
-    recorded_at: UtcDateTime
-    current_publication: bool

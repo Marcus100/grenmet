@@ -1,8 +1,8 @@
 import logging
 import uuid
 
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, func, select
 
 from src.auth.models import User
 from src.auth.policy import can_act_on_user, require_permission
@@ -90,14 +90,12 @@ async def list_parking_permits(
             current_user=current_user,
             permission_key="parking.permit.read.department",
         )
-        statement = statement.where(col(ParkingPermit.department_id) == department_id)
+        statement = statement.where(ParkingPermit.department_id == department_id)
     else:
-        statement = statement.where(col(ParkingPermit.user_id) == current_user.id)
+        statement = statement.where(ParkingPermit.user_id == current_user.id)
     total = await session.scalar(select(func.count()).select_from(statement.subquery()))
     result = await session.execute(
-        statement.order_by(col(ParkingPermit.created_at).desc())
-        .offset(skip)
-        .limit(limit)
+        statement.order_by(ParkingPermit.created_at.desc()).offset(skip).limit(limit)
     )
     return list(result.scalars().all()), total or 0
 

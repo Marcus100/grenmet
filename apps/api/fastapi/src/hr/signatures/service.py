@@ -9,10 +9,12 @@ from pathlib import Path
 from typing import TypedDict
 
 from fastapi.concurrency import run_in_threadpool
+from fastapi.encoders import jsonable_encoder
 from PIL import Image, ImageChops, UnidentifiedImageError
 from pydantic import JsonValue
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import SQLModel, col, func, select
+from sqlalchemy.inspection import inspect
 
 from src.auth.models import User
 from src.exceptions import AppException
@@ -187,7 +189,7 @@ async def capture(
     *,
     session: AsyncSession,
     actor: User,
-    entity: SQLModel,
+    entity: object,
     entity_type: str,
     signature_version: uuid.UUID | None,
 ) -> None:
@@ -200,8 +202,13 @@ async def capture(
         raise HRValidationError(
             "Your saved signature changed or was deleted. Review it again before signing."
         )
-    values = entity.model_dump(mode="json")
-    entity_id = uuid.UUID(values["id"])
+    inspected_entity = inspect(entity)
+    assert inspected_entity is not None
+    values = {
+        attribute.key: getattr(entity, attribute.key)
+        for attribute in inspected_entity.mapper.column_attrs
+    }
+    entity_id = uuid.UUID(str(values["id"]))
     existing = await session.scalar(
         select(SignedDocument.id).where(
             SignedDocument.entity_type == entity_type,
@@ -218,13 +225,19 @@ async def capture(
                 await session.execute(
                     select(TimesheetEntry)
                     .where(TimesheetEntry.timesheet_id == entity_id)
-                    .order_by(col(TimesheetEntry.entry_date), col(TimesheetEntry.id))
+                    .order_by(TimesheetEntry.entry_date, TimesheetEntry.id)
                 )
             )
             .scalars()
             .all()
         )
-        values["entries"] = [entry.model_dump(mode="json") for entry in entries]
+        values["entries"] = [
+            {
+                attribute.key: getattr(entry, attribute.key)
+                for attribute in inspect(entry).mapper.column_attrs
+            }
+            for entry in entries
+        ]
     elif entity_type == "status_report":
         from src.hr.dailystatus.models import StatusReportEntry
 
@@ -233,15 +246,21 @@ async def capture(
                 await session.execute(
                     select(StatusReportEntry)
                     .where(StatusReportEntry.status_report_id == entity_id)
-                    .order_by(col(StatusReportEntry.id))
+                    .order_by(StatusReportEntry.id)
                 )
             )
             .scalars()
             .all()
         )
-        values["entries"] = [entry.model_dump(mode="json") for entry in status_entries]
+        values["entries"] = [
+            {
+                attribute.key: getattr(entry, attribute.key)
+                for attribute in inspect(entry).mapper.column_attrs
+            }
+            for entry in status_entries
+        ]
     subject_id = uuid.UUID(
-        values.get("user_id") or values.get("requesting_user_id") or str(actor.id)
+        str(values.get("user_id") or values.get("requesting_user_id") or actor.id)
     )
     subject = await session.get(User, subject_id)
     values["employee_name"] = subject.full_name if subject else str(subject_id)
@@ -250,6 +269,7 @@ async def capture(
 
     organisation = await session.get(Organisation, department.organisation_id)
     signed_at = utc_now()
+    form_values = jsonable_encoder(values)
     snapshot: DocumentSnapshot = {
         "entity_type": entity_type,
         "entity_id": str(entity_id),
@@ -258,7 +278,7 @@ async def capture(
         else department.organisation_id,
         "signer_name": actor.full_name,
         "signed_at": signed_at.isoformat(),
-        "form": values,
+        "form": form_values,
     }
     pdf = await run_in_threadpool(render_pdf, snapshot, saved.image)
     session.add(
@@ -307,9 +327,7 @@ async def list_documents(
     rows = (
         (
             await session.execute(
-                query.order_by(
-                    col(SignedDocument.signed_at).desc(), col(SignedDocument.id)
-                )
+                query.order_by(SignedDocument.signed_at.desc(), SignedDocument.id)
                 .offset(skip)
                 .limit(limit)
             )

@@ -18,7 +18,7 @@ the PascalCase entity (e.g. `ParkingPermit`) throughout.
 | File | Contents |
 |---|---|
 | `__init__.py` | empty |
-| `models.py` | `SQLModel, table=True` DB model(s) + domain enums |
+| `models.py` | SQLAlchemy ORM DB model(s) + domain enums |
 | `schemas.py` | `<Form>Create` / `<Form>Public` / `<Form>ListPublic` (extend `src.models.BaseModel`) |
 | `service.py` | async business logic |
 | `router.py` | `APIRouter(prefix="/hr", tags=["hr-<form>"])` |
@@ -37,7 +37,7 @@ the PascalCase entity (e.g. `ParkingPermit`) throughout.
 
 Three classes extending `src.models.BaseModel`: `<Form>Create` (request body),
 `<Form>Public` (response — mirrors the DB fields you expose), `<Form>ListPublic`
-(`data: list[<Form>Public]` + `count: int`). Never expose the SQLModel directly.
+(`data: list[<Form>Public]` + `count: int`). Never expose the ORM model directly.
 
 ## 4. Service (`service.py`)
 

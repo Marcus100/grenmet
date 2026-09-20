@@ -76,7 +76,7 @@ class StripeSdkGateway:
             raise BillingNotConfiguredError()
 
         try:
-            event = stripe.Webhook.construct_event(  # type: ignore[no-untyped-call]
+            event = stripe.Webhook.construct_event(
                 payload,
                 signature,
                 webhook_secret,

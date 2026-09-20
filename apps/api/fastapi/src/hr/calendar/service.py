@@ -16,8 +16,8 @@ import logging
 import uuid
 from datetime import date, datetime
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
 
 from src.auth.models import User
 from src.auth.policy import has_permission, require_permission
@@ -58,7 +58,7 @@ def _strip_offset(value: datetime) -> datetime:
 
 async def _department_for(session: AsyncSession, user: User) -> str | None:
     result = await session.execute(
-        select(EmploymentRecord).where(col(EmploymentRecord.user_id) == user.id)
+        select(EmploymentRecord).where(EmploymentRecord.user_id == user.id)
     )
     employment = result.scalars().first()
     return employment.department_id if employment else None
@@ -93,16 +93,16 @@ async def list_calendar_events(
     # training that starts before the window still shows.
     statement = (
         select(CalendarEvent, User)
-        .outerjoin(User, col(CalendarEvent.created_by_user_id) == col(User.id))
+        .outerjoin(User, CalendarEvent.created_by_user_id == User.id)
         .where(
-            col(CalendarEvent.department_id) == department_id,
-            col(CalendarEvent.starts_at) < datetime.combine(end, datetime.max.time()),
-            col(CalendarEvent.ends_at) >= datetime.combine(start, datetime.min.time()),
+            CalendarEvent.department_id == department_id,
+            CalendarEvent.starts_at < datetime.combine(end, datetime.max.time()),
+            CalendarEvent.ends_at >= datetime.combine(start, datetime.min.time()),
         )
-        .order_by(col(CalendarEvent.starts_at))
+        .order_by(CalendarEvent.starts_at)
     )
     if not include_cancelled:
-        statement = statement.where(col(CalendarEvent.cancelled_at).is_(None))
+        statement = statement.where(CalendarEvent.cancelled_at.is_(None))
 
     result = await session.execute(statement)
     return [(event, author) for event, author in result.all()]

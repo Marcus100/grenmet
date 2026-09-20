@@ -4,7 +4,7 @@ One-shot Scrapy job that downloads weather imagery, stores the image bytes local
 
 ## Local development
 
-Requires Python 3.13 and `uv`. Create a local `.env.local` from `.env.local.example` and configure the archive API before the first run.
+Requires Python 3.14 and `uv`. Create a local `.env.local` from `.env.local.example` and configure the archive API before the first run.
 
 ```bash
 cd scripts/scrapy-wxwatch

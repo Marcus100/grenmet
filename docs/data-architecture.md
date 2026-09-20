@@ -19,7 +19,7 @@ The databases are provisioned by `infra/postgres/init-databases.sh` on first Pos
 
 ## FastAPI Database
 
-FastAPI uses SQLModel and async SQLAlchemy for request handling. `apps/api/fastapi/src/database.py` imports all model modules so Alembic can see metadata.
+FastAPI uses SQLAlchemy 2.0 and async SQLAlchemy for request handling. `apps/api/fastapi/src/database.py` imports all model modules so Alembic can see the shared metadata.
 
 Current FastAPI domains:
 

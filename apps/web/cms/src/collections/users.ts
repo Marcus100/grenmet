@@ -46,6 +46,14 @@ export const Users: CollectionConfig = {
       admin: { readOnly: true },
     },
     {
+      name: "permissionKeys",
+      type: "json",
+
+      defaultValue: [],
+      access: identityAccess,
+      admin: { hidden: true },
+    },
+    {
       name: "isSuperuser",
       type: "checkbox",
       defaultValue: false,

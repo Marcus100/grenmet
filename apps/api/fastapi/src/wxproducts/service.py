@@ -2,10 +2,10 @@ import logging
 from datetime import UTC, date, datetime, timedelta
 from uuid import UUID
 
-from sqlalchemy import text
+from pydantic import ValidationError
+from sqlalchemy import select, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
 
 from src.auth.models import User
 
@@ -20,10 +20,15 @@ from .models import (
 from .schemas import (
     AviationDraftWrite,
     AviationKind,
+    IssueDetails,
     ProductKind,
     ProductPdfSource,
+    ProductPdfSourceAdapter,
     ProductWrite,
+    ProductWriteAdapter,
     PublishedProduct,
+    PublishedProductAdapter,
+    values_as_dict,
 )
 from .validation import ISSUE_HOURS, local_time
 
@@ -33,20 +38,28 @@ logger = logging.getLogger(__name__)
 def is_current(product: PublishedProduct, now: datetime) -> bool:
     values = product.values
     try:
+        if isinstance(values, IssueDetails):
+            issued_value = values.issuedAt or ""
+            valid_from_value = values.validFrom or ""
+            valid_to_value = values.validTo or ""
+        else:
+            issued_value = values.get("issuedAt", "")
+            valid_from_value = values.get("validFrom", "")
+            valid_to_value = values.get("validTo", "")
         if product.kind in ISSUE_HOURS:
-            day = values.get("issuedAt", "")[:10]
+            day = issued_value[:10]
             issued = local_time(f"{day}T{ISSUE_HOURS[product.kind]:02}:00")
             start = issued
             end = issued.replace(hour=7) + timedelta(
                 days=5 if product.kind == "evening" else 1
             )
         else:
-            issued = local_time(values.get("issuedAt", ""))
-            start = local_time(values.get("validFrom", ""))
-            end = local_time(values.get("validTo", ""))
+            issued = local_time(issued_value)
+            start = local_time(valid_from_value)
+            end = local_time(valid_to_value)
         published = datetime.fromisoformat(product.publishedAt)
         return published <= now and issued <= now and start <= now < end
-    except (ValueError, OverflowError):
+    except ValueError, OverflowError:
         return False
 
 
@@ -62,14 +75,17 @@ async def list_published_products(
         parameters["kind"] = kind
     rows = await session.execute(text(query), parameters)
     instant = now if now is not None else datetime.now(UTC)
-    products = [
-        PublishedProduct.model_validate(row)
-        for row in rows.scalars()
-        if row is not None
-    ]
+    products: list[PublishedProduct] = []
+    for row in rows.scalars():
+        if row is None:
+            continue
+        try:
+            products.append(PublishedProductAdapter.validate_python(row))
+        except ValidationError:
+            logger.warning("Ignoring invalid published weather product row")
     return sorted(
         (product for product in products if is_current(product, instant)),
-        key=lambda product: product.values.get("issuedAt", ""),
+        key=lambda product: values_as_dict(product.values).get("issuedAt", ""),
         reverse=True,
     )
 
@@ -89,7 +105,7 @@ async def list_authored(
                 func.left(issued, 10) == issue_date.isoformat(),
             ),
         )
-        .order_by(col(AuthoredProduct.updated_at).desc())
+        .order_by(AuthoredProduct.updated_at.desc())
     )
     return list((await session.execute(statement)).scalars())
 
@@ -99,14 +115,12 @@ async def history(
 ) -> list[ProductRevision]:
     statement = (
         select(ProductRevision)
-        .join(
-            AuthoredProduct, col(ProductRevision.product_id) == col(AuthoredProduct.id)
-        )
+        .join(AuthoredProduct, ProductRevision.product_id == AuthoredProduct.id)
         .where(
             ProductRevision.product_id == product_id,
-            col(AuthoredProduct.kind).in_(allowed_kinds),
+            AuthoredProduct.kind.in_(allowed_kinds),
         )
-        .order_by(col(ProductRevision.revision).desc())
+        .order_by(ProductRevision.revision.desc())
         .limit(100)
     )
     return list((await session.execute(statement)).scalars())
@@ -115,8 +129,9 @@ async def history(
 async def write_product(
     session: AsyncSession, body: ProductWrite, actor: User
 ) -> AuthoredProduct:
-    body = body.model_copy(
-        update={"values": validation.normalize(body.kind, body.values)}
+    normalized = validation.normalize(body.kind, values_as_dict(body.values))
+    body = ProductWriteAdapter.validate_python(
+        {**body.model_dump(mode="json", exclude={"values"}), "values": normalized}
     )
     errors = validation.validate(body)
     if errors:
@@ -140,7 +155,7 @@ async def write_product(
         content = (
             previous.draft
             if body.action == "withdraw" and previous
-            else {"kind": body.kind, "values": body.values}
+            else {"kind": body.kind, "values": values_as_dict(body.values)}
         )
         published = (
             {
@@ -273,9 +288,7 @@ async def list_aviation_drafts(
             await session.execute(
                 select(AviationDraft)
                 .where(AviationDraft.kind == kind, AviationDraft.station == station)
-                .order_by(
-                    col(AviationDraft.updated_at).desc(), col(AviationDraft.id).desc()
-                )
+                .order_by(AviationDraft.updated_at.desc(), AviationDraft.id.desc())
                 .limit(50)
             )
         ).scalars()
@@ -290,7 +303,7 @@ async def aviation_history(
             await session.execute(
                 select(AviationDraftRevision)
                 .where(AviationDraftRevision.draft_id == draft_id)
-                .order_by(col(AviationDraftRevision.revision).desc())
+                .order_by(AviationDraftRevision.revision.desc())
                 .limit(100)
             )
         ).scalars()
@@ -304,20 +317,18 @@ async def pdf_source(
 
     statement = (
         select(ProductRevision, AuthoredProduct)
-        .join(
-            AuthoredProduct, col(ProductRevision.product_id) == col(AuthoredProduct.id)
-        )
+        .join(AuthoredProduct, ProductRevision.product_id == AuthoredProduct.id)
         .where(
             ProductRevision.product_id == product_id,
             ProductRevision.revision == revision,
-            col(AuthoredProduct.kind).in_(allowed_kinds),
+            AuthoredProduct.kind.in_(allowed_kinds),
         )
     )
     row = (await session.execute(statement)).first()
     if row is None:
         raise NotFoundError("Saved product revision not found")
     record, product = row
-    return ProductPdfSource.model_validate(
+    return ProductPdfSourceAdapter.validate_python(
         {
             "product_id": product_id,
             "revision": revision,

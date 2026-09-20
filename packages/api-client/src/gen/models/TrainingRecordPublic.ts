@@ -3,14 +3,7 @@
  * Do not edit manually.
  */
 
-export const trainingRecordPublicResultEnum = {
-  completed: "completed",
-  attended: "attended",
-  failed: "failed",
-} as const;
-
-export type TrainingRecordPublicResultEnum =
-  (typeof trainingRecordPublicResultEnum)[keyof typeof trainingRecordPublicResultEnum];
+import type { TrainingRecordInputPropertiesResultEnum } from "./TrainingRecordInputPropertiesResultEnum.js";
 
 export type TrainingRecordPublic = {
   /**
@@ -43,7 +36,7 @@ export type TrainingRecordPublic = {
    * @type string
    */
   completed_on: string;
-  result: TrainingRecordPublicResultEnum;
+  result: TrainingRecordInputPropertiesResultEnum;
   expires_on?: string | null;
   notes?: string | null;
   /**
@@ -59,6 +52,11 @@ export type TrainingRecordPublic = {
    * @type string
    */
   created_by: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   created_at: string;
   archived_at?: string | null;
   archive_reason?: string | null;

@@ -1,8 +1,5 @@
 import "server-only";
-import {
-  createClient,
-  readHrDashboardApiV1HrDashboardGet,
-} from "@barrelsgd/api-client";
+import { createClient, hrGetHrDashboard } from "@barrelsgd/api-client";
 import { getAuthApiBaseUrl, getAuthApiPrefix } from "@/lib/auth-config";
 import {
   exchangeSessionForAccessToken,
@@ -28,5 +25,5 @@ export async function loadDashboard() {
   client.interceptors.error.use(() => {
     throw new Error("HR records are temporarily unavailable");
   });
-  return readHrDashboardApiV1HrDashboardGet({ client }).unwrap();
+  return hrGetHrDashboard({ client }).unwrap();
 }

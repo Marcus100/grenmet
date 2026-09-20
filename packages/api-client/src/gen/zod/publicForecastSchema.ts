@@ -8,7 +8,7 @@ import { forecastObservationSchema } from "./forecastObservationSchema.js";
 import { forecastPeriodSchema } from "./forecastPeriodSchema.js";
 
 export const publicForecastSchema = z.object({
-  as_of: z.string(),
+  as_of: z.iso.datetime(),
   timezone: z.enum(["America/Grenada"]).optional().default("America/Grenada"),
   base_date: z.string(),
   periods: z.array(forecastPeriodSchema).min(5).max(5),

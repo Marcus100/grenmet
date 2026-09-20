@@ -6,12 +6,11 @@
 
 import hashlib
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import PurePosixPath
 from urllib.parse import unquote, urlparse
 
 from itemadapter import ItemAdapter
-
 from scrapy.pipelines.images import ImagesPipeline
 from scrapy.utils.defer import ensure_awaitable
 
@@ -37,8 +36,8 @@ def parse_iso_datetime(value):
     try:
         dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
         if dt.tzinfo is None:
-            return dt.replace(tzinfo=timezone.utc)
-        return dt.astimezone(timezone.utc)
+            return dt.replace(tzinfo=UTC)
+        return dt.astimezone(UTC)
     except (ValueError, TypeError):
         return None
 
@@ -74,7 +73,7 @@ class MinutePathImagesPipeline(ImagesPipeline):
         if dt is None:
             dt = parse_iso_datetime(adapter.get("fetched_at"))
         if dt is None:
-            dt = datetime.now(timezone.utc)
+            dt = datetime.now(UTC)
 
         base, dot, ext = original_name.rpartition(".")
         name_stem = base if dot else original_name
@@ -167,8 +166,9 @@ class FastApiPipeline:
     """Collect files separately; FastAPI owns all archive database writes."""
 
     def __init__(self, crawler):
-        from app.api import ArchiveClient
         from run_crawlers import CrawlOutcome
+
+        from app.api import ArchiveClient
 
         self.crawler = crawler
         self.client = ArchiveClient()
@@ -199,6 +199,7 @@ class FastApiPipeline:
 
     async def process_item(self, item):
         import asyncio
+
         from app.api import image_payload
 
         adapter = ItemAdapter(item)

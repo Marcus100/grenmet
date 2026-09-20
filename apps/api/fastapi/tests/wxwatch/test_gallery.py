@@ -11,7 +11,6 @@ from src.main import app
 from src.wxwatch import service
 from src.wxwatch.router import get_session
 from src.wxwatch.schemas import WeatherImage
-from tests.wxproducts.test_migrations import weather_engine as weather_engine
 from tests.wxwatch.test_migration import migrate
 
 SCHEMA = (

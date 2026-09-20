@@ -7,10 +7,10 @@ import * as z from "zod";
 
 export const archiveRetrievalSchema = z.object({
   event_kind: z.string().optional().default("downloaded"),
-  checked_at: z.union([z.string(), z.null()]).optional(),
+  checked_at: z.union([z.iso.datetime(), z.null()]).optional(),
   is_imported: z.boolean().optional().default(false),
   id: z.string(),
-  retrieved_at: z.union([z.string(), z.null()]),
-  recorded_at: z.string(),
+  retrieved_at: z.union([z.iso.datetime(), z.null()]),
+  recorded_at: z.iso.datetime(),
   image_url: z.string(),
 });

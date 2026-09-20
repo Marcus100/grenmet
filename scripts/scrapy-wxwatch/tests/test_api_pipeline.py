@@ -3,14 +3,13 @@ from io import BytesIO
 from types import SimpleNamespace
 
 import pytest
-from PIL import Image
-from scrapy.http import Request, Response
-from scrapy.settings import Settings
-
 from app.api import ArchiveClient
 from app.items import ImageItem
 from app.pipelines import FastApiPipeline, MinutePathImagesPipeline
+from PIL import Image
 from run_crawlers import CrawlOutcome, CrawlPolicy
+from scrapy.http import Request, Response
+from scrapy.settings import Settings
 
 
 def test_original_animation_is_preserved_and_changed_bytes_get_new_key(tmp_path):

@@ -29,6 +29,8 @@ router = APIRouter(prefix="/utils", tags=["utils"])
     "/test-email/",
     dependencies=[Depends(get_current_active_superuser)],
     status_code=status.HTTP_201_CREATED,
+    summary="Send a test email",
+    description="Sends a test email to the requested address. This administrative endpoint requires an active superuser.",
 )
 async def test_email(email_to: EmailStr) -> Message:
     email_data = generate_test_email(email_to=email_to)

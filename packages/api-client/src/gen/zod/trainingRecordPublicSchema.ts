@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { trainingRecordInputPropertiesResultEnumSchema } from "./trainingRecordInputPropertiesResultEnumSchema.js";
 
 export const trainingRecordPublicSchema = z.object({
   organisation_id: z.string().min(1).max(100),
@@ -11,14 +12,14 @@ export const trainingRecordPublicSchema = z.object({
   course_name: z.string().min(1).max(200),
   provider: z.string().min(1).max(200),
   completed_on: z.iso.date(),
-  result: z.enum(["completed", "attended", "failed"]),
+  result: trainingRecordInputPropertiesResultEnumSchema,
   expires_on: z.union([z.iso.date(), z.null()]).optional(),
   notes: z.union([z.string().max(2000), z.null()]).optional(),
   id: z.uuid(),
   department_id: z.string(),
   created_by: z.uuid(),
-  created_at: z.string(),
-  archived_at: z.union([z.string(), z.null()]).optional(),
+  created_at: z.iso.datetime(),
+  archived_at: z.union([z.iso.datetime(), z.null()]).optional(),
   archive_reason: z.union([z.string(), z.null()]).optional(),
   can_manage: z.boolean().optional().default(false),
 });

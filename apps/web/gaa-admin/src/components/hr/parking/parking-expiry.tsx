@@ -1,6 +1,6 @@
 "use client";
 
-import { readParkingPermitsApiV1HrParkingPermitsGet } from "@barrelsgd/api-client";
+import { hrGetParkingPermits } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -17,7 +17,7 @@ export function ParkingExpiry() {
   const query = useQuery({
     queryKey: ["parking-expiry", page],
     queryFn: () =>
-      readParkingPermitsApiV1HrParkingPermitsGet({
+      hrGetParkingPermits({
         query: { page, size: 20 },
       }).unwrap(),
   });

@@ -3,27 +3,15 @@
  * Do not edit manually.
  */
 
+import type { ImageInputPropertiesTimeBasisEnum } from "./ImageInputPropertiesTimeBasisEnum.js";
 import type { JsonValue } from "./JsonValue.js";
-
-export const imageInputTimeBasisEnum = {
-  filename: "filename",
-  source_observation: "source_observation",
-  estimated_analysis: "estimated_analysis",
-  rounded_source_modified: "rounded_source_modified",
-  source_modified: "source_modified",
-  unknown: "unknown",
-  legacy_unknown: "legacy_unknown",
-} as const;
-
-export type ImageInputTimeBasisEnum =
-  (typeof imageInputTimeBasisEnum)[keyof typeof imageInputTimeBasisEnum];
 
 export type ImageInput = {
   /**
    * @default 'legacy_unknown'
    * @type string | undefined
    */
-  time_basis?: ImageInputTimeBasisEnum;
+  time_basis?: ImageInputPropertiesTimeBasisEnum;
   raw_metadata?: {
     [key: string]: JsonValue;
   };

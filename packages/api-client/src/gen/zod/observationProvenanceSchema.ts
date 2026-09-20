@@ -4,18 +4,19 @@
  */
 
 import * as z from "zod";
+import { observationProvenancePropertiesPublicationStateEnumSchema } from "./observationProvenancePropertiesPublicationStateEnumSchema.js";
+import { observationProvenancePropertiesTimeBasisEnumSchema } from "./observationProvenancePropertiesTimeBasisEnumSchema.js";
 
 export const observationProvenanceSchema = z.object({
   source_system: z.string(),
-  time_basis: z.enum(["source_observation", "source_issue", "unknown"]),
+  time_basis: observationProvenancePropertiesTimeBasisEnumSchema,
   raw_tac: z.union([z.string(), z.null()]).optional(),
   bufr: z.union([z.object({}).catchall(z.unknown()), z.null()]).optional(),
   iwxxm: z.union([z.object({}).catchall(z.unknown()), z.null()]).optional(),
   quality_flags: z.array(z.string()).optional(),
   wis2_topic: z.union([z.string(), z.null()]).optional(),
   wis2_message_id: z.union([z.string(), z.null()]).optional(),
-  publication_state: z
-    .enum(["not_published", "published", "failed", "unknown"])
+  publication_state: observationProvenancePropertiesPublicationStateEnumSchema
     .optional()
     .default("unknown"),
 });

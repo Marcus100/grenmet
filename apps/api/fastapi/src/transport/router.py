@@ -21,14 +21,19 @@ async def get_session() -> AsyncGenerator[AsyncSession]:
     try:
         async with session:
             yield session
-    except (SQLAlchemyError, OSError, TimeoutError):
+    except SQLAlchemyError, OSError, TimeoutError:
         raise HTTPException(503, "Transport timetable is unavailable") from None
 
 
 Session = Annotated[AsyncSession, Depends(get_session)]
 
 
-@router.get("/spec", response_model=list[RouteView])
+@router.get(
+    "/spec",
+    response_model=list[RouteView],
+    summary="Get the transport timetable",
+    description="Returns routes, stops, trips, and shifts used by the transport timetable.",
+)
 async def spec(_user: BrowserUser, session: Session) -> list[RouteView]:
     route_rows = (
         (

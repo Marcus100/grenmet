@@ -4,8 +4,9 @@
  */
 
 import * as z from "zod";
+import { capProfileDraftRequestPropertiesLevelEnumSchema } from "./capProfileDraftRequestPropertiesLevelEnumSchema.js";
 
 export const capProfileDraftRequestSchema = z.object({
   subtype: z.string(),
-  level: z.enum(["Advisory", "Watch", "Warning"]),
+  level: capProfileDraftRequestPropertiesLevelEnumSchema,
 });

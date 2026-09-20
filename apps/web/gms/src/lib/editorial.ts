@@ -249,7 +249,7 @@ export const WEATHER_ARTICLES: WeatherArticle[] = [
       {
         heading: "A short update or the full report",
         paragraphs: [
-          "Latest from us turns an issued report into a short, conversational update that can be read or shared easily. The full product remains available for its detailed fields. Weather news, like this article, gives us room to explain the reasoning and terminology behind those short updates.",
+          "Latest from us turns an issued report into a short, conversational update that can be read or shared easily. The full product remains available for its detailed fields. Latest publications, like this article, gives us room to explain the reasoning and terminology behind those short updates.",
         ],
       },
     ],

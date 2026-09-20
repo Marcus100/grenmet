@@ -1,6 +1,6 @@
 import "server-only";
 
-import { specApiV1JanitorialSpecGetResponseSchema } from "@barrelsgd/api-client";
+import { janitorialSpecResponseSchema } from "@barrelsgd/api-client";
 import {
   getAuthApiBaseUrl,
   getAuthApiPrefix,
@@ -32,5 +32,5 @@ export async function getJanitorialSpec() {
     }
   );
   if (!response.ok) throw new Error("Janitorial catalogue unavailable");
-  return specApiV1JanitorialSpecGetResponseSchema.parse(await response.json());
+  return janitorialSpecResponseSchema.parse(await response.json());
 }

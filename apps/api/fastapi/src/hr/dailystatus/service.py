@@ -1,8 +1,8 @@
 import logging
 import uuid
 
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, func, select
 
 from src.auth.models import User
 from src.auth.policy import require_permission
@@ -197,9 +197,7 @@ async def update_status_report(
 
     # Replace child entries: drop the existing rows and recreate from payload.
     existing = await session.execute(
-        select(StatusReportEntry).where(
-            col(StatusReportEntry.status_report_id) == report.id
-        )
+        select(StatusReportEntry).where(StatusReportEntry.status_report_id == report.id)
     )
     for entry in existing.scalars().all():
         await session.delete(entry)
@@ -234,9 +232,7 @@ async def delete_status_report(
     # Remove child entries first (they FK the report), then the report, then the
     # DRAFT workflow instance (a draft has no step rows to clean up).
     existing = await session.execute(
-        select(StatusReportEntry).where(
-            col(StatusReportEntry.status_report_id) == report.id
-        )
+        select(StatusReportEntry).where(StatusReportEntry.status_report_id == report.id)
     )
     for entry in existing.scalars().all():
         await session.delete(entry)
@@ -258,9 +254,7 @@ async def read_status_report_details(
         report_id=report_id,
     )
     result = await session.execute(
-        select(StatusReportEntry).where(
-            col(StatusReportEntry.status_report_id) == report_id
-        )
+        select(StatusReportEntry).where(StatusReportEntry.status_report_id == report_id)
     )
     entries = list(result.scalars().all())
     return report, entries
@@ -277,11 +271,9 @@ async def list_status_reports(
     require_permission(current_user=current_user, permission_key="status.report.read")
     statement = select(StatusReport)
     if department_id:
-        statement = statement.where(col(StatusReport.department_id) == department_id)
+        statement = statement.where(StatusReport.department_id == department_id)
     total = await session.scalar(select(func.count()).select_from(statement.subquery()))
     result = await session.execute(
-        statement.order_by(col(StatusReport.created_at).desc())
-        .offset(skip)
-        .limit(limit)
+        statement.order_by(StatusReport.created_at.desc()).offset(skip).limit(limit)
     )
     return list(result.scalars().all()), total or 0

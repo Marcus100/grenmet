@@ -2,12 +2,14 @@ import uuid
 from datetime import date, datetime
 
 import sqlalchemy as sa
-from sqlmodel import Field, SQLModel
+from sqlalchemy import ForeignKey, String
+from sqlalchemy.orm import Mapped, mapped_column
 
+from src.orm import Base
 from src.utils.datetime import utc_now
 
 
-class TrainingRecord(SQLModel, table=True):
+class TrainingRecord(Base):
     """A historical training outcome; corrections archive and replace the record."""
 
     __tablename__ = "training_record"
@@ -26,20 +28,23 @@ class TrainingRecord(SQLModel, table=True):
         ),
         {"schema": "hr"},
     )
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    organisation_id: str = Field(
-        foreign_key="hr.organisation.id", index=True, max_length=100
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    organisation_id: Mapped[str] = mapped_column(
+        String(100), ForeignKey("hr.organisation.id"), index=True
     )
-    department_id: str = Field(max_length=100)
-    user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
-    course_name: str = Field(max_length=200)
-    provider: str = Field(max_length=200)
-    completed_on: date
-    result: str = Field(max_length=20)
-    expires_on: date | None = None
-    notes: str | None = Field(default=None, max_length=2000)
-    created_by: uuid.UUID = Field(foreign_key="user.id")
-    created_at: datetime = Field(default_factory=utc_now)
-    archived_at: datetime | None = None
-    archived_by: uuid.UUID | None = Field(default=None, foreign_key="user.id")
-    archive_reason: str | None = Field(default=None, max_length=500)
+    department_id: Mapped[str] = mapped_column(String(100))
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"), index=True)
+    course_name: Mapped[str] = mapped_column(String(200))
+    provider: Mapped[str] = mapped_column(String(200))
+    completed_on: Mapped[date]
+    result: Mapped[str] = mapped_column(String(20))
+    expires_on: Mapped[date | None]
+    notes: Mapped[str | None] = mapped_column(String(2000), nullable=True)
+    created_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    archived_at: Mapped[datetime | None]
+    archived_by: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id"), nullable=True
+    )
+    archive_reason: Mapped[str | None] = mapped_column(String(500), nullable=True)

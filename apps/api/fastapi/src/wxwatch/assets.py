@@ -119,7 +119,7 @@ async def deliver(session: AsyncSession, asset_id: UUID) -> StreamingResponse:
                 asset["sha256"],
                 asset["byte_size"],
             )
-        except (OSError, ReplicaUnavailableError):
+        except OSError, ReplicaUnavailableError:
             continue
         disposition = "inline" if mime.startswith("image/") else "attachment"
         return StreamingResponse(

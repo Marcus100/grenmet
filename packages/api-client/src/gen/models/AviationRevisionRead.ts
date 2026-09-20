@@ -3,17 +3,10 @@
  * Do not edit manually.
  */
 
-export const aviationRevisionReadKindEnum = {
-  METAR: "METAR",
-  SPECI: "SPECI",
-  TAF: "TAF",
-} as const;
-
-export type AviationRevisionReadKindEnum =
-  (typeof aviationRevisionReadKindEnum)[keyof typeof aviationRevisionReadKindEnum];
+import type { AviationDraftReadPropertiesKindEnum } from "./AviationDraftReadPropertiesKindEnum.js";
 
 export type AviationRevisionRead = {
-  kind: AviationRevisionReadKindEnum;
+  kind: AviationDraftReadPropertiesKindEnum;
   /**
    * @pattern ^[A-Z]{4}$
    * @type string
@@ -32,5 +25,10 @@ export type AviationRevisionRead = {
   revision: number;
   actor_id: string;
   actor_name: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   recorded_at: string;
 };

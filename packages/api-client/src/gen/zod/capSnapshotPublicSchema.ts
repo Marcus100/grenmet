@@ -10,7 +10,7 @@ export const capSnapshotPublicSchema = z.object({
   alert_id: z.uuid(),
   identifier: z.string(),
   content_hash: z.string(),
-  generated_at: z.string(),
-  signed_at: z.union([z.string(), z.null()]).optional(),
+  generated_at: z.iso.datetime(),
+  signed_at: z.union([z.iso.datetime(), z.null()]).optional(),
   signing_key_ref: z.union([z.string(), z.null()]).optional(),
 });

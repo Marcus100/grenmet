@@ -30,11 +30,11 @@ describe("published content feed", () => {
       .fn()
       .mockResolvedValue(Response.json({ articles: [article()] }));
     vi.stubGlobal("fetch", fetcher);
-    const result = await fetchPublishedContent("article");
+    const result = await fetchPublishedContent();
     expect(result.status).toBe("ok");
     expect(result.articles).toHaveLength(1);
     expect(fetcher).toHaveBeenCalledWith(
-      new URL("http://cms.example.test/api/public/content?kind=article"),
+      new URL("http://cms.example.test/api/public/content"),
       expect.objectContaining({ cache: "no-store" })
     );
   });
@@ -81,11 +81,9 @@ describe("published content feed", () => {
 it("passes the section filter to CMS", async () => {
   const fetcher = vi.fn().mockResolvedValue(Response.json({ articles: [] }));
   vi.stubGlobal("fetch", fetcher);
-  await fetchPublishedContent("article", "latest");
+  await fetchPublishedContent("latest");
   expect(fetcher).toHaveBeenCalledWith(
-    new URL(
-      "http://cms.example.test/api/public/content?kind=article&placement=latest"
-    ),
+    new URL("http://cms.example.test/api/public/content?placement=latest"),
     expect.anything()
   );
 });

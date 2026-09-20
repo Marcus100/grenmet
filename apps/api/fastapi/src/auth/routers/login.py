@@ -14,7 +14,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import HTMLResponse
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlmodel import col, delete
+from sqlalchemy import delete
 from starlette.requests import Request
 
 from src.auth import modern_service, service
@@ -42,6 +42,7 @@ from src.auth.schemas import (
     SessionLoginResponse,
     SessionPublic,
     SessionTokenRequest,
+    SessionUserPublic,
     UserPublic,
 )
 from src.dependencies import CurrentUser, SessionDep
@@ -101,7 +102,7 @@ def _session_auth_response(
         "access_token_expires_at": access_token_expires_at,
         "session_expires_at": db_session.expires_at,
         "session": SessionPublic.model_validate(db_session, from_attributes=True),
-        "user": UserPublic.model_validate(user, from_attributes=True),
+        "user": SessionUserPublic.model_validate(user, from_attributes=True),
     }
     if session_token is not None:
         return SessionLoginResponse(session_token=session_token, **payload)
@@ -405,8 +406,8 @@ async def recover_password(
     if user and user.is_active:
         await session.execute(
             delete(AuthChallenge).where(
-                col(AuthChallenge.user_id) == user.id,
-                col(AuthChallenge.purpose) == "password-reset",
+                AuthChallenge.user_id == user.id,
+                AuthChallenge.purpose == "password-reset",
             )
         )
         password_reset_token = await modern_service.issue(

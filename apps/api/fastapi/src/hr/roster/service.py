@@ -3,9 +3,8 @@ import uuid
 from datetime import date
 from io import StringIO
 
-from sqlalchemy import tuple_
+from sqlalchemy import delete, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, delete, select
 
 from src.auth.models import User
 from src.auth.policy import has_permission, require_permission
@@ -79,9 +78,7 @@ async def create_public_holiday(
 ) -> PublicHoliday:
     require_permission(current_user=current_user, permission_key="roster.manage")
     result = await session.execute(
-        select(PublicHoliday).where(
-            col(PublicHoliday.holiday_date) == payload.holiday_date
-        )
+        select(PublicHoliday).where(PublicHoliday.holiday_date == payload.holiday_date)
     )
     existing = result.scalars().first()
     if existing:
@@ -103,12 +100,12 @@ async def list_public_holidays(
     *, session: AsyncSession, current_user: User, year: int | None = None
 ) -> list[PublicHoliday]:
     require_permission(current_user=current_user, permission_key="roster.view")
-    statement = select(PublicHoliday).order_by(col(PublicHoliday.holiday_date))
+    statement = select(PublicHoliday).order_by(PublicHoliday.holiday_date)
     if year is not None:
         import sqlalchemy as sa_filter
 
         statement = statement.where(
-            sa_filter.extract("year", col(PublicHoliday.holiday_date)) == year
+            sa_filter.extract("year", PublicHoliday.holiday_date) == year
         )
     result = await session.execute(statement.limit(100))
     return list(result.scalars().all())
@@ -139,8 +136,8 @@ async def _create_revision(
 ) -> RosterRevision:
     result = await session.execute(
         select(RosterRevision)
-        .where(col(RosterRevision.roster_period_id) == roster_period_id)
-        .order_by(col(RosterRevision.revision_number).desc())
+        .where(RosterRevision.roster_period_id == roster_period_id)
+        .order_by(RosterRevision.revision_number.desc())
     )
     last_rev = result.scalars().first()
     next_number = (last_rev.revision_number + 1) if last_rev else 1
@@ -163,8 +160,8 @@ async def list_roster_revisions(
     await get_roster_period_or_404(session=session, period_id=period_id)
     result = await session.execute(
         select(RosterRevision)
-        .where(col(RosterRevision.roster_period_id) == period_id)
-        .order_by(col(RosterRevision.revision_number))
+        .where(RosterRevision.roster_period_id == period_id)
+        .order_by(RosterRevision.revision_number)
         .limit(100)
     )
     return list(result.scalars().all())
@@ -184,8 +181,8 @@ async def publish_roster_period(
     session.add(period)
     assign_result = await session.execute(
         select(RosterAssignment)
-        .where(col(RosterAssignment.roster_period_id) == period_id)
-        .order_by(col(RosterAssignment.assignment_date), col(RosterAssignment.user_id))
+        .where(RosterAssignment.roster_period_id == period_id)
+        .order_by(RosterAssignment.assignment_date, RosterAssignment.user_id)
     )
     assignments = list(assign_result.scalars().all())
     # The publish snapshot is the authoritative "signed" state of the roster;
@@ -250,9 +247,9 @@ async def read_shift_catalog(
         require_permission(current_user=current_user, permission_key="roster.manage")
     else:
         require_permission(current_user=current_user, permission_key="roster.view")
-    statement = select(ShiftCatalog).order_by(col(ShiftCatalog.code))
+    statement = select(ShiftCatalog).order_by(ShiftCatalog.code)
     if not include_inactive:
-        statement = statement.where(col(ShiftCatalog.is_active) == True)  # noqa: E712
+        statement = statement.where(ShiftCatalog.is_active == True)  # noqa: E712
     result = await session.execute(statement)
     return list(result.scalars().all())
 
@@ -317,12 +314,12 @@ async def list_roster_periods(
     require_permission(current_user=current_user, permission_key="roster.view")
     statement = (
         select(RosterPeriod)
-        .where(col(RosterPeriod.department_id) == department_id)
-        .order_by(col(RosterPeriod.period_start).desc())
+        .where(RosterPeriod.department_id == department_id)
+        .order_by(RosterPeriod.period_start.desc())
         .limit(100)
     )
     if period_status is not None:
-        statement = statement.where(col(RosterPeriod.status) == period_status)
+        statement = statement.where(RosterPeriod.status == period_status)
     result = await session.execute(statement)
     return list(result.scalars().all())
 
@@ -333,11 +330,8 @@ async def create_roster_period(
     require_permission(current_user=current_user, permission_key="roster.manage")
     if period_in.period_end < period_in.period_start:
         raise HRValidationError(ERROR_ROSTER_PERIOD_END_BEFORE_START)
-    db_period = RosterPeriod.model_validate(
-        period_in,
-        update={
-            "created_by_user_id": current_user.id,
-        },
+    db_period = RosterPeriod(
+        **period_in.model_dump(), created_by_user_id=current_user.id
     )
     session.add(db_period)
     await session.commit()
@@ -367,8 +361,8 @@ async def bulk_upsert_roster_assignments(
     await session.execute(
         delete(RosterAssignment).where(
             tuple_(
-                col(RosterAssignment.user_id),
-                col(RosterAssignment.assignment_date),
+                RosterAssignment.user_id,
+                RosterAssignment.assignment_date,
             ).in_(pairs)
         )
     )
@@ -396,7 +390,7 @@ async def bulk_upsert_roster_assignments(
     await session.commit()
     result = await session.execute(
         select(RosterAssignment).where(
-            col(RosterAssignment.roster_period_id) == payload.roster_period_id
+            RosterAssignment.roster_period_id == payload.roster_period_id
         )
     )
     created_assignments = list(result.scalars().all())
@@ -410,8 +404,8 @@ async def read_roster_period_details(
     period = await get_roster_period_or_404(session=session, period_id=period_id)
     result = await session.execute(
         select(RosterAssignment)
-        .where(col(RosterAssignment.roster_period_id) == period_id)
-        .order_by(col(RosterAssignment.assignment_date))
+        .where(RosterAssignment.roster_period_id == period_id)
+        .order_by(RosterAssignment.assignment_date)
     )
     assignments = list(result.scalars().all())
     return period, assignments
@@ -496,9 +490,7 @@ async def read_roster_calendar(
 
     if department_id is None:
         own = await session.execute(
-            select(EmploymentRecord).where(
-                col(EmploymentRecord.user_id) == current_user.id
-            )
+            select(EmploymentRecord).where(EmploymentRecord.user_id == current_user.id)
         )
         employment = own.scalars().first()
         if employment is None:
@@ -522,10 +514,10 @@ async def read_roster_calendar(
     # and it keeps the assignment query to four joined entities.
     periods = await session.execute(
         select(RosterPeriod).where(
-            col(RosterPeriod.department_id) == department_id,
-            col(RosterPeriod.status).in_(visible_statuses),
-            col(RosterPeriod.period_start) <= end,
-            col(RosterPeriod.period_end) >= start,
+            RosterPeriod.department_id == department_id,
+            RosterPeriod.status.in_(visible_statuses),
+            RosterPeriod.period_start <= end,
+            RosterPeriod.period_end >= start,
         )
     )
     draft_period_ids = set()
@@ -541,22 +533,22 @@ async def read_roster_calendar(
         select(RosterAssignment, ShiftCatalog, User, EmploymentRecord)
         .join(
             ShiftCatalog,
-            col(RosterAssignment.shift_code) == col(ShiftCatalog.code),
+            RosterAssignment.shift_code == ShiftCatalog.code,
         )
-        .join(User, col(RosterAssignment.user_id) == col(User.id))
+        .join(User, RosterAssignment.user_id == User.id)
         .join(
             EmploymentRecord,
-            col(RosterAssignment.user_id) == col(EmploymentRecord.user_id),
+            RosterAssignment.user_id == EmploymentRecord.user_id,
         )
         .where(
-            col(RosterAssignment.roster_period_id).in_(period_ids),
-            col(RosterAssignment.assignment_date) >= start,
-            col(RosterAssignment.assignment_date) <= end,
+            RosterAssignment.roster_period_id.in_(period_ids),
+            RosterAssignment.assignment_date >= start,
+            RosterAssignment.assignment_date <= end,
         )
-        .order_by(col(RosterAssignment.assignment_date), col(User.last_name))
+        .order_by(RosterAssignment.assignment_date, User.last_name)
     )
     if not department_scope:
-        statement = statement.where(col(RosterAssignment.user_id) == current_user.id)
+        statement = statement.where(RosterAssignment.user_id == current_user.id)
 
     result = await session.execute(statement)
     return [
@@ -598,10 +590,10 @@ async def _dept_active_members(
     """Active members with their employment record, which carries roster_name."""
     result = await session.execute(
         select(EmploymentRecord, User)
-        .join(User, col(EmploymentRecord.user_id) == col(User.id))
+        .join(User, EmploymentRecord.user_id == User.id)
         .where(
-            col(EmploymentRecord.department_id) == department_id,
-            col(EmploymentRecord.status) == EmploymentStatus.ACTIVE,
+            EmploymentRecord.department_id == department_id,
+            EmploymentRecord.status == EmploymentStatus.ACTIVE,
         )
     )
     return [(employment, user) for employment, user in result.all()]
@@ -633,7 +625,7 @@ async def _resolve_grid(
 
     members = await _dept_active_members(session, payload.department_id)
     catalog = await session.execute(
-        select(ShiftCatalog).where(col(ShiftCatalog.is_active) == True)  # noqa: E712
+        select(ShiftCatalog).where(ShiftCatalog.is_active == True)  # noqa: E712
     )
     valid_codes = {shift.code for shift in catalog.scalars().all()}
 
@@ -690,8 +682,8 @@ async def import_roster_grid(
 
     result = await session.execute(
         select(RosterPeriod).where(
-            col(RosterPeriod.department_id) == payload.department_id,
-            col(RosterPeriod.period_start) == payload.period_start,
+            RosterPeriod.department_id == payload.department_id,
+            RosterPeriod.period_start == payload.period_start,
         )
     )
     period = result.scalars().first()
@@ -733,7 +725,7 @@ async def validate_roster_csv(
 ) -> RosterCsvValidationResponse:
     require_permission(current_user=current_user, permission_key="roster.import")
     result = await session.execute(
-        select(ShiftCatalog).where(col(ShiftCatalog.is_active) == True)  # noqa: E712
+        select(ShiftCatalog).where(ShiftCatalog.is_active == True)  # noqa: E712
     )
     shift_codes = {item.code for item in result.scalars().all()}
     row_results, _ = _validate_csv_rows(

@@ -5,8 +5,8 @@ from typing import Any
 from uuid import UUID
 
 from sqlalchemy import (
-    Column,
     DateTime,
+    ForeignKey,
     Identity,
     Index,
     Integer,
@@ -15,35 +15,33 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy.orm import registry
-from sqlmodel import Field, SQLModel
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 weather_metadata = MetaData()
-weather_registry = registry(metadata=weather_metadata)
 
 
-class WeatherModel(SQLModel, registry=weather_registry):
-    pass
+class WeatherModel(DeclarativeBase):
+    """Declarative base for the independently migrated weather database."""
+
+    metadata = weather_metadata
 
 
-class AuthoredProduct(WeatherModel, table=True):
+class AuthoredProduct(WeatherModel):
     __tablename__ = "authored_products"
     __table_args__ = (Index("authored_products_kind_idx", "kind"),)
-    id: UUID = Field(primary_key=True)
-    kind: str = Field(sa_column=Column(Text, nullable=False))
-    draft: dict[str, Any] = Field(sa_column=Column(JSONB, nullable=False))
-    revision: int
-    published: dict[str, Any] | None = Field(
-        default=None, sa_column=Column(JSONB(none_as_null=True))
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    kind: Mapped[str] = mapped_column(Text, nullable=False)
+    draft: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    revision: Mapped[int]
+    published: Mapped[dict[str, Any] | None] = mapped_column(
+        JSONB(none_as_null=True), nullable=True
     )
-    updated_at: datetime = Field(
-        sa_column=Column(
-            DateTime(timezone=True), nullable=False, server_default=func.now()
-        )
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
     )
 
 
-class ProductRevision(WeatherModel, table=True):
+class ProductRevision(WeatherModel):
     __tablename__ = "authored_product_revisions"
     __table_args__ = (
         Index(
@@ -53,45 +51,45 @@ class ProductRevision(WeatherModel, table=True):
             unique=True,
         ),
     )
-    id: int | None = Field(
-        default=None, sa_column=Column(Integer, Identity(always=True), primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, Identity(always=True), primary_key=True)
+    product_id: Mapped[UUID] = mapped_column(
+        ForeignKey("authored_products.id"), nullable=False
     )
-    product_id: UUID = Field(foreign_key="authored_products.id")
-    revision: int
-    action: str = Field(sa_column=Column(Text, nullable=False))
-    content: dict[str, Any] = Field(sa_column=Column(JSONB, nullable=False))
-    actor_id: str = Field(sa_column=Column(Text, nullable=False))
-    actor_name: str = Field(sa_column=Column(Text, nullable=False))
-    change_summary: str = Field(sa_column=Column(Text, nullable=False))
-    created_at: datetime = Field(
-        sa_column=Column(
-            DateTime(timezone=True), nullable=False, server_default=func.now()
-        )
+    revision: Mapped[int]
+    action: Mapped[str] = mapped_column(Text, nullable=False)
+    content: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    actor_id: Mapped[str] = mapped_column(Text, nullable=False)
+    actor_name: Mapped[str] = mapped_column(Text, nullable=False)
+    change_summary: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=func.now()
     )
 
 
-class AviationDraft(WeatherModel, table=True):
+class AviationDraft(WeatherModel):
     __tablename__ = "aviation_drafts"
     __table_args__ = (Index("aviation_drafts_station_kind_idx", "station", "kind"),)
-    id: UUID = Field(primary_key=True)
-    kind: str = Field(sa_column=Column(Text, nullable=False))
-    station: str = Field(sa_column=Column(Text, nullable=False))
-    content: dict[str, Any] = Field(sa_column=Column(JSONB, nullable=False))
-    revision: int
-    actor_id: str
-    actor_name: str
-    updated_at: datetime = Field(
-        sa_column=Column(DateTime(timezone=True), nullable=False)
+    id: Mapped[UUID] = mapped_column(primary_key=True)
+    kind: Mapped[str] = mapped_column(Text, nullable=False)
+    station: Mapped[str] = mapped_column(Text, nullable=False)
+    content: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    revision: Mapped[int]
+    actor_id: Mapped[str]
+    actor_name: Mapped[str]
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
     )
 
 
-class AviationDraftRevision(WeatherModel, table=True):
+class AviationDraftRevision(WeatherModel):
     __tablename__ = "aviation_draft_revisions"
-    draft_id: UUID = Field(foreign_key="aviation_drafts.id", primary_key=True)
-    revision: int = Field(primary_key=True)
-    content: dict[str, Any] = Field(sa_column=Column(JSONB, nullable=False))
-    actor_id: str
-    actor_name: str
-    recorded_at: datetime = Field(
-        sa_column=Column(DateTime(timezone=True), nullable=False)
+    draft_id: Mapped[UUID] = mapped_column(
+        ForeignKey("aviation_drafts.id"), primary_key=True
+    )
+    revision: Mapped[int] = mapped_column(primary_key=True)
+    content: Mapped[dict[str, Any]] = mapped_column(JSONB, nullable=False)
+    actor_id: Mapped[str]
+    actor_name: Mapped[str]
+    recorded_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
     )

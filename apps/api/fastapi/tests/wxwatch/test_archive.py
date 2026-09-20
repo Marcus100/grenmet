@@ -6,7 +6,6 @@ from src.auth.browser import get_browser_or_token_user
 from src.auth.models import User
 from src.main import app
 from src.wxwatch import catalogue
-from tests.wxproducts.test_migrations import weather_engine as weather_engine
 from tests.wxwatch.test_gallery import image_database as image_database
 
 

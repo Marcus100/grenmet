@@ -3,8 +3,8 @@ import uuid
 from collections import defaultdict
 from decimal import Decimal
 
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, func, select
 
 from src.auth.models import User
 from src.auth.policy import can_act_on_user, require_permission
@@ -53,9 +53,7 @@ async def _get_or_create_policy(
     *, session: AsyncSession, department_id: str
 ) -> DepartmentPolicy:
     result = await session.execute(
-        select(DepartmentPolicy).where(
-            col(DepartmentPolicy.department_id) == department_id
-        )
+        select(DepartmentPolicy).where(DepartmentPolicy.department_id == department_id)
     )
     policy = result.scalars().first()
     if policy:
@@ -108,9 +106,9 @@ async def create_timesheet(
 
     roster_result = await session.execute(
         select(RosterAssignment).where(
-            col(RosterAssignment.user_id) == target_user_id,
-            col(RosterAssignment.assignment_date) >= payload.period_start,
-            col(RosterAssignment.assignment_date) <= payload.period_end,
+            RosterAssignment.user_id == target_user_id,
+            RosterAssignment.assignment_date >= payload.period_start,
+            RosterAssignment.assignment_date <= payload.period_end,
         )
     )
     roster_assignments = {
@@ -246,7 +244,7 @@ async def approve_timesheet(
                     WorkflowInstance.entity_type == "timesheet",
                     WorkflowInstance.entity_id == timesheet.id,
                 )
-                .order_by(col(WorkflowInstance.created_at).desc())
+                .order_by(WorkflowInstance.created_at.desc())
                 .limit(1)
             )
         )
@@ -285,10 +283,10 @@ async def approve_timesheet(
 async def list_my_timesheets(
     *, session: AsyncSession, current_user: User, skip: int = 0, limit: int = 100
 ) -> tuple[list[Timesheet], int]:
-    base = select(Timesheet).where(col(Timesheet.user_id) == current_user.id)
+    base = select(Timesheet).where(Timesheet.user_id == current_user.id)
     total = await session.scalar(select(func.count()).select_from(base.subquery()))
     result = await session.execute(
-        base.order_by(col(Timesheet.created_at).desc()).offset(skip).limit(limit)
+        base.order_by(Timesheet.created_at.desc()).offset(skip).limit(limit)
     )
     return list(result.scalars().all()), total or 0
 
@@ -304,10 +302,10 @@ async def list_department_timesheets(
     require_permission(
         current_user=current_user, permission_key="timesheet.read.department"
     )
-    base = select(Timesheet).where(col(Timesheet.department_id) == department_id)
+    base = select(Timesheet).where(Timesheet.department_id == department_id)
     total = await session.scalar(select(func.count()).select_from(base.subquery()))
     result = await session.execute(
-        base.order_by(col(Timesheet.created_at).desc()).offset(skip).limit(limit)
+        base.order_by(Timesheet.created_at.desc()).offset(skip).limit(limit)
     )
     return list(result.scalars().all()), total or 0
 
@@ -324,7 +322,7 @@ async def read_timesheet_details(
     ):
         raise HRPermissionDeniedError(ERROR_TIMESHEET_READ_NOT_ALLOWED)
     result = await session.execute(
-        select(TimesheetEntry).where(col(TimesheetEntry.timesheet_id) == timesheet_id)
+        select(TimesheetEntry).where(TimesheetEntry.timesheet_id == timesheet_id)
     )
     entries = list(result.scalars().all())
     return timesheet, entries
@@ -343,7 +341,7 @@ async def get_timesheet_summary(
         raise HRPermissionDeniedError(ERROR_TIMESHEET_READ_NOT_ALLOWED)
 
     result = await session.execute(
-        select(TimesheetEntry).where(col(TimesheetEntry.timesheet_id) == timesheet_id)
+        select(TimesheetEntry).where(TimesheetEntry.timesheet_id == timesheet_id)
     )
     entries = list(result.scalars().all())
 
@@ -389,9 +387,9 @@ async def ensure_timesheet_workflow(
 ) -> None:
     result = await session.execute(
         select(WorkflowTemplate).where(
-            col(WorkflowTemplate.department_id) == timesheet.department_id,
-            col(WorkflowTemplate.workflow_type) == WorkflowType.TIMESHEET,
-            col(WorkflowTemplate.is_active).is_(True),
+            WorkflowTemplate.department_id == timesheet.department_id,
+            WorkflowTemplate.workflow_type == WorkflowType.TIMESHEET,
+            WorkflowTemplate.is_active.is_(True),
         )
     )
     template = result.scalars().first()

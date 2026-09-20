@@ -3,7 +3,8 @@ from pathlib import Path
 
 import pytest
 from fastapi.concurrency import run_in_threadpool
-from sqlmodel import Session, select
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from src.auth.models import Role, User, UserRoleAssignment
 from src.auth.permissions import seed_permissions_and_roles_async

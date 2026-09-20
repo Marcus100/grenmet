@@ -84,6 +84,14 @@ Kubb generates the request and response types from these Pydantic/OpenAPI schema
 The editor's field definitions are checked against FastAPI's `fields.json`; browser
 validation provides feedback, while FastAPI enforces the publication rules.
 
+During the typed-products rollout, the `outlook` kind uses a discriminated union
+with a typed `OutlookValuesDraft` payload for authoring and preview requests. Its
+published values require the fields marked `requiredOnPublish` in `fields.json`.
+The remaining kinds temporarily use the legacy string-value branch and will be
+migrated independently. The anonymous public feed intentionally retains its
+legacy-compatible `values: { [key: string]: string }` response until external
+consumers of that feed have been inventoried.
+
 ## Documentation Endpoints
 
 FastAPI docs are enabled only when `ENVIRONMENT` is `local` or `staging`:
@@ -128,6 +136,11 @@ The API supports two auth paths:
 | Web session | `POST /api/v1/login/session` then `POST /api/v1/login/session/access-token` | Browser apps using an opaque session cookie |
 
 Browser apps should store only the opaque session token in an `httpOnly` cookie. Server Components or route handlers exchange that session token for a short-lived bearer token before calling FastAPI.
+
+Session login, refresh, and session-token exchange responses return the deliberately
+reduced `SessionUserPublic` projection (`id`, `email`, `full_name`, `is_active`, and
+`is_superuser`), not the full `UserPublic` profile. `token_type` is the literal
+`"bearer"`; both shapes are generated into the shared client.
 
 ## Error Shape
 
@@ -775,3 +788,31 @@ FastAPI owns the database connections, Alembic histories, SQL reads, and
 response shapes; the web app only renders the generated Kubb contracts. Existing
 catalogue rows are adopted in place by the domain migrations, and no write or
 seed operation is exposed by these routes.
+
+## OpenAPI and generated-client rules
+
+FastAPI is the source of truth for the committed OpenAPI document. Regenerate it
+before running Kubb:
+
+```bash
+cd apps/api/fastapi
+uv run --frozen --package fast-back python -c "from src.main import app; import json; json.dump(app.openapi(), open('openapi.json', 'w'), indent=2)"
+cd ../..
+pnpm generate:api-client
+pnpm check:drift
+```
+
+Operation IDs use a stable domain-prefixed camel-case convention such as
+`capGetAlert`, `hrCreateLeaveRequest`, and `authLogin`. They are unique public
+contract identifiers because Kubb uses them for generated clients and hooks.
+
+Public request and response shapes use Pydantic schemas derived from
+`src.models.BaseModel`; SQLAlchemy models remain persistence-layer types.
+Datetime responses use `UtcDateTime` and retain OpenAPI `format: date-time`.
+Meaningful finite values use named enums, and intentionally opaque maps must be
+listed in the schema guard exemption registry.
+
+Every operation should declare a useful summary, description, response model or
+explicit raw-media response, success status, and realistic error responses.
+Validation failures use the typed `ValidationErrorResponse` envelope; application
+errors use the typed `ApiError` envelope.

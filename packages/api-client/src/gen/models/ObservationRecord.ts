@@ -4,19 +4,11 @@
  */
 
 import type { ObservationProvenance } from "./ObservationProvenance.js";
-
-export const observationRecordKindEnum = {
-  SYNOP: "SYNOP",
-  METAR: "METAR",
-  SPECI: "SPECI",
-} as const;
-
-export type ObservationRecordKindEnum =
-  (typeof observationRecordKindEnum)[keyof typeof observationRecordKindEnum];
+import type { ObservationRecordPropertiesKindEnum } from "./ObservationRecordPropertiesKindEnum.js";
 
 export type ObservationRecord = {
   id: string;
-  kind: ObservationRecordKindEnum;
+  kind: ObservationRecordPropertiesKindEnum;
   station: string;
   observed_at?: string | null;
   issued_at?: string | null;

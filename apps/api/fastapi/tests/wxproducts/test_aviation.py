@@ -13,7 +13,6 @@ from src.wxproducts.exceptions import RevisionConflict
 from src.wxproducts.schemas import AviationDraftWrite
 from tests.wxproducts.test_authoring import actor as actor
 from tests.wxproducts.test_authoring import weather_sessions as weather_sessions
-from tests.wxproducts.test_migrations import weather_engine as weather_engine
 
 
 def payload(**changes):
@@ -47,7 +46,7 @@ async def test_save_history_and_unknown_times(weather_sessions, actor):
     async with weather_sessions() as session:
         first = await service.save_aviation_draft(session, body, actor)
         assert first.revision == 1
-        assert first.content["observed_at"] == "2026-09-17T12:00:00+0000"
+        assert first.content["observed_at"] == "2026-09-17T12:00:00Z"
         assert first.content["issued_at"] is None
     async with weather_sessions() as session:
         second = await service.save_aviation_draft(

@@ -29,7 +29,7 @@ async def get_session() -> AsyncGenerator[AsyncSession]:
     try:
         async with session:
             yield session
-    except (SQLAlchemyError, OSError, TimeoutError):
+    except SQLAlchemyError, OSError, TimeoutError:
         raise HTTPException(503, "Weather image metadata is unavailable") from None
 
 
@@ -52,7 +52,12 @@ async def ready(session: ImageSession, response: Response) -> None:
     await session.execute(text("SELECT id FROM weather_images LIMIT 1"))
 
 
-@router.get("/archive", response_model=ArchivePage)
+@router.get(
+    "/archive",
+    response_model=ArchivePage,
+    summary="Search the weather image archive",
+    description="Returns a paginated archive search with optional source, product, date-range, and unknown-time filters.",
+)
 async def archive(
     _user: BrowserUser,
     session: ImageSession,
@@ -84,7 +89,12 @@ async def archive(
     )
 
 
-@router.get("/archive/{edition_id}/retrievals", response_model=ArchiveHistory)
+@router.get(
+    "/archive/{edition_id}/retrievals",
+    response_model=ArchiveHistory,
+    summary="List archive retrieval history",
+    description="Returns paginated retrieval history for one archived weather-image edition.",
+)
 async def retrievals(
     edition_id: UUID,
     _user: BrowserUser,
@@ -101,7 +111,12 @@ async def retrievals(
     return await service.archive_history(session, edition_id, offset, limit)
 
 
-@router.get("/archive/{edition_id}/bulletin", response_model=ArchiveBulletin)
+@router.get(
+    "/archive/{edition_id}/bulletin",
+    response_model=ArchiveBulletin,
+    summary="Get an archived bulletin",
+    description="Returns the bulletin associated with one archived weather-image edition.",
+)
 async def bulletin(
     edition_id: UUID, _user: BrowserUser, session: ImageSession, response: Response
 ) -> ArchiveBulletin:
@@ -112,7 +127,12 @@ async def bulletin(
     return result
 
 
-@router.get("/archive/{edition_id}/assets", response_model=list[EditionAsset])
+@router.get(
+    "/archive/{edition_id}/assets",
+    response_model=list[EditionAsset],
+    summary="List edition assets",
+    description="Returns the image and supporting assets associated with one archived weather-image edition.",
+)
 async def edition_assets(
     edition_id: UUID, _user: BrowserUser, session: ImageSession, response: Response
 ) -> list[EditionAsset]:

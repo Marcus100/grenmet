@@ -5,13 +5,14 @@
 
 import * as z from "zod";
 import { observationProvenanceSchema } from "./observationProvenanceSchema.js";
+import { observationRecordPropertiesKindEnumSchema } from "./observationRecordPropertiesKindEnumSchema.js";
 
 export const observationRecordSchema = z.object({
   id: z.string(),
-  kind: z.enum(["SYNOP", "METAR", "SPECI"]),
+  kind: observationRecordPropertiesKindEnumSchema,
   station: z.string(),
-  observed_at: z.union([z.string(), z.null()]).optional(),
-  issued_at: z.union([z.string(), z.null()]).optional(),
+  observed_at: z.union([z.iso.datetime(), z.null()]).optional(),
+  issued_at: z.union([z.iso.datetime(), z.null()]).optional(),
   payload: z.object({}).catchall(z.unknown()),
   provenance: observationProvenanceSchema,
 });

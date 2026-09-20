@@ -19,6 +19,7 @@ function doc(overrides: Partial<Record<string, unknown>> = {}) {
     summary: "Get ready",
     body: "# Prepare",
     image: { url: "/media/prepare.jpg" },
+    section: "weather-news",
     updatedAt: "2026-09-08T00:00:00.000Z",
     ...overrides,
   };
@@ -36,7 +37,7 @@ describe("public content feed", () => {
         id: "1",
         title: "Season preparation",
         slug: "season-preparation",
-        kind: "article",
+        section: "weather-news",
         summary: "Get ready",
         body: "# Prepare",
         imageUrl: "/media/prepare.jpg",
@@ -51,6 +52,32 @@ describe("public content feed", () => {
       })
     );
   });
+  it("normalizes Lexical bodies for public consumers", async () => {
+    const find = vi.fn().mockResolvedValue({
+      docs: [
+        doc({
+          body: {
+            root: {
+              children: [
+                {
+                  type: "paragraph",
+                  children: [{ type: "text", text: "First paragraph" }],
+                },
+                {
+                  type: "paragraph",
+                  children: [{ type: "text", text: "Second paragraph" }],
+                },
+              ],
+            },
+          },
+        }),
+      ],
+    });
+    vi.mocked(getPayload).mockResolvedValue({ find } as never);
+    const response = await GET(request("http://localhost/api/public/content"));
+    const body = await response.json();
+    expect(body.articles[0].body).toBe("First paragraph\n\nSecond paragraph");
+  });
   it("falls back to null when the image has not been resolved", async () => {
     const find = vi
       .fn()
@@ -60,9 +87,9 @@ describe("public content feed", () => {
     const body = await response.json();
     expect(body.articles[0].imageUrl).toBeNull();
   });
-  it("rejects unknown content kinds", async () => {
+  it("rejects unknown sections", async () => {
     const response = await GET(
-      request("http://localhost/api/public/content?kind=bogus")
+      request("http://localhost/api/public/content?section=bogus")
     );
     expect(response.status).toBe(400);
   });
@@ -87,8 +114,9 @@ for (const placement of ["latest", "news"]) {
       expect.objectContaining({
         where: {
           status: { equals: "published" },
-          kind: { equals: "article" },
-          placement: { in: [placement, "both"] },
+          section: {
+            equals: placement === "latest" ? "latest-from-us" : "weather-news",
+          },
         },
       })
     );

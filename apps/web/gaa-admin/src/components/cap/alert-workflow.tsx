@@ -1,15 +1,15 @@
 "use client";
 
 import {
-  approveAlertApiV1CapAlertsAlertIdApprovePost,
   type CapAlertPublic,
   type CapValidationResult,
-  cancelAlertApiV1CapAlertsAlertIdCancelPost,
-  expireAlertApiV1CapAlertsAlertIdExpirePost,
-  publishAlertApiV1CapAlertsAlertIdPublishPost,
-  readAlertApiV1CapAlertsAlertIdGet,
-  submitAlertApiV1CapAlertsAlertIdSubmitPost,
-  validateAlertApiV1CapAlertsAlertIdValidatePost,
+  capApproveAlert,
+  capCancelAlert,
+  capExpireAlert,
+  capGetAlert,
+  capPublishAlert,
+  capSubmitAlert,
+  capValidateAlert,
 } from "@barrelsgd/api-client";
 import {
   AlertDialog,
@@ -59,17 +59,11 @@ const LIFECYCLE_ACTIONS: Record<
   Exclude<WorkflowAction, "validate">,
   (options: LifecycleOptions) => Promise<CapAlertPublic>
 > = {
-  approve: (options) =>
-    approveAlertApiV1CapAlertsAlertIdApprovePost(options).unwrap(),
-  cancel: (options) =>
-    cancelAlertApiV1CapAlertsAlertIdCancelPost(options).unwrap(),
-  expire: (options) =>
-    expireAlertApiV1CapAlertsAlertIdExpirePost(options).unwrap(),
-  publish: async (options) =>
-    (await publishAlertApiV1CapAlertsAlertIdPublishPost(options).unwrap())
-      .alert,
-  submit: (options) =>
-    submitAlertApiV1CapAlertsAlertIdSubmitPost(options).unwrap(),
+  approve: (options) => capApproveAlert(options).unwrap(),
+  cancel: (options) => capCancelAlert(options).unwrap(),
+  expire: (options) => capExpireAlert(options).unwrap(),
+  publish: async (options) => (await capPublishAlert(options).unwrap()).alert,
+  submit: (options) => capSubmitAlert(options).unwrap(),
 };
 
 export function AlertWorkflow({ alertId }: { alertId: string }) {
@@ -79,7 +73,7 @@ export function AlertWorkflow({ alertId }: { alertId: string }) {
   const alertQuery = useQuery({
     queryKey,
     queryFn: () =>
-      readAlertApiV1CapAlertsAlertIdGet({
+      capGetAlert({
         path: { alert_id: alertId },
         options: { cache: "no-store" },
       }).unwrap(),
@@ -105,7 +99,7 @@ export function AlertWorkflow({ alertId }: { alertId: string }) {
     const path = { alert_id: alertId };
     try {
       if (action === "validate") {
-        const result = await validateAlertApiV1CapAlertsAlertIdValidatePost({
+        const result = await capValidateAlert({
           path,
         }).unwrap();
         setValidation({ version, result });

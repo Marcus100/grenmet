@@ -4,9 +4,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import func, or_
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
 
 from src.auth.models import RoleAssignmentScope, User
 from src.exceptions import AppException
@@ -130,20 +129,20 @@ async def list_records(
         TrainingRecord.organisation_id == access.organisation_id,
         TrainingRecord.user_id == subject,
         or_(
-            col(TrainingRecord.user_id) == actor.id,
-            col(TrainingRecord.department_id).in_(access.readable),
+            TrainingRecord.user_id == actor.id,
+            TrainingRecord.department_id.in_(access.readable),
         ),
     )
     if not include_archived:
-        query = query.where(col(TrainingRecord.archived_at).is_(None))
+        query = query.where(TrainingRecord.archived_at.is_(None))
     count = await session.scalar(select(func.count()).select_from(query.subquery()))
     records = (
         (
             await session.execute(
                 query.order_by(
-                    col(TrainingRecord.completed_on).desc(),
-                    col(TrainingRecord.created_at).desc(),
-                    col(TrainingRecord.id),
+                    TrainingRecord.completed_on.desc(),
+                    TrainingRecord.created_at.desc(),
+                    TrainingRecord.id,
                 )
                 .offset((page - 1) * size)
                 .limit(size)
@@ -185,20 +184,20 @@ async def list_employees(
     historical_users = select(TrainingRecord.user_id).where(
         TrainingRecord.organisation_id == access.organisation_id,
         or_(
-            col(TrainingRecord.department_id).in_(access.readable),
-            col(TrainingRecord.user_id) == actor.id,
+            TrainingRecord.department_id.in_(access.readable),
+            TrainingRecord.user_id == actor.id,
         ),
     )
     query = (
         select(User, EmploymentRecord.department_id, EmploymentRecord.organisation_id)
-        .outerjoin(EmploymentRecord, col(EmploymentRecord.user_id) == User.id)
+        .outerjoin(EmploymentRecord, EmploymentRecord.user_id == User.id)
         .where(
             or_(
-                col(User.id).in_(historical_users),
-                (col(EmploymentRecord.organisation_id) == access.organisation_id)
+                User.id.in_(historical_users),
+                (EmploymentRecord.organisation_id == access.organisation_id)
                 & or_(
-                    col(User.id) == actor.id,
-                    col(EmploymentRecord.department_id).in_(access.readable),
+                    User.id == actor.id,
+                    EmploymentRecord.department_id.in_(access.readable),
                 ),
             )
         )
@@ -212,7 +211,7 @@ async def list_employees(
     count = await session.scalar(select(func.count()).select_from(query.subquery()))
     rows = (
         await session.execute(
-            query.order_by(col(User.last_name), col(User.first_name), col(User.id))
+            query.order_by(User.last_name, User.first_name, User.id)
             .offset((page - 1) * size)
             .limit(size)
         )

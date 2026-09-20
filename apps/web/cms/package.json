@@ -36,6 +36,7 @@
     "@barrelsgd/api-client": "workspace:*",
     "@barrelsgd/auth": "workspace:*",
     "pg": "catalog:",
+    "@payloadcms/richtext-lexical": "catalog:",
     "@payloadcms/email-resend": "catalog:"
   },
   "devDependencies": {
@@ -43,6 +44,7 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "babel-plugin-react-compiler": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }

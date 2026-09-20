@@ -8,7 +8,6 @@ Adds persisted-session lifecycle metadata needed for opaque web sessions.
 """
 
 import sqlalchemy as sa
-import sqlmodel
 
 from alembic import op
 
@@ -23,7 +22,7 @@ def upgrade() -> None:
         "session",
         sa.Column(
             "client_type",
-            sqlmodel.sql.sqltypes.AutoString(length=50),
+            sa.String(length=50),
             nullable=True,
         ),
     )
@@ -31,7 +30,7 @@ def upgrade() -> None:
         "session",
         sa.Column(
             "app_name",
-            sqlmodel.sql.sqltypes.AutoString(length=100),
+            sa.String(length=100),
             nullable=True,
         ),
     )
@@ -39,7 +38,7 @@ def upgrade() -> None:
         "session",
         sa.Column(
             "user_agent",
-            sqlmodel.sql.sqltypes.AutoString(length=500),
+            sa.String(length=500),
             nullable=True,
         ),
     )
@@ -47,7 +46,7 @@ def upgrade() -> None:
         "session",
         sa.Column(
             "ip_address",
-            sqlmodel.sql.sqltypes.AutoString(length=64),
+            sa.String(length=64),
             nullable=True,
         ),
     )
@@ -76,7 +75,7 @@ def upgrade() -> None:
     op.alter_column(
         "session",
         "client_type",
-        existing_type=sqlmodel.sql.sqltypes.AutoString(length=50),
+        existing_type=sa.String(length=50),
         nullable=False,
     )
     op.alter_column(

@@ -1,9 +1,6 @@
 // @vitest-environment node
 import assert from "node:assert/strict";
-import {
-  configureApiClient,
-  uploadDocumentApiV1HrDocumentsPost,
-} from "@barrelsgd/api-client";
+import { configureApiClient, hrUploadDocument } from "@barrelsgd/api-client";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll as after, beforeAll as before, test } from "vitest";
@@ -33,7 +30,7 @@ before(() => {
 after(() => server.close());
 
 test("generated document upload preserves filename and file bytes", async () => {
-  await uploadDocumentApiV1HrDocumentsPost({
+  await hrUploadDocument({
     body: {
       user_id: USER,
       category: "CERTIFICATION",

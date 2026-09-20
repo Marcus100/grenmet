@@ -4,45 +4,20 @@ import json
 import os
 import subprocess
 import sys
-from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from uuid import uuid4
 
-import psycopg
 import pytest
 from alembic.config import Config
-from psycopg import sql
-from sqlalchemy import create_engine, text
-from sqlalchemy.engine import Engine, make_url
-from sqlmodel import SQLModel
+from sqlalchemy import text
+from sqlalchemy.engine import Engine
 
 from alembic import command
-from src.config import settings
 from src.wxproducts.models import weather_metadata
 
 ROOT = Path(__file__).resolve().parents[2]
 ASSETS = ROOT / "src/wxproducts/migrations"
-
-
-@pytest.fixture
-def weather_engine() -> Iterator[Engine]:
-    name = "weather_test_" + uuid4().hex
-    url = make_url(str(settings.SQLALCHEMY_DATABASE_URI))
-    admin_url = url.set(database="postgres", drivername="postgresql").render_as_string(
-        hide_password=False
-    )
-    with psycopg.connect(admin_url, autocommit=True) as admin:
-        admin.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(name)))
-    engine = create_engine(url.set(database=name))
-    try:
-        yield engine
-    finally:
-        engine.dispose()
-        with psycopg.connect(admin_url, autocommit=True) as admin:
-            admin.execute(
-                sql.SQL("DROP DATABASE {} WITH (FORCE)").format(sql.Identifier(name))
-            )
 
 
 def migrate(engine: Engine, expected: str | None = None) -> None:
@@ -72,7 +47,8 @@ def install_drizzle(engine: Engine, count: int = 3) -> None:
             )
 
 
-def test_fresh_repeat_and_metadata_isolation(weather_engine: Engine) -> None:
+def test_fresh_repeat_and_metadata_isolation(fresh_weather_engine: Engine) -> None:
+    weather_engine = fresh_weather_engine
     migrate(weather_engine)
     migrate(weather_engine)
     with weather_engine.connect() as connection:
@@ -91,13 +67,19 @@ def test_fresh_repeat_and_metadata_isolation(weather_engine: Engine) -> None:
         assert connection.execute(
             text("SELECT to_regclass('morning_products')")
         ).scalar_one()
-    assert not set(weather_metadata.tables).intersection(SQLModel.metadata.tables)
+    assert set(weather_metadata.tables) == {
+        "authored_products",
+        "authored_product_revisions",
+        "aviation_drafts",
+        "aviation_draft_revisions",
+    }
 
 
 @pytest.mark.parametrize("count", [1, 2, 3])
 def test_adopts_supported_history_and_preserves_records(
-    weather_engine: Engine, count: int
+    fresh_weather_engine: Engine, count: int
 ) -> None:
+    weather_engine = fresh_weather_engine
     install_drizzle(weather_engine, count)
     if count == 3:
         with weather_engine.begin() as connection:
@@ -124,7 +106,10 @@ def test_adopts_supported_history_and_preserves_records(
 @pytest.mark.parametrize(
     "alteration", ["history", "schema", "untracked", "wrong-target"]
 )
-def test_refuses_unverified_database(weather_engine: Engine, alteration: str) -> None:
+def test_refuses_unverified_database(
+    fresh_weather_engine: Engine, alteration: str
+) -> None:
+    weather_engine = fresh_weather_engine
     if alteration in {"history", "schema"}:
         install_drizzle(weather_engine)
         with weather_engine.begin() as connection:
@@ -150,7 +135,8 @@ def test_refuses_unverified_database(weather_engine: Engine, alteration: str) ->
         )
 
 
-def test_concurrent_migrations_serialize(weather_engine: Engine) -> None:
+def test_concurrent_migrations_serialize(fresh_weather_engine: Engine) -> None:
+    weather_engine = fresh_weather_engine
     environment = {
         **os.environ,
         "WXPRODUCTS_DATABASE_URL": weather_engine.url.render_as_string(

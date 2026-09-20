@@ -3,25 +3,8 @@
  * Do not edit manually.
  */
 
-export const registerObservationReadKindEnum = {
-  SYNOP: "SYNOP",
-  METAR: "METAR",
-  SPECI: "SPECI",
-} as const;
-
-export type RegisterObservationReadKindEnum =
-  (typeof registerObservationReadKindEnum)[keyof typeof registerObservationReadKindEnum];
-
-export const registerObservationReadStateEnum = {
-  draft: "draft",
-  qc_pending: "qc_pending",
-  accepted: "accepted",
-  rejected: "rejected",
-  superseded: "superseded",
-} as const;
-
-export type RegisterObservationReadStateEnum =
-  (typeof registerObservationReadStateEnum)[keyof typeof registerObservationReadStateEnum];
+import type { ObservationRecordPropertiesKindEnum } from "./ObservationRecordPropertiesKindEnum.js";
+import type { RegisterObservationReadPropertiesStateEnum } from "./RegisterObservationReadPropertiesStateEnum.js";
 
 export type RegisterObservationRead = {
   /**
@@ -32,7 +15,12 @@ export type RegisterObservationRead = {
   station_id: string;
   station_name?: string | null;
   aerodrome_icao?: string | null;
-  kind: RegisterObservationReadKindEnum;
+  kind: ObservationRecordPropertiesKindEnum;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   observed_at: string;
   issued_at?: string | null;
   body?: {
@@ -51,13 +39,23 @@ export type RegisterObservationRead = {
    * @type string
    */
   id: string;
-  state: RegisterObservationReadStateEnum;
+  state: RegisterObservationReadPropertiesStateEnum;
   qc_notes?: string | null;
   wis2_topic?: string | null;
   wis2_message_id?: string | null;
   wis2_published_at?: string | null;
   supersedes_id?: string | null;
   actor_id: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   created_at: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   updated_at: string;
 };

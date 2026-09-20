@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from src.models import BaseModel
 
 
 class Frequency(BaseModel):

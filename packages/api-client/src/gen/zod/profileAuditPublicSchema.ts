@@ -6,7 +6,7 @@
 import * as z from "zod";
 
 export const profileAuditPublicSchema = z.object({
-  created_at: z.union([z.string(), z.null()]).optional(),
+  created_at: z.union([z.iso.datetime(), z.null()]).optional(),
   created_by: z.union([z.uuid(), z.null()]).optional(),
-  updated_at: z.union([z.string(), z.null()]).optional(),
+  updated_at: z.union([z.iso.datetime(), z.null()]).optional(),
 });

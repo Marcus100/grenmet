@@ -16,8 +16,8 @@ export const timesheetPublicSchema = z.object({
   status: timesheetStatusSchema,
   submitted_by_user_id: z.union([z.uuid(), z.null()]).optional(),
   approved_by_user_id: z.union([z.uuid(), z.null()]).optional(),
-  submitted_at: z.union([z.string(), z.null()]).optional(),
-  approved_at: z.union([z.string(), z.null()]).optional(),
-  created_at: z.string(),
-  updated_at: z.string(),
+  submitted_at: z.union([z.iso.datetime(), z.null()]).optional(),
+  approved_at: z.union([z.iso.datetime(), z.null()]).optional(),
+  created_at: z.iso.datetime(),
+  updated_at: z.iso.datetime(),
 });

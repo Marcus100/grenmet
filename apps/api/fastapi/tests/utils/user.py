@@ -1,7 +1,7 @@
 import httpx
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import Session
+from sqlalchemy.orm import Session
 
 from src.auth import service as crud
 from src.auth.models import User

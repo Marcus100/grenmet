@@ -9,7 +9,7 @@ import { requestStatusSchema } from "./requestStatusSchema.js";
 
 export const absenteeReportPublicSchema = z.object({
   signed_document_id: z.union([z.uuid(), z.null()]).optional(),
-  submitted_at: z.union([z.string(), z.null()]).optional(),
+  submitted_at: z.union([z.iso.datetime(), z.null()]).optional(),
   id: z.uuid(),
   user_id: z.uuid(),
   department_id: z.string(),
@@ -26,6 +26,6 @@ export const absenteeReportPublicSchema = z.object({
   status: requestStatusSchema,
   workflow_instance_id: z.union([z.uuid(), z.null()]).optional(),
   submitted_by_user_id: z.uuid(),
-  created_at: z.string(),
-  updated_at: z.string(),
+  created_at: z.iso.datetime(),
+  updated_at: z.iso.datetime(),
 });

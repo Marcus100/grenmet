@@ -1,9 +1,9 @@
 "use client";
 
 import {
-  archiveDocumentApiV1HrDocumentsDocumentIdArchivePost,
   type EmployeeDocumentPublic,
-  readDocumentsApiV1HrDocumentsGet,
+  hrArchiveDocument,
+  hrGetDocuments,
 } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Label } from "@barrelsgd/ui/components/ui/label";
@@ -52,7 +52,7 @@ export function EmployeeDocuments({
       page,
     ],
     queryFn: () =>
-      readDocumentsApiV1HrDocumentsGet({
+      hrGetDocuments({
         query: {
           user_id: userId,
           organisation_id: organisationId,
@@ -75,7 +75,7 @@ export function EmployeeDocuments({
     setBusy(true);
     setError("");
     try {
-      await archiveDocumentApiV1HrDocumentsDocumentIdArchivePost({
+      await hrArchiveDocument({
         path: { document_id: archive.id },
       }).unwrap();
       if (page > 1 && query.data?.data.length === 1) setPage(page - 1);

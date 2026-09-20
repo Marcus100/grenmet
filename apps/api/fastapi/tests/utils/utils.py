@@ -1,5 +1,4 @@
-import random
-import string
+from uuid import uuid4
 
 import httpx
 from fastapi.testclient import TestClient
@@ -8,7 +7,7 @@ from src.config import settings
 
 
 def random_lower_string() -> str:
-    return "".join(random.choices(string.ascii_lowercase, k=32))
+    return uuid4().hex
 
 
 def random_email() -> str:

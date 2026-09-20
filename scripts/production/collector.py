@@ -3,11 +3,11 @@
 import argparse
 import fcntl
 import json
-from pathlib import Path
 import re
 import subprocess
 import sys
 import time
+from pathlib import Path
 from uuid import uuid4
 
 SOURCES = {"goes19", "sfcana", "cimss", "trackthetropics", "uwyo"}

@@ -2,8 +2,8 @@
 
 import uuid
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
 
 from src.auth.models import RoleAssignmentScope, User, UserRoleAssignment
 from src.exceptions import AppException
@@ -19,9 +19,9 @@ async def active_assignments(
     result = await session.execute(
         select(UserRoleAssignment).where(
             UserRoleAssignment.user_id == user_id,
-            col(UserRoleAssignment.effective_from) <= now,
-            col(UserRoleAssignment.effective_to).is_(None)
-            | (col(UserRoleAssignment.effective_to) > now),
+            UserRoleAssignment.effective_from <= now,
+            UserRoleAssignment.effective_to.is_(None)
+            | (UserRoleAssignment.effective_to > now),
         )
     )
     return list(result.scalars().all())
@@ -64,7 +64,7 @@ async def organisation_choices(
             .scalars()
             .all()
         )
-        statement = statement.where(col(Organisation.id).in_(ids))
+        statement = statement.where(Organisation.id.in_(ids))
     return list(
         (await session.execute(statement.order_by(Organisation.name))).scalars().all()
     )

@@ -1,8 +1,8 @@
 "use client";
 import {
+  authGetAccessReviews,
+  authRecordAccessReview,
   type ReviewAssignment,
-  readAccessReviewsApiV1AuthAccessReviewsGet,
-  recordAccessReviewApiV1AuthAccessReviewsAssignmentIdPost,
 } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
@@ -14,7 +14,7 @@ function ReviewRow({ assignment }: { assignment: ReviewAssignment }) {
   const [reason, setReason] = useState("");
   const save = useMutation({
     mutationFn: (decision: "RETAIN" | "REVOKE") =>
-      recordAccessReviewApiV1AuthAccessReviewsAssignmentIdPost({
+      authRecordAccessReview({
         path: { assignment_id: assignment.id },
         body: { decision, reason },
       }).unwrap(),
@@ -75,7 +75,7 @@ function ReviewRow({ assignment }: { assignment: ReviewAssignment }) {
 export function AccessReviewsPanel() {
   const query = useQuery({
     queryKey: ["access-reviews"],
-    queryFn: () => readAccessReviewsApiV1AuthAccessReviewsGet({}).unwrap(),
+    queryFn: () => authGetAccessReviews({}).unwrap(),
   });
   if (query.isPending) return <p>Loading access reviews…</p>;
   if (query.isError)

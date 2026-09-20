@@ -6,6 +6,11 @@
 import type { PublicWarningGroup } from "./PublicWarningGroup.js";
 
 export type PublicWarnings = {
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   as_of: string;
   groups: PublicWarningGroup[];
   /**

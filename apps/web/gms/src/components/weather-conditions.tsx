@@ -36,27 +36,27 @@ interface WeatherConditionsProps {
 
 export function WeatherConditions({ conditions }: WeatherConditionsProps) {
   return (
-    <div className="grid grid-cols-2 gap-2 bg-background pt-2 pb-1 lg:gap-0 lg:border-gm-border lg:border-t lg:pt-0 lg:pb-0 xl:grid-cols-5">
+    <div className="grid grid-cols-2 gap-3 bg-background p-2.5 lg:grid-cols-5 lg:gap-4 lg:p-4">
       {conditions.map((item) => {
         const Icon = ICON_MAP[item.label];
         return (
           <div
-            className="flex items-center gap-2 border-gm-border px-2.5 py-2 lg:flex-col lg:items-start lg:justify-center lg:gap-2.5 lg:border-r lg:border-b lg:px-4 lg:py-4.5"
+            className="flex items-center gap-3 rounded-2xl border border-gm-border bg-background p-4"
             key={item.label}
           >
-            <div className="flex size-8 shrink-0 items-center justify-center lg:size-auto">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gm-surface">
               {Icon && (
                 <Icon
-                  className="h-5 w-5 text-gm-text-muted lg:h-6.5 lg:w-6.5"
-                  strokeWidth={1.5}
+                  className="h-5 w-5 text-gm-text-muted"
+                  strokeWidth={1.75}
                 />
               )}
             </div>
-            <div className="flex min-w-0 flex-col gap-px">
-              <p className="font-semibold text-body text-gm-text-primary leading-label lg:text-heading-sm lg:leading-heading-sm">
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <p className="font-semibold text-body-base text-gm-text-primary leading-body-base lg:text-heading-sm lg:leading-heading-sm">
                 {item.value}
               </p>
-              <p className="text-gm-text-secondary text-label leading-caption lg:text-body-base lg:leading-body-base">
+              <p className="text-body-sm text-gm-text-secondary leading-body-sm lg:text-body-base lg:leading-body-base">
                 {item.label}
               </p>
             </div>

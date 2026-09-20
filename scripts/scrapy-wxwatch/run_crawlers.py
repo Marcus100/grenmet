@@ -1,9 +1,8 @@
 import argparse
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Mapping
 
 from scrapy import signals
 from scrapy.crawler import CrawlerProcess
@@ -33,8 +32,8 @@ def parse_utc_datetime(value: object) -> datetime | None:
     except ValueError:
         return None
     if parsed.tzinfo is None:
-        return parsed.replace(tzinfo=timezone.utc)
-    return parsed.astimezone(timezone.utc)
+        return parsed.replace(tzinfo=UTC)
+    return parsed.astimezone(UTC)
 
 
 class CrawlOutcome:
@@ -49,7 +48,7 @@ class CrawlOutcome:
         self.failed = False
         self._policies = dict(CRAWL_POLICIES if policies is None else policies)
         self._stored_images: dict[str, dict[str, datetime | None]] = {}
-        self._now = now or (lambda: datetime.now(timezone.utc))
+        self._now = now or (lambda: datetime.now(UTC))
 
     def record_error(self, *args, **kwargs):
         import logging
@@ -176,7 +175,7 @@ def main(argv=None):
         args.feed_dir.mkdir(parents=True, exist_ok=True)
     settings.set(
         "FEEDS",
-        build_feed_exports(args.feed_dir, datetime.now(timezone.utc)),
+        build_feed_exports(args.feed_dir, datetime.now(UTC)),
     )
 
     process = CrawlerProcess(settings)

@@ -1,20 +1,20 @@
 "use client";
 
 import {
+  authGetRoleAssignmentsQueryKey,
+  authGetUsersQueryKey,
   type EmploymentStatus,
   type RoleAssignmentScope,
   type SrcAuthSchemasRolePublic as RolePublic,
-  readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey,
-  readUsersApiV1AuthUsersGetQueryKey,
   type UserPublic,
-  useCreateHrEmploymentApiV1HrEmploymentUserIdPost,
-  useCreateRoleAssignmentApiV1AuthRoleAssignmentsPost,
-  useDeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete,
-  useListDepartmentsEndpointApiV1HrDepartmentsGet,
-  useReadHrEmploymentApiV1HrEmploymentUserIdGet,
-  useReadRoleAssignmentsApiV1AuthRoleAssignmentsGet,
-  useUpdateHrEmploymentApiV1HrEmploymentUserIdPatch,
-  useUpdateUserApiV1AuthUsersUserIdPatch,
+  useAuthCreateRoleAssignment,
+  useAuthDeleteRoleAssignment,
+  useAuthGetRoleAssignments,
+  useAuthUpdateUser,
+  useHrCreateHrEmployment,
+  useHrGetHrEmployment,
+  useHrListDepartments,
+  useHrUpdateHrEmployment,
 } from "@barrelsgd/api-client";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
@@ -65,7 +65,7 @@ export function ManageUserDialog({
     onOpenChange?.(next);
   };
 
-  const assignmentsQuery = useReadRoleAssignmentsApiV1AuthRoleAssignmentsGet(
+  const assignmentsQuery = useAuthGetRoleAssignments(
     { query: { user_id: user.id } },
     { query: { enabled: open } }
   );
@@ -74,12 +74,11 @@ export function ManageUserDialog({
   const heldRoleIds = new Set(assignments.map((a) => a.role_id));
   const assignableRoles = roles.filter((r) => !heldRoleIds.has(r.id));
 
-  const assignMutation = useCreateRoleAssignmentApiV1AuthRoleAssignmentsPost();
-  const revokeMutation =
-    useDeleteRoleAssignmentApiV1AuthRoleAssignmentsAssignmentIdDelete();
-  const updateUserMutation = useUpdateUserApiV1AuthUsersUserIdPatch();
+  const assignMutation = useAuthCreateRoleAssignment();
+  const revokeMutation = useAuthDeleteRoleAssignment();
+  const updateUserMutation = useAuthUpdateUser();
 
-  const departmentsQuery = useListDepartmentsEndpointApiV1HrDepartmentsGet(
+  const departmentsQuery = useHrListDepartments(
     {},
     {
       query: { enabled: open },
@@ -87,17 +86,15 @@ export function ManageUserDialog({
   );
   const departments = departmentsQuery.data?.data ?? [];
   // 404 (no record yet) is expected — retry:false so it doesn't refetch.
-  const employmentQuery = useReadHrEmploymentApiV1HrEmploymentUserIdGet(
+  const employmentQuery = useHrGetHrEmployment(
     { path: { user_id: user.id } },
     {
       query: { enabled: open, retry: false },
     }
   );
   const currentEmployment = employmentQuery.data;
-  const createEmploymentMutation =
-    useCreateHrEmploymentApiV1HrEmploymentUserIdPost();
-  const updateEmploymentMutation =
-    useUpdateHrEmploymentApiV1HrEmploymentUserIdPatch();
+  const createEmploymentMutation = useHrCreateHrEmployment();
+  const updateEmploymentMutation = useHrUpdateHrEmployment();
 
   const [emp, setEmp] = useState({
     department_id: "",
@@ -142,7 +139,7 @@ export function ManageUserDialog({
 
   async function refresh() {
     await queryClient.invalidateQueries({
-      queryKey: readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey({
+      queryKey: authGetRoleAssignmentsQueryKey({
         query: {
           user_id: user.id,
         },
@@ -187,7 +184,7 @@ export function ManageUserDialog({
       body: { is_active: !user.is_active },
     });
     await queryClient.invalidateQueries({
-      queryKey: readUsersApiV1AuthUsersGetQueryKey({}),
+      queryKey: authGetUsersQueryKey({}),
     });
     toast.success(
       `${user.username} ${user.is_active ? "deactivated" : "reactivated"}`

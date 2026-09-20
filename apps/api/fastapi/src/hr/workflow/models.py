@@ -2,9 +2,12 @@ import uuid
 from datetime import datetime
 from enum import Enum
 
-from sqlmodel import Field, SQLModel
+from sqlalchemy import ForeignKey, String
+from sqlalchemy.dialects.postgresql import ENUM
+from sqlalchemy.orm import Mapped, mapped_column
 
 from src.auth.models import RoleAssignmentScope
+from src.orm import Base
 from src.utils.datetime import utc_now
 
 
@@ -34,113 +37,118 @@ class WorkflowAction(str, Enum):
     CANCEL = "CANCEL"
 
 
-class WorkflowTemplate(SQLModel, table=True):
+class WorkflowTemplate(Base):
     __tablename__ = "workflow_template"
     __table_args__ = {"schema": "hr"}
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    department_id: Mapped[str] = mapped_column(
+        ForeignKey("hr.department.id"), index=True
+    )
+    workflow_type: Mapped[WorkflowType]
+    name: Mapped[str] = mapped_column(String(150))
+    is_active: Mapped[bool] = mapped_column(default=True)
+    created_by: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)
 
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    department_id: str = Field(foreign_key="hr.department.id", index=True)
-    workflow_type: WorkflowType
-    name: str = Field(max_length=150)
-    is_active: bool = True
-    created_by: uuid.UUID | None = Field(default=None, foreign_key="user.id")
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now)
 
-
-class WorkflowStepTemplate(SQLModel, table=True):
+class WorkflowStepTemplate(Base):
     __tablename__ = "workflow_step_template"
     __table_args__ = {"schema": "hr"}
-
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    workflow_template_id: uuid.UUID = Field(
-        foreign_key="hr.workflow_template.id", index=True
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    workflow_template_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("hr.workflow_template.id"), index=True
     )
-    step_order: int = Field(ge=1)
-    required_role_id: uuid.UUID | None = Field(
-        default=None, foreign_key="role.id", index=True
+    step_order: Mapped[int]
+    required_role_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("role.id"), index=True, nullable=True
     )
-    required_user_id: uuid.UUID | None = Field(
-        default=None, foreign_key="user.id", index=True
+    required_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id"), index=True, nullable=True
     )
-    required_scope: RoleAssignmentScope = Field(default=RoleAssignmentScope.SELF)
-    is_required: bool = True
-    scope_enforced: bool = False
-    purpose: str = Field(default="APPROVAL", max_length=20)
-    label: str = Field(default="Approval", max_length=150)
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now)
+    required_scope: Mapped[RoleAssignmentScope] = mapped_column(
+        ENUM(RoleAssignmentScope, name="roleassignmentscope", create_type=False),
+        default=RoleAssignmentScope.SELF,
+    )
+    is_required: Mapped[bool] = mapped_column(default=True)
+    scope_enforced: Mapped[bool] = mapped_column(default=False)
+    purpose: Mapped[str] = mapped_column(String(20), default="APPROVAL")
+    label: Mapped[str] = mapped_column(String(150), default="Approval")
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
-class WorkflowInstance(SQLModel, table=True):
+class WorkflowInstance(Base):
     __tablename__ = "workflow_instance"
     __table_args__ = {"schema": "hr"}
-
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    workflow_template_id: uuid.UUID = Field(
-        foreign_key="hr.workflow_template.id", index=True
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    workflow_template_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("hr.workflow_template.id"), index=True
     )
-    department_id: str = Field(foreign_key="hr.department.id", index=True)
-    workflow_type: WorkflowType
-    entity_type: str = Field(max_length=100)  # e.g. "parking_permit", "leave_request"
-    entity_id: uuid.UUID = Field(index=True)
-    requested_by_user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
-    allow_self_approval: bool = True
-    require_distinct_approvers: bool = False
-    status: WorkflowStatus = Field(default=WorkflowStatus.DRAFT)
-    current_step_order: int = Field(default=0)
-    submitted_at: datetime | None = None
-    resolved_at: datetime | None = None
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now)
+    department_id: Mapped[str] = mapped_column(
+        ForeignKey("hr.department.id"), index=True
+    )
+    workflow_type: Mapped[WorkflowType]
+    entity_type: Mapped[str] = mapped_column(String(100))
+    entity_id: Mapped[uuid.UUID] = mapped_column(index=True)
+    requested_by_user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user.id"), index=True
+    )
+    allow_self_approval: Mapped[bool] = mapped_column(default=True)
+    require_distinct_approvers: Mapped[bool] = mapped_column(default=False)
+    status: Mapped[WorkflowStatus] = mapped_column(default=WorkflowStatus.DRAFT)
+    current_step_order: Mapped[int] = mapped_column(default=0)
+    submitted_at: Mapped[datetime | None]
+    resolved_at: Mapped[datetime | None]
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
-class WorkflowStepInstance(SQLModel, table=True):
+class WorkflowStepInstance(Base):
     __tablename__ = "workflow_step_instance"
     __table_args__ = {"schema": "hr"}
-
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    workflow_instance_id: uuid.UUID = Field(
-        foreign_key="hr.workflow_instance.id", index=True
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    workflow_instance_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("hr.workflow_instance.id"), index=True
     )
-    step_order: int = Field(ge=1)
-    # A step is gated on EITHER a role (role-based approval tier, from a template)
-    # OR a named individual (required_user_id — a per-submission co-approver).
-    # Exactly one is set. Multiple required steps may share a step_order to model
-    # an "all of N must approve" parallel gate.
-    required_role_id: uuid.UUID | None = Field(
-        default=None, foreign_key="role.id", index=True
+    step_order: Mapped[int]
+    required_role_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("role.id"), index=True, nullable=True
     )
-    required_user_id: uuid.UUID | None = Field(
-        default=None, foreign_key="user.id", index=True
+    required_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id"), index=True, nullable=True
     )
-    required_scope: RoleAssignmentScope = Field(default=RoleAssignmentScope.SELF)
-    is_required: bool = True
-    scope_enforced: bool = False
-    purpose: str = Field(default="APPROVAL", max_length=20)
-    label: str = Field(default="Approval", max_length=150)
-    approver_user_id: uuid.UUID | None = Field(
-        default=None, foreign_key="user.id", index=True
+    required_scope: Mapped[RoleAssignmentScope] = mapped_column(
+        ENUM(RoleAssignmentScope, name="roleassignmentscope", create_type=False),
+        default=RoleAssignmentScope.SELF,
     )
-    action: WorkflowAction | None = None
-    comments: str | None = Field(default=None, max_length=1000)
-    acted_at: datetime | None = None
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now)
+    is_required: Mapped[bool] = mapped_column(default=True)
+    scope_enforced: Mapped[bool] = mapped_column(default=False)
+    purpose: Mapped[str] = mapped_column(String(20), default="APPROVAL")
+    label: Mapped[str] = mapped_column(String(150), default="Approval")
+    approver_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id"), index=True, nullable=True
+    )
+    action: Mapped[WorkflowAction | None]
+    comments: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    acted_at: Mapped[datetime | None]
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
-class ApprovalActionLog(SQLModel, table=True):
+class ApprovalActionLog(Base):
     __tablename__ = "approval_action_log"
     __table_args__ = {"schema": "hr"}
-
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    workflow_instance_id: uuid.UUID = Field(
-        foreign_key="hr.workflow_instance.id", index=True
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    workflow_instance_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("hr.workflow_instance.id"), index=True
     )
-    workflow_step_instance_id: uuid.UUID | None = Field(
-        default=None, foreign_key="hr.workflow_step_instance.id", index=True
+    workflow_step_instance_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("hr.workflow_step_instance.id"), index=True, nullable=True
     )
-    action: WorkflowAction
-    actor_user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
-    comments: str | None = Field(default=None, max_length=1000)
-    created_at: datetime = Field(default_factory=utc_now)
+    action: Mapped[WorkflowAction]
+    actor_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"), index=True)
+    comments: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)

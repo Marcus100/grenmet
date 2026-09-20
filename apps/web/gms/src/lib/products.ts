@@ -1,6 +1,6 @@
 import {
   type PublicForecast,
-  type PublishedProduct,
+  type PublicPublishedProduct,
   publicForecastSchema,
   publishedProductsSchema,
 } from "@barrelsgd/api-client";
@@ -9,7 +9,7 @@ import { cache } from "react";
 import { env } from "@/lib/env";
 
 export type ProductsResult =
-  | { status: "ok"; products: PublishedProduct[] }
+  | { status: "ok"; products: PublicPublishedProduct[] }
   | { status: "unavailable"; products: [] };
 
 function endpoint(path: string) {

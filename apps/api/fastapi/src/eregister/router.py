@@ -22,7 +22,12 @@ def _read(row: dict[str, Any]) -> RegisterObservationRead:
     return RegisterObservationRead.model_validate(row)
 
 
-@router.get("/observations", response_model=RegisterObservationList)
+@router.get(
+    "/observations",
+    response_model=RegisterObservationList,
+    summary="List register observations",
+    description="Returns recent SYNOP, METAR, and SPECI observations, optionally filtered by station and observation kind.",
+)
 async def list_register_observations(
     _user: BrowserUser,
     session: RegisterSession,
@@ -50,7 +55,12 @@ async def list_register_observations(
     )
 
 
-@router.post("/observations/validate-synop", response_model=SynopValidationResponse)
+@router.post(
+    "/observations/validate-synop",
+    response_model=SynopValidationResponse,
+    summary="Validate a SYNOP observation",
+    description="Validates the structured SYNOP workbook and returns field-level issues plus the normalized workbook.",
+)
 async def validate_synop_observation(
     body: SynopValidationRequest,
     _user: BrowserUser,
@@ -99,7 +109,13 @@ async def validate_synop_observation(
     return SynopValidationResponse(valid=not issues, issues=issues, normalized=workbook)
 
 
-@router.post("/observations", response_model=RegisterObservationRead, status_code=201)
+@router.post(
+    "/observations",
+    response_model=RegisterObservationRead,
+    status_code=201,
+    summary="Create a register observation",
+    description="Stores a structured SYNOP, METAR, or SPECI observation and returns the canonical saved record.",
+)
 async def create_register_observation(
     body: RegisterObservationCreate,
     user: BrowserUser,

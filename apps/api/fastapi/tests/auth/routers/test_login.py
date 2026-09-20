@@ -49,6 +49,14 @@ async def test_create_persisted_session(
     assert payload["session"]["app_name"] == "admin-gms"
     assert payload["session"]["client_type"] == "web"
     assert payload["user"]["email"] == settings.FIRST_SUPERUSER
+    assert set(payload["user"]) == {
+        "email",
+        "full_name",
+        "id",
+        "is_active",
+        "is_superuser",
+    }
+    assert payload["token_type"] == "bearer"
 
 
 async def test_exchange_session_for_access_token(

@@ -7,7 +7,7 @@ from sqlalchemy import text
 from src.main import app
 from src.wxproducts import forecast
 from src.wxproducts.dependencies import get_session
-from src.wxproducts.schemas import PublishedProduct
+from src.wxproducts.schemas import PublishedProductAdapter
 from src.wxproducts.validation import ISSUE_HOURS, local_time
 from tests.wxproducts.test_public_products import insert_product
 from tests.wxproducts.test_public_products import weather_db as weather_db
@@ -33,12 +33,14 @@ def publication(kind="morning", day="2026-09-14", revision=1):
                 f"day{index}Wind": "E",
             }
         )
-    return PublishedProduct(
-        id=uuid4(),
-        kind=kind,
-        revision=revision,
-        publishedAt=f"{day}T10:00:00Z",
-        values=values,
+    return PublishedProductAdapter.validate_python(
+        {
+            "id": uuid4(),
+            "kind": kind,
+            "revision": revision,
+            "publishedAt": f"{day}T10:00:00Z",
+            "values": values,
+        }
     )
 
 

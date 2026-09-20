@@ -13,7 +13,6 @@ which is intentionally NOT included here — it is unrelated to this change.
 """
 
 import sqlalchemy as sa
-import sqlmodel
 from sqlalchemy.dialects import postgresql
 
 from alembic import op
@@ -34,19 +33,17 @@ def upgrade() -> None:
         "parking_permit",
         sa.Column("id", sa.Uuid(), nullable=False),
         sa.Column("user_id", sa.Uuid(), nullable=False),
-        sa.Column("department_id", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
+        sa.Column("department_id", sa.String(), nullable=False),
         sa.Column("submitted_by_user_id", sa.Uuid(), nullable=False),
         sa.Column(
             "company_name",
-            sqlmodel.sql.sqltypes.AutoString(length=255),
+            sa.String(length=255),
             nullable=True,
         ),
-        sa.Column(
-            "phone", sqlmodel.sql.sqltypes.AutoString(length=30), nullable=True
-        ),
+        sa.Column("phone", sa.String(length=30), nullable=True),
         sa.Column(
             "vehicle_registration_no",
-            sqlmodel.sql.sqltypes.AutoString(length=50),
+            sa.String(length=50),
             nullable=False,
         ),
         sa.Column("vehicle_insurance_issue_date", sa.Date(), nullable=True),
@@ -65,13 +62,13 @@ def upgrade() -> None:
         ),
         sa.Column(
             "action_other_detail",
-            sqlmodel.sql.sqltypes.AutoString(length=255),
+            sa.String(length=255),
             nullable=True,
         ),
         sa.Column("fee_amount", sa.Numeric(precision=8, scale=2), nullable=False),
         sa.Column(
             "decal_number",
-            sqlmodel.sql.sqltypes.AutoString(length=50),
+            sa.String(length=50),
             nullable=True,
         ),
         sa.Column("valid_from", sa.Date(), nullable=True),
@@ -79,7 +76,7 @@ def upgrade() -> None:
         sa.Column("issued_by_user_id", sa.Uuid(), nullable=True),
         sa.Column(
             "received_by",
-            sqlmodel.sql.sqltypes.AutoString(length=255),
+            sa.String(length=255),
             nullable=True,
         ),
         sa.Column("issued_at", sa.DateTime(), nullable=True),

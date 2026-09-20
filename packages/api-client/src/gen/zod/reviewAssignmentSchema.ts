@@ -12,8 +12,8 @@ export const reviewAssignmentSchema = z.object({
   role: z.string(),
   scope: z.string(),
   department_id: z.union([z.string(), z.null()]),
-  effective_from: z.string(),
-  effective_to: z.union([z.string(), z.null()]),
+  effective_from: z.iso.datetime(),
+  effective_to: z.union([z.iso.datetime(), z.null()]),
   is_superuser: z.boolean(),
   permissions: z.array(z.string()),
 });

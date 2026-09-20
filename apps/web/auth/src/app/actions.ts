@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { captureServerEvent } from "@/lib/posthog-server";
 import { getRequestedAppName, getSafeReturnTo } from "@/lib/return-to";
+import type { SessionLoginResponse } from "@/lib/session";
 import {
   clearSessionCookie,
   createSession,
@@ -47,18 +48,14 @@ export async function signInAction(
     };
   }
 
+  let response: SessionLoginResponse;
   try {
-    const response = await createSession({
+    response = await createSession({
       email,
       password,
       totpCode: readString(formData, "totp_code"),
       appName,
     });
-    await writeSessionCookie(
-      response.session_token,
-      response.session_expires_at
-    );
-    await captureServerEvent("sign_in");
   } catch (error) {
     return {
       error: isAuthApiError(error)
@@ -67,6 +64,20 @@ export async function signInAction(
       email,
     };
   }
+
+  try {
+    await writeSessionCookie(
+      response.session_token,
+      response.session_expires_at
+    );
+  } catch {
+    return {
+      error: "Unable to establish your browser session. Please try again.",
+      email,
+    };
+  }
+
+  await captureServerEvent("sign_in");
 
   redirect(returnTo ?? "/");
 }

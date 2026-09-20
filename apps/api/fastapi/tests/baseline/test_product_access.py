@@ -1,6 +1,6 @@
 import pytest
 from fastapi.concurrency import run_in_threadpool
-from sqlmodel import select
+from sqlalchemy import select
 
 from src.auth.models import User
 from src.auth.permissions import seed_permissions_and_roles_async

@@ -45,7 +45,7 @@ describe("forecast presentation", () => {
       label: "High Tide",
       value: "09:15",
     });
-    expect(result.days[0].conditions).toContainEqual({
+    expect(result.days[0].conditions).not.toContainEqual({
       label: "Word of the day",
       value: "Cloudy",
     });

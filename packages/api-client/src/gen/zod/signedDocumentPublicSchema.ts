@@ -10,6 +10,6 @@ export const signedDocumentPublicSchema = z.object({
   entity_type: z.string(),
   entity_id: z.uuid(),
   signer_name: z.string(),
-  signed_at: z.string(),
+  signed_at: z.iso.datetime(),
   sha256: z.string(),
 });

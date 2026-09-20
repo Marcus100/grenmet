@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { roleAssignmentScopeSchema } from "./roleAssignmentScopeSchema.js";
+import { workflowStepInstancePublicPropertiesPurposeEnumSchema } from "./workflowStepInstancePublicPropertiesPurposeEnumSchema.js";
 
 export const workflowStepTemplateCreateSchema = z.object({
   step_order: z.int().min(1),
@@ -13,8 +14,7 @@ export const workflowStepTemplateCreateSchema = z.object({
   required_scope: roleAssignmentScopeSchema.optional().default("SELF"),
   is_required: z.boolean().optional().default(true),
   scope_enforced: z.boolean().optional().default(true),
-  purpose: z
-    .enum(["APPROVAL", "REVIEW", "RECORDING"])
+  purpose: workflowStepInstancePublicPropertiesPurposeEnumSchema
     .optional()
     .default("APPROVAL"),
   label: z.string().min(1).max(150).optional().default("Approval"),
