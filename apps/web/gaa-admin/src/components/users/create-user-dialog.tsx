@@ -1,12 +1,12 @@
 "use client";
 
 import {
+  hrGetOrganisationCatalogue,
   type SrcAuthSchemasRolePublic as RolePublic,
-  readOrganisationCatalogueApiV1HrOrganisationGet,
-  useCreateHrEmploymentApiV1HrEmploymentUserIdPost,
-  useCreateRoleAssignmentApiV1AuthRoleAssignmentsPost,
-  useCreateUserApiV1AuthUsersPost,
-  useListDepartmentsEndpointApiV1HrDepartmentsGet,
+  useAuthCreateRoleAssignment,
+  useAuthCreateUser,
+  useHrCreateHrEmployment,
+  useHrListDepartments,
 } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import {
@@ -53,12 +53,12 @@ export function CreateUserDialog({ roles }: CreateUserDialogProps) {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(INITIAL_FORM);
 
-  const departmentsQuery = useListDepartmentsEndpointApiV1HrDepartmentsGet();
+  const departmentsQuery = useHrListDepartments();
   const departments = departmentsQuery.data?.data ?? [];
   const departmentId = form.department_id || departments[0]?.id || "";
   const catalogue = useQuery({
     queryKey: ["gaa-position-catalogue"],
-    queryFn: () => readOrganisationCatalogueApiV1HrOrganisationGet({}).unwrap(),
+    queryFn: () => hrGetOrganisationCatalogue({}).unwrap(),
     enabled: open,
   });
   const unitId =
@@ -68,11 +68,9 @@ export function CreateUserDialog({ roles }: CreateUserDialogProps) {
       (position) => position.unit_id === unitId
     ) ?? [];
 
-  const createUserMutation = useCreateUserApiV1AuthUsersPost();
-  const assignRoleMutation =
-    useCreateRoleAssignmentApiV1AuthRoleAssignmentsPost();
-  const createEmploymentMutation =
-    useCreateHrEmploymentApiV1HrEmploymentUserIdPost();
+  const createUserMutation = useAuthCreateUser();
+  const assignRoleMutation = useAuthCreateRoleAssignment();
+  const createEmploymentMutation = useHrCreateHrEmployment();
 
   const isPending =
     createUserMutation.isPending ||

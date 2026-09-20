@@ -1,6 +1,6 @@
 "use client";
 
-import { useListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet } from "@barrelsgd/api-client";
+import { useHrListDepartmentMembers } from "@barrelsgd/api-client";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Checkbox } from "@barrelsgd/ui/components/ui/checkbox";
@@ -37,11 +37,10 @@ export function CoApproverPicker({
   excludeUserId,
   disabled = false,
 }: CoApproverPickerProps) {
-  const membersQuery =
-    useListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet(
-      { path: { department_id: departmentId ?? "" } },
-      { query: { enabled: Boolean(departmentId) } }
-    );
+  const membersQuery = useHrListDepartmentMembers(
+    { path: { department_id: departmentId ?? "" } },
+    { query: { enabled: Boolean(departmentId) } }
+  );
   const members = (membersQuery.data?.data ?? []).filter(
     (member) => member.user_id !== excludeUserId
   );

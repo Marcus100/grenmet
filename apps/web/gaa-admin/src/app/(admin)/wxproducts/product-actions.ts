@@ -3,8 +3,8 @@ import {
   authoredProductsSchema,
   browserSessionSchema,
   productHistorySchema,
-  productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetPathProductIdSchema,
-  productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetPathRevisionSchema,
+  wxproductsProductRevisionPdfPathProductIdSchema,
+  wxproductsProductRevisionPdfPathRevisionSchema,
 } from "@barrelsgd/api-client";
 import type { ProductValues, StoredProduct } from "@barrelsgd/gms/products";
 import { isProductKind } from "@barrelsgd/gms/products";
@@ -33,12 +33,8 @@ function toUiStoredProduct(
 }
 export async function downloadProductPdfAction(id: string, revision: number) {
   try {
-    productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetPathProductIdSchema.parse(
-      id
-    );
-    productRevisionPdfApiV1WxproductsProductsProductIdRevisionsRevisionPdfGetPathRevisionSchema
-      .positive()
-      .parse(revision);
+    wxproductsProductRevisionPdfPathProductIdSchema.parse(id);
+    wxproductsProductRevisionPdfPathRevisionSchema.positive().parse(revision);
     const response = await fetch(
       `/_backend/weather/products/${id}/revisions/${revision}/pdf`,
       {
@@ -84,9 +80,15 @@ async function request(path: string, init?: RequestInit): Promise<unknown> {
   }
   return body;
 }
+function withoutActorIdentity(raw: unknown): unknown {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return raw;
+  const { actorId: _actorId, ...input } = raw as Record<string, unknown>;
+  return input;
+}
+
 export async function saveProductAction(raw: unknown) {
   try {
-    const input = productInputSchema.safeParse(raw);
+    const input = productInputSchema.safeParse(withoutActorIdentity(raw));
     if (!input.success)
       return {
         ok: false as const,

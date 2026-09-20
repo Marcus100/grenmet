@@ -1,11 +1,11 @@
 "use client";
 
 import {
-  readHrProfileMeApiV1HrProfileMeGetQueryKey,
-  readStaffCardApiV1HrStaffCardMeGetQueryKey,
+  hrGetHrProfileMeQueryKey,
+  hrGetStaffCardQueryKey,
   type UserProfileUpdateMe,
-  useReadHrProfileMeApiV1HrProfileMeGet,
-  useUpdateHrProfileMeApiV1HrProfileMePatch,
+  useHrGetHrProfileMe,
+  useHrUpdateHrProfileMe,
 } from "@barrelsgd/api-client";
 import {
   Tabs,
@@ -27,16 +27,16 @@ export default function UserProfileContent({
   initialTab?: "overview" | "signature";
 }) {
   const queryClient = useQueryClient();
-  const profileQuery = useReadHrProfileMeApiV1HrProfileMeGet();
-  const updateProfileMutation = useUpdateHrProfileMeApiV1HrProfileMePatch({
+  const profileQuery = useHrGetHrProfileMe();
+  const updateProfileMutation = useHrUpdateHrProfileMe({
     mutation: {
       onSuccess: async () => {
         await Promise.all([
           queryClient.invalidateQueries({
-            queryKey: readHrProfileMeApiV1HrProfileMeGetQueryKey(),
+            queryKey: hrGetHrProfileMeQueryKey(),
           }),
           queryClient.invalidateQueries({
-            queryKey: readStaffCardApiV1HrStaffCardMeGetQueryKey(),
+            queryKey: hrGetStaffCardQueryKey(),
           }),
         ]);
       },

@@ -2,10 +2,10 @@
 
 import {
   type DepartmentPublic,
-  listDepartmentsEndpointApiV1HrDepartmentsGetQueryKey,
-  useCreateDepartmentEndpointApiV1HrDepartmentsPost,
-  useListDepartmentsEndpointApiV1HrDepartmentsGet,
-  useUpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch,
+  hrListDepartmentsQueryKey,
+  useHrCreateDepartment,
+  useHrListDepartments,
+  useHrUpdateDepartment,
 } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import {
@@ -62,9 +62,8 @@ function DepartmentDialog({
   const [id, setId] = useState(existing?.id ?? "");
   const [idTouched, setIdTouched] = useState(false);
 
-  const createMutation = useCreateDepartmentEndpointApiV1HrDepartmentsPost();
-  const updateMutation =
-    useUpdateDepartmentEndpointApiV1HrDepartmentsDepartmentIdPatch();
+  const createMutation = useHrCreateDepartment();
+  const updateMutation = useHrUpdateDepartment();
   const isPending = createMutation.isPending || updateMutation.isPending;
   const isEdit = Boolean(existing);
 
@@ -99,7 +98,7 @@ function DepartmentDialog({
         });
       }
       await queryClient.invalidateQueries({
-        queryKey: listDepartmentsEndpointApiV1HrDepartmentsGetQueryKey(),
+        queryKey: hrListDepartmentsQueryKey(),
       });
       toast.success(isEdit ? `Renamed to "${name}"` : `Created "${name}"`);
       setOpen(false);
@@ -179,7 +178,7 @@ function DepartmentDialog({
 }
 
 export function DepartmentsManager() {
-  const departmentsQuery = useListDepartmentsEndpointApiV1HrDepartmentsGet();
+  const departmentsQuery = useHrListDepartments();
   const departments = departmentsQuery.data?.data ?? [];
 
   return (

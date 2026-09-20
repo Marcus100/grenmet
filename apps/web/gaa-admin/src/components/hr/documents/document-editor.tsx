@@ -2,8 +2,8 @@
 
 import {
   type EmployeeDocumentPublic,
-  patchDocumentApiV1HrDocumentsDocumentIdPatch,
-  uploadDocumentApiV1HrDocumentsPost,
+  hrPatchDocument,
+  hrUploadDocument,
 } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
@@ -61,7 +61,7 @@ export function DocumentEditor({
     setError("");
     try {
       if (document) {
-        await patchDocumentApiV1HrDocumentsDocumentIdPatch({
+        await hrPatchDocument({
           path: { document_id: document.id },
           body: metadata,
         }).unwrap();
@@ -79,7 +79,7 @@ export function DocumentEditor({
           setError("Choose a document category.");
           return;
         }
-        await uploadDocumentApiV1HrDocumentsPost({
+        await hrUploadDocument({
           body: {
             ...metadata,
             category,

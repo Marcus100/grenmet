@@ -1,6 +1,6 @@
 "use client";
 
-import { useReadMyTimesheetsApiV1HrTimesheetsMeGet } from "@barrelsgd/api-client";
+import { useHrGetMyTimesheets } from "@barrelsgd/api-client";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { formatSubmissionDate } from "@/components/hr/submission-date";
 
@@ -12,7 +12,7 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
 };
 
 export function TimesheetSubmissions() {
-  const query = useReadMyTimesheetsApiV1HrTimesheetsMeGet({});
+  const query = useHrGetMyTimesheets({});
   const timesheets = query.data?.data ?? [];
 
   if (query.isLoading || timesheets.length === 0) {

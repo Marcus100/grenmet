@@ -1,9 +1,6 @@
 "use client";
 
-import {
-  readRolesApiV1AuthRolesGetQueryKey,
-  useDeleteRoleApiV1AuthRolesRoleIdDelete,
-} from "@barrelsgd/api-client";
+import { authGetRolesQueryKey, useAuthDeleteRole } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import {
   DropdownMenu,
@@ -26,7 +23,7 @@ import type { RoleRow } from "./roles-row";
  */
 export function RoleRowActions({ row }: { row: RoleRow }) {
   const queryClient = useQueryClient();
-  const deleteRoleMutation = useDeleteRoleApiV1AuthRolesRoleIdDelete();
+  const deleteRoleMutation = useAuthDeleteRole();
   const isSystemRole = row.type === "System";
 
   async function copyRoleId() {
@@ -38,7 +35,7 @@ export function RoleRowActions({ row }: { row: RoleRow }) {
     try {
       await deleteRoleMutation.mutateAsync({ path: { role_id: row.id } });
       await queryClient.invalidateQueries({
-        queryKey: readRolesApiV1AuthRolesGetQueryKey(),
+        queryKey: authGetRolesQueryKey(),
       });
       toast.success(`Deleted role "${row.name}"`);
     } catch {

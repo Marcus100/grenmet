@@ -1,11 +1,11 @@
 "use client";
 
 import {
-  readMyTimesheetsApiV1HrTimesheetsMeGetQueryKey,
+  hrGetMyTimesheetsQueryKey,
   type TimesheetEntryInput,
-  useCreateTimesheetApiV1HrTimesheetsPost,
-  useReadHrProfileMeApiV1HrProfileMeGet,
-  useSubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch,
+  useHrCreateTimesheet,
+  useHrGetHrProfileMe,
+  useHrSubmitTimesheet,
 } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import {
@@ -59,12 +59,11 @@ export function TimesheetEditor() {
   const form = useForm({ defaultValues: EMPTY_TIMESHEET });
   const queryClient = useQueryClient();
   const signature = useSigning();
-  const profileQuery = useReadHrProfileMeApiV1HrProfileMeGet();
+  const profileQuery = useHrGetHrProfileMe();
   const departmentId = profileQuery.data?.employment?.department?.id;
-  const createMutation = useCreateTimesheetApiV1HrTimesheetsPost();
+  const createMutation = useHrCreateTimesheet();
 
-  const submitMutation =
-    useSubmitTimesheetApiV1HrTimesheetsTimesheetIdSubmitPatch();
+  const submitMutation = useHrSubmitTimesheet();
   const [savedTimesheetId, setSavedTimesheetId] = useState<string | null>(null);
   const [submission, setSubmission] = useState<SubmissionMetadata | null>(null);
   function reset() {
@@ -123,7 +122,7 @@ export function TimesheetEditor() {
       setSubmission(submitted);
       await queryClient.invalidateQueries({ queryKey: signedDocumentsKey });
       await queryClient.invalidateQueries({
-        queryKey: readMyTimesheetsApiV1HrTimesheetsMeGetQueryKey({}),
+        queryKey: hrGetMyTimesheetsQueryKey({}),
       });
       toast.success("Time sheet submitted");
     } catch (error) {

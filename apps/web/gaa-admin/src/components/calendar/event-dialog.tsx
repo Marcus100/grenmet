@@ -2,8 +2,8 @@
 
 import {
   type CalendarEventPublic,
-  useCreateCalendarEventApiV1HrCalendarEventsPost,
-  useUpdateCalendarEventApiV1HrCalendarEventsEventIdPatch,
+  useHrCreateCalendarEvent,
+  useHrUpdateCalendarEvent,
 } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import {
@@ -81,9 +81,8 @@ export interface EventDialogProps {
 
 export function EventDialog({ event, onOpenChange, open }: EventDialogProps) {
   const queryClient = useQueryClient();
-  const createMutation = useCreateCalendarEventApiV1HrCalendarEventsPost();
-  const updateMutation =
-    useUpdateCalendarEventApiV1HrCalendarEventsEventIdPatch();
+  const createMutation = useHrCreateCalendarEvent();
+  const updateMutation = useHrUpdateCalendarEvent();
 
   const [title, setTitle] = useState("");
   const [kind, setKind] = useState<string>("MEETING");
