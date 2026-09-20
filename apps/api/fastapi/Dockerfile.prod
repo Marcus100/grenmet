@@ -85,7 +85,7 @@ WORKDIR /app
 # written, avoiding an extra recursive ownership layer.
 COPY --from=builder --chown=appuser:appuser /app/.venv /app/.venv
 # Patch packages inside the copied virtualenv before vulnerability scanning.
-RUN uv pip install --python /app/.venv/bin/python --no-cache "msgpack>=1.2.1" "setuptools>=78.1.1"
+RUN uv pip install --python /app/.venv/bin/python --no-cache --upgrade "msgpack>=1.2.1" "setuptools>=78.1.1"
 
 # Copy workspace metadata used by uv-powered operational commands
 COPY --chown=appuser:appuser pyproject.toml uv.lock ./
