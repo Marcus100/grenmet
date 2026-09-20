@@ -470,7 +470,7 @@ The following technologies are in active use as of May 2026. All systems have be
 | **Backend framework** | FastAPI (Python) | Authentication, HR, meteorological API |
 | **API layer** | Hono (Node.js) | Currently a stub; planned for weather data proxy |
 | **Database** | PostgreSQL | Multiple isolated databases per application domain |
-| **ORM** | Drizzle ORM (TypeScript), SQLModel (Python) | Drizzle for web apps; SQLModel + asyncpg for FastAPI |
+| **ORM** | Drizzle ORM (TypeScript), SQLAlchemy 2.0 (Python) | Drizzle for web apps; SQLAlchemy + asyncpg for FastAPI |
 | **Design system** | Barrels design system v1 (CSS custom properties + Tailwind v4) | Established May 2026; Figma-to-code bridge in place |
 | **UI component library** | @barrelsgd/ui (Base UI + shadcn-style primitives) | Shared across all web apps |
 | **Package manager** | pnpm v12 with workspaces | Monorepo dependency management |
