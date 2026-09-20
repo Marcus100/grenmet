@@ -292,10 +292,8 @@ services:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 30s
       timeout: 5s
-      retries: 5
-      # Admin readiness checks FastAPI and both weather-product services.
-      # Give migrations and API startup time to complete before probing.
-      start_period: 120s
+      retries: 3
+      start_period: 20s
     environment:
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
@@ -325,8 +323,10 @@ services:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api/ready').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
       interval: 30s
       timeout: 5s
-      retries: 3
-      start_period: 20s
+      retries: 5
+      # web-admin's readiness check queries FastAPI and both weather-product
+      # services. Give migrations and API startup time to complete before probing.
+      start_period: 120s
     environment:
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
