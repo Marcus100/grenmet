@@ -34,7 +34,7 @@ describe("published content feed", () => {
     expect(result.status).toBe("ok");
     expect(result.articles).toHaveLength(1);
     expect(fetcher).toHaveBeenCalledWith(
-      new URL("http://cms.example.test/api/public/content?kind=article"),
+      new URL("http://cms.example.test/api/public/content"),
       expect.objectContaining({ cache: "no-store" })
     );
   });
@@ -83,9 +83,7 @@ it("passes the section filter to CMS", async () => {
   vi.stubGlobal("fetch", fetcher);
   await fetchPublishedContent("latest");
   expect(fetcher).toHaveBeenCalledWith(
-    new URL(
-      "http://cms.example.test/api/public/content?kind=article&placement=latest"
-    ),
+    new URL("http://cms.example.test/api/public/content?placement=latest"),
     expect.anything()
   );
 });
