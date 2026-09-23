@@ -51,7 +51,14 @@ async def spec(_user: BrowserUser, session: Session) -> list[BuildingView]:
                t.id AS task_id, t.mode, t.freq_count, t.freq_period_value, t.freq_period_unit,
                act.name AS activity_name, t.sort_order AS task_order
         FROM buildings b
-        LEFT JOIN sections s ON s.building_id=b.id
+        LEFT JOIN (
+            SELECT id, building_id, name, sort_order FROM sections
+            UNION ALL
+            -- Areas without a section form their own group, even in buildings
+            -- that also have sections.
+            SELECT DISTINCT NULL::integer, building_id, NULL::text, NULL::integer
+            FROM areas WHERE section_id IS NULL
+        ) s ON s.building_id=b.id
         LEFT JOIN areas a ON a.building_id=b.id AND a.section_id IS NOT DISTINCT FROM s.id
         LEFT JOIN area_tasks t ON t.area_id=a.id
         LEFT JOIN activities act ON act.id=t.activity_id

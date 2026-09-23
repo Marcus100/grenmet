@@ -98,7 +98,7 @@ stop,,,,,,,,3:30 a.m.,Birch Grove
 stop,,,,,,,,3:30 a.m.,Constantine
 stop,,,,,,,,3:30 a.m.,Willis
 stop,,,,,,,,3:30 a.m.,Grenville Vale
-stop,,,,,,,,3:30 a.m.,Mt. Kuma
+stop,,,,,,,,3:30 a.m.,Mt. Cuma
 stop,,,,,,,,3:30 a.m.,Boca
 stop,,,,,,,,3:30 a.m.,Snug Corner
 stop,,,,,,,,3:30 a.m.,Beaulieu
@@ -129,7 +129,7 @@ stop,,,,,,,,,Tempe Roundabout
 stop,,,,,,,,,Beaulieu
 stop,,,,,,,,,Snug Corner
 stop,,,,,,,,,Boca
-stop,,,,,,,,,Mt. Kuma
+stop,,,,,,,,,Mt. Cuma
 stop,,,,,,,,,Grenville Vale
 stop,,,,,,,,,Willis
 stop,,,,,,,,,Constantine
@@ -142,7 +142,7 @@ stop,,,,,,,,12:00 noon,Birch Grove
 stop,,,,,,,,12:00 noon,Constantine
 stop,,,,,,,,12:00 noon,Willis
 stop,,,,,,,,12:00 noon,Grenville Vale
-stop,,,,,,,,12:00 noon,Mt. Kuma
+stop,,,,,,,,12:00 noon,Mt. Cuma
 stop,,,,,,,,12:00 noon,Boca
 stop,,,,,,,,12:00 noon,Snug Corner
 stop,,,,,,,,12:00 noon,Beaulieu
@@ -173,7 +173,7 @@ stop,,,,,,,,,Tempe Roundabout
 stop,,,,,,,,,Beaulieu
 stop,,,,,,,,,Snug Corner
 stop,,,,,,,,,Boca
-stop,,,,,,,,,Mt. Kuma
+stop,,,,,,,,,Mt. Cuma
 stop,,,,,,,,,Grenville Vale
 stop,,,,,,,,,Willis
 stop,,,,,,,,,Constantine
@@ -186,7 +186,7 @@ stop,,,,,,,,8:30 p.m.,Birch Grove
 stop,,,,,,,,8:30 p.m.,Constantine
 stop,,,,,,,,8:30 p.m.,Willis
 stop,,,,,,,,8:30 p.m.,Grenville Vale
-stop,,,,,,,,8:30 p.m.,Mt. Kuma
+stop,,,,,,,,8:30 p.m.,Mt. Cuma
 stop,,,,,,,,8:30 p.m.,Boca
 stop,,,,,,,,8:30 p.m.,Snug Corner
 stop,,,,,,,,8:30 p.m.,Beaulieu
@@ -212,7 +212,7 @@ stop,,,,,,,,,Tempe Roundabout
 stop,,,,,,,,,Beaulieu
 stop,,,,,,,,,Snug Corner
 stop,,,,,,,,,Boca
-stop,,,,,,,,,Mt. Kuma
+stop,,,,,,,,,Mt. Cuma
 stop,,,,,,,,,Grenville Vale
 stop,,,,,,,,,Willis
 stop,,,,,,,,,Constantine
@@ -352,9 +352,9 @@ stop,,,,,,,,,Melville Street
 trip,6,Mardigras and Surrounding Areas,morning,inbound,daily,4:30 a.m.,5:30 a.m.,,
 stop,,,,,,,,4:30 a.m.,Mardigras
 stop,,,,,,,,4:30 a.m.,Antoine Hill
-stop,,,,,,,,4:30 a.m.,Predmotempts
-stop,,,,,,,,4:30 a.m.,Winsor Forest
-stop,,,,,,,,4:30 a.m.,Vincennse
+stop,,,,,,,,4:30 a.m.,Perdmontemps
+stop,,,,,,,,4:30 a.m.,Windsor Forest
+stop,,,,,,,,4:30 a.m.,Vincennes
 stop,,,,,,,,4:30 a.m.,Toco Bay
 stop,,,,,,,,4:30 a.m.,Laura
 stop,,,,,,,,4:30 a.m.,Beaton
@@ -386,18 +386,18 @@ stop,,,,,,,,,St. Paul's Main Rd
 stop,,,,,,,,,Beaton
 stop,,,,,,,,,Laura
 stop,,,,,,,,,Toco Bay
-stop,,,,,,,,,Vincennse
-stop,,,,,,,,,Winsor Forest
-stop,,,,,,,,,Predmotempts
+stop,,,,,,,,,Vincennes
+stop,,,,,,,,,Windsor Forest
+stop,,,,,,,,,Perdmontemps
 stop,,,,,,,,,Antoine Hill
 stop,,,,,,,,,Mardigras
 
 trip,6,Mardigras and Surrounding Areas,afternoon,inbound,sun_hol,1:00 p.m.,2:00 p.m.,,
 stop,,,,,,,,1:00 p.m.,Mardigras
 stop,,,,,,,,1:00 p.m.,Antoine Hill
-stop,,,,,,,,1:00 p.m.,Predmotempts
-stop,,,,,,,,1:00 p.m.,Winsor Forest
-stop,,,,,,,,1:00 p.m.,Vincennse
+stop,,,,,,,,1:00 p.m.,Perdmontemps
+stop,,,,,,,,1:00 p.m.,Windsor Forest
+stop,,,,,,,,1:00 p.m.,Vincennes
 stop,,,,,,,,1:00 p.m.,Toco Bay
 stop,,,,,,,,1:00 p.m.,Laura
 stop,,,,,,,,1:00 p.m.,Beaton
@@ -429,18 +429,18 @@ stop,,,,,,,,,St. Paul's Main Rd
 stop,,,,,,,,,Beaton
 stop,,,,,,,,,Laura
 stop,,,,,,,,,Toco Bay
-stop,,,,,,,,,Vincennse
-stop,,,,,,,,,Winsor Forest
-stop,,,,,,,,,Predmotempts
+stop,,,,,,,,,Vincennes
+stop,,,,,,,,,Windsor Forest
+stop,,,,,,,,,Perdmontemps
 stop,,,,,,,,,Antoine Hill
 stop,,,,,,,,,Mardigras
 
 trip,6,Mardigras and Surrounding Areas,night,inbound,daily,9:30 p.m.,10:30 p.m.,,
 stop,,,,,,,,9:30 p.m.,Mardigras
 stop,,,,,,,,9:30 p.m.,Antoine Hill
-stop,,,,,,,,9:30 p.m.,Predmotempts
-stop,,,,,,,,9:30 p.m.,Winsor Forest
-stop,,,,,,,,9:30 p.m.,Vincennse
+stop,,,,,,,,9:30 p.m.,Perdmontemps
+stop,,,,,,,,9:30 p.m.,Windsor Forest
+stop,,,,,,,,9:30 p.m.,Vincennes
 stop,,,,,,,,9:30 p.m.,Toco Bay
 stop,,,,,,,,9:30 p.m.,Laura
 stop,,,,,,,,9:30 p.m.,Beaton
@@ -467,8 +467,8 @@ stop,,,,,,,,,St. Paul's Main Rd
 stop,,,,,,,,,Beaton
 stop,,,,,,,,,Laura
 stop,,,,,,,,,Toco Bay
-stop,,,,,,,,,Vincennse
-stop,,,,,,,,,Winsor Forest
-stop,,,,,,,,,Predmotempts
+stop,,,,,,,,,Vincennes
+stop,,,,,,,,,Windsor Forest
+stop,,,,,,,,,Perdmontemps
 stop,,,,,,,,,Antoine Hill
 stop,,,,,,,,,Mardigras

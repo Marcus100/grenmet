@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
+import { getTransportSpec } from "@/db/transport/queries";
 import {
   formatDayType,
   formatDirection,
   formatTime,
-} from "@/db/transport/parse-spec";
-import { getTransportSpec } from "@/db/transport/queries";
+} from "@/lib/transport/format";
 
 export const metadata: Metadata = {
   title: "Bus",
@@ -15,6 +15,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function BusPage() {
+  // Failures propagate to (admin)/error.tsx, which reports them and offers retry.
   const routes = await getTransportSpec();
   const totalTrips = routes.reduce(
     (count, route) =>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import { formatFrequency } from "@/db/janitorial/parse-spec";
 import { getJanitorialSpec } from "@/db/janitorial/queries";
+import { formatFrequency } from "@/lib/janitorial/format";
 
 export const metadata: Metadata = {
   title: "Janitorial",
@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function JanitorPage() {
+  // Failures propagate to (admin)/error.tsx, which reports them and offers retry.
   const buildings = await getJanitorialSpec();
   const totalAreas = buildings.reduce(
     (count, building) =>
@@ -26,7 +27,7 @@ export default async function JanitorPage() {
           Janitorial Cleaning Spec
         </h1>
         <p className="text-muted-foreground text-sm">
-          GAA Air Terminal — areas, activities, and cleaning frequencies.{" "}
+          GAA facilities — areas, activities, and cleaning frequencies.{" "}
           {buildings.length} buildings · {totalAreas} areas.
         </p>
       </div>
@@ -53,7 +54,9 @@ export default async function JanitorPage() {
                       <span>{area.name}</span>
                       <span className="text-muted-foreground text-xs">
                         {area.tasks.length} tasks
-                        {area.bundles.length > 0 ? " + terrazzo" : ""}
+                        {area.bundles.length > 0
+                          ? ` + ${area.bundles.map((bundle) => bundle.name).join(", ")}`
+                          : ""}
                       </span>
                     </summary>
                     <ul className="divide-y divide-border border-border border-t">
