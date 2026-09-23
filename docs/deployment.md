@@ -1,5 +1,9 @@
 # Barrels Grenada — Deployment Guide
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-18
+
 > Current releases use `docker-compose.deploy.yml` and the canonical domain table
 > at the end of this guide. The per-environment `docker-compose.prod.yml` and
 > `docker-compose.staging.yml` files describe the retired prototype layout.
@@ -17,7 +21,7 @@ promotion; the user merges them and publishes the release. See the
   then deployment with the `staging` image tag.
 - Merging to `main` does not build deployment images or deploy production.
 - Publishing a release runs `pipeline-prod.yml`: builds all images at the release
-  tag, then deploys that same tag for FastAPI, web apps, Hono, and migrations.
+  tag, then deploys that same tag for FastAPI, web apps, and migrations.
 - A manual **Deploy** dispatch redeploys existing images; it does not build them.
   Supply an explicit image tag. The **Deploy to Production** entry point requires it.
 
@@ -26,7 +30,7 @@ Both environments use `infra/docker/docker-compose.deploy.yml`, layered with
 GitHub environment secrets. The workflow deletes that file during cleanup;
 containers still receive their configured runtime secrets.
 
-FastAPI publishes as `ghcr.io/marcus100/grenmet:<tag>`. Web apps and Hono use
+FastAPI publishes as `ghcr.io/marcus100/grenmet:<tag>`. Web apps use
 `ghcr.io/marcus100/barrelsgd-<app>:<tag>`; see the
 [image inventory](web/deployment.md#docker-images).
 
@@ -248,7 +252,7 @@ journalctl -u actions.runner.* -n 50
 3. Wait for required checks, then merge the PR on GitHub.
 4. Watch **Staging Pipeline**. Its CI jobs gate the applicable API/web image
    builds and deployment on the self-hosted `staging` runner. The web image
-   matrix contains nine targets, including the migration runner and Hono.
+   matrix contains nine targets, including the CMS migration runner.
 5. Verify the [configured app domains](#canonical-app-domains). New routes are
    available only after the environment has successfully deployed this configuration.
 
@@ -259,7 +263,7 @@ if a required external volume is missing instead of silently creating an empty d
 
 The deployment starts Postgres, ensures the configured databases exist, then
 starts the remaining services with migrations enforced through dependencies.
-It requires API liveness and the configured web/Hono container health checks to
+It requires API liveness and the configured web container health checks to
 pass. It also logs external web-root responses; those external checks are non-fatal.
 
 Check database readiness and the user flows separately:
@@ -267,7 +271,6 @@ Check database readiness and the user flows separately:
 ```bash
 curl -fsS https://api.staging.barrels.gd/api/v1/utils/health-check/
 curl -fsS https://api.staging.barrels.gd/api/v1/utils/ready/
-curl -fsS https://hapi.staging.barrels.gd/health
 ```
 
 Verify login, return URLs, and any data-backed pages you changed.
@@ -378,7 +381,7 @@ compose=(docker compose --env-file staging.env --env-file .env.secrets
 ```
 
 For production, use `production.env` and project `grenmet`. Check API liveness,
-readiness, and every web/Hono container's health before considering the deploy
+readiness, and every web container's health before considering the deploy
 successful, following the health-check step in `deploy.yml`. Do not delete data volumes.
 
 For routine diagnostics after workflow cleanup, use `docker ps` and
@@ -416,7 +419,6 @@ hurricane/spice hosts; no legacy redirects are installed.
 | Signal | 3004 | https://signal.barrels.gd | https://signal.staging.barrels.gd |
 | MBIA | 3005 | https://mbia.barrels.gd | https://mbia.staging.barrels.gd |
 | Events | 3009 | https://events.barrels.gd | https://events.staging.barrels.gd |
-| Hono | 4000 | https://hapi.barrels.gd | https://hapi.staging.barrels.gd |
 | FastAPI | 8000 | https://api.barrels.gd | https://api.staging.barrels.gd |
 
 Cloudflare wildcard A records point `*.barrels.gd` to `134.122.119.220` and
@@ -433,8 +435,9 @@ Rollback uses the previous release's committed workflow and Compose definition:
 select the previous release tag as both the workflow ref and image tag.
 
 Signal subscriptions and MBIA contact delivery remain prototypes; MBIA flights
-and Events records remain demo data. Hono exposes its health stub, not a completed
-weather API. Hosting these apps does not complete those product workflows.
+and Events records remain demo data. The Hono API (`hapi`) was retired on
+2026-09-23 ([ADR-0015](adr/0015-retire-hono-python-backend.md)); remove its old
+container and route with the retirement procedure below. Hosting these apps does not complete those product workflows.
 
 
 ## Legacy service retirement

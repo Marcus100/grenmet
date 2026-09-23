@@ -11,17 +11,8 @@ export const metadata: Metadata = {
 };
 
 export default async function HrPage() {
-  let data: HrDashboardPublic;
-  try {
-    data = await loadDashboard();
-  } catch {
-    return (
-      <div className="space-y-3 p-6" role="alert">
-        <h1 className="font-semibold text-2xl">Human Resources</h1>
-        <p>HR records could not be loaded. Refresh this page to retry.</p>
-      </div>
-    );
-  }
+  // Failures propagate to (admin)/error.tsx, which reports them and offers retry.
+  const data: HrDashboardPublic = await loadDashboard();
   return (
     <div className="space-y-4">
       <nav aria-label="HR records" className="flex flex-wrap gap-4 text-sm">

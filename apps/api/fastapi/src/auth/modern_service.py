@@ -18,6 +18,7 @@ from starlette.requests import Request
 from src.auth import service
 from src.auth.account_security import verify_factor
 from src.auth.config import auth_settings
+from src.auth.devices import remember_device, schedule_new_sign_in_alert
 from src.auth.models import User
 from src.auth.modern_models import AuthChallenge, ExternalIdentity
 from src.auth.modern_schemas import (
@@ -129,6 +130,7 @@ async def email_confirm(
     if not user or not user.is_active or user.email != challenge.data.get("email"):
         raise AppException("Account is not available for verification", 400)
     user.hashed_password = await get_password_hash_async(body.new_password)
+    user.password_changed_at = utc_now()
     user.email_verified_at = utc_now()
     user.password_setup_pending = False
     await session.execute(delete(AuthChallenge).where(AuthChallenge.user_id == user.id))
@@ -295,6 +297,9 @@ async def google_finish(
             )
         )
     user.email_verified_at = utc_now()
+    user_agent = request.headers.get("user-agent")
+    ip_address = request.client.host if request.client else None
+    new_device = remember_device(user, user_agent)
     session.add(user)
     await session.commit()
     db_session, session_token = await service.create_session(
@@ -302,9 +307,16 @@ async def google_finish(
         user=user,
         client_type="web",
         app_name="auth",
-        user_agent=request.headers.get("user-agent"),
-        ip_address=request.client.host if request.client else None,
+        user_agent=user_agent,
+        ip_address=ip_address,
     )
+    if new_device:
+        schedule_new_sign_in_alert(
+            email_to=user.email,
+            device=new_device,
+            ip_address=ip_address,
+            signed_in_at=db_session.created_at,
+        )
     access_token, expires = service.issue_access_token_for_user(
         user=user, expires_delta=service.get_session_access_token_expires_delta()
     )
@@ -360,14 +372,17 @@ async def account_security(
             and auth_settings.GOOGLE_REDIRECT_URI
         ),
         google_linked=bool(identities),
+        password_changed_at=user.password_changed_at,
         totp_enabled=user.totp_enabled,
         sessions=[
             SecuritySessionPublic(
                 id=str(row.id),
                 app_name=row.app_name,
                 client_type=row.client_type,
-                last_used_at=row.last_used_at.isoformat(),
-                expires_at=row.expires_at.isoformat(),
+                user_agent=row.user_agent,
+                ip_address=row.ip_address,
+                last_used_at=row.last_used_at,
+                expires_at=row.expires_at,
             )
             for row in sessions
         ],

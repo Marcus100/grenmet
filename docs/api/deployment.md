@@ -1,5 +1,9 @@
 # API Deployment
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-06
+
 Deployment guide for the FastAPI service at `apps/api/fastapi`.
 
 ## Prerequisites

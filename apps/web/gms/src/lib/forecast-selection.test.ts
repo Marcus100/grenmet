@@ -39,7 +39,7 @@ describe("forecast presentation", () => {
     expect(result.baseDate).toBe("2026-09-14");
     expect(result.days[0].title).toBe("Tonight");
     expect(result.days[0].high).toBeNull();
-    expect(result.days[0].summary).toBe("Fair");
+    expect(result.days[0].summary).toBe("LOCAL TEST — Fair");
     expect(result.days[0].condition).toBe("sunny");
     expect(result.days[0].conditions).toContainEqual({
       label: "High Tide",

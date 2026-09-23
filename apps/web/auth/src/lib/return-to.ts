@@ -39,8 +39,13 @@ export function getSafeReturnTo(
   const value = returnTo.trim();
   if (!value) return null;
 
-  if (value.startsWith("/") && !value.startsWith("//")) {
-    return value;
+  if (value.startsWith("/")) {
+    try {
+      const base = "https://return.invalid";
+      return new URL(value, base).origin === base ? value : null;
+    } catch {
+      return null;
+    }
   }
 
   try {

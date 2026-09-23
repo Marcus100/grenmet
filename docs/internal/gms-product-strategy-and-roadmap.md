@@ -1,5 +1,9 @@
 # GMS product strategy and implementation roadmap
 
+**Status:** Analysis and recommendation — not an authoritative sequencing view  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-10
+
 > **Status:** Analysis and recommendation — not an authoritative sequencing view.
 > Recorded 2026-09-10 from a repository review at `055bdce3`. Current GMS
 > priorities, dependencies, and acceptance gates remain governed by the

@@ -1,6 +1,7 @@
 import { isProductKind } from "@barrelsgd/gms/products";
 import { NextResponse } from "next/server";
 import { getAuthApiBaseUrl, getAuthApiPrefix } from "@/lib/auth-config";
+import { reportError } from "@/lib/report-error";
 export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   const kind = new URL(request.url).searchParams.get("kind");
@@ -24,7 +25,8 @@ export async function GET(request: Request) {
     return NextResponse.json(body, {
       headers: { "Cache-Control": "no-store" },
     });
-  } catch {
+  } catch (error) {
+    reportError(error, "public-products");
     return NextResponse.json(
       { error: "Product information is unavailable" },
       { status: 503, headers: { "Cache-Control": "no-store" } }

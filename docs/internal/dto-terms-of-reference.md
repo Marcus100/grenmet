@@ -1,4 +1,9 @@
 # Terms of Reference — Digital Transformation Officer
+
+**Status:** Active reference  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-20
+
 ## GMS Digital Services Programme | Grenada Airports Authority
 
 | Field | Detail |
@@ -468,9 +473,9 @@ The following technologies are in active use as of May 2026. All systems have be
 | **Languages** | TypeScript (primary), Python | JavaScript where TypeScript is not applicable |
 | **Frontend framework** | Next.js 16 (React 19) | All web applications |
 | **Backend framework** | FastAPI (Python) | Authentication, HR, meteorological API |
-| **API layer** | Hono (Node.js) | Currently a stub; planned for weather data proxy |
+| **API layer** | FastAPI (Python) | All backend logic; the Hono stub was retired (ADR-0015) |
 | **Database** | PostgreSQL | Multiple isolated databases per application domain |
-| **ORM** | Drizzle ORM (TypeScript), SQLAlchemy 2.0 (Python) | Drizzle for web apps; SQLAlchemy + asyncpg for FastAPI |
+| **ORM** | SQLAlchemy 2.0 (Python) | SQLAlchemy + asyncpg for FastAPI; web apps have no ORM (the Payload CMS manages its own database) |
 | **Design system** | Barrels design system v1 (CSS custom properties + Tailwind v4) | Established May 2026; Figma-to-code bridge in place |
 | **UI component library** | @barrelsgd/ui (Base UI + shadcn-style primitives) | Shared across all web apps |
 | **Package manager** | pnpm v12 with workspaces | Monorepo dependency management |

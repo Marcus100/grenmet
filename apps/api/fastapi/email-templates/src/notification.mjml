@@ -1,0 +1,21 @@
+<mjml>
+  <mj-head>
+    <mj-preview>{{ title }}</mj-preview>
+  </mj-head>
+  <mj-body background-color="#f3f8fc">
+    <mj-section background-color="#ffffff" padding="32px 20px" border-radius="8px">
+      <mj-column width="100%">
+        <mj-text font-size="13px" font-family="Arial, Helvetica, sans-serif" color="#6b7280" text-transform="uppercase" letter-spacing="0.04em" padding-bottom="8px">{{ project_name }}</mj-text>
+        <mj-text font-size="20px" font-weight="600" font-family="Arial, Helvetica, sans-serif" color="#0b132b" line-height="1.4">{{ title }}</mj-text>
+        <mj-raw>{% if body %}</mj-raw>
+        <mj-text font-size="16px" font-family="Arial, Helvetica, sans-serif" color="#4b5563" line-height="1.6">{{ body }}</mj-text>
+        <mj-raw>{% endif %}</mj-raw>
+        <mj-raw>{% if link_url %}</mj-raw>
+        <mj-button align="left" background-color="#0b63ee" color="#ffffff" font-size="16px" font-weight="600" border-radius="8px" inner-padding="12px 28px" font-family="Arial, Helvetica, sans-serif" href="{{ link_url }}">Open in the staff portal</mj-button>
+        <mj-raw>{% endif %}</mj-raw>
+        <mj-divider border-color="#d0d5dd" border-width="1px"></mj-divider>
+        <mj-text font-size="14px" font-family="Arial, Helvetica, sans-serif" color="#6b7280" line-height="1.5">You can choose which notifications you receive by email under Profile → Notifications. Details stay in the portal.</mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

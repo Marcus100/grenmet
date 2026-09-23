@@ -1,5 +1,9 @@
 # Warning and Impact-Based Forecasting Framework
 
+**Status:** Draft  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-18
+
 | Field | Detail |
 |---|---|
 | **Version** | 1.0 |

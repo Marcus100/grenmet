@@ -48,20 +48,17 @@ function productTile(products: Awaited<ReturnType<typeof loadProducts>>): Tile {
     href: "/wxproducts/fcsts",
     icon: CloudSun,
     id: "products",
-    label: "Products issued today",
+    label: "Today's product types in the live feed",
   };
   if (!products.ok) {
     return { ...base, hint: products.message, value: "—" };
   }
 
   const summary = summarizeProducts(products.data, grenadaToday());
-  const complete = summary.issued === summary.expected;
   return {
     ...base,
     hint: `${plural(summary.bulletins.length, "bulletin")} live`,
-    status: complete
-      ? { label: "Complete", variant: "light-success" }
-      : { label: "Pending", variant: "light-warning" },
+    status: undefined,
     value: `${summary.issued} / ${summary.expected}`,
   };
 }

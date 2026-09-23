@@ -9,6 +9,7 @@ import {
 import type { ProductValues, StoredProduct } from "@barrelsgd/gms/products";
 import { isProductKind } from "@barrelsgd/gms/products";
 import { z } from "zod";
+import { reportError } from "@/lib/report-error";
 import {
   productPreviewInputSchema,
   productPreviewSchema,
@@ -16,7 +17,14 @@ import {
 } from "@/lib/wxproducts/api-schemas";
 import { productInputSchema } from "@/lib/wxproducts/product-input";
 
-class ProductApiError extends Error {}
+class ProductApiError extends Error {
+  readonly status: number;
+
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+  }
+}
 
 function toUiValues(
   values: Record<string, string | null | undefined>
@@ -53,7 +61,8 @@ export async function downloadProductPdfAction(id: string, revision: number) {
       throw new Error("PDF unavailable");
     const blob = await response.blob();
     return { ok: true as const, blob };
-  } catch {
+  } catch (error) {
+    reportError(error, "wxproducts");
     return {
       ok: false as const,
       error:
@@ -75,7 +84,8 @@ async function request(path: string, init?: RequestInit): Promise<unknown> {
     throw new ProductApiError(
       [400, 403, 409, 422].includes(response.status) && detail.success
         ? detail.data.detail
-        : "Check your session and connection, then try again."
+        : "Check your session and connection, then try again.",
+      response.status
     );
   }
   return body;
@@ -110,6 +120,7 @@ export async function saveProductAction(raw: unknown) {
     );
     return { ok: true as const, product: toUiStoredProduct(product) };
   } catch (error) {
+    reportError(error, "wxproducts");
     return {
       ok: false as const,
       error:
@@ -130,7 +141,8 @@ export async function loadProductsAction(kind: string, issueDate: string) {
       await request(`/_backend/weather/products?${query}`)
     );
     return { ok: true as const, products: products.map(toUiStoredProduct) };
-  } catch {
+  } catch (error) {
+    reportError(error, "wxproducts");
     return {
       ok: false as const,
       error: "Could not load saved products. Try again.",
@@ -145,7 +157,8 @@ export async function loadProductHistoryAction(id: string) {
       await request(`/_backend/weather/products/${id}/history`)
     );
     return { ok: true as const, history };
-  } catch {
+  } catch (error) {
+    reportError(error, "wxproducts");
     return { ok: false as const, error: "Could not load revision history." };
   }
 }
@@ -171,6 +184,7 @@ export async function previewProductAction(raw: unknown) {
       preview: { ...preview, values: toUiValues(preview.values) },
     };
   } catch (error) {
+    reportError(error, "wxproducts");
     return {
       ok: false as const,
       error:

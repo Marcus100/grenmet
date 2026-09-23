@@ -39,7 +39,7 @@ for (const [name, component] of [
     });
     render(await component());
     expect(fetchPublishedContent).toHaveBeenCalledWith(
-      name === "Latest from us" ? "latest" : "news"
+      name === "Latest from us" ? "latest" : "latest-publications"
     );
     expect(
       screen.getAllByRole("link", { name: MARINE_TITLE })[0]

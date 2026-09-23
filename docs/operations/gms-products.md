@@ -1,5 +1,9 @@
 # GMS authored products
 
+**Status:** Active reference  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-18
+
 The product desk in gaa-admin calls FastAPI, which owns authoring and migrations in the separate wxproducts Postgres database.
 
 - Forecasts: `/wxproducts/fcsts` (morning, midday, evening).
@@ -109,7 +113,7 @@ FastAPI prestart owns weather migrations. The weather URL must target the existi
 separate database; this is not a database consolidation. The baseline verifies
 Drizzle hashes and the expected table/column/constraint/index/enum structure before
 adoption. Stop and reconcile a mismatch rather than stamping an unknown schema.
-Historical Drizzle files/journals remain as reference; new weather migrations use
+The adopted history is recorded in `src/wxproducts/migrations/drizzle-history.json` (the web-side Drizzle files were removed on 2026-09-23); new weather migrations use
 `src/wxproducts/alembic.ini`. No production migration or deployment is performed
 merely by editing these files.
 

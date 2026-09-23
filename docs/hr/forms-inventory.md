@@ -1,5 +1,9 @@
 # HR Forms → Model Inventory
 
+**Status:** Active reference  
+**Owner:** GAA (institutional content); maintained by Barrels Grenada  
+**Last updated:** 2026-06-28
+
 Source-of-truth mapping from the Grenada Airports Authority (GAA) paper HR forms to the FastAPI
 `src/hr` data models. Raw forms live outside the repo at
 `OneDrive/bishop/raw/03-software-data/grenmet/hr`.

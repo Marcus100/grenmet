@@ -1,5 +1,9 @@
 # Data Architecture
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-20
+
 Barrels Grenada currently uses a modular-monolith data model: several applications share one deployed PostgreSQL server, but each domain owns its database or schema boundary.
 
 ## Database Ownership
@@ -65,7 +69,7 @@ Rules:
 - Edit models and migrations under `apps/api/fastapi/src/wxproducts/`.
 - From `apps/api/fastapi`, run `uv run --frozen --package fast-back alembic -c src/wxproducts/alembic.ini revision -m "description"` and implement the migration.
 - Apply with `uv run --frozen --package fast-back alembic -c src/wxproducts/alembic.ini upgrade head`.
-- Do not generate new Drizzle migrations for these domains. Hono does not require Drizzle.
+- Do not generate new Drizzle migrations for these domains.
 - Keep fixed-output PDF requirements in the document lane; do not force those dimensions into generic UI tokens.
 
 ## Backups

@@ -6,16 +6,18 @@
 import * as z from "zod";
 import { observationRecordPropertiesKindEnumSchema } from "./observationRecordPropertiesKindEnumSchema.js";
 
-export const registerObservationCreateSchema = z.object({
-  station_id: z.string().min(1).max(64),
-  station_name: z.union([z.string().max(200), z.null()]).optional(),
-  aerodrome_icao: z.union([z.string().min(4).max(4), z.null()]).optional(),
-  kind: observationRecordPropertiesKindEnumSchema,
-  observed_at: z.iso.datetime(),
-  issued_at: z.union([z.iso.datetime(), z.null()]).optional(),
-  body: z.object({}).catchall(z.unknown()).optional(),
-  raw_tac: z.union([z.string().max(12000), z.null()]).optional(),
-  bufr: z.union([z.object({}).catchall(z.unknown()), z.null()]).optional(),
-  iwxxm: z.union([z.object({}).catchall(z.unknown()), z.null()]).optional(),
-  id: z.uuid().optional(),
-});
+export const registerObservationCreateSchema = z
+  .object({
+    station_id: z.string().min(1).max(64),
+    station_name: z.union([z.string().max(200), z.null()]).optional(),
+    aerodrome_icao: z.union([z.string().min(4).max(4), z.null()]).optional(),
+    kind: observationRecordPropertiesKindEnumSchema,
+    observed_at: z.iso.datetime(),
+    issued_at: z.union([z.iso.datetime(), z.null()]).optional(),
+    body: z.object({}).catchall(z.unknown()).optional(),
+    raw_tac: z.union([z.string().max(12000), z.null()]).optional(),
+    bufr: z.union([z.object({}).catchall(z.unknown()), z.null()]).optional(),
+    iwxxm: z.union([z.object({}).catchall(z.unknown()), z.null()]).optional(),
+    id: z.uuid().optional(),
+  })
+  .strict();

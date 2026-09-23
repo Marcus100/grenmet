@@ -19,6 +19,7 @@ function fixture(directory) {
     CORE_PRIVATE_IP: "10.10.0.2",
     DEPLOY_IMAGE_TAG: `sha-${"a".repeat(40)}`,
   };
+  env.NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS = undefined;
   for (const key of [
     "POSTGRES_USER",
     "POSTGRES_PASSWORD",
@@ -208,6 +209,37 @@ test("staging and production pass integrations to the intended services", () => 
       assert.equal(api.SENTRY_DSN, env.SENTRY_DSN);
       assert.equal(api.REDIS_URL, "redis://redis:6379/0");
       assert.equal(api.EMAIL_RENDER_URL, "http://web-auth:3000");
+      const baseDomain =
+        deploymentEnvironment === "staging"
+          ? "staging.barrels.gd"
+          : "barrels.gd";
+      for (const service of [api, model.services.worker.environment]) {
+        assert.equal(service.RESEND_API_KEY, env.RESEND_API_KEY);
+        assert.equal(service.EMAILS_FROM_EMAIL, "noreply@barrels.gd");
+        assert.equal(service.EMAIL_RENDER_URL, "http://web-auth:3000");
+        assert.equal(service.EMAIL_RENDER_SECRET, env.EMAIL_RENDER_SECRET);
+        assert.equal(
+          service.NOTIFICATIONS_WEB_BASE_URL,
+          `https://admin.${baseDomain}`
+        );
+        assert.equal(
+          service.NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS,
+          deploymentEnvironment === "staging" ? "barrels.gd" : ""
+        );
+      }
+      for (const [key, subdomain] of Object.entries({
+        ADMIN_APP_URL: "admin",
+        DOCS_APP_URL: "docs",
+        GMS_APP_URL: "weather",
+        SIGNAL_APP_URL: "signal",
+        MBIA_APP_URL: "mbia",
+        EVENTS_APP_URL: "events",
+      })) {
+        assert.equal(
+          model.services["web-auth"].environment[key],
+          `https://${subdomain}.${baseDomain}`
+        );
+      }
       assert.equal(
         model.services.worker.environment.SENTRY_DSN,
         env.SENTRY_DSN
@@ -238,6 +270,77 @@ test("staging and production pass integrations to the intended services", () => 
           undefined
         );
       }
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  }
+});
+test("notification recipient policy defaults safely and accepts explicit domains", () => {
+  for (const [environment, configured, expected] of [
+    ["staging", undefined, "barrels.gd"],
+    ["staging", "  ", "barrels.gd"],
+    ["production", undefined, ""],
+    [
+      "staging",
+      "Example.test, STAFF.Example.test",
+      "example.test,staff.example.test",
+    ],
+    ["production", "example.test", "example.test"],
+  ]) {
+    const directory = mkdtempSync(join(tmpdir(), "notification-policy-"));
+    try {
+      const { env, config, destination } = fixture(directory);
+      writeFileSync(
+        config,
+        readFileSync(config, "utf8").replace(
+          "ENVIRONMENT=staging",
+          `ENVIRONMENT=${environment}`
+        )
+      );
+      if (configured !== undefined)
+        env.NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS = configured;
+      execFileSync(
+        "python3",
+        ["scripts/production/render-env.py", config, destination],
+        { env }
+      );
+      assert.ok(
+        readFileSync(destination, "utf8")
+          .split("\n")
+          .includes(
+            `NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS=${JSON.stringify(expected)}`
+          )
+      );
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  }
+});
+
+test("notification recipient policy rejects malformed domains without echoing them", () => {
+  for (const domains of [
+    "*",
+    "https://example.test",
+    "example.test,",
+    "example.test\nDO_NOT_ECHO",
+    "user@example.test",
+  ]) {
+    const directory = mkdtempSync(
+      join(tmpdir(), "notification-policy-rejected-")
+    );
+    try {
+      const { env, config, destination } = fixture(directory);
+      const result = spawnSync(
+        "python3",
+        ["scripts/production/render-env.py", config, destination],
+        {
+          env: { ...env, NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS: domains },
+          encoding: "utf8",
+        }
+      );
+      assert.notEqual(result.status, 0);
+      assert.ok(result.stderr.includes("NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS"));
+      assert.equal(result.stderr.includes(domains), false);
     } finally {
       rmSync(directory, { recursive: true, force: true });
     }

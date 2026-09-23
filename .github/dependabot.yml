@@ -71,7 +71,6 @@ updates:
   - package-ecosystem: docker
     directories:
       - /apps/web/*
-      - /apps/api/honoapi
     target-branch: dev
     schedule:
       interval: weekly
@@ -104,7 +103,7 @@ updates:
     commit-message:
       prefix: ⬆
 
-  # pnpm (monorepo root — covers all workspace packages: apps/web/*, apps/api/honoapi, packages/*)
+  # pnpm (monorepo root — covers all workspace packages: apps/web/*, packages/*)
   # Dependabot uses the "npm" ecosystem for pnpm; it detects pnpm-lock.yaml automatically.
   - package-ecosystem: npm
     directory: /

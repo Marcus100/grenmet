@@ -1,5 +1,9 @@
 # GMS Service and Product Catalogue
 
+**Status:** Planning and governance reference  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-08-19
+
 This document defines the full catalogue of potential GMS services and their associated products. It is the detailed operational reference that accompanies the strategic framing in [GMS Digital Service Architecture](../architecture.md).
 
 > **Status:** Planning and governance reference. These are potential services, not a committed build order. Each service and product must be phased, resourced, and approved by GMS leadership and relevant stakeholders before it becomes an operational commitment. The [programme roadmap](./roadmap.md) tracks what is actively in scope.

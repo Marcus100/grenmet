@@ -1,6 +1,5 @@
 const cmsFailure = /CMS sign-in destination failed/;
 const authFailure = /auth.staging.example.test/;
-const honoFailure = /Functional smoke failed: hapi/;
 
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -88,45 +87,20 @@ test("CAP and product storage failures block release rather than reading as empt
   }
 });
 
-for (const domain of ["staging.example.test", "example.test"]) {
-  test(`Hono HTTPS health gates deployment to ${domain}`, async () => {
-    const healthUrl = `https://hapi.${domain}/health`;
-    const urls = [];
-    const healthy = (url) => {
-      urls.push(url);
-      if (new URL(url).pathname === "/signin")
-        return Promise.resolve(new Response(cmsLink(domain)));
-      return Promise.resolve(
-        new Response(
-          url === healthUrl
-            ? '{"status":"ok","service":"api-hono"}'
-            : '<main><form>{"docs":[],"ready":true,"data":[],"products":[]}</form></main>'
-        )
-      );
-    };
-    await checkDeployment(domain, healthy);
-    assert.ok(urls.includes(healthUrl));
-    for (const response of [
-      new Response('{"status":"ok"}', { status: 503 }),
-      new Response('{"status":"unhealthy"}'),
-      new Response("<html>Proxy fallback</html>"),
-    ]) {
-      await assert.rejects(
-        checkDeployment(domain, (url) =>
-          url === healthUrl ? Promise.resolve(response) : healthy(url)
-        ),
-        honoFailure
-      );
-    }
-    const tlsFailure = new Error("self-signed certificate");
-    await assert.rejects(
-      checkDeployment(domain, (url) =>
-        url === healthUrl ? Promise.reject(tlsFailure) : healthy(url)
-      ),
-      (error) => error === tlsFailure
+test("deployment smoke no longer probes the retired Hono API", async () => {
+  const urls = [];
+  await checkDeployment("example.test", (url) => {
+    urls.push(url);
+    if (new URL(url).pathname === "/signin")
+      return Promise.resolve(new Response(cmsLink("example.test")));
+    return Promise.resolve(
+      new Response(
+        '<main><form>{"docs":[],"ready":true,"data":[],"products":[]}</form></main>'
+      )
     );
   });
-}
+  assert.ok(!urls.some((url) => new URL(url).hostname.startsWith("hapi.")));
+});
 
 function cmsLink(domain) {
   return `<a href="https://auth.${domain}/?app=gms-cms&amp;returnTo=${encodeURIComponent(`https://cms.${domain}/admin`)}">Sign in with GMS</a>`;

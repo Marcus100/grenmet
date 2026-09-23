@@ -1,5 +1,9 @@
 # Security Baseline
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-18
+
 This guide records the current Barrels Grenada security posture and the rules that keep docs and code aligned. It is not a full organizational security policy; it is the repo-level baseline for engineers.
 
 ## Implemented Controls
@@ -143,8 +147,8 @@ an assumed lack of reachability.
 ### Node runtime remediation candidate
 
 The nine Node Dockerfiles now separate `build-base` from `runtime-base`.
-Builders retain Corepack/pnpm for frozen installs and compilation. Final web,
-Hono and migration stages remove bundled npm, Corepack and Yarn, including
+Builders retain Corepack/pnpm for frozen installs and compilation. Final web
+and migration stages remove bundled npm, Corepack and Yarn, including
 executables and their global installation directories. Application dependencies
 remain intact; the audited runtime and migration entrypoints invoke Node directly.
 
@@ -163,7 +167,7 @@ full API database regressions and remaining image scans are required. No vulnera
 The operator's first rebuilt CMS migration image passed offline smoke but failed
 vulnerability policy (133 reported findings; no exceptions). Blocking entries
 identify esbuild 0.18.20, esbuild 0.25.12 and native TypeScript 7.0.2 binaries.
-Scoped overrides replace esbuild under Drizzle Kit 0.31.7 and
+Scoped overrides replace esbuild under Drizzle Kit 0.31.7 (a Payload CMS dependency) and
 @esbuild-kit/core-utils 3.3.2 with 0.28.2. A named migration catalog supplies
 TypeScript 6.0.3, preserving the JavaScript compiler API used by Payload tooling;
 the application build/type-check catalog stays on TypeScript 7.

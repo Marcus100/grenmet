@@ -1,6 +1,7 @@
 export * from "./.kubb/client.js";
 export * from "./.kubb/serializers.js";
 export * from "./.kubb/standardSchema.js";
+export { auditGetHistory } from "./clients/auditGetHistory.js";
 export { authBrowserSession } from "./clients/authBrowserSession.js";
 export { authCreatePermission } from "./clients/authCreatePermission.js";
 export { authCreateRole } from "./clients/authCreateRole.js";
@@ -201,6 +202,14 @@ export { hrUploadDocument } from "./clients/hrUploadDocument.js";
 export { hrValidateCsv } from "./clients/hrValidateCsv.js";
 export { hrValidateGrid } from "./clients/hrValidateGrid.js";
 export { janitorialSpec } from "./clients/janitorialSpec.js";
+export { notificationsGetNotificationPreferences } from "./clients/notificationsGetNotificationPreferences.js";
+export { notificationsGetNotificationSettings } from "./clients/notificationsGetNotificationSettings.js";
+export { notificationsGetNotifications } from "./clients/notificationsGetNotifications.js";
+export { notificationsGetUnreadCount } from "./clients/notificationsGetUnreadCount.js";
+export { notificationsMarkAllNotificationsRead } from "./clients/notificationsMarkAllNotificationsRead.js";
+export { notificationsMarkNotificationRead } from "./clients/notificationsMarkNotificationRead.js";
+export { notificationsUpdateNotificationPreferences } from "./clients/notificationsUpdateNotificationPreferences.js";
+export { notificationsUpdateNotificationSetting } from "./clients/notificationsUpdateNotificationSetting.js";
 export { transportSpec } from "./clients/transportSpec.js";
 export { utilsHealthCheck } from "./clients/utilsHealthCheck.js";
 export { utilsReady } from "./clients/utilsReady.js";
@@ -228,6 +237,11 @@ export { wxwatchRegisterDerivation } from "./clients/wxwatchRegisterDerivation.j
 export { wxwatchRetrievals } from "./clients/wxwatchRetrievals.js";
 export { wxwatchStartRun } from "./clients/wxwatchStartRun.js";
 export { wxwatchWeatherImage } from "./clients/wxwatchWeatherImage.js";
+export {
+  auditGetHistoryQueryKey,
+  auditGetHistoryQueryOptions,
+  useAuditGetHistory,
+} from "./hooks/useAuditGetHistory.js";
 export {
   authBrowserSessionQueryKey,
   authBrowserSessionQueryOptions,
@@ -1229,6 +1243,46 @@ export {
   useJanitorialSpec,
 } from "./hooks/useJanitorialSpec.js";
 export {
+  notificationsGetNotificationPreferencesQueryKey,
+  notificationsGetNotificationPreferencesQueryOptions,
+  useNotificationsGetNotificationPreferences,
+} from "./hooks/useNotificationsGetNotificationPreferences.js";
+export {
+  notificationsGetNotificationSettingsQueryKey,
+  notificationsGetNotificationSettingsQueryOptions,
+  useNotificationsGetNotificationSettings,
+} from "./hooks/useNotificationsGetNotificationSettings.js";
+export {
+  notificationsGetNotificationsQueryKey,
+  notificationsGetNotificationsQueryOptions,
+  useNotificationsGetNotifications,
+} from "./hooks/useNotificationsGetNotifications.js";
+export {
+  notificationsGetUnreadCountQueryKey,
+  notificationsGetUnreadCountQueryOptions,
+  useNotificationsGetUnreadCount,
+} from "./hooks/useNotificationsGetUnreadCount.js";
+export {
+  notificationsMarkAllNotificationsReadMutationKey,
+  notificationsMarkAllNotificationsReadMutationOptions,
+  useNotificationsMarkAllNotificationsRead,
+} from "./hooks/useNotificationsMarkAllNotificationsRead.js";
+export {
+  notificationsMarkNotificationReadMutationKey,
+  notificationsMarkNotificationReadMutationOptions,
+  useNotificationsMarkNotificationRead,
+} from "./hooks/useNotificationsMarkNotificationRead.js";
+export {
+  notificationsUpdateNotificationPreferencesMutationKey,
+  notificationsUpdateNotificationPreferencesMutationOptions,
+  useNotificationsUpdateNotificationPreferences,
+} from "./hooks/useNotificationsUpdateNotificationPreferences.js";
+export {
+  notificationsUpdateNotificationSettingMutationKey,
+  notificationsUpdateNotificationSettingMutationOptions,
+  useNotificationsUpdateNotificationSetting,
+} from "./hooks/useNotificationsUpdateNotificationSetting.js";
+export {
   transportSpecQueryKey,
   transportSpecQueryOptions,
   useTransportSpec,
@@ -1381,6 +1435,19 @@ export type { ArchiveHistory } from "./models/ArchiveHistory.js";
 export type { ArchivePage } from "./models/ArchivePage.js";
 export type { ArchiveRetrieval } from "./models/ArchiveRetrieval.js";
 export type { AreaView } from "./models/AreaView.js";
+export type { AuditChangePublic } from "./models/AuditChangePublic.js";
+export type { AuditEntryPublic } from "./models/AuditEntryPublic.js";
+export type {
+  AuditGetHistoryOptions,
+  AuditGetHistoryPath,
+  AuditGetHistoryQuery,
+  AuditGetHistoryResponse,
+  AuditGetHistoryResponses,
+  AuditGetHistoryStatus200,
+  AuditGetHistoryStatus403,
+  AuditGetHistoryStatus404,
+  AuditGetHistoryStatus422,
+} from "./models/AuditGetHistory.js";
 export type {
   AuthBrowserSessionOptions,
   AuthBrowserSessionResponse,
@@ -3450,6 +3517,86 @@ export { legacyProductWritePropertiesActionEnum } from "./models/LegacyProductWr
 export type { LegacyStoredProduct } from "./models/LegacyStoredProduct.js";
 export type { Message } from "./models/Message.js";
 export type { NewPassword } from "./models/NewPassword.js";
+export type { NotificationParams } from "./models/NotificationParams.js";
+export type { NotificationPreferencePublic } from "./models/NotificationPreferencePublic.js";
+export type { NotificationPreferenceUpdate } from "./models/NotificationPreferenceUpdate.js";
+export type { NotificationPublic } from "./models/NotificationPublic.js";
+export type { NotificationSettingPublic } from "./models/NotificationSettingPublic.js";
+export type { NotificationSettingsPublic } from "./models/NotificationSettingsPublic.js";
+export type { NotificationSettingUpdate } from "./models/NotificationSettingUpdate.js";
+export type {
+  NotificationsGetNotificationPreferencesOptions,
+  NotificationsGetNotificationPreferencesResponse,
+  NotificationsGetNotificationPreferencesResponses,
+  NotificationsGetNotificationPreferencesStatus200,
+  NotificationsGetNotificationPreferencesStatus401,
+  NotificationsGetNotificationPreferencesStatus422,
+} from "./models/NotificationsGetNotificationPreferences.js";
+export type {
+  NotificationsGetNotificationSettingsOptions,
+  NotificationsGetNotificationSettingsQuery,
+  NotificationsGetNotificationSettingsResponse,
+  NotificationsGetNotificationSettingsResponses,
+  NotificationsGetNotificationSettingsStatus200,
+  NotificationsGetNotificationSettingsStatus403,
+  NotificationsGetNotificationSettingsStatus422,
+} from "./models/NotificationsGetNotificationSettings.js";
+export type {
+  NotificationsGetNotificationsOptions,
+  NotificationsGetNotificationsQuery,
+  NotificationsGetNotificationsResponse,
+  NotificationsGetNotificationsResponses,
+  NotificationsGetNotificationsStatus200,
+  NotificationsGetNotificationsStatus401,
+  NotificationsGetNotificationsStatus422,
+} from "./models/NotificationsGetNotifications.js";
+export type {
+  NotificationsGetUnreadCountOptions,
+  NotificationsGetUnreadCountResponse,
+  NotificationsGetUnreadCountResponses,
+  NotificationsGetUnreadCountStatus200,
+  NotificationsGetUnreadCountStatus401,
+  NotificationsGetUnreadCountStatus422,
+} from "./models/NotificationsGetUnreadCount.js";
+export type {
+  NotificationsMarkAllNotificationsReadOptions,
+  NotificationsMarkAllNotificationsReadResponse,
+  NotificationsMarkAllNotificationsReadResponses,
+  NotificationsMarkAllNotificationsReadStatus200,
+  NotificationsMarkAllNotificationsReadStatus401,
+  NotificationsMarkAllNotificationsReadStatus422,
+} from "./models/NotificationsMarkAllNotificationsRead.js";
+export type {
+  NotificationsMarkNotificationReadOptions,
+  NotificationsMarkNotificationReadPath,
+  NotificationsMarkNotificationReadResponse,
+  NotificationsMarkNotificationReadResponses,
+  NotificationsMarkNotificationReadStatus200,
+  NotificationsMarkNotificationReadStatus404,
+  NotificationsMarkNotificationReadStatus422,
+} from "./models/NotificationsMarkNotificationRead.js";
+export type {
+  NotificationsUpdateNotificationPreferencesBody,
+  NotificationsUpdateNotificationPreferencesOptions,
+  NotificationsUpdateNotificationPreferencesResponse,
+  NotificationsUpdateNotificationPreferencesResponses,
+  NotificationsUpdateNotificationPreferencesStatus200,
+  NotificationsUpdateNotificationPreferencesStatus400,
+  NotificationsUpdateNotificationPreferencesStatus422,
+} from "./models/NotificationsUpdateNotificationPreferences.js";
+export type {
+  NotificationsUpdateNotificationSettingBody,
+  NotificationsUpdateNotificationSettingOptions,
+  NotificationsUpdateNotificationSettingPath,
+  NotificationsUpdateNotificationSettingQuery,
+  NotificationsUpdateNotificationSettingResponse,
+  NotificationsUpdateNotificationSettingResponses,
+  NotificationsUpdateNotificationSettingStatus200,
+  NotificationsUpdateNotificationSettingStatus400,
+  NotificationsUpdateNotificationSettingStatus403,
+  NotificationsUpdateNotificationSettingStatus404,
+  NotificationsUpdateNotificationSettingStatus422,
+} from "./models/NotificationsUpdateNotificationSetting.js";
 export type { ObservationList } from "./models/ObservationList.js";
 export type { ObservationProvenance } from "./models/ObservationProvenance.js";
 export type { ObservationProvenancePropertiesPublicationStateEnum } from "./models/ObservationProvenancePropertiesPublicationStateEnum.js";
@@ -3467,6 +3614,8 @@ export type { OutlookProductPreviewInput } from "./models/OutlookProductPreviewI
 export type { OutlookProductWrite } from "./models/OutlookProductWrite.js";
 export type { OutlookStoredProduct } from "./models/OutlookStoredProduct.js";
 export type { OutlookValuesDraft } from "./models/OutlookValuesDraft.js";
+export type { PaginatedResponseAuditEntryPublic } from "./models/PaginatedResponseAuditEntryPublic.js";
+export type { PaginatedResponseNotificationPublic } from "./models/PaginatedResponseNotificationPublic.js";
 export type { PaginatedResponsePermissionPublic } from "./models/PaginatedResponsePermissionPublic.js";
 export type { PaginatedResponseRolePublic } from "./models/PaginatedResponseRolePublic.js";
 export type { PaginatedResponseUserPublic } from "./models/PaginatedResponseUserPublic.js";
@@ -3646,6 +3795,8 @@ export type { TwoFactorDisableRequest } from "./models/TwoFactorDisableRequest.j
 export type { TwoFactorSetupResponse } from "./models/TwoFactorSetupResponse.js";
 export type { TwoFactorStatusPublic } from "./models/TwoFactorStatusPublic.js";
 export type { UnitSpec } from "./models/UnitSpec.js";
+export type { UnreachableRecipientPublic } from "./models/UnreachableRecipientPublic.js";
+export type { UnreadCountPublic } from "./models/UnreadCountPublic.js";
 export type { UpdatePassword } from "./models/UpdatePassword.js";
 export type { UserCreate } from "./models/UserCreate.js";
 export type { UserProfilePublic } from "./models/UserProfilePublic.js";
@@ -3948,6 +4099,20 @@ export { archiveHistorySchema } from "./zod/archiveHistorySchema.js";
 export { archivePageSchema } from "./zod/archivePageSchema.js";
 export { archiveRetrievalSchema } from "./zod/archiveRetrievalSchema.js";
 export { areaViewSchema } from "./zod/areaViewSchema.js";
+export { auditChangePublicSchema } from "./zod/auditChangePublicSchema.js";
+export { auditEntryPublicSchema } from "./zod/auditEntryPublicSchema.js";
+export {
+  auditGetHistoryErrorSchema,
+  auditGetHistoryPathEntityIdSchema,
+  auditGetHistoryPathEntityTypeSchema,
+  auditGetHistoryQueryPageSchema,
+  auditGetHistoryQuerySizeSchema,
+  auditGetHistoryResponseSchema,
+  auditGetHistoryStatus200Schema,
+  auditGetHistoryStatus403Schema,
+  auditGetHistoryStatus404Schema,
+  auditGetHistoryStatus422Schema,
+} from "./zod/auditGetHistorySchema.js";
 export {
   authBrowserSessionErrorSchema,
   authBrowserSessionResponseSchema,
@@ -5832,6 +5997,80 @@ export { legacyProductWriteSchema } from "./zod/legacyProductWriteSchema.js";
 export { legacyStoredProductSchema } from "./zod/legacyStoredProductSchema.js";
 export { messageSchema } from "./zod/messageSchema.js";
 export { newPasswordSchema } from "./zod/newPasswordSchema.js";
+export { notificationParamsSchema } from "./zod/notificationParamsSchema.js";
+export { notificationPreferencePublicSchema } from "./zod/notificationPreferencePublicSchema.js";
+export { notificationPreferenceUpdateSchema } from "./zod/notificationPreferenceUpdateSchema.js";
+export { notificationPublicSchema } from "./zod/notificationPublicSchema.js";
+export { notificationSettingPublicSchema } from "./zod/notificationSettingPublicSchema.js";
+export { notificationSettingsPublicSchema } from "./zod/notificationSettingsPublicSchema.js";
+export { notificationSettingUpdateSchema } from "./zod/notificationSettingUpdateSchema.js";
+export {
+  notificationsGetNotificationPreferencesErrorSchema,
+  notificationsGetNotificationPreferencesResponseSchema,
+  notificationsGetNotificationPreferencesStatus200Schema,
+  notificationsGetNotificationPreferencesStatus401Schema,
+  notificationsGetNotificationPreferencesStatus422Schema,
+} from "./zod/notificationsGetNotificationPreferencesSchema.js";
+export {
+  notificationsGetNotificationSettingsErrorSchema,
+  notificationsGetNotificationSettingsQueryOrganisationIdSchema,
+  notificationsGetNotificationSettingsResponseSchema,
+  notificationsGetNotificationSettingsStatus200Schema,
+  notificationsGetNotificationSettingsStatus403Schema,
+  notificationsGetNotificationSettingsStatus422Schema,
+} from "./zod/notificationsGetNotificationSettingsSchema.js";
+export {
+  notificationsGetNotificationsErrorSchema,
+  notificationsGetNotificationsQueryPageSchema,
+  notificationsGetNotificationsQuerySizeSchema,
+  notificationsGetNotificationsQueryUnreadSchema,
+  notificationsGetNotificationsResponseSchema,
+  notificationsGetNotificationsStatus200Schema,
+  notificationsGetNotificationsStatus401Schema,
+  notificationsGetNotificationsStatus422Schema,
+} from "./zod/notificationsGetNotificationsSchema.js";
+export {
+  notificationsGetUnreadCountErrorSchema,
+  notificationsGetUnreadCountResponseSchema,
+  notificationsGetUnreadCountStatus200Schema,
+  notificationsGetUnreadCountStatus401Schema,
+  notificationsGetUnreadCountStatus422Schema,
+} from "./zod/notificationsGetUnreadCountSchema.js";
+export {
+  notificationsMarkAllNotificationsReadErrorSchema,
+  notificationsMarkAllNotificationsReadResponseSchema,
+  notificationsMarkAllNotificationsReadStatus200Schema,
+  notificationsMarkAllNotificationsReadStatus401Schema,
+  notificationsMarkAllNotificationsReadStatus422Schema,
+} from "./zod/notificationsMarkAllNotificationsReadSchema.js";
+export {
+  notificationsMarkNotificationReadErrorSchema,
+  notificationsMarkNotificationReadPathNotificationIdSchema,
+  notificationsMarkNotificationReadResponseSchema,
+  notificationsMarkNotificationReadStatus200Schema,
+  notificationsMarkNotificationReadStatus404Schema,
+  notificationsMarkNotificationReadStatus422Schema,
+} from "./zod/notificationsMarkNotificationReadSchema.js";
+export {
+  notificationsUpdateNotificationPreferencesBodySchema,
+  notificationsUpdateNotificationPreferencesErrorSchema,
+  notificationsUpdateNotificationPreferencesResponseSchema,
+  notificationsUpdateNotificationPreferencesStatus200Schema,
+  notificationsUpdateNotificationPreferencesStatus400Schema,
+  notificationsUpdateNotificationPreferencesStatus422Schema,
+} from "./zod/notificationsUpdateNotificationPreferencesSchema.js";
+export {
+  notificationsUpdateNotificationSettingBodySchema,
+  notificationsUpdateNotificationSettingErrorSchema,
+  notificationsUpdateNotificationSettingPathEventKeySchema,
+  notificationsUpdateNotificationSettingQueryOrganisationIdSchema,
+  notificationsUpdateNotificationSettingResponseSchema,
+  notificationsUpdateNotificationSettingStatus200Schema,
+  notificationsUpdateNotificationSettingStatus400Schema,
+  notificationsUpdateNotificationSettingStatus403Schema,
+  notificationsUpdateNotificationSettingStatus404Schema,
+  notificationsUpdateNotificationSettingStatus422Schema,
+} from "./zod/notificationsUpdateNotificationSettingSchema.js";
 export { observationListSchema } from "./zod/observationListSchema.js";
 export { observationProvenancePropertiesPublicationStateEnumSchema } from "./zod/observationProvenancePropertiesPublicationStateEnumSchema.js";
 export { observationProvenancePropertiesTimeBasisEnumSchema } from "./zod/observationProvenancePropertiesTimeBasisEnumSchema.js";
@@ -5846,6 +6085,8 @@ export { outlookProductPreviewSchema } from "./zod/outlookProductPreviewSchema.j
 export { outlookProductWriteSchema } from "./zod/outlookProductWriteSchema.js";
 export { outlookStoredProductSchema } from "./zod/outlookStoredProductSchema.js";
 export { outlookValuesDraftSchema } from "./zod/outlookValuesDraftSchema.js";
+export { paginatedResponseAuditEntryPublicSchema } from "./zod/paginatedResponseAuditEntryPublicSchema.js";
+export { paginatedResponseNotificationPublicSchema } from "./zod/paginatedResponseNotificationPublicSchema.js";
 export { paginatedResponsePermissionPublicSchema } from "./zod/paginatedResponsePermissionPublicSchema.js";
 export { paginatedResponseRolePublicSchema } from "./zod/paginatedResponseRolePublicSchema.js";
 export { paginatedResponseUserPublicSchema } from "./zod/paginatedResponseUserPublicSchema.js";
@@ -6004,6 +6245,8 @@ export { twoFactorDisableRequestSchema } from "./zod/twoFactorDisableRequestSche
 export { twoFactorSetupResponseSchema } from "./zod/twoFactorSetupResponseSchema.js";
 export { twoFactorStatusPublicSchema } from "./zod/twoFactorStatusPublicSchema.js";
 export { unitSpecSchema } from "./zod/unitSpecSchema.js";
+export { unreachableRecipientPublicSchema } from "./zod/unreachableRecipientPublicSchema.js";
+export { unreadCountPublicSchema } from "./zod/unreadCountPublicSchema.js";
 export { updatePasswordSchema } from "./zod/updatePasswordSchema.js";
 export { userCreateSchema } from "./zod/userCreateSchema.js";
 export { userProfilePublicSchema } from "./zod/userProfilePublicSchema.js";

@@ -143,6 +143,8 @@ services:
       RESEND_WEBHOOK_SECRET: ${RESEND_WEBHOOK_SECRET:-}
       EMAIL_RENDER_URL: ${EMAIL_RENDER_URL:-}
       EMAIL_RENDER_SECRET: ${EMAIL_RENDER_SECRET:-}
+      NOTIFICATIONS_WEB_BASE_URL: https://admin.${BASE_DOMAIN}
+      NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS: ${NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS?Render notification policy before deployment}
       CAP_SIGNING_CERT: ${CAP_SIGNING_CERT:-}
       CAP_SIGNING_KEY: ${CAP_SIGNING_KEY:-}
       CAP_SIGNING_KEY_REF: ${CAP_SIGNING_KEY_REF:-}
@@ -225,6 +227,12 @@ services:
       CAP_SIGNING_KEY: ${CAP_SIGNING_KEY:-}
       CAP_SIGNING_KEY_REF: ${CAP_SIGNING_KEY_REF:-cap-signing-key}
       PROJECT_NAME: ${PROJECT_NAME}
+      RESEND_API_KEY: ${RESEND_API_KEY}
+      EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
+      EMAIL_RENDER_URL: ${EMAIL_RENDER_URL:-}
+      EMAIL_RENDER_SECRET: ${EMAIL_RENDER_SECRET:-}
+      NOTIFICATIONS_WEB_BASE_URL: https://admin.${BASE_DOMAIN}
+      NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS: ${NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS?Render notification policy before deployment}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       STORAGE_ENDPOINT_URL: ${STORAGE_ENDPOINT_URL:-}
       STORAGE_REGION: ${STORAGE_REGION:-}
@@ -252,6 +260,8 @@ services:
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
       SESSION_COOKIE_DOMAIN: .${BASE_DOMAIN}
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN:-}
+      NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
     depends_on:
       db:
         condition: service_healthy
@@ -302,6 +312,12 @@ services:
       EMAIL_RENDER_SECRET: ${EMAIL_RENDER_SECRET:-}
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
       AUTH_API_URL: https://api.${BASE_DOMAIN}
+      ADMIN_APP_URL: https://admin.${BASE_DOMAIN}
+      DOCS_APP_URL: https://docs.${BASE_DOMAIN}
+      GMS_APP_URL: https://weather.${BASE_DOMAIN}
+      SIGNAL_APP_URL: https://signal.${BASE_DOMAIN}
+      MBIA_APP_URL: https://mbia.${BASE_DOMAIN}
+      EVENTS_APP_URL: https://events.${BASE_DOMAIN}
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
       SESSION_COOKIE_DOMAIN: .${BASE_DOMAIN}
@@ -470,6 +486,9 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+    environment:
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN:-}
+      NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web-events${ROUTER_SUFFIX}.rule=Host(`events.${BASE_DOMAIN}`)"
@@ -479,27 +498,6 @@ services:
     networks:
       - grenmet
 
-  api-hono:
-    logging: *bounded-logging
-    image: ghcr.io/${GHCR_OWNER}/barrelsgd-api-hono:${WEB_TAG}
-    restart: always
-    healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 20s
-    environment:
-      ENVIRONMENT: ${ENVIRONMENT}
-      CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.api-hono${ROUTER_SUFFIX}.rule=Host(`hapi.${BASE_DOMAIN}`)"
-      - "traefik.http.routers.api-hono${ROUTER_SUFFIX}.entrypoints=websecure"
-      - "traefik.http.routers.api-hono${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
-      - "traefik.http.services.api-hono${ROUTER_SUFFIX}.loadbalancer.server.port=4000"
-    networks:
-      - grenmet
 
   # ── Database UI (staging only, via COMPOSE_PROFILES=staging) ─────────────────
   adminer:

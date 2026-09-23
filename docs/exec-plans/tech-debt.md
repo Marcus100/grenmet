@@ -1,5 +1,9 @@
 # Tech Debt Tracker
 
+**Status:** Working plan  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-08-19
+
 Known debt, tracked continuously. Each item includes why it exists and
 what unblocks resolution.
 

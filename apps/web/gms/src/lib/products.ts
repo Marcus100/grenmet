@@ -7,6 +7,7 @@ import {
 import type { ProductKind } from "@barrelsgd/gms/products";
 import { cache } from "react";
 import { env } from "@/lib/env";
+import { reportError } from "@/lib/report-error";
 
 export type ProductsResult =
   | { status: "ok"; products: PublicPublishedProduct[] }
@@ -35,9 +36,13 @@ export const fetchPublishedProducts = cache(
       const response = await fetch(url, requestOptions());
       if (!response.ok) return { status: "unavailable", products: [] };
       const parsed = publishedProductsSchema.safeParse(await response.json());
-      if (!parsed.success) return { status: "unavailable", products: [] };
+      if (!parsed.success) {
+        reportError(parsed.error, "gms-products-contract");
+        return { status: "unavailable", products: [] };
+      }
       return { status: "ok", products: parsed.data.products };
-    } catch {
+    } catch (error) {
+      reportError(error, "gms-products");
       return { status: "unavailable", products: [] };
     }
   }
@@ -49,8 +54,13 @@ export const fetchPublicForecast = cache(
       const response = await fetch(endpoint("forecast"), requestOptions());
       if (!response.ok) return null;
       const parsed = publicForecastSchema.safeParse(await response.json());
-      return parsed.success ? parsed.data : null;
-    } catch {
+      if (!parsed.success) {
+        reportError(parsed.error, "gms-forecast-contract");
+        return null;
+      }
+      return parsed.data;
+    } catch (error) {
+      reportError(error, "gms-forecast");
       return null;
     }
   }

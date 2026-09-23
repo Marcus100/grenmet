@@ -1,4 +1,6 @@
 import { getPayload } from "payload";
+import { editorialLinksSchema } from "../../../../lib/editorial-links";
+import { reportError } from "../../../../lib/report-error";
 import config from "../../../../payload.config";
 
 export const dynamic = "force-dynamic";
@@ -72,16 +74,24 @@ export async function GET(request: Request) {
       title: doc.title,
       slug: doc.slug,
       section: doc.section ?? null,
+      category:
+        {
+          "latest-from-us": doc.updateType,
+          "weather-news": doc.newsType,
+          "latest-publications": doc.publicationType,
+        }[doc.section] ?? null,
       summary: doc.summary ?? null,
       body: bodyToText(doc.body),
       imageUrl: typeof doc.image === "object" ? (doc.image?.url ?? null) : null,
       updatedAt: doc.updatedAt,
+      relatedLinks: editorialLinksSchema.parse(doc.relatedLinks ?? []),
     }));
     return Response.json(
       { articles },
       { headers: { "Cache-Control": "no-store" } }
     );
-  } catch {
+  } catch (error) {
+    reportError(error, "cms-public-content");
     return Response.json(
       { error: "Content is unavailable" },
       { status: 503, headers: { "Cache-Control": "no-store" } }

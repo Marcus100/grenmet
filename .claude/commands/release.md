@@ -35,7 +35,7 @@ a queued deploy job usually means the self-hosted production runner is offline.
 **5. Verify**
 `curl -fsS https://api.barrels.gd/api/v1/utils/health-check/` and report status.
 List the canonical app domains from `docs/deployment.md#canonical-app-domains`
-for the user to spot-check; use `/health` for Hono.
+for the user to spot-check.
 
 **Output style:** one short status line per gate as you pass it. At each human
 gate, say exactly what to click/run and nothing else.

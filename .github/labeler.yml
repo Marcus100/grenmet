@@ -81,7 +81,6 @@ dependencies:
           - pnpm-lock.yaml
           - pnpm-workspace.yaml
           - apps/web/*/package.json
-          - apps/api/honoapi/package.json
           - packages/*/package.json
 
 # CI/CD changes

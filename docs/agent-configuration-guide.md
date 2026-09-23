@@ -1,5 +1,9 @@
 # Learn to Design AI-Agent Workspaces
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-23
+
 > This is a tutorial, not just a reference list. Read it in order, inspect the linked files in this repository, and complete the exercises before changing the configuration.
 
 ## Your learning mission
@@ -97,32 +101,40 @@ Isolated parallel work         -> subagent
 
 ## What exists in this repository
 
-> **2026-09 update:** the directory layout and the two issues flagged below
-> under "Important local improvement opportunities" (#1 skill duplication,
-> #2 the commit contradiction) have since been resolved — see
-> `docs/audit-2026-09-documentation.md` and the current `.claude/hooks/`,
-> `.codex/config.toml`, and `.agents/skills` symlink. The rest of this guide
-> (concepts, vocabulary, learning path) still applies; treat the "What exists
-> in this repository" section below as historical unless re-verified.
-
-The repository has one agent configuration tree with two entry points:
+> **2026-09-23 layout:** `AGENTS.md` is canonical everywhere. Every
+> directory with instructions has an `AGENTS.md` (read natively by Codex) and a
+> sibling `CLAUDE.md` containing only `@AGENTS.md` (Claude Code reads
+> `CLAUDE.md` whenever a root `CLAUDE.md` exists, and expands the import).
+> `scripts/guardrails/check-agent-config.test.mjs` enforces the pairing, the
+> root instruction map, and the Codex byte budget.
 
 ```text
 /workspace
-├── AGENTS.md          # Codex entry point
-├── CLAUDE.md           # Claude Code entry point — both cross-reference
+├── AGENTS.md            # canonical rules + instruction map (Codex and Claude)
+├── CLAUDE.md            # @AGENTS.md + Claude-only notes
+├── apps/**/AGENTS.md    # per app / FastAPI domain, each with a CLAUDE.md stub
+├── packages/*/AGENTS.md # per shared package, each with a CLAUDE.md stub
+├── docs/playbooks/      # end-to-end recipes linked from AGENTS.md
 ├── .agents/
-│   ├── skills/         # symlink -> ../.claude/skills (canonical)
-│   ├── rules/
+│   ├── skills/          # symlink -> ../.claude/skills (canonical)
+│   ├── rules/           # project.md (pointer) + ultracite.mdc (TS style)
 │   └── commands/
 ├── .claude/
-│   ├── skills/         # canonical — edit here, not via the symlink
-│   ├── hooks/           # shared .mjs scripts, invoked by both tools below
+│   ├── skills/          # canonical playbooks — edit here
+│   ├── hooks/           # shared .mjs scripts, invoked by both tools
 │   ├── commands/
 │   └── settings.json    # Claude Code hooks + permissions
 └── .codex/
-    └── config.toml      # Codex hooks — same scripts as .claude/hooks/
+    └── config.toml      # project_doc_max_bytes + Codex hooks (same scripts)
 ```
+
+How each tool loads instructions:
+
+| | Codex | Claude Code |
+| --- | --- | --- |
+| Root | `AGENTS.md` | `CLAUDE.md` → `@AGENTS.md` |
+| Nested | Concatenates `AGENTS.md` from the git root down to its working directory, up to `project_doc_max_bytes` (65 536 here) | Loads a nested `CLAUDE.md` when it reads files in that directory; `@AGENTS.md` expands |
+| Not loaded automatically | Nested files outside the start path — hence the root instruction map | `.agents/` contents |
 
 `.claude/hooks/` mechanically enforces the Never tier for both tools: a
 `PreToolUse` hook blocks `git commit`/`push`/`gh pr merge`/etc.

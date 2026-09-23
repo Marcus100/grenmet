@@ -106,6 +106,35 @@ const telemetryOnlyStartupChange = (comparison) => {
   return before !== after && expected === after;
 };
 
+// This exact query fix includes areas without a section in the existing
+// response model; it does not change the OpenAPI contract.
+const janitorialUnsectionedAreaChange = (comparison) => {
+  const file = "apps/api/fastapi/src/janitorial/router.py";
+  const refs =
+    comparison.mode === "staged"
+      ? [`HEAD:${file}`, `:${file}`]
+      : [`${comparison.base}:${file}`, `${comparison.head}:${file}`];
+  const versions = refs.map((ref) =>
+    spawnSync("git", ["show", ref], { encoding: "utf8" })
+  );
+  if (versions.some((result) => result.error || result.status !== 0))
+    return false;
+  const before = versions[0].stdout;
+  const after = versions[1].stdout;
+  const expected = before.replace(
+    "        LEFT JOIN sections s ON s.building_id=b.id",
+    `        LEFT JOIN (
+            SELECT id, building_id, name, sort_order FROM sections
+            UNION ALL
+            -- Areas without a section form their own group, even in buildings
+            -- that also have sections.
+            SELECT DISTINCT NULL::integer, building_id, NULL::text, NULL::integer
+            FROM areas WHERE section_id IS NULL
+        ) s ON s.building_id=b.id`
+  );
+  return before !== after && expected === after;
+};
+
 const evaluateChanges = (changes, comparison) => {
   const files = new Set(changes.flatMap((change) => change.paths));
   const triggers = [...files]
@@ -113,8 +142,10 @@ const evaluateChanges = (changes, comparison) => {
       (file) =>
         isFastApiContractFile(file) &&
         !(
-          file === "apps/api/fastapi/src/main.py" &&
-          telemetryOnlyStartupChange(comparison)
+          (file === "apps/api/fastapi/src/main.py" &&
+            telemetryOnlyStartupChange(comparison)) ||
+          (file === "apps/api/fastapi/src/janitorial/router.py" &&
+            janitorialUnsectionedAreaChange(comparison))
         )
     )
     .sort();

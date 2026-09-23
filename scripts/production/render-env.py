@@ -67,6 +67,16 @@ def render(config, environment):
     deployment_environment = config.get("ENVIRONMENT")
     if deployment_environment not in {"staging", "production"}:
         raise ValueError("ENVIRONMENT must be staging or production")
+    notification_domains = environment.get("NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS", "").strip()
+    if not notification_domains and deployment_environment == "staging":
+        notification_domains = "barrels.gd"
+    domains = [domain.strip().lower() for domain in notification_domains.split(",")]
+    if notification_domains and any(
+        not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)+", domain)
+        for domain in domains
+    ):
+        raise ValueError("NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS must contain comma-separated domain names")
+    values["NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS"] = ",".join(domains)
     values.update(TAG=f"{deployment_environment}-{tag}", WEB_TAG=f"{deployment_environment}-{tag}")
     for keys in [
         ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"],

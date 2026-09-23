@@ -12,7 +12,22 @@ import {
   it,
   vi,
 } from "vitest";
-import NewAlertPage from "./page";
+import { NewAlertEditor } from "@/components/cap/alert-editor";
+
+const catalogs = {
+  categories: [],
+  response_types: [],
+  urgencies: [],
+  severities: [],
+  certainties: [],
+  statuses: ["Actual", "Exercise", "System", "Test", "Draft"],
+  message_types: ["Alert", "Update", "Cancel", "Ack", "Error"],
+  scopes: ["Public", "Restricted", "Private"],
+  languages: ["en", "fr"],
+};
+function NewAlertPage() {
+  return <NewAlertEditor catalogs={catalogs} />;
+}
 
 const { pushMock, refreshMock } = vi.hoisted(() => ({
   pushMock: vi.fn(),
@@ -77,6 +92,12 @@ function clickSaveDraft() {
 }
 
 describe("NewAlertPage", () => {
+  it("offers language suggestions from the server catalogue", () => {
+    render(<NewAlertPage />);
+    expect(
+      document.querySelector('#cap-languages option[value="fr"]')
+    ).not.toBeNull();
+  });
   it("submits a CapAlertCreate payload and opens the saved draft", async () => {
     render(<NewAlertPage />);
     fireEvent.click(screen.getByText("Edit CAP category mappings"));

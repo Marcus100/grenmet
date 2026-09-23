@@ -362,11 +362,6 @@
   --accent: var(--brand-accent) and break shared component hover states.
 */
 :root {
-  --background: var(--brand-surface-page);
-  --foreground: var(--brand-text-primary);
-  --panel: color-mix(in srgb, var(--brand-surface) 82%, transparent);
-  --panel-strong: var(--brand-surface-page);
-  --line: color-mix(in srgb, var(--brand-border) 70%, transparent);
   --auth-accent: var(--brand-primary-accent);
   --auth-accent-strong: var(--brand-primary);
   --auth-accent-soft: color-mix(
@@ -374,7 +369,16 @@
     var(--brand-primary-accent) 12%,
     transparent
   );
-  --muted: var(--brand-text-muted);
+}
+
+/* Hover goes lighter, not darker, on a dark page. */
+.dark {
+  --auth-accent-strong: var(--brand-accent);
+  --auth-accent-soft: color-mix(
+    in srgb,
+    var(--brand-primary-accent) 25%,
+    transparent
+  );
 }
 
 * {
@@ -385,16 +389,15 @@ html {
   color-scheme: light;
 }
 
+html.dark {
+  color-scheme: dark;
+}
+
 body {
   min-height: 100vh;
   font-family: var(--brand-font-sans);
   color: var(--foreground);
   background: var(--background);
-  background-image: linear-gradient(
-    180deg,
-    var(--brand-surface-page) 0%,
-    var(--brand-surface) 100%
-  );
 }
 
 ::selection {

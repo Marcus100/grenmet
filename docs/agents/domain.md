@@ -1,5 +1,9 @@
 # Domain Docs
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-06-27
+
 How the engineering skills should consume this repo's domain documentation when exploring the codebase. This repo is **single-context**: one glossary for the whole monorepo.
 
 ## Before exploring, read these

@@ -18,18 +18,22 @@
     "type-check": "rm -f next-env.d.ts && tsc --noEmit"
   },
   "dependencies": {
+    "@barrelsgd/api-client": "workspace:*",
     "@barrelsgd/auth": "workspace:*",
     "@barrelsgd/email-templates": "workspace:*",
     "@barrelsgd/gms": "workspace:*",
     "@barrelsgd/ui": "workspace:*",
-    "next": "catalog:",
-    "posthog-node": "catalog:",
-    "react": "catalog:",
-    "react-dom": "catalog:",
-    "zod": "catalog:",
     "@sentry/nextjs": "catalog:",
     "@t3-oss/env-nextjs": "catalog:",
-    "@barrelsgd/api-client": "workspace:*"
+    "lucide-react": "catalog:",
+    "next": "catalog:",
+    "next-themes": "catalog:",
+    "posthog-node": "catalog:",
+    "qrcode": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "sonner": "catalog:",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@barrelsgd/tsconfig": "workspace:*",
@@ -40,6 +44,7 @@
     "@testing-library/user-event": "catalog:",
     "@total-typescript/ts-reset": "catalog:",
     "@types/node": "catalog:",
+    "@types/qrcode": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@vitest/coverage-v8": "catalog:",

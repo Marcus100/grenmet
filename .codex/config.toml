@@ -1,4 +1,4 @@
-# Codex hook configuration for this repo.
+# Codex configuration for this repo (instruction budget and hooks).
 #
 # Mirrors .claude/settings.json's hooks so Claude Code and Codex enforce the
 # same Never-tier rules (see CLAUDE.md/AGENTS.md). Scripts are shared from
@@ -8,6 +8,12 @@
 # Review changed hook definitions in /hooks; trust is tied to their hashes.
 # These scripts are supplementary safeguards, not a substitute for sandbox
 # permissions or approval policy. Keep one hook representation in this layer.
+
+# Codex concatenates AGENTS.md from the repo root down to the working
+# directory and stops at this byte budget (default 32 KiB). Root + FastAPI +
+# a domain guide can exceed the default; scripts/guardrails keeps every chain
+# under this value.
+project_doc_max_bytes = 65536
 
 [[hooks.PreToolUse]]
 matcher = "^Bash$"

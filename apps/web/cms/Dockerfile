@@ -16,7 +16,6 @@ FROM build-base AS source
 WORKDIR /app
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
-COPY apps/api/honoapi/package.json apps/api/honoapi/
 COPY apps/web/auth/package.json apps/web/auth/
 COPY apps/web/cms/package.json apps/web/cms/
 COPY apps/web/docs/package.json apps/web/docs/
@@ -30,24 +29,30 @@ COPY packages/auth/package.json packages/auth/
 COPY packages/cms-migrations/package.json packages/cms-migrations/
 COPY packages/email-templates/package.json packages/email-templates/
 COPY packages/gms/package.json packages/gms/
-COPY packages/mdx/package.json packages/mdx/
 COPY packages/theme/package.json packages/theme/
 COPY packages/tsconfig/package.json packages/tsconfig/
 COPY packages/ui/package.json packages/ui/
 RUN HUSKY=0 pnpm install --frozen-lockfile
 
+ARG SENTRY_PROJECT=""
+ARG NEXT_PUBLIC_SENTRY_DSN=""
+ARG NEXT_PUBLIC_SENTRY_ENVIRONMENT="production"
+ENV SENTRY_PROJECT=$SENTRY_PROJECT
+ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
+ENV NEXT_PUBLIC_SENTRY_ENVIRONMENT=$NEXT_PUBLIC_SENTRY_ENVIRONMENT
 ENV NEXT_TELEMETRY_DISABLED=1
 # Explicit application sources and workspace dependency closure.
 COPY packages/api-client/ packages/api-client/
 COPY packages/auth/ packages/auth/
 COPY packages/cms-migrations/ packages/cms-migrations/
 COPY packages/tsconfig/ packages/tsconfig/
+COPY packages/ui/ packages/ui/
 COPY apps/web/cms/ apps/web/cms/
 RUN pnpm --filter @barrelsgd/api-client build
 
 FROM source AS builder
 # Build-only placeholders; never copied into the runtime environment.
-RUN PAYLOAD_SECRET=build-only-placeholder-not-for-runtime-use DATABASE_URL=postgresql://unused:unused@127.0.0.1:1/gms_cms pnpm exec turbo run build --filter=@barrelsgd/web-cms
+RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN,env=SENTRY_AUTH_TOKEN PAYLOAD_SECRET=build-only-placeholder-not-for-runtime-use DATABASE_URL=postgresql://unused:unused@127.0.0.1:1/gms_cms pnpm exec turbo run build --filter=@barrelsgd/web-cms
 
 # Package the canonical migration config dependencies, excluding the web UI.
 FROM source AS migration-package

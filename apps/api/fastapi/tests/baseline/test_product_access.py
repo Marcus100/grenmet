@@ -94,7 +94,7 @@ async def test_policy_api_is_admin_only_and_rejects_unknown_products_and_grades(
     denied = await async_client.put(
         url + "/marine", headers=normal_user_token_headers_async, json={"grade_ids": []}
     )
-    assert denied.status_code == 403
+    assert denied.status_code == 403, (denied.status_code, denied.text)
     for kind, grades in [
         ("cap", []),
         ("marine", ["OTHER_MANAGER"]),
@@ -105,7 +105,12 @@ async def test_policy_api_is_admin_only_and_rejects_unknown_products_and_grades(
             headers=superuser_token_headers_async,
             json={"grade_ids": grades},
         )
-        assert response.status_code == 400
+        assert response.status_code == 400, (
+            kind,
+            grades,
+            response.status_code,
+            response.text,
+        )
     response = await async_client.get(url, headers=superuser_token_headers_async)
     assert response.status_code == 200 and len(response.json()) == len(
         product_access.PRODUCT_KINDS

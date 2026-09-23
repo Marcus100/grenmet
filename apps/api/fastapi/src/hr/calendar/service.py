@@ -20,7 +20,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
-from src.auth.policy import has_permission, require_permission
+from src.auth.policy import require_permission
 from src.hr.constants import (
     ERROR_CALENDAR_EVENT_END_BEFORE_START,
     ERROR_CALENDAR_EVENT_NO_DEPARTMENT,
@@ -35,6 +35,7 @@ from src.hr.exceptions import (
     HRValidationError,
 )
 from src.hr.models import Department, EmploymentRecord
+from src.hr.organisations import permitted_departments
 from src.utils.datetime import utc_now
 
 from .models import CalendarEvent
@@ -64,6 +65,20 @@ async def _department_for(session: AsyncSession, user: User) -> str | None:
     return employment.department_id if employment else None
 
 
+async def _require_department_permission(
+    session: AsyncSession, user: User, department_id: str, key: str
+) -> Department:
+    department = await session.get(Department, department_id)
+    if department is None:
+        raise DepartmentNotFoundError()
+    permitted = await permitted_departments(
+        session, user, department.organisation_id, key
+    )
+    if department_id not in permitted:
+        raise HRPermissionDeniedError("Department access denied")
+    return department
+
+
 async def list_calendar_events(
     *,
     session: AsyncSession,
@@ -86,8 +101,9 @@ async def list_calendar_events(
         department_id = await _department_for(session, current_user)
         if department_id is None:
             return []
-    elif await session.get(Department, department_id) is None:
-        raise DepartmentNotFoundError()
+    await _require_department_permission(
+        session, current_user, department_id, "calendar.view"
+    )
 
     # An entry belongs in the window if it overlaps it at all, so a week-long
     # training that starts before the window still shows.
@@ -124,8 +140,9 @@ async def create_calendar_event(
         department_id = await _department_for(session, current_user)
         if department_id is None:
             raise HRValidationError(ERROR_CALENDAR_EVENT_NO_DEPARTMENT)
-    elif await session.get(Department, department_id) is None:
-        raise DepartmentNotFoundError()
+    await _require_department_permission(
+        session, current_user, department_id, "calendar.event.create"
+    )
 
     event = CalendarEvent(
         department_id=department_id,
@@ -168,10 +185,13 @@ async def update_calendar_event(
     needs `calendar.manage`."""
     require_permission(current_user=current_user, permission_key="calendar.view")
     event = await get_calendar_event(session=session, event_id=event_id)
+    department = await _require_department_permission(
+        session, current_user, event.department_id, "calendar.view"
+    )
 
     is_author = event.created_by_user_id == current_user.id
-    may_manage = has_permission(
-        current_user=current_user, permission_key="calendar.manage"
+    may_manage = event.department_id in await permitted_departments(
+        session, current_user, department.organisation_id, "calendar.manage"
     )
     if not (is_author or may_manage or current_user.is_superuser):
         logger.warning(

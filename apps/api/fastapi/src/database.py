@@ -7,6 +7,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy.pool import NullPool
 
 # Import all models so their SQLAlchemy tables are registered before startup.
+from src.audit import listener as _audit_listener  # noqa: F401 - flush hook
+from src.audit.models import AuditEntry  # noqa: F401
 from src.auth.models import User  # noqa: F401
 from src.auth.modern_models import AuthChallenge, ExternalIdentity  # noqa: F401
 from src.baseline.models import (  # noqa: F401
@@ -33,6 +35,8 @@ from src.cap.models import (  # noqa: F401
     CapWebhook,
 )
 from src.config import settings
+from src.hr import audit as _hr_audit
+from src.hr import notifications as _hr_notifications
 from src.hr.absentee.models import AbsenteeReport  # noqa: F401
 from src.hr.dailystatus.models import StatusReport, StatusReportEntry  # noqa: F401
 from src.hr.exchange.models import ShiftSwapRequest  # noqa: F401
@@ -74,6 +78,16 @@ from src.hr.workflow.models import (  # noqa: F401
     WorkflowStepTemplate,
     WorkflowTemplate,
 )
+from src.notifications.models import (  # noqa: F401
+    Notification,
+    NotificationDelivery,
+    NotificationPreference,
+    NotificationSetting,
+)
+
+# Modules register what they audit and notify about before any session exists.
+_hr_audit.register()
+_hr_notifications.register()
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 

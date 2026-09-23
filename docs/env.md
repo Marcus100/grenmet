@@ -1,5 +1,9 @@
 # Environment Configuration
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-23
+
 This document is the human-readable reference for supported environment variables
 in the Grenmet monorepo: what each variable does, where it is supplied, and which
 service reads it. Typed settings modules, Compose files, and deployment workflows
@@ -27,10 +31,7 @@ cp apps/web/docs/.env.local.example apps/web/docs/.env.local
 cp apps/web/gms/.env.local.example      apps/web/gms/.env.local
 cp apps/web/signal/.env.local.example       apps/web/signal/.env.local
 
-# 4. Hono API (optional)
-cp apps/api/honoapi/.env.local.example      apps/api/honoapi/.env.local
-
-# 5. Scrapy script (optional — only if using the Scrapy pipeline)
+# 4. Scrapy script (optional — only if using the Scrapy pipeline)
 cp scripts/scrapy-wxwatch/.env.local.example  scripts/scrapy-wxwatch/.env.local
 ```
 
@@ -46,7 +47,6 @@ not require an env file unless those defaults need to be overridden.
 |---|---|---|
 | `infra/docker/.env.local` | `infra/docker/docker-compose.yml` (Postgres, Adminer, tools) | `--env-file infra/docker/.env.local` |
 | `apps/api/fastapi/.env.local` | `apps/api/fastapi/docker-compose.yml` (FastAPI container) | `--env-file apps/api/fastapi/.env.local` |
-| `apps/api/honoapi/.env.local` | Hono development server | N/A |
 | `apps/web/<app>/.env.local` | Next.js development server (`pnpm dev`) | N/A |
 | `scripts/scrapy-wxwatch/.env.local` | wxwatch crawler and database pipeline | N/A |
 | `infra/docker/staging.env` | Staging non-secret deploy configuration | First `--env-file` in deploy workflow |
@@ -135,6 +135,9 @@ the API image and the local source mount contain the same migration assets.
 | `EMAIL_RESET_TOKEN_EXPIRE_HOURS` | Password reset link lifetime |
 | `EMAIL_TEST_USER` | Recipient used by email tests and diagnostics |
 | `RESEND_WEBHOOK_SECRET` | Optional Svix signing secret for Resend webhook verification |
+| `NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS` | Comma-separated domains notification email may go to. Deployment reads the GitHub environment variable of this name; missing/blank staging values default to `barrels.gd`, while missing/blank production values allow all domains. Explicit values must be domain names (no wildcards, URLs or email addresses). Local development must configure its own restriction. |
+| `NOTIFICATIONS_WEB_BASE_URL` | Staff portal base URL used for links in notification emails (local default `http://localhost:3001`). Deployment sets `https://admin.${BASE_DOMAIN}` for both API and worker. |
+| `NOTIFICATIONS_BATCH_SIZE`, `NOTIFICATIONS_MAX_ATTEMPTS` | Worker email outbox batch size (50) and retry limit (5) |
 | `BILLING_STRIPE_SECRET_KEY` | Stripe secret API key; use an `sk_test_...` key locally |
 | `BILLING_STRIPE_WEBHOOK_SECRET` | Stripe endpoint signing secret; locally use the `whsec_...` value printed by `stripe listen` |
 | `BILLING_STRIPE_PRICE_ID` | Recurring Stripe Price used by subscription Checkout Sessions |
@@ -160,19 +163,6 @@ the API image and the local source mount contain the same migration assets.
 `STACK_NAME` and `DOMAIN` are Compose/deployment metadata. They may live beside
 FastAPI settings but are not application settings themselves.
 
-### Hono API (`apps/api/honoapi/.env.local`)
-
-The Hono API is an optional service and is not started by the root `pnpm start`.
-
-| Variable | Purpose |
-|---|---|
-| `PORT` | HTTP port (default: `4000`) |
-| `HOST` | Bind address (default: `0.0.0.0`) |
-| `NODE_ENV` | Node runtime mode: `development`, `production`, or `test` |
-| `ENVIRONMENT` | Deployment environment: `local`, `staging`, `production`, or `test` |
-| `API_PREFIX` | Reserved prefix for future versioned routes (default: `/api/v1`); the current health route is `/health` |
-| `CORS_ORIGINS` | Comma-separated allowlist of browser origins |
-
 ### Auth app (`apps/web/auth/.env.local`)
 
 | Variable | Purpose |
@@ -188,6 +178,14 @@ The Hono API is an optional service and is not started by the root `pnpm start`.
 | `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Sentry environment label (default: `development`) |
 | `NEXT_PUBLIC_POSTHOG_KEY` | Optional PostHog project key |
 | `NEXT_PUBLIC_POSTHOG_HOST` | PostHog ingest host |
+| `ADMIN_APP_URL` | Optional GAA Admin URL for the account-page app links and the "Edit in GAA Admin" profile button |
+| `MBIA_APP_URL` | Optional airport website URL for the account-page app links |
+| `GMS_APP_URL` | Optional GMS weather site URL for the account-page app links |
+| `DOCS_APP_URL` | Optional docs site URL for the account-page app links |
+| `SIGNAL_APP_URL` | Optional Signal URL for the account-page app links |
+| `EVENTS_APP_URL` | Optional Events URL for the account-page app links |
+
+The `*_APP_URL` links fall back to the local ports in `docs/ports.md` in development. In staging and production an unset URL leaves that app listed but not clickable.
 
 ### `AUTH_ALLOWED_RETURN_HOSTS` — how it works
 

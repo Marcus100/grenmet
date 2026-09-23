@@ -31,6 +31,10 @@ import {
   down as down_20260919_040000_fix_version_social_platforms,
   up as up_20260919_040000_fix_version_social_platforms,
 } from "./20260919_040000_fix_version_social_platforms";
+import {
+  down as downEditorialLinks,
+  up as upEditorialLinks,
+} from "./20260923_170000_editorial_links";
 export const migrations = [
   {
     up: up_20260906_203710_initial,
@@ -71,5 +75,10 @@ export const migrations = [
     up: up_20260919_040000_fix_version_social_platforms,
     down: down_20260919_040000_fix_version_social_platforms,
     name: "20260919_040000_fix_version_social_platforms",
+  },
+  {
+    up: upEditorialLinks,
+    down: downEditorialLinks,
+    name: "20260923_170000_editorial_links",
   },
 ];

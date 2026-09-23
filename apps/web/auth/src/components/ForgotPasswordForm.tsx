@@ -4,9 +4,13 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { forgotPasswordAction } from "@/app/actions";
 import { initialForgotPasswordState } from "@/app/actions-types";
-
-const inputClass =
-  "w-full rounded-lg border border-(--line) bg-white/80 px-4 py-3 text-foreground text-body outline-none transition placeholder:text-(--muted) focus:border-(--auth-accent) focus:ring-(--auth-accent-soft) focus:ring-4";
+import {
+  errorBoxClass,
+  inputClass,
+  primaryButtonClass,
+  secondaryButtonClass,
+  textLinkClass,
+} from "@/components/form-styles";
 
 export function ForgotPasswordForm() {
   const [state, formAction, pending] = useActionState(
@@ -17,17 +21,17 @@ export function ForgotPasswordForm() {
   if (state.success) {
     return (
       <div className="space-y-5">
-        <div className="rounded-2xl border border-green-200 bg-green-50 px-5 py-4 text-green-800 text-sm leading-6">
-          <p className="font-medium">Check your inbox</p>
-          <p className="mt-1 text-(--muted) text-body-sm">
+        <div
+          className="rounded-lg border border-border bg-muted px-5 py-4 text-sm leading-6"
+          role="status"
+        >
+          <p className="font-medium text-foreground">Check your inbox</p>
+          <p className="mt-1 text-muted-foreground">
             If <strong>{state.email}</strong> is registered, a password-reset
             link has been sent. It may take a minute to arrive.
           </p>
         </div>
-        <Link
-          className="block text-center text-(--auth-accent) text-sm underline-offset-4 hover:underline"
-          href="/"
-        >
+        <Link className={secondaryButtonClass} href="/">
           Back to sign in
         </Link>
       </div>
@@ -56,25 +60,18 @@ export function ForgotPasswordForm() {
       </div>
 
       {state.error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-red-700 text-sm">
+        <div className={errorBoxClass} role="alert">
           {state.error}
         </div>
       ) : null}
 
-      <button
-        className="w-full rounded-full bg-(--auth-accent) px-5 py-3 font-medium text-sm text-white transition hover:bg-(--auth-accent-strong) disabled:opacity-60"
-        disabled={pending}
-        type="submit"
-      >
+      <button className={primaryButtonClass} disabled={pending} type="submit">
         {pending ? "Sending…" : "Send reset link"}
       </button>
 
-      <p className="text-center text-(--muted) text-body-sm">
+      <p className="text-center text-body-sm text-muted-foreground">
         Remembered it?{" "}
-        <Link
-          className="text-(--auth-accent) underline-offset-4 hover:underline"
-          href="/"
-        >
+        <Link className={textLinkClass} href="/">
           Sign in
         </Link>
       </p>

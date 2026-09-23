@@ -238,3 +238,57 @@ async def test_security_status_never_exposes_session_secrets_and_mfa_cannot_be_r
     with pytest.raises(AppException):
         await service.begin_totp_setup(session=db_async, user=user)
     assert user.totp_enabled and user.totp_secret == "PRIVATE"
+
+
+@pytest.mark.asyncio
+async def test_security_status_lists_session_device_details(db_async):
+    from src.auth import service
+    from src.auth.models import User
+
+    user = User(
+        email="devices@example.com",
+        username="devices",
+        first_name="Device",
+        last_name="Test",
+        hashed_password="unused",
+        roles=[],
+    )
+    db_async.add(user)
+    await db_async.commit()
+    await service.create_session(
+        session=db_async,
+        user=user,
+        client_type="web",
+        app_name="auth",
+        user_agent="Mozilla/5.0 (Windows NT 10.0) Chrome/140.0",
+        ip_address="203.0.113.7",
+    )
+    result = await modern.account_security(session=db_async, user=user)
+    [listed] = result.sessions
+    assert listed.user_agent == "Mozilla/5.0 (Windows NT 10.0) Chrome/140.0"
+    assert listed.ip_address == "203.0.113.7"
+
+
+@pytest.mark.asyncio
+async def test_security_status_reports_when_the_password_last_changed(db_async):
+    from src.auth import service
+    from src.auth.models import User
+
+    user = User(
+        email="changed@example.com",
+        username="changed",
+        first_name="Changed",
+        last_name="Test",
+        hashed_password="unused",
+        roles=[],
+    )
+    db_async.add(user)
+    await db_async.commit()
+    before = await modern.account_security(session=db_async, user=user)
+    assert before.password_changed_at is None
+
+    await service.set_password(
+        session=db_async, user=user, new_password="a-brand-new-password"
+    )
+    after = await modern.account_security(session=db_async, user=user)
+    assert after.password_changed_at is not None

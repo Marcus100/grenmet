@@ -1,5 +1,9 @@
 # WxWatch archive model and meteorological alignment
 
+**Status:** Working plan — partially implemented (see below)  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-17
+
 Status: partially implemented; reviewed against the repository on 2026-09-17. The implementation ledger and next migration sequence below distinguish delivered capabilities from target design. Updating this plan does not apply migrations or change runtime behaviour.
 
 ## Objective and boundary

@@ -1,5 +1,9 @@
 # Systems Integration Roadmap
 
+**Status:** Working plan  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-08-19
+
 How the GMS data systems — the grenmet monorepo (FastAPI, web apps), SURFACE
 CDMS, wis2box, geonetcast, and the Scrapy pipeline — become one connected
 estate. Decided 2026-07-08; WIS2 workshop recommendations reconciled

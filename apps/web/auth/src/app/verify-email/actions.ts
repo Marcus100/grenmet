@@ -1,5 +1,6 @@
 "use server";
 import { emailConfirm, emailRequest } from "@/lib/modern-auth";
+import { reportError } from "@/lib/report-error";
 import { isAuthApiError } from "@/lib/session";
 export async function verifyEmail(
   _state: { message: string; done: boolean },
@@ -17,6 +18,7 @@ export async function verifyEmail(
       : await emailRequest({ email: String(form.get("email") ?? "") });
     return { message: result.message, done: true };
   } catch (error) {
+    reportError(error, "auth-verify-email");
     return {
       message: isAuthApiError(error)
         ? error.detail
