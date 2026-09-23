@@ -94,6 +94,7 @@ GMS or GAA.
 | `scripts/guardrails` | Barrels engineering change-safety automation | Active | Preserve blast-radius checks across all products and programmes |
 | `scripts/verification` | Barrels engineering verification tooling | Implemented; host integration acceptance pending | Share local and CI checks, isolate disposable databases by run and worker, and clean up only the current test project |
 | `scripts/api` | Barrels engineering API generation/drift automation | Active | Keep OpenAPI and generated clients synchronized |
+| `scripts/audit` | Barrels engineering API/UI reference inventory | Active | Reproduce route-reference candidates for the launch ledger; static references do not establish connected journey coverage |
 
 ## Infrastructure and operations
 
