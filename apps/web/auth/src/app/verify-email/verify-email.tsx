@@ -1,55 +1,64 @@
 "use client";
 import Link from "next/link";
 import { useActionState } from "react";
+import {
+  inputClass,
+  labelClass,
+  noticeBoxClass,
+  primaryButtonClass,
+  textLinkClass,
+} from "@/components/form-styles";
+import { PasswordField } from "@/components/password-field";
 import { verifyEmail } from "./actions";
+
 export function VerifyEmail({ token }: { token: string }) {
   const [state, action, pending] = useActionState(verifyEmail, {
     message: "",
     done: false,
   });
   return (
-    <form action={action} className="space-y-4">
+    <form action={action} className="space-y-5">
       <input name="token" type="hidden" value={token} />
+      {state.message && (
+        <div className={noticeBoxClass} role="status">
+          {state.message}
+        </div>
+      )}
       {token ? (
         <>
-          <label className="block">
-            New password
-            <input
-              autoComplete="new-password"
-              className="block w-full rounded border border-border bg-background p-3"
-              maxLength={128}
-              minLength={12}
-              name="password"
-              required
-              type="password"
-            />
-          </label>
-          <label className="block">
-            Confirm password
-            <input
-              autoComplete="new-password"
-              className="block w-full rounded border border-border bg-background p-3"
-              name="confirm"
-              required
-              type="password"
-            />
-          </label>
+          <PasswordField
+            autoComplete="new-password"
+            id="password"
+            label="New password"
+            name="password"
+            placeholder="At least 12 characters"
+            showStrength
+          />
+          <PasswordField
+            autoComplete="new-password"
+            id="confirm"
+            label="Confirm password"
+            name="confirm"
+            placeholder="Repeat your password"
+          />
         </>
       ) : (
-        <label className="block">
-          Email address
+        <div className="space-y-2">
+          <label className={labelClass} htmlFor="email">
+            Email address
+          </label>
           <input
             autoComplete="email"
-            className="block w-full rounded border border-border bg-background p-3"
+            className={inputClass}
+            id="email"
             name="email"
             required
             type="email"
           />
-        </label>
+        </div>
       )}
-      {state.message && <p role="status">{state.message}</p>}
       <button
-        className="rounded border border-border p-3"
+        className={primaryButtonClass}
         disabled={pending || state.done}
         type="submit"
       >
@@ -57,7 +66,10 @@ export function VerifyEmail({ token }: { token: string }) {
         {!pending && token && "Verify and set password"}
         {!(pending || token) && "Send verification link"}
       </button>
-      <Link className="block underline" href="/">
+      <Link
+        className={`${textLinkClass} block text-center text-body-sm`}
+        href="/"
+      >
         Back to sign in
       </Link>
     </form>

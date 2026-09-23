@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const RE_UNABLE_TO_REACH = /unable to reach/i;
 const RE_REQUIRED = /required/i;
 const RE_DO_NOT_MATCH = /do not match/i;
+const RE_NOT_ACCEPTED = /not accepted/i;
 
 // vi.hoisted ensures these are available when vi.mock factories are hoisted.
 const { mockRedirect, mockCookiesSet, mockCookiesGet } = vi.hoisted(() => ({
@@ -30,10 +31,13 @@ vi.mock("posthog-node", () => ({
 
 import { signInAction, signOutAction, signUpAction } from "@/app/actions";
 import {
+  signInAwaitingApproval,
   signInBadCredentials,
   signInMalformedResponse,
+  signInMfaRequired,
   signInServiceDown,
   signInSuccess,
+  signInVerifyRequired,
   signOutSuccess,
   signUpEmailTaken,
   signUpSuccess,
@@ -55,7 +59,7 @@ describe("signInAction", () => {
   it("writes the session cookie and redirects on valid credentials", async () => {
     server.use(signInSuccess);
     await signInAction(
-      { email: "", error: null },
+      { email: "", error: null, next: null },
       makeFormData({ email: "jane@example.com", password: "secret" })
     );
     expect(mockCookiesSet).toHaveBeenCalledOnce();
@@ -65,7 +69,7 @@ describe("signInAction", () => {
   it("redirects to returnTo when provided", async () => {
     server.use(signInSuccess);
     await signInAction(
-      { email: "", error: null },
+      { email: "", error: null, next: null },
       makeFormData({
         email: "jane@example.com",
         password: "secret",
@@ -78,17 +82,65 @@ describe("signInAction", () => {
   it("returns error for bad credentials", async () => {
     server.use(signInBadCredentials);
     const result = await signInAction(
-      { email: "", error: null },
+      { email: "", error: null, next: null },
       makeFormData({ email: "jane@example.com", password: "wrong" })
     );
     expect(result.error).toBe("Incorrect email or password");
     expect(mockRedirect).not.toHaveBeenCalled();
   });
 
+  it("asks for the authenticator code without an error on the first attempt", async () => {
+    server.use(signInMfaRequired);
+    const result = await signInAction(
+      { email: "", error: null, next: null },
+      makeFormData({ email: "jane@example.com", password: "secret" })
+    );
+    expect(result).toEqual({
+      email: "jane@example.com",
+      error: null,
+      next: "mfa",
+    });
+  });
+
+  it("reports a rejected authenticator code and stays on the code step", async () => {
+    server.use(signInMfaRequired);
+    const result = await signInAction(
+      { email: "", error: null, next: "mfa" },
+      makeFormData({
+        email: "jane@example.com",
+        password: "secret",
+        totp_code: "000000",
+      })
+    );
+    expect(result.next).toBe("mfa");
+    expect(result.error).toMatch(RE_NOT_ACCEPTED);
+  });
+
+  it("points unverified accounts at email verification", async () => {
+    server.use(signInVerifyRequired);
+    const result = await signInAction(
+      { email: "", error: null, next: null },
+      makeFormData({ email: "jane@example.com", password: "secret" })
+    );
+    expect(result.next).toBe("verify");
+  });
+
+  it("does not offer verification for accounts awaiting approval", async () => {
+    server.use(signInAwaitingApproval);
+    const result = await signInAction(
+      { email: "", error: null, next: null },
+      makeFormData({ email: "jane@example.com", password: "secret" })
+    );
+    expect(result.next).toBeNull();
+    expect(result.error).toBe(
+      "Your registration is awaiting administrator approval"
+    );
+  });
+
   it("reports a malformed 200 response as an unavailable auth service", async () => {
     server.use(signInMalformedResponse);
     const result = await signInAction(
-      { email: "", error: null },
+      { email: "", error: null, next: null },
       makeFormData({ email: "jane@example.com", password: "secret" })
     );
     expect(result.error).toMatch(RE_UNABLE_TO_REACH);
@@ -97,7 +149,7 @@ describe("signInAction", () => {
   it("returns error when auth service is unreachable", async () => {
     server.use(signInServiceDown);
     const result = await signInAction(
-      { email: "", error: null },
+      { email: "", error: null, next: null },
       makeFormData({ email: "jane@example.com", password: "secret" })
     );
     expect(result.error).toMatch(RE_UNABLE_TO_REACH);
@@ -105,7 +157,7 @@ describe("signInAction", () => {
 
   it("returns validation error when fields are empty", async () => {
     const result = await signInAction(
-      { email: "", error: null },
+      { email: "", error: null, next: null },
       new FormData()
     );
     expect(result.error).toMatch(RE_REQUIRED);
