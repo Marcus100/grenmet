@@ -14,6 +14,14 @@ export const env = createEnv({
     AUTH_ALLOWED_RETURN_HOSTS: z.string().optional().default(""),
     // Shared secret that FastAPI must present when calling the /api/email/render endpoint.
     EMAIL_RENDER_SECRET: z.string().optional(),
+    // App directory links on the account pages. Unset in production hides the
+    // link; development falls back to the local ports in docs/ports.md.
+    ADMIN_APP_URL: z.string().url().optional(),
+    MBIA_APP_URL: z.string().url().optional(),
+    GMS_APP_URL: z.string().url().optional(),
+    DOCS_APP_URL: z.string().url().optional(),
+    SIGNAL_APP_URL: z.string().url().optional(),
+    EVENTS_APP_URL: z.string().url().optional(),
   },
   client: {
     NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
@@ -36,6 +44,12 @@ export const env = createEnv({
     SESSION_COOKIE_DOMAIN: process.env.SESSION_COOKIE_DOMAIN,
     AUTH_ALLOWED_RETURN_HOSTS: process.env.AUTH_ALLOWED_RETURN_HOSTS,
     EMAIL_RENDER_SECRET: process.env.EMAIL_RENDER_SECRET,
+    ADMIN_APP_URL: process.env.ADMIN_APP_URL,
+    MBIA_APP_URL: process.env.MBIA_APP_URL,
+    GMS_APP_URL: process.env.GMS_APP_URL,
+    DOCS_APP_URL: process.env.DOCS_APP_URL,
+    SIGNAL_APP_URL: process.env.SIGNAL_APP_URL,
+    EVENTS_APP_URL: process.env.EVENTS_APP_URL,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     NEXT_PUBLIC_SENTRY_ENVIRONMENT: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
     NEXT_PUBLIC_POSTHOG_KEY: process.env.NEXT_PUBLIC_POSTHOG_KEY,

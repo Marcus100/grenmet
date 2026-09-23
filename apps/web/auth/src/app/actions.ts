@@ -11,7 +11,6 @@ import {
   logoutAllSessions,
   logoutSession,
   readSessionCookie,
-  refreshSession,
   requestPasswordRecovery,
   resetPassword,
   signUp,
@@ -27,6 +26,34 @@ import type {
 function readString(formData: FormData, key: string): string {
   const value = formData.get(key);
   return typeof value === "string" ? value.trim() : "";
+}
+
+const MFA_REQUIRED_DETAIL =
+  "Two-factor authentication code required or invalid";
+
+function describeSignInError(
+  error: unknown,
+  email: string,
+  totpCode: string
+): SignInState {
+  if (!isAuthApiError(error)) {
+    return { error: "Unable to reach the auth service.", email, next: null };
+  }
+  if (error.detail === MFA_REQUIRED_DETAIL) {
+    // The first attempt without a code is the prompt, not a failure.
+    return {
+      error: totpCode
+        ? "That code was not accepted. Try the current code from your authenticator."
+        : null,
+      email,
+      next: "mfa",
+    };
+  }
+  return {
+    error: error.detail,
+    email,
+    next: error.detail.startsWith("Verify your email") ? "verify" : null,
+  };
 }
 
 export async function signInAction(
@@ -45,24 +72,21 @@ export async function signInAction(
     return {
       error: "Email and password are required.",
       email,
+      next: null,
     };
   }
 
+  const totpCode = readString(formData, "totp_code");
   let response: SessionLoginResponse;
   try {
     response = await createSession({
       email,
       password,
-      totpCode: readString(formData, "totp_code"),
+      totpCode,
       appName,
     });
   } catch (error) {
-    return {
-      error: isAuthApiError(error)
-        ? error.detail
-        : "Unable to reach the auth service.",
-      email,
-    };
+    return describeSignInError(error, email, totpCode);
   }
 
   try {
@@ -74,6 +98,7 @@ export async function signInAction(
     return {
       error: "Unable to establish your browser session. Please try again.",
       email,
+      next: null,
     };
   }
 
@@ -108,26 +133,6 @@ async function endSession({
   await captureServerEvent("sign_out");
   await clearSessionCookie();
   redirect(returnTo ?? "/");
-}
-
-export async function refreshSessionAction(): Promise<never> {
-  const sessionToken = await readSessionCookie();
-
-  if (!sessionToken) {
-    redirect("/");
-  }
-
-  try {
-    const response = await refreshSession(sessionToken);
-    await writeSessionCookie(
-      response.session_token,
-      response.session_expires_at
-    );
-  } catch {
-    await clearSessionCookie();
-  }
-
-  redirect("/");
 }
 
 export async function signOutAction(formData: FormData): Promise<never> {
