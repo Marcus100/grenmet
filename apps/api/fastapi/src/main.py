@@ -19,6 +19,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 
+from src.audit.router import router as audit_router
 from src.auth.browser import router as browser_auth_router
 from src.auth.modern import router as modern_auth_router
 from src.auth.routers.login import router as login_router
@@ -59,6 +60,7 @@ from src.janitorial import database as janitorial_database
 from src.janitorial.router import router as janitorial_router
 from src.logging_config import configure_logging
 from src.models import ValidationErrorResponse
+from src.notifications.router import router as notifications_router
 from src.rate_limit import limiter
 
 # from src.shipments.router import router as shipments_router
@@ -131,6 +133,7 @@ def custom_generate_unique_id(route: APIRoute) -> str:
 SHOW_DOCS_ENVIRONMENTS = ("local", "staging")
 
 OPENAPI_TAGS = [
+    {"name": "audit", "description": "Record change history."},
     {"name": "auth", "description": "Authentication, identity, and account security."},
     {"name": "billing", "description": "Billing and subscription operations."},
     {
@@ -166,6 +169,10 @@ OPENAPI_TAGS = [
     {
         "name": "modern-auth",
         "description": "Modern authentication and recovery operations.",
+    },
+    {
+        "name": "notifications",
+        "description": "In-app notifications, email preferences and settings.",
     },
     {"name": "permissions", "description": "Permission administration operations."},
     {
@@ -318,6 +325,8 @@ app.include_router(hr_exchange_router, prefix="/api/v1")
 app.include_router(hr_dailystatus_router, prefix="/api/v1")
 app.include_router(hr_parking_router, prefix="/api/v1")
 app.include_router(hr_documents_router, prefix="/api/v1")
+app.include_router(audit_router, prefix="/api/v1")
+app.include_router(notifications_router, prefix="/api/v1")
 app.include_router(cap_router, prefix="/api/v1")
 app.include_router(cap_public_router)
 

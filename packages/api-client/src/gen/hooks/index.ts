@@ -1,4 +1,9 @@
 export {
+  auditGetHistoryQueryKey,
+  auditGetHistoryQueryOptions,
+  useAuditGetHistory,
+} from "./useAuditGetHistory.js";
+export {
   authBrowserSessionQueryKey,
   authBrowserSessionQueryOptions,
   useAuthBrowserSession,
@@ -998,6 +1003,46 @@ export {
   janitorialSpecQueryOptions,
   useJanitorialSpec,
 } from "./useJanitorialSpec.js";
+export {
+  notificationsGetNotificationPreferencesQueryKey,
+  notificationsGetNotificationPreferencesQueryOptions,
+  useNotificationsGetNotificationPreferences,
+} from "./useNotificationsGetNotificationPreferences.js";
+export {
+  notificationsGetNotificationSettingsQueryKey,
+  notificationsGetNotificationSettingsQueryOptions,
+  useNotificationsGetNotificationSettings,
+} from "./useNotificationsGetNotificationSettings.js";
+export {
+  notificationsGetNotificationsQueryKey,
+  notificationsGetNotificationsQueryOptions,
+  useNotificationsGetNotifications,
+} from "./useNotificationsGetNotifications.js";
+export {
+  notificationsGetUnreadCountQueryKey,
+  notificationsGetUnreadCountQueryOptions,
+  useNotificationsGetUnreadCount,
+} from "./useNotificationsGetUnreadCount.js";
+export {
+  notificationsMarkAllNotificationsReadMutationKey,
+  notificationsMarkAllNotificationsReadMutationOptions,
+  useNotificationsMarkAllNotificationsRead,
+} from "./useNotificationsMarkAllNotificationsRead.js";
+export {
+  notificationsMarkNotificationReadMutationKey,
+  notificationsMarkNotificationReadMutationOptions,
+  useNotificationsMarkNotificationRead,
+} from "./useNotificationsMarkNotificationRead.js";
+export {
+  notificationsUpdateNotificationPreferencesMutationKey,
+  notificationsUpdateNotificationPreferencesMutationOptions,
+  useNotificationsUpdateNotificationPreferences,
+} from "./useNotificationsUpdateNotificationPreferences.js";
+export {
+  notificationsUpdateNotificationSettingMutationKey,
+  notificationsUpdateNotificationSettingMutationOptions,
+  useNotificationsUpdateNotificationSetting,
+} from "./useNotificationsUpdateNotificationSetting.js";
 export {
   transportSpecQueryKey,
   transportSpecQueryOptions,

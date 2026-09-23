@@ -133,6 +133,10 @@ async def get_authenticated_user(session: AsyncSession, user_id: uuid.UUID) -> U
     from src.auth.access import effective_roles
 
     set_committed_value(user, "roles", await effective_roles(session, user))
+    # Attribute this request's audited changes to the signed-in person.
+    from src.audit.service import set_actor
+
+    set_actor(session, user.id)
     return user
 
 

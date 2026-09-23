@@ -1,7 +1,7 @@
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 from uuid import UUID, uuid4
 
-from pydantic import Field
+from pydantic import AwareDatetime, ConfigDict, Field, StringConstraints
 
 from src.models import BaseModel, UtcDateTime
 
@@ -111,4 +111,11 @@ class RegisterObservationList(BaseModel):
 
 
 class RegisterObservationCreate(RegisterObservationWrite):
+    model_config = ConfigDict(extra="forbid")
+
+    station_id: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=64)
+    ]
+    observed_at: Annotated[UtcDateTime, AwareDatetime()]
+    issued_at: Annotated[UtcDateTime, AwareDatetime()] | None = None
     id: UUID = Field(default_factory=uuid4)

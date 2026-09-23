@@ -10,7 +10,7 @@ export const publicPublishedProductSchema = z
   .object({
     id: z.uuid(),
     revision: z.int().gt(0),
-    publishedAt: z.string(),
+    publishedAt: z.iso.datetime(),
     kind: forecastSourcePropertiesKindEnumSchema,
     values: z.object({}).catchall(z.string()),
   })

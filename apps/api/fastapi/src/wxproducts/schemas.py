@@ -252,7 +252,7 @@ class PublicPublishedProduct(BaseModel):
 
     id: UUID
     revision: int = Field(gt=0)
-    publishedAt: str
+    publishedAt: Annotated[UtcDateTime, AwareDatetime()]
     kind: ProductKind
     values: dict[str, str]
 

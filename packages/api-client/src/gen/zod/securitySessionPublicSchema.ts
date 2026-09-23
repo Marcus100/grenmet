@@ -9,6 +9,8 @@ export const securitySessionPublicSchema = z.object({
   id: z.string(),
   app_name: z.union([z.string(), z.null()]).optional(),
   client_type: z.string(),
-  last_used_at: z.string(),
-  expires_at: z.string(),
+  user_agent: z.union([z.string(), z.null()]).optional(),
+  ip_address: z.union([z.string(), z.null()]).optional(),
+  last_used_at: z.iso.datetime(),
+  expires_at: z.iso.datetime(),
 });

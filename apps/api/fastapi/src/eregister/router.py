@@ -1,7 +1,8 @@
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Query, Response
-from sqlalchemy import text
+from sqlalchemy import bindparam, text
+from sqlalchemy.dialects.postgresql import JSONB
 
 from src.auth.browser import BrowserUser
 
@@ -132,8 +133,12 @@ async def create_register_observation(
                 :observed_at, :issued_at, CAST(:body AS jsonb), :raw_tac, CAST(:bufr AS jsonb),
                 CAST(:iwxxm AS jsonb), :actor_id)
         RETURNING *
-        """),
-        {**body.model_dump(mode="json"), "actor_id": str(user.id)},
+        """).bindparams(
+            bindparam("body", type_=JSONB),
+            bindparam("bufr", type_=JSONB(none_as_null=True)),
+            bindparam("iwxxm", type_=JSONB(none_as_null=True)),
+        ),
+        {**body.model_dump(), "actor_id": str(user.id)},
     )
     await session.commit()
     return _read(dict(result.mappings().one()))
