@@ -1,5 +1,6 @@
 import { getPayload } from "payload";
 import { editorialLinksSchema } from "../../../../lib/editorial-links";
+import { reportError } from "../../../../lib/report-error";
 import config from "../../../../payload.config";
 
 export const dynamic = "force-dynamic";
@@ -89,7 +90,8 @@ export async function GET(request: Request) {
       { articles },
       { headers: { "Cache-Control": "no-store" } }
     );
-  } catch {
+  } catch (error) {
+    reportError(error, "cms-public-content");
     return Response.json(
       { error: "Content is unavailable" },
       { status: 503, headers: { "Cache-Control": "no-store" } }

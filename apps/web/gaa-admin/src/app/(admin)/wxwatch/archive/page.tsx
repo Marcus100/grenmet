@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArchiveBrowser } from "@/components/wxwatch/archive-browser";
 import { getArchive, getArchiveHistory } from "@/db/wxwatch/queries";
+import { reportError } from "@/lib/report-error";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +42,7 @@ export default async function ArchivePage({
       />
     );
   } catch (error) {
+    reportError(error, "wxwatch-archive");
     return (
       <div className="space-y-4">
         <h1 className="font-semibold text-2xl">WxWatch archive</h1>

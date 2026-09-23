@@ -284,7 +284,7 @@ async def test_governance_endpoints_require_administrator(
         response = await async_client.get(
             "/api/v1" + path, headers=normal_user_token_headers_async
         )
-        assert response.status_code == 403
+        assert response.status_code == 403, (path, response.status_code, response.text)
     response = await async_client.get(
         "/api/v1/auth/access/me", headers=normal_user_token_headers_async
     )

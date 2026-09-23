@@ -8,6 +8,7 @@ import {
   textLinkClass,
 } from "@/components/form-styles";
 import { PasswordField } from "@/components/password-field";
+import { reportError } from "@/lib/report-error";
 import { changeAccountPassword } from "../security/actions";
 
 export function ChangePasswordForm() {
@@ -54,7 +55,8 @@ export function ChangePasswordForm() {
           );
           setChanged(true);
           toast.success("Password changed");
-        } catch {
+        } catch (error) {
+          reportError(error, "auth-password");
           setError(
             "Password change failed. Check your current password and try again."
           );

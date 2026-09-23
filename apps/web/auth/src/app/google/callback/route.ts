@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { type NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
 import { googleComplete, modernCookieOptions } from "@/lib/modern-auth";
+import { reportError } from "@/lib/report-error";
 
 export async function GET(request: NextRequest) {
   const jar = await cookies();
@@ -26,7 +27,8 @@ export async function GET(request: NextRequest) {
     const destination = new URL("/google/confirm", env.AUTH_APP_URL);
     destination.searchParams.set("mfa", result.requires_totp ? "1" : "0");
     return NextResponse.redirect(destination);
-  } catch {
+  } catch (error) {
+    reportError(error, "auth-google");
     return new NextResponse(
       "Google sign-in failed. Your account must be activated by an administrator. Try email login or start again.",
       { status: 400 }

@@ -3,6 +3,7 @@ import {
   CapAdminUnavailable,
 } from "@/components/cap/admin-status";
 import { loadCapIntegrations } from "@/db/cap/queries";
+import { reportError } from "@/lib/report-error";
 
 const groups = [
   {
@@ -32,7 +33,8 @@ export default async function IntegrationsPage() {
   let data: Awaited<ReturnType<typeof loadCapIntegrations>>;
   try {
     data = await loadCapIntegrations();
-  } catch {
+  } catch (error) {
+    reportError(error, "cap-admin");
     return <CapAdminUnavailable />;
   }
   return (

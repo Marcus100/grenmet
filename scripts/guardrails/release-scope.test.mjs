@@ -7,8 +7,8 @@ import {
   validateReleaseConfiguration,
 } from "../ci/release-scope.mjs";
 
-test("release includes ten core images and rejects contradictory weather configuration", () => {
-  assert.equal(releaseScope.web.length, 10);
+test("release includes nine core images and rejects contradictory weather configuration", () => {
+  assert.equal(releaseScope.web.length, 9);
   assert.equal(releaseScope.api, true);
   assert.deepEqual(releaseScope.weather, []);
   validateReleaseConfiguration({});

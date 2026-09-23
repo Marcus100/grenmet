@@ -12,6 +12,7 @@ import { SettingsRow, StatusBadge } from "@/components/account-layout";
 import { CodeField } from "@/components/code-field";
 import { errorBoxClass, primaryButtonClass } from "@/components/form-styles";
 import { PasswordField } from "@/components/password-field";
+import { reportError } from "@/lib/report-error";
 import {
   activateMfa,
   beginMfa,
@@ -74,7 +75,8 @@ function SetupDialog({
     setError("");
     try {
       await task();
-    } catch {
+    } catch (error) {
+      reportError(error, "auth-two-step");
       setError(failure);
     } finally {
       setBusy(false);
