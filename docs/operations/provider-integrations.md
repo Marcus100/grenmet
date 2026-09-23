@@ -1,5 +1,9 @@
 # Provider integrations: development, staging and production
 
+**Status:** Active reference — configuration prepared; live acceptance pending  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-10
+
 Status: repository configuration prepared; account-side setup and live acceptance
 remain pending. No VM, DNS, account subscription or deployment was changed.
 Staging and production use separate DigitalOcean VMs, confirmed by operator SSH
@@ -43,10 +47,14 @@ must retain separate ownership, reporting and access boundaries.
 
 ## Evidence from this workspace
 
-- Sentry hooks exist in auth, gaa-admin, gms, docs, signal and mbia, plus FastAPI
-  and the CAP worker. Events, CMS and Hono have no Sentry SDK integration yet;
-  they must not be described as covered. Their existing health/log checks are
-  separate from error reporting. Adding those SDKs is a remaining coverage step.
+- Sentry covers all eight web apps (auth, cms, docs, events, gaa-admin, gms,
+  mbia, signal), FastAPI and the CAP worker (2026-09-23). Each web app has
+  `global-error.tsx` and, except cms, a root route `error.tsx`; gaa-admin also
+  has `(admin)/error.tsx`. Caught-and-handled failures call each app's `src/lib/report-error.ts`
+  (shared rule: `@barrelsgd/ui/lib/report-error`); the CMS reports Payload 5xx errors through a
+  root `afterError` hook. One privacy policy applies to web and Python: only
+  `area` and `digest` tags are kept. Live delivery still needs the DSN secrets
+  configured per environment and a deploy.
 - The shared PostHog provider is mounted by auth, gaa-admin, gms and docs.
   Browser capture now retains anonymous page-section counts, with DOM capture,
   recording, exceptions, surveys and automatic pageleave disabled. Arbitrary

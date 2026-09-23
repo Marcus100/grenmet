@@ -1,5 +1,9 @@
 # WMO weather reference in GAA-admin
 
+**Status:** Active reference  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-10
+
 Staff can search the WMO reference below the composer at `/wxproducts/aviation`.
 It contains a selected subset of 34 BUFR observation descriptors, their units,
 base encoding metadata, code meanings and notes; five top-level report sequences;

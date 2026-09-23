@@ -1,5 +1,9 @@
 # ICAO / WMO Compliance Traceability Matrix
 
+**Status:** Draft  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-18
+
 | Field | Detail |
 |---|---|
 | **Version** | 1.0 |
@@ -129,7 +133,7 @@
 | IWXXM (ICAO Weather Information Exchange Model) | XML/GML format for aviation MET products | IWXXM primitives in wxproducts; IWXXM output pipeline | Aviation MET lead | Gap | Schema foundations only |
 | GeoJSON | Geospatial product dissemination | CAP GeoJSON endpoint active | DTO | Implemented | `/api/cap/alerts.geojson` |
 | RSS 2.0 | Syndicated alert feed | CAP RSS feed active | DTO | Implemented | `/api/cap/rss.xml` |
-| JSON / REST API | Machine-readable data access | Hono API and FastAPI public endpoints | DTO | Partial | API contracts doc |
+| JSON / REST API | Machine-readable data access | FastAPI public endpoints | DTO | Partial | API contracts doc |
 
 ---
 

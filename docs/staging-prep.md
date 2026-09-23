@@ -1,5 +1,9 @@
 # FastAPI → Staging/Production prep
 
+**Status:** Historical record  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-07-25
+
 Status of the integrated GMS FastAPI backend hardening (auth / hr / cap) and the
 remaining manual steps. Companion to `docs/fastapi-cap-audit.md`.
 

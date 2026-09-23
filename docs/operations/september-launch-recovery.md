@@ -1,5 +1,9 @@
 # September launch and recovery checklist
 
+**Status:** Draft — pending operator exercise and acceptance  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-23
+
 Prepared 23 September 2026; **draft pending operator exercise and acceptance**.
 Use the existing [release runbook](release-runbook.md) for actual deployment and
 rollback commands and [infrastructure record](../infrastructure.md) for backups.

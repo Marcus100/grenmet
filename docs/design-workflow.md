@@ -1,5 +1,9 @@
 # Design Workflow
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-06
+
 The end-to-end loop for designing and building web UI in this monorepo: design → code → verify → token guard. This is the *how*. For the token contract, governance, and per-app migration status, see [Design System](./design-system.md). For app-agnostic primitive rules, see [`packages/ui/CLAUDE.md`](../packages/ui/CLAUDE.md).
 
 ## Mental model

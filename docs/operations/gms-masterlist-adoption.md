@@ -1,5 +1,9 @@
 # GMS masterlist adoption and delivery brief
 
+**Status:** Working plan  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-10
+
 Recorded 2026-09-10. Status: source inventory extracted; proposed delivery slices and unresolved operational decisions. This brief supports the [GAA/GMS programme plan](../portfolio/gaa-gms-client-programme-plan.md); it does not change programme priority or approve procedures.
 
 ## Source and extraction
@@ -16,7 +20,7 @@ The source DOCX remains unchanged. This is a metadata inventory, not an import o
 
 The [SOP index](sop-index.md) describes software-era procedure gaps, while the masterlist names existing institutional procedures. A repository gap does not establish that GMS lacks a procedure. Retrieve and compare the source documents before drafting replacements. Keep institutional document numbers distinct from repository planning IDs and meteorological product identifiers.
 
-Existing [authored product storage](../../apps/web/gaa-admin/src/db/wxproducts/schema/authored.ts), [CAP audit records](../../apps/api/fastapi/src/cap/models.py), [staff credentials](../../apps/api/fastapi/src/baseline/models.py), and [SURFACE equipment/maintenance models](../../surface/api/wx/models.py) provide reuse points. They do not, by themselves, establish an accepted controlled-document or competency system.
+Existing [authored product storage](../../apps/api/fastapi/src/wxproducts/models.py), [CAP audit records](../../apps/api/fastapi/src/cap/models.py), [staff credentials](../../apps/api/fastapi/src/baseline/models.py), and [SURFACE equipment/maintenance models](../../surface/api/wx/models.py) provide reuse points. They do not, by themselves, establish an accepted controlled-document or competency system.
 
 ## Candidate procedure crosswalk
 

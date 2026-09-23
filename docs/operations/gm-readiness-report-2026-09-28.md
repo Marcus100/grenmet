@@ -1,5 +1,9 @@
 # GM Progress & Launch-Readiness Report — 28 September 2026
 
+**Status:** Draft — prepared for the 28 September review  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-23
+
 **Advance draft prepared 23 September. Not issued, signed off or evidence of
 conditions on September 28.** Refresh against the exact release candidate before
 delivery. GAA is the client organisation; GMS is its meteorological department.

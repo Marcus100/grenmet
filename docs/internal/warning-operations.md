@@ -1,5 +1,9 @@
 # Warning Operations
 
+**Status:** Active reference  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-18
+
 This document maps the GMS warning workflow to the current codebase. The strategic warning framework — lifecycle, severity levels, IBF matrix, and content contract — lives in [../operations/warning-ibf-framework.md](../operations/warning-ibf-framework.md). This file is the engineering contract for what is implemented now.
 
 ## Implemented Surface

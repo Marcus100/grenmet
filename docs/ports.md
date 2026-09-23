@@ -1,5 +1,9 @@
 # Port allocation
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-06
+
 Canonical port map for the monorepo. **This file is the single source of truth** —
 when a port changes, update it here first, then propagate to the locations listed
 under "Where each port lives" below.
@@ -12,7 +16,7 @@ uses **one port across local dev and its container** (no dev/prod skew).
 | Range | Tier |
 |---|---|
 | `3000–3099` | Next.js web apps |
-| `4000–4099` | Node APIs (Hono) |
+| `4000–4099` | Reserved (formerly the retired Hono API) |
 | `8000–8099` | Python API (FastAPI) + web-facing dev tools |
 | fixed | Infrastructure (Postgres, Redis, mail) |
 
@@ -35,7 +39,6 @@ Run a single app with `pnpm dev:web:<name>`; run all in parallel with `pnpm dev`
 
 | Service | Port | Source of default |
 |---|---|---|
-| HonoAPI | 4000 | `apps/api/honoapi/src/env.ts` (`PORT`) |
 | FastAPI | 8000 | `apps/api/fastapi/docker-compose.yml` |
 
 ## Infrastructure & dev tools
@@ -73,7 +76,7 @@ Changing a web app's port means editing **all** of these so they agree:
 3. `infra/docker/docker-compose.deploy.yml` — Traefik `loadbalancer.server.port` and health checks
 4. `.github/workflows/build-web-images.yml` — `matrix.port` (documentation only)
 5. `.github/workflows/ci-web.yml` — container smoke-test ports
-6. `apps/web/<app>/CLAUDE.md` — the "Port **N**" header
+6. `apps/web/<app>/AGENTS.md` — the "Port **N**" header
 7. This file
 
 ## Auth return-host / CORS allowlists (env files — edit manually)
@@ -84,6 +87,5 @@ These live in `.env.local` / `.env.local.example` and reference `localhost:<port
   that redirects back to auth: `localhost:3001,localhost:3002,localhost:3003,localhost:3004`
 - Each delegating app's `.env.local` — `AUTH_ALLOWED_RETURN_HOSTS=localhost:<its-own-port>`
 - `apps/api/fastapi/.env.local` — `BACKEND_CORS_ORIGINS` includes the web-app origins
-- `apps/api/honoapi/.env.local` — `CORS_ORIGINS` (code default in `src/env.ts`)
 
 In staging/production these use real `*.barrels.gd` subdomains, not localhost ports.

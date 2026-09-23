@@ -1,5 +1,9 @@
 # Environment Configuration
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-23
+
 This document is the human-readable reference for supported environment variables
 in the Grenmet monorepo: what each variable does, where it is supplied, and which
 service reads it. Typed settings modules, Compose files, and deployment workflows
@@ -27,10 +31,7 @@ cp apps/web/docs/.env.local.example apps/web/docs/.env.local
 cp apps/web/gms/.env.local.example      apps/web/gms/.env.local
 cp apps/web/signal/.env.local.example       apps/web/signal/.env.local
 
-# 4. Hono API (optional)
-cp apps/api/honoapi/.env.local.example      apps/api/honoapi/.env.local
-
-# 5. Scrapy script (optional — only if using the Scrapy pipeline)
+# 4. Scrapy script (optional — only if using the Scrapy pipeline)
 cp scripts/scrapy-wxwatch/.env.local.example  scripts/scrapy-wxwatch/.env.local
 ```
 
@@ -46,7 +47,6 @@ not require an env file unless those defaults need to be overridden.
 |---|---|---|
 | `infra/docker/.env.local` | `infra/docker/docker-compose.yml` (Postgres, Adminer, tools) | `--env-file infra/docker/.env.local` |
 | `apps/api/fastapi/.env.local` | `apps/api/fastapi/docker-compose.yml` (FastAPI container) | `--env-file apps/api/fastapi/.env.local` |
-| `apps/api/honoapi/.env.local` | Hono development server | N/A |
 | `apps/web/<app>/.env.local` | Next.js development server (`pnpm dev`) | N/A |
 | `scripts/scrapy-wxwatch/.env.local` | wxwatch crawler and database pipeline | N/A |
 | `infra/docker/staging.env` | Staging non-secret deploy configuration | First `--env-file` in deploy workflow |
@@ -162,19 +162,6 @@ the API image and the local source mount contain the same migration assets.
 
 `STACK_NAME` and `DOMAIN` are Compose/deployment metadata. They may live beside
 FastAPI settings but are not application settings themselves.
-
-### Hono API (`apps/api/honoapi/.env.local`)
-
-The Hono API is an optional service and is not started by the root `pnpm start`.
-
-| Variable | Purpose |
-|---|---|
-| `PORT` | HTTP port (default: `4000`) |
-| `HOST` | Bind address (default: `0.0.0.0`) |
-| `NODE_ENV` | Node runtime mode: `development`, `production`, or `test` |
-| `ENVIRONMENT` | Deployment environment: `local`, `staging`, `production`, or `test` |
-| `API_PREFIX` | Reserved prefix for future versioned routes (default: `/api/v1`); the current health route is `/health` |
-| `CORS_ORIGINS` | Comma-separated allowlist of browser origins |
 
 ### Auth app (`apps/web/auth/.env.local`)
 

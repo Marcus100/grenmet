@@ -1,5 +1,9 @@
 # Production baseline
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-18
+
 The existing production database is authoritative. Do not reset it or replace it with a local development database. A baseline is the minimum configuration needed to operate safely; operational records can be entered online later.
 
 ## What belongs in the baseline

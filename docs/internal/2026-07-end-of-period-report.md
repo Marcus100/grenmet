@@ -1,4 +1,9 @@
 # GMS Digital Services Programme
+
+**Status:** Historical record  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-08-19
+
 ## End-of-Period Progress Report — July 2026
 
 | Field | Detail |

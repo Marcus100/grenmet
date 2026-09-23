@@ -1,5 +1,9 @@
 # Clean, Quality and CMS: approval proposals
 
+**Status:** Working plan  
+**Owner:** GAA (institutional content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-23
+
 Prepared 23 September 2026. **Proposed, not approved or operational.**
 Acceptance evidence belongs in the [readiness ledger](../operations/launch-readiness-coverage.md)
 (J-Clean, J-Quality, J-CMS). HR/People changes belong to the separate workstream.
