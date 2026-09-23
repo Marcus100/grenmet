@@ -135,8 +135,8 @@ the API image and the local source mount contain the same migration assets.
 | `EMAIL_RESET_TOKEN_EXPIRE_HOURS` | Password reset link lifetime |
 | `EMAIL_TEST_USER` | Recipient used by email tests and diagnostics |
 | `RESEND_WEBHOOK_SECRET` | Optional Svix signing secret for Resend webhook verification |
-| `NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS` | Comma-separated domains notification email may go to (e.g. `barrels.gd` in dev/staging). Empty allows all — set it outside production so test data never emails real staff |
-| `NOTIFICATIONS_WEB_BASE_URL` | Staff portal base URL used for links in notification emails (default `http://localhost:3001`) |
+| `NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS` | Comma-separated domains notification email may go to. Deployment reads the GitHub environment variable of this name; missing/blank staging values default to `barrels.gd`, while missing/blank production values allow all domains. Explicit values must be domain names (no wildcards, URLs or email addresses). Local development must configure its own restriction. |
+| `NOTIFICATIONS_WEB_BASE_URL` | Staff portal base URL used for links in notification emails (local default `http://localhost:3001`). Deployment sets `https://admin.${BASE_DOMAIN}` for both API and worker. |
 | `NOTIFICATIONS_BATCH_SIZE`, `NOTIFICATIONS_MAX_ATTEMPTS` | Worker email outbox batch size (50) and retry limit (5) |
 | `BILLING_STRIPE_SECRET_KEY` | Stripe secret API key; use an `sk_test_...` key locally |
 | `BILLING_STRIPE_WEBHOOK_SECRET` | Stripe endpoint signing secret; locally use the `whsec_...` value printed by `stripe listen` |
