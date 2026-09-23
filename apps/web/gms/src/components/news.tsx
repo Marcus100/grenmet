@@ -60,7 +60,7 @@ function DesktopNewsCard({ post }: { post: WeatherArticle }) {
 }
 
 export async function News() {
-  const result = await fetchPublishedContent("news");
+  const result = await fetchPublishedContent("latest-publications");
   const posts = result.articles.map(contentToArticle);
 
   return (

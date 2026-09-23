@@ -11,7 +11,6 @@ const PERIOD_TITLES: Record<string, string> = {
   midday: "Midday Forecast",
   evening: "Tonight",
 };
-const LOCAL_TEST_LABEL = /^LOCAL TEST\s+—\s*/u;
 function conditionFor(summary: string): WeatherCondition {
   const text = summary.toLowerCase();
   if (text.includes("shower") || text.includes("rain")) return "showers";
@@ -66,10 +65,7 @@ function periodData(period: ForecastPeriod, index: number): ForecastDayData {
       source: "Awaiting publication",
     };
   }
-  const summary = (period.details?.summary || "Not supplied").replace(
-    LOCAL_TEST_LABEL,
-    ""
-  );
+  const summary = period.details?.summary || "Not supplied";
   return {
     date,
     high: period.high ?? null,
