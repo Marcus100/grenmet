@@ -29,6 +29,12 @@ describe("getSafeReturnTo", () => {
     expect(getSafeReturnTo("//evil.example.com/steal")).toBeNull();
   });
 
+  it("rejects paths that the URL parser resolves to another host", () => {
+    withAllowedHosts(".barrels.gd");
+    expect(getSafeReturnTo("/\\evil.example.com/steal")).toBeNull();
+    expect(getSafeReturnTo("/\n/evil.example.com/steal")).toBeNull();
+  });
+
   it("returns null for empty or missing input", () => {
     withAllowedHosts(".barrels.gd");
     expect(getSafeReturnTo(null)).toBeNull();

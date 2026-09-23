@@ -31,6 +31,7 @@ from .models import (
     UserAddress,
     UserProfile,
 )
+from .organisations import permitted_departments
 from .parking.models import ParkingPermit
 from .roster.models import PublicHoliday
 from .timesheet.models import Timesheet, TimesheetEntry
@@ -106,6 +107,30 @@ def _owned(
 def _permission(key: str) -> registry.ReadCheck:
     async def check(session: AsyncSession, actor: User, entity_id: str) -> bool:  # noqa: ARG001
         return has_permission(current_user=actor, permission_key=key)
+
+    return check
+
+
+def _department_permission(
+    model: type[Base], key: str, *, uuid_id: bool = False
+) -> registry.ReadCheck:
+    async def check(session: AsyncSession, actor: User, entity_id: str) -> bool:
+        record_id = parse_uuid(entity_id) if uuid_id else entity_id
+        if record_id is None:
+            return False
+        record = await session.get(model, record_id)
+        if record is None:
+            return False
+        department_id = getattr(
+            record, "id" if model is Department else "department_id"
+        )
+        department = await session.get(Department, department_id)
+        if department is None:
+            return False
+        permitted = await permitted_departments(
+            session, actor, department.organisation_id, key
+        )
+        return department_id in permitted
 
     return check
 
@@ -266,11 +291,20 @@ def register() -> None:
     )
 
     # Setup records: readable by whoever may manage or view that setup area.
-    registry.register_entity("department", _permission("hr.employment.manage"))
+    registry.register_entity(
+        "department", _department_permission(Department, "hr.employment.manage")
+    )
     registry.track(Department, record_type="department", label="Department")
-    registry.register_entity("grade", _permission("hr.employment.manage"))
+    registry.register_entity(
+        "grade", _department_permission(Grade, "hr.employment.manage")
+    )
     registry.track(Grade, record_type="grade", label="Grade")
-    registry.register_entity("workflow_template", _permission("workflow.template.view"))
+    registry.register_entity(
+        "workflow_template",
+        _department_permission(
+            WorkflowTemplate, "workflow.template.view", uuid_id=True
+        ),
+    )
     registry.track(
         WorkflowTemplate, record_type="workflow_template", label="Approval workflow"
     )
@@ -281,7 +315,10 @@ def register() -> None:
         entity_id_attr="workflow_template_id",
         label="Approval step",
     )
-    registry.register_entity("calendar_event", _permission("calendar.view"))
+    registry.register_entity(
+        "calendar_event",
+        _department_permission(CalendarEvent, "calendar.view", uuid_id=True),
+    )
     registry.track(CalendarEvent, record_type="calendar_event", label="Calendar entry")
     registry.register_entity("public_holiday", _permission("calendar.view"))
     registry.track(PublicHoliday, record_type="public_holiday", label="Public holiday")

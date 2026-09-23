@@ -1,6 +1,6 @@
 """Change history: flush capture, actor attribution, scoped reads, sensitive masking."""
 
-from datetime import date
+from datetime import date, datetime
 
 import httpx
 import pytest
@@ -11,7 +11,11 @@ from src.audit import service as audit_service
 from src.audit.models import AuditEntry
 from src.auth.models import RoleAssignmentScope
 from src.exceptions import AuthorizationError, NotFoundError
+from src.hr.calendar.schemas import CalendarEventCreate
+from src.hr.calendar.service import create_calendar_event
+from src.hr.models import Grade, Organisation
 from src.hr.training.models import TrainingRecord
+from src.hr.workflow.models import WorkflowTemplate, WorkflowType
 from tests.factories import (
     assign_role,
     make_department,
@@ -189,6 +193,65 @@ async def test_out_of_scope_reader_is_denied(db_async: AsyncSession) -> None:
             entity_type="training_record",
             entity_id=str(record.id),
         )
+
+
+async def test_setup_history_cannot_be_read_across_organisations(
+    db_async: AsyncSession,
+) -> None:
+    db_async.add(Organisation(id="other", code="OTHER", name="Other organisation"))
+    await db_async.commit()
+    actor = await make_user(db_async)
+    role, _ = await make_role_with_permission(
+        db_async, "hr.employment.manage", "calendar.view"
+    )
+    await assign_role(db_async, user=actor, role=role, scope=RoleAssignmentScope.ALL)
+    home = await make_department(db_async, "audit_home")
+    other = await make_department(db_async, "audit_other", organisation_id="other")
+    grade = Grade(
+        id="audit_other_grade",
+        department_id=other.id,
+        code="PRIVATE",
+        label="Private grade",
+        rank=1,
+    )
+    template = WorkflowTemplate(
+        department_id=other.id,
+        workflow_type=WorkflowType.LEAVE_REQUEST,
+        name="Private workflow",
+    )
+    db_async.add_all([grade, template])
+    await db_async.commit()
+    author = await make_user(db_async, superuser=True)
+    event = await create_calendar_event(
+        session=db_async,
+        current_user=author,
+        payload=CalendarEventCreate(
+            department_id=other.id,
+            title="Private event",
+            starts_at=datetime(2026, 7, 6, 9),
+            ends_at=datetime(2026, 7, 6, 10),
+        ),
+    )
+    for entity_type, entity_id in (
+        ("department", other.id),
+        ("grade", grade.id),
+        ("workflow_template", str(template.id)),
+        ("calendar_event", str(event.id)),
+    ):
+        with pytest.raises(AuthorizationError):
+            await audit_service.list_history(
+                session=db_async,
+                actor=actor,
+                entity_type=entity_type,
+                entity_id=entity_id,
+            )
+    home_history = await audit_service.list_history(
+        session=db_async,
+        actor=actor,
+        entity_type="department",
+        entity_id=home.id,
+    )
+    assert home_history.count == 1
 
 
 async def test_unknown_entity_type_is_not_found(db_async: AsyncSession) -> None:

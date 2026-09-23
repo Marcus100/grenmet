@@ -10,6 +10,7 @@ from datetime import date, datetime
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.auth.models import RoleAssignmentScope
 from src.exceptions import AuthorizationError
 from src.hr.calendar.models import CalendarEventKind
 from src.hr.calendar.schemas import CalendarEventCreate, CalendarEventUpdate
@@ -19,6 +20,7 @@ from src.hr.calendar.service import (
     update_calendar_event,
 )
 from src.hr.exceptions import HRValidationError
+from src.hr.models import Organisation
 from tests.factories import (
     assign_role,
     make_department,
@@ -218,3 +220,47 @@ async def test_times_are_stored_as_department_local_wall_clock(
 
     assert event.starts_at.tzinfo is None
     assert event.starts_at.isoformat() == "2026-07-06T09:30:00"
+
+
+async def test_calendar_permissions_do_not_cross_organisations(
+    db_async: AsyncSession,
+) -> None:
+    db_async.add(Organisation(id="other", code="OTHER", name="Other organisation"))
+    await db_async.commit()
+    home = await make_department(db_async, "cal_home")
+    other = await make_department(db_async, "cal_other", organisation_id="other")
+    actor = await make_user(db_async)
+    await make_employee(db_async, user=actor, department_id=home.id)
+    role, _ = await make_role_with_permission(
+        db_async, *VIEW_AND_CREATE, "calendar.manage"
+    )
+    await assign_role(db_async, user=actor, role=role, scope=RoleAssignmentScope.ALL)
+    other_author = await make_user(db_async, superuser=True)
+    other_event = await create_calendar_event(
+        session=db_async,
+        current_user=other_author,
+        payload=_meeting(department_id=other.id),
+    )
+
+    with pytest.raises(AuthorizationError):
+        await list_calendar_events(
+            session=db_async,
+            current_user=actor,
+            start=date(2026, 7, 1),
+            end=date(2026, 7, 31),
+            department_id=other.id,
+        )
+    with pytest.raises(AuthorizationError):
+        await create_calendar_event(
+            session=db_async,
+            current_user=actor,
+            payload=_meeting(department_id=other.id),
+        )
+    with pytest.raises(AuthorizationError):
+        await update_calendar_event(
+            session=db_async,
+            current_user=actor,
+            event_id=other_event.id,
+            payload=CalendarEventUpdate(title="Changed from another organisation"),
+        )
+    assert other_event.title == "Monthly staff meeting"
