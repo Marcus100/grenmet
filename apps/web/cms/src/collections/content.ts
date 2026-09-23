@@ -11,6 +11,7 @@ import {
   staffField,
   staffOnly,
 } from "../access";
+import { editorialLinksSchema } from "../lib/editorial-links";
 
 const SLUG = /^[a-z0-9]+(?:[/-][a-z0-9]+)*$/;
 const slugPart = (value: unknown) =>
@@ -61,7 +62,8 @@ export const Content: CollectionConfig = {
   admin: {
     useAsTitle: "title",
     defaultColumns: ["title", "section", "status", "updatedAt"],
-    description: "Articles and general pages for the GMS website.",
+    description:
+      "GMS updates, weather news and publications. Posts are written and published manually.",
   },
   access: {
     create: staffOnly,
@@ -100,7 +102,28 @@ export const Content: CollectionConfig = {
         return data;
       },
     ],
-    beforeChange: [enforceReview],
+    beforeChange: [
+      enforceReview,
+      ({ data, originalDoc }) => {
+        const result = editorialLinksSchema.safeParse(
+          data.relatedLinks ?? originalDoc?.relatedLinks ?? []
+        );
+        if (!result.success)
+          throw new APIError(
+            "Related links need a category, title and full HTTP or HTTPS URL without credentials (maximum 20 links).",
+            400
+          );
+        // Preserve Payload row IDs when normalizing editable values.
+        if (data.relatedLinks)
+          data.relatedLinks = data.relatedLinks.map(
+            (row: Record<string, unknown>, index: number) => ({
+              ...row,
+              ...result.data[index],
+            })
+          );
+        return data;
+      },
+    ],
   },
   fields: [
     { name: "title", type: "text", required: true },
@@ -125,15 +148,15 @@ export const Content: CollectionConfig = {
       defaultValue: "latest-from-us",
       options: [
         {
-          label: "Latest from us — GMS updates and announcements",
+          label: "Latest from us — GMS blog and product updates",
           value: "latest-from-us",
         },
         {
-          label: "Weather News — Grenada weather coverage",
+          label: "Weather news — interesting weather stories",
           value: "weather-news",
         },
         {
-          label: "Latest publications — long-form explanations and documents",
+          label: "Latest publications — publications and articles",
           value: "latest-publications",
         },
       ],
@@ -153,9 +176,16 @@ export const Content: CollectionConfig = {
     },
     {
       name: "updateType",
+      label: "Product category",
       type: "select",
       options: [
-        "Product update",
+        "Tropical weather outlook",
+        "Bulletin",
+        "Forecasts",
+        "Marine",
+        "Aviation",
+        "CAP alerts",
+        { label: "Product update (legacy)", value: "Product update" },
         "Service update",
         "Announcement",
         "Public notice",
@@ -207,6 +237,39 @@ export const Content: CollectionConfig = {
       },
     },
     { name: "summary", type: "textarea" },
+    {
+      name: "relatedLinks",
+      type: "array",
+      maxRows: 20,
+      admin: {
+        description:
+          "Link to an existing product, publication or news source. Check that the intended audience can open it. Linking does not publish the destination or preserve a historical copy.",
+      },
+      fields: [
+        { name: "title", type: "text", required: true, maxLength: 200 },
+        {
+          name: "category",
+          type: "select",
+          required: true,
+          options: [
+            { label: "Forecast", value: "forecast" },
+            { label: "CAP alert", value: "cap" },
+            { label: "Aviation", value: "aviation" },
+            { label: "Bulletin", value: "bulletin" },
+            { label: "Publication", value: "publication" },
+            { label: "Article", value: "article" },
+            { label: "News source", value: "source" },
+          ],
+        },
+        {
+          name: "url",
+          label: "Destination URL",
+          type: "text",
+          required: true,
+          maxLength: 2000,
+        },
+      ],
+    },
     {
       name: "image",
       type: "upload",

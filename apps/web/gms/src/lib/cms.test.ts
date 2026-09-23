@@ -62,13 +62,35 @@ describe("published content feed", () => {
     );
     expect((await fetchPublishedContent()).status).toBe("unavailable");
   });
+  it("rejects executable URLs in editorial links", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        Response.json({
+          articles: [
+            article({
+              relatedLinks: [
+                {
+                  title: "Unsafe",
+                  category: "source",
+                  url: "javascript:alert(1)",
+                },
+              ],
+            }),
+          ],
+        })
+      )
+    );
+    expect((await fetchPublishedContent()).status).toBe("unavailable");
+  });
   it("fetches a single article by slug", async () => {
     const fetcher = vi
       .fn()
       .mockResolvedValue(Response.json({ articles: [article()] }));
     vi.stubGlobal("fetch", fetcher);
     const result = await fetchContentBySlug("season-preparation");
-    expect(result?.slug).toBe("season-preparation");
+    expect(result.status).toBe("ok");
+    expect(result.articles[0]?.slug).toBe("season-preparation");
     expect(fetcher).toHaveBeenCalledWith(
       new URL(
         "http://cms.example.test/api/public/content?slug=season-preparation"
@@ -84,6 +106,18 @@ it("passes the section filter to CMS", async () => {
   await fetchPublishedContent("latest");
   expect(fetcher).toHaveBeenCalledWith(
     new URL("http://cms.example.test/api/public/content?placement=latest"),
+    expect.anything()
+  );
+});
+
+it("keeps publications separate from weather news", async () => {
+  const fetcher = vi.fn().mockResolvedValue(Response.json({ articles: [] }));
+  vi.stubGlobal("fetch", fetcher);
+  await fetchPublishedContent("latest-publications");
+  expect(fetcher).toHaveBeenCalledWith(
+    new URL(
+      "http://cms.example.test/api/public/content?section=latest-publications"
+    ),
     expect.anything()
   );
 });

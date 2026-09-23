@@ -153,7 +153,7 @@ export interface User {
   username: string;
 }
 /**
- * Articles and general pages for the GMS website.
+ * GMS updates, weather news and publications. Posts are written and published manually.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "content".
@@ -221,6 +221,24 @@ export interface Content {
    */
   publishedAt?: string | null;
   /**
+   * Link to an existing product, publication or news source. Check that the intended audience can open it. Linking does not publish the destination or preserve a historical copy.
+   */
+  relatedLinks?:
+    | {
+        title: string;
+        category:
+          | "forecast"
+          | "cap"
+          | "aviation"
+          | "bulletin"
+          | "publication"
+          | "article"
+          | "source";
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
    * Choose one editorial section for this article.
    */
   section: "latest-from-us" | "weather-news" | "latest-publications";
@@ -267,6 +285,12 @@ export interface Content {
   updatedAt: string;
   updateType?:
     | (
+        | "Tropical weather outlook"
+        | "Bulletin"
+        | "Forecasts"
+        | "Marine"
+        | "Aviation"
+        | "CAP alerts"
         | "Product update"
         | "Service update"
         | "Announcement"
@@ -406,6 +430,14 @@ export interface ContentSelect<T extends boolean = true> {
   officialDocument?: T;
   publicationType?: T;
   publishedAt?: T;
+  relatedLinks?:
+    | T
+    | {
+        title?: T;
+        category?: T;
+        url?: T;
+        id?: T;
+      };
   section?: T;
   slug?: T;
   social?:
