@@ -4,8 +4,9 @@ import uuid
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
+from src.auth.models import User
 from src.auth.policy import can_act_on_user_for_role, require_permission
+from src.hr import notifications as hr_notifications
 from src.hr.constants import (
     ERROR_WORKFLOW_CANNOT_BE_SUBMITTED,
     ERROR_WORKFLOW_NOT_PENDING,
@@ -383,6 +384,7 @@ async def apply_workflow_action(
             workflow_instance.require_distinct_approvers = (
                 policy.require_distinct_approvers
             )
+        submitted_from = workflow_instance.status
         if workflow_instance.status == WorkflowStatus.RETURNED:
             for step in steps:
                 step.action = None
@@ -403,6 +405,15 @@ async def apply_workflow_action(
             )
         )
         session.add(workflow_instance)
+        await session.flush()
+        await hr_notifications.workflow_transitioned(
+            session,
+            instance=workflow_instance,
+            action=WorkflowAction.SUBMIT,
+            actor_id=current_user.id,
+            previous_status=submitted_from,
+            previous_order=0,
+        )
         if commit:
             await session.commit()
             await session.refresh(workflow_instance)
@@ -530,6 +541,15 @@ async def apply_workflow_action(
         await finalize_entity(session, workflow_instance, current_user.id)
     workflow_instance.updated_at = utc_now()
     session.add(workflow_instance)
+    await session.flush()
+    await hr_notifications.workflow_transitioned(
+        session,
+        instance=workflow_instance,
+        action=action_in.action,
+        actor_id=current_user.id,
+        previous_status=previous_status,
+        previous_order=current_order,
+    )
     if commit:
         await session.commit()
         await session.refresh(workflow_instance)
@@ -545,77 +565,6 @@ async def apply_workflow_action(
         },
     )
     return workflow_instance
-
-
-WORKFLOW_TYPE_LABELS: dict[WorkflowType, str] = {
-    WorkflowType.LEAVE_REQUEST: "Leave request",
-    WorkflowType.SHIFT_SWAP: "Shift exchange",
-    WorkflowType.ABSENTEE_REPORT: "Absentee report",
-    WorkflowType.STATUS_REPORT: "Daily status report",
-    WorkflowType.TIMESHEET: "Timesheet",
-    WorkflowType.PARKING_PERMIT: "Parking permit",
-}
-
-
-async def _hr_admin_emails(*, session: AsyncSession, department_id: str) -> list[str]:
-    """Email addresses of everyone holding the hr-admin role."""
-    from src.hr.organisations import department_for
-
-    department = await department_for(session, department_id)
-    now = utc_now()
-    role_result = await session.execute(select(Role).where(Role.name == "hr-admin"))
-    role = role_result.scalars().first()
-    if not role:
-        return []
-    user_result = await session.execute(
-        select(User)
-        .join(UserRoleAssignment, UserRoleAssignment.user_id == User.id)
-        .where(
-            UserRoleAssignment.role_id == role.id,
-            UserRoleAssignment.organisation_id == department.organisation_id,
-            UserRoleAssignment.effective_from <= now,
-            UserRoleAssignment.effective_to.is_(None)
-            | (UserRoleAssignment.effective_to > now),
-            (UserRoleAssignment.scope == RoleAssignmentScope.ALL)
-            | (
-                (UserRoleAssignment.scope == RoleAssignmentScope.DEPARTMENT)
-                & (UserRoleAssignment.department_id == department_id)
-            ),
-            User.is_active.is_(True),
-        )
-    )
-    return [user.email for user in user_result.scalars().unique().all() if user.email]
-
-
-async def build_approval_notification(
-    *, session: AsyncSession, instance: WorkflowInstance
-) -> tuple[list[str], str, str] | None:
-    """Recipients + subject + HTML for the "approved" email to HR admins.
-
-    Returns None when there is nobody to notify (no hr-admin users).
-    """
-    recipients = await _hr_admin_emails(
-        session=session, department_id=instance.department_id
-    )
-    if not recipients:
-        return None
-    requester = await session.get(User, instance.requested_by_user_id)
-    requester_name = requester.full_name if requester else "A staff member"
-    type_label = WORKFLOW_TYPE_LABELS.get(
-        instance.workflow_type, instance.workflow_type.value
-    )
-    subject = f"Approved: {type_label} — {requester_name}"
-    html = (
-        f"<p>A <strong>{type_label.lower()}</strong> has completed the approval "
-        f"chain and is now approved.</p>"
-        f"<ul>"
-        f"<li><strong>Requested by:</strong> {requester_name}</li>"
-        f"<li><strong>Department:</strong> {instance.department_id}</li>"
-        f"<li><strong>Reference:</strong> {instance.entity_type} {instance.entity_id}</li>"
-        f"</ul>"
-        f"<p>No action is required — this is a record notification for HR.</p>"
-    )
-    return recipients, subject, html
 
 
 async def list_actionable_instances(

@@ -97,6 +97,15 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("workflow.template.view", "View workflow templates"),
     PermissionDef("workflow.instance.action", "Act on workflow instances"),
     PermissionDef("workflow.instance.view", "View workflow instances"),
+    # Platform — change history and notifications
+    PermissionDef(
+        "audit.view_sensitive",
+        "See the values of sensitive fields (medical, address, contact) in change history",
+    ),
+    PermissionDef(
+        "notifications.manage",
+        "Configure organisation notifications: on/off, recipients, wording, timings",
+    ),
     # CMS editorial publishing
     PermissionDef("cms.article.create", "Create CMS articles"),
     PermissionDef("cms.article.edit.own", "Edit own CMS article drafts"),
@@ -233,6 +242,8 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "workflow.template.view",
             "workflow.instance.action",
             "workflow.instance.view",
+            "audit.view_sensitive",
+            "notifications.manage",
         ),
     ),
     "cap-author": (

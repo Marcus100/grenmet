@@ -216,6 +216,41 @@ Local Stripe test-mode flow:
 5. Open the returned URL and use Stripe's interactive test card
    `4242 4242 4242 4242`, any future expiry, and any three-digit CVC.
 
+## Change history and notifications (platform core)
+
+Shared services (ADR-0009) that any module can use; HR is the first. Both require an
+authenticated session.
+
+**Change history.** Registered models (`src/hr/audit.py`) are captured field by field on
+every flush into `public.audit_entry`, attributed to the signed-in user (or "System" for
+worker jobs). Bulk `update()`/`delete()` statements are not captured; call
+`src.audit.service.record_change` for those.
+
+| Endpoint | Access and purpose |
+| --- | --- |
+| `GET /api/v1/audit/{entity_type}/{entity_id}` | Paginated history, newest first. Readable by anyone who may read the record (module read check). Sensitive field values return `masked: true` with `old`/`new` null unless the reader holds `audit.view_sensitive`. Unknown `entity_type` → 404 |
+
+HR `entity_type` values: `employee` (user id; profile, address, employment, approval
+authority), `leave_request`, `absentee_report`, `shift_swap`, `status_report`,
+`timesheet` (incl. entries), `parking_permit`, `training_record`, `employee_document`,
+`department`, `grade`, `workflow_template` (incl. steps), `calendar_event`,
+`public_holiday`.
+
+**Notifications.** `notify()` writes in-app rows plus an email outbox inside the
+caller's transaction; the worker sends email every 30 s (React Email `notification`
+template via web-auth, Jinja fallback, delivered through Resend/SMTP) and runs the daily
+reminder sweep at 10:00 UTC. Emails carry only a summary and a portal link.
+
+| Endpoint | Access and purpose |
+| --- | --- |
+| `GET /api/v1/notifications?unread=` | Own notifications, paginated |
+| `GET /api/v1/notifications/unread-count` | `{count}` for the header badge |
+| `POST /api/v1/notifications/{id}/read` | Mark own notification read; another person's → 404 |
+| `POST /api/v1/notifications/read-all` | Mark all own notifications read |
+| `GET/PUT /api/v1/notifications/preferences` | Own email opt-outs per event; approval events (`email_mutable: false`) cannot be muted → 400 |
+| `GET /api/v1/notifications/settings?organisation_id=` | `notifications.manage` in the organisation: every event with effective settings, plus staff whose email domain is outside `NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS` |
+| `PUT /api/v1/notifications/settings/{event_key}?organisation_id=` | `notifications.manage`: on/off, email on/off, extra recipient roles, title/body Jinja templates (validated), timings (`remind_after_days`, `escalate_after_days`, `expiry_days_before`) |
+
 ## HR Contract
 
 All HR routes are under `/api/v1/hr`, require an authenticated session, and are gated
@@ -349,7 +384,7 @@ Do not claim these exist in downstream docs until the code implements them.
 
 ### Employee membership and account security
 
-Employment records may represent confirmed department/grade membership with a null employee number or employment type. `EmploymentPublic` includes `grade`, `supervisor_name` and `details_complete`; clients must display unknown fields explicitly rather than infer values. `GET /api/v1/auth/modern/security` returns current-account security status and active-session metadata, never bearer tokens, session secrets or TOTP secrets. Existing `/2fa/setup` and `/2fa/activate` endpoints provide enrollment; setup rejects an already-enabled authenticator.
+Employment records may represent confirmed department/grade membership with a null employee number or employment type. `EmploymentPublic` includes `grade`, `supervisor_name` and `details_complete`; clients must display unknown fields explicitly rather than infer values. `GET /api/v1/auth/modern/security` returns current-account security status and active-session metadata (app, client type, recorded `user_agent` and `ip_address`, last-used and expiry times), never bearer tokens, session secrets or TOTP secrets. The IP and user agent are shown only to the account owner so they can recognise their own devices. The response also carries `password_changed_at` (null until the password is next changed, reset or set up after the column shipped). Password and Google sign-in remember the browser/OS family of each device (`user.known_device_keys`, capped at 20); a sign-in from an unfamiliar family after the first ever device emails the account owner a "New sign-in" alert in the background, linking to `/sessions`. Alert failures are logged and never block sign-in. Existing `/2fa/setup` and `/2fa/activate` endpoints provide enrollment; setup rejects an already-enabled authenticator.
 
 Managed HR workflows must be created through their form submission endpoints. Public generic workflow creation cannot attach a new workflow to a managed HR record. Finalization validates the record's authoritative workflow and department before status or balance changes. The dashboard honours `roster.view` for department data and preserves personal roster access when that permission is absent.
 
@@ -816,3 +851,39 @@ Every operation should declare a useful summary, description, response model or
 explicit raw-media response, success status, and realistic error responses.
 Validation failures use the typed `ValidationErrorResponse` envelope; application
 errors use the typed `ApiError` envelope.
+## eRegister persistence verification — 23 September 2026
+
+Observation creation now uses native datetime values and typed JSONB SQL
+bindings. The request/response contract is unchanged. Host-backed tests verify
+save/reopen of nested workbook data and optional artifact metadata, UTC response
+serialization, draft state and anonymous write denial. Caller-supplied artifact
+metadata is not proof of generated or validated BUFR/IWXXM. Lifecycle and
+domain-level author/reviewer permissions remain separate acceptance gaps.
+
+### Approved timestamp/input corrections
+
+CAP create/update and XML import require explicit timezone offsets for supplied
+sent/reference/info times. Invalid or mixed offset-free request timestamps return
+validation errors before time ordering; historical naive-UTC database output
+remains readable. Duplication converts stored timestamps through the UTC public
+representation before constructing a new draft.
+
+eRegister creation trims station IDs and rejects blank IDs, offset-free observed
+or issued times, and unknown top-level fields. The nested draft `body` remains
+an extensible map; read schemas retain historical compatibility. No lifecycle,
+permission or database migration is introduced by these validation changes.
+
+Public wxproducts `publishedAt` is a validated timezone-aware timestamp serialized
+as UTC with a Z suffix (second precision, matching the shared API serializer).
+Security-session `last_used_at` and `expires_at` use the same UTC response format,
+including naive-UTC database values. Generated TypeScript fields remain strings
+and generated validation schemas carry the date-time constraint.
+
+### CMS editorial links — September 23
+
+CMS `GET /api/public/content` additionally returns nullable `category` selected
+from the post's editorial section and `relatedLinks` (empty for older posts).
+Each link exposes only `title`, `category` and `url`; internal Payload row IDs
+are omitted. Links use existing HTTP/HTTPS destinations, not product revision
+lookups. Staff must check the destination's audience access. Existing anonymous
+publication filtering remains unchanged; no FastAPI contract changes occur.

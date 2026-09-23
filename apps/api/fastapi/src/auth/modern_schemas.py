@@ -1,6 +1,6 @@
 from pydantic import EmailStr, Field
 
-from src.models import BaseModel
+from src.models import BaseModel, UtcDateTime
 
 
 class EmailRequest(BaseModel):
@@ -39,8 +39,10 @@ class SecuritySessionPublic(BaseModel):
     id: str
     app_name: str | None = None
     client_type: str
-    last_used_at: str
-    expires_at: str
+    user_agent: str | None = None
+    ip_address: str | None = None
+    last_used_at: UtcDateTime
+    expires_at: UtcDateTime
 
 
 class AccountSecurityPublic(BaseModel):
@@ -49,6 +51,7 @@ class AccountSecurityPublic(BaseModel):
     google_configured: bool
     google_linked: bool
     totp_enabled: bool
+    password_changed_at: UtcDateTime | None = None
     sessions: list[SecuritySessionPublic]
 
 

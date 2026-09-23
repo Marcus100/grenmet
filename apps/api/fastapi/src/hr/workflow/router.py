@@ -1,14 +1,11 @@
 from typing import Any
 
-from fastapi import APIRouter, BackgroundTasks, status
+from fastapi import APIRouter, status
 
 from src.dependencies import CurrentUser, SessionDep
-from src.email import send_email
-from src.email_config import email_settings
 from src.hr.dependencies import WorkflowInstanceDep, WorkflowTemplateDep
 
 from . import service
-from .models import WorkflowAction, WorkflowStatus
 from .schemas import (
     WorkflowActionRequest,
     WorkflowInboxItem,
@@ -214,32 +211,12 @@ async def take_action(
     current_user: CurrentUser,
     workflow_instance: WorkflowInstanceDep,
     action_in: WorkflowActionRequest,
-    background_tasks: BackgroundTasks,
 ) -> Any:
-    previous_status = workflow_instance.status
-    instance = await service.apply_workflow_action(
+    # Notifications (approvers, requester, HR) are queued inside the service
+    # transaction and emailed by the worker; see src/hr/notifications.py.
+    return await service.apply_workflow_action(
         session=session,
         current_user=current_user,
         workflow_instance_id=workflow_instance.id,
         action_in=action_in,
     )
-    # When this approval was the final one, notify HR admins (fire-and-forget).
-    if (
-        action_in.action == WorkflowAction.APPROVE
-        and previous_status != WorkflowStatus.APPROVED
-        and instance.status == WorkflowStatus.APPROVED
-        and email_settings.emails_enabled
-    ):
-        notification = await service.build_approval_notification(
-            session=session, instance=instance
-        )
-        if notification:
-            recipients, subject, html = notification
-            for email_to in recipients:
-                background_tasks.add_task(
-                    send_email,
-                    email_to=email_to,
-                    subject=subject,
-                    html_content=html,
-                )
-    return instance

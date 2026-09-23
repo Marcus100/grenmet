@@ -32,6 +32,7 @@ from src.auth.constants import (
     SUCCESS_PASSWORD_UPDATED,
 )
 from src.auth.dependencies import get_current_active_superuser
+from src.auth.devices import remember_device, schedule_new_sign_in_alert
 from src.auth.lockout import login_lockout
 from src.auth.models import User
 from src.auth.modern_models import AuthChallenge
@@ -229,6 +230,7 @@ async def login_session(
     await login_lockout.reset(body.email)
 
     user_agent, ip_address = _request_metadata(request)
+    new_device = remember_device(user, user_agent)
     db_session, session_token = await service.create_session(
         session=session,
         user=user,
@@ -237,6 +239,13 @@ async def login_session(
         user_agent=user_agent,
         ip_address=ip_address,
     )
+    if new_device:
+        schedule_new_sign_in_alert(
+            email_to=user.email,
+            device=new_device,
+            ip_address=ip_address,
+            signed_in_at=db_session.created_at,
+        )
     access_token, access_token_expires_at = service.issue_access_token_for_user(
         user=user,
         expires_delta=service.get_session_access_token_expires_delta(),

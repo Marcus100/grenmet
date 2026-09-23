@@ -373,6 +373,9 @@ async def duplicate_alert(
     require_permission(current_user=current_user, permission_key="cap.alert.create")
     original = await get_alert_or_404(session=session, alert_id=alert_id)
     public = await _to_public(session=session, alert=original)
+    # Database timestamps are naive UTC; use the public UTC representation when
+    # constructing a new input, whose timestamps must carry explicit offsets.
+    public = CapAlertPublic.model_validate(public.model_dump(mode="json"))
     payload = CapAlertCreate(
         sender=public.sender,
         status=CapStatus.DRAFT,

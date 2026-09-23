@@ -17,6 +17,11 @@ export type PublicPublishedProduct = {
    */
   id: string;
   revision: number;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   publishedAt: string;
   kind: ForecastSourcePropertiesKindEnum;
   values: {
