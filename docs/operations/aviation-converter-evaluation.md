@@ -1,5 +1,9 @@
 # Aviation converter evaluation
 
+**Status:** Active reference  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-23
+
 23 September 2026. J-Aviation engineering assessment; no dependency installed,
 receiver selected or submission performed. Preserve accepted manual TAC procedures.
 

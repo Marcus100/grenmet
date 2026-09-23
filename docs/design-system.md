@@ -1,5 +1,9 @@
 # Barrels Design System
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-17
+
 `@barrelsgd/ui` owns the token contract and repo enforcement. `packages/ui/src/styles/globals.css` is the single source of `--gm-*`; every app receives a generated copy of it.
 
 > **Figma is not linked to this repository** (see [ADR-0012](./adr/0012-decouple-design-tooling-from-figma.md)). Design intent arrives as a Claude Design canvas, a screenshot, or a brief — see [Design Workflow](./design-workflow.md). Sections below that describe the old Figma file map and the Code Connect pilots are retained as **history**, not current process.

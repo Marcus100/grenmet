@@ -1,5 +1,9 @@
 # GAA admin and GMS interaction acceptance
 
+**Status:** Active reference  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-09
+
 This inventory covers every current page route and the distinct interaction
 families below. Route discovery is not browser verification. An exhaustive proof
 of every input combination is impossible; acceptance covers permissions, state

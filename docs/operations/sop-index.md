@@ -1,5 +1,9 @@
 # Standard Operating Procedures — Index
 
+**Status:** Active reference — individual SOPs in draft  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-10
+
 | Field | Detail |
 |---|---|
 | **Version** | 1.0 |

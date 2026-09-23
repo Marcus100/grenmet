@@ -12,11 +12,11 @@ repository coverage.
 barrelsgd/
 ├── apps/                       # Application code
 │   ├── api/
-│   │   ├── fastapi/            # FastAPI backend (Python) — auth, HR, CAP, webhooks
-│   │   └── honoapi/            # Hono API (stub — planned weather data proxy)
+│   │   └── fastapi/            # FastAPI backend (Python) — auth, HR, CAP, weather, audit, notifications, webhooks
 │   └── web/
 │       ├── gaa-admin/          # Current GAA staff portal; GMS pilot plus GAA-wide modules
 │       ├── auth/               # Shared sign-in/sign-up gateway for all apps
+│       ├── cms/                # GMS editorial content service (Payload CMS)
 │       ├── events/             # Barrels Events organiser-console prototype
 │       ├── docs/      # Public hurricane preparedness content site (MDX)
 │       ├── mbia/               # Maurice Bishop International Airport public site
@@ -25,9 +25,9 @@ barrelsgd/
 ├── packages/
 │   ├── api-client/             # TypeScript API client (Kubb-generated from OpenAPI)
 │   ├── auth/                   # Shared auth/session package (@barrelsgd/auth)
+│   ├── cms-migrations/         # Runtime dependencies for CMS migrations
 │   ├── email-templates/        # Shared React Email templates
 │   ├── gms/                    # GMS-owned assets and presentation components
-│   ├── mdx/                    # Shared MDX processing plugins
 │   ├── theme/                  # Shared theme and preference utilities
 │   ├── tsconfig/               # Shared TypeScript config
 │   └── ui/                     # Brand-neutral shared UI component library
@@ -161,7 +161,6 @@ All commands are run from the monorepo root.
 | `pnpm dev:web:mbia`       | [mbia](apps/web/mbia)                   |
 | `pnpm dev:web:signal`     | [signal](apps/web/signal)               |
 | `pnpm dev:web:gms`    | [gms](apps/web/gms)             |
-| `pnpm dev:honoapi`        | [Hono API](apps/api/honoapi)            |
 
 API (FastAPI): use `pnpm start` for infra + API, or follow the fully qualified
 Compose commands in [docs/api/development.md](docs/api/development.md) for an
@@ -219,7 +218,6 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 | --- | --- |
 | gaa-admin | [apps/web/gaa-admin/README.md](apps/web/gaa-admin/README.md) |
 | auth | [apps/web/auth/README.md](apps/web/auth/README.md) |
-| Hono API | [apps/api/honoapi/README.md](apps/api/honoapi/README.md) |
 | docs | [apps/web/docs/README.md](apps/web/docs/README.md) |
 | mbia | [apps/web/mbia](apps/web/mbia) |
 | signal | [apps/web/signal/README.md](apps/web/signal/README.md) |
@@ -240,7 +238,6 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 - **@barrelsgd/api-client** - Shared API client; generate with `pnpm generate:api-client`.
 - **@barrelsgd/auth** - Shared auth/session package for web apps.
 - **@barrelsgd/email-templates** - Shared React Email templates.
-- **@barrelsgd/mdx** - Shared remark, rehype, and recma plugins.
 - **@barrelsgd/theme** - Shared theme, layout, and preference utilities.
 - **@barrelsgd/tsconfig** - Shared TypeScript config.
 - **@barrelsgd/ui** - Shared UI component library and design-system primitives.

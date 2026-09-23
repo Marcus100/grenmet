@@ -26,11 +26,15 @@ const resolve = (relativePath) => join(repoRoot, relativePath);
 const NEXT_HEADING = /\n## /;
 const TABLE_SEPARATOR_ROW = /^\|[\s-]+\|/;
 const BACKTICK_CELL = /`([^`]+)`/;
+const AGENTS_FILE = /AGENTS\.md$/;
+const CLAUDE_FILE = /CLAUDE\.md$/;
+const AGENTS_IMPORT = /^@AGENTS\.md$/m;
+const CODEX_BUDGET = /^project_doc_max_bytes\s*=\s*(\d+)/m;
 
 /**
  * Extract `path` cells from the markdown table under `heading`, up to the
  * next `## ` heading or end of file. Skips template rows containing a `<...>`
- * placeholder (e.g. `apps/web/<app>/CLAUDE.md`) — those aren't literal paths.
+ * placeholder (e.g. `apps/web/<app>/AGENTS.md`) — those aren't literal paths.
  */
 function tablePaths(source, heading) {
   const afterHeading = source.split(heading)[1];
@@ -64,17 +68,99 @@ function assertPathExists(path) {
   }
 }
 
-test("CLAUDE.md Where to Look table points at real paths", () => {
-  const claudeMd = read("CLAUDE.md");
-  for (const path of tablePaths(claudeMd, "## Where to Look\n")) {
+test("AGENTS.md Where to Look table points at real paths", () => {
+  const agentsMd = read("AGENTS.md");
+  for (const path of tablePaths(agentsMd, "## Where to Look\n")) {
     assertPathExists(path);
   }
 });
 
-test("AGENTS.md Where to Look Next table points at real paths", () => {
-  const agentsMd = read("AGENTS.md");
-  for (const path of tablePaths(agentsMd, "## Where to Look Next\n")) {
-    assertPathExists(path);
+const IGNORED_DIRS = new Set([
+  ".git",
+  ".next",
+  ".venv",
+  ".turbo",
+  "node_modules",
+  "__pycache__",
+  "surface",
+  "wis2box",
+  "geonetcast",
+]);
+
+/** Every AGENTS.md / CLAUDE.md in the repo, as repo-relative paths. */
+function instructionFiles(name, dir = "", found = []) {
+  for (const entry of readdirSync(resolve(dir || "."), {
+    withFileTypes: true,
+  })) {
+    if (entry.isDirectory()) {
+      if (IGNORED_DIRS.has(entry.name) || entry.isSymbolicLink()) continue;
+      instructionFiles(name, dir ? `${dir}/${entry.name}` : entry.name, found);
+    } else if (entry.name === name) {
+      found.push(dir ? `${dir}/${name}` : name);
+    }
+  }
+  return found;
+}
+
+test("every AGENTS.md has a sibling CLAUDE.md that imports it", () => {
+  // Claude Code reads CLAUDE.md (not AGENTS.md) whenever a root CLAUDE.md
+  // exists, so each AGENTS.md needs a CLAUDE.md beside it with `@AGENTS.md`.
+  for (const agents of instructionFiles("AGENTS.md")) {
+    const claude = agents.replace(AGENTS_FILE, "CLAUDE.md");
+    assert.ok(existsSync(resolve(claude)), `missing ${claude} for ${agents}`);
+    assert.match(
+      read(claude),
+      AGENTS_IMPORT,
+      `${claude} must import its sibling with an \`@AGENTS.md\` line`
+    );
+  }
+});
+
+test("every CLAUDE.md has a sibling AGENTS.md (AGENTS.md is canonical)", () => {
+  for (const claude of instructionFiles("CLAUDE.md")) {
+    const agents = claude.replace(CLAUDE_FILE, "AGENTS.md");
+    assert.ok(
+      existsSync(resolve(agents)),
+      `${claude} has no sibling AGENTS.md — move its content into AGENTS.md and leave \`@AGENTS.md\``
+    );
+  }
+});
+
+test("root AGENTS.md instruction map covers every nested AGENTS.md", () => {
+  const root = read("AGENTS.md");
+  for (const agents of instructionFiles("AGENTS.md")) {
+    if (agents === "AGENTS.md") continue;
+    const dir = agents.slice(0, -"/AGENTS.md".length);
+    const segments = dir.split("/");
+    const covered =
+      root.includes(`\`${agents}\``) ||
+      // Template rows such as `apps/web/<app>/AGENTS.md` list names in prose.
+      root.includes(segments.at(-1));
+    assert.ok(
+      covered,
+      `root AGENTS.md instruction map does not mention ${agents}`
+    );
+  }
+});
+
+test("Codex instruction chain stays within the configured byte budget", () => {
+  // Codex concatenates AGENTS.md from the repo root down to its working
+  // directory and stops at project_doc_max_bytes (see .codex/config.toml).
+  const budgetMatch = read(".codex/config.toml").match(CODEX_BUDGET);
+  const budget = budgetMatch ? Number(budgetMatch[1]) : 32 * 1024;
+  for (const agents of instructionFiles("AGENTS.md")) {
+    const parts = agents.split("/").slice(0, -1);
+    let total = 0;
+    for (let depth = 0; depth <= parts.length; depth += 1) {
+      const candidate = [...parts.slice(0, depth), "AGENTS.md"].join("/");
+      if (existsSync(resolve(candidate))) {
+        total += statSync(resolve(candidate)).size;
+      }
+    }
+    assert.ok(
+      total <= budget,
+      `AGENTS.md chain ending at ${agents} is ${total} bytes, over the ${budget}-byte Codex budget`
+    );
   }
 });
 

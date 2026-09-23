@@ -1,5 +1,9 @@
 # GMS September 2026 launch readiness
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-23
+
 Evidence updated: **23 September 2026**. Report due: **28 September 2026**.
 Release-candidate review: **29 September**. Intended launch: **30 September 2026**.
 GAA is the client organisation; GMS is its meteorological department.

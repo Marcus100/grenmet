@@ -1,5 +1,9 @@
 # HR organisation boundary
 
+**Status:** Active reference — implemented; deployment migration pending  
+**Owner:** GAA (institutional content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-10
+
 Status: implemented and regression-tested; deployment migration pending. Not a complete multi-tenant isolation guarantee.
 Implements the direction in [ADR-0009](../adr/0009-gaa-staff-platform.md).
 

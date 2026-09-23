@@ -39,7 +39,7 @@ this plan to implementation surfaces.
 
 | Initiative | Classification | Current state | Horizon | Portfolio outcome | Acceptance authority |
 | --- | --- | --- | --- | --- | --- |
-| Barrels platform transition | Company/platform programme | In progress; transition boundaries 1–2 complete and boundary 4 work visible in the worktree | Now | Company, product, and client identities are separated without disrupting working services | Barrels |
+| Barrels platform transition | Company/platform programme | In progress; transition boundaries 1–8 complete; legacy `GrenMet` infrastructure names remain | Now | Company, product, and client identities are separated without disrupting working services | Barrels |
 | Events and Tickets | Barrels product | Organiser-console prototype; product definition contains unresolved scope | Now → Next | Prove discovery → sale → admission → settlement with trusted organisers | Barrels product owner |
 | Signal | Barrels media product | Working content-led application with component tests | Later | Maintain a distinct trusted media product and validate its role in the Barrels portfolio | Barrels product owner |
 | Barrels corporate hub and control plane | Company surfaces | Planned, not present as applications | Next | Establish the company entry point and a Barrels-only operational control plane | Barrels |
@@ -48,14 +48,22 @@ this plan to implementation surfaces.
 | GAA corporate surface | GAA public-service delivery | Reserved, not built | Later | Provide a GAA institutional site distinct from MBIA and staff administration | GAA |
 | Reusable workforce product | Productization option | Not approved; reusable architecture direction exists | Explore | Decide whether proven GAA staff capabilities warrant a separate Barrels product | Barrels after GAA delivery evidence and rights review |
 | Streaming/media platform | Barrels product option | Early product brief only | Explore | Validate audience, rights, operating model, and economics before investment | Barrels |
+| Pay/Invoice | Barrels product | Stripe gateway groundwork in the FastAPI `billing` domain; no settlement loop proven | Next | Prove invoicing, collection, and reconciliation as a product alongside Events; payment rails remain a platform capability that Events also consumes | Barrels product owner |
+| Loyalty and rewards | Barrels product option | Reference study only | Explore | Decide merchant-funded versus platform-funded rewards and validate with Events and merchant evidence | Barrels product owner |
 | Shop, Salesbus, and other transactions | Barrels product options | Reserved identities or prototypes only | Explore | Promote only when evidence and operating capacity justify a product | Barrels |
+| Barrels Core AI and data capabilities | Company/platform programme | Direction recorded in [ADR-0014](../adr/0014-barrels-platform-core-direction.md); not implemented | Next (organizations, tenancy, audit) → Explore (AI gateway, Knowledge, Automate) | Provide organization-scoped, auditable, vendor-portable AI and data capabilities pulled by approved needs | Barrels |
+| Knowledge pilot over GAA/GMS procedures | Client-pulled platform pilot | Idea only; requires client request and data terms | Explore | Prove cited retrieval over institutional documents before any wider Knowledge offer | Joint Barrels and GAA/GMS owners |
+| Barrels Academy | Barrels training unit | Not started | Explore | Validate demand for AI literacy and engineering training and a talent pipeline | Barrels |
+| Barrels Labs | Barrels applied-research unit | Not started | Explore | Produce datasets, prototypes, and product candidates once core cash flow allows | Barrels |
 
 ## Dependency roadmap
 
 ### Now — establish trustworthy boundaries
 
-- Complete transition boundaries 3–8: neutral shared contracts, GMS package
-  extraction, Barrels brand interfaces, and the GMS/GAA application renames.
+- Transition boundaries 1–8 are complete (neutral shared contracts, GMS
+  package extraction, Barrels brand interfaces, and the GMS/GAA application
+  renames). Remaining transition work is the legacy infrastructure identity,
+  such as the `grenmet` Docker Compose project and container names.
 - Keep current application behavior stable while retiring company-wide uses of
   the legacy `GrenMet` ownership identity. Preserve GMS terminology where it
   names the institution, service, assets, or meteorological capability.
@@ -71,7 +79,7 @@ this plan to implementation surfaces.
 **Exit gates**
 
 - Neutral shared UI/theme contracts exist and GMS-specific assets live in the
-  GMS package.
+  GMS package. *(Met at transition boundaries 3–5b.)*
 - GMS public, GMS documentation, and GAA staff-portal boundaries are explicit
   in code, hosts, navigation, and documentation.
 - Events has an approved v1 problem statement, actor model, operational loop,
@@ -126,10 +134,13 @@ this plan to implementation surfaces.
   reference products and the merchant-funded/platform-funded decision are
   surveyed in the
   [Loyalty and Gamification Reference Study](../strategy/loyalty-reference-study.md).
-- A production weather-data proxy beyond the Hono health stub.
+- A production weather-data API, delivered by FastAPI (the Hono stub was retired; see ADR-0015).
 - Native applications and deeper multi-tenant product infrastructure.
 - Research and training assets until an explicit adoption decision gives them
   a supported owner and service level.
+- AI gateway, Knowledge, Automate, Barrels Academy, and Barrels Labs as
+  described in the
+  [Barrels AI and Data Platform Strategy](../strategy/barrels-ai-strategy.md).
 
 ## Capacity and interruption rules
 
@@ -154,6 +165,7 @@ this plan to implementation surfaces.
 | GAA client delivery | Accepted workflows, department adoption, manual effort reduced, support load, audit completeness |
 | GMS operations | Warning dissemination time, observation latency/completeness, WIS2 publication success, recovery exercises, product verification |
 | Platform | Authentication reliability, deployment success, backup restoration, incidents, API/client drift, quality checks |
+| Platform AI | AI cost per organization and feature, audit completeness, evaluation pass rate, provider fallback success |
 
 - Review active horizons monthly.
 - Review GAA/GMS programme acceptance jointly at least quarterly.
@@ -166,7 +178,9 @@ this plan to implementation surfaces.
 - This plan does not approve payments, production cutovers, infrastructure
   purchases, public warning policy, or changes to operational thresholds.
 - GAA and GMS data ownership, software rights, residency, support, and exit
-  terms remain commercial/legal gates until formally agreed.
+  terms remain commercial/legal gates until formally agreed. A proposed
+  classification is in the
+  [IP boundary draft](../strategy/barrels-ip-boundary.md).
 - A repository prototype is not a launched product, and implemented code is
   not proof of institutional acceptance.
 

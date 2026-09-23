@@ -1,5 +1,9 @@
 # GAA/GMS September delivery plan
 
+**Status:** Historical record  
+**Owner:** GAA (institutional content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-23
+
 Effective 23 September 2026. This amends September sequencing in the
 [client programme plan](gaa-gms-client-programme-plan.md), preserving original
 memoranda and the [F/E backlog](../internal/gms-product-strategy-and-roadmap.md).

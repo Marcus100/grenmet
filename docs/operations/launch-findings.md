@@ -1,5 +1,9 @@
 # Launch findings and corrective actions
 
+**Status:** Active reference — working register  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-23
+
 Document register started 23 September 2026 for J-Quality. This is a working
 engineering record, not an approved quality system. Journey acceptance remains
 in the [readiness ledger](launch-readiness-coverage.md). No personnel data or

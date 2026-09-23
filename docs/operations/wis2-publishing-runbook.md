@@ -1,5 +1,9 @@
 # WIS2 Publishing Runbook (SURFACE → wis2box)
 
+**Status:** Active reference  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-07-08
+
 Operational runbook for the observation publishing pipeline decided in
 [ADR-0010](../adr/0010-wis2-publishing-via-surface-builtin.md). All commands run
 on the **host** (both stacks are host Docker; the devcontainer has no docker

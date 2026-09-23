@@ -1,5 +1,9 @@
 # Infrastructure Guide
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-18
+
 This guide documents the operational infrastructure implemented in this repo today. For first-time server setup see [deployment.md](deployment.md). For local development failures see [troubleshooting.md](troubleshooting.md).
 
 ## Runtime Topology
@@ -18,7 +22,6 @@ Each stack includes:
 - `prestart`: one-shot FastAPI migration/bootstrap container, including all domain Alembic histories and create-once catalogue seeds.
 - `redis` + `worker`: Redis and the arq background worker (CAP outbox).
 - `web-auth`, `web-admin`, `web-docs`, `web-gms`, `web-signal`, `web-mbia`, and `web-events`: seven configured web services. The former `wxwatch`/`wxproducts`/`hr`/`salesbus` apps remain path-prefixed routes inside `web-admin`.
-- `api-hono`: Node API on internal port `4000`, routed through `hapi`.
 - `proxy`: Traefik v3, terminating HTTPS and routing by host.
 - `adminer`: present in staging only in the current compose files.
 
@@ -26,7 +29,7 @@ Each stack includes:
 
 A push to `staging` runs `pipeline-staging.yml`: CI, applicable image builds, and
 deployment with the `staging` tag. Publishing a release runs `pipeline-prod.yml`,
-which builds all images and deploys the release tag for API, web, Hono, and
+which builds all images and deploys the release tag for API, web, and
 migration images. Merging to `main` does not build deployment images or deploy.
 
 The shared `deploy.yml` layers the committed environment file with temporary
@@ -59,7 +62,7 @@ Environment URLs:
 | Staging | `https://api.staging.barrels.gd/api/v1/utils/health-check/` | `https://api.staging.barrels.gd/api/v1/utils/ready/` |
 | Production | `https://api.barrels.gd/api/v1/utils/health-check/` | `https://api.barrels.gd/api/v1/utils/ready/` |
 
-Deployment requires FastAPI liveness and the health checks for all seven web containers (`/api/health`) plus Hono (`/health`). External web-root checks are logged but non-fatal. FastAPI readiness is a separate diagnostic check; the workflow does not currently gate deployment on it.
+Deployment requires FastAPI liveness and the health checks for all seven web containers (`/api/health`). External web-root checks are logged but non-fatal. FastAPI readiness is a separate diagnostic check; the workflow does not currently gate deployment on it.
 
 ## Incident Triage
 

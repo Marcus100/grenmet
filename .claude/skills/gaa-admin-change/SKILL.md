@@ -47,8 +47,8 @@ strength: check all five modules, not just the one you started in.
 
 - **Weather ownership**: `wxwatch`/`wxproducts` migrations and authored
   products belong to FastAPI (Alembic) — never introduce a Drizzle writer or
-  migration for these two. Historical Drizzle files under
-  `src/db/wxwatch`/`src/db/wxproducts` are adoption references only.
+  migration for these two. gaa-admin has no ORM or database access; use the
+  generated `@barrelsgd/api-client` types.
 - **Database separation**: `janitorial`, `transport`,
   `wxwatch`/`wxproducts` (all FastAPI/Alembic) are separate domain databases —
   never merge them, even if a query would be simpler joined.
@@ -65,7 +65,7 @@ pnpm test:e2e                      # playwright — needs a running dev server
 
 # From repo root
 turbo run test --filter=@barrelsgd/web-gaa-admin
-pnpm guardrails:staged             # catches FastAPI-contract / Drizzle-migration pairing
+pnpm guardrails:staged             # catches FastAPI route/schema changes without openapi.json
 ```
 
 If the change touched a shared surface (see above), also smoke-test at least

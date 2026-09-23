@@ -1,5 +1,9 @@
 # GAA modular platform: product roadmap and implementation guide
 
+**Status:** Working plan  
+**Owner:** GAA (institutional content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-17
+
 **Recorded:** 2026-09-16. **Status:** User-directed planning baseline; application implementation and operational rollout are not authorised by this document.
 
 ## Purpose and authority
@@ -84,7 +88,7 @@ flowchart TB
   API --> Jobs[Workers and integration adapters]
 ```
 
-Use `apps/api/fastapi` for custom backend migration. Leave the `apps/api/honoapi` stub deferred; no new Hono dependency is required. Choose new PWA paths during the first implementation scope. pnpm manages TypeScript packages; uv remains responsible for Python. A monorepo does not require one language or one package manager for all runtimes.
+Use `apps/api/fastapi` for custom backend migration. The `apps/api/honoapi` stub was retired on 2026-09-23 ([ADR-0015](../adr/0015-retire-hono-python-backend.md)); PWAs call FastAPI directly. Choose new PWA paths during the first implementation scope. pnpm manages TypeScript packages; uv remains responsible for Python. A monorepo does not require one language or one package manager for all runtimes.
 
 Within a backend module, separate HTTP handlers from application operations, domain rules and persistence/integration adapters. A business operation receives an actor and explicit inputs, not a FastAPI request. Other modules use a small supported interface, not another module's ORM tables. Do not introduce abstractions without a concrete use case.
 

@@ -1,11 +1,15 @@
 # Adding a New HR Form Module
 
+**Status:** Active reference  
+**Owner:** GAA (institutional content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-20
+
 A repeatable recipe for turning a paper HR form into a FastAPI module, generalized
 from `src/hr/parking/` and `src/hr/absentee/`. Follow it whenever a new GAA/HR form
 needs to be captured. For the field-mapping of existing forms see
 [`forms-inventory.md`](forms-inventory.md).
 
-> Conventions referenced here come from `apps/api/fastapi/CLAUDE.md` (two-layer
+> Conventions referenced here come from `apps/api/fastapi/AGENTS.md` (two-layer
 > models, module-import style, route metadata). Read it first.
 
 Replace `<form>` with the snake_case module name (e.g. `parking`) and `<Form>` with

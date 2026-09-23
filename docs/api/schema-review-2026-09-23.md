@@ -1,5 +1,9 @@
 # FastAPI contract review — 23 September 2026
 
+**Status:** Historical record  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-23
+
 Scope: repository-wide inventory, prioritising active non-HR journeys. HR,
 competence and employee setup are owned by the other model; no edits to them.
 This is an initial evidence-backed review, not a claim that every business rule

@@ -1,5 +1,9 @@
 # Post-launch review template and next-release backlog
 
+**Status:** Historical record  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-23
+
 Prepared 23 September 2026. **Template only: no launch or adoption outcome is
 claimed.** Fill in the actual report date, deployed revision and observation
 window after Eugine's deployment decision.

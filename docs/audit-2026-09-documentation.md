@@ -75,4 +75,20 @@ findings for every true one.
 
 | # | State | Note |
 | --- | --- | --- |
-| 1–7 | Open | Awaiting approval; no document edited by this audit |
+| 1 | Resolved | See finding |
+| 2 | Resolved | `CLAUDE.md` routes structure to `technical-overview.md` and GMS strategy to `architecture.md` |
+| 3 | Open | Pay/Invoice positioning awaits a product decision |
+| 4 | Partly resolved (2026-09-23) | Delivery map reclassifies `figma.config.json` as vestigial; file deletion awaits approval |
+| 5 | Open | Loyalty register row awaits a product decision |
+| 6 | Open | Header adoption awaits approval of the header convention |
+| 7 | Open | Infrastructure rename tracked outside documentation; `apps/web/events/CLAUDE.md` token wording corrected 2026-09-23 |
+
+### 2026-09-23 follow-up
+
+Additional drift found and corrected: the portfolio plan still showed transition
+boundaries 1–2 complete (now 1–8, matching the transition plan); `CLAUDE.md`
+described a Drizzle schema rule and Drizzle guardrail check that no longer
+exist, and listed technical-overview twice; ADR-0003 said janitorial and
+transport still used Drizzle migrations; FastAPI docs referenced the deleted
+`scripts/quick_test.py`; the README layout and technical overview omitted
+`apps/web/cms`, `packages/cms-migrations`, and the audit/notifications domains.

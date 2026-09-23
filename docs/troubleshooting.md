@@ -1,5 +1,9 @@
 # Troubleshooting
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-18
+
 Common development issues and how to fix them.
 
 ---
@@ -130,9 +134,9 @@ Check that all env vars used in `turbo.json` `env` arrays are declared. If you a
 
 `wxwatch`, `wxproducts`, `eregister`, `janitorial`, and `transport` are owned by
 FastAPI via dedicated Alembic histories. The web portal consumes them through
-the generated API client. Historical weather Drizzle files under
-`apps/web/gaa-admin` are adoption references only; do not add new Drizzle
-migrations for these domains.
+the generated API client. gaa-admin has no ORM or database access (Drizzle was
+removed on 2026-09-23); the adopted Drizzle history lives in FastAPI as
+`src/<domain>/migrations/drizzle-history.json`.
 
 1. Make sure `POSTGRES_SERVER`/`DATABASE_URL` points to the correct database
    (wxwatch and wxproducts use different DBs — check

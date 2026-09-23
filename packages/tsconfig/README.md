@@ -4,7 +4,7 @@ Shared TypeScript configs for the monorepo.
 
 ## Presets
 
-- **tsconfig.json** — Base (Node/ESM). Use for API packages and libraries (e.g. api-client, honoapi).
+- **tsconfig.json** — Base (Node/ESM). Use for API packages and libraries (e.g. api-client).
 - **tsconfig.nextjs.json** — Next.js apps. Extends the base.
 
 ## Usage
