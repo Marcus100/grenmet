@@ -22,6 +22,11 @@ describe("getSafeLocalReturnTo", () => {
     expect(getSafeLocalReturnTo("//evil.com")).toBeNull();
   });
 
+  it("rejects paths that the URL parser resolves to another host", () => {
+    expect(getSafeLocalReturnTo("/\\evil.com/path")).toBeNull();
+    expect(getSafeLocalReturnTo("/\n/evil.com/path")).toBeNull();
+  });
+
   it("returns valid local paths unchanged", () => {
     expect(getSafeLocalReturnTo("/dashboard")).toBe("/dashboard");
     expect(getSafeLocalReturnTo("/a/b/c?q=1")).toBe("/a/b/c?q=1");
@@ -93,6 +98,18 @@ describe("buildSharedSignInUrl", () => {
       buildSharedSignInUrl(config, {
         origin: "https://wxwatch.weather.gd",
         returnTo: "//evil.com",
+      })
+    );
+    expect(url.searchParams.get("returnTo")).toBe(
+      "https://wxwatch.weather.gd/"
+    );
+  });
+
+  it("does not send a backslash redirect to an external host", () => {
+    const url = new URL(
+      buildSharedSignInUrl(config, {
+        origin: "https://wxwatch.weather.gd",
+        returnTo: "/\\evil.com/path",
       })
     );
     expect(url.searchParams.get("returnTo")).toBe(

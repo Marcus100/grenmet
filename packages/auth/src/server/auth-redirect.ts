@@ -8,11 +8,16 @@ export function getSafeLocalReturnTo(
   const value = returnTo.trim();
   if (!value) return null;
 
-  if (!value.startsWith("/") || value.startsWith("//")) {
+  if (!value.startsWith("/")) {
     return null;
   }
 
-  return value;
+  try {
+    const base = "https://return.invalid";
+    return new URL(value, base).origin === base ? value : null;
+  } catch {
+    return null;
+  }
 }
 
 export function getRequestOrigin(requestHeaders: Headers): string {

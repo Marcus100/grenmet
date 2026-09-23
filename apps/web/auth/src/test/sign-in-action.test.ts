@@ -79,6 +79,19 @@ describe("signInAction", () => {
     expect(mockRedirect).toHaveBeenCalledWith("/dashboard");
   });
 
+  it("uses the local fallback for an external-looking path", async () => {
+    server.use(signInSuccess);
+    await signInAction(
+      { email: "", error: null, next: null },
+      makeFormData({
+        email: "jane@example.com",
+        password: "secret",
+        returnTo: "/\\evil.example.com/steal",
+      })
+    );
+    expect(mockRedirect).toHaveBeenCalledWith("/");
+  });
+
   it("returns error for bad credentials", async () => {
     server.use(signInBadCredentials);
     const result = await signInAction(
