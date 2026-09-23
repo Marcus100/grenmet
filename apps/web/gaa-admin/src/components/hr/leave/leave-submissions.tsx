@@ -12,6 +12,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+import { RecordHistoryButton } from "@/components/audit/record-history";
 import { formatSubmissionDate } from "@/components/hr/submission-date";
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
@@ -112,7 +113,11 @@ export function LeaveSubmissions() {
                         </Button>
                       </div>
                     ) : (
-                      <span className="text-muted-foreground">—</span>
+                      <RecordHistoryButton
+                        entityId={request.id}
+                        entityType="leave_request"
+                        title="Leave request history"
+                      />
                     )}
                   </td>
                 </tr>

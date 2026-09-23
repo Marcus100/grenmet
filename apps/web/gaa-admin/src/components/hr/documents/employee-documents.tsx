@@ -9,6 +9,7 @@ import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Label } from "@barrelsgd/ui/components/ui/label";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useId, useState } from "react";
+import { RecordHistoryButton } from "@/components/audit/record-history";
 import { DocumentEditor } from "@/components/hr/documents/document-editor";
 import {
   documentCategories,
@@ -237,6 +238,11 @@ export function EmployeeDocuments({
                       </Button>
                     </>
                   )}
+                  <RecordHistoryButton
+                    entityId={document.id}
+                    entityType="employee_document"
+                    title={`${document.title} history`}
+                  />
                 </div>
               </div>
             </li>

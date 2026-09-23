@@ -27,7 +27,9 @@ export default async function Profile({
 
       <StaffDigitalCard />
       <UserProfileContent
-        initialTab={tab === "signature" ? "signature" : "overview"}
+        initialTab={
+          tab === "signature" || tab === "notifications" ? tab : "overview"
+        }
       />
     </div>
   );
