@@ -161,6 +161,23 @@ export const sidebarItems: NavGroup[] = [
         url: "/cap",
         icon: AlertTriangle,
       },
+      {
+        id: "cap-administration",
+        title: "CAP Administration",
+        icon: ShieldCheck,
+        subItems: [
+          { id: "cap-settings", title: "Settings", url: "/cap/settings" },
+          { id: "cap-feeds", title: "External feeds", url: "/cap/feeds" },
+          { id: "cap-areas", title: "Predefined areas", url: "/cap/areas" },
+          { id: "cap-audit", title: "Audit history", url: "/cap/audit" },
+          { id: "cap-import", title: "Import alert", url: "/cap/import" },
+          {
+            id: "cap-integrations",
+            title: "Integrations",
+            url: "/cap/integrations",
+          },
+        ],
+      },
     ],
   },
   {

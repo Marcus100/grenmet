@@ -146,6 +146,12 @@ export function AlertWorkflow({ alertId }: { alertId: string }) {
       <h1 className="font-semibold text-2xl">
         {alert.info?.[0]?.headline ?? alert.identifier}
       </h1>
+      <Link
+        className="underline"
+        href={`/cap/audit?alert_id=${encodeURIComponent(alertId)}`}
+      >
+        View audit history
+      </Link>
       <p>
         Workflow state: <strong>{alert.lifecycle_state}</strong>
       </p>
