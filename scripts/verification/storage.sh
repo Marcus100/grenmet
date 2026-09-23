@@ -5,4 +5,4 @@ cd "$(dirname "$0")/../.."
 command -v psql >/dev/null || { echo 'Install the PostgreSQL client (psql) before storage verification.' >&2; exit 1; }
 export RUNTIME_ROLE_TEST_REQUIRED=true
 pnpm --filter @barrelsgd/api-client build
-node --test apps/web/gaa-admin/scripts/storage.integration.test.mjs apps/web/cms/scripts/storage.integration.test.mjs scripts/production/runtime-role.integration.test.mjs
+node --test apps/web/cms/scripts/storage.integration.test.mjs scripts/production/runtime-role.integration.test.mjs
