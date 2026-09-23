@@ -12,6 +12,7 @@ import {
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { cookies } from "next/headers";
 import type { ReactNode } from "react";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import { AppSidebar } from "./app-sidebar";
 import { LayoutControls } from "./layout-controls";
 import type { NavUserData } from "./nav-user";
@@ -69,6 +70,7 @@ export async function AppShell({
               <SearchDialog />
             </div>
             <div className="flex items-center gap-2">
+              <NotificationBell />
               <LayoutControls />
               <ThemeSwitcher />
             </div>

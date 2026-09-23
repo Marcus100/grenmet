@@ -15,6 +15,7 @@ from alembic import context
 sys.path.append(str(Path(__file__).parent.parent))
 
 # Import all models to ensure they're registered with SQLAlchemy metadata.
+from src.audit.models import AuditEntry  # noqa: F401
 from src.auth.models import User  # noqa: F401
 from src.cap.models import (  # noqa: F401
     CapAlert,
@@ -77,6 +78,12 @@ from src.hr.workflow.models import (  # noqa: F401
     WorkflowStepInstance,
     WorkflowStepTemplate,
     WorkflowTemplate,
+)
+from src.notifications.models import (  # noqa: F401
+    Notification,
+    NotificationDelivery,
+    NotificationPreference,
+    NotificationSetting,
 )
 from src.orm import POSTGRES_INDEXES_NAMING_CONVENTION, Base
 

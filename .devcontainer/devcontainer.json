@@ -63,8 +63,6 @@
     // Keep dependency-volumes.txt and the guardrail test in sync when adding apps.
     "source=grenmet-${devcontainerId}-node_modules,target=/workspace/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-node_modules,target=${localWorkspaceFolder}/node_modules,type=volume,volume-nocopy",
-    "source=grenmet-${devcontainerId}-apps-api-honoapi-node_modules,target=/workspace/apps/api/honoapi/node_modules,type=volume,volume-nocopy",
-    "source=grenmet-${devcontainerId}-apps-api-honoapi-node_modules,target=${localWorkspaceFolder}/apps/api/honoapi/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-apps-web-auth-node_modules,target=/workspace/apps/web/auth/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-apps-web-auth-node_modules,target=${localWorkspaceFolder}/apps/web/auth/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-apps-web-cms-node_modules,target=/workspace/apps/web/cms/node_modules,type=volume,volume-nocopy",
@@ -91,8 +89,6 @@
     "source=grenmet-${devcontainerId}-packages-email-templates-node_modules,target=${localWorkspaceFolder}/packages/email-templates/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-packages-gms-node_modules,target=/workspace/packages/gms/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-packages-gms-node_modules,target=${localWorkspaceFolder}/packages/gms/node_modules,type=volume,volume-nocopy",
-    "source=grenmet-${devcontainerId}-packages-mdx-node_modules,target=/workspace/packages/mdx/node_modules,type=volume,volume-nocopy",
-    "source=grenmet-${devcontainerId}-packages-mdx-node_modules,target=${localWorkspaceFolder}/packages/mdx/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-packages-theme-node_modules,target=/workspace/packages/theme/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-packages-theme-node_modules,target=${localWorkspaceFolder}/packages/theme/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-packages-tsconfig-node_modules,target=/workspace/packages/tsconfig/node_modules,type=volume,volume-nocopy",

@@ -19,6 +19,8 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0011](0011-brand-neutral-design-tokens.md) | Separate brand palettes from shared UI primitives (supersedes 0006) |
 | [0012](0012-decouple-design-tooling-from-figma.md) | Decouple design tooling from Figma (supersedes the Figma coupling in 0006/0011) |
 | [0013](0013-cap-alert-self-publish-and-bulletin-linkage.md) | Self-publish CAP alerts and link them to their source bulletin (supersedes 0007) |
+| [0014](0014-barrels-platform-core-direction.md) | Evolve the FastAPI modular monolith into Barrels Core (proposed) |
+| [0015](0015-retire-hono-python-backend.md) | Retire the Hono API; backend logic is Python (CMS excepted) |
 
 ## Template
 

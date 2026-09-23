@@ -1,7 +1,7 @@
 import uuid
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import AwareDatetime, Field, field_validator, model_validator
 
 from src.cap.models import (
     CapAreaKind,
@@ -97,6 +97,9 @@ class CapInfoBase(BaseModel):
 
 
 class CapInfoCreate(CapInfoBase):
+    effective: Annotated[UtcDateTime, AwareDatetime()] | None = None
+    onset: Annotated[UtcDateTime, AwareDatetime()] | None = None
+    expires: Annotated[UtcDateTime, AwareDatetime()] | None = None
     resources: list[CapResourceCreate] = Field(default_factory=list)
     areas: list[CapAreaCreate] = Field(default_factory=list)
 
@@ -115,7 +118,7 @@ class CapReferenceBase(BaseModel):
 
 
 class CapReferenceCreate(CapReferenceBase):
-    pass
+    sent: Annotated[UtcDateTime, AwareDatetime()]
 
 
 class CapReferencePublic(CapReferenceBase):
@@ -158,7 +161,7 @@ class CapAlertBase(BaseModel):
 
 
 class CapAlertCreate(CapAlertBase):
-    pass
+    sent: Annotated[UtcDateTime, AwareDatetime()] | None = None
 
 
 class CapAlertImportRequest(BaseModel):
@@ -191,7 +194,7 @@ class CapFeedImportPublic(BaseModel):
 class CapAlertUpdate(BaseModel):
     identifier: str | None = Field(default=None, max_length=255)
     sender: str | None = Field(default=None, max_length=255)
-    sent: UtcDateTime | None = None
+    sent: Annotated[UtcDateTime, AwareDatetime()] | None = None
     status: CapStatus | None = None
     msg_type: CapMessageType | None = None
     source: str | None = Field(default=None, max_length=255)

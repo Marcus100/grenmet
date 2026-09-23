@@ -8,6 +8,7 @@ import { Content } from "./collections/content";
 import { Media } from "./collections/media";
 import { Users } from "./collections/users";
 import { getEnv } from "./env";
+import { reportPayloadError } from "./lib/report-payload-error";
 
 const env = getEnv();
 const baseDir = path.dirname(fileURLToPath(import.meta.url));
@@ -36,6 +37,7 @@ export default buildConfig({
     meta: { titleSuffix: " | GMS Content" },
   },
   collections: [Users, Content, Media],
+  hooks: { afterError: [reportPayloadError] },
   graphQL: { disable: true },
   typescript: {
     postProcess: [

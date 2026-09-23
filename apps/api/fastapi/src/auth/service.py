@@ -128,6 +128,7 @@ async def update_user_me(
 
 async def set_password(*, session: AsyncSession, user: User, new_password: str) -> None:
     user.hashed_password = await get_password_hash_async(new_password)
+    user.password_changed_at = utc_now()
     session.add(user)
     from src.auth.modern_models import AuthChallenge
 

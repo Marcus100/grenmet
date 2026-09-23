@@ -197,7 +197,6 @@
         "**/instrumentation-client.ts",
         "**/sentry.server.config.ts",
         "**/sentry.edge.config.ts",
-        "**/drizzle.config.ts",
         "**/next.config.ts",
         "**/next.config.mjs",
         "**/playwright.config.ts"

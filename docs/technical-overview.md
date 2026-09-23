@@ -1,5 +1,9 @@
 # Technical Overview
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-18
+
 This document explains how the Barrels Grenada codebase fits together: the
 relationships among applications, shared packages, authentication, and data.
 The repository hosts Barrels products and client delivery. GAA is the client
@@ -32,6 +36,7 @@ For the directory layout, see [Workspace Layout in the root README](../README.md
 | `gms` | `@barrelsgd/web-gms` | 3003 | Delegates to auth | — |
 | `signal` | `@barrelsgd/web-signal` | 3004 | None (static MDX) | — |
 | `mbia` | `@barrelsgd/web-mbia` | 3005 | None (public content) | — |
+| `cms` | `@barrelsgd/web-cms` | 3006 | Shared FastAPI identity | Dedicated `gms_cms` database |
 | `events` | `@barrelsgd/web-events` | 3009 | None (prototype) | — |
 
 **Auth model** determines how a user gets authenticated. See the [Auth section](#auth-architecture) below.
@@ -148,6 +153,8 @@ Two presets: `tsconfig.json` (base, for packages/API) and `tsconfig.nextjs.json`
 ## Database architecture
 
 The application, weather archive, weather products, eRegister, janitorial catalogue, and staff transport timetable use separate PostgreSQL databases. FastAPI owns the weather, eRegister, janitorial, and transport boundaries through dedicated SQLAlchemy sessions and Alembic histories. GAA Admin renders generated API contracts and does not connect directly to those databases.
+
+FastAPI also hosts platform-wide change history (`src/audit`) and in-app/email notifications (`src/notifications`); see [API contracts](api/contracts.md#change-history-and-notifications-platform-core).
 
 The web migration image and legacy catalogue scripts are being retired. New schema, migration, seed, and read changes belong in `apps/api/fastapi`; the Python catalogue seeder is `scripts/seed_catalogues.py`.
 

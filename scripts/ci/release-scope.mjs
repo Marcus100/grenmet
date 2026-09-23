@@ -18,7 +18,6 @@ export const webImages = [
   { app: "signal", image: "web-signal", path: "apps/web/signal", port: 3004 },
   { app: "mbia", image: "web-mbia", path: "apps/web/mbia", port: 3005 },
   { app: "events", image: "web-events", path: "apps/web/events", port: 3009 },
-  { app: "hono", image: "api-hono", path: "apps/api/honoapi", port: 4000 },
 ];
 export const weatherImages = [];
 export const releaseScope = {
@@ -43,7 +42,6 @@ export const coreServices = [
   "worker",
   ...webImages.map((image) => {
     if (image.app === "cms-migrate") return "cms-migrate";
-    if (image.app === "hono") return "api-hono";
     return `web-${image.app}`;
   }),
 ];

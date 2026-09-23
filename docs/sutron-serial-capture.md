@@ -1,5 +1,9 @@
 # Topic: How the weather station talks to the PC (Sutron serial capture)
 
+**Status:** Active reference  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-08-19
+
 Started: 2026-08-15
 Learner level: complete beginner — "all of it is a black box"
 Goal: understand what today's serial capture revealed and why each conclusion follows.

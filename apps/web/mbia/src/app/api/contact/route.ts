@@ -3,8 +3,9 @@ import { contactSchema } from "@/lib/contact";
 
 /**
  * Contact form endpoint. Delivery is deferred — this validates and logs only,
- * mirroring signal's subscribe seam. When wiring real delivery (email to
- * gaa@gaa.gd or a ticketing system), keep the schema; only add transport here.
+ * mirroring signal's subscribe seam. Real delivery (email to gaa@gaa.gd or a
+ * ticketing system) belongs in a FastAPI endpoint, because backend logic is
+ * Python; this route should then only validate and forward to it.
  */
 export async function POST(request: Request) {
   let payload: unknown;

@@ -1,11 +1,15 @@
 export interface SignInState {
   email: string;
   error: string | null;
+  // What the form should offer next: the authenticator step, or a link to
+  // finish email verification.
+  next: "mfa" | "verify" | null;
 }
 
 export const initialSignInState: SignInState = {
   error: null,
   email: "",
+  next: null,
 };
 
 export interface ForgotPasswordState {

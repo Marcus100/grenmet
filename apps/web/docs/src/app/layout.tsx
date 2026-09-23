@@ -18,8 +18,8 @@ const notoSans = Noto_Sans({
 
 export const metadata: Metadata = {
   title: {
-    template: "%s - Hurricane Plan",
-    default: "Hurricane Plan",
+    template: "%s - GMS Documentation",
+    default: "GMS Documentation",
   },
   icons: {
     icon: [

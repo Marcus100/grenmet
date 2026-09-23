@@ -1,79 +1,57 @@
-import Image from "next/image";
-
 import { Button } from "@/components/Button";
 import { Heading } from "@/components/Heading";
-import logoGo from "@/images/logos/go.svg";
-import logoNode from "@/images/logos/node.svg";
-import logoPhp from "@/images/logos/php.svg";
-import logoPython from "@/images/logos/python.svg";
-import logoRuby from "@/images/logos/ruby.svg";
 
 const libraries = [
   {
-    href: "#",
-    name: "PHP",
+    href: "/messages",
+    name: "Forecasts and bulletins",
     description:
-      "A popular general-purpose scripting language that is especially suited to web development.",
-    logo: logoPhp,
+      "Prepare a draft, review the preview and check the published issue.",
   },
   {
-    href: "#",
-    name: "Ruby",
+    href: "/conversations",
+    name: "CAP alerts",
     description:
-      "A dynamic, open source programming language with a focus on simplicity and productivity.",
-    logo: logoRuby,
+      "Compose an alert and follow its validation, review and publication workflow.",
   },
   {
-    href: "#",
-    name: "Node.js",
+    href: "/quickstart",
+    name: "wxRegister and aviation",
     description:
-      "Node.js® is an open-source, cross-platform JavaScript runtime environment.",
-    logo: logoNode,
+      "Enter observations and save aviation drafts; distinguish preparation from transmission.",
   },
   {
-    href: "#",
-    name: "Python",
-    description:
-      "Python is a programming language that lets you work quickly and integrate systems more effectively.",
-    logo: logoPython,
+    href: "/contacts",
+    name: "Staff and duty roster",
+    description: "Find colleagues and check your roster and staff workflows.",
   },
   {
-    href: "#",
-    name: "Go",
+    href: "/attachments",
+    name: "Documents and forms",
     description:
-      "An open-source programming language supported by Google with built-in concurrency.",
-    logo: logoGo,
+      "Find the available staff forms and operational reference documents.",
   },
 ];
-
 export function Libraries() {
   return (
     <div className="my-16 xl:max-w-none">
-      <Heading id="official-libraries" level={2}>
-        Official libraries
+      <Heading id="gms-tools" level={2}>
+        Tool guides
       </Heading>
-      <div className="not-prose mt-4 grid grid-cols-1 gap-x-6 gap-y-10 border-zinc-900/5 border-t pt-10 sm:grid-cols-2 xl:max-w-none xl:grid-cols-3 dark:border-white/5">
+      <div className="not-prose mt-4 grid grid-cols-1 gap-6 border-t pt-10 sm:grid-cols-2 xl:grid-cols-3">
         {libraries.map((library) => (
-          <div className="flex flex-row-reverse gap-6" key={library.name}>
-            <div className="flex-auto">
-              <h3 className="font-semibold text-sm text-zinc-900 dark:text-white">
-                {library.name}
-              </h3>
-              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                {library.description}
-              </p>
-              <p className="mt-4">
-                <Button arrow="right" href={library.href} variant="text">
-                  Read more
-                </Button>
-              </p>
-            </div>
-            <Image
-              alt=""
-              className="h-12 w-12"
-              src={library.logo}
-              unoptimized
-            />
+          <div key={library.name}>
+            <h3 className="font-semibold text-foreground text-sm">
+              {library.name}
+            </h3>
+            <p className="mt-1 text-muted-foreground text-sm">
+              {library.description}
+            </p>
+            <p className="mt-4">
+              <Button arrow="right" href={library.href} variant="text">
+                Read guide
+              </Button>
+            </p>
           </div>
         ))}
       </div>

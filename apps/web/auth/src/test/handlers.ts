@@ -43,6 +43,27 @@ export const signInBadCredentials = http.post(`${BASE}/login/session`, () =>
   HttpResponse.json({ detail: "Incorrect email or password" }, { status: 400 })
 );
 
+export const signInMfaRequired = http.post(`${BASE}/login/session`, () =>
+  HttpResponse.json(
+    { detail: "Two-factor authentication code required or invalid" },
+    { status: 400 }
+  )
+);
+
+export const signInVerifyRequired = http.post(`${BASE}/login/session`, () =>
+  HttpResponse.json(
+    { detail: "Verify your email and set your password before signing in" },
+    { status: 403 }
+  )
+);
+
+export const signInAwaitingApproval = http.post(`${BASE}/login/session`, () =>
+  HttpResponse.json(
+    { detail: "Your registration is awaiting administrator approval" },
+    { status: 403 }
+  )
+);
+
 export const signInServiceDown = http.post(`${BASE}/login/session`, () =>
   HttpResponse.error()
 );

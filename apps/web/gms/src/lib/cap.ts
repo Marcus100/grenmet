@@ -30,7 +30,7 @@ const WARNING_FETCH_TIMEOUT_MS = 5000;
  * happens to be looking at the site.
  */
 function reportUnavailable(error: unknown): AlertsResult {
-  captureException(error, { tags: { feature: "cap-public-warnings" } });
+  captureException(error, { tags: { area: "cap-public-warnings" } });
   return { status: "unavailable" };
 }
 

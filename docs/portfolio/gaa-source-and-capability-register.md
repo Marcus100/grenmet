@@ -1,5 +1,9 @@
 # GAA source and capability register
 
+**Status:** Active reference  
+**Owner:** GAA (institutional content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-17
+
 **Recorded:** 2026-09-16. **Status:** Planning evidence; not institutional approval.
 
 This register supports the [modular-platform implementation guide](../exec-plans/gaa-modular-monolith-implementation.md). Source files currently reside in the local `temp-files` collection; they are not guaranteed to be present in every checkout. Preserve access restrictions and provenance before adopting them into a durable document library.

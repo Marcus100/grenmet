@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 from src.auth.policy import has_permission, require_permission
+from src.hr import notifications as hr_notifications
 from src.hr.constants import (
     ERROR_CALENDAR_NO_DEPARTMENT,
     ERROR_CALENDAR_RANGE_INVALID,
@@ -205,6 +206,12 @@ async def publish_roster_period(
                 for assignment in assignments
             ],
         },
+    )
+    await hr_notifications.roster_published(
+        session,
+        period=period,
+        recipients={assignment.user_id for assignment in assignments},
+        actor_id=current_user.id,
     )
     await session.commit()
     await session.refresh(period)

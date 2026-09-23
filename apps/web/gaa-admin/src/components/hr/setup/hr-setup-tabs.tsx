@@ -7,6 +7,7 @@ import {
   TabsTrigger,
 } from "@barrelsgd/ui/components/ui/tabs";
 import { DepartmentsManager } from "./departments-manager";
+import { NotificationSettings } from "./notification-settings";
 import { ShiftTypesManager } from "./shift-types-manager";
 import { StaffSetupManager } from "./staff-setup";
 
@@ -17,6 +18,7 @@ export function HrSetupTabs() {
         <TabsTrigger value="staff">Staff baseline</TabsTrigger>
         <TabsTrigger value="shifts">Shift types</TabsTrigger>
         <TabsTrigger value="departments">Departments</TabsTrigger>
+        <TabsTrigger value="notifications">Notifications</TabsTrigger>
       </TabsList>
       <TabsContent className="w-full min-w-0" value="staff">
         <StaffSetupManager />
@@ -26,6 +28,9 @@ export function HrSetupTabs() {
       </TabsContent>
       <TabsContent className="w-full min-w-0" value="departments">
         <DepartmentsManager />
+      </TabsContent>
+      <TabsContent className="w-full min-w-0" value="notifications">
+        <NotificationSettings />
       </TabsContent>
     </Tabs>
   );

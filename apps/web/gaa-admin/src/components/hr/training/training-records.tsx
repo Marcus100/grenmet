@@ -10,6 +10,7 @@ import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useId, useState } from "react";
+import { RecordHistoryButton } from "@/components/audit/record-history";
 import { ExpiryBadge, grenadaToday } from "@/components/hr/expiry";
 
 export function TrainingRecords({
@@ -241,18 +242,25 @@ export function TrainingRecords({
                     Archive reason: {record.archive_reason}
                   </p>
                 )}
-                {record.can_manage && !record.archived_at && (
-                  <Button
-                    disabled={busy}
-                    onClick={() => {
-                      setArchive(record);
-                      setError("");
-                    }}
-                    variant="outline"
-                  >
-                    Archive {record.course_name}
-                  </Button>
-                )}
+                <div className="flex flex-wrap items-center gap-2">
+                  {record.can_manage && !record.archived_at && (
+                    <Button
+                      disabled={busy}
+                      onClick={() => {
+                        setArchive(record);
+                        setError("");
+                      }}
+                      variant="outline"
+                    >
+                      Archive {record.course_name}
+                    </Button>
+                  )}
+                  <RecordHistoryButton
+                    entityId={record.id}
+                    entityType="training_record"
+                    title={`${record.course_name} history`}
+                  />
+                </div>
               </li>
             ))}
           </ul>

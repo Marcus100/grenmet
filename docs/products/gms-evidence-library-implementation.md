@@ -1,5 +1,9 @@
 # GMS evidence library and reporting — feature implementation brief
 
+**Status:** Working plan  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-10
+
 Recorded 2026-09-10. **Status: specified; runtime implementation and operational acceptance pending.** GMS owns the content and acceptance; Barrels delivers the software. This brief refines existing F/E work packages under the [client programme plan](../portfolio/gaa-gms-client-programme-plan.md) and [strategy backlog](../internal/gms-product-strategy-and-roadmap.md). It does not add another application or displace current operational work.
 
 ## Product outcome and evidence

@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { z } from "zod";
 import { env } from "@/lib/env";
+import { reportError } from "@/lib/report-error";
 
 const contentSchema = z.object({
   id: z.string(),
@@ -11,9 +12,39 @@ const contentSchema = z.object({
     .nullable()
     .optional(),
   summary: z.string().nullable(),
+  category: z.string().nullable().optional(),
   body: z.string(),
   imageUrl: z.string().nullable(),
   updatedAt: z.string(),
+  relatedLinks: z
+    .array(
+      z.object({
+        title: z.string().trim().min(1).max(200),
+        category: z.enum([
+          "forecast",
+          "cap",
+          "aviation",
+          "bulletin",
+          "publication",
+          "article",
+          "source",
+        ]),
+        url: z
+          .url()
+          .max(2000)
+          .refine((value) => {
+            if (!URL.canParse(value)) return false;
+            const url = new URL(value);
+            return (
+              ["http:", "https:"].includes(url.protocol) &&
+              !url.username &&
+              !url.password
+            );
+          }),
+      })
+    )
+    .max(20)
+    .optional(),
 });
 export type PublishedContent = z.infer<typeof contentSchema>;
 
@@ -23,13 +54,16 @@ export type ContentResult =
 
 async function getContent(params: {
   slug?: string;
-  placement?: "latest" | "news" | "weather-news";
+  placement?: "latest" | "news" | "weather-news" | "latest-publications";
 }): Promise<ContentResult> {
   if (!env.CMS_API_URL) return { status: "unavailable", articles: [] };
   try {
     const url = new URL("/api/public/content", env.CMS_API_URL);
-    if (params.placement === "weather-news")
-      url.searchParams.set("section", "weather-news");
+    if (
+      params.placement === "weather-news" ||
+      params.placement === "latest-publications"
+    )
+      url.searchParams.set("section", params.placement);
     else if (params.placement)
       url.searchParams.set("placement", params.placement);
     if (params.slug) url.searchParams.set("slug", params.slug);
@@ -41,22 +75,25 @@ async function getContent(params: {
     const parsed = z
       .object({ articles: z.array(contentSchema) })
       .safeParse(await response.json());
-    if (!parsed.success) return { status: "unavailable", articles: [] };
+    if (!parsed.success) {
+      reportError(parsed.error, "gms-cms-contract");
+      return { status: "unavailable", articles: [] };
+    }
     return { status: "ok", articles: parsed.data.articles };
-  } catch {
+  } catch (error) {
+    reportError(error, "gms-cms");
     return { status: "unavailable", articles: [] };
   }
 }
 
 export const fetchPublishedContent = cache(function fetchPublishedContent(
-  placement?: "latest" | "news" | "weather-news"
+  placement?: "latest" | "news" | "weather-news" | "latest-publications"
 ): Promise<ContentResult> {
   return getContent({ placement });
 });
 
-export const fetchContentBySlug = cache(async function fetchContentBySlug(
+export const fetchContentBySlug = cache(function fetchContentBySlug(
   slug: string
-): Promise<PublishedContent | undefined> {
-  const result = await getContent({ slug });
-  return result.articles[0];
+): Promise<ContentResult> {
+  return getContent({ slug });
 });

@@ -38,6 +38,8 @@ describe("public content feed", () => {
         title: "Season preparation",
         slug: "season-preparation",
         section: "weather-news",
+        category: null,
+        relatedLinks: [],
         summary: "Get ready",
         body: "# Prepare",
         imageUrl: "/media/prepare.jpg",
@@ -92,6 +94,35 @@ describe("public content feed", () => {
       request("http://localhost/api/public/content?section=bogus")
     );
     expect(response.status).toBe(400);
+  });
+  it("exposes the selected product category and only public link fields", async () => {
+    const find = vi.fn().mockResolvedValue({
+      docs: [
+        doc({
+          section: "latest-from-us",
+          updateType: "Marine",
+          relatedLinks: [
+            {
+              id: "internal-row",
+              title: "Marine forecast",
+              category: "forecast",
+              url: "https://weather.gd/marine",
+            },
+          ],
+        }),
+      ],
+    });
+    vi.mocked(getPayload).mockResolvedValue({ find } as never);
+    const response = await GET(request("http://localhost/api/public/content"));
+    const result = await response.json();
+    expect(result.articles[0].category).toBe("Marine");
+    expect(result.articles[0].relatedLinks).toEqual([
+      {
+        title: "Marine forecast",
+        category: "forecast",
+        url: "https://weather.gd/marine",
+      },
+    ]);
   });
   it("reports unavailable when Payload cannot be reached", async () => {
     vi.mocked(getPayload).mockRejectedValue(new Error("db down"));

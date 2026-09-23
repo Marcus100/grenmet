@@ -1,5 +1,9 @@
 # Release Promotion Runbook
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-18
+
 How a change ships from `dev` to production. Agents (Claude Code / Codex) may run
 the verification and PR-creation steps; **merging PRs and publishing the release
 are human actions** (see the Never tier in `CLAUDE.md`).

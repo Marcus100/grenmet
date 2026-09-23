@@ -15,6 +15,20 @@ export { archiveHistorySchema } from "./archiveHistorySchema.js";
 export { archivePageSchema } from "./archivePageSchema.js";
 export { archiveRetrievalSchema } from "./archiveRetrievalSchema.js";
 export { areaViewSchema } from "./areaViewSchema.js";
+export { auditChangePublicSchema } from "./auditChangePublicSchema.js";
+export { auditEntryPublicSchema } from "./auditEntryPublicSchema.js";
+export {
+  auditGetHistoryErrorSchema,
+  auditGetHistoryPathEntityIdSchema,
+  auditGetHistoryPathEntityTypeSchema,
+  auditGetHistoryQueryPageSchema,
+  auditGetHistoryQuerySizeSchema,
+  auditGetHistoryResponseSchema,
+  auditGetHistoryStatus200Schema,
+  auditGetHistoryStatus403Schema,
+  auditGetHistoryStatus404Schema,
+  auditGetHistoryStatus422Schema,
+} from "./auditGetHistorySchema.js";
 export {
   authBrowserSessionErrorSchema,
   authBrowserSessionResponseSchema,
@@ -1899,6 +1913,80 @@ export { legacyProductWriteSchema } from "./legacyProductWriteSchema.js";
 export { legacyStoredProductSchema } from "./legacyStoredProductSchema.js";
 export { messageSchema } from "./messageSchema.js";
 export { newPasswordSchema } from "./newPasswordSchema.js";
+export { notificationParamsSchema } from "./notificationParamsSchema.js";
+export { notificationPreferencePublicSchema } from "./notificationPreferencePublicSchema.js";
+export { notificationPreferenceUpdateSchema } from "./notificationPreferenceUpdateSchema.js";
+export { notificationPublicSchema } from "./notificationPublicSchema.js";
+export { notificationSettingPublicSchema } from "./notificationSettingPublicSchema.js";
+export { notificationSettingsPublicSchema } from "./notificationSettingsPublicSchema.js";
+export { notificationSettingUpdateSchema } from "./notificationSettingUpdateSchema.js";
+export {
+  notificationsGetNotificationPreferencesErrorSchema,
+  notificationsGetNotificationPreferencesResponseSchema,
+  notificationsGetNotificationPreferencesStatus200Schema,
+  notificationsGetNotificationPreferencesStatus401Schema,
+  notificationsGetNotificationPreferencesStatus422Schema,
+} from "./notificationsGetNotificationPreferencesSchema.js";
+export {
+  notificationsGetNotificationSettingsErrorSchema,
+  notificationsGetNotificationSettingsQueryOrganisationIdSchema,
+  notificationsGetNotificationSettingsResponseSchema,
+  notificationsGetNotificationSettingsStatus200Schema,
+  notificationsGetNotificationSettingsStatus403Schema,
+  notificationsGetNotificationSettingsStatus422Schema,
+} from "./notificationsGetNotificationSettingsSchema.js";
+export {
+  notificationsGetNotificationsErrorSchema,
+  notificationsGetNotificationsQueryPageSchema,
+  notificationsGetNotificationsQuerySizeSchema,
+  notificationsGetNotificationsQueryUnreadSchema,
+  notificationsGetNotificationsResponseSchema,
+  notificationsGetNotificationsStatus200Schema,
+  notificationsGetNotificationsStatus401Schema,
+  notificationsGetNotificationsStatus422Schema,
+} from "./notificationsGetNotificationsSchema.js";
+export {
+  notificationsGetUnreadCountErrorSchema,
+  notificationsGetUnreadCountResponseSchema,
+  notificationsGetUnreadCountStatus200Schema,
+  notificationsGetUnreadCountStatus401Schema,
+  notificationsGetUnreadCountStatus422Schema,
+} from "./notificationsGetUnreadCountSchema.js";
+export {
+  notificationsMarkAllNotificationsReadErrorSchema,
+  notificationsMarkAllNotificationsReadResponseSchema,
+  notificationsMarkAllNotificationsReadStatus200Schema,
+  notificationsMarkAllNotificationsReadStatus401Schema,
+  notificationsMarkAllNotificationsReadStatus422Schema,
+} from "./notificationsMarkAllNotificationsReadSchema.js";
+export {
+  notificationsMarkNotificationReadErrorSchema,
+  notificationsMarkNotificationReadPathNotificationIdSchema,
+  notificationsMarkNotificationReadResponseSchema,
+  notificationsMarkNotificationReadStatus200Schema,
+  notificationsMarkNotificationReadStatus404Schema,
+  notificationsMarkNotificationReadStatus422Schema,
+} from "./notificationsMarkNotificationReadSchema.js";
+export {
+  notificationsUpdateNotificationPreferencesBodySchema,
+  notificationsUpdateNotificationPreferencesErrorSchema,
+  notificationsUpdateNotificationPreferencesResponseSchema,
+  notificationsUpdateNotificationPreferencesStatus200Schema,
+  notificationsUpdateNotificationPreferencesStatus400Schema,
+  notificationsUpdateNotificationPreferencesStatus422Schema,
+} from "./notificationsUpdateNotificationPreferencesSchema.js";
+export {
+  notificationsUpdateNotificationSettingBodySchema,
+  notificationsUpdateNotificationSettingErrorSchema,
+  notificationsUpdateNotificationSettingPathEventKeySchema,
+  notificationsUpdateNotificationSettingQueryOrganisationIdSchema,
+  notificationsUpdateNotificationSettingResponseSchema,
+  notificationsUpdateNotificationSettingStatus200Schema,
+  notificationsUpdateNotificationSettingStatus400Schema,
+  notificationsUpdateNotificationSettingStatus403Schema,
+  notificationsUpdateNotificationSettingStatus404Schema,
+  notificationsUpdateNotificationSettingStatus422Schema,
+} from "./notificationsUpdateNotificationSettingSchema.js";
 export { observationListSchema } from "./observationListSchema.js";
 export { observationProvenancePropertiesPublicationStateEnumSchema } from "./observationProvenancePropertiesPublicationStateEnumSchema.js";
 export { observationProvenancePropertiesTimeBasisEnumSchema } from "./observationProvenancePropertiesTimeBasisEnumSchema.js";
@@ -1913,6 +2001,8 @@ export { outlookProductPreviewSchema } from "./outlookProductPreviewSchema.js";
 export { outlookProductWriteSchema } from "./outlookProductWriteSchema.js";
 export { outlookStoredProductSchema } from "./outlookStoredProductSchema.js";
 export { outlookValuesDraftSchema } from "./outlookValuesDraftSchema.js";
+export { paginatedResponseAuditEntryPublicSchema } from "./paginatedResponseAuditEntryPublicSchema.js";
+export { paginatedResponseNotificationPublicSchema } from "./paginatedResponseNotificationPublicSchema.js";
 export { paginatedResponsePermissionPublicSchema } from "./paginatedResponsePermissionPublicSchema.js";
 export { paginatedResponseRolePublicSchema } from "./paginatedResponseRolePublicSchema.js";
 export { paginatedResponseUserPublicSchema } from "./paginatedResponseUserPublicSchema.js";
@@ -2071,6 +2161,8 @@ export { twoFactorDisableRequestSchema } from "./twoFactorDisableRequestSchema.j
 export { twoFactorSetupResponseSchema } from "./twoFactorSetupResponseSchema.js";
 export { twoFactorStatusPublicSchema } from "./twoFactorStatusPublicSchema.js";
 export { unitSpecSchema } from "./unitSpecSchema.js";
+export { unreachableRecipientPublicSchema } from "./unreachableRecipientPublicSchema.js";
+export { unreadCountPublicSchema } from "./unreadCountPublicSchema.js";
 export { updatePasswordSchema } from "./updatePasswordSchema.js";
 export { userCreateSchema } from "./userCreateSchema.js";
 export { userProfilePublicSchema } from "./userProfilePublicSchema.js";

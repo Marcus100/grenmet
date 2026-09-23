@@ -248,7 +248,7 @@ jobs:
           IMAGE: smoke-${{ matrix.app }}:ci
           KIND: ${{ matrix.target == 'migrate' && matrix.app || matrix.app == 'auth' && 'auth' || 'web' }}
           PORT: ${{ matrix.port }}
-          HEALTH: ${{ matrix.app == 'hono' && '/health' || '/api/health' }}
+          HEALTH: /api/health
         run: bash scripts/production/smoke-image.sh "$IMAGE" "$KIND" "$PORT" "$HEALTH"
       - name: Enforce image vulnerability policy
         uses: ./.github/actions/scan-image

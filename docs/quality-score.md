@@ -1,5 +1,9 @@
 # Quality Score
 
+**Status:** Active reference — grades partially re-audited  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-08-19
+
 Grades each app and shared package. Updated as work progresses.
 Scale: A (solid), B (good, minor gaps), C (functional, needs work), D (stub or incomplete).
 

@@ -28,7 +28,58 @@ const guides = [
   },
 ];
 
-export function Guides() {
+export function Guides({ catalogue = false }: { catalogue?: boolean }) {
+  if (catalogue) {
+    return (
+      <div className="not-prose my-10 grid gap-10 sm:grid-cols-2">
+        {[
+          {
+            href: "/hurricane-plan",
+            title: "Tropical Cyclone Emergency Plan",
+            category: "Preparedness & response",
+            edition: "2024 plan",
+            description:
+              "Department responsibilities, preparations and actions before, during and after a tropical cyclone.",
+            cover: "Prepare. Respond. Recover.",
+            tone: "bg-gm-navy text-gm-text-inverse",
+          },
+          {
+            href: "/quickstart",
+            title: "GMS Staff Guide",
+            category: "Working with our tools",
+            edition: "September 2026 · evolving guide",
+            description:
+              "Practical guidance for weather products, observations, alerts and staff administration.",
+            cover: "Your work. Your tools. One guide.",
+            tone: "bg-gm-surface-panel text-gm-text",
+          },
+        ].map((document) => (
+          <div className="space-y-4" key={document.href}>
+            <div
+              aria-hidden="true"
+              className={`flex aspect-[4/3] flex-col justify-between rounded-lg p-8 ${document.tone}`}
+            >
+              <span className="text-sm">GRENADA METEOROLOGICAL SERVICE</span>
+              <p className="max-w-xs font-semibold text-heading-lg">
+                {document.cover}
+              </p>
+              <span className="text-sm">{document.edition}</span>
+            </div>
+            <p className="text-gm-text-muted text-sm">{document.category}</p>
+            <h3 className="font-semibold text-gm-text text-heading-sm">
+              {document.title}
+            </h3>
+            <p className="text-body text-gm-text-muted">
+              {document.description}
+            </p>
+            <Button arrow="right" href={document.href} variant="text">
+              Read document<span className="sr-only">: {document.title}</span>
+            </Button>
+          </div>
+        ))}
+      </div>
+    );
+  }
   return (
     <div className="my-16 xl:max-w-none">
       <Heading id="plan-chapters" level={2}>

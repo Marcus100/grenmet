@@ -203,3 +203,48 @@ test("telemetry does not exempt other router files", (t) => {
   assert.equal(result.status, 1);
   assert.match(result.stderr, /FastAPI contract companions/);
 });
+
+const JANITORIAL_ROUTER =
+  "async def spec():\n    query = '''\n        LEFT JOIN sections s ON s.building_id=b.id\n    '''\n";
+const withUnsectionedAreas = (source) =>
+  source.replace(
+    "        LEFT JOIN sections s ON s.building_id=b.id",
+    `        LEFT JOIN (
+            SELECT id, building_id, name, sort_order FROM sections
+            UNION ALL
+            -- Areas without a section form their own group, even in buildings
+            -- that also have sections.
+            SELECT DISTINCT NULL::integer, building_id, NULL::text, NULL::integer
+            FROM areas WHERE section_id IS NULL
+        ) s ON s.building_id=b.id`
+  );
+
+test("the exact janitorial query fix passes staged and CI range checks", (t) => {
+  const file = "apps/api/fastapi/src/janitorial/router.py";
+  const { base, repository } = createRepository(t, {
+    [file]: JANITORIAL_ROUTER,
+  });
+  write(repository, file, withUnsectionedAreas(JANITORIAL_ROUTER));
+  git(repository, "add", file);
+  const staged = check(repository, ["--staged"]);
+  assert.equal(staged.status, 0, staged.stderr);
+  const head = commit(repository);
+  const range = check(repository, ["--base", base, "--head", head]);
+  assert.equal(range.status, 0, range.stderr);
+});
+
+test("another janitorial route edit still requires contract companions", (t) => {
+  const file = "apps/api/fastapi/src/janitorial/router.py";
+  const { base, repository } = createRepository(t, {
+    [file]: JANITORIAL_ROUTER,
+  });
+  write(
+    repository,
+    file,
+    `${withUnsectionedAreas(JANITORIAL_ROUTER)}router = new_route\n`
+  );
+  const head = commit(repository);
+  const result = check(repository, ["--base", base, "--head", head]);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /FastAPI contract companions/);
+});

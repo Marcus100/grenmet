@@ -1,5 +1,9 @@
 # Web App Deployment
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-18
+
 The full deployment pipeline (GitHub Actions, self-hosted runners, Docker Compose,
 staging vs production) is documented in [`docs/deployment.md`](../deployment.md).
 This document covers web-app-specific details only.
@@ -17,13 +21,12 @@ The build workflow publishes these images under `ghcr.io/marcus100/`:
 | Signal | `barrelsgd-web-signal` |
 | MBIA | `barrelsgd-web-mbia` |
 | Events | `barrelsgd-web-events` |
-| Hono | `barrelsgd-api-hono` |
 
 FastAPI is built separately as `ghcr.io/marcus100/grenmet`. Staging uses tag
 `staging`; production releases use the same release tag for every image,
 with FastAPI prestart handling domain migrations and seeds. Both environments consume `docker-compose.deploy.yml`.
 
-Signal, MBIA, Events, and Hono have Dockerfiles and container startup checks in
+Signal, MBIA, and Events have Dockerfiles and container startup checks in
 web CI. Their product features may still be prototypes; deployment support does
 not imply live data or a completed integration. See the
 [domain inventory and limitations](../deployment.md#canonical-app-domains).

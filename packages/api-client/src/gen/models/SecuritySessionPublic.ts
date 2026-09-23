@@ -7,6 +7,18 @@ export type SecuritySessionPublic = {
   id: string;
   app_name?: string | null;
   client_type: string;
+  user_agent?: string | null;
+  ip_address?: string | null;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   last_used_at: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   expires_at: string;
 };

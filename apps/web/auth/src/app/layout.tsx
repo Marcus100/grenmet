@@ -28,11 +28,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      className={notoSans.variable}
-      lang="en"
-      style={{ colorScheme: "light" }}
-    >
+    // next-themes sets the theme class before hydration.
+    <html className={notoSans.variable} lang="en" suppressHydrationWarning>
       <body>
         <Providers
           apiHost={env.NEXT_PUBLIC_POSTHOG_HOST}

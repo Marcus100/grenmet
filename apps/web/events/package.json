@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@barrelsgd/ui": "workspace:*",
+    "@sentry/nextjs": "catalog:",
     "lucide-react": "catalog:",
     "next": "catalog:",
     "react": "catalog:",

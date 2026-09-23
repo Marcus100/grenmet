@@ -8,6 +8,13 @@
 
 ## Purpose and programme shape
 
+September execution is amended by the [23 September delivery plan](gaa-gms-september-delivery.md).
+It activates Staff, GrenMet Operations, People, Clean and Quality, with Clean
+and Quality released only after acceptance. Earlier Janitor → Bus → PWA
+sequencing below remains historical context where it conflicts with that plan.
+The [readiness ledger](../operations/launch-readiness-coverage.md) holds current
+journey evidence; HR/People implementation is assigned to a separate model.
+
 This plan coordinates Barrels delivery for GAA while keeping two programmes
 separate:
 
@@ -255,4 +262,3 @@ Review programme status jointly at least quarterly and after every safety
 exercise, operational pilot, or department rollout. The unsigned GMS charter,
 DTO Terms of Reference, and incomplete July 2026 report remain planning or
 reporting inputs—not approval evidence—until completed by their authorities.
-

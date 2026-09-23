@@ -1,5 +1,9 @@
 # GMS Digital Services Programme — Roadmap
 
+**Status:** Historical record — May 2026 planning snapshot  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-20
+
 > **Historical planning snapshot (May 2026).** Current GMS priorities,
 > dependencies, and acceptance gates now live in the
 > [GAA/GMS Client Programme Plan](../portfolio/gaa-gms-client-programme-plan.md).

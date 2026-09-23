@@ -28,14 +28,15 @@ These database credentials match the local Compose defaults. Use your configured
 
 ## Write and publish
 
-1. Create Content, choose Article / blog or General page, and enter a title and lowercase URL slug.
-2. Write Markdown in the text area; expand Preview to check headings, links, lists, and tables. Raw HTML is not rendered.
-3. Save as Draft, then Ready for review.
-4. An editor checks the content and saves as Published.
+1. Create Content and choose Latest from us (GMS product-update blog), Weather news (interesting weather stories), or Latest publications (publications and articles). URLs are generated from the section, category, date and title.
+2. Write in the rich-text editor. For Latest from us, choose a product category such as Tropical weather outlook, Bulletin, Forecasts, Marine, Aviation or CAP alerts. Older general categories remain available.
+3. Optionally add Related links with a title, category and full HTTP/HTTPS URL. Link to existing forecasts, alerts, aviation products, bulletins, publications or news sources. Check that the intended audience can open each destination. Links do not publish the destination or preserve a historical copy. Maximum 20 unique destinations; credentials and executable URLs are rejected.
+4. Save as Draft, then Ready for review.
+5. A staff member with the section's publication permission checks and publishes the post. Creating an operational product never automatically creates or publishes a blog post.
 
-Authors can edit their own unpublished content. Editors manage editorial roles and publication, and can correct or unpublish published content. To return a published item to an author, an editor must change its status to Draft; this removes it from the public API while it is edited. This trial intentionally has no separate live/draft revision workflow, uploads, scheduling, or page builder.
+Authors can edit their own unpublished content. Publication requires the section-specific permission. To return a published item to an author, an authorised editor must change its status to Draft; this removes it from the public API while it is edited. Version history preserves prior content and links. There is no separate live/draft publication workflow or automatic scheduling.
 
-Anonymous `GET /api/content` returns only published items. For example, `/api/content?where[slug][equals]=about-gms`. The existing GMS website is not switched over yet: this trial lets you evaluate the editor and publishing workflow first. A later GMS integration should fetch this public API from the server and render the Markdown safely.
+GMS reads anonymous `GET /api/public/content`, which returns only published posts, their section/category and related links. Article pages display the selected section and product category. The feed currently converts rich text to plain text; it does not preserve all rich-text formatting.
 
 ## Verification and generated files
 
@@ -46,4 +47,4 @@ pnpm --filter @barrelsgd/web-cms generate:types
 pnpm --filter @barrelsgd/web-cms generate:importmap
 ```
 
-Database integration tests create and remove an isolated randomly named schema in the CMS database, and are skipped unless `CMS_TEST_DATABASE_URL` is set. Generated types and the admin import map are checked in. Development uses Payload's schema push; production deployment will need reviewed migrations, persistent credentials, and configured shared-cookie/return-host settings.
+Database integration tests create and remove an isolated randomly named schema in the CMS database, and are skipped unless `CMS_TEST_DATABASE_URL` is set. Generated types and the admin import map are checked in. Runtime schema push is disabled. Apply `20260923_170000_editorial_links` before deploying the related-links code; it adds live/version link tables and product categories without rewriting older posts. Back up first: destructive rollback is blocked to preserve editorial history. This agent has not applied migrations to operational databases.

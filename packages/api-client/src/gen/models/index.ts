@@ -16,6 +16,19 @@ export type { ArchiveHistory } from "./ArchiveHistory.js";
 export type { ArchivePage } from "./ArchivePage.js";
 export type { ArchiveRetrieval } from "./ArchiveRetrieval.js";
 export type { AreaView } from "./AreaView.js";
+export type { AuditChangePublic } from "./AuditChangePublic.js";
+export type { AuditEntryPublic } from "./AuditEntryPublic.js";
+export type {
+  AuditGetHistoryOptions,
+  AuditGetHistoryPath,
+  AuditGetHistoryQuery,
+  AuditGetHistoryResponse,
+  AuditGetHistoryResponses,
+  AuditGetHistoryStatus200,
+  AuditGetHistoryStatus403,
+  AuditGetHistoryStatus404,
+  AuditGetHistoryStatus422,
+} from "./AuditGetHistory.js";
 export type {
   AuthBrowserSessionOptions,
   AuthBrowserSessionResponse,
@@ -2085,6 +2098,86 @@ export { legacyProductWritePropertiesActionEnum } from "./LegacyProductWriteProp
 export type { LegacyStoredProduct } from "./LegacyStoredProduct.js";
 export type { Message } from "./Message.js";
 export type { NewPassword } from "./NewPassword.js";
+export type { NotificationParams } from "./NotificationParams.js";
+export type { NotificationPreferencePublic } from "./NotificationPreferencePublic.js";
+export type { NotificationPreferenceUpdate } from "./NotificationPreferenceUpdate.js";
+export type { NotificationPublic } from "./NotificationPublic.js";
+export type { NotificationSettingPublic } from "./NotificationSettingPublic.js";
+export type { NotificationSettingsPublic } from "./NotificationSettingsPublic.js";
+export type { NotificationSettingUpdate } from "./NotificationSettingUpdate.js";
+export type {
+  NotificationsGetNotificationPreferencesOptions,
+  NotificationsGetNotificationPreferencesResponse,
+  NotificationsGetNotificationPreferencesResponses,
+  NotificationsGetNotificationPreferencesStatus200,
+  NotificationsGetNotificationPreferencesStatus401,
+  NotificationsGetNotificationPreferencesStatus422,
+} from "./NotificationsGetNotificationPreferences.js";
+export type {
+  NotificationsGetNotificationSettingsOptions,
+  NotificationsGetNotificationSettingsQuery,
+  NotificationsGetNotificationSettingsResponse,
+  NotificationsGetNotificationSettingsResponses,
+  NotificationsGetNotificationSettingsStatus200,
+  NotificationsGetNotificationSettingsStatus403,
+  NotificationsGetNotificationSettingsStatus422,
+} from "./NotificationsGetNotificationSettings.js";
+export type {
+  NotificationsGetNotificationsOptions,
+  NotificationsGetNotificationsQuery,
+  NotificationsGetNotificationsResponse,
+  NotificationsGetNotificationsResponses,
+  NotificationsGetNotificationsStatus200,
+  NotificationsGetNotificationsStatus401,
+  NotificationsGetNotificationsStatus422,
+} from "./NotificationsGetNotifications.js";
+export type {
+  NotificationsGetUnreadCountOptions,
+  NotificationsGetUnreadCountResponse,
+  NotificationsGetUnreadCountResponses,
+  NotificationsGetUnreadCountStatus200,
+  NotificationsGetUnreadCountStatus401,
+  NotificationsGetUnreadCountStatus422,
+} from "./NotificationsGetUnreadCount.js";
+export type {
+  NotificationsMarkAllNotificationsReadOptions,
+  NotificationsMarkAllNotificationsReadResponse,
+  NotificationsMarkAllNotificationsReadResponses,
+  NotificationsMarkAllNotificationsReadStatus200,
+  NotificationsMarkAllNotificationsReadStatus401,
+  NotificationsMarkAllNotificationsReadStatus422,
+} from "./NotificationsMarkAllNotificationsRead.js";
+export type {
+  NotificationsMarkNotificationReadOptions,
+  NotificationsMarkNotificationReadPath,
+  NotificationsMarkNotificationReadResponse,
+  NotificationsMarkNotificationReadResponses,
+  NotificationsMarkNotificationReadStatus200,
+  NotificationsMarkNotificationReadStatus404,
+  NotificationsMarkNotificationReadStatus422,
+} from "./NotificationsMarkNotificationRead.js";
+export type {
+  NotificationsUpdateNotificationPreferencesBody,
+  NotificationsUpdateNotificationPreferencesOptions,
+  NotificationsUpdateNotificationPreferencesResponse,
+  NotificationsUpdateNotificationPreferencesResponses,
+  NotificationsUpdateNotificationPreferencesStatus200,
+  NotificationsUpdateNotificationPreferencesStatus400,
+  NotificationsUpdateNotificationPreferencesStatus422,
+} from "./NotificationsUpdateNotificationPreferences.js";
+export type {
+  NotificationsUpdateNotificationSettingBody,
+  NotificationsUpdateNotificationSettingOptions,
+  NotificationsUpdateNotificationSettingPath,
+  NotificationsUpdateNotificationSettingQuery,
+  NotificationsUpdateNotificationSettingResponse,
+  NotificationsUpdateNotificationSettingResponses,
+  NotificationsUpdateNotificationSettingStatus200,
+  NotificationsUpdateNotificationSettingStatus400,
+  NotificationsUpdateNotificationSettingStatus403,
+  NotificationsUpdateNotificationSettingStatus404,
+  NotificationsUpdateNotificationSettingStatus422,
+} from "./NotificationsUpdateNotificationSetting.js";
 export type { ObservationList } from "./ObservationList.js";
 export type { ObservationProvenance } from "./ObservationProvenance.js";
 export type { ObservationProvenancePropertiesPublicationStateEnum } from "./ObservationProvenancePropertiesPublicationStateEnum.js";
@@ -2102,6 +2195,8 @@ export type { OutlookProductPreviewInput } from "./OutlookProductPreviewInput.js
 export type { OutlookProductWrite } from "./OutlookProductWrite.js";
 export type { OutlookStoredProduct } from "./OutlookStoredProduct.js";
 export type { OutlookValuesDraft } from "./OutlookValuesDraft.js";
+export type { PaginatedResponseAuditEntryPublic } from "./PaginatedResponseAuditEntryPublic.js";
+export type { PaginatedResponseNotificationPublic } from "./PaginatedResponseNotificationPublic.js";
 export type { PaginatedResponsePermissionPublic } from "./PaginatedResponsePermissionPublic.js";
 export type { PaginatedResponseRolePublic } from "./PaginatedResponseRolePublic.js";
 export type { PaginatedResponseUserPublic } from "./PaginatedResponseUserPublic.js";
@@ -2281,6 +2376,8 @@ export type { TwoFactorDisableRequest } from "./TwoFactorDisableRequest.js";
 export type { TwoFactorSetupResponse } from "./TwoFactorSetupResponse.js";
 export type { TwoFactorStatusPublic } from "./TwoFactorStatusPublic.js";
 export type { UnitSpec } from "./UnitSpec.js";
+export type { UnreachableRecipientPublic } from "./UnreachableRecipientPublic.js";
+export type { UnreadCountPublic } from "./UnreadCountPublic.js";
 export type { UpdatePassword } from "./UpdatePassword.js";
 export type { UserCreate } from "./UserCreate.js";
 export type { UserProfilePublic } from "./UserProfilePublic.js";

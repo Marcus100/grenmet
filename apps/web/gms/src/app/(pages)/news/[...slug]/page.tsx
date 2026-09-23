@@ -2,13 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { fetchContentBySlug } from "@/lib/cms";
-import { contentToArticle, WEATHER_ARTICLES } from "@/lib/editorial";
-
-async function findArticle(slug: string) {
-  const content = await fetchContentBySlug(slug);
-  if (content) return contentToArticle(content);
-  return WEATHER_ARTICLES.find((item) => item.slug === slug);
-}
+import { contentToArticle } from "@/lib/editorial";
 export async function generateMetadata({
   params,
 }: {
@@ -16,8 +10,8 @@ export async function generateMetadata({
 }) {
   const { slug: slugParts } = await params;
   const slug = slugParts.join("/");
-  const article = await findArticle(slug);
-  return { title: article?.title ?? "Latest publications" };
+  const result = await fetchContentBySlug(slug);
+  return { title: result.articles[0]?.title ?? "GMS article" };
 }
 export default async function ArticlePage({
   params,
@@ -26,15 +20,32 @@ export default async function ArticlePage({
 }) {
   const { slug: slugParts } = await params;
   const slug = slugParts.join("/");
-  const article = await findArticle(slug);
-  if (!article) notFound();
+  const result = await fetchContentBySlug(slug);
+  if (result.status === "unavailable") {
+    return (
+      <p role="status">
+        This article cannot be retrieved right now. Please try again later.
+      </p>
+    );
+  }
+  const content = result.articles[0];
+  if (!content) notFound();
+  const article = contentToArticle(content);
+  const section = {
+    "latest-from-us": { title: "Latest from us", href: "/updates" },
+    "weather-news": { title: "Weather news", href: "/" },
+    "latest-publications": { title: "Latest publications", href: "/news" },
+  }[content.section ?? "latest-publications"];
   return (
     <article className="mx-auto max-w-3xl space-y-8">
       <header className="space-y-4">
         <p className="font-semibold text-muted-foreground">
-          Latest publications · GMS · {article.published}
+          {section.title} · GMS · {article.published}
         </p>
         <h1 className="font-bold text-3xl">{article.title}</h1>
+        {content.category && (
+          <p className="text-muted-foreground">{content.category}</p>
+        )}
         <p className="text-lg">{article.summary}</p>
       </header>
       {article.body ? (
@@ -61,8 +72,24 @@ export default async function ArticlePage({
           </a>
         </p>
       ))}
-      <Link className="underline" href="/news">
-        More from Latest publications
+      {Boolean(content.relatedLinks?.length) && (
+        <section aria-labelledby="related-links" className="space-y-4">
+          <h2 className="font-semibold text-xl" id="related-links">
+            Related products and reading
+          </h2>
+          <ul className="space-y-2">
+            {content.relatedLinks?.map((link) => (
+              <li key={link.url}>
+                <a className="underline" href={link.url}>
+                  {link.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      <Link className="underline" href={section.href}>
+        More from {section.title}
       </Link>
     </article>
   );

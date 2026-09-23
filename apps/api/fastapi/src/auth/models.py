@@ -71,6 +71,13 @@ class User(Base):
     totp_secret: Mapped[str | None] = mapped_column(String(64), nullable=True)
     totp_enabled: Mapped[bool] = mapped_column(default=False)
     last_login_at: Mapped[datetime | None]
+    # Null until the password is next changed, reset or set up after this
+    # column shipped; the account page says so rather than guessing.
+    password_changed_at: Mapped[datetime | None]
+    # Browser/OS families seen at sign-in (src/auth/devices.py).
+    known_device_keys: Mapped[list[str]] = mapped_column(
+        JSON, nullable=False, default=list
+    )
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now)
 

@@ -2,6 +2,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { googleFinish } from "@/lib/modern-auth";
+import { reportError } from "@/lib/report-error";
 import { isAuthApiError, writeSessionCookie } from "@/lib/session";
 
 export async function completeGoogle(
@@ -19,6 +20,7 @@ export async function completeGoogle(
     jar.delete("google_challenge");
     await writeSessionCookie(result.session_token, result.session_expires_at);
   } catch (error) {
+    reportError(error, "auth-google");
     return isAuthApiError(error)
       ? error.detail
       : "Sign-in failed. Start again.";
