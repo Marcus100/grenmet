@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ProductDesk } from "@/components/wxproducts/product-desk";
 import { ArchiveBrowser } from "@/components/wxwatch/archive-browser";
 import { getArchive, getArchiveHistory } from "@/db/wxwatch/queries";
+import { reportError } from "@/lib/report-error";
 
 export const metadata = { title: "NHC Products" };
 export const dynamic = "force-dynamic";
@@ -63,7 +64,8 @@ async function guidance(raw: Record<string, string | string[] | undefined>) {
         query={params.toString()}
       />
     );
-  } catch {
+  } catch (error) {
+    reportError(error, "wxproducts-nhc");
     return (
       <div className="space-y-3">
         <p role="alert">

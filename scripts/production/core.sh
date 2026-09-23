@@ -72,7 +72,7 @@ docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" exec -T db bash 
 
 printf "%s\n" "Start applications only after migration success"
 set -euo pipefail
-docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --no-deps --wait --wait-timeout 180 api worker web-auth web-admin web-cms web-docs web-gms web-signal web-mbia web-events api-hono proxy
+docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --no-deps --wait --wait-timeout 180 api worker web-auth web-admin web-cms web-docs web-gms web-signal web-mbia web-events proxy
 
 printf "%s\n" "Required external readiness and functional smoke"
 set -euo pipefail

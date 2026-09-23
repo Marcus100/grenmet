@@ -12,6 +12,7 @@ import { SignInForm } from "@/components/SignInForm";
 import { getAppHrefs } from "@/lib/app-links";
 import { getAuthConfig } from "@/lib/auth-config";
 import { formatDate, getInitials } from "@/lib/profile";
+import { reportError } from "@/lib/report-error";
 import {
   getRequestedAppName,
   getSafeReturnTo,
@@ -52,6 +53,7 @@ async function loadSessionState(): Promise<SessionState> {
       sessionData: await exchangeSessionForAccessToken(sessionToken),
     };
   } catch (error) {
+    reportError(error, "auth-session");
     return {
       pageError:
         isAuthApiError(error) && error.status === 401

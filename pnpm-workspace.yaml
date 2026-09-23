@@ -1,7 +1,6 @@
 packages:
   # Apps
   - "apps/web/*"
-  - "apps/api/honoapi"
   # Note: fastapi is Python, not managed by pnpm
 
   # Shared packages
@@ -121,9 +120,6 @@ catalog:
   "@types/react": ^19.3.0
   "@types/react-dom": ^19.3.0
 
-  # Database (Drizzle) — used in wxwatch and wxproducts
-  drizzle-orm: "^0.45.2"
-  drizzle-kit: "^0.31.10"
 
   # Validation — used across multiple web apps
   zod: ^4.6.5
@@ -147,7 +143,7 @@ catalog:
   # Headless UI — used in gms and docs (migrate to Base UI eventually)
   "@headlessui/react": "^2.2.10"
 
-  # MDX — content-collections stack (docs, signal) + @barrelsgd/mdx
+  # MDX — content-collections stack (docs, signal)
   "@content-collections/core": "^0.15.2"
   "@content-collections/cli": "^0.1.9"
   "@content-collections/mdx": "^0.2.2"
@@ -183,7 +179,8 @@ catalog:
   "@faker-js/faker": "^10.2.0"
 
 
-# Preserve Drizzle's tooling APIs while replacing esbuild binaries built with old Go.
+# Payload CMS's Postgres adapter depends on drizzle-kit; replace its esbuild
+# binaries built with old Go.
 overrides:
   "@esbuild-kit/core-utils@3.3.2>esbuild": "0.28.2"
   "drizzle-kit@0.31.7>esbuild": "0.28.2"

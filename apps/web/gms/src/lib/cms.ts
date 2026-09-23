@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { z } from "zod";
 import { env } from "@/lib/env";
+import { reportError } from "@/lib/report-error";
 
 const contentSchema = z.object({
   id: z.string(),
@@ -74,9 +75,13 @@ async function getContent(params: {
     const parsed = z
       .object({ articles: z.array(contentSchema) })
       .safeParse(await response.json());
-    if (!parsed.success) return { status: "unavailable", articles: [] };
+    if (!parsed.success) {
+      reportError(parsed.error, "gms-cms-contract");
+      return { status: "unavailable", articles: [] };
+    }
     return { status: "ok", articles: parsed.data.articles };
-  } catch {
+  } catch (error) {
+    reportError(error, "gms-cms");
     return { status: "unavailable", articles: [] };
   }
 }

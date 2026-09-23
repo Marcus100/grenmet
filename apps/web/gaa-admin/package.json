@@ -37,7 +37,6 @@
     "@turf/helpers": "catalog:",
     "class-variance-authority": "catalog:",
     "date-fns": "^4.4.0",
-    "drizzle-orm": "catalog:",
     "lucide-react": "catalog:",
     "maplibre-gl": "catalog:",
     "motion": "catalog:",

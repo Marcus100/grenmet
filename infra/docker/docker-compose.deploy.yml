@@ -260,6 +260,8 @@ services:
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
       SESSION_COOKIE_DOMAIN: .${BASE_DOMAIN}
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN:-}
+      NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
     depends_on:
       db:
         condition: service_healthy
@@ -484,6 +486,9 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
+    environment:
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN:-}
+      NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.web-events${ROUTER_SUFFIX}.rule=Host(`events.${BASE_DOMAIN}`)"
@@ -493,27 +498,6 @@ services:
     networks:
       - grenmet
 
-  api-hono:
-    logging: *bounded-logging
-    image: ghcr.io/${GHCR_OWNER}/barrelsgd-api-hono:${WEB_TAG}
-    restart: always
-    healthcheck:
-      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:4000/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 20s
-    environment:
-      ENVIRONMENT: ${ENVIRONMENT}
-      CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.api-hono${ROUTER_SUFFIX}.rule=Host(`hapi.${BASE_DOMAIN}`)"
-      - "traefik.http.routers.api-hono${ROUTER_SUFFIX}.entrypoints=websecure"
-      - "traefik.http.routers.api-hono${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
-      - "traefik.http.services.api-hono${ROUTER_SUFFIX}.loadbalancer.server.port=4000"
-    networks:
-      - grenmet
 
   # ── Database UI (staging only, via COMPOSE_PROFILES=staging) ─────────────────
   adminer:

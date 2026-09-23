@@ -18,7 +18,6 @@ WORKDIR /app
 
 # Copy all workspace manifests so pnpm resolves the full workspace
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
-COPY apps/api/honoapi/package.json apps/api/honoapi/
 COPY apps/web/auth/package.json apps/web/auth/
 COPY apps/web/cms/package.json apps/web/cms/
 COPY apps/web/docs/package.json apps/web/docs/
@@ -32,7 +31,6 @@ COPY packages/auth/package.json packages/auth/
 COPY packages/cms-migrations/package.json packages/cms-migrations/
 COPY packages/email-templates/package.json packages/email-templates/
 COPY packages/gms/package.json packages/gms/
-COPY packages/mdx/package.json packages/mdx/
 COPY packages/theme/package.json packages/theme/
 COPY packages/tsconfig/package.json packages/tsconfig/
 COPY packages/ui/package.json packages/ui/

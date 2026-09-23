@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { captureServerEvent } from "@/lib/posthog-server";
+import { reportError } from "@/lib/report-error";
 import { getRequestedAppName, getSafeReturnTo } from "@/lib/return-to";
 import type { SessionLoginResponse } from "@/lib/session";
 import {
@@ -86,6 +87,7 @@ export async function signInAction(
       appName,
     });
   } catch (error) {
+    reportError(error, "auth-sign-in");
     return describeSignInError(error, email, totpCode);
   }
 
@@ -94,7 +96,8 @@ export async function signInAction(
       response.session_token,
       response.session_expires_at
     );
-  } catch {
+  } catch (error) {
+    reportError(error, "auth-session");
     return {
       error: "Unable to establish your browser session. Please try again.",
       email,
@@ -160,6 +163,7 @@ export async function forgotPasswordAction(
     // Always show success — avoids leaking whether the address is registered.
     return { email, error: null, success: true };
   } catch (error) {
+    reportError(error, "auth-forgot-password");
     return {
       email,
       error: isAuthApiError(error)
@@ -197,6 +201,7 @@ export async function resetPasswordAction(
     await resetPassword({ token, newPassword });
     return { error: null, success: true };
   } catch (error) {
+    reportError(error, "auth-reset-password");
     return {
       error: isAuthApiError(error)
         ? error.detail
@@ -242,6 +247,7 @@ export async function signUpAction(
     await captureServerEvent("sign_up");
     return { email, error: null, success: true };
   } catch (error) {
+    reportError(error, "auth-sign-up");
     return {
       email,
       error: isAuthApiError(error)
