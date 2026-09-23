@@ -232,11 +232,41 @@ function NavigationGroup({
   );
 }
 
-export const navigation: NavGroup[] = [
+export const staffNavigation: NavGroup[] = [
+  {
+    title: "Getting started",
+    links: [
+      { title: "Documentation hub", href: "/" },
+      { title: "Staff quick start", href: "/quickstart" },
+      { title: "Signing in and security", href: "/authentication" },
+      { title: "Tools overview", href: "/sdks" },
+      { title: "Troubleshooting and help", href: "/errors" },
+    ],
+  },
+  {
+    title: "Staff guides",
+    links: [
+      { title: "Forecast products", href: "/messages" },
+      { title: "CAP alerts", href: "/conversations" },
+      { title: "Directory and roster", href: "/contacts" },
+      { title: "Roles and permissions", href: "/groups" },
+      { title: "Documents and forms", href: "/attachments" },
+    ],
+  },
+  {
+    title: "Data & API",
+    links: [
+      { title: "Public weather feeds", href: "/webhooks" },
+      { title: "Using the API", href: "/pagination" },
+    ],
+  },
+];
+
+export const hurricaneNavigation: NavGroup[] = [
   {
     title: "Core",
     links: [
-      { title: "Introduction", href: "/" },
+      { title: "Plan introduction", href: "/hurricane-plan" },
       { title: "Objectives", href: "/objectives" },
       { title: "Representation", href: "/representation" },
       { title: "Forecast for season", href: "/forecast-for-season" },
@@ -314,31 +344,71 @@ export const navigation: NavGroup[] = [
   },
 ];
 
+export const navigation: NavGroup[] = [
+  ...staffNavigation,
+  ...hurricaneNavigation,
+];
+
+export type NavigationSection = "all" | "staff" | "hurricane";
+
+const includesPath = (groups: NavGroup[], pathname: string) =>
+  groups.some((group) => group.links.some((link) => link.href === pathname));
+
+export function getNavigationSection(pathname: string): NavigationSection {
+  if (pathname === "/") {
+    return "all";
+  }
+  if (includesPath(staffNavigation, pathname)) {
+    return "staff";
+  }
+  if (includesPath(hurricaneNavigation, pathname)) {
+    return "hurricane";
+  }
+  return "all";
+}
+
+const sectionNavigation: Record<NavigationSection, NavGroup[]> = {
+  all: navigation,
+  staff: staffNavigation,
+  hurricane: hurricaneNavigation,
+};
+
 export function Navigation(props: React.ComponentPropsWithoutRef<"nav">) {
+  const section = getNavigationSection(usePathname());
+  const showHurricane = section !== "staff";
+
   return (
     <nav {...props}>
       <ul>
-        <TopLevelNavItem href="/">Introduction</TopLevelNavItem>
-        <TopLevelNavItem href="/pre-season/general">Pre-season</TopLevelNavItem>
-        <TopLevelNavItem href="/warning-issued/met-department">
-          Warning issued
-        </TopLevelNavItem>
-        {navigation.map((group, groupIndex) => (
+        <TopLevelNavItem href="/">All documents</TopLevelNavItem>
+        {showHurricane && (
+          <>
+            <TopLevelNavItem href="/pre-season/general">
+              Pre-season
+            </TopLevelNavItem>
+            <TopLevelNavItem href="/warning-issued/met-department">
+              Warning issued
+            </TopLevelNavItem>
+          </>
+        )}
+        {sectionNavigation[section].map((group, groupIndex) => (
           <NavigationGroup
             className={groupIndex === 0 ? "md:mt-0" : ""}
             group={group}
             key={group.title}
           />
         ))}
-        <li className="sticky bottom-0 z-10 mt-6 min-[416px]:hidden">
-          <Button
-            className="w-full"
-            href="/appendix/emergency-personnel"
-            variant="filled"
-          >
-            Emergency contacts
-          </Button>
-        </li>
+        {showHurricane && (
+          <li className="sticky bottom-0 z-10 mt-6 min-[416px]:hidden">
+            <Button
+              className="w-full"
+              href="/appendix/emergency-personnel"
+              variant="filled"
+            >
+              Emergency contacts
+            </Button>
+          </li>
+        )}
       </ul>
     </nav>
   );
