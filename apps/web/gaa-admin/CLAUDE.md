@@ -65,6 +65,7 @@ path-prefixed, auth-gated routes under `(admin)/`. All are gated by
 | `/wxwatch` | wxwatch | FastAPI `/api/v1/wxwatch/*` | generated metadata contracts; authenticated image downloads through `/_backend/wxwatch/` |
 | `/wxproducts` | wxproducts | FastAPI `/api/v1/wxproducts/*`, separate wxproducts Postgres | Kubb-generated contracts; saved-revision PDFs via FastAPI `/products/{id}/revisions/{revision}/pdf` |
 
+- **Notifications + change history (shared across modules):** the header bell (`components/notifications/notification-bell.tsx`, polls unread count every 60s) lives in the shared `AppShell`; inbox at `/notifications`, email opt-outs under Profile → Notifications, organisation settings in HR Setup → Notifications. `components/audit/record-history.tsx` (`RecordHistory` / `RecordHistoryButton`) shows `/api/v1/audit/{entity_type}/{entity_id}`; the API applies record access and masks sensitive values — never re-derive either client-side.
 - **Weather ownership:** authored products and wxproducts migrations belong to FastAPI; do not introduce weather Drizzle writers or migrations.
 - **DB conventions:** keep separate domain databases (never merged). FastAPI owns weather migrations via `src/wxproducts/alembic.ini`. Historical weather Drizzle files remain adoption references only. WxWatch now uses `src/wxwatch/alembic.ini`; its historical Drizzle files are adoption references only. Hono requires no ORM.
 - **Fonts:** `Noto_Sans` is loaded in the root layout to back the `--brand-font-document`
