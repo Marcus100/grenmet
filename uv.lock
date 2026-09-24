@@ -1915,7 +1915,7 @@ wheels = [
 
 [[package]]
 name = "herbie-data"
-version = "2026.9.0"
+version = "2026.9.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "cfgrib" },
@@ -1927,9 +1927,9 @@ dependencies = [
     { name = "requests" },
     { name = "xarray" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/a0/95/7f3def76f1828e2c117623e7b15c167d8e60cd940667b56398f1dd890cfd/herbie_data-2026.9.0.tar.gz", hash = "sha256:d30bdfe8c24d87fb86beccf5cc18be12d1e88f55fcde825231b99452aad96217", size = 10813467, upload-time = "2026-09-15T03:47:56.059Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/e0/9d/50b6ab5247f79cd1dcd97e9c8c0d20908d4d620daf82145ac588ff48bfbe/herbie_data-2026.9.1.tar.gz", hash = "sha256:b4035bbebcc22d65f02744103000f3f9afc6ed414fd2e547f8467ce0a14afb0e", size = 10813547, upload-time = "2026-09-20T00:11:58.239Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/26/a3/de092cbe3d3af8da81ea49a0c0fe2ab9ef95066f4e8e9cd2db968d294769/herbie_data-2026.9.0-py3-none-any.whl", hash = "sha256:b3889ef4dbdbb548e1639eafc820d272f6e570bfdd0b580fa36f06999d80b517", size = 123654, upload-time = "2026-09-15T03:47:54.444Z" },
+    { url = "https://files.pythonhosted.org/packages/84/4c/85befe5929d365483e03e66d0e2186fcd77121166dd5a64b1b3d967ee0c0/herbie_data-2026.9.1-py3-none-any.whl", hash = "sha256:83e6830d8dc1fd32c43ffe937a96afc1dbd3fe6c7e0d35b8f46a5074521bb2fd", size = 123726, upload-time = "2026-09-20T00:11:56.351Z" },
 ]
 
 [[package]]
@@ -3299,7 +3299,7 @@ requires-dist = [
     { name = "ecmwf-opendata", specifier = ">=0.3.26" },
     { name = "fsspec", specifier = ">=2026.6.0" },
     { name = "geopandas", specifier = ">=1.1.4" },
-    { name = "herbie-data", specifier = ">=2026.3.0" },
+    { name = "herbie-data", specifier = ">=2026.9.1" },
     { name = "hvplot", specifier = ">=0.12.2" },
     { name = "ipykernel", specifier = ">=7.2.0" },
     { name = "ipywidgets", specifier = ">=8.1.8" },
