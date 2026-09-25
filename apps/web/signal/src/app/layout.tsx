@@ -3,6 +3,10 @@ import { Inter, Noto_Sans, Source_Serif_4 } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
 import "./globals.css";
+import {
+  MAIN_CONTENT_ID,
+  SkipLink,
+} from "@barrelsgd/ui/components/ui/skip-link";
 
 const notoSans = Noto_Sans({
   subsets: ["latin"],
@@ -42,8 +46,11 @@ export default function RootLayout({
       style={{ colorScheme: "light" }}
     >
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
+        <SkipLink />
         <SiteHeader />
-        <main>{children}</main>
+        <main className="outline-none" id={MAIN_CONTENT_ID} tabIndex={-1}>
+          {children}
+        </main>
         <SiteFooter />
       </body>
     </html>

@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@barrelsgd/ui/components/ui/dialog";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { type ReactNode, useState } from "react";
 import { toast } from "sonner";
 import { SettingsRow, StatusBadge } from "@/components/account-layout";
@@ -176,7 +177,7 @@ function SetupDialog({
                 {busy ? "Creating…" : "Create recovery codes"}
               </button>
               <button
-                className={`${outlineButton} w-full py-3`}
+                className={cn(outlineButton, "w-full py-3")}
                 onClick={() => onOpenChange(false)}
                 type="button"
               >

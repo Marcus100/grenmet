@@ -1,7 +1,7 @@
 "use client";
 
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { CloseButton } from "@headlessui/react";
-import { clsx } from "cn";
 import { AnimatePresence, motion, useIsPresent } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -62,7 +62,7 @@ function NavLink({
     <CloseButton
       aria-current={active ? "page" : undefined}
       as={Link}
-      className={clsx(
+      className={cn(
         "flex justify-between gap-2 py-1 pr-3 text-sm transition",
         isAnchorLink ? "pl-7" : "pl-4",
         active
@@ -169,7 +169,7 @@ function NavigationGroup({
     group.links.findIndex((link) => link.href === pathname) !== -1;
 
   return (
-    <li className={clsx("relative mt-6", className)}>
+    <li className={cn("relative mt-6", className)}>
       <motion.h2
         className="font-semibold text-xs text-zinc-900 dark:text-white"
         layout="position"

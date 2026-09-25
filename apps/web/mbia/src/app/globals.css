@@ -69,7 +69,7 @@
 
    --font-sans overrides the shared --brand-font-sans (Noto Sans first) back to
    Inter: GAA is a separate brand from GMS with its own Manrope/Inter pairing,
-   documented in this app's CLAUDE.md. Commit 7dcfc9ff added a repo-wide Noto
+   documented in this app's AGENTS.md. Commit 7dcfc9ff added a repo-wide Noto
    Sans load that silently won here once --font-noto-sans became defined; this
    restores the pre-existing, intended body face. */
 @theme inline {

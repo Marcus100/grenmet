@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@barrelsgd/ui/lib/utils";
 import Link from "next/link";
 import { useActionState } from "react";
 import { resetPasswordAction } from "@/app/actions";
@@ -29,7 +30,7 @@ export function ResetPasswordForm({ token }: ResetPasswordFormProps) {
             Sign in with your new password.
           </p>
         </div>
-        <Link className={`${primaryButtonClass} block`} href="/">
+        <Link className={cn(primaryButtonClass, "block")} href="/">
           Sign in
         </Link>
       </div>

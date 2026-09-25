@@ -8,6 +8,8 @@
 
 > **Figma is not linked to this repository** (see [ADR-0012](./adr/0012-decouple-design-tooling-from-figma.md)). Design intent arrives as a Claude Design canvas, a screenshot, or a brief — see [Design Workflow](./design-workflow.md). Sections below that describe the old Figma file map and the Code Connect pilots are retained as **history**, not current process.
 
+Compact, agent-readable lane specs in the [DESIGN.md format](https://github.com/google-labs-code/design.md) — tokens by role, type scale, shape, elevation, components, do/don't — live in `docs/design/`: [gms](./design/gms.md), [gaa-admin](./design/gaa-admin.md), [mbia](./design/mbia.md), [signal](./design/signal.md). `scripts/docs/design-md.test.mjs` fails if their colours drift from the CSS.
+
 This guide stays implementation-focused. The broader GMS service framing, catalogue, draft warning model, and roadmap live in [GMS Digital Service Architecture](./architecture.md).
 
 ---
@@ -225,6 +227,11 @@ Pick by size, not by habit:
 - `--gm-lime-ink` is a green in the lime hue, not the kit colour. Use it only
   where lime must read as ink; prefer lime as a fill on navy (13.55:1).
 
+**Input border.** `--gm-border` (`#d0d5dd`, 1.47:1 on white) is a decorative
+hairline. Controls identified by their outline need ≥3:1 (WCAG 1.4.11), so the
+GMS brand layer maps `--input` to `--gm-border-input` (`#85888d`, 3.56:1 on
+white, ≥3.17:1 on every `--gm-surface*` tint). Added 24 Sep 2026.
+
 **Retired.** `--gm-sun` (`#ff981e`) is gone — the 2026 kit has no warm tone.
 Former uses now take the lime accent.
 
@@ -254,46 +261,49 @@ unaffected.
 
 ### Logo
 
-`@barrelsgd/gms/components/logo` renders the 2026 artwork. Four variants, each
-pairing an asset for light surfaces with one for dark:
+`@barrelsgd/gms/components/logo` renders the 2026 artwork in five variants.
+The three full lockups pair a raster asset for light surfaces with one for dark;
+the two marks are inline vectors:
 
 | Variant | Ratio | Light surface | Dark surface |
 |---|---|---|---|
 | `primary` | 2.99:1 | `logo-primary-navy` | `logo-primary-white` |
 | `wordmark` | 2.51:1 | `logo-wordmark-navy` | `logo-wordmark-white` |
 | `submark` | 1.01:1 | `logo-submark-navy` | `logo-submark-blue` |
-| `icon` | 0.61:1 | `logo-icon-color` | `logo-icon-white` |
+| `monogram` | 2.41:1 | vector, `--gm-navy` | vector, white |
+| `icon` | 0.61:1 | vector, `--gm-blue` | vector, white |
 
 `primary` and `wordmark` are one geometry in two inks, so a theme flip never
 shifts layout. `submark` is the badge, which carries its own field — the navy
 badge on light, the blue badge on dark, because the navy badge's outer ring
-disappears against `--gm-navy`. `icon` is the bare mark; it goes white on dark
-because the mark's navy interior vanishes there.
+disappears against `--gm-navy`.
 
-**Blocked: this package cannot import SVG.** `gaa-admin` runs `@svgr/webpack`
-(its `next.config`), so a `.svg` imported from `packages/gms` resolves to a React
-component there and to a URL in `gms` — the same import means two different
-things in the two apps that render `Logo`. Every vector asset in the 2026
-delivery is therefore unusable from here as a static import.
+**Vector marks.** `icon` (the bare mark) and `monogram` (the mark plus "GMS" —
+at `h-9` about 87px wide, between the ~122px lockup and the ~22px icon) are the
+kit's outlined paths inlined in `packages/gms/src/components/logo-marks.tsx`.
+A `.svg` static import is not used because `gaa-admin` runs `@svgr/webpack`, so
+the same import would be a component there and a URL elsewhere. Inline paths
+are bundler-independent, fill with `currentColor`, and take their ink from the
+`.gm-logo` rule in `packages/gms/src/styles/foundation.css` — one element, no
+image request, no light/dark pair. (The kit's `GMS navy.svg` droplet declares no
+fill; inlining with `currentColor` sidesteps that defect.)
 
-This blocks a wanted `monogram` variant (the mark plus "GMS", the step between
-the full lockup and the bare mark: at `h-9` the lockup is ~122px wide, the
-monogram ~87px, the icon ~22px). The artwork exists and is outlined, but ships
-only as SVG. Two routes out, neither yet chosen: inline the artwork as a `.tsx`
-component in this package, which is bundler-independent and would also allow
-`currentColor` theming in place of paired light/dark files; or align the SVG
-handling across app bundler configs. Note also that the supplied
-`GMS navy.svg` is defective — its droplet path declares no fill, so it renders
-`#000` beside `#0b132b` lettering.
+**Lockups stay raster until the kit is fixed.** The kit's primary-lockup SVGs
+set "GRENADA METEOROLOGICAL SERVICE" as live `<text>` in Corbel, which ships
+only with Windows — elsewhere it falls back to a generic sans. Ask the designer
+for the lockups with text converted to outlines; then they can move to
+`logo-marks.tsx` the same way.
 
 The caller constrains the size — `className="h-9 w-auto"` for a lockup,
-`className="size-7"` for the icon. Never set `width`/`height` on it: every
-variant is a fixed ratio (see the table) and hardcoded dimensions distort them.
+`className="size-7"` for the icon (the vector keeps its ratio inside the box).
+Never set `width`/`height` on it: every variant is a fixed ratio (see the table)
+and hardcoded dimensions distort them.
 
 Three further lockups ship in `packages/gms/src/assets/logo` for design use and
 are deliberately not exposed as variants: `logo-primary-color` (the kit's
 full-colour white-background lockup), `logo-stacked-white` (the kit's stacked
-hero lockup) and `logo-icon-navy`.
+hero lockup) and `logo-icon-navy`. `logo-icon-color` and `logo-icon-white`
+were retired when `icon` became a vector.
 
 Favicons derive from the mark, not the badge: at 16-48px the badge's ring text
 degrades into noise, so `favicon.ico` and `favicon-16/32` are a navy disc with
@@ -414,7 +424,7 @@ Accepted pilot exceptions: fixed media dimensions (`h-[83px]`, `h-[254px]`, `h-[
 
 `cap`, `hr`, `wxwatch`, `wxproducts`, and `salesbus` are no longer separate apps —
 they are folded into `gaa-admin` as internal modules (a cross-cutting surface; see
-`CLAUDE.md`'s Blast-Radius Gate). The table below reflects the current app roster.
+`AGENTS.md`'s Blast-Radius Gate). The table below reflects the current app roster.
 
 | App | Design-system role | Direction |
 |---|---|---|

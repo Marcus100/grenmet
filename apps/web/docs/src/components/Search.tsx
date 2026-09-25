@@ -8,8 +8,8 @@ import {
   type AutocompleteState,
   createAutocomplete,
 } from "@algolia/autocomplete-core";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { Dialog, DialogBackdrop, DialogPanel } from "@headlessui/react";
-import { clsx } from "cn";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Fragment,
@@ -179,7 +179,7 @@ function SearchResult({
   return (
     <li
       aria-labelledby={`${id}-hierarchy ${id}-title`}
-      className={clsx(
+      className={cn(
         "group block cursor-default px-4 py-3 aria-selected:bg-zinc-50 dark:aria-selected:bg-zinc-800/50",
         resultIndex > 0 && "border-zinc-100 border-t dark:border-zinc-800"
       )}
@@ -275,7 +275,7 @@ const SearchInput = forwardRef<
     <div className="group relative flex h-12">
       <SearchIcon className="pointer-events-none absolute top-0 left-3 h-full w-5 stroke-zinc-500" />
       <input
-        className={clsx(
+        className={cn(
           "flex-auto appearance-none bg-transparent pl-10 text-zinc-900 outline-hidden placeholder:text-zinc-500 focus:w-full focus:flex-none sm:text-sm dark:text-white [&::-webkit-search-cancel-button]:hidden [&::-webkit-search-decoration]:hidden [&::-webkit-search-results-button]:hidden [&::-webkit-search-results-decoration]:hidden",
           autocompleteState.status === "stalled" ? "pr-11" : "pr-4"
         )}
@@ -357,7 +357,7 @@ function SearchDialog({
 
   return (
     <Dialog
-      className={clsx("fixed inset-0 z-50", className)}
+      className={cn("fixed inset-0 z-50", className)}
       onClose={() => {
         setOpen(false);
         autocomplete.setQuery("");
