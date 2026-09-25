@@ -51,6 +51,32 @@ Defaults match the discovered installation: 9600 baud, 8 data bits, no parity,
 
 Never allow two processes to poll the same serial port simultaneously.
 
+For a durable local archive and SURFACE handoff, supply both paths:
+
+```bash
+uv run --package sutron-collector sutron-collector poll \
+  --port /dev/ttyS1 --format surface --station-code 78958 \
+  --store /home/data/sutron-ng/archive/observations.db \
+  --output-dir /home/data/sutron-ng/outgoing
+```
+
+The poll is saved to SQLite before its SURFACE CSV is written. If export fails,
+the original reading and logger status tokens remain in the archive. The CSV
+uses poll time, not a verified logger measurement time; off-hour polls must not
+be presented as top-of-hour observations for WIS2 publication.
+
+To recreate a missing handoff after fixing an export error, use the exact
+`observed_at` timestamp from the SQLite archive:
+
+```bash
+sutron-collector replay \
+  --store /home/data/sutron-ng/archive/observations.db \
+  --collected-at 2026-08-15T14:07:03+00:00 \
+  --output-dir /home/data/sutron-ng/outgoing
+```
+
+Confirm that SURFACE has not already ingested that poll before replaying it.
+
 ## Phase 1 boundary
 
 Included:
@@ -60,12 +86,13 @@ Included:
 - bounded attempts;
 - explicit serial settings;
 - fixture and fake-transport tests;
-- JSON output for inspection.
+- JSON output for inspection;
+- durable SQLite storage, SURFACE CSV handoff, and manual replay;
+- systemd service and timer templates for a verified edge host.
 
 Deferred until the hardware boundary is proven:
 
 - PostgreSQL/FastAPI ingestion;
-- durable offline spooling;
-- CIMH-compatible `.asc` export and SFTP;
-- systemd deployment;
+- automatic replay of archived polls after a failed handoff;
+- CIMH SFTP delivery;
 - historical SQLite migration.

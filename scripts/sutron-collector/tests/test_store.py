@@ -135,3 +135,23 @@ def test_store_reports_how_many_readings_it_holds(tmp_path: Path) -> None:
     with ObservationStore(tmp_path / "obs.db") as store:
         store.save(observation_batch := batch(observation("AT", "29.5")))
         assert store.count() == len(observation_batch.observations)
+
+
+def test_store_recovers_complete_batch_for_export(tmp_path: Path) -> None:
+    original = batch(
+        observation("RH", "78.1"),
+        observation("AT", "29.5", status="B"),
+    )
+    with ObservationStore(tmp_path / "obs.db") as store:
+        store.save(original)
+        recovered = store.batch(original.station_id, original.collected_at)
+
+    assert recovered.station_name == original.station_name
+    assert recovered.collected_at == original.collected_at
+    assert {item.tag: item for item in recovered.observations}["AT"].status_tokens == (
+        "B",
+        "OK",
+    )
+    assert {item.tag: item for item in recovered.observations}["RH"].value == Decimal(
+        "78.1"
+    )

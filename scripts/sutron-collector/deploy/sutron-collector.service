@@ -19,6 +19,7 @@ WorkingDirectory=/home/data/sutron-ng
 ExecStart=/home/data/sutron-ng/venv/bin/sutron-collector poll \
     --port /dev/ttyS1 \
     --format surface \
+    --store /home/data/sutron-ng/archive/observations.db \
     --station-code 78958 \
     --output-dir /home/data/sutron-ng/outgoing
 
@@ -34,7 +35,7 @@ KillSignal=SIGTERM
 # writable. A bug here cannot reach the legacy tree even by accident.
 ProtectSystem=strict
 ProtectHome=read-only
-ReadWritePaths=/home/data/sutron-ng/outgoing
+ReadWritePaths=/home/data/sutron-ng/outgoing /home/data/sutron-ng/archive
 PrivateTmp=true
 NoNewPrivileges=true
 

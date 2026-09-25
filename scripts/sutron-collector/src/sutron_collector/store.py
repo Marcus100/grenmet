@@ -17,7 +17,7 @@ from decimal import Decimal
 from pathlib import Path
 from types import TracebackType
 
-from sutron_collector.models import CollectedBatch
+from sutron_collector.models import CollectedBatch, Observation
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS observations (
@@ -147,6 +147,35 @@ class ObservationStore:
             )
             for row in cursor
         ]
+
+    def batch(self, station_id: int, collected_at: datetime) -> CollectedBatch:
+        """Recover one complete poll from the durable archive for export."""
+        cursor = self._connection.execute(
+            """
+            SELECT * FROM observations
+            WHERE station_id = ? AND observed_at = ?
+            ORDER BY tag ASC
+            """,
+            (station_id, collected_at.isoformat()),
+        )
+        rows = cursor.fetchall()
+        if not rows:
+            raise LookupError("collected batch is absent from the archive")
+
+        return CollectedBatch(
+            station_name=rows[0]["station_name"],
+            station_id=station_id,
+            collected_at=collected_at,
+            observations=tuple(
+                Observation(
+                    tag=row["tag"],
+                    value=Decimal(row["value"]),
+                    status_tokens=tuple(row["status_tokens"].split()),
+                    raw_line=row["raw_line"],
+                )
+                for row in rows
+            ),
+        )
 
     def count(self) -> int:
         """How many readings are held."""
