@@ -214,7 +214,7 @@ Full reference: [docs/env.md](./env.md).
 | I want to… | Read… |
 |---|---|
 | Run or build the project | [root README — Scripts](../README.md#scripts) |
-| Work on a specific app | That app's `CLAUDE.md` in `apps/web/<app>/` |
+| Work on a specific app | That app's `AGENTS.md` in `apps/web/<app>/` |
 | Use the shared auth package | [`packages/auth/README.md`](../packages/auth/README.md) |
 | Use the shared UI components | [`packages/ui/README.md`](../packages/ui/README.md) |
 | Set up environment variables | [`docs/env.md`](./env.md) |

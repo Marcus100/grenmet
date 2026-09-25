@@ -18,6 +18,6 @@ docker compose -p grenmet-api --env-file .env.local \
 
 Service endpoints: Swagger `http://localhost:8000/swagger` · ReDoc `http://localhost:8000/redoc` · Adminer `http://localhost:8080` · MailCatcher `http://localhost:1080`
 
-See [CLAUDE.md](./CLAUDE.md) for code conventions, two-layer model pattern, dependencies, and testing.
+See [AGENTS.md](./AGENTS.md) for code conventions, two-layer model pattern, dependencies, and testing.
 See [docs/api/development.md](../../../docs/api/development.md) for Docker workflows, seeding, and troubleshooting.
 See [docs/api/testing.md](../../../docs/api/testing.md) for test commands and coverage.
