@@ -10,6 +10,12 @@ from src.auth.models import User
 from src.auth.policy import require_permission
 from src.cap import service
 from src.cap.exceptions import CapStateError, CapValidationFailedError
+from src.cap.levels import (
+    GmsProduct,
+    level_parameters,
+    outlook_defaults,
+    severity_for,
+)
 from src.cap.models import CapCertainty, CapHazardProfile, CapSeverity, CapUrgency
 from src.cap.profile_schemas import (
     CapProfileDefinition,
@@ -183,6 +189,15 @@ async def create_draft(
         raise CapValidationFailedError(
             ["Choose a subtype and template from this profile version."]
         )
+    product = GmsProduct(template.level)
+    # The colour sets CAP severity; urgency and certainty stay for the
+    # forecaster to assess, except an Outlook's CAP-conventional defaults.
+    severity = severity_for(payload.colour) if payload.colour else CapSeverity.UNKNOWN
+    urgency, certainty = (
+        outlook_defaults()
+        if product is GmsProduct.OUTLOOK
+        else (CapUrgency.UNKNOWN, CapCertainty.UNKNOWN)
+    )
     return await service.create_alert(
         session=session,
         current_user=current_user,
@@ -194,16 +209,17 @@ async def create_draft(
                     headline=template.headline,
                     description=template.description,
                     instruction=template.instruction,
-                    urgency=CapUrgency.UNKNOWN,
-                    severity=CapSeverity.UNKNOWN,
-                    certainty=CapCertainty.UNKNOWN,
+                    urgency=urgency,
+                    severity=severity,
+                    certainty=certainty,
                     sender_name=definition.issuing_authority,
                     contact=definition.contact,
                     parameters=[
                         CapNameValue(
                             value_name="GMS:hazard-profile",
                             value=f"{row.key}:v{row.version}",
-                        )
+                        ),
+                        *level_parameters(product, payload.colour),
                     ],
                 )
             ]

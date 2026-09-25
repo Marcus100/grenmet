@@ -1,0 +1,39 @@
+{% extends "base.html.j2" %}
+{% block content %}
+    <section class="card headline">
+      {{ icon("tornado", "headline-icon", "sky-ink") }}
+      <div>
+        <p class="eyebrow sky">Area of special interest</p>
+        <p class="summary">{{ special_interest or "—" }}</p>
+      </div>
+    </section>
+
+    <section class="card prose">
+      <h2 class="eyebrow">Tropical waves and systems</h2>
+      <p>{{ systems or "—" }}</p>
+    </section>
+
+    <section class="card prose">
+      <h2 class="eyebrow">Formation outlook</h2>
+      {% if chances %}
+      <div class="chances">
+        {% for chance in chances %}
+        <div class="chance risk-{{ chance.colour }}">
+          <span class="window">Next {{ chance.window }}</span>
+          <strong>{{ chance.category }} · {{ chance.percent }}</strong>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+      <p>{{ formation or "—" }}</p>
+    </section>
+
+    <section class="card word">
+      <dl class="details">
+        <dt>Area covered</dt><dd>{{ area or "—" }}</dd>
+        <dt>Source</dt><dd>{{ source or "—" }}</dd>
+        <dt>Next update</dt><dd>{{ next_update or "As required" }}</dd>
+      </dl>
+    </section>
+    <p class="note">Guidance summary for Grenada, Carriacou and Petite Martinique. Official tropical cyclone advisories come from the National Hurricane Center and GMS bulletins.</p>
+{% endblock %}

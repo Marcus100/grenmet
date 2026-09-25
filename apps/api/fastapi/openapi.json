@@ -9325,7 +9325,7 @@
           "cap-public"
         ],
         "summary": "Get active CAP alerts as GeoJSON",
-        "description": "Returns active public CAP alerts as a GeoJSON feature collection for map clients.",
+        "description": "Returns active Actual public CAP alerts as a GeoJSON feature collection for map clients.",
         "operationId": "capGetAlertsGeojson",
         "responses": {
           "200": {
@@ -9357,7 +9357,7 @@
           "cap-public"
         ],
         "summary": "Get the active CAP map",
-        "description": "Returns the cached GeoJSON feature collection used to render the active public CAP alert map.",
+        "description": "Returns the cached GeoJSON feature collection of active Actual public CAP alerts.",
         "operationId": "capGetActiveMap",
         "responses": {
           "200": {
@@ -9391,7 +9391,7 @@
           "cap-public"
         ],
         "summary": "Get the public CAP RSS feed",
-        "description": "Returns active public CAP alerts as an RSS 2.0 feed for feed readers and aggregators.",
+        "description": "Returns active Actual public CAP alerts and Actual Cancel messages published in the last 24 hours as RSS 2.0.",
         "operationId": "capGetRss",
         "responses": {
           "200": {
@@ -10540,6 +10540,103 @@
                       "tsunami": "#/components/schemas/LegacyProductPreview"
                     }
                   }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/wxproducts/products/preview/pdf": {
+      "post": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "Render a draft product PDF preview",
+        "description": "Renders unsaved forecast, bulletin or outlook content with the issued PDF layout, watermarked as a draft preview. Nothing is saved or published.",
+        "operationId": "wxproductsPreviewProductPdf",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/OutlookProductPreviewInput"
+                  },
+                  {
+                    "$ref": "#/components/schemas/LegacyProductPreviewInput"
+                  }
+                ],
+                "title": "Body",
+                "discriminator": {
+                  "propertyName": "kind",
+                  "mapping": {
+                    "outlook": "#/components/schemas/OutlookProductPreviewInput",
+                    "morning": "#/components/schemas/LegacyProductPreviewInput",
+                    "midday": "#/components/schemas/LegacyProductPreviewInput",
+                    "evening": "#/components/schemas/LegacyProductPreviewInput",
+                    "cyclone": "#/components/schemas/LegacyProductPreviewInput",
+                    "marine": "#/components/schemas/LegacyProductPreviewInput",
+                    "flood": "#/components/schemas/LegacyProductPreviewInput",
+                    "thunderstorm": "#/components/schemas/LegacyProductPreviewInput",
+                    "wind": "#/components/schemas/LegacyProductPreviewInput",
+                    "heat": "#/components/schemas/LegacyProductPreviewInput",
+                    "dust": "#/components/schemas/LegacyProductPreviewInput",
+                    "coastal": "#/components/schemas/LegacyProductPreviewInput",
+                    "tsunami": "#/components/schemas/LegacyProductPreviewInput"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
                 }
               }
             }
@@ -15975,6 +16072,28 @@
               }
             ],
             "title": "Xml Url"
+          },
+          "replaced_by_identifier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replaced By Identifier"
+          },
+          "cancellation_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancellation Reason"
           }
         },
         "type": "object",
@@ -17423,7 +17542,7 @@
               "$ref": "#/components/schemas/CapProfileTemplate"
             },
             "type": "array",
-            "maxItems": 3,
+            "maxItems": 4,
             "title": "Templates"
           },
           "issuing_authority": {
@@ -17474,6 +17593,16 @@
           },
           "level": {
             "$ref": "#/components/schemas/CapProfileDraftRequestPropertiesLevelEnum"
+          },
+          "colour": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GmsColour"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -19748,6 +19877,30 @@
         "type": "object",
         "title": "EmploymentUpdate"
       },
+      "ForecastCondition": {
+        "properties": {
+          "icon": {
+            "type": "string",
+            "title": "Icon"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "icon",
+          "value",
+          "label"
+        ],
+        "title": "ForecastCondition",
+        "description": "One display tile: a lucide icon name, a formatted value and its label."
+      },
       "ForecastObservation": {
         "properties": {
           "temperature": {
@@ -19830,6 +19983,13 @@
             },
             "type": "object",
             "title": "Details"
+          },
+          "conditions": {
+            "items": {
+              "$ref": "#/components/schemas/ForecastCondition"
+            },
+            "type": "array",
+            "title": "Conditions"
           }
         },
         "type": "object",
@@ -19907,6 +20067,16 @@
           "UNSPECIFIED"
         ],
         "title": "Gender"
+      },
+      "GmsColour": {
+        "type": "string",
+        "enum": [
+          "green",
+          "yellow",
+          "orange",
+          "red"
+        ],
+        "title": "GmsColour"
       },
       "GoogleChallengePublic": {
         "properties": {
@@ -22136,6 +22306,28 @@
             ],
             "title": "Formation"
           },
+          "formationChance48h": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formationchance48H"
+          },
+          "formationChance7d": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formationchance7D"
+          },
           "nextUpdate": {
             "anyOf": [
               {
@@ -23608,6 +23800,28 @@
           },
           "status": {
             "$ref": "#/components/schemas/CapStatus"
+          },
+          "product": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CapProfileDraftRequestPropertiesLevelEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product"
+          },
+          "colour": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicWarningPropertiesColourAnyOfEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Colour"
           }
         },
         "type": "object",
@@ -31147,9 +31361,10 @@
       "CapProfileDraftRequestPropertiesLevelEnum": {
         "type": "string",
         "enum": [
-          "Advisory",
+          "Outlook",
           "Watch",
-          "Warning"
+          "Warning",
+          "Advisory"
         ]
       },
       "CapProfilePublicPropertiesStateEnum": {
@@ -31250,6 +31465,15 @@
           "SYNOP",
           "METAR",
           "SPECI"
+        ]
+      },
+      "PublicWarningPropertiesColourAnyOfEnum": {
+        "type": "string",
+        "enum": [
+          "green",
+          "yellow",
+          "orange",
+          "red"
         ]
       },
       "RegisterObservationReadPropertiesStateEnum": {

@@ -1099,6 +1099,11 @@ export {
   wxproductsPreviewProductMutationOptions,
 } from "./useWxproductsPreviewProduct.js";
 export {
+  useWxproductsPreviewProductPdf,
+  wxproductsPreviewProductPdfMutationKey,
+  wxproductsPreviewProductPdfMutationOptions,
+} from "./useWxproductsPreviewProductPdf.js";
+export {
   useWxproductsProductRevisionPdf,
   wxproductsProductRevisionPdfQueryKey,
   wxproductsProductRevisionPdfQueryOptions,

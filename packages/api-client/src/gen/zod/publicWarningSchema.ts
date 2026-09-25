@@ -4,8 +4,10 @@
  */
 
 import * as z from "zod";
+import { capProfileDraftRequestPropertiesLevelEnumSchema } from "./capProfileDraftRequestPropertiesLevelEnumSchema.js";
 import { capSeveritySchema } from "./capSeveritySchema.js";
 import { capStatusSchema } from "./capStatusSchema.js";
+import { publicWarningPropertiesColourAnyOfEnumSchema } from "./publicWarningPropertiesColourAnyOfEnumSchema.js";
 
 export const publicWarningSchema = z.object({
   identifier: z.string(),
@@ -15,4 +17,10 @@ export const publicWarningSchema = z.object({
   expires: z.union([z.iso.datetime(), z.null()]),
   severity: capSeveritySchema,
   status: capStatusSchema,
+  product: z
+    .union([capProfileDraftRequestPropertiesLevelEnumSchema, z.null()])
+    .optional(),
+  colour: z
+    .union([publicWarningPropertiesColourAnyOfEnumSchema, z.null()])
+    .optional(),
 });

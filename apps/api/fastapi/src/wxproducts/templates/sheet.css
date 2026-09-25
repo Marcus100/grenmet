@@ -1,0 +1,140 @@
+/* GMS forecast sheet. Colours come from the --gm-* custom properties that
+   forecast_pdf.py emits from its token mirror; never hardcode a hex here. */
+@font-face { font-family: "Noto Sans"; src: url("fonts/NotoSans-Regular.ttf"); font-weight: 400; }
+@font-face { font-family: "Noto Sans"; src: url("fonts/NotoSans-SemiBold.ttf"); font-weight: 600; }
+@font-face { font-family: "Noto Sans"; src: url("fonts/NotoSans-Bold.ttf"); font-weight: 700; }
+
+@page {
+  size: A4;
+  margin: 18mm 12mm 28mm;
+  @top-left { content: element(runhead); vertical-align: bottom; padding-bottom: 3mm; width: 186mm; }
+  @bottom-center { content: element(footer); vertical-align: bottom; width: 186mm; }
+}
+@page :first {
+  margin-top: 0;
+  @top-left { content: none; }
+}
+
+html { font-family: "Noto Sans", sans-serif; font-size: 9pt; color: var(--gm-text-primary); line-height: 1.35; }
+body { margin: 0; }
+h1, h2, h3, p, ul, ol { margin: 0; padding: 0; }
+ul, ol { list-style: none; }
+
+.runhead { position: running(runhead); font-weight: 700; font-size: 9pt; color: var(--gm-navy); border-bottom: 0.6mm solid var(--gm-navy); padding-bottom: 1.5mm; }
+.footer { position: running(footer); width: 186mm; }
+.contact { display: grid; grid-template-columns: 1fr 1fr 1fr; row-gap: 2.2mm; border-top: 0.3mm solid var(--gm-border); padding-top: 2.5mm; font-size: 8pt; }
+.contact .c { text-align: center; }
+.contact .r { text-align: right; }
+.label { display: block; font-weight: 600; font-size: 6.2pt; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gm-text-muted); }
+.legal {
+  display: flex; justify-content: space-between; margin: 3mm -12mm 0; padding: 1.4mm 12mm;
+  background: var(--gm-navy); font-size: 6.5pt; color: var(--gm-text-inverse);
+}
+.pageno::after { content: counter(page); }
+
+/* Header band bleeds to the page edges on page 1. */
+.band {
+  margin: 0 -12mm 6mm; padding: 8mm 12mm 7mm; min-height: 20mm;
+  background: var(--gm-navy); color: var(--gm-text-inverse);
+  display: flex; align-items: center; gap: 12mm; position: relative;
+}
+.logo { height: 17mm; }
+.band h1 { font-size: 17pt; font-weight: 700; line-height: 1.15; margin-bottom: 1.2mm; }
+.band p { font-size: 9pt; }
+.status {
+  position: absolute; top: 4mm; right: 12mm; padding: 0.7mm 2.2mm; border-radius: 1.2mm;
+  background: var(--gm-lime); color: var(--gm-navy); font-weight: 700; font-size: 6.5pt; letter-spacing: 0.03em;
+}
+
+.card { border: 0.3mm solid var(--gm-border); border-radius: 2.5mm; background: var(--gm-surface-page); padding: 4.5mm 5.5mm; }
+.eyebrow { font-weight: 600; font-size: 7.5pt; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gm-navy); margin-bottom: 3.5mm; }
+.eyebrow.sky { color: var(--gm-sky-ink); margin-bottom: 1.5mm; }
+
+.headline { display: flex; align-items: center; gap: 7mm; margin-bottom: 4mm; break-inside: avoid; }
+.headline-icon { width: 16mm; height: 16mm; flex: none; color: var(--gm-sky-ink); }
+.summary { font-size: 13pt; color: var(--gm-navy); line-height: 1.3; }
+
+.row { display: flex; gap: 4mm; margin-bottom: 4mm; break-inside: avoid; }
+.conditions { flex: 1 1 auto; }
+.ibf { flex: 0 0 58mm; }
+
+.tiles { display: grid; grid-template-columns: 1fr 1fr; column-gap: 4mm; row-gap: 2.8mm; }
+.tiles li { display: flex; align-items: center; gap: 3mm; }
+.tile-icon { width: 7mm; height: 7mm; flex: none; color: var(--gm-navy); }
+.tiles strong { display: block; font-size: 10.5pt; font-weight: 700; color: var(--gm-navy); line-height: 1.2; }
+.tiles span { display: block; font-size: 6.8pt; color: var(--gm-text-muted); }
+.tiles .empty { color: var(--gm-text-muted); }
+
+.matrix-wrap { position: relative; padding: 0 0 5mm 6mm; margin: 0 auto 3mm; width: 46mm; }
+.matrix {
+  display: grid; grid-template-columns: repeat(4, 9.5mm); grid-auto-rows: 9.5mm; gap: 1.2mm;
+  border-left: 0.35mm solid var(--gm-text-secondary); border-bottom: 0.35mm solid var(--gm-text-secondary);
+  padding: 0 0 1.5mm 1.5mm;
+}
+.cell { border-radius: 1mm; padding: 0.8mm; display: flex; flex-wrap: wrap; gap: 0.6mm; align-content: flex-start; }
+.mark {
+  width: 3.4mm; height: 3.4mm; border-radius: 50%; background: var(--gm-navy); color: var(--gm-text-inverse);
+  font-size: 5.5pt; font-weight: 700; text-align: center; line-height: 3.4mm;
+}
+.axis-x { position: absolute; bottom: 0; left: 6mm; right: 0; text-align: center; font-size: 6.8pt; font-weight: 600; color: var(--gm-text-secondary); }
+.axis-y {
+  position: absolute; left: -9mm; top: 19mm; font-size: 6.8pt; font-weight: 600; color: var(--gm-text-secondary);
+  transform: rotate(-90deg);
+}
+.caption { font-size: 7.2pt; }
+.caption li { margin-bottom: 1.2mm; }
+.caption b { display: inline-block; width: 3.4mm; height: 3.4mm; border-radius: 50%; background: var(--gm-navy); color: var(--gm-text-inverse); font-size: 5.5pt; text-align: center; line-height: 3.4mm; margin-right: 1mm; }
+.caption .none { color: var(--gm-text-secondary); }
+
+.risk-green { background: var(--gm-warning-green-bg); color: var(--gm-warning-green-fg); }
+.risk-yellow { background: var(--gm-warning-yellow-bg); color: var(--gm-warning-yellow-fg); }
+.risk-orange { background: var(--gm-warning-amber-bg); color: var(--gm-warning-amber-fg); }
+.risk-red { background: var(--gm-warning-red-bg); color: var(--gm-warning-red-fg); }
+.risk-grey { background: var(--gm-warning-grey-bg); color: var(--gm-warning-grey-fg); }
+
+.advisories { margin-bottom: 4mm; }
+.alert-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+.alert { border: 0.3mm solid var(--gm-border); border-radius: 2.5mm; overflow: hidden; break-inside: avoid; display: flex; flex-direction: column; }
+.alert-head { display: flex; align-items: center; gap: 3mm; padding: 2.4mm 4mm; }
+.alert-icon { width: 6mm; height: 6mm; flex: none; }
+.alert-head strong { display: block; font-size: 8.5pt; font-weight: 700; }
+.alert-head span { display: block; font-size: 8.5pt; }
+.alert-body { padding: 3mm 4mm; flex: 1 0 auto; }
+.alert-body h3 { font-size: 7.5pt; font-weight: 600; color: var(--gm-navy); }
+.alert-body p { font-size: 8pt; margin-bottom: 2mm; }
+.alert-foot { background: var(--gm-surface); padding: 1.6mm 4mm; font-size: 7pt; color: var(--gm-text-secondary); display: flex; flex-wrap: wrap; column-gap: 2mm; }
+.alert-foot b { color: var(--gm-navy); font-weight: 600; }
+.alert-foot span { flex-basis: 100%; font-size: 6.5pt; color: var(--gm-text-muted); }
+.note { margin-top: 2.5mm; font-size: 7pt; color: var(--gm-text-muted); }
+
+.outlook { margin-bottom: 5mm; }
+table { width: 100%; border-collapse: collapse; font-size: 8pt; }
+thead th { background: var(--gm-surface); color: var(--gm-navy); font-weight: 600; text-align: left; padding: 1.8mm 2mm; }
+tbody td { padding: 2mm; border-bottom: 0.3mm solid var(--gm-border); vertical-align: top; }
+tbody tr { break-inside: avoid; }
+td.day { font-weight: 600; color: var(--gm-navy); white-space: nowrap; }
+td.num { white-space: nowrap; }
+
+.word { background: var(--gm-surface); break-inside: avoid; }
+.word .eyebrow { margin-bottom: 1.5mm; }
+
+.band .subtitle { font-weight: 600; color: var(--gm-lime); margin-bottom: 0.6mm; }
+.level-banner {
+  display: flex; align-items: center; gap: 4mm; padding: 3mm 5mm; border-radius: 2.5mm;
+  margin-bottom: 4mm; break-inside: avoid;
+}
+.banner-icon { width: 8mm; height: 8mm; flex: none; }
+.level-banner strong { display: block; font-size: 10pt; font-weight: 700; letter-spacing: 0.04em; }
+.level-banner span { display: block; font-size: 9pt; }
+.level-banner .banner-area { margin-left: auto; font-size: 7.5pt; text-align: right; max-width: 60mm; }
+.details { display: grid; grid-template-columns: 34mm 1fr; column-gap: 3mm; row-gap: 1.8mm; font-size: 8pt; }
+.details.after-tiles { margin-top: 4mm; padding-top: 3mm; border-top: 0.3mm solid var(--gm-border); }
+.details dt { font-weight: 600; color: var(--gm-navy); }
+.details dd { margin: 0; white-space: pre-line; }
+.muted { color: var(--gm-text-muted); }
+.prose { margin-bottom: 4mm; break-inside: avoid; }
+.prose p { font-size: 9.5pt; white-space: pre-line; }
+.chances { display: flex; gap: 3mm; margin-bottom: 3mm; }
+.chance { border-radius: 2mm; padding: 2mm 4mm; min-width: 38mm; }
+.chance .window { display: block; font-size: 7pt; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.chance strong { font-size: 11pt; font-weight: 700; }

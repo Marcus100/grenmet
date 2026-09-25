@@ -45,7 +45,7 @@ export function capGetRssQueryOptions(
 }
 
 /**
- * @description Returns active public CAP alerts as an RSS 2.0 feed for feed readers and aggregators.
+ * @description Returns active Actual public CAP alerts and Actual Cancel messages published in the last 24 hours as RSS 2.0.
  * @summary Get the public CAP RSS feed
  * {@link /api/cap/rss.xml}
  */

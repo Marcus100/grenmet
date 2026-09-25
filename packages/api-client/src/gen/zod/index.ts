@@ -810,12 +810,14 @@ export {
   eregisterValidateSynopObservationStatus200Schema,
   eregisterValidateSynopObservationStatus422Schema,
 } from "./eregisterValidateSynopObservationSchema.js";
+export { forecastConditionSchema } from "./forecastConditionSchema.js";
 export { forecastObservationSchema } from "./forecastObservationSchema.js";
 export { forecastPeriodSchema } from "./forecastPeriodSchema.js";
 export { forecastSourcePropertiesKindEnumSchema } from "./forecastSourcePropertiesKindEnumSchema.js";
 export { forecastSourceSchema } from "./forecastSourceSchema.js";
 export { frequencySchema } from "./frequencySchema.js";
 export { genderSchema } from "./genderSchema.js";
+export { gmsColourSchema } from "./gmsColourSchema.js";
 export { googleChallengePublicSchema } from "./googleChallengePublicSchema.js";
 export { googleCompleteSchema } from "./googleCompleteSchema.js";
 export { googleFinishSchema } from "./googleFinishSchema.js";
@@ -2035,6 +2037,7 @@ export { publicHolidayPublicSchema } from "./publicHolidayPublicSchema.js";
 export { publicHolidaysPublicSchema } from "./publicHolidaysPublicSchema.js";
 export { publicPublishedProductSchema } from "./publicPublishedProductSchema.js";
 export { publicWarningGroupSchema } from "./publicWarningGroupSchema.js";
+export { publicWarningPropertiesColourAnyOfEnumSchema } from "./publicWarningPropertiesColourAnyOfEnumSchema.js";
 export { publicWarningSchema } from "./publicWarningSchema.js";
 export { publicWarningsSchema } from "./publicWarningsSchema.js";
 export { publishedProductsSchema } from "./publishedProductsSchema.js";
@@ -2279,6 +2282,15 @@ export {
   wxproductsLoadProductsStatus422Schema,
   wxproductsLoadProductsStatus503Schema,
 } from "./wxproductsLoadProductsSchema.js";
+export {
+  wxproductsPreviewProductPdfBodySchema,
+  wxproductsPreviewProductPdfErrorSchema,
+  wxproductsPreviewProductPdfResponseSchema,
+  wxproductsPreviewProductPdfStatus200Schema,
+  wxproductsPreviewProductPdfStatus401Schema,
+  wxproductsPreviewProductPdfStatus403Schema,
+  wxproductsPreviewProductPdfStatus422Schema,
+} from "./wxproductsPreviewProductPdfSchema.js";
 export {
   wxproductsPreviewProductBodySchema,
   wxproductsPreviewProductErrorSchema,

@@ -126,7 +126,9 @@ async def test_approval_requires_complete_profile_and_independent_reviewer(
             profile_session,
             author,
             first.id,
-            CapProfileDraftRequest(subtype="Flash Flood", level="Warning"),
+            CapProfileDraftRequest(
+                subtype="Flash Flood", level="Warning", colour="orange"
+            ),
         )
     complete = await profiles.save_version(
         profile_session,
@@ -202,13 +204,19 @@ async def test_approved_profile_starts_only_a_draft_with_version_provenance(
         profile_session,
         author,
         saved.id,
-        CapProfileDraftRequest(subtype="Flash Flood", level="Warning"),
+        CapProfileDraftRequest(subtype="Flash Flood", level="Warning", colour="orange"),
     )
     assert alert.lifecycle_state == CapLifecycleState.DRAFT
     assert alert.info[0].event == "Flash Flood Warning"
-    assert alert.info[0].severity == CapSeverity.UNKNOWN
+    # The chosen colour sets CAP severity and travels as MeteoAlarm-style
+    # parameters beside the profile provenance.
+    assert alert.info[0].severity == CapSeverity.SEVERE
     assert alert.info[0].sender_name == "Test issuer"
-    assert alert.info[0].parameters[0].value == f"{saved.key}:v1"
+    assert [(p.value_name, p.value) for p in alert.info[0].parameters] == [
+        ("GMS:hazard-profile", f"{saved.key}:v1"),
+        ("GMS:product", "Warning"),
+        ("awareness_level", "3; orange; Severe"),
+    ]
     jobs = await profile_session.execute(
         select(CapJobEvent).where(CapJobEvent.alert_id == alert.id)
     )
@@ -218,7 +226,9 @@ async def test_approved_profile_starts_only_a_draft_with_version_provenance(
             profile_session,
             author,
             saved.id,
-            CapProfileDraftRequest(subtype="Earthquake", level="Warning"),
+            CapProfileDraftRequest(
+                subtype="Earthquake", level="Warning", colour="orange"
+            ),
         )
 
 
@@ -253,3 +263,13 @@ async def test_profile_http_contract(profile_session: AsyncSession) -> None:
         listed = await client.get("/api/v1/cap/hazard-profiles")
         assert listed.status_code == 200
         assert any(row["id"] == body["id"] for row in listed.json())
+
+
+def test_a_draft_request_pairs_colour_with_product() -> None:
+    from pydantic import ValidationError
+
+    assert CapProfileDraftRequest(subtype="Heat", level="Outlook").colour is None
+    with pytest.raises(ValidationError, match="Outlook has no colour"):
+        CapProfileDraftRequest(subtype="Heat", level="Outlook", colour="yellow")
+    with pytest.raises(ValidationError, match="Choose a colour"):
+        CapProfileDraftRequest(subtype="Heat", level="Watch")

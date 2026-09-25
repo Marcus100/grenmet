@@ -221,6 +221,7 @@ export { wxproductsLoadHistory } from "./clients/wxproductsLoadHistory.js";
 export { wxproductsLoadObservations } from "./clients/wxproductsLoadObservations.js";
 export { wxproductsLoadProducts } from "./clients/wxproductsLoadProducts.js";
 export { wxproductsPreviewProduct } from "./clients/wxproductsPreviewProduct.js";
+export { wxproductsPreviewProductPdf } from "./clients/wxproductsPreviewProductPdf.js";
 export { wxproductsProductRevisionPdf } from "./clients/wxproductsProductRevisionPdf.js";
 export { wxproductsPublicForecast } from "./clients/wxproductsPublicForecast.js";
 export { wxproductsSaveAviationDraft } from "./clients/wxproductsSaveAviationDraft.js";
@@ -1338,6 +1339,11 @@ export {
   wxproductsPreviewProductMutationOptions,
 } from "./hooks/useWxproductsPreviewProduct.js";
 export {
+  useWxproductsPreviewProductPdf,
+  wxproductsPreviewProductPdfMutationKey,
+  wxproductsPreviewProductPdfMutationOptions,
+} from "./hooks/useWxproductsPreviewProductPdf.js";
+export {
   useWxproductsProductRevisionPdf,
   wxproductsProductRevisionPdfQueryKey,
   wxproductsProductRevisionPdfQueryOptions,
@@ -2330,6 +2336,7 @@ export type {
   EregisterValidateSynopObservationStatus200,
   EregisterValidateSynopObservationStatus422,
 } from "./models/EregisterValidateSynopObservation.js";
+export type { ForecastCondition } from "./models/ForecastCondition.js";
 export type { ForecastObservation } from "./models/ForecastObservation.js";
 export type { ForecastPeriod } from "./models/ForecastPeriod.js";
 export type { ForecastSource } from "./models/ForecastSource.js";
@@ -2338,6 +2345,8 @@ export { forecastSourcePropertiesKindEnum } from "./models/ForecastSourcePropert
 export type { Frequency } from "./models/Frequency.js";
 export type { Gender } from "./models/Gender.js";
 export { gender } from "./models/Gender.js";
+export type { GmsColour } from "./models/GmsColour.js";
+export { gmsColour } from "./models/GmsColour.js";
 export type { GoogleChallengePublic } from "./models/GoogleChallengePublic.js";
 export type { GoogleComplete } from "./models/GoogleComplete.js";
 export type { GoogleFinish } from "./models/GoogleFinish.js";
@@ -3653,6 +3662,8 @@ export type { PublicHolidaysPublic } from "./models/PublicHolidaysPublic.js";
 export type { PublicPublishedProduct } from "./models/PublicPublishedProduct.js";
 export type { PublicWarning } from "./models/PublicWarning.js";
 export type { PublicWarningGroup } from "./models/PublicWarningGroup.js";
+export type { PublicWarningPropertiesColourAnyOfEnum } from "./models/PublicWarningPropertiesColourAnyOfEnum.js";
+export { publicWarningPropertiesColourAnyOfEnum } from "./models/PublicWarningPropertiesColourAnyOfEnum.js";
 export type { PublicWarnings } from "./models/PublicWarnings.js";
 export type { PublishedProducts } from "./models/PublishedProducts.js";
 export type { RecoveryCodesPublic } from "./models/RecoveryCodesPublic.js";
@@ -3931,6 +3942,16 @@ export type {
   WxproductsPreviewProductStatus403,
   WxproductsPreviewProductStatus422,
 } from "./models/WxproductsPreviewProduct.js";
+export type {
+  WxproductsPreviewProductPdfBody,
+  WxproductsPreviewProductPdfOptions,
+  WxproductsPreviewProductPdfResponse,
+  WxproductsPreviewProductPdfResponses,
+  WxproductsPreviewProductPdfStatus200,
+  WxproductsPreviewProductPdfStatus401,
+  WxproductsPreviewProductPdfStatus403,
+  WxproductsPreviewProductPdfStatus422,
+} from "./models/WxproductsPreviewProductPdf.js";
 export type {
   WxproductsProductRevisionPdfOptions,
   WxproductsProductRevisionPdfPath,
@@ -4894,12 +4915,14 @@ export {
   eregisterValidateSynopObservationStatus200Schema,
   eregisterValidateSynopObservationStatus422Schema,
 } from "./zod/eregisterValidateSynopObservationSchema.js";
+export { forecastConditionSchema } from "./zod/forecastConditionSchema.js";
 export { forecastObservationSchema } from "./zod/forecastObservationSchema.js";
 export { forecastPeriodSchema } from "./zod/forecastPeriodSchema.js";
 export { forecastSourcePropertiesKindEnumSchema } from "./zod/forecastSourcePropertiesKindEnumSchema.js";
 export { forecastSourceSchema } from "./zod/forecastSourceSchema.js";
 export { frequencySchema } from "./zod/frequencySchema.js";
 export { genderSchema } from "./zod/genderSchema.js";
+export { gmsColourSchema } from "./zod/gmsColourSchema.js";
 export { googleChallengePublicSchema } from "./zod/googleChallengePublicSchema.js";
 export { googleCompleteSchema } from "./zod/googleCompleteSchema.js";
 export { googleFinishSchema } from "./zod/googleFinishSchema.js";
@@ -6119,6 +6142,7 @@ export { publicHolidayPublicSchema } from "./zod/publicHolidayPublicSchema.js";
 export { publicHolidaysPublicSchema } from "./zod/publicHolidaysPublicSchema.js";
 export { publicPublishedProductSchema } from "./zod/publicPublishedProductSchema.js";
 export { publicWarningGroupSchema } from "./zod/publicWarningGroupSchema.js";
+export { publicWarningPropertiesColourAnyOfEnumSchema } from "./zod/publicWarningPropertiesColourAnyOfEnumSchema.js";
 export { publicWarningSchema } from "./zod/publicWarningSchema.js";
 export { publicWarningsSchema } from "./zod/publicWarningsSchema.js";
 export { publishedProductsSchema } from "./zod/publishedProductsSchema.js";
@@ -6363,6 +6387,15 @@ export {
   wxproductsLoadProductsStatus422Schema,
   wxproductsLoadProductsStatus503Schema,
 } from "./zod/wxproductsLoadProductsSchema.js";
+export {
+  wxproductsPreviewProductPdfBodySchema,
+  wxproductsPreviewProductPdfErrorSchema,
+  wxproductsPreviewProductPdfResponseSchema,
+  wxproductsPreviewProductPdfStatus200Schema,
+  wxproductsPreviewProductPdfStatus401Schema,
+  wxproductsPreviewProductPdfStatus403Schema,
+  wxproductsPreviewProductPdfStatus422Schema,
+} from "./zod/wxproductsPreviewProductPdfSchema.js";
 export {
   wxproductsPreviewProductBodySchema,
   wxproductsPreviewProductErrorSchema,

@@ -4,9 +4,10 @@
  */
 
 export const capProfileDraftRequestPropertiesLevelEnum = {
-  Advisory: "Advisory",
+  Outlook: "Outlook",
   Watch: "Watch",
   Warning: "Warning",
+  Advisory: "Advisory",
 } as const;
 
 export type CapProfileDraftRequestPropertiesLevelEnum =

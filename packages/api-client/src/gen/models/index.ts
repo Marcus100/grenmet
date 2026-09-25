@@ -911,6 +911,7 @@ export type {
   EregisterValidateSynopObservationStatus200,
   EregisterValidateSynopObservationStatus422,
 } from "./EregisterValidateSynopObservation.js";
+export type { ForecastCondition } from "./ForecastCondition.js";
 export type { ForecastObservation } from "./ForecastObservation.js";
 export type { ForecastPeriod } from "./ForecastPeriod.js";
 export type { ForecastSource } from "./ForecastSource.js";
@@ -919,6 +920,8 @@ export { forecastSourcePropertiesKindEnum } from "./ForecastSourcePropertiesKind
 export type { Frequency } from "./Frequency.js";
 export type { Gender } from "./Gender.js";
 export { gender } from "./Gender.js";
+export type { GmsColour } from "./GmsColour.js";
+export { gmsColour } from "./GmsColour.js";
 export type { GoogleChallengePublic } from "./GoogleChallengePublic.js";
 export type { GoogleComplete } from "./GoogleComplete.js";
 export type { GoogleFinish } from "./GoogleFinish.js";
@@ -2234,6 +2237,8 @@ export type { PublicHolidaysPublic } from "./PublicHolidaysPublic.js";
 export type { PublicPublishedProduct } from "./PublicPublishedProduct.js";
 export type { PublicWarning } from "./PublicWarning.js";
 export type { PublicWarningGroup } from "./PublicWarningGroup.js";
+export type { PublicWarningPropertiesColourAnyOfEnum } from "./PublicWarningPropertiesColourAnyOfEnum.js";
+export { publicWarningPropertiesColourAnyOfEnum } from "./PublicWarningPropertiesColourAnyOfEnum.js";
 export type { PublicWarnings } from "./PublicWarnings.js";
 export type { PublishedProducts } from "./PublishedProducts.js";
 export type { RecoveryCodesPublic } from "./RecoveryCodesPublic.js";
@@ -2512,6 +2517,16 @@ export type {
   WxproductsPreviewProductStatus403,
   WxproductsPreviewProductStatus422,
 } from "./WxproductsPreviewProduct.js";
+export type {
+  WxproductsPreviewProductPdfBody,
+  WxproductsPreviewProductPdfOptions,
+  WxproductsPreviewProductPdfResponse,
+  WxproductsPreviewProductPdfResponses,
+  WxproductsPreviewProductPdfStatus200,
+  WxproductsPreviewProductPdfStatus401,
+  WxproductsPreviewProductPdfStatus403,
+  WxproductsPreviewProductPdfStatus422,
+} from "./WxproductsPreviewProductPdf.js";
 export type {
   WxproductsProductRevisionPdfOptions,
   WxproductsProductRevisionPdfPath,

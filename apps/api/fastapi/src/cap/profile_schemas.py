@@ -3,13 +3,18 @@ from typing import Literal
 
 from pydantic import Field, model_validator
 
+from src.cap.levels import GmsColour
 from src.cap.models import CapCategory
 from src.models import BaseModel, UtcDateTime
+
+# The GMS products a profile can template. "Advisory" is kept for the marine
+# Small Craft Advisory; see src/cap/levels.py.
+ProfileLevel = Literal["Outlook", "Watch", "Warning", "Advisory"]
 
 
 class CapProfileRule(BaseModel):
     id: uuid.UUID = Field(default_factory=uuid.uuid4)
-    level: Literal["Advisory", "Watch", "Warning"] = "Warning"
+    level: ProfileLevel = "Warning"
     metric: str = Field(default="", max_length=200)
     operator: Literal[">=", ">", "<=", "<", "observed"] = ">="
     threshold: float | None = Field(default=None, allow_inf_nan=False)
@@ -32,7 +37,7 @@ class CapProfileSubtype(BaseModel):
 
 
 class CapProfileTemplate(BaseModel):
-    level: Literal["Advisory", "Watch", "Warning"]
+    level: ProfileLevel
     headline: str = Field(default="", max_length=500)
     description: str = Field(default="", max_length=10000)
     instruction: str = Field(default="", max_length=10000)
@@ -42,7 +47,7 @@ class CapProfileDefinition(BaseModel):
     name: str = Field(min_length=1, max_length=200)
     family: str = Field(min_length=1, max_length=200)
     subtypes: list[CapProfileSubtype] = Field(min_length=1, max_length=50)
-    templates: list[CapProfileTemplate] = Field(default_factory=list, max_length=3)
+    templates: list[CapProfileTemplate] = Field(default_factory=list, max_length=4)
     issuing_authority: str = Field(default="", max_length=500)
     reviewing_authority: str = Field(default="", max_length=500)
     contact: str = Field(default="meteorology@gaa.gd; 1-473-444-4142", max_length=500)
@@ -82,4 +87,13 @@ class CapProfilePublic(BaseModel):
 
 class CapProfileDraftRequest(BaseModel):
     subtype: str
-    level: Literal["Advisory", "Watch", "Warning"]
+    level: ProfileLevel
+    colour: GmsColour | None = None
+
+    @model_validator(mode="after")
+    def colour_matches_product(self) -> CapProfileDraftRequest:
+        if self.level == "Outlook" and self.colour is not None:
+            raise ValueError("An Outlook has no colour yet")
+        if self.level != "Outlook" and self.colour is None:
+            raise ValueError(f"Choose a colour for this {self.level}")
+        return self

@@ -150,3 +150,15 @@ async def test_public_endpoint_privacy_withdrawal_and_outage(
         assert (await async_client.get(url)).status_code == 503
     finally:
         app.dependency_overrides.pop(get_session, None)
+
+
+def test_periods_carry_display_ready_conditions():
+    morning = at("2026-09-14T08:00", [publication()]).periods[0]
+    tiles = {(c.icon, c.value, c.label) for c in morning.conditions}
+    assert ("thermometer-sun", "31.5°C", "Max temp") in tiles
+    assert ("wind", "ENE", "Wind") in tiles  # legacy free text falls back
+    assert ("arrow-up-to-line", "09:15", "High tides") in tiles
+    outlook_day = at("2026-09-14T19:00", [publication("evening")]).periods[1]
+    assert ("thermometer-sun", "32°C", "Max temp") in {
+        (c.icon, c.value, c.label) for c in outlook_day.conditions
+    }

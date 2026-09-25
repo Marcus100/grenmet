@@ -17,6 +17,7 @@ from src.cap.schemas import (
     CapAlertPublic,
     CapAreaPublic,
     CapInfoPublic,
+    CapNameValue,
 )
 from src.cap.validation import validate_cap_alert
 from src.cap.xml import alert_to_cap_xml
@@ -42,6 +43,44 @@ def test_validation_rejects_non_alert_without_references() -> None:
 
     assert not result.is_valid
     assert "references are required for Update, Cancel, Ack, and Error" in result.errors
+
+
+def test_validation_rejects_a_colour_that_contradicts_severity() -> None:
+    from src.cap.levels import GmsColour, GmsProduct, level_parameters
+
+    alert = _alert()
+    alert.info[0].parameters = level_parameters(GmsProduct.WARNING, GmsColour.RED)
+
+    result = validate_cap_alert(alert)
+
+    assert not result.is_valid
+    assert any("Red requires severity Extreme" in error for error in result.errors)
+
+
+def test_source_bulletin_link_requires_an_exact_revision() -> None:
+    alert = _alert()
+    source = [
+        CapNameValue(value_name="GMS:source-bulletin-kind", value="marine"),
+        CapNameValue(
+            value_name="GMS:source-bulletin-id",
+            value="11111111-1111-4111-8111-111111111111",
+        ),
+        CapNameValue(value_name="GMS:source-bulletin-revision", value="3"),
+    ]
+    alert.info[0].parameters = source
+    assert validate_cap_alert(alert).is_valid
+    alert.info[0].parameters = source[:2]
+    assert any(
+        "source bulletin requires kind, ID, and revision" in error
+        for error in validate_cap_alert(alert).errors
+    )
+    alert.info[0].parameters = source[:2] + [
+        CapNameValue(value_name="GMS:source-bulletin-revision", value="0")
+    ]
+    assert any(
+        "revision must be a positive integer" in error
+        for error in validate_cap_alert(alert).errors
+    )
 
 
 def test_geojson_contains_alert_area_features() -> None:

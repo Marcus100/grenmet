@@ -37,4 +37,6 @@ export const capAlertPublicSchema = z.object({
   incidents: z.array(z.string()).optional(),
   info: z.array(capInfoPublicSchema).optional(),
   xml_url: z.union([z.string(), z.null()]).optional(),
+  replaced_by_identifier: z.union([z.string(), z.null()]).optional(),
+  cancellation_reason: z.union([z.string(), z.null()]).optional(),
 });

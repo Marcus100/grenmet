@@ -4,8 +4,10 @@
  */
 
 import type { CapProfileDraftRequestPropertiesLevelEnum } from "./CapProfileDraftRequestPropertiesLevelEnum.js";
+import type { GmsColour } from "./GmsColour.js";
 
 export type CapProfileDraftRequest = {
   subtype: string;
   level: CapProfileDraftRequestPropertiesLevelEnum;
+  colour?: GmsColour | null;
 };
