@@ -7,7 +7,7 @@ export default function BulletinProductsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        description="Current bulletins issued by the Grenada Meteorological Service. Consult Current alerts for CAP warnings."
+        description="Current bulletins issued by the Grenada Meteorological Service. Consult Warnings in effect for CAP warnings."
         title="Bulletins"
       />
       <PublishedProducts

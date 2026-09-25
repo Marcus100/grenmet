@@ -1,5 +1,7 @@
 import type { WeatherCondition } from "@/lib/weather-icons";
 export interface Condition {
+  /** Lucide icon name from the forecast feed; older data falls back to the label. */
+  icon?: string;
   label: string;
   value: string;
 }

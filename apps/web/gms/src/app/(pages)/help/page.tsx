@@ -56,7 +56,7 @@ export default function HelpPage() {
             {
               question: "Which page should I check during a storm?",
               answer:
-                "Current alerts, at /warnings. It lists everything in effect, grouped by hazard, and is the page that updates first.",
+                "Warnings in effect, at /warnings. It lists everything in effect, grouped by hazard, and is the page that updates first. Select any warning for what to expect and what to do.",
             },
             {
               question: "How do I find weather for a specific day?",

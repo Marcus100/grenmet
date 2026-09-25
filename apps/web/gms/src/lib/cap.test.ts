@@ -10,6 +10,8 @@ import {
   alertsSummary,
   exerciseStatuses,
   fetchActiveAlerts,
+  fetchPastAlerts,
+  fetchPublicAlert,
   type PublicAlert,
 } from "@/lib/cap";
 
@@ -28,7 +30,9 @@ function alert(overrides: Partial<PublicAlert> = {}): PublicAlert {
 
 describe("alertsSummary", () => {
   it("never presents an outage as an all-clear", () => {
-    expect(alertsSummary({ status: "unavailable" })).toBe("Unavailable");
+    expect(alertsSummary({ status: "unavailable" })).toBe(
+      "Warnings unavailable"
+    );
   });
 
   it("reports no active warnings when the count is zero", () => {
@@ -37,7 +41,29 @@ describe("alertsSummary", () => {
     );
   });
 
-  it("reports the active count otherwise", () => {
+  it("names the most severe level with the count", () => {
+    expect(
+      alertsSummary({
+        activeCount: 2,
+        groups: [
+          {
+            alerts: [alert(), alert({ identifier: "id-2", severity: "Minor" })],
+            name: "Marine / Small Craft",
+          },
+        ],
+        status: "ok",
+      })
+    ).toBe("Be prepared · 2 active");
+    expect(
+      alertsSummary({
+        activeCount: 1,
+        groups: [{ alerts: [alert({ severity: "Extreme" })], name: "Wind" }],
+        status: "ok",
+      })
+    ).toBe("Take action now · 1 active");
+  });
+
+  it("falls back to the bare count when no alert detail is present", () => {
     expect(alertsSummary({ activeCount: 3, groups: [], status: "ok" })).toBe(
       "3 active"
     );
@@ -221,4 +247,55 @@ it("uses backend groups without classifying the event again", async () => {
   } finally {
     globalThis.fetch = original;
   }
+});
+
+const ENCODED_ALERT_URL = /\/api\/cap\/alerts\/urn%3Aoid%3A1\.2$/;
+
+describe("fetchPublicAlert", () => {
+  const originalFetch = globalThis.fetch;
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  it("treats a 404 as not found, never as an outage", async () => {
+    globalThis.fetch = (() =>
+      Promise.resolve({ ok: false, status: 404 } as Response)) as typeof fetch;
+    expect(await fetchPublicAlert("missing-404")).toEqual({
+      status: "not-found",
+    });
+  });
+
+  it("reports unavailable on a server error", async () => {
+    globalThis.fetch = (() =>
+      Promise.resolve({ ok: false, status: 503 } as Response)) as typeof fetch;
+    expect(await fetchPublicAlert("down-503")).toEqual({
+      status: "unavailable",
+    });
+  });
+
+  it("requests the identifier encoded and uncached", async () => {
+    const calls: [string, RequestInit][] = [];
+    globalThis.fetch = ((url: string, init: RequestInit) => {
+      calls.push([url, init]);
+      return Promise.reject(new Error("stop"));
+    }) as typeof fetch;
+    await fetchPublicAlert("urn:oid:1.2");
+    expect(calls[0]?.[0]).toMatch(ENCODED_ALERT_URL);
+    expect(calls[0]?.[1].cache).toBe("no-store");
+  });
+});
+
+describe("fetchPastAlerts", () => {
+  const originalFetch = globalThis.fetch;
+
+  afterEach(() => {
+    globalThis.fetch = originalFetch;
+  });
+
+  it("degrades to an empty list: the all-clear is supplementary", async () => {
+    globalThis.fetch = (() =>
+      Promise.reject(new Error("connect ECONNREFUSED"))) as typeof fetch;
+    expect(await fetchPastAlerts()).toEqual([]);
+  });
 });

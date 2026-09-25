@@ -77,4 +77,23 @@ describe("NavDrawer", () => {
 
     expect(onClose).toHaveBeenCalled();
   });
+
+  it("leads with the warning status, linked to every warning in effect", () => {
+    render(
+      <NavDrawer
+        alerts={{ activeCount: 0, groups: [], status: "ok" }}
+        onClose={() => undefined}
+        open
+      />
+    );
+    const status = screen.getByRole("link", { name: "No active warnings" });
+    expect(status).toHaveAttribute("href", "/warnings");
+  });
+
+  it("omits the status row when no alert result is supplied", () => {
+    render(<NavDrawer onClose={() => undefined} open />);
+    expect(
+      screen.queryByRole("link", { name: "No active warnings" })
+    ).not.toBeInTheDocument();
+  });
 });

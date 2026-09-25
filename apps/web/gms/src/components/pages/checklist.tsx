@@ -1,3 +1,5 @@
+import { cn } from "@/lib/utils";
+
 /** Ordered preparedness steps or an unordered kit list. */
 export function Checklist({
   items,
@@ -20,7 +22,7 @@ export function Checklist({
   ));
 
   return ordered ? (
-    <ol className={`${className} list-inside list-decimal`}>{content}</ol>
+    <ol className={cn(className, "list-inside list-decimal")}>{content}</ol>
   ) : (
     <ul className={className}>{content}</ul>
   );

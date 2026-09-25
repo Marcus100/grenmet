@@ -12,7 +12,7 @@ export function PageSection({
   return (
     <section className="mb-8 lg:mb-12">
       {heading && (
-        <h2 className="mb-3 font-bold text-gm-navy text-heading-sm leading-heading-sm lg:mb-4">
+        <h2 className="mb-3 text-balance font-bold text-gm-navy text-heading-sm leading-heading-sm lg:mb-4">
           {heading}
         </h2>
       )}

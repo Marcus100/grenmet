@@ -35,19 +35,19 @@ export const NAV_SECTIONS: NavSection[] = [
         heading: "In effect",
         links: [
           {
+            name: "Warnings in effect",
+            href: "/warnings",
+            description: "Current hazard Outlooks, Watches and Warnings",
+          },
+          {
             name: "Bulletins",
             href: "/products/bulletins",
-            description: "Issued bulletins for all nine hazards",
+            description: "Detailed issued bulletins for nine hazards",
           },
           {
-            name: "Current alerts",
-            href: "/warnings",
-            description: "Every warning in effect right now, by hazard",
-          },
-          {
-            name: "Weather Advisories",
-            href: "/warnings/advisories",
-            description: "Lower-level notices worth planning around",
+            name: "Warning levels",
+            href: "/warnings/levels",
+            description: "How Outlooks, Watches and Warnings work",
           },
           {
             name: "Impact-Based Warnings",
@@ -594,4 +594,20 @@ export const NAV_SECTIONS: NavSection[] = [
 /** Every link in a section, in order — what the mobile drawer lists. */
 export function sectionLinks(section: NavSection): NavLink[] {
   return section.groups.flatMap((group) => group.links);
+}
+
+const NON_SLUG_CHARS = /[^a-z0-9]+/g;
+const EDGE_DASHES = /^-|-$/g;
+
+const toSlug = (text: string) =>
+  text.toLowerCase().replace(NON_SLUG_CHARS, "-").replace(EDGE_DASHES, "");
+
+/** Stable anchor for a section on the sitemap page, e.g. "Weather" → "weather". */
+export function sectionId(label: string): string {
+  return toSlug(label);
+}
+
+/** Stable sitemap anchor for a group, e.g. About / "The service" → "about--the-service". */
+export function groupId(sectionLabel: string, heading: string): string {
+  return `${toSlug(sectionLabel)}--${toSlug(heading)}`;
 }
