@@ -50,28 +50,33 @@ The register can be reviewed immediately; missing inputs block only the rules th
 
 ## Current leave balance and request map
 
-The current [`LeaveBalanceEvent`](../../apps/api/fastapi/src/hr/leave/models.py) stores a delta and resulting balance. It has no leave-year or effective-date field, and there is no database uniqueness constraint on `related_leave_request_id`. Existing organisation ownership follows the employee through `user_id`; a new direct organisation key or constraint would need a separately approved schema change.
+**Updated 2026-09-25 (Stage 3.1a, ledger core).** Every ledger read and write now goes through [`hr/leave/ledger.py`](../../apps/api/fastapi/src/hr/leave/ledger.py). [`LeaveBalanceEvent`](../../apps/api/fastapi/src/hr/leave/models.py) stores a delta, the resulting balance, an `entry_kind` (`OPENING`, `ADJUSTMENT`, `APPROVAL_DEBIT`) and a per-employee, per-leave-type `sequence`. The database enforces one sequence per (user, leave type) and one approval debit per leave request. Migration `c9d0e1f2a3b4` backfilled existing rows in `created_at, id` order and stops, listing the request IDs, if any request already has more than one debit. The ledger still has no leave-year, effective-date or import-provenance field. Organisation ownership still follows the employee through `user_id`.
 
-### Production writers and dependencies
+### Writers and readers
 
-| Path | Trigger and current effect | Accounting concern |
-| --- | --- | --- |
-| [`baseline/service.py::set_balance`](../../apps/api/fastapi/src/baseline/service.py) | HR setup sets a target balance by appending the difference from the latest event; the staff setup form calls it. | It can adjust a live balance without an opening-balance as-of date or import identifier. |
-| [`hr/leave/service.py::action_leave_request`](../../apps/api/fastapi/src/hr/leave/service.py) | Legacy leave requests without a workflow append a debit on approval. | Separate posting logic; its own comment records a first-empty-ledger concurrency gap. |
-| [`hr/workflow/finalize.py::finalize_entity`](../../apps/api/fastapi/src/hr/workflow/finalize.py) | Final workflow approval appends a debit if no request-linked event is found. | Separate posting logic; idempotency is checked in application code and should also be enforced at the database boundary. |
-
-All three select the latest event by `created_at DESC` alone. A deterministic tie-break and an explicit policy for backdated corrections are needed before a ledger replay can be authoritative. Migration or import scripts and tests may also insert events; inventory those again when implementing the accounting change.
-
-### Production readers and displays
-
-| Path | Current source and use |
+| Path | Effect through the ledger |
 | --- | --- |
-| [`baseline/service.py::set_balance` and `require_leave_ready`](../../apps/api/fastapi/src/baseline/service.py) | Latest event for adjustment; existence of an event for setup readiness. |
-| [`hr/leave/service.py`](../../apps/api/fastapi/src/hr/leave/service.py) | Opening-event check during request creation; latest event during legacy approval. |
-| [`hr/workflow/finalize.py`](../../apps/api/fastapi/src/hr/workflow/finalize.py) | Prior request-linked event and latest balance during workflow approval. |
-| [`hr/dashboard/service.py`](../../apps/api/fastapi/src/hr/dashboard/service.py) and [dashboard UI](../../apps/web/gaa-admin/src/components/hr/dashboard/dashboard-data.ts) | Latest vacation ledger event drives the dashboard balance. |
-| [`hr/service.py::_build_profile_response`](../../apps/api/fastapi/src/hr/service.py) | Reads older `LeaveBalance` and `LeaveCarryOver` tables for the staff profile, so it may disagree with the dashboard. |
-| [staff setup UI](../../apps/web/gaa-admin/src/components/hr/setup/staff-setup.tsx) | Posts a verified target balance through the baseline service. |
+| [`baseline/service.py::set_balance`](../../apps/api/fastapi/src/baseline/service.py) and [staff setup UI](../../apps/web/gaa-admin/src/components/hr/setup/staff-setup.tsx) | `ledger.set_to`: the first entry is `OPENING`, later ones `ADJUSTMENT`. Still no as-of date or import identifier (Stage 3.1c). |
+| [`hr/leave/service.py::action_leave_request`](../../apps/api/fastapi/src/hr/leave/service.py) | Legacy approval re-reads the request under the employee lock and posts one `APPROVAL_DEBIT`; a concurrent second approval is refused. |
+| [`hr/workflow/finalize.py::finalize_entity`](../../apps/api/fastapi/src/hr/workflow/finalize.py) | Final workflow approval posts one `APPROVAL_DEBIT`; a repeat returns the existing entry. |
+| `baseline/service.py::require_leave_ready`, leave request creation | `ledger.has_entry` checks that an opening exists. |
+| [`hr/dashboard/service.py`](../../apps/api/fastapi/src/hr/dashboard/service.py) and [dashboard UI](../../apps/web/gaa-admin/src/components/hr/dashboard/dashboard-data.ts) | `ledger.balance` for vacation. |
+| [`hr/service.py::_build_profile_response`](../../apps/api/fastapi/src/hr/service.py) | `leave.balances` from `ledger.balances`, so it matches the dashboard. The old `LeaveCarryOver` figures appear only as `leave.unverified_carry_over`. The old `LeaveBalance` table is no longer read but is kept for the reconciliation report (Stage 3.1b). |
+
+Still open: a policy for backdated corrections and reversal of approved leave (no path cancels approved leave today).
+
+### Reconciliation report (Stage 3.1b)
+
+`python scripts/leave_reconciliation.py [--organisation gaa] [--require-reconciled]` (from `apps/api/fastapi`, after migration `c9d0e1f2a3b4`) prints one CSV row per active employee and leave type. It is read-only; logic is in [`hr/leave/reconciliation.py`](../../apps/api/fastapi/src/hr/leave/reconciliation.py). Findings:
+
+| Finding | Meaning | HR action |
+| --- | --- | --- |
+| `NO_OPENING` | No ledger entry for this type. | Record the verified opening in staff setup. |
+| `FIRST_ENTRY_NOT_OPENING`, `SEQUENCE_GAP`, `REPLAY_MISMATCH` | The ledger chain does not replay cleanly. | Escalate to Barrels; correct with a reviewed adjustment, never by editing rows. |
+| `LEGACY_BALANCE_DIFFERS` | Old `LeaveBalance` disagrees with the ledger. | Confirm which figure is right; record it as a verified balance. |
+| `UNVERIFIED_CARRY_OVER` | Old carry-over days exist (GAA-LV-VAC-CARRY-01). | Supply the written approval or decide the days lapse; the report never adds them to the balance. |
+
+The output contains staff emails and employee numbers. Send it only to GAA HR and file it with the controlled balance evidence, not in the repository. A pilot employee is ready for the leave form cutover when every row for them has no findings and HR has signed the figures.
 
 ### Request state map and gaps to verify
 

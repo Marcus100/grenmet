@@ -15,6 +15,7 @@ docker compose exec api bash
 | `format.sh` | Run ruff check --fix + ruff format |
 | `lint.sh` | Run ruff check, ruff format --check, and mypy |
 | `dev.sh` | Convenience wrapper for common docker compose commands |
+| `leave_reconciliation.py` | Read-only CSV comparing the leave ledger with legacy balance and carry-over tables; `--require-reconciled` exits 1 on findings. Output contains staff emails: HR only |
 
 ## Seeding
 

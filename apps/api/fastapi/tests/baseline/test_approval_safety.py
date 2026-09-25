@@ -6,7 +6,12 @@ from sqlalchemy import select
 
 from src.auth.models import Role, User
 from src.exceptions import AppException
-from src.hr.leave.models import LeaveBalanceEvent, LeaveRequest, LeaveType
+from src.hr.leave.models import (
+    LeaveBalanceEvent,
+    LeaveEntryKind,
+    LeaveRequest,
+    LeaveType,
+)
 from src.hr.models import Department, RequestStatus
 from src.hr.workflow.models import (
     WorkflowAction,
@@ -88,6 +93,8 @@ async def test_two_distinct_approvers_and_single_leave_debit(db_async):
         LeaveBalanceEvent(
             user_id=users[0].id,
             leave_type="VACATION",
+            entry_kind=LeaveEntryKind.OPENING,
+            sequence=1,
             delta_days=10,
             balance_after_days=10,
             reason="Opening balance",
