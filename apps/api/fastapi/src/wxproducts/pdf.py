@@ -6,6 +6,7 @@ from pathlib import Path
 from fpdf import FPDF
 from fpdf.enums import WrapMode
 
+from . import forecast_pdf
 from .schemas import ProductPdfSource, values_as_dict
 from .validation import FIELDS, ISSUE_HOURS
 
@@ -42,6 +43,18 @@ def document_fields(source: ProductPdfSource) -> list[tuple[str, str]]:
 
 
 def render_product_pdf(source: ProductPdfSource) -> bytes:
+    if source.kind in forecast_pdf.SHEET_KINDS:
+        return forecast_pdf.render_sheet_pdf(
+            source.kind,
+            values_as_dict(source.values),
+            status=publication_label(source),
+            revision=(
+                f"Revision r{source.revision} · recorded "
+                f"{source.recorded_at:%Y-%m-%d %H:%M} UTC"
+            ),
+            archival=True,
+        )
+
     class RevisionPDF(FPDF):
         def footer(self) -> None:
             self.set_y(-14)

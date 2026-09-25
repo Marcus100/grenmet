@@ -48,7 +48,7 @@ export function capGetAlertsGeojsonQueryOptions(
 }
 
 /**
- * @description Returns active public CAP alerts as a GeoJSON feature collection for map clients.
+ * @description Returns active Actual public CAP alerts as a GeoJSON feature collection for map clients.
  * @summary Get active CAP alerts as GeoJSON
  * {@link /api/cap/alerts.geojson}
  */

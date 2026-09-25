@@ -61,4 +61,6 @@ export type CapAlertPublic = {
   incidents?: string[];
   info?: CapInfoPublic[];
   xml_url?: string | null;
+  replaced_by_identifier?: string | null;
+  cancellation_reason?: string | null;
 };

@@ -346,16 +346,43 @@ these anonymous endpoints:
 
 | Endpoint | Purpose |
 | --- | --- |
+| `GET /api/cap/warnings` | Active public messages grouped by hazard, with `activeCount` counting Actual messages only; each carries `status`, `product` (`Outlook`/`Watch`/`Warning`/legacy `Advisory`) and `colour` (`green`/`yellow`/`orange`/`red`), null when not set. Exercise messages remain in groups for labelled drill display but do not set the public status line. |
 | `GET /api/cap/latest-active` | Active published alerts |
 | `GET /api/cap/alerts` | Published, expired, and cancelled alerts |
-| `GET /api/cap/past` | Expired and cancelled alerts |
-| `GET /api/cap/alerts/{identifier}` | Public alert by CAP identifier |
-| `GET /api/cap/alerts.geojson` | Active alerts as GeoJSON |
-| `GET /api/cap/active-map` | Active alerts as GeoJSON for map consumers |
-| `GET /api/cap/rss.xml` | Active alerts RSS feed |
+| `GET /api/cap/past` | Expired and cancelled alerts, including naturally expired messages; a replaced message carries `replaced_by_identifier`, and a cancelled message carries `cancellation_reason` when its CAP Cancel includes a note |
+| `GET /api/cap/alerts/{identifier}` | Public alert by CAP identifier; `replaced_by_identifier` links an earlier message to its published Update, and `cancellation_reason` exposes the Cancel note |
+| `GET /api/cap/alerts.geojson` | Active Actual alerts as GeoJSON; exercises are excluded |
+| `GET /api/cap/active-map` | Active Actual alerts as GeoJSON for map consumers |
+| `GET /api/cap/rss.xml` | Active Actual alerts plus Actual Cancel messages published within 24 hours; exercises are excluded |
 | `GET /api/cap/{identifier}.xml` | Latest CAP XML snapshot for an identifier |
 
 CAP management routes are under `/api/v1/cap` and require authenticated users plus permission checks.
+
+Only Public alerts with `status=Actual` create CAP publish side-effect jobs. The
+worker also skips previously queued jobs for any other status or scope, so an
+Exercise/Test/System or Restricted/Private message cannot reach webhook or other
+publish handlers through the job outbox. Public
+JSON alert routes retain CAP status so the GMS site can label drills. XML remains
+retrievable by identifier for a public Exercise message; RSS and GeoJSON omit it.
+RSS cancellation retention is 24 hours, so consumers needing guaranteed complete
+message history must use a durable CAP delivery integration rather than treat RSS
+as an event log.
+
+An authored CAP alert may cite one exact published weather bulletin revision in
+each info block. The optional `GMS:source-bulletin-kind`,
+`GMS:source-bulletin-id` (canonical UUID), and
+`GMS:source-bulletin-revision` (positive integer) CAP parameters must appear
+together, once each. Validation checks the reference's shape but does not read
+the separate wxproducts database, so publication is independent of bulletin
+availability. The link does not publish, withdraw, or cancel either product.
+
+**GMS product and colour transition.** The current, unmerged implementation
+reads `GMS:product` (`Outlook` | `Watch` | `Warning` | legacy `Advisory`) and
+`awareness_level` from CAP `<parameter>`s. It binds colour to CAP severity and
+omits colour for Outlook. GMS has since chosen a 4 × 4 impact × likelihood
+matrix for every product, including Outlook; colour and CAP severity must be
+assessed independently. This contract must be revised before the level model
+is released. Alerts without `GMS:product` currently validate with a warning.
 
 ## Webhooks
 
@@ -686,7 +713,11 @@ No additional Alembic migration beyond `wxwatch_0006` is required for this slice
 FastAPI selects five periods using one server-clock instant (`as_of`). It reads
 only published snapshots from the separate wxproducts database. An unavailable
 store returns 503; an available store without a current publication returns five
-periods with null sources and no invented forecast values.
+periods with null sources and no invented forecast values. Each period also carries
+`conditions`: display-ready tiles (`icon` lucide name, `value`, `label`) built by
+`src/wxproducts/presentation.py`, the same text the PDF sheet prints (public units
+first, WMO units in brackets). weather.gd renders them; older products fall back
+to `details`.
 
 The forecast-day boundary is 07:00 America/Grenada. Morning, midday and evening
 issues become eligible at 07:00, 12:00 and 18:00 respectively, subject to their
@@ -776,13 +807,19 @@ CAP status is preserved, including exercise/test messages, which GMS labels
 using its existing banners. Missing/invalid response status is a contract
 failure, never an implicit Actual warning. Only display fields are exposed;
 private records, staff IDs and internal notes are omitted. `activeCount`
-includes displayed non-Actual bulletins as before. Lifecycle state remains
+counts displayed Actual alerts only; non-Actual alerts remain visible in groups
+with their CAP status for drill labelling. Lifecycle state remains
 owned by the existing CAP workflow; this endpoint does not change it.
 
 The endpoint and GMS request use no-store. Database/validation failures return
 503; malformed responses, HTTP errors and timeouts render Unavailable in GMS,
 not No active warnings. GMS validates the generated Kubb contract. Existing
-`/api/cap/latest-active` consumers are unchanged. No database migration.
+`/api/cap/latest-active` consumers are unchanged. Publishing an Update retires
+only the local messages it validly references. Cancelling publishes a distinct
+CAP Cancel message that references the original and requires a reason in its
+`note`; it preserves the original message identity and XML snapshot. The past endpoint also includes messages
+whose information blocks have naturally expired, while replacement links keep
+superseded messages out of GMS's Ended list. No database migration.
 
 
 ### Weather product preview
@@ -803,7 +840,15 @@ schedule. GAA uses the generated Kubb request/response contracts.
 
 FastAPI owns `GET /api/v1/wxproducts/products/{product_id}/revisions/{revision}/pdf`. Staff session and product-kind access are required. It renders the exact stored revision, includes draft/withdrawal/archive labels and preserves forecast text, copied CAP attribution, and validity fields. Downloads do not publish or mutate data. Responses are private/no-store; unknown and inaccessible revisions return 404.
 
-GAA Admin offers separate saved and published revision downloads. Unsaved edits must be saved before export; the published copy remains available independently. The PDF uses a server-generated text layout, not a pixel-identical browser preview. The legacy Node sample-page export command is retired. No database migration is needed.
+GAA Admin offers separate saved and published revision downloads. Unsaved edits must be saved before export; the published copy remains available independently. The legacy Node sample-page export command is retired. No database migration is needed.
+
+### Forecast and bulletin PDF sheets and draft preview (2026-09-24)
+
+Forecast (morning, midday, evening), hazard bulletin and tropical weather outlook revisions render as GMS sheets with WeasyPrint: Jinja2 templates in `src/wxproducts/templates/` (`base`, `forecast`, `bulletin`, `sheet.css`), prepared by `src/wxproducts/forecast_pdf.py`. Forecasts: navy header, headline, conditions, impact-based forecast matrix, alerts and advisories in force, evening four-day table, contact footer. Bulletins: level banner, synopsis, conditions/details, the bulletin's own IBF assessment, impacts and response. Outlook: special-interest region, systems, formation outlook, source and next update. The fpdf2 text layout in `pdf.py` remains only as a fallback. Colours are `--gm-*` custom properties generated from a token mirror (a test fails on drift). WeasyPrint needs Pango/HarfBuzz/fontconfig system libraries (installed in both API images and in CI).
+
+`POST /api/v1/wxproducts/products/preview/pdf` (operation `wxproductsPreviewProductPdf`) accepts the `/products/preview` body for every product kind and returns `application/pdf` rendered with the same layout, labelled "DRAFT PREVIEW — NOT FOR ISSUE". Same session/CSRF and product-kind access; no-store; nothing is saved. The editor shows this PDF as its live preview, so the reviewed document is the issued layout.
+
+Structured forecast parameters (flat string values, no contract change): `windDirFrom`/`windDirTo` (16-point compass or `Variable`), `windSpeedMin`/`windSpeedMax`/`windGust` in knots, `seaStateFrom`/`seaStateTo` (WMO code table 3700 terms), `waveHeightMin`/`waveHeightMax`/`swellHeight` in metres, `swellDir`, `swellPeriod` (s), `tide1..4Type/Time/Height`, `condition`, `rainChance`; evening days use the same names with a `dayN` prefix. Marine bulletins use the wind, sea and tide groups, wind bulletins the wind group, coastal bulletins `swellDir`/`swellPeriod`/`swellHeight`; marine and dust bulletins take `visibilityMin`/`visibilityMax` in km (composed `visibility` adds nautical miles and the marine term). The outlook adds optional `formationChance48h`/`formationChance7d` (percent), printed as NHC low/medium/high chips. Saved revisions are written as PDF/A-3b; live previews are plain PDF. FastAPI composes the legacy `wind`, `seaState`, `swell`, `visibility`, `highTides`, `lowTides` (and `dayN…`) text from them, only for keys the kind defines, so existing consumers are unchanged (a cyclone's `wind` stays free text). FastAPI stamps the signed-in `forecaster` on every product; for forecasts it also stamps `area` and `advisories`: a JSON summary of active public CAP alerts and current GMS bulletins (`{capturedAt, complete, items[]}`) that the PDF draws. CAP and bulletins remain the authoritative warnings.
 
 ### Time-aligned observations
 

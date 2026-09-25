@@ -23,6 +23,8 @@ export const outlookValuesDraftSchema = z
     specialInterest: z.union([z.string(), z.null()]).optional(),
     systems: z.union([z.string(), z.null()]).optional(),
     formation: z.union([z.string(), z.null()]).optional(),
+    formationChance48h: z.union([z.string(), z.null()]).optional(),
+    formationChance7d: z.union([z.string(), z.null()]).optional(),
     nextUpdate: z
       .union([z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/), z.null()])
       .optional(),

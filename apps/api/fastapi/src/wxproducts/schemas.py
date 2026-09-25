@@ -148,6 +148,9 @@ class OutlookValuesDraft(IssueDetails):
     specialInterest: str | None = None
     systems: str | None = None
     formation: str | None = None
+    # NHC-style formation probabilities in percent (optional; older outlooks lack them).
+    formationChance48h: str | None = None
+    formationChance7d: str | None = None
     nextUpdate: LocalDateTime | None = None
 
 
@@ -295,6 +298,14 @@ class ForecastSource(BaseModel):
     published_at: UtcDateTime
 
 
+class ForecastCondition(BaseModel):
+    """One display tile: a lucide icon name, a formatted value and its label."""
+
+    icon: str
+    value: str
+    label: str
+
+
 class ForecastPeriod(BaseModel):
     date: str
     valid_from: UtcDateTime
@@ -304,6 +315,7 @@ class ForecastPeriod(BaseModel):
     high: float | None = None
     low: float | None = None
     details: dict[str, str] = Field(default_factory=dict)
+    conditions: list[ForecastCondition] = Field(default_factory=list)
 
 
 class ForecastObservation(BaseModel):

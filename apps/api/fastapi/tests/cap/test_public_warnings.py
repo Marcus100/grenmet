@@ -61,6 +61,43 @@ def test_groups_sort_and_preserve_unknown_events():
     assert service.select_public_warnings([], NOW).activeCount == 0
 
 
+def test_public_warnings_carry_the_gms_product_and_colour():
+    result = service.select_public_warnings(
+        [
+            alert(
+                identifier="orange",
+                info=[
+                    info(
+                        severity="Severe",
+                        parameters=[
+                            {"value_name": "GMS:product", "value": "Watch"},
+                            {
+                                "value_name": "awareness_level",
+                                "value": "3; orange; Severe",
+                            },
+                        ],
+                    )
+                ],
+            ),
+            alert(
+                identifier="outlook",
+                info=[
+                    info(parameters=[{"value_name": "GMS:product", "value": "Outlook"}])
+                ],
+            ),
+            alert(identifier="legacy"),
+        ],
+        NOW,
+    )
+    wind = {
+        w.identifier: w
+        for w in next(g for g in result.groups if g.name == "Wind").alerts
+    }
+    assert (wind["orange"].product, wind["orange"].colour) == ("Watch", "orange")
+    assert (wind["outlook"].product, wind["outlook"].colour) == ("Outlook", None)
+    assert (wind["legacy"].product, wind["legacy"].colour) == (None, None)
+
+
 @pytest.mark.parametrize(
     "changes",
     [
@@ -118,7 +155,7 @@ async def test_endpoint_and_failure(async_client: httpx.AsyncClient, monkeypatch
     response = await async_client.get("/api/cap/warnings")
     assert response.status_code == 200
     assert response.headers["cache-control"] == "no-store"
-    assert response.json()["activeCount"] == 1
+    assert response.json()["activeCount"] == 0
 
     async def unavailable(**_kwargs):
         raise OSError("database unavailable")

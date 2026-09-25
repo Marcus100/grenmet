@@ -5,7 +5,7 @@ import pytest
 
 from src.exceptions import NotFoundError
 from src.main import app
-from src.wxproducts import pdf, service
+from src.wxproducts import forecast_pdf, pdf, service
 from src.wxproducts.dependencies import ProductAuthor, get_author
 from src.wxproducts.schemas import ProductPdfSourceAdapter
 from tests.wxproducts.test_authoring import actor as actor
@@ -34,7 +34,13 @@ def test_unicode_long_text_and_legacy_fields():
     assert any(value == source.values["summary"] for _, value in fields)
     result = pdf.render_product_pdf(source)
     assert result.startswith(b"%PDF-")
-    assert result.count(b"/Type /Page\n") > 1
+    pages = forecast_pdf.render_forecast_document(
+        "morning",
+        dict(source.values),
+        status=pdf.publication_label(source),
+        revision="r1",
+    ).pages
+    assert len(pages) > 1
     assert pdf.publication_label(source) == "DRAFT — NOT FOR ISSUE"
 
 
@@ -55,7 +61,7 @@ async def test_exact_revision_and_access(async_client, weather_sessions, actor):
         )
         published = await service.pdf_source(session, payload.id, 1, ["marine"])
         draft = await service.pdf_source(session, payload.id, 2, ["marine"])
-        assert published.values == payload.values
+        assert published.values == payload.values | {"forecaster": actor.full_name}
         assert published.current_publication
         assert draft.values["synopsis"] == "Private newer edit"
         assert not draft.current_publication

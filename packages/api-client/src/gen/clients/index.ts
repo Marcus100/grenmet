@@ -218,6 +218,7 @@ export { wxproductsLoadHistory } from "./wxproductsLoadHistory.js";
 export { wxproductsLoadObservations } from "./wxproductsLoadObservations.js";
 export { wxproductsLoadProducts } from "./wxproductsLoadProducts.js";
 export { wxproductsPreviewProduct } from "./wxproductsPreviewProduct.js";
+export { wxproductsPreviewProductPdf } from "./wxproductsPreviewProductPdf.js";
 export { wxproductsProductRevisionPdf } from "./wxproductsProductRevisionPdf.js";
 export { wxproductsPublicForecast } from "./wxproductsPublicForecast.js";
 export { wxproductsSaveAviationDraft } from "./wxproductsSaveAviationDraft.js";

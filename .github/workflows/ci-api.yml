@@ -181,6 +181,13 @@ jobs:
           enable-cache: true
           cache-local-path: ~/.cache/uv
 
+      - name: Install PDF system libraries
+        # WeasyPrint (forecast PDFs) needs Pango/HarfBuzz/fontconfig; mirrors the API images.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libfontconfig1
+
       - name: Install dependencies
         # Lockfile freshness is enforced by the lint job; --frozen keeps this
         # job on that exact resolution.

@@ -12,6 +12,13 @@ ENV UV_LINK_MODE=copy \
     UV_CACHE_DIR=/home/appuser/.cache/uv \
     PATH="/app/.venv/bin:$PATH"
 
+# WeasyPrint (forecast PDFs) lays out text with Pango/HarfBuzz/fontconfig.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+       libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libfontconfig1 \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 # Create the non-root user before anything lands in /app. Doing this first means
 # every later layer is written with the right ownership, so no recursive chown is
 # needed over the venv (that chown cost ~135s and duplicated the whole venv).

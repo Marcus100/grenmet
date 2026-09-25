@@ -54,6 +54,25 @@
     },
     {
       "section": "Weather",
+      "key": "condition",
+      "label": "Conditions",
+      "options": [
+        "Sunny",
+        "Sunny intervals",
+        "Cloudy",
+        "Showers"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather",
+      "key": "rainChance",
+      "label": "Chance of rain (%)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather",
       "key": "weatherAlert",
       "label": "Weather alert",
       "requiredOnPublish": false
@@ -75,10 +94,82 @@
     },
     {
       "section": "Wind",
-      "key": "wind",
-      "label": "Wind direction, speed and gusts (include units)",
+      "key": "windDirFrom",
+      "label": "Direction from",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
       "required": true,
       "requiredOnPublish": true
+    },
+    {
+      "section": "Wind",
+      "key": "windDirTo",
+      "label": "Direction to",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind",
+      "key": "windSpeedMin",
+      "label": "Speed from (kt)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Wind",
+      "key": "windSpeedMax",
+      "label": "Speed to (kt)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind",
+      "key": "windGust",
+      "label": "Gusts (kt)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind",
+      "key": "wind",
+      "label": "Wind summary",
+      "requiredOnPublish": false
     },
     {
       "section": "Wind",
@@ -88,10 +179,100 @@
     },
     {
       "section": "Marine",
-      "key": "seaState",
-      "label": "Sea state, wave height and swell (include units)",
+      "key": "seaStateFrom",
+      "label": "Sea state from",
+      "options": [
+        "Calm (glassy)",
+        "Calm (rippled)",
+        "Smooth",
+        "Slight",
+        "Moderate",
+        "Rough",
+        "Very rough",
+        "High",
+        "Very high",
+        "Phenomenal"
+      ],
       "required": true,
       "requiredOnPublish": true
+    },
+    {
+      "section": "Marine",
+      "key": "seaStateTo",
+      "label": "Sea state to",
+      "options": [
+        "Calm (glassy)",
+        "Calm (rippled)",
+        "Smooth",
+        "Slight",
+        "Moderate",
+        "Rough",
+        "Very rough",
+        "High",
+        "Very high",
+        "Phenomenal"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine",
+      "key": "waveHeightMin",
+      "label": "Waves from (m)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Marine",
+      "key": "waveHeightMax",
+      "label": "Waves to (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine",
+      "key": "swellDir",
+      "label": "Swell direction",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine",
+      "key": "swellPeriod",
+      "label": "Swell period (s)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine",
+      "key": "swellHeight",
+      "label": "Swell height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine",
+      "key": "seaState",
+      "label": "Marine summary",
+      "requiredOnPublish": false
     },
     {
       "section": "Marine",
@@ -287,6 +468,108 @@
       "key": "dustResponse",
       "label": "Recommended response",
       "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide1Type",
+      "label": "Tide 1",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide1Time",
+      "label": "Tide 1 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide1Height",
+      "label": "Tide 1 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide2Type",
+      "label": "Tide 2",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide2Time",
+      "label": "Tide 2 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide2Height",
+      "label": "Tide 2 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide3Type",
+      "label": "Tide 3",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide3Time",
+      "label": "Tide 3 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide3Height",
+      "label": "Tide 3 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide4Type",
+      "label": "Tide 4",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide4Time",
+      "label": "Tide 4 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide4Height",
+      "label": "Tide 4 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Issue details",
+      "key": "advisories",
+      "label": "Alerts and advisories in force",
       "requiredOnPublish": false
     },
     {
@@ -413,6 +696,25 @@
     },
     {
       "section": "Weather",
+      "key": "condition",
+      "label": "Conditions",
+      "options": [
+        "Sunny",
+        "Sunny intervals",
+        "Cloudy",
+        "Showers"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather",
+      "key": "rainChance",
+      "label": "Chance of rain (%)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather",
       "key": "weatherAlert",
       "label": "Weather alert",
       "requiredOnPublish": false
@@ -442,10 +744,82 @@
     },
     {
       "section": "Wind",
-      "key": "wind",
-      "label": "Wind direction, speed and gusts (include units)",
+      "key": "windDirFrom",
+      "label": "Direction from",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
       "required": true,
       "requiredOnPublish": true
+    },
+    {
+      "section": "Wind",
+      "key": "windDirTo",
+      "label": "Direction to",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind",
+      "key": "windSpeedMin",
+      "label": "Speed from (kt)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Wind",
+      "key": "windSpeedMax",
+      "label": "Speed to (kt)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind",
+      "key": "windGust",
+      "label": "Gusts (kt)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind",
+      "key": "wind",
+      "label": "Wind summary",
+      "requiredOnPublish": false
     },
     {
       "section": "Wind",
@@ -455,10 +829,100 @@
     },
     {
       "section": "Marine",
-      "key": "seaState",
-      "label": "Sea state, wave height and swell (include units)",
+      "key": "seaStateFrom",
+      "label": "Sea state from",
+      "options": [
+        "Calm (glassy)",
+        "Calm (rippled)",
+        "Smooth",
+        "Slight",
+        "Moderate",
+        "Rough",
+        "Very rough",
+        "High",
+        "Very high",
+        "Phenomenal"
+      ],
       "required": true,
       "requiredOnPublish": true
+    },
+    {
+      "section": "Marine",
+      "key": "seaStateTo",
+      "label": "Sea state to",
+      "options": [
+        "Calm (glassy)",
+        "Calm (rippled)",
+        "Smooth",
+        "Slight",
+        "Moderate",
+        "Rough",
+        "Very rough",
+        "High",
+        "Very high",
+        "Phenomenal"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine",
+      "key": "waveHeightMin",
+      "label": "Waves from (m)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Marine",
+      "key": "waveHeightMax",
+      "label": "Waves to (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine",
+      "key": "swellDir",
+      "label": "Swell direction",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine",
+      "key": "swellPeriod",
+      "label": "Swell period (s)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine",
+      "key": "swellHeight",
+      "label": "Swell height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine",
+      "key": "seaState",
+      "label": "Marine summary",
+      "requiredOnPublish": false
     },
     {
       "section": "Marine",
@@ -654,6 +1118,108 @@
       "key": "dustResponse",
       "label": "Recommended response",
       "type": "textarea",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide1Type",
+      "label": "Tide 1",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide1Time",
+      "label": "Tide 1 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide1Height",
+      "label": "Tide 1 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide2Type",
+      "label": "Tide 2",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide2Time",
+      "label": "Tide 2 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide2Height",
+      "label": "Tide 2 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide3Type",
+      "label": "Tide 3",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide3Time",
+      "label": "Tide 3 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide3Height",
+      "label": "Tide 3 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide4Type",
+      "label": "Tide 4",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide4Time",
+      "label": "Tide 4 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide4Height",
+      "label": "Tide 4 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Issue details",
+      "key": "advisories",
+      "label": "Alerts and advisories in force",
       "requiredOnPublish": false
     },
     {
@@ -780,6 +1346,25 @@
     },
     {
       "section": "Weather",
+      "key": "condition",
+      "label": "Conditions",
+      "options": [
+        "Sunny",
+        "Sunny intervals",
+        "Cloudy",
+        "Showers"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather",
+      "key": "rainChance",
+      "label": "Chance of rain (%)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Weather",
       "key": "weatherAlert",
       "label": "Weather alert",
       "requiredOnPublish": false
@@ -801,10 +1386,82 @@
     },
     {
       "section": "Wind",
-      "key": "wind",
-      "label": "Wind direction, speed and gusts (include units)",
+      "key": "windDirFrom",
+      "label": "Direction from",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
       "required": true,
       "requiredOnPublish": true
+    },
+    {
+      "section": "Wind",
+      "key": "windDirTo",
+      "label": "Direction to",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind",
+      "key": "windSpeedMin",
+      "label": "Speed from (kt)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Wind",
+      "key": "windSpeedMax",
+      "label": "Speed to (kt)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind",
+      "key": "windGust",
+      "label": "Gusts (kt)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind",
+      "key": "wind",
+      "label": "Wind summary",
+      "requiredOnPublish": false
     },
     {
       "section": "Wind",
@@ -814,10 +1471,100 @@
     },
     {
       "section": "Marine",
-      "key": "seaState",
-      "label": "Sea state, wave height and swell (include units)",
+      "key": "seaStateFrom",
+      "label": "Sea state from",
+      "options": [
+        "Calm (glassy)",
+        "Calm (rippled)",
+        "Smooth",
+        "Slight",
+        "Moderate",
+        "Rough",
+        "Very rough",
+        "High",
+        "Very high",
+        "Phenomenal"
+      ],
       "required": true,
       "requiredOnPublish": true
+    },
+    {
+      "section": "Marine",
+      "key": "seaStateTo",
+      "label": "Sea state to",
+      "options": [
+        "Calm (glassy)",
+        "Calm (rippled)",
+        "Smooth",
+        "Slight",
+        "Moderate",
+        "Rough",
+        "Very rough",
+        "High",
+        "Very high",
+        "Phenomenal"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine",
+      "key": "waveHeightMin",
+      "label": "Waves from (m)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Marine",
+      "key": "waveHeightMax",
+      "label": "Waves to (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine",
+      "key": "swellDir",
+      "label": "Swell direction",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine",
+      "key": "swellPeriod",
+      "label": "Swell period (s)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine",
+      "key": "swellHeight",
+      "label": "Swell height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine",
+      "key": "seaState",
+      "label": "Marine summary",
+      "requiredOnPublish": false
     },
     {
       "section": "Marine",
@@ -1016,6 +1763,108 @@
       "requiredOnPublish": false
     },
     {
+      "section": "Tides",
+      "key": "tide1Type",
+      "label": "Tide 1",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide1Time",
+      "label": "Tide 1 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide1Height",
+      "label": "Tide 1 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide2Type",
+      "label": "Tide 2",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide2Time",
+      "label": "Tide 2 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide2Height",
+      "label": "Tide 2 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide3Type",
+      "label": "Tide 3",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide3Time",
+      "label": "Tide 3 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide3Height",
+      "label": "Tide 3 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide4Type",
+      "label": "Tide 4",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide4Time",
+      "label": "Tide 4 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide4Height",
+      "label": "Tide 4 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Issue details",
+      "key": "advisories",
+      "label": "Alerts and advisories in force",
+      "requiredOnPublish": false
+    },
+    {
       "section": "Astronomy",
       "key": "highTides",
       "label": "High tides (times)",
@@ -1116,18 +1965,180 @@
       "requiredOnPublish": true
     },
     {
-      "section": "Day 1",
-      "key": "day1Wind",
-      "label": "Wind (include units)",
+      "section": "Day 1 · Wind",
+      "key": "day1WindDirFrom",
+      "label": "Direction from",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
       "required": true,
       "requiredOnPublish": true
     },
     {
-      "section": "Day 1",
-      "key": "day1SeaState",
-      "label": "Sea state and swell (include units)",
+      "section": "Day 1 · Wind",
+      "key": "day1WindDirTo",
+      "label": "Direction to",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1 · Wind",
+      "key": "day1WindSpeedMin",
+      "label": "Speed from (kt)",
+      "type": "number",
       "required": true,
       "requiredOnPublish": true
+    },
+    {
+      "section": "Day 1 · Wind",
+      "key": "day1WindSpeedMax",
+      "label": "Speed to (kt)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1 · Wind",
+      "key": "day1WindGust",
+      "label": "Gusts (kt)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1 · Wind",
+      "key": "day1Wind",
+      "label": "Wind summary",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1 · Marine",
+      "key": "day1SeaStateFrom",
+      "label": "Sea state from",
+      "options": [
+        "Calm (glassy)",
+        "Calm (rippled)",
+        "Smooth",
+        "Slight",
+        "Moderate",
+        "Rough",
+        "Very rough",
+        "High",
+        "Very high",
+        "Phenomenal"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 1 · Marine",
+      "key": "day1SeaStateTo",
+      "label": "Sea state to",
+      "options": [
+        "Calm (glassy)",
+        "Calm (rippled)",
+        "Smooth",
+        "Slight",
+        "Moderate",
+        "Rough",
+        "Very rough",
+        "High",
+        "Very high",
+        "Phenomenal"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1 · Marine",
+      "key": "day1WaveHeightMin",
+      "label": "Waves from (m)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 1 · Marine",
+      "key": "day1WaveHeightMax",
+      "label": "Waves to (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1 · Marine",
+      "key": "day1SwellDir",
+      "label": "Swell direction",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1 · Marine",
+      "key": "day1SwellPeriod",
+      "label": "Swell period (s)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1 · Marine",
+      "key": "day1SwellHeight",
+      "label": "Swell height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1 · Marine",
+      "key": "day1SeaState",
+      "label": "Marine summary",
+      "requiredOnPublish": false
     },
     {
       "section": "Day 1",
@@ -1162,13 +2173,109 @@
       "requiredOnPublish": false
     },
     {
-      "section": "Day 1",
+      "section": "Day 1 · Tides",
+      "key": "day1Tide1Type",
+      "label": "Tide 1",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1 · Tides",
+      "key": "day1Tide1Time",
+      "label": "Tide 1 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1 · Tides",
+      "key": "day1Tide1Height",
+      "label": "Tide 1 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1 · Tides",
+      "key": "day1Tide2Type",
+      "label": "Tide 2",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1 · Tides",
+      "key": "day1Tide2Time",
+      "label": "Tide 2 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1 · Tides",
+      "key": "day1Tide2Height",
+      "label": "Tide 2 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1 · Tides",
+      "key": "day1Tide3Type",
+      "label": "Tide 3",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1 · Tides",
+      "key": "day1Tide3Time",
+      "label": "Tide 3 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1 · Tides",
+      "key": "day1Tide3Height",
+      "label": "Tide 3 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1 · Tides",
+      "key": "day1Tide4Type",
+      "label": "Tide 4",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1 · Tides",
+      "key": "day1Tide4Time",
+      "label": "Tide 4 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1 · Tides",
+      "key": "day1Tide4Height",
+      "label": "Tide 4 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 1 · Tides",
       "key": "day1HighTides",
       "label": "High tides (times)",
       "requiredOnPublish": false
     },
     {
-      "section": "Day 1",
+      "section": "Day 1 · Tides",
       "key": "day1LowTides",
       "label": "Low tides (times)",
       "requiredOnPublish": false
@@ -1206,18 +2313,180 @@
       "requiredOnPublish": true
     },
     {
-      "section": "Day 2",
-      "key": "day2Wind",
-      "label": "Wind (include units)",
+      "section": "Day 2 · Wind",
+      "key": "day2WindDirFrom",
+      "label": "Direction from",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
       "required": true,
       "requiredOnPublish": true
     },
     {
-      "section": "Day 2",
-      "key": "day2SeaState",
-      "label": "Sea state and swell (include units)",
+      "section": "Day 2 · Wind",
+      "key": "day2WindDirTo",
+      "label": "Direction to",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2 · Wind",
+      "key": "day2WindSpeedMin",
+      "label": "Speed from (kt)",
+      "type": "number",
       "required": true,
       "requiredOnPublish": true
+    },
+    {
+      "section": "Day 2 · Wind",
+      "key": "day2WindSpeedMax",
+      "label": "Speed to (kt)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2 · Wind",
+      "key": "day2WindGust",
+      "label": "Gusts (kt)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2 · Wind",
+      "key": "day2Wind",
+      "label": "Wind summary",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2 · Marine",
+      "key": "day2SeaStateFrom",
+      "label": "Sea state from",
+      "options": [
+        "Calm (glassy)",
+        "Calm (rippled)",
+        "Smooth",
+        "Slight",
+        "Moderate",
+        "Rough",
+        "Very rough",
+        "High",
+        "Very high",
+        "Phenomenal"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 2 · Marine",
+      "key": "day2SeaStateTo",
+      "label": "Sea state to",
+      "options": [
+        "Calm (glassy)",
+        "Calm (rippled)",
+        "Smooth",
+        "Slight",
+        "Moderate",
+        "Rough",
+        "Very rough",
+        "High",
+        "Very high",
+        "Phenomenal"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2 · Marine",
+      "key": "day2WaveHeightMin",
+      "label": "Waves from (m)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 2 · Marine",
+      "key": "day2WaveHeightMax",
+      "label": "Waves to (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2 · Marine",
+      "key": "day2SwellDir",
+      "label": "Swell direction",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2 · Marine",
+      "key": "day2SwellPeriod",
+      "label": "Swell period (s)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2 · Marine",
+      "key": "day2SwellHeight",
+      "label": "Swell height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2 · Marine",
+      "key": "day2SeaState",
+      "label": "Marine summary",
+      "requiredOnPublish": false
     },
     {
       "section": "Day 2",
@@ -1252,13 +2521,109 @@
       "requiredOnPublish": false
     },
     {
-      "section": "Day 2",
+      "section": "Day 2 · Tides",
+      "key": "day2Tide1Type",
+      "label": "Tide 1",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2 · Tides",
+      "key": "day2Tide1Time",
+      "label": "Tide 1 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2 · Tides",
+      "key": "day2Tide1Height",
+      "label": "Tide 1 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2 · Tides",
+      "key": "day2Tide2Type",
+      "label": "Tide 2",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2 · Tides",
+      "key": "day2Tide2Time",
+      "label": "Tide 2 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2 · Tides",
+      "key": "day2Tide2Height",
+      "label": "Tide 2 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2 · Tides",
+      "key": "day2Tide3Type",
+      "label": "Tide 3",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2 · Tides",
+      "key": "day2Tide3Time",
+      "label": "Tide 3 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2 · Tides",
+      "key": "day2Tide3Height",
+      "label": "Tide 3 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2 · Tides",
+      "key": "day2Tide4Type",
+      "label": "Tide 4",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2 · Tides",
+      "key": "day2Tide4Time",
+      "label": "Tide 4 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2 · Tides",
+      "key": "day2Tide4Height",
+      "label": "Tide 4 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 2 · Tides",
       "key": "day2HighTides",
       "label": "High tides (times)",
       "requiredOnPublish": false
     },
     {
-      "section": "Day 2",
+      "section": "Day 2 · Tides",
       "key": "day2LowTides",
       "label": "Low tides (times)",
       "requiredOnPublish": false
@@ -1296,18 +2661,180 @@
       "requiredOnPublish": true
     },
     {
-      "section": "Day 3",
-      "key": "day3Wind",
-      "label": "Wind (include units)",
+      "section": "Day 3 · Wind",
+      "key": "day3WindDirFrom",
+      "label": "Direction from",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
       "required": true,
       "requiredOnPublish": true
     },
     {
-      "section": "Day 3",
-      "key": "day3SeaState",
-      "label": "Sea state and swell (include units)",
+      "section": "Day 3 · Wind",
+      "key": "day3WindDirTo",
+      "label": "Direction to",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3 · Wind",
+      "key": "day3WindSpeedMin",
+      "label": "Speed from (kt)",
+      "type": "number",
       "required": true,
       "requiredOnPublish": true
+    },
+    {
+      "section": "Day 3 · Wind",
+      "key": "day3WindSpeedMax",
+      "label": "Speed to (kt)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3 · Wind",
+      "key": "day3WindGust",
+      "label": "Gusts (kt)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3 · Wind",
+      "key": "day3Wind",
+      "label": "Wind summary",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3 · Marine",
+      "key": "day3SeaStateFrom",
+      "label": "Sea state from",
+      "options": [
+        "Calm (glassy)",
+        "Calm (rippled)",
+        "Smooth",
+        "Slight",
+        "Moderate",
+        "Rough",
+        "Very rough",
+        "High",
+        "Very high",
+        "Phenomenal"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 3 · Marine",
+      "key": "day3SeaStateTo",
+      "label": "Sea state to",
+      "options": [
+        "Calm (glassy)",
+        "Calm (rippled)",
+        "Smooth",
+        "Slight",
+        "Moderate",
+        "Rough",
+        "Very rough",
+        "High",
+        "Very high",
+        "Phenomenal"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3 · Marine",
+      "key": "day3WaveHeightMin",
+      "label": "Waves from (m)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 3 · Marine",
+      "key": "day3WaveHeightMax",
+      "label": "Waves to (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3 · Marine",
+      "key": "day3SwellDir",
+      "label": "Swell direction",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3 · Marine",
+      "key": "day3SwellPeriod",
+      "label": "Swell period (s)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3 · Marine",
+      "key": "day3SwellHeight",
+      "label": "Swell height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3 · Marine",
+      "key": "day3SeaState",
+      "label": "Marine summary",
+      "requiredOnPublish": false
     },
     {
       "section": "Day 3",
@@ -1342,13 +2869,109 @@
       "requiredOnPublish": false
     },
     {
-      "section": "Day 3",
+      "section": "Day 3 · Tides",
+      "key": "day3Tide1Type",
+      "label": "Tide 1",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3 · Tides",
+      "key": "day3Tide1Time",
+      "label": "Tide 1 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3 · Tides",
+      "key": "day3Tide1Height",
+      "label": "Tide 1 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3 · Tides",
+      "key": "day3Tide2Type",
+      "label": "Tide 2",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3 · Tides",
+      "key": "day3Tide2Time",
+      "label": "Tide 2 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3 · Tides",
+      "key": "day3Tide2Height",
+      "label": "Tide 2 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3 · Tides",
+      "key": "day3Tide3Type",
+      "label": "Tide 3",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3 · Tides",
+      "key": "day3Tide3Time",
+      "label": "Tide 3 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3 · Tides",
+      "key": "day3Tide3Height",
+      "label": "Tide 3 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3 · Tides",
+      "key": "day3Tide4Type",
+      "label": "Tide 4",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3 · Tides",
+      "key": "day3Tide4Time",
+      "label": "Tide 4 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3 · Tides",
+      "key": "day3Tide4Height",
+      "label": "Tide 4 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 3 · Tides",
       "key": "day3HighTides",
       "label": "High tides (times)",
       "requiredOnPublish": false
     },
     {
-      "section": "Day 3",
+      "section": "Day 3 · Tides",
       "key": "day3LowTides",
       "label": "Low tides (times)",
       "requiredOnPublish": false
@@ -1386,18 +3009,180 @@
       "requiredOnPublish": true
     },
     {
-      "section": "Day 4",
-      "key": "day4Wind",
-      "label": "Wind (include units)",
+      "section": "Day 4 · Wind",
+      "key": "day4WindDirFrom",
+      "label": "Direction from",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
       "required": true,
       "requiredOnPublish": true
     },
     {
-      "section": "Day 4",
-      "key": "day4SeaState",
-      "label": "Sea state and swell (include units)",
+      "section": "Day 4 · Wind",
+      "key": "day4WindDirTo",
+      "label": "Direction to",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4 · Wind",
+      "key": "day4WindSpeedMin",
+      "label": "Speed from (kt)",
+      "type": "number",
       "required": true,
       "requiredOnPublish": true
+    },
+    {
+      "section": "Day 4 · Wind",
+      "key": "day4WindSpeedMax",
+      "label": "Speed to (kt)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4 · Wind",
+      "key": "day4WindGust",
+      "label": "Gusts (kt)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4 · Wind",
+      "key": "day4Wind",
+      "label": "Wind summary",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4 · Marine",
+      "key": "day4SeaStateFrom",
+      "label": "Sea state from",
+      "options": [
+        "Calm (glassy)",
+        "Calm (rippled)",
+        "Smooth",
+        "Slight",
+        "Moderate",
+        "Rough",
+        "Very rough",
+        "High",
+        "Very high",
+        "Phenomenal"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 4 · Marine",
+      "key": "day4SeaStateTo",
+      "label": "Sea state to",
+      "options": [
+        "Calm (glassy)",
+        "Calm (rippled)",
+        "Smooth",
+        "Slight",
+        "Moderate",
+        "Rough",
+        "Very rough",
+        "High",
+        "Very high",
+        "Phenomenal"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4 · Marine",
+      "key": "day4WaveHeightMin",
+      "label": "Waves from (m)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Day 4 · Marine",
+      "key": "day4WaveHeightMax",
+      "label": "Waves to (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4 · Marine",
+      "key": "day4SwellDir",
+      "label": "Swell direction",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4 · Marine",
+      "key": "day4SwellPeriod",
+      "label": "Swell period (s)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4 · Marine",
+      "key": "day4SwellHeight",
+      "label": "Swell height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4 · Marine",
+      "key": "day4SeaState",
+      "label": "Marine summary",
+      "requiredOnPublish": false
     },
     {
       "section": "Day 4",
@@ -1432,13 +3217,109 @@
       "requiredOnPublish": false
     },
     {
-      "section": "Day 4",
+      "section": "Day 4 · Tides",
+      "key": "day4Tide1Type",
+      "label": "Tide 1",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4 · Tides",
+      "key": "day4Tide1Time",
+      "label": "Tide 1 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4 · Tides",
+      "key": "day4Tide1Height",
+      "label": "Tide 1 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4 · Tides",
+      "key": "day4Tide2Type",
+      "label": "Tide 2",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4 · Tides",
+      "key": "day4Tide2Time",
+      "label": "Tide 2 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4 · Tides",
+      "key": "day4Tide2Height",
+      "label": "Tide 2 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4 · Tides",
+      "key": "day4Tide3Type",
+      "label": "Tide 3",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4 · Tides",
+      "key": "day4Tide3Time",
+      "label": "Tide 3 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4 · Tides",
+      "key": "day4Tide3Height",
+      "label": "Tide 3 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4 · Tides",
+      "key": "day4Tide4Type",
+      "label": "Tide 4",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4 · Tides",
+      "key": "day4Tide4Time",
+      "label": "Tide 4 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4 · Tides",
+      "key": "day4Tide4Height",
+      "label": "Tide 4 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Day 4 · Tides",
       "key": "day4HighTides",
       "label": "High tides (times)",
       "requiredOnPublish": false
     },
     {
-      "section": "Day 4",
+      "section": "Day 4 · Tides",
       "key": "day4LowTides",
       "label": "Low tides (times)",
       "requiredOnPublish": false
@@ -1518,6 +3399,20 @@
       "type": "textarea",
       "required": true,
       "requiredOnPublish": true
+    },
+    {
+      "section": "Outlook",
+      "key": "formationChance48h",
+      "label": "Formation chance, 48 hours (%)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Outlook",
+      "key": "formationChance7d",
+      "label": "Formation chance, 7 days (%)",
+      "type": "number",
+      "requiredOnPublish": false
     },
     {
       "section": "Outlook",
@@ -1797,25 +3692,297 @@
       "requiredOnPublish": true
     },
     {
-      "section": "Conditions",
-      "key": "seaState",
-      "label": "Sea state and wave heights (include units)",
+      "section": "Visibility",
+      "key": "visibilityMin",
+      "label": "Visibility from (km)",
+      "type": "number",
       "required": true,
       "requiredOnPublish": true
     },
     {
-      "section": "Conditions",
+      "section": "Visibility",
+      "key": "visibilityMax",
+      "label": "Visibility to (km)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Visibility",
       "key": "visibility",
-      "label": "Visibility (include units)",
+      "label": "Visibility summary",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind",
+      "key": "windDirFrom",
+      "label": "Direction from",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
       "required": true,
       "requiredOnPublish": true
     },
     {
-      "section": "Conditions",
-      "key": "wind",
-      "label": "Wind direction, speed and gusts (include units)",
+      "section": "Wind",
+      "key": "windDirTo",
+      "label": "Direction to",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind",
+      "key": "windSpeedMin",
+      "label": "Speed from (kt)",
+      "type": "number",
       "required": true,
       "requiredOnPublish": true
+    },
+    {
+      "section": "Wind",
+      "key": "windSpeedMax",
+      "label": "Speed to (kt)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind",
+      "key": "windGust",
+      "label": "Gusts (kt)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind",
+      "key": "wind",
+      "label": "Wind summary",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine",
+      "key": "seaStateFrom",
+      "label": "Sea state from",
+      "options": [
+        "Calm (glassy)",
+        "Calm (rippled)",
+        "Smooth",
+        "Slight",
+        "Moderate",
+        "Rough",
+        "Very rough",
+        "High",
+        "Very high",
+        "Phenomenal"
+      ],
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Marine",
+      "key": "seaStateTo",
+      "label": "Sea state to",
+      "options": [
+        "Calm (glassy)",
+        "Calm (rippled)",
+        "Smooth",
+        "Slight",
+        "Moderate",
+        "Rough",
+        "Very rough",
+        "High",
+        "Very high",
+        "Phenomenal"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine",
+      "key": "waveHeightMin",
+      "label": "Waves from (m)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Marine",
+      "key": "waveHeightMax",
+      "label": "Waves to (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine",
+      "key": "swellDir",
+      "label": "Swell direction",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine",
+      "key": "swellPeriod",
+      "label": "Swell period (s)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine",
+      "key": "swellHeight",
+      "label": "Swell height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Marine",
+      "key": "seaState",
+      "label": "Marine summary",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide1Type",
+      "label": "Tide 1",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide1Time",
+      "label": "Tide 1 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide1Height",
+      "label": "Tide 1 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide2Type",
+      "label": "Tide 2",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide2Time",
+      "label": "Tide 2 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide2Height",
+      "label": "Tide 2 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide3Type",
+      "label": "Tide 3",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide3Time",
+      "label": "Tide 3 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide3Height",
+      "label": "Tide 3 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide4Type",
+      "label": "Tide 4",
+      "options": [
+        "High",
+        "Low"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide4Time",
+      "label": "Tide 4 time",
+      "type": "time",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Tides",
+      "key": "tide4Height",
+      "label": "Tide 4 height (m)",
+      "type": "number",
+      "requiredOnPublish": false
     },
     {
       "section": "Astronomy",
@@ -2301,11 +4468,83 @@
       "requiredOnPublish": true
     },
     {
-      "section": "Conditions",
-      "key": "wind",
-      "label": "Wind direction, sustained speed and gusts (include units)",
+      "section": "Wind",
+      "key": "windDirFrom",
+      "label": "Direction from",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
       "required": true,
       "requiredOnPublish": true
+    },
+    {
+      "section": "Wind",
+      "key": "windDirTo",
+      "label": "Direction to",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind",
+      "key": "windSpeedMin",
+      "label": "Speed from (kt)",
+      "type": "number",
+      "required": true,
+      "requiredOnPublish": true
+    },
+    {
+      "section": "Wind",
+      "key": "windSpeedMax",
+      "label": "Speed to (kt)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind",
+      "key": "windGust",
+      "label": "Gusts (kt)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Wind",
+      "key": "wind",
+      "label": "Wind summary",
+      "requiredOnPublish": false
     },
     {
       "section": "Impact and response",
@@ -2676,9 +4915,24 @@
       "requiredOnPublish": false
     },
     {
-      "section": "Conditions",
+      "section": "Visibility",
+      "key": "visibilityMin",
+      "label": "Visibility from (km)",
+      "type": "number",
+      "required": false,
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Visibility",
+      "key": "visibilityMax",
+      "label": "Visibility to (km)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Visibility",
       "key": "visibility",
-      "label": "Visibility (include units)",
+      "label": "Visibility summary",
       "requiredOnPublish": false
     },
     {
@@ -2818,9 +5072,48 @@
       "requiredOnPublish": true
     },
     {
-      "section": "Conditions",
+      "section": "Swell",
+      "key": "swellDir",
+      "label": "Swell direction",
+      "options": [
+        "N",
+        "NNE",
+        "NE",
+        "ENE",
+        "E",
+        "ESE",
+        "SE",
+        "SSE",
+        "S",
+        "SSW",
+        "SW",
+        "WSW",
+        "W",
+        "WNW",
+        "NW",
+        "NNW",
+        "Variable"
+      ],
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Swell",
+      "key": "swellPeriod",
+      "label": "Swell period (s)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Swell",
+      "key": "swellHeight",
+      "label": "Swell height (m)",
+      "type": "number",
+      "requiredOnPublish": false
+    },
+    {
+      "section": "Swell",
       "key": "swell",
-      "label": "Swell height, period and direction (include units)",
+      "label": "Swell summary",
       "requiredOnPublish": false
     },
     {
