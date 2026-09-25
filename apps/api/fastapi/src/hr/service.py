@@ -8,6 +8,7 @@ from sqlalchemy.orm import selectinload
 
 from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
 from src.auth.policy import can_act_on_user, require_permission
+from src.hr.leave import ledger
 from src.hr.organisations import (
     department_for,
     permitted_departments,
@@ -31,7 +32,6 @@ from .models import (
     EmploymentRecord,
     EmploymentStatus,
     Grade,
-    LeaveBalance,
     LeaveCarryOver,
     RosterPreference,
     RosterPreferredShift,
@@ -407,10 +407,7 @@ async def _build_profile_response(
         select(RosterRestrictedShift).where(RosterRestrictedShift.user_id == user.id)
     )
     restricted_shifts = list(restr_result.scalars().all())
-    leave_result = await session.execute(
-        select(LeaveBalance).where(LeaveBalance.user_id == user.id)
-    )
-    leave_balances = list(leave_result.scalars().all())
+    leave_balances = await ledger.balances(session, user.id)
     carry_result = await session.execute(
         select(LeaveCarryOver).where(LeaveCarryOver.user_id == user.id)
     )
@@ -512,8 +509,8 @@ async def _build_profile_response(
             max_night_shifts_per_month=roster_preference.max_night_shifts_per_month,
         ),
         leave=LeavePublic(
-            balances={row.leave_type: row.balance for row in leave_balances},
-            carry_over={row.leave_type: row.days for row in carry_over},
+            balances=leave_balances,
+            unverified_carry_over={row.leave_type: row.days for row in carry_over},
         ),
         approval_authority=ApprovalAuthorityPublic(
             can_approve_leave=approval_authority.can_approve_leave,

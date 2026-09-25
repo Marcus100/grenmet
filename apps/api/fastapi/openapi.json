@@ -20658,17 +20658,20 @@
         "properties": {
           "balances": {
             "additionalProperties": {
-              "type": "integer"
+              "type": "string",
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
             },
             "type": "object",
-            "title": "Balances"
+            "title": "Balances",
+            "description": "Current ledger balance in days for each leave type with a verified opening."
           },
-          "carry_over": {
+          "unverified_carry_over": {
             "additionalProperties": {
               "type": "integer"
             },
             "type": "object",
-            "title": "Carry Over"
+            "title": "Unverified Carry Over",
+            "description": "Legacy carry-over days not yet reconciled with the ledger. Carry-over needs written approval (rule GAA-LV-VAC-CARRY-01); these figures are not part of the balance."
           }
         },
         "type": "object",
