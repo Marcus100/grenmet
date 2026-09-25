@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** GMS (operational content); maintained by Barrels Grenada  
-**Last updated:** 2026-09-23
+**Last updated:** 2026-09-24
 
 23 September 2026. J-Aviation engineering assessment; no dependency installed,
 receiver selected or submission performed. Preserve accepted manual TAC procedures.
@@ -13,6 +13,12 @@ Its [package metadata](https://github.com/EMPIRIC2/TAC-to-IWXXM/blob/c3d9780d334
 declares `tac2iwxxm` 2026.9.22, MIT, Python >=3.12 and dependencies msgspec,
 PyYAML and tac-decoding. Separate optional validators are tac-validate and
 iwxxm-validate. Python 3.14 runtime compatibility has not been demonstrated here.
+
+The PyPI release list checked on 24 September 2026 ends at `tac2iwxxm`
+`2026.9.13`; the source-declared `2026.9.22` cannot currently be installed by
+that version pin. Use the exact reviewed commit for a sandbox runtime test or
+wait for a matching release before proposing a production dependency. Do not
+substitute the older PyPI release while claiming to test the reviewed commit.
 
 The package contains METAR/SPECI and TAF emission assets as well as other report
 families. Asset presence is not case-by-case operational compliance. Its

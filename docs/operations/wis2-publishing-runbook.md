@@ -51,6 +51,9 @@ Work down the list in order; the first failing point names the broken segment.
    (MinIO console `http://localhost:9001`).
 4. **Convert** — `.bufr4` in `wis2box-public`; no errors in
    `docker logs wis2box-management --since 10m`.
+   Download the BUFR and run `scripts/wis2-setup/check_bufr.py` against the
+   exact input CSV; compare station, time, table version, descriptors and
+   observed values. A conversion success log alone does not verify content.
 5. **Notify** — WIS2 notification on MQTT during a publish window
    (`properties.data_id` contains the station WIGOS id):
    ```bash

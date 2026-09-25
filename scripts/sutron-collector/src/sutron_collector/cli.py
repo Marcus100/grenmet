@@ -2,11 +2,13 @@ import argparse
 import json
 import sys
 from collections.abc import Sequence
+from datetime import datetime
 from pathlib import Path
 from typing import cast
 
 from sutron_collector.collector import Collector
 from sutron_collector.models import CollectedBatch
+from sutron_collector.store import ObservationStore
 from sutron_collector.surface_export import render_surface_csv, surface_filename
 from sutron_collector.transport import SerialSettings, SerialTransport
 
@@ -47,6 +49,15 @@ def build_parser() -> argparse.ArgumentParser:
     poll.add_argument("--attempts", type=int, default=3)
     _add_station_arguments(poll)
 
+    replay = subcommands.add_parser(
+        "replay", help="recreate one SURFACE handoff from an archived poll"
+    )
+    replay.add_argument("--store", required=True, help="existing SQLite archive")
+    replay.add_argument("--station-id", type=int, default=DEFAULT_STATION_ID)
+    replay.add_argument("--station-code", default=DEFAULT_STATION_CODE)
+    replay.add_argument("--collected-at", required=True, help="exact ISO timestamp")
+    replay.add_argument("--output-dir", required=True)
+
     return parser
 
 
@@ -67,6 +78,10 @@ def _add_station_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--output-dir",
         help="write the reading to a file here instead of standard output",
+    )
+    parser.add_argument(
+        "--store",
+        help="SQLite archive; save a complete poll before producing any output",
     )
 
 
@@ -117,9 +132,7 @@ def _write_batch(
     directory.mkdir(parents=True, exist_ok=True)
 
     if output_format == "surface":
-        target = directory / surface_filename(
-            station_code, at=batch.collected_at
-        )
+        target = directory / surface_filename(station_code, at=batch.collected_at)
     else:
         target = directory / f"{station_code}_{batch.collected_at:%Y%m%d_%H%M}.json"
 
@@ -133,6 +146,23 @@ def _write_batch(
 def main(argv: Sequence[str] | None = None) -> int:
     arguments = build_parser().parse_args(argv)
     command = cast(str, arguments.command)
+    if command == "replay":
+        collected_at = datetime.fromisoformat(cast(str, arguments.collected_at))
+        if collected_at.utcoffset() is None:
+            raise ValueError("--collected-at must include a timezone")
+        archive_path = Path(cast(str, arguments.store))
+        if not archive_path.is_file():
+            raise FileNotFoundError(f"archive does not exist: {archive_path}")
+        with ObservationStore(archive_path) as store:
+            archived = store.batch(cast(int, arguments.station_id), collected_at)
+        _write_batch(
+            archived,
+            "surface",
+            station_code=cast(str, arguments.station_code),
+            output_dir=cast(str, arguments.output_dir),
+        )
+        return 0
+
     station_name = cast(str, arguments.station_name)
     station_id = cast(int, arguments.station_id)
 
@@ -158,8 +188,15 @@ def main(argv: Sequence[str] | None = None) -> int:
             attempts=cast(int, arguments.attempts),
         )
 
+    batch = collector.collect_once()
+    archive = cast("str | None", arguments.store)
+    if archive is not None:
+        with ObservationStore(archive) as store:
+            store.save(batch)
+            batch = store.batch(batch.station_id, batch.collected_at)
+
     _write_batch(
-        collector.collect_once(),
+        batch,
         cast(str, arguments.format),
         station_code=cast(str, arguments.station_code),
         output_dir=cast("str | None", arguments.output_dir),
