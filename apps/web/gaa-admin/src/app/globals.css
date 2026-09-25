@@ -370,6 +370,10 @@
        light hue, so it must carry dark ink (6.46:1); the inverse text that
        layer 2 defaults to would be 2.75:1. */
     --accent-foreground: var(--gm-text-primary);
+
+    /* Inputs are identified by their outline, so they take the 3:1 input
+       border rather than the 1.47:1 hairline --brand-border resolves to. */
+    --input: var(--gm-border-input);
   }
 }
 

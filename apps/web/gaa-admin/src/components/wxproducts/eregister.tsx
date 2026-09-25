@@ -17,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@barrelsgd/ui/components/ui/table";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import {
   CloudSun,
   Droplets,
@@ -505,13 +506,13 @@ export function ERegister() {
           <Table>
             <TableHeader>
               <TableRow className={HEAD_ROW}>
-                <TableHead className={`${GRID_CELL} px-3.5`}>
+                <TableHead className={cn(GRID_CELL, "px-3.5")}>
                   Parameter
                 </TableHead>
-                <TableHead className={`${GRID_CELL} px-3.5 text-right`}>
+                <TableHead className={cn(GRID_CELL, "px-3.5 text-right")}>
                   Value
                 </TableHead>
-                <TableHead className={`${GRID_CELL} px-3.5`}>Unit</TableHead>
+                <TableHead className={cn(GRID_CELL, "px-3.5")}>Unit</TableHead>
                 <TableHead className="px-3.5">Remarks</TableHead>
               </TableRow>
             </TableHeader>
@@ -520,19 +521,22 @@ export function ERegister() {
                 const Icon = reading.icon;
                 return (
                   <TableRow key={reading.id}>
-                    <TableCell className={`${GRID_CELL} px-3.5`}>
+                    <TableCell className={cn(GRID_CELL, "px-3.5")}>
                       <span className="flex items-center gap-2 font-medium">
                         <Icon className="size-3.5 text-muted-foreground" />
                         {reading.label}
                       </span>
                     </TableCell>
                     <TableCell
-                      className={`${GRID_CELL} px-3.5 text-right font-medium font-mono tabular-nums`}
+                      className={cn(
+                        GRID_CELL,
+                        "px-3.5 text-right font-medium font-mono tabular-nums"
+                      )}
                     >
                       {reading.value}
                     </TableCell>
                     <TableCell
-                      className={`${GRID_CELL} px-3.5 text-muted-foreground`}
+                      className={cn(GRID_CELL, "px-3.5 text-muted-foreground")}
                     >
                       {reading.unit ?? "—"}
                     </TableCell>
@@ -557,13 +561,13 @@ export function ERegister() {
           <Table>
             <TableHeader>
               <TableRow className={HEAD_ROW}>
-                <TableHead className={`${GRID_CELL} px-3.5`}>
+                <TableHead className={cn(GRID_CELL, "px-3.5")}>
                   Hour (UTC)
                 </TableHead>
-                <TableHead className={`${GRID_CELL} px-3.5 text-right`}>
+                <TableHead className={cn(GRID_CELL, "px-3.5 text-right")}>
                   <SummaryHead icon={Droplets} label="Rainfall" unit="mm" />
                 </TableHead>
-                <TableHead className={`${GRID_CELL} px-3.5 text-right`}>
+                <TableHead className={cn(GRID_CELL, "px-3.5 text-right")}>
                   <SummaryHead
                     icon={Thermometer}
                     label="Maximum temperature"
@@ -583,17 +587,23 @@ export function ERegister() {
               {DAILY_SUMMARY.map((row) => (
                 <TableRow key={row.id}>
                   <TableCell
-                    className={`${GRID_CELL} px-3.5 font-medium tabular-nums`}
+                    className={cn(GRID_CELL, "px-3.5 font-medium tabular-nums")}
                   >
                     {row.hour}
                   </TableCell>
                   <TableCell
-                    className={`${GRID_CELL} px-3.5 text-right font-mono tabular-nums`}
+                    className={cn(
+                      GRID_CELL,
+                      "px-3.5 text-right font-mono tabular-nums"
+                    )}
                   >
                     {row.rain}
                   </TableCell>
                   <TableCell
-                    className={`${GRID_CELL} px-3.5 text-right font-mono tabular-nums`}
+                    className={cn(
+                      GRID_CELL,
+                      "px-3.5 text-right font-mono tabular-nums"
+                    )}
                   >
                     {row.max}
                   </TableCell>
@@ -605,16 +615,22 @@ export function ERegister() {
             </TableBody>
             <TableFooter>
               <TableRow className="hover:bg-muted/50">
-                <TableCell className={`${GRID_CELL} px-3.5`}>
+                <TableCell className={cn(GRID_CELL, "px-3.5")}>
                   Daily 12–12
                 </TableCell>
                 <TableCell
-                  className={`${GRID_CELL} px-3.5 text-right font-mono tabular-nums`}
+                  className={cn(
+                    GRID_CELL,
+                    "px-3.5 text-right font-mono tabular-nums"
+                  )}
                 >
                   {DAILY_TOTALS.rain}
                 </TableCell>
                 <TableCell
-                  className={`${GRID_CELL} px-3.5 text-right font-mono tabular-nums`}
+                  className={cn(
+                    GRID_CELL,
+                    "px-3.5 text-right font-mono tabular-nums"
+                  )}
                 >
                   {DAILY_TOTALS.max}
                 </TableCell>
@@ -674,10 +690,10 @@ export function ERegister() {
         <Table>
           <TableHeader>
             <TableRow className={HEAD_ROW}>
-              <TableHead className={`${GRID_CELL} px-3.5`}>
+              <TableHead className={cn(GRID_CELL, "px-3.5")}>
                 Hour (UTC)
               </TableHead>
-              <TableHead className={`${GRID_CELL} px-3.5`}>
+              <TableHead className={cn(GRID_CELL, "px-3.5")}>
                 SYNOP message
               </TableHead>
               <TableHead className="px-3.5">Status</TableHead>
@@ -687,12 +703,15 @@ export function ERegister() {
             {displayedLog.map((row) => (
               <TableRow key={row.id}>
                 <TableCell
-                  className={`${GRID_CELL} px-3.5 font-medium tabular-nums`}
+                  className={cn(GRID_CELL, "px-3.5 font-medium tabular-nums")}
                 >
                   {row.hour}
                 </TableCell>
                 <TableCell
-                  className={`${GRID_CELL} px-3.5 font-mono text-muted-foreground text-xs tabular-nums`}
+                  className={cn(
+                    GRID_CELL,
+                    "px-3.5 font-mono text-muted-foreground text-xs tabular-nums"
+                  )}
                 >
                   {row.synop}
                 </TableCell>

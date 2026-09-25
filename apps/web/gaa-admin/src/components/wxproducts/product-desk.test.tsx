@@ -1,4 +1,11 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { SessionUserProvider } from "@barrelsgd/auth";
+import {
+  render as baseRender,
+  fireEvent,
+  screen,
+  waitFor,
+} from "@testing-library/react";
+import type { ReactElement } from "react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { ProductDesk } from "./product-desk";
 
@@ -21,6 +28,21 @@ vi.mock("@barrelsgd/gms/components/product-content", () => ({
   }) => <p>{content.values.summary}</p>,
 }));
 
+function render(ui: ReactElement) {
+  return baseRender(
+    <SessionUserProvider
+      user={{
+        id: "u-1",
+        email: "forecaster@gms.gd",
+        full_name: "Signed In Forecaster",
+        is_active: true,
+        is_superuser: false,
+      }}
+    >
+      {ui}
+    </SessionUserProvider>
+  );
+}
 beforeEach(() => {
   vi.resetAllMocks();
   actions.loadProductsAction.mockResolvedValue({ ok: true, products: [] });
@@ -79,4 +101,135 @@ it("does not offer publication when preview is unavailable", async () => {
   fireEvent.click(await openEditor());
   await screen.findByText("Preview unavailable");
   expect(screen.queryByRole("button", { name: "Publish to GMS" })).toBeNull();
+});
+
+it("shows a tab per forecast kind and switches when the form is clean", async () => {
+  render(
+    <ProductDesk kinds={["morning", "midday", "evening"]} title="Forecasts" />
+  );
+  const tabs = screen.getAllByRole("tab");
+  expect(tabs).toHaveLength(3);
+  expect(screen.getByRole("tab", { name: "Morning" })).toHaveAttribute(
+    "aria-selected",
+    "true"
+  );
+  await waitFor(() =>
+    expect(
+      screen.getByRole("button", { name: "Validate and preview" })
+    ).toBeEnabled()
+  );
+  fireEvent.click(screen.getByRole("tab", { name: "Midday" }));
+  await waitFor(() =>
+    expect(screen.getByRole("tab", { name: "Midday" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    )
+  );
+  expect(actions.loadProductsAction).toHaveBeenCalledWith(
+    "midday",
+    expect.any(String)
+  );
+});
+
+it("asks before switching tabs with unsaved changes", async () => {
+  render(
+    <ProductDesk kinds={["morning", "midday", "evening"]} title="Forecasts" />
+  );
+  await waitFor(() =>
+    expect(
+      screen.getByRole("button", { name: "Validate and preview" })
+    ).toBeEnabled()
+  );
+  const textarea = screen
+    .getAllByRole("textbox")
+    .find((el) => el.tagName === "TEXTAREA" && el.id !== "change-summary");
+  if (!textarea) throw new Error("expected a forecast textarea");
+  fireEvent.change(textarea, { target: { value: "Edited" } });
+  fireEvent.click(screen.getByRole("tab", { name: "Evening" }));
+  expect(
+    await screen.findByText("Discard unsaved changes?")
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole("tab", { hidden: true, name: "Morning" })
+  ).toHaveAttribute("aria-selected", "true");
+  fireEvent.click(screen.getByRole("button", { name: "Discard changes" }));
+  await waitFor(() =>
+    expect(screen.getByRole("tab", { name: "Evening" })).toHaveAttribute(
+      "aria-selected",
+      "true"
+    )
+  );
+});
+
+it("hides the tab bar for a single product kind", async () => {
+  await openEditor();
+  expect(screen.queryByRole("tablist")).toBeNull();
+});
+
+it("shows scheduled and fixed issue details as text, not fields", async () => {
+  await openEditor();
+  expect(screen.queryByLabelText(/Issue date and time/)).toBeNull();
+  expect(screen.queryByLabelText(/Forecaster on duty/)).toBeNull();
+  expect(screen.queryByLabelText(/Area covered/)).toBeNull();
+  expect(screen.getByText("Signed In Forecaster")).toBeInTheDocument();
+  expect(
+    screen.getByText("Grenada, Carriacou and Petite Martinique")
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText(/^\d{1,2} [A-Z][a-z]{2} \d{4}, \d{2}:\d{2}$/)
+  ).toBeInTheDocument();
+});
+
+it("sizes structured inputs and hints converted units", async () => {
+  await openEditor();
+  const speed = screen.getByLabelText(/Speed from \(kt\)/);
+  expect(speed.closest("[data-slot=field]")).toHaveClass("w-28");
+  expect(
+    screen.getByLabelText(/Weather summary/).closest("[data-slot=field]")
+  ).toHaveClass("basis-full");
+  fireEvent.change(speed, { target: { value: "10" } });
+  fireEvent.change(screen.getByLabelText(/Speed to \(kt\)/), {
+    target: { value: "20" },
+  });
+  expect(screen.getByText("≈ 12–23 mph · 19–37 km/h")).toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText(/Waves from \(m\)/), {
+    target: { value: "1.8" },
+  });
+  expect(screen.getByText(/Waves ≈ 6 ft/)).toBeInTheDocument();
+  expect(screen.queryByLabelText(/High tides \(times\)/)).toBeNull();
+});
+
+it("adds and removes tide rows, shifting later tides up", async () => {
+  await openEditor();
+  expect(screen.getAllByLabelText(/^Tide \d time$/)).toHaveLength(1);
+  fireEvent.click(screen.getByRole("button", { name: "Add tide" }));
+  fireEvent.change(screen.getByLabelText("Tide 2 time"), {
+    target: { value: "18:40" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Remove tide 1" }));
+  expect(screen.getAllByLabelText(/^Tide \d time$/)).toHaveLength(1);
+  expect(screen.getByLabelText("Tide 1 time")).toHaveValue("18:40");
+});
+
+it("gives marine bulletins structured wind while cyclones keep free text", async () => {
+  const view = render(
+    <ProductDesk kinds={["marine", "cyclone"]} title="Bulletins" />
+  );
+  await waitFor(() =>
+    expect(
+      screen.getByRole("button", { name: "Validate and preview" })
+    ).toBeEnabled()
+  );
+  expect(screen.getByLabelText(/Speed from \(kt\)/)).toBeInTheDocument();
+  expect(screen.queryByLabelText(/^Wind summary/)).toBeNull();
+  expect(screen.queryByLabelText(/Forecaster on duty/)).toBeNull();
+  expect(screen.getByText("Signed In Forecaster")).toBeInTheDocument();
+  expect(screen.getByLabelText(/Area covered/)).toBeInTheDocument();
+  fireEvent.click(
+    screen.getByRole("tab", { name: "Tropical Cyclone Bulletin" })
+  );
+  expect(
+    await screen.findByLabelText(/Maximum winds and gusts/)
+  ).toBeInTheDocument();
+  view.unmount();
 });

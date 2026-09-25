@@ -1,7 +1,12 @@
 import type { ProductKind, StoredProduct } from "@barrelsgd/gms/products";
 import { productTitle } from "@barrelsgd/gms/products";
 import { Button } from "@barrelsgd/ui/components/ui/button";
-import type { ReactNode } from "react";
+import { Field, FieldLabel } from "@barrelsgd/ui/components/ui/field";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@barrelsgd/ui/components/ui/native-select";
+import { Plus } from "lucide-react";
 
 interface Props {
   error: string;
@@ -12,6 +17,13 @@ interface Props {
   onSelect: (product: StoredProduct) => void;
   productKind: ProductKind;
   products: StoredProduct[];
+  selectedId?: string;
+}
+
+function productLabel(product: StoredProduct) {
+  const issued = product.values.issuedAt?.slice(11, 16) || "Undated";
+  const status = product.publishedRevision ? "Published" : "Draft";
+  return `${issued} · ${product.values.area || "No area"} · r${product.revision} · ${status}`;
 }
 
 export function ProductList({
@@ -23,57 +35,61 @@ export function ProductList({
   onSelect,
   productKind,
   products,
+  selectedId,
 }: Props) {
   const datedProducts = products.filter(
     (product) =>
       !product.values.issuedAt || product.values.issuedAt.startsWith(issueDate)
   );
-
-  let content: ReactNode;
-  if (loading) {
-    content = <p role="status">Loading…</p>;
-  } else if (error) {
-    content = (
-      <div role="status">
-        <p>{error}</p>
-        <Button onClick={onRetry} type="button" variant="outline">
-          Retry
-        </Button>
-      </div>
-    );
-  } else if (datedProducts.length > 0) {
-    content = (
-      <ul className="flex flex-wrap gap-2">
-        {datedProducts.map((product) => (
-          <li key={product.id}>
-            <Button
-              onClick={() => onSelect(product)}
-              type="button"
-              variant="outline"
-            >
-              {product.values.issuedAt?.replace("T", " ") || "Undated draft"} ·{" "}
-              {product.values.area || "No area"} · r{product.revision}
-              {product.publishedRevision ? " · Published" : " · Draft"}
-            </Button>
-          </li>
-        ))}
-      </ul>
-    );
-  } else {
-    content = (
-      <p className="text-muted-foreground text-sm">
-        No saved products of this type.
-      </p>
-    );
-  }
+  let placeholder = "Choose a saved product…";
+  if (loading) placeholder = "Loading…";
+  else if (error) placeholder = "Could not load saved products";
+  else if (datedProducts.length === 0)
+    placeholder = "No saved products for this date";
 
   return (
-    <div className="space-y-3 rounded-xl border bg-card p-4">
-      <h2 className="font-semibold">Saved products</h2>
-      {content}
-      <Button onClick={onNew} type="button" variant="outline">
-        New {productTitle(productKind)}
-      </Button>
+    <div className="space-y-2">
+      <div className="flex items-end gap-2">
+        <Field className="min-w-0 flex-1">
+          <FieldLabel htmlFor="saved-products">Saved products</FieldLabel>
+          <NativeSelect
+            className="w-full"
+            disabled={loading || Boolean(error) || datedProducts.length === 0}
+            id="saved-products"
+            onChange={(event) => {
+              const product = datedProducts.find(
+                (item) => item.id === event.target.value
+              );
+              if (product) onSelect(product);
+            }}
+            value={selectedId ?? ""}
+          >
+            <NativeSelectOption value="">{placeholder}</NativeSelectOption>
+            {datedProducts.map((product) => (
+              <NativeSelectOption key={product.id} value={product.id}>
+                {productLabel(product)}
+              </NativeSelectOption>
+            ))}
+          </NativeSelect>
+        </Field>
+        <Button
+          aria-label={`New ${productTitle(productKind)}`}
+          onClick={onNew}
+          type="button"
+          variant="outline"
+        >
+          <Plus data-icon="inline-start" />
+          New
+        </Button>
+      </div>
+      {error ? (
+        <div className="flex items-center gap-2 text-sm" role="status">
+          <span className="text-destructive">{error}</span>
+          <Button onClick={onRetry} size="sm" type="button" variant="link">
+            Retry
+          </Button>
+        </div>
+      ) : null}
     </div>
   );
 }

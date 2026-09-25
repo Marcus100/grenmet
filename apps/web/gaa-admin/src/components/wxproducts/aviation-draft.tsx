@@ -7,13 +7,13 @@ import {
   aviationHistorySchema,
   browserSessionSchema,
 } from "@barrelsgd/api-client";
+import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Field, FieldLabel } from "@barrelsgd/ui/components/ui/field";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { useState } from "react";
-import { DocumentPreview } from "@/components/document/document-preview";
-import { Paper } from "@/components/document/paper";
+import { SectionCard } from "@/components/wxproducts/eregister-ui";
 
 type AviationKind = AviationDraftRead["kind"];
 
@@ -68,6 +68,9 @@ export function AviationDraft() {
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("");
   const dirty = JSON.stringify(form) !== JSON.stringify(baseline);
+  let draftState = "New draft";
+  if (revision) draftState = `Saved revision ${revision}`;
+  if (dirty) draftState = "Unsaved changes";
   function canReplace() {
     if (!dirty) return true;
     setStatus("Save your changes or discard them before switching drafts.");
@@ -184,203 +187,242 @@ export function AviationDraft() {
     }
   }
   return (
-    <div className="@container">
-      <div className="grid @4xl:grid-cols-2 items-start gap-5">
-        <fieldset className="space-y-5" disabled={busy}>
-          <h1 className="font-semibold text-2xl">TAF / METAR Composer</h1>
-          {dirty ? (
-            <Button
-              onClick={() => {
-                setForm(baseline);
-                setStatus("Unsaved changes discarded.");
-              }}
-              type="button"
-              variant="outline"
-            >
-              Discard unsaved changes
-            </Button>
-          ) : null}
-          <p>
-            Save working METAR, SPECI and TAF drafts to FastAPI. Full
-            coded-message validation, issuance and transmission are not part of
-            this draft workspace.
+    <div className="@container space-y-6">
+      <header className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
+            Aviation weather
           </p>
+          <h1 className="mt-1 font-semibold text-2xl tracking-tight">
+            TAF / METAR Composer
+          </h1>
           <p className="text-muted-foreground text-sm">
-            All time fields use UTC. Enter full dates explicitly; leave unknown
-            times blank. Save time is recorded separately and does not establish
-            an observation or issue time.
+            {kind} · {station} · working draft
           </p>
-          <div className="flex gap-2">
-            {(["METAR", "SPECI", "TAF"] as const).map((type) => (
+        </div>
+        <Badge variant="secondary">{draftState}</Badge>
+      </header>
+      <div className="grid @4xl:grid-cols-[minmax(0,3fr)_minmax(18rem,2fr)] items-start gap-6">
+        <SectionCard
+          action={<Badge variant="secondary">Draft · not transmitted</Badge>}
+          title="Aviation message workbook"
+        >
+          <fieldset className="space-y-5 p-4" disabled={busy}>
+            {dirty ? (
               <Button
-                key={type}
-                onClick={() => newDraft(type)}
+                onClick={() => {
+                  setForm(baseline);
+                  setStatus("Unsaved changes discarded.");
+                }}
                 type="button"
-                variant={kind === type ? "default" : "outline"}
+                variant="outline"
               >
-                {type}
+                Discard unsaved changes
               </Button>
-            ))}
-          </div>
-          <Field>
-            <FieldLabel htmlFor="aviation-station">ICAO station</FieldLabel>
-            <Input
-              disabled={revision > 0}
-              id="aviation-station"
-              maxLength={4}
-              onChange={(event) => {
-                setStation(event.target.value.toUpperCase());
-                setDrafts([]);
-              }}
-              value={station}
-            />
-          </Field>
-          <Button onClick={() => newDraft()} type="button" variant="outline">
-            New draft
-          </Button>
-          <Button
-            onClick={() =>
-              action(async () => {
-                const result = aviationDraftListSchema.parse(
-                  await request(
-                    `${BASE}?${new URLSearchParams({ kind, station })}`
-                  )
-                );
-                setDrafts(result.drafts);
-                setStatus(
-                  result.drafts.length
-                    ? "Select a saved draft below (up to 50 latest)."
-                    : "No saved drafts for this station and report type."
-                );
-              })
-            }
-            type="button"
-            variant="outline"
-          >
-            Load saved drafts
-          </Button>
-          {drafts.length ? (
-            <ul className="space-y-2">
-              {drafts.map((draft) => (
-                <li key={draft.id}>
-                  <Button
-                    onClick={() => select(draft)}
-                    type="button"
-                    variant="outline"
-                  >
-                    Revision {draft.revision} · {draft.updated_at} ·{" "}
-                    {draft.actor_name}
-                  </Button>
-                </li>
+            ) : null}
+            <p className="text-muted-foreground text-sm">
+              Enter the coded message and UTC times. Saving records a working
+              draft; it does not issue or transmit the message.
+            </p>
+            <div className="flex flex-wrap gap-2 border-b pb-5">
+              {(["METAR", "SPECI", "TAF"] as const).map((type) => (
+                <Button
+                  key={type}
+                  onClick={() => newDraft(type)}
+                  type="button"
+                  variant={kind === type ? "default" : "outline"}
+                >
+                  {type}
+                </Button>
               ))}
-            </ul>
-          ) : null}
-          <Field>
-            <FieldLabel htmlFor="aviation-message">
-              Coded message (UTC time groups)
-            </FieldLabel>
-            <Textarea
-              className="font-mono"
-              id="aviation-message"
-              maxLength={6000}
-              onChange={(event) =>
-                setForm({ ...form, message: event.target.value })
-              }
-              rows={8}
-              value={form.message}
-            />
-          </Field>
-          {TIMES.map(([key, label]) => (
-            <Field key={key}>
-              <FieldLabel htmlFor={`aviation-${key}`}>{label}</FieldLabel>
-              <Input
-                id={`aviation-${key}`}
-                onChange={(event) =>
-                  setForm({ ...form, [key]: event.target.value })
+            </div>
+            <div className="flex flex-wrap items-end gap-3">
+              <Field className="max-w-40">
+                <FieldLabel htmlFor="aviation-station">ICAO station</FieldLabel>
+                <Input
+                  disabled={revision > 0}
+                  id="aviation-station"
+                  maxLength={4}
+                  onChange={(event) => {
+                    setStation(event.target.value.toUpperCase());
+                    setDrafts([]);
+                  }}
+                  value={station}
+                />
+              </Field>
+              <Button
+                onClick={() => newDraft()}
+                type="button"
+                variant="outline"
+              >
+                New draft
+              </Button>
+              <Button
+                onClick={() =>
+                  action(async () => {
+                    const result = aviationDraftListSchema.parse(
+                      await request(
+                        `${BASE}?${new URLSearchParams({ kind, station })}`
+                      )
+                    );
+                    setDrafts(result.drafts);
+                    setStatus(
+                      result.drafts.length
+                        ? "Select a saved draft below (up to 50 latest)."
+                        : "No saved drafts for this station and report type."
+                    );
+                  })
                 }
-                step="any"
-                type="datetime-local"
-                value={form[key]}
+                type="button"
+                variant="outline"
+              >
+                Load saved drafts
+              </Button>
+            </div>
+            {drafts.length ? (
+              <ul className="space-y-2">
+                {drafts.map((draft) => (
+                  <li key={draft.id}>
+                    <Button
+                      onClick={() => select(draft)}
+                      type="button"
+                      variant="outline"
+                    >
+                      Revision {draft.revision} · {draft.updated_at} ·{" "}
+                      {draft.actor_name}
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+            <Field>
+              <FieldLabel htmlFor="aviation-message">
+                Coded message (UTC time groups)
+              </FieldLabel>
+              <Textarea
+                className="font-mono"
+                id="aviation-message"
+                maxLength={6000}
+                onChange={(event) =>
+                  setForm({ ...form, message: event.target.value })
+                }
+                rows={8}
+                value={form.message}
               />
             </Field>
-          ))}
-          <div className="flex flex-wrap gap-2">
-            <Button
-              disabled={!form.message.trim()}
-              onClick={save}
-              type="button"
-            >
-              Save draft
-            </Button>
-            <Button
-              onClick={importBrowserDraft}
-              type="button"
-              variant="outline"
-            >
-              Import browser draft
-            </Button>
-            <Button
-              disabled={!form.message}
-              onClick={() =>
-                action(async () => {
-                  await navigator.clipboard.writeText(form.message);
-                  setStatus("Message copied.");
-                })
-              }
-              type="button"
-              variant="outline"
-            >
-              Copy message
-            </Button>
-          </div>
-          {saved ? (
-            <p className="text-sm">
-              Saved revision {saved.revision} · {saved.actor_name} ·{" "}
-              {saved.updated_at}
-              {dirty ? " · Unsaved changes" : ""}
+            <div className="grid gap-4 border-t pt-5 sm:grid-cols-2">
+              {TIMES.map(([key, label]) => (
+                <Field key={key}>
+                  <FieldLabel htmlFor={`aviation-${key}`}>{label}</FieldLabel>
+                  <Input
+                    id={`aviation-${key}`}
+                    onChange={(event) =>
+                      setForm({ ...form, [key]: event.target.value })
+                    }
+                    step="any"
+                    type="datetime-local"
+                    value={form[key]}
+                  />
+                </Field>
+              ))}
+            </div>
+            <p className="text-muted-foreground text-xs">
+              Leave unknown times blank. Save time is recorded separately and
+              does not establish an observation or issue time.
             </p>
-          ) : null}
-          {revision > 0 ? (
-            <Button
-              onClick={() =>
-                action(async () => {
-                  const result = aviationHistorySchema.parse(
-                    await request(`${BASE}/${id}/history`)
-                  );
-                  setHistory(result.revisions);
-                })
-              }
-              type="button"
-              variant="outline"
-            >
-              View revision history
-            </Button>
-          ) : null}
-          {history.map((item) => (
-            <details key={item.revision}>
-              <summary>
-                Revision {item.revision} · {item.actor_name} ·{" "}
-                {item.recorded_at}
-              </summary>
-              <pre className="whitespace-pre-wrap break-words text-xs">
-                {JSON.stringify(item, null, 2)}
-              </pre>
-            </details>
-          ))}
-          {status ? <p role="status">{status}</p> : null}
-        </fieldset>
-        <DocumentPreview title="PDF preview">
-          <Paper className="p-10">
-            <p>GRENADA METEOROLOGICAL SERVICE</p>
-            <h2 className="my-4 font-bold text-xl">
-              {kind} · {station}
-            </h2>
-            <p className="mb-6">Working draft — not transmitted</p>
-            <pre className="whitespace-pre-wrap break-words font-mono text-sm">
-              {form.message || "Enter a message to preview it here."}
-            </pre>
-          </Paper>
-        </DocumentPreview>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                disabled={!form.message.trim()}
+                onClick={save}
+                type="button"
+              >
+                Save draft
+              </Button>
+              <Button
+                onClick={importBrowserDraft}
+                type="button"
+                variant="outline"
+              >
+                Import browser draft
+              </Button>
+              <Button
+                disabled={!form.message}
+                onClick={() =>
+                  action(async () => {
+                    await navigator.clipboard.writeText(form.message);
+                    setStatus("Message copied.");
+                  })
+                }
+                type="button"
+                variant="outline"
+              >
+                Copy message
+              </Button>
+            </div>
+            {saved ? (
+              <p className="text-sm">
+                Saved revision {saved.revision} · {saved.actor_name} ·{" "}
+                {saved.updated_at}
+                {dirty ? " · Unsaved changes" : ""}
+              </p>
+            ) : null}
+            {revision > 0 ? (
+              <Button
+                onClick={() =>
+                  action(async () => {
+                    const result = aviationHistorySchema.parse(
+                      await request(`${BASE}/${id}/history`)
+                    );
+                    setHistory(result.revisions);
+                  })
+                }
+                type="button"
+                variant="outline"
+              >
+                View revision history
+              </Button>
+            ) : null}
+            {history.map((item) => (
+              <details key={item.revision}>
+                <summary>
+                  Revision {item.revision} · {item.actor_name} ·{" "}
+                  {item.recorded_at}
+                </summary>
+                <pre className="whitespace-pre-wrap break-words text-xs">
+                  {JSON.stringify(item, null, 2)}
+                </pre>
+              </details>
+            ))}
+            {status ? <p role="status">{status}</p> : null}
+          </fieldset>
+        </SectionCard>
+        <SectionCard
+          action={<Badge variant="secondary">Working text</Badge>}
+          title="Message review"
+        >
+          <div className="space-y-4 p-4">
+            <p className="text-muted-foreground text-xs">
+              Review the coded text before saving. Full coded-message validation
+              is not available in this workspace.
+            </p>
+            <div className="rounded-lg bg-muted p-3">
+              <p className="mb-2 font-medium text-xs">
+                {kind} · {station}
+              </p>
+              <code className="block whitespace-pre-wrap break-words font-mono text-sm">
+                {form.message || "Enter a message to review it here."}
+              </code>
+            </div>
+            <dl className="grid gap-2 text-xs">
+              {TIMES.map(([key, label]) => (
+                <div className="flex justify-between gap-3" key={key}>
+                  <dt className="text-muted-foreground">{label}</dt>
+                  <dd className="font-mono">{form[key] || "Not set"}</dd>
+                </div>
+              ))}
+            </dl>
+          </div>
+        </SectionCard>
       </div>
     </div>
   );

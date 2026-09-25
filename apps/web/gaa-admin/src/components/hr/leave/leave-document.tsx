@@ -1,3 +1,4 @@
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { Paper } from "@/components/document/paper";
 import {
   SubmissionDate,
@@ -101,11 +102,12 @@ export function LeaveDocument({
             return (
               <span className="flex items-center gap-2" key={t}>
                 <span
-                  className={`flex size-4 items-center justify-center border text-[10px] ${
+                  className={cn(
+                    "flex size-4 items-center justify-center border text-[10px]",
                     checked
                       ? "border-zinc-900 bg-zinc-900 text-white"
                       : "border-zinc-500"
-                  }`}
+                  )}
                 >
                   {checked ? "✓" : ""}
                 </span>

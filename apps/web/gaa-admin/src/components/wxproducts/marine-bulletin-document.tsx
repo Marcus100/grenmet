@@ -1,3 +1,4 @@
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { Paper } from "@/components/document/paper";
 
 export interface MarineBulletinValues {
@@ -81,7 +82,10 @@ export function MarineBulletinDocument({
           <h1 className="mt-1 font-bold text-xl">Marine Weather Bulletin</h1>
         </div>
         <div
-          className={`rounded-md border px-3 py-1.5 text-center font-semibold text-sm ${tone}`}
+          className={cn(
+            "rounded-md border px-3 py-1.5 text-center font-semibold text-sm",
+            tone
+          )}
         >
           {values.warningLevel} {values.notice ?? "Warning"}
         </div>

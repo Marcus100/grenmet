@@ -1,28 +1,61 @@
 "use client";
 
-import type { CapSeverity, CapUrgency } from "@barrelsgd/api-client";
+import type { CapSeverity, CapUrgency, GmsColour } from "@barrelsgd/api-client";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { motion } from "motion/react";
-import { SEVERITY_BADGE_VARIANT, SEVERITY_HEX } from "@/lib/cap-severity";
+import { severityForColour } from "@/lib/cap-levels";
+import { SEVERITY_HEX } from "@/lib/cap-severity";
 
 export interface LivePreviewProps {
   areaDesc: string;
+  /** GMS colour, when chosen; the band follows it rather than severity. */
+  colour?: GmsColour | null;
   contact: string;
   description: string;
   effective: string;
   expires: string;
   headline: string;
   instruction: string;
+  /** "Orange · Heat Watch" — replaces the severity · urgency label. */
+  levelHeading?: string;
+  /** Outlooks show in neutral blue, never a warning colour. */
+  outlook?: boolean;
   senderName: string;
   severity: CapSeverity;
   urgency: CapUrgency;
 }
 
-const BAND_TEXT: Record<string, string> = {
-  "solid-warning": "var(--gm-text-primary)",
-};
+/** --gm-blue-ink: Outlooks are a heads-up, never a warning colour. */
+const OUTLOOK_HEX = "#0b63ee";
+
+/** Yellow, orange and grey fills need dark text; the rest take white. */
+const DARK_TEXT_SEVERITIES = new Set<CapSeverity>([
+  "Moderate",
+  "Severe",
+  "Unknown",
+]);
+
+function bandStyle(
+  severity: CapSeverity,
+  colour: GmsColour | null | undefined,
+  outlook: boolean | undefined
+): { background: string; color: string } {
+  // Hex, not CSS variables: Motion interpolates the band colour and cannot
+  // animate var(). SEVERITY_HEX follows the colour ↔ severity pairing.
+  if (outlook) {
+    return { background: OUTLOOK_HEX, color: "var(--gm-text-inverse)" };
+  }
+  const shown = colour ? severityForColour(colour) : severity;
+  return {
+    background: SEVERITY_HEX[shown],
+    color: DARK_TEXT_SEVERITIES.has(shown)
+      ? "var(--gm-text-primary)"
+      : "var(--gm-text-inverse)",
+  };
+}
 
 /**
- * The public-facing bulletin, live, next to the form that produces it. The
+ * The public-facing alert, live, next to the form that produces it. The
  * existing review step (AlertWorkflow) only shows this after submission —
  * seeing it while still editing catches a wrong severity colour or a missing
  * area before it reaches submit.
@@ -38,10 +71,11 @@ export function LivePreview({
   instruction,
   senderName,
   contact,
+  colour,
+  levelHeading,
+  outlook,
 }: LivePreviewProps) {
-  const bandVariant = SEVERITY_BADGE_VARIANT[severity];
-  const bandColor = SEVERITY_HEX[severity];
-  const bandText = BAND_TEXT[bandVariant] ?? "#fff";
+  const band = bandStyle(severity, colour, outlook);
 
   return (
     <div className="overflow-hidden rounded-xl border border-gm-border bg-card shadow-card">
@@ -54,13 +88,15 @@ export function LivePreview({
         </span>
       </div>
       <motion.div
-        animate={{ backgroundColor: bandColor }}
+        animate={{ backgroundColor: band.background }}
         className="px-5 py-4"
-        style={{ color: bandText }}
+        style={{ color: band.color }}
         transition={{ duration: 0.2 }}
       >
         <span className="text-label leading-label opacity-90">
-          {severity.toUpperCase()} · {urgency.toUpperCase()}
+          {levelHeading
+            ? levelHeading.toUpperCase()
+            : `${severity.toUpperCase()} · ${urgency.toUpperCase()}`}
         </span>
         <h3 className="mt-1 text-body-base leading-body-base">
           {headline || "Untitled alert"}
@@ -119,12 +155,15 @@ function PreviewRow({
 
 export interface ReadinessChecklistProps {
   hasArea: boolean;
+  /** Product chosen, and a colour for every product except an Outlook. */
+  hasLevel: boolean;
   hasMessage: boolean;
   isActualStatus: boolean;
   riskAssessed: boolean;
 }
 
 export function ReadinessChecklist({
+  hasLevel,
   hasMessage,
   riskAssessed,
   hasArea,
@@ -132,6 +171,7 @@ export function ReadinessChecklist({
 }: ReadinessChecklistProps) {
   const items = [
     { ok: hasMessage, text: "Headline, event and description present" },
+    { ok: hasLevel, text: "Product and colour chosen" },
     { ok: riskAssessed, text: "Severity, urgency, certainty assessed" },
     { ok: hasArea, text: "At least one area selected" },
     { ok: isActualStatus, text: "Status is Actual (not a drill)" },
@@ -156,9 +196,10 @@ export function ReadinessChecklist({
               animate={{
                 backgroundColor: item.ok ? "#b9ee63" : "rgba(0,0,0,0)",
               }}
-              className={`flex size-4 flex-shrink-0 items-center justify-center rounded-full border ${
+              className={cn(
+                "flex size-4 flex-shrink-0 items-center justify-center rounded-full border",
                 item.ok ? "border-[#3f7a0f]" : "border-gm-border"
-              }`}
+              )}
               transition={{ duration: 0.15 }}
             >
               {item.ok ? (

@@ -48,8 +48,8 @@ it("copies only selected text with attribution after checking the bulletin again
   vi.stubGlobal("fetch", fetcher);
   const onInsert = vi.fn();
   render(<CapForecastPicker onInsert={onInsert} targets={EVENING_TARGETS} />);
-  fireEvent.click(screen.getByText("Load active CAP bulletins"));
-  fireEvent.change(await screen.findByLabelText("CAP bulletin"), {
+  fireEvent.click(screen.getByRole("button", { name: "Insert warning text" }));
+  fireEvent.change(await screen.findByLabelText("CAP alert"), {
     target: { value: `${uuid}/${uuid}` },
   });
   fireEvent.click(screen.getByLabelText(INSTRUCTION));
@@ -68,6 +68,9 @@ it("copies only selected text with attribution after checking the bulletin again
   );
   expect(onInsert.mock.calls[0][1]).not.toContain("Rain expected.");
   expect(fetcher).toHaveBeenCalledTimes(2);
+  expect(
+    screen.getByRole("dialog", { name: "Insert warning text" })
+  ).toBeInTheDocument();
 });
 
 it("does not copy a bulletin that is no longer active", async () => {
@@ -80,8 +83,8 @@ it("does not copy a bulletin that is no longer active", async () => {
   );
   const onInsert = vi.fn();
   render(<CapForecastPicker onInsert={onInsert} targets={MORNING_TARGETS} />);
-  fireEvent.click(screen.getByText("Load active CAP bulletins"));
-  fireEvent.change(await screen.findByLabelText("CAP bulletin"), {
+  fireEvent.click(screen.getByRole("button", { name: "Insert warning text" }));
+  fireEvent.change(await screen.findByLabelText("CAP alert"), {
     target: { value: `${uuid}/${uuid}` },
   });
   fireEvent.click(screen.getByLabelText(HEADLINE));
@@ -96,6 +99,56 @@ it("reports an unavailable CAP service", async () => {
     vi.fn().mockResolvedValue(new Response(null, { status: 503 }))
   );
   render(<CapForecastPicker onInsert={vi.fn()} targets={MORNING_TARGETS} />);
-  fireEvent.click(screen.getByText("Load active CAP bulletins"));
-  await screen.findByText("CAP bulletins could not be loaded. Try again.");
+  fireEvent.click(screen.getByRole("button", { name: "Insert warning text" }));
+  await screen.findByText("CAP alerts could not be loaded. Try again.");
+});
+
+it("copies selected GMS bulletin text with attribution", async () => {
+  const marine = {
+    id: uuid,
+    revision: 3,
+    publishedAt: "2026-09-24T10:00:00Z",
+    kind: "marine",
+    values: {
+      issuedAt: "2026-09-24T06:00",
+      validFrom: "2026-09-24T06:00",
+      validTo: "2026-09-25T06:00",
+      level: "Yellow",
+      area: "Grenada waters",
+      synopsis: "A tropical wave is moving west.",
+      response: "Small craft should exercise caution.",
+    },
+  };
+  const feed = {
+    products: [
+      marine,
+      {
+        ...marine,
+        id: "22222222-2222-4222-8222-222222222222",
+        kind: "morning",
+      },
+    ],
+  };
+  const fetcher = vi.fn((path: string) =>
+    Promise.resolve(
+      new Response(
+        JSON.stringify(path.includes("cap") ? { data: [], count: 0 } : feed),
+        { status: 200 }
+      )
+    )
+  );
+  vi.stubGlobal("fetch", fetcher);
+  const onInsert = vi.fn();
+  render(<CapForecastPicker onInsert={onInsert} targets={MORNING_TARGETS} />);
+  fireEvent.click(screen.getByRole("button", { name: "Insert warning text" }));
+  fireEvent.click(await screen.findByRole("tab", { name: "GMS bulletins" }));
+  const select = await screen.findByLabelText("GMS bulletin");
+  expect(select.querySelectorAll("option")).toHaveLength(2);
+  fireEvent.change(select, { target: { value: uuid } });
+  fireEvent.click(screen.getByLabelText(/Response:/));
+  fireEvent.click(screen.getByText("Add selected text"));
+  await waitFor(() => expect(onInsert).toHaveBeenCalled());
+  expect(onInsert.mock.calls[0][1]).toBe(
+    "Small craft should exercise caution.\n\n[GMS Marine / Small Craft Bulletin r3; issued 2026-09-24 06:00]"
+  );
 });

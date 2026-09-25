@@ -1,3 +1,4 @@
+import { cn } from "@barrelsgd/ui/lib/utils";
 import type { LucideIcon } from "lucide-react";
 import {
   Anchor,
@@ -204,7 +205,7 @@ function ImpactAlert({ item }: { item: ImpactItem }) {
   const tone = warningToneFor(item.responseLevel);
 
   return (
-    <div className={`border-l-4 p-4 ${tone}`}>
+    <div className={cn("border-l-4 p-4", tone)}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="font-semibold text-sm">{item.hazard}</h3>
         <div className="flex gap-2">

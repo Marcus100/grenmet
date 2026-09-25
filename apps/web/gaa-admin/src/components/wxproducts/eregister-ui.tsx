@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@barrelsgd/ui/components/ui/table";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import type { LucideIcon } from "lucide-react";
 
 export const GRID_CELL = "border-border border-r last:border-r-0";
@@ -53,7 +54,7 @@ export function CodedStrip({ groups }: { groups: CodedGroup[] }) {
         <TableRow className={HEAD_ROW}>
           {groups.map((group) => (
             <TableHead
-              className={`${GRID_CELL} h-auto px-3 py-2 text-center`}
+              className={cn(GRID_CELL, "h-auto px-3 py-2 text-center")}
               key={group.id}
             >
               <div className="text-xs">{group.label}</div>
@@ -68,7 +69,10 @@ export function CodedStrip({ groups }: { groups: CodedGroup[] }) {
         <TableRow>
           {groups.map((group) => (
             <TableCell
-              className={`${GRID_CELL} px-3 py-2.5 text-center font-medium font-mono text-sm tabular-nums`}
+              className={cn(
+                GRID_CELL,
+                "px-3 py-2.5 text-center font-medium font-mono text-sm tabular-nums"
+              )}
               key={group.id}
             >
               {group.value}
