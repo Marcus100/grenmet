@@ -2,14 +2,6 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { AviationDraft } from "./aviation-draft";
 
-vi.mock("@/components/document/document-preview", () => ({
-  DocumentPreview: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
-}));
-vi.mock("@/components/document/paper", () => ({
-  Paper: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-}));
 const CONFLICT = /Reload it before saving/;
 const SAVED = /Revision 1 saved to FastAPI/;
 const IMPORTED = /Browser draft loaded as a new unsaved draft/;

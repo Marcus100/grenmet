@@ -1,3 +1,4 @@
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { Paper } from "@/components/document/paper";
 
 // Impact-Based Forecast model — a modern take on the ForecastBook text product.
@@ -178,9 +179,10 @@ export function ForecastDocument({
         <div className="flex flex-wrap gap-2">
           {IBF_HAZARDS.map((hz) => (
             <span
-              className={`rounded-full px-2.5 py-0.5 font-medium text-xs ${
-                levelTone[values.ibf[hz.id]] ?? ""
-              }`}
+              className={cn(
+                "rounded-full px-2.5 py-0.5 font-medium text-xs",
+                levelTone[values.ibf[hz.id]]
+              )}
               key={hz.id}
             >
               {IBF_LABEL[hz.id]}: {values.ibf[hz.id]}

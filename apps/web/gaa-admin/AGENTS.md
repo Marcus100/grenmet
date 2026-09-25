@@ -70,6 +70,9 @@ path-prefixed, auth-gated routes under `(admin)/`. All are gated by
 - **DB conventions:** keep separate domain databases (never merged). FastAPI owns every module's schema and migrations (e.g. `src/wxproducts/alembic.ini`, `src/wxwatch/alembic.ini`). gaa-admin has no ORM and no database access: Drizzle was removed on 2026-09-23. Types come from `@barrelsgd/api-client`.
 - **Fonts:** `Noto_Sans` is loaded in the root layout to back the `--brand-font-document`
   token (`font-document` Tailwind alias) used by wxproducts forecast/bulletin documents.
+- **TAF/METAR composer:** Use the wxRegister-style data-entry and review layout; do not add a PDF preview to this working composer.
+- **Field widths match data:** size inputs to their data type (numbers/times narrow, selects to their longest option, only prose full width); never stretch every field to the column.
+- **Product parity:** a wxproducts improvement to forecasts also applies to bulletins (and the outlook) unless the user excludes them; they share `ProductDesk`.
 
 ## Testing
 

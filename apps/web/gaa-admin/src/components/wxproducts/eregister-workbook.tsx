@@ -18,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@barrelsgd/ui/components/ui/table";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { Save } from "lucide-react";
 import type { FormEvent } from "react";
 
@@ -159,7 +160,11 @@ export function ERegisterWorkbook({
                           >
                             <Input
                               aria-label={label}
-                              className={`h-7 min-w-10 rounded-none border-0 bg-transparent px-0.5 font-mono text-[11px] shadow-none focus-visible:ring-1 ${issues.some((issue) => issue.field === key) ? "bg-destructive/10 text-destructive" : ""}`}
+                              className={cn(
+                                "h-7 min-w-10 rounded-none border-0 bg-transparent px-0.5 font-mono text-[11px] shadow-none focus-visible:ring-1",
+                                issues.some((issue) => issue.field === key) &&
+                                  "bg-destructive/10 text-destructive"
+                              )}
                               onChange={(event) => {
                                 onValueChange(key, event.target.value);
                                 onValidationIssuesChange((issues) =>
