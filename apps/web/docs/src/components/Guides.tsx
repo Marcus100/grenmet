@@ -1,3 +1,4 @@
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { Button } from "@/components/Button";
 import { Heading } from "@/components/Heading";
 
@@ -57,7 +58,10 @@ export function Guides({ catalogue = false }: { catalogue?: boolean }) {
           <div className="space-y-4" key={document.href}>
             <div
               aria-hidden="true"
-              className={`flex aspect-[4/3] flex-col justify-between rounded-lg p-8 ${document.tone}`}
+              className={cn(
+                "flex aspect-[4/3] flex-col justify-between rounded-lg p-8",
+                document.tone
+              )}
             >
               <span className="text-sm">GRENADA METEOROLOGICAL SERVICE</span>
               <p className="max-w-xs font-semibold text-heading-lg">

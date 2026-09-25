@@ -602,9 +602,6 @@ importers:
       '@types/react-highlight-words':
         specifier: ^0.20.1
         version: 0.20.1
-      cn:
-        specifier: 'catalog:'
-        version: 0.3.0
       fast-glob:
         specifier: ^3.3.3
         version: 3.3.3

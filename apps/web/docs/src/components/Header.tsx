@@ -1,5 +1,5 @@
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { CloseButton } from "@headlessui/react";
-import { clsx } from "cn";
 import { motion, useScroll, useTransform } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -49,7 +49,7 @@ export function Header({
   return (
     <motion.div
       {...props}
-      className={clsx(
+      className={cn(
         className,
         "fixed inset-x-0 top-0 z-50 flex h-14 items-center justify-between gap-6 px-4 transition sm:px-6 lg:z-30 lg:px-8",
         !catalogue && "lg:left-72 xl:left-80",
@@ -64,16 +64,14 @@ export function Header({
       }
     >
       <div
-        className={clsx(
+        className={cn(
           "absolute inset-x-0 top-full h-px transition",
           (isInsideMobileNavigation || !mobileNavIsOpen) &&
             "bg-zinc-900/7.5 dark:bg-white/7.5"
         )}
       />
       <Search />
-      <div
-        className={clsx("flex items-center gap-5", !catalogue && "lg:hidden")}
-      >
+      <div className={cn("flex items-center gap-5", !catalogue && "lg:hidden")}>
         <MobileNavigation />
         <CloseButton aria-label="Home" as={Link} href="/">
           <Logo className="h-6" />

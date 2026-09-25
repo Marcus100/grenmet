@@ -1,7 +1,7 @@
 "use client";
 
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from "@headlessui/react";
-import { clsx } from "cn";
 import {
   Children,
   createContext,
@@ -73,7 +73,7 @@ function CopyButton({ code }: { code: string }) {
 
   return (
     <button
-      className={clsx(
+      className={cn(
         "group/button absolute top-3.5 right-4 overflow-hidden rounded-full py-1 pr-3 pl-2 font-medium text-2xs opacity-0 backdrop-blur-sm transition focus:opacity-100 group-hover:opacity-100",
         copied
           ? "bg-emerald-400/10 ring-1 ring-emerald-400/20 ring-inset"
@@ -88,7 +88,7 @@ function CopyButton({ code }: { code: string }) {
     >
       <span
         aria-hidden={copied}
-        className={clsx(
+        className={cn(
           "pointer-events-none flex items-center gap-0.5 text-zinc-400 transition duration-300",
           copied && "-translate-y-1.5 opacity-0"
         )}
@@ -98,7 +98,7 @@ function CopyButton({ code }: { code: string }) {
       </span>
       <span
         aria-hidden={!copied}
-        className={clsx(
+        className={cn(
           "pointer-events-none absolute inset-0 flex items-center justify-center text-emerald-400 transition duration-300",
           !copied && "translate-y-1.5 opacity-0"
         )}
@@ -198,7 +198,7 @@ function CodeGroupHeader({
         <TabList className="-mb-px flex gap-4 font-medium text-xs">
           {Children.map(children, (child, childIndex) => (
             <Tab
-              className={clsx(
+              className={cn(
                 "border-b py-3 transition data-selected:not-data-focus:outline-hidden",
                 childIndex === selectedIndex
                   ? "border-emerald-500 text-emerald-400"
