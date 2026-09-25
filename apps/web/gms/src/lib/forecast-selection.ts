@@ -20,6 +20,19 @@ function conditionFor(summary: string): WeatherCondition {
 }
 function conditions(period: ForecastPeriod): Condition[] {
   const v = period.details ?? {};
+  // FastAPI formats structured wind, sea and tides (public units first); use it
+  // when present so the site matches the issued PDF.
+  if (period.conditions?.length) {
+    const tiles: Condition[] = period.conditions.map(
+      ({ icon, value, label }) => ({ icon, value, label })
+    );
+    if (!period.period_key && v.observedTemperature)
+      tiles.push({
+        label: "Midday observation at MBIA",
+        value: `${v.observedTemperature}°C`,
+      });
+    return tiles;
+  }
   const result: Condition[] = [
     {
       label: "Max Temp",

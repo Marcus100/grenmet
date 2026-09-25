@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import { DesktopNav } from "@/components/desktop-nav";
 import { NavDrawer } from "@/components/nav-drawer";
-import { type AlertsResult, alertsLevel } from "@/lib/cap";
+import { type AlertsResult, alertsLevel, alertsSummary } from "@/lib/cap";
 import { cn } from "@/lib/utils";
 import { WARNING_LEVEL_SURFACE } from "@/lib/warning-level";
 
@@ -58,7 +58,7 @@ export function Header({ alerts }: HeaderProps) {
                 className="size-5"
                 strokeWidth={2}
               />
-              Current alerts
+              {alertsSummary(alerts)}
             </Link>
 
             <button
@@ -73,7 +73,11 @@ export function Header({ alerts }: HeaderProps) {
         </div>
       </header>
 
-      <NavDrawer onClose={() => setNavOpen(false)} open={navOpen} />
+      <NavDrawer
+        alerts={alerts}
+        onClose={() => setNavOpen(false)}
+        open={navOpen}
+      />
     </>
   );
 }

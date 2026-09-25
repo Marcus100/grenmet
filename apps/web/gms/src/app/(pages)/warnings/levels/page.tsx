@@ -6,54 +6,54 @@ import { Prose } from "@/components/pages/prose";
 export const metadata = {
   title: "Warning levels explained",
   description:
-    "How the Grenada Meteorological Service colour scale works, and what each level asks you to do.",
+    "How GMS Outlooks, Watches and Warnings relate to the colour scale.",
 };
 
 export default function WarningLevelsPage() {
   return (
     <>
       <PageHeader
-        description="How the colour scale works, and what each level asks you to do."
+        description="The product says when and how likely. The colour describes the risk from expected impacts and likelihood."
         title="Warning levels explained"
       />
-      <PageSection heading="The three levels">
+      <PageSection heading="Three alert products">
         <InfoTable
-          headers={["Level", "Colour", "What it means", "What to do"]}
+          headers={["Product", "When GMS uses it", "What to do"]}
           rows={[
             [
-              "1 — Advisory",
-              "Yellow",
-              "Conditions are possible that could be hazardous for some users or activities",
-              "Be aware; monitor updates",
+              "Outlook",
+              "A hazard is being monitored ahead of a possible event",
+              "Read the stated impact and likelihood; check for updates",
             ],
             [
-              "2 — Watch",
-              "Amber",
-              "Conditions are likely that could be hazardous for a broad population or area",
-              "Prepare; review plans",
+              "Watch",
+              "A hazardous event is possible or becoming more likely",
+              "Prepare for the stated impacts",
             ],
             [
-              "3 — Warning",
-              "Red",
-              "Hazardous conditions are expected or are occurring; impacts are likely",
-              "Take protective action now",
+              "Warning",
+              "A hazardous event is expected or occurring",
+              "Follow the specific instructions in the alert",
             ],
           ]}
         />
       </PageSection>
-      <PageSection heading="Green is a level too">
-        <Prose
-          paragraphs={[
-            "When no advisory, watch or warning is in effect, the tri-island state sits at green. Green does not mean nothing is happening — it means conditions are not expected to reach a level that changes what most people should do.",
-            "Ordinary showers, brisk trade winds and normal sea state all sit inside green.",
+      <PageSection heading="Four risk colours">
+        <InfoTable
+          headers={["Colour", "Response"]}
+          rows={[
+            ["Green", "No protective action needed now"],
+            ["Yellow", "Be aware"],
+            ["Orange", "Be prepared"],
+            ["Red", "Take action"],
           ]}
         />
       </PageSection>
-      <PageSection heading="Why a warning is not only about rainfall totals">
+      <PageSection heading="How product and colour fit together">
         <Prose
           paragraphs={[
-            "A level is set from hazard likelihood and expected impact together, not from a meteorological threshold alone. The same 50 mm of rain can be a green day on open farmland and a red day over a saturated hillside above St. George's.",
-            "This is why two events with similar forecast numbers can carry different warning levels.",
+            "GMS assesses expected impact and likelihood together to suggest a colour. An Outlook may be green, yellow, orange or red. A Watch or Warning is yellow, orange or red; green means no Watch or Warning is in force.",
+            "The product and colour answer different questions. Read the alert's hazard, affected area, timing, expected impacts and instructions together. Colour is always shown with words.",
           ]}
         />
       </PageSection>

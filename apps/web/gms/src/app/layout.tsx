@@ -8,6 +8,10 @@ import { MotionProvider } from "@/components/motion-provider";
 import { fetchActiveAlerts } from "@/lib/cap";
 import { env } from "@/lib/env";
 import "./globals.css";
+import {
+  MAIN_CONTENT_ID,
+  SkipLink,
+} from "@barrelsgd/ui/components/ui/skip-link";
 
 const notoSans = Noto_Sans({
   subsets: ["latin"],
@@ -41,13 +45,20 @@ export default async function RootLayout({
       style={{ colorScheme: "light" }}
     >
       <body className="flex min-h-screen flex-col bg-background font-sans text-foreground">
+        <SkipLink />
         <PostHogProvider
           apiHost={env.NEXT_PUBLIC_POSTHOG_HOST}
           apiKey={env.NEXT_PUBLIC_POSTHOG_KEY}
         >
           <MotionProvider>
             <Header alerts={alerts} />
-            <main className="flex-1">{children}</main>
+            <main
+              className="flex-1 outline-none"
+              id={MAIN_CONTENT_ID}
+              tabIndex={-1}
+            >
+              {children}
+            </main>
             <Footer />
           </MotionProvider>
           <GoogleAnalytics

@@ -2,9 +2,15 @@
 
 import { Logo } from "@barrelsgd/gms/components/logo";
 import { Accordion } from "@base-ui/react/accordion";
-import { ChevronDownIcon, XIcon } from "lucide-react";
+import {
+  ChevronDownIcon,
+  ChevronRightIcon,
+  TriangleAlertIcon,
+  XIcon,
+} from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect } from "react";
+import { type AlertsResult, alertsLevel, alertsSummary } from "@/lib/cap";
 import {
   drawerBackdrop,
   drawerItem,
@@ -13,13 +19,16 @@ import {
 } from "@/lib/motion";
 import { NAV_SECTIONS } from "@/lib/nav-sections";
 import { cn } from "@/lib/utils";
+import { WARNING_LEVEL_SURFACE } from "@/lib/warning-level";
 
 interface NavDrawerProps {
+  /** Warning status shown above the sections; the header pill is desktop-only. */
+  alerts?: AlertsResult;
   onClose: () => void;
   open: boolean;
 }
 
-export function NavDrawer({ open, onClose }: NavDrawerProps) {
+export function NavDrawer({ alerts, open, onClose }: NavDrawerProps) {
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     return () => {
@@ -57,6 +66,31 @@ export function NavDrawer({ open, onClose }: NavDrawerProps) {
               <div className="h-full flex-[25] bg-gm-sky" />
               <div className="h-full flex-[20] bg-gm-lime" />
             </div>
+
+            {/* Warning status — the mobile counterpart of the header pill,
+                and the menu's route to every warning in effect. */}
+            {alerts && (
+              <a
+                className={cn(
+                  "flex min-h-12 shrink-0 items-center justify-between gap-3 px-6 py-3 font-semibold text-body-base leading-body-base",
+                  WARNING_LEVEL_SURFACE[alertsLevel(alerts)]
+                )}
+                href="/warnings"
+                onClick={onClose}
+              >
+                <span className="flex items-center gap-2.5">
+                  <TriangleAlertIcon
+                    aria-hidden="true"
+                    className="size-5 shrink-0"
+                  />
+                  {alertsSummary(alerts)}
+                </span>
+                <ChevronRightIcon
+                  aria-hidden="true"
+                  className="size-5 shrink-0"
+                />
+              </a>
+            )}
 
             {/* Nav body */}
             <motion.nav

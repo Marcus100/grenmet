@@ -78,3 +78,18 @@ describe("forecast presentation", () => {
     expect(result.observation?.observedAt).toContain("Reported");
   });
 });
+
+describe("structured conditions from the forecast feed", () => {
+  it("uses the feed's formatted tiles and icon names", () => {
+    const forecast = selection();
+    forecast.periods[0].conditions = [
+      { icon: "wind", value: "12–23 mph", label: "Wind speed (10–20 kt)" },
+      { icon: "arrow-up-to-line", value: "05:50", label: "High tide (0.6 m)" },
+    ];
+    const [today] = weatherFromForecast(forecast).days;
+    expect(today.conditions).toEqual([
+      { icon: "wind", value: "12–23 mph", label: "Wind speed (10–20 kt)" },
+      { icon: "arrow-up-to-line", value: "05:50", label: "High tide (0.6 m)" },
+    ]);
+  });
+});

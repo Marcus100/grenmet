@@ -1,6 +1,9 @@
 import {
+  type CapAlertPublic,
   type CapSeverity,
   type CapStatus,
+  capAlertListPublicSchema,
+  capAlertPublicSchema,
   type PublicWarning,
   type PublicWarningGroup,
   publicWarningsSchema,
@@ -8,7 +11,7 @@ import {
 import { captureException } from "@sentry/nextjs";
 import { cache } from "react";
 import { env } from "@/lib/env";
-import type { WarningLevel } from "@/lib/warning-level";
+import { WARNING_LEVEL_LABEL, type WarningLevel } from "@/lib/warning-level";
 
 export type { CapSeverity, CapStatus } from "@barrelsgd/api-client";
 export type PublicAlert = PublicWarning;
@@ -58,15 +61,27 @@ export function exerciseStatuses(result: AlertsResult): CapStatus[] {
   return [...found];
 }
 
-/** Shared status line for both the mobile accordion and the desktop panel. */
+/**
+ * The one status line every alert surface shows — header pill, mobile menu,
+ * mobile accordion, desktop panel and the Warnings menu card: "No active
+ * warnings", or the response level of the most severe alert with the count,
+ * e.g. "Be prepared · 2 active". Naming the level keeps colour from being the
+ * only signal (Warning Pattern Checklist, docs/design-system.md).
+ */
 export function alertsSummary(result: AlertsResult): string {
   if (result.status === "unavailable") {
-    return "Unavailable";
+    return "Warnings unavailable";
   }
   if (result.activeCount === 0) {
     return "No active warnings";
   }
-  return `${result.activeCount} active`;
+  const level = alertsLevel(result);
+  const count = `${result.activeCount} active`;
+  // A count with no alert detail has no level to name; never pair it with
+  // "No active warnings".
+  return level === "none" || level === "unknown"
+    ? count
+    : `${WARNING_LEVEL_LABEL[level]} · ${count}`;
 }
 
 /**
@@ -79,7 +94,9 @@ export function alertsLevel(result: AlertsResult): WarningLevel {
   }
 
   const severities = result.groups.flatMap((group) =>
-    group.alerts.map((alert) => alert.severity)
+    group.alerts
+      .filter((alert) => alert.status === "Actual")
+      .map((alert) => alert.severity)
   );
   if (severities.length === 0) {
     return "none";
@@ -88,11 +105,15 @@ export function alertsLevel(result: AlertsResult): WarningLevel {
   const worst = severities.reduce((a, b) =>
     SEVERITY_ORDER[a] <= SEVERITY_ORDER[b] ? a : b
   );
+  return severityLevel(worst);
+}
 
-  if (worst === "Extreme" || worst === "Severe") {
+/** The impact-based level one CAP severity maps to. */
+export function severityLevel(severity: CapSeverity): WarningLevel {
+  if (severity === "Extreme" || severity === "Severe") {
     return "take-action";
   }
-  if (worst === "Moderate") {
+  if (severity === "Moderate") {
     return "be-prepared";
   }
   return "be-aware";
@@ -130,5 +151,68 @@ export const fetchActiveAlerts = cache(async (): Promise<AlertsResult> => {
     return { activeCount: body.activeCount, groups: body.groups, status: "ok" };
   } catch (error) {
     return reportUnavailable(error);
+  }
+});
+
+export type PublicAlertResult =
+  | { status: "ok"; alert: CapAlertPublic }
+  | { status: "not-found" }
+  | { status: "unavailable" };
+
+/**
+ * One published public warning by CAP identifier, including what to expect,
+ * what to do, onset and certainty — the fields the `/warnings` summary omits.
+ * Uncached for the same reason as `fetchActiveAlerts`: a warning page must
+ * never show a stale state. A 404 is "not found", not an outage.
+ */
+export const fetchPublicAlert = cache(
+  async (identifier: string): Promise<PublicAlertResult> => {
+    try {
+      const response = await fetch(
+        `${env.CAP_API_URL}/api/cap/alerts/${encodeURIComponent(identifier)}`,
+        {
+          cache: "no-store",
+          signal: AbortSignal.timeout(WARNING_FETCH_TIMEOUT_MS),
+        }
+      );
+      if (response.status === 404) {
+        return { status: "not-found" };
+      }
+      if (!response.ok) {
+        reportUnavailable(new Error(`CAP alert responded ${response.status}`));
+        return { status: "unavailable" };
+      }
+      return {
+        alert: capAlertPublicSchema.parse(await response.json()),
+        status: "ok",
+      };
+    } catch (error) {
+      reportUnavailable(error);
+      return { status: "unavailable" };
+    }
+  }
+);
+
+/**
+ * Expired and cancelled public warnings. Failure yields an empty list: this
+ * feeds the "recently ended" all-clear, which is supplementary — the active
+ * feed, not this one, decides whether the site says "unavailable".
+ */
+export const fetchPastAlerts = cache(async (): Promise<CapAlertPublic[]> => {
+  try {
+    const response = await fetch(`${env.CAP_API_URL}/api/cap/past`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(WARNING_FETCH_TIMEOUT_MS),
+    });
+    if (!response.ok) {
+      reportUnavailable(
+        new Error(`CAP past alerts responded ${response.status}`)
+      );
+      return [];
+    }
+    return capAlertListPublicSchema.parse(await response.json()).data;
+  } catch (error) {
+    reportUnavailable(error);
+    return [];
   }
 });
