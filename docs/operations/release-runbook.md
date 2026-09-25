@@ -6,7 +6,7 @@
 
 How a change ships from `dev` to production. Agents (Claude Code / Codex) may run
 the verification and PR-creation steps; **merging PRs and publishing the release
-are human actions** (see the Never tier in `CLAUDE.md`).
+are human actions** (see the Never tier in `AGENTS.md`).
 
 Branch flow: `dev → (PR) → staging → (PR) → main → (release vN.M) → prod`.
 Direct commits go to `dev`; promotion is always via PR. Rulesets enforce the

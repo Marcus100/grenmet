@@ -227,4 +227,4 @@ pnpm install
 
 ---
 
-If your issue isn't covered here, check the [Technical Overview](./technical-overview.md) for how the system fits together, or inspect the relevant app's `CLAUDE.md` for app-specific context.
+If your issue isn't covered here, check the [Technical Overview](./technical-overview.md) for how the system fits together, or inspect the relevant app's `AGENTS.md` for app-specific context.

@@ -6,5 +6,5 @@ The heaviest app in the monorepo — HR management, staff calendars, charts, and
 
 Based on the TailAdmin Next.js template (MIT licensed).
 
-See [CLAUDE.md](./CLAUDE.md) for conventions, auth model, route structure, testing, and key dependencies.
+See [AGENTS.md](./AGENTS.md) for conventions, auth model, route structure, testing, and key dependencies.
 See [docs/web/development.md](../../../docs/web/development.md) for startup commands.
