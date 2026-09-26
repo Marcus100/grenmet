@@ -21,16 +21,20 @@ required checks on `staging` and `main` PRs.
 
 ## 2. Promote dev → staging
 
+- Promote on a cadence (daily, or per finished feature), not per `dev` push.
 - `gh pr create --base staging --head dev --title "chore: promote dev to staging"`
-- Wait for required checks: `gh pr checks <num> --watch`
-- **Human merges the PR.** The push to `staging` triggers `pipeline-staging.yml`,
+- **Human merges the PR**, normally by arming auto-merge:
+  `gh pr merge <num> --auto --merge`. The PR merges itself once the required
+  checks pass; a red check leaves it open, and a fix pushed to `dev` updates the
+  PR and re-runs checks. Watch with `gh pr checks <num> --watch` if needed.
+- The push to `staging` triggers `pipeline-staging.yml`,
   which builds and smoke-tests a complete core image set alongside CI, then deploys only after every gate succeeds.
 - Verify the staging deploy job succeeded: `gh run list --workflow=pipeline-staging.yml --limit 1`
 
 ## 3. Promote staging → main
 
 - `gh pr create --base main --head staging --title "chore: promote staging to main"`
-- Wait for required checks, then **human merges**. Merging to `main` does NOT
+- Arm auto-merge (`gh pr merge <num> --auto --merge`), which is the human merge decision. Merging to `main` does NOT
   deploy prod — prod is release-gated.
 
 ## 4. Publish the release (deploys prod)
