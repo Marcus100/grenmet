@@ -15,7 +15,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "type-check": "rm -f next-env.d.ts && tsc --noEmit"
+    "type-check": "rm -f next-env.d.ts && rm -rf .next/dev/types && next typegen && tsc --noEmit"
   },
   "dependencies": {
     "@barrelsgd/api-client": "workspace:*",

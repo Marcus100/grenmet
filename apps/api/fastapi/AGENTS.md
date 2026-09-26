@@ -268,6 +268,11 @@ async def test_create_leave_request(
     uv run --frozen --package fast-back pytest
   ```
 
+- Before pushing API changes, run the touched domains' tests
+  (`pytest tests/<domain>/`); the pre-push hook does not run pytest. Parallelise
+  with at most `-n 2`, as CI does — higher worker counts against the shared local
+  Postgres cause fixture `TimeoutError`s that are not real failures.
+
   The passwords above are local-development placeholders; use the local stack's
   actual values when they differ, and never commit real credentials. The main
   suite creates a run-owned application database. wxproducts migration and
