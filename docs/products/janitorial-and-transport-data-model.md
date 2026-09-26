@@ -2,7 +2,7 @@
 
 **Status:** Proposal, awaiting approval (schema changes are Ask First)  
 **Owner:** Barrels Grenada engineering, for GAA Janitorial and GAA Transport  
-**Last updated:** 2026-09-23
+**Last updated:** 2026-09-26
 
 ## Why
 
@@ -119,3 +119,53 @@ CMS and be linked from the PWA.
 4. Should vehicle live location come from a driver's phone (PWA) or a vehicle
    tracker? This affects privacy terms with drivers.
 5. Confirm the space-type list and target APPA level per area with GAA Janitorial.
+
+## Janitorial decisions (2026-09-25)
+
+- **Scope:** airport-wide at both GAA airports — sites MBIA (`GND`) and
+  Lauriston (`CRU`). Lauriston's spec is built in the portal editor.
+- **People:** one cleaning contractor. Cleaners are contractor staff (not in HR)
+  with their own Barrels Login accounts; janitorial stores their user ids.
+- **Portal:** GAA staff only (supervisors and managers), limited by
+  **per-building grants**. Contractor staff use the janitor PWA.
+- **Shifts:** fixed shift patterns per site; people are assigned to zones
+  (groups of areas) per shift and date.
+- **Space type and APPA level:** inferred from area names by `janitorial_0002`,
+  editable in the portal (answers decision 5 provisionally; GAA to confirm).
+- **Merged work model** (with the Clean proposal in
+  [gaa-clean-quality-cms-proposals.md](./gaa-clean-quality-cms-proposals.md)):
+  QR check-in visits for frequent work, planned assignments with independent
+  verification for periodic or special jobs. All new tables follow the Clean
+  proposal's conventions (revision checks, same-transaction history, no hard
+  delete, identity UUIDs by value).
+- **In scope later:** visits, completions, issues, supplies, live board (P3);
+  inspections and SLA scorecard with monthly report (P4); passenger feedback QR
+  and flight-driven cleaning from an imported schedule (P5).
+
+**Done:** `janitorial_0002` (sites, auxiliary-building promotion, area codes and
+attributes, contractors, staff, building grants, shift patterns, zones,
+assignments, `change_events`) with the portal's Setup, Staff, Shifts and QR
+label pages. Contracts: [API contracts → Janitorial portal](../api/contracts.md).
+
+## Transport decisions (2026-09-25)
+
+Recorded from the product owner; the bus phase 1 schema is approved and
+implemented as `transport_0003` (additive: v1 `trips` / `trip_stops` are kept
+and copied into version 1).
+
+- **Boarding:** check-in only, no seat booking. Riders register a home stop and
+  route, and Transport approves them.
+- **Operator:** one contractor supplies both drivers and buses; GAA monitors
+  on-time running, inspections and incidents.
+- **Driver sign-in:** existing auth accounts with a `transport-driver` role and
+  no HR profile.
+- **Timetable edits:** draft → publish with an effective date; versions are
+  kept. Stops and routes are a registry edited in place. `route_notes` was
+  folded into `routes.description`.
+- **Live location:** from the driver's phone only between start and end of a
+  run; raw points kept 30 days, then only per-stop arrival times remain.
+- **Roles:** Transport officer, Duty Manager, contractor supervisor, read-only
+  viewers; most staff get view + ride.
+- **Scope:** timetable/stops, fleet + inspections, dispatch + Today board,
+  riders/reports/analytics, service alerts, live map + ETA, contractor
+  scorecard. The AI ops assistant waits for the ADR-0014 `ai` domain.

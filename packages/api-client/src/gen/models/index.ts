@@ -8,6 +8,7 @@ export type { AccessReviewData } from "./AccessReviewData.js";
 export type { AccountSecurityPublic } from "./AccountSecurityPublic.js";
 export type { AddressPublic } from "./AddressPublic.js";
 export type { AddressUpdate } from "./AddressUpdate.js";
+export type { ApiError } from "./ApiError.js";
 export type { ApprovalAuthorityPublic } from "./ApprovalAuthorityPublic.js";
 export type { ApprovalAuthorityUpdate } from "./ApprovalAuthorityUpdate.js";
 export type { ArchiveBulletin } from "./ArchiveBulletin.js";
@@ -15,6 +16,10 @@ export type { ArchiveEdition } from "./ArchiveEdition.js";
 export type { ArchiveHistory } from "./ArchiveHistory.js";
 export type { ArchivePage } from "./ArchivePage.js";
 export type { ArchiveRetrieval } from "./ArchiveRetrieval.js";
+export type { AreaCreate } from "./AreaCreate.js";
+export type { AreaCreatePropertiesSpaceTypeAnyOfEnum } from "./AreaCreatePropertiesSpaceTypeAnyOfEnum.js";
+export { areaCreatePropertiesSpaceTypeAnyOfEnum } from "./AreaCreatePropertiesSpaceTypeAnyOfEnum.js";
+export type { AreaUpdate } from "./AreaUpdate.js";
 export type { AreaView } from "./AreaView.js";
 export type { AuditChangePublic } from "./AuditChangePublic.js";
 export type { AuditEntryPublic } from "./AuditEntryPublic.js";
@@ -490,6 +495,10 @@ export type {
 export type { BodyAuthLoginAccessToken } from "./BodyAuthLoginAccessToken.js";
 export type { BodyHrUploadDocument } from "./BodyHrUploadDocument.js";
 export type { BrowserSession } from "./BrowserSession.js";
+export type { BuildingCreate } from "./BuildingCreate.js";
+export type { BuildingCreatePropertiesKindEnum } from "./BuildingCreatePropertiesKindEnum.js";
+export { buildingCreatePropertiesKindEnum } from "./BuildingCreatePropertiesKindEnum.js";
+export type { BuildingUpdate } from "./BuildingUpdate.js";
 export type { BuildingView } from "./BuildingView.js";
 export type { BundleItem } from "./BundleItem.js";
 export type { BundleView } from "./BundleView.js";
@@ -852,6 +861,8 @@ export type { CapValidationResult } from "./CapValidationResult.js";
 export type { CatalogueApply } from "./CatalogueApply.js";
 export type { CataloguePreview } from "./CataloguePreview.js";
 export type { CheckoutSessionPublic } from "./CheckoutSessionPublic.js";
+export type { ContractorCreate } from "./ContractorCreate.js";
+export type { ContractorUpdate } from "./ContractorUpdate.js";
 export type { DashboardApproval } from "./DashboardApproval.js";
 export type { DashboardPerson } from "./DashboardPerson.js";
 export type { DashboardRequest } from "./DashboardRequest.js";
@@ -930,6 +941,7 @@ export type { GoogleStartPublic } from "./GoogleStartPublic.js";
 export type { GradeInput } from "./GradeInput.js";
 export type { GradePublic } from "./GradePublic.js";
 export type { GradeSetup } from "./GradeSetup.js";
+export type { GrantCreate } from "./GrantCreate.js";
 export type {
   HrActionLeaveRequestBody,
   HrActionLeaveRequestOptions,
@@ -2075,6 +2087,205 @@ export { imageInputPropertiesTimeBasisEnum } from "./ImageInputPropertiesTimeBas
 export type { ImageResult } from "./ImageResult.js";
 export type { ImportStatus } from "./ImportStatus.js";
 export { importStatus } from "./ImportStatus.js";
+export type { JanitorialAccess } from "./JanitorialAccess.js";
+export type { JanitorialArea } from "./JanitorialArea.js";
+export type { JanitorialBuilding } from "./JanitorialBuilding.js";
+export type { JanitorialBundle } from "./JanitorialBundle.js";
+export type { JanitorialBundleItem } from "./JanitorialBundleItem.js";
+export type { JanitorialCatalogue } from "./JanitorialCatalogue.js";
+export type { JanitorialContractor } from "./JanitorialContractor.js";
+export type {
+  JanitorialCreateAreaBody,
+  JanitorialCreateAreaOptions,
+  JanitorialCreateAreaResponse,
+  JanitorialCreateAreaResponses,
+  JanitorialCreateAreaStatus201,
+  JanitorialCreateAreaStatus403,
+  JanitorialCreateAreaStatus404,
+  JanitorialCreateAreaStatus409,
+  JanitorialCreateAreaStatus422,
+  JanitorialCreateAreaStatus503,
+} from "./JanitorialCreateArea.js";
+export type {
+  JanitorialCreateBuildingBody,
+  JanitorialCreateBuildingOptions,
+  JanitorialCreateBuildingResponse,
+  JanitorialCreateBuildingResponses,
+  JanitorialCreateBuildingStatus201,
+  JanitorialCreateBuildingStatus403,
+  JanitorialCreateBuildingStatus404,
+  JanitorialCreateBuildingStatus409,
+  JanitorialCreateBuildingStatus422,
+  JanitorialCreateBuildingStatus503,
+} from "./JanitorialCreateBuilding.js";
+export type {
+  JanitorialCreateContractorBody,
+  JanitorialCreateContractorOptions,
+  JanitorialCreateContractorResponse,
+  JanitorialCreateContractorResponses,
+  JanitorialCreateContractorStatus201,
+  JanitorialCreateContractorStatus403,
+  JanitorialCreateContractorStatus404,
+  JanitorialCreateContractorStatus409,
+  JanitorialCreateContractorStatus422,
+  JanitorialCreateContractorStatus503,
+} from "./JanitorialCreateContractor.js";
+export type {
+  JanitorialCreateGrantsBody,
+  JanitorialCreateGrantsOptions,
+  JanitorialCreateGrantsResponse,
+  JanitorialCreateGrantsResponses,
+  JanitorialCreateGrantsStatus201,
+  JanitorialCreateGrantsStatus403,
+  JanitorialCreateGrantsStatus404,
+  JanitorialCreateGrantsStatus409,
+  JanitorialCreateGrantsStatus422,
+  JanitorialCreateGrantsStatus503,
+} from "./JanitorialCreateGrants.js";
+export type {
+  JanitorialCreateSectionBody,
+  JanitorialCreateSectionOptions,
+  JanitorialCreateSectionResponse,
+  JanitorialCreateSectionResponses,
+  JanitorialCreateSectionStatus201,
+  JanitorialCreateSectionStatus403,
+  JanitorialCreateSectionStatus404,
+  JanitorialCreateSectionStatus409,
+  JanitorialCreateSectionStatus422,
+  JanitorialCreateSectionStatus503,
+} from "./JanitorialCreateSection.js";
+export type {
+  JanitorialCreateShiftAssignmentBody,
+  JanitorialCreateShiftAssignmentOptions,
+  JanitorialCreateShiftAssignmentResponse,
+  JanitorialCreateShiftAssignmentResponses,
+  JanitorialCreateShiftAssignmentStatus201,
+  JanitorialCreateShiftAssignmentStatus403,
+  JanitorialCreateShiftAssignmentStatus404,
+  JanitorialCreateShiftAssignmentStatus409,
+  JanitorialCreateShiftAssignmentStatus422,
+  JanitorialCreateShiftAssignmentStatus503,
+} from "./JanitorialCreateShiftAssignment.js";
+export type {
+  JanitorialCreateShiftPatternBody,
+  JanitorialCreateShiftPatternOptions,
+  JanitorialCreateShiftPatternResponse,
+  JanitorialCreateShiftPatternResponses,
+  JanitorialCreateShiftPatternStatus201,
+  JanitorialCreateShiftPatternStatus403,
+  JanitorialCreateShiftPatternStatus404,
+  JanitorialCreateShiftPatternStatus409,
+  JanitorialCreateShiftPatternStatus422,
+  JanitorialCreateShiftPatternStatus503,
+} from "./JanitorialCreateShiftPattern.js";
+export type {
+  JanitorialCreateStaffBody,
+  JanitorialCreateStaffOptions,
+  JanitorialCreateStaffResponse,
+  JanitorialCreateStaffResponses,
+  JanitorialCreateStaffStatus201,
+  JanitorialCreateStaffStatus403,
+  JanitorialCreateStaffStatus404,
+  JanitorialCreateStaffStatus409,
+  JanitorialCreateStaffStatus422,
+  JanitorialCreateStaffStatus503,
+} from "./JanitorialCreateStaff.js";
+export type {
+  JanitorialCreateTaskBody,
+  JanitorialCreateTaskOptions,
+  JanitorialCreateTaskPath,
+  JanitorialCreateTaskResponse,
+  JanitorialCreateTaskResponses,
+  JanitorialCreateTaskStatus201,
+  JanitorialCreateTaskStatus403,
+  JanitorialCreateTaskStatus404,
+  JanitorialCreateTaskStatus409,
+  JanitorialCreateTaskStatus422,
+  JanitorialCreateTaskStatus503,
+} from "./JanitorialCreateTask.js";
+export type {
+  JanitorialCreateZoneBody,
+  JanitorialCreateZoneOptions,
+  JanitorialCreateZoneResponse,
+  JanitorialCreateZoneResponses,
+  JanitorialCreateZoneStatus201,
+  JanitorialCreateZoneStatus403,
+  JanitorialCreateZoneStatus404,
+  JanitorialCreateZoneStatus409,
+  JanitorialCreateZoneStatus422,
+  JanitorialCreateZoneStatus503,
+} from "./JanitorialCreateZone.js";
+export type { JanitorialFrequency } from "./JanitorialFrequency.js";
+export type { JanitorialFrequencyPropertiesPeriodUnitEnum } from "./JanitorialFrequencyPropertiesPeriodUnitEnum.js";
+export { janitorialFrequencyPropertiesPeriodUnitEnum } from "./JanitorialFrequencyPropertiesPeriodUnitEnum.js";
+export type {
+  JanitorialGetAccessOptions,
+  JanitorialGetAccessResponse,
+  JanitorialGetAccessResponses,
+  JanitorialGetAccessStatus200,
+  JanitorialGetAccessStatus401,
+  JanitorialGetAccessStatus422,
+} from "./JanitorialGetAccess.js";
+export type {
+  JanitorialGetCatalogueOptions,
+  JanitorialGetCatalogueQuery,
+  JanitorialGetCatalogueResponse,
+  JanitorialGetCatalogueResponses,
+  JanitorialGetCatalogueStatus200,
+  JanitorialGetCatalogueStatus403,
+  JanitorialGetCatalogueStatus404,
+  JanitorialGetCatalogueStatus422,
+  JanitorialGetCatalogueStatus503,
+} from "./JanitorialGetCatalogue.js";
+export type {
+  JanitorialGetShiftBoardOptions,
+  JanitorialGetShiftBoardQuery,
+  JanitorialGetShiftBoardResponse,
+  JanitorialGetShiftBoardResponses,
+  JanitorialGetShiftBoardStatus200,
+  JanitorialGetShiftBoardStatus403,
+  JanitorialGetShiftBoardStatus404,
+  JanitorialGetShiftBoardStatus422,
+  JanitorialGetShiftBoardStatus503,
+} from "./JanitorialGetShiftBoard.js";
+export type { JanitorialGrant } from "./JanitorialGrant.js";
+export type {
+  JanitorialListGrantsOptions,
+  JanitorialListGrantsResponse,
+  JanitorialListGrantsResponses,
+  JanitorialListGrantsStatus200,
+  JanitorialListGrantsStatus403,
+  JanitorialListGrantsStatus422,
+  JanitorialListGrantsStatus503,
+} from "./JanitorialListGrants.js";
+export type {
+  JanitorialListStaffOptions,
+  JanitorialListStaffResponse,
+  JanitorialListStaffResponses,
+  JanitorialListStaffStatus200,
+  JanitorialListStaffStatus403,
+  JanitorialListStaffStatus422,
+  JanitorialListStaffStatus503,
+} from "./JanitorialListStaff.js";
+export type {
+  JanitorialRevokeGrantOptions,
+  JanitorialRevokeGrantPath,
+  JanitorialRevokeGrantResponse,
+  JanitorialRevokeGrantResponses,
+  JanitorialRevokeGrantStatus204,
+  JanitorialRevokeGrantStatus403,
+  JanitorialRevokeGrantStatus404,
+  JanitorialRevokeGrantStatus409,
+  JanitorialRevokeGrantStatus422,
+  JanitorialRevokeGrantStatus503,
+} from "./JanitorialRevokeGrant.js";
+export type { JanitorialSection } from "./JanitorialSection.js";
+export type { JanitorialShiftAssignment } from "./JanitorialShiftAssignment.js";
+export type { JanitorialShiftAssignmentPropertiesStatusEnum } from "./JanitorialShiftAssignmentPropertiesStatusEnum.js";
+export { janitorialShiftAssignmentPropertiesStatusEnum } from "./JanitorialShiftAssignmentPropertiesStatusEnum.js";
+export type { JanitorialShiftBoard } from "./JanitorialShiftBoard.js";
+export type { JanitorialShiftPattern } from "./JanitorialShiftPattern.js";
+export type { JanitorialSite } from "./JanitorialSite.js";
 export type {
   JanitorialSpecOptions,
   JanitorialSpecResponse,
@@ -2082,6 +2293,129 @@ export type {
   JanitorialSpecStatus200,
   JanitorialSpecStatus422,
 } from "./JanitorialSpec.js";
+export type { JanitorialStaffList } from "./JanitorialStaffList.js";
+export type { JanitorialStaffMember } from "./JanitorialStaffMember.js";
+export type { JanitorialStaffMemberPropertiesRoleEnum } from "./JanitorialStaffMemberPropertiesRoleEnum.js";
+export { janitorialStaffMemberPropertiesRoleEnum } from "./JanitorialStaffMemberPropertiesRoleEnum.js";
+export type { JanitorialTask } from "./JanitorialTask.js";
+export type {
+  JanitorialUpdateAreaBody,
+  JanitorialUpdateAreaOptions,
+  JanitorialUpdateAreaPath,
+  JanitorialUpdateAreaResponse,
+  JanitorialUpdateAreaResponses,
+  JanitorialUpdateAreaStatus200,
+  JanitorialUpdateAreaStatus403,
+  JanitorialUpdateAreaStatus404,
+  JanitorialUpdateAreaStatus409,
+  JanitorialUpdateAreaStatus422,
+  JanitorialUpdateAreaStatus503,
+} from "./JanitorialUpdateArea.js";
+export type {
+  JanitorialUpdateBuildingBody,
+  JanitorialUpdateBuildingOptions,
+  JanitorialUpdateBuildingPath,
+  JanitorialUpdateBuildingResponse,
+  JanitorialUpdateBuildingResponses,
+  JanitorialUpdateBuildingStatus200,
+  JanitorialUpdateBuildingStatus403,
+  JanitorialUpdateBuildingStatus404,
+  JanitorialUpdateBuildingStatus409,
+  JanitorialUpdateBuildingStatus422,
+  JanitorialUpdateBuildingStatus503,
+} from "./JanitorialUpdateBuilding.js";
+export type {
+  JanitorialUpdateContractorBody,
+  JanitorialUpdateContractorOptions,
+  JanitorialUpdateContractorPath,
+  JanitorialUpdateContractorResponse,
+  JanitorialUpdateContractorResponses,
+  JanitorialUpdateContractorStatus200,
+  JanitorialUpdateContractorStatus403,
+  JanitorialUpdateContractorStatus404,
+  JanitorialUpdateContractorStatus409,
+  JanitorialUpdateContractorStatus422,
+  JanitorialUpdateContractorStatus503,
+} from "./JanitorialUpdateContractor.js";
+export type {
+  JanitorialUpdateSectionBody,
+  JanitorialUpdateSectionOptions,
+  JanitorialUpdateSectionPath,
+  JanitorialUpdateSectionResponse,
+  JanitorialUpdateSectionResponses,
+  JanitorialUpdateSectionStatus200,
+  JanitorialUpdateSectionStatus403,
+  JanitorialUpdateSectionStatus404,
+  JanitorialUpdateSectionStatus409,
+  JanitorialUpdateSectionStatus422,
+  JanitorialUpdateSectionStatus503,
+} from "./JanitorialUpdateSection.js";
+export type {
+  JanitorialUpdateShiftAssignmentBody,
+  JanitorialUpdateShiftAssignmentOptions,
+  JanitorialUpdateShiftAssignmentPath,
+  JanitorialUpdateShiftAssignmentResponse,
+  JanitorialUpdateShiftAssignmentResponses,
+  JanitorialUpdateShiftAssignmentStatus200,
+  JanitorialUpdateShiftAssignmentStatus403,
+  JanitorialUpdateShiftAssignmentStatus404,
+  JanitorialUpdateShiftAssignmentStatus409,
+  JanitorialUpdateShiftAssignmentStatus422,
+  JanitorialUpdateShiftAssignmentStatus503,
+} from "./JanitorialUpdateShiftAssignment.js";
+export type {
+  JanitorialUpdateShiftPatternBody,
+  JanitorialUpdateShiftPatternOptions,
+  JanitorialUpdateShiftPatternPath,
+  JanitorialUpdateShiftPatternResponse,
+  JanitorialUpdateShiftPatternResponses,
+  JanitorialUpdateShiftPatternStatus200,
+  JanitorialUpdateShiftPatternStatus403,
+  JanitorialUpdateShiftPatternStatus404,
+  JanitorialUpdateShiftPatternStatus409,
+  JanitorialUpdateShiftPatternStatus422,
+  JanitorialUpdateShiftPatternStatus503,
+} from "./JanitorialUpdateShiftPattern.js";
+export type {
+  JanitorialUpdateStaffBody,
+  JanitorialUpdateStaffOptions,
+  JanitorialUpdateStaffPath,
+  JanitorialUpdateStaffResponse,
+  JanitorialUpdateStaffResponses,
+  JanitorialUpdateStaffStatus200,
+  JanitorialUpdateStaffStatus403,
+  JanitorialUpdateStaffStatus404,
+  JanitorialUpdateStaffStatus409,
+  JanitorialUpdateStaffStatus422,
+  JanitorialUpdateStaffStatus503,
+} from "./JanitorialUpdateStaff.js";
+export type {
+  JanitorialUpdateTaskBody,
+  JanitorialUpdateTaskOptions,
+  JanitorialUpdateTaskPath,
+  JanitorialUpdateTaskResponse,
+  JanitorialUpdateTaskResponses,
+  JanitorialUpdateTaskStatus200,
+  JanitorialUpdateTaskStatus403,
+  JanitorialUpdateTaskStatus404,
+  JanitorialUpdateTaskStatus409,
+  JanitorialUpdateTaskStatus422,
+  JanitorialUpdateTaskStatus503,
+} from "./JanitorialUpdateTask.js";
+export type {
+  JanitorialUpdateZoneBody,
+  JanitorialUpdateZoneOptions,
+  JanitorialUpdateZonePath,
+  JanitorialUpdateZoneResponse,
+  JanitorialUpdateZoneResponses,
+  JanitorialUpdateZoneStatus200,
+  JanitorialUpdateZoneStatus403,
+  JanitorialUpdateZoneStatus404,
+  JanitorialUpdateZoneStatus409,
+  JanitorialUpdateZoneStatus422,
+  JanitorialUpdateZoneStatus503,
+} from "./JanitorialUpdateZone.js";
+export type { JanitorialZone } from "./JanitorialZone.js";
 export type { JsonValue } from "./JsonValue.js";
 export type { LeavePublic } from "./LeavePublic.js";
 export type { LeaveRequestAction } from "./LeaveRequestAction.js";
@@ -2292,15 +2626,20 @@ export type { RunInput } from "./RunInput.js";
 export type { RunInputPropertiesSourceEnum } from "./RunInputPropertiesSourceEnum.js";
 export { runInputPropertiesSourceEnum } from "./RunInputPropertiesSourceEnum.js";
 export type { RunResult } from "./RunResult.js";
+export type { SectionCreate } from "./SectionCreate.js";
+export type { SectionUpdate } from "./SectionUpdate.js";
 export type { SectionView } from "./SectionView.js";
 export type { SecurityProof } from "./SecurityProof.js";
 export type { SecuritySessionPublic } from "./SecuritySessionPublic.js";
+export type { ServiceCalendarView } from "./ServiceCalendarView.js";
 export type { SessionAccessTokenResponse } from "./SessionAccessTokenResponse.js";
 export type { SessionLoginRequest } from "./SessionLoginRequest.js";
 export type { SessionLoginResponse } from "./SessionLoginResponse.js";
 export type { SessionPublic } from "./SessionPublic.js";
 export type { SessionTokenRequest } from "./SessionTokenRequest.js";
 export type { SessionUserPublic } from "./SessionUserPublic.js";
+export type { ShiftAssignmentCreate } from "./ShiftAssignmentCreate.js";
+export type { ShiftAssignmentUpdate } from "./ShiftAssignmentUpdate.js";
 export type { ShiftCatalogCreate } from "./ShiftCatalogCreate.js";
 export type { ShiftCatalogPublic } from "./ShiftCatalogPublic.js";
 export type { ShiftCatalogsPublic } from "./ShiftCatalogsPublic.js";
@@ -2310,6 +2649,8 @@ export { shiftCategory } from "./ShiftCategory.js";
 export type { ShiftHoursSummary } from "./ShiftHoursSummary.js";
 export type { ShiftPattern } from "./ShiftPattern.js";
 export { shiftPattern } from "./ShiftPattern.js";
+export type { ShiftPatternCreate } from "./ShiftPatternCreate.js";
+export type { ShiftPatternUpdate } from "./ShiftPatternUpdate.js";
 export type { ShiftPeriod } from "./ShiftPeriod.js";
 export { shiftPeriod } from "./ShiftPeriod.js";
 export type { ShiftSwapAction } from "./ShiftSwapAction.js";
@@ -2325,8 +2666,10 @@ export type { SignedDocumentPublic } from "./SignedDocumentPublic.js";
 export type { SrcAuthSchemasRolePublic } from "./SrcAuthSchemasRolePublic.js";
 export type { SrcHrSchemasRolePublic } from "./SrcHrSchemasRolePublic.js";
 export type { StaffCard } from "./StaffCard.js";
+export type { StaffCreate } from "./StaffCreate.js";
 export type { StaffInput } from "./StaffInput.js";
 export type { StaffSetup } from "./StaffSetup.js";
+export type { StaffUpdate } from "./StaffUpdate.js";
 export type { StatusReportCreate } from "./StatusReportCreate.js";
 export type { StatusReportDetails } from "./StatusReportDetails.js";
 export type { StatusReportEntryInput } from "./StatusReportEntryInput.js";
@@ -2346,6 +2689,8 @@ export type { SynopValidationIssue } from "./SynopValidationIssue.js";
 export type { SynopValidationRequest } from "./SynopValidationRequest.js";
 export type { SynopValidationResponse } from "./SynopValidationResponse.js";
 export type { SynopWorkbook } from "./SynopWorkbook.js";
+export type { TaskCreate } from "./TaskCreate.js";
+export type { TaskUpdate } from "./TaskUpdate.js";
 export type { TaskView } from "./TaskView.js";
 export type { TimesheetCreate } from "./TimesheetCreate.js";
 export type { TimesheetDetails } from "./TimesheetDetails.js";
@@ -2357,6 +2702,22 @@ export type { TimesheetStatus } from "./TimesheetStatus.js";
 export { timesheetStatus } from "./TimesheetStatus.js";
 export type { TimesheetSubmitRequest } from "./TimesheetSubmitRequest.js";
 export type { TimesheetSummaryByShift } from "./TimesheetSummaryByShift.js";
+export type { TimetableIssue } from "./TimetableIssue.js";
+export type { TimetableIssueSeverity } from "./TimetableIssueSeverity.js";
+export { timetableIssueSeverity } from "./TimetableIssueSeverity.js";
+export type { TimetablePublish } from "./TimetablePublish.js";
+export type { TimetableStopTimeInput } from "./TimetableStopTimeInput.js";
+export type { TimetableStopTimeView } from "./TimetableStopTimeView.js";
+export type { TimetableTripInput } from "./TimetableTripInput.js";
+export type { TimetableTripView } from "./TimetableTripView.js";
+export type { TimetableVersionCreate } from "./TimetableVersionCreate.js";
+export type { TimetableVersionDetail } from "./TimetableVersionDetail.js";
+export type { TimetableVersionState } from "./TimetableVersionState.js";
+export { timetableVersionState } from "./TimetableVersionState.js";
+export type { TimetableVersionStatus } from "./TimetableVersionStatus.js";
+export { timetableVersionStatus } from "./TimetableVersionStatus.js";
+export type { TimetableVersionSummary } from "./TimetableVersionSummary.js";
+export type { TimetableVersionUpdate } from "./TimetableVersionUpdate.js";
 export type { Title } from "./Title.js";
 export { title } from "./Title.js";
 export type { Token } from "./Token.js";
@@ -2368,6 +2729,154 @@ export type { TrainingRecordInputPropertiesResultEnum } from "./TrainingRecordIn
 export { trainingRecordInputPropertiesResultEnum } from "./TrainingRecordInputPropertiesResultEnum.js";
 export type { TrainingRecordList } from "./TrainingRecordList.js";
 export type { TrainingRecordPublic } from "./TrainingRecordPublic.js";
+export type { TransportAccess } from "./TransportAccess.js";
+export type {
+  TransportAddTimetableTripBody,
+  TransportAddTimetableTripOptions,
+  TransportAddTimetableTripPath,
+  TransportAddTimetableTripResponse,
+  TransportAddTimetableTripResponses,
+  TransportAddTimetableTripStatus201,
+  TransportAddTimetableTripStatus403,
+  TransportAddTimetableTripStatus404,
+  TransportAddTimetableTripStatus409,
+  TransportAddTimetableTripStatus422,
+  TransportAddTimetableTripStatus503,
+} from "./TransportAddTimetableTrip.js";
+export type { TransportCatalogue } from "./TransportCatalogue.js";
+export type {
+  TransportCreateRouteEntryBody,
+  TransportCreateRouteEntryOptions,
+  TransportCreateRouteEntryResponse,
+  TransportCreateRouteEntryResponses,
+  TransportCreateRouteEntryStatus201,
+  TransportCreateRouteEntryStatus403,
+  TransportCreateRouteEntryStatus409,
+  TransportCreateRouteEntryStatus422,
+  TransportCreateRouteEntryStatus503,
+} from "./TransportCreateRouteEntry.js";
+export type {
+  TransportCreateStopBody,
+  TransportCreateStopOptions,
+  TransportCreateStopResponse,
+  TransportCreateStopResponses,
+  TransportCreateStopStatus201,
+  TransportCreateStopStatus403,
+  TransportCreateStopStatus409,
+  TransportCreateStopStatus422,
+  TransportCreateStopStatus503,
+} from "./TransportCreateStop.js";
+export type {
+  TransportCreateTimetableDraftBody,
+  TransportCreateTimetableDraftOptions,
+  TransportCreateTimetableDraftResponse,
+  TransportCreateTimetableDraftResponses,
+  TransportCreateTimetableDraftStatus201,
+  TransportCreateTimetableDraftStatus403,
+  TransportCreateTimetableDraftStatus409,
+  TransportCreateTimetableDraftStatus422,
+  TransportCreateTimetableDraftStatus503,
+} from "./TransportCreateTimetableDraft.js";
+export type {
+  TransportDeleteTimetableTripOptions,
+  TransportDeleteTimetableTripPath,
+  TransportDeleteTimetableTripResponse,
+  TransportDeleteTimetableTripResponses,
+  TransportDeleteTimetableTripStatus204,
+  TransportDeleteTimetableTripStatus403,
+  TransportDeleteTimetableTripStatus404,
+  TransportDeleteTimetableTripStatus409,
+  TransportDeleteTimetableTripStatus422,
+  TransportDeleteTimetableTripStatus503,
+} from "./TransportDeleteTimetableTrip.js";
+export type { TransportDirection } from "./TransportDirection.js";
+export { transportDirection } from "./TransportDirection.js";
+export type {
+  TransportDiscardTimetableDraftOptions,
+  TransportDiscardTimetableDraftPath,
+  TransportDiscardTimetableDraftResponse,
+  TransportDiscardTimetableDraftResponses,
+  TransportDiscardTimetableDraftStatus200,
+  TransportDiscardTimetableDraftStatus403,
+  TransportDiscardTimetableDraftStatus404,
+  TransportDiscardTimetableDraftStatus409,
+  TransportDiscardTimetableDraftStatus422,
+  TransportDiscardTimetableDraftStatus503,
+} from "./TransportDiscardTimetableDraft.js";
+export type {
+  TransportGetAccessOptions,
+  TransportGetAccessResponse,
+  TransportGetAccessResponses,
+  TransportGetAccessStatus200,
+  TransportGetAccessStatus401,
+  TransportGetAccessStatus422,
+} from "./TransportGetAccess.js";
+export type {
+  TransportGetCatalogueOptions,
+  TransportGetCatalogueResponse,
+  TransportGetCatalogueResponses,
+  TransportGetCatalogueStatus200,
+  TransportGetCatalogueStatus422,
+  TransportGetCatalogueStatus503,
+} from "./TransportGetCatalogue.js";
+export type {
+  TransportGetCurrentTimetableOptions,
+  TransportGetCurrentTimetableResponse,
+  TransportGetCurrentTimetableResponses,
+  TransportGetCurrentTimetableStatus200,
+  TransportGetCurrentTimetableStatus404,
+  TransportGetCurrentTimetableStatus422,
+  TransportGetCurrentTimetableStatus503,
+} from "./TransportGetCurrentTimetable.js";
+export type {
+  TransportGetTimetableVersionOptions,
+  TransportGetTimetableVersionPath,
+  TransportGetTimetableVersionResponse,
+  TransportGetTimetableVersionResponses,
+  TransportGetTimetableVersionStatus200,
+  TransportGetTimetableVersionStatus403,
+  TransportGetTimetableVersionStatus404,
+  TransportGetTimetableVersionStatus422,
+  TransportGetTimetableVersionStatus503,
+} from "./TransportGetTimetableVersion.js";
+export type {
+  TransportListTimetableVersionsOptions,
+  TransportListTimetableVersionsResponse,
+  TransportListTimetableVersionsResponses,
+  TransportListTimetableVersionsStatus200,
+  TransportListTimetableVersionsStatus403,
+  TransportListTimetableVersionsStatus422,
+  TransportListTimetableVersionsStatus503,
+} from "./TransportListTimetableVersions.js";
+export type {
+  TransportPublishTimetableDraftBody,
+  TransportPublishTimetableDraftOptions,
+  TransportPublishTimetableDraftPath,
+  TransportPublishTimetableDraftResponse,
+  TransportPublishTimetableDraftResponses,
+  TransportPublishTimetableDraftStatus200,
+  TransportPublishTimetableDraftStatus403,
+  TransportPublishTimetableDraftStatus404,
+  TransportPublishTimetableDraftStatus409,
+  TransportPublishTimetableDraftStatus422,
+  TransportPublishTimetableDraftStatus503,
+} from "./TransportPublishTimetableDraft.js";
+export type {
+  TransportReplaceTimetableTripBody,
+  TransportReplaceTimetableTripOptions,
+  TransportReplaceTimetableTripPath,
+  TransportReplaceTimetableTripResponse,
+  TransportReplaceTimetableTripResponses,
+  TransportReplaceTimetableTripStatus200,
+  TransportReplaceTimetableTripStatus403,
+  TransportReplaceTimetableTripStatus404,
+  TransportReplaceTimetableTripStatus409,
+  TransportReplaceTimetableTripStatus422,
+  TransportReplaceTimetableTripStatus503,
+} from "./TransportReplaceTimetableTrip.js";
+export type { TransportRoute } from "./TransportRoute.js";
+export type { TransportRouteInput } from "./TransportRouteInput.js";
+export type { TransportShift } from "./TransportShift.js";
 export type {
   TransportSpecOptions,
   TransportSpecResponse,
@@ -2375,6 +2884,51 @@ export type {
   TransportSpecStatus200,
   TransportSpecStatus422,
 } from "./TransportSpec.js";
+export type { TransportStop } from "./TransportStop.js";
+export type { TransportStopInput } from "./TransportStopInput.js";
+export type { TransportTripStatus } from "./TransportTripStatus.js";
+export { transportTripStatus } from "./TransportTripStatus.js";
+export type {
+  TransportUpdateRouteEntryBody,
+  TransportUpdateRouteEntryOptions,
+  TransportUpdateRouteEntryPath,
+  TransportUpdateRouteEntryResponse,
+  TransportUpdateRouteEntryResponses,
+  TransportUpdateRouteEntryStatus200,
+  TransportUpdateRouteEntryStatus403,
+  TransportUpdateRouteEntryStatus404,
+  TransportUpdateRouteEntryStatus409,
+  TransportUpdateRouteEntryStatus422,
+  TransportUpdateRouteEntryStatus503,
+} from "./TransportUpdateRouteEntry.js";
+export type {
+  TransportUpdateStopBody,
+  TransportUpdateStopOptions,
+  TransportUpdateStopPath,
+  TransportUpdateStopResponse,
+  TransportUpdateStopResponses,
+  TransportUpdateStopStatus200,
+  TransportUpdateStopStatus403,
+  TransportUpdateStopStatus404,
+  TransportUpdateStopStatus409,
+  TransportUpdateStopStatus422,
+  TransportUpdateStopStatus503,
+} from "./TransportUpdateStop.js";
+export type {
+  TransportUpdateTimetableDraftBody,
+  TransportUpdateTimetableDraftOptions,
+  TransportUpdateTimetableDraftPath,
+  TransportUpdateTimetableDraftResponse,
+  TransportUpdateTimetableDraftResponses,
+  TransportUpdateTimetableDraftStatus200,
+  TransportUpdateTimetableDraftStatus403,
+  TransportUpdateTimetableDraftStatus404,
+  TransportUpdateTimetableDraftStatus409,
+  TransportUpdateTimetableDraftStatus422,
+  TransportUpdateTimetableDraftStatus503,
+} from "./TransportUpdateTimetableDraft.js";
+export type { TransportWeekday } from "./TransportWeekday.js";
+export { transportWeekday } from "./TransportWeekday.js";
 export type { TripView } from "./TripView.js";
 export type { TwoFactorCodeRequest } from "./TwoFactorCodeRequest.js";
 export type { TwoFactorDisableRequest } from "./TwoFactorDisableRequest.js";
@@ -2678,3 +3232,5 @@ export type {
   WxwatchWeatherImageStatus307,
   WxwatchWeatherImageStatus422,
 } from "./WxwatchWeatherImage.js";
+export type { ZoneCreate } from "./ZoneCreate.js";
+export type { ZoneUpdate } from "./ZoneUpdate.js";

@@ -11,9 +11,10 @@ import type {
 } from "../models/TransportSpec.js";
 
 /**
- * @description Returns routes, stops, trips, and shifts used by the transport timetable.
+ * @description Deprecated: returns the v1 catalogue, which no longer changes. Use /transport/timetable/current, which follows published timetable versions.
  * @summary Get the transport timetable
  * {@link /api/v1/transport/spec}
+ * @deprecated
  */
 export function transportSpec<ThrowOnError extends boolean = true>(
   options: Options<TransportSpecOptions, ThrowOnError> = {}

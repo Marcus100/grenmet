@@ -40,6 +40,8 @@ src/app/
   (admin)/           ← main authenticated layout (AppSidebar + AppHeader)
     page.tsx         ← GMS operations dashboard (live panels in `_components/`)
     cap/ hr/ roster/ salesbus/ wxwatch/ wxproducts/   ← consolidated GMS routes
+    janitor/         ← janitorial admin portal: overview, areas (+[id], labels), shifts, staff, setup; `?site=GND|CRU`; field work is a separate PWA
+    bus/             ← staff-bus admin portal (overview, timetable versions + draft editor, stops map); FastAPI `/api/v1/transport/*`; drivers and staff use separate apps
     (others-pages)/  ← calendar (department calendar: events + roster + holidays), profile
     coming-soon/     ← placeholder page for target-IA nav items with no page yet
   (full-width-pages)/

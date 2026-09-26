@@ -999,10 +999,135 @@ export {
   useHrValidateGrid,
 } from "./useHrValidateGrid.js";
 export {
+  janitorialCreateAreaMutationKey,
+  janitorialCreateAreaMutationOptions,
+  useJanitorialCreateArea,
+} from "./useJanitorialCreateArea.js";
+export {
+  janitorialCreateBuildingMutationKey,
+  janitorialCreateBuildingMutationOptions,
+  useJanitorialCreateBuilding,
+} from "./useJanitorialCreateBuilding.js";
+export {
+  janitorialCreateContractorMutationKey,
+  janitorialCreateContractorMutationOptions,
+  useJanitorialCreateContractor,
+} from "./useJanitorialCreateContractor.js";
+export {
+  janitorialCreateGrantsMutationKey,
+  janitorialCreateGrantsMutationOptions,
+  useJanitorialCreateGrants,
+} from "./useJanitorialCreateGrants.js";
+export {
+  janitorialCreateSectionMutationKey,
+  janitorialCreateSectionMutationOptions,
+  useJanitorialCreateSection,
+} from "./useJanitorialCreateSection.js";
+export {
+  janitorialCreateShiftAssignmentMutationKey,
+  janitorialCreateShiftAssignmentMutationOptions,
+  useJanitorialCreateShiftAssignment,
+} from "./useJanitorialCreateShiftAssignment.js";
+export {
+  janitorialCreateShiftPatternMutationKey,
+  janitorialCreateShiftPatternMutationOptions,
+  useJanitorialCreateShiftPattern,
+} from "./useJanitorialCreateShiftPattern.js";
+export {
+  janitorialCreateStaffMutationKey,
+  janitorialCreateStaffMutationOptions,
+  useJanitorialCreateStaff,
+} from "./useJanitorialCreateStaff.js";
+export {
+  janitorialCreateTaskMutationKey,
+  janitorialCreateTaskMutationOptions,
+  useJanitorialCreateTask,
+} from "./useJanitorialCreateTask.js";
+export {
+  janitorialCreateZoneMutationKey,
+  janitorialCreateZoneMutationOptions,
+  useJanitorialCreateZone,
+} from "./useJanitorialCreateZone.js";
+export {
+  janitorialGetAccessQueryKey,
+  janitorialGetAccessQueryOptions,
+  useJanitorialGetAccess,
+} from "./useJanitorialGetAccess.js";
+export {
+  janitorialGetCatalogueQueryKey,
+  janitorialGetCatalogueQueryOptions,
+  useJanitorialGetCatalogue,
+} from "./useJanitorialGetCatalogue.js";
+export {
+  janitorialGetShiftBoardQueryKey,
+  janitorialGetShiftBoardQueryOptions,
+  useJanitorialGetShiftBoard,
+} from "./useJanitorialGetShiftBoard.js";
+export {
+  janitorialListGrantsQueryKey,
+  janitorialListGrantsQueryOptions,
+  useJanitorialListGrants,
+} from "./useJanitorialListGrants.js";
+export {
+  janitorialListStaffQueryKey,
+  janitorialListStaffQueryOptions,
+  useJanitorialListStaff,
+} from "./useJanitorialListStaff.js";
+export {
+  janitorialRevokeGrantMutationKey,
+  janitorialRevokeGrantMutationOptions,
+  useJanitorialRevokeGrant,
+} from "./useJanitorialRevokeGrant.js";
+export {
   janitorialSpecQueryKey,
   janitorialSpecQueryOptions,
   useJanitorialSpec,
 } from "./useJanitorialSpec.js";
+export {
+  janitorialUpdateAreaMutationKey,
+  janitorialUpdateAreaMutationOptions,
+  useJanitorialUpdateArea,
+} from "./useJanitorialUpdateArea.js";
+export {
+  janitorialUpdateBuildingMutationKey,
+  janitorialUpdateBuildingMutationOptions,
+  useJanitorialUpdateBuilding,
+} from "./useJanitorialUpdateBuilding.js";
+export {
+  janitorialUpdateContractorMutationKey,
+  janitorialUpdateContractorMutationOptions,
+  useJanitorialUpdateContractor,
+} from "./useJanitorialUpdateContractor.js";
+export {
+  janitorialUpdateSectionMutationKey,
+  janitorialUpdateSectionMutationOptions,
+  useJanitorialUpdateSection,
+} from "./useJanitorialUpdateSection.js";
+export {
+  janitorialUpdateShiftAssignmentMutationKey,
+  janitorialUpdateShiftAssignmentMutationOptions,
+  useJanitorialUpdateShiftAssignment,
+} from "./useJanitorialUpdateShiftAssignment.js";
+export {
+  janitorialUpdateShiftPatternMutationKey,
+  janitorialUpdateShiftPatternMutationOptions,
+  useJanitorialUpdateShiftPattern,
+} from "./useJanitorialUpdateShiftPattern.js";
+export {
+  janitorialUpdateStaffMutationKey,
+  janitorialUpdateStaffMutationOptions,
+  useJanitorialUpdateStaff,
+} from "./useJanitorialUpdateStaff.js";
+export {
+  janitorialUpdateTaskMutationKey,
+  janitorialUpdateTaskMutationOptions,
+  useJanitorialUpdateTask,
+} from "./useJanitorialUpdateTask.js";
+export {
+  janitorialUpdateZoneMutationKey,
+  janitorialUpdateZoneMutationOptions,
+  useJanitorialUpdateZone,
+} from "./useJanitorialUpdateZone.js";
 export {
   notificationsGetNotificationPreferencesQueryKey,
   notificationsGetNotificationPreferencesQueryOptions,
@@ -1044,10 +1169,90 @@ export {
   useNotificationsUpdateNotificationSetting,
 } from "./useNotificationsUpdateNotificationSetting.js";
 export {
+  transportAddTimetableTripMutationKey,
+  transportAddTimetableTripMutationOptions,
+  useTransportAddTimetableTrip,
+} from "./useTransportAddTimetableTrip.js";
+export {
+  transportCreateRouteEntryMutationKey,
+  transportCreateRouteEntryMutationOptions,
+  useTransportCreateRouteEntry,
+} from "./useTransportCreateRouteEntry.js";
+export {
+  transportCreateStopMutationKey,
+  transportCreateStopMutationOptions,
+  useTransportCreateStop,
+} from "./useTransportCreateStop.js";
+export {
+  transportCreateTimetableDraftMutationKey,
+  transportCreateTimetableDraftMutationOptions,
+  useTransportCreateTimetableDraft,
+} from "./useTransportCreateTimetableDraft.js";
+export {
+  transportDeleteTimetableTripMutationKey,
+  transportDeleteTimetableTripMutationOptions,
+  useTransportDeleteTimetableTrip,
+} from "./useTransportDeleteTimetableTrip.js";
+export {
+  transportDiscardTimetableDraftMutationKey,
+  transportDiscardTimetableDraftMutationOptions,
+  useTransportDiscardTimetableDraft,
+} from "./useTransportDiscardTimetableDraft.js";
+export {
+  transportGetAccessQueryKey,
+  transportGetAccessQueryOptions,
+  useTransportGetAccess,
+} from "./useTransportGetAccess.js";
+export {
+  transportGetCatalogueQueryKey,
+  transportGetCatalogueQueryOptions,
+  useTransportGetCatalogue,
+} from "./useTransportGetCatalogue.js";
+export {
+  transportGetCurrentTimetableQueryKey,
+  transportGetCurrentTimetableQueryOptions,
+  useTransportGetCurrentTimetable,
+} from "./useTransportGetCurrentTimetable.js";
+export {
+  transportGetTimetableVersionQueryKey,
+  transportGetTimetableVersionQueryOptions,
+  useTransportGetTimetableVersion,
+} from "./useTransportGetTimetableVersion.js";
+export {
+  transportListTimetableVersionsQueryKey,
+  transportListTimetableVersionsQueryOptions,
+  useTransportListTimetableVersions,
+} from "./useTransportListTimetableVersions.js";
+export {
+  transportPublishTimetableDraftMutationKey,
+  transportPublishTimetableDraftMutationOptions,
+  useTransportPublishTimetableDraft,
+} from "./useTransportPublishTimetableDraft.js";
+export {
+  transportReplaceTimetableTripMutationKey,
+  transportReplaceTimetableTripMutationOptions,
+  useTransportReplaceTimetableTrip,
+} from "./useTransportReplaceTimetableTrip.js";
+export {
   transportSpecQueryKey,
   transportSpecQueryOptions,
   useTransportSpec,
 } from "./useTransportSpec.js";
+export {
+  transportUpdateRouteEntryMutationKey,
+  transportUpdateRouteEntryMutationOptions,
+  useTransportUpdateRouteEntry,
+} from "./useTransportUpdateRouteEntry.js";
+export {
+  transportUpdateStopMutationKey,
+  transportUpdateStopMutationOptions,
+  useTransportUpdateStop,
+} from "./useTransportUpdateStop.js";
+export {
+  transportUpdateTimetableDraftMutationKey,
+  transportUpdateTimetableDraftMutationOptions,
+  useTransportUpdateTimetableDraft,
+} from "./useTransportUpdateTimetableDraft.js";
 export {
   useUtilsHealthCheck,
   utilsHealthCheckQueryKey,
