@@ -74,7 +74,11 @@ def _replay_findings(events: list[LeaveBalanceEvent]) -> list[Finding]:
 async def reconcile(
     session: AsyncSession, *, organisation_id: str | None = None
 ) -> list[ReconciliationRow]:
-    """One row per active employee and leave type seen in the ledger or legacy tables."""
+    """One row per active employee and leave type seen in the ledger or legacy tables.
+
+    An employee with no leave record at all gets one ``NO_OPENING`` row with an
+    empty leave type, so nobody is silently missing from the report.
+    """
     query = (
         select(EmploymentRecord, User.email)
         .join(User, User.id == EmploymentRecord.user_id)
@@ -113,6 +117,23 @@ async def reconcile(
         leave_types = sorted(
             {t for (u, t) in (*chains, *legacy, *carry) if u == record.user_id}
         )
+        if not leave_types:
+            # No leave record of any kind: HR has not recorded an opening yet.
+            rows.append(
+                ReconciliationRow(
+                    user_id=record.user_id,
+                    email=email,
+                    employee_number=record.employee_number,
+                    organisation_id=record.organisation_id,
+                    department_id=record.department_id,
+                    leave_type="",
+                    ledger_balance=None,
+                    ledger_entries=0,
+                    legacy_balance=None,
+                    legacy_carry_over=None,
+                    findings=[Finding.NO_OPENING],
+                )
+            )
         for leave_type in leave_types:
             key = (record.user_id, leave_type)
             events = chains.get(key, [])
