@@ -28,6 +28,8 @@ export function ForecastPdfFrame({
   );
   const key = JSON.stringify(content);
 
+  // `key` captures every content change; the object itself is recreated per render.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: see above
   useEffect(() => {
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
@@ -56,8 +58,6 @@ export function ForecastPdfFrame({
       controller.abort();
       window.clearTimeout(timer);
     };
-    // `key` captures every content change; the object itself is recreated per render.
-    // biome-ignore lint/correctness/useExhaustiveDependencies: see above
   }, [key, expectedRevision]);
 
   useEffect(
