@@ -62,7 +62,7 @@
     "@biomejs/biome": "^2.5.14",
     "husky": "catalog:",
     "lint-staged": "catalog:",
-    "turbo": "^2.11.2",
+    "turbo": "^2.11.3",
     "ultracite": "^7.12.0"
   }
 }
