@@ -101,6 +101,7 @@ async def test_report_skips_inactive_staff_and_other_organisations(
     gaa = await make_department(db_async, "recon_scope")
     other = await make_department(db_async, "recon_other", organisation_id="other")
     active = await _staff(db_async, gaa.id)
+    no_records = await _staff(db_async, gaa.id)
     inactive = await make_user(db_async)
     record = await make_employee(db_async, user=inactive, department_id=gaa.id)
     record.status = EmploymentStatus.INACTIVE
@@ -109,8 +110,16 @@ async def test_report_skips_inactive_staff_and_other_organisations(
         await _opening(db_async, user)
     await db_async.commit()
 
-    ids = {active.id, inactive.id, outsider.id}
+    ids = {active.id, inactive.id, outsider.id, no_records.id}
     gaa_rows = await reconcile(db_async, organisation_id="gaa")
-    assert {row.user_id for row in gaa_rows} & ids == {active.id}
+    assert {row.user_id for row in gaa_rows} & ids == {active.id, no_records.id}
+    missing = [row for row in gaa_rows if row.user_id == no_records.id]
+    assert [(row.leave_type, row.findings) for row in missing] == [
+        ("", [Finding.NO_OPENING])
+    ]
     all_rows = await reconcile(db_async)
-    assert {row.user_id for row in all_rows} & ids == {active.id, outsider.id}
+    assert {row.user_id for row in all_rows} & ids == {
+        active.id,
+        outsider.id,
+        no_records.id,
+    }
