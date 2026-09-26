@@ -58,14 +58,14 @@ interface WeatherConditionsProps {
 export function WeatherConditions({ conditions }: WeatherConditionsProps) {
   return (
     <div className="grid grid-cols-2 gap-3 bg-background p-2.5 lg:grid-cols-5 lg:gap-4 lg:p-4">
-      {conditions.map((item, index) => {
+      {conditions.map((item) => {
         const Icon =
           (item.icon ? ICON_BY_NAME[item.icon] : undefined) ??
           ICON_MAP[item.label];
         return (
           <div
             className="flex items-center gap-3 rounded-2xl border border-gm-border bg-background p-4"
-            key={`${index}-${item.label}`}
+            key={`${item.label}-${item.value}`}
           >
             <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gm-surface">
               {Icon && (

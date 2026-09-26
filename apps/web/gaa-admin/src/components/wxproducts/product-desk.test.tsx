@@ -9,6 +9,20 @@ import type { ReactElement } from "react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { ProductDesk } from "./product-desk";
 
+const ISSUE_DATE_LABEL = /Issue date and time/;
+const FORECASTER_LABEL = /Forecaster on duty/;
+const AREA_LABEL = /Area covered/;
+const ISSUE_SUMMARY_DATE = /^\d{1,2} [A-Z][a-z]{2} \d{4}, \d{2}:\d{2}$/;
+const SPEED_FROM_LABEL = /Speed from \(kt\)/;
+const WEATHER_SUMMARY_LABEL = /Weather summary/;
+const SPEED_TO_LABEL = /Speed to \(kt\)/;
+const WAVES_FROM_LABEL = /Waves from \(m\)/;
+const WAVES_FEET_HINT = /Waves ≈ 6 ft/;
+const HIGH_TIDES_LABEL = /High tides \(times\)/;
+const TIDE_TIME_LABEL = /^Tide \d time$/;
+const WIND_SUMMARY_LABEL = /^Wind summary/;
+const MAX_WINDS_LABEL = /Maximum winds and gusts/;
+
 const actions = vi.hoisted(() => ({
   loadProductsAction: vi.fn(),
   loadProductHistoryAction: vi.fn(),
@@ -168,46 +182,44 @@ it("hides the tab bar for a single product kind", async () => {
 
 it("shows scheduled and fixed issue details as text, not fields", async () => {
   await openEditor();
-  expect(screen.queryByLabelText(/Issue date and time/)).toBeNull();
-  expect(screen.queryByLabelText(/Forecaster on duty/)).toBeNull();
-  expect(screen.queryByLabelText(/Area covered/)).toBeNull();
+  expect(screen.queryByLabelText(ISSUE_DATE_LABEL)).toBeNull();
+  expect(screen.queryByLabelText(FORECASTER_LABEL)).toBeNull();
+  expect(screen.queryByLabelText(AREA_LABEL)).toBeNull();
   expect(screen.getByText("Signed In Forecaster")).toBeInTheDocument();
   expect(
     screen.getByText("Grenada, Carriacou and Petite Martinique")
   ).toBeInTheDocument();
-  expect(
-    screen.getByText(/^\d{1,2} [A-Z][a-z]{2} \d{4}, \d{2}:\d{2}$/)
-  ).toBeInTheDocument();
+  expect(screen.getByText(ISSUE_SUMMARY_DATE)).toBeInTheDocument();
 });
 
 it("sizes structured inputs and hints converted units", async () => {
   await openEditor();
-  const speed = screen.getByLabelText(/Speed from \(kt\)/);
+  const speed = screen.getByLabelText(SPEED_FROM_LABEL);
   expect(speed.closest("[data-slot=field]")).toHaveClass("w-28");
   expect(
-    screen.getByLabelText(/Weather summary/).closest("[data-slot=field]")
+    screen.getByLabelText(WEATHER_SUMMARY_LABEL).closest("[data-slot=field]")
   ).toHaveClass("basis-full");
   fireEvent.change(speed, { target: { value: "10" } });
-  fireEvent.change(screen.getByLabelText(/Speed to \(kt\)/), {
+  fireEvent.change(screen.getByLabelText(SPEED_TO_LABEL), {
     target: { value: "20" },
   });
   expect(screen.getByText("≈ 12–23 mph · 19–37 km/h")).toBeInTheDocument();
-  fireEvent.change(screen.getByLabelText(/Waves from \(m\)/), {
+  fireEvent.change(screen.getByLabelText(WAVES_FROM_LABEL), {
     target: { value: "1.8" },
   });
-  expect(screen.getByText(/Waves ≈ 6 ft/)).toBeInTheDocument();
-  expect(screen.queryByLabelText(/High tides \(times\)/)).toBeNull();
+  expect(screen.getByText(WAVES_FEET_HINT)).toBeInTheDocument();
+  expect(screen.queryByLabelText(HIGH_TIDES_LABEL)).toBeNull();
 });
 
 it("adds and removes tide rows, shifting later tides up", async () => {
   await openEditor();
-  expect(screen.getAllByLabelText(/^Tide \d time$/)).toHaveLength(1);
+  expect(screen.getAllByLabelText(TIDE_TIME_LABEL)).toHaveLength(1);
   fireEvent.click(screen.getByRole("button", { name: "Add tide" }));
   fireEvent.change(screen.getByLabelText("Tide 2 time"), {
     target: { value: "18:40" },
   });
   fireEvent.click(screen.getByRole("button", { name: "Remove tide 1" }));
-  expect(screen.getAllByLabelText(/^Tide \d time$/)).toHaveLength(1);
+  expect(screen.getAllByLabelText(TIDE_TIME_LABEL)).toHaveLength(1);
   expect(screen.getByLabelText("Tide 1 time")).toHaveValue("18:40");
 });
 
@@ -220,16 +232,14 @@ it("gives marine bulletins structured wind while cyclones keep free text", async
       screen.getByRole("button", { name: "Validate and preview" })
     ).toBeEnabled()
   );
-  expect(screen.getByLabelText(/Speed from \(kt\)/)).toBeInTheDocument();
-  expect(screen.queryByLabelText(/^Wind summary/)).toBeNull();
-  expect(screen.queryByLabelText(/Forecaster on duty/)).toBeNull();
+  expect(screen.getByLabelText(SPEED_FROM_LABEL)).toBeInTheDocument();
+  expect(screen.queryByLabelText(WIND_SUMMARY_LABEL)).toBeNull();
+  expect(screen.queryByLabelText(FORECASTER_LABEL)).toBeNull();
   expect(screen.getByText("Signed In Forecaster")).toBeInTheDocument();
-  expect(screen.getByLabelText(/Area covered/)).toBeInTheDocument();
+  expect(screen.getByLabelText(AREA_LABEL)).toBeInTheDocument();
   fireEvent.click(
     screen.getByRole("tab", { name: "Tropical Cyclone Bulletin" })
   );
-  expect(
-    await screen.findByLabelText(/Maximum winds and gusts/)
-  ).toBeInTheDocument();
+  expect(await screen.findByLabelText(MAX_WINDS_LABEL)).toBeInTheDocument();
   view.unmount();
 });

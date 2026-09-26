@@ -3,6 +3,8 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { CapForecastPicker } from "./cap-forecast-picker";
 
+const RESPONSE_LABEL = /Response:/;
+
 const EVENING_TARGETS = capInsertTargets("evening");
 const MORNING_TARGETS = capInsertTargets("morning");
 
@@ -145,7 +147,7 @@ it("copies selected GMS bulletin text with attribution", async () => {
   const select = await screen.findByLabelText("GMS bulletin");
   expect(select.querySelectorAll("option")).toHaveLength(2);
   fireEvent.change(select, { target: { value: uuid } });
-  fireEvent.click(screen.getByLabelText(/Response:/));
+  fireEvent.click(screen.getByLabelText(RESPONSE_LABEL));
   fireEvent.click(screen.getByText("Add selected text"));
   await waitFor(() => expect(onInsert).toHaveBeenCalled());
   expect(onInsert.mock.calls[0][1]).toBe(

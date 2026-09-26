@@ -3,6 +3,8 @@ import type { ReactNode } from "react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { ProductPdfPreview } from "./product-pdf-preview";
 
+const SAVE_TO_DOWNLOAD_HINT = /Save draft to download these changes\./;
+
 const download = vi.hoisted(() => vi.fn());
 vi.mock("@/app/(admin)/wxproducts/product-actions", () => ({
   downloadProductPdfAction: download,
@@ -48,9 +50,7 @@ it("requires saving edits but allows the separate published copy", async () => {
   expect(
     screen.getByRole("button", { name: "Download saved revision PDF" })
   ).toBeDisabled();
-  expect(
-    screen.getByText(/Save draft to download these changes\./)
-  ).toBeInTheDocument();
+  expect(screen.getByText(SAVE_TO_DOWNLOAD_HINT)).toBeInTheDocument();
   fireEvent.click(
     screen.getByRole("button", { name: "Published r2: download PDF" })
   );

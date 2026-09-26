@@ -60,6 +60,9 @@ import { visibleProductFields } from "@/lib/wxproducts/visible-fields";
 import { CapForecastPicker } from "./cap-forecast-picker";
 import { ProductList } from "./product-list";
 
+const DAY_SECTION_PREFIX = /^Day (\d)/;
+const DAY_KEY_PREFIX = /^(day[1-4])/;
+
 interface HistoryItem {
   action: string;
   actorName: string;
@@ -104,7 +107,7 @@ function fieldWidth(f: ProductField) {
 }
 /** "Day 2 · Wind" → group "Wind", key prefix "day2"; "Wind" → "Wind", "". */
 function sectionParts(section: string) {
-  const day = /^Day (\d)/.exec(section)?.[1];
+  const day = DAY_SECTION_PREFIX.exec(section)?.[1];
   return {
     group: section.split(" · ").at(-1) ?? section,
     prefix: day ? `day${day}` : "",
@@ -159,7 +162,7 @@ const COMPOSED_SOURCE: Record<string, string> = {
 };
 /** Only hide text FastAPI composes for this kind; a cyclone's `wind` is free text. */
 function composedFrom(kind: ProductKind, key: string) {
-  const day = /^(day[1-4])/.exec(key)?.[1] ?? "";
+  const day = DAY_KEY_PREFIX.exec(key)?.[1] ?? "";
   const name = day
     ? key[day.length].toLowerCase() + key.slice(day.length + 1)
     : key;
@@ -429,11 +432,7 @@ function ProductEditor({
                   </AlertDialogContent>
                 </AlertDialog>
                 <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
-                  <div
-                    aria-label="Product status"
-                    className="flex flex-wrap items-center gap-1.5"
-                    role="group"
-                  >
+                  <div className="flex flex-wrap items-center gap-1.5">
                     <Badge variant="outline">
                       {revision ? `Revision ${revision}` : "New draft"}
                     </Badge>
