@@ -1,97 +1,98 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
-const { getJanitorialSpec } = vi.hoisted(() => ({
-  getJanitorialSpec: vi.fn(),
+const queries = vi.hoisted(() => ({
+  getJanitorialAccess: vi.fn(),
+  getJanitorialCatalogue: vi.fn(),
 }));
-vi.mock("@/db/janitorial/queries", () => ({ getJanitorialSpec }));
+vi.mock("@/db/janitorial/queries", () => queries);
+const { notFound } = vi.hoisted(() => ({
+  notFound: vi.fn(() => {
+    throw new Error("NEXT_NOT_FOUND");
+  }),
+}));
+vi.mock("next/navigation", () => ({ notFound }));
 
+import {
+  catalogue,
+  managerAccess,
+  noAccess,
+} from "@/lib/janitorial/test-fixtures";
 import JanitorPage from "./page";
 
-const AREA_SUMMARY = /1 buildings · 2 areas/;
+const RESTROOMS = /Restrooms/;
+const LAURISTON = /Lauriston/;
 
-const terminal = {
-  id: 1,
-  name: "Air Terminal Building (ATB)",
-  sections: [
-    {
-      id: null,
-      name: null,
-      areas: [
-        {
-          id: 10,
-          name: "Restrooms",
-          tasks: [
-            {
-              id: 100,
-              activity: "Clean Mirrors",
-              mode: null,
-              frequency: { count: 1, periodValue: 15, periodUnit: "minute" },
-            },
-          ],
-          bundles: [],
-        },
-      ],
-    },
-    {
-      id: 2,
-      name: "Meeting Rooms & Office Spaces",
-      areas: [
-        {
-          id: 11,
-          name: "Reception Area",
-          tasks: [],
-          bundles: [
-            {
-              id: 5,
-              name: "Terrazzo Maintenance and Floor Care",
-              items: [
-                {
-                  activity: "Buff Terrazzo Floor",
-                  frequency: { count: 3, periodValue: 5, periodUnit: "day" },
-                },
-              ],
-            },
-          ],
-        },
-      ],
-    },
-  ],
-};
+async function renderPage(
+  params: Record<string, string> = {},
+  access = managerAccess
+) {
+  queries.getJanitorialAccess.mockResolvedValue(access);
+  queries.getJanitorialCatalogue.mockResolvedValue(catalogue);
+  render(await JanitorPage({ searchParams: Promise.resolve(params) }));
+}
 
-describe("JanitorPage", () => {
-  it("shows areas without a section alongside sectioned areas", async () => {
-    getJanitorialSpec.mockResolvedValue([terminal]);
-    render(await JanitorPage());
+describe("JanitorPage (overview)", () => {
+  it("summarises the active cleaning programme for MBIA by default", async () => {
+    await renderPage();
 
-    expect(screen.getByText("Restrooms")).toBeInTheDocument();
-    expect(screen.getByText("1×/15 mins")).toBeInTheDocument();
-    expect(
-      screen.getByText("Meeting Rooms & Office Spaces")
-    ).toBeInTheDocument();
-    expect(screen.getByText(AREA_SUMMARY)).toBeInTheDocument();
+    expect(queries.getJanitorialCatalogue).toHaveBeenCalledWith("GND");
+    const figures = screen.getByRole("region", { name: "Programme figures" });
+    // Restrooms 96/day + terrazzo 0.6/day + tower 1/day; the inactive kiosk is excluded.
+    expect(within(figures).getByText("98")).toBeInTheDocument();
+    expect(within(figures).getByText("3")).toBeInTheDocument();
   });
 
-  it("names the task bundles an area uses", async () => {
-    getJanitorialSpec.mockResolvedValue([terminal]);
-    render(await JanitorPage());
+  it("switches airport with the site parameter", async () => {
+    await renderPage({ site: "cru" });
+
+    expect(queries.getJanitorialCatalogue).toHaveBeenCalledWith("CRU");
+    expect(screen.getByRole("link", { name: LAURISTON })).toHaveAttribute(
+      "aria-current",
+      "page"
+    );
+  });
+
+  it("links each building's workload into the filtered areas register", async () => {
+    await renderPage();
 
     expect(
-      screen.getByText("0 tasks + Terrazzo Maintenance and Floor Care")
-    ).toBeInTheDocument();
+      screen.getByRole("link", { name: "Air Terminal Building (ATB)" })
+    ).toHaveAttribute("href", "/janitor/areas?site=GND&building=1");
+    expect(screen.getByRole("link", { name: RESTROOMS })).toHaveAttribute(
+      "href",
+      "/janitor/areas/10"
+    );
+  });
+
+  it("marks monitoring panels as waiting for field data", async () => {
+    await renderPage();
+
+    expect(screen.getByText("No check-ins yet")).toBeInTheDocument();
+    expect(screen.getByText("No issues yet")).toBeInTheDocument();
+    expect(screen.getByText("No inspections yet")).toBeInTheDocument();
+  });
+
+  it("is not found without janitorial access", async () => {
+    let thrown: unknown;
+    try {
+      await renderPage({}, noAccess);
+    } catch (error) {
+      thrown = error;
+    }
+    expect((thrown as Error).message).toBe("NEXT_NOT_FOUND");
   });
 
   it("lets API failures reach the admin error boundary", async () => {
-    getJanitorialSpec.mockImplementation(() =>
+    queries.getJanitorialAccess.mockImplementation(() =>
       Promise.reject(new Error("unavailable"))
     );
     let thrown: unknown;
     try {
-      await JanitorPage();
+      await JanitorPage({ searchParams: Promise.resolve({}) });
     } catch (error) {
       thrown = error;
     }
-    expect(thrown).toBeInstanceOf(Error);
     expect((thrown as Error).message).toBe("unavailable");
   });
 });

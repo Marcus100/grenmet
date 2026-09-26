@@ -3,8 +3,10 @@
  * Do not edit manually.
  */
 
+import type { CapProfileDraftRequestPropertiesLevelEnum } from "./CapProfileDraftRequestPropertiesLevelEnum.js";
 import type { CapSeverity } from "./CapSeverity.js";
 import type { CapStatus } from "./CapStatus.js";
+import type { PublicWarningPropertiesColourAnyOfEnum } from "./PublicWarningPropertiesColourAnyOfEnum.js";
 
 export type PublicWarning = {
   identifier: string;
@@ -14,4 +16,6 @@ export type PublicWarning = {
   expires: string | null;
   severity: CapSeverity;
   status: CapStatus;
+  product?: CapProfileDraftRequestPropertiesLevelEnum | null;
+  colour?: PublicWarningPropertiesColourAnyOfEnum | null;
 };

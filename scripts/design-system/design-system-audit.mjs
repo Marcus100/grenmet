@@ -312,7 +312,7 @@ function scanFontImportFindings(report, filePath, lineNumber, line) {
           filePath,
           lineNumber,
           importedFont,
-          "Only Inter and Noto Sans are recognized web UI fonts. If this is an intentional per-app display/headline pairing (e.g. mbia's Manrope, signal's Source Serif 4), confirm it is documented in that app's CLAUDE.md rather than undocumented drift."
+          "Only Inter and Noto Sans are recognized web UI fonts. If this is an intentional per-app display/headline pairing (e.g. mbia's Manrope, signal's Source Serif 4), confirm it is documented in that app's AGENTS.md rather than undocumented drift."
         );
       }
     }

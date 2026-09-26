@@ -1,5 +1,6 @@
 import uuid
 from datetime import date
+from decimal import Decimal
 
 from pydantic import Field
 
@@ -159,8 +160,18 @@ class RosterPreferencesPublic(BaseModel):
 
 
 class LeavePublic(BaseModel):
-    balances: dict[str, int] = Field(default_factory=dict)
-    carry_over: dict[str, int] = Field(default_factory=dict)
+    balances: dict[str, Decimal] = Field(
+        default_factory=dict,
+        description="Current ledger balance in days for each leave type with a verified opening.",
+    )
+    unverified_carry_over: dict[str, int] = Field(
+        default_factory=dict,
+        description=(
+            "Legacy carry-over days not yet reconciled with the ledger. "
+            "Carry-over needs written approval (rule GAA-LV-VAC-CARRY-01); "
+            "these figures are not part of the balance."
+        ),
+    )
 
 
 class ApprovalAuthorityPublic(BaseModel):

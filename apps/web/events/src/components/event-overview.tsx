@@ -22,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "@barrelsgd/ui/components/ui/table";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import {
   ArrowRight,
   Bell,
@@ -328,16 +329,18 @@ function ReadinessTile({ check }: { check: ReadinessCheck }) {
 
   return (
     <div
-      className={`flex gap-3 rounded-lg border p-3 ${
+      className={cn(
+        "flex gap-3 rounded-lg border p-3",
         isComplete ? "border-border" : "border-warning bg-warning"
-      }`}
+      )}
     >
       <span
-        className={`flex size-8 shrink-0 items-center justify-center rounded-full ${
+        className={cn(
+          "flex size-8 shrink-0 items-center justify-center rounded-full",
           isComplete
             ? "bg-success text-success-foreground"
             : "bg-warning text-warning-foreground"
-        }`}
+        )}
       >
         <Icon className="size-4" />
       </span>

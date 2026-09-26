@@ -1,12 +1,8 @@
 import { TriangleAlertIcon } from "lucide-react";
 import Link from "next/link";
-import { bulletinHref } from "@/lib/bulletins";
 import { type AlertsResult, alertsLevel, alertsSummary } from "@/lib/cap";
 import { cn } from "@/lib/utils";
-import {
-  WARNING_LEVEL_LABEL,
-  WARNING_LEVEL_SURFACE,
-} from "@/lib/warning-level";
+import { WARNING_LEVEL_SURFACE } from "@/lib/warning-level";
 
 interface AlertsPanelProps {
   className?: string;
@@ -17,16 +13,14 @@ interface AlertsPanelProps {
  * Desktop counterpart to CurrentAlertsAccordion: always-open sidebar rather
  * than a collapsible panel, since the wide layout has room to show every
  * hazard count at a glance. The header takes the colour of the most severe
- * alert in effect, and states the level in words beside it.
+ * alert in effect and states the level and count in words.
  */
 export function AlertsPanel({ className, result }: AlertsPanelProps) {
   const groups = result.status === "ok" ? result.groups : [];
+  // The header is the status line — level and count in words, so the colour
+  // is never the only signal.
   const summary = alertsSummary(result);
   const level = alertsLevel(result);
-  // "No warnings in effect" would only repeat the summary line below, so the
-  // response level is stated at the bottom, and only when one is in effect.
-  const responseLevel =
-    level === "none" || level === "unknown" ? null : WARNING_LEVEL_LABEL[level];
 
   return (
     <div className={cn("flex flex-col", className)}>
@@ -40,7 +34,7 @@ export function AlertsPanel({ className, result }: AlertsPanelProps) {
         <span className="flex items-center gap-2.5">
           <TriangleAlertIcon aria-hidden="true" className="size-5 shrink-0" />
           <span className="font-bold text-body-base leading-body-base">
-            Current alerts
+            {summary}
           </span>
         </span>
       </Link>
@@ -57,7 +51,7 @@ export function AlertsPanel({ className, result }: AlertsPanelProps) {
             return (
               <Link
                 className="flex items-baseline gap-3 py-0.5 hover:underline focus-visible:outline"
-                href={bulletinHref(group.name)}
+                href="/warnings"
                 key={group.name}
               >
                 {/* Empty hazards stay readable but stop competing with the
@@ -86,16 +80,6 @@ export function AlertsPanel({ className, result }: AlertsPanelProps) {
             );
           })
         )}
-        <span className="mt-3 flex flex-col gap-0.5 border-gm-text-inverse/30 border-t pt-3 text-gm-text-inverse">
-          {responseLevel && (
-            <span className="font-bold text-body-base leading-body-base">
-              {responseLevel}
-            </span>
-          )}
-          <span className="font-semibold text-body-sm leading-body-sm">
-            {summary}
-          </span>
-        </span>
       </div>
     </div>
   );

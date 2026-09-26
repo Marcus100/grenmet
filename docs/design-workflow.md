@@ -4,7 +4,7 @@
 **Owner:** Barrels Grenada engineering  
 **Last updated:** 2026-09-06
 
-The end-to-end loop for designing and building web UI in this monorepo: design → code → verify → token guard. This is the *how*. For the token contract, governance, and per-app migration status, see [Design System](./design-system.md). For app-agnostic primitive rules, see [`packages/ui/CLAUDE.md`](../packages/ui/CLAUDE.md).
+The end-to-end loop for designing and building web UI in this monorepo: design → code → verify → token guard. This is the *how*. For the token contract, governance, and per-app migration status, see [Design System](./design-system.md). For app-agnostic primitive rules, see [`packages/ui/AGENTS.md`](../packages/ui/AGENTS.md).
 
 ## Mental model
 
@@ -24,7 +24,7 @@ design intent  ──►  packages/ui/src/styles/globals.css  ──@theme──
 > and never ask the user for a Figma frame URL. Historical ADRs that describe the old
 > Figma-linked governance are records of past decisions — see ADR 0012.
 
-Two non-negotiables, both backed by `CLAUDE.md` gates:
+Two non-negotiables, both backed by `AGENTS.md` gates:
 
 - **Never invent a color / spacing / radius / type value.** If it exists as a `--gm-*` token, use the token (or its Tailwind alias / shadcn semantic). Adding a `--gm-*` token or changing a value is a cross-app contract change and requires user approval; approved changes land in `globals.css` and are propagated with `pnpm design-system:sync`.
 - **Never add design values to Tailwind config.** Tailwind v4 reads from `@theme` in `globals.css`, which reads from `--gm-*`. That single file is the source.
@@ -86,4 +86,4 @@ Pick where to build based on the app's design-system lane (full table in [Design
 
 ## What requires approval first
 
-Per `CLAUDE.md` gates, stop and ask before: adding/changing a `--gm-*` token, creating new files in `packages/`, modifying any `tsconfig*.json` / `biome.jsonc`, adding an npm package outside the catalog, or introducing a new pattern/abstraction.
+Per `AGENTS.md` gates, stop and ask before: adding/changing a `--gm-*` token, creating new files in `packages/`, modifying any `tsconfig*.json` / `biome.jsonc`, adding an npm package outside the catalog, or introducing a new pattern/abstraction.

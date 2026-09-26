@@ -7,6 +7,7 @@ export { accessReviewDataSchema } from "./accessReviewDataSchema.js";
 export { accountSecurityPublicSchema } from "./accountSecurityPublicSchema.js";
 export { addressPublicSchema } from "./addressPublicSchema.js";
 export { addressUpdateSchema } from "./addressUpdateSchema.js";
+export { apiErrorSchema } from "./apiErrorSchema.js";
 export { approvalAuthorityPublicSchema } from "./approvalAuthorityPublicSchema.js";
 export { approvalAuthorityUpdateSchema } from "./approvalAuthorityUpdateSchema.js";
 export { archiveBulletinSchema } from "./archiveBulletinSchema.js";
@@ -14,6 +15,9 @@ export { archiveEditionSchema } from "./archiveEditionSchema.js";
 export { archiveHistorySchema } from "./archiveHistorySchema.js";
 export { archivePageSchema } from "./archivePageSchema.js";
 export { archiveRetrievalSchema } from "./archiveRetrievalSchema.js";
+export { areaCreatePropertiesSpaceTypeAnyOfEnumSchema } from "./areaCreatePropertiesSpaceTypeAnyOfEnumSchema.js";
+export { areaCreateSchema } from "./areaCreateSchema.js";
+export { areaUpdateSchema } from "./areaUpdateSchema.js";
 export { areaViewSchema } from "./areaViewSchema.js";
 export { auditChangePublicSchema } from "./auditChangePublicSchema.js";
 export { auditEntryPublicSchema } from "./auditEntryPublicSchema.js";
@@ -442,6 +446,9 @@ export {
 export { bodyAuthLoginAccessTokenSchema } from "./bodyAuthLoginAccessTokenSchema.js";
 export { bodyHrUploadDocumentSchema } from "./bodyHrUploadDocumentSchema.js";
 export { browserSessionSchema } from "./browserSessionSchema.js";
+export { buildingCreatePropertiesKindEnumSchema } from "./buildingCreatePropertiesKindEnumSchema.js";
+export { buildingCreateSchema } from "./buildingCreateSchema.js";
+export { buildingUpdateSchema } from "./buildingUpdateSchema.js";
 export { buildingViewSchema } from "./buildingViewSchema.js";
 export { bundleItemSchema } from "./bundleItemSchema.js";
 export { bundleViewSchema } from "./bundleViewSchema.js";
@@ -756,6 +763,8 @@ export { capValidationResultSchema } from "./capValidationResultSchema.js";
 export { catalogueApplySchema } from "./catalogueApplySchema.js";
 export { cataloguePreviewSchema } from "./cataloguePreviewSchema.js";
 export { checkoutSessionPublicSchema } from "./checkoutSessionPublicSchema.js";
+export { contractorCreateSchema } from "./contractorCreateSchema.js";
+export { contractorUpdateSchema } from "./contractorUpdateSchema.js";
 export { dashboardApprovalSchema } from "./dashboardApprovalSchema.js";
 export { dashboardPersonSchema } from "./dashboardPersonSchema.js";
 export { dashboardRequestSchema } from "./dashboardRequestSchema.js";
@@ -810,12 +819,14 @@ export {
   eregisterValidateSynopObservationStatus200Schema,
   eregisterValidateSynopObservationStatus422Schema,
 } from "./eregisterValidateSynopObservationSchema.js";
+export { forecastConditionSchema } from "./forecastConditionSchema.js";
 export { forecastObservationSchema } from "./forecastObservationSchema.js";
 export { forecastPeriodSchema } from "./forecastPeriodSchema.js";
 export { forecastSourcePropertiesKindEnumSchema } from "./forecastSourcePropertiesKindEnumSchema.js";
 export { forecastSourceSchema } from "./forecastSourceSchema.js";
 export { frequencySchema } from "./frequencySchema.js";
 export { genderSchema } from "./genderSchema.js";
+export { gmsColourSchema } from "./gmsColourSchema.js";
 export { googleChallengePublicSchema } from "./googleChallengePublicSchema.js";
 export { googleCompleteSchema } from "./googleCompleteSchema.js";
 export { googleFinishSchema } from "./googleFinishSchema.js";
@@ -824,6 +835,7 @@ export { googleStartSchema } from "./googleStartSchema.js";
 export { gradeInputSchema } from "./gradeInputSchema.js";
 export { gradePublicSchema } from "./gradePublicSchema.js";
 export { gradeSetupSchema } from "./gradeSetupSchema.js";
+export { grantCreateSchema } from "./grantCreateSchema.js";
 export {
   hrActionLeaveRequestBodySchema,
   hrActionLeaveRequestErrorSchema,
@@ -1891,12 +1903,308 @@ export { imageInputPropertiesTimeBasisEnumSchema } from "./imageInputPropertiesT
 export { imageInputSchema } from "./imageInputSchema.js";
 export { imageResultSchema } from "./imageResultSchema.js";
 export { importStatusSchema } from "./importStatusSchema.js";
+export { janitorialAccessSchema } from "./janitorialAccessSchema.js";
+export { janitorialAreaSchema } from "./janitorialAreaSchema.js";
+export { janitorialBuildingSchema } from "./janitorialBuildingSchema.js";
+export { janitorialBundleItemSchema } from "./janitorialBundleItemSchema.js";
+export { janitorialBundleSchema } from "./janitorialBundleSchema.js";
+export { janitorialCatalogueSchema } from "./janitorialCatalogueSchema.js";
+export { janitorialContractorSchema } from "./janitorialContractorSchema.js";
+export {
+  janitorialCreateAreaBodySchema,
+  janitorialCreateAreaErrorSchema,
+  janitorialCreateAreaResponseSchema,
+  janitorialCreateAreaStatus201Schema,
+  janitorialCreateAreaStatus403Schema,
+  janitorialCreateAreaStatus404Schema,
+  janitorialCreateAreaStatus409Schema,
+  janitorialCreateAreaStatus422Schema,
+  janitorialCreateAreaStatus503Schema,
+} from "./janitorialCreateAreaSchema.js";
+export {
+  janitorialCreateBuildingBodySchema,
+  janitorialCreateBuildingErrorSchema,
+  janitorialCreateBuildingResponseSchema,
+  janitorialCreateBuildingStatus201Schema,
+  janitorialCreateBuildingStatus403Schema,
+  janitorialCreateBuildingStatus404Schema,
+  janitorialCreateBuildingStatus409Schema,
+  janitorialCreateBuildingStatus422Schema,
+  janitorialCreateBuildingStatus503Schema,
+} from "./janitorialCreateBuildingSchema.js";
+export {
+  janitorialCreateContractorBodySchema,
+  janitorialCreateContractorErrorSchema,
+  janitorialCreateContractorResponseSchema,
+  janitorialCreateContractorStatus201Schema,
+  janitorialCreateContractorStatus403Schema,
+  janitorialCreateContractorStatus404Schema,
+  janitorialCreateContractorStatus409Schema,
+  janitorialCreateContractorStatus422Schema,
+  janitorialCreateContractorStatus503Schema,
+} from "./janitorialCreateContractorSchema.js";
+export {
+  janitorialCreateGrantsBodySchema,
+  janitorialCreateGrantsErrorSchema,
+  janitorialCreateGrantsResponseSchema,
+  janitorialCreateGrantsStatus201Schema,
+  janitorialCreateGrantsStatus403Schema,
+  janitorialCreateGrantsStatus404Schema,
+  janitorialCreateGrantsStatus409Schema,
+  janitorialCreateGrantsStatus422Schema,
+  janitorialCreateGrantsStatus503Schema,
+} from "./janitorialCreateGrantsSchema.js";
+export {
+  janitorialCreateSectionBodySchema,
+  janitorialCreateSectionErrorSchema,
+  janitorialCreateSectionResponseSchema,
+  janitorialCreateSectionStatus201Schema,
+  janitorialCreateSectionStatus403Schema,
+  janitorialCreateSectionStatus404Schema,
+  janitorialCreateSectionStatus409Schema,
+  janitorialCreateSectionStatus422Schema,
+  janitorialCreateSectionStatus503Schema,
+} from "./janitorialCreateSectionSchema.js";
+export {
+  janitorialCreateShiftAssignmentBodySchema,
+  janitorialCreateShiftAssignmentErrorSchema,
+  janitorialCreateShiftAssignmentResponseSchema,
+  janitorialCreateShiftAssignmentStatus201Schema,
+  janitorialCreateShiftAssignmentStatus403Schema,
+  janitorialCreateShiftAssignmentStatus404Schema,
+  janitorialCreateShiftAssignmentStatus409Schema,
+  janitorialCreateShiftAssignmentStatus422Schema,
+  janitorialCreateShiftAssignmentStatus503Schema,
+} from "./janitorialCreateShiftAssignmentSchema.js";
+export {
+  janitorialCreateShiftPatternBodySchema,
+  janitorialCreateShiftPatternErrorSchema,
+  janitorialCreateShiftPatternResponseSchema,
+  janitorialCreateShiftPatternStatus201Schema,
+  janitorialCreateShiftPatternStatus403Schema,
+  janitorialCreateShiftPatternStatus404Schema,
+  janitorialCreateShiftPatternStatus409Schema,
+  janitorialCreateShiftPatternStatus422Schema,
+  janitorialCreateShiftPatternStatus503Schema,
+} from "./janitorialCreateShiftPatternSchema.js";
+export {
+  janitorialCreateStaffBodySchema,
+  janitorialCreateStaffErrorSchema,
+  janitorialCreateStaffResponseSchema,
+  janitorialCreateStaffStatus201Schema,
+  janitorialCreateStaffStatus403Schema,
+  janitorialCreateStaffStatus404Schema,
+  janitorialCreateStaffStatus409Schema,
+  janitorialCreateStaffStatus422Schema,
+  janitorialCreateStaffStatus503Schema,
+} from "./janitorialCreateStaffSchema.js";
+export {
+  janitorialCreateTaskBodySchema,
+  janitorialCreateTaskErrorSchema,
+  janitorialCreateTaskPathAreaIdSchema,
+  janitorialCreateTaskResponseSchema,
+  janitorialCreateTaskStatus201Schema,
+  janitorialCreateTaskStatus403Schema,
+  janitorialCreateTaskStatus404Schema,
+  janitorialCreateTaskStatus409Schema,
+  janitorialCreateTaskStatus422Schema,
+  janitorialCreateTaskStatus503Schema,
+} from "./janitorialCreateTaskSchema.js";
+export {
+  janitorialCreateZoneBodySchema,
+  janitorialCreateZoneErrorSchema,
+  janitorialCreateZoneResponseSchema,
+  janitorialCreateZoneStatus201Schema,
+  janitorialCreateZoneStatus403Schema,
+  janitorialCreateZoneStatus404Schema,
+  janitorialCreateZoneStatus409Schema,
+  janitorialCreateZoneStatus422Schema,
+  janitorialCreateZoneStatus503Schema,
+} from "./janitorialCreateZoneSchema.js";
+export { janitorialFrequencyPropertiesPeriodUnitEnumSchema } from "./janitorialFrequencyPropertiesPeriodUnitEnumSchema.js";
+export { janitorialFrequencySchema } from "./janitorialFrequencySchema.js";
+export {
+  janitorialGetAccessErrorSchema,
+  janitorialGetAccessResponseSchema,
+  janitorialGetAccessStatus200Schema,
+  janitorialGetAccessStatus401Schema,
+  janitorialGetAccessStatus422Schema,
+} from "./janitorialGetAccessSchema.js";
+export {
+  janitorialGetCatalogueErrorSchema,
+  janitorialGetCatalogueQuerySiteSchema,
+  janitorialGetCatalogueResponseSchema,
+  janitorialGetCatalogueStatus200Schema,
+  janitorialGetCatalogueStatus403Schema,
+  janitorialGetCatalogueStatus404Schema,
+  janitorialGetCatalogueStatus422Schema,
+  janitorialGetCatalogueStatus503Schema,
+} from "./janitorialGetCatalogueSchema.js";
+export {
+  janitorialGetShiftBoardErrorSchema,
+  janitorialGetShiftBoardQueryFromSchema,
+  janitorialGetShiftBoardQuerySiteSchema,
+  janitorialGetShiftBoardQueryToSchema,
+  janitorialGetShiftBoardResponseSchema,
+  janitorialGetShiftBoardStatus200Schema,
+  janitorialGetShiftBoardStatus403Schema,
+  janitorialGetShiftBoardStatus404Schema,
+  janitorialGetShiftBoardStatus422Schema,
+  janitorialGetShiftBoardStatus503Schema,
+} from "./janitorialGetShiftBoardSchema.js";
+export { janitorialGrantSchema } from "./janitorialGrantSchema.js";
+export {
+  janitorialListGrantsErrorSchema,
+  janitorialListGrantsResponseSchema,
+  janitorialListGrantsStatus200Schema,
+  janitorialListGrantsStatus403Schema,
+  janitorialListGrantsStatus422Schema,
+  janitorialListGrantsStatus503Schema,
+} from "./janitorialListGrantsSchema.js";
+export {
+  janitorialListStaffErrorSchema,
+  janitorialListStaffResponseSchema,
+  janitorialListStaffStatus200Schema,
+  janitorialListStaffStatus403Schema,
+  janitorialListStaffStatus422Schema,
+  janitorialListStaffStatus503Schema,
+} from "./janitorialListStaffSchema.js";
+export {
+  janitorialRevokeGrantErrorSchema,
+  janitorialRevokeGrantPathGrantIdSchema,
+  janitorialRevokeGrantResponseSchema,
+  janitorialRevokeGrantStatus204Schema,
+  janitorialRevokeGrantStatus403Schema,
+  janitorialRevokeGrantStatus404Schema,
+  janitorialRevokeGrantStatus409Schema,
+  janitorialRevokeGrantStatus422Schema,
+  janitorialRevokeGrantStatus503Schema,
+} from "./janitorialRevokeGrantSchema.js";
+export { janitorialSectionSchema } from "./janitorialSectionSchema.js";
+export { janitorialShiftAssignmentPropertiesStatusEnumSchema } from "./janitorialShiftAssignmentPropertiesStatusEnumSchema.js";
+export { janitorialShiftAssignmentSchema } from "./janitorialShiftAssignmentSchema.js";
+export { janitorialShiftBoardSchema } from "./janitorialShiftBoardSchema.js";
+export { janitorialShiftPatternSchema } from "./janitorialShiftPatternSchema.js";
+export { janitorialSiteSchema } from "./janitorialSiteSchema.js";
 export {
   janitorialSpecErrorSchema,
   janitorialSpecResponseSchema,
   janitorialSpecStatus200Schema,
   janitorialSpecStatus422Schema,
 } from "./janitorialSpecSchema.js";
+export { janitorialStaffListSchema } from "./janitorialStaffListSchema.js";
+export { janitorialStaffMemberPropertiesRoleEnumSchema } from "./janitorialStaffMemberPropertiesRoleEnumSchema.js";
+export { janitorialStaffMemberSchema } from "./janitorialStaffMemberSchema.js";
+export { janitorialTaskSchema } from "./janitorialTaskSchema.js";
+export {
+  janitorialUpdateAreaBodySchema,
+  janitorialUpdateAreaErrorSchema,
+  janitorialUpdateAreaPathAreaIdSchema,
+  janitorialUpdateAreaResponseSchema,
+  janitorialUpdateAreaStatus200Schema,
+  janitorialUpdateAreaStatus403Schema,
+  janitorialUpdateAreaStatus404Schema,
+  janitorialUpdateAreaStatus409Schema,
+  janitorialUpdateAreaStatus422Schema,
+  janitorialUpdateAreaStatus503Schema,
+} from "./janitorialUpdateAreaSchema.js";
+export {
+  janitorialUpdateBuildingBodySchema,
+  janitorialUpdateBuildingErrorSchema,
+  janitorialUpdateBuildingPathBuildingIdSchema,
+  janitorialUpdateBuildingResponseSchema,
+  janitorialUpdateBuildingStatus200Schema,
+  janitorialUpdateBuildingStatus403Schema,
+  janitorialUpdateBuildingStatus404Schema,
+  janitorialUpdateBuildingStatus409Schema,
+  janitorialUpdateBuildingStatus422Schema,
+  janitorialUpdateBuildingStatus503Schema,
+} from "./janitorialUpdateBuildingSchema.js";
+export {
+  janitorialUpdateContractorBodySchema,
+  janitorialUpdateContractorErrorSchema,
+  janitorialUpdateContractorPathContractorIdSchema,
+  janitorialUpdateContractorResponseSchema,
+  janitorialUpdateContractorStatus200Schema,
+  janitorialUpdateContractorStatus403Schema,
+  janitorialUpdateContractorStatus404Schema,
+  janitorialUpdateContractorStatus409Schema,
+  janitorialUpdateContractorStatus422Schema,
+  janitorialUpdateContractorStatus503Schema,
+} from "./janitorialUpdateContractorSchema.js";
+export {
+  janitorialUpdateSectionBodySchema,
+  janitorialUpdateSectionErrorSchema,
+  janitorialUpdateSectionPathSectionIdSchema,
+  janitorialUpdateSectionResponseSchema,
+  janitorialUpdateSectionStatus200Schema,
+  janitorialUpdateSectionStatus403Schema,
+  janitorialUpdateSectionStatus404Schema,
+  janitorialUpdateSectionStatus409Schema,
+  janitorialUpdateSectionStatus422Schema,
+  janitorialUpdateSectionStatus503Schema,
+} from "./janitorialUpdateSectionSchema.js";
+export {
+  janitorialUpdateShiftAssignmentBodySchema,
+  janitorialUpdateShiftAssignmentErrorSchema,
+  janitorialUpdateShiftAssignmentPathAssignmentIdSchema,
+  janitorialUpdateShiftAssignmentResponseSchema,
+  janitorialUpdateShiftAssignmentStatus200Schema,
+  janitorialUpdateShiftAssignmentStatus403Schema,
+  janitorialUpdateShiftAssignmentStatus404Schema,
+  janitorialUpdateShiftAssignmentStatus409Schema,
+  janitorialUpdateShiftAssignmentStatus422Schema,
+  janitorialUpdateShiftAssignmentStatus503Schema,
+} from "./janitorialUpdateShiftAssignmentSchema.js";
+export {
+  janitorialUpdateShiftPatternBodySchema,
+  janitorialUpdateShiftPatternErrorSchema,
+  janitorialUpdateShiftPatternPathPatternIdSchema,
+  janitorialUpdateShiftPatternResponseSchema,
+  janitorialUpdateShiftPatternStatus200Schema,
+  janitorialUpdateShiftPatternStatus403Schema,
+  janitorialUpdateShiftPatternStatus404Schema,
+  janitorialUpdateShiftPatternStatus409Schema,
+  janitorialUpdateShiftPatternStatus422Schema,
+  janitorialUpdateShiftPatternStatus503Schema,
+} from "./janitorialUpdateShiftPatternSchema.js";
+export {
+  janitorialUpdateStaffBodySchema,
+  janitorialUpdateStaffErrorSchema,
+  janitorialUpdateStaffPathStaffIdSchema,
+  janitorialUpdateStaffResponseSchema,
+  janitorialUpdateStaffStatus200Schema,
+  janitorialUpdateStaffStatus403Schema,
+  janitorialUpdateStaffStatus404Schema,
+  janitorialUpdateStaffStatus409Schema,
+  janitorialUpdateStaffStatus422Schema,
+  janitorialUpdateStaffStatus503Schema,
+} from "./janitorialUpdateStaffSchema.js";
+export {
+  janitorialUpdateTaskBodySchema,
+  janitorialUpdateTaskErrorSchema,
+  janitorialUpdateTaskPathTaskIdSchema,
+  janitorialUpdateTaskResponseSchema,
+  janitorialUpdateTaskStatus200Schema,
+  janitorialUpdateTaskStatus403Schema,
+  janitorialUpdateTaskStatus404Schema,
+  janitorialUpdateTaskStatus409Schema,
+  janitorialUpdateTaskStatus422Schema,
+  janitorialUpdateTaskStatus503Schema,
+} from "./janitorialUpdateTaskSchema.js";
+export {
+  janitorialUpdateZoneBodySchema,
+  janitorialUpdateZoneErrorSchema,
+  janitorialUpdateZonePathZoneIdSchema,
+  janitorialUpdateZoneResponseSchema,
+  janitorialUpdateZoneStatus200Schema,
+  janitorialUpdateZoneStatus403Schema,
+  janitorialUpdateZoneStatus404Schema,
+  janitorialUpdateZoneStatus409Schema,
+  janitorialUpdateZoneStatus422Schema,
+  janitorialUpdateZoneStatus503Schema,
+} from "./janitorialUpdateZoneSchema.js";
+export { janitorialZoneSchema } from "./janitorialZoneSchema.js";
 export { jsonValueSchema } from "./jsonValueSchema.js";
 export { leavePublicSchema } from "./leavePublicSchema.js";
 export { leaveRequestActionSchema } from "./leaveRequestActionSchema.js";
@@ -2035,6 +2343,7 @@ export { publicHolidayPublicSchema } from "./publicHolidayPublicSchema.js";
 export { publicHolidaysPublicSchema } from "./publicHolidaysPublicSchema.js";
 export { publicPublishedProductSchema } from "./publicPublishedProductSchema.js";
 export { publicWarningGroupSchema } from "./publicWarningGroupSchema.js";
+export { publicWarningPropertiesColourAnyOfEnumSchema } from "./publicWarningPropertiesColourAnyOfEnumSchema.js";
 export { publicWarningSchema } from "./publicWarningSchema.js";
 export { publicWarningsSchema } from "./publicWarningsSchema.js";
 export { publishedProductsSchema } from "./publishedProductsSchema.js";
@@ -2081,22 +2390,29 @@ export { runFinishSchema } from "./runFinishSchema.js";
 export { runInputPropertiesSourceEnumSchema } from "./runInputPropertiesSourceEnumSchema.js";
 export { runInputSchema } from "./runInputSchema.js";
 export { runResultSchema } from "./runResultSchema.js";
+export { sectionCreateSchema } from "./sectionCreateSchema.js";
+export { sectionUpdateSchema } from "./sectionUpdateSchema.js";
 export { sectionViewSchema } from "./sectionViewSchema.js";
 export { securityProofSchema } from "./securityProofSchema.js";
 export { securitySessionPublicSchema } from "./securitySessionPublicSchema.js";
+export { serviceCalendarViewSchema } from "./serviceCalendarViewSchema.js";
 export { sessionAccessTokenResponseSchema } from "./sessionAccessTokenResponseSchema.js";
 export { sessionLoginRequestSchema } from "./sessionLoginRequestSchema.js";
 export { sessionLoginResponseSchema } from "./sessionLoginResponseSchema.js";
 export { sessionPublicSchema } from "./sessionPublicSchema.js";
 export { sessionTokenRequestSchema } from "./sessionTokenRequestSchema.js";
 export { sessionUserPublicSchema } from "./sessionUserPublicSchema.js";
+export { shiftAssignmentCreateSchema } from "./shiftAssignmentCreateSchema.js";
+export { shiftAssignmentUpdateSchema } from "./shiftAssignmentUpdateSchema.js";
 export { shiftCatalogCreateSchema } from "./shiftCatalogCreateSchema.js";
 export { shiftCatalogPublicSchema } from "./shiftCatalogPublicSchema.js";
 export { shiftCatalogsPublicSchema } from "./shiftCatalogsPublicSchema.js";
 export { shiftCatalogUpdateSchema } from "./shiftCatalogUpdateSchema.js";
 export { shiftCategorySchema } from "./shiftCategorySchema.js";
 export { shiftHoursSummarySchema } from "./shiftHoursSummarySchema.js";
+export { shiftPatternCreateSchema } from "./shiftPatternCreateSchema.js";
 export { shiftPatternSchema } from "./shiftPatternSchema.js";
+export { shiftPatternUpdateSchema } from "./shiftPatternUpdateSchema.js";
 export { shiftPeriodSchema } from "./shiftPeriodSchema.js";
 export { shiftSwapActionSchema } from "./shiftSwapActionSchema.js";
 export { shiftSwapRequestCreateSchema } from "./shiftSwapRequestCreateSchema.js";
@@ -2111,8 +2427,10 @@ export { signedDocumentPublicSchema } from "./signedDocumentPublicSchema.js";
 export { srcAuthSchemasRolePublicSchema } from "./srcAuthSchemasRolePublicSchema.js";
 export { srcHrSchemasRolePublicSchema } from "./srcHrSchemasRolePublicSchema.js";
 export { staffCardSchema } from "./staffCardSchema.js";
+export { staffCreateSchema } from "./staffCreateSchema.js";
 export { staffInputSchema } from "./staffInputSchema.js";
 export { staffSetupSchema } from "./staffSetupSchema.js";
+export { staffUpdateSchema } from "./staffUpdateSchema.js";
 export { statusReportCreateSchema } from "./statusReportCreateSchema.js";
 export { statusReportDetailsSchema } from "./statusReportDetailsSchema.js";
 export { statusReportEntryInputSchema } from "./statusReportEntryInputSchema.js";
@@ -2130,6 +2448,8 @@ export { synopValidationIssueSchema } from "./synopValidationIssueSchema.js";
 export { synopValidationRequestSchema } from "./synopValidationRequestSchema.js";
 export { synopValidationResponseSchema } from "./synopValidationResponseSchema.js";
 export { synopWorkbookSchema } from "./synopWorkbookSchema.js";
+export { taskCreateSchema } from "./taskCreateSchema.js";
+export { taskUpdateSchema } from "./taskUpdateSchema.js";
 export { taskViewSchema } from "./taskViewSchema.js";
 export { timesheetCreateSchema } from "./timesheetCreateSchema.js";
 export { timesheetDetailsSchema } from "./timesheetDetailsSchema.js";
@@ -2140,6 +2460,19 @@ export { timesheetPublicSchema } from "./timesheetPublicSchema.js";
 export { timesheetStatusSchema } from "./timesheetStatusSchema.js";
 export { timesheetSubmitRequestSchema } from "./timesheetSubmitRequestSchema.js";
 export { timesheetSummaryByShiftSchema } from "./timesheetSummaryByShiftSchema.js";
+export { timetableIssueSchema } from "./timetableIssueSchema.js";
+export { timetableIssueSeveritySchema } from "./timetableIssueSeveritySchema.js";
+export { timetablePublishSchema } from "./timetablePublishSchema.js";
+export { timetableStopTimeInputSchema } from "./timetableStopTimeInputSchema.js";
+export { timetableStopTimeViewSchema } from "./timetableStopTimeViewSchema.js";
+export { timetableTripInputSchema } from "./timetableTripInputSchema.js";
+export { timetableTripViewSchema } from "./timetableTripViewSchema.js";
+export { timetableVersionCreateSchema } from "./timetableVersionCreateSchema.js";
+export { timetableVersionDetailSchema } from "./timetableVersionDetailSchema.js";
+export { timetableVersionStateSchema } from "./timetableVersionStateSchema.js";
+export { timetableVersionStatusSchema } from "./timetableVersionStatusSchema.js";
+export { timetableVersionSummarySchema } from "./timetableVersionSummarySchema.js";
+export { timetableVersionUpdateSchema } from "./timetableVersionUpdateSchema.js";
 export { titleSchema } from "./titleSchema.js";
 export { tokenSchema } from "./tokenSchema.js";
 export { trainingArchiveInputSchema } from "./trainingArchiveInputSchema.js";
@@ -2149,12 +2482,188 @@ export { trainingRecordInputPropertiesResultEnumSchema } from "./trainingRecordI
 export { trainingRecordInputSchema } from "./trainingRecordInputSchema.js";
 export { trainingRecordListSchema } from "./trainingRecordListSchema.js";
 export { trainingRecordPublicSchema } from "./trainingRecordPublicSchema.js";
+export { transportAccessSchema } from "./transportAccessSchema.js";
+export {
+  transportAddTimetableTripBodySchema,
+  transportAddTimetableTripErrorSchema,
+  transportAddTimetableTripPathVersionIdSchema,
+  transportAddTimetableTripResponseSchema,
+  transportAddTimetableTripStatus201Schema,
+  transportAddTimetableTripStatus403Schema,
+  transportAddTimetableTripStatus404Schema,
+  transportAddTimetableTripStatus409Schema,
+  transportAddTimetableTripStatus422Schema,
+  transportAddTimetableTripStatus503Schema,
+} from "./transportAddTimetableTripSchema.js";
+export { transportCatalogueSchema } from "./transportCatalogueSchema.js";
+export {
+  transportCreateRouteEntryBodySchema,
+  transportCreateRouteEntryErrorSchema,
+  transportCreateRouteEntryResponseSchema,
+  transportCreateRouteEntryStatus201Schema,
+  transportCreateRouteEntryStatus403Schema,
+  transportCreateRouteEntryStatus409Schema,
+  transportCreateRouteEntryStatus422Schema,
+  transportCreateRouteEntryStatus503Schema,
+} from "./transportCreateRouteEntrySchema.js";
+export {
+  transportCreateStopBodySchema,
+  transportCreateStopErrorSchema,
+  transportCreateStopResponseSchema,
+  transportCreateStopStatus201Schema,
+  transportCreateStopStatus403Schema,
+  transportCreateStopStatus409Schema,
+  transportCreateStopStatus422Schema,
+  transportCreateStopStatus503Schema,
+} from "./transportCreateStopSchema.js";
+export {
+  transportCreateTimetableDraftBodySchema,
+  transportCreateTimetableDraftErrorSchema,
+  transportCreateTimetableDraftResponseSchema,
+  transportCreateTimetableDraftStatus201Schema,
+  transportCreateTimetableDraftStatus403Schema,
+  transportCreateTimetableDraftStatus409Schema,
+  transportCreateTimetableDraftStatus422Schema,
+  transportCreateTimetableDraftStatus503Schema,
+} from "./transportCreateTimetableDraftSchema.js";
+export {
+  transportDeleteTimetableTripErrorSchema,
+  transportDeleteTimetableTripPathTripIdSchema,
+  transportDeleteTimetableTripPathVersionIdSchema,
+  transportDeleteTimetableTripResponseSchema,
+  transportDeleteTimetableTripStatus204Schema,
+  transportDeleteTimetableTripStatus403Schema,
+  transportDeleteTimetableTripStatus404Schema,
+  transportDeleteTimetableTripStatus409Schema,
+  transportDeleteTimetableTripStatus422Schema,
+  transportDeleteTimetableTripStatus503Schema,
+} from "./transportDeleteTimetableTripSchema.js";
+export { transportDirectionSchema } from "./transportDirectionSchema.js";
+export {
+  transportDiscardTimetableDraftErrorSchema,
+  transportDiscardTimetableDraftPathVersionIdSchema,
+  transportDiscardTimetableDraftResponseSchema,
+  transportDiscardTimetableDraftStatus200Schema,
+  transportDiscardTimetableDraftStatus403Schema,
+  transportDiscardTimetableDraftStatus404Schema,
+  transportDiscardTimetableDraftStatus409Schema,
+  transportDiscardTimetableDraftStatus422Schema,
+  transportDiscardTimetableDraftStatus503Schema,
+} from "./transportDiscardTimetableDraftSchema.js";
+export {
+  transportGetAccessErrorSchema,
+  transportGetAccessResponseSchema,
+  transportGetAccessStatus200Schema,
+  transportGetAccessStatus401Schema,
+  transportGetAccessStatus422Schema,
+} from "./transportGetAccessSchema.js";
+export {
+  transportGetCatalogueErrorSchema,
+  transportGetCatalogueResponseSchema,
+  transportGetCatalogueStatus200Schema,
+  transportGetCatalogueStatus422Schema,
+  transportGetCatalogueStatus503Schema,
+} from "./transportGetCatalogueSchema.js";
+export {
+  transportGetCurrentTimetableErrorSchema,
+  transportGetCurrentTimetableResponseSchema,
+  transportGetCurrentTimetableStatus200Schema,
+  transportGetCurrentTimetableStatus404Schema,
+  transportGetCurrentTimetableStatus422Schema,
+  transportGetCurrentTimetableStatus503Schema,
+} from "./transportGetCurrentTimetableSchema.js";
+export {
+  transportGetTimetableVersionErrorSchema,
+  transportGetTimetableVersionPathVersionIdSchema,
+  transportGetTimetableVersionResponseSchema,
+  transportGetTimetableVersionStatus200Schema,
+  transportGetTimetableVersionStatus403Schema,
+  transportGetTimetableVersionStatus404Schema,
+  transportGetTimetableVersionStatus422Schema,
+  transportGetTimetableVersionStatus503Schema,
+} from "./transportGetTimetableVersionSchema.js";
+export {
+  transportListTimetableVersionsErrorSchema,
+  transportListTimetableVersionsResponseSchema,
+  transportListTimetableVersionsStatus200Schema,
+  transportListTimetableVersionsStatus403Schema,
+  transportListTimetableVersionsStatus422Schema,
+  transportListTimetableVersionsStatus503Schema,
+} from "./transportListTimetableVersionsSchema.js";
+export {
+  transportPublishTimetableDraftBodySchema,
+  transportPublishTimetableDraftErrorSchema,
+  transportPublishTimetableDraftPathVersionIdSchema,
+  transportPublishTimetableDraftResponseSchema,
+  transportPublishTimetableDraftStatus200Schema,
+  transportPublishTimetableDraftStatus403Schema,
+  transportPublishTimetableDraftStatus404Schema,
+  transportPublishTimetableDraftStatus409Schema,
+  transportPublishTimetableDraftStatus422Schema,
+  transportPublishTimetableDraftStatus503Schema,
+} from "./transportPublishTimetableDraftSchema.js";
+export {
+  transportReplaceTimetableTripBodySchema,
+  transportReplaceTimetableTripErrorSchema,
+  transportReplaceTimetableTripPathTripIdSchema,
+  transportReplaceTimetableTripPathVersionIdSchema,
+  transportReplaceTimetableTripResponseSchema,
+  transportReplaceTimetableTripStatus200Schema,
+  transportReplaceTimetableTripStatus403Schema,
+  transportReplaceTimetableTripStatus404Schema,
+  transportReplaceTimetableTripStatus409Schema,
+  transportReplaceTimetableTripStatus422Schema,
+  transportReplaceTimetableTripStatus503Schema,
+} from "./transportReplaceTimetableTripSchema.js";
+export { transportRouteInputSchema } from "./transportRouteInputSchema.js";
+export { transportRouteSchema } from "./transportRouteSchema.js";
+export { transportShiftSchema } from "./transportShiftSchema.js";
 export {
   transportSpecErrorSchema,
   transportSpecResponseSchema,
   transportSpecStatus200Schema,
   transportSpecStatus422Schema,
 } from "./transportSpecSchema.js";
+export { transportStopInputSchema } from "./transportStopInputSchema.js";
+export { transportStopSchema } from "./transportStopSchema.js";
+export { transportTripStatusSchema } from "./transportTripStatusSchema.js";
+export {
+  transportUpdateRouteEntryBodySchema,
+  transportUpdateRouteEntryErrorSchema,
+  transportUpdateRouteEntryPathRouteIdSchema,
+  transportUpdateRouteEntryResponseSchema,
+  transportUpdateRouteEntryStatus200Schema,
+  transportUpdateRouteEntryStatus403Schema,
+  transportUpdateRouteEntryStatus404Schema,
+  transportUpdateRouteEntryStatus409Schema,
+  transportUpdateRouteEntryStatus422Schema,
+  transportUpdateRouteEntryStatus503Schema,
+} from "./transportUpdateRouteEntrySchema.js";
+export {
+  transportUpdateStopBodySchema,
+  transportUpdateStopErrorSchema,
+  transportUpdateStopPathStopIdSchema,
+  transportUpdateStopResponseSchema,
+  transportUpdateStopStatus200Schema,
+  transportUpdateStopStatus403Schema,
+  transportUpdateStopStatus404Schema,
+  transportUpdateStopStatus409Schema,
+  transportUpdateStopStatus422Schema,
+  transportUpdateStopStatus503Schema,
+} from "./transportUpdateStopSchema.js";
+export {
+  transportUpdateTimetableDraftBodySchema,
+  transportUpdateTimetableDraftErrorSchema,
+  transportUpdateTimetableDraftPathVersionIdSchema,
+  transportUpdateTimetableDraftResponseSchema,
+  transportUpdateTimetableDraftStatus200Schema,
+  transportUpdateTimetableDraftStatus403Schema,
+  transportUpdateTimetableDraftStatus404Schema,
+  transportUpdateTimetableDraftStatus409Schema,
+  transportUpdateTimetableDraftStatus422Schema,
+  transportUpdateTimetableDraftStatus503Schema,
+} from "./transportUpdateTimetableDraftSchema.js";
+export { transportWeekdaySchema } from "./transportWeekdaySchema.js";
 export { tripViewSchema } from "./tripViewSchema.js";
 export { twoFactorCodeRequestSchema } from "./twoFactorCodeRequestSchema.js";
 export { twoFactorDisableRequestSchema } from "./twoFactorDisableRequestSchema.js";
@@ -2279,6 +2788,15 @@ export {
   wxproductsLoadProductsStatus422Schema,
   wxproductsLoadProductsStatus503Schema,
 } from "./wxproductsLoadProductsSchema.js";
+export {
+  wxproductsPreviewProductPdfBodySchema,
+  wxproductsPreviewProductPdfErrorSchema,
+  wxproductsPreviewProductPdfResponseSchema,
+  wxproductsPreviewProductPdfStatus200Schema,
+  wxproductsPreviewProductPdfStatus401Schema,
+  wxproductsPreviewProductPdfStatus403Schema,
+  wxproductsPreviewProductPdfStatus422Schema,
+} from "./wxproductsPreviewProductPdfSchema.js";
 export {
   wxproductsPreviewProductBodySchema,
   wxproductsPreviewProductErrorSchema,
@@ -2431,3 +2949,5 @@ export {
   wxwatchWeatherImageStatus307Schema,
   wxwatchWeatherImageStatus422Schema,
 } from "./wxwatchWeatherImageSchema.js";
+export { zoneCreateSchema } from "./zoneCreateSchema.js";
+export { zoneUpdateSchema } from "./zoneUpdateSchema.js";

@@ -35,6 +35,20 @@ def test_normalizes_schedule_without_changing_input():
     assert request.values["day4Date"] == "wrong"
 
 
+def test_signed_in_forecaster_and_fixed_forecast_area():
+    request = payload(
+        "morning",
+        values=complete("morning")
+        | {"area": "Somewhere else", "forecaster": "Typed name"},
+    )
+    result = validation.preview(request, now=NOW, forecaster="Signed In")
+    assert result.values["area"] == validation.FORECAST_AREA
+    assert result.values["forecaster"] == "Signed In"
+    marine = validation.preview(payload(), now=NOW, forecaster="Signed In")
+    assert marine.values["forecaster"] == "Signed In"
+    assert marine.values["area"] == complete("marine")["area"]
+
+
 def test_checks_publication_content_but_not_review_acknowledgement():
     assert validation.preview(payload(), now=NOW).errors == []
     expired = validation.preview(payload(), now=datetime(2026, 10, 1, tzinfo=UTC))

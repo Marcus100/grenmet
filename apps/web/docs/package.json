@@ -30,7 +30,6 @@
     "@t3-oss/env-nextjs": "catalog:",
     "@tailwindcss/typography": "catalog:",
     "@types/react-highlight-words": "^0.20.1",
-    "cn": "catalog:",
     "fast-glob": "^3.3.3",
     "flexsearch": "^0.8.212",
     "mdast-util-to-string": "^4.0.0",

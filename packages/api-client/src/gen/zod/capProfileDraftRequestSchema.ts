@@ -5,8 +5,10 @@
 
 import * as z from "zod";
 import { capProfileDraftRequestPropertiesLevelEnumSchema } from "./capProfileDraftRequestPropertiesLevelEnumSchema.js";
+import { gmsColourSchema } from "./gmsColourSchema.js";
 
 export const capProfileDraftRequestSchema = z.object({
   subtype: z.string(),
   level: capProfileDraftRequestPropertiesLevelEnumSchema,
+  colour: z.union([gmsColourSchema, z.null()]).optional(),
 });

@@ -31,10 +31,14 @@ export function bulletinExample(kind: ProductKind, date: string) {
   const examples: Partial<Record<ProductKind, Record<string, string>>> = {
     marine: {
       weather: "Example: scattered showers over coastal waters.",
-      seaState: "Example: moderate seas, waves 5–7 ft in open waters.",
-      visibility:
-        "Example: greater than 5 nautical miles, temporarily reduced in showers.",
-      wind: "Example: easterly 15–20 kt.",
+      visibilityMin: "5",
+      visibilityMax: "15",
+      windDirFrom: "E",
+      windSpeedMin: "15",
+      windSpeedMax: "20",
+      seaStateFrom: "Moderate",
+      waveHeightMin: "1.5",
+      waveHeightMax: "2.1",
     },
     cyclone: {
       systemName: "Example system",
@@ -54,7 +58,12 @@ export function bulletinExample(kind: ProductKind, date: string) {
       hazards:
         "Identify lightning, rainfall and gust hazards supported by the assessment.",
     },
-    wind: { wind: "Example: easterly 20–25 kt, with gusts near 30 kt." },
+    wind: {
+      windDirFrom: "E",
+      windSpeedMin: "20",
+      windSpeedMax: "25",
+      windGust: "30",
+    },
     heat: {
       eventType: "Hot Spell",
       assessmentBasis: "Forecast",
@@ -68,10 +77,13 @@ export function bulletinExample(kind: ProductKind, date: string) {
     },
     dust: {
       dust: "Describe the expected dust extent and timing.",
-      visibility: "State the assessed visibility range with units.",
+      visibilityMin: "3",
+      visibilityMax: "8",
     },
     coastal: {
-      swell: "Record swell height, period and direction.",
+      swellDir: "N",
+      swellPeriod: "12",
+      swellHeight: "2.5",
       surge: "Record expected water-level anomalies and confidence.",
       tides: "Identify affected coastlines and relevant high-tide times.",
     },

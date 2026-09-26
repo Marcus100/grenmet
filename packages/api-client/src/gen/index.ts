@@ -201,7 +201,32 @@ export { hrUpdateStatusReport } from "./clients/hrUpdateStatusReport.js";
 export { hrUploadDocument } from "./clients/hrUploadDocument.js";
 export { hrValidateCsv } from "./clients/hrValidateCsv.js";
 export { hrValidateGrid } from "./clients/hrValidateGrid.js";
+export { janitorialCreateArea } from "./clients/janitorialCreateArea.js";
+export { janitorialCreateBuilding } from "./clients/janitorialCreateBuilding.js";
+export { janitorialCreateContractor } from "./clients/janitorialCreateContractor.js";
+export { janitorialCreateGrants } from "./clients/janitorialCreateGrants.js";
+export { janitorialCreateSection } from "./clients/janitorialCreateSection.js";
+export { janitorialCreateShiftAssignment } from "./clients/janitorialCreateShiftAssignment.js";
+export { janitorialCreateShiftPattern } from "./clients/janitorialCreateShiftPattern.js";
+export { janitorialCreateStaff } from "./clients/janitorialCreateStaff.js";
+export { janitorialCreateTask } from "./clients/janitorialCreateTask.js";
+export { janitorialCreateZone } from "./clients/janitorialCreateZone.js";
+export { janitorialGetAccess } from "./clients/janitorialGetAccess.js";
+export { janitorialGetCatalogue } from "./clients/janitorialGetCatalogue.js";
+export { janitorialGetShiftBoard } from "./clients/janitorialGetShiftBoard.js";
+export { janitorialListGrants } from "./clients/janitorialListGrants.js";
+export { janitorialListStaff } from "./clients/janitorialListStaff.js";
+export { janitorialRevokeGrant } from "./clients/janitorialRevokeGrant.js";
 export { janitorialSpec } from "./clients/janitorialSpec.js";
+export { janitorialUpdateArea } from "./clients/janitorialUpdateArea.js";
+export { janitorialUpdateBuilding } from "./clients/janitorialUpdateBuilding.js";
+export { janitorialUpdateContractor } from "./clients/janitorialUpdateContractor.js";
+export { janitorialUpdateSection } from "./clients/janitorialUpdateSection.js";
+export { janitorialUpdateShiftAssignment } from "./clients/janitorialUpdateShiftAssignment.js";
+export { janitorialUpdateShiftPattern } from "./clients/janitorialUpdateShiftPattern.js";
+export { janitorialUpdateStaff } from "./clients/janitorialUpdateStaff.js";
+export { janitorialUpdateTask } from "./clients/janitorialUpdateTask.js";
+export { janitorialUpdateZone } from "./clients/janitorialUpdateZone.js";
 export { notificationsGetNotificationPreferences } from "./clients/notificationsGetNotificationPreferences.js";
 export { notificationsGetNotificationSettings } from "./clients/notificationsGetNotificationSettings.js";
 export { notificationsGetNotifications } from "./clients/notificationsGetNotifications.js";
@@ -210,7 +235,23 @@ export { notificationsMarkAllNotificationsRead } from "./clients/notificationsMa
 export { notificationsMarkNotificationRead } from "./clients/notificationsMarkNotificationRead.js";
 export { notificationsUpdateNotificationPreferences } from "./clients/notificationsUpdateNotificationPreferences.js";
 export { notificationsUpdateNotificationSetting } from "./clients/notificationsUpdateNotificationSetting.js";
+export { transportAddTimetableTrip } from "./clients/transportAddTimetableTrip.js";
+export { transportCreateRouteEntry } from "./clients/transportCreateRouteEntry.js";
+export { transportCreateStop } from "./clients/transportCreateStop.js";
+export { transportCreateTimetableDraft } from "./clients/transportCreateTimetableDraft.js";
+export { transportDeleteTimetableTrip } from "./clients/transportDeleteTimetableTrip.js";
+export { transportDiscardTimetableDraft } from "./clients/transportDiscardTimetableDraft.js";
+export { transportGetAccess } from "./clients/transportGetAccess.js";
+export { transportGetCatalogue } from "./clients/transportGetCatalogue.js";
+export { transportGetCurrentTimetable } from "./clients/transportGetCurrentTimetable.js";
+export { transportGetTimetableVersion } from "./clients/transportGetTimetableVersion.js";
+export { transportListTimetableVersions } from "./clients/transportListTimetableVersions.js";
+export { transportPublishTimetableDraft } from "./clients/transportPublishTimetableDraft.js";
+export { transportReplaceTimetableTrip } from "./clients/transportReplaceTimetableTrip.js";
 export { transportSpec } from "./clients/transportSpec.js";
+export { transportUpdateRouteEntry } from "./clients/transportUpdateRouteEntry.js";
+export { transportUpdateStop } from "./clients/transportUpdateStop.js";
+export { transportUpdateTimetableDraft } from "./clients/transportUpdateTimetableDraft.js";
 export { utilsHealthCheck } from "./clients/utilsHealthCheck.js";
 export { utilsReady } from "./clients/utilsReady.js";
 export { utilsTestEmail } from "./clients/utilsTestEmail.js";
@@ -221,6 +262,7 @@ export { wxproductsLoadHistory } from "./clients/wxproductsLoadHistory.js";
 export { wxproductsLoadObservations } from "./clients/wxproductsLoadObservations.js";
 export { wxproductsLoadProducts } from "./clients/wxproductsLoadProducts.js";
 export { wxproductsPreviewProduct } from "./clients/wxproductsPreviewProduct.js";
+export { wxproductsPreviewProductPdf } from "./clients/wxproductsPreviewProductPdf.js";
 export { wxproductsProductRevisionPdf } from "./clients/wxproductsProductRevisionPdf.js";
 export { wxproductsPublicForecast } from "./clients/wxproductsPublicForecast.js";
 export { wxproductsSaveAviationDraft } from "./clients/wxproductsSaveAviationDraft.js";
@@ -1238,10 +1280,135 @@ export {
   useHrValidateGrid,
 } from "./hooks/useHrValidateGrid.js";
 export {
+  janitorialCreateAreaMutationKey,
+  janitorialCreateAreaMutationOptions,
+  useJanitorialCreateArea,
+} from "./hooks/useJanitorialCreateArea.js";
+export {
+  janitorialCreateBuildingMutationKey,
+  janitorialCreateBuildingMutationOptions,
+  useJanitorialCreateBuilding,
+} from "./hooks/useJanitorialCreateBuilding.js";
+export {
+  janitorialCreateContractorMutationKey,
+  janitorialCreateContractorMutationOptions,
+  useJanitorialCreateContractor,
+} from "./hooks/useJanitorialCreateContractor.js";
+export {
+  janitorialCreateGrantsMutationKey,
+  janitorialCreateGrantsMutationOptions,
+  useJanitorialCreateGrants,
+} from "./hooks/useJanitorialCreateGrants.js";
+export {
+  janitorialCreateSectionMutationKey,
+  janitorialCreateSectionMutationOptions,
+  useJanitorialCreateSection,
+} from "./hooks/useJanitorialCreateSection.js";
+export {
+  janitorialCreateShiftAssignmentMutationKey,
+  janitorialCreateShiftAssignmentMutationOptions,
+  useJanitorialCreateShiftAssignment,
+} from "./hooks/useJanitorialCreateShiftAssignment.js";
+export {
+  janitorialCreateShiftPatternMutationKey,
+  janitorialCreateShiftPatternMutationOptions,
+  useJanitorialCreateShiftPattern,
+} from "./hooks/useJanitorialCreateShiftPattern.js";
+export {
+  janitorialCreateStaffMutationKey,
+  janitorialCreateStaffMutationOptions,
+  useJanitorialCreateStaff,
+} from "./hooks/useJanitorialCreateStaff.js";
+export {
+  janitorialCreateTaskMutationKey,
+  janitorialCreateTaskMutationOptions,
+  useJanitorialCreateTask,
+} from "./hooks/useJanitorialCreateTask.js";
+export {
+  janitorialCreateZoneMutationKey,
+  janitorialCreateZoneMutationOptions,
+  useJanitorialCreateZone,
+} from "./hooks/useJanitorialCreateZone.js";
+export {
+  janitorialGetAccessQueryKey,
+  janitorialGetAccessQueryOptions,
+  useJanitorialGetAccess,
+} from "./hooks/useJanitorialGetAccess.js";
+export {
+  janitorialGetCatalogueQueryKey,
+  janitorialGetCatalogueQueryOptions,
+  useJanitorialGetCatalogue,
+} from "./hooks/useJanitorialGetCatalogue.js";
+export {
+  janitorialGetShiftBoardQueryKey,
+  janitorialGetShiftBoardQueryOptions,
+  useJanitorialGetShiftBoard,
+} from "./hooks/useJanitorialGetShiftBoard.js";
+export {
+  janitorialListGrantsQueryKey,
+  janitorialListGrantsQueryOptions,
+  useJanitorialListGrants,
+} from "./hooks/useJanitorialListGrants.js";
+export {
+  janitorialListStaffQueryKey,
+  janitorialListStaffQueryOptions,
+  useJanitorialListStaff,
+} from "./hooks/useJanitorialListStaff.js";
+export {
+  janitorialRevokeGrantMutationKey,
+  janitorialRevokeGrantMutationOptions,
+  useJanitorialRevokeGrant,
+} from "./hooks/useJanitorialRevokeGrant.js";
+export {
   janitorialSpecQueryKey,
   janitorialSpecQueryOptions,
   useJanitorialSpec,
 } from "./hooks/useJanitorialSpec.js";
+export {
+  janitorialUpdateAreaMutationKey,
+  janitorialUpdateAreaMutationOptions,
+  useJanitorialUpdateArea,
+} from "./hooks/useJanitorialUpdateArea.js";
+export {
+  janitorialUpdateBuildingMutationKey,
+  janitorialUpdateBuildingMutationOptions,
+  useJanitorialUpdateBuilding,
+} from "./hooks/useJanitorialUpdateBuilding.js";
+export {
+  janitorialUpdateContractorMutationKey,
+  janitorialUpdateContractorMutationOptions,
+  useJanitorialUpdateContractor,
+} from "./hooks/useJanitorialUpdateContractor.js";
+export {
+  janitorialUpdateSectionMutationKey,
+  janitorialUpdateSectionMutationOptions,
+  useJanitorialUpdateSection,
+} from "./hooks/useJanitorialUpdateSection.js";
+export {
+  janitorialUpdateShiftAssignmentMutationKey,
+  janitorialUpdateShiftAssignmentMutationOptions,
+  useJanitorialUpdateShiftAssignment,
+} from "./hooks/useJanitorialUpdateShiftAssignment.js";
+export {
+  janitorialUpdateShiftPatternMutationKey,
+  janitorialUpdateShiftPatternMutationOptions,
+  useJanitorialUpdateShiftPattern,
+} from "./hooks/useJanitorialUpdateShiftPattern.js";
+export {
+  janitorialUpdateStaffMutationKey,
+  janitorialUpdateStaffMutationOptions,
+  useJanitorialUpdateStaff,
+} from "./hooks/useJanitorialUpdateStaff.js";
+export {
+  janitorialUpdateTaskMutationKey,
+  janitorialUpdateTaskMutationOptions,
+  useJanitorialUpdateTask,
+} from "./hooks/useJanitorialUpdateTask.js";
+export {
+  janitorialUpdateZoneMutationKey,
+  janitorialUpdateZoneMutationOptions,
+  useJanitorialUpdateZone,
+} from "./hooks/useJanitorialUpdateZone.js";
 export {
   notificationsGetNotificationPreferencesQueryKey,
   notificationsGetNotificationPreferencesQueryOptions,
@@ -1283,10 +1450,90 @@ export {
   useNotificationsUpdateNotificationSetting,
 } from "./hooks/useNotificationsUpdateNotificationSetting.js";
 export {
+  transportAddTimetableTripMutationKey,
+  transportAddTimetableTripMutationOptions,
+  useTransportAddTimetableTrip,
+} from "./hooks/useTransportAddTimetableTrip.js";
+export {
+  transportCreateRouteEntryMutationKey,
+  transportCreateRouteEntryMutationOptions,
+  useTransportCreateRouteEntry,
+} from "./hooks/useTransportCreateRouteEntry.js";
+export {
+  transportCreateStopMutationKey,
+  transportCreateStopMutationOptions,
+  useTransportCreateStop,
+} from "./hooks/useTransportCreateStop.js";
+export {
+  transportCreateTimetableDraftMutationKey,
+  transportCreateTimetableDraftMutationOptions,
+  useTransportCreateTimetableDraft,
+} from "./hooks/useTransportCreateTimetableDraft.js";
+export {
+  transportDeleteTimetableTripMutationKey,
+  transportDeleteTimetableTripMutationOptions,
+  useTransportDeleteTimetableTrip,
+} from "./hooks/useTransportDeleteTimetableTrip.js";
+export {
+  transportDiscardTimetableDraftMutationKey,
+  transportDiscardTimetableDraftMutationOptions,
+  useTransportDiscardTimetableDraft,
+} from "./hooks/useTransportDiscardTimetableDraft.js";
+export {
+  transportGetAccessQueryKey,
+  transportGetAccessQueryOptions,
+  useTransportGetAccess,
+} from "./hooks/useTransportGetAccess.js";
+export {
+  transportGetCatalogueQueryKey,
+  transportGetCatalogueQueryOptions,
+  useTransportGetCatalogue,
+} from "./hooks/useTransportGetCatalogue.js";
+export {
+  transportGetCurrentTimetableQueryKey,
+  transportGetCurrentTimetableQueryOptions,
+  useTransportGetCurrentTimetable,
+} from "./hooks/useTransportGetCurrentTimetable.js";
+export {
+  transportGetTimetableVersionQueryKey,
+  transportGetTimetableVersionQueryOptions,
+  useTransportGetTimetableVersion,
+} from "./hooks/useTransportGetTimetableVersion.js";
+export {
+  transportListTimetableVersionsQueryKey,
+  transportListTimetableVersionsQueryOptions,
+  useTransportListTimetableVersions,
+} from "./hooks/useTransportListTimetableVersions.js";
+export {
+  transportPublishTimetableDraftMutationKey,
+  transportPublishTimetableDraftMutationOptions,
+  useTransportPublishTimetableDraft,
+} from "./hooks/useTransportPublishTimetableDraft.js";
+export {
+  transportReplaceTimetableTripMutationKey,
+  transportReplaceTimetableTripMutationOptions,
+  useTransportReplaceTimetableTrip,
+} from "./hooks/useTransportReplaceTimetableTrip.js";
+export {
   transportSpecQueryKey,
   transportSpecQueryOptions,
   useTransportSpec,
 } from "./hooks/useTransportSpec.js";
+export {
+  transportUpdateRouteEntryMutationKey,
+  transportUpdateRouteEntryMutationOptions,
+  useTransportUpdateRouteEntry,
+} from "./hooks/useTransportUpdateRouteEntry.js";
+export {
+  transportUpdateStopMutationKey,
+  transportUpdateStopMutationOptions,
+  useTransportUpdateStop,
+} from "./hooks/useTransportUpdateStop.js";
+export {
+  transportUpdateTimetableDraftMutationKey,
+  transportUpdateTimetableDraftMutationOptions,
+  useTransportUpdateTimetableDraft,
+} from "./hooks/useTransportUpdateTimetableDraft.js";
 export {
   useUtilsHealthCheck,
   utilsHealthCheckQueryKey,
@@ -1337,6 +1584,11 @@ export {
   wxproductsPreviewProductMutationKey,
   wxproductsPreviewProductMutationOptions,
 } from "./hooks/useWxproductsPreviewProduct.js";
+export {
+  useWxproductsPreviewProductPdf,
+  wxproductsPreviewProductPdfMutationKey,
+  wxproductsPreviewProductPdfMutationOptions,
+} from "./hooks/useWxproductsPreviewProductPdf.js";
 export {
   useWxproductsProductRevisionPdf,
   wxproductsProductRevisionPdfQueryKey,
@@ -1427,6 +1679,7 @@ export type { AccessReviewData } from "./models/AccessReviewData.js";
 export type { AccountSecurityPublic } from "./models/AccountSecurityPublic.js";
 export type { AddressPublic } from "./models/AddressPublic.js";
 export type { AddressUpdate } from "./models/AddressUpdate.js";
+export type { ApiError } from "./models/ApiError.js";
 export type { ApprovalAuthorityPublic } from "./models/ApprovalAuthorityPublic.js";
 export type { ApprovalAuthorityUpdate } from "./models/ApprovalAuthorityUpdate.js";
 export type { ArchiveBulletin } from "./models/ArchiveBulletin.js";
@@ -1434,6 +1687,10 @@ export type { ArchiveEdition } from "./models/ArchiveEdition.js";
 export type { ArchiveHistory } from "./models/ArchiveHistory.js";
 export type { ArchivePage } from "./models/ArchivePage.js";
 export type { ArchiveRetrieval } from "./models/ArchiveRetrieval.js";
+export type { AreaCreate } from "./models/AreaCreate.js";
+export type { AreaCreatePropertiesSpaceTypeAnyOfEnum } from "./models/AreaCreatePropertiesSpaceTypeAnyOfEnum.js";
+export { areaCreatePropertiesSpaceTypeAnyOfEnum } from "./models/AreaCreatePropertiesSpaceTypeAnyOfEnum.js";
+export type { AreaUpdate } from "./models/AreaUpdate.js";
 export type { AreaView } from "./models/AreaView.js";
 export type { AuditChangePublic } from "./models/AuditChangePublic.js";
 export type { AuditEntryPublic } from "./models/AuditEntryPublic.js";
@@ -1909,6 +2166,10 @@ export type {
 export type { BodyAuthLoginAccessToken } from "./models/BodyAuthLoginAccessToken.js";
 export type { BodyHrUploadDocument } from "./models/BodyHrUploadDocument.js";
 export type { BrowserSession } from "./models/BrowserSession.js";
+export type { BuildingCreate } from "./models/BuildingCreate.js";
+export type { BuildingCreatePropertiesKindEnum } from "./models/BuildingCreatePropertiesKindEnum.js";
+export { buildingCreatePropertiesKindEnum } from "./models/BuildingCreatePropertiesKindEnum.js";
+export type { BuildingUpdate } from "./models/BuildingUpdate.js";
 export type { BuildingView } from "./models/BuildingView.js";
 export type { BundleItem } from "./models/BundleItem.js";
 export type { BundleView } from "./models/BundleView.js";
@@ -2271,6 +2532,8 @@ export type { CapValidationResult } from "./models/CapValidationResult.js";
 export type { CatalogueApply } from "./models/CatalogueApply.js";
 export type { CataloguePreview } from "./models/CataloguePreview.js";
 export type { CheckoutSessionPublic } from "./models/CheckoutSessionPublic.js";
+export type { ContractorCreate } from "./models/ContractorCreate.js";
+export type { ContractorUpdate } from "./models/ContractorUpdate.js";
 export type { DashboardApproval } from "./models/DashboardApproval.js";
 export type { DashboardPerson } from "./models/DashboardPerson.js";
 export type { DashboardRequest } from "./models/DashboardRequest.js";
@@ -2330,6 +2593,7 @@ export type {
   EregisterValidateSynopObservationStatus200,
   EregisterValidateSynopObservationStatus422,
 } from "./models/EregisterValidateSynopObservation.js";
+export type { ForecastCondition } from "./models/ForecastCondition.js";
 export type { ForecastObservation } from "./models/ForecastObservation.js";
 export type { ForecastPeriod } from "./models/ForecastPeriod.js";
 export type { ForecastSource } from "./models/ForecastSource.js";
@@ -2338,6 +2602,8 @@ export { forecastSourcePropertiesKindEnum } from "./models/ForecastSourcePropert
 export type { Frequency } from "./models/Frequency.js";
 export type { Gender } from "./models/Gender.js";
 export { gender } from "./models/Gender.js";
+export type { GmsColour } from "./models/GmsColour.js";
+export { gmsColour } from "./models/GmsColour.js";
 export type { GoogleChallengePublic } from "./models/GoogleChallengePublic.js";
 export type { GoogleComplete } from "./models/GoogleComplete.js";
 export type { GoogleFinish } from "./models/GoogleFinish.js";
@@ -2346,6 +2612,7 @@ export type { GoogleStartPublic } from "./models/GoogleStartPublic.js";
 export type { GradeInput } from "./models/GradeInput.js";
 export type { GradePublic } from "./models/GradePublic.js";
 export type { GradeSetup } from "./models/GradeSetup.js";
+export type { GrantCreate } from "./models/GrantCreate.js";
 export type {
   HrActionLeaveRequestBody,
   HrActionLeaveRequestOptions,
@@ -3491,6 +3758,205 @@ export { imageInputPropertiesTimeBasisEnum } from "./models/ImageInputProperties
 export type { ImageResult } from "./models/ImageResult.js";
 export type { ImportStatus } from "./models/ImportStatus.js";
 export { importStatus } from "./models/ImportStatus.js";
+export type { JanitorialAccess } from "./models/JanitorialAccess.js";
+export type { JanitorialArea } from "./models/JanitorialArea.js";
+export type { JanitorialBuilding } from "./models/JanitorialBuilding.js";
+export type { JanitorialBundle } from "./models/JanitorialBundle.js";
+export type { JanitorialBundleItem } from "./models/JanitorialBundleItem.js";
+export type { JanitorialCatalogue } from "./models/JanitorialCatalogue.js";
+export type { JanitorialContractor } from "./models/JanitorialContractor.js";
+export type {
+  JanitorialCreateAreaBody,
+  JanitorialCreateAreaOptions,
+  JanitorialCreateAreaResponse,
+  JanitorialCreateAreaResponses,
+  JanitorialCreateAreaStatus201,
+  JanitorialCreateAreaStatus403,
+  JanitorialCreateAreaStatus404,
+  JanitorialCreateAreaStatus409,
+  JanitorialCreateAreaStatus422,
+  JanitorialCreateAreaStatus503,
+} from "./models/JanitorialCreateArea.js";
+export type {
+  JanitorialCreateBuildingBody,
+  JanitorialCreateBuildingOptions,
+  JanitorialCreateBuildingResponse,
+  JanitorialCreateBuildingResponses,
+  JanitorialCreateBuildingStatus201,
+  JanitorialCreateBuildingStatus403,
+  JanitorialCreateBuildingStatus404,
+  JanitorialCreateBuildingStatus409,
+  JanitorialCreateBuildingStatus422,
+  JanitorialCreateBuildingStatus503,
+} from "./models/JanitorialCreateBuilding.js";
+export type {
+  JanitorialCreateContractorBody,
+  JanitorialCreateContractorOptions,
+  JanitorialCreateContractorResponse,
+  JanitorialCreateContractorResponses,
+  JanitorialCreateContractorStatus201,
+  JanitorialCreateContractorStatus403,
+  JanitorialCreateContractorStatus404,
+  JanitorialCreateContractorStatus409,
+  JanitorialCreateContractorStatus422,
+  JanitorialCreateContractorStatus503,
+} from "./models/JanitorialCreateContractor.js";
+export type {
+  JanitorialCreateGrantsBody,
+  JanitorialCreateGrantsOptions,
+  JanitorialCreateGrantsResponse,
+  JanitorialCreateGrantsResponses,
+  JanitorialCreateGrantsStatus201,
+  JanitorialCreateGrantsStatus403,
+  JanitorialCreateGrantsStatus404,
+  JanitorialCreateGrantsStatus409,
+  JanitorialCreateGrantsStatus422,
+  JanitorialCreateGrantsStatus503,
+} from "./models/JanitorialCreateGrants.js";
+export type {
+  JanitorialCreateSectionBody,
+  JanitorialCreateSectionOptions,
+  JanitorialCreateSectionResponse,
+  JanitorialCreateSectionResponses,
+  JanitorialCreateSectionStatus201,
+  JanitorialCreateSectionStatus403,
+  JanitorialCreateSectionStatus404,
+  JanitorialCreateSectionStatus409,
+  JanitorialCreateSectionStatus422,
+  JanitorialCreateSectionStatus503,
+} from "./models/JanitorialCreateSection.js";
+export type {
+  JanitorialCreateShiftAssignmentBody,
+  JanitorialCreateShiftAssignmentOptions,
+  JanitorialCreateShiftAssignmentResponse,
+  JanitorialCreateShiftAssignmentResponses,
+  JanitorialCreateShiftAssignmentStatus201,
+  JanitorialCreateShiftAssignmentStatus403,
+  JanitorialCreateShiftAssignmentStatus404,
+  JanitorialCreateShiftAssignmentStatus409,
+  JanitorialCreateShiftAssignmentStatus422,
+  JanitorialCreateShiftAssignmentStatus503,
+} from "./models/JanitorialCreateShiftAssignment.js";
+export type {
+  JanitorialCreateShiftPatternBody,
+  JanitorialCreateShiftPatternOptions,
+  JanitorialCreateShiftPatternResponse,
+  JanitorialCreateShiftPatternResponses,
+  JanitorialCreateShiftPatternStatus201,
+  JanitorialCreateShiftPatternStatus403,
+  JanitorialCreateShiftPatternStatus404,
+  JanitorialCreateShiftPatternStatus409,
+  JanitorialCreateShiftPatternStatus422,
+  JanitorialCreateShiftPatternStatus503,
+} from "./models/JanitorialCreateShiftPattern.js";
+export type {
+  JanitorialCreateStaffBody,
+  JanitorialCreateStaffOptions,
+  JanitorialCreateStaffResponse,
+  JanitorialCreateStaffResponses,
+  JanitorialCreateStaffStatus201,
+  JanitorialCreateStaffStatus403,
+  JanitorialCreateStaffStatus404,
+  JanitorialCreateStaffStatus409,
+  JanitorialCreateStaffStatus422,
+  JanitorialCreateStaffStatus503,
+} from "./models/JanitorialCreateStaff.js";
+export type {
+  JanitorialCreateTaskBody,
+  JanitorialCreateTaskOptions,
+  JanitorialCreateTaskPath,
+  JanitorialCreateTaskResponse,
+  JanitorialCreateTaskResponses,
+  JanitorialCreateTaskStatus201,
+  JanitorialCreateTaskStatus403,
+  JanitorialCreateTaskStatus404,
+  JanitorialCreateTaskStatus409,
+  JanitorialCreateTaskStatus422,
+  JanitorialCreateTaskStatus503,
+} from "./models/JanitorialCreateTask.js";
+export type {
+  JanitorialCreateZoneBody,
+  JanitorialCreateZoneOptions,
+  JanitorialCreateZoneResponse,
+  JanitorialCreateZoneResponses,
+  JanitorialCreateZoneStatus201,
+  JanitorialCreateZoneStatus403,
+  JanitorialCreateZoneStatus404,
+  JanitorialCreateZoneStatus409,
+  JanitorialCreateZoneStatus422,
+  JanitorialCreateZoneStatus503,
+} from "./models/JanitorialCreateZone.js";
+export type { JanitorialFrequency } from "./models/JanitorialFrequency.js";
+export type { JanitorialFrequencyPropertiesPeriodUnitEnum } from "./models/JanitorialFrequencyPropertiesPeriodUnitEnum.js";
+export { janitorialFrequencyPropertiesPeriodUnitEnum } from "./models/JanitorialFrequencyPropertiesPeriodUnitEnum.js";
+export type {
+  JanitorialGetAccessOptions,
+  JanitorialGetAccessResponse,
+  JanitorialGetAccessResponses,
+  JanitorialGetAccessStatus200,
+  JanitorialGetAccessStatus401,
+  JanitorialGetAccessStatus422,
+} from "./models/JanitorialGetAccess.js";
+export type {
+  JanitorialGetCatalogueOptions,
+  JanitorialGetCatalogueQuery,
+  JanitorialGetCatalogueResponse,
+  JanitorialGetCatalogueResponses,
+  JanitorialGetCatalogueStatus200,
+  JanitorialGetCatalogueStatus403,
+  JanitorialGetCatalogueStatus404,
+  JanitorialGetCatalogueStatus422,
+  JanitorialGetCatalogueStatus503,
+} from "./models/JanitorialGetCatalogue.js";
+export type {
+  JanitorialGetShiftBoardOptions,
+  JanitorialGetShiftBoardQuery,
+  JanitorialGetShiftBoardResponse,
+  JanitorialGetShiftBoardResponses,
+  JanitorialGetShiftBoardStatus200,
+  JanitorialGetShiftBoardStatus403,
+  JanitorialGetShiftBoardStatus404,
+  JanitorialGetShiftBoardStatus422,
+  JanitorialGetShiftBoardStatus503,
+} from "./models/JanitorialGetShiftBoard.js";
+export type { JanitorialGrant } from "./models/JanitorialGrant.js";
+export type {
+  JanitorialListGrantsOptions,
+  JanitorialListGrantsResponse,
+  JanitorialListGrantsResponses,
+  JanitorialListGrantsStatus200,
+  JanitorialListGrantsStatus403,
+  JanitorialListGrantsStatus422,
+  JanitorialListGrantsStatus503,
+} from "./models/JanitorialListGrants.js";
+export type {
+  JanitorialListStaffOptions,
+  JanitorialListStaffResponse,
+  JanitorialListStaffResponses,
+  JanitorialListStaffStatus200,
+  JanitorialListStaffStatus403,
+  JanitorialListStaffStatus422,
+  JanitorialListStaffStatus503,
+} from "./models/JanitorialListStaff.js";
+export type {
+  JanitorialRevokeGrantOptions,
+  JanitorialRevokeGrantPath,
+  JanitorialRevokeGrantResponse,
+  JanitorialRevokeGrantResponses,
+  JanitorialRevokeGrantStatus204,
+  JanitorialRevokeGrantStatus403,
+  JanitorialRevokeGrantStatus404,
+  JanitorialRevokeGrantStatus409,
+  JanitorialRevokeGrantStatus422,
+  JanitorialRevokeGrantStatus503,
+} from "./models/JanitorialRevokeGrant.js";
+export type { JanitorialSection } from "./models/JanitorialSection.js";
+export type { JanitorialShiftAssignment } from "./models/JanitorialShiftAssignment.js";
+export type { JanitorialShiftAssignmentPropertiesStatusEnum } from "./models/JanitorialShiftAssignmentPropertiesStatusEnum.js";
+export { janitorialShiftAssignmentPropertiesStatusEnum } from "./models/JanitorialShiftAssignmentPropertiesStatusEnum.js";
+export type { JanitorialShiftBoard } from "./models/JanitorialShiftBoard.js";
+export type { JanitorialShiftPattern } from "./models/JanitorialShiftPattern.js";
+export type { JanitorialSite } from "./models/JanitorialSite.js";
 export type {
   JanitorialSpecOptions,
   JanitorialSpecResponse,
@@ -3498,6 +3964,129 @@ export type {
   JanitorialSpecStatus200,
   JanitorialSpecStatus422,
 } from "./models/JanitorialSpec.js";
+export type { JanitorialStaffList } from "./models/JanitorialStaffList.js";
+export type { JanitorialStaffMember } from "./models/JanitorialStaffMember.js";
+export type { JanitorialStaffMemberPropertiesRoleEnum } from "./models/JanitorialStaffMemberPropertiesRoleEnum.js";
+export { janitorialStaffMemberPropertiesRoleEnum } from "./models/JanitorialStaffMemberPropertiesRoleEnum.js";
+export type { JanitorialTask } from "./models/JanitorialTask.js";
+export type {
+  JanitorialUpdateAreaBody,
+  JanitorialUpdateAreaOptions,
+  JanitorialUpdateAreaPath,
+  JanitorialUpdateAreaResponse,
+  JanitorialUpdateAreaResponses,
+  JanitorialUpdateAreaStatus200,
+  JanitorialUpdateAreaStatus403,
+  JanitorialUpdateAreaStatus404,
+  JanitorialUpdateAreaStatus409,
+  JanitorialUpdateAreaStatus422,
+  JanitorialUpdateAreaStatus503,
+} from "./models/JanitorialUpdateArea.js";
+export type {
+  JanitorialUpdateBuildingBody,
+  JanitorialUpdateBuildingOptions,
+  JanitorialUpdateBuildingPath,
+  JanitorialUpdateBuildingResponse,
+  JanitorialUpdateBuildingResponses,
+  JanitorialUpdateBuildingStatus200,
+  JanitorialUpdateBuildingStatus403,
+  JanitorialUpdateBuildingStatus404,
+  JanitorialUpdateBuildingStatus409,
+  JanitorialUpdateBuildingStatus422,
+  JanitorialUpdateBuildingStatus503,
+} from "./models/JanitorialUpdateBuilding.js";
+export type {
+  JanitorialUpdateContractorBody,
+  JanitorialUpdateContractorOptions,
+  JanitorialUpdateContractorPath,
+  JanitorialUpdateContractorResponse,
+  JanitorialUpdateContractorResponses,
+  JanitorialUpdateContractorStatus200,
+  JanitorialUpdateContractorStatus403,
+  JanitorialUpdateContractorStatus404,
+  JanitorialUpdateContractorStatus409,
+  JanitorialUpdateContractorStatus422,
+  JanitorialUpdateContractorStatus503,
+} from "./models/JanitorialUpdateContractor.js";
+export type {
+  JanitorialUpdateSectionBody,
+  JanitorialUpdateSectionOptions,
+  JanitorialUpdateSectionPath,
+  JanitorialUpdateSectionResponse,
+  JanitorialUpdateSectionResponses,
+  JanitorialUpdateSectionStatus200,
+  JanitorialUpdateSectionStatus403,
+  JanitorialUpdateSectionStatus404,
+  JanitorialUpdateSectionStatus409,
+  JanitorialUpdateSectionStatus422,
+  JanitorialUpdateSectionStatus503,
+} from "./models/JanitorialUpdateSection.js";
+export type {
+  JanitorialUpdateShiftAssignmentBody,
+  JanitorialUpdateShiftAssignmentOptions,
+  JanitorialUpdateShiftAssignmentPath,
+  JanitorialUpdateShiftAssignmentResponse,
+  JanitorialUpdateShiftAssignmentResponses,
+  JanitorialUpdateShiftAssignmentStatus200,
+  JanitorialUpdateShiftAssignmentStatus403,
+  JanitorialUpdateShiftAssignmentStatus404,
+  JanitorialUpdateShiftAssignmentStatus409,
+  JanitorialUpdateShiftAssignmentStatus422,
+  JanitorialUpdateShiftAssignmentStatus503,
+} from "./models/JanitorialUpdateShiftAssignment.js";
+export type {
+  JanitorialUpdateShiftPatternBody,
+  JanitorialUpdateShiftPatternOptions,
+  JanitorialUpdateShiftPatternPath,
+  JanitorialUpdateShiftPatternResponse,
+  JanitorialUpdateShiftPatternResponses,
+  JanitorialUpdateShiftPatternStatus200,
+  JanitorialUpdateShiftPatternStatus403,
+  JanitorialUpdateShiftPatternStatus404,
+  JanitorialUpdateShiftPatternStatus409,
+  JanitorialUpdateShiftPatternStatus422,
+  JanitorialUpdateShiftPatternStatus503,
+} from "./models/JanitorialUpdateShiftPattern.js";
+export type {
+  JanitorialUpdateStaffBody,
+  JanitorialUpdateStaffOptions,
+  JanitorialUpdateStaffPath,
+  JanitorialUpdateStaffResponse,
+  JanitorialUpdateStaffResponses,
+  JanitorialUpdateStaffStatus200,
+  JanitorialUpdateStaffStatus403,
+  JanitorialUpdateStaffStatus404,
+  JanitorialUpdateStaffStatus409,
+  JanitorialUpdateStaffStatus422,
+  JanitorialUpdateStaffStatus503,
+} from "./models/JanitorialUpdateStaff.js";
+export type {
+  JanitorialUpdateTaskBody,
+  JanitorialUpdateTaskOptions,
+  JanitorialUpdateTaskPath,
+  JanitorialUpdateTaskResponse,
+  JanitorialUpdateTaskResponses,
+  JanitorialUpdateTaskStatus200,
+  JanitorialUpdateTaskStatus403,
+  JanitorialUpdateTaskStatus404,
+  JanitorialUpdateTaskStatus409,
+  JanitorialUpdateTaskStatus422,
+  JanitorialUpdateTaskStatus503,
+} from "./models/JanitorialUpdateTask.js";
+export type {
+  JanitorialUpdateZoneBody,
+  JanitorialUpdateZoneOptions,
+  JanitorialUpdateZonePath,
+  JanitorialUpdateZoneResponse,
+  JanitorialUpdateZoneResponses,
+  JanitorialUpdateZoneStatus200,
+  JanitorialUpdateZoneStatus403,
+  JanitorialUpdateZoneStatus404,
+  JanitorialUpdateZoneStatus409,
+  JanitorialUpdateZoneStatus422,
+  JanitorialUpdateZoneStatus503,
+} from "./models/JanitorialUpdateZone.js";
+export type { JanitorialZone } from "./models/JanitorialZone.js";
 export type { JsonValue } from "./models/JsonValue.js";
 export type { LeavePublic } from "./models/LeavePublic.js";
 export type { LeaveRequestAction } from "./models/LeaveRequestAction.js";
@@ -3653,6 +4242,8 @@ export type { PublicHolidaysPublic } from "./models/PublicHolidaysPublic.js";
 export type { PublicPublishedProduct } from "./models/PublicPublishedProduct.js";
 export type { PublicWarning } from "./models/PublicWarning.js";
 export type { PublicWarningGroup } from "./models/PublicWarningGroup.js";
+export type { PublicWarningPropertiesColourAnyOfEnum } from "./models/PublicWarningPropertiesColourAnyOfEnum.js";
+export { publicWarningPropertiesColourAnyOfEnum } from "./models/PublicWarningPropertiesColourAnyOfEnum.js";
 export type { PublicWarnings } from "./models/PublicWarnings.js";
 export type { PublishedProducts } from "./models/PublishedProducts.js";
 export type { RecoveryCodesPublic } from "./models/RecoveryCodesPublic.js";
@@ -3706,15 +4297,20 @@ export type { RunInput } from "./models/RunInput.js";
 export type { RunInputPropertiesSourceEnum } from "./models/RunInputPropertiesSourceEnum.js";
 export { runInputPropertiesSourceEnum } from "./models/RunInputPropertiesSourceEnum.js";
 export type { RunResult } from "./models/RunResult.js";
+export type { SectionCreate } from "./models/SectionCreate.js";
+export type { SectionUpdate } from "./models/SectionUpdate.js";
 export type { SectionView } from "./models/SectionView.js";
 export type { SecurityProof } from "./models/SecurityProof.js";
 export type { SecuritySessionPublic } from "./models/SecuritySessionPublic.js";
+export type { ServiceCalendarView } from "./models/ServiceCalendarView.js";
 export type { SessionAccessTokenResponse } from "./models/SessionAccessTokenResponse.js";
 export type { SessionLoginRequest } from "./models/SessionLoginRequest.js";
 export type { SessionLoginResponse } from "./models/SessionLoginResponse.js";
 export type { SessionPublic } from "./models/SessionPublic.js";
 export type { SessionTokenRequest } from "./models/SessionTokenRequest.js";
 export type { SessionUserPublic } from "./models/SessionUserPublic.js";
+export type { ShiftAssignmentCreate } from "./models/ShiftAssignmentCreate.js";
+export type { ShiftAssignmentUpdate } from "./models/ShiftAssignmentUpdate.js";
 export type { ShiftCatalogCreate } from "./models/ShiftCatalogCreate.js";
 export type { ShiftCatalogPublic } from "./models/ShiftCatalogPublic.js";
 export type { ShiftCatalogsPublic } from "./models/ShiftCatalogsPublic.js";
@@ -3724,6 +4320,8 @@ export { shiftCategory } from "./models/ShiftCategory.js";
 export type { ShiftHoursSummary } from "./models/ShiftHoursSummary.js";
 export type { ShiftPattern } from "./models/ShiftPattern.js";
 export { shiftPattern } from "./models/ShiftPattern.js";
+export type { ShiftPatternCreate } from "./models/ShiftPatternCreate.js";
+export type { ShiftPatternUpdate } from "./models/ShiftPatternUpdate.js";
 export type { ShiftPeriod } from "./models/ShiftPeriod.js";
 export { shiftPeriod } from "./models/ShiftPeriod.js";
 export type { ShiftSwapAction } from "./models/ShiftSwapAction.js";
@@ -3739,8 +4337,10 @@ export type { SignedDocumentPublic } from "./models/SignedDocumentPublic.js";
 export type { SrcAuthSchemasRolePublic } from "./models/SrcAuthSchemasRolePublic.js";
 export type { SrcHrSchemasRolePublic } from "./models/SrcHrSchemasRolePublic.js";
 export type { StaffCard } from "./models/StaffCard.js";
+export type { StaffCreate } from "./models/StaffCreate.js";
 export type { StaffInput } from "./models/StaffInput.js";
 export type { StaffSetup } from "./models/StaffSetup.js";
+export type { StaffUpdate } from "./models/StaffUpdate.js";
 export type { StatusReportCreate } from "./models/StatusReportCreate.js";
 export type { StatusReportDetails } from "./models/StatusReportDetails.js";
 export type { StatusReportEntryInput } from "./models/StatusReportEntryInput.js";
@@ -3760,6 +4360,8 @@ export type { SynopValidationIssue } from "./models/SynopValidationIssue.js";
 export type { SynopValidationRequest } from "./models/SynopValidationRequest.js";
 export type { SynopValidationResponse } from "./models/SynopValidationResponse.js";
 export type { SynopWorkbook } from "./models/SynopWorkbook.js";
+export type { TaskCreate } from "./models/TaskCreate.js";
+export type { TaskUpdate } from "./models/TaskUpdate.js";
 export type { TaskView } from "./models/TaskView.js";
 export type { TimesheetCreate } from "./models/TimesheetCreate.js";
 export type { TimesheetDetails } from "./models/TimesheetDetails.js";
@@ -3771,6 +4373,22 @@ export type { TimesheetStatus } from "./models/TimesheetStatus.js";
 export { timesheetStatus } from "./models/TimesheetStatus.js";
 export type { TimesheetSubmitRequest } from "./models/TimesheetSubmitRequest.js";
 export type { TimesheetSummaryByShift } from "./models/TimesheetSummaryByShift.js";
+export type { TimetableIssue } from "./models/TimetableIssue.js";
+export type { TimetableIssueSeverity } from "./models/TimetableIssueSeverity.js";
+export { timetableIssueSeverity } from "./models/TimetableIssueSeverity.js";
+export type { TimetablePublish } from "./models/TimetablePublish.js";
+export type { TimetableStopTimeInput } from "./models/TimetableStopTimeInput.js";
+export type { TimetableStopTimeView } from "./models/TimetableStopTimeView.js";
+export type { TimetableTripInput } from "./models/TimetableTripInput.js";
+export type { TimetableTripView } from "./models/TimetableTripView.js";
+export type { TimetableVersionCreate } from "./models/TimetableVersionCreate.js";
+export type { TimetableVersionDetail } from "./models/TimetableVersionDetail.js";
+export type { TimetableVersionState } from "./models/TimetableVersionState.js";
+export { timetableVersionState } from "./models/TimetableVersionState.js";
+export type { TimetableVersionStatus } from "./models/TimetableVersionStatus.js";
+export { timetableVersionStatus } from "./models/TimetableVersionStatus.js";
+export type { TimetableVersionSummary } from "./models/TimetableVersionSummary.js";
+export type { TimetableVersionUpdate } from "./models/TimetableVersionUpdate.js";
 export type { Title } from "./models/Title.js";
 export { title } from "./models/Title.js";
 export type { Token } from "./models/Token.js";
@@ -3782,6 +4400,154 @@ export type { TrainingRecordInputPropertiesResultEnum } from "./models/TrainingR
 export { trainingRecordInputPropertiesResultEnum } from "./models/TrainingRecordInputPropertiesResultEnum.js";
 export type { TrainingRecordList } from "./models/TrainingRecordList.js";
 export type { TrainingRecordPublic } from "./models/TrainingRecordPublic.js";
+export type { TransportAccess } from "./models/TransportAccess.js";
+export type {
+  TransportAddTimetableTripBody,
+  TransportAddTimetableTripOptions,
+  TransportAddTimetableTripPath,
+  TransportAddTimetableTripResponse,
+  TransportAddTimetableTripResponses,
+  TransportAddTimetableTripStatus201,
+  TransportAddTimetableTripStatus403,
+  TransportAddTimetableTripStatus404,
+  TransportAddTimetableTripStatus409,
+  TransportAddTimetableTripStatus422,
+  TransportAddTimetableTripStatus503,
+} from "./models/TransportAddTimetableTrip.js";
+export type { TransportCatalogue } from "./models/TransportCatalogue.js";
+export type {
+  TransportCreateRouteEntryBody,
+  TransportCreateRouteEntryOptions,
+  TransportCreateRouteEntryResponse,
+  TransportCreateRouteEntryResponses,
+  TransportCreateRouteEntryStatus201,
+  TransportCreateRouteEntryStatus403,
+  TransportCreateRouteEntryStatus409,
+  TransportCreateRouteEntryStatus422,
+  TransportCreateRouteEntryStatus503,
+} from "./models/TransportCreateRouteEntry.js";
+export type {
+  TransportCreateStopBody,
+  TransportCreateStopOptions,
+  TransportCreateStopResponse,
+  TransportCreateStopResponses,
+  TransportCreateStopStatus201,
+  TransportCreateStopStatus403,
+  TransportCreateStopStatus409,
+  TransportCreateStopStatus422,
+  TransportCreateStopStatus503,
+} from "./models/TransportCreateStop.js";
+export type {
+  TransportCreateTimetableDraftBody,
+  TransportCreateTimetableDraftOptions,
+  TransportCreateTimetableDraftResponse,
+  TransportCreateTimetableDraftResponses,
+  TransportCreateTimetableDraftStatus201,
+  TransportCreateTimetableDraftStatus403,
+  TransportCreateTimetableDraftStatus409,
+  TransportCreateTimetableDraftStatus422,
+  TransportCreateTimetableDraftStatus503,
+} from "./models/TransportCreateTimetableDraft.js";
+export type {
+  TransportDeleteTimetableTripOptions,
+  TransportDeleteTimetableTripPath,
+  TransportDeleteTimetableTripResponse,
+  TransportDeleteTimetableTripResponses,
+  TransportDeleteTimetableTripStatus204,
+  TransportDeleteTimetableTripStatus403,
+  TransportDeleteTimetableTripStatus404,
+  TransportDeleteTimetableTripStatus409,
+  TransportDeleteTimetableTripStatus422,
+  TransportDeleteTimetableTripStatus503,
+} from "./models/TransportDeleteTimetableTrip.js";
+export type { TransportDirection } from "./models/TransportDirection.js";
+export { transportDirection } from "./models/TransportDirection.js";
+export type {
+  TransportDiscardTimetableDraftOptions,
+  TransportDiscardTimetableDraftPath,
+  TransportDiscardTimetableDraftResponse,
+  TransportDiscardTimetableDraftResponses,
+  TransportDiscardTimetableDraftStatus200,
+  TransportDiscardTimetableDraftStatus403,
+  TransportDiscardTimetableDraftStatus404,
+  TransportDiscardTimetableDraftStatus409,
+  TransportDiscardTimetableDraftStatus422,
+  TransportDiscardTimetableDraftStatus503,
+} from "./models/TransportDiscardTimetableDraft.js";
+export type {
+  TransportGetAccessOptions,
+  TransportGetAccessResponse,
+  TransportGetAccessResponses,
+  TransportGetAccessStatus200,
+  TransportGetAccessStatus401,
+  TransportGetAccessStatus422,
+} from "./models/TransportGetAccess.js";
+export type {
+  TransportGetCatalogueOptions,
+  TransportGetCatalogueResponse,
+  TransportGetCatalogueResponses,
+  TransportGetCatalogueStatus200,
+  TransportGetCatalogueStatus422,
+  TransportGetCatalogueStatus503,
+} from "./models/TransportGetCatalogue.js";
+export type {
+  TransportGetCurrentTimetableOptions,
+  TransportGetCurrentTimetableResponse,
+  TransportGetCurrentTimetableResponses,
+  TransportGetCurrentTimetableStatus200,
+  TransportGetCurrentTimetableStatus404,
+  TransportGetCurrentTimetableStatus422,
+  TransportGetCurrentTimetableStatus503,
+} from "./models/TransportGetCurrentTimetable.js";
+export type {
+  TransportGetTimetableVersionOptions,
+  TransportGetTimetableVersionPath,
+  TransportGetTimetableVersionResponse,
+  TransportGetTimetableVersionResponses,
+  TransportGetTimetableVersionStatus200,
+  TransportGetTimetableVersionStatus403,
+  TransportGetTimetableVersionStatus404,
+  TransportGetTimetableVersionStatus422,
+  TransportGetTimetableVersionStatus503,
+} from "./models/TransportGetTimetableVersion.js";
+export type {
+  TransportListTimetableVersionsOptions,
+  TransportListTimetableVersionsResponse,
+  TransportListTimetableVersionsResponses,
+  TransportListTimetableVersionsStatus200,
+  TransportListTimetableVersionsStatus403,
+  TransportListTimetableVersionsStatus422,
+  TransportListTimetableVersionsStatus503,
+} from "./models/TransportListTimetableVersions.js";
+export type {
+  TransportPublishTimetableDraftBody,
+  TransportPublishTimetableDraftOptions,
+  TransportPublishTimetableDraftPath,
+  TransportPublishTimetableDraftResponse,
+  TransportPublishTimetableDraftResponses,
+  TransportPublishTimetableDraftStatus200,
+  TransportPublishTimetableDraftStatus403,
+  TransportPublishTimetableDraftStatus404,
+  TransportPublishTimetableDraftStatus409,
+  TransportPublishTimetableDraftStatus422,
+  TransportPublishTimetableDraftStatus503,
+} from "./models/TransportPublishTimetableDraft.js";
+export type {
+  TransportReplaceTimetableTripBody,
+  TransportReplaceTimetableTripOptions,
+  TransportReplaceTimetableTripPath,
+  TransportReplaceTimetableTripResponse,
+  TransportReplaceTimetableTripResponses,
+  TransportReplaceTimetableTripStatus200,
+  TransportReplaceTimetableTripStatus403,
+  TransportReplaceTimetableTripStatus404,
+  TransportReplaceTimetableTripStatus409,
+  TransportReplaceTimetableTripStatus422,
+  TransportReplaceTimetableTripStatus503,
+} from "./models/TransportReplaceTimetableTrip.js";
+export type { TransportRoute } from "./models/TransportRoute.js";
+export type { TransportRouteInput } from "./models/TransportRouteInput.js";
+export type { TransportShift } from "./models/TransportShift.js";
 export type {
   TransportSpecOptions,
   TransportSpecResponse,
@@ -3789,6 +4555,51 @@ export type {
   TransportSpecStatus200,
   TransportSpecStatus422,
 } from "./models/TransportSpec.js";
+export type { TransportStop } from "./models/TransportStop.js";
+export type { TransportStopInput } from "./models/TransportStopInput.js";
+export type { TransportTripStatus } from "./models/TransportTripStatus.js";
+export { transportTripStatus } from "./models/TransportTripStatus.js";
+export type {
+  TransportUpdateRouteEntryBody,
+  TransportUpdateRouteEntryOptions,
+  TransportUpdateRouteEntryPath,
+  TransportUpdateRouteEntryResponse,
+  TransportUpdateRouteEntryResponses,
+  TransportUpdateRouteEntryStatus200,
+  TransportUpdateRouteEntryStatus403,
+  TransportUpdateRouteEntryStatus404,
+  TransportUpdateRouteEntryStatus409,
+  TransportUpdateRouteEntryStatus422,
+  TransportUpdateRouteEntryStatus503,
+} from "./models/TransportUpdateRouteEntry.js";
+export type {
+  TransportUpdateStopBody,
+  TransportUpdateStopOptions,
+  TransportUpdateStopPath,
+  TransportUpdateStopResponse,
+  TransportUpdateStopResponses,
+  TransportUpdateStopStatus200,
+  TransportUpdateStopStatus403,
+  TransportUpdateStopStatus404,
+  TransportUpdateStopStatus409,
+  TransportUpdateStopStatus422,
+  TransportUpdateStopStatus503,
+} from "./models/TransportUpdateStop.js";
+export type {
+  TransportUpdateTimetableDraftBody,
+  TransportUpdateTimetableDraftOptions,
+  TransportUpdateTimetableDraftPath,
+  TransportUpdateTimetableDraftResponse,
+  TransportUpdateTimetableDraftResponses,
+  TransportUpdateTimetableDraftStatus200,
+  TransportUpdateTimetableDraftStatus403,
+  TransportUpdateTimetableDraftStatus404,
+  TransportUpdateTimetableDraftStatus409,
+  TransportUpdateTimetableDraftStatus422,
+  TransportUpdateTimetableDraftStatus503,
+} from "./models/TransportUpdateTimetableDraft.js";
+export type { TransportWeekday } from "./models/TransportWeekday.js";
+export { transportWeekday } from "./models/TransportWeekday.js";
 export type { TripView } from "./models/TripView.js";
 export type { TwoFactorCodeRequest } from "./models/TwoFactorCodeRequest.js";
 export type { TwoFactorDisableRequest } from "./models/TwoFactorDisableRequest.js";
@@ -3931,6 +4742,16 @@ export type {
   WxproductsPreviewProductStatus403,
   WxproductsPreviewProductStatus422,
 } from "./models/WxproductsPreviewProduct.js";
+export type {
+  WxproductsPreviewProductPdfBody,
+  WxproductsPreviewProductPdfOptions,
+  WxproductsPreviewProductPdfResponse,
+  WxproductsPreviewProductPdfResponses,
+  WxproductsPreviewProductPdfStatus200,
+  WxproductsPreviewProductPdfStatus401,
+  WxproductsPreviewProductPdfStatus403,
+  WxproductsPreviewProductPdfStatus422,
+} from "./models/WxproductsPreviewProductPdf.js";
 export type {
   WxproductsProductRevisionPdfOptions,
   WxproductsProductRevisionPdfPath,
@@ -4082,6 +4903,8 @@ export type {
   WxwatchWeatherImageStatus307,
   WxwatchWeatherImageStatus422,
 } from "./models/WxwatchWeatherImage.js";
+export type { ZoneCreate } from "./models/ZoneCreate.js";
+export type { ZoneUpdate } from "./models/ZoneUpdate.js";
 export { absenceReasonSchema } from "./zod/absenceReasonSchema.js";
 export { absenteeReportCreateSchema } from "./zod/absenteeReportCreateSchema.js";
 export { absenteeReportListPublicSchema } from "./zod/absenteeReportListPublicSchema.js";
@@ -4091,6 +4914,7 @@ export { accessReviewDataSchema } from "./zod/accessReviewDataSchema.js";
 export { accountSecurityPublicSchema } from "./zod/accountSecurityPublicSchema.js";
 export { addressPublicSchema } from "./zod/addressPublicSchema.js";
 export { addressUpdateSchema } from "./zod/addressUpdateSchema.js";
+export { apiErrorSchema } from "./zod/apiErrorSchema.js";
 export { approvalAuthorityPublicSchema } from "./zod/approvalAuthorityPublicSchema.js";
 export { approvalAuthorityUpdateSchema } from "./zod/approvalAuthorityUpdateSchema.js";
 export { archiveBulletinSchema } from "./zod/archiveBulletinSchema.js";
@@ -4098,6 +4922,9 @@ export { archiveEditionSchema } from "./zod/archiveEditionSchema.js";
 export { archiveHistorySchema } from "./zod/archiveHistorySchema.js";
 export { archivePageSchema } from "./zod/archivePageSchema.js";
 export { archiveRetrievalSchema } from "./zod/archiveRetrievalSchema.js";
+export { areaCreatePropertiesSpaceTypeAnyOfEnumSchema } from "./zod/areaCreatePropertiesSpaceTypeAnyOfEnumSchema.js";
+export { areaCreateSchema } from "./zod/areaCreateSchema.js";
+export { areaUpdateSchema } from "./zod/areaUpdateSchema.js";
 export { areaViewSchema } from "./zod/areaViewSchema.js";
 export { auditChangePublicSchema } from "./zod/auditChangePublicSchema.js";
 export { auditEntryPublicSchema } from "./zod/auditEntryPublicSchema.js";
@@ -4526,6 +5353,9 @@ export {
 export { bodyAuthLoginAccessTokenSchema } from "./zod/bodyAuthLoginAccessTokenSchema.js";
 export { bodyHrUploadDocumentSchema } from "./zod/bodyHrUploadDocumentSchema.js";
 export { browserSessionSchema } from "./zod/browserSessionSchema.js";
+export { buildingCreatePropertiesKindEnumSchema } from "./zod/buildingCreatePropertiesKindEnumSchema.js";
+export { buildingCreateSchema } from "./zod/buildingCreateSchema.js";
+export { buildingUpdateSchema } from "./zod/buildingUpdateSchema.js";
 export { buildingViewSchema } from "./zod/buildingViewSchema.js";
 export { bundleItemSchema } from "./zod/bundleItemSchema.js";
 export { bundleViewSchema } from "./zod/bundleViewSchema.js";
@@ -4840,6 +5670,8 @@ export { capValidationResultSchema } from "./zod/capValidationResultSchema.js";
 export { catalogueApplySchema } from "./zod/catalogueApplySchema.js";
 export { cataloguePreviewSchema } from "./zod/cataloguePreviewSchema.js";
 export { checkoutSessionPublicSchema } from "./zod/checkoutSessionPublicSchema.js";
+export { contractorCreateSchema } from "./zod/contractorCreateSchema.js";
+export { contractorUpdateSchema } from "./zod/contractorUpdateSchema.js";
 export { dashboardApprovalSchema } from "./zod/dashboardApprovalSchema.js";
 export { dashboardPersonSchema } from "./zod/dashboardPersonSchema.js";
 export { dashboardRequestSchema } from "./zod/dashboardRequestSchema.js";
@@ -4894,12 +5726,14 @@ export {
   eregisterValidateSynopObservationStatus200Schema,
   eregisterValidateSynopObservationStatus422Schema,
 } from "./zod/eregisterValidateSynopObservationSchema.js";
+export { forecastConditionSchema } from "./zod/forecastConditionSchema.js";
 export { forecastObservationSchema } from "./zod/forecastObservationSchema.js";
 export { forecastPeriodSchema } from "./zod/forecastPeriodSchema.js";
 export { forecastSourcePropertiesKindEnumSchema } from "./zod/forecastSourcePropertiesKindEnumSchema.js";
 export { forecastSourceSchema } from "./zod/forecastSourceSchema.js";
 export { frequencySchema } from "./zod/frequencySchema.js";
 export { genderSchema } from "./zod/genderSchema.js";
+export { gmsColourSchema } from "./zod/gmsColourSchema.js";
 export { googleChallengePublicSchema } from "./zod/googleChallengePublicSchema.js";
 export { googleCompleteSchema } from "./zod/googleCompleteSchema.js";
 export { googleFinishSchema } from "./zod/googleFinishSchema.js";
@@ -4908,6 +5742,7 @@ export { googleStartSchema } from "./zod/googleStartSchema.js";
 export { gradeInputSchema } from "./zod/gradeInputSchema.js";
 export { gradePublicSchema } from "./zod/gradePublicSchema.js";
 export { gradeSetupSchema } from "./zod/gradeSetupSchema.js";
+export { grantCreateSchema } from "./zod/grantCreateSchema.js";
 export {
   hrActionLeaveRequestBodySchema,
   hrActionLeaveRequestErrorSchema,
@@ -5975,12 +6810,308 @@ export { imageInputPropertiesTimeBasisEnumSchema } from "./zod/imageInputPropert
 export { imageInputSchema } from "./zod/imageInputSchema.js";
 export { imageResultSchema } from "./zod/imageResultSchema.js";
 export { importStatusSchema } from "./zod/importStatusSchema.js";
+export { janitorialAccessSchema } from "./zod/janitorialAccessSchema.js";
+export { janitorialAreaSchema } from "./zod/janitorialAreaSchema.js";
+export { janitorialBuildingSchema } from "./zod/janitorialBuildingSchema.js";
+export { janitorialBundleItemSchema } from "./zod/janitorialBundleItemSchema.js";
+export { janitorialBundleSchema } from "./zod/janitorialBundleSchema.js";
+export { janitorialCatalogueSchema } from "./zod/janitorialCatalogueSchema.js";
+export { janitorialContractorSchema } from "./zod/janitorialContractorSchema.js";
+export {
+  janitorialCreateAreaBodySchema,
+  janitorialCreateAreaErrorSchema,
+  janitorialCreateAreaResponseSchema,
+  janitorialCreateAreaStatus201Schema,
+  janitorialCreateAreaStatus403Schema,
+  janitorialCreateAreaStatus404Schema,
+  janitorialCreateAreaStatus409Schema,
+  janitorialCreateAreaStatus422Schema,
+  janitorialCreateAreaStatus503Schema,
+} from "./zod/janitorialCreateAreaSchema.js";
+export {
+  janitorialCreateBuildingBodySchema,
+  janitorialCreateBuildingErrorSchema,
+  janitorialCreateBuildingResponseSchema,
+  janitorialCreateBuildingStatus201Schema,
+  janitorialCreateBuildingStatus403Schema,
+  janitorialCreateBuildingStatus404Schema,
+  janitorialCreateBuildingStatus409Schema,
+  janitorialCreateBuildingStatus422Schema,
+  janitorialCreateBuildingStatus503Schema,
+} from "./zod/janitorialCreateBuildingSchema.js";
+export {
+  janitorialCreateContractorBodySchema,
+  janitorialCreateContractorErrorSchema,
+  janitorialCreateContractorResponseSchema,
+  janitorialCreateContractorStatus201Schema,
+  janitorialCreateContractorStatus403Schema,
+  janitorialCreateContractorStatus404Schema,
+  janitorialCreateContractorStatus409Schema,
+  janitorialCreateContractorStatus422Schema,
+  janitorialCreateContractorStatus503Schema,
+} from "./zod/janitorialCreateContractorSchema.js";
+export {
+  janitorialCreateGrantsBodySchema,
+  janitorialCreateGrantsErrorSchema,
+  janitorialCreateGrantsResponseSchema,
+  janitorialCreateGrantsStatus201Schema,
+  janitorialCreateGrantsStatus403Schema,
+  janitorialCreateGrantsStatus404Schema,
+  janitorialCreateGrantsStatus409Schema,
+  janitorialCreateGrantsStatus422Schema,
+  janitorialCreateGrantsStatus503Schema,
+} from "./zod/janitorialCreateGrantsSchema.js";
+export {
+  janitorialCreateSectionBodySchema,
+  janitorialCreateSectionErrorSchema,
+  janitorialCreateSectionResponseSchema,
+  janitorialCreateSectionStatus201Schema,
+  janitorialCreateSectionStatus403Schema,
+  janitorialCreateSectionStatus404Schema,
+  janitorialCreateSectionStatus409Schema,
+  janitorialCreateSectionStatus422Schema,
+  janitorialCreateSectionStatus503Schema,
+} from "./zod/janitorialCreateSectionSchema.js";
+export {
+  janitorialCreateShiftAssignmentBodySchema,
+  janitorialCreateShiftAssignmentErrorSchema,
+  janitorialCreateShiftAssignmentResponseSchema,
+  janitorialCreateShiftAssignmentStatus201Schema,
+  janitorialCreateShiftAssignmentStatus403Schema,
+  janitorialCreateShiftAssignmentStatus404Schema,
+  janitorialCreateShiftAssignmentStatus409Schema,
+  janitorialCreateShiftAssignmentStatus422Schema,
+  janitorialCreateShiftAssignmentStatus503Schema,
+} from "./zod/janitorialCreateShiftAssignmentSchema.js";
+export {
+  janitorialCreateShiftPatternBodySchema,
+  janitorialCreateShiftPatternErrorSchema,
+  janitorialCreateShiftPatternResponseSchema,
+  janitorialCreateShiftPatternStatus201Schema,
+  janitorialCreateShiftPatternStatus403Schema,
+  janitorialCreateShiftPatternStatus404Schema,
+  janitorialCreateShiftPatternStatus409Schema,
+  janitorialCreateShiftPatternStatus422Schema,
+  janitorialCreateShiftPatternStatus503Schema,
+} from "./zod/janitorialCreateShiftPatternSchema.js";
+export {
+  janitorialCreateStaffBodySchema,
+  janitorialCreateStaffErrorSchema,
+  janitorialCreateStaffResponseSchema,
+  janitorialCreateStaffStatus201Schema,
+  janitorialCreateStaffStatus403Schema,
+  janitorialCreateStaffStatus404Schema,
+  janitorialCreateStaffStatus409Schema,
+  janitorialCreateStaffStatus422Schema,
+  janitorialCreateStaffStatus503Schema,
+} from "./zod/janitorialCreateStaffSchema.js";
+export {
+  janitorialCreateTaskBodySchema,
+  janitorialCreateTaskErrorSchema,
+  janitorialCreateTaskPathAreaIdSchema,
+  janitorialCreateTaskResponseSchema,
+  janitorialCreateTaskStatus201Schema,
+  janitorialCreateTaskStatus403Schema,
+  janitorialCreateTaskStatus404Schema,
+  janitorialCreateTaskStatus409Schema,
+  janitorialCreateTaskStatus422Schema,
+  janitorialCreateTaskStatus503Schema,
+} from "./zod/janitorialCreateTaskSchema.js";
+export {
+  janitorialCreateZoneBodySchema,
+  janitorialCreateZoneErrorSchema,
+  janitorialCreateZoneResponseSchema,
+  janitorialCreateZoneStatus201Schema,
+  janitorialCreateZoneStatus403Schema,
+  janitorialCreateZoneStatus404Schema,
+  janitorialCreateZoneStatus409Schema,
+  janitorialCreateZoneStatus422Schema,
+  janitorialCreateZoneStatus503Schema,
+} from "./zod/janitorialCreateZoneSchema.js";
+export { janitorialFrequencyPropertiesPeriodUnitEnumSchema } from "./zod/janitorialFrequencyPropertiesPeriodUnitEnumSchema.js";
+export { janitorialFrequencySchema } from "./zod/janitorialFrequencySchema.js";
+export {
+  janitorialGetAccessErrorSchema,
+  janitorialGetAccessResponseSchema,
+  janitorialGetAccessStatus200Schema,
+  janitorialGetAccessStatus401Schema,
+  janitorialGetAccessStatus422Schema,
+} from "./zod/janitorialGetAccessSchema.js";
+export {
+  janitorialGetCatalogueErrorSchema,
+  janitorialGetCatalogueQuerySiteSchema,
+  janitorialGetCatalogueResponseSchema,
+  janitorialGetCatalogueStatus200Schema,
+  janitorialGetCatalogueStatus403Schema,
+  janitorialGetCatalogueStatus404Schema,
+  janitorialGetCatalogueStatus422Schema,
+  janitorialGetCatalogueStatus503Schema,
+} from "./zod/janitorialGetCatalogueSchema.js";
+export {
+  janitorialGetShiftBoardErrorSchema,
+  janitorialGetShiftBoardQueryFromSchema,
+  janitorialGetShiftBoardQuerySiteSchema,
+  janitorialGetShiftBoardQueryToSchema,
+  janitorialGetShiftBoardResponseSchema,
+  janitorialGetShiftBoardStatus200Schema,
+  janitorialGetShiftBoardStatus403Schema,
+  janitorialGetShiftBoardStatus404Schema,
+  janitorialGetShiftBoardStatus422Schema,
+  janitorialGetShiftBoardStatus503Schema,
+} from "./zod/janitorialGetShiftBoardSchema.js";
+export { janitorialGrantSchema } from "./zod/janitorialGrantSchema.js";
+export {
+  janitorialListGrantsErrorSchema,
+  janitorialListGrantsResponseSchema,
+  janitorialListGrantsStatus200Schema,
+  janitorialListGrantsStatus403Schema,
+  janitorialListGrantsStatus422Schema,
+  janitorialListGrantsStatus503Schema,
+} from "./zod/janitorialListGrantsSchema.js";
+export {
+  janitorialListStaffErrorSchema,
+  janitorialListStaffResponseSchema,
+  janitorialListStaffStatus200Schema,
+  janitorialListStaffStatus403Schema,
+  janitorialListStaffStatus422Schema,
+  janitorialListStaffStatus503Schema,
+} from "./zod/janitorialListStaffSchema.js";
+export {
+  janitorialRevokeGrantErrorSchema,
+  janitorialRevokeGrantPathGrantIdSchema,
+  janitorialRevokeGrantResponseSchema,
+  janitorialRevokeGrantStatus204Schema,
+  janitorialRevokeGrantStatus403Schema,
+  janitorialRevokeGrantStatus404Schema,
+  janitorialRevokeGrantStatus409Schema,
+  janitorialRevokeGrantStatus422Schema,
+  janitorialRevokeGrantStatus503Schema,
+} from "./zod/janitorialRevokeGrantSchema.js";
+export { janitorialSectionSchema } from "./zod/janitorialSectionSchema.js";
+export { janitorialShiftAssignmentPropertiesStatusEnumSchema } from "./zod/janitorialShiftAssignmentPropertiesStatusEnumSchema.js";
+export { janitorialShiftAssignmentSchema } from "./zod/janitorialShiftAssignmentSchema.js";
+export { janitorialShiftBoardSchema } from "./zod/janitorialShiftBoardSchema.js";
+export { janitorialShiftPatternSchema } from "./zod/janitorialShiftPatternSchema.js";
+export { janitorialSiteSchema } from "./zod/janitorialSiteSchema.js";
 export {
   janitorialSpecErrorSchema,
   janitorialSpecResponseSchema,
   janitorialSpecStatus200Schema,
   janitorialSpecStatus422Schema,
 } from "./zod/janitorialSpecSchema.js";
+export { janitorialStaffListSchema } from "./zod/janitorialStaffListSchema.js";
+export { janitorialStaffMemberPropertiesRoleEnumSchema } from "./zod/janitorialStaffMemberPropertiesRoleEnumSchema.js";
+export { janitorialStaffMemberSchema } from "./zod/janitorialStaffMemberSchema.js";
+export { janitorialTaskSchema } from "./zod/janitorialTaskSchema.js";
+export {
+  janitorialUpdateAreaBodySchema,
+  janitorialUpdateAreaErrorSchema,
+  janitorialUpdateAreaPathAreaIdSchema,
+  janitorialUpdateAreaResponseSchema,
+  janitorialUpdateAreaStatus200Schema,
+  janitorialUpdateAreaStatus403Schema,
+  janitorialUpdateAreaStatus404Schema,
+  janitorialUpdateAreaStatus409Schema,
+  janitorialUpdateAreaStatus422Schema,
+  janitorialUpdateAreaStatus503Schema,
+} from "./zod/janitorialUpdateAreaSchema.js";
+export {
+  janitorialUpdateBuildingBodySchema,
+  janitorialUpdateBuildingErrorSchema,
+  janitorialUpdateBuildingPathBuildingIdSchema,
+  janitorialUpdateBuildingResponseSchema,
+  janitorialUpdateBuildingStatus200Schema,
+  janitorialUpdateBuildingStatus403Schema,
+  janitorialUpdateBuildingStatus404Schema,
+  janitorialUpdateBuildingStatus409Schema,
+  janitorialUpdateBuildingStatus422Schema,
+  janitorialUpdateBuildingStatus503Schema,
+} from "./zod/janitorialUpdateBuildingSchema.js";
+export {
+  janitorialUpdateContractorBodySchema,
+  janitorialUpdateContractorErrorSchema,
+  janitorialUpdateContractorPathContractorIdSchema,
+  janitorialUpdateContractorResponseSchema,
+  janitorialUpdateContractorStatus200Schema,
+  janitorialUpdateContractorStatus403Schema,
+  janitorialUpdateContractorStatus404Schema,
+  janitorialUpdateContractorStatus409Schema,
+  janitorialUpdateContractorStatus422Schema,
+  janitorialUpdateContractorStatus503Schema,
+} from "./zod/janitorialUpdateContractorSchema.js";
+export {
+  janitorialUpdateSectionBodySchema,
+  janitorialUpdateSectionErrorSchema,
+  janitorialUpdateSectionPathSectionIdSchema,
+  janitorialUpdateSectionResponseSchema,
+  janitorialUpdateSectionStatus200Schema,
+  janitorialUpdateSectionStatus403Schema,
+  janitorialUpdateSectionStatus404Schema,
+  janitorialUpdateSectionStatus409Schema,
+  janitorialUpdateSectionStatus422Schema,
+  janitorialUpdateSectionStatus503Schema,
+} from "./zod/janitorialUpdateSectionSchema.js";
+export {
+  janitorialUpdateShiftAssignmentBodySchema,
+  janitorialUpdateShiftAssignmentErrorSchema,
+  janitorialUpdateShiftAssignmentPathAssignmentIdSchema,
+  janitorialUpdateShiftAssignmentResponseSchema,
+  janitorialUpdateShiftAssignmentStatus200Schema,
+  janitorialUpdateShiftAssignmentStatus403Schema,
+  janitorialUpdateShiftAssignmentStatus404Schema,
+  janitorialUpdateShiftAssignmentStatus409Schema,
+  janitorialUpdateShiftAssignmentStatus422Schema,
+  janitorialUpdateShiftAssignmentStatus503Schema,
+} from "./zod/janitorialUpdateShiftAssignmentSchema.js";
+export {
+  janitorialUpdateShiftPatternBodySchema,
+  janitorialUpdateShiftPatternErrorSchema,
+  janitorialUpdateShiftPatternPathPatternIdSchema,
+  janitorialUpdateShiftPatternResponseSchema,
+  janitorialUpdateShiftPatternStatus200Schema,
+  janitorialUpdateShiftPatternStatus403Schema,
+  janitorialUpdateShiftPatternStatus404Schema,
+  janitorialUpdateShiftPatternStatus409Schema,
+  janitorialUpdateShiftPatternStatus422Schema,
+  janitorialUpdateShiftPatternStatus503Schema,
+} from "./zod/janitorialUpdateShiftPatternSchema.js";
+export {
+  janitorialUpdateStaffBodySchema,
+  janitorialUpdateStaffErrorSchema,
+  janitorialUpdateStaffPathStaffIdSchema,
+  janitorialUpdateStaffResponseSchema,
+  janitorialUpdateStaffStatus200Schema,
+  janitorialUpdateStaffStatus403Schema,
+  janitorialUpdateStaffStatus404Schema,
+  janitorialUpdateStaffStatus409Schema,
+  janitorialUpdateStaffStatus422Schema,
+  janitorialUpdateStaffStatus503Schema,
+} from "./zod/janitorialUpdateStaffSchema.js";
+export {
+  janitorialUpdateTaskBodySchema,
+  janitorialUpdateTaskErrorSchema,
+  janitorialUpdateTaskPathTaskIdSchema,
+  janitorialUpdateTaskResponseSchema,
+  janitorialUpdateTaskStatus200Schema,
+  janitorialUpdateTaskStatus403Schema,
+  janitorialUpdateTaskStatus404Schema,
+  janitorialUpdateTaskStatus409Schema,
+  janitorialUpdateTaskStatus422Schema,
+  janitorialUpdateTaskStatus503Schema,
+} from "./zod/janitorialUpdateTaskSchema.js";
+export {
+  janitorialUpdateZoneBodySchema,
+  janitorialUpdateZoneErrorSchema,
+  janitorialUpdateZonePathZoneIdSchema,
+  janitorialUpdateZoneResponseSchema,
+  janitorialUpdateZoneStatus200Schema,
+  janitorialUpdateZoneStatus403Schema,
+  janitorialUpdateZoneStatus404Schema,
+  janitorialUpdateZoneStatus409Schema,
+  janitorialUpdateZoneStatus422Schema,
+  janitorialUpdateZoneStatus503Schema,
+} from "./zod/janitorialUpdateZoneSchema.js";
+export { janitorialZoneSchema } from "./zod/janitorialZoneSchema.js";
 export { jsonValueSchema } from "./zod/jsonValueSchema.js";
 export { leavePublicSchema } from "./zod/leavePublicSchema.js";
 export { leaveRequestActionSchema } from "./zod/leaveRequestActionSchema.js";
@@ -6119,6 +7250,7 @@ export { publicHolidayPublicSchema } from "./zod/publicHolidayPublicSchema.js";
 export { publicHolidaysPublicSchema } from "./zod/publicHolidaysPublicSchema.js";
 export { publicPublishedProductSchema } from "./zod/publicPublishedProductSchema.js";
 export { publicWarningGroupSchema } from "./zod/publicWarningGroupSchema.js";
+export { publicWarningPropertiesColourAnyOfEnumSchema } from "./zod/publicWarningPropertiesColourAnyOfEnumSchema.js";
 export { publicWarningSchema } from "./zod/publicWarningSchema.js";
 export { publicWarningsSchema } from "./zod/publicWarningsSchema.js";
 export { publishedProductsSchema } from "./zod/publishedProductsSchema.js";
@@ -6165,22 +7297,29 @@ export { runFinishSchema } from "./zod/runFinishSchema.js";
 export { runInputPropertiesSourceEnumSchema } from "./zod/runInputPropertiesSourceEnumSchema.js";
 export { runInputSchema } from "./zod/runInputSchema.js";
 export { runResultSchema } from "./zod/runResultSchema.js";
+export { sectionCreateSchema } from "./zod/sectionCreateSchema.js";
+export { sectionUpdateSchema } from "./zod/sectionUpdateSchema.js";
 export { sectionViewSchema } from "./zod/sectionViewSchema.js";
 export { securityProofSchema } from "./zod/securityProofSchema.js";
 export { securitySessionPublicSchema } from "./zod/securitySessionPublicSchema.js";
+export { serviceCalendarViewSchema } from "./zod/serviceCalendarViewSchema.js";
 export { sessionAccessTokenResponseSchema } from "./zod/sessionAccessTokenResponseSchema.js";
 export { sessionLoginRequestSchema } from "./zod/sessionLoginRequestSchema.js";
 export { sessionLoginResponseSchema } from "./zod/sessionLoginResponseSchema.js";
 export { sessionPublicSchema } from "./zod/sessionPublicSchema.js";
 export { sessionTokenRequestSchema } from "./zod/sessionTokenRequestSchema.js";
 export { sessionUserPublicSchema } from "./zod/sessionUserPublicSchema.js";
+export { shiftAssignmentCreateSchema } from "./zod/shiftAssignmentCreateSchema.js";
+export { shiftAssignmentUpdateSchema } from "./zod/shiftAssignmentUpdateSchema.js";
 export { shiftCatalogCreateSchema } from "./zod/shiftCatalogCreateSchema.js";
 export { shiftCatalogPublicSchema } from "./zod/shiftCatalogPublicSchema.js";
 export { shiftCatalogsPublicSchema } from "./zod/shiftCatalogsPublicSchema.js";
 export { shiftCatalogUpdateSchema } from "./zod/shiftCatalogUpdateSchema.js";
 export { shiftCategorySchema } from "./zod/shiftCategorySchema.js";
 export { shiftHoursSummarySchema } from "./zod/shiftHoursSummarySchema.js";
+export { shiftPatternCreateSchema } from "./zod/shiftPatternCreateSchema.js";
 export { shiftPatternSchema } from "./zod/shiftPatternSchema.js";
+export { shiftPatternUpdateSchema } from "./zod/shiftPatternUpdateSchema.js";
 export { shiftPeriodSchema } from "./zod/shiftPeriodSchema.js";
 export { shiftSwapActionSchema } from "./zod/shiftSwapActionSchema.js";
 export { shiftSwapRequestCreateSchema } from "./zod/shiftSwapRequestCreateSchema.js";
@@ -6195,8 +7334,10 @@ export { signedDocumentPublicSchema } from "./zod/signedDocumentPublicSchema.js"
 export { srcAuthSchemasRolePublicSchema } from "./zod/srcAuthSchemasRolePublicSchema.js";
 export { srcHrSchemasRolePublicSchema } from "./zod/srcHrSchemasRolePublicSchema.js";
 export { staffCardSchema } from "./zod/staffCardSchema.js";
+export { staffCreateSchema } from "./zod/staffCreateSchema.js";
 export { staffInputSchema } from "./zod/staffInputSchema.js";
 export { staffSetupSchema } from "./zod/staffSetupSchema.js";
+export { staffUpdateSchema } from "./zod/staffUpdateSchema.js";
 export { statusReportCreateSchema } from "./zod/statusReportCreateSchema.js";
 export { statusReportDetailsSchema } from "./zod/statusReportDetailsSchema.js";
 export { statusReportEntryInputSchema } from "./zod/statusReportEntryInputSchema.js";
@@ -6214,6 +7355,8 @@ export { synopValidationIssueSchema } from "./zod/synopValidationIssueSchema.js"
 export { synopValidationRequestSchema } from "./zod/synopValidationRequestSchema.js";
 export { synopValidationResponseSchema } from "./zod/synopValidationResponseSchema.js";
 export { synopWorkbookSchema } from "./zod/synopWorkbookSchema.js";
+export { taskCreateSchema } from "./zod/taskCreateSchema.js";
+export { taskUpdateSchema } from "./zod/taskUpdateSchema.js";
 export { taskViewSchema } from "./zod/taskViewSchema.js";
 export { timesheetCreateSchema } from "./zod/timesheetCreateSchema.js";
 export { timesheetDetailsSchema } from "./zod/timesheetDetailsSchema.js";
@@ -6224,6 +7367,19 @@ export { timesheetPublicSchema } from "./zod/timesheetPublicSchema.js";
 export { timesheetStatusSchema } from "./zod/timesheetStatusSchema.js";
 export { timesheetSubmitRequestSchema } from "./zod/timesheetSubmitRequestSchema.js";
 export { timesheetSummaryByShiftSchema } from "./zod/timesheetSummaryByShiftSchema.js";
+export { timetableIssueSchema } from "./zod/timetableIssueSchema.js";
+export { timetableIssueSeveritySchema } from "./zod/timetableIssueSeveritySchema.js";
+export { timetablePublishSchema } from "./zod/timetablePublishSchema.js";
+export { timetableStopTimeInputSchema } from "./zod/timetableStopTimeInputSchema.js";
+export { timetableStopTimeViewSchema } from "./zod/timetableStopTimeViewSchema.js";
+export { timetableTripInputSchema } from "./zod/timetableTripInputSchema.js";
+export { timetableTripViewSchema } from "./zod/timetableTripViewSchema.js";
+export { timetableVersionCreateSchema } from "./zod/timetableVersionCreateSchema.js";
+export { timetableVersionDetailSchema } from "./zod/timetableVersionDetailSchema.js";
+export { timetableVersionStateSchema } from "./zod/timetableVersionStateSchema.js";
+export { timetableVersionStatusSchema } from "./zod/timetableVersionStatusSchema.js";
+export { timetableVersionSummarySchema } from "./zod/timetableVersionSummarySchema.js";
+export { timetableVersionUpdateSchema } from "./zod/timetableVersionUpdateSchema.js";
 export { titleSchema } from "./zod/titleSchema.js";
 export { tokenSchema } from "./zod/tokenSchema.js";
 export { trainingArchiveInputSchema } from "./zod/trainingArchiveInputSchema.js";
@@ -6233,12 +7389,188 @@ export { trainingRecordInputPropertiesResultEnumSchema } from "./zod/trainingRec
 export { trainingRecordInputSchema } from "./zod/trainingRecordInputSchema.js";
 export { trainingRecordListSchema } from "./zod/trainingRecordListSchema.js";
 export { trainingRecordPublicSchema } from "./zod/trainingRecordPublicSchema.js";
+export { transportAccessSchema } from "./zod/transportAccessSchema.js";
+export {
+  transportAddTimetableTripBodySchema,
+  transportAddTimetableTripErrorSchema,
+  transportAddTimetableTripPathVersionIdSchema,
+  transportAddTimetableTripResponseSchema,
+  transportAddTimetableTripStatus201Schema,
+  transportAddTimetableTripStatus403Schema,
+  transportAddTimetableTripStatus404Schema,
+  transportAddTimetableTripStatus409Schema,
+  transportAddTimetableTripStatus422Schema,
+  transportAddTimetableTripStatus503Schema,
+} from "./zod/transportAddTimetableTripSchema.js";
+export { transportCatalogueSchema } from "./zod/transportCatalogueSchema.js";
+export {
+  transportCreateRouteEntryBodySchema,
+  transportCreateRouteEntryErrorSchema,
+  transportCreateRouteEntryResponseSchema,
+  transportCreateRouteEntryStatus201Schema,
+  transportCreateRouteEntryStatus403Schema,
+  transportCreateRouteEntryStatus409Schema,
+  transportCreateRouteEntryStatus422Schema,
+  transportCreateRouteEntryStatus503Schema,
+} from "./zod/transportCreateRouteEntrySchema.js";
+export {
+  transportCreateStopBodySchema,
+  transportCreateStopErrorSchema,
+  transportCreateStopResponseSchema,
+  transportCreateStopStatus201Schema,
+  transportCreateStopStatus403Schema,
+  transportCreateStopStatus409Schema,
+  transportCreateStopStatus422Schema,
+  transportCreateStopStatus503Schema,
+} from "./zod/transportCreateStopSchema.js";
+export {
+  transportCreateTimetableDraftBodySchema,
+  transportCreateTimetableDraftErrorSchema,
+  transportCreateTimetableDraftResponseSchema,
+  transportCreateTimetableDraftStatus201Schema,
+  transportCreateTimetableDraftStatus403Schema,
+  transportCreateTimetableDraftStatus409Schema,
+  transportCreateTimetableDraftStatus422Schema,
+  transportCreateTimetableDraftStatus503Schema,
+} from "./zod/transportCreateTimetableDraftSchema.js";
+export {
+  transportDeleteTimetableTripErrorSchema,
+  transportDeleteTimetableTripPathTripIdSchema,
+  transportDeleteTimetableTripPathVersionIdSchema,
+  transportDeleteTimetableTripResponseSchema,
+  transportDeleteTimetableTripStatus204Schema,
+  transportDeleteTimetableTripStatus403Schema,
+  transportDeleteTimetableTripStatus404Schema,
+  transportDeleteTimetableTripStatus409Schema,
+  transportDeleteTimetableTripStatus422Schema,
+  transportDeleteTimetableTripStatus503Schema,
+} from "./zod/transportDeleteTimetableTripSchema.js";
+export { transportDirectionSchema } from "./zod/transportDirectionSchema.js";
+export {
+  transportDiscardTimetableDraftErrorSchema,
+  transportDiscardTimetableDraftPathVersionIdSchema,
+  transportDiscardTimetableDraftResponseSchema,
+  transportDiscardTimetableDraftStatus200Schema,
+  transportDiscardTimetableDraftStatus403Schema,
+  transportDiscardTimetableDraftStatus404Schema,
+  transportDiscardTimetableDraftStatus409Schema,
+  transportDiscardTimetableDraftStatus422Schema,
+  transportDiscardTimetableDraftStatus503Schema,
+} from "./zod/transportDiscardTimetableDraftSchema.js";
+export {
+  transportGetAccessErrorSchema,
+  transportGetAccessResponseSchema,
+  transportGetAccessStatus200Schema,
+  transportGetAccessStatus401Schema,
+  transportGetAccessStatus422Schema,
+} from "./zod/transportGetAccessSchema.js";
+export {
+  transportGetCatalogueErrorSchema,
+  transportGetCatalogueResponseSchema,
+  transportGetCatalogueStatus200Schema,
+  transportGetCatalogueStatus422Schema,
+  transportGetCatalogueStatus503Schema,
+} from "./zod/transportGetCatalogueSchema.js";
+export {
+  transportGetCurrentTimetableErrorSchema,
+  transportGetCurrentTimetableResponseSchema,
+  transportGetCurrentTimetableStatus200Schema,
+  transportGetCurrentTimetableStatus404Schema,
+  transportGetCurrentTimetableStatus422Schema,
+  transportGetCurrentTimetableStatus503Schema,
+} from "./zod/transportGetCurrentTimetableSchema.js";
+export {
+  transportGetTimetableVersionErrorSchema,
+  transportGetTimetableVersionPathVersionIdSchema,
+  transportGetTimetableVersionResponseSchema,
+  transportGetTimetableVersionStatus200Schema,
+  transportGetTimetableVersionStatus403Schema,
+  transportGetTimetableVersionStatus404Schema,
+  transportGetTimetableVersionStatus422Schema,
+  transportGetTimetableVersionStatus503Schema,
+} from "./zod/transportGetTimetableVersionSchema.js";
+export {
+  transportListTimetableVersionsErrorSchema,
+  transportListTimetableVersionsResponseSchema,
+  transportListTimetableVersionsStatus200Schema,
+  transportListTimetableVersionsStatus403Schema,
+  transportListTimetableVersionsStatus422Schema,
+  transportListTimetableVersionsStatus503Schema,
+} from "./zod/transportListTimetableVersionsSchema.js";
+export {
+  transportPublishTimetableDraftBodySchema,
+  transportPublishTimetableDraftErrorSchema,
+  transportPublishTimetableDraftPathVersionIdSchema,
+  transportPublishTimetableDraftResponseSchema,
+  transportPublishTimetableDraftStatus200Schema,
+  transportPublishTimetableDraftStatus403Schema,
+  transportPublishTimetableDraftStatus404Schema,
+  transportPublishTimetableDraftStatus409Schema,
+  transportPublishTimetableDraftStatus422Schema,
+  transportPublishTimetableDraftStatus503Schema,
+} from "./zod/transportPublishTimetableDraftSchema.js";
+export {
+  transportReplaceTimetableTripBodySchema,
+  transportReplaceTimetableTripErrorSchema,
+  transportReplaceTimetableTripPathTripIdSchema,
+  transportReplaceTimetableTripPathVersionIdSchema,
+  transportReplaceTimetableTripResponseSchema,
+  transportReplaceTimetableTripStatus200Schema,
+  transportReplaceTimetableTripStatus403Schema,
+  transportReplaceTimetableTripStatus404Schema,
+  transportReplaceTimetableTripStatus409Schema,
+  transportReplaceTimetableTripStatus422Schema,
+  transportReplaceTimetableTripStatus503Schema,
+} from "./zod/transportReplaceTimetableTripSchema.js";
+export { transportRouteInputSchema } from "./zod/transportRouteInputSchema.js";
+export { transportRouteSchema } from "./zod/transportRouteSchema.js";
+export { transportShiftSchema } from "./zod/transportShiftSchema.js";
 export {
   transportSpecErrorSchema,
   transportSpecResponseSchema,
   transportSpecStatus200Schema,
   transportSpecStatus422Schema,
 } from "./zod/transportSpecSchema.js";
+export { transportStopInputSchema } from "./zod/transportStopInputSchema.js";
+export { transportStopSchema } from "./zod/transportStopSchema.js";
+export { transportTripStatusSchema } from "./zod/transportTripStatusSchema.js";
+export {
+  transportUpdateRouteEntryBodySchema,
+  transportUpdateRouteEntryErrorSchema,
+  transportUpdateRouteEntryPathRouteIdSchema,
+  transportUpdateRouteEntryResponseSchema,
+  transportUpdateRouteEntryStatus200Schema,
+  transportUpdateRouteEntryStatus403Schema,
+  transportUpdateRouteEntryStatus404Schema,
+  transportUpdateRouteEntryStatus409Schema,
+  transportUpdateRouteEntryStatus422Schema,
+  transportUpdateRouteEntryStatus503Schema,
+} from "./zod/transportUpdateRouteEntrySchema.js";
+export {
+  transportUpdateStopBodySchema,
+  transportUpdateStopErrorSchema,
+  transportUpdateStopPathStopIdSchema,
+  transportUpdateStopResponseSchema,
+  transportUpdateStopStatus200Schema,
+  transportUpdateStopStatus403Schema,
+  transportUpdateStopStatus404Schema,
+  transportUpdateStopStatus409Schema,
+  transportUpdateStopStatus422Schema,
+  transportUpdateStopStatus503Schema,
+} from "./zod/transportUpdateStopSchema.js";
+export {
+  transportUpdateTimetableDraftBodySchema,
+  transportUpdateTimetableDraftErrorSchema,
+  transportUpdateTimetableDraftPathVersionIdSchema,
+  transportUpdateTimetableDraftResponseSchema,
+  transportUpdateTimetableDraftStatus200Schema,
+  transportUpdateTimetableDraftStatus403Schema,
+  transportUpdateTimetableDraftStatus404Schema,
+  transportUpdateTimetableDraftStatus409Schema,
+  transportUpdateTimetableDraftStatus422Schema,
+  transportUpdateTimetableDraftStatus503Schema,
+} from "./zod/transportUpdateTimetableDraftSchema.js";
+export { transportWeekdaySchema } from "./zod/transportWeekdaySchema.js";
 export { tripViewSchema } from "./zod/tripViewSchema.js";
 export { twoFactorCodeRequestSchema } from "./zod/twoFactorCodeRequestSchema.js";
 export { twoFactorDisableRequestSchema } from "./zod/twoFactorDisableRequestSchema.js";
@@ -6363,6 +7695,15 @@ export {
   wxproductsLoadProductsStatus422Schema,
   wxproductsLoadProductsStatus503Schema,
 } from "./zod/wxproductsLoadProductsSchema.js";
+export {
+  wxproductsPreviewProductPdfBodySchema,
+  wxproductsPreviewProductPdfErrorSchema,
+  wxproductsPreviewProductPdfResponseSchema,
+  wxproductsPreviewProductPdfStatus200Schema,
+  wxproductsPreviewProductPdfStatus401Schema,
+  wxproductsPreviewProductPdfStatus403Schema,
+  wxproductsPreviewProductPdfStatus422Schema,
+} from "./zod/wxproductsPreviewProductPdfSchema.js";
 export {
   wxproductsPreviewProductBodySchema,
   wxproductsPreviewProductErrorSchema,
@@ -6515,3 +7856,5 @@ export {
   wxwatchWeatherImageStatus307Schema,
   wxwatchWeatherImageStatus422Schema,
 } from "./zod/wxwatchWeatherImageSchema.js";
+export { zoneCreateSchema } from "./zod/zoneCreateSchema.js";
+export { zoneUpdateSchema } from "./zod/zoneUpdateSchema.js";

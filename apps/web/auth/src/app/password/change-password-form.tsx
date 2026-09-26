@@ -1,4 +1,5 @@
 "use client";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -28,7 +29,7 @@ export function ChangePasswordForm() {
             You've been signed out everywhere, including here.
           </p>
         </div>
-        <Link className={`${primaryButtonClass} block`} href="/">
+        <Link className={cn(primaryButtonClass, "block")} href="/">
           Sign in with your new password
         </Link>
       </div>

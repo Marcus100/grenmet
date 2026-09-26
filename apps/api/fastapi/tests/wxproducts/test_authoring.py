@@ -78,7 +78,10 @@ async def test_draft_publish_edit_withdraw_history(weather_sessions, actor):
         saved = await service.list_authored(
             session, "marine", datetime.now(validation.GRENADA).date()
         )
-        assert saved[0].draft["values"] == payload.values
+        # The signed-in actor is recorded as the issuing forecaster.
+        assert saved[0].draft["values"] == payload.values | {
+            "forecaster": actor.full_name
+        }
     async with weather_sessions() as session:
         published = await service.write_product(
             session,

@@ -1,9 +1,8 @@
 # AGENTS.md
 
 Canonical instructions for every coding agent in this monorepo (Codex, Claude
-Code, and others). `CLAUDE.md` files only import these files (`@AGENTS.md`) and
-add Claude-specific notes. Edit the `AGENTS.md`, never duplicate into
-`CLAUDE.md`.
+Code, and others). `AGENTS.md` files are the default instruction files for all
+agents; do not create or maintain `CLAUDE.md` files.
 
 **Project in one paragraph:** Barrels Grenada is the software company. Grenada
 Airports Authority (GAA) is a client organisation; Grenada Meteorological
@@ -154,7 +153,7 @@ anything to project files or memory.
 - **Code convention** → Code Conventions; lead with `**Name**`, say what to do and not do
 - **CI/CD fact** → CI/CD Conventions
 - **Lookup pointer** → Where to Look
-- **Directory-specific rule** → that directory's `AGENTS.md` (create one with a sibling `CLAUDE.md` containing `@AGENTS.md`, and add it to the Instruction map)
+- **Directory-specific rule** → that directory's `AGENTS.md` and add it to the Instruction map
 - One or two lines per entry; no narrative prose. Keep this file under 20 KB — Codex concatenates root + nested files against a byte budget.
 
 ### Session Handoff
@@ -194,6 +193,7 @@ Frontend (TypeScript/React) — full style rules in `.agents/rules/ultracite.mdc
 - **`catalog:` for shared deps** — never hardcode a version for a catalogued dep.
 - **Path aliases** — `@/` (maps to `src/`), not deep relative imports.
 - **UI primitives** — `@barrelsgd/ui/components/ui/<name>`; utils from `@barrelsgd/ui/lib/utils`.
+- **Class composition** — use `cn` from `@barrelsgd/ui/lib/utils` for conditional utilities and caller `className`; keep custom `text-*` size/color pairs intact when `cn` would merge them.
 - **Generated client** — types, fetch clients, hooks, and Zod schemas come from `@barrelsgd/api-client`; never hand-write a FastAPI response type.
 - **Sentry everywhere** — let unexpected errors throw to the app's `error.tsx` / `global-error.tsx` (both report to Sentry). If you catch an error and show a fallback instead, call `reportError(error, "<area>")` from the app's `src/lib/report-error.ts` (it skips expected 4xx via the shared `shouldReportError` rule). Never import `@sentry/nextjs` in a shared package — it would resolve an uninitialised copy of the SDK. Only `area` and `digest` tags survive the privacy scrubber; never put user data in Sentry.
 
@@ -207,6 +207,13 @@ Backend (Python/FastAPI) — details in `apps/api/fastapi/AGENTS.md`:
 Other:
 - **geonetcast runs devcontainer-first** — its `gdal` pin tracks the devcontainer's libgdal; never `uv sync --package geonetcast` on the host.
 
+### Claude Code
+
+- Claude Code v2.1.277+ loads `AGENTS.md` natively in its default Project instructions mode when no `CLAUDE.md` or `CLAUDE.local.md` exists in the working directory or an ancestor.
+- Invoke repo playbooks with the Skill tool or `/<name>` (for example `/api-change`, `/gaa-admin-change`, `/pre-merge`, `/ci-triage`, `/release`, `/commit`, `/ui-check`, `/design-critique`, `/tdd`, `/diagnosing-bugs`, and `/stack-doctor`).
+- Only spawn sub-agents when the user asks; when doing so, pass the Blast-Radius Gate and relevant nested `AGENTS.md` paths.
+- Claude hooks live in `.claude/settings.json`; `format-changed-file.mjs` formats each edited file automatically.
+
 ## CI/CD Conventions
 
 - Docker image names in GitHub workflows must be lowercase.
@@ -217,7 +224,7 @@ Other:
 
 ## Design
 
-- Loop: `docs/design-workflow.md`. Token contract: `docs/design-system.md`.
+- Loop: `docs/design-workflow.md`. Token contract: `docs/design-system.md`. Before building UI, read the lane spec `docs/design/<gms|gaa-admin|mbia|signal>.md` (DESIGN.md format; drift-tested by `pnpm test:docs`).
 - **Figma is not linked to this repo.** Ignore Figma tools and node URLs; design intent arrives via Claude Design or a supplied screenshot. Never ask for a Figma frame URL.
 - Style only with `--gm-*` tokens / Tailwind aliases / shadcn semantics — never hardcode color/spacing/radius or add design values to Tailwind config. New or changed `--gm-*` tokens need approval and land in `packages/gms/src/styles/foundation.css`, **not** `packages/ui`. Run `pnpm design-system:sync` after editing the canonical block in `packages/ui/src/styles/globals.css`.
 - Brand: navy `#0b132b`, blue `#2878f5`, sky `#37a3ef`, lime `#b9ee63`. Kit hues fail AA as small text — use `--gm-*-ink` for text under 24px regular / 18.66px bold, icons under ~24px, and fills behind small white text.

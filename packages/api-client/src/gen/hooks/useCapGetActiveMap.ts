@@ -46,7 +46,7 @@ export function capGetActiveMapQueryOptions(
 }
 
 /**
- * @description Returns the cached GeoJSON feature collection used to render the active public CAP alert map.
+ * @description Returns the cached GeoJSON feature collection of active Actual public CAP alerts.
  * @summary Get the active CAP map
  * {@link /api/cap/active-map}
  */

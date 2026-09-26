@@ -36,7 +36,7 @@ Last updated: 2026-08-16 (inventory refreshed; existing grades not fully re-audi
 | Area | Status | Grade |
 |---|---|---|
 | `AGENTS.md` | Written, commands-first | A |
-| `CLAUDE.md` | Active repository guardrails and context routing | A |
+| `AGENTS.md` | Active repository guardrails and context routing for supported agents | A |
 | `docs/` system of record | Three-view portfolio system plus specialist references | A- |
 | Exec plans | Active plan tracked | B |
 | CI enforcement of docs | Local file and heading links enforced | B |

@@ -46,15 +46,15 @@ describe("CurrentAlertsAccordion", () => {
         }}
       />
     );
-    expect(screen.getByText("2 active")).toBeInTheDocument();
+    expect(screen.getByText("Take action now · 2 active")).toBeInTheDocument();
   });
 
   it("does not present an outage as an all-clear", async () => {
     render(<CurrentAlertsAccordion result={{ status: "unavailable" }} />);
     expect(screen.queryByText("No active warnings")).not.toBeInTheDocument();
-    expect(screen.getByText("Unavailable")).toBeInTheDocument();
+    expect(screen.getByText("Warnings unavailable")).toBeInTheDocument();
 
-    await userEvent.click(screen.getByText("Current alerts"));
+    await userEvent.click(screen.getByText("Warnings unavailable"));
     expect(screen.getByText(UNAVAILABLE_MESSAGE)).toBeInTheDocument();
   });
 });

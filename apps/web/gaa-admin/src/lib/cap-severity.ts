@@ -33,29 +33,38 @@ export const CERTAINTY_ORDER: readonly CapCertainty[] = [
   "Observed",
 ];
 
-/** Matches badgeVariants in @barrelsgd/ui — Extreme and Severe both read as "solid-error". */
+/**
+ * Matches badgeVariants in @barrelsgd/ui. The badge always prints the
+ * severity word, so Moderate and Severe sharing "warning" stays unambiguous.
+ */
 export const SEVERITY_BADGE_VARIANT: Record<CapSeverity, string> = {
   Extreme: "solid-error",
-  Severe: "solid-error",
-  Moderate: "solid-warning",
+  Severe: "solid-warning",
+  Moderate: "light-warning",
   Minor: "solid-success",
   Unknown: "light-light",
 };
 
-/** --gm-risk-* custom property for each severity, for contexts (MapLibre paint, ladder fill) that need a literal CSS value rather than a Tailwind class. */
+/**
+ * --gm-risk-* custom property for each severity, for contexts (MapLibre paint,
+ * ladder fill) that need a literal CSS value rather than a Tailwind class.
+ * Follows the GMS colour ↔ CAP severity pairing in lib/cap-levels.ts
+ * (MeteoAlarm): Green = Minor, Yellow = Moderate, Orange = Severe,
+ * Red = Extreme — so a map fill always matches the issued colour.
+ */
 export const SEVERITY_RISK_VAR: Record<CapSeverity, string> = {
   Extreme: "var(--gm-risk-red)",
-  Severe: "var(--gm-risk-red)",
-  Moderate: "var(--gm-risk-amber)",
+  Severe: "var(--gm-risk-amber)",
+  Moderate: "var(--gm-risk-yellow)",
   Minor: "var(--gm-risk-green)",
   Unknown: "var(--gm-risk-grey)",
 };
 
 /** Resolved hex per severity, for MapLibre paint expressions (style JSON can't consume CSS custom properties). */
 export const SEVERITY_HEX: Record<CapSeverity, string> = {
-  Extreme: "#a3002a",
-  Severe: "#cc0033",
-  Moderate: "#ff9900",
+  Extreme: "#cc0033",
+  Severe: "#ff9900",
+  Moderate: "#ffe923",
   Minor: "#00843d",
   Unknown: "#dcdcdc",
 };

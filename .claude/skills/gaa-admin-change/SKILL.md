@@ -5,7 +5,7 @@ description: Checklist before changing apps/web/gaa-admin — five formerly-sepa
 
 # gaa-admin Cross-Cutting Change
 
-`gaa-admin` is the single most-repeated caution in this repo's `CLAUDE.md` (the
+`gaa-admin` is the single most-repeated caution in this repo's `AGENTS.md` (the
 Blast-Radius Gate names it explicitly) — this skill is that caution turned
 into a checklist, because "remember gaa-admin is cross-cutting" is easy to
 read and easy to forget mid-task.

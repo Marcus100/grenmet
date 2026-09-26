@@ -4,7 +4,8 @@ from decimal import Decimal
 from enum import Enum
 from typing import ClassVar
 
-from sqlalchemy import ForeignKey, Numeric, String
+import sqlalchemy as sa
+from sqlalchemy import ForeignKey, Index, Numeric, String, UniqueConstraint, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.hr.models import RequestStatus
@@ -24,6 +25,14 @@ class LeaveType(str, Enum):
     BEREAVEMENT = "BEREAVEMENT"
     WITHOUT_PAY = "WITHOUT_PAY"
     OTHER = "OTHER"
+
+
+class LeaveEntryKind(str, Enum):
+    """Why a ledger entry exists. Posted only through ``hr.leave.ledger``."""
+
+    OPENING = "OPENING"
+    ADJUSTMENT = "ADJUSTMENT"
+    APPROVAL_DEBIT = "APPROVAL_DEBIT"
 
 
 class ProfAppointmentType(str, Enum):
@@ -81,12 +90,32 @@ class LeaveRequest(Base):
 
 
 class LeaveBalanceEvent(Base):
+    """Append-only leave ledger; ``sequence`` orders entries per user and type."""
+
     __tablename__ = "leave_balance_event"
-    __table_args__ = {"schema": "hr"}
+    __table_args__ = (
+        UniqueConstraint(
+            "user_id",
+            "leave_type",
+            "sequence",
+            name="uq_hr_leave_balance_event_user_type_sequence",
+        ),
+        Index(
+            "uq_hr_leave_balance_event_approval_debit",
+            "related_leave_request_id",
+            unique=True,
+            postgresql_where=text("entry_kind = 'APPROVAL_DEBIT'"),
+        ),
+        {"schema": "hr"},
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"), index=True)
     leave_type: Mapped[str] = mapped_column(String(30))
+    entry_kind: Mapped[LeaveEntryKind] = mapped_column(
+        sa.Enum(LeaveEntryKind, native_enum=False, length=20)
+    )
+    sequence: Mapped[int]
     delta_days: Mapped[Decimal] = mapped_column(Numeric(6, 2))
     balance_after_days: Mapped[Decimal] = mapped_column(Numeric(6, 2))
     reason: Mapped[str] = mapped_column(String(200))

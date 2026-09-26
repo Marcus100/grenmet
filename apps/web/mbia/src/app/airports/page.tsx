@@ -1,3 +1,4 @@
+import { cn } from "@barrelsgd/ui/lib/utils";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
@@ -50,9 +51,10 @@ export default function AirportsPage() {
       <div className="mx-auto max-w-7xl space-y-10 px-4 py-14 lg:px-8">
         {AIRPORTS_LIST.map((airport, i) => (
           <Link
-            className={`group grid items-center gap-8 overflow-hidden rounded-3xl border border-gaa-rule bg-white transition-shadow hover:shadow-xl md:grid-cols-2 ${
-              i % 2 === 1 ? "md:[&>*:first-child]:order-2" : ""
-            }`}
+            className={cn(
+              "group grid items-center gap-8 overflow-hidden rounded-3xl border border-gaa-rule bg-white transition-shadow hover:shadow-xl md:grid-cols-2",
+              i % 2 === 1 && "md:[&>*:first-child]:order-2"
+            )}
             href={airport.href}
             key={airport.href}
           >

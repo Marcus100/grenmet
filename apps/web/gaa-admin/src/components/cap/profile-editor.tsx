@@ -5,6 +5,7 @@ import {
   capApproveHazardProfile,
   capDraftFromHazardProfile,
   capSaveHazardProfile,
+  type GmsColour,
 } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Checkbox } from "@barrelsgd/ui/components/ui/checkbox";
@@ -18,6 +19,8 @@ import {
 } from "@barrelsgd/ui/components/ui/select";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { WarningLevelPicker } from "@/components/cap/warning-level-picker";
+import { GMS_PRODUCTS, type GmsProduct, needsColour } from "@/lib/cap-levels";
 import { emptySubtype, floodProfile } from "@/lib/cap-profile-defaults";
 import { ProfileField } from "./profile-field";
 import { ProfileSubtypeEditor } from "./profile-subtype";
@@ -29,7 +32,8 @@ const CHANNELS = [
   "GMS website",
   "Agency channels",
 ] as const;
-const LEVELS = ["Advisory", "Watch", "Warning"] as const;
+/** GMS products (lib/cap-levels.ts); Advisory is the Small Craft Advisory. */
+const LEVELS = GMS_PRODUCTS;
 
 export function ProfileEditor({
   initialVersions,
@@ -52,9 +56,9 @@ export function ProfileEditor({
     initialVersions[0]?.approval_errors ?? []
   );
   const [draftSubtype, setDraftSubtype] = useState("");
-  const [draftLevel, setDraftLevel] = useState<
-    "Advisory" | "Watch" | "Warning"
-  >("Warning");
+  const [draftLevel, setDraftLevel] = useState<GmsProduct>("Warning");
+  const [draftColour, setDraftColour] = useState<GmsColour | null>(null);
+  const draftReady = needsColour(draftLevel) ? draftColour !== null : true;
 
   function edit(next: CapProfileDefinition) {
     setDefinition(next);
@@ -118,7 +122,11 @@ export function ProfileEditor({
     await action(async () => {
       await capDraftFromHazardProfile({
         path: { profile_id: selected.id },
-        body: { subtype: draftSubtype, level: draftLevel },
+        body: {
+          subtype: draftSubtype,
+          level: draftLevel,
+          colour: needsColour(draftLevel) ? draftColour : null,
+        },
       }).unwrap();
       router.push("/cap");
       router.refresh();
@@ -362,30 +370,25 @@ export function ProfileEditor({
                 ))}
               </SelectContent>
             </Select>
-            <Select
-              onValueChange={(v) => setDraftLevel(v as typeof draftLevel)}
-              value={draftLevel}
-            >
-              <SelectTrigger aria-label="Alert message level">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {definition.templates?.map((t) => (
-                  <SelectItem key={t.level} value={t.level}>
-                    {t.level}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <WarningLevelPicker
+              colour={draftColour}
+              onChange={(nextProduct, nextColour) => {
+                setDraftLevel(nextProduct);
+                setDraftColour(nextColour);
+              }}
+              product={draftLevel}
+            />
             <p className="text-muted-foreground text-sm">
-              Creates a draft with this version's wording. Severity, urgency and
-              certainty remain Unknown for assessment. Nothing is published or
-              sent.
+              Creates a draft with this version's wording for the chosen
+              product. The colour sets CAP severity; urgency and certainty stay
+              for assessment (an Outlook starts at Future / Possible). Nothing
+              is published or sent.
             </p>
             <Button
               disabled={
                 !(
                   draftSubtype &&
+                  draftReady &&
                   definition.templates?.some((t) => t.level === draftLevel)
                 )
               }

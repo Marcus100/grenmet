@@ -19,7 +19,7 @@ Run a shared PostgreSQL server per environment, but keep separate databases for 
 - FastAPI owns `wxproducts` schema migrations through its dedicated weather Alembic configuration; weather stays in a separate database.
 - `janitorial`, `transport`, and WxWatch now use their own FastAPI Alembic histories; the earlier web-owned Drizzle migrations are historical references only.
 - The `janitorial` database backs the `/janitor` facilities cleaning-spec catalogue; it is self-contained and does not reference HR/CAP/wx tables.
-- The `transport` database backs the `/bus` staff-transportation timetable (routes, shifts, stops, trips); it is self-contained and does not reference HR/CAP/wx tables.
+- The `transport` database backs the staff bus service: the gaa-admin `/bus` admin portal now, and the driver and staff apps next (versioned timetable, stops, and later fleet, runs and riders). It is self-contained and does not reference HR/CAP/wx tables; staff are identified by auth user IDs.
 - Cross-domain access should go through APIs or explicit jobs, not shared tables.
 - Backup and restore procedures must cover all production databases.
 

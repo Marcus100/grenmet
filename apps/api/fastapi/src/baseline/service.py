@@ -1,5 +1,4 @@
 import uuid
-from decimal import Decimal
 
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -19,7 +18,7 @@ from src.baseline.schemas import (
     StaffSetup,
 )
 from src.exceptions import AppException
-from src.hr.leave.models import LeaveBalanceEvent
+from src.hr.leave import ledger
 from src.hr.models import Department, EmploymentRecord, EmploymentStatus, Grade
 from src.hr.organisations import department_for
 from src.utils.datetime import utc_now
@@ -287,31 +286,13 @@ async def set_balance(
     )
     if not user or not await employment_for(session, user_id):
         raise AppException("Complete employment setup first", 400)
-    last = (
-        (
-            await session.execute(
-                select(LeaveBalanceEvent)
-                .where(
-                    LeaveBalanceEvent.user_id == user_id,
-                    LeaveBalanceEvent.leave_type == body.leave_type.value,
-                )
-                .order_by(LeaveBalanceEvent.created_at.desc())
-                .limit(1)
-            )
-        )
-        .scalars()
-        .first()
-    )
-    previous = last.balance_after_days if last else Decimal(0)
-    session.add(
-        LeaveBalanceEvent(
-            user_id=user_id,
-            leave_type=body.leave_type.value,
-            delta_days=body.balance - previous,
-            balance_after_days=body.balance,
-            reason=body.reason,
-            created_by_user_id=actor.id,
-        )
+    await ledger.set_to(
+        session,
+        user_id=user_id,
+        leave_type=body.leave_type.value,
+        target=body.balance,
+        reason=body.reason,
+        actor_id=actor.id,
     )
     session.add(
         BaselineAudit(
@@ -391,23 +372,12 @@ async def require_leave_ready(
     session: AsyncSession, user_id: uuid.UUID, department_id: str, leave_type: str
 ) -> None:
     await require_ready(session, user_id, department_id)
-    if await session.get(StaffCredential, user_id):
-        entry = (
-            (
-                await session.execute(
-                    select(LeaveBalanceEvent).where(
-                        LeaveBalanceEvent.user_id == user_id,
-                        LeaveBalanceEvent.leave_type == leave_type,
-                    )
-                )
-            )
-            .scalars()
-            .first()
+    if await session.get(StaffCredential, user_id) and not await ledger.has_entry(
+        session, user_id, leave_type
+    ):
+        raise AppException(
+            "Verify the opening balance for this leave type before submission", 409
         )
-        if entry is None:
-            raise AppException(
-                "Verify the opening balance for this leave type before submission", 409
-            )
 
 
 async def read_setup_grades(

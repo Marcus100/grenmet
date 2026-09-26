@@ -11,7 +11,7 @@ export type WarningLevel =
   | "unknown";
 
 export const WARNING_LEVEL_LABEL: Record<WarningLevel, string> = {
-  none: "No warnings in effect",
+  none: "No active warnings",
   "be-aware": "Be aware",
   "be-prepared": "Be prepared",
   "take-action": "Take action now",

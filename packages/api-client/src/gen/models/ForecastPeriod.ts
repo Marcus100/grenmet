@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { ForecastCondition } from "./ForecastCondition.js";
 import type { ForecastSource } from "./ForecastSource.js";
 
 export type ForecastPeriod = {
@@ -30,4 +31,5 @@ export type ForecastPeriod = {
   details?: {
     [key: string]: string;
   };
+  conditions?: ForecastCondition[];
 };

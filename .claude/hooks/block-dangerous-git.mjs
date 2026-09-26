@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Mechanically enforces the Never tier in CLAUDE.md/AGENTS.md and the repo's
+// Mechanically enforces the Never tier in AGENTS.md and the repo's
 // Git Safety Protocol. Shared between Claude Code (.claude/settings.json) and
 // Codex (.codex/config.toml) — do not fork this file per tool.
 //
@@ -59,7 +59,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const hit = findBlockedPattern(command);
     if (hit) {
       process.stderr.write(
-        `BLOCKED: '${command}' matches dangerous pattern '${hit}'. The user has prevented you from doing this — see the Never tier in CLAUDE.md/AGENTS.md.\n`
+        `BLOCKED: '${command}' matches dangerous pattern '${hit}'. The user has prevented you from doing this — see the Never tier in AGENTS.md.\n`
       );
       process.exit(2);
     }

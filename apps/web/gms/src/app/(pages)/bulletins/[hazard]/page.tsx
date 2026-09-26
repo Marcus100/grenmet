@@ -52,7 +52,7 @@ export default async function BulletinPage({
           change the earlier assessment.
         </p>
         <p>
-          The hazard count in Current alerts comes from CAP. These bulletin
+          The hazard count in Warnings in effect comes from CAP. These bulletin
           pages are maintained separately while the product formats are
           developed.
         </p>

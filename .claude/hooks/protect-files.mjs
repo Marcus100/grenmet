@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Mechanically enforces the Never tier in CLAUDE.md/AGENTS.md: never write to
+// Mechanically enforces the Never tier in AGENTS.md: never write to
 // .env*/.env.local, never hand-edit the generated API client. Shared between
 // Claude Code (.claude/settings.json) and Codex (.codex/config.toml).
 //
@@ -24,19 +24,19 @@ export function findProtectedViolation(filePath) {
   // .env*.example / .env.local.example are committed templates (see
   // .gitignore) and are fine to edit — only real, git-ignored env files are
   // Never-tier. Note: this must NOT match ordinary `env.ts`/`env.md` files
-  // (e.g. apps/web/auth/src/env.ts, which CLAUDE.md itself tells agents to
+  // (e.g. apps/web/auth/src/env.ts, which AGENTS.md itself tells agents to
   // edit regularly) — only a literal ".env" substring, not any "env".
   if (normalized.includes(".env") && !normalized.endsWith(".example")) {
     return {
       pattern: ".env*",
-      message: `BLOCKED: '${filePath}' matches protected pattern '.env*' — see the Never tier in CLAUDE.md/AGENTS.md. Ask the user to edit env files directly.`,
+      message: `BLOCKED: '${filePath}' matches protected pattern '.env*' — see the Never tier in AGENTS.md. Ask the user to edit env files directly.`,
     };
   }
 
   if (normalized.includes(GENERATED_CLIENT_MARKER)) {
     return {
       pattern: GENERATED_CLIENT_MARKER,
-      message: `BLOCKED: '${filePath}' is under packages/api-client/src/gen/ — see the Never tier in CLAUDE.md/AGENTS.md. Regenerate via 'pnpm generate:api-client' instead of hand-editing.`,
+      message: `BLOCKED: '${filePath}' is under packages/api-client/src/gen/ — see the Never tier in AGENTS.md. Regenerate via 'pnpm generate:api-client' instead of hand-editing.`,
     };
   }
 

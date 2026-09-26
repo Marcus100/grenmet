@@ -6,7 +6,8 @@
 import * as z from "zod";
 
 export const capProfileDraftRequestPropertiesLevelEnumSchema = z.enum([
-  "Advisory",
+  "Outlook",
   "Watch",
   "Warning",
+  "Advisory",
 ]);

@@ -1,4 +1,8 @@
+import { ChevronRightIcon } from "lucide-react";
+import Link from "next/link";
 import type { AlertsResult, HazardGroup, PublicAlert } from "@/lib/cap";
+import { cn } from "@/lib/utils";
+import { formatWarningTime, warningHref } from "@/lib/warning-detail";
 
 const SEVERITY_CLASS: Record<PublicAlert["severity"], string> = {
   Extreme: "bg-gm-risk-red",
@@ -9,25 +13,38 @@ const SEVERITY_CLASS: Record<PublicAlert["severity"], string> = {
 };
 
 function AlertRow({ alert }: { alert: PublicAlert }) {
+  const until = formatWarningTime(alert.expires);
   return (
-    <li className="flex gap-3 border-gm-border border-t p-4 first:border-t-0 lg:p-5">
-      <span
-        aria-hidden="true"
-        className={`mt-1 size-3 shrink-0 rounded-full ${SEVERITY_CLASS[alert.severity]}`}
-      />
-      <div className="flex flex-col gap-1">
-        <p className="font-bold text-body-base text-gm-navy leading-body-base">
-          {alert.event}
-        </p>
-        <p className="text-body text-gm-text-secondary leading-body">
-          {alert.headline}
-        </p>
-        <p className="text-gm-text-muted text-label leading-label">
-          {alert.severity}
-          {alert.areas.length > 0 && ` · ${alert.areas.join(", ")}`}
-          {alert.expires && ` · until ${alert.expires}`}
-        </p>
-      </div>
+    <li className="border-gm-border border-t first:border-t-0">
+      <Link
+        className="group flex gap-3 p-4 hover:bg-gm-surface focus-visible:bg-gm-surface lg:p-5"
+        href={warningHref(alert.identifier)}
+      >
+        <span
+          aria-hidden="true"
+          className={cn(
+            "mt-1 size-3 shrink-0 rounded-full",
+            SEVERITY_CLASS[alert.severity]
+          )}
+        />
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <p className="font-bold text-body-base text-gm-navy leading-body-base group-hover:underline">
+            {alert.event}
+          </p>
+          <p className="text-body text-gm-text-secondary leading-body">
+            {alert.headline}
+          </p>
+          <p className="text-gm-text-muted text-label leading-label">
+            {alert.severity}
+            {alert.areas.length > 0 && ` · ${alert.areas.join(", ")}`}
+            {until && ` · until ${until}`}
+          </p>
+        </div>
+        <ChevronRightIcon
+          aria-hidden="true"
+          className="mt-1 size-5 shrink-0 text-gm-text-muted"
+        />
+      </Link>
     </li>
   );
 }

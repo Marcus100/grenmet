@@ -6,7 +6,7 @@ from fastapi import APIRouter, Query, Request, Response, status
 
 from src.cap import cache, service
 from src.cap.geo import alerts_to_feature_collection
-from src.cap.models import CapLifecycleState
+from src.cap.models import CapLifecycleState, CapMessageType, CapStatus
 from src.cap.profile_router import router as profile_router
 from src.cap.schemas import (
     CapAlertAction,
@@ -508,12 +508,14 @@ async def read_public_alert(*, session: SessionDep, identifier: str) -> CapAlert
 @public_router.get(
     "/alerts.geojson",
     summary="Get active CAP alerts as GeoJSON",
-    description="Returns active public CAP alerts as a GeoJSON feature collection for map clients.",
+    description="Returns active Actual public CAP alerts as a GeoJSON feature collection for map clients.",
 )
 async def read_alerts_geojson(*, session: SessionDep) -> Any:
     async def _produce() -> dict[str, Any]:
         alerts = await service.public_latest_active(session=session)
-        return alerts_to_feature_collection(alerts.data)
+        return alerts_to_feature_collection(
+            [alert for alert in alerts.data if alert.status == CapStatus.ACTUAL]
+        )
 
     return await cache.cached_json(cache.PUBLIC_GEOJSON, 30, _produce)
 
@@ -521,14 +523,16 @@ async def read_alerts_geojson(*, session: SessionDep) -> Any:
 @public_router.get(
     "/active-map",
     summary="Get the active CAP map",
-    description="Returns the cached GeoJSON feature collection used to render the active public CAP alert map.",
+    description="Returns the cached GeoJSON feature collection of active Actual public CAP alerts.",
 )
 async def read_active_map(*, session: SessionDep) -> dict[str, Any]:
     # Same payload as /alerts.geojson — share its 30s cache instead of
     # recomputing the FeatureCollection on every hit.
     async def _produce() -> dict[str, Any]:
         alerts = await service.public_latest_active(session=session)
-        return alerts_to_feature_collection(alerts.data)
+        return alerts_to_feature_collection(
+            [alert for alert in alerts.data if alert.status == CapStatus.ACTUAL]
+        )
 
     result: dict[str, Any] = await cache.cached_json(cache.PUBLIC_GEOJSON, 30, _produce)
     return result
@@ -541,12 +545,16 @@ async def read_active_map(*, session: SessionDep) -> dict[str, Any]:
         200: {"description": "RSS feed", "content": {"application/rss+xml": {}}}
     },
     summary="Get the public CAP RSS feed",
-    description="Returns active public CAP alerts as an RSS 2.0 feed for feed readers and aggregators.",
+    description="Returns active Actual public CAP alerts and Actual Cancel messages published in the last 24 hours as RSS 2.0.",
 )
 async def read_rss(*, session: SessionDep) -> Response:
     async def _produce() -> str:
         alerts = await service.public_latest_active(session=session)
-        return _rss_xml(alerts.data)
+        cancels = await service.public_recent_cancels(session=session)
+        entries = [alert for alert in alerts.data if alert.status == CapStatus.ACTUAL]
+        entries.extend(cancels)
+        entries.sort(key=lambda alert: alert.sent, reverse=True)
+        return _rss_xml(entries[:100])
 
     body = await cache.cached_text(cache.PUBLIC_RSS, 30, _produce)
     return Response(content=body, media_type="application/rss+xml; charset=utf-8")
@@ -577,14 +585,21 @@ def _rss_xml(alerts: list[CapAlertPublic]) -> str:
     channel = ET.SubElement(rss, "channel")
     ET.SubElement(channel, "title").text = "Grenada CAP Alerts"
     ET.SubElement(channel, "link").text = "/api/cap/latest-active"
-    ET.SubElement(channel, "description").text = "Active CAP alerts"
+    ET.SubElement(
+        channel, "description"
+    ).text = "Active CAP alerts and recent cancellation messages"
 
     for alert in alerts:
         first_info = alert.info[0] if alert.info else None
         item = ET.SubElement(channel, "item")
-        ET.SubElement(item, "title").text = (
-            first_info.headline if first_info else alert.identifier
-        )
+        if alert.msg_type == CapMessageType.CANCEL:
+            referenced = (
+                alert.references[0].identifier if alert.references else alert.identifier
+            )
+            title = f"Cancelled: {referenced}"
+        else:
+            title = first_info.headline if first_info else alert.identifier
+        ET.SubElement(item, "title").text = title
         ET.SubElement(item, "guid").text = alert.identifier
         ET.SubElement(item, "link").text = (
             alert.xml_url or f"/api/cap/{alert.identifier}.xml"

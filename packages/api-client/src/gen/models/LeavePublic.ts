@@ -4,10 +4,18 @@
  */
 
 export type LeavePublic = {
+  /**
+   * @description Current ledger balance in days for each leave type with a verified opening.
+   * @type object | undefined
+   */
   balances?: {
-    [key: string]: number;
+    [key: string]: string;
   };
-  carry_over?: {
+  /**
+   * @description Legacy carry-over days not yet reconciled with the ledger. Carry-over needs written approval (rule GAA-LV-VAC-CARRY-01); these figures are not part of the balance.
+   * @type object | undefined
+   */
+  unverified_carry_over?: {
     [key: string]: number;
   };
 };

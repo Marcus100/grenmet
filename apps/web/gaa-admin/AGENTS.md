@@ -40,6 +40,8 @@ src/app/
   (admin)/           ← main authenticated layout (AppSidebar + AppHeader)
     page.tsx         ← GMS operations dashboard (live panels in `_components/`)
     cap/ hr/ roster/ salesbus/ wxwatch/ wxproducts/   ← consolidated GMS routes
+    janitor/         ← janitorial admin portal: overview, areas (+[id], labels), shifts, staff, setup; `?site=GND|CRU`; field work is a separate PWA
+    bus/             ← staff-bus admin portal (overview, timetable versions + draft editor, stops map); FastAPI `/api/v1/transport/*`; drivers and staff use separate apps
     (others-pages)/  ← calendar (department calendar: events + roster + holidays), profile
     coming-soon/     ← placeholder page for target-IA nav items with no page yet
   (full-width-pages)/
@@ -69,7 +71,11 @@ path-prefixed, auth-gated routes under `(admin)/`. All are gated by
 - **Weather ownership:** authored products and wxproducts migrations belong to FastAPI; do not introduce weather Drizzle writers or migrations.
 - **DB conventions:** keep separate domain databases (never merged). FastAPI owns every module's schema and migrations (e.g. `src/wxproducts/alembic.ini`, `src/wxwatch/alembic.ini`). gaa-admin has no ORM and no database access: Drizzle was removed on 2026-09-23. Types come from `@barrelsgd/api-client`.
 - **Fonts:** `Noto_Sans` is loaded in the root layout to back the `--brand-font-document`
-  token (`font-document` Tailwind alias) used by wxproducts forecast/bulletin documents.
+  token (`font-document` Tailwind alias) used by HR print documents. Forecast,
+  bulletin and outlook PDFs are rendered by FastAPI; the editor previews them in an iframe.
+- **TAF/METAR composer:** Use the wxRegister-style data-entry and review layout; do not add a PDF preview to this working composer.
+- **Field widths match data:** size inputs to their data type (numbers/times narrow, selects to their longest option, only prose full width); never stretch every field to the column.
+- **Product parity:** a wxproducts improvement to forecasts also applies to bulletins (and the outlook) unless the user excludes them; they share `ProductDesk`.
 
 ## Testing
 

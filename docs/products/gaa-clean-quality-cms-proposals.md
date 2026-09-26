@@ -25,6 +25,13 @@ identity services; do not create cross-database foreign keys or HR writers.
 
 ## Clean: assignment-to-completion
 
+> **Merged with the janitorial data model (2026-09-25).** The conventions below
+> govern every new janitorial table. Assignments coexist with QR check-in visits
+> (frequent work) from the [data model v2](./janitorial-and-transport-data-model.md);
+> the "no PWA/QR/inventory" limit no longer applies. Scope is per building, as
+> below. Reference data, staff, grants and shifts shipped in `janitorial_0002`;
+> assignments are next (phase 3).
+
 Storage stays in the existing janitorial domain database. The current
 `GET /api/v1/janitorial/spec` catalogue is reused unchanged. Catalogue assignments
 must support both direct area tasks and bundle tasks; do not invent duplicate

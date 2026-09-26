@@ -1,6 +1,5 @@
 import logging
 import uuid
-from decimal import Decimal
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -22,7 +21,8 @@ from src.hr.workflow.models import WorkflowInstance, WorkflowType
 from src.hr.workflow.service import start_workflow_for_entity, submit_draft_workflow
 from src.utils.datetime import utc_now
 
-from .models import LeaveBalanceEvent, LeaveRequest
+from . import ledger
+from .models import LeaveEntryKind, LeaveRequest
 from .schemas import LeaveRequestAction, LeaveRequestCreate, LeaveRequestSubmit
 
 logger = logging.getLogger(__name__)
@@ -38,23 +38,14 @@ async def create_leave_request(
     from src.baseline.service import require_ready
 
     await require_ready(session, current_user.id, payload.department_id)
-    if await session.get(StaffCredential, current_user.id):
-        opening = (
-            (
-                await session.execute(
-                    select(LeaveBalanceEvent).where(
-                        LeaveBalanceEvent.user_id == current_user.id,
-                        LeaveBalanceEvent.leave_type == payload.leave_type.value,
-                    )
-                )
-            )
-            .scalars()
-            .first()
+    if await session.get(
+        StaffCredential, current_user.id
+    ) and not await ledger.has_entry(
+        session, current_user.id, payload.leave_type.value
+    ):
+        raise HRValidationError(
+            "An administrator must verify the opening balance for this leave type first"
         )
-        if opening is None:
-            raise HRValidationError(
-                "An administrator must verify the opening balance for this leave type first"
-            )
     leave_request = LeaveRequest(
         user_id=current_user.id,
         department_id=payload.department_id,
@@ -290,6 +281,9 @@ async def action_leave_request(
         )
         await session.refresh(leave_request)
         return leave_request
+    await ledger.lock_employee(session, leave_request.user_id)
+    # Re-read under the lock: a concurrent action may have resolved the request.
+    await session.refresh(leave_request, attribute_names=["status"])
     if leave_request.status in {RequestStatus.APPROVED, RequestStatus.REJECTED}:
         raise HRValidationError("Request already resolved")
     leave_request.status = payload.status
@@ -298,38 +292,15 @@ async def action_leave_request(
     leave_request.updated_at = utc_now()
     session.add(leave_request)
     if payload.status == RequestStatus.APPROVED:
-        await session.execute(
-            select(User).where(User.id == leave_request.user_id).with_for_update()
-        )
-        leave_type_value = leave_request.leave_type.value
-        # Lock the latest balance row so concurrent approvals of the same
-        # user+leave-type serialize and cannot both derive from a stale balance.
-        # (An empty ledger has no row to lock; the first-ever pair of concurrent
-        # approvals is a known residual gap addressed by a balance table later.)
-        result = await session.execute(
-            select(LeaveBalanceEvent)
-            .where(
-                LeaveBalanceEvent.user_id == leave_request.user_id,
-                LeaveBalanceEvent.leave_type == leave_type_value,
-            )
-            .order_by(LeaveBalanceEvent.created_at.desc())
-            .with_for_update()
-        )
-        last_event = result.scalars().first()
-        current_balance = (
-            last_event.balance_after_days if last_event else Decimal("0.0")
-        )
-        new_balance = current_balance - leave_request.days_requested
-        session.add(
-            LeaveBalanceEvent(
-                user_id=leave_request.user_id,
-                leave_type=leave_type_value,
-                delta_days=-leave_request.days_requested,
-                balance_after_days=new_balance,
-                reason="Leave request approved",
-                related_leave_request_id=leave_request.id,
-                created_by_user_id=current_user.id,
-            )
+        await ledger.post(
+            session,
+            user_id=leave_request.user_id,
+            leave_type=leave_request.leave_type.value,
+            kind=LeaveEntryKind.APPROVAL_DEBIT,
+            delta=-leave_request.days_requested,
+            reason="Leave request approved",
+            actor_id=current_user.id,
+            leave_request_id=leave_request.id,
         )
     await session.commit()
     await session.refresh(leave_request)

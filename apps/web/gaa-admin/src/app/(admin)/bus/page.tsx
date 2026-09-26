@@ -1,93 +1,185 @@
-import type { Metadata } from "next";
-import { getTransportSpec } from "@/db/transport/queries";
+import { Button } from "@barrelsgd/ui/components/ui/button";
+import { Card } from "@barrelsgd/ui/components/ui/card";
 import {
-  formatDayType,
-  formatDirection,
-  formatTime,
-} from "@/lib/transport/format";
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@barrelsgd/ui/components/ui/empty";
+import {
+  CalendarClock,
+  Lock,
+  MapPin,
+  Route,
+  TriangleAlert,
+} from "lucide-react";
+import type { Metadata } from "next";
+import Link from "next/link";
+import { BusHeader, VersionStateBadge } from "@/components/bus/portal";
+import { Kpi } from "@/components/janitorial/portal";
+import {
+  getCurrentTimetable,
+  getTimetableVersions,
+  getTransportAccess,
+  getTransportCatalogue,
+} from "@/db/transport/queries";
+import { formatDate } from "@/lib/transport/format";
+import { awaitingConfirmation } from "@/lib/transport/timetable";
 
 export const metadata: Metadata = {
   title: "Bus",
   description:
-    "GAA staff transportation timetable — routes, shifts, and pickup/drop-off schedules.",
+    "Staff bus administration — timetable versions, stops and routes for the GAA staff transport service.",
 };
 
 export const dynamic = "force-dynamic";
 
 export default async function BusPage() {
   // Failures propagate to (admin)/error.tsx, which reports them and offers retry.
-  const routes = await getTransportSpec();
-  const totalTrips = routes.reduce(
-    (count, route) =>
-      count + route.shifts.reduce((sum, shift) => sum + shift.trips.length, 0),
-    0
-  );
+  const access = await getTransportAccess();
+  if (!access.canView) {
+    return (
+      <Empty>
+        <EmptyHeader>
+          <EmptyMedia variant="icon">
+            <Lock />
+          </EmptyMedia>
+          <EmptyTitle>Bus portal access needed</EmptyTitle>
+          <EmptyDescription>
+            Ask a Transport officer for a transport role. The timetable in force
+            is still available to all staff.
+          </EmptyDescription>
+        </EmptyHeader>
+        <Button render={<Link href="/bus/timetable" />} variant="outline">
+          View the timetable
+        </Button>
+      </Empty>
+    );
+  }
+
+  const [current, versions, catalogue] = await Promise.all([
+    getCurrentTimetable(),
+    getTimetableVersions(),
+    getTransportCatalogue(),
+  ]);
+  const draft = versions.find((version) => version.state === "draft");
+  const scheduled = versions
+    .filter((version) => version.state === "scheduled")
+    .sort((a, b) =>
+      (a.effectiveDate ?? "").localeCompare(b.effectiveDate ?? "")
+    );
+  const activeStops = catalogue.stops.filter((stop) => stop.active);
+  const mapped = activeStops.filter((stop) => stop.latitude != null).length;
+  const trips = current?.trips ?? [];
+  const pending = awaitingConfirmation(trips);
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-semibold text-2xl tracking-tight">
-          Staff Transportation
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          GAA staff bus timetable — routes, shifts, and pickup/drop-off points.{" "}
-          {routes.length} routes · {totalTrips} scheduled runs.
-        </p>
-      </div>
+      <BusHeader
+        actions={
+          <>
+            <Button render={<Link href="/bus/timetable" />}>Timetable</Button>
+            <Button render={<Link href="/bus/stops" />} variant="outline">
+              Stops
+            </Button>
+          </>
+        }
+        title="Staff bus"
+      >
+        Administration for the GAA staff transport service. Drivers and staff
+        use their own apps; this portal sets what they see.
+      </BusHeader>
 
-      {routes.map((route) => (
-        <section className="space-y-4" key={route.id}>
-          <h2 className="font-semibold text-lg tracking-tight">
-            Route {route.number} — {route.name}
-          </h2>
-          {route.shifts.map((shift) => (
-            <div className="space-y-2" key={`shift-${shift.id}`}>
-              <h3 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-                {shift.name} · {formatTime(shift.startTime)}–
-                {formatTime(shift.endTime)}
-              </h3>
-              <div className="grid gap-2">
-                {shift.trips.map((trip) => (
-                  <details
-                    className="rounded-lg border border-border bg-card"
-                    key={trip.id}
+      <section
+        aria-label="Service figures"
+        className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+      >
+        <Kpi
+          hint={`${catalogue.routes.length} in the registry`}
+          icon={Route}
+          label="Active routes"
+          value={String(catalogue.routes.filter((r) => r.active).length)}
+        />
+        <Kpi
+          hint="In the timetable in force"
+          icon={CalendarClock}
+          label="Scheduled trips"
+          value={String(trips.length)}
+        />
+        <Kpi
+          hint={`${activeStops.length - mapped} still need a location`}
+          icon={MapPin}
+          label="Stops on the map"
+          value={`${mapped}/${activeStops.length}`}
+        />
+        <Kpi
+          hint="Trips with unconfirmed times"
+          icon={TriangleAlert}
+          label="Awaiting confirmation"
+          value={String(pending)}
+        />
+      </section>
+
+      <Card className="gap-3 p-4">
+        <h2 className="font-semibold">Timetable</h2>
+        <dl className="grid gap-3 text-sm sm:grid-cols-3">
+          <div>
+            <dt className="text-muted-foreground">In force</dt>
+            <dd>
+              {current ? (
+                <Link
+                  className="underline-offset-4 hover:underline"
+                  href={`/bus/timetable/${current.version.id}`}
+                >
+                  {current.version.label}
+                </Link>
+              ) : (
+                "None published"
+              )}
+              {current?.version.effectiveDate
+                ? ` · since ${formatDate(current.version.effectiveDate)}`
+                : null}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Next change</dt>
+            <dd>
+              {scheduled[0] ? (
+                <Link
+                  className="underline-offset-4 hover:underline"
+                  href={`/bus/timetable/${scheduled[0].id}`}
+                >
+                  {scheduled[0].label}
+                </Link>
+              ) : (
+                "None scheduled"
+              )}
+              {scheduled[0]?.effectiveDate
+                ? ` · from ${formatDate(scheduled[0].effectiveDate)}`
+                : null}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-muted-foreground">Draft</dt>
+            <dd className="flex items-center gap-2">
+              {draft ? (
+                <>
+                  <Link
+                    className="underline-offset-4 hover:underline"
+                    href={`/bus/timetable/${draft.id}`}
                   >
-                    <summary className="flex cursor-pointer items-center justify-between gap-2 px-4 py-3 font-medium text-sm">
-                      <span className="flex items-center gap-2">
-                        {formatDirection(trip.direction)}
-                        <span className="rounded bg-muted px-1.5 py-0.5 text-muted-foreground text-xs">
-                          {formatDayType(trip.dayType)}
-                        </span>
-                      </span>
-                      <span className="shrink-0 font-mono text-muted-foreground text-xs">
-                        {formatTime(trip.departTime)}
-                        {trip.arriveTime
-                          ? ` → ${formatTime(trip.arriveTime)}`
-                          : ""}
-                      </span>
-                    </summary>
-                    <ol className="divide-y divide-border border-border border-t">
-                      {trip.stops.map((stop) => (
-                        <li
-                          className="flex items-center justify-between gap-3 px-4 py-2 text-sm"
-                          key={stop.id}
-                        >
-                          <span>{stop.name}</span>
-                          {stop.groupTime ? (
-                            <span className="shrink-0 font-mono text-muted-foreground text-xs">
-                              {formatTime(stop.groupTime)}
-                            </span>
-                          ) : null}
-                        </li>
-                      ))}
-                    </ol>
-                  </details>
-                ))}
-              </div>
-            </div>
-          ))}
-        </section>
-      ))}
+                    {draft.label}
+                  </Link>
+                  <VersionStateBadge state="draft" />
+                </>
+              ) : (
+                "No draft in progress"
+              )}
+            </dd>
+          </div>
+        </dl>
+      </Card>
     </div>
   );
 }

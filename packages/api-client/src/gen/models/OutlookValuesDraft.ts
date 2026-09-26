@@ -14,5 +14,7 @@ export type OutlookValuesDraft = {
   specialInterest?: string | null;
   systems?: string | null;
   formation?: string | null;
+  formationChance48h?: string | null;
+  formationChance7d?: string | null;
   nextUpdate?: string | null;
 };

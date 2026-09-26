@@ -27,6 +27,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { readSourceBulletinLink } from "@/lib/cap-bulletin-link";
 
 function errorText(error: unknown): string {
   if (error && typeof error === "object" && "data" in error) {
@@ -155,7 +156,7 @@ export function AlertWorkflow({ alertId }: { alertId: string }) {
       <p>
         Workflow state: <strong>{alert.lifecycle_state}</strong>
       </p>
-      <SavedBulletin alert={alert} />
+      <SavedAlert alert={alert} />
       {message ? (
         <p className="whitespace-pre-wrap" role="status">
           {message}
@@ -216,9 +217,9 @@ function ReviewAndPublishSection({
     <fieldset className="space-y-4 rounded-xl border p-4" disabled={busy}>
       <legend className="font-semibold">Review and publication</legend>
       <p className="text-muted-foreground text-sm">
-        Validate the saved bulletin, then review its content, status, scope,
-        areas and validity. Requesting review is optional — anyone can look at a
-        draft first, but publishing never requires it.
+        Validate the saved alert, then review its content, status, scope, areas
+        and validity. Requesting review is optional — anyone can look at a draft
+        first, but publishing never requires it.
       </p>
       <Button onClick={() => run("validate")} type="button" variant="outline">
         Validate alert
@@ -252,7 +253,7 @@ function ReviewAndPublishSection({
           onChange={(event) => onReviewedChange(event.target.checked)}
           type="checkbox"
         />
-        I have reviewed this saved bulletin and its validation results.
+        I have reviewed this saved alert and its validation results.
       </label>
       <div className="flex flex-wrap gap-2">
         {alert.lifecycle_state === "DRAFT" ? (
@@ -280,11 +281,11 @@ function ReviewAndPublishSection({
           onClick={() => run("publish")}
           type="button"
         >
-          Publish CAP bulletin
+          Publish CAP alert
         </Button>
       </div>
       <p className="text-muted-foreground text-sm">
-        Publish will issue this {alert.status} bulletin to the configured
+        Publish will issue this {alert.status} alert to the configured
         distribution channels, whether or not it went through review first.
       </p>
     </fieldset>
@@ -309,15 +310,20 @@ function WithdrawSection({
   return (
     <fieldset className="space-y-4 rounded-xl border p-4" disabled={busy}>
       <legend className="font-semibold">Withdraw this alert</legend>
-      <Label htmlFor="cap-action-note">Workflow note</Label>
+      <Label htmlFor="cap-action-note">Cancellation reason</Label>
       <Textarea
         id="cap-action-note"
         maxLength={2000}
         onChange={(event) => onNoteChange(event.target.value)}
+        required
         value={note}
       />
       <div className="flex flex-wrap gap-2">
-        <Button onClick={() => onCancelOpenChange(true)} type="button">
+        <Button
+          disabled={!note.trim()}
+          onClick={() => onCancelOpenChange(true)}
+          type="button"
+        >
           Cancel alert
         </Button>
         <Button onClick={() => run("expire")} type="button" variant="outline">
@@ -327,9 +333,6 @@ function WithdrawSection({
       <p className="text-muted-foreground text-sm">
         Cancel issues a public CAP Cancel message retracting this alert. Mark
         expired simply lets it lapse without a new public message.
-        {" If this alert escalated a Hazard Bulletin, withdraw that"}
-        {" bulletin separately — it has no standing reason to stay public"}
-        {" once the hazard it flagged has been called off."}
       </p>
       <AlertDialog onOpenChange={onCancelOpenChange} open={cancelOpen}>
         <AlertDialogContent>
@@ -350,7 +353,7 @@ function WithdrawSection({
   );
 }
 
-function SavedBulletin({ alert }: { alert: CapAlertPublic }) {
+function SavedAlert({ alert }: { alert: CapAlertPublic }) {
   return (
     <>
       <dl className="grid gap-2 text-sm">
@@ -371,36 +374,45 @@ function SavedBulletin({ alert }: { alert: CapAlertPublic }) {
           </dd>
         </div>
       </dl>
-      {(alert.info ?? []).map((info) => (
-        <section
-          className="space-y-3 rounded-xl border bg-card p-4"
-          key={info.id}
-        >
-          <h2 className="font-semibold">
-            {info.headline} ({info.language})
-          </h2>
-          <p>
-            {info.event} · {info.severity} · {info.urgency} · {info.certainty}
-          </p>
-          <p>
-            Effective: {info.effective ?? "Not specified"} · Onset:{" "}
-            {info.onset ?? "Not specified"} · Expires:{" "}
-            {info.expires ?? "Not specified"}
-          </p>
-          <p>
-            Areas:{" "}
-            {(info.areas ?? []).map((area) => area.area_desc).join(", ") ||
-              "None specified"}
-          </p>
-          <p className="whitespace-pre-wrap">{info.description}</p>
-          {info.instruction ? (
-            <p className="whitespace-pre-wrap">
-              <strong>Instructions: </strong>
-              {info.instruction}
+      {(alert.info ?? []).map((info) => {
+        const source = readSourceBulletinLink(info.parameters);
+        return (
+          <section
+            className="space-y-3 rounded-xl border bg-card p-4"
+            key={info.id}
+          >
+            <h2 className="font-semibold">
+              {info.headline} ({info.language})
+            </h2>
+            <p>
+              {info.event} · {info.severity} · {info.urgency} · {info.certainty}
             </p>
-          ) : null}
-        </section>
-      ))}
+            <p>
+              Effective: {info.effective ?? "Not specified"} · Onset:{" "}
+              {info.onset ?? "Not specified"} · Expires:{" "}
+              {info.expires ?? "Not specified"}
+            </p>
+            <p>
+              Areas:{" "}
+              {(info.areas ?? []).map((area) => area.area_desc).join(", ") ||
+                "None specified"}
+            </p>
+            <p className="whitespace-pre-wrap">{info.description}</p>
+            {source ? (
+              <p>
+                <strong>Source bulletin: </strong>
+                {source.kind} · revision {source.revision} · {source.id}
+              </p>
+            ) : null}
+            {info.instruction ? (
+              <p className="whitespace-pre-wrap">
+                <strong>Instructions: </strong>
+                {info.instruction}
+              </p>
+            ) : null}
+          </section>
+        );
+      })}
       <details>
         <summary className="cursor-pointer">Full saved CAP record</summary>
         <pre className="overflow-auto whitespace-pre-wrap text-xs">
