@@ -102,6 +102,17 @@ Run `pnpm start` and `pnpm dev:web:*` on the host, never inside the
 devcontainer; use the devcontainer for editing, agents, linting,
 type-checking, and tests.
 
+### Parallel Agents
+Several agents often run at once: give each its own git worktree and branch
+(Claude: `claude --worktree <topic>`, which creates `.claude/worktrees/<topic>`
+from the current `dev` HEAD; Codex: its worktree mode). Run `pnpm install` in a
+new worktree. Commit in the worktree, then land on `dev` with
+`git fetch && git rebase origin/dev`, `pnpm fix:changed`, `git push origin HEAD:dev`;
+if the push is rejected, rebase and retry — never force-push. Never hand-merge
+`openapi.json` or `packages/api-client/src/gen/`: take either side, regenerate
+(openapi command above → `pnpm generate:api-client` → `pnpm check:drift`).
+Dev servers stay on the host in the main checkout.
+
 ### Communication
 Lead with the answer or the next step in plain language; keep responses short
 and offer deeper detail only when asked. When teaching, go one concept at a
@@ -158,7 +169,7 @@ anything to project files or memory.
 
 ### Session Handoff
 Claude Code and Codex share one working tree. A `SessionStart` hook tails
-`SESSION_LOG.md` (repo root, gitignored) into context — read it before
+`SESSION_LOG.md` (main checkout root, gitignored; shared by every worktree) into context — read it before
 assuming a task is untouched. After a meaningful chunk of work, append one
 entry: timestamp, tool, one-line summary, files touched, next step. Newest at
 the bottom. Don't log trivial single-file tweaks.

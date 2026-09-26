@@ -10,19 +10,22 @@ PR creation, and CI watching; **the user merges every PR and publishes the
 release** — never merge, push, or deploy yourself.
 
 **1. Pre-flight**
-Run `pnpm fix` and `pnpm type-check`; then run the `/pre-merge` checklist.
-Report findings. Stop and ask if anything is red.
+Confirm the latest `dev` CI run is green (`gh run list --branch dev --limit 3`);
+if not, triage it first. Run `pnpm check:ci` and `pnpm type-check`, then the
+`/pre-merge` checklist. Report findings. Stop and ask if anything is red.
 
 **2. dev → staging**
-Create the promotion PR (`gh pr create --base staging --head dev`). Watch checks
+Create the promotion PR (`gh pr create --base staging --head dev`). Give the user
+the exact `gh pr merge <num> --auto --merge` command — running it is their merge
+decision; the PR then merges itself once the required checks pass. Watch checks
 with `gh pr checks <num> --watch` (fall back to polling `gh pr checks` every ~60s
-if watch is flaky). When green, tell the user the PR is ready to merge and stop.
-After they merge, confirm the staging pipeline run succeeded
+if watch is flaky). On a red check, triage it and fix on `dev`; the PR picks up
+the push and auto-merge stays armed. After it merges, confirm the staging pipeline run succeeded
 (`gh run list --workflow=pipeline-staging.yml --limit 1`, then
 `gh run watch <id>` if in progress).
 
 **3. staging → main**
-Same pattern with `--base main --head staging`. Remind the user: merging to main
+Same pattern (including `--auto`) with `--base main --head staging`. Remind the user: merging to main
 builds nothing extra and does not deploy prod.
 
 **4. Release**
