@@ -77,20 +77,24 @@
     {% if outlook %}
     <section class="outlook">
       <h2 class="eyebrow">Next four days</h2>
-      <table>
-        <thead><tr><th>Day</th><th>Weather</th><th>Temp</th><th>Wind</th><th>Sea</th></tr></thead>
-        <tbody>
-          {% for day in outlook %}
-          <tr>
-            <td class="day">{{ day.label }}</td>
-            <td>{{ day.weather }}</td>
-            <td class="num">{{ day.temps }}</td>
-            <td>{{ day.wind }}</td>
-            <td>{{ day.sea }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+      <div class="days">
+        {% for day in outlook %}
+        <article class="card day-card">
+          <h3>{{ day.label }}</h3>
+          <p class="day-weather">{{ day.weather }}</p>
+          {% if day.tiles %}
+          <ul class="tiles compact">
+            {% for tile in day.tiles %}
+            <li>
+              {{ icon(tile.icon, "tile-icon") }}
+              <div><strong>{{ tile.value }}</strong><span>{{ tile.label }}</span></div>
+            </li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </article>
+        {% endfor %}
+      </div>
     </section>
     {% endif %}
 

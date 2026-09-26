@@ -7,7 +7,7 @@ Separate PostgreSQL database (`WXPRODUCTS_DATABASE_URL`) with its **own metadata
 Migration `0001` adopts verified Drizzle history and intentionally refuses to install beside the main application's tables. Tests use disposable `weather_test_*` databases.
 
 ## Layout
-`service.py` (published/authored products, history, write, aviation drafts, PDF source), `forecast.py`, `observations.py`/`observation_service.py`, `validation.py` (+ `units.py` WMO units/tables), `advisories.py` (CAP/bulletin snapshot for forecasts), `pdf.py` (dispatch + fpdf2 text layout) and `forecast_pdf.py` + `templates/` + `assets/` + `fonts/` (WeasyPrint forecast/bulletin sheets), `fields.json` (generated mirror of `packages/gms/src/products.ts`; parity-tested), `router.py` (`/api/v1/wxproducts/*`).
+`service.py` (published/authored products, history, write, aviation drafts, PDF source), `forecast.py`, `observations.py`/`observation_service.py`, `validation.py` (+ `units.py` WMO units/tables), `advisories.py` (CAP/bulletin snapshot for forecasts), `pdf.py` (status label + dispatch) and `forecast_pdf.py` + `templates/` + `assets/` + `fonts/` (WeasyPrint forecast/bulletin sheets), `fields.json` (generated mirror of `packages/gms/src/products.ts`; parity-tested), `router.py` (`/api/v1/wxproducts/*`).
 
 ## Invariants
 - Self-publish actions `draft` / `publish` / `withdraw` (schemas `action` literal); saved revisions are immutable and render to PDF via `/products/{id}/revisions/{revision}/pdf`.

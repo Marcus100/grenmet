@@ -63,11 +63,10 @@ This guide stays implementation-focused. The broader GMS service framing, catalo
   `monoColumns` prop for this; `gaa-admin`'s `eregister.tsx` already used bare
   `font-mono` throughout and now resolves through the deliberate token instead of the
   browser's generic system-mono stack.
-- Official PDFs, bulletins, forms, and fixed-output documents use Noto Sans through `--brand-font-document` and `font-document`. Five legacy `wxproducts` files
-  (`marinebulletin.tsx`, `morningfcst.tsx`, `eveningfcst.tsx`, `middayfcst.tsx`,
-  `hourly.tsx`) apply `font-document` directly in their own className instead of
-  through the `Paper` component — same correct visual outcome, just not centralized;
-  non-urgent cleanup, not a typography bug.
+- Official PDFs, bulletins, forms, and fixed-output documents use Noto Sans through `--brand-font-document` and `font-document`. Forecast, bulletin and outlook PDFs are
+  rendered by FastAPI (WeasyPrint, Noto Sans, `--gm-*` tokens mirrored in
+  `src/wxproducts/forecast_pdf.py`); gaa-admin has no in-browser wxproducts print
+  layouts left.
 - Dark mode is supported via the class-based `dark` variant (see [Dark Mode](#dark-mode)) —
   V1's original light-only constraint has been superseded. `gaa-admin` is the only app with
   a wired runtime toggle as of this writing; the token architecture is being corrected so a
