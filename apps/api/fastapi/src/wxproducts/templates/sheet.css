@@ -138,3 +138,10 @@ td.num { white-space: nowrap; }
 .chance { border-radius: 2mm; padding: 2mm 4mm; min-width: 38mm; }
 .chance .window { display: block; font-size: 7pt; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
 .chance strong { font-size: 11pt; font-weight: 700; }
+.days { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; }
+.day-card { break-inside: avoid; padding: 4mm 5mm; }
+.day-card h3 { font-size: 10pt; font-weight: 700; color: var(--gm-navy); margin-bottom: 1mm; }
+.day-weather { font-size: 8.5pt; color: var(--gm-text-secondary); margin-bottom: 3mm; }
+.tiles.compact { row-gap: 2mm; }
+.tiles.compact .tile-icon { width: 5.5mm; height: 5.5mm; }
+.tiles.compact strong { font-size: 9pt; }

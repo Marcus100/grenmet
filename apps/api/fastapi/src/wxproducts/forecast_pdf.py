@@ -220,7 +220,17 @@ def _matrix(items: list[dict[str, str]]) -> list[list[dict[str, Any]]]:
     return rows
 
 
-def _outlook(values: dict[str, str]) -> list[dict[str, str]]:
+# Day cards keep to the essentials; tides and sun times stay on the full report.
+DAY_CARD_ICONS = {
+    "thermometer-sun",
+    "thermometer-snowflake",
+    "wind",
+    "compass",
+    "waves",
+}
+
+
+def _outlook(values: dict[str, str]) -> list[dict[str, Any]]:
     days = []
     for day in range(1, 5):
         p = period_values(values, f"day{day}")
@@ -228,9 +238,11 @@ def _outlook(values: dict[str, str]) -> list[dict[str, str]]:
             {
                 "label": _day_label(p.get("date", "")),
                 "weather": p.get("weather", "") or "—",
-                "temps": f"{p.get('max', '') or '—'}° / {p.get('min', '') or '—'}°",
-                "wind": p.get("wind", "") or "—",
-                "sea": p.get("seaState", "") or "—",
+                "tiles": [
+                    {"icon": i, "value": v, "label": label}
+                    for i, v, label in _conditions(values, f"day{day}")
+                    if i in DAY_CARD_ICONS
+                ],
             }
         )
     return days

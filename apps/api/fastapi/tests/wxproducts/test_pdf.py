@@ -29,9 +29,14 @@ def test_unicode_long_text_and_legacy_fields():
             "current_publication": False,
         }
     )
-    fields = pdf.document_fields(source)
-    assert not any(value == "legacy hidden" for _, value in fields)
-    assert any(value == source.values["summary"] for _, value in fields)
+    context = forecast_pdf.forecast_context(
+        "morning", dict(source.values), status="", revision="r1"
+    )
+    html = (
+        forecast_pdf._environment().get_template("forecast.html.j2").render(**context)
+    )
+    assert "legacy hidden" not in html  # legacy forecast impacts are not printed
+    assert "source bulletin ABC." in html
     result = pdf.render_product_pdf(source)
     assert result.startswith(b"%PDF-")
     pages = forecast_pdf.render_forecast_document(

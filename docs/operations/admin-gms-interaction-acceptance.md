@@ -105,7 +105,6 @@ placeholder is not an implemented service.
 | gaa-admin | `/wxproducts/hourly` | Pending |
 | gaa-admin | `/wxproducts/nhc` | Pending |
 | gaa-admin | `/wxproducts` | Pending |
-| gaa-admin | `/wxproducts/pdf/morning` | Pending |
 | gaa-admin | `/wxwatch/[year]/[month]/[day]` | Pending |
 | gaa-admin | `/wxwatch` | Pending |
 | gaa-admin | `/signin` | Pending |
