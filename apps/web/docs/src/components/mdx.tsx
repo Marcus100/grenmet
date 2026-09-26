@@ -1,4 +1,4 @@
-import { clsx } from "cn";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import Link from "next/link";
 
 import { Feedback } from "@/components/Feedback";
@@ -68,7 +68,7 @@ export function Col({
 }) {
   return (
     <div
-      className={clsx(
+      className={cn(
         "*:first:mt-0 *:last:mb-0",
         sticky && "xl:sticky xl:top-24"
       )}

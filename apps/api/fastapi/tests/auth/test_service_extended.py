@@ -1,5 +1,7 @@
 """Extended auth service tests covering new service functions."""
 
+import uuid
+
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -171,3 +173,20 @@ async def test_authenticate_unknown_email_equalizes_timing(
     )
     assert result is None
     assert calls == [("anything123", DUMMY_PASSWORD_HASH)]
+
+
+async def test_get_users_by_ids_returns_known_users_keyed_by_id(
+    db_async: AsyncSession,
+) -> None:
+    """get_users_by_ids skips unknown ids and handles an empty request."""
+    first = await _make_user(db_async)
+    second = await _make_user(db_async)
+    unknown = uuid.uuid4()
+
+    found = await service.get_users_by_ids(
+        session=db_async, user_ids=[first.id, second.id, unknown]
+    )
+
+    assert set(found) == {first.id, second.id}
+    assert found[first.id].email == first.email
+    assert await service.get_users_by_ids(session=db_async, user_ids=[]) == {}

@@ -46,8 +46,9 @@ export function transportSpecQueryOptions(
 }
 
 /**
- * @description Returns routes, stops, trips, and shifts used by the transport timetable.
+ * @description Deprecated: returns the v1 catalogue, which no longer changes. Use /transport/timetable/current, which follows published timetable versions.
  * @summary Get the transport timetable
+ * @deprecated
  * {@link /api/v1/transport/spec}
  */
 export function useTransportSpec<

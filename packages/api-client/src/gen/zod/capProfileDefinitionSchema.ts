@@ -12,7 +12,7 @@ export const capProfileDefinitionSchema = z.object({
   name: z.string().min(1).max(200),
   family: z.string().min(1).max(200),
   subtypes: z.array(capProfileSubtypeSchema).min(1).max(50),
-  templates: z.array(capProfileTemplateSchema).max(3).optional(),
+  templates: z.array(capProfileTemplateSchema).max(4).optional(),
   issuing_authority: z.string().max(500).optional().default(""),
   reviewing_authority: z.string().max(500).optional().default(""),
   contact: z

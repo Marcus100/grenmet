@@ -9325,7 +9325,7 @@
           "cap-public"
         ],
         "summary": "Get active CAP alerts as GeoJSON",
-        "description": "Returns active public CAP alerts as a GeoJSON feature collection for map clients.",
+        "description": "Returns active Actual public CAP alerts as a GeoJSON feature collection for map clients.",
         "operationId": "capGetAlertsGeojson",
         "responses": {
           "200": {
@@ -9357,7 +9357,7 @@
           "cap-public"
         ],
         "summary": "Get the active CAP map",
-        "description": "Returns the cached GeoJSON feature collection used to render the active public CAP alert map.",
+        "description": "Returns the cached GeoJSON feature collection of active Actual public CAP alerts.",
         "operationId": "capGetActiveMap",
         "responses": {
           "200": {
@@ -9391,7 +9391,7 @@
           "cap-public"
         ],
         "summary": "Get the public CAP RSS feed",
-        "description": "Returns active public CAP alerts as an RSS 2.0 feed for feed readers and aggregators.",
+        "description": "Returns active Actual public CAP alerts and Actual Cancel messages published in the last 24 hours as RSS 2.0.",
         "operationId": "capGetRss",
         "responses": {
           "200": {
@@ -10585,6 +10585,103 @@
         ]
       }
     },
+    "/api/v1/wxproducts/products/preview/pdf": {
+      "post": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "Render a draft product PDF preview",
+        "description": "Renders unsaved forecast, bulletin or outlook content with the issued PDF layout, watermarked as a draft preview. Nothing is saved or published.",
+        "operationId": "wxproductsPreviewProductPdf",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/OutlookProductPreviewInput"
+                  },
+                  {
+                    "$ref": "#/components/schemas/LegacyProductPreviewInput"
+                  }
+                ],
+                "title": "Body",
+                "discriminator": {
+                  "propertyName": "kind",
+                  "mapping": {
+                    "outlook": "#/components/schemas/OutlookProductPreviewInput",
+                    "morning": "#/components/schemas/LegacyProductPreviewInput",
+                    "midday": "#/components/schemas/LegacyProductPreviewInput",
+                    "evening": "#/components/schemas/LegacyProductPreviewInput",
+                    "cyclone": "#/components/schemas/LegacyProductPreviewInput",
+                    "marine": "#/components/schemas/LegacyProductPreviewInput",
+                    "flood": "#/components/schemas/LegacyProductPreviewInput",
+                    "thunderstorm": "#/components/schemas/LegacyProductPreviewInput",
+                    "wind": "#/components/schemas/LegacyProductPreviewInput",
+                    "heat": "#/components/schemas/LegacyProductPreviewInput",
+                    "dust": "#/components/schemas/LegacyProductPreviewInput",
+                    "coastal": "#/components/schemas/LegacyProductPreviewInput",
+                    "tsunami": "#/components/schemas/LegacyProductPreviewInput"
+                  }
+                }
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/wxproducts/products/{product_id}/revisions/{revision}/pdf": {
       "get": {
         "tags": [
@@ -11558,6 +11655,2305 @@
         ]
       }
     },
+    "/api/v1/janitorial/catalogue": {
+      "get": {
+        "tags": [
+          "janitorial",
+          "janitorial"
+        ],
+        "summary": "Get the cleaning catalogue",
+        "description": "Returns sites and, for the buildings the user may act on, sections, areas (with code, space type and APPA level), tasks and bundles. Inactive records are included so managers can restore them.",
+        "operationId": "janitorialGetCatalogue",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "site",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[A-Za-z]{3}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Site code, e.g. GND or CRU",
+              "title": "Site"
+            },
+            "description": "Site code, e.g. GND or CRU"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JanitorialCatalogue"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient permission or building out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Janitorial database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/janitorial/buildings": {
+      "post": {
+        "tags": [
+          "janitorial",
+          "janitorial"
+        ],
+        "summary": "Add a building",
+        "description": "Adds a building to a site. Needs catalogue management and all-building scope.",
+        "operationId": "janitorialCreateBuilding",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuildingCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JanitorialBuilding"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid janitorial data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission or building out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stale revision or duplicate record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Janitorial database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/janitorial/buildings/{building_id}": {
+      "patch": {
+        "tags": [
+          "janitorial",
+          "janitorial"
+        ],
+        "summary": "Update a building",
+        "description": "Renames, re-kinds or (de)activates a building. Send the revision you last read.",
+        "operationId": "janitorialUpdateBuilding",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "building_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Building Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BuildingUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JanitorialBuilding"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid janitorial data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission or building out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stale revision or duplicate record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Janitorial database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/janitorial/sections": {
+      "post": {
+        "tags": [
+          "janitorial",
+          "janitorial"
+        ],
+        "summary": "Add a section",
+        "description": "Adds a named group of areas to a building.",
+        "operationId": "janitorialCreateSection",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SectionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JanitorialSection"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid janitorial data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission or building out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stale revision or duplicate record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Janitorial database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/janitorial/sections/{section_id}": {
+      "patch": {
+        "tags": [
+          "janitorial",
+          "janitorial"
+        ],
+        "summary": "Update a section",
+        "description": "Renames, annotates or (de)activates a section. Send the revision you last read.",
+        "operationId": "janitorialUpdateSection",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "section_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Section Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SectionUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JanitorialSection"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid janitorial data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission or building out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stale revision or duplicate record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Janitorial database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/janitorial/areas": {
+      "post": {
+        "tags": [
+          "janitorial",
+          "janitorial"
+        ],
+        "summary": "Add an area",
+        "description": "Adds a cleanable area. The printable code is assigned automatically; an omitted space type and APPA level are inferred from the name.",
+        "operationId": "janitorialCreateArea",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AreaCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JanitorialArea"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid janitorial data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission or building out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stale revision or duplicate record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Janitorial database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/janitorial/areas/{area_id}": {
+      "patch": {
+        "tags": [
+          "janitorial",
+          "janitorial"
+        ],
+        "summary": "Update an area",
+        "description": "Updates an area's name, section, space type, APPA level, quantity or active state. Send the revision you last read.",
+        "operationId": "janitorialUpdateArea",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "area_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Area Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AreaUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JanitorialArea"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid janitorial data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission or building out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stale revision or duplicate record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Janitorial database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/janitorial/areas/{area_id}/tasks": {
+      "post": {
+        "tags": [
+          "janitorial",
+          "janitorial"
+        ],
+        "summary": "Add a task to an area",
+        "description": "Adds a cleaning activity and frequency to an area. Activity names are matched to existing activities.",
+        "operationId": "janitorialCreateTask",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "area_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Area Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JanitorialTask"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid janitorial data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission or building out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stale revision or duplicate record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Janitorial database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/janitorial/tasks/{task_id}": {
+      "patch": {
+        "tags": [
+          "janitorial",
+          "janitorial"
+        ],
+        "summary": "Update a task",
+        "description": "Changes a task's activity, frequency, mode or active state. Send the revision you last read.",
+        "operationId": "janitorialUpdateTask",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "task_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Task Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TaskUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JanitorialTask"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid janitorial data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission or building out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stale revision or duplicate record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Janitorial database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/janitorial/staff": {
+      "get": {
+        "tags": [
+          "janitorial",
+          "janitorial"
+        ],
+        "summary": "List the contractor and cleaning staff",
+        "description": "Returns the cleaning contractor(s) and staff, with names and emails from Barrels Login.",
+        "operationId": "janitorialListStaff",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JanitorialStaffList"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission or building out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Janitorial database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "janitorial",
+          "janitorial"
+        ],
+        "summary": "Add a staff member",
+        "description": "Adds a cleaner or contractor supervisor by their Barrels Login email. The account must already exist; grant the janitor app role separately.",
+        "operationId": "janitorialCreateStaff",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JanitorialStaffMember"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid janitorial data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission or building out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stale revision or duplicate record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Janitorial database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/janitorial/contractors": {
+      "post": {
+        "tags": [
+          "janitorial",
+          "janitorial"
+        ],
+        "summary": "Add a cleaning contractor",
+        "description": "Registers the company that supplies cleaning staff.",
+        "operationId": "janitorialCreateContractor",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractorCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JanitorialContractor"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid janitorial data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission or building out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stale revision or duplicate record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Janitorial database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/janitorial/contractors/{contractor_id}": {
+      "patch": {
+        "tags": [
+          "janitorial",
+          "janitorial"
+        ],
+        "summary": "Update a cleaning contractor",
+        "description": "Renames or (de)activates a contractor. Send the revision you last read.",
+        "operationId": "janitorialUpdateContractor",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "contractor_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Contractor Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ContractorUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JanitorialContractor"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid janitorial data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission or building out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stale revision or duplicate record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Janitorial database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/janitorial/staff/{staff_id}": {
+      "patch": {
+        "tags": [
+          "janitorial",
+          "janitorial"
+        ],
+        "summary": "Update a staff member",
+        "description": "Changes a staff member's contractor, role, badge number or active state. Send the revision you last read.",
+        "operationId": "janitorialUpdateStaff",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "staff_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Staff Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StaffUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JanitorialStaffMember"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid janitorial data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission or building out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stale revision or duplicate record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Janitorial database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/janitorial/grants": {
+      "get": {
+        "tags": [
+          "janitorial",
+          "janitorial"
+        ],
+        "summary": "List building grants",
+        "description": "Active building grants that scope what GAA supervisors and managers may see and manage.",
+        "operationId": "janitorialListGrants",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/JanitorialGrant"
+                  },
+                  "type": "array",
+                  "title": "Response Janitoriallistgrants"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission or building out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Janitorial database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "janitorial",
+          "janitorial"
+        ],
+        "summary": "Grant buildings to a person",
+        "description": "Grants each listed building to a Barrels Login user. Buildings already granted are skipped; the new grants are returned.",
+        "operationId": "janitorialCreateGrants",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GrantCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/JanitorialGrant"
+                  },
+                  "type": "array",
+                  "title": "Response Janitorialcreategrants"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid janitorial data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission or building out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stale revision or duplicate record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Janitorial database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/janitorial/grants/{grant_id}/revoke": {
+      "post": {
+        "tags": [
+          "janitorial",
+          "janitorial"
+        ],
+        "summary": "Revoke a building grant",
+        "description": "Ends a building grant. The grant is kept in history.",
+        "operationId": "janitorialRevokeGrant",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "grant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Grant Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Invalid janitorial data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission or building out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stale revision or duplicate record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Janitorial database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/janitorial/shifts": {
+      "get": {
+        "tags": [
+          "janitorial",
+          "janitorial"
+        ],
+        "summary": "Get the shift board for a site",
+        "description": "Returns a site's shift patterns, the zones the user may see, and assignments between two dates (at most 62 days).",
+        "operationId": "janitorialGetShiftBoard",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "site",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z]{3}$",
+              "title": "Site"
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "From"
+            }
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "To"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JanitorialShiftBoard"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid janitorial data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission or building out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Janitorial database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/janitorial/shift-patterns": {
+      "post": {
+        "tags": [
+          "janitorial",
+          "janitorial"
+        ],
+        "summary": "Add a shift pattern",
+        "description": "Adds a named shift (start and end time) at a site. A shift ending before it starts runs past midnight.",
+        "operationId": "janitorialCreateShiftPattern",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShiftPatternCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JanitorialShiftPattern"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid janitorial data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission or building out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stale revision or duplicate record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Janitorial database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/janitorial/shift-patterns/{pattern_id}": {
+      "patch": {
+        "tags": [
+          "janitorial",
+          "janitorial"
+        ],
+        "summary": "Update a shift pattern",
+        "description": "Renames, retimes or (de)activates a shift. Send the revision you last read.",
+        "operationId": "janitorialUpdateShiftPattern",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "pattern_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Pattern Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShiftPatternUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JanitorialShiftPattern"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid janitorial data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission or building out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stale revision or duplicate record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Janitorial database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/janitorial/zones": {
+      "post": {
+        "tags": [
+          "janitorial",
+          "janitorial"
+        ],
+        "summary": "Add a zone",
+        "description": "Groups areas at one site into a zone that staff are assigned to.",
+        "operationId": "janitorialCreateZone",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ZoneCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JanitorialZone"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid janitorial data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission or building out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stale revision or duplicate record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Janitorial database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/janitorial/zones/{zone_id}": {
+      "patch": {
+        "tags": [
+          "janitorial",
+          "janitorial"
+        ],
+        "summary": "Update a zone",
+        "description": "Renames a zone, replaces its areas or (de)activates it. Send the revision you last read.",
+        "operationId": "janitorialUpdateZone",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "zone_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Zone Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ZoneUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JanitorialZone"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid janitorial data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission or building out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stale revision or duplicate record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Janitorial database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/janitorial/shift-assignments": {
+      "post": {
+        "tags": [
+          "janitorial",
+          "janitorial"
+        ],
+        "summary": "Assign a staff member to a zone for a shift",
+        "description": "Schedules one staff member on one shift and zone for a date. A person can hold one scheduled assignment per shift and date.",
+        "operationId": "janitorialCreateShiftAssignment",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShiftAssignmentCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JanitorialShiftAssignment"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid janitorial data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission or building out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stale revision or duplicate record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Janitorial database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/janitorial/shift-assignments/{assignment_id}": {
+      "patch": {
+        "tags": [
+          "janitorial",
+          "janitorial"
+        ],
+        "summary": "Update or cancel a shift assignment",
+        "description": "Moves an assignment to another shift or zone, or cancels it. Send the revision you last read.",
+        "operationId": "janitorialUpdateShiftAssignment",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "assignment_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Assignment Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShiftAssignmentUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JanitorialShiftAssignment"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid janitorial data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission or building out of scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Stale revision or duplicate record",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Janitorial database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/janitorial/access": {
+      "get": {
+        "tags": [
+          "janitorial"
+        ],
+        "summary": "Get my janitorial permissions",
+        "description": "Returns which janitorial portal actions the signed-in user may take and the buildings they may act on, so clients can show or hide controls. The API still enforces every rule.",
+        "operationId": "janitorialGetAccess",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JanitorialAccess"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/janitorial/spec": {
       "get": {
         "tags": [
@@ -11602,13 +13998,1367 @@
         ]
       }
     },
+    "/api/v1/transport/access": {
+      "get": {
+        "tags": [
+          "transport",
+          "transport"
+        ],
+        "summary": "Get my transport permissions",
+        "description": "Returns which transport portal actions the signed-in user may take, so clients can show or hide controls. The API still enforces every permission.",
+        "operationId": "transportGetAccess",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransportAccess"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/transport/catalogue": {
+      "get": {
+        "tags": [
+          "transport",
+          "transport"
+        ],
+        "summary": "Get the transport reference registry",
+        "description": "Returns routes, shifts, stops (with the routes serving them today) and service calendars. Any signed-in user may read it.",
+        "operationId": "transportGetCatalogue",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransportCatalogue"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Transport database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/transport/routes": {
+      "post": {
+        "tags": [
+          "transport",
+          "transport"
+        ],
+        "summary": "Create a route",
+        "description": "Adds a route to the registry. Route numbers are unique.",
+        "operationId": "transportCreateRouteEntry",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransportRouteInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransportRoute"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicts with the timetable state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Transport database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/transport/routes/{route_id}": {
+      "put": {
+        "tags": [
+          "transport",
+          "transport"
+        ],
+        "summary": "Update a route",
+        "description": "Changes a route's number, name, description or active flag. Takes effect immediately.",
+        "operationId": "transportUpdateRouteEntry",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "route_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Route Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransportRouteInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransportRoute"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicts with the timetable state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Transport database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/transport/stops": {
+      "post": {
+        "tags": [
+          "transport",
+          "transport"
+        ],
+        "summary": "Create a stop",
+        "description": "Adds a pickup/drop-off point. Stop codes are unique and printable on signs and QR labels.",
+        "operationId": "transportCreateStop",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransportStopInput"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransportStop"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicts with the timetable state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Transport database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/transport/stops/{stop_id}": {
+      "put": {
+        "tags": [
+          "transport",
+          "transport"
+        ],
+        "summary": "Update a stop",
+        "description": "Changes a stop's code, name, landmark, map location or active flag. Takes effect immediately.",
+        "operationId": "transportUpdateStop",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "stop_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Stop Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransportStopInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TransportStop"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicts with the timetable state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Transport database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/transport/timetable/current": {
+      "get": {
+        "tags": [
+          "transport",
+          "transport"
+        ],
+        "summary": "Get the timetable in force",
+        "description": "Returns the published timetable in force today (Grenada time) with its trips and stop times. Any signed-in user may read it.",
+        "operationId": "transportGetCurrentTimetable",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableVersionDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Transport database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/transport/timetable/versions": {
+      "get": {
+        "tags": [
+          "transport",
+          "transport"
+        ],
+        "summary": "List timetable versions",
+        "description": "Returns every timetable version, newest first, with its lifecycle state (draft, scheduled, current, superseded, discarded).",
+        "operationId": "transportListTimetableVersions",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/TimetableVersionSummary"
+                  },
+                  "type": "array",
+                  "title": "Response Transportlisttimetableversions"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Transport database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "transport",
+          "transport"
+        ],
+        "summary": "Start a timetable draft",
+        "description": "Creates the single draft as a copy of the timetable in force. Fails if a draft already exists.",
+        "operationId": "transportCreateTimetableDraft",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimetableVersionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableVersionDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicts with the timetable state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Transport database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/transport/timetable/versions/{version_id}": {
+      "get": {
+        "tags": [
+          "transport",
+          "transport"
+        ],
+        "summary": "Get a timetable version",
+        "description": "Returns a version with its trips, stop times and validation issues.",
+        "operationId": "transportGetTimetableVersion",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Version Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableVersionDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Transport database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "transport",
+          "transport"
+        ],
+        "summary": "Update a timetable draft",
+        "description": "Changes the draft's label, notes and source reference.",
+        "operationId": "transportUpdateTimetableDraft",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Version Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimetableVersionUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableVersionDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicts with the timetable state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Transport database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/transport/timetable/versions/{version_id}/discard": {
+      "post": {
+        "tags": [
+          "transport",
+          "transport"
+        ],
+        "summary": "Discard a timetable draft",
+        "description": "Marks the draft discarded. It is kept for reference and a new draft can be started.",
+        "operationId": "transportDiscardTimetableDraft",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Version Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableVersionSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicts with the timetable state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Transport database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/transport/timetable/versions/{version_id}/publish": {
+      "post": {
+        "tags": [
+          "transport",
+          "transport"
+        ],
+        "summary": "Publish a timetable draft",
+        "description": "Validates the draft and publishes it from the effective date (today or later). Blocking issues return 422.",
+        "operationId": "transportPublishTimetableDraft",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Version Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimetablePublish"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableVersionDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid timetable data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicts with the timetable state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Transport database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/transport/timetable/versions/{version_id}/trips": {
+      "post": {
+        "tags": [
+          "transport",
+          "transport"
+        ],
+        "summary": "Add a trip to a draft",
+        "description": "Adds a trip with its ordered stop times to the draft.",
+        "operationId": "transportAddTimetableTrip",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Version Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimetableTripInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableTripView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid timetable data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicts with the timetable state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Transport database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/transport/timetable/versions/{version_id}/trips/{trip_id}": {
+      "put": {
+        "tags": [
+          "transport",
+          "transport"
+        ],
+        "summary": "Replace a trip in a draft",
+        "description": "Replaces the trip's details and its full ordered stop list.",
+        "operationId": "transportReplaceTimetableTrip",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Version Id"
+            }
+          },
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Trip Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TimetableTripInput"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TimetableTripView"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid timetable data",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Insufficient permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicts with the timetable state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Transport database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "transport",
+          "transport"
+        ],
+        "summary": "Remove a trip from a draft",
+        "description": "Deletes the trip and its stop times from the draft.",
+        "operationId": "transportDeleteTimetableTrip",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "version_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Version Id"
+            }
+          },
+          {
+            "name": "trip_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Trip Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Trip removed"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient permission",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicts with the timetable state",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Transport database unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/transport/spec": {
       "get": {
         "tags": [
           "transport"
         ],
         "summary": "Get the transport timetable",
-        "description": "Returns routes, stops, trips, and shifts used by the transport timetable.",
+        "description": "Deprecated: returns the v1 catalogue, which no longer changes. Use /transport/timetable/current, which follows published timetable versions.",
         "operationId": "transportSpec",
         "responses": {
           "200": {
@@ -11636,6 +15386,7 @@
             }
           }
         },
+        "deprecated": true,
         "security": [
           {
             "APIKeyCookie": []
@@ -14072,6 +17823,20 @@
         "type": "object",
         "title": "AddressUpdate"
       },
+      "ApiError": {
+        "properties": {
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "detail"
+        ],
+        "title": "ApiError",
+        "description": "Stable error envelope for documented API failures."
+      },
       "ApprovalAuthorityPublic": {
         "properties": {
           "can_approve_leave": {
@@ -14451,6 +18216,131 @@
           "image_url"
         ],
         "title": "ArchiveRetrieval"
+      },
+      "AreaCreate": {
+        "properties": {
+          "buildingId": {
+            "type": "integer",
+            "title": "Buildingid"
+          },
+          "sectionId": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sectionid"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "spaceType": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AreaCreatePropertiesSpaceTypeAnyOfEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Spacetype"
+          },
+          "cleanlinessLevel": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 5.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cleanlinesslevel"
+          },
+          "quantity": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "Quantity",
+            "default": 1
+          }
+        },
+        "type": "object",
+        "required": [
+          "buildingId",
+          "name"
+        ],
+        "title": "AreaCreate"
+      },
+      "AreaUpdate": {
+        "properties": {
+          "sectionId": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sectionid"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "spaceType": {
+            "$ref": "#/components/schemas/AreaCreatePropertiesSpaceTypeAnyOfEnum"
+          },
+          "cleanlinessLevel": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 5.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cleanlinesslevel"
+          },
+          "quantity": {
+            "type": "integer",
+            "maximum": 1000.0,
+            "minimum": 1.0,
+            "title": "Quantity"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expectedrevision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sectionId",
+          "name",
+          "spaceType",
+          "cleanlinessLevel",
+          "quantity",
+          "active",
+          "expectedRevision"
+        ],
+        "title": "AreaUpdate"
       },
       "AreaView": {
         "properties": {
@@ -15239,6 +19129,59 @@
         ],
         "title": "BrowserSession"
       },
+      "BuildingCreate": {
+        "properties": {
+          "siteId": {
+            "type": "integer",
+            "title": "Siteid"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/BuildingCreatePropertiesKindEnum"
+          }
+        },
+        "type": "object",
+        "required": [
+          "siteId",
+          "name"
+        ],
+        "title": "BuildingCreate"
+      },
+      "BuildingUpdate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/BuildingCreatePropertiesKindEnum"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expectedrevision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "kind",
+          "active",
+          "expectedRevision"
+        ],
+        "title": "BuildingUpdate"
+      },
       "BuildingView": {
         "properties": {
           "id": {
@@ -15975,6 +19918,28 @@
               }
             ],
             "title": "Xml Url"
+          },
+          "replaced_by_identifier": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Replaced By Identifier"
+          },
+          "cancellation_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancellation Reason"
           }
         },
         "type": "object",
@@ -17423,7 +21388,7 @@
               "$ref": "#/components/schemas/CapProfileTemplate"
             },
             "type": "array",
-            "maxItems": 3,
+            "maxItems": 4,
             "title": "Templates"
           },
           "issuing_authority": {
@@ -17474,6 +21439,16 @@
           },
           "level": {
             "$ref": "#/components/schemas/CapProfileDraftRequestPropertiesLevelEnum"
+          },
+          "colour": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GmsColour"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -18365,6 +22340,47 @@
           "url"
         ],
         "title": "CheckoutSessionPublic"
+      },
+      "ContractorCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "ContractorCreate"
+      },
+      "ContractorUpdate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expectedrevision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "active",
+          "expectedRevision"
+        ],
+        "title": "ContractorUpdate"
       },
       "DashboardApproval": {
         "properties": {
@@ -19748,6 +23764,30 @@
         "type": "object",
         "title": "EmploymentUpdate"
       },
+      "ForecastCondition": {
+        "properties": {
+          "icon": {
+            "type": "string",
+            "title": "Icon"
+          },
+          "value": {
+            "type": "string",
+            "title": "Value"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "icon",
+          "value",
+          "label"
+        ],
+        "title": "ForecastCondition",
+        "description": "One display tile: a lucide icon name, a formatted value and its label."
+      },
       "ForecastObservation": {
         "properties": {
           "temperature": {
@@ -19830,6 +23870,13 @@
             },
             "type": "object",
             "title": "Details"
+          },
+          "conditions": {
+            "items": {
+              "$ref": "#/components/schemas/ForecastCondition"
+            },
+            "type": "array",
+            "title": "Conditions"
           }
         },
         "type": "object",
@@ -19907,6 +23954,16 @@
           "UNSPECIFIED"
         ],
         "title": "Gender"
+      },
+      "GmsColour": {
+        "type": "string",
+        "enum": [
+          "green",
+          "yellow",
+          "orange",
+          "red"
+        ],
+        "title": "GmsColour"
       },
       "GoogleChallengePublic": {
         "properties": {
@@ -20152,6 +24209,30 @@
           "id"
         ],
         "title": "GradeSetup"
+      },
+      "GrantCreate": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "buildingIds": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "maxItems": 500,
+            "minItems": 1,
+            "title": "Buildingids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "buildingIds"
+        ],
+        "title": "GrantCreate"
       },
       "HrDashboardPublic": {
         "properties": {
@@ -20483,22 +24564,782 @@
         ],
         "title": "ImportStatus"
       },
+      "JanitorialAccess": {
+        "properties": {
+          "canView": {
+            "type": "boolean",
+            "title": "Canview"
+          },
+          "canManageCatalogue": {
+            "type": "boolean",
+            "title": "Canmanagecatalogue"
+          },
+          "canManageStaff": {
+            "type": "boolean",
+            "title": "Canmanagestaff"
+          },
+          "canManageShifts": {
+            "type": "boolean",
+            "title": "Canmanageshifts"
+          },
+          "canManageScope": {
+            "type": "boolean",
+            "title": "Canmanagescope"
+          },
+          "buildingIds": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Buildingids"
+          }
+        },
+        "type": "object",
+        "required": [
+          "canView",
+          "canManageCatalogue",
+          "canManageStaff",
+          "canManageShifts",
+          "canManageScope",
+          "buildingIds"
+        ],
+        "title": "JanitorialAccess",
+        "description": "What the signed-in user may do; the API still enforces every rule."
+      },
+      "JanitorialArea": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "sectionId": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sectionid"
+          },
+          "spaceType": {
+            "$ref": "#/components/schemas/AreaCreatePropertiesSpaceTypeAnyOfEnum"
+          },
+          "cleanlinessLevel": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cleanlinesslevel"
+          },
+          "quantity": {
+            "type": "integer",
+            "title": "Quantity"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "tasks": {
+            "items": {
+              "$ref": "#/components/schemas/JanitorialTask"
+            },
+            "type": "array",
+            "title": "Tasks"
+          },
+          "bundles": {
+            "items": {
+              "$ref": "#/components/schemas/JanitorialBundle"
+            },
+            "type": "array",
+            "title": "Bundles"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name",
+          "sectionId",
+          "spaceType",
+          "cleanlinessLevel",
+          "quantity",
+          "active",
+          "revision",
+          "tasks",
+          "bundles"
+        ],
+        "title": "JanitorialArea"
+      },
+      "JanitorialBuilding": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "siteId": {
+            "type": "integer",
+            "title": "Siteid"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/BuildingCreatePropertiesKindEnum"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/JanitorialSection"
+            },
+            "type": "array",
+            "title": "Sections"
+          },
+          "areas": {
+            "items": {
+              "$ref": "#/components/schemas/JanitorialArea"
+            },
+            "type": "array",
+            "title": "Areas"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "siteId",
+          "code",
+          "name",
+          "kind",
+          "active",
+          "revision",
+          "sections",
+          "areas"
+        ],
+        "title": "JanitorialBuilding"
+      },
+      "JanitorialBundle": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/JanitorialBundleItem"
+            },
+            "type": "array",
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "items"
+        ],
+        "title": "JanitorialBundle"
+      },
+      "JanitorialBundleItem": {
+        "properties": {
+          "activity": {
+            "type": "string",
+            "title": "Activity"
+          },
+          "frequency": {
+            "$ref": "#/components/schemas/JanitorialFrequency"
+          }
+        },
+        "type": "object",
+        "required": [
+          "activity",
+          "frequency"
+        ],
+        "title": "JanitorialBundleItem"
+      },
+      "JanitorialCatalogue": {
+        "properties": {
+          "sites": {
+            "items": {
+              "$ref": "#/components/schemas/JanitorialSite"
+            },
+            "type": "array",
+            "title": "Sites"
+          },
+          "buildings": {
+            "items": {
+              "$ref": "#/components/schemas/JanitorialBuilding"
+            },
+            "type": "array",
+            "title": "Buildings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sites",
+          "buildings"
+        ],
+        "title": "JanitorialCatalogue"
+      },
+      "JanitorialContractor": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "active",
+          "revision"
+        ],
+        "title": "JanitorialContractor"
+      },
+      "JanitorialFrequency": {
+        "properties": {
+          "count": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "minimum": 1.0,
+            "title": "Count"
+          },
+          "periodValue": {
+            "type": "integer",
+            "maximum": 3650.0,
+            "minimum": 1.0,
+            "title": "Periodvalue"
+          },
+          "periodUnit": {
+            "$ref": "#/components/schemas/JanitorialFrequencyPropertiesPeriodUnitEnum"
+          }
+        },
+        "type": "object",
+        "required": [
+          "count",
+          "periodValue",
+          "periodUnit"
+        ],
+        "title": "JanitorialFrequency"
+      },
+      "JanitorialGrant": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Userid"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "buildingId": {
+            "type": "integer",
+            "title": "Buildingid"
+          },
+          "grantedBy": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Grantedby"
+          },
+          "grantedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Grantedat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "userId",
+          "name",
+          "email",
+          "buildingId",
+          "grantedBy",
+          "grantedAt"
+        ],
+        "title": "JanitorialGrant"
+      },
+      "JanitorialSection": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "note",
+          "active",
+          "revision"
+        ],
+        "title": "JanitorialSection"
+      },
+      "JanitorialShiftAssignment": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "workDate": {
+            "type": "string",
+            "format": "date",
+            "title": "Workdate"
+          },
+          "shiftPatternId": {
+            "type": "integer",
+            "title": "Shiftpatternid"
+          },
+          "staffId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Staffid"
+          },
+          "zoneId": {
+            "type": "integer",
+            "title": "Zoneid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/JanitorialShiftAssignmentPropertiesStatusEnum"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "workDate",
+          "shiftPatternId",
+          "staffId",
+          "zoneId",
+          "status",
+          "note",
+          "revision"
+        ],
+        "title": "JanitorialShiftAssignment"
+      },
+      "JanitorialShiftBoard": {
+        "properties": {
+          "patterns": {
+            "items": {
+              "$ref": "#/components/schemas/JanitorialShiftPattern"
+            },
+            "type": "array",
+            "title": "Patterns"
+          },
+          "zones": {
+            "items": {
+              "$ref": "#/components/schemas/JanitorialZone"
+            },
+            "type": "array",
+            "title": "Zones"
+          },
+          "assignments": {
+            "items": {
+              "$ref": "#/components/schemas/JanitorialShiftAssignment"
+            },
+            "type": "array",
+            "title": "Assignments"
+          }
+        },
+        "type": "object",
+        "required": [
+          "patterns",
+          "zones",
+          "assignments"
+        ],
+        "title": "JanitorialShiftBoard"
+      },
+      "JanitorialShiftPattern": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "siteId": {
+            "type": "integer",
+            "title": "Siteid"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "startsAt": {
+            "type": "string",
+            "title": "Startsat"
+          },
+          "endsAt": {
+            "type": "string",
+            "title": "Endsat"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "siteId",
+          "name",
+          "startsAt",
+          "endsAt",
+          "active",
+          "revision"
+        ],
+        "title": "JanitorialShiftPattern"
+      },
+      "JanitorialSite": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name"
+        ],
+        "title": "JanitorialSite"
+      },
+      "JanitorialStaffList": {
+        "properties": {
+          "contractors": {
+            "items": {
+              "$ref": "#/components/schemas/JanitorialContractor"
+            },
+            "type": "array",
+            "title": "Contractors"
+          },
+          "staff": {
+            "items": {
+              "$ref": "#/components/schemas/JanitorialStaffMember"
+            },
+            "type": "array",
+            "title": "Staff"
+          }
+        },
+        "type": "object",
+        "required": [
+          "contractors",
+          "staff"
+        ],
+        "title": "JanitorialStaffList"
+      },
+      "JanitorialStaffMember": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Userid"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "accountActive": {
+            "type": "boolean",
+            "title": "Accountactive"
+          },
+          "contractorId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Contractorid"
+          },
+          "role": {
+            "$ref": "#/components/schemas/JanitorialStaffMemberPropertiesRoleEnum"
+          },
+          "badgeNo": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Badgeno"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "userId",
+          "name",
+          "email",
+          "accountActive",
+          "contractorId",
+          "role",
+          "badgeNo",
+          "active",
+          "revision"
+        ],
+        "title": "JanitorialStaffMember"
+      },
+      "JanitorialTask": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "activity": {
+            "type": "string",
+            "title": "Activity"
+          },
+          "frequency": {
+            "$ref": "#/components/schemas/JanitorialFrequency"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mode"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "activity",
+          "frequency",
+          "mode",
+          "active",
+          "revision"
+        ],
+        "title": "JanitorialTask"
+      },
+      "JanitorialZone": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "siteId": {
+            "type": "integer",
+            "title": "Siteid"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "areaIds": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Areaids"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "siteId",
+          "name",
+          "areaIds",
+          "active",
+          "revision"
+        ],
+        "title": "JanitorialZone"
+      },
       "JsonValue": {},
       "LeavePublic": {
         "properties": {
           "balances": {
             "additionalProperties": {
-              "type": "integer"
+              "type": "string",
+              "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
             },
             "type": "object",
-            "title": "Balances"
+            "title": "Balances",
+            "description": "Current ledger balance in days for each leave type with a verified opening."
           },
-          "carry_over": {
+          "unverified_carry_over": {
             "additionalProperties": {
               "type": "integer"
             },
             "type": "object",
-            "title": "Carry Over"
+            "title": "Unverified Carry Over",
+            "description": "Legacy carry-over days not yet reconciled with the ledger. Carry-over needs written approval (rule GAA-LV-VAC-CARRY-01); these figures are not part of the balance."
           }
         },
         "type": "object",
@@ -22136,6 +26977,28 @@
             ],
             "title": "Formation"
           },
+          "formationChance48h": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formationchance48H"
+          },
+          "formationChance7d": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Formationchance7D"
+          },
           "nextUpdate": {
             "anyOf": [
               {
@@ -23608,6 +28471,28 @@
           },
           "status": {
             "$ref": "#/components/schemas/CapStatus"
+          },
+          "product": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/CapProfileDraftRequestPropertiesLevelEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Product"
+          },
+          "colour": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicWarningPropertiesColourAnyOfEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Colour"
           }
         },
         "type": "object",
@@ -25084,6 +29969,76 @@
         ],
         "title": "RunResult"
       },
+      "SectionCreate": {
+        "properties": {
+          "buildingId": {
+            "type": "integer",
+            "title": "Buildingid"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "buildingId",
+          "name"
+        ],
+        "title": "SectionCreate"
+      },
+      "SectionUpdate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expectedrevision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "active",
+          "expectedRevision"
+        ],
+        "title": "SectionUpdate"
+      },
       "SectionView": {
         "properties": {
           "areas": {
@@ -25208,6 +30163,42 @@
           "expires_at"
         ],
         "title": "SecuritySessionPublic"
+      },
+      "ServiceCalendarView": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/TransportWeekday"
+            },
+            "type": "array",
+            "title": "Days"
+          },
+          "runsOnPublicHolidays": {
+            "type": "boolean",
+            "title": "Runsonpublicholidays"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "days",
+          "runsOnPublicHolidays"
+        ],
+        "title": "ServiceCalendarView"
       },
       "SessionAccessTokenResponse": {
         "properties": {
@@ -25466,6 +30457,88 @@
         ],
         "title": "SessionUserPublic",
         "description": "Minimal user projection returned with browser session credentials."
+      },
+      "ShiftAssignmentCreate": {
+        "properties": {
+          "workDate": {
+            "type": "string",
+            "format": "date",
+            "title": "Workdate"
+          },
+          "shiftPatternId": {
+            "type": "integer",
+            "title": "Shiftpatternid"
+          },
+          "staffId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Staffid"
+          },
+          "zoneId": {
+            "type": "integer",
+            "title": "Zoneid"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          }
+        },
+        "type": "object",
+        "required": [
+          "workDate",
+          "shiftPatternId",
+          "staffId",
+          "zoneId"
+        ],
+        "title": "ShiftAssignmentCreate"
+      },
+      "ShiftAssignmentUpdate": {
+        "properties": {
+          "shiftPatternId": {
+            "type": "integer",
+            "title": "Shiftpatternid"
+          },
+          "zoneId": {
+            "type": "integer",
+            "title": "Zoneid"
+          },
+          "status": {
+            "$ref": "#/components/schemas/JanitorialShiftAssignmentPropertiesStatusEnum"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expectedrevision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "shiftPatternId",
+          "zoneId",
+          "status",
+          "expectedRevision"
+        ],
+        "title": "ShiftAssignmentUpdate"
       },
       "ShiftCatalogCreate": {
         "properties": {
@@ -25810,6 +30883,76 @@
           "FLEX"
         ],
         "title": "ShiftPattern"
+      },
+      "ShiftPatternCreate": {
+        "properties": {
+          "siteId": {
+            "type": "integer",
+            "title": "Siteid"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "startsAt": {
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+            "title": "Startsat"
+          },
+          "endsAt": {
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+            "title": "Endsat"
+          }
+        },
+        "type": "object",
+        "required": [
+          "siteId",
+          "name",
+          "startsAt",
+          "endsAt"
+        ],
+        "title": "ShiftPatternCreate"
+      },
+      "ShiftPatternUpdate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "startsAt": {
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+            "title": "Startsat"
+          },
+          "endsAt": {
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+            "title": "Endsat"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expectedrevision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "startsAt",
+          "endsAt",
+          "active",
+          "expectedRevision"
+        ],
+        "title": "ShiftPatternUpdate"
       },
       "ShiftPeriod": {
         "type": "string",
@@ -26379,6 +31522,42 @@
         ],
         "title": "StaffCard"
       },
+      "StaffCreate": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "contractorId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Contractorid"
+          },
+          "role": {
+            "$ref": "#/components/schemas/JanitorialStaffMemberPropertiesRoleEnum"
+          },
+          "badgeNo": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Badgeno"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "contractorId"
+        ],
+        "title": "StaffCreate"
+      },
       "StaffInput": {
         "properties": {
           "department_id": {
@@ -26557,6 +31736,49 @@
           "status"
         ],
         "title": "StaffSetup"
+      },
+      "StaffUpdate": {
+        "properties": {
+          "contractorId": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Contractorid"
+          },
+          "role": {
+            "$ref": "#/components/schemas/JanitorialStaffMemberPropertiesRoleEnum"
+          },
+          "badgeNo": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Badgeno"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expectedrevision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "contractorId",
+          "role",
+          "badgeNo",
+          "active",
+          "expectedRevision"
+        ],
+        "title": "StaffUpdate"
       },
       "StatusReportCreate": {
         "properties": {
@@ -28111,6 +33333,79 @@
         ],
         "title": "SynopticSlots"
       },
+      "TaskCreate": {
+        "properties": {
+          "activity": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Activity"
+          },
+          "frequency": {
+            "$ref": "#/components/schemas/JanitorialFrequency"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mode"
+          }
+        },
+        "type": "object",
+        "required": [
+          "activity",
+          "frequency"
+        ],
+        "title": "TaskCreate"
+      },
+      "TaskUpdate": {
+        "properties": {
+          "activity": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Activity"
+          },
+          "frequency": {
+            "$ref": "#/components/schemas/JanitorialFrequency"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mode"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expectedrevision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "activity",
+          "frequency",
+          "active",
+          "expectedRevision"
+        ],
+        "title": "TaskUpdate"
+      },
       "TaskView": {
         "properties": {
           "activity": {
@@ -28649,6 +33944,558 @@
         ],
         "title": "TimesheetSummaryByShift"
       },
+      "TimetableIssue": {
+        "properties": {
+          "severity": {
+            "$ref": "#/components/schemas/TimetableIssueSeverity"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "tripId": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tripid"
+          },
+          "routeId": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Routeid"
+          }
+        },
+        "type": "object",
+        "required": [
+          "severity",
+          "code",
+          "message"
+        ],
+        "title": "TimetableIssue"
+      },
+      "TimetableIssueSeverity": {
+        "type": "string",
+        "enum": [
+          "error",
+          "warning"
+        ],
+        "title": "TimetableIssueSeverity"
+      },
+      "TimetablePublish": {
+        "properties": {
+          "effectiveDate": {
+            "type": "string",
+            "format": "date",
+            "title": "Effectivedate"
+          }
+        },
+        "type": "object",
+        "required": [
+          "effectiveDate"
+        ],
+        "title": "TimetablePublish"
+      },
+      "TimetableStopTimeInput": {
+        "properties": {
+          "stopId": {
+            "type": "integer",
+            "title": "Stopid"
+          },
+          "time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^([0-3]\\d|4[0-7]):[0-5]\\d$",
+                "description": "HH:MM after service-day midnight; may exceed 24:00",
+                "examples": [
+                  "05:30",
+                  "24:15"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time"
+          },
+          "timepoint": {
+            "type": "boolean",
+            "title": "Timepoint",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "stopId"
+        ],
+        "title": "TimetableStopTimeInput"
+      },
+      "TimetableStopTimeView": {
+        "properties": {
+          "sequence": {
+            "type": "integer",
+            "title": "Sequence",
+            "description": "1-based position of the stop on the trip"
+          },
+          "stopId": {
+            "type": "integer",
+            "title": "Stopid"
+          },
+          "stopName": {
+            "type": "string",
+            "title": "Stopname"
+          },
+          "time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Time"
+          },
+          "timepoint": {
+            "type": "boolean",
+            "title": "Timepoint",
+            "description": "True when the time is stated for this stop; false when approximate"
+          }
+        },
+        "type": "object",
+        "required": [
+          "sequence",
+          "stopId",
+          "stopName",
+          "time",
+          "timepoint"
+        ],
+        "title": "TimetableStopTimeView"
+      },
+      "TimetableTripInput": {
+        "properties": {
+          "routeId": {
+            "type": "integer",
+            "title": "Routeid"
+          },
+          "shiftId": {
+            "type": "integer",
+            "title": "Shiftid"
+          },
+          "calendarId": {
+            "type": "integer",
+            "title": "Calendarid"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/TransportDirection"
+          },
+          "departTime": {
+            "type": "string",
+            "pattern": "^([0-3]\\d|4[0-7]):[0-5]\\d$",
+            "title": "Departtime",
+            "description": "HH:MM after service-day midnight; may exceed 24:00",
+            "examples": [
+              "05:30",
+              "24:15"
+            ]
+          },
+          "arriveTime": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^([0-3]\\d|4[0-7]):[0-5]\\d$",
+                "description": "HH:MM after service-day midnight; may exceed 24:00",
+                "examples": [
+                  "05:30",
+                  "24:15"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arrivetime"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TransportTripStatus",
+            "default": "confirmed"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "sourceRef": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sourceref"
+          },
+          "stops": {
+            "items": {
+              "$ref": "#/components/schemas/TimetableStopTimeInput"
+            },
+            "type": "array",
+            "maxItems": 80,
+            "title": "Stops",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "routeId",
+          "shiftId",
+          "calendarId",
+          "direction",
+          "departTime"
+        ],
+        "title": "TimetableTripInput"
+      },
+      "TimetableTripView": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "routeId": {
+            "type": "integer",
+            "title": "Routeid"
+          },
+          "shiftId": {
+            "type": "integer",
+            "title": "Shiftid"
+          },
+          "calendarId": {
+            "type": "integer",
+            "title": "Calendarid"
+          },
+          "direction": {
+            "$ref": "#/components/schemas/TransportDirection"
+          },
+          "departTime": {
+            "type": "string",
+            "title": "Departtime"
+          },
+          "arriveTime": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arrivetime"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TransportTripStatus"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "sourceRef": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sourceref"
+          },
+          "stops": {
+            "items": {
+              "$ref": "#/components/schemas/TimetableStopTimeView"
+            },
+            "type": "array",
+            "title": "Stops"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "routeId",
+          "shiftId",
+          "calendarId",
+          "direction",
+          "departTime",
+          "arriveTime",
+          "status",
+          "notes",
+          "sourceRef",
+          "stops"
+        ],
+        "title": "TimetableTripView"
+      },
+      "TimetableVersionCreate": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Label"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "sourceRef": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sourceref"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label"
+        ],
+        "title": "TimetableVersionCreate"
+      },
+      "TimetableVersionDetail": {
+        "properties": {
+          "version": {
+            "$ref": "#/components/schemas/TimetableVersionSummary"
+          },
+          "trips": {
+            "items": {
+              "$ref": "#/components/schemas/TimetableTripView"
+            },
+            "type": "array",
+            "title": "Trips"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/TimetableIssue"
+            },
+            "type": "array",
+            "title": "Issues"
+          }
+        },
+        "type": "object",
+        "required": [
+          "version",
+          "trips",
+          "issues"
+        ],
+        "title": "TimetableVersionDetail"
+      },
+      "TimetableVersionState": {
+        "type": "string",
+        "enum": [
+          "draft",
+          "scheduled",
+          "current",
+          "superseded",
+          "discarded"
+        ],
+        "title": "TimetableVersionState",
+        "description": "Lifecycle as seen today: published versions are scheduled, current or superseded."
+      },
+      "TimetableVersionStatus": {
+        "type": "string",
+        "enum": [
+          "draft",
+          "published",
+          "discarded"
+        ],
+        "title": "TimetableVersionStatus"
+      },
+      "TimetableVersionSummary": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "status": {
+            "$ref": "#/components/schemas/TimetableVersionStatus"
+          },
+          "state": {
+            "$ref": "#/components/schemas/TimetableVersionState"
+          },
+          "effectiveDate": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Effectivedate"
+          },
+          "sourceRef": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sourceref"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "basedOnId": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Basedonid"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Createdat"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updatedat"
+          },
+          "publishedAt": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Publishedat"
+          },
+          "tripCount": {
+            "type": "integer",
+            "title": "Tripcount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "status",
+          "state",
+          "effectiveDate",
+          "sourceRef",
+          "notes",
+          "basedOnId",
+          "createdAt",
+          "updatedAt",
+          "publishedAt",
+          "tripCount"
+        ],
+        "title": "TimetableVersionSummary"
+      },
+      "TimetableVersionUpdate": {
+        "properties": {
+          "label": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Label"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "sourceRef": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sourceref"
+          }
+        },
+        "type": "object",
+        "required": [
+          "label"
+        ],
+        "title": "TimetableVersionUpdate"
+      },
       "Title": {
         "type": "string",
         "enum": [
@@ -28978,6 +34825,354 @@
           "created_at"
         ],
         "title": "TrainingRecordPublic"
+      },
+      "TransportAccess": {
+        "properties": {
+          "canView": {
+            "type": "boolean",
+            "title": "Canview"
+          },
+          "canManageTimetable": {
+            "type": "boolean",
+            "title": "Canmanagetimetable"
+          },
+          "canPublishTimetable": {
+            "type": "boolean",
+            "title": "Canpublishtimetable"
+          }
+        },
+        "type": "object",
+        "required": [
+          "canView",
+          "canManageTimetable",
+          "canPublishTimetable"
+        ],
+        "title": "TransportAccess"
+      },
+      "TransportCatalogue": {
+        "properties": {
+          "routes": {
+            "items": {
+              "$ref": "#/components/schemas/TransportRoute"
+            },
+            "type": "array",
+            "title": "Routes"
+          },
+          "shifts": {
+            "items": {
+              "$ref": "#/components/schemas/TransportShift"
+            },
+            "type": "array",
+            "title": "Shifts"
+          },
+          "stops": {
+            "items": {
+              "$ref": "#/components/schemas/TransportStop"
+            },
+            "type": "array",
+            "title": "Stops"
+          },
+          "calendars": {
+            "items": {
+              "$ref": "#/components/schemas/ServiceCalendarView"
+            },
+            "type": "array",
+            "title": "Calendars"
+          }
+        },
+        "type": "object",
+        "required": [
+          "routes",
+          "shifts",
+          "stops",
+          "calendars"
+        ],
+        "title": "TransportCatalogue"
+      },
+      "TransportDirection": {
+        "type": "string",
+        "enum": [
+          "inbound",
+          "outbound"
+        ],
+        "title": "TransportDirection"
+      },
+      "TransportRoute": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "number": {
+            "type": "integer",
+            "title": "Number"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "number",
+          "name",
+          "description",
+          "active"
+        ],
+        "title": "TransportRoute"
+      },
+      "TransportRouteInput": {
+        "properties": {
+          "number": {
+            "type": "integer",
+            "maximum": 999.0,
+            "minimum": 1.0,
+            "title": "Number"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "number",
+          "name"
+        ],
+        "title": "TransportRouteInput"
+      },
+      "TransportShift": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "startTime": {
+            "type": "string",
+            "title": "Starttime"
+          },
+          "endTime": {
+            "type": "string",
+            "title": "Endtime"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "startTime",
+          "endTime"
+        ],
+        "title": "TransportShift"
+      },
+      "TransportStop": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "landmark": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Landmark"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "routeNumbers": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Routenumbers",
+            "description": "Routes serving this stop in the current timetable"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name",
+          "landmark",
+          "latitude",
+          "longitude",
+          "active",
+          "routeNumbers"
+        ],
+        "title": "TransportStop"
+      },
+      "TransportStopInput": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "pattern": "^[A-Z0-9][A-Z0-9-]{0,31}$",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "landmark": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Landmark"
+          },
+          "latitude": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 90.0,
+                "minimum": -90.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Latitude"
+          },
+          "longitude": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 180.0,
+                "minimum": -180.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Longitude"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active",
+            "default": true
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "name"
+        ],
+        "title": "TransportStopInput"
+      },
+      "TransportTripStatus": {
+        "type": "string",
+        "enum": [
+          "confirmed",
+          "awaiting_confirmation"
+        ],
+        "title": "TransportTripStatus"
+      },
+      "TransportWeekday": {
+        "type": "string",
+        "enum": [
+          "monday",
+          "tuesday",
+          "wednesday",
+          "thursday",
+          "friday",
+          "saturday",
+          "sunday"
+        ],
+        "title": "TransportWeekday"
       },
       "TripView": {
         "properties": {
@@ -31065,6 +37260,70 @@
         ],
         "title": "WorkflowType"
       },
+      "ZoneCreate": {
+        "properties": {
+          "siteId": {
+            "type": "integer",
+            "title": "Siteid"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "areaIds": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "maxItems": 1000,
+            "title": "Areaids",
+            "default": []
+          }
+        },
+        "type": "object",
+        "required": [
+          "siteId",
+          "name"
+        ],
+        "title": "ZoneCreate"
+      },
+      "ZoneUpdate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "areaIds": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "maxItems": 1000,
+            "title": "Areaids"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "expectedRevision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expectedrevision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "areaIds",
+          "active",
+          "expectedRevision"
+        ],
+        "title": "ZoneUpdate"
+      },
       "src__auth__schemas__RolePublic": {
         "properties": {
           "name": {
@@ -31118,6 +37377,23 @@
         ],
         "title": "RolePublic"
       },
+      "AreaCreatePropertiesSpaceTypeAnyOfEnum": {
+        "type": "string",
+        "enum": [
+          "restroom",
+          "office",
+          "concourse",
+          "lounge",
+          "circulation",
+          "vertical_transport",
+          "boarding",
+          "food",
+          "storage",
+          "technical",
+          "exterior",
+          "other"
+        ]
+      },
       "AviationDraftReadPropertiesKindEnum": {
         "type": "string",
         "enum": [
@@ -31125,6 +37401,15 @@
           "SPECI",
           "TAF"
         ]
+      },
+      "BuildingCreatePropertiesKindEnum": {
+        "type": "string",
+        "enum": [
+          "terminal",
+          "auxiliary",
+          "other"
+        ],
+        "default": "other"
       },
       "CapAlertImportRequestPropertiesSourceEnum": {
         "type": "string",
@@ -31147,9 +37432,10 @@
       "CapProfileDraftRequestPropertiesLevelEnum": {
         "type": "string",
         "enum": [
-          "Advisory",
+          "Outlook",
           "Watch",
-          "Warning"
+          "Warning",
+          "Advisory"
         ]
       },
       "CapProfilePublicPropertiesStateEnum": {
@@ -31201,6 +37487,27 @@
         ],
         "default": "legacy_unknown"
       },
+      "JanitorialFrequencyPropertiesPeriodUnitEnum": {
+        "type": "string",
+        "enum": [
+          "minute",
+          "day"
+        ]
+      },
+      "JanitorialShiftAssignmentPropertiesStatusEnum": {
+        "type": "string",
+        "enum": [
+          "scheduled",
+          "cancelled"
+        ]
+      },
+      "JanitorialStaffMemberPropertiesRoleEnum": {
+        "type": "string",
+        "enum": [
+          "cleaner",
+          "contractor_supervisor"
+        ]
+      },
       "LegacyProductPreviewPropertiesKindEnum": {
         "type": "string",
         "enum": [
@@ -31250,6 +37557,15 @@
           "SYNOP",
           "METAR",
           "SPECI"
+        ]
+      },
+      "PublicWarningPropertiesColourAnyOfEnum": {
+        "type": "string",
+        "enum": [
+          "green",
+          "yellow",
+          "orange",
+          "red"
         ]
       },
       "RegisterObservationReadPropertiesStateEnum": {

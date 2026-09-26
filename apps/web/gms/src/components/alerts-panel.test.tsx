@@ -25,11 +25,11 @@ describe("AlertsPanel", () => {
   it("does not present an outage as an all-clear", () => {
     render(<AlertsPanel result={{ status: "unavailable" }} />);
     expect(screen.queryByText("No active warnings")).not.toBeInTheDocument();
-    expect(screen.getByText("Unavailable")).toBeInTheDocument();
+    expect(screen.getByText("Warnings unavailable")).toBeInTheDocument();
     expect(screen.getByText(CANNOT_RETRIEVE)).toBeInTheDocument();
   });
 
-  it("shows the active count when there are alerts", () => {
+  it("heads the panel with the level and count when there are alerts", () => {
     render(
       <AlertsPanel
         result={{
@@ -54,7 +54,7 @@ describe("AlertsPanel", () => {
         }}
       />
     );
-    expect(screen.getByText("1 active")).toBeInTheDocument();
+    expect(screen.getByText("Take action now · 1 active")).toBeInTheDocument();
     expect(screen.getByText("Wind")).toBeInTheDocument();
     expect(screen.getByText("1", { selector: "span" })).toBeInTheDocument();
   });

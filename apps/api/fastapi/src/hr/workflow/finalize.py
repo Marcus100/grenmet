@@ -5,12 +5,12 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.models import User
 from src.exceptions import AppException
 from src.hr.absentee.models import AbsenteeReport
 from src.hr.dailystatus.models import StatusReport
 from src.hr.exchange.models import ShiftSwapRequest
-from src.hr.leave.models import LeaveBalanceEvent, LeaveRequest
+from src.hr.leave import ledger
+from src.hr.leave.models import LeaveEntryKind, LeaveRequest
 from src.hr.models import RequestStatus
 from src.hr.parking.models import ParkingPermit
 from src.hr.timesheet.models import Timesheet, TimesheetStatus
@@ -93,55 +93,25 @@ async def finalize_entity(
     if entity.status == target:
         return
     if isinstance(entity, LeaveRequest) and target == RequestStatus.APPROVED:
-        await session.execute(
-            select(User).where(User.id == entity.user_id).with_for_update()
-        )
-        previous = (
-            (
-                await session.execute(
-                    select(LeaveBalanceEvent).where(
-                        LeaveBalanceEvent.related_leave_request_id == entity.id
-                    )
-                )
-            )
-            .scalars()
-            .first()
-        )
-        if previous is None:
-            last = (
-                (
-                    await session.execute(
-                        select(LeaveBalanceEvent)
-                        .where(
-                            LeaveBalanceEvent.user_id == entity.user_id,
-                            LeaveBalanceEvent.leave_type == entity.leave_type.value,
-                        )
-                        .order_by(LeaveBalanceEvent.created_at.desc())
-                        .limit(1)
-                    )
-                )
-                .scalars()
-                .first()
-            )
-            from src.baseline.models import StaffCredential
+        from src.baseline.models import StaffCredential
 
-            credential = await session.get(StaffCredential, entity.user_id)
-            if last is None and credential is not None:
-                raise AppException(
-                    "Opening leave balance must be verified before approval", 409
-                )
-            balance = last.balance_after_days if last else 0
-            session.add(
-                LeaveBalanceEvent(
-                    user_id=entity.user_id,
-                    leave_type=entity.leave_type.value,
-                    delta_days=-entity.days_requested,
-                    balance_after_days=balance - entity.days_requested,
-                    reason="Approved leave request",
-                    related_leave_request_id=entity.id,
-                    created_by_user_id=actor_id,
-                )
+        credential = await session.get(StaffCredential, entity.user_id)
+        if credential is not None and not await ledger.has_entry(
+            session, entity.user_id, entity.leave_type.value
+        ):
+            raise AppException(
+                "Opening leave balance must be verified before approval", 409
             )
+        await ledger.post(
+            session,
+            user_id=entity.user_id,
+            leave_type=entity.leave_type.value,
+            kind=LeaveEntryKind.APPROVAL_DEBIT,
+            delta=-entity.days_requested,
+            reason="Approved leave request",
+            actor_id=actor_id,
+            leave_request_id=entity.id,
+        )
     entity.status = target
     entity.updated_at = utc_now()
     session.add(entity)

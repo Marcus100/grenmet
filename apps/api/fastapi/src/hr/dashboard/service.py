@@ -18,7 +18,8 @@ from src.hr.dashboard.schemas import (
     HrDashboardPublic,
 )
 from src.hr.exchange.models import ShiftSwapRequest
-from src.hr.leave.models import LeaveBalanceEvent, LeaveRequest
+from src.hr.leave import ledger
+from src.hr.leave.models import LeaveRequest
 from src.hr.models import Department, EmploymentRecord, EmploymentStatus
 from src.hr.parking.models import ParkingPermit
 from src.hr.roster.models import (
@@ -104,21 +105,7 @@ async def read_dashboard(
             )
         )
     requests.sort(key=lambda row: row.updated_at, reverse=True)
-    balance = (
-        (
-            await session.execute(
-                select(LeaveBalanceEvent)
-                .where(
-                    LeaveBalanceEvent.user_id == current_user.id,
-                    LeaveBalanceEvent.leave_type == "VACATION",
-                )
-                .order_by(LeaveBalanceEvent.created_at.desc())
-                .limit(1)
-            )
-        )
-        .scalars()
-        .first()
-    )
+    balance = await ledger.balance(session, current_user.id, "VACATION")
     shifts = list(
         (
             await session.execute(
@@ -241,7 +228,7 @@ async def read_dashboard(
         date=today,
         scope=scope,
         can_approve=can_approve,
-        vacation_balance=balance.balance_after_days if balance else None,
+        vacation_balance=balance,
         next_shift=next_shift,
         open_requests=open_requests,
         active_staff=active_staff,

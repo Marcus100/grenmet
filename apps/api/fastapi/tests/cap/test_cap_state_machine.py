@@ -1,13 +1,16 @@
 """CAP service state machine tests — invalid transitions raise CapStateError."""
 
+from datetime import UTC, timedelta
+
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.baseline.models import ApprovalPolicy
 from src.cap import service as cap_service
 from src.cap.exceptions import CapStateError
-from src.cap.models import CapAlert, CapLifecycleState
-from src.cap.schemas import CapAlertAction
+from src.cap.models import CapAlert, CapLifecycleState, CapMessageType, CapSnapshot
+from src.cap.schemas import CapAlertAction, CapAlertCreate, CapReferenceCreate
 from src.cap.service import (
     approve_alert,
     cancel_alert,
@@ -18,6 +21,7 @@ from src.cap.service import (
     update_alert,
 )
 from src.exceptions import AppException
+from src.utils.datetime import utc_now
 from tests.factories import make_user
 
 # Minimal valid alert payload shared across tests
@@ -186,9 +190,184 @@ async def test_cancel_from_published_succeeds(db_async: AsyncSession) -> None:
     )
 
     cancelled = await cancel_alert(
-        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+        session=db_async,
+        current_user=user,
+        alert_id=alert.id,
+        payload=CapAlertAction(note="Hazard has ended"),
     )
     assert cancelled.lifecycle_state == CapLifecycleState.CANCELLED
+    assert cancelled.msg_type == CapMessageType.ALERT
+    assert cancelled.identifier == alert.identifier
+    cancellation = (
+        (
+            await db_async.execute(
+                select(CapAlert).where(CapAlert.msg_type == CapMessageType.CANCEL)
+            )
+        )
+        .scalars()
+        .one()
+    )
+    assert cancellation.identifier != alert.identifier
+    assert cancellation.sender == alert.sender
+    assert cancellation.lifecycle_state == CapLifecycleState.PUBLISHED
+    assert cancellation.note == "Hazard has ended"
+    assert (
+        await cap_service._to_public(session=db_async, alert=cancellation)
+    ).references[0].identifier == alert.identifier
+    assert (await cap_service.public_latest_active(session=db_async)).count == 0
+    past = (await cap_service.public_past_alerts(session=db_async)).data
+    assert [item.identifier for item in past] == [alert.identifier]
+    assert past[0].cancellation_reason == "Hazard has ended"
+    detail = await cap_service.public_alert_by_identifier(
+        session=db_async, identifier=alert.identifier
+    )
+    assert detail.cancellation_reason == "Hazard has ended"
+    snapshots = (
+        (
+            await db_async.execute(
+                select(CapSnapshot).where(CapSnapshot.alert_id == alert.id)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    assert len(snapshots) == 1, "the original issued XML must remain unchanged"
+
+
+async def test_cancel_requires_reason(db_async: AsyncSession) -> None:
+    user = await make_user(db_async, superuser=True)
+    alert = await _create_alert_for_test(db_async, user)
+    await publish_alert(
+        session=db_async, current_user=user, alert_id=alert.id, payload=CapAlertAction()
+    )
+    with pytest.raises(cap_service.CapValidationFailedError):
+        await cancel_alert(
+            session=db_async,
+            current_user=user,
+            alert_id=alert.id,
+            payload=CapAlertAction(note="  "),
+        )
+    assert (
+        await db_async.get(CapAlert, alert.id)
+    ).lifecycle_state == CapLifecycleState.PUBLISHED
+
+
+async def test_update_retires_only_its_referenced_message(
+    db_async: AsyncSession,
+) -> None:
+    user = await make_user(db_async, superuser=True)
+    original = await _create_alert_for_test(db_async, user)
+    await publish_alert(
+        session=db_async,
+        current_user=user,
+        alert_id=original.id,
+        payload=CapAlertAction(),
+    )
+    update = await create_alert(
+        session=db_async,
+        current_user=user,
+        payload=CapAlertCreate(
+            **{
+                **_VALID_PAYLOAD_DICT,
+                "msg_type": "Update",
+                "references": [
+                    CapReferenceCreate(
+                        sender=original.sender,
+                        identifier=original.identifier,
+                        sent=original.sent.replace(tzinfo=UTC),
+                    )
+                ],
+            }
+        ),
+    )
+    published, _ = await publish_alert(
+        session=db_async,
+        current_user=user,
+        alert_id=update.id,
+        payload=CapAlertAction(),
+    )
+    assert published.lifecycle_state == CapLifecycleState.PUBLISHED
+    assert (
+        await db_async.get(CapAlert, original.id)
+    ).lifecycle_state == CapLifecycleState.EXPIRED
+    assert [
+        item.identifier
+        for item in (await cap_service.public_latest_active(session=db_async)).data
+    ] == [update.identifier]
+    past = await cap_service.public_past_alerts(session=db_async)
+    assert past.data[0].replaced_by_identifier == update.identifier
+    detail = await cap_service.public_alert_by_identifier(
+        session=db_async, identifier=original.identifier
+    )
+    assert detail.replaced_by_identifier == update.identifier
+
+
+async def test_update_rejects_reference_from_another_sender(
+    db_async: AsyncSession,
+) -> None:
+    user = await make_user(db_async, superuser=True)
+    original = await _create_alert_for_test(db_async, user)
+    await publish_alert(
+        session=db_async,
+        current_user=user,
+        alert_id=original.id,
+        payload=CapAlertAction(),
+    )
+    update = await create_alert(
+        session=db_async,
+        current_user=user,
+        payload=CapAlertCreate(
+            **{
+                **_VALID_PAYLOAD_DICT,
+                "sender": "another-authority.example",
+                "msg_type": "Update",
+                "references": [
+                    CapReferenceCreate(
+                        sender=original.sender,
+                        identifier=original.identifier,
+                        sent=original.sent.replace(tzinfo=UTC),
+                    )
+                ],
+            }
+        ),
+    )
+    with pytest.raises(cap_service.CapValidationFailedError):
+        await publish_alert(
+            session=db_async,
+            current_user=user,
+            alert_id=update.id,
+            payload=CapAlertAction(),
+        )
+    assert (
+        await db_async.get(CapAlert, original.id)
+    ).lifecycle_state == CapLifecycleState.PUBLISHED
+
+
+async def test_natural_expiry_appears_in_past_without_rewriting_cap_message(
+    db_async: AsyncSession,
+) -> None:
+    user = await make_user(db_async, superuser=True)
+    payload = CapAlertCreate(
+        **{
+            **_VALID_PAYLOAD_DICT,
+            "info": [
+                {
+                    **_VALID_PAYLOAD_DICT["info"][0],
+                    "expires": (utc_now() - timedelta(minutes=1)).replace(tzinfo=UTC),
+                }
+            ],
+        }
+    )
+    draft = await create_alert(session=db_async, current_user=user, payload=payload)
+    published, _ = await publish_alert(
+        session=db_async, current_user=user, alert_id=draft.id, payload=CapAlertAction()
+    )
+    assert published.lifecycle_state == CapLifecycleState.PUBLISHED
+    assert (await cap_service.public_latest_active(session=db_async)).count == 0
+    assert [
+        item.identifier
+        for item in (await cap_service.public_past_alerts(session=db_async)).data
+    ] == [published.identifier]
 
 
 async def test_expire_from_published_succeeds_and_invalidates_cache(

@@ -12,7 +12,13 @@ import { describe, expect, it } from "vitest";
 // theme swap, therefore cannot be asserted in this environment. These tests
 // assert what holds in both the stub and a real build.
 
-const VARIANTS: LogoVariant[] = ["primary", "submark", "wordmark", "icon"];
+const VARIANTS: LogoVariant[] = [
+  "primary",
+  "submark",
+  "wordmark",
+  "monogram",
+  "icon",
+];
 
 const SERVICE_NAME = "Grenada Meteorological Service";
 
@@ -22,28 +28,36 @@ describe("Logo", () => {
 
     // A variant missing from LOGO_ASSETS destructures undefined and throws, so
     // this is the guard that matters when a new variant is added.
-    expect(screen.getAllByAltText(SERVICE_NAME).length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByRole("img", { name: SERVICE_NAME }).length
+    ).toBeGreaterThan(0);
   });
 
   it("defaults to the primary lockup", () => {
     render(<Logo />);
-    expect(screen.getAllByAltText(SERVICE_NAME).length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByRole("img", { name: SERVICE_NAME }).length
+    ).toBeGreaterThan(0);
   });
 
   it("names the service for assistive tech", () => {
     render(<Logo variant="wordmark" />);
-    expect(screen.getAllByAltText(SERVICE_NAME).length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByRole("img", { name: SERVICE_NAME }).length
+    ).toBeGreaterThan(0);
   });
 
   it("takes an alt override for decorative or linked placements", () => {
     render(<Logo alt="Home" variant="icon" />);
-    expect(screen.getAllByAltText("Home").length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("img", { name: "Home" }).length).toBeGreaterThan(
+      0
+    );
   });
 
   it("puts the caller's sizing classes on every ink it renders", () => {
     render(<Logo className="h-9 w-auto" variant="wordmark" />);
 
-    for (const image of screen.getAllByAltText(SERVICE_NAME)) {
+    for (const image of screen.getAllByRole("img", { name: SERVICE_NAME })) {
       expect(image).toHaveClass("h-9", "w-auto");
     }
   });
@@ -52,8 +66,27 @@ describe("Logo", () => {
     // The lockups are fixed-ratio; hardcoded dimensions would distort them.
     render(<Logo className="h-7 w-auto" variant="wordmark" />);
 
-    for (const image of screen.getAllByAltText(SERVICE_NAME)) {
+    for (const image of screen.getAllByRole("img", { name: SERVICE_NAME })) {
       expect(image).toHaveClass("w-auto");
     }
   });
+
+  it.each([
+    ["icon", "gm-logo-blue"],
+    ["monogram", "gm-logo"],
+  ] as const)(
+    "renders the %s as one themed inline vector",
+    (variant, inkClass) => {
+      // One element whose ink comes from foundation.css, so no light/dark pair.
+      render(<Logo className="size-7" variant={variant} />);
+
+      const [mark, ...rest] = screen.getAllByRole("img", {
+        name: SERVICE_NAME,
+      });
+      expect(rest).toHaveLength(0);
+      expect(mark.tagName.toLowerCase()).toBe("svg");
+      expect(mark).toHaveClass("gm-logo", inkClass, "size-7");
+      expect(mark).toHaveAttribute("fill", "currentColor");
+    }
+  );
 });

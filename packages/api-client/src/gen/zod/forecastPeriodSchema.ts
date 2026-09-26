@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { forecastConditionSchema } from "./forecastConditionSchema.js";
 import { forecastSourceSchema } from "./forecastSourceSchema.js";
 
 export const forecastPeriodSchema = z.object({
@@ -15,4 +16,5 @@ export const forecastPeriodSchema = z.object({
   high: z.union([z.number(), z.null()]).optional(),
   low: z.union([z.number(), z.null()]).optional(),
   details: z.object({}).catchall(z.string()).optional(),
+  conditions: z.array(forecastConditionSchema).optional(),
 });

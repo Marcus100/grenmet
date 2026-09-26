@@ -9,9 +9,11 @@ from pydantic import TypeAdapter, ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.concurrency import run_in_threadpool
 
-from . import forecast, pdf, service, validation
+from src.dependencies import SessionDep
+
+from . import advisories, forecast, forecast_pdf, pdf, service, validation
 from .dependencies import AuthorDep, AuthoringSessionDep, WxProductsSessionDep
-from .exceptions import WeatherUnavailable
+from .exceptions import ProductValidationError, WeatherUnavailable
 from .models import AviationDraft
 from .observation_service import list_observations
 from .observations import ObservationKind, ObservationList
@@ -36,6 +38,7 @@ from .schemas import (
     PublishedProducts,
     StoredProduct,
     StoredProductAdapter,
+    values_as_dict,
 )
 
 router = APIRouter()
@@ -162,13 +165,21 @@ async def save_product(
     *,
     author: AuthorDep,
     session: AuthoringSessionDep,
+    cap_session: SessionDep,
     response: Response,
     body: ProductWrite,
 ) -> StoredProduct:
     response.headers.update(NO_STORE)
     author.require_kind(body.kind)
+    snapshot = (
+        await advisories.snapshot(cap_session, session)
+        if body.kind in validation.ISSUE_HOURS and body.action != "withdraw"
+        else None
+    )
     try:
-        product = await service.write_product(session, body, author.user)
+        product = await service.write_product(
+            session, body, author.user, advisories=snapshot
+        )
         return StoredProductAdapter.validate_python(product)
     except SQLAlchemyError, OSError, TimeoutError:
         raise WeatherUnavailable()
@@ -343,11 +354,82 @@ async def load_aviation_history(
     },
 )
 async def preview_product(
-    *, author: AuthorDep, response: Response, body: ProductPreviewInput
+    *,
+    author: AuthorDep,
+    response: Response,
+    body: ProductPreviewInput,
+    cap_session: SessionDep,
+    weather_session: WxProductsSessionDep,
 ) -> ProductPreview:
     author.require_kind(body.kind)
     response.headers.update(NO_STORE)
-    return validation.preview(body)
+    snapshot = (
+        await advisories.snapshot(cap_session, weather_session)
+        if body.kind in validation.ISSUE_HOURS
+        else None
+    )
+    return validation.preview(
+        body,
+        forecaster=author.user.full_name or author.user.email,
+        advisories=snapshot,
+    )
+
+
+@router.post(
+    "/wxproducts/products/preview/pdf",
+    response_class=Response,
+    status_code=200,
+    summary="Render a draft product PDF preview",
+    description="Renders unsaved forecast, bulletin or outlook content with the issued PDF layout, watermarked as a draft preview. Nothing is saved or published.",
+    tags=["wxproducts"],
+    responses={
+        200: {
+            "content": {
+                "application/pdf": {"schema": {"type": "string", "format": "binary"}}
+            }
+        },
+        401: {"model": AuthoringError},
+        403: {"model": AuthoringError},
+        422: {"model": AuthoringError},
+    },
+)
+async def preview_product_pdf(
+    *,
+    author: AuthorDep,
+    body: ProductPreviewInput,
+    cap_session: SessionDep,
+    weather_session: WxProductsSessionDep,
+) -> Response:
+    author.require_kind(body.kind)
+    if body.kind not in forecast_pdf.SHEET_KINDS:
+        raise ProductValidationError(["PDF preview is not available for this product"])
+    snapshot = (
+        await advisories.snapshot(cap_session, weather_session)
+        if body.kind in validation.ISSUE_HOURS
+        else None
+    )
+    values = validation.normalize(
+        body.kind,
+        values_as_dict(body.values),
+        forecaster=author.user.full_name or author.user.email,
+        advisories=snapshot,
+    )
+    content = await run_in_threadpool(
+        forecast_pdf.render_sheet_pdf,
+        body.kind,
+        values,
+        status="DRAFT PREVIEW — NOT FOR ISSUE",
+        revision="Unsaved draft preview",
+    )
+    return Response(
+        content,
+        media_type="application/pdf",
+        headers={
+            **NO_STORE,
+            "Content-Disposition": 'inline; filename="gms-product-preview.pdf"',
+            "X-Content-Type-Options": "nosniff",
+        },
+    )
 
 
 @router.get(

@@ -3,7 +3,6 @@
 import { Accordion } from "@base-ui/react/accordion";
 import { ChevronDownIcon, TriangleAlertIcon } from "lucide-react";
 import Link from "next/link";
-import { bulletinHref } from "@/lib/bulletins";
 import {
   type AlertsResult,
   alertsLevel,
@@ -12,10 +11,7 @@ import {
   type PublicAlert,
 } from "@/lib/cap";
 import { cn } from "@/lib/utils";
-import {
-  WARNING_LEVEL_LABEL,
-  WARNING_LEVEL_SURFACE,
-} from "@/lib/warning-level";
+import { WARNING_LEVEL_SURFACE } from "@/lib/warning-level";
 
 interface CurrentAlertsAccordionProps {
   className?: string;
@@ -92,11 +88,9 @@ export function CurrentAlertsAccordion({
   const unavailable = result.status === "unavailable";
   const groups = result.status === "ok" ? result.groups : [];
   const level = alertsLevel(result);
+  // The status line is the title: it names the level and the count, so the
+  // colour is never the only signal.
   const summary = alertsSummary(result);
-  // The summary already says "No active warnings"; naming the level too would
-  // just repeat it, so it appears only when something is in effect.
-  const responseLevel =
-    level === "none" || level === "unknown" ? null : WARNING_LEVEL_LABEL[level];
 
   return (
     <Accordion.Root className={cn("mb-4 flex flex-col", className)}>
@@ -108,26 +102,14 @@ export function CurrentAlertsAccordion({
               WARNING_LEVEL_SURFACE[level]
             )}
           >
-            <span className="flex flex-col items-start">
-              <span className="flex items-center gap-2.5 whitespace-nowrap font-bold text-body-base leading-body-base">
-                <TriangleAlertIcon
-                  aria-hidden="true"
-                  className="size-5 shrink-0"
-                />
-                Current alerts
-              </span>
-              {/* Colour is never the only signal — the level is named here
-                  when one is in effect, per the Warning Pattern Checklist. */}
-              {responseLevel && (
-                <span className="font-semibold text-caption leading-caption">
-                  {responseLevel}
-                </span>
-              )}
+            <span className="flex items-center gap-2.5 text-left font-bold text-body-base leading-body-base">
+              <TriangleAlertIcon
+                aria-hidden="true"
+                className="size-5 shrink-0"
+              />
+              {summary}
             </span>
             <span className="flex items-center gap-3">
-              <span className="font-semibold text-caption leading-caption">
-                {summary}
-              </span>
               <ChevronDownIcon
                 aria-hidden="true"
                 className="size-6 shrink-0 transition-transform duration-200 group-data-panel-open:rotate-180"
@@ -159,7 +141,7 @@ export function CurrentAlertsAccordion({
                       <Accordion.Header className="flex items-center gap-3">
                         <Link
                           className="flex min-h-10 flex-1 items-center gap-4 text-gm-text-inverse hover:underline"
-                          href={bulletinHref(group.name)}
+                          href="/warnings"
                         >
                           <span className="w-9 shrink-0 font-semibold">
                             {count}

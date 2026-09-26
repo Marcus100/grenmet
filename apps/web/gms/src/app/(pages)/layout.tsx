@@ -1,4 +1,5 @@
 import { PageTransition } from "@/components/page-transition";
+import { SiteBreadcrumbs } from "@/components/site-breadcrumbs";
 
 /**
  * Container for the standing content pages — everything outside the dated
@@ -12,6 +13,7 @@ export default function PagesLayout({
   return (
     // Responsive container — intentional layout exception, not a spacing token
     <div className="mx-auto max-w-6xl px-4 pb-12 sm:px-6 lg:px-8">
+      <SiteBreadcrumbs />
       <PageTransition>{children}</PageTransition>
     </div>
   );

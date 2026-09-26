@@ -127,9 +127,18 @@ async def history(
 
 
 async def write_product(
-    session: AsyncSession, body: ProductWrite, actor: User
+    session: AsyncSession,
+    body: ProductWrite,
+    actor: User,
+    *,
+    advisories: str | None = None,
 ) -> AuthoredProduct:
-    normalized = validation.normalize(body.kind, values_as_dict(body.values))
+    normalized = validation.normalize(
+        body.kind,
+        values_as_dict(body.values),
+        forecaster=actor.full_name or actor.email,
+        advisories=advisories,
+    )
     body = ProductWriteAdapter.validate_python(
         {**body.model_dump(mode="json", exclude={"values"}), "values": normalized}
     )

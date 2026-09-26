@@ -5,8 +5,9 @@ from datetime import UTC, datetime, timedelta
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from . import service
+from . import presentation, service
 from .schemas import (
+    ForecastCondition,
     ForecastObservation,
     ForecastPeriod,
     ForecastSource,
@@ -62,6 +63,10 @@ def period(product: PublishedProduct, day: datetime, prefix: str) -> ForecastPer
         ),
         low=temperature(values.get(prefix + "Min" if prefix else "minTemperature", "")),
         details=details,
+        conditions=[
+            ForecastCondition(icon=icon, value=text, label=label)
+            for icon, text, label in presentation.conditions(values, prefix)
+        ],
     )
 
 

@@ -1,0 +1,107 @@
+{% extends "base.html.j2" %}
+{% block content %}
+    <section class="card headline">
+      {{ icon(condition_icon, "headline-icon", "sky-ink") }}
+      <div>
+        <p class="eyebrow sky">{{ period }}</p>
+        <p class="summary">{{ summary or "—" }}</p>
+      </div>
+    </section>
+
+    <div class="row">
+      <section class="card conditions">
+        <h2 class="eyebrow">Conditions</h2>
+        <ul class="tiles">
+          {% for tile in tiles %}
+          <li>
+            {{ icon(tile.icon, "tile-icon") }}
+            <div><strong>{{ tile.value }}</strong><span>{{ tile.label }}</span></div>
+          </li>
+          {% else %}
+          <li class="empty">No conditions supplied.</li>
+          {% endfor %}
+        </ul>
+      </section>
+
+      <section class="card ibf">
+        <h2 class="eyebrow">Impact-based forecast</h2>
+        <div class="matrix-wrap">
+          <span class="axis-y">Likelihood</span>
+          <div class="matrix">
+            {% for row in matrix %}{% for cell in row %}
+            <div class="cell risk-{{ cell.colour }}">
+              {% for mark in cell.marks %}<span class="mark">{{ mark }}</span>{% endfor %}
+            </div>
+            {% endfor %}{% endfor %}
+          </div>
+          <span class="axis-x">Impact</span>
+        </div>
+        <ol class="caption">
+          {% for item in advisories %}
+          <li><b>{{ loop.index }}</b> {{ item.title }} ({{ item.product | lower }}): {{ (item.likelihood or "unassessed") | lower }} likelihood, {{ (item.impact or "unassessed") | lower }} impacts</li>
+          {% else %}
+          <li class="none">No CAP alerts or GMS bulletins were in force at issue.</li>
+          {% endfor %}
+          {% if not complete %}<li class="none">Some warning sources were unavailable at issue; check weather.gd.</li>{% endif %}
+        </ol>
+      </section>
+    </div>
+
+    {% if advisories %}
+    <section class="advisories">
+      <h2 class="eyebrow">Alerts and advisories in force</h2>
+      <div class="alert-grid">
+        {% for item in advisories %}
+        <article class="alert">
+          <div class="alert-head risk-{{ item.colour or 'grey' }}">
+            {{ icon("triangle-alert", "alert-icon", tone_for(item.colour)) }}
+            <div>
+              <strong>{{ (colour_names.get(item.colour, "") ~ " " ~ item.product) | trim | upper }}</strong>
+              <span>{{ item.title }}</span>
+            </div>
+          </div>
+          <div class="alert-body">
+            <h3>Impact</h3>
+            <p>{{ item.impacts or "—" }}</p>
+            <h3>Response</h3>
+            <p>{{ item.response or "—" }}</p>
+          </div>
+          <div class="alert-foot"><b>Valid</b> {{ item.valid }}<span>{{ item.reference }}</span></div>
+        </article>
+        {% endfor %}
+      </div>
+      <p class="note">Summary only. CAP alerts and GMS hazard bulletins are the authoritative warnings; see weather.gd for current details.</p>
+    </section>
+    {% endif %}
+
+    {% if outlook %}
+    <section class="outlook">
+      <h2 class="eyebrow">Next four days</h2>
+      <div class="days">
+        {% for day in outlook %}
+        <article class="card day-card">
+          <h3>{{ day.label }}</h3>
+          <p class="day-weather">{{ day.weather }}</p>
+          {% if day.tiles %}
+          <ul class="tiles compact">
+            {% for tile in day.tiles %}
+            <li>
+              {{ icon(tile.icon, "tile-icon") }}
+              <div><strong>{{ tile.value }}</strong><span>{{ tile.label }}</span></div>
+            </li>
+            {% endfor %}
+          </ul>
+          {% endif %}
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    {% if word %}
+    <section class="card word">
+      <p class="eyebrow">Word of the day · {{ word }}</p>
+      <p>{{ definition }}</p>
+    </section>
+    {% endif %}
+{% endblock %}

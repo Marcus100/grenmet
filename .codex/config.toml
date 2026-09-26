@@ -1,7 +1,7 @@
 # Codex configuration for this repo (instruction budget and hooks).
 #
 # Mirrors .claude/settings.json's hooks so Claude Code and Codex enforce the
-# same Never-tier rules (see CLAUDE.md/AGENTS.md). Scripts are shared from
+# same Never-tier rules (see AGENTS.md). Scripts are shared from
 # .claude/hooks/ — do not fork them per tool.
 #
 # Reference: https://learn.chatgpt.com/docs/hooks

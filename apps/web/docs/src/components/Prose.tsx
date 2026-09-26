@@ -1,4 +1,4 @@
-import { clsx } from "cn";
+import { cn } from "@barrelsgd/ui/lib/utils";
 
 export function Prose<T extends React.ElementType = "div">({
   as,
@@ -12,7 +12,7 @@ export function Prose<T extends React.ElementType = "div">({
 
   return (
     <Component
-      className={clsx(
+      className={cn(
         className,
         "prose dark:prose-invert",
         // `html :where(& > *)` is used to select all direct children without an increase in specificity like you'd get from just `& > *`

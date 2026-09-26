@@ -13,6 +13,7 @@ import {
   vi,
 } from "vitest";
 import { NewAlertEditor } from "@/components/cap/alert-editor";
+import { waitForSubmission } from "@/test/wait-for-submission";
 
 const catalogs = {
   categories: [],
@@ -87,6 +88,13 @@ function fill(placeholder: string, value: string) {
   });
 }
 
+/** Every non-Outlook CAP alert now needs a GMS product and colour before saving. */
+async function renderWithLevel(product = "Warning", colour = "Yellow") {
+  render(<NewAlertPage />);
+  fireEvent.click(screen.getByRole("radio", { name: product }));
+  fireEvent.click(await screen.findByRole("radio", { name: colour }));
+}
+
 function clickSaveDraft() {
   fireEvent.click(screen.getAllByRole("button", { name: SAVE_DRAFT })[0]);
 }
@@ -99,7 +107,7 @@ describe("NewAlertPage", () => {
     ).not.toBeNull();
   });
   it("submits a CapAlertCreate payload and opens the saved draft", async () => {
-    render(<NewAlertPage />);
+    await renderWithLevel();
     fireEvent.click(screen.getByText("Edit CAP category mappings"));
 
     fill("e.g. Tropical Storm Warning for Grenada", "Flood warning");
@@ -111,7 +119,7 @@ describe("NewAlertPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "St. George" }));
     clickSaveDraft();
 
-    await waitFor(() => expect(capturedBody).not.toBeNull());
+    await waitForSubmission(() => capturedBody);
 
     const body = capturedBody as {
       scope: string;
@@ -134,12 +142,17 @@ describe("NewAlertPage", () => {
       info: [
         {
           categories: ["Met"],
-          severity: "Unknown",
+          severity: "Moderate",
           urgency: "Unknown",
           certainty: "Unknown",
           language: "en",
           sender_name: "Grenada Meteorological Service",
           contact: "meteorology@gaa.gd; 1-473-444-4142",
+          // The chosen GMS level travels as CAP parameters and sets severity.
+          parameters: [
+            { value_name: "GMS:product", value: "Warning" },
+            { value_name: "awareness_level", value: "2; yellow; Moderate" },
+          ],
         },
       ],
     });
@@ -158,7 +171,7 @@ describe("NewAlertPage", () => {
 
   it("narrows events by family and clears stale selections when switching families", async () => {
     const user = userEvent.setup();
-    render(<NewAlertPage />);
+    await renderWithLevel();
     await user.click(screen.getByRole("combobox", { name: "Hazard family" }));
     // findByRole, not getByRole: Radix renders Select options into a portal on
     // a later tick, which is reliably ready locally but not on a loaded runner.
@@ -186,15 +199,13 @@ describe("NewAlertPage", () => {
     expect(capturedBody).toBeNull();
     fill("e.g. Tropical Storm", "Rockfall");
     clickSaveDraft();
-    await waitFor(() =>
-      expect(capturedBody).toMatchObject({
-        info: [{ event: "Rockfall", categories: ["Geo"], severity: "Unknown" }],
-      })
-    );
+    expect(await waitForSubmission(() => capturedBody)).toMatchObject({
+      info: [{ event: "Rockfall", categories: ["Geo"], severity: "Moderate" }],
+    });
   }, 15_000);
 
   it("blocks submission and shows an error when required fields are empty", async () => {
-    render(<NewAlertPage />);
+    await renderWithLevel();
     fireEvent.click(screen.getByText("Edit CAP category mappings"));
 
     clickSaveDraft();
@@ -206,7 +217,7 @@ describe("NewAlertPage", () => {
     expect(pushMock).not.toHaveBeenCalled();
   });
   it("offers hazards beyond weather and saves a non-weather draft without an IBF", async () => {
-    render(<NewAlertPage />);
+    await renderWithLevel();
     fireEvent.click(screen.getByText("Edit CAP category mappings"));
     for (const event of [
       "Earthquake",
@@ -234,24 +245,22 @@ describe("NewAlertPage", () => {
       screen.getByRole("checkbox", { name: "Meteorological" })
     ).not.toBeChecked();
     clickSaveDraft();
-    await waitFor(() =>
-      expect(capturedBody).toMatchObject({
-        info: [
-          {
-            event: "Chemical Spill",
-            categories: ["CBRNE", "Env"],
-            severity: "Unknown",
-            urgency: "Unknown",
-            certainty: "Unknown",
-          },
-        ],
-      })
-    );
+    expect(await waitForSubmission(() => capturedBody)).toMatchObject({
+      info: [
+        {
+          event: "Chemical Spill",
+          categories: ["CBRNE", "Env"],
+          severity: "Moderate",
+          urgency: "Unknown",
+          certainty: "Unknown",
+        },
+      ],
+    });
     expect(capturedBody).not.toHaveProperty("ibf_assessment_id");
   });
 
   it("clears stale category suggestions for a custom event and requires explicit classification", async () => {
-    render(<NewAlertPage />);
+    await renderWithLevel();
     fireEvent.click(screen.getByText("Edit CAP category mappings"));
     fill("e.g. Tropical Storm Warning for Grenada", "Custom incident");
     fill("Describe the hazard and expected impact…", "Incident details.");
@@ -270,20 +279,18 @@ describe("NewAlertPage", () => {
     expect(capturedBody).toBeNull();
     fireEvent.click(screen.getByRole("checkbox", { name: "Infrastructure" }));
     clickSaveDraft();
-    await waitFor(() =>
-      expect(capturedBody).toMatchObject({
-        info: [
-          {
-            event: "Local infrastructure incident",
-            categories: ["Infra"],
-          },
-        ],
-      })
-    );
+    expect(await waitForSubmission(() => capturedBody)).toMatchObject({
+      info: [
+        {
+          event: "Local infrastructure incident",
+          categories: ["Infra"],
+        },
+      ],
+    });
   });
 
   it("allows categories and sender defaults to be changed before saving", async () => {
-    render(<NewAlertPage />);
+    await renderWithLevel();
     fireEvent.click(screen.getByText("Edit CAP category mappings"));
     fill("e.g. Tropical Storm Warning for Grenada", "Coordinated incident");
     fill("e.g. Tropical Storm", "Chemical Spill");
@@ -298,15 +305,13 @@ describe("NewAlertPage", () => {
     fireEvent.click(screen.getByRole("checkbox", { name: CBRNE_CATEGORY }));
     fireEvent.click(screen.getByRole("checkbox", { name: "Health" }));
     clickSaveDraft();
-    await waitFor(() =>
-      expect(capturedBody).toMatchObject({
-        info: [
-          {
-            categories: ["Env", "Health"],
-            sender_name: "Authorized originating agency",
-          },
-        ],
-      })
-    );
+    expect(await waitForSubmission(() => capturedBody)).toMatchObject({
+      info: [
+        {
+          categories: ["Env", "Health"],
+          sender_name: "Authorized originating agency",
+        },
+      ],
+    });
   });
 });

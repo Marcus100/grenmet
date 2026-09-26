@@ -12,6 +12,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import type { ProductPost } from "@/lib/editorial";
+import { cn } from "@/lib/utils";
 
 export function ProductUpdateFeed({
   posts,
@@ -53,7 +54,12 @@ export function ProductUpdateFeed({
       >
         {posts.map((post, index) => (
           <article
-            className={`space-y-4 rounded-lg border border-gm-border bg-background p-5 ${mobileCarousel ? "max-lg:w-[84%] max-lg:shrink-0 max-lg:snap-start max-lg:space-y-5 max-lg:rounded-2xl max-lg:border-0 max-lg:p-5 max-lg:shadow-card md:max-lg:w-[45%]" : ""} ${index === 0 ? "md:col-span-2" : ""}`}
+            className={cn(
+              "space-y-4 rounded-lg border border-gm-border bg-background p-5",
+              mobileCarousel &&
+                "max-lg:w-[84%] max-lg:shrink-0 max-lg:snap-start max-lg:space-y-5 max-lg:rounded-2xl max-lg:border-0 max-lg:p-5 max-lg:shadow-card md:max-lg:w-[45%]",
+              index === 0 && "md:col-span-2"
+            )}
             key={post.id}
           >
             <header className="flex items-center gap-3">

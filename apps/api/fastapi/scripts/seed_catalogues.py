@@ -25,6 +25,9 @@ def frequency(value: str) -> tuple[int, int, str]:
     return int(match[1]), int(match[2]), "minute" if match[3] else "day"
 
 
+AUXILIARY = "Auxiliary Buildings"
+
+
 def seed_janitorial(conn: psycopg.Connection[Any], apply: bool) -> None:
     path = ROOT / "seed" / "janitorial-spec.csv"
     with path.open(newline="") as handle:
@@ -49,12 +52,15 @@ def seed_janitorial(conn: psycopg.Connection[Any], apply: bool) -> None:
             task_order: dict[int, int] = {}
             bundle_order: dict[str, int] = {}
 
-            def building_id(name: str) -> int:
+            def building_id(name: str, kind: str | None = None) -> int:
                 code = slugify(name)
                 if code not in buildings:
+                    if kind is None:
+                        kind = "terminal" if "terminal" in name.lower() else "other"
+                    # Every seeded building is at MBIA (site 1, GND); see janitorial_0002.
                     cur.execute(
-                        "INSERT INTO buildings(name,code,sort_order) VALUES (%s,%s,%s) RETURNING id",
-                        (name, code, len(buildings)),
+                        "INSERT INTO buildings(name,code,sort_order,site_id,kind) VALUES (%s,%s,%s,1,%s) RETURNING id",
+                        (name, code, len(buildings), kind),
                     )
                     buildings[code] = cur.fetchone()[0]
                 return buildings[code]
@@ -71,6 +77,11 @@ def seed_janitorial(conn: psycopg.Connection[Any], apply: bool) -> None:
                 return sections[key]
 
             def area_id(building: str, section: str | None, name: str) -> int:
+                # Each auxiliary structure is its own building with one
+                # "Whole building" area, as janitorial_0002 migrates them.
+                if building == AUXILIARY and not section:
+                    building_id(name, "auxiliary")
+                    building, name = name, "Whole building"
                 key = (building, section, name)
                 if key not in areas:
                     group = (building, section)
@@ -176,6 +187,37 @@ def parse_time(value: str) -> str:
     return f"{hour:02d}:{minute:02d}"
 
 
+# Mirrors migration transport_0003: the v1 rows become the first published
+# timetable version (the migration creates that version, empty, on a fresh DB).
+COPY_TRANSPORT_V1 = """
+INSERT INTO timetable_trips
+  (version_id, route_id, shift_id, service_calendar_id, direction,
+   depart_seconds, arrive_seconds, sort_order, legacy_trip_id)
+SELECT v.id, t.route_id, t.shift_id, c.id, t.direction,
+       extract(epoch FROM t.depart_time)::integer,
+       extract(epoch FROM t.arrive_time)::integer, t.sort_order, t.id
+FROM trips t
+JOIN service_calendars c ON c.slug = t.day_type::text
+CROSS JOIN (SELECT min(id) AS id FROM timetable_versions) v;
+INSERT INTO timetable_stop_times
+  (trip_id, stop_id, stop_sequence, departure_seconds, timepoint)
+SELECT tt.id, ts.stop_id,
+       row_number() OVER (PARTITION BY ts.trip_id ORDER BY ts.sort_order, ts.id),
+       extract(epoch FROM ts.group_time)::integer, false
+FROM trip_stops ts JOIN timetable_trips tt ON tt.legacy_trip_id = ts.trip_id;
+UPDATE timetable_trips SET status = 'awaiting_confirmation',
+  notes = 'Memo summary gives 3:30 a.m. / 12 noon / 8:30 p.m.; detailed list gives 4:30 a.m. / 1:00 p.m. / 9:30 p.m. Awaiting GAA HR confirmation.'
+WHERE route_id IN (SELECT id FROM routes WHERE number = 6);
+"""
+
+
+def copy_transport_into_first_version(cur: psycopg.Cursor[Any]) -> None:
+    cur.execute("SELECT count(*) FROM timetable_trips")
+    if cur.fetchone()[0]:
+        return
+    cur.execute(COPY_TRANSPORT_V1)
+
+
 def seed_transport(conn: psycopg.Connection[Any], apply: bool) -> None:
     path = ROOT / "seed" / "transport-routes.csv"
     with path.open(newline="") as handle:
@@ -234,8 +276,8 @@ def seed_transport(conn: psycopg.Connection[Any], apply: bool) -> None:
                     slug = slugify(row["stop"])
                     if slug not in stops:
                         cur.execute(
-                            "INSERT INTO stops(slug,name,sort_order) VALUES (%s,%s,%s) RETURNING id",
-                            (slug, row["stop"], len(stops)),
+                            "INSERT INTO stops(slug,code,name,sort_order) VALUES (%s,%s,%s,%s) RETURNING id",
+                            (slug, slug.upper(), row["stop"], len(stops)),
                         )
                         stops[slug] = cur.fetchone()[0]
                     cur.execute(
@@ -250,6 +292,7 @@ def seed_transport(conn: psycopg.Connection[Any], apply: bool) -> None:
                         ),
                     )
                     stop_order[current] = stop_order.get(current, 0) + 1
+            copy_transport_into_first_version(cur)
             print(
                 f"seeded transport: {len(routes)} routes, {len(trips)} trips, {len(stops)} stops"
             )

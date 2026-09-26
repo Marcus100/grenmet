@@ -194,3 +194,45 @@ export async function previewProductAction(raw: unknown) {
     };
   }
 }
+
+/** Draft forecast rendered by FastAPI with the issued PDF layout; nothing is saved. */
+export async function previewProductPdfAction(
+  raw: unknown,
+  signal?: AbortSignal
+) {
+  try {
+    const input = productPreviewInputSchema.parse(raw);
+    const session = browserSessionSchema.parse(
+      await request("/_backend/browser-session")
+    );
+    const timeout = AbortSignal.timeout(30_000);
+    const response = await fetch("/_backend/weather/products/preview/pdf", {
+      method: "POST",
+      credentials: "same-origin",
+      cache: "no-store",
+      redirect: "error",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": session.csrfToken,
+      },
+      body: JSON.stringify(input),
+      signal: signal ? AbortSignal.any([signal, timeout]) : timeout,
+    });
+    if (
+      !(
+        response.ok &&
+        response.headers.get("content-type")?.startsWith("application/pdf")
+      )
+    )
+      throw new ProductApiError("Preview unavailable", response.status);
+    return { ok: true as const, blob: await response.blob() };
+  } catch (error) {
+    if (signal?.aborted) return { ok: false as const, aborted: true as const };
+    reportError(error, "wxproducts");
+    return {
+      ok: false as const,
+      error:
+        "Could not render the preview. Check your connection; it retries on your next edit.",
+    };
+  }
+}

@@ -1,6 +1,7 @@
 import copy
 import logging
 import uuid
+from collections.abc import Collection
 from datetime import timedelta
 from typing import Any
 
@@ -167,6 +168,16 @@ async def get_user_by_id(*, session: AsyncSession, user_id: uuid.UUID) -> User |
     statement = select(User).where(User.id == user_id)
     result = await session.execute(statement)
     return result.scalars().first()
+
+
+async def get_users_by_ids(
+    *, session: AsyncSession, user_ids: Collection[uuid.UUID]
+) -> dict[uuid.UUID, User]:
+    """Users keyed by id, for domains that store Barrels Login ids by value."""
+    if not user_ids:
+        return {}
+    result = await session.execute(select(User).where(User.id.in_(set(user_ids))))
+    return {user.id: user for user in result.scalars()}
 
 
 async def get_users(

@@ -3,13 +3,28 @@ import type { ReactNode } from "react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { ProductPdfPreview } from "./product-pdf-preview";
 
+const SAVE_TO_DOWNLOAD_HINT = /Save draft to download these changes\./;
+
 const download = vi.hoisted(() => vi.fn());
 vi.mock("@/app/(admin)/wxproducts/product-actions", () => ({
   downloadProductPdfAction: download,
+  previewProductPdfAction: vi.fn(() => new Promise(() => undefined)),
 }));
 vi.mock("@/components/document/document-preview", () => ({
-  DocumentPreview: ({ children }: { children: ReactNode }) => (
-    <div>{children}</div>
+  DocumentPreview: ({
+    actions,
+    children,
+    description,
+  }: {
+    actions?: ReactNode;
+    children: ReactNode;
+    description?: ReactNode;
+  }) => (
+    <div>
+      {actions}
+      {description}
+      {children}
+    </div>
   ),
 }));
 vi.mock("@/components/document/paper", () => ({
@@ -35,8 +50,9 @@ it("requires saving edits but allows the separate published copy", async () => {
   expect(
     screen.getByRole("button", { name: "Download saved revision PDF" })
   ).toBeDisabled();
+  expect(screen.getByText(SAVE_TO_DOWNLOAD_HINT)).toBeInTheDocument();
   fireEvent.click(
-    screen.getByRole("button", { name: "Download published revision 2" })
+    screen.getByRole("button", { name: "Published r2: download PDF" })
   );
   await waitFor(() => expect(download).toHaveBeenCalledWith(saved.id, 2));
   expect(await screen.findByRole("alert")).toHaveTextContent(

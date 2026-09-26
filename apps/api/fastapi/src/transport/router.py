@@ -1,38 +1,25 @@
-from collections.abc import AsyncGenerator
-from typing import Annotated
-
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter
 from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.browser import BrowserUser
 
-from . import database
+from .dependencies import TransportSession as Session
+from .dependencies import get_session
 from .schemas import RouteView, ShiftView, StopView, TripView
+from .timetable.router import router as timetable_router
+
+__all__ = ["get_session", "router"]
 
 router = APIRouter(prefix="/transport", tags=["transport"])
-
-
-async def get_session() -> AsyncGenerator[AsyncSession]:
-    session = database.create_session()
-    if session is None:
-        raise HTTPException(503, "Transport timetable is unavailable")
-    try:
-        async with session:
-            yield session
-    except SQLAlchemyError, OSError, TimeoutError:
-        raise HTTPException(503, "Transport timetable is unavailable") from None
-
-
-Session = Annotated[AsyncSession, Depends(get_session)]
+router.include_router(timetable_router)
 
 
 @router.get(
     "/spec",
     response_model=list[RouteView],
     summary="Get the transport timetable",
-    description="Returns routes, stops, trips, and shifts used by the transport timetable.",
+    description="Deprecated: returns the v1 catalogue, which no longer changes. Use /transport/timetable/current, which follows published timetable versions.",
+    deprecated=True,
 )
 async def spec(_user: BrowserUser, session: Session) -> list[RouteView]:
     route_rows = (

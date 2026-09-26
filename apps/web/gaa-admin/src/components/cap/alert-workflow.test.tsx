@@ -17,7 +17,7 @@ import { AlertWorkflow } from "./alert-workflow";
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 const ID = "11111111-1111-4111-8111-111111111111";
 const URL = `http://localhost/api/v1/cap/alerts/${ID}`;
-const REVIEW = /I have reviewed this saved bulletin/;
+const REVIEW = /I have reviewed this saved alert/;
 const initial: CapAlertPublic = {
   id: ID,
   identifier: "GD-warning-1",
@@ -108,7 +108,7 @@ it("validates and reviews each step through publication using the backend respon
     await screen.findByRole("button", { name: "Request review" })
   ).toBeDisabled();
   expect(
-    screen.getByRole("button", { name: "Publish CAP bulletin" })
+    screen.getByRole("button", { name: "Publish CAP alert" })
   ).toBeDisabled();
   await review();
   expect(
@@ -124,21 +124,21 @@ it("validates and reviews each step through publication using the backend respon
   await review();
   fireEvent.click(screen.getByRole("button", { name: "Record approval" }));
   expect(
-    await screen.findByRole("button", { name: "Publish CAP bulletin" })
+    await screen.findByRole("button", { name: "Publish CAP alert" })
   ).toBeDisabled();
   await review();
-  fireEvent.click(screen.getByRole("button", { name: "Publish CAP bulletin" }));
+  fireEvent.click(screen.getByRole("button", { name: "Publish CAP alert" }));
   await screen.findByText("CAP state: PUBLISHED.");
   expect(actions).toEqual(["submit", "approve", "publish"]);
   expect(
-    screen.queryByRole("button", { name: "Publish CAP bulletin" })
+    screen.queryByRole("button", { name: "Publish CAP alert" })
   ).not.toBeInTheDocument();
 });
 
 it("publishes straight from Draft without going through review", async () => {
   show();
   await review();
-  fireEvent.click(screen.getByRole("button", { name: "Publish CAP bulletin" }));
+  fireEvent.click(screen.getByRole("button", { name: "Publish CAP alert" }));
   await screen.findByText("CAP state: PUBLISHED.");
   expect(actions).toEqual(["publish"]);
 });
@@ -160,7 +160,7 @@ it("shows validation errors and prevents submission", async () => {
   await screen.findByText("Error: Expiry is required.");
   expect(screen.getByRole("button", { name: "Request review" })).toBeDisabled();
   expect(
-    screen.getByRole("button", { name: "Publish CAP bulletin" })
+    screen.getByRole("button", { name: "Publish CAP alert" })
   ).toBeDisabled();
   expect(actions).toEqual([]);
 });
@@ -187,7 +187,12 @@ it("shows backend self-approval denial without advancing state", async () => {
 it("cancels a published alert after confirming, and issuing a Cancel message", async () => {
   alert.lifecycle_state = "PUBLISHED";
   show();
-  fireEvent.click(await screen.findByRole("button", { name: "Cancel alert" }));
+  const cancel = await screen.findByRole("button", { name: "Cancel alert" });
+  expect(cancel).toBeDisabled();
+  fireEvent.change(screen.getByLabelText("Cancellation reason"), {
+    target: { value: "Hazard has ended" },
+  });
+  fireEvent.click(cancel);
   fireEvent.click(
     await screen.findByRole("button", { name: "Confirm cancellation" })
   );
@@ -220,13 +225,13 @@ it("reloads state after a conflict without automatically repeating publication",
   );
   show();
   await review();
-  fireEvent.click(screen.getByRole("button", { name: "Publish CAP bulletin" }));
+  fireEvent.click(screen.getByRole("button", { name: "Publish CAP alert" }));
   await screen.findByText(
     "Only a draft, submitted or approved alert can be published."
   );
   await waitFor(() =>
     expect(
-      screen.queryByRole("button", { name: "Publish CAP bulletin" })
+      screen.queryByRole("button", { name: "Publish CAP alert" })
     ).not.toBeInTheDocument()
   );
   expect(attempts).toBe(1);

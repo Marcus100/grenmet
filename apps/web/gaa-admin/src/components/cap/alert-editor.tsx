@@ -12,7 +12,11 @@ import {
   type CapStatus,
   type CapUrgency,
   capCreateAlert,
+  type GmsColour,
+  type PublicPublishedProduct,
+  wxproductsListPublicProducts,
 } from "@barrelsgd/api-client";
+import { BULLETIN_CATEGORIES } from "@barrelsgd/gms/products";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import { Label } from "@barrelsgd/ui/components/ui/label";
@@ -34,6 +38,15 @@ import { AreaPicker } from "@/components/cap/area-picker";
 import { HazardClassification } from "@/components/cap/hazard-classification";
 import { LivePreview, ReadinessChecklist } from "@/components/cap/live-preview";
 import { RiskLadder } from "@/components/cap/risk-ladder";
+import { WarningLevelPicker } from "@/components/cap/warning-level-picker";
+import { sourceBulletinParameters } from "@/lib/cap-bulletin-link";
+import {
+  type GmsProduct,
+  levelHeading,
+  levelParameters,
+  needsColour,
+  severityForColour,
+} from "@/lib/cap-levels";
 import {
   CERTAINTY_ORDER,
   SEVERITY_ORDER,
@@ -118,6 +131,42 @@ export function NewAlertEditor({ catalogs }: { catalogs: CapCatalogsPublic }) {
   const router = useRouter();
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [categories, setCategories] = useState<CapCategory[]>([]);
+  const [product, setProduct] = useState<GmsProduct | null>(null);
+  const [colour, setColour] = useState<GmsColour | null>(null);
+  const [sourceBulletins, setSourceBulletins] = useState<
+    PublicPublishedProduct[]
+  >([]);
+  const [sourceBulletinId, setSourceBulletinId] = useState("none");
+  const [sourceLoading, setSourceLoading] = useState(false);
+  const [sourceMessage, setSourceMessage] = useState("");
+  const sourceBulletin = sourceBulletins.find(
+    (item) => item.id === sourceBulletinId
+  );
+  const hasLevel =
+    product !== null && (!needsColour(product) || colour !== null);
+
+  /**
+   * Product and colour are the GMS decisions; the colour sets CAP severity so
+   * the two cannot disagree. An Outlook gets CAP's conventional "Future /
+   * Possible" defaults when urgency and certainty are still unassessed.
+   */
+  function changeLevel(nextProduct: GmsProduct, nextColour: GmsColour | null) {
+    setProduct(nextProduct);
+    setColour(nextColour);
+    setForm((prev) => {
+      if (nextColour) {
+        return { ...prev, severity: severityForColour(nextColour) };
+      }
+      if (nextProduct === "Outlook") {
+        return {
+          ...prev,
+          urgency: prev.urgency === "Unknown" ? "Future" : prev.urgency,
+          certainty: prev.certainty === "Unknown" ? "Possible" : prev.certainty,
+        };
+      }
+      return prev;
+    });
+  }
   const [areas, setAreas] = useState<CapAreaCreate[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -126,21 +175,56 @@ export function NewAlertEditor({ catalogs }: { catalogs: CapCatalogsPublic }) {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  async function handleSubmit() {
+  async function loadPublishedBulletins() {
+    setSourceLoading(true);
+    try {
+      const result = await wxproductsListPublicProducts().unwrap();
+      const bulletins = result.products.filter((item) =>
+        Object.hasOwn(BULLETIN_CATEGORIES, item.kind)
+      );
+      setSourceBulletins(bulletins);
+      setSourceMessage(
+        bulletins.length
+          ? "Choose a published bulletin to link its exact revision."
+          : "No current published bulletins are available. You can still save this CAP alert."
+      );
+    } catch {
+      setSourceBulletins([]);
+      setSourceBulletinId("none");
+      setSourceMessage(
+        "Bulletins could not be loaded. You can still save this CAP alert."
+      );
+    } finally {
+      setSourceLoading(false);
+    }
+  }
+
+  /** The first reason the draft cannot be saved yet, or null. */
+  function blockingError(): string | null {
     if (
       !(form.headline.trim() && form.event.trim() && form.description.trim())
     ) {
-      setError("Headline, event, and description are required.");
-      return;
+      return "Headline, event, and description are required.";
     }
     if (!categories.length) {
-      setError("Select at least one CAP category.");
-      return;
+      return "Select at least one CAP category.";
+    }
+    if (!product) {
+      return "Choose the product: Outlook, Watch, Warning or Small Craft Advisory.";
+    }
+    if (!hasLevel) {
+      return `Choose a colour for this ${product}.`;
     }
     if (!(form.severity && form.urgency && form.certainty)) {
-      setError(
-        "Select severity, urgency, and certainty. Use Unknown when not assessed."
-      );
+      return "Select severity, urgency, and certainty. Use Unknown when not assessed.";
+    }
+    return null;
+  }
+
+  async function handleSubmit() {
+    const blocked = blockingError();
+    if (blocked || !product) {
+      setError(blocked);
       return;
     }
     setError(null);
@@ -168,6 +252,10 @@ export function NewAlertEditor({ catalogs }: { catalogs: CapCatalogsPublic }) {
           sender_name: form.senderName.trim() || null,
           contact: form.contact.trim() || null,
           web: form.web.trim() || null,
+          parameters: [
+            ...levelParameters(product, colour),
+            ...(sourceBulletin ? sourceBulletinParameters(sourceBulletin) : []),
+          ],
           areas,
         },
       ],
@@ -343,14 +431,32 @@ export function NewAlertEditor({ catalogs }: { catalogs: CapCatalogsPublic }) {
               Review the assessment and sender for the responsible authority.
               Unknown means not assessed; it does not mean low risk.
             </p>
+            <WarningLevelPicker
+              colour={colour}
+              onChange={changeLevel}
+              product={product}
+            />
             <div className="grid gap-4 sm:grid-cols-3">
-              <RiskLadder
-                colored
-                label="Severity"
-                onChange={(value) => update("severity", value)}
-                options={SEVERITY_ORDER}
-                value={form.severity}
-              />
+              {/* A colour fixes CAP severity; only an Outlook (or a message
+                  before a product is chosen) assesses it directly. */}
+              {colour ? (
+                <div className="grid gap-1.5">
+                  <span className="text-gm-text-muted text-micro leading-micro">
+                    Severity
+                  </span>
+                  <span className="rounded-md border border-gm-border px-3 py-2 font-semibold text-caption text-gm-text-primary leading-caption">
+                    {form.severity} (from colour)
+                  </span>
+                </div>
+              ) : (
+                <RiskLadder
+                  colored
+                  label="Severity"
+                  onChange={(value) => update("severity", value)}
+                  options={SEVERITY_ORDER}
+                  value={form.severity}
+                />
+              )}
               <RiskLadder
                 label="Urgency"
                 onChange={(value) => update("urgency", value)}
@@ -409,19 +515,53 @@ export function NewAlertEditor({ catalogs }: { catalogs: CapCatalogsPublic }) {
               <Field label="Note">
                 <Input
                   onChange={(e) => update("note", e.target.value)}
-                  placeholder="Internal note (not published). Escalating a bulletin? Record it as: Escalated from {kind} {product ID} rev {revision}"
+                  placeholder="Internal note for staff (not published)"
                   value={form.note}
                 />
-                <p className="text-body-sm text-gm-text-muted">
-                  If this alert escalates a Hazard Bulletin or Marine Bulletin,
-                  record which one here — there is no automatic link between
-                  them. If you cancel this alert later and it escalated a Hazard
-                  Bulletin (not a scheduled forecast or Marine Bulletin),
-                  withdraw that bulletin too — it has no standing reason to stay
-                  public once the hazard it flagged has been called off.
-                </p>
               </Field>
             </div>
+          </Section>
+
+          <Section title="Source bulletin (optional)">
+            <p className="text-body-sm text-gm-text-muted">
+              Link this CAP alert to the exact published bulletin revision that
+              provides deeper weather context. The two products remain separate.
+            </p>
+            <Button
+              disabled={sourceLoading}
+              onClick={loadPublishedBulletins}
+              type="button"
+              variant="outline"
+            >
+              {sourceLoading
+                ? "Loading bulletins…"
+                : "Load published bulletins"}
+            </Button>
+            {sourceMessage && <p role="status">{sourceMessage}</p>}
+            {sourceBulletins.length > 0 && (
+              <Select
+                onValueChange={(value) => setSourceBulletinId(value ?? "none")}
+                value={sourceBulletinId}
+              >
+                <SelectTrigger aria-label="Source bulletin">
+                  <SelectValue placeholder="No source bulletin" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No source bulletin</SelectItem>
+                  {sourceBulletins.map((item) => (
+                    <SelectItem key={item.id} value={item.id}>
+                      {
+                        BULLETIN_CATEGORIES[
+                          item.kind as keyof typeof BULLETIN_CATEGORIES
+                        ]
+                      }{" "}
+                      · {item.values.issuedAt ?? item.publishedAt} · revision{" "}
+                      {item.revision}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </Section>
 
           <Section title="Timing & sender">
@@ -479,18 +619,24 @@ export function NewAlertEditor({ catalogs }: { catalogs: CapCatalogsPublic }) {
         <div className="space-y-4 lg:sticky lg:top-6 lg:self-start">
           <LivePreview
             areaDesc={areaDesc}
+            colour={colour}
             contact={form.contact}
             description={form.description}
             effective={form.effective || "Not set"}
             expires={form.expires || "Not set"}
             headline={form.headline}
             instruction={form.instruction}
+            levelHeading={
+              product ? levelHeading(form.event, product, colour) : undefined
+            }
+            outlook={product === "Outlook"}
             senderName={form.senderName}
             severity={form.severity}
             urgency={form.urgency}
           />
           <ReadinessChecklist
             hasArea={areas.length > 0}
+            hasLevel={hasLevel}
             hasMessage={Boolean(
               form.headline.trim() &&
                 form.event.trim() &&

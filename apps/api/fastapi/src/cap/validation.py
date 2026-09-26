@@ -1,16 +1,19 @@
 import ipaddress
+import re
 import socket
 from datetime import UTC, datetime
 from typing import Any
 from urllib.parse import urlparse
+from uuid import UUID
 
 from fastapi.concurrency import run_in_threadpool
 from shapely.geometry import shape  # type: ignore[import-untyped]
 from shapely.validation import explain_validity  # type: ignore[import-untyped]
 
 from src.cap.exceptions import CapImportError
+from src.cap.levels import validate_level
 from src.cap.models import CapMessageType, CapScope
-from src.cap.schemas import CapAlertPublic, CapValidationResult
+from src.cap.schemas import CapAlertPublic, CapNameValue, CapValidationResult
 from src.utils.datetime import utc_now
 
 # Cap the response body pulled from an external CAP source (memory-DoS guard).
@@ -103,6 +106,12 @@ def validate_cap_alert(alert: CapAlertPublic) -> CapValidationResult:
             warnings.append(f"{prefix}.expires is in the past")
         if not info.areas:
             warnings.append(f"{prefix} has no area blocks")
+        level_errors, level_warnings = validate_level(
+            info.parameters, info.severity, prefix
+        )
+        errors.extend(level_errors)
+        warnings.extend(level_warnings)
+        errors.extend(_validate_source_bulletin_link(info.parameters, prefix))
         for area_index, area in enumerate(info.areas, start=1):
             area_prefix = f"{prefix}.area[{area_index}]"
             if not area.area_desc:
@@ -115,6 +124,35 @@ def validate_cap_alert(alert: CapAlertPublic) -> CapValidationResult:
                 errors.append(f"{area_prefix}.geometry {geom_error}")
 
     return CapValidationResult(is_valid=not errors, errors=errors, warnings=warnings)
+
+
+_SOURCE_BULLETIN_KEYS = {
+    "GMS:source-bulletin-kind",
+    "GMS:source-bulletin-id",
+    "GMS:source-bulletin-revision",
+}
+
+
+def _validate_source_bulletin_link(
+    parameters: list[CapNameValue], prefix: str
+) -> list[str]:
+    entries = [item for item in parameters if item.value_name in _SOURCE_BULLETIN_KEYS]
+    if not entries:
+        return []
+    values = {item.value_name: item.value for item in entries}
+    if len(entries) != 3 or set(values) != _SOURCE_BULLETIN_KEYS:
+        return [f"{prefix} source bulletin requires kind, ID, and revision once each"]
+    try:
+        source_id = UUID(values["GMS:source-bulletin-id"])
+    except ValueError:
+        return [f"{prefix} source bulletin ID must be a UUID"]
+    if str(source_id) != values["GMS:source-bulletin-id"].lower():
+        return [f"{prefix} source bulletin ID must be a canonical UUID"]
+    if not re.fullmatch(r"[1-9][0-9]*", values["GMS:source-bulletin-revision"]):
+        return [f"{prefix} source bulletin revision must be a positive integer"]
+    if not re.fullmatch(r"[a-z][a-z0-9_-]*", values["GMS:source-bulletin-kind"]):
+        return [f"{prefix} source bulletin kind is invalid"]
+    return []
 
 
 def _validate_geometry(geojson: dict[str, Any] | None) -> str | None:

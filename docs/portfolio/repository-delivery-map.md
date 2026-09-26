@@ -119,7 +119,7 @@ GMS or GAA.
 | `docs/hr` | GAA staff-platform design evidence | Active/reference | Subordinate to the GAA client programme and productization gate |
 | `docs/architecture.md`, `docs/data-architecture.md`, and `docs/technical-overview.md` | Architecture system of record | Active | Describe current boundaries and approved direction |
 | `docs/deployment.md`, `docs/infrastructure.md`, `docs/staging-prep.md`, and `docs/weather-gd-golive.md` | Delivery and cutover references | Active | Require environment owner and release authorization |
-| `docs/design-system.md`, `docs/design-workflow.md`, and `docs/env.md` | Cross-cutting engineering references | Active | Preserve brand and configuration boundaries |
+| `docs/design`, `docs/design-system.md`, `docs/design-workflow.md`, and `docs/env.md` | Cross-cutting engineering references | Active | Preserve brand and configuration boundaries |
 | `docs/audit-2026-06.md`, `docs/audit-2026-09-documentation.md`, `docs/fastapi-cap-audit.md`, `docs/quality-score.md`, and `docs/security.md` | Audit and quality evidence | Snapshot/active by document | Refresh claims explicitly; never treat a score as acceptance |
 | `docs/grenada-streaming-events-brief.md`, `docs/ports.md`, and `docs/troubleshooting.md` | Product option and engineering references | Mixed Explore/active reference | Follow the authority and lifecycle stated in each document |
 
@@ -132,7 +132,7 @@ references rather than duplicated here.
 
 | Repository surface | Classification and owner | Lifecycle | Boundary |
 | --- | --- | --- | --- |
-| `AGENTS.md`, `CLAUDE.md`, and `CONTRIBUTING.md` | Repository governance | Active | Commands, safety rules, conventions, and review gates |
+| `AGENTS.md` and `CONTRIBUTING.md` | Repository governance | Active | Commands, safety rules, conventions, and review gates |
 | `README.md` | Repository entry point | Active | Orientation only; links to authoritative specialist documents |
 | `VENDORED.md` | Third-party provenance policy | Active | Defines upgrade and local-change boundaries for vendored stacks |
 | `.agents/skills`, `.claude/skills`, and `.claude/commands` | Agent workflow playbooks | Active tooling | Support engineering work; they do not set portfolio priority |

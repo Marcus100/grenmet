@@ -69,7 +69,9 @@ without a new morning report it says “Awaiting today’s morning forecast”.
 Future date tabs use the latest visible evening outlook, showing full weather
 details and each period’s coverage. An open page refreshes every 30 seconds.
 Forecast warnings and impacts are optional legacy fields, excluded from forecast
-displays; CAP remains the independent warning source. No missing assessment is
+displays; CAP remains the independent warning source. The forecast PDF shows a
+summary of the CAP alerts and GMS bulletins in force when the revision was saved
+(captured by FastAPI, not entered by the forecaster). No missing assessment is
 rendered as “Minimal” or an all-clear.
 
 CAP is independent: these bulletins do not automatically create CAP messages,

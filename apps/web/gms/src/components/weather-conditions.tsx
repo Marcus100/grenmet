@@ -2,10 +2,15 @@ import type { LucideIcon } from "lucide-react";
 import {
   ArrowDownToLine,
   ArrowUpToLine,
+  Compass,
+  Eye,
   Navigation,
+  Ship,
   Sunrise,
   Sunset,
   Thermometer,
+  ThermometerSnowflake,
+  ThermometerSun,
   Umbrella,
   Waves,
   Wind,
@@ -30,6 +35,22 @@ const ICON_MAP: Record<string, LucideIcon> = {
   "Sunset Today": Sunset,
 };
 
+/** Icon names sent by the forecast feed (`src/wxproducts/presentation.py`). */
+const ICON_BY_NAME: Record<string, LucideIcon> = {
+  "thermometer-sun": ThermometerSun,
+  "thermometer-snowflake": ThermometerSnowflake,
+  wind: Wind,
+  compass: Compass,
+  umbrella: Umbrella,
+  waves: Waves,
+  ship: Ship,
+  "arrow-up-to-line": ArrowUpToLine,
+  "arrow-down-to-line": ArrowDownToLine,
+  sunrise: Sunrise,
+  sunset: Sunset,
+  eye: Eye,
+};
+
 interface WeatherConditionsProps {
   conditions: Condition[];
 }
@@ -38,11 +59,13 @@ export function WeatherConditions({ conditions }: WeatherConditionsProps) {
   return (
     <div className="grid grid-cols-2 gap-3 bg-background p-2.5 lg:grid-cols-5 lg:gap-4 lg:p-4">
       {conditions.map((item) => {
-        const Icon = ICON_MAP[item.label];
+        const Icon =
+          (item.icon ? ICON_BY_NAME[item.icon] : undefined) ??
+          ICON_MAP[item.label];
         return (
           <div
             className="flex items-center gap-3 rounded-2xl border border-gm-border bg-background p-4"
-            key={item.label}
+            key={`${item.label}-${item.value}`}
           >
             <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gm-surface">
               {Icon && (

@@ -17,7 +17,10 @@ function stepTextColor(selected: boolean, option: string): string {
   if (!selected) {
     return "var(--gm-text-secondary)";
   }
-  return option === "Moderate" ? "var(--gm-text-primary)" : "#fff";
+  // Yellow (Moderate) and orange (Severe) fills need dark text for contrast.
+  return option === "Moderate" || option === "Severe"
+    ? "var(--gm-text-primary)"
+    : "var(--gm-text-inverse)";
 }
 
 /**

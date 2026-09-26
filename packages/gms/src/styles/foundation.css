@@ -97,8 +97,29 @@
 
     /* Borders and focus */
     --gm-border: #d0d5dd;
+    /* Input outline. --gm-border is 1.47:1 on white — fine for decorative
+       dividers, but a control identified by its outline needs >=3:1 (WCAG
+       1.4.11). This hue-matched grey is 3.56:1 on white and >=3.17:1 on every
+       --gm-surface tint. */
+    --gm-border-input: #85888d;
     --gm-shadow-focus: 0 0 0 3px
       color-mix(in srgb, var(--gm-blue) 24%, transparent);
+  }
+}
+
+/* Logo ink for the inline vector marks (components/logo-marks.tsx), which fill
+   with currentColor. Plain CSS rather than utilities: apps do not scan this
+   package for Tailwind classes. Navy by default, blue for the bare icon, white
+   whenever the class-based dark theme is on. */
+@layer components {
+  .gm-logo {
+    color: var(--gm-logo-ink, var(--gm-navy));
+  }
+  .gm-logo-blue {
+    --gm-logo-ink: var(--gm-blue);
+  }
+  .dark .gm-logo {
+    color: var(--gm-text-inverse);
   }
 }
 
@@ -152,5 +173,6 @@
   --color-gm-warning-grey-fg: var(--gm-warning-grey-fg);
   --color-gm-warning-grey-border: var(--gm-warning-grey-border);
   --color-gm-border: var(--gm-border);
+  --color-gm-border-input: var(--gm-border-input);
   --shadow-gm-focus: var(--gm-shadow-focus);
 }

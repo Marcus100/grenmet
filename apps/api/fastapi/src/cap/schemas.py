@@ -234,6 +234,8 @@ class CapAlertPublic(BaseModel):
     incidents: list[str] = Field(default_factory=list)
     info: list[CapInfoPublic] = Field(default_factory=list)
     xml_url: str | None = None
+    replaced_by_identifier: str | None = None
+    cancellation_reason: str | None = None
 
 
 class CapAlertListPublic(BaseModel):
@@ -357,6 +359,10 @@ class PublicWarning(BaseModel):
     expires: UtcDateTime | None
     severity: CapSeverity
     status: CapStatus
+    # GMS product and impact colour (src/cap/levels.py); null for alerts that
+    # predate the model or came from an imported feed.
+    product: Literal["Outlook", "Watch", "Warning", "Advisory"] | None = None
+    colour: Literal["green", "yellow", "orange", "red"] | None = None
 
 
 class PublicWarningGroup(BaseModel):

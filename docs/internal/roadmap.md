@@ -324,7 +324,7 @@ These are strategic targets from the GMS Digital Service Architecture. They depe
 | DTO Terms of Reference | [`docs/internal/dto-terms-of-reference.md`](./dto-terms-of-reference.md) | Programme governance, KPIs, deliverables, risk register |
 | Design System Guide | [`docs/design-system.md`](../design-system.md) | Token system, Figma bridge, compliance guide |
 | Environment Variables | [`docs/env.md`](../env.md) | Per-app environment configuration |
-| Developer Reference | [`CLAUDE.md`](../../CLAUDE.md) | Monorepo commands, architecture, conventions |
+| Developer Reference | [`AGENTS.md`](../../AGENTS.md) | Monorepo commands, architecture, conventions |
 
 ---
 

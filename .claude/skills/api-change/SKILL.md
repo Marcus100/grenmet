@@ -21,7 +21,7 @@ or `apps/api/fastapi/src/main.py`. Also applies in reverse: a web app needs a
 field or endpoint `@barrelsgd/api-client` doesn't expose yet.
 
 Adding or modifying a **public** route, or anything that changes the OpenAPI
-contract, is Ask-First per `CLAUDE.md` — confirm with the user before starting,
+contract, is Ask-First per `AGENTS.md` — confirm with the user before starting,
 not after.
 
 ## Procedure

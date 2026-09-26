@@ -1,4 +1,4 @@
-// Self-check for the agent-instruction surface (CLAUDE.md, AGENTS.md, hooks).
+// Self-check for the agent-instruction surface (AGENTS.md and hooks).
 // This repo has been bitten twice by drift here: a Where-to-Look row pointing
 // at the wrong doc, and a hooks.json using an event name Codex doesn't
 // support, sitting in a location Codex doesn't read. Both looked correct on
@@ -26,9 +26,6 @@ const resolve = (relativePath) => join(repoRoot, relativePath);
 const NEXT_HEADING = /\n## /;
 const TABLE_SEPARATOR_ROW = /^\|[\s-]+\|/;
 const BACKTICK_CELL = /`([^`]+)`/;
-const AGENTS_FILE = /AGENTS\.md$/;
-const CLAUDE_FILE = /CLAUDE\.md$/;
-const AGENTS_IMPORT = /^@AGENTS\.md$/m;
 const CODEX_BUDGET = /^project_doc_max_bytes\s*=\s*(\d+)/m;
 
 /**
@@ -87,7 +84,7 @@ const IGNORED_DIRS = new Set([
   "geonetcast",
 ]);
 
-/** Every AGENTS.md / CLAUDE.md in the repo, as repo-relative paths. */
+/** Every instruction file with the given name, as repo-relative paths. */
 function instructionFiles(name, dir = "", found = []) {
   for (const entry of readdirSync(resolve(dir || "."), {
     withFileTypes: true,
@@ -102,28 +99,16 @@ function instructionFiles(name, dir = "", found = []) {
   return found;
 }
 
-test("every AGENTS.md has a sibling CLAUDE.md that imports it", () => {
-  // Claude Code reads CLAUDE.md (not AGENTS.md) whenever a root CLAUDE.md
-  // exists, so each AGENTS.md needs a CLAUDE.md beside it with `@AGENTS.md`.
-  for (const agents of instructionFiles("AGENTS.md")) {
-    const claude = agents.replace(AGENTS_FILE, "CLAUDE.md");
-    assert.ok(existsSync(resolve(claude)), `missing ${claude} for ${agents}`);
-    assert.match(
-      read(claude),
-      AGENTS_IMPORT,
-      `${claude} must import its sibling with an \`@AGENTS.md\` line`
-    );
-  }
-});
-
-test("every CLAUDE.md has a sibling AGENTS.md (AGENTS.md is canonical)", () => {
-  for (const claude of instructionFiles("CLAUDE.md")) {
-    const agents = claude.replace(CLAUDE_FILE, "AGENTS.md");
-    assert.ok(
-      existsSync(resolve(agents)),
-      `${claude} has no sibling AGENTS.md — move its content into AGENTS.md and leave \`@AGENTS.md\``
-    );
-  }
+test("Claude Code can load the AGENTS.md tree without legacy instruction overrides", () => {
+  const claudeFiles = [
+    ...instructionFiles("CLAUDE.md"),
+    ...instructionFiles("CLAUDE.local.md"),
+  ];
+  assert.deepEqual(
+    claudeFiles,
+    [],
+    `remove project Claude instruction overrides so native AGENTS.md support applies: ${claudeFiles.join(", ")}`
+  );
 });
 
 test("root AGENTS.md instruction map covers every nested AGENTS.md", () => {
