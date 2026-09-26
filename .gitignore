@@ -183,6 +183,9 @@ artifacts/
 # Agent local settings — per-machine overrides, never commit
 .claude/settings.local.json
 
+# Per-agent git worktrees (claude --worktree) — each is a separate checkout
+/.claude/worktrees/
+
 # Cross-tool session handoff log — local scratch, not project docs
 /SESSION_LOG.md
 
