@@ -50,5 +50,5 @@ timeout = 60
 matcher = "^(startup|resume|clear|compact)$"
 [[hooks.SessionStart.hooks]]
 type = "command"
-command = "hook_root=$(git rev-parse --show-toplevel) && cd \"$hook_root\" && { test ! -f SESSION_LOG.md || tail -c 50000 SESSION_LOG.md | tail -n 40; }"
+command = "hook_root=$(dirname \"$(git rev-parse --path-format=absolute --git-common-dir)\") && cd \"$hook_root\" && { test ! -f SESSION_LOG.md || tail -c 50000 SESSION_LOG.md | tail -n 40; }"
 timeout = 10
