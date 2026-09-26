@@ -97,7 +97,7 @@ export const NAV_SECTIONS: NavSection[] = [
         heading: "Understand",
         links: [
           {
-            name: "Warning Levels Explained",
+            name: "Warning levels",
             href: "/warnings/levels",
             description: "How the green-to-red warning scale works",
           },
