@@ -42,3 +42,15 @@ class BuildingView(BaseModel):
     id: int
     name: str
     sections: list[SectionView]
+
+
+class JanitorialAccess(BaseModel):
+    """What the signed-in user may do; the API still enforces every rule."""
+
+    canView: bool
+    canManageCatalogue: bool
+    canManageStaff: bool
+    canManageShifts: bool
+    canManageScope: bool
+    # Buildings the user may act on; null means every building.
+    buildingIds: list[int] | None

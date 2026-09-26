@@ -23,8 +23,10 @@ ROOT = Path(__file__).resolve().parents[2]
 SPEC = "/api/v1/janitorial/spec"
 
 SEED = """
-INSERT INTO buildings (id, name, code, sort_order) VALUES
-  (1, 'Terminal', 'T', 1), (2, 'Hangar', 'H', 2);
+INSERT INTO buildings (id, name, code, sort_order, site_id) VALUES
+  (1, 'Terminal', 'T', 1, 1), (2, 'Hangar', 'H', 2, 1),
+  (3, 'Retired', 'R', 3, 1);
+UPDATE buildings SET active = false WHERE id = 3;
 INSERT INTO sections (id, building_id, name, sort_order) VALUES
   (10, 1, 'Arrivals', 1);
 INSERT INTO areas (id, building_id, section_id, name, sort_order) VALUES
@@ -110,6 +112,7 @@ async def test_spec_nests_sections_areas_tasks_and_bundles(
     async with janitorial_client() as client:
         response = await client.get(SPEC)
     assert response.status_code == 200
+    # Inactive buildings (here "Retired") are left out.
     terminal, hangar = response.json()
 
     # A building with no sections or areas still appears, with one empty group.

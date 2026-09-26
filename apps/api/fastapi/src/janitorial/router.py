@@ -1,39 +1,46 @@
-from collections.abc import AsyncGenerator
-from typing import Annotated
+from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter
 from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.browser import BrowserUser
+from src.models import ApiError
 
-from . import database
+from . import access
+from .catalogue.router import router as catalogue_router
+from .dependencies import JanitorialSession, get_session
+from .people.router import router as people_router
 from .schemas import (
     AreaView,
     BuildingView,
     BundleItem,
     BundleView,
     Frequency,
+    JanitorialAccess,
     SectionView,
     TaskView,
 )
+from .shifts.router import router as shifts_router
+
+__all__ = ["get_session", "router"]
 
 router = APIRouter(prefix="/janitorial", tags=["janitorial"])
+router.include_router(catalogue_router)
+router.include_router(people_router)
+router.include_router(shifts_router)
+
+Session = JanitorialSession
 
 
-async def get_session() -> AsyncGenerator[AsyncSession]:
-    session = database.create_session()
-    if session is None:
-        raise HTTPException(503, "Janitorial catalogue is unavailable")
-    try:
-        async with session:
-            yield session
-    except SQLAlchemyError, OSError, TimeoutError:
-        raise HTTPException(503, "Janitorial catalogue is unavailable") from None
-
-
-Session = Annotated[AsyncSession, Depends(get_session)]
+@router.get(
+    "/access",
+    response_model=JanitorialAccess,
+    summary="Get my janitorial permissions",
+    description="Returns which janitorial portal actions the signed-in user may take and the buildings they may act on, so clients can show or hide controls. The API still enforces every rule.",
+    responses={401: {"model": ApiError}},
+)
+async def get_access(*, user: BrowserUser, session: JanitorialSession) -> Any:
+    return await access.access(session, user)
 
 
 @router.get(
@@ -52,16 +59,19 @@ async def spec(_user: BrowserUser, session: Session) -> list[BuildingView]:
                act.name AS activity_name, t.sort_order AS task_order
         FROM buildings b
         LEFT JOIN (
-            SELECT id, building_id, name, sort_order FROM sections
+            SELECT id, building_id, name, sort_order FROM sections WHERE active
             UNION ALL
             -- Areas without a section form their own group, even in buildings
             -- that also have sections.
             SELECT DISTINCT NULL::integer, building_id, NULL::text, NULL::integer
-            FROM areas WHERE section_id IS NULL
+            FROM areas WHERE section_id IS NULL AND active
         ) s ON s.building_id=b.id
         LEFT JOIN areas a ON a.building_id=b.id AND a.section_id IS NOT DISTINCT FROM s.id
-        LEFT JOIN area_tasks t ON t.area_id=a.id
+            AND a.active
+        LEFT JOIN area_tasks t ON t.area_id=a.id AND t.active
         LEFT JOIN activities act ON act.id=t.activity_id
+        -- Inactive records (e.g. the retired Auxiliary Buildings placeholder) stay out.
+        WHERE b.active
         ORDER BY b.sort_order, s.sort_order NULLS FIRST, a.sort_order, t.sort_order
     """)
     )
@@ -73,7 +83,7 @@ async def spec(_user: BrowserUser, session: Session) -> list[BuildingView]:
                abr.sort_order AS ref_order, i.sort_order AS item_order
         FROM area_bundle_refs abr
         JOIN task_bundles tb ON tb.id=abr.bundle_id
-        JOIN task_bundle_items i ON i.bundle_id=tb.id
+        JOIN task_bundle_items i ON i.bundle_id=tb.id AND i.active
         JOIN activities a ON a.id=i.activity_id
         ORDER BY abr.area_id, abr.sort_order, i.sort_order
     """)

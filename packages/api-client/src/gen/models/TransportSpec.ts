@@ -14,6 +14,10 @@ export type TransportSpecStatus200 = RouteView[];
  */
 export type TransportSpecStatus422 = ValidationErrorResponse;
 
+/**
+ * @deprecated
+ * @type object
+ */
 export type TransportSpecOptions = {
   body?: never;
   path?: never;

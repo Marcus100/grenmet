@@ -199,8 +199,30 @@ export const sidebarItems: NavGroup[] = [
     // facility runs happen every shift/day), then as-needed supplies, then
     // event-driven tickets, with reference material last.
     items: [
-      { id: "bus", title: "Bus", url: "/bus", icon: Bus },
-      { id: "janitor", title: "Janitor", url: "/janitor", icon: SprayCan },
+      {
+        // Admin portal; drivers and staff use their own apps.
+        id: "bus",
+        title: "Bus",
+        icon: Bus,
+        subItems: [
+          { id: "bus-overview", title: "Overview", url: "/bus" },
+          { id: "bus-timetable", title: "Timetable", url: "/bus/timetable" },
+          { id: "bus-stops", title: "Stops", url: "/bus/stops" },
+        ],
+      },
+      {
+        // Admin/monitoring portal; field work happens in the janitor PWA.
+        id: "janitor",
+        title: "Janitor",
+        icon: SprayCan,
+        subItems: [
+          { id: "janitor-overview", title: "Overview", url: "/janitor" },
+          { id: "janitor-areas", title: "Areas", url: "/janitor/areas" },
+          { id: "janitor-shifts", title: "Shifts", url: "/janitor/shifts" },
+          { id: "janitor-staff", title: "Staff", url: "/janitor/staff" },
+          { id: "janitor-setup", title: "Setup", url: "/janitor/setup" },
+        ],
+      },
       {
         // Repurposed salesbus module: internal stores/supplies requisition.
         // Routes keep the /salesbus prefix until the pages are reworked.

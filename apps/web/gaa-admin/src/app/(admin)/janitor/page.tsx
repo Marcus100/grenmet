@@ -1,113 +1,237 @@
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@barrelsgd/ui/components/ui/table";
+import { Building2, ListChecks, MapPin, Timer } from "lucide-react";
 import type { Metadata } from "next";
-import { getJanitorialSpec } from "@/db/janitorial/queries";
-import { formatFrequency } from "@/lib/janitorial/format";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { Panel, PanelEmpty } from "@/app/(admin)/_components/panel";
+import {
+  AwaitingFieldData,
+  JanitorHeader,
+  Kpi,
+  SiteSwitcher,
+} from "@/components/janitorial/portal";
+import {
+  getJanitorialAccess,
+  getJanitorialCatalogue,
+} from "@/db/janitorial/queries";
+import {
+  flattenAreas,
+  highFrequencyAreas,
+  siteParam,
+  summarise,
+  workloadByBuilding,
+} from "@/lib/janitorial/catalogue";
+import { formatFrequency, formatPerDay } from "@/lib/janitorial/format";
 
 export const metadata: Metadata = {
   title: "Janitorial",
   description:
-    "GAA airport janitorial cleaning specification — areas, activities, and frequencies.",
+    "Monitor GAA airport cleaning — workload, high-frequency areas, and contractor service.",
 };
 
 export const dynamic = "force-dynamic";
 
-export default async function JanitorPage() {
+const HIGH_FREQUENCY_LIMIT = 8;
+
+export default async function JanitorPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const site = siteParam((await searchParams).site);
   // Failures propagate to (admin)/error.tsx, which reports them and offers retry.
-  const buildings = await getJanitorialSpec();
-  const totalAreas = buildings.reduce(
-    (count, building) =>
-      count +
-      building.sections.reduce((sum, section) => sum + section.areas.length, 0),
-    0
-  );
+  const access = await getJanitorialAccess();
+  if (!access.canView) notFound();
+  const catalogue = await getJanitorialCatalogue(site);
+  const { buildings } = catalogue;
+  const rows = flattenAreas(buildings);
+  const summary = summarise(buildings, rows);
+  const workload = workloadByBuilding(buildings, rows);
+  const watchList = highFrequencyAreas(rows, HIGH_FREQUENCY_LIMIT);
+  const siteName =
+    catalogue.sites.find((value) => value.code === site)?.name ?? site;
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="font-semibold text-2xl tracking-tight">
-          Janitorial Cleaning Spec
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          GAA facilities — areas, activities, and cleaning frequencies.{" "}
-          {buildings.length} buildings · {totalAreas} areas.
-        </p>
+      <JanitorHeader
+        actions={
+          <SiteSwitcher
+            current={site}
+            href={(code) => `/janitor?site=${code}`}
+          />
+        }
+        title="Janitorial overview"
+      >
+        {siteName} — cleaning programme from the published specification.
+      </JanitorHeader>
+
+      <section
+        aria-label="Programme figures"
+        className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+      >
+        <Kpi
+          icon={Building2}
+          label="Buildings"
+          value={String(summary.buildings)}
+        />
+        <Kpi
+          hint={`${summary.tasks} scheduled tasks`}
+          icon={MapPin}
+          label="Areas"
+          value={String(summary.areas)}
+        />
+        <Kpi
+          hint="Scheduled task occurrences"
+          icon={ListChecks}
+          label="Tasks per day"
+          value={formatPerDay(summary.perDay)}
+        />
+        <Kpi
+          hint="Serviced hourly or more"
+          icon={Timer}
+          label="High-frequency areas"
+          value={String(summary.highFrequencyAreas)}
+        />
+      </section>
+
+      <div className="grid gap-4 xl:grid-cols-3">
+        <Panel
+          action={{ href: `/janitor/areas?site=${site}`, label: "All areas" }}
+          className="xl:col-span-2"
+          description="Scheduled cleaning load per building."
+          title="Workload by building"
+        >
+          {workload.length === 0 ? (
+            <PanelEmpty>
+              No buildings here yet
+              {access.canManageCatalogue ? (
+                <>
+                  {" — "}
+                  <Link
+                    className="text-primary hover:underline"
+                    href={`/janitor/setup?site=${site}`}
+                  >
+                    add them in Setup
+                  </Link>
+                </>
+              ) : null}
+              .
+            </PanelEmpty>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Building</TableHead>
+                  <TableHead className="text-right">Areas</TableHead>
+                  <TableHead className="text-right">High-frequency</TableHead>
+                  <TableHead className="text-right">Tasks/day</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {workload.map((building) => (
+                  <TableRow key={building.id}>
+                    <TableCell>
+                      <Link
+                        className="font-medium hover:underline"
+                        href={`/janitor/areas?site=${site}&building=${building.id}`}
+                      >
+                        {building.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {building.areas}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">
+                      {building.highFrequencyAreas}
+                    </TableCell>
+                    <TableCell className="text-right font-mono tabular-nums">
+                      {formatPerDay(building.perDay)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </Panel>
+
+        <Panel
+          action={{
+            href: `/janitor/areas?site=${site}&cadence=high`,
+            label: "View all",
+          }}
+          description="Areas the live board will watch most closely."
+          title="High-frequency areas"
+        >
+          {watchList.length === 0 ? (
+            <p className="text-muted-foreground text-xs">
+              No areas are serviced hourly or more.
+            </p>
+          ) : (
+            <ul className="divide-y divide-border">
+              {watchList.map((row) => (
+                <li
+                  className="flex items-center justify-between gap-3 py-2 text-sm"
+                  key={row.id}
+                >
+                  <Link
+                    className="min-w-0 hover:underline"
+                    href={`/janitor/areas/${row.id}`}
+                  >
+                    <span className="block truncate font-medium">
+                      {row.name}
+                    </span>
+                    <span className="block truncate text-muted-foreground text-xs">
+                      {row.buildingName}
+                    </span>
+                  </Link>
+                  {row.fastest ? (
+                    <span className="shrink-0 font-mono text-muted-foreground text-xs">
+                      {formatFrequency(row.fastest)}
+                    </span>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Panel>
       </div>
 
-      {buildings.map((building) => (
-        <section className="space-y-4" key={building.id}>
-          <h2 className="font-semibold text-lg tracking-tight">
-            {building.name}
-          </h2>
-          {building.sections.map((group) => (
-            <div className="space-y-2" key={`sec-${group.id ?? "none"}`}>
-              {group.name ? (
-                <h3 className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-                  {group.name}
-                </h3>
-              ) : null}
-              <div className="grid gap-2">
-                {group.areas.map((area) => (
-                  <details
-                    className="rounded-lg border border-border bg-card"
-                    key={area.id}
-                  >
-                    <summary className="flex cursor-pointer items-center justify-between gap-2 px-4 py-3 font-medium text-sm">
-                      <span>{area.name}</span>
-                      <span className="text-muted-foreground text-xs">
-                        {area.tasks.length} tasks
-                        {area.bundles.length > 0
-                          ? ` + ${area.bundles.map((bundle) => bundle.name).join(", ")}`
-                          : ""}
-                      </span>
-                    </summary>
-                    <ul className="divide-y divide-border border-border border-t">
-                      {area.tasks.map((task) => (
-                        <li
-                          className="flex items-center justify-between gap-3 px-4 py-2 text-sm"
-                          key={task.id}
-                        >
-                          <span className="flex items-center gap-2">
-                            {task.activity}
-                            {task.mode ? (
-                              <span className="rounded bg-muted px-1.5 py-0.5 text-muted-foreground text-xs">
-                                {task.mode}
-                              </span>
-                            ) : null}
-                          </span>
-                          <span className="shrink-0 font-mono text-muted-foreground text-xs">
-                            {formatFrequency(task.frequency)}
-                          </span>
-                        </li>
-                      ))}
-                      {area.bundles.map((bundle) => (
-                        <li className="px-4 py-2" key={`bundle-${bundle.id}`}>
-                          <p className="font-medium text-muted-foreground text-xs uppercase tracking-wide">
-                            {bundle.name}
-                          </p>
-                          <ul className="mt-1 space-y-1">
-                            {bundle.items.map((item) => (
-                              <li
-                                className="flex items-center justify-between gap-3 text-sm"
-                                key={`${bundle.id}-${item.activity}`}
-                              >
-                                <span className="text-muted-foreground">
-                                  {item.activity}
-                                </span>
-                                <span className="shrink-0 font-mono text-muted-foreground text-xs">
-                                  {formatFrequency(item.frequency)}
-                                </span>
-                              </li>
-                            ))}
-                          </ul>
-                        </li>
-                      ))}
-                    </ul>
-                  </details>
-                ))}
-              </div>
-            </div>
-          ))}
-        </section>
-      ))}
+      <section
+        aria-label="Field monitoring"
+        className="grid gap-4 md:grid-cols-3"
+      >
+        <Panel description="Clean, due and overdue areas." title="Live status">
+          <AwaitingFieldData
+            description="Starts when cleaners check in to areas from the janitor app."
+            title="No check-ins yet"
+          />
+        </Panel>
+        <Panel
+          description="Spills, damage and supplies reported on site."
+          title="Open issues"
+        >
+          <AwaitingFieldData
+            description="Issues raised in the janitor app will queue here."
+            title="No issues yet"
+          />
+        </Panel>
+        <Panel
+          description="Supervisor scores against the cleaning standard."
+          title="Inspections"
+        >
+          <AwaitingFieldData
+            description="Inspection scores and service levels will appear here."
+            title="No inspections yet"
+          />
+        </Panel>
+      </section>
     </div>
   );
 }

@@ -875,7 +875,37 @@ read contracts for the GAA Admin Janitorial and Staff Transportation pages.
 FastAPI owns the database connections, Alembic histories, SQL reads, and
 response shapes; the web app only renders the generated Kubb contracts. Existing
 catalogue rows are adopted in place by the domain migrations, and no write or
-seed operation is exposed by these routes.
+seed operation is exposed by these routes. `GET /api/v1/transport/spec` is
+deprecated: it reads the frozen v1 catalogue and does not follow published
+timetable versions.
+`GET /api/v1/janitorial/spec` keeps its v1 shape for any signed-in user but now
+omits inactive buildings, sections, areas and tasks; gaa-admin reads the scoped
+`/janitorial/catalogue` instead (below).
+
+### Staff transport timetable
+
+The versioned staff-bus timetable (`transport_0003`) backs the gaa-admin bus
+portal and will back the driver and staff apps. Routes, shifts, stops and
+service calendars are a registry edited in place; trips and stop times belong
+to a timetable version.
+
+| Route | Access | Contract |
+| --- | --- | --- |
+| `GET /transport/access` | signed in | Which portal actions the caller may take; UI hint only, the API still enforces each permission |
+| `GET /transport/timetable/current` | signed in | Timetable in force today (Grenada): the published version with the latest effective date on or before today, latest publication winning a same-day tie; 404 before any is in force |
+| `GET /transport/catalogue` | signed in | Routes, shifts, stops (with routes serving them today), service calendars — reference data the staff and driver apps also need |
+| `POST /transport/routes`, `PUT /transport/routes/{route_id}` | `transport.timetable.manage` | Route numbers unique (409) |
+| `POST /transport/stops`, `PUT /transport/stops/{stop_id}` | `transport.timetable.manage` | Stop codes unique (409); latitude and longitude given together or not at all (422) |
+| `GET /transport/timetable/versions[/{version_id}]` | `transport.view` | Versions newest first with `state` (`draft`, `scheduled`, `current`, `superseded`, `discarded`); detail adds trips and validation `issues` |
+| `POST /transport/timetable/versions` | `transport.timetable.manage` | Starts the single draft as a copy of the version in force; 409 if a draft exists |
+| `PUT …/{version_id}`, `POST …/{version_id}/discard` | `transport.timetable.manage` | Draft only (409 otherwise) |
+| `POST/PUT/DELETE …/{version_id}/trips[/{trip_id}]` | `transport.timetable.manage` | Draft only; references checked (422); a PUT replaces the whole ordered stop list |
+| `POST …/{version_id}/publish` | `transport.timetable.publish` | Effective date today or later (422); `error` issues block publishing (422), `warning` issues do not |
+
+Times are `HH:MM` after service-day midnight and may pass `24:00` (GTFS
+convention) for night trips. Stop `timepoint: false` marks an approximate time;
+the v1 group times are migrated as approximate. Route 6 trips are migrated as
+`awaiting_confirmation` pending GAA HR.
 
 ## OpenAPI and generated-client rules
 
@@ -912,6 +942,36 @@ save/reopen of nested workbook data and optional artifact metadata, UTC response
 serialization, draft state and anonymous write denial. Caller-supplied artifact
 metadata is not proof of generated or validated BUFR/IWXXM. Lifecycle and
 domain-level author/reviewer permissions remain separate acceptance gaps.
+
+### Janitorial portal
+
+`janitorial_0002` adds sites (GND, CRU), area codes, space types, APPA target
+levels, contractor staff, building grants, shifts and a `change_events` history
+to the separate janitorial database. It backs the gaa-admin `/janitor` portal and
+will back the janitor PWA. Every edit sends `expectedRevision`; a stale revision
+or duplicate is 409, and each accepted write records history in the same
+transaction. Records are deactivated, never deleted. Staff and grant holders are
+Barrels Login users referenced by id; names come from the auth service.
+
+**Scope:** role permissions say what a user may do; active building grants say
+where. Superusers and `janitorial.scope.manage` holders act on every building;
+anyone else only on granted buildings (none by default).
+
+| Route | Access | Contract |
+| --- | --- | --- |
+| `GET /janitorial/access` | signed in | Portal flags plus `buildingIds` (null = every building); UI hint only |
+| `GET /janitorial/catalogue?site=` | `janitorial.view` | Sites, then buildings in scope with sections, areas (`code`, `spaceType`, `cleanlinessLevel`, `quantity`), tasks and bundles; inactive rows included |
+| `POST /janitorial/buildings` | `janitorial.catalogue.manage` + all-building scope | New building at a site |
+| `PATCH /janitorial/buildings/{id}`, `POST/PATCH /janitorial/sections[/{id}]` | `janitorial.catalogue.manage` + building in scope | |
+| `POST/PATCH /janitorial/areas[/{id}]` | `janitorial.catalogue.manage` + building in scope | Code assigned on create (`GND-A0010`); omitted space type and level inferred from the name |
+| `POST /janitorial/areas/{id}/tasks`, `PATCH /janitorial/tasks/{id}` | `janitorial.catalogue.manage` + building in scope | Activity names matched by slug, never duplicated |
+| `GET /janitorial/staff` | `janitorial.view` | Contractors and staff with Barrels Login name, email and account state |
+| `POST/PATCH /janitorial/contractors[/{id}]`, `POST/PATCH /janitorial/staff[/{id}]` | `janitorial.staff.manage` | Staff added by Barrels Login email (404 if no account; 409 if already staff or badge taken) |
+| `GET/POST /janitorial/grants`, `POST /janitorial/grants/{id}/revoke` | `janitorial.scope.manage` | Grants by email and building ids; held buildings skipped; revoke is 204 and kept in history |
+| `GET /janitorial/shifts?site&from&to` | `janitorial.view` | Shift patterns, zones whose areas are all in scope, and their assignments (range ≤ 62 days) |
+| `POST/PATCH /janitorial/shift-patterns[/{id}]` | `janitorial.shifts.manage` | `HH:MM`; a shift ending before it starts runs past midnight |
+| `POST/PATCH /janitorial/zones[/{id}]` | `janitorial.shifts.manage` + every area in scope | Areas must be at the zone's site (422) |
+| `POST/PATCH /janitorial/shift-assignments[/{id}]` | `janitorial.shifts.manage` + zone in scope | One scheduled assignment per person, shift and date (409); cancel via `status` |
 
 ### Approved timestamp/input corrections
 
