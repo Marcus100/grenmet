@@ -36,6 +36,19 @@ def test_cap_xml_uses_oasis_order_and_snapshot_ready_content() -> None:
     assert "<polygon>12,-61.8 12.2,-61.7 12.1,-61.6 12,-61.8</polygon>" in xml
 
 
+def test_cap_xml_keeps_default_namespace_when_another_library_claims_it() -> None:
+    # WeasyPrint registers its own "" namespace on import; CAP output must not
+    # fall back to ns0: prefixes when that happens.
+    from xml.etree import ElementTree as ET
+
+    ET.register_namespace("", "http://example.com/other")
+
+    xml = alert_to_cap_xml(_alert())
+
+    assert '<alert xmlns="urn:oasis:names:tc:emergency:cap:1.2">' in xml
+    assert "ns0:" not in xml
+
+
 def test_validation_rejects_non_alert_without_references() -> None:
     alert = _alert(msg_type=CapMessageType.CANCEL)
 
