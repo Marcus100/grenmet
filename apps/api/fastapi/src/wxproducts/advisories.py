@@ -148,6 +148,11 @@ async def snapshot(
         except SQLAlchemyError, OSError, TimeoutError:
             logger.warning("Advisory source unavailable for forecast snapshot")
             complete = False
+        finally:
+            # End the read's autobegun transaction; the caller may reuse the
+            # session for `session.begin()` (write_product).
+            if session.in_transaction():
+                await session.rollback()
     items.sort(key=lambda item: COLOUR_RANK[item["colour"]])
     return json.dumps(
         {

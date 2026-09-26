@@ -162,7 +162,8 @@ async def test_snapshot_maps_cap_and_bulletins(monkeypatch):
 
     monkeypatch.setattr(advisories.cap_service, "public_latest_active", active)
     monkeypatch.setattr(advisories.service, "list_published_products", published)
-    data = json.loads(await advisories.snapshot(object(), object()))  # type: ignore[arg-type]
+    session = SimpleNamespace(in_transaction=lambda: False)
+    data = json.loads(await advisories.snapshot(session, session))  # type: ignore[arg-type]
     assert data["complete"] is True
     assert [item["colour"] for item in data["items"]] == ["orange", "yellow"]
     cap, bulletin = data["items"]
