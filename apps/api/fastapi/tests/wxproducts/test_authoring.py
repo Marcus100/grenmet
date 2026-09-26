@@ -15,7 +15,7 @@ from src.auth.browser import get_browser_or_token_user
 from src.auth.models import User
 from src.baseline import product_access
 from src.main import app
-from src.wxproducts import service, validation
+from src.wxproducts import advisories, service, validation
 from src.wxproducts.dependencies import get_session
 from src.wxproducts.exceptions import RevisionConflict
 from src.wxproducts.schemas import ProductWrite
@@ -67,6 +67,20 @@ def current_input(**changes) -> ProductWrite:
         validTo=(now + timedelta(days=1)).strftime("%Y-%m-%dT%H:%M"),
     )
     return body(values=values, **changes)
+
+
+@pytest.mark.parametrize("kind", sorted(validation.ISSUE_HOURS))
+async def test_forecast_save_after_advisory_snapshot(weather_sessions, actor, kind):
+    """The save route reads bulletins on the authoring session before writing."""
+    async with weather_sessions() as session:
+        snapshot = await advisories.snapshot(None, session)
+        product = await service.write_product(
+            session,
+            body(kind, action="draft"),
+            actor,
+            advisories=snapshot,
+        )
+        assert product.revision == 1
 
 
 async def test_draft_publish_edit_withdraw_history(weather_sessions, actor):
