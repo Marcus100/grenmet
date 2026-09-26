@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** GAA (institutional content); maintained by Barrels Grenada  
-**Last updated:** 2026-09-17
+**Last updated:** 2026-09-26
 
 **Recorded:** 2026-09-16. **Status:** Planning evidence; not institutional approval.
 
@@ -11,6 +11,7 @@ This register supports the [modular-platform implementation guide](../exec-plans
 ## Evidence interpretation
 
 - The supplied `temp-files/gaaforms` collection contains 46 originals. Inventory/extraction is not equivalent to complete visual or policy review.
+- `temp-files/union` contains 49 photographs supplied 2026-09-26: the GAA–Grenada Technical & Allied Workers' Union 2024–28 memorandum, schedules, and an attached Additional Responsibility Allowance Policy. A combined photo PDF and clearly marked unverified OCR companion are in the same gitignored folder. The photos include stamps and signature pages; HR must authenticate the copy and any amendments.
 - Text extraction and selected document review informed the groups below. Scanned airport regulations, soliciting material and some image-only appendices remain unverified.
 - The 153-page 2026 cyclone plan received targeted review, including document control, coordination and departmental readiness/recovery material; no claim of complete page-by-page review is made.
 - Repository plans describe intended behaviour. Source forms describe recorded processes. Neither proves deployed functionality or current institutional approval.
@@ -23,6 +24,7 @@ This register supports the [modular-platform implementation guide](../exec-plans
 | `Absentee-Report.pdf`, `Application-For-Leave-of-Absence.pdf`, `shift_exchange.doc`, `timesheet.xls` | GAA-11 | Reconcile existing HR models and workflows before creating replacements |
 | `training_policy.pdf`, `Study Leave Policy.pdf`, `recruitment_policy.pdf`, `Additional-Responsibility-Allowance-Policy.pdf` | GAA-11 | Controlled policy-driven workflows; conflicting/dated provisions require owner review |
 | `employee_handbook.pdf`, `Dress-Code-Policy-final.pdf`, `confidentiality_policy.pdf` | GAA-19 | Policy library and acknowledgement candidates; do not infer current hierarchy or approval from age/title |
+| `temp-files/union/GAA-GTAWU-Memorandum-2024-2028-photo-scan.pdf` (49 photo pages) | GAA-11, GAA-17, GAA-19 | Article 7 supplies leave terms for covered bargaining-unit staff; Articles 5–6 address roster, hours and overtime; Articles 8–9 address allowances and probation; later articles address seniority, pay, grievance and discipline. Use as restricted evidence with clause/page references, not as automatically approved portal rules. |
 | `Employee-Complaint-Form-Version-1-Revised.docx`, `HEALTH-INSURANCE-SURVEY.docx`, `COMMUNICABLE-DISEASES-Policy.pdf`, `bully_policy.pdf`, `sexual_harassment_policy.pdf`, `policy_code_of_discipline.pdf`, `verbal_reprimand_form.doc` | GAA-17 | Restricted cases, conflict-aware handling, correction/appeal history; health records need distinct access |
 | `Daily_VIP_Inspection_Checklist.pdf`, `daily_record_of_facility_operation_report.doc` | GAA-10, GAA-13 | Inspection and facility operation records are distinct from assigned cleaning work |
 | `Equipment_Delivery.pdf`, `Equipment_Loan_Agreement.pdf`, `Key_delivery.pdf`, `Laptop Policies.pdf` | GAA-09 | Custody, acceptance and return lifecycle |
@@ -52,6 +54,7 @@ This register supports the [modular-platform implementation guide](../exec-plans
 | SRC-06 | Scanned regulations and image appendices are not fully verified | Complete visual/OCR review and applicability review before deriving requirements |
 | SRC-07 | Existing ADR describes one staff PWA and older rollout order | Superseded in the amended ADR by this interview's three-PWA sequence |
 | SRC-08 | Service-desk plan uses ticket terminology; ADR reserves internal `requests` naming | Preserve legacy ticket references; agree user-facing labels before new routes/schemas; do not rename Events concepts |
+| SRC-09 | The 2024–28 memorandum covers full-time bargaining-unit workers and excludes management; the older handbook and leave form differ in categories and some eligibility language. Its sick-leave schedule has sex-specific limits, while maternity refers to the Employment Act rather than stating a term. | GAA HR and legal authenticate the agreement, identify amendments and each employee's coverage, reconcile the handbook/form and current law, and sign off on rules before any automated entitlement or payroll calculation. See [HR evidence register](../hr/policy-rules.md). |
 
 ## External design references
 
