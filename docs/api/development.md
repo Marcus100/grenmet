@@ -154,7 +154,7 @@ With the host stack running, override the hosts (full list in
 cd apps/api/fastapi
 uv sync --frozen --package fast-back
 POSTGRES_SERVER=host.docker.internal REDIS_URL=redis://host.docker.internal:6379/0 \
-  uv run --frozen --package fast-back pytest -n 8 --dist load
+  uv run --frozen --package fast-back pytest -n 2 --dist load
 ```
 
 ## Writing code
