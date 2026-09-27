@@ -8,10 +8,12 @@ client (`psql`) installed:
 
 - `pnpm verify:backend`: temporary PostgreSQL/Redis and parallel Python coverage.
 - `pnpm verify:storage`: temporary PostGIS plus real migration/seed/role tests.
+- `pnpm verify:collectors`: isolated wxwatch, Sutron and GMS ingestion fixture suites;
+  also runs in the devcontainer without Docker. Requires uv and Python 3.14.
 - `pnpm verify:release`: quick checks, API-client drift, documentation links,
-  guardrails, delivery tests, backend and storage integration.
+  guardrails, delivery tests, collectors, backend and storage integration.
 
-The managed commands refuse to run inside a devcontainer. They create a unique
+The managed backend/storage/release commands refuse to run inside a devcontainer. They create a unique
 Compose project, random loopback-only ports and memory-backed database storage.
 Their cleanup removes only that project. No existing Compose projects or volumes
 are pruned. If interrupted forcibly (SIGKILL or host failure), inspect and remove
@@ -27,6 +29,17 @@ CI invokes the same scripts, passing explicit disposable service configuration:
 
 - `bash scripts/verification/backend.sh` (PostgreSQL host/user/password required).
 - `bash scripts/verification/storage.sh` (`STORAGE_TEST_POSTGRES_URL` required).
+- `bash scripts/verification/collectors.sh` (frozen, isolated uv environments;
+  sequential suites, no live weather feeds or serial hardware).
+
+Storage verification also runs the CMS editorial workflow suite against its
+explicit disposable service, using a UUID schema. It invokes Vitest directly so
+Turbo cannot reuse a previous unit-only result. An inherited CMS test database URL
+is replaced with the disposable service URL. Editorial failures fail the command.
+Normal `pnpm test` remains a unit/component entrypoint and may skip that suite.
+
+The API CI aggregate requires the collector job, including when image selection
+omits Docker checks. Local release verification runs the same collector script.
 
 When intentionally using a dedicated test service from the devcontainer, these
 scripts can connect to the host-published port. Never supply application-service
@@ -34,6 +47,9 @@ credentials. Backend database creation/teardown requires an administrative role
 on the disposable instance; ordinary application roles should remain restricted.
 Backend uses two workers by default; set `TEST_WORKERS` to measured capacity.
 Coverage and JUnit reports are written under `apps/api/fastapi/`.
+Backend verification uses an isolated uv environment, preserving the development
+`.venv` even when host and devcontainer interpreter paths differ. Dependencies
+come from the frozen lockfile and can reuse uv's download cache.
 
 The shared database helper assigns a run identifier before importing application
 settings and extends it with the worker identifier. Operations must match that
@@ -60,3 +76,6 @@ References: [pytest-xdist isolation](https://pytest-xdist.readthedocs.io/en/stab
 [pytest-cov contexts](https://pytest-cov.readthedocs.io/en/latest/contexts.html),
 [Turbo caching configuration](https://turborepo.dev/docs/reference/configuration),
 [GitHub PostgreSQL services](https://docs.github.com/en/actions/tutorials/use-containerized-services/create-postgresql-service-containers).
+
+See the [repository testing strategy](../../docs/testing.md) for coverage owners,
+stage-specific checks and remaining acceptance gaps.

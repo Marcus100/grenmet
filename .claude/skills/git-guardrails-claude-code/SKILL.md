@@ -8,7 +8,7 @@ description: Git guardrails are already installed in this repo. Use when the use
 This repo already has this skill's original job done, for both Claude Code
 and Codex, not just Claude Code:
 
-- `.claude/hooks/block-dangerous-git.mjs` — blocks `git commit`, `git push`,
+- `.claude/hooks/block-dangerous-git.mjs` — permits ordinary commits/pushes; blocks force pushes,
   `git reset --hard`, `git clean -f(d)`, `git branch -D`,
   `git checkout .`/`git restore .`, `gh pr merge`, quote-aware (won't false-positive
   on a `grep` for these phrases — see `scripts/guardrails/agent-hook-behavior.test.mjs`
