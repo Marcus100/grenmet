@@ -9,10 +9,13 @@ from pydantic import TypeAdapter, ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.concurrency import run_in_threadpool
 
-from src.dependencies import SessionDep
-
 from . import advisories, forecast, forecast_pdf, pdf, service, validation
-from .dependencies import AuthorDep, AuthoringSessionDep, WxProductsSessionDep
+from .dependencies import (
+    AdvisorySessionDep,
+    AuthorDep,
+    AuthoringSessionDep,
+    WxProductsSessionDep,
+)
 from .exceptions import ProductValidationError, WeatherUnavailable
 from .models import AviationDraft
 from .observation_service import list_observations
@@ -165,7 +168,7 @@ async def save_product(
     *,
     author: AuthorDep,
     session: AuthoringSessionDep,
-    cap_session: SessionDep,
+    cap_session: AdvisorySessionDep,
     response: Response,
     body: ProductWrite,
 ) -> StoredProduct:
@@ -358,7 +361,7 @@ async def preview_product(
     author: AuthorDep,
     response: Response,
     body: ProductPreviewInput,
-    cap_session: SessionDep,
+    cap_session: AdvisorySessionDep,
     weather_session: WxProductsSessionDep,
 ) -> ProductPreview:
     author.require_kind(body.kind)
@@ -397,7 +400,7 @@ async def preview_product_pdf(
     *,
     author: AuthorDep,
     body: ProductPreviewInput,
-    cap_session: SessionDep,
+    cap_session: AdvisorySessionDep,
     weather_session: WxProductsSessionDep,
 ) -> Response:
     author.require_kind(body.kind)
