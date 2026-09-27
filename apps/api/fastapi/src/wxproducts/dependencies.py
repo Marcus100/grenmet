@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.browser import BrowserUser
 from src.auth.models import User
 from src.baseline import product_access
-from src.dependencies import SessionDep
+from src.dependencies import SessionDep, get_db
 from src.exceptions import AuthorizationError
 
 from . import database
@@ -25,6 +25,8 @@ async def get_session() -> AsyncGenerator[AsyncSession | None]:
 
 
 WxProductsSessionDep = Annotated[AsyncSession | None, Depends(get_session)]
+# Snapshot rollback must not expire the authenticated User in SessionDep.
+AdvisorySessionDep = Annotated[AsyncSession, Depends(get_db, use_cache=False)]
 
 
 @dataclass

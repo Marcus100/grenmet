@@ -90,8 +90,15 @@ function instructionFiles(name, dir = "", found = []) {
     withFileTypes: true,
   })) {
     if (entry.isDirectory()) {
-      if (IGNORED_DIRS.has(entry.name) || entry.isSymbolicLink()) continue;
-      instructionFiles(name, dir ? `${dir}/${entry.name}` : entry.name, found);
+      const childDir = dir ? `${dir}/${entry.name}` : entry.name;
+      if (
+        IGNORED_DIRS.has(entry.name) ||
+        childDir === ".claude/worktrees" ||
+        (dir === "" && entry.name.startsWith(".lint-staged-test-")) ||
+        entry.isSymbolicLink()
+      )
+        continue;
+      instructionFiles(name, childDir, found);
     } else if (entry.name === name) {
       found.push(dir ? `${dir}/${name}` : name);
     }

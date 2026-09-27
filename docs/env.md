@@ -442,6 +442,18 @@ credentials into staging.
   `STORAGE_BUCKET`, `STORAGE_ENDPOINT_URL`, optionally `STORAGE_REGION`
   and `STORAGE_PUBLIC_BASE_URL`.
 
+The deploy workflow also accepts matching `DO_SPACES_ACCESS_KEY_ID`,
+`DO_SPACES_SECRET_ACCESS_KEY`, `DO_SPACES_BUCKET`, `DO_SPACES_ENDPOINT`, and
+`DO_SPACES_REGION` secrets when the corresponding `STORAGE_*` secret is absent.
+Keep the key ID and secret from the same Spaces key, and grant that key access
+to the configured bucket. A configured value only proves presence: a worker
+`head_bucket` response of HTTP 403 means storage access still needs correction.
+After changing staging secrets, deploy again so the API and worker receive the
+new values, then verify bucket access and a test object upload/download.
+The optional staging weather deploy also reads `DO_SPACES_*` for its off-host
+backup. Give that workflow separate backup credentials before enabling it;
+the assets-only key cannot satisfy its retention check.
+
 Stripe price/return URL and PostHog host inputs accept environment secrets first,
 with environment variables retained as a compatibility fallback.
 
@@ -545,6 +557,17 @@ RESEND_READ_TOKEN
 Keep them in the operator's secure environment or secret manager. They are not
 required for normal application startup or deployment unless a live provider
 audit is explicitly requested.
+
+For read-only Sentry investigation in the agent devcontainer, use the `sentry`
+CLI. The container installs it in the persisted `/home/node/.config/sentry`
+volume and links it into `PATH` on startup. Run `sentry auth login` once; its
+OAuth session persists across devcontainer rebuilds. Check access with
+`sentry auth status`, then list staging issues with
+`sentry issue list grenmet/grenmet-staging --period 14d --fresh`. This operator
+login is separate from the environment-scoped `SENTRY_AUTH_TOKEN` used by web
+image builds to upload source maps. Inspect the Sentry upload messages in the
+web image build logs and confirm artifact bundles appear in the staging project
+after the next build.
 
 ### Completeness and verification checklist
 
