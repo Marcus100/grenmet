@@ -137,7 +137,7 @@ How each tool loads instructions:
 | Not loaded automatically | Nested files outside the start path — hence the root instruction map | `.agents/` contents; nested files are loaded as Claude reads in those directories |
 
 `.claude/hooks/` mechanically enforces the Never tier for both tools: a
-`PreToolUse` hook blocks `git commit`/`push`/`gh pr merge`/etc.
+`PreToolUse` hook permits ordinary commits/pushes and blocks destructive Git operations and `gh pr merge`.
 (`block-dangerous-git.mjs`) and edits to `.env*`/generated-client files
 (`protect-files.mjs`); a `PostToolUse`/`Stop` hook auto-formats
 (`format-changed-file.mjs` for Claude Code, scoped to the touched file;

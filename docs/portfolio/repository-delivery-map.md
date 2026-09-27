@@ -121,6 +121,7 @@ GMS or GAA.
 | `docs/deployment.md`, `docs/infrastructure.md`, `docs/staging-prep.md`, and `docs/weather-gd-golive.md` | Delivery and cutover references | Active | Require environment owner and release authorization |
 | `docs/design`, `docs/design-system.md`, `docs/design-workflow.md`, and `docs/env.md` | Cross-cutting engineering references | Active | Preserve brand and configuration boundaries |
 | `docs/audit-2026-06.md`, `docs/audit-2026-09-documentation.md`, `docs/fastapi-cap-audit.md`, `docs/quality-score.md`, and `docs/security.md` | Audit and quality evidence | Snapshot/active by document | Refresh claims explicitly; never treat a score as acceptance |
+| `docs/testing.md` | Barrels engineering repository testing strategy | Active reference | Assign verification by runtime and delivery stage; distinguish passing checks from operational acceptance |
 | `docs/grenada-streaming-events-brief.md`, `docs/ports.md`, and `docs/troubleshooting.md` | Product option and engineering references | Mixed Explore/active reference | Follow the authority and lifecycle stated in each document |
 
 The fourteen current workflow files under `.github/workflows` are one delivery

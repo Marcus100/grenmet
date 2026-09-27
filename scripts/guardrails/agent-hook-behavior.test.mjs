@@ -58,20 +58,20 @@ test("block-dangerous-git: does not flag dangerous phrases inside quoted strings
 });
 
 test("block-dangerous-git: still blocks the real, unquoted commands", () => {
-  assert.ok(findBlockedPattern("git commit -m fix"));
-  assert.ok(findBlockedPattern('git commit -m "fix bug"')); // command itself unquoted
-  assert.ok(findBlockedPattern("git push origin main"));
+  assert.equal(findBlockedPattern("git commit -m fix"), undefined);
+  assert.equal(findBlockedPattern('git commit -m "fix bug"'), undefined);
+  assert.equal(findBlockedPattern("git push origin dev"), undefined);
   assert.ok(findBlockedPattern("git push --force"));
   assert.ok(findBlockedPattern("git reset --hard HEAD~1"));
   assert.ok(findBlockedPattern("git clean -fd"));
   assert.ok(findBlockedPattern("git branch -D feature-x"));
   assert.ok(findBlockedPattern("gh pr merge 42"));
-  assert.ok(findBlockedPattern("npm test && git push")); // chained
+  assert.equal(findBlockedPattern("npm test && git push"), undefined);
 });
 
 test("block-dangerous-git: still blocks command substitution (not just literal quotes)", () => {
-  assert.ok(findBlockedPattern("echo $(git commit -m sneaky)"));
-  assert.ok(findBlockedPattern("echo `git push origin main`"));
+  assert.ok(findBlockedPattern("echo $(git reset --hard)"));
+  assert.ok(findBlockedPattern("echo `git push --force origin main`"));
 });
 
 test("block-dangerous-git: allows ordinary git/gh usage", () => {
@@ -84,7 +84,7 @@ test("block-dangerous-git: allows ordinary git/gh usage", () => {
 
 test("block-dangerous-git CLI: exits 2 and writes to stderr on a real command", () => {
   const result = runHook("block-dangerous-git.mjs", {
-    tool_input: { command: "git push origin main" },
+    tool_input: { command: "git push --force origin main" },
   });
   assert.equal(result.status, 2);
   assert.match(result.stderr, BLOCKED_MESSAGE);
