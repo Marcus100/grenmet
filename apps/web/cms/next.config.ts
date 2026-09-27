@@ -10,7 +10,7 @@ const config: NextConfig = {
 export default withSentryConfig(withPayload(config), {
   org: "grenmet",
   project: process.env.SENTRY_PROJECT ?? "grenmet-staging",
-  silent: !process.env.CI,
+  silent: false,
   widenClientFileUpload: true,
 
   webpack: {

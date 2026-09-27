@@ -204,6 +204,82 @@ test("telemetry does not exempt other router files", (t) => {
   assert.match(result.stderr, /FastAPI contract companions/);
 });
 
+const WXPRODUCTS_ROUTER = `from src.dependencies import SessionDep
+
+from .dependencies import AuthorDep, AuthoringSessionDep, WxProductsSessionDep
+
+async def save_product(cap_session: SessionDep, body: ProductWrite) -> StoredProduct:
+    pass
+async def preview_product(cap_session: SessionDep, body: ProductPreviewInput) -> ProductPreview:
+    pass
+async def preview_product_pdf(cap_session: SessionDep, body: ProductPreviewInput) -> Response:
+    pass
+`;
+const WXPRODUCTS_ISOLATED_ROUTER = `from .dependencies import (
+    AdvisorySessionDep,
+    AuthorDep,
+    AuthoringSessionDep,
+    WxProductsSessionDep,
+)
+
+async def save_product(cap_session: AdvisorySessionDep, body: ProductWrite) -> StoredProduct:
+    pass
+async def preview_product(cap_session: AdvisorySessionDep, body: ProductPreviewInput) -> ProductPreview:
+    pass
+async def preview_product_pdf(cap_session: AdvisorySessionDep, body: ProductPreviewInput) -> Response:
+    pass
+`;
+
+test("the exact advisory session fix passes staged and CI range checks", (t) => {
+  const file = "apps/api/fastapi/src/wxproducts/router.py";
+  const { base, repository } = createRepository(t, {
+    [file]: WXPRODUCTS_ROUTER,
+  });
+  write(repository, file, WXPRODUCTS_ISOLATED_ROUTER);
+  git(repository, "add", file);
+  const staged = check(repository, ["--staged"]);
+  assert.equal(staged.status, 0, staged.stderr);
+  const head = commit(repository);
+  const range = check(repository, ["--base", base, "--head", head]);
+  assert.equal(range.status, 0, range.stderr);
+});
+
+test("an advisory session fix with a response change still requires companions", (t) => {
+  const file = "apps/api/fastapi/src/wxproducts/router.py";
+  const { base, repository } = createRepository(t, {
+    [file]: WXPRODUCTS_ROUTER,
+  });
+  write(
+    repository,
+    file,
+    WXPRODUCTS_ISOLATED_ROUTER.replace("-> StoredProduct:", "-> NewProduct:")
+  );
+  git(repository, "add", file);
+  const staged = check(repository, ["--staged"]);
+  assert.equal(staged.status, 1);
+  const head = commit(repository);
+  const range = check(repository, ["--base", base, "--head", head]);
+  assert.equal(range.status, 1);
+  assert.match(range.stderr, /FastAPI contract companions/);
+});
+
+test("the advisory session fix does not exempt other router files", (t) => {
+  const file = "apps/api/fastapi/src/wxproducts/router.py";
+  const { base, repository } = createRepository(t, {
+    [file]: WXPRODUCTS_ROUTER,
+  });
+  write(repository, file, WXPRODUCTS_ISOLATED_ROUTER);
+  write(
+    repository,
+    "apps/api/fastapi/src/weather/router.py",
+    "router = new_route\n"
+  );
+  const head = commit(repository);
+  const result = check(repository, ["--base", base, "--head", head]);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /src\/weather\/router\.py/);
+});
+
 const JANITORIAL_ROUTER =
   "async def spec():\n    query = '''\n        LEFT JOIN sections s ON s.building_id=b.id\n    '''\n";
 const withUnsectionedAreas = (source) =>

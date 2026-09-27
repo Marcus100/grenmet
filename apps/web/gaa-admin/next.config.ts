@@ -38,7 +38,7 @@ export default sentryEnabled
   ? withSentryConfig(nextConfig, {
       org: "grenmet",
       project: process.env.SENTRY_PROJECT ?? "grenmet-staging",
-      silent: !process.env.CI,
+      silent: false,
       widenClientFileUpload: true,
 
       webpack: {
