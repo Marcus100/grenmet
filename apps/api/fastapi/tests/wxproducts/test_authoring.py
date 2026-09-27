@@ -83,6 +83,32 @@ async def test_forecast_save_after_advisory_snapshot(weather_sessions, actor, ki
         assert product.revision == 1
 
 
+@pytest.mark.parametrize("action", ["preview", "preview/pdf", "save"])
+async def test_forecast_routes_keep_authenticated_author_after_advisory_snapshot(
+    async_client: httpx.AsyncClient,
+    weather_sessions,
+    superuser_token_headers_async: dict[str, str],
+    action: str,
+):
+    """The CAP snapshot must not expire the authenticated user's ORM fields."""
+    assert weather_sessions is not None
+    if action == "save":
+        path = "/api/v1/wxproducts/products"
+        payload = body("morning", action="draft").model_dump(mode="json")
+    else:
+        path = f"/api/v1/wxproducts/products/{action}"
+        payload = {
+            "kind": "morning",
+            "values": complete("morning"),
+            "expectedRevision": 0,
+            "changeSummary": "",
+        }
+    response = await async_client.post(
+        path, headers=superuser_token_headers_async, json=payload
+    )
+    assert response.status_code == 200, response.text
+
+
 async def test_draft_publish_edit_withdraw_history(weather_sessions, actor):
     payload = current_input(action="draft")
     async with weather_sessions() as session:

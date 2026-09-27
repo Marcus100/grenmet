@@ -135,6 +135,31 @@ const janitorialUnsectionedAreaChange = (comparison) => {
   return before !== after && expected === after;
 };
 
+// Only isolate the existing CAP advisory session. Route declarations, request
+// fields and response types must remain identical for this exception to apply.
+const wxproductsAdvisorySessionChange = (comparison) => {
+  const file = "apps/api/fastapi/src/wxproducts/router.py";
+  const refs =
+    comparison.mode === "staged"
+      ? [`HEAD:${file}`, `:${file}`]
+      : [`${comparison.base}:${file}`, `${comparison.head}:${file}`];
+  const versions = refs.map((ref) =>
+    spawnSync("git", ["show", ref], { encoding: "utf8" })
+  );
+  if (versions.some((result) => result.error || result.status !== 0))
+    return false;
+  const before = versions[0].stdout;
+  const after = versions[1].stdout;
+  const expected = before
+    .replace("from src.dependencies import SessionDep\n\n", "")
+    .replace(
+      "from .dependencies import AuthorDep, AuthoringSessionDep, WxProductsSessionDep",
+      "from .dependencies import (\n    AdvisorySessionDep,\n    AuthorDep,\n    AuthoringSessionDep,\n    WxProductsSessionDep,\n)"
+    )
+    .replaceAll("cap_session: SessionDep,", "cap_session: AdvisorySessionDep,");
+  return before !== after && expected === after;
+};
+
 const evaluateChanges = (changes, comparison) => {
   const files = new Set(changes.flatMap((change) => change.paths));
   const triggers = [...files]
@@ -145,7 +170,9 @@ const evaluateChanges = (changes, comparison) => {
           (file === "apps/api/fastapi/src/main.py" &&
             telemetryOnlyStartupChange(comparison)) ||
           (file === "apps/api/fastapi/src/janitorial/router.py" &&
-            janitorialUnsectionedAreaChange(comparison))
+            janitorialUnsectionedAreaChange(comparison)) ||
+          (file === "apps/api/fastapi/src/wxproducts/router.py" &&
+            wxproductsAdvisorySessionChange(comparison))
         )
     )
     .sort();
