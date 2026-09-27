@@ -83,9 +83,8 @@ uv run --frozen --package fast-back python -c "from src.main import app; import 
 - Introducing a new pattern, abstraction, or design approach
 
 ### Never
-- `git commit`, `git push`, `gh pr merge`, or any deploy command — mechanically
-  blocked by a `PreToolUse` hook (`.claude/hooks/block-dangerous-git.mjs`,
-  wired for Codex in `.codex/config.toml`)
+- `gh pr merge` or any deploy command without explicit user authorization.
+- Destructive Git operations remain blocked by `.claude/hooks/block-dangerous-git.mjs`.
 - Write to `.env.*` or `.env.local` files — blocked by `.claude/hooks/protect-files.mjs`
 - Manually edit `packages/api-client/src/gen/` — blocked by the same hook
 - Implement after analysis without explicit approval

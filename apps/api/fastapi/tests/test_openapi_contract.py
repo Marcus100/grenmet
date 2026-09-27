@@ -4,7 +4,8 @@ import re
 from collections.abc import Iterator
 from typing import Any
 
-from fastapi.routing import APIRoute
+from fastapi import APIRouter, FastAPI
+from fastapi.routing import APIRoute, iter_route_contexts
 
 from src.main import app
 
@@ -94,21 +95,77 @@ def test_openapi_has_no_anonymous_enums() -> None:
     assert not offenders, "Anonymous OpenAPI enums: " + ", ".join(offenders)
 
 
-def test_api_schema_routes_use_explicit_models_or_documented_raw_responses() -> None:
+def _missing_response_models(application: FastAPI) -> list[str]:
     raw_response_exemptions = {
+        # File/image downloads and XML feeds deliberately return Response objects.
         "download_document",
+        "download_signed_document",
         "weather_image",
         "archive_asset",
         "get_scalar_docs",
+        "read_rss",
+        "read_cap_xml",
+        "preview_product_pdf",
+        "product_revision_pdf",
     }
     offenders = [
         route.name
-        for route in app.routes
-        if isinstance(route, APIRoute)
+        for route in iter_route_contexts(application.routes)
+        if isinstance(route.original_route, APIRoute)
         and route.include_in_schema
+        and route.status_code != 204
         and route.response_model is None
         and route.name not in raw_response_exemptions
     ]
-    # FastAPI 0.115+ stores included routers as route contexts; this assertion
-    # remains useful for directly registered routes and explicit exceptions.
+    return offenders
+
+
+def test_model_guard_checks_nested_included_routers() -> None:
+    application = FastAPI()
+    parent = APIRouter()
+    child = APIRouter()
+
+    @child.get("/untyped", response_model=None)
+    def untyped() -> dict[str, str]:
+        return {"message": "unvalidated"}
+
+    parent.include_router(child, prefix="/child")
+    application.include_router(parent, prefix="/parent")
+    assert _missing_response_models(application) == ["untyped"]
+
+
+def test_api_schema_routes_use_explicit_models_or_documented_raw_responses() -> None:
+    offenders = _missing_response_models(app)
     assert not offenders, "Routes missing response_model: " + ", ".join(offenders)
+
+
+def test_model_guard_respects_schema_visibility_and_no_content() -> None:
+    application = FastAPI()
+    hidden = APIRouter()
+
+    @hidden.get("/hidden", response_model=None)
+    def hidden_endpoint() -> dict[str, str]:
+        return {}
+
+    application.include_router(hidden, include_in_schema=False)
+
+    @application.delete("/empty", status_code=204)
+    def empty() -> None:
+        return None
+
+    @application.get("/typed")
+    def typed() -> dict[str, str]:
+        return {"message": "validated"}
+
+    assert _missing_response_models(application) == []
+
+
+def test_model_guard_visits_every_openapi_operation() -> None:
+    visited = {
+        (route.path_format, method.lower())
+        for route in iter_route_contexts(app.routes)
+        if isinstance(route.original_route, APIRoute) and route.include_in_schema
+        for method in route.methods or set()
+    }
+    assert visited
+    assert visited == {(path, method) for path, method, _ in _operations()}

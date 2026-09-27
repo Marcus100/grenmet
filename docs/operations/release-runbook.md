@@ -14,7 +14,7 @@ required checks on `staging` and `main` PRs.
 
 ## 1. Pre-flight on dev
 
-- `pnpm fix` then `pnpm type-check` — both clean.
+- `pnpm fix:changed` then `pnpm type-check` — both clean.
 - Run the `/pre-merge` check (types, lint, Docker names, env drift, API-client
   sync, Actions pinning). Fix findings before promoting.
 - `git status` clean, `dev` pushed.

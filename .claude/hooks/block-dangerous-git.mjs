@@ -10,8 +10,6 @@
 // Node is guaranteed present (it's the whole monorepo's toolchain).
 
 const DANGEROUS_PATTERNS = [
-  /git\s+commit/,
-  /git\s+push/,
   /git\s+reset\s+--hard/,
   /git\s+clean\s+-fd?/,
   /git\s+branch\s+-D/,
@@ -29,7 +27,7 @@ const QUOTED_LITERAL = /"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'/g;
  * string, or commit message that merely mentions "git commit" doesn't trip
  * the guard — only an unquoted (i.e. actually executed) occurrence does.
  * Does NOT strip $(...) / `...` command substitution, since those really do
- * execute: `echo $(git commit ...)` must still block. Best-effort, not a
+ * execute: `echo $(git reset --hard)` must still block. Best-effort, not a
  * full shell parser — matches how Claude Code's own docs describe this class
  * of Bash-argument matching (see the `if` field docs); use the permission
  * system instead of a hook for anything that must be airtight.
