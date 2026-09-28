@@ -2926,6 +2926,7 @@ export type {
   HrCreateTimesheetResponse,
   HrCreateTimesheetResponses,
   HrCreateTimesheetStatus201,
+  HrCreateTimesheetStatus400,
   HrCreateTimesheetStatus403,
   HrCreateTimesheetStatus422,
 } from "./models/HrCreateTimesheet.js";
@@ -3067,6 +3068,7 @@ export type {
   HrGetDepartmentTimesheetsResponse,
   HrGetDepartmentTimesheetsResponses,
   HrGetDepartmentTimesheetsStatus200,
+  HrGetDepartmentTimesheetsStatus400,
   HrGetDepartmentTimesheetsStatus403,
   HrGetDepartmentTimesheetsStatus422,
 } from "./models/HrGetDepartmentTimesheets.js";
@@ -6182,6 +6184,7 @@ export {
   hrCreateTimesheetErrorSchema,
   hrCreateTimesheetResponseSchema,
   hrCreateTimesheetStatus201Schema,
+  hrCreateTimesheetStatus400Schema,
   hrCreateTimesheetStatus403Schema,
   hrCreateTimesheetStatus422Schema,
 } from "./zod/hrCreateTimesheetSchema.js";
@@ -6317,6 +6320,7 @@ export {
   hrGetDepartmentTimesheetsQuerySizeSchema,
   hrGetDepartmentTimesheetsResponseSchema,
   hrGetDepartmentTimesheetsStatus200Schema,
+  hrGetDepartmentTimesheetsStatus400Schema,
   hrGetDepartmentTimesheetsStatus403Schema,
   hrGetDepartmentTimesheetsStatus422Schema,
 } from "./zod/hrGetDepartmentTimesheetsSchema.js";

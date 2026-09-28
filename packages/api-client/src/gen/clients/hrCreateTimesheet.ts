@@ -11,7 +11,7 @@ import type {
 } from "../models/HrCreateTimesheet.js";
 
 /**
- * @description Create a new timesheet (self or proxy). Policy controls self/proxy submission.
+ * @description Create a timesheet atomically for active employment in the filing department. Validates dates and recorded hours; links only published or closed roster assignments. Policy controls self/proxy submission.
  * @summary Create timesheet
  * {@link /api/v1/hr/timesheets}
  */

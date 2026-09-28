@@ -1060,6 +1060,7 @@ export {
   hrCreateTimesheetErrorSchema,
   hrCreateTimesheetResponseSchema,
   hrCreateTimesheetStatus201Schema,
+  hrCreateTimesheetStatus400Schema,
   hrCreateTimesheetStatus403Schema,
   hrCreateTimesheetStatus422Schema,
 } from "./hrCreateTimesheetSchema.js";
@@ -1195,6 +1196,7 @@ export {
   hrGetDepartmentTimesheetsQuerySizeSchema,
   hrGetDepartmentTimesheetsResponseSchema,
   hrGetDepartmentTimesheetsStatus200Schema,
+  hrGetDepartmentTimesheetsStatus400Schema,
   hrGetDepartmentTimesheetsStatus403Schema,
   hrGetDepartmentTimesheetsStatus422Schema,
 } from "./hrGetDepartmentTimesheetsSchema.js";

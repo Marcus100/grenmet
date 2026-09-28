@@ -7,37 +7,49 @@ import * as z from "zod";
 
 export const timesheetEntryInputSchema = z.object({
   entry_date: z.iso.date(),
-  shift_code: z.union([z.string(), z.null()]).optional(),
+  shift_code: z.union([z.string().max(10), z.null()]).optional(),
   roster_hours: z
-    .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
+    .union([
+      z.number().min(0).max(24),
+      z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d{0,2}0*$/),
+    ])
     .optional()
     .default("0.0"),
   actual_hours: z
-    .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
+    .union([
+      z.number().min(0).max(24),
+      z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d{0,2}0*$/),
+    ])
     .optional()
     .default("0.0"),
   total_hours: z
     .union([
-      z.number(),
-      z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
+      z.number().min(0).max(24),
+      z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d{0,2}0*$/),
       z.null(),
     ])
     .optional(),
   overtime_hours: z
-    .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
+    .union([
+      z.number().min(0).max(24),
+      z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d{0,2}0*$/),
+    ])
     .optional()
     .default("0.0"),
   break_hours: z
-    .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
+    .union([
+      z.number().min(0).max(24),
+      z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d{0,2}0*$/),
+    ])
     .optional()
     .default("0.0"),
   hours_worked: z
     .union([
-      z.number(),
-      z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
+      z.number().min(0).max(24),
+      z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d{0,2}0*$/),
       z.null(),
     ])
     .optional(),
   medical_certificate_attached: z.boolean().optional().default(false),
-  comments: z.union([z.string(), z.null()]).optional(),
+  comments: z.union([z.string().max(500), z.null()]).optional(),
 });

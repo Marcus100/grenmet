@@ -27,6 +27,8 @@ export const hrGetDepartmentTimesheetsQuerySizeSchema = z
 export const hrGetDepartmentTimesheetsStatus200Schema =
   timesheetListPublicSchema;
 
+export const hrGetDepartmentTimesheetsStatus400Schema = z.unknown();
+
 export const hrGetDepartmentTimesheetsStatus403Schema = z.unknown();
 
 export const hrGetDepartmentTimesheetsStatus422Schema =
@@ -38,6 +40,7 @@ export const hrGetDepartmentTimesheetsResponseSchema =
   hrGetDepartmentTimesheetsStatus200Schema;
 
 export const hrGetDepartmentTimesheetsErrorSchema = z.union([
+  hrGetDepartmentTimesheetsStatus400Schema,
   hrGetDepartmentTimesheetsStatus403Schema,
   hrGetDepartmentTimesheetsStatus422Schema,
 ]);

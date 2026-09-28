@@ -61,7 +61,7 @@ export function hrGetTimesheetSummaryQueryOptions(
 }
 
 /**
- * @description Return hours aggregated by shift code. Owner or user with timesheet.read.department over the owner.
+ * @description Return hours aggregated by shift code. Owner, explicitly named reviewer, or timesheet.read.department within the filing department. Employee transfers do not change historical access.
  * @summary Get timesheet summary by shift
  * {@link /api/v1/hr/timesheets/:timesheet_id/summary}
  */

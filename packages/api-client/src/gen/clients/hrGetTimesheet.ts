@@ -11,7 +11,7 @@ import type {
 } from "../models/HrGetTimesheet.js";
 
 /**
- * @description Return a timesheet and its entries. Owner or user with timesheet.read.department over the owner.
+ * @description Return a timesheet and its entries. Owner, explicitly named reviewer, or timesheet.read.department within the filing department. Employee transfers do not change historical access.
  * @summary Get timesheet details
  * {@link /api/v1/hr/timesheets/:timesheet_id}
  */

@@ -47,9 +47,10 @@ async def _public(session: AsyncSession, row: Timesheet) -> TimesheetPublic:
     response_model=TimesheetDetails,
     status_code=status.HTTP_201_CREATED,
     summary="Create timesheet",
-    description="Create a new timesheet (self or proxy). Policy controls self/proxy submission.",
+    description="Create a timesheet atomically for active employment in the filing department. Validates dates and recorded hours; links only published or closed roster assignments. Policy controls self/proxy submission.",
     responses={
         status.HTTP_201_CREATED: {"description": "Timesheet and entries created"},
+        status.HTTP_400_BAD_REQUEST: {"description": "Unknown or mismatched shift"},
         status.HTTP_403_FORBIDDEN: {
             "description": "Self/proxy submission disabled or not allowed for user"
         },
@@ -89,7 +90,9 @@ async def create_timesheet(
     description="Submit a draft timesheet (self or proxy). Requires timesheet.submit.self or timesheet.submit.proxy.",
     responses={
         status.HTTP_200_OK: {"description": "Timesheet submitted"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Timesheet already submitted"},
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "Timesheet already submitted or invalid stored dates, hours or roster link"
+        },
         status.HTTP_403_FORBIDDEN: {
             "description": "Not allowed (self only for own; proxy not allowed)"
         },
@@ -118,7 +121,7 @@ async def submit_timesheet(
     "/{timesheet_id}/approve",
     response_model=TimesheetPublic,
     summary="Approve timesheet",
-    description="Approve a submitted timesheet. Requires timesheet.approve and scope over the user.",
+    description="Approve a submitted timesheet. Requires timesheet.approve and scope over the filing department, or an explicitly named review stage. Workflow approval rules still apply.",
     responses={
         status.HTTP_200_OK: {"description": "Timesheet approved"},
         status.HTTP_400_BAD_REQUEST: {"description": "Timesheet is not submitted"},
@@ -169,6 +172,7 @@ async def read_my_timesheets(
     description="Return timesheets for a department. Requires timesheet.read.department permission.",
     responses={
         status.HTTP_200_OK: {"description": "Timesheets returned"},
+        status.HTTP_400_BAD_REQUEST: {"description": "Department not found"},
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
@@ -197,7 +201,7 @@ async def read_department_timesheets(
     "/{timesheet_id}/summary",
     response_model=TimesheetSummaryByShift,
     summary="Get timesheet summary by shift",
-    description="Return hours aggregated by shift code. Owner or user with timesheet.read.department over the owner.",
+    description="Return hours aggregated by shift code. Owner, explicitly named reviewer, or timesheet.read.department within the filing department. Employee transfers do not change historical access.",
     responses={
         status.HTTP_200_OK: {"description": "Summary returned"},
         status.HTTP_403_FORBIDDEN: {
@@ -220,7 +224,7 @@ async def read_timesheet_summary(
     "/{timesheet_id}",
     response_model=TimesheetDetails,
     summary="Get timesheet details",
-    description="Return a timesheet and its entries. Owner or user with timesheet.read.department over the owner.",
+    description="Return a timesheet and its entries. Owner, explicitly named reviewer, or timesheet.read.department within the filing department. Employee transfers do not change historical access.",
     responses={
         status.HTTP_200_OK: {"description": "Timesheet and entries returned"},
         status.HTTP_403_FORBIDDEN: {
