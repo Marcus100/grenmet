@@ -52,7 +52,7 @@ export function hrApproveTimesheetMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Approve a submitted timesheet. Requires timesheet.approve and scope over the user.
+ * @description Approve a submitted timesheet. Requires timesheet.approve and scope over the filing department, or an explicitly named review stage. Workflow approval rules still apply.
  * @summary Approve timesheet
  * {@link /api/v1/hr/timesheets/:timesheet_id/approve}
  */

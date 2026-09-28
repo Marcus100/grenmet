@@ -183,7 +183,7 @@ Regenerate `openapi.json` from the app object:
 
 ```bash
 cd apps/api/fastapi
-uv run --frozen --package fast-back python -c "from src.main import app; import json; json.dump(app.openapi(), open('openapi.json', 'w'), indent=2)"
+PROJECT_NAME='Grenmet API' uv run --frozen --package fast-back python -c "from src.main import app; import json; json.dump(app.openapi(), open('openapi.json', 'w'), indent=2)"
 ```
 
 This is useful before regenerating `packages/api-client`.

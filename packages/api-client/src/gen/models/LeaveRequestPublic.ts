@@ -6,10 +6,12 @@
 import type { LeaveType } from "./LeaveType.js";
 import type { ProfAppointmentType } from "./ProfAppointmentType.js";
 import type { RequestStatus } from "./RequestStatus.js";
+import type { WorkflowStatus } from "./WorkflowStatus.js";
 
 export type LeaveRequestPublic = {
   signed_document_id?: string | null;
   submitted_at?: string | null;
+  workflow_status?: WorkflowStatus | null;
   /**
    * @description
    * Format: `uuid`

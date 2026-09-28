@@ -9,6 +9,8 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrCreateTimesheetStatus201 = TimesheetDetails;
 
+export type HrCreateTimesheetStatus400 = unknown;
+
 export type HrCreateTimesheetStatus403 = unknown;
 
 /**
@@ -28,6 +30,7 @@ export type HrCreateTimesheetOptions = {
 
 export type HrCreateTimesheetResponses = {
   "201": HrCreateTimesheetStatus201;
+  "400": HrCreateTimesheetStatus400;
   "403": HrCreateTimesheetStatus403;
   "422": HrCreateTimesheetStatus422;
 };
@@ -37,5 +40,6 @@ export type HrCreateTimesheetResponses = {
  */
 export type HrCreateTimesheetResponse =
   | HrCreateTimesheetStatus201
+  | HrCreateTimesheetStatus400
   | HrCreateTimesheetStatus403
   | HrCreateTimesheetStatus422;

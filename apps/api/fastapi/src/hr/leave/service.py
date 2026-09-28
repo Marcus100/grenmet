@@ -1,6 +1,9 @@
 import logging
 import uuid
+from datetime import date
+from decimal import Decimal
 
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -17,15 +20,86 @@ from src.hr.exceptions import (
 )
 from src.hr.models import RequestStatus
 from src.hr.signatures import service as signature_service
-from src.hr.workflow.models import WorkflowInstance, WorkflowType
+from src.hr.workflow.models import WorkflowInstance, WorkflowStatus, WorkflowType
 from src.hr.workflow.service import start_workflow_for_entity, submit_draft_workflow
 from src.utils.datetime import utc_now
 
 from . import ledger
-from .models import LeaveEntryKind, LeaveRequest
+from .models import LeaveEntryKind, LeaveRequest, LeaveType, ProfAppointmentType
 from .schemas import LeaveRequestAction, LeaveRequestCreate, LeaveRequestSubmit
 
 logger = logging.getLogger(__name__)
+
+
+def validate_leave_fields(
+    *,
+    start_date: date,
+    end_date: date,
+    days_requested: Decimal,
+    leave_type: LeaveType,
+    professional_appointment_subtype: ProfAppointmentType | None,
+    reason: str | None,
+    travel_from_date: date | None,
+    travel_to_date: date | None,
+    submitting: bool,
+) -> None:
+    if end_date < start_date:
+        raise HRValidationError("End date must be on or after start date")
+    if not days_requested.is_finite() or days_requested < 0:
+        raise HRValidationError("Days requested must be a non-negative number")
+    if submitting and days_requested <= 0:
+        raise HRValidationError("Enter a positive number of days requested")
+    if submitting and leave_type == LeaveType.OTHER and not (reason or "").strip():
+        raise HRValidationError("State the reason for other leave")
+    if (
+        submitting
+        and leave_type == LeaveType.PROFESSIONAL_APPOINTMENT
+        and professional_appointment_subtype is None
+    ):
+        raise HRValidationError("Choose the professional appointment type")
+    if (travel_from_date is None) != (travel_to_date is None):
+        raise HRValidationError("Enter both travel dates or leave both blank")
+    if travel_from_date and travel_to_date and travel_to_date < travel_from_date:
+        raise HRValidationError("Travel to date must be on or after travel from date")
+
+
+async def preview_leave_request_pdf(
+    *, session: AsyncSession, current_user: User, payload: LeaveRequestCreate
+) -> bytes:
+    """Render an unsaved leave sheet through the signed document renderer."""
+    from src.baseline.service import employment_for
+
+    require_permission(
+        current_user=current_user, permission_key="leave.request.create.self"
+    )
+    employment = await employment_for(session, current_user.id)
+    if not employment or employment.department_id != payload.department_id:
+        raise HRPermissionDeniedError("Preview is limited to your department")
+    validate_leave_fields(
+        start_date=payload.start_date,
+        end_date=payload.end_date,
+        days_requested=payload.days_requested,
+        leave_type=payload.leave_type,
+        professional_appointment_subtype=payload.professional_appointment_subtype,
+        reason=payload.reason,
+        travel_from_date=payload.travel_from_date,
+        travel_to_date=payload.travel_to_date,
+        submitting=False,
+    )
+    values = payload.model_dump(
+        exclude={"as_draft", "signature_version", "co_approver_user_ids"}
+    )
+    values["user_id"] = current_user.id
+    snapshot = await signature_service.build_document_snapshot(
+        session=session,
+        actor=current_user,
+        entity_type="leave_request",
+        entity_id="DRAFT",
+        department_id=payload.department_id,
+        values=values,
+        signed_at=None,
+    )
+    return await run_in_threadpool(signature_service.render_pdf, snapshot, None)
 
 
 async def create_leave_request(
@@ -33,6 +107,17 @@ async def create_leave_request(
 ) -> LeaveRequest:
     require_permission(
         current_user=current_user, permission_key="leave.request.create.self"
+    )
+    validate_leave_fields(
+        start_date=payload.start_date,
+        end_date=payload.end_date,
+        days_requested=payload.days_requested,
+        leave_type=payload.leave_type,
+        professional_appointment_subtype=payload.professional_appointment_subtype,
+        reason=payload.reason,
+        travel_from_date=payload.travel_from_date,
+        travel_to_date=payload.travel_to_date,
+        submitting=not payload.as_draft,
     )
     from src.baseline.models import StaffCredential
     from src.baseline.service import require_ready
@@ -125,6 +210,18 @@ async def submit_leave_request(
     if leave_request.status != RequestStatus.DRAFT:
         raise HRValidationError(ERROR_LEAVE_REQUEST_NOT_DRAFT)
 
+    validate_leave_fields(
+        start_date=leave_request.start_date,
+        end_date=leave_request.end_date,
+        days_requested=leave_request.days_requested,
+        leave_type=leave_request.leave_type,
+        professional_appointment_subtype=leave_request.professional_appointment_subtype,
+        reason=leave_request.reason,
+        travel_from_date=leave_request.travel_from_date,
+        travel_to_date=leave_request.travel_to_date,
+        submitting=True,
+    )
+
     if leave_request.workflow_instance_id:
         await submit_draft_workflow(
             session=session,
@@ -189,6 +286,18 @@ async def update_leave_request(
     if leave_request.status != RequestStatus.DRAFT:
         raise HRValidationError(ERROR_LEAVE_REQUEST_NOT_DRAFT)
 
+    validate_leave_fields(
+        start_date=payload.start_date,
+        end_date=payload.end_date,
+        days_requested=payload.days_requested,
+        leave_type=payload.leave_type,
+        professional_appointment_subtype=payload.professional_appointment_subtype,
+        reason=payload.reason,
+        travel_from_date=payload.travel_from_date,
+        travel_to_date=payload.travel_to_date,
+        submitting=False,
+    )
+
     leave_request.department_id = payload.department_id
     leave_request.leave_type = payload.leave_type
     leave_request.start_date = payload.start_date
@@ -231,6 +340,12 @@ async def delete_leave_request(
         raise HRValidationError(ERROR_LEAVE_REQUEST_NOT_DRAFT)
 
     workflow_instance_id = leave_request.workflow_instance_id
+    if workflow_instance_id:
+        instance = await session.get(WorkflowInstance, workflow_instance_id)
+        if instance is not None and instance.status != WorkflowStatus.DRAFT:
+            raise HRValidationError(
+                "Previously submitted forms and approval history must be retained"
+            )
     # Delete the request first (it holds the FK to the instance), then the
     # DRAFT instance itself (a draft has no step rows to clean up).
     await session.delete(leave_request)
@@ -284,7 +399,19 @@ async def action_leave_request(
     await ledger.lock_employee(session, leave_request.user_id)
     # Re-read under the lock: a concurrent action may have resolved the request.
     await session.refresh(leave_request, attribute_names=["status"])
-    if leave_request.status in {RequestStatus.APPROVED, RequestStatus.REJECTED}:
+    if (
+        leave_request.status == RequestStatus.CANCELLED
+        and payload.status == RequestStatus.CANCELLED
+    ):
+        return leave_request
+    if leave_request.status in {
+        RequestStatus.APPROVED,
+        RequestStatus.REJECTED,
+        RequestStatus.CANCELLED,
+    } and not (
+        leave_request.status == RequestStatus.APPROVED
+        and payload.status == RequestStatus.CANCELLED
+    ):
         raise HRValidationError("Request already resolved")
     leave_request.status = payload.status
     if payload.head_of_dept_comments is not None:
@@ -301,6 +428,10 @@ async def action_leave_request(
             reason="Leave request approved",
             actor_id=current_user.id,
             leave_request_id=leave_request.id,
+        )
+    elif payload.status == RequestStatus.CANCELLED:
+        await ledger.reverse_approval(
+            session, request=leave_request, actor_id=current_user.id
         )
     await session.commit()
     await session.refresh(leave_request)

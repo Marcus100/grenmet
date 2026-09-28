@@ -18,6 +18,8 @@ export type HrIssueParkingDecalPath = {
 
 export type HrIssueParkingDecalStatus200 = ParkingPermitPublic;
 
+export type HrIssueParkingDecalStatus400 = unknown;
+
 export type HrIssueParkingDecalStatus403 = unknown;
 
 export type HrIssueParkingDecalStatus404 = unknown;
@@ -39,6 +41,7 @@ export type HrIssueParkingDecalOptions = {
 
 export type HrIssueParkingDecalResponses = {
   "200": HrIssueParkingDecalStatus200;
+  "400": HrIssueParkingDecalStatus400;
   "403": HrIssueParkingDecalStatus403;
   "404": HrIssueParkingDecalStatus404;
   "422": HrIssueParkingDecalStatus422;
@@ -49,6 +52,7 @@ export type HrIssueParkingDecalResponses = {
  */
 export type HrIssueParkingDecalResponse =
   | HrIssueParkingDecalStatus200
+  | HrIssueParkingDecalStatus400
   | HrIssueParkingDecalStatus403
   | HrIssueParkingDecalStatus404
   | HrIssueParkingDecalStatus422;

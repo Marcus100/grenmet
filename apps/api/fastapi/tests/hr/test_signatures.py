@@ -1,6 +1,7 @@
 import base64
 import hashlib
 import io
+import json
 import uuid
 from datetime import date
 
@@ -21,6 +22,7 @@ from tests.factories import (
     make_department,
     make_employee,
     make_submission_setup,
+    make_supervised_pair,
     make_user,
 )
 
@@ -58,6 +60,31 @@ def leave_payload(department_id, **extra):
 
 
 @pytest.mark.asyncio
+async def test_leave_pdf_snapshot_resolves_employee_supervisor_and_department(db_async):
+    from src.baseline.service import employment_for
+
+    supervisor, employee, department, _ = await make_supervised_pair(db_async)
+    employment = await employment_for(db_async, employee.id)
+    assert employment is not None
+    employment.supervisor_id = supervisor.id
+    db_async.add(employment)
+    await db_async.commit()
+    snapshot = await service.build_document_snapshot(
+        session=db_async,
+        actor=employee,
+        entity_type="leave_request",
+        entity_id="DRAFT",
+        department_id=department.id,
+        values={"user_id": employee.id, "start_date": date(2026, 10, 1)},
+        signed_at=None,
+    )
+    assert snapshot["form"]["employee_name"] == employee.full_name
+    assert snapshot["form"]["supervisor_name"] == supervisor.full_name
+    assert snapshot["form"]["department_name"] == department.name
+    assert snapshot["form"]["start_date"] == "2026-10-01"
+
+
+@pytest.mark.asyncio
 async def test_signed_pdf_and_audit_survive_signature_replacement_and_deletion(
     db_async,
 ):
@@ -74,6 +101,12 @@ async def test_signed_pdf_and_audit_survive_signature_replacement_and_deletion(
     assert record.pdf.startswith(b"%PDF-")
     assert hashlib.sha256(record.pdf).hexdigest() == record.sha256
     assert record.signer_id == actor.id and record.signature_version == version
+    snapshot = json.loads(record.snapshot)
+    assert snapshot["form"]["employee_name"] == actor.full_name
+    assert snapshot["form"]["department_name"] == dept.name
+    assert snapshot["form"]["start_date"] == "2026-10-01"
+    assert snapshot["form"]["end_date"] == "2026-10-02"
+    assert snapshot["signed_at"]
     original = record.pdf
     await service.save_signature(db_async, actor, signature_data("blue"))
     await service.delete_signature(db_async, actor)
@@ -108,7 +141,31 @@ async def test_draft_does_not_sign_until_explicit_submission(db_async):
             leave_request_id=draft.id,
             payload=LeaveRequestSubmit(signature_version=saved.version),
         )
-    assert (await service.list_documents(db_async, actor, 0, 20))[1] == 1
+
+
+@pytest.mark.asyncio
+async def test_incomplete_leave_draft_cannot_be_signed(db_async):
+    actor, dept, saved = await setup(db_async)
+    draft = await leave_service.create_leave_request(
+        session=db_async,
+        current_user=actor,
+        payload=LeaveRequestCreate(
+            department_id=dept.id,
+            leave_type=LeaveType.VACATION,
+            start_date=date(2026, 10, 1),
+            end_date=date(2026, 10, 2),
+            days_requested=0,
+            as_draft=True,
+        ),
+    )
+    with pytest.raises(AppException, match="positive number of days"):
+        await leave_service.submit_leave_request(
+            session=db_async,
+            current_user=actor,
+            leave_request_id=draft.id,
+            payload=LeaveRequestSubmit(signature_version=saved.version),
+        )
+    assert (await service.list_documents(db_async, actor, 0, 20))[1] == 0
 
 
 @pytest.mark.asyncio
@@ -200,6 +257,17 @@ async def test_signature_routes_are_self_only_and_download_is_private(
     dept = await make_department(db_async)
     await make_employee(db_async, user=actor, department_id=dept.id)
     await make_submission_setup(db_async, actor, dept.id, WorkflowType.LEAVE_REQUEST)
+    preview = await async_client.post(
+        "/api/v1/hr/leave-requests/preview-pdf",
+        headers=headers,
+        json=leave_payload(dept.id).model_dump(mode="json"),
+    )
+    assert preview.status_code == 200, preview.text
+    assert preview.content.startswith(b"%PDF-")
+    assert preview.headers["content-type"] == "application/pdf"
+    assert "inline" in preview.headers["content-disposition"]
+    assert "no-store" in preview.headers["cache-control"]
+    assert (await db_async.execute(select(SignedDocument))).first() is None
     submitted = await async_client.post(
         "/api/v1/hr/leave-requests",
         headers=headers,

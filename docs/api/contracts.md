@@ -260,8 +260,27 @@ reminder sweep at 10:00 UTC. Emails carry only a summary and a portal link.
 All HR routes are under `/api/v1/hr`, require an authenticated session, and are gated
 by permission keys from `src/auth/permissions.py` (`tests/auth/test_permission_registry.py`
 fails if a key used in code is missing from the catalog). Routers:
-`profile`, `rosters`, `calendar`, `timesheets`, `leave-requests`, `shift-swaps`,
+`profile`, `rosters`, `calendar`, `timesheets`, `attendance`, `leave-requests`, `shift-swaps`,
 `absentee-reports`, `status-reports`, `parking-permits`, `documents`, `workflows`.
+
+### Manual shift attendance
+
+`PUT /attendance` saves actual arrival/departure against a published work roster
+assignment. `POST /attendance/{attendance_id}/submit` starts per-shift supervisor
+review through the department `TIMESHEET` workflow. Identical saves/submits are
+idempotent; changed saves require `expected_revision`, and submitted/approved time
+is locked. Existing timesheet self/proxy permissions and subject scope apply.
+
+`GET /attendance/week?day=YYYY-MM-DD` returns the Sunday–Saturday collection,
+scheduled context, actual times, break duration, elapsed/net recorded hours and
+review status. Overnight grouping uses the roster's local shift-start date.
+Approved totals exclude pending/rejected/returned/cancelled records; hours do not
+determine payroll. `GET /attendance/week/pdf` renders the same collection in Python
+with private/no-store headers. `GET /attendance/review?attendance_id=…` (or
+`correction_id=…`) lets the owner, scoped reader/approver or named approver inspect
+retained corrections. `POST /attendance/{attendance_id}/corrections` requires a
+reason and starts a separate supervisor workflow; original time stays in effect
+until approval atomically advances its revision. See [manual attendance](../hr/manual-attendance.md).
 
 ### Department calendar
 
@@ -327,6 +346,32 @@ on the strength of these document checks alone.
 
 Draft periods are returned only to callers holding `roster.manage`, flagged
 `is_draft: true`. For everyone else a roster is not real until it is published.
+
+Roster period/grid, calendar entries and roster-linked timesheet entries include
+`availability`: `SCHEDULED`, `ABSENT`, `PARTIAL_ABSENCE`, or `LEAVE`. This is a
+read projection of approved absentee/leave records; the stored shift code and
+timesheet hours remain unchanged. Linked workflows must still be approved;
+cancelled, returned, pending and rejected reports do not supply approved markers.
+Legacy approved records without a workflow remain supported. Absence matches
+employee, filing department, local shift-start date and optional expected shift;
+paired absence times distinguish partial absence. Full absence takes precedence
+over leave, then partial absence. The department roster/grid/calendar reads check
+the caller's scoped `roster.view` access. No reason or medical notes are exposed
+by this projection. Saturday night keeps its Saturday assignment date even when
+the scheduled end is Sunday. The grid keeps the shift code and marks an approved
+exception; the calendar's Leave & absence view also includes these exceptions.
+
+Bulk assignment saves retain existing IDs so repeated grid saves/imports do not
+break timesheet or attendance links. They reject duplicate employee/date cells,
+unknown shift codes, dates outside the selected period, closed periods, and
+overwriting a cell owned by a different period. Amend the original period instead
+of importing an overlapping period over its assignments.
+
+Once attendance exists, bulk saves may retain the shift and update remarks but
+cannot replace its shift code. Material catalogue timing/category changes are
+also blocked for shifts with linked attendance; use a new code for future
+schedules. Exchange approval and reversal apply the same recorded-attendance
+guard. These checks preserve historical scheduled and actual times together.
 
 ### Local wall-clock times
 
@@ -559,8 +604,29 @@ committed with submission and remain unchanged when the saved signature changes.
 
 Signed PDFs are server-rendered submission records, including stored form fields
 and timesheet/status entries; they do not depend on browser print settings or
-editable display-only fields. Existing paper preview layouts remain available for
-unsigned drafts. Signing the submission does not apply signatures for approvers.
+editable display-only fields. `POST /api/v1/hr/leave-requests/preview-pdf`
+accepts `LeaveRequestCreate`, requires `leave.request.create.self` and an employment
+department matching the request, and returns an inline `application/pdf` with
+private, no-store caching. It saves neither a request nor a signature. The leave
+editor uses this Python renderer for its draft preview and retrieves the immutable
+signed PDF after submission. The rendered leave sheet resolves employee, supervisor
+and department names from HR records and shows dates in America/Grenada.
+
+`POST /api/v1/hr/absentee-reports/preview-pdf` similarly accepts
+`AbsenteeReportCreate`, checks `absentee.report.create` subject scope and the
+subject's employment department, and returns a private, no-store Python PDF
+without saving a report or signature. Both forms download the Python PDF rather
+than printing the editor. Absentee submission snapshots distinguish the absent
+employee from the reporter/signature owner. Drafts can save incomplete reason
+notes; creation as submitted and later submission enforce the required reasons.
+Times must be a valid paired local HH:MM interval within the expected shift, or
+both blank for a full shift; overnight times remain on the shift-start report date.
+The expected work shift is inferred from a unique published/closed roster
+assignment when omitted. Reporter-owned proxy drafts are included in the default
+list, alongside reports about the caller; department lists require scoped access.
+Other HR forms still use their existing unsigned paper previews. Signing a
+submission does not apply signatures for approvers; submission PDFs retain the
+approval state at submission, while later decisions live in the workflow.
 
 
 ## WxWatch gallery reads
@@ -1000,3 +1066,122 @@ Each link exposes only `title`, `category` and `url`; internal Payload row IDs
 are omitted. Links use existing HTTP/HTTPS destinations, not product revision
 lookups. Staff must check the destination's audience access. Existing anonymous
 publication filtering remains unchanged; no FastAPI contract changes occur.
+
+### Daily status shift reporting
+
+Daily status uses `shift_code=M|E|N`; legacy `shift_period=AM|PM` remains readable
+for compatibility. `GET /api/v1/hr/status-reports/staffing` takes department,
+local report date and shift code, returning published/closed roster staff and
+approved absence/leave availability. D assignments remain D in both M/E coverage;
+M covers arrival and E covers departure/final verification. Schedules never
+prove attendance: unconfirmed staffing is `UNCONFIRMED`, and submission requires
+confirmation of all personnel entries and operational answers. This report does
+not create or approve the employee's attendance record.
+
+Staffing also returns the linked actual attendance ID, arrival/departure and
+workflow review status. M/E coverage references the same D attendance. These
+times prefill report observations in Grenada local time; the reporter still
+confirms personnel status. Report edits never change actual attendance. The
+staffing feed omits employee attendance notes and correction reasons.
+
+`POST /api/v1/hr/status-reports/preview-pdf` renders unsaved form values in Python
+without storing a report, workflow or signature. The same renderer serves signed
+output, including original equipment/remedy and incident-report fields, resolved
+employee names, reporter, supervisor and submission timestamp. Creation, editing,
+reading, listing and staffing require scoped department access; personnel rows
+must belong to that department. Draft details return persisted personnel rows
+with resolved names, arrival/departure observations and notes.
+
+Shift exchanges: `POST /api/v1/hr/shift-swaps/preview-pdf` renders an unsaved,
+authenticated PDF with resolved department, employee, counterpart and supervisor
+names, using the same Python renderer as the immutable signed submission. It does
+not persist a request or signature. Codes are limited to 10 characters; reasons
+to 1000. Both employees must belong to the request department. Submission always
+adds the counterpart as a required first-stage approver, before the department
+approval chain; duplicates are removed and the requester cannot co-approve.
+Final approval validates published, open roster assignments again, swaps the
+employees' shift codes on the stated local start dates, and records before/after
+values and the request reference in roster revisions in the same transaction.
+Different-date exchanges require each employee to be off on the date they take
+over; same-date exchanges swap their work shifts. Approved leave/absence blocks
+the exchange. Overlap checks include adjacent overnight shifts;
+recorded actual hours and submitted/approved timesheets require an HR correction
+before roster reassignment or reversal. Permanent roster-pattern changes are not handled by this dated
+temporary-exchange journey. Pending, rejected and returned exchanges leave the
+roster intact. Scoped managers can cancel an approved exchange through its action
+route or workflow action; reversal refuses closed rosters or later roster edits
+instead of overwriting corrections. The signed submission is not rewritten by
+approval or cancellation; agreement, recommendation, decisions and dates remain
+in the workflow. A returned signed form can be corrected as a draft and re-signed as a new
+immutable revision; prior approval cycles and submitted PDFs remain available.
+
+### Recorded HR service facts
+
+Authenticated employment create/read/update, HR profile, and administrator-only
+staff setup expose optional `continuous_service_date`, `probation_end_date`,
+`probation_completed_date` and `service_details_source`. Unknown facts remain
+null. Recorded dates require an HR source; expected probation end does not imply
+completion or determine leave/pay eligibility. PATCH validates merged facts and
+preserves omitted fields. Supervisors must have active employment and accounts;
+self-supervision and reporting cycles are rejected. See
+[recorded service facts](../hr/staff-service-facts.md).
+
+### Legacy manual timesheet integrity
+
+The authenticated legacy timesheet create API verifies active employment in the
+filing department and self/proxy authorization before any policy write. Policy,
+timesheet and entries commit together. Entry dates must be unique shift start
+dates within an ordered period; recorded hours are finite, nonnegative, at most
+24 per date with two decimal places. Break duration cannot exceed actual hours,
+and recorded hours worked must equal actual hours minus break duration.
+Catalogue shifts must exist and match any linked roster assignment. Roster links
+are restricted to the filing department's published or closed periods; draft and
+foreign-department schedules are not treated as approved work. Submitted legacy
+drafts revalidate dates, hours and roster employee/date/department/shift links;
+department lists enforce organisation and department
+scope. These checks do not derive overtime entitlement or pay. New shift
+attendance is the primary arrival/departure journey; historical manual periods
+retain their existing date range rather than being rewritten into weeks.
+Historical reads, summaries and approvals use the timesheet's filing department,
+so transferring an employee does not grant the new department access to old
+records. Employees retain access to their own records, and explicitly named
+reviewers retain access to the current workflow; approvals still require
+`timesheet.approve` and the workflow's stage rules.
+
+Returned leave, absentee, exchange, daily status and parking forms become editable
+drafts while their workflow remains `RETURNED`. Resubmission uses the form's
+validated submit route and creates a fresh approval cycle; prior workflow logs
+remain intact. `workflow_status` on form responses distinguishes a returned draft.
+Signed corrections require renewed consent and append an immutable document with
+`revision` and `supersedes_document_id`. `signed_document_id` resolves to the latest
+revision; every earlier document keeps its original ID, PDF, snapshot and access
+checks, and remains in the signed-document history. Same-submission replay cannot
+append a duplicate revision. Apply `signed20260928` after `reversal20260928`.
+
+Cancelling approved leave through the scoped workflow or legacy action route
+appends one `CANCELLATION_REVERSAL` for the exact recorded `APPROVAL_DEBIT`, rather
+than recalculating from mutable form values. Pending cancellation posts no credit;
+retry cannot duplicate the reversal. No opening balance, entitlement or pay rule
+is inferred. The reversal migration is `reversal20260928`, after `staff20260928`.
+
+### Parking applications
+
+Authenticated parking applications support `POST /hr/parking-permits/preview-pdf`,
+reporter-owned `PATCH /hr/parking-permits/{id}` draft edits and
+`POST /hr/parking-permits/{id}/submit` with fresh signature consent. Python renders
+the supplied Vehicle Pass fields and original security conditions for both draft
+previews and signed evidence. Previews save no rows and use `private, no-store`.
+The employee must belong to the filing department; proxy filing uses the existing
+employee scope. Other actions need an explanation on submission; registration,
+insurance date order and issuance validity are validated.
+
+Personal lists include the employee's applications and applications filed by the
+reporter; department lists and decal issuance require active organisation and
+department scope. `POST /hr/parking-permits/{id}/issue` requires an approved
+application and approved linked workflow. Identical issuance retries preserve
+the issuer and date; changed issuance is rejected, with renewal/replacement filed
+as a new application. Issuance does not rewrite the original signed evidence.
+
+Roster writes and CSV/grid imports enforce the filing department scope and employee membership. They preserve assignment IDs and protect actual attendance and legacy recorded/submitted/approved timesheets. Catalogue and assignment locks serialize timing edits with first punches. Attendance history reads use the recorded filing department after transfers; unchanged terminal reviews reopen as a fresh cycle, retaining prior steps. Generic workflow submission cannot bypass the attendance submit route.
+
+Signed document history also uses the original filing department after an employee transfer. Department read/manage grants do not expose the former department's documents to the new department; SELF-only and expired grants cannot read another employee's history. Existing owner and named counterpart access remains available.

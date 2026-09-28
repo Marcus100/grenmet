@@ -12,6 +12,10 @@ export const employmentCreateSchema = z.object({
   position: z.union([z.string().max(150), z.null()]).optional(),
   employment_type: employmentTypeSchema.optional().default("FULL_TIME"),
   start_date: z.union([z.iso.date(), z.null()]).optional(),
+  continuous_service_date: z.union([z.iso.date(), z.null()]).optional(),
+  probation_end_date: z.union([z.iso.date(), z.null()]).optional(),
+  probation_completed_date: z.union([z.iso.date(), z.null()]).optional(),
+  service_details_source: z.union([z.string().max(500), z.null()]).optional(),
   supervisor_id: z.union([z.uuid(), z.null()]).optional(),
   work_location: z.union([z.string().max(255), z.null()]).optional(),
 });

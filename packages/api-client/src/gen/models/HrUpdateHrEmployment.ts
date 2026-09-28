@@ -18,6 +18,8 @@ export type HrUpdateHrEmploymentPath = {
 
 export type HrUpdateHrEmploymentStatus200 = UserProfilePublic;
 
+export type HrUpdateHrEmploymentStatus400 = unknown;
+
 export type HrUpdateHrEmploymentStatus403 = unknown;
 
 export type HrUpdateHrEmploymentStatus404 = unknown;
@@ -39,6 +41,7 @@ export type HrUpdateHrEmploymentOptions = {
 
 export type HrUpdateHrEmploymentResponses = {
   "200": HrUpdateHrEmploymentStatus200;
+  "400": HrUpdateHrEmploymentStatus400;
   "403": HrUpdateHrEmploymentStatus403;
   "404": HrUpdateHrEmploymentStatus404;
   "422": HrUpdateHrEmploymentStatus422;
@@ -49,6 +52,7 @@ export type HrUpdateHrEmploymentResponses = {
  */
 export type HrUpdateHrEmploymentResponse =
   | HrUpdateHrEmploymentStatus200
+  | HrUpdateHrEmploymentStatus400
   | HrUpdateHrEmploymentStatus403
   | HrUpdateHrEmploymentStatus404
   | HrUpdateHrEmploymentStatus422;

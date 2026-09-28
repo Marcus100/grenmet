@@ -96,3 +96,71 @@ it("saves a grade with incomplete personnel details and preserves account enable
     mailbox_ready: true,
   });
 });
+
+it("prefills and persists verified service facts and exposes server validation", async () => {
+  const saved: unknown[] = [];
+  const details = {
+    ...user,
+    grade_id: "GMS_SENIOR_TECH",
+    start_date: "2024-04-01",
+    continuous_service_date: "2020-04-01",
+    probation_end_date: "2024-10-01",
+    probation_completed_date: "2024-11-01",
+    service_details_source: "HR appointment and confirmation letters",
+  };
+  server.use(
+    http.get(`${BASE}/api/v1/hr/setup/staff`, () =>
+      HttpResponse.json([details])
+    ),
+    http.get(`${BASE}/api/v1/hr/setup/grades`, () =>
+      HttpResponse.json([
+        {
+          id: "GMS_SENIOR_TECH",
+          department_id: user.department_id,
+          code: "SENIOR_TECH",
+          label: "Senior Level Technician",
+          rank: 3,
+          is_active: true,
+        },
+      ])
+    ),
+    http.put(
+      `${BASE}/api/v1/hr/setup/staff/${user.user_id}`,
+      async ({ request }) => {
+        saved.push(await request.json());
+        return HttpResponse.json(
+          {
+            detail:
+              "Provide the HR source for recorded service and probation facts",
+          },
+          { status: 400 }
+        );
+      }
+    )
+  );
+  renderSetup();
+  fireEvent.click(await screen.findByText("Test Staff · draft"));
+  expect(screen.getByLabelText("Verified continuous service date")).toHaveValue(
+    "2020-04-01"
+  );
+  expect(
+    screen.getByLabelText("Verified probation completion date")
+  ).toHaveValue("2024-11-01");
+  fireEvent.change(
+    screen.getByLabelText("Verified probation completion date"),
+    { target: { value: "2024-12-01" } }
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Save staff setup" }));
+  await waitFor(() => expect(saved).toHaveLength(1));
+  expect(saved[0]).toMatchObject({
+    continuous_service_date: "2020-04-01",
+    probation_end_date: "2024-10-01",
+    probation_completed_date: "2024-12-01",
+    service_details_source: "HR appointment and confirmation letters",
+  });
+  expect(
+    await screen.findByText(
+      "Provide the HR source for recorded service and probation facts"
+    )
+  ).toBeInTheDocument();
+});

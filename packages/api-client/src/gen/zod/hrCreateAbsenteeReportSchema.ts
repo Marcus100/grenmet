@@ -10,6 +10,8 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 
 export const hrCreateAbsenteeReportStatus201Schema = absenteeReportPublicSchema;
 
+export const hrCreateAbsenteeReportStatus400Schema = z.unknown();
+
 export const hrCreateAbsenteeReportStatus403Schema = z.unknown();
 
 export const hrCreateAbsenteeReportStatus422Schema =
@@ -21,6 +23,7 @@ export const hrCreateAbsenteeReportResponseSchema =
   hrCreateAbsenteeReportStatus201Schema;
 
 export const hrCreateAbsenteeReportErrorSchema = z.union([
+  hrCreateAbsenteeReportStatus400Schema,
   hrCreateAbsenteeReportStatus403Schema,
   hrCreateAbsenteeReportStatus422Schema,
 ]);

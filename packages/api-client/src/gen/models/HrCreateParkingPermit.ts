@@ -9,6 +9,8 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrCreateParkingPermitStatus201 = ParkingPermitPublic;
 
+export type HrCreateParkingPermitStatus400 = unknown;
+
 export type HrCreateParkingPermitStatus403 = unknown;
 
 /**
@@ -28,6 +30,7 @@ export type HrCreateParkingPermitOptions = {
 
 export type HrCreateParkingPermitResponses = {
   "201": HrCreateParkingPermitStatus201;
+  "400": HrCreateParkingPermitStatus400;
   "403": HrCreateParkingPermitStatus403;
   "422": HrCreateParkingPermitStatus422;
 };
@@ -37,5 +40,6 @@ export type HrCreateParkingPermitResponses = {
  */
 export type HrCreateParkingPermitResponse =
   | HrCreateParkingPermitStatus201
+  | HrCreateParkingPermitStatus400
   | HrCreateParkingPermitStatus403
   | HrCreateParkingPermitStatus422;

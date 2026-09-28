@@ -10,9 +10,15 @@ export interface LeaveValues {
   department: string;
   employeeName: string;
   endDate: string;
+  leaveAddress: string;
   leaveType: string;
   otherReason: string;
+  professionalAppointmentSubtype: string;
+  requiresActingAppointment: boolean;
+  salaryInAdvance: boolean;
   startDate: string;
+  travelFromDate: string;
+  travelToDate: string;
 }
 
 export const LEAVE_TYPES = [
@@ -21,7 +27,6 @@ export const LEAVE_TYPES = [
   "Professional Appointment",
   "Family Bereavement",
   "Paternity Leave",
-  "Bank | Medical | Legal Dental",
   "Other",
 ];
 
@@ -31,8 +36,14 @@ export const EMPTY_LEAVE: LeaveValues = {
   daysRequested: "",
   startDate: "",
   endDate: "",
+  leaveAddress: "",
   leaveType: "Annual Vacation",
   otherReason: "",
+  professionalAppointmentSubtype: "",
+  requiresActingAppointment: false,
+  salaryInAdvance: false,
+  travelFromDate: "",
+  travelToDate: "",
 };
 
 function Row({ label, value }: { label: string; value: string }) {

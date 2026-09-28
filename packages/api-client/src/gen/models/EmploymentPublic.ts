@@ -22,6 +22,10 @@ export type EmploymentPublic = {
   position?: string | null;
   employment_type?: EmploymentType | null;
   start_date?: string | null;
+  continuous_service_date?: string | null;
+  probation_end_date?: string | null;
+  probation_completed_date?: string | null;
+  service_details_source?: string | null;
   supervisor_id?: string | null;
   work_location?: string | null;
   status?: EmploymentStatus | null;

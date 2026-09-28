@@ -6,6 +6,7 @@
 import * as z from "zod";
 
 export const personnelStatusSchema = z.enum([
+  "UNCONFIRMED",
   "PRESENT",
   "ABSENT",
   "LATE",

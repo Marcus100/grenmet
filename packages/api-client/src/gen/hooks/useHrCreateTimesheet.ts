@@ -14,6 +14,7 @@ import { hrCreateTimesheet } from "../clients/hrCreateTimesheet.js";
 import type {
   HrCreateTimesheetOptions,
   HrCreateTimesheetStatus201,
+  HrCreateTimesheetStatus400,
   HrCreateTimesheetStatus403,
   HrCreateTimesheetStatus422,
 } from "../models/HrCreateTimesheet.js";
@@ -30,7 +31,9 @@ export function hrCreateTimesheetMutationOptions<TContext = unknown>(
   return mutationOptions<
     HrCreateTimesheetStatus201,
     ResponseErrorConfig<
-      HrCreateTimesheetStatus403 | HrCreateTimesheetStatus422
+      | HrCreateTimesheetStatus400
+      | HrCreateTimesheetStatus403
+      | HrCreateTimesheetStatus422
     >,
     HrCreateTimesheetOptions,
     TContext
@@ -47,7 +50,7 @@ export function hrCreateTimesheetMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Create a new timesheet (self or proxy). Policy controls self/proxy submission.
+ * @description Create a timesheet atomically for active employment in the filing department. Validates dates and recorded hours; links only published or closed roster assignments. Policy controls self/proxy submission.
  * @summary Create timesheet
  * {@link /api/v1/hr/timesheets}
  */
@@ -56,7 +59,9 @@ export function useHrCreateTimesheet<TContext>(
     mutation?: UseMutationOptions<
       HrCreateTimesheetStatus201,
       ResponseErrorConfig<
-        HrCreateTimesheetStatus403 | HrCreateTimesheetStatus422
+        | HrCreateTimesheetStatus400
+        | HrCreateTimesheetStatus403
+        | HrCreateTimesheetStatus422
       >,
       HrCreateTimesheetOptions,
       TContext
@@ -76,7 +81,9 @@ export function useHrCreateTimesheet<TContext>(
   ) as UseMutationOptions<
     HrCreateTimesheetStatus201,
     ResponseErrorConfig<
-      HrCreateTimesheetStatus403 | HrCreateTimesheetStatus422
+      | HrCreateTimesheetStatus400
+      | HrCreateTimesheetStatus403
+      | HrCreateTimesheetStatus422
     >,
     HrCreateTimesheetOptions,
     TContext
@@ -85,7 +92,9 @@ export function useHrCreateTimesheet<TContext>(
   return useMutation<
     HrCreateTimesheetStatus201,
     ResponseErrorConfig<
-      HrCreateTimesheetStatus403 | HrCreateTimesheetStatus422
+      | HrCreateTimesheetStatus400
+      | HrCreateTimesheetStatus403
+      | HrCreateTimesheetStatus422
     >,
     HrCreateTimesheetOptions,
     TContext
@@ -99,7 +108,9 @@ export function useHrCreateTimesheet<TContext>(
   ) as UseMutationResult<
     HrCreateTimesheetStatus201,
     ResponseErrorConfig<
-      HrCreateTimesheetStatus403 | HrCreateTimesheetStatus422
+      | HrCreateTimesheetStatus400
+      | HrCreateTimesheetStatus403
+      | HrCreateTimesheetStatus422
     >,
     HrCreateTimesheetOptions,
     TContext

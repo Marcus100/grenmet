@@ -14,6 +14,7 @@ import { hrCreateLeaveRequest } from "../clients/hrCreateLeaveRequest.js";
 import type {
   HrCreateLeaveRequestOptions,
   HrCreateLeaveRequestStatus201,
+  HrCreateLeaveRequestStatus400,
   HrCreateLeaveRequestStatus403,
   HrCreateLeaveRequestStatus422,
 } from "../models/HrCreateLeaveRequest.js";
@@ -30,7 +31,9 @@ export function hrCreateLeaveRequestMutationOptions<TContext = unknown>(
   return mutationOptions<
     HrCreateLeaveRequestStatus201,
     ResponseErrorConfig<
-      HrCreateLeaveRequestStatus403 | HrCreateLeaveRequestStatus422
+      | HrCreateLeaveRequestStatus400
+      | HrCreateLeaveRequestStatus403
+      | HrCreateLeaveRequestStatus422
     >,
     HrCreateLeaveRequestOptions,
     TContext
@@ -56,7 +59,9 @@ export function useHrCreateLeaveRequest<TContext>(
     mutation?: UseMutationOptions<
       HrCreateLeaveRequestStatus201,
       ResponseErrorConfig<
-        HrCreateLeaveRequestStatus403 | HrCreateLeaveRequestStatus422
+        | HrCreateLeaveRequestStatus400
+        | HrCreateLeaveRequestStatus403
+        | HrCreateLeaveRequestStatus422
       >,
       HrCreateLeaveRequestOptions,
       TContext
@@ -76,7 +81,9 @@ export function useHrCreateLeaveRequest<TContext>(
   ) as UseMutationOptions<
     HrCreateLeaveRequestStatus201,
     ResponseErrorConfig<
-      HrCreateLeaveRequestStatus403 | HrCreateLeaveRequestStatus422
+      | HrCreateLeaveRequestStatus400
+      | HrCreateLeaveRequestStatus403
+      | HrCreateLeaveRequestStatus422
     >,
     HrCreateLeaveRequestOptions,
     TContext
@@ -85,7 +92,9 @@ export function useHrCreateLeaveRequest<TContext>(
   return useMutation<
     HrCreateLeaveRequestStatus201,
     ResponseErrorConfig<
-      HrCreateLeaveRequestStatus403 | HrCreateLeaveRequestStatus422
+      | HrCreateLeaveRequestStatus400
+      | HrCreateLeaveRequestStatus403
+      | HrCreateLeaveRequestStatus422
     >,
     HrCreateLeaveRequestOptions,
     TContext
@@ -99,7 +108,9 @@ export function useHrCreateLeaveRequest<TContext>(
   ) as UseMutationResult<
     HrCreateLeaveRequestStatus201,
     ResponseErrorConfig<
-      HrCreateLeaveRequestStatus403 | HrCreateLeaveRequestStatus422
+      | HrCreateLeaveRequestStatus400
+      | HrCreateLeaveRequestStatus403
+      | HrCreateLeaveRequestStatus422
     >,
     HrCreateLeaveRequestOptions,
     TContext

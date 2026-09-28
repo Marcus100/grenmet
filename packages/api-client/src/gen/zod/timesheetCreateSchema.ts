@@ -8,7 +8,7 @@ import { timesheetEntryInputSchema } from "./timesheetEntryInputSchema.js";
 
 export const timesheetCreateSchema = z.object({
   user_id: z.union([z.uuid(), z.null()]).optional(),
-  department_id: z.string(),
+  department_id: z.string().min(1).max(100),
   period_start: z.iso.date(),
   period_end: z.iso.date(),
   entries: z.array(timesheetEntryInputSchema).optional(),

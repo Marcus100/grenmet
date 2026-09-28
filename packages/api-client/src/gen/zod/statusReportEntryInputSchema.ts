@@ -9,7 +9,11 @@ import { personnelStatusSchema } from "./personnelStatusSchema.js";
 export const statusReportEntryInputSchema = z.object({
   user_id: z.uuid(),
   personnel_status: personnelStatusSchema,
-  arrival_time: z.union([z.string(), z.null()]).optional(),
-  departure_time: z.union([z.string(), z.null()]).optional(),
-  notes: z.union([z.string(), z.null()]).optional(),
+  arrival_time: z
+    .union([z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/), z.null()])
+    .optional(),
+  departure_time: z
+    .union([z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/), z.null()])
+    .optional(),
+  notes: z.union([z.string().max(500), z.null()]).optional(),
 });

@@ -1,7 +1,10 @@
 import logging
+import re
 import uuid
+from datetime import date, datetime, time, timedelta
 
-from sqlalchemy import func, select
+from fastapi.concurrency import run_in_threadpool
+from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
@@ -15,15 +18,155 @@ from src.hr.constants import (
 from src.hr.dependencies import get_absentee_report_or_404
 from src.hr.exceptions import HRPermissionDeniedError, HRValidationError
 from src.hr.models import RequestStatus
+from src.hr.roster.expansion import expand_shift
+from src.hr.roster.models import (
+    RosterAssignment,
+    RosterPeriod,
+    RosterPeriodStatus,
+    ShiftCatalog,
+    ShiftCategory,
+)
 from src.hr.signatures import service as signature_service
-from src.hr.workflow.models import WorkflowInstance, WorkflowType
+from src.hr.workflow.models import WorkflowInstance, WorkflowStatus, WorkflowType
 from src.hr.workflow.service import start_workflow_for_entity, submit_draft_workflow
 from src.utils.datetime import utc_now
 
-from .models import ABSENCE_REASONS_REQUIRING_NOTES, AbsenteeReport
+from .models import ABSENCE_REASONS_REQUIRING_NOTES, AbsenceReason, AbsenteeReport
 from .schemas import AbsenteeReportCreate, AbsenteeReportSubmit
 
 logger = logging.getLogger(__name__)
+
+
+async def expected_shift(
+    session: AsyncSession, user_id: uuid.UUID, department_id: str, report_date: date
+) -> str | None:
+    codes = (
+        await session.scalars(
+            select(RosterAssignment.shift_code)
+            .distinct()
+            .join(RosterPeriod, RosterAssignment.roster_period_id == RosterPeriod.id)
+            .join(ShiftCatalog, RosterAssignment.shift_code == ShiftCatalog.code)
+            .where(
+                RosterAssignment.user_id == user_id,
+                RosterAssignment.assignment_date == report_date,
+                RosterPeriod.department_id == department_id,
+                RosterPeriod.status.in_(
+                    [RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED]
+                ),
+                ShiftCatalog.category == ShiftCategory.WORK,
+            )
+        )
+    ).all()
+    return codes[0] if len(codes) == 1 else None
+
+
+async def prepare_absentee_fields(
+    session: AsyncSession, payload: AbsenteeReportCreate | AbsenteeReport
+) -> None:
+    if bool(payload.absence_start_time) != bool(payload.absence_end_time):
+        raise HRValidationError(
+            "Enter both absence times or leave both blank for the full shift"
+        )
+    for clock_time in (payload.absence_start_time, payload.absence_end_time):
+        if clock_time and not re.fullmatch(r"(?:[01]\d|2[0-3]):[0-5]\d", clock_time):
+            raise HRValidationError("Absence times must use HH:MM in local time")
+    if payload.expected_shift_code:
+        shift = await session.get(ShiftCatalog, payload.expected_shift_code)
+        if shift is None or shift.category != ShiftCategory.WORK:
+            raise HRValidationError("Choose a work shift from the shift catalogue")
+    else:
+        payload.expected_shift_code = await expected_shift(
+            session, payload.user_id, payload.department_id, payload.report_date
+        )
+    if payload.absence_start_time and payload.absence_end_time:
+        if payload.absence_start_time == payload.absence_end_time:
+            raise HRValidationError(
+                "Absence start and end must be different; leave both blank for a full shift"
+            )
+        shift = (
+            await session.get(ShiftCatalog, payload.expected_shift_code)
+            if payload.expected_shift_code
+            else None
+        )
+        interval = expand_shift(payload.report_date, shift) if shift else None
+        if interval:
+            scheduled_start, scheduled_end = interval
+            starts = datetime.combine(
+                payload.report_date, time.fromisoformat(payload.absence_start_time)
+            )
+            if shift and shift.ends_next_day and starts < scheduled_start:
+                starts += timedelta(days=1)
+            ends = datetime.combine(
+                starts.date(), time.fromisoformat(payload.absence_end_time)
+            )
+            if ends <= starts:
+                ends += timedelta(days=1)
+            if starts < scheduled_start or ends > scheduled_end:
+                raise HRValidationError(
+                    "Absence times must fall within the expected shift"
+                )
+
+
+async def validate_absentee_report(
+    *,
+    session: AsyncSession,
+    current_user: User,
+    user_id: uuid.UUID,
+    reason: AbsenceReason,
+    notes: str | None,
+    department_id: str,
+    submitting: bool = True,
+) -> None:
+    """Apply the same subject access and reason checks on every write path."""
+    if user_id != current_user.id and not await can_act_on_user(
+        session=session,
+        current_user=current_user,
+        target_user_id=user_id,
+        permission_key="absentee.report.create",
+    ):
+        raise HRPermissionDeniedError(ERROR_ABSENTEE_FILE_FOR_USER_NOT_ALLOWED)
+    if (
+        submitting
+        and reason in ABSENCE_REASONS_REQUIRING_NOTES
+        and not (notes and notes.strip())
+    ):
+        raise HRValidationError(ERROR_ABSENTEE_REASON_REQUIRES_NOTES)
+    from src.baseline import service as baseline_service
+
+    employment = await baseline_service.employment_for(session, user_id)
+    if not employment or employment.department_id != department_id:
+        raise HRPermissionDeniedError("The employee does not belong to this department")
+
+
+async def preview_absentee_report_pdf(
+    *, session: AsyncSession, current_user: User, payload: AbsenteeReportCreate
+) -> bytes:
+    require_permission(
+        current_user=current_user, permission_key="absentee.report.create"
+    )
+    await validate_absentee_report(
+        session=session,
+        current_user=current_user,
+        user_id=payload.user_id,
+        reason=payload.reason,
+        notes=payload.notes,
+        department_id=payload.department_id,
+        submitting=False,
+    )
+    await prepare_absentee_fields(session, payload)
+    values = payload.model_dump(
+        exclude={"as_draft", "signature_version", "co_approver_user_ids"}
+    )
+    snapshot = await signature_service.build_document_snapshot(
+        session=session,
+        actor=current_user,
+        entity_type="absentee_report",
+        entity_id="DRAFT",
+        department_id=payload.department_id,
+        values=values,
+        signed_at=None,
+    )
+    return await run_in_threadpool(signature_service.render_pdf, snapshot, None)
 
 
 async def create_absentee_report(
@@ -32,19 +175,16 @@ async def create_absentee_report(
     require_permission(
         current_user=current_user, permission_key="absentee.report.create"
     )
-    # Filing for another user requires dept-scoped authority over that user, not
-    # just the flat create permission (mirrors the timesheet proxy pattern).
-    if payload.user_id != current_user.id and not await can_act_on_user(
+    await validate_absentee_report(
         session=session,
         current_user=current_user,
-        target_user_id=payload.user_id,
-        permission_key="absentee.report.create",
-    ):
-        raise HRPermissionDeniedError(ERROR_ABSENTEE_FILE_FOR_USER_NOT_ALLOWED)
-    if payload.reason in ABSENCE_REASONS_REQUIRING_NOTES and not (
-        payload.notes and payload.notes.strip()
-    ):
-        raise HRValidationError(ERROR_ABSENTEE_REASON_REQUIRES_NOTES)
+        user_id=payload.user_id,
+        reason=payload.reason,
+        notes=payload.notes,
+        department_id=payload.department_id,
+        submitting=not payload.as_draft,
+    )
+    await prepare_absentee_fields(session, payload)
     report = AbsenteeReport(
         user_id=payload.user_id,
         department_id=payload.department_id,
@@ -112,6 +252,16 @@ async def submit_absentee_report(
     if report.status != RequestStatus.DRAFT:
         raise HRValidationError(ERROR_ABSENTEE_REPORT_NOT_DRAFT)
 
+    await validate_absentee_report(
+        session=session,
+        current_user=current_user,
+        user_id=report.user_id,
+        reason=report.reason,
+        notes=report.notes,
+        department_id=report.department_id,
+    )
+    await prepare_absentee_fields(session, report)
+
     if report.workflow_instance_id:
         await submit_draft_workflow(
             session=session,
@@ -173,6 +323,20 @@ async def update_absentee_report(
     if report.status != RequestStatus.DRAFT:
         raise HRValidationError(ERROR_ABSENTEE_REPORT_NOT_DRAFT)
 
+    await validate_absentee_report(
+        session=session,
+        current_user=current_user,
+        user_id=payload.user_id,
+        reason=payload.reason,
+        notes=payload.notes,
+        department_id=payload.department_id,
+        submitting=not payload.as_draft,
+    )
+
+    if payload.department_id != report.department_id:
+        raise HRValidationError("A draft cannot change its workflow department")
+    await prepare_absentee_fields(session, payload)
+
     report.user_id = payload.user_id
     report.department_id = payload.department_id
     report.report_date = payload.report_date
@@ -208,6 +372,12 @@ async def delete_absentee_report(
         raise HRValidationError(ERROR_ABSENTEE_REPORT_NOT_DRAFT)
 
     workflow_instance_id = report.workflow_instance_id
+    if workflow_instance_id:
+        instance = await session.get(WorkflowInstance, workflow_instance_id)
+        if instance is not None and instance.status != WorkflowStatus.DRAFT:
+            raise HRValidationError(
+                "Previously submitted forms and approval history must be retained"
+            )
     # Delete the report first (it holds the FK to the instance), then the
     # DRAFT instance itself (a draft has no step rows to clean up).
     await session.delete(report)
@@ -232,9 +402,24 @@ async def list_absentee_reports(
             current_user=current_user,
             permission_key="absentee.report.read.department",
         )
+        from src.hr import organisations
+
+        department = await organisations.department_for(session, department_id)
+        await organisations.require_organisation_permission(
+            session,
+            current_user,
+            department.organisation_id,
+            "absentee.report.read.department",
+            department_id,
+        )
         statement = statement.where(AbsenteeReport.department_id == department_id)
     else:
-        statement = statement.where(AbsenteeReport.user_id == current_user.id)
+        statement = statement.where(
+            or_(
+                AbsenteeReport.user_id == current_user.id,
+                AbsenteeReport.submitted_by_user_id == current_user.id,
+            )
+        )
     total = await session.scalar(select(func.count()).select_from(statement.subquery()))
     result = await session.execute(
         statement.order_by(AbsenteeReport.created_at.desc()).offset(skip).limit(limit)

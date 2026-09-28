@@ -609,6 +609,21 @@ export {
   useHrGetAbsenteeReports,
 } from "./useHrGetAbsenteeReports.js";
 export {
+  hrGetAttendanceReviewQueryKey,
+  hrGetAttendanceReviewQueryOptions,
+  useHrGetAttendanceReview,
+} from "./useHrGetAttendanceReview.js";
+export {
+  hrGetAttendanceWeekQueryKey,
+  hrGetAttendanceWeekQueryOptions,
+  useHrGetAttendanceWeek,
+} from "./useHrGetAttendanceWeek.js";
+export {
+  hrGetAttendanceWeekPdfQueryKey,
+  hrGetAttendanceWeekPdfQueryOptions,
+  useHrGetAttendanceWeekPdf,
+} from "./useHrGetAttendanceWeekPdf.js";
+export {
   hrGetDepartmentTimesheetsQueryKey,
   hrGetDepartmentTimesheetsQueryOptions,
   useHrGetDepartmentTimesheets,
@@ -744,6 +759,11 @@ export {
   useHrGetStatusReports,
 } from "./useHrGetStatusReports.js";
 export {
+  hrGetStatusStaffingQueryKey,
+  hrGetStatusStaffingQueryOptions,
+  useHrGetStatusStaffing,
+} from "./useHrGetStatusStaffing.js";
+export {
   hrGetTemplatesQueryKey,
   hrGetTemplatesQueryOptions,
   useHrGetTemplates,
@@ -849,15 +869,45 @@ export {
   useHrPatchDocument,
 } from "./useHrPatchDocument.js";
 export {
+  hrPreviewAbsenteeReportPdfMutationKey,
+  hrPreviewAbsenteeReportPdfMutationOptions,
+  useHrPreviewAbsenteeReportPdf,
+} from "./useHrPreviewAbsenteeReportPdf.js";
+export {
   hrPreviewCatalogueQueryKey,
   hrPreviewCatalogueQueryOptions,
   useHrPreviewCatalogue,
 } from "./useHrPreviewCatalogue.js";
 export {
+  hrPreviewLeaveRequestPdfMutationKey,
+  hrPreviewLeaveRequestPdfMutationOptions,
+  useHrPreviewLeaveRequestPdf,
+} from "./useHrPreviewLeaveRequestPdf.js";
+export {
   hrPreviewOrganisationQueryKey,
   hrPreviewOrganisationQueryOptions,
   useHrPreviewOrganisation,
 } from "./useHrPreviewOrganisation.js";
+export {
+  hrPreviewParkingPermitPdfMutationKey,
+  hrPreviewParkingPermitPdfMutationOptions,
+  useHrPreviewParkingPermitPdf,
+} from "./useHrPreviewParkingPermitPdf.js";
+export {
+  hrPreviewShiftSwapPdfMutationKey,
+  hrPreviewShiftSwapPdfMutationOptions,
+  useHrPreviewShiftSwapPdf,
+} from "./useHrPreviewShiftSwapPdf.js";
+export {
+  hrPreviewStatusReportPdfMutationKey,
+  hrPreviewStatusReportPdfMutationOptions,
+  useHrPreviewStatusReportPdf,
+} from "./useHrPreviewStatusReportPdf.js";
+export {
+  hrProposeAttendanceCorrectionMutationKey,
+  hrProposeAttendanceCorrectionMutationOptions,
+  useHrProposeAttendanceCorrection,
+} from "./useHrProposeAttendanceCorrection.js";
 export {
   hrPublishPeriodMutationKey,
   hrPublishPeriodMutationOptions,
@@ -868,6 +918,11 @@ export {
   hrRemoveHolidayMutationOptions,
   useHrRemoveHoliday,
 } from "./useHrRemoveHoliday.js";
+export {
+  hrSaveAttendanceMutationKey,
+  hrSaveAttendanceMutationOptions,
+  useHrSaveAttendance,
+} from "./useHrSaveAttendance.js";
 export {
   hrSaveMySignatureMutationKey,
   hrSaveMySignatureMutationOptions,
@@ -884,10 +939,20 @@ export {
   useHrSubmitAbsenteeReport,
 } from "./useHrSubmitAbsenteeReport.js";
 export {
+  hrSubmitAttendanceMutationKey,
+  hrSubmitAttendanceMutationOptions,
+  useHrSubmitAttendance,
+} from "./useHrSubmitAttendance.js";
+export {
   hrSubmitLeaveRequestMutationKey,
   hrSubmitLeaveRequestMutationOptions,
   useHrSubmitLeaveRequest,
 } from "./useHrSubmitLeaveRequest.js";
+export {
+  hrSubmitParkingPermitMutationKey,
+  hrSubmitParkingPermitMutationOptions,
+  useHrSubmitParkingPermit,
+} from "./useHrSubmitParkingPermit.js";
 export {
   hrSubmitShiftSwapMutationKey,
   hrSubmitShiftSwapMutationOptions,
@@ -938,6 +1003,11 @@ export {
   hrUpdateLeaveRequestMutationOptions,
   useHrUpdateLeaveRequest,
 } from "./useHrUpdateLeaveRequest.js";
+export {
+  hrUpdateParkingPermitMutationKey,
+  hrUpdateParkingPermitMutationOptions,
+  useHrUpdateParkingPermit,
+} from "./useHrUpdateParkingPermit.js";
 export {
   hrUpdateProductPolicyMutationKey,
   hrUpdateProductPolicyMutationOptions,

@@ -36,6 +36,10 @@ from src.cap.models import (  # noqa: F401
 )
 from src.config import settings
 from src.hr.absentee.models import AbsenteeReport  # noqa: F401
+from src.hr.attendance.models import (  # noqa: F401
+    AttendanceCorrection,
+    AttendanceRecord,
+)
 from src.hr.calendar.models import CalendarEvent  # noqa: F401
 from src.hr.dailystatus.models import StatusReport, StatusReportEntry  # noqa: F401
 from src.hr.documents.models import EmployeeDocument  # noqa: F401

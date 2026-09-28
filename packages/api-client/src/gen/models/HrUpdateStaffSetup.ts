@@ -18,6 +18,8 @@ export type HrUpdateStaffSetupPath = {
 
 export type HrUpdateStaffSetupStatus200 = Message;
 
+export type HrUpdateStaffSetupStatus400 = unknown;
+
 export type HrUpdateStaffSetupStatus403 = unknown;
 
 export type HrUpdateStaffSetupStatus404 = unknown;
@@ -41,6 +43,7 @@ export type HrUpdateStaffSetupOptions = {
 
 export type HrUpdateStaffSetupResponses = {
   "200": HrUpdateStaffSetupStatus200;
+  "400": HrUpdateStaffSetupStatus400;
   "403": HrUpdateStaffSetupStatus403;
   "404": HrUpdateStaffSetupStatus404;
   "409": HrUpdateStaffSetupStatus409;
@@ -52,6 +55,7 @@ export type HrUpdateStaffSetupResponses = {
  */
 export type HrUpdateStaffSetupResponse =
   | HrUpdateStaffSetupStatus200
+  | HrUpdateStaffSetupStatus400
   | HrUpdateStaffSetupStatus403
   | HrUpdateStaffSetupStatus404
   | HrUpdateStaffSetupStatus409

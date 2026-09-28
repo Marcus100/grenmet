@@ -86,6 +86,10 @@ class EmploymentCreate(BaseModel):
     position: str | None = Field(default=None, max_length=150)
     employment_type: EmploymentType = EmploymentType.FULL_TIME
     start_date: date | None = None
+    continuous_service_date: date | None = None
+    probation_end_date: date | None = None
+    probation_completed_date: date | None = None
+    service_details_source: str | None = Field(default=None, max_length=500)
     supervisor_id: uuid.UUID | None = None
     work_location: str | None = Field(default=None, max_length=255)
 
@@ -99,6 +103,10 @@ class EmploymentRecordPublic(BaseModel):
     position: str | None = None
     employment_type: EmploymentType | None = None
     start_date: date | None = None
+    continuous_service_date: date | None = None
+    probation_end_date: date | None = None
+    probation_completed_date: date | None = None
+    service_details_source: str | None = Field(default=None, max_length=500)
     supervisor_id: uuid.UUID | None = None
     work_location: str | None = None
     status: EmploymentStatus
@@ -142,6 +150,10 @@ class EmploymentPublic(BaseModel):
     position: str | None = None
     employment_type: EmploymentType | None = None
     start_date: date | None = None
+    continuous_service_date: date | None = None
+    probation_end_date: date | None = None
+    probation_completed_date: date | None = None
+    service_details_source: str | None = Field(default=None, max_length=500)
     supervisor_id: uuid.UUID | None = None
     work_location: str | None = None
     status: EmploymentStatus | None = None
@@ -248,6 +260,10 @@ class EmploymentUpdate(BaseModel):
     position: str | None = Field(default=None, max_length=150)
     employment_type: EmploymentType | None = None
     start_date: date | None = None
+    continuous_service_date: date | None = None
+    probation_end_date: date | None = None
+    probation_completed_date: date | None = None
+    service_details_source: str | None = Field(default=None, max_length=500)
     supervisor_id: uuid.UUID | None = None
     work_location: str | None = Field(default=None, max_length=255)
     status: EmploymentStatus | None = None

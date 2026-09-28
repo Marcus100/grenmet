@@ -14,6 +14,7 @@ import { hrUpdateHrEmployment } from "../clients/hrUpdateHrEmployment.js";
 import type {
   HrUpdateHrEmploymentOptions,
   HrUpdateHrEmploymentStatus200,
+  HrUpdateHrEmploymentStatus400,
   HrUpdateHrEmploymentStatus403,
   HrUpdateHrEmploymentStatus404,
   HrUpdateHrEmploymentStatus422,
@@ -31,6 +32,7 @@ export function hrUpdateHrEmploymentMutationOptions<TContext = unknown>(
   return mutationOptions<
     HrUpdateHrEmploymentStatus200,
     ResponseErrorConfig<
+      | HrUpdateHrEmploymentStatus400
       | HrUpdateHrEmploymentStatus403
       | HrUpdateHrEmploymentStatus404
       | HrUpdateHrEmploymentStatus422
@@ -51,7 +53,7 @@ export function hrUpdateHrEmploymentMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Update a user's employment record and approval authority. Supervisor or admin only.
+ * @description Update employment, approval authority and verified service/probation facts with their HR source. Scoped supervisor or admin only; no inferred eligibility.
  * @summary Update employment (admin)
  * {@link /api/v1/hr/employment/:user_id}
  */
@@ -60,6 +62,7 @@ export function useHrUpdateHrEmployment<TContext>(
     mutation?: UseMutationOptions<
       HrUpdateHrEmploymentStatus200,
       ResponseErrorConfig<
+        | HrUpdateHrEmploymentStatus400
         | HrUpdateHrEmploymentStatus403
         | HrUpdateHrEmploymentStatus404
         | HrUpdateHrEmploymentStatus422
@@ -82,6 +85,7 @@ export function useHrUpdateHrEmployment<TContext>(
   ) as UseMutationOptions<
     HrUpdateHrEmploymentStatus200,
     ResponseErrorConfig<
+      | HrUpdateHrEmploymentStatus400
       | HrUpdateHrEmploymentStatus403
       | HrUpdateHrEmploymentStatus404
       | HrUpdateHrEmploymentStatus422
@@ -93,6 +97,7 @@ export function useHrUpdateHrEmployment<TContext>(
   return useMutation<
     HrUpdateHrEmploymentStatus200,
     ResponseErrorConfig<
+      | HrUpdateHrEmploymentStatus400
       | HrUpdateHrEmploymentStatus403
       | HrUpdateHrEmploymentStatus404
       | HrUpdateHrEmploymentStatus422
@@ -109,6 +114,7 @@ export function useHrUpdateHrEmployment<TContext>(
   ) as UseMutationResult<
     HrUpdateHrEmploymentStatus200,
     ResponseErrorConfig<
+      | HrUpdateHrEmploymentStatus400
       | HrUpdateHrEmploymentStatus403
       | HrUpdateHrEmploymentStatus404
       | HrUpdateHrEmploymentStatus422

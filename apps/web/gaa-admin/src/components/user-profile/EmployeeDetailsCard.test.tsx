@@ -21,7 +21,7 @@ describe("employee details", () => {
     );
     expect(screen.getByText("Senior Technician")).toBeInTheDocument();
     expect(screen.getByText(PENDING_DETAILS)).toBeInTheDocument();
-    expect(screen.getAllByText("Not recorded")).toHaveLength(5);
+    expect(screen.getAllByText("Not recorded")).toHaveLength(9);
   });
   it("shows recorded employee and supervisor information", () => {
     render(
@@ -31,11 +31,17 @@ describe("employee details", () => {
           employment_type: "FULL_TIME",
           start_date: "2020-01-01",
           supervisor_name: "Recorded Supervisor",
+          continuous_service_date: "2018-01-01",
+          probation_completed_date: "2020-06-01",
+          service_details_source: "HR confirmation letter",
           details_complete: true,
         }}
       />
     );
     expect(screen.getByText("E-001")).toBeInTheDocument();
+    expect(screen.getByText("2018-01-01")).toBeInTheDocument();
+    expect(screen.getByText("2020-06-01")).toBeInTheDocument();
+    expect(screen.getByText("HR confirmation letter")).toBeInTheDocument();
     expect(screen.getByText("Recorded Supervisor")).toBeInTheDocument();
     expect(screen.queryByText(PENDING_DETAILS)).not.toBeInTheDocument();
   });

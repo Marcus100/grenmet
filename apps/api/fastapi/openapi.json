@@ -2213,7 +2213,7 @@
           "hr"
         ],
         "summary": "Update employment (admin)",
-        "description": "Update a user's employment record and approval authority. Supervisor or admin only.",
+        "description": "Update employment, approval authority and verified service/probation facts with their HR source. Scoped supervisor or admin only; no inferred eligibility.",
         "operationId": "hrUpdateHrEmployment",
         "security": [
           {
@@ -2262,6 +2262,9 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid supervisor or recorded service facts"
           },
           "403": {
             "description": "Insufficient permission"
@@ -3101,7 +3104,7 @@
           "hr-rosters"
         ],
         "summary": "Bulk upsert roster assignments",
-        "description": "Create or replace roster assignments for a period. Requires roster.manage permission.",
+        "description": "Create or update roster assignments while preserving linked row IDs. Requires roster.manage permission. Rejects closed periods, invalid dates/codes, duplicate employee dates and cross-period overwrite.",
         "operationId": "hrBulkAssignments",
         "requestBody": {
           "content": {
@@ -3137,6 +3140,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid batch or roster conflict"
           },
           "404": {
             "description": "Roster period not found"
@@ -4067,7 +4073,7 @@
           "hr-timesheets"
         ],
         "summary": "Create timesheet",
-        "description": "Create a new timesheet (self or proxy). Policy controls self/proxy submission.",
+        "description": "Create a timesheet atomically for active employment in the filing department. Validates dates and recorded hours; links only published or closed roster assignments. Policy controls self/proxy submission.",
         "operationId": "hrCreateTimesheet",
         "requestBody": {
           "content": {
@@ -4099,6 +4105,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Unknown or mismatched shift"
           },
           "403": {
             "description": "Self/proxy submission disabled or not allowed for user"
@@ -4168,7 +4177,7 @@
             "description": "Unprocessable Content"
           },
           "400": {
-            "description": "Timesheet already submitted"
+            "description": "Timesheet already submitted or invalid stored dates, hours or roster link"
           },
           "403": {
             "description": "Not allowed (self only for own; proxy not allowed)"
@@ -4185,7 +4194,7 @@
           "hr-timesheets"
         ],
         "summary": "Approve timesheet",
-        "description": "Approve a submitted timesheet. Requires timesheet.approve and scope over the user.",
+        "description": "Approve a submitted timesheet. Requires timesheet.approve and scope over the filing department, or an explicitly named review stage. Workflow approval rules still apply.",
         "operationId": "hrApproveTimesheet",
         "security": [
           {
@@ -4375,6 +4384,9 @@
             },
             "description": "Unprocessable Content"
           },
+          "400": {
+            "description": "Department not found"
+          },
           "403": {
             "description": "Insufficient permission"
           }
@@ -4387,7 +4399,7 @@
           "hr-timesheets"
         ],
         "summary": "Get timesheet summary by shift",
-        "description": "Return hours aggregated by shift code. Owner or user with timesheet.read.department over the owner.",
+        "description": "Return hours aggregated by shift code. Owner, explicitly named reviewer, or timesheet.read.department within the filing department. Employee transfers do not change historical access.",
         "operationId": "hrGetTimesheetSummary",
         "security": [
           {
@@ -4442,7 +4454,7 @@
           "hr-timesheets"
         ],
         "summary": "Get timesheet details",
-        "description": "Return a timesheet and its entries. Owner or user with timesheet.read.department over the owner.",
+        "description": "Return a timesheet and its entries. Owner, explicitly named reviewer, or timesheet.read.department within the filing department. Employee transfers do not change historical access.",
         "operationId": "hrGetTimesheet",
         "security": [
           {
@@ -4487,6 +4499,447 @@
           },
           "404": {
             "description": "Timesheet not found"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance/week/pdf": {
+      "get": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Download weekly shift timesheet PDF",
+        "description": "Python-rendered weekly attendance collection using the same authenticated scope as the weekly read. Shows actual times and supervisor review; approved total excludes unapproved records. No payroll inference or signed-document creation.",
+        "operationId": "hrGetAttendanceWeekPdf",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "day",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Day"
+            }
+          },
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Department Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Weekly timesheet PDF",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid attendance or roster context"
+          },
+          "403": {
+            "description": "Employee or department access denied"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale revision, locked review, or approval workflow not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance/review": {
+      "get": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Read attendance and correction history for review",
+        "description": "Owner, scoped timesheet reader/approver or named approver can inspect actual times and retained correction proposals. Supply attendance_id or correction_id.",
+        "operationId": "hrGetAttendanceReview",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "attendance_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Attendance Id"
+            }
+          },
+          {
+            "name": "correction_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Correction Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttendanceReviewPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid attendance or roster context"
+          },
+          "403": {
+            "description": "Employee or department access denied"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale revision, locked review, or approval workflow not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance/week": {
+      "get": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Read shift attendance for a GAA week",
+        "description": "Returns published roster work shifts and actual attendance, Sunday through Saturday. A night shift belongs to its local scheduled start date. Department reads require scoped timesheet.read.department.",
+        "operationId": "hrGetAttendanceWeek",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "day",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Day"
+            }
+          },
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Department Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttendanceWeekPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid attendance or roster context"
+          },
+          "403": {
+            "description": "Employee or department access denied"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale revision, locked review, or approval workflow not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance": {
+      "put": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Save employee arrival and departure",
+        "description": "Records actual attendance against a published work shift. Uses existing self/proxy timesheet permissions. Identical retries are idempotent; changed records require their latest revision.",
+        "operationId": "hrSaveAttendance",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttendanceSave"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttendanceShiftPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid attendance or roster context"
+          },
+          "403": {
+            "description": "Employee or department access denied"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale revision, locked review, or approval workflow not configured"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/attendance/{attendance_id}/submit": {
+      "post": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Submit completed attendance for supervisor review",
+        "description": "Starts the department TIMESHEET approval workflow for this completed shift. The employee cannot approve their own attendance; retries reuse the same workflow.",
+        "operationId": "hrSubmitAttendance",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "attendance_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Attendance Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttendanceSubmit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttendanceShiftPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid attendance or roster context"
+          },
+          "403": {
+            "description": "Employee or department access denied"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale revision, locked review, or approval workflow not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance/{attendance_id}/corrections": {
+      "post": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Propose an attendance correction",
+        "description": "Preserves original arrival/departure while a reasoned correction awaits the department TIMESHEET supervisor workflow. Approval atomically replaces actual time and advances the revision; rejected proposals do not change hours.",
+        "operationId": "hrProposeAttendanceCorrection",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "attendance_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Attendance Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttendanceCorrectionCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttendanceCorrectionPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid attendance or roster context"
+          },
+          "403": {
+            "description": "Employee or department access denied"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale revision, locked review, or approval workflow not configured"
           }
         }
       }
@@ -5063,6 +5516,51 @@
         }
       }
     },
+    "/api/v1/hr/leave-requests/preview-pdf": {
+      "post": {
+        "tags": [
+          "hr-leave"
+        ],
+        "summary": "Preview a leave request PDF",
+        "description": "Render an unsaved leave application using the same Python renderer as the signed PDF. No request or signature is stored.",
+        "operationId": "hrPreviewLeaveRequestPdf",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeaveRequestCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Draft PDF preview",
+            "content": {
+              "application/json": {
+                "schema": {}
+              },
+              "application/pdf": {}
+            }
+          },
+          "422": {
+            "description": "Invalid leave request fields"
+          },
+          "400": {
+            "description": "Invalid date order, day count or travel dates"
+          },
+          "403": {
+            "description": "Permission or department mismatch"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/hr/leave-requests": {
       "post": {
         "tags": [
@@ -5101,6 +5599,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid leave request fields"
           },
           "403": {
             "description": "Insufficient permission"
@@ -5170,7 +5671,7 @@
             "description": "Unprocessable Content"
           },
           "400": {
-            "description": "Leave request is not a draft"
+            "description": "Leave request is not a draft or required fields are invalid"
           },
           "403": {
             "description": "Not allowed to submit this leave request"
@@ -5429,6 +5930,51 @@
         }
       }
     },
+    "/api/v1/hr/absentee-reports/preview-pdf": {
+      "post": {
+        "tags": [
+          "hr-absentee"
+        ],
+        "summary": "Preview an absentee report PDF",
+        "description": "Render an unsaved absentee report with the Python signed-document renderer. Requires scoped absentee.report.create access. Stores no report or signature.",
+        "operationId": "hrPreviewAbsenteeReportPdf",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AbsenteeReportCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Draft PDF preview",
+            "content": {
+              "application/json": {
+                "schema": {}
+              },
+              "application/pdf": {}
+            }
+          },
+          "422": {
+            "description": "Invalid report fields"
+          },
+          "400": {
+            "description": "Invalid shift or absence times"
+          },
+          "403": {
+            "description": "Employee or department is outside the reporter's scope"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/hr/absentee-reports": {
       "post": {
         "tags": [
@@ -5473,6 +6019,9 @@
             },
             "description": "Unprocessable Content"
           },
+          "400": {
+            "description": "Required reason details are missing"
+          },
           "403": {
             "description": "Insufficient permission"
           }
@@ -5483,7 +6032,7 @@
           "hr-absentee"
         ],
         "summary": "List absentee reports",
-        "description": "List absentee reports (own or by department). Department filter requires absentee.report.read.department.",
+        "description": "List reports about the current employee or filed by them. A department filter requires scoped absentee.report.read.department access.",
         "operationId": "hrGetAbsenteeReports",
         "security": [
           {
@@ -5747,6 +6296,55 @@
         }
       }
     },
+    "/api/v1/hr/shift-swaps/preview-pdf": {
+      "post": {
+        "tags": [
+          "hr-exchange"
+        ],
+        "summary": "Preview a shift exchange PDF",
+        "description": "Render unsaved exchange values with resolved employee names without creating a request or signature.",
+        "operationId": "hrPreviewShiftSwapPdf",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShiftSwapRequestCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Draft PDF",
+            "content": {
+              "application/pdf": {}
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid exchange"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/hr/shift-swaps/me": {
       "get": {
         "tags": [
@@ -5854,6 +6452,9 @@
           },
           "403": {
             "description": "Insufficient permission"
+          },
+          "400": {
+            "description": "Invalid participants or roster conflict"
           }
         },
         "security": [
@@ -6109,8 +6710,139 @@
           },
           "404": {
             "description": "Shift swap request not found"
+          },
+          "400": {
+            "description": "Invalid stage action or changed roster"
           }
         }
+      }
+    },
+    "/api/v1/hr/status-reports/staffing": {
+      "get": {
+        "tags": [
+          "hr-dailystatus"
+        ],
+        "summary": "Get planned shift staffing",
+        "description": "Published or closed roster staff and approved exceptions for the local M/E/N shift start date. Scheduled staffing does not establish actual attendance. Requires scoped status.report.create permission.",
+        "operationId": "hrGetStatusStaffing",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Department Id"
+            }
+          },
+          {
+            "name": "report_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Report Date"
+            }
+          },
+          {
+            "name": "shift_code",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Shift Code"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusStaffingPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid reporting shift"
+          },
+          "403": {
+            "description": "Department access denied"
+          },
+          "404": {
+            "description": "Department not found"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/status-reports/preview-pdf": {
+      "post": {
+        "tags": [
+          "hr-dailystatus"
+        ],
+        "summary": "Preview a daily status report PDF",
+        "description": "Render unsaved status values using the signed-document Python renderer. No report, workflow or signature is saved. Requires scoped status.report.create permission.",
+        "operationId": "hrPreviewStatusReportPdf",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusReportCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/pdf": {}
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid report values"
+          },
+          "403": {
+            "description": "Department access denied"
+          },
+          "404": {
+            "description": "Department not found"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
       }
     },
     "/api/v1/hr/status-reports": {
@@ -6119,7 +6851,7 @@
           "hr-dailystatus"
         ],
         "summary": "Create status report",
-        "description": "Create a status report with optional personnel entries. Requires status.report.create permission.",
+        "description": "Create a scoped shift status report with persisted personnel entries. M/E/N submission requires confirmed operational answers and personnel status. Requires status.report.create permission.",
         "operationId": "hrCreateStatusReport",
         "security": [
           {
@@ -6156,6 +6888,9 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid personnel or operational answers"
           },
           "403": {
             "description": "Insufficient permission"
@@ -6303,7 +7038,7 @@
             "description": "Unprocessable Content"
           },
           "400": {
-            "description": "Status report is not a draft"
+            "description": "Status report is not a draft or contains invalid personnel or operational answers"
           },
           "403": {
             "description": "Not allowed to submit this status report"
@@ -6371,7 +7106,7 @@
             "description": "Unprocessable Content"
           },
           "400": {
-            "description": "Status report is not a draft"
+            "description": "Status report is not a draft or contains invalid personnel or operational answers"
           },
           "403": {
             "description": "Not allowed to edit this status report"
@@ -6420,7 +7155,7 @@
             "description": "Unprocessable Content"
           },
           "400": {
-            "description": "Status report is not a draft"
+            "description": "Status report is not a draft or contains invalid personnel or operational answers"
           },
           "403": {
             "description": "Not allowed to delete this status report"
@@ -6484,6 +7219,184 @@
         }
       }
     },
+    "/api/v1/hr/parking-permits/preview-pdf": {
+      "post": {
+        "tags": [
+          "hr-parking"
+        ],
+        "summary": "Preview parking application PDF",
+        "description": "Render the scoped draft application without saving or signing it.",
+        "operationId": "hrPreviewParkingPermitPdf",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParkingPermitCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Draft PDF",
+            "content": {
+              "application/pdf": {}
+            }
+          },
+          "422": {
+            "description": "Invalid fields"
+          },
+          "400": {
+            "description": "Invalid application"
+          },
+          "403": {
+            "description": "Subject outside scope"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/parking-permits/{permit_id}": {
+      "patch": {
+        "tags": [
+          "hr-parking"
+        ],
+        "summary": "Edit a parking application draft",
+        "description": "Reporter-owned draft edits retain the workflow department.",
+        "operationId": "hrUpdateParkingPermit",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "permit_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Permit Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParkingPermitCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParkingPermitPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Application is not editable"
+          },
+          "403": {
+            "description": "Subject outside scope"
+          },
+          "404": {
+            "description": "Application not found"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/parking-permits/{permit_id}/submit": {
+      "post": {
+        "tags": [
+          "hr-parking"
+        ],
+        "summary": "Submit a parking application draft",
+        "description": "Submit a reporter-owned draft to the configured approval workflow, with optional fresh saved-signature consent.",
+        "operationId": "hrSubmitParkingPermit",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "permit_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Permit Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParkingPermitSubmit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParkingPermitPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid draft or workflow"
+          },
+          "403": {
+            "description": "Subject outside scope"
+          },
+          "404": {
+            "description": "Application not found"
+          }
+        }
+      }
+    },
     "/api/v1/hr/parking-permits": {
       "post": {
         "tags": [
@@ -6527,6 +7440,9 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid subject or workflow"
           },
           "403": {
             "description": "Insufficient permission"
@@ -6623,7 +7539,7 @@
           "hr-parking"
         ],
         "summary": "Issue a parking decal",
-        "description": "Record decal issuance for a parking permit. Requires parking.permit.issue permission.",
+        "description": "Record issuance only after approval, within active organisation/department scope. Identical retries preserve the original issuer/date; renewals and replacements are separate applications.",
         "operationId": "hrIssueParkingDecal",
         "security": [
           {
@@ -6672,6 +7588,9 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Unapproved application or already issued decal"
           },
           "403": {
             "description": "Insufficient permission"
@@ -15884,7 +16803,7 @@
           "staff-setup"
         ],
         "summary": "Complete or update staff onboarding",
-        "description": "Complete or update staff onboarding.",
+        "description": "Complete or update staff onboarding, including separately verified continuous service and probation facts with their HR source. Does not infer eligibility or alter role assignments.",
         "operationId": "hrUpdateStaffSetup",
         "security": [
           {
@@ -15942,6 +16861,9 @@
           },
           "409": {
             "description": "Setup conflict"
+          },
+          "400": {
+            "description": "Invalid grade, supervisor or recorded service facts"
           }
         }
       }
@@ -17264,7 +18186,8 @@
           "expected_shift_code": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 10
               },
               {
                 "type": "null"
@@ -17275,7 +18198,8 @@
           "absence_start_time": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
               },
               {
                 "type": "null"
@@ -17286,7 +18210,8 @@
           "absence_end_time": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
               },
               {
                 "type": "null"
@@ -17300,7 +18225,8 @@
           "notes": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -17316,7 +18242,8 @@
           "contact_method": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 50
               },
               {
                 "type": "null"
@@ -17420,6 +18347,16 @@
               }
             ],
             "title": "Submitted At"
+          },
+          "workflow_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "id": {
             "type": "string",
@@ -18375,6 +19312,460 @@
           "tasks"
         ],
         "title": "AreaView"
+      },
+      "AttendanceCorrectionCreate": {
+        "properties": {
+          "roster_assignment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Roster Assignment Id"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expected Revision",
+            "default": 0
+          },
+          "arrived_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Arrived At"
+          },
+          "departed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Departed At"
+          },
+          "break_minutes": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Break Minutes",
+            "default": 0
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "roster_assignment_id",
+          "arrived_at",
+          "departed_at",
+          "reason"
+        ],
+        "title": "AttendanceCorrectionCreate"
+      },
+      "AttendanceCorrectionPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "attendance_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Attendance Id"
+          },
+          "proposed_by_user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Proposed By User Id"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "title": "Expected Revision"
+          },
+          "arrived_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Arrived At"
+          },
+          "departed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Departed At"
+          },
+          "break_minutes": {
+            "type": "integer",
+            "title": "Break Minutes"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "workflow_instance_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workflow Instance Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "review_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "attendance_id",
+          "proposed_by_user_id",
+          "expected_revision",
+          "arrived_at",
+          "departed_at",
+          "break_minutes",
+          "reason",
+          "workflow_instance_id",
+          "created_at"
+        ],
+        "title": "AttendanceCorrectionPublic"
+      },
+      "AttendanceReviewPublic": {
+        "properties": {
+          "current": {
+            "$ref": "#/components/schemas/AttendanceShiftPublic"
+          },
+          "corrections": {
+            "items": {
+              "$ref": "#/components/schemas/AttendanceCorrectionPublic"
+            },
+            "type": "array",
+            "title": "Corrections"
+          }
+        },
+        "type": "object",
+        "required": [
+          "current",
+          "corrections"
+        ],
+        "title": "AttendanceReviewPublic"
+      },
+      "AttendanceSave": {
+        "properties": {
+          "roster_assignment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Roster Assignment Id"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expected Revision",
+            "default": 0
+          },
+          "arrived_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Arrived At"
+          },
+          "departed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Departed At"
+          },
+          "break_minutes": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Break Minutes",
+            "default": 0
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "roster_assignment_id",
+          "arrived_at"
+        ],
+        "title": "AttendanceSave"
+      },
+      "AttendanceShiftPublic": {
+        "properties": {
+          "roster_assignment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Roster Assignment Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "employee_name": {
+            "type": "string",
+            "title": "Employee Name"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "shift_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Shift Date"
+          },
+          "shift_code": {
+            "type": "string",
+            "title": "Shift Code"
+          },
+          "availability": {
+            "$ref": "#/components/schemas/RosterAvailability",
+            "default": "SCHEDULED"
+          },
+          "scheduled_start": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Scheduled Start"
+          },
+          "scheduled_end": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Scheduled End"
+          },
+          "attendance_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attendance Id"
+          },
+          "arrived_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arrived At"
+          },
+          "departed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Departed At"
+          },
+          "break_minutes": {
+            "type": "integer",
+            "title": "Break Minutes",
+            "default": 0
+          },
+          "actual_hours": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Hours"
+          },
+          "elapsed_hours": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Elapsed Hours"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision",
+            "default": 0
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "workflow_instance_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workflow Instance Id"
+          },
+          "review_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reviewer_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewer Name"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "roster_assignment_id",
+          "user_id",
+          "employee_name",
+          "department_id",
+          "shift_date",
+          "shift_code",
+          "scheduled_start",
+          "scheduled_end"
+        ],
+        "title": "AttendanceShiftPublic"
+      },
+      "AttendanceSubmit": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "expected_revision"
+        ],
+        "title": "AttendanceSubmit"
+      },
+      "AttendanceWeekPublic": {
+        "properties": {
+          "period_start": {
+            "type": "string",
+            "format": "date",
+            "title": "Period Start"
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date",
+            "title": "Period End"
+          },
+          "shifts": {
+            "items": {
+              "$ref": "#/components/schemas/AttendanceShiftPublic"
+            },
+            "type": "array",
+            "title": "Shifts"
+          },
+          "approved_hours": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Approved Hours"
+          },
+          "recorded_hours": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Recorded Hours"
+          }
+        },
+        "type": "object",
+        "required": [
+          "period_start",
+          "period_end",
+          "shifts",
+          "approved_hours",
+          "recorded_hours"
+        ],
+        "title": "AttendanceWeekPublic"
       },
       "AuditChangePublic": {
         "properties": {
@@ -23384,6 +24775,54 @@
             ],
             "title": "Start Date"
           },
+          "continuous_service_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Continuous Service Date"
+          },
+          "probation_end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probation End Date"
+          },
+          "probation_completed_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probation Completed Date"
+          },
+          "service_details_source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service Details Source"
+          },
           "supervisor_id": {
             "anyOf": [
               {
@@ -23509,6 +24948,54 @@
             ],
             "title": "Start Date"
           },
+          "continuous_service_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Continuous Service Date"
+          },
+          "probation_end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probation End Date"
+          },
+          "probation_completed_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probation Completed Date"
+          },
+          "service_details_source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service Details Source"
+          },
           "supervisor_id": {
             "anyOf": [
               {
@@ -23609,6 +25096,54 @@
               }
             ],
             "title": "Start Date"
+          },
+          "continuous_service_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Continuous Service Date"
+          },
+          "probation_end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probation End Date"
+          },
+          "probation_completed_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probation Completed Date"
+          },
+          "service_details_source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service Details Source"
           },
           "supervisor_id": {
             "anyOf": [
@@ -23725,6 +25260,54 @@
               }
             ],
             "title": "Start Date"
+          },
+          "continuous_service_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Continuous Service Date"
+          },
+          "probation_end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probation End Date"
+          },
+          "probation_completed_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probation Completed Date"
+          },
+          "service_details_source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service Details Source"
           },
           "supervisor_id": {
             "anyOf": [
@@ -25619,6 +27202,16 @@
             ],
             "title": "Submitted At"
           },
+          "workflow_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -27243,12 +28836,15 @@
           },
           "department_id": {
             "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
             "title": "Department Id"
           },
           "company_name": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 255
               },
               {
                 "type": "null"
@@ -27259,7 +28855,8 @@
           "phone": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 30
               },
               {
                 "type": "null"
@@ -27269,6 +28866,8 @@
           },
           "vehicle_registration_no": {
             "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
             "title": "Vehicle Registration No"
           },
           "vehicle_insurance_issue_date": {
@@ -27302,7 +28901,8 @@
           "action_other_detail": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 255
               },
               {
                 "type": "null"
@@ -27313,15 +28913,29 @@
           "fee_amount": {
             "anyOf": [
               {
-                "type": "number"
+                "type": "number",
+                "minimum": 0.0
               },
               {
                 "type": "string",
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,6}|(?=[\\d.]{1,9}0*$)\\d{0,6}\\.\\d{0,2}0*$)"
               }
             ],
             "title": "Fee Amount",
             "default": "40.00"
+          },
+          "as_draft": {
+            "type": "boolean",
+            "title": "As Draft",
+            "default": false
+          },
+          "co_approver_user_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Co Approver User Ids"
           }
         },
         "type": "object",
@@ -27336,6 +28950,8 @@
         "properties": {
           "decal_number": {
             "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
             "title": "Decal Number"
           },
           "valid_from": {
@@ -27351,7 +28967,8 @@
           "received_by": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 255
               },
               {
                 "type": "null"
@@ -27424,6 +29041,16 @@
               }
             ],
             "title": "Submitted At"
+          },
+          "workflow_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "id": {
             "type": "string",
@@ -27624,6 +29251,32 @@
         ],
         "title": "ParkingPermitPublic"
       },
+      "ParkingPermitSubmit": {
+        "properties": {
+          "signature_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Version"
+          },
+          "co_approver_user_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Co Approver User Ids"
+          }
+        },
+        "type": "object",
+        "title": "ParkingPermitSubmit"
+      },
       "PermissionCreate": {
         "properties": {
           "key": {
@@ -27723,6 +29376,7 @@
       "PersonnelStatus": {
         "type": "string",
         "enum": [
+          "UNCONFIRMED",
           "PRESENT",
           "ABSENT",
           "LATE",
@@ -29249,6 +30903,10 @@
               }
             ],
             "title": "Remarks"
+          },
+          "availability": {
+            "$ref": "#/components/schemas/RosterAvailability",
+            "default": "SCHEDULED"
           }
         },
         "type": "object",
@@ -29260,6 +30918,16 @@
           "shift_code"
         ],
         "title": "RosterAssignmentPublic"
+      },
+      "RosterAvailability": {
+        "type": "string",
+        "enum": [
+          "SCHEDULED",
+          "ABSENT",
+          "PARTIAL_ABSENCE",
+          "LEAVE"
+        ],
+        "title": "RosterAvailability"
       },
       "RosterCalendarEntry": {
         "properties": {
@@ -29328,6 +30996,10 @@
           "is_draft": {
             "type": "boolean",
             "title": "Is Draft"
+          },
+          "availability": {
+            "$ref": "#/components/schemas/RosterAvailability",
+            "default": "SCHEDULED"
           }
         },
         "type": "object",
@@ -31019,6 +32691,8 @@
           },
           "source_shift_code": {
             "type": "string",
+            "maxLength": 10,
+            "minLength": 1,
             "title": "Source Shift Code"
           },
           "target_date": {
@@ -31028,6 +32702,8 @@
           },
           "target_shift_code": {
             "type": "string",
+            "maxLength": 10,
+            "minLength": 1,
             "title": "Target Shift Code"
           },
           "effective_date": {
@@ -31057,7 +32733,8 @@
           "reason": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -31115,6 +32792,16 @@
               }
             ],
             "title": "Submitted At"
+          },
+          "workflow_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "id": {
             "type": "string",
@@ -31420,6 +33107,23 @@
             "format": "uuid",
             "title": "Entity Id"
           },
+          "revision": {
+            "type": "integer",
+            "title": "Revision",
+            "default": 1
+          },
+          "supersedes_document_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supersedes Document Id"
+          },
           "signer_name": {
             "type": "string",
             "title": "Signer Name"
@@ -31603,6 +33307,54 @@
             ],
             "title": "Start Date"
           },
+          "continuous_service_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Continuous Service Date"
+          },
+          "probation_end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probation End Date"
+          },
+          "probation_completed_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probation Completed Date"
+          },
+          "service_details_source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service Details Source"
+          },
           "supervisor_id": {
             "anyOf": [
               {
@@ -31705,6 +33457,54 @@
             ],
             "title": "Start Date"
           },
+          "continuous_service_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Continuous Service Date"
+          },
+          "probation_end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probation End Date"
+          },
+          "probation_completed_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probation Completed Date"
+          },
+          "service_details_source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service Details Source"
+          },
           "supervisor_id": {
             "anyOf": [
               {
@@ -31805,6 +33605,8 @@
           },
           "shift_code": {
             "type": "string",
+            "maxLength": 10,
+            "minLength": 1,
             "title": "Shift Code"
           },
           "shift_period": {
@@ -31831,7 +33633,8 @@
           "personnel_explanation": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -31853,7 +33656,8 @@
           "affected_operations_explanation": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -31875,7 +33679,8 @@
           "equipment_issue_reason": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -31886,7 +33691,8 @@
           "equipment_remedy_action": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -31908,7 +33714,8 @@
           "incident_explanation": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -31919,7 +33726,8 @@
           "weather_summary": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -31930,7 +33738,8 @@
           "equipment_summary": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -31941,7 +33750,8 @@
           "personnel_summary": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -31952,7 +33762,8 @@
           "runway_status": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -31963,7 +33774,8 @@
           "navaids_status": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -31974,7 +33786,8 @@
           "communications_status": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -31985,7 +33798,8 @@
           "general_remarks": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 2000
               },
               {
                 "type": "null"
@@ -32055,7 +33869,8 @@
           "arrival_time": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^(?:[01]\\d|2[0-3]):[0-5]\\d$"
               },
               {
                 "type": "null"
@@ -32066,7 +33881,8 @@
           "departure_time": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^(?:[01]\\d|2[0-3]):[0-5]\\d$"
               },
               {
                 "type": "null"
@@ -32077,7 +33893,8 @@
           "notes": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 500
               },
               {
                 "type": "null"
@@ -32095,6 +33912,17 @@
       },
       "StatusReportEntryPublic": {
         "properties": {
+          "employee_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Name"
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -32212,6 +34040,16 @@
               }
             ],
             "title": "Submitted At"
+          },
+          "workflow_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "id": {
             "type": "string",
@@ -32486,6 +34324,149 @@
         },
         "type": "object",
         "title": "StatusReportSubmit"
+      },
+      "StatusStaffingEntry": {
+        "properties": {
+          "roster_assignment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Roster Assignment Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "employee_name": {
+            "type": "string",
+            "title": "Employee Name"
+          },
+          "scheduled_shift_code": {
+            "type": "string",
+            "title": "Scheduled Shift Code"
+          },
+          "scheduled_start_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled Start Time"
+          },
+          "scheduled_end_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled End Time"
+          },
+          "ends_next_day": {
+            "type": "boolean",
+            "title": "Ends Next Day"
+          },
+          "availability": {
+            "$ref": "#/components/schemas/RosterAvailability"
+          },
+          "personnel_status": {
+            "$ref": "#/components/schemas/PersonnelStatus"
+          },
+          "attendance_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attendance Id"
+          },
+          "arrived_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arrived At"
+          },
+          "departed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Departed At"
+          },
+          "attendance_review_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "roster_assignment_id",
+          "user_id",
+          "employee_name",
+          "scheduled_shift_code",
+          "ends_next_day",
+          "availability",
+          "personnel_status"
+        ],
+        "title": "StatusStaffingEntry"
+      },
+      "StatusStaffingPublic": {
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "report_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Report Date"
+          },
+          "shift_code": {
+            "type": "string",
+            "title": "Shift Code"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/StatusStaffingEntry"
+            },
+            "type": "array",
+            "title": "Entries"
+          }
+        },
+        "type": "object",
+        "required": [
+          "department_id",
+          "report_date",
+          "shift_code",
+          "entries"
+        ],
+        "title": "StatusStaffingPublic"
       },
       "StopView": {
         "properties": {
@@ -33456,6 +35437,8 @@
           },
           "department_id": {
             "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
             "title": "Department Id"
           },
           "period_start": {
@@ -33514,7 +35497,8 @@
           "shift_code": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 10
               },
               {
                 "type": "null"
@@ -33525,11 +35509,13 @@
           "roster_hours": {
             "anyOf": [
               {
-                "type": "number"
+                "type": "number",
+                "maximum": 24.0,
+                "minimum": 0.0
               },
               {
                 "type": "string",
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
               }
             ],
             "title": "Roster Hours",
@@ -33538,11 +35524,13 @@
           "actual_hours": {
             "anyOf": [
               {
-                "type": "number"
+                "type": "number",
+                "maximum": 24.0,
+                "minimum": 0.0
               },
               {
                 "type": "string",
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
               }
             ],
             "title": "Actual Hours",
@@ -33551,11 +35539,13 @@
           "total_hours": {
             "anyOf": [
               {
-                "type": "number"
+                "type": "number",
+                "maximum": 24.0,
+                "minimum": 0.0
               },
               {
                 "type": "string",
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
               },
               {
                 "type": "null"
@@ -33566,11 +35556,13 @@
           "overtime_hours": {
             "anyOf": [
               {
-                "type": "number"
+                "type": "number",
+                "maximum": 24.0,
+                "minimum": 0.0
               },
               {
                 "type": "string",
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
               }
             ],
             "title": "Overtime Hours",
@@ -33579,11 +35571,13 @@
           "break_hours": {
             "anyOf": [
               {
-                "type": "number"
+                "type": "number",
+                "maximum": 24.0,
+                "minimum": 0.0
               },
               {
                 "type": "string",
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
               }
             ],
             "title": "Break Hours",
@@ -33592,11 +35586,13 @@
           "hours_worked": {
             "anyOf": [
               {
-                "type": "number"
+                "type": "number",
+                "maximum": 24.0,
+                "minimum": 0.0
               },
               {
                 "type": "string",
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
               },
               {
                 "type": "null"
@@ -33612,7 +35608,8 @@
           "comments": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 500
               },
               {
                 "type": "null"
@@ -33711,6 +35708,10 @@
               }
             ],
             "title": "Comments"
+          },
+          "availability": {
+            "$ref": "#/components/schemas/RosterAvailability",
+            "default": "SCHEDULED"
           }
         },
         "type": "object",
@@ -37689,6 +39690,10 @@
     {
       "name": "hr-absentee",
       "description": "HR absentee reporting operations."
+    },
+    {
+      "name": "hr-attendance",
+      "description": "Actual shift arrival, departure and supervisor review."
     },
     {
       "name": "hr-calendar",

@@ -33,6 +33,7 @@ class LeaveEntryKind(str, Enum):
     OPENING = "OPENING"
     ADJUSTMENT = "ADJUSTMENT"
     APPROVAL_DEBIT = "APPROVAL_DEBIT"
+    CANCELLATION_REVERSAL = "CANCELLATION_REVERSAL"
 
 
 class ProfAppointmentType(str, Enum):
@@ -101,6 +102,12 @@ class LeaveBalanceEvent(Base):
             name="uq_hr_leave_balance_event_user_type_sequence",
         ),
         Index(
+            "uq_hr_leave_balance_event_cancellation_reversal",
+            "related_leave_request_id",
+            unique=True,
+            postgresql_where=text("entry_kind = 'CANCELLATION_REVERSAL'"),
+        ),
+        Index(
             "uq_hr_leave_balance_event_approval_debit",
             "related_leave_request_id",
             unique=True,
@@ -113,7 +120,7 @@ class LeaveBalanceEvent(Base):
     user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"), index=True)
     leave_type: Mapped[str] = mapped_column(String(30))
     entry_kind: Mapped[LeaveEntryKind] = mapped_column(
-        sa.Enum(LeaveEntryKind, native_enum=False, length=20)
+        sa.Enum(LeaveEntryKind, native_enum=False, length=24)
     )
     sequence: Mapped[int]
     delta_days: Mapped[Decimal] = mapped_column(Numeric(6, 2))

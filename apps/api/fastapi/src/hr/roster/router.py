@@ -7,7 +7,7 @@ from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import PublicHolidayDep, RosterPeriodDep
 
 from . import service
-from .models import RosterPeriodStatus
+from .models import RosterAvailability, RosterPeriodStatus
 from .schemas import (
     PublicHolidayCreate,
     PublicHolidayPublic,
@@ -175,9 +175,12 @@ async def create_period(
     "/assignments/bulk",
     response_model=list[RosterAssignmentPublic],
     summary="Bulk upsert roster assignments",
-    description="Create or replace roster assignments for a period. Requires roster.manage permission.",
+    description="Create or update roster assignments while preserving linked row IDs. Requires roster.manage permission. Rejects closed periods, invalid dates/codes, duplicate employee dates and cross-period overwrite.",
     responses={
         status.HTTP_200_OK: {"description": "Assignments created or updated"},
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "Invalid batch or roster conflict"
+        },
         status.HTTP_404_NOT_FOUND: {"description": "Roster period not found"},
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
@@ -191,8 +194,19 @@ async def bulk_assignments(
     assignments = await service.bulk_upsert_roster_assignments(
         session=session, current_user=current_user, payload=payload
     )
+    availability = await service.assignment_availability(
+        session, [row.id for row in assignments]
+    )
     return [
-        RosterAssignmentPublic.model_validate(assignment, from_attributes=True)
+        RosterAssignmentPublic.model_validate(
+            assignment, from_attributes=True
+        ).model_copy(
+            update={
+                "availability": availability.get(
+                    assignment.id, RosterAvailability.SCHEDULED
+                )
+            }
+        )
         for assignment in assignments
     ]
 
@@ -216,10 +230,21 @@ async def get_period(
     period_data, assignments = await service.read_roster_period_details(
         session=session, current_user=current_user, period_id=period.id
     )
+    availability = await service.assignment_availability(
+        session, [row.id for row in assignments]
+    )
     return RosterPeriodDetails(
         period=RosterPeriodPublic.model_validate(period_data, from_attributes=True),
         assignments=[
-            RosterAssignmentPublic.model_validate(assignment, from_attributes=True)
+            RosterAssignmentPublic.model_validate(
+                assignment, from_attributes=True
+            ).model_copy(
+                update={
+                    "availability": availability.get(
+                        assignment.id, RosterAvailability.SCHEDULED
+                    )
+                }
+            )
             for assignment in assignments
         ],
     )
@@ -259,6 +284,9 @@ async def list_assignments(
         department_id=department_id,
         department_scope=scope == "department",
     )
+    availability = await service.assignment_availability(
+        session, [row[0].id for row in rows]
+    )
     return RosterCalendarPublic(
         data=[
             RosterCalendarEntry(
@@ -273,6 +301,9 @@ async def list_assignments(
                 ends_at_local=ends_at,
                 all_day=starts_at is None,
                 is_draft=is_draft,
+                availability=availability.get(
+                    assignment.id, RosterAvailability.SCHEDULED
+                ),
             )
             for assignment, shift, user, employment, is_draft in rows
             for starts_at, ends_at in [service.calendar_times(assignment, shift)]

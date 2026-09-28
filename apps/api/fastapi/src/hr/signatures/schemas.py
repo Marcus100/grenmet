@@ -25,6 +25,8 @@ class SignedDocumentPublic(BaseModel):
     id: uuid.UUID
     entity_type: str
     entity_id: uuid.UUID
+    revision: int = 1
+    supersedes_document_id: uuid.UUID | None = None
     signer_name: str
     signed_at: UtcDateTime
     sha256: str

@@ -14,6 +14,7 @@ import { hrCreateAbsenteeReport } from "../clients/hrCreateAbsenteeReport.js";
 import type {
   HrCreateAbsenteeReportOptions,
   HrCreateAbsenteeReportStatus201,
+  HrCreateAbsenteeReportStatus400,
   HrCreateAbsenteeReportStatus403,
   HrCreateAbsenteeReportStatus422,
 } from "../models/HrCreateAbsenteeReport.js";
@@ -30,7 +31,9 @@ export function hrCreateAbsenteeReportMutationOptions<TContext = unknown>(
   return mutationOptions<
     HrCreateAbsenteeReportStatus201,
     ResponseErrorConfig<
-      HrCreateAbsenteeReportStatus403 | HrCreateAbsenteeReportStatus422
+      | HrCreateAbsenteeReportStatus400
+      | HrCreateAbsenteeReportStatus403
+      | HrCreateAbsenteeReportStatus422
     >,
     HrCreateAbsenteeReportOptions,
     TContext
@@ -56,7 +59,9 @@ export function useHrCreateAbsenteeReport<TContext>(
     mutation?: UseMutationOptions<
       HrCreateAbsenteeReportStatus201,
       ResponseErrorConfig<
-        HrCreateAbsenteeReportStatus403 | HrCreateAbsenteeReportStatus422
+        | HrCreateAbsenteeReportStatus400
+        | HrCreateAbsenteeReportStatus403
+        | HrCreateAbsenteeReportStatus422
       >,
       HrCreateAbsenteeReportOptions,
       TContext
@@ -76,7 +81,9 @@ export function useHrCreateAbsenteeReport<TContext>(
   ) as UseMutationOptions<
     HrCreateAbsenteeReportStatus201,
     ResponseErrorConfig<
-      HrCreateAbsenteeReportStatus403 | HrCreateAbsenteeReportStatus422
+      | HrCreateAbsenteeReportStatus400
+      | HrCreateAbsenteeReportStatus403
+      | HrCreateAbsenteeReportStatus422
     >,
     HrCreateAbsenteeReportOptions,
     TContext
@@ -85,7 +92,9 @@ export function useHrCreateAbsenteeReport<TContext>(
   return useMutation<
     HrCreateAbsenteeReportStatus201,
     ResponseErrorConfig<
-      HrCreateAbsenteeReportStatus403 | HrCreateAbsenteeReportStatus422
+      | HrCreateAbsenteeReportStatus400
+      | HrCreateAbsenteeReportStatus403
+      | HrCreateAbsenteeReportStatus422
     >,
     HrCreateAbsenteeReportOptions,
     TContext
@@ -99,7 +108,9 @@ export function useHrCreateAbsenteeReport<TContext>(
   ) as UseMutationResult<
     HrCreateAbsenteeReportStatus201,
     ResponseErrorConfig<
-      HrCreateAbsenteeReportStatus403 | HrCreateAbsenteeReportStatus422
+      | HrCreateAbsenteeReportStatus400
+      | HrCreateAbsenteeReportStatus403
+      | HrCreateAbsenteeReportStatus422
     >,
     HrCreateAbsenteeReportOptions,
     TContext
