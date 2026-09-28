@@ -18164,6 +18164,16 @@
             ],
             "title": "Submitted At"
           },
+          "workflow_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -27008,6 +27018,16 @@
             ],
             "title": "Submitted At"
           },
+          "workflow_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -28813,6 +28833,16 @@
               }
             ],
             "title": "Submitted At"
+          },
+          "workflow_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "id": {
             "type": "string",
@@ -32529,6 +32559,16 @@
             ],
             "title": "Submitted At"
           },
+          "workflow_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -32832,6 +32872,23 @@
             "type": "string",
             "format": "uuid",
             "title": "Entity Id"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision",
+            "default": 1
+          },
+          "supersedes_document_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Supersedes Document Id"
           },
           "signer_name": {
             "type": "string",
@@ -33749,6 +33806,16 @@
               }
             ],
             "title": "Submitted At"
+          },
+          "workflow_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "id": {
             "type": "string",

@@ -5,10 +5,12 @@
 
 import type { ParkingAction } from "./ParkingAction.js";
 import type { RequestStatus } from "./RequestStatus.js";
+import type { WorkflowStatus } from "./WorkflowStatus.js";
 
 export type ParkingPermitPublic = {
   signed_document_id?: string | null;
   submitted_at?: string | null;
+  workflow_status?: WorkflowStatus | null;
   /**
    * @description
    * Format: `uuid`

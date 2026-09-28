@@ -27,7 +27,7 @@ from src.hr.roster.models import (
     ShiftCategory,
 )
 from src.hr.signatures import service as signature_service
-from src.hr.workflow.models import WorkflowInstance, WorkflowType
+from src.hr.workflow.models import WorkflowInstance, WorkflowStatus, WorkflowType
 from src.hr.workflow.service import start_workflow_for_entity, submit_draft_workflow
 from src.utils.datetime import utc_now
 
@@ -372,6 +372,12 @@ async def delete_absentee_report(
         raise HRValidationError(ERROR_ABSENTEE_REPORT_NOT_DRAFT)
 
     workflow_instance_id = report.workflow_instance_id
+    if workflow_instance_id:
+        instance = await session.get(WorkflowInstance, workflow_instance_id)
+        if instance is not None and instance.status != WorkflowStatus.DRAFT:
+            raise HRValidationError(
+                "Previously submitted forms and approval history must be retained"
+            )
     # Delete the report first (it holds the FK to the instance), then the
     # DRAFT instance itself (a draft has no step rows to clean up).
     await session.delete(report)

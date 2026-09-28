@@ -6,10 +6,12 @@
 import * as z from "zod";
 import { absenceReasonSchema } from "./absenceReasonSchema.js";
 import { requestStatusSchema } from "./requestStatusSchema.js";
+import { workflowStatusSchema } from "./workflowStatusSchema.js";
 
 export const absenteeReportPublicSchema = z.object({
   signed_document_id: z.union([z.uuid(), z.null()]).optional(),
   submitted_at: z.union([z.iso.datetime(), z.null()]).optional(),
+  workflow_status: z.union([workflowStatusSchema, z.null()]).optional(),
   id: z.uuid(),
   user_id: z.uuid(),
   department_id: z.string(),

@@ -496,14 +496,7 @@ async def capture(
     signature_version: uuid.UUID | None,
 ) -> None:
     """Called only after the form service authorizes submission; never commits."""
-    if signature_version is None:
-        return
     await session.execute(select(User.id).where(User.id == actor.id).with_for_update())
-    saved = await session.get(SavedSignature, actor.id, populate_existing=True)
-    if saved is None or saved.version != signature_version:
-        raise HRValidationError(
-            "Your saved signature changed or was deleted. Review it again before signing."
-        )
     inspected_entity = inspect(entity)
     assert inspected_entity is not None
     values = {
@@ -512,13 +505,41 @@ async def capture(
     }
     entity_id = uuid.UUID(str(values["id"]))
     existing = await session.scalar(
-        select(SignedDocument.id).where(
+        select(SignedDocument)
+        .where(
             SignedDocument.entity_type == entity_type,
             SignedDocument.entity_id == entity_id,
         )
+        .order_by(SignedDocument.revision.desc())
+        .limit(1)
     )
     if existing:
-        raise HRValidationError("This document has already been signed")
+        from src.hr.workflow.models import WorkflowInstance, WorkflowStatus
+
+        workflow_id = values.get("workflow_instance_id")
+        workflow = (
+            await session.get(WorkflowInstance, workflow_id) if workflow_id else None
+        )
+        if (
+            workflow is None
+            or workflow.entity_id != entity_id
+            or workflow.entity_type != entity_type
+            or workflow.status != WorkflowStatus.PENDING
+            or workflow.submitted_at is None
+            or workflow.submitted_at <= existing.signed_at
+        ):
+            raise HRValidationError("This submission has already been signed")
+        if signature_version is None:
+            raise HRValidationError(
+                "Review and sign the corrected form before resubmitting"
+            )
+    if signature_version is None:
+        return
+    saved = await session.get(SavedSignature, actor.id, populate_existing=True)
+    if saved is None or saved.version != signature_version:
+        raise HRValidationError(
+            "Your saved signature changed or was deleted. Review it again before signing."
+        )
     if entity_type == "timesheet":
         from src.hr.timesheet.models import TimesheetEntry
 
@@ -589,6 +610,8 @@ async def capture(
         SignedDocument(
             entity_type=entity_type,
             entity_id=entity_id,
+            revision=existing.revision + 1 if existing else 1,
+            supersedes_document_id=existing.id if existing else None,
             signer_id=actor.id,
             subject_id=subject_id,
             department_id=department.id,

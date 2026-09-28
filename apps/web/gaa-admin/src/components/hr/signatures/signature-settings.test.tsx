@@ -7,6 +7,8 @@ import { afterAll, afterEach, beforeAll, expect, it } from "vitest";
 import { SignatureSettings } from "./signature-settings";
 
 const BASE = "http://localhost";
+const REVISION_ONE = /Revision 1/;
+const REVISION_TWO = /Revision 2/;
 const server = setupServer(
   http.get(`${BASE}/api/v1/hr/signature/me`, () => HttpResponse.json(null)),
   http.get(`${BASE}/api/v1/hr/signed-documents/me`, () =>
@@ -16,6 +18,7 @@ const server = setupServer(
         {
           id: "signed-1",
           entity_type: "leave_request",
+          revision: 1,
           signer_name: "Test Staff",
           signed_at: "2026-09-11T12:00:00Z",
         },
@@ -26,6 +29,33 @@ const server = setupServer(
 beforeAll(() => {
   configureApiClient({ baseURL: BASE });
   server.listen({ onUnhandledRequest: "error" });
+});
+it("keeps each signed revision downloadable under its own document id", async () => {
+  server.use(
+    http.get(`${BASE}/api/v1/hr/signed-documents/me`, () =>
+      HttpResponse.json({
+        count: 2,
+        data: [1, 2].map((revision) => ({
+          id: `signed-${revision}`,
+          entity_type: "leave_request",
+          revision,
+          signer_name: "Test Staff",
+          signed_at: "2026-09-11T12:00:00Z",
+        })),
+      })
+    )
+  );
+  showSettings();
+  expect(await screen.findByText(REVISION_ONE)).toBeVisible();
+  expect(screen.getByText(REVISION_TWO)).toBeVisible();
+  expect(
+    screen
+      .getAllByRole("link", { name: "Download signed PDF" })
+      .map((link) => link.getAttribute("href"))
+  ).toEqual([
+    "/api/v1/hr/signed-documents/signed-1/pdf",
+    "/api/v1/hr/signed-documents/signed-2/pdf",
+  ]);
 });
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());

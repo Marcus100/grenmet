@@ -20,7 +20,7 @@ from src.hr.exceptions import (
 )
 from src.hr.models import RequestStatus
 from src.hr.signatures import service as signature_service
-from src.hr.workflow.models import WorkflowInstance, WorkflowType
+from src.hr.workflow.models import WorkflowInstance, WorkflowStatus, WorkflowType
 from src.hr.workflow.service import start_workflow_for_entity, submit_draft_workflow
 from src.utils.datetime import utc_now
 
@@ -340,6 +340,12 @@ async def delete_leave_request(
         raise HRValidationError(ERROR_LEAVE_REQUEST_NOT_DRAFT)
 
     workflow_instance_id = leave_request.workflow_instance_id
+    if workflow_instance_id:
+        instance = await session.get(WorkflowInstance, workflow_instance_id)
+        if instance is not None and instance.status != WorkflowStatus.DRAFT:
+            raise HRValidationError(
+                "Previously submitted forms and approval history must be retained"
+            )
     # Delete the request first (it holds the FK to the instance), then the
     # DRAFT instance itself (a draft has no step rows to clean up).
     await session.delete(leave_request)
@@ -393,7 +399,19 @@ async def action_leave_request(
     await ledger.lock_employee(session, leave_request.user_id)
     # Re-read under the lock: a concurrent action may have resolved the request.
     await session.refresh(leave_request, attribute_names=["status"])
-    if leave_request.status in {RequestStatus.APPROVED, RequestStatus.REJECTED}:
+    if (
+        leave_request.status == RequestStatus.CANCELLED
+        and payload.status == RequestStatus.CANCELLED
+    ):
+        return leave_request
+    if leave_request.status in {
+        RequestStatus.APPROVED,
+        RequestStatus.REJECTED,
+        RequestStatus.CANCELLED,
+    } and not (
+        leave_request.status == RequestStatus.APPROVED
+        and payload.status == RequestStatus.CANCELLED
+    ):
         raise HRValidationError("Request already resolved")
     leave_request.status = payload.status
     if payload.head_of_dept_comments is not None:
@@ -410,6 +428,10 @@ async def action_leave_request(
             reason="Leave request approved",
             actor_id=current_user.id,
             leave_request_id=leave_request.id,
+        )
+    elif payload.status == RequestStatus.CANCELLED:
+        await ledger.reverse_approval(
+            session, request=leave_request, actor_id=current_user.id
         )
     await session.commit()
     await session.refresh(leave_request)

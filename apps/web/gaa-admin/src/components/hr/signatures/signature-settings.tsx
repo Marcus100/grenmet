@@ -211,7 +211,8 @@ export function SignatureSettings() {
             key={document.id}
           >
             <span>
-              {document.entity_type.replaceAll("_", " ")} ·{" "}
+              {document.entity_type.replaceAll("_", " ")} · Revision{" "}
+              {document.revision} ·{" "}
               {new Date(document.signed_at).toLocaleString()} ·{" "}
               {document.signer_name}
             </span>

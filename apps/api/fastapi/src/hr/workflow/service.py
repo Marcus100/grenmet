@@ -397,12 +397,72 @@ async def apply_workflow_action(
             await session.refresh(workflow_instance)
         return workflow_instance
 
+    if (
+        workflow_instance.entity_type == "leave_request"
+        and workflow_instance.status == WorkflowStatus.APPROVED
+        and action_in.action == WorkflowAction.CANCEL
+    ):
+        from src.auth.policy import can_act_on_user
+        from src.hr.workflow.finalize import finalize_entity
+
+        require_permission(
+            current_user=current_user, permission_key="leave.request.action"
+        )
+        if not await can_act_on_user(
+            session=session,
+            current_user=current_user,
+            target_user_id=workflow_instance.requested_by_user_id,
+            permission_key="leave.request.action",
+        ):
+            raise HRPermissionDeniedError(ERROR_WORKFLOW_PERMISSION_DENIED)
+        workflow_instance.status = WorkflowStatus.CANCELLED
+        workflow_instance.resolved_at = workflow_instance.updated_at = utc_now()
+        await finalize_entity(session, workflow_instance, current_user.id)
+        session.add(
+            ApprovalActionLog(
+                workflow_instance_id=workflow_instance.id,
+                action=WorkflowAction.CANCEL,
+                actor_user_id=current_user.id,
+                comments=action_in.comments,
+            )
+        )
+        await session.flush()
+        await hr_notifications.workflow_transitioned(
+            session,
+            instance=workflow_instance,
+            action=WorkflowAction.CANCEL,
+            actor_id=current_user.id,
+            previous_status=WorkflowStatus.APPROVED,
+            previous_order=workflow_instance.current_step_order,
+        )
+        if commit:
+            await session.commit()
+            await session.refresh(workflow_instance)
+        return workflow_instance
+
     if action_in.action == WorkflowAction.SUBMIT:
         if workflow_instance.status not in {
             WorkflowStatus.DRAFT,
             WorkflowStatus.RETURNED,
         }:
             raise HRValidationError(ERROR_WORKFLOW_CANNOT_BE_SUBMITTED)
+        if (
+            require_actor_permission
+            and workflow_instance.status == WorkflowStatus.RETURNED
+            and workflow_instance.entity_type
+            in {
+                "leave_request",
+                "shift_swap",
+                "absentee_report",
+                "status_report",
+                "parking_permit",
+                "attendance",
+                "attendance_correction",
+            }
+        ):
+            raise HRValidationError(
+                "Submit through the form so its validation and signature are checked"
+            )
         from src.baseline.models import ApprovalPolicy
         from src.baseline.service import require_leave_ready, require_ready
 
@@ -631,10 +691,21 @@ async def apply_workflow_action(
                 workflow_instance.status = WorkflowStatus.APPROVED
                 workflow_instance.resolved_at = utc_now()
 
-    if workflow_instance.status != previous_status and workflow_instance.status in {
-        WorkflowStatus.APPROVED,
-        WorkflowStatus.REJECTED,
-    }:
+    if workflow_instance.status != previous_status and (
+        workflow_instance.status in {WorkflowStatus.APPROVED, WorkflowStatus.REJECTED}
+        or (
+            workflow_instance.status
+            in {WorkflowStatus.RETURNED, WorkflowStatus.CANCELLED}
+            and workflow_instance.entity_type
+            in {
+                "leave_request",
+                "shift_swap",
+                "absentee_report",
+                "status_report",
+                "parking_permit",
+            }
+        )
+    ):
         from src.hr.workflow.finalize import finalize_entity
 
         await finalize_entity(session, workflow_instance, current_user.id)
@@ -830,9 +901,73 @@ async def submit_draft_workflow(
     Steps are built at submit time (not draft-create) so the co-approvers chosen
     at submission are the ones that take effect.
     """
-    instance = await session.get(WorkflowInstance, workflow_instance_id)
+    instance = await session.scalar(
+        select(WorkflowInstance)
+        .where(WorkflowInstance.id == workflow_instance_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
     if not instance:
         raise WorkflowInstanceNotFoundError()
+    if instance.status == WorkflowStatus.RETURNED:
+        from src.hr.absentee.models import AbsenteeReport
+        from src.hr.dailystatus.models import StatusReport
+        from src.hr.exchange.models import ShiftSwapRequest
+        from src.hr.leave.models import LeaveRequest
+        from src.hr.parking.models import ParkingPermit
+
+        models = {
+            "leave_request": LeaveRequest,
+            "shift_swap": ShiftSwapRequest,
+            "absentee_report": AbsenteeReport,
+            "status_report": StatusReport,
+            "parking_permit": ParkingPermit,
+        }
+        model = models.get(instance.entity_type)
+        entity = (
+            await session.get(model, instance.entity_id, populate_existing=True)
+            if model
+            else None
+        )
+        if (
+            not isinstance(
+                entity,
+                (
+                    LeaveRequest,
+                    ShiftSwapRequest,
+                    AbsenteeReport,
+                    StatusReport,
+                    ParkingPermit,
+                ),
+            )
+            or entity.workflow_instance_id != instance.id
+            or entity.department_id != instance.department_id
+            or instance.requested_by_user_id != current_user.id
+        ):
+            raise HRValidationError("Returned workflow does not match this form")
+        new_id = await start_workflow_for_entity(
+            session=session,
+            current_user=current_user,
+            department_id=instance.department_id,
+            workflow_type=instance.workflow_type,
+            entity_type=instance.entity_type,
+            entity_id=instance.entity_id,
+            submit=False,
+        )
+        if new_id is None:
+            raise HRValidationError(
+                "Configure an active approval workflow before resubmitting"
+            )
+        entity.workflow_instance_id = new_id
+        session.add(entity)
+        await session.flush()
+        return await submit_draft_workflow(
+            session=session,
+            current_user=current_user,
+            workflow_instance_id=new_id,
+            co_approver_user_ids=co_approver_user_ids,
+            commit=commit,
+        )
     if instance.status != WorkflowStatus.DRAFT:
         raise HRValidationError(ERROR_WORKFLOW_CANNOT_BE_SUBMITTED)
     await _create_step_instances_for_workflow(
