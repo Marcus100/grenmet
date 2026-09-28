@@ -61,7 +61,7 @@ Source-of-truth mapping from the Grenada Airports Authority (GAA) paper HR forms
 |---|---|---|
 | Department | `department_id` | covered |
 | Date | `report_date` | covered |
-| Shift AM/PM | `shift_period: ShiftPeriod` (+ existing `shift_code`) | covered (Workstream C) |
+| Reporting shift M/E/N | `shift_code`; legacy `shift_period` AM/PM retained | M/E/N editor, D coverage references retain D roster |
 | Absenteeism | `personnel_summary` + per-person `StatusReportEntry` | covered |
 | Personnel: all reported on time? + explain | `all_personnel_reported_on_time` + `personnel_explanation` | covered (Workstream C) |
 | Personnel: affected operations? + explain | `affected_operations` + `affected_operations_explanation` | covered (Workstream C) |
@@ -124,3 +124,11 @@ Applies to Maurice Bishop Int'l **and Lauriston** airports.
 ---
 
 _To add a new form module, follow `docs/hr/adding-a-form-module.md`._
+
+
+Daily status parity update (2026-09-28): original personnel answers, equipment
+operability/reason/remedy, incident-report answer/explanation and approval rows
+are retained in the Python preview/signed renderer. Structured staffing is an
+additional working aid; published schedules default to unconfirmed attendance.
+Reporter submission and supervisor workflow approval remain separate from each
+employee's own attendance approval.

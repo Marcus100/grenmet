@@ -19,12 +19,14 @@ import { EMPTY_DAILY_STATUS } from "./daily-status-document";
 import {
   buildStatusReportPayload,
   DailyStatusEditor,
+  validateStatusValues,
 } from "./daily-status-editor";
 import { StatusSubmissions } from "./status-submissions";
 
+const nav = vi.hoisted(() => ({ search: "" }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => new URLSearchParams(nav.search),
 }));
 
 const BASE = "http://localhost";
@@ -45,6 +47,16 @@ const server = setupServer(
   http.get(`${BASE}/api/v1/hr/departments/:departmentId/members`, () =>
     HttpResponse.json({ data: [], count: 0 })
   ),
+  http.post(
+    `${BASE}/api/v1/hr/status-reports/preview-pdf`,
+    () =>
+      new HttpResponse(new Uint8Array([37, 80, 68, 70]), {
+        headers: { "Content-Type": "application/pdf" },
+      })
+  ),
+  http.get(`${BASE}/api/v1/hr/status-reports/staffing`, () =>
+    HttpResponse.json({ entries: [] })
+  ),
   http.get(`${BASE}/api/v1/hr/status-reports`, () =>
     HttpResponse.json({ data: [], count: 0 })
   )
@@ -54,7 +66,10 @@ beforeAll(() => {
   configureApiClient({ baseURL: BASE });
   server.listen({ onUnhandledRequest: "error" });
 });
-afterEach(() => server.resetHandlers());
+afterEach(() => {
+  server.resetHandlers();
+  nav.search = "";
+});
 afterAll(() => server.close());
 
 function wrap(children: React.ReactNode) {
@@ -84,7 +99,8 @@ describe("buildStatusReportPayload", () => {
       {
         ...EMPTY_DAILY_STATUS,
         date: "2026-07-15",
-        shift: "P.M.",
+        shift: "E",
+        allReported: "Yes",
         absenteeism: "",
         comments: "",
       },
@@ -93,8 +109,13 @@ describe("buildStatusReportPayload", () => {
     expect(payload).toEqual({
       department_id: "dept_met",
       report_date: "2026-07-15",
-      shift_code: "PM",
-      shift_period: "PM",
+      shift_code: "E",
+      entries: [],
+      all_equipment_operational: undefined,
+      equipment_issue_reason: undefined,
+      equipment_remedy_action: undefined,
+      incident_reports_submitted: undefined,
+      incident_explanation: undefined,
       all_personnel_reported_on_time: true,
       personnel_explanation: undefined,
       affected_operations: false,
@@ -144,15 +165,18 @@ describe("DailyStatusEditor (wired)", () => {
         posted.push(await request.json());
         return HttpResponse.json(
           {
-            id: "sr-1",
-            department_id: "dept_met",
-            report_date: "2026-07-15",
-            shift_code: "AM",
-            shift_period: "AM",
-            submitted_by_user_id: "u-1",
-            status: "SUBMITTED",
-            created_at: "2026-07-04T12:00:00+0000",
-            updated_at: "2026-07-04T12:00:00+0000",
+            report: {
+              id: "sr-1",
+              department_id: "dept_met",
+              report_date: "2026-07-15",
+              shift_code: "AM",
+              shift_period: "AM",
+              submitted_by_user_id: "u-1",
+              status: "SUBMITTED",
+              created_at: "2026-07-04T12:00:00+0000",
+              updated_at: "2026-07-04T12:00:00+0000",
+            },
+            entries: [],
           },
           { status: 201 }
         );
@@ -179,6 +203,18 @@ describe("DailyStatusEditor (wired)", () => {
       target: { value: "All systems normal" },
     });
 
+    await user.selectOptions(
+      screen.getByLabelText("All persons reported on time?"),
+      "Yes"
+    );
+    await user.selectOptions(
+      screen.getByLabelText("All equipment operational?"),
+      "Yes"
+    );
+    await user.selectOptions(
+      screen.getByLabelText("All incident / accident reports submitted?"),
+      "Yes"
+    );
     await user.click(screen.getByRole("button", { name: "Sign & submit" }));
 
     await waitFor(() => {
@@ -187,8 +223,10 @@ describe("DailyStatusEditor (wired)", () => {
     expect(posted[0]).toEqual({
       department_id: "dept_met",
       report_date: expectedDate,
-      shift_code: "AM",
-      shift_period: "AM",
+      shift_code: "M",
+      entries: [],
+      all_equipment_operational: true,
+      incident_reports_submitted: true,
       all_personnel_reported_on_time: true,
       affected_operations: false,
       personnel_summary: "2 on sick leave",
@@ -244,4 +282,89 @@ describe("StatusSubmissions", () => {
     await waitFor(() => expect(requested).toBe(true));
     await waitFor(() => expect(container).toBeEmptyDOMElement());
   }, 20_000);
+});
+
+describe("daily status alignment", () => {
+  it("blocks unconfirmed staffing and missing operational explanations", () => {
+    const values = {
+      ...EMPTY_DAILY_STATUS,
+      date: "2026-09-26",
+      allReported: "Yes",
+      affectedEfficiency: "No",
+      equipmentOperational: "Yes",
+      incidentsSubmitted: "Yes",
+      entries: [{ user_id: "u-1", personnel_status: "UNCONFIRMED" as const }],
+    };
+    expect(validateStatusValues(values, true)).toContain("Confirm each");
+    expect(
+      validateStatusValues(
+        { ...values, entries: [], equipmentOperational: "No" },
+        true
+      )
+    ).toContain("equipment issue");
+    expect(validateStatusValues(values, false)).toBeNull();
+  });
+  it("prefills approved absence without creating attendance times", async () => {
+    server.use(
+      http.get(`${BASE}/api/v1/hr/status-reports/staffing`, () =>
+        HttpResponse.json({
+          entries: [
+            {
+              user_id: "u-2",
+              employee_name: "Absent Employee",
+              scheduled_shift_code: "M",
+              availability: "ABSENT",
+              personnel_status: "ABSENT",
+            },
+          ],
+        })
+      )
+    );
+    wrap(<DailyStatusEditor />);
+    expect(
+      await screen.findByText("Absent Employee", { exact: false })
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Reported status")).toHaveValue("ABSENT");
+    expect(screen.getByLabelText("Arrival")).toHaveValue("");
+    expect(screen.getByLabelText("Departure")).toHaveValue("");
+  });
+  it("restores saved personnel, times and equipment on draft reopen", async () => {
+    nav.search = "draft=sr-draft";
+    server.use(
+      http.get(`${BASE}/api/v1/hr/status-reports/sr-draft`, () =>
+        HttpResponse.json({
+          report: {
+            id: "sr-draft",
+            department_id: "dept_met",
+            report_date: "2026-09-26",
+            shift_code: "N",
+            status: "DRAFT",
+            all_equipment_operational: false,
+            equipment_issue_reason: "Radio offline",
+            equipment_remedy_action: "Maintenance notified",
+          },
+          entries: [
+            {
+              user_id: "u-2",
+              employee_name: "Night Employee",
+              personnel_status: "PRESENT",
+              arrival_time: "22:00",
+              departure_time: "06:00",
+              notes: "Handover complete",
+            },
+          ],
+        })
+      )
+    );
+    wrap(<DailyStatusEditor />);
+    expect(
+      await screen.findByText("Night Employee", { exact: false })
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Arrival")).toHaveValue("22:00");
+    expect(screen.getByLabelText("Departure")).toHaveValue("06:00");
+    expect(screen.getByLabelText("Equipment issue reason")).toHaveValue(
+      "Radio offline"
+    );
+    expect(screen.getByLabelText("Shift")).toHaveValue("N");
+  });
 });

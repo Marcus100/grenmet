@@ -4,6 +4,7 @@
  */
 
 export const personnelStatus = {
+  UNCONFIRMED: "UNCONFIRMED",
   PRESENT: "PRESENT",
   ABSENT: "ABSENT",
   LATE: "LATE",

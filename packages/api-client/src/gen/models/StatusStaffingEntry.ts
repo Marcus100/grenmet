@@ -4,29 +4,26 @@
  */
 
 import type { PersonnelStatus } from "./PersonnelStatus.js";
+import type { RosterAvailability } from "./RosterAvailability.js";
 
-export type StatusReportEntryPublic = {
-  employee_name?: string | null;
+export type StatusStaffingEntry = {
   /**
    * @description
    * Format: `uuid`
    * @type string
    */
-  id: string;
-  /**
-   * @description
-   * Format: `uuid`
-   * @type string
-   */
-  status_report_id: string;
+  roster_assignment_id: string;
   /**
    * @description
    * Format: `uuid`
    * @type string
    */
   user_id: string;
+  employee_name: string;
+  scheduled_shift_code: string;
+  scheduled_start_time?: string | null;
+  scheduled_end_time?: string | null;
+  ends_next_day: boolean;
+  availability: RosterAvailability;
   personnel_status: PersonnelStatus;
-  arrival_time?: string | null;
-  departure_time?: string | null;
-  notes?: string | null;
 };

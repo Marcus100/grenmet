@@ -15,6 +15,11 @@ export type StatusReportCreate = {
    * @type string
    */
   report_date: string;
+  /**
+   * @minLength 1
+   * @maxLength 10
+   * @type string
+   */
   shift_code: string;
   shift_period?: ShiftPeriod | null;
   all_personnel_reported_on_time?: boolean | null;

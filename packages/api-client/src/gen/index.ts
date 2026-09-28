@@ -150,6 +150,7 @@ export { hrGetStaffCard } from "./clients/hrGetStaffCard.js";
 export { hrGetStaffSetup } from "./clients/hrGetStaffSetup.js";
 export { hrGetStatusReport } from "./clients/hrGetStatusReport.js";
 export { hrGetStatusReports } from "./clients/hrGetStatusReports.js";
+export { hrGetStatusStaffing } from "./clients/hrGetStatusStaffing.js";
 export { hrGetTemplates } from "./clients/hrGetTemplates.js";
 export { hrGetTimesheet } from "./clients/hrGetTimesheet.js";
 export { hrGetTimesheetSummary } from "./clients/hrGetTimesheetSummary.js";
@@ -175,6 +176,7 @@ export { hrPreviewAbsenteeReportPdf } from "./clients/hrPreviewAbsenteeReportPdf
 export { hrPreviewCatalogue } from "./clients/hrPreviewCatalogue.js";
 export { hrPreviewLeaveRequestPdf } from "./clients/hrPreviewLeaveRequestPdf.js";
 export { hrPreviewOrganisation } from "./clients/hrPreviewOrganisation.js";
+export { hrPreviewStatusReportPdf } from "./clients/hrPreviewStatusReportPdf.js";
 export { hrPublishPeriod } from "./clients/hrPublishPeriod.js";
 export { hrRemoveHoliday } from "./clients/hrRemoveHoliday.js";
 export { hrSaveMySignature } from "./clients/hrSaveMySignature.js";
@@ -1027,6 +1029,11 @@ export {
   useHrGetStatusReports,
 } from "./hooks/useHrGetStatusReports.js";
 export {
+  hrGetStatusStaffingQueryKey,
+  hrGetStatusStaffingQueryOptions,
+  useHrGetStatusStaffing,
+} from "./hooks/useHrGetStatusStaffing.js";
+export {
   hrGetTemplatesQueryKey,
   hrGetTemplatesQueryOptions,
   useHrGetTemplates,
@@ -1151,6 +1158,11 @@ export {
   hrPreviewOrganisationQueryOptions,
   useHrPreviewOrganisation,
 } from "./hooks/useHrPreviewOrganisation.js";
+export {
+  hrPreviewStatusReportPdfMutationKey,
+  hrPreviewStatusReportPdfMutationOptions,
+  useHrPreviewStatusReportPdf,
+} from "./hooks/useHrPreviewStatusReportPdf.js";
 export {
   hrPublishPeriodMutationKey,
   hrPublishPeriodMutationOptions,
@@ -2831,6 +2843,7 @@ export type {
   HrCreateStatusReportResponse,
   HrCreateStatusReportResponses,
   HrCreateStatusReportStatus201,
+  HrCreateStatusReportStatus400,
   HrCreateStatusReportStatus403,
   HrCreateStatusReportStatus422,
 } from "./models/HrCreateStatusReport.js";
@@ -3213,6 +3226,17 @@ export type {
   HrGetStatusReportsStatus422,
 } from "./models/HrGetStatusReports.js";
 export type {
+  HrGetStatusStaffingOptions,
+  HrGetStatusStaffingQuery,
+  HrGetStatusStaffingResponse,
+  HrGetStatusStaffingResponses,
+  HrGetStatusStaffingStatus200,
+  HrGetStatusStaffingStatus400,
+  HrGetStatusStaffingStatus403,
+  HrGetStatusStaffingStatus404,
+  HrGetStatusStaffingStatus422,
+} from "./models/HrGetStatusStaffing.js";
+export type {
   HrGetTemplatesOptions,
   HrGetTemplatesQuery,
   HrGetTemplatesResponse,
@@ -3468,6 +3492,17 @@ export type {
   HrPreviewOrganisationStatus409,
   HrPreviewOrganisationStatus422,
 } from "./models/HrPreviewOrganisation.js";
+export type {
+  HrPreviewStatusReportPdfBody,
+  HrPreviewStatusReportPdfOptions,
+  HrPreviewStatusReportPdfResponse,
+  HrPreviewStatusReportPdfResponses,
+  HrPreviewStatusReportPdfStatus200,
+  HrPreviewStatusReportPdfStatus400,
+  HrPreviewStatusReportPdfStatus403,
+  HrPreviewStatusReportPdfStatus404,
+  HrPreviewStatusReportPdfStatus422,
+} from "./models/HrPreviewStatusReportPdf.js";
 export type {
   HrPublishPeriodOptions,
   HrPublishPeriodPath,
@@ -4389,6 +4424,8 @@ export type { StatusReportEntryPublic } from "./models/StatusReportEntryPublic.j
 export type { StatusReportListPublic } from "./models/StatusReportListPublic.js";
 export type { StatusReportPublic } from "./models/StatusReportPublic.js";
 export type { StatusReportSubmit } from "./models/StatusReportSubmit.js";
+export type { StatusStaffingEntry } from "./models/StatusStaffingEntry.js";
+export type { StatusStaffingPublic } from "./models/StatusStaffingPublic.js";
 export type { StopView } from "./models/StopView.js";
 export type { SubmissionMode } from "./models/SubmissionMode.js";
 export { submissionMode } from "./models/SubmissionMode.js";
@@ -5970,6 +6007,7 @@ export {
   hrCreateStatusReportErrorSchema,
   hrCreateStatusReportResponseSchema,
   hrCreateStatusReportStatus201Schema,
+  hrCreateStatusReportStatus400Schema,
   hrCreateStatusReportStatus403Schema,
   hrCreateStatusReportStatus422Schema,
 } from "./zod/hrCreateStatusReportSchema.js";
@@ -6333,6 +6371,18 @@ export {
   hrGetStatusReportsStatus422Schema,
 } from "./zod/hrGetStatusReportsSchema.js";
 export {
+  hrGetStatusStaffingErrorSchema,
+  hrGetStatusStaffingQueryDepartmentIdSchema,
+  hrGetStatusStaffingQueryReportDateSchema,
+  hrGetStatusStaffingQueryShiftCodeSchema,
+  hrGetStatusStaffingResponseSchema,
+  hrGetStatusStaffingStatus200Schema,
+  hrGetStatusStaffingStatus400Schema,
+  hrGetStatusStaffingStatus403Schema,
+  hrGetStatusStaffingStatus404Schema,
+  hrGetStatusStaffingStatus422Schema,
+} from "./zod/hrGetStatusStaffingSchema.js";
+export {
   hrGetTemplatesErrorSchema,
   hrGetTemplatesQueryDepartmentIdSchema,
   hrGetTemplatesResponseSchema,
@@ -6577,6 +6627,16 @@ export {
   hrPreviewOrganisationStatus409Schema,
   hrPreviewOrganisationStatus422Schema,
 } from "./zod/hrPreviewOrganisationSchema.js";
+export {
+  hrPreviewStatusReportPdfBodySchema,
+  hrPreviewStatusReportPdfErrorSchema,
+  hrPreviewStatusReportPdfResponseSchema,
+  hrPreviewStatusReportPdfStatus200Schema,
+  hrPreviewStatusReportPdfStatus400Schema,
+  hrPreviewStatusReportPdfStatus403Schema,
+  hrPreviewStatusReportPdfStatus404Schema,
+  hrPreviewStatusReportPdfStatus422Schema,
+} from "./zod/hrPreviewStatusReportPdfSchema.js";
 export {
   hrPublishPeriodErrorSchema,
   hrPublishPeriodPathPeriodIdSchema,
@@ -7412,6 +7472,8 @@ export { statusReportEntryPublicSchema } from "./zod/statusReportEntryPublicSche
 export { statusReportListPublicSchema } from "./zod/statusReportListPublicSchema.js";
 export { statusReportPublicSchema } from "./zod/statusReportPublicSchema.js";
 export { statusReportSubmitSchema } from "./zod/statusReportSubmitSchema.js";
+export { statusStaffingEntrySchema } from "./zod/statusStaffingEntrySchema.js";
+export { statusStaffingPublicSchema } from "./zod/statusStaffingPublicSchema.js";
 export { stopViewSchema } from "./zod/stopViewSchema.js";
 export { submissionModeSchema } from "./zod/submissionModeSchema.js";
 export { swapTypeSchema } from "./zod/swapTypeSchema.js";

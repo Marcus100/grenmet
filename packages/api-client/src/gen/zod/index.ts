@@ -1022,6 +1022,7 @@ export {
   hrCreateStatusReportErrorSchema,
   hrCreateStatusReportResponseSchema,
   hrCreateStatusReportStatus201Schema,
+  hrCreateStatusReportStatus400Schema,
   hrCreateStatusReportStatus403Schema,
   hrCreateStatusReportStatus422Schema,
 } from "./hrCreateStatusReportSchema.js";
@@ -1385,6 +1386,18 @@ export {
   hrGetStatusReportsStatus422Schema,
 } from "./hrGetStatusReportsSchema.js";
 export {
+  hrGetStatusStaffingErrorSchema,
+  hrGetStatusStaffingQueryDepartmentIdSchema,
+  hrGetStatusStaffingQueryReportDateSchema,
+  hrGetStatusStaffingQueryShiftCodeSchema,
+  hrGetStatusStaffingResponseSchema,
+  hrGetStatusStaffingStatus200Schema,
+  hrGetStatusStaffingStatus400Schema,
+  hrGetStatusStaffingStatus403Schema,
+  hrGetStatusStaffingStatus404Schema,
+  hrGetStatusStaffingStatus422Schema,
+} from "./hrGetStatusStaffingSchema.js";
+export {
   hrGetTemplatesErrorSchema,
   hrGetTemplatesQueryDepartmentIdSchema,
   hrGetTemplatesResponseSchema,
@@ -1629,6 +1642,16 @@ export {
   hrPreviewOrganisationStatus409Schema,
   hrPreviewOrganisationStatus422Schema,
 } from "./hrPreviewOrganisationSchema.js";
+export {
+  hrPreviewStatusReportPdfBodySchema,
+  hrPreviewStatusReportPdfErrorSchema,
+  hrPreviewStatusReportPdfResponseSchema,
+  hrPreviewStatusReportPdfStatus200Schema,
+  hrPreviewStatusReportPdfStatus400Schema,
+  hrPreviewStatusReportPdfStatus403Schema,
+  hrPreviewStatusReportPdfStatus404Schema,
+  hrPreviewStatusReportPdfStatus422Schema,
+} from "./hrPreviewStatusReportPdfSchema.js";
 export {
   hrPublishPeriodErrorSchema,
   hrPublishPeriodPathPeriodIdSchema,
@@ -2464,6 +2487,8 @@ export { statusReportEntryPublicSchema } from "./statusReportEntryPublicSchema.j
 export { statusReportListPublicSchema } from "./statusReportListPublicSchema.js";
 export { statusReportPublicSchema } from "./statusReportPublicSchema.js";
 export { statusReportSubmitSchema } from "./statusReportSubmitSchema.js";
+export { statusStaffingEntrySchema } from "./statusStaffingEntrySchema.js";
+export { statusStaffingPublicSchema } from "./statusStaffingPublicSchema.js";
 export { stopViewSchema } from "./stopViewSchema.js";
 export { submissionModeSchema } from "./submissionModeSchema.js";
 export { swapTypeSchema } from "./swapTypeSchema.js";

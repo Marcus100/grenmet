@@ -1148,6 +1148,7 @@ export type {
   HrCreateStatusReportResponse,
   HrCreateStatusReportResponses,
   HrCreateStatusReportStatus201,
+  HrCreateStatusReportStatus400,
   HrCreateStatusReportStatus403,
   HrCreateStatusReportStatus422,
 } from "./HrCreateStatusReport.js";
@@ -1530,6 +1531,17 @@ export type {
   HrGetStatusReportsStatus422,
 } from "./HrGetStatusReports.js";
 export type {
+  HrGetStatusStaffingOptions,
+  HrGetStatusStaffingQuery,
+  HrGetStatusStaffingResponse,
+  HrGetStatusStaffingResponses,
+  HrGetStatusStaffingStatus200,
+  HrGetStatusStaffingStatus400,
+  HrGetStatusStaffingStatus403,
+  HrGetStatusStaffingStatus404,
+  HrGetStatusStaffingStatus422,
+} from "./HrGetStatusStaffing.js";
+export type {
   HrGetTemplatesOptions,
   HrGetTemplatesQuery,
   HrGetTemplatesResponse,
@@ -1785,6 +1797,17 @@ export type {
   HrPreviewOrganisationStatus409,
   HrPreviewOrganisationStatus422,
 } from "./HrPreviewOrganisation.js";
+export type {
+  HrPreviewStatusReportPdfBody,
+  HrPreviewStatusReportPdfOptions,
+  HrPreviewStatusReportPdfResponse,
+  HrPreviewStatusReportPdfResponses,
+  HrPreviewStatusReportPdfStatus200,
+  HrPreviewStatusReportPdfStatus400,
+  HrPreviewStatusReportPdfStatus403,
+  HrPreviewStatusReportPdfStatus404,
+  HrPreviewStatusReportPdfStatus422,
+} from "./HrPreviewStatusReportPdf.js";
 export type {
   HrPublishPeriodOptions,
   HrPublishPeriodPath,
@@ -2706,6 +2729,8 @@ export type { StatusReportEntryPublic } from "./StatusReportEntryPublic.js";
 export type { StatusReportListPublic } from "./StatusReportListPublic.js";
 export type { StatusReportPublic } from "./StatusReportPublic.js";
 export type { StatusReportSubmit } from "./StatusReportSubmit.js";
+export type { StatusStaffingEntry } from "./StatusStaffingEntry.js";
+export type { StatusStaffingPublic } from "./StatusStaffingPublic.js";
 export type { StopView } from "./StopView.js";
 export type { SubmissionMode } from "./SubmissionMode.js";
 export { submissionMode } from "./SubmissionMode.js";
