@@ -43,7 +43,7 @@ RUN corepack enable && corepack prepare pnpm@12.3.4 --activate
 
 # The coding agents themselves. Pinned so a rebuild doesn't silently drift —
 # bump deliberately (check current versions with `npm view <pkg> version`).
-RUN npm install -g @anthropic-ai/claude-code@2.1.277 @openai/codex@0.155.1
+RUN npm install -g @anthropic-ai/claude-code@2.1.283 @openai/codex@0.155.1
 
 # GitHub CLI (gh) — used by the repo's issue/PR workflow. Official apt repo.
 RUN mkdir -p -m 755 /etc/apt/keyrings \
@@ -76,6 +76,12 @@ RUN chmod 755 /usr/local/bin/prepare-agent-dependencies \
 # capability headers it links against.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends bubblewrap libcap-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# System libraries for Playwright's Chromium, so agents can screenshot and
+# test pages headlessly. Pin matches the @playwright/test catalog version;
+# the browser binary itself is downloaded into the ~/.cache volume.
+RUN npx -y playwright@1.63.0 install-deps chromium \
     && rm -rf /var/lib/apt/lists/*
 
 # Run as the unprivileged 'node' user, not root
