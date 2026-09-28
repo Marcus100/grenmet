@@ -13,9 +13,19 @@ export type ParkingPermitCreate = {
    * @type string
    */
   user_id: string;
+  /**
+   * @minLength 1
+   * @maxLength 100
+   * @type string
+   */
   department_id: string;
   company_name?: string | null;
   phone?: string | null;
+  /**
+   * @minLength 1
+   * @maxLength 50
+   * @type string
+   */
   vehicle_registration_no: string;
   vehicle_insurance_issue_date?: string | null;
   vehicle_insurance_expiry_date?: string | null;
@@ -29,4 +39,10 @@ export type ParkingPermitCreate = {
    * @default 40.00
    */
   fee_amount?: number | string;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  as_draft?: boolean;
+  co_approver_user_ids?: string[];
 };

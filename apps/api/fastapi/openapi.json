@@ -7219,6 +7219,184 @@
         }
       }
     },
+    "/api/v1/hr/parking-permits/preview-pdf": {
+      "post": {
+        "tags": [
+          "hr-parking"
+        ],
+        "summary": "Preview parking application PDF",
+        "description": "Render the scoped draft application without saving or signing it.",
+        "operationId": "hrPreviewParkingPermitPdf",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParkingPermitCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Draft PDF",
+            "content": {
+              "application/pdf": {}
+            }
+          },
+          "422": {
+            "description": "Invalid fields"
+          },
+          "400": {
+            "description": "Invalid application"
+          },
+          "403": {
+            "description": "Subject outside scope"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/parking-permits/{permit_id}": {
+      "patch": {
+        "tags": [
+          "hr-parking"
+        ],
+        "summary": "Edit a parking application draft",
+        "description": "Reporter-owned draft edits retain the workflow department.",
+        "operationId": "hrUpdateParkingPermit",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "permit_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Permit Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParkingPermitCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParkingPermitPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Application is not editable"
+          },
+          "403": {
+            "description": "Subject outside scope"
+          },
+          "404": {
+            "description": "Application not found"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/parking-permits/{permit_id}/submit": {
+      "post": {
+        "tags": [
+          "hr-parking"
+        ],
+        "summary": "Submit a parking application draft",
+        "description": "Submit a reporter-owned draft to the configured approval workflow, with optional fresh saved-signature consent.",
+        "operationId": "hrSubmitParkingPermit",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "permit_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Permit Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParkingPermitSubmit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ParkingPermitPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid draft or workflow"
+          },
+          "403": {
+            "description": "Subject outside scope"
+          },
+          "404": {
+            "description": "Application not found"
+          }
+        }
+      }
+    },
     "/api/v1/hr/parking-permits": {
       "post": {
         "tags": [
@@ -7262,6 +7440,9 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid subject or workflow"
           },
           "403": {
             "description": "Insufficient permission"
@@ -7358,7 +7539,7 @@
           "hr-parking"
         ],
         "summary": "Issue a parking decal",
-        "description": "Record decal issuance for a parking permit. Requires parking.permit.issue permission.",
+        "description": "Record issuance only after approval, within active organisation/department scope. Identical retries preserve the original issuer/date; renewals and replacements are separate applications.",
         "operationId": "hrIssueParkingDecal",
         "security": [
           {
@@ -7407,6 +7588,9 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Unapproved application or already issued decal"
           },
           "403": {
             "description": "Insufficient permission"
@@ -28652,12 +28836,15 @@
           },
           "department_id": {
             "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
             "title": "Department Id"
           },
           "company_name": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 255
               },
               {
                 "type": "null"
@@ -28668,7 +28855,8 @@
           "phone": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 30
               },
               {
                 "type": "null"
@@ -28678,6 +28866,8 @@
           },
           "vehicle_registration_no": {
             "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
             "title": "Vehicle Registration No"
           },
           "vehicle_insurance_issue_date": {
@@ -28711,7 +28901,8 @@
           "action_other_detail": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 255
               },
               {
                 "type": "null"
@@ -28722,15 +28913,29 @@
           "fee_amount": {
             "anyOf": [
               {
-                "type": "number"
+                "type": "number",
+                "minimum": 0.0
               },
               {
                 "type": "string",
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,6}|(?=[\\d.]{1,9}0*$)\\d{0,6}\\.\\d{0,2}0*$)"
               }
             ],
             "title": "Fee Amount",
             "default": "40.00"
+          },
+          "as_draft": {
+            "type": "boolean",
+            "title": "As Draft",
+            "default": false
+          },
+          "co_approver_user_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Co Approver User Ids"
           }
         },
         "type": "object",
@@ -28745,6 +28950,8 @@
         "properties": {
           "decal_number": {
             "type": "string",
+            "maxLength": 50,
+            "minLength": 1,
             "title": "Decal Number"
           },
           "valid_from": {
@@ -28760,7 +28967,8 @@
           "received_by": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 255
               },
               {
                 "type": "null"
@@ -29042,6 +29250,32 @@
           "updated_at"
         ],
         "title": "ParkingPermitPublic"
+      },
+      "ParkingPermitSubmit": {
+        "properties": {
+          "signature_version": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature Version"
+          },
+          "co_approver_user_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "title": "Co Approver User Ids"
+          }
+        },
+        "type": "object",
+        "title": "ParkingPermitSubmit"
       },
       "PermissionCreate": {
         "properties": {

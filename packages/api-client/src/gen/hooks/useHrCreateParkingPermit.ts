@@ -14,6 +14,7 @@ import { hrCreateParkingPermit } from "../clients/hrCreateParkingPermit.js";
 import type {
   HrCreateParkingPermitOptions,
   HrCreateParkingPermitStatus201,
+  HrCreateParkingPermitStatus400,
   HrCreateParkingPermitStatus403,
   HrCreateParkingPermitStatus422,
 } from "../models/HrCreateParkingPermit.js";
@@ -30,7 +31,9 @@ export function hrCreateParkingPermitMutationOptions<TContext = unknown>(
   return mutationOptions<
     HrCreateParkingPermitStatus201,
     ResponseErrorConfig<
-      HrCreateParkingPermitStatus403 | HrCreateParkingPermitStatus422
+      | HrCreateParkingPermitStatus400
+      | HrCreateParkingPermitStatus403
+      | HrCreateParkingPermitStatus422
     >,
     HrCreateParkingPermitOptions,
     TContext
@@ -56,7 +59,9 @@ export function useHrCreateParkingPermit<TContext>(
     mutation?: UseMutationOptions<
       HrCreateParkingPermitStatus201,
       ResponseErrorConfig<
-        HrCreateParkingPermitStatus403 | HrCreateParkingPermitStatus422
+        | HrCreateParkingPermitStatus400
+        | HrCreateParkingPermitStatus403
+        | HrCreateParkingPermitStatus422
       >,
       HrCreateParkingPermitOptions,
       TContext
@@ -76,7 +81,9 @@ export function useHrCreateParkingPermit<TContext>(
   ) as UseMutationOptions<
     HrCreateParkingPermitStatus201,
     ResponseErrorConfig<
-      HrCreateParkingPermitStatus403 | HrCreateParkingPermitStatus422
+      | HrCreateParkingPermitStatus400
+      | HrCreateParkingPermitStatus403
+      | HrCreateParkingPermitStatus422
     >,
     HrCreateParkingPermitOptions,
     TContext
@@ -85,7 +92,9 @@ export function useHrCreateParkingPermit<TContext>(
   return useMutation<
     HrCreateParkingPermitStatus201,
     ResponseErrorConfig<
-      HrCreateParkingPermitStatus403 | HrCreateParkingPermitStatus422
+      | HrCreateParkingPermitStatus400
+      | HrCreateParkingPermitStatus403
+      | HrCreateParkingPermitStatus422
     >,
     HrCreateParkingPermitOptions,
     TContext
@@ -99,7 +108,9 @@ export function useHrCreateParkingPermit<TContext>(
   ) as UseMutationResult<
     HrCreateParkingPermitStatus201,
     ResponseErrorConfig<
-      HrCreateParkingPermitStatus403 | HrCreateParkingPermitStatus422
+      | HrCreateParkingPermitStatus400
+      | HrCreateParkingPermitStatus403
+      | HrCreateParkingPermitStatus422
     >,
     HrCreateParkingPermitOptions,
     TContext

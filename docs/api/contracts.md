@@ -1163,3 +1163,21 @@ appends one `CANCELLATION_REVERSAL` for the exact recorded `APPROVAL_DEBIT`, rat
 than recalculating from mutable form values. Pending cancellation posts no credit;
 retry cannot duplicate the reversal. No opening balance, entitlement or pay rule
 is inferred. The reversal migration is `reversal20260928`, after `staff20260928`.
+
+### Parking applications
+
+Authenticated parking applications support `POST /hr/parking-permits/preview-pdf`,
+reporter-owned `PATCH /hr/parking-permits/{id}` draft edits and
+`POST /hr/parking-permits/{id}/submit` with fresh signature consent. Python renders
+the supplied Vehicle Pass fields and original security conditions for both draft
+previews and signed evidence. Previews save no rows and use `private, no-store`.
+The employee must belong to the filing department; proxy filing uses the existing
+employee scope. Other actions need an explanation on submission; registration,
+insurance date order and issuance validity are validated.
+
+Personal lists include the employee's applications and applications filed by the
+reporter; department lists and decal issuance require active organisation and
+department scope. `POST /hr/parking-permits/{id}/issue` requires an approved
+application and approved linked workflow. Identical issuance retries preserve
+the issuer and date; changed issuance is rejected, with renewal/replacement filed
+as a new application. Issuance does not rewrite the original signed evidence.

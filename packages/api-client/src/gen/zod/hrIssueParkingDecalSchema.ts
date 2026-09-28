@@ -12,6 +12,8 @@ export const hrIssueParkingDecalPathPermitIdSchema = z.uuid();
 
 export const hrIssueParkingDecalStatus200Schema = parkingPermitPublicSchema;
 
+export const hrIssueParkingDecalStatus400Schema = z.unknown();
+
 export const hrIssueParkingDecalStatus403Schema = z.unknown();
 
 export const hrIssueParkingDecalStatus404Schema = z.unknown();
@@ -25,6 +27,7 @@ export const hrIssueParkingDecalResponseSchema =
   hrIssueParkingDecalStatus200Schema;
 
 export const hrIssueParkingDecalErrorSchema = z.union([
+  hrIssueParkingDecalStatus400Schema,
   hrIssueParkingDecalStatus403Schema,
   hrIssueParkingDecalStatus404Schema,
   hrIssueParkingDecalStatus422Schema,

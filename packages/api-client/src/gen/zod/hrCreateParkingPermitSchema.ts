@@ -10,6 +10,8 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 
 export const hrCreateParkingPermitStatus201Schema = parkingPermitPublicSchema;
 
+export const hrCreateParkingPermitStatus400Schema = z.unknown();
+
 export const hrCreateParkingPermitStatus403Schema = z.unknown();
 
 export const hrCreateParkingPermitStatus422Schema =
@@ -21,6 +23,7 @@ export const hrCreateParkingPermitResponseSchema =
   hrCreateParkingPermitStatus201Schema;
 
 export const hrCreateParkingPermitErrorSchema = z.union([
+  hrCreateParkingPermitStatus400Schema,
   hrCreateParkingPermitStatus403Schema,
   hrCreateParkingPermitStatus422Schema,
 ]);
