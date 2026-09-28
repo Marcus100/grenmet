@@ -11,7 +11,7 @@ import type {
 } from "../models/HrUpdateHrEmployment.js";
 
 /**
- * @description Update a user's employment record and approval authority. Supervisor or admin only.
+ * @description Update employment, approval authority and verified service/probation facts with their HR source. Scoped supervisor or admin only; no inferred eligibility.
  * @summary Update employment (admin)
  * {@link /api/v1/hr/employment/:user_id}
  */

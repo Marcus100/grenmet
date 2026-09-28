@@ -14,6 +14,7 @@ import { hrUpdateStaffSetup } from "../clients/hrUpdateStaffSetup.js";
 import type {
   HrUpdateStaffSetupOptions,
   HrUpdateStaffSetupStatus200,
+  HrUpdateStaffSetupStatus400,
   HrUpdateStaffSetupStatus403,
   HrUpdateStaffSetupStatus404,
   HrUpdateStaffSetupStatus409,
@@ -32,6 +33,7 @@ export function hrUpdateStaffSetupMutationOptions<TContext = unknown>(
   return mutationOptions<
     HrUpdateStaffSetupStatus200,
     ResponseErrorConfig<
+      | HrUpdateStaffSetupStatus400
       | HrUpdateStaffSetupStatus403
       | HrUpdateStaffSetupStatus404
       | HrUpdateStaffSetupStatus409
@@ -53,7 +55,7 @@ export function hrUpdateStaffSetupMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Complete or update staff onboarding.
+ * @description Complete or update staff onboarding, including separately verified continuous service and probation facts with their HR source. Does not infer eligibility or alter role assignments.
  * @summary Complete or update staff onboarding
  * {@link /api/v1/hr/setup/staff/:user_id}
  */
@@ -62,6 +64,7 @@ export function useHrUpdateStaffSetup<TContext>(
     mutation?: UseMutationOptions<
       HrUpdateStaffSetupStatus200,
       ResponseErrorConfig<
+        | HrUpdateStaffSetupStatus400
         | HrUpdateStaffSetupStatus403
         | HrUpdateStaffSetupStatus404
         | HrUpdateStaffSetupStatus409
@@ -85,6 +88,7 @@ export function useHrUpdateStaffSetup<TContext>(
   ) as UseMutationOptions<
     HrUpdateStaffSetupStatus200,
     ResponseErrorConfig<
+      | HrUpdateStaffSetupStatus400
       | HrUpdateStaffSetupStatus403
       | HrUpdateStaffSetupStatus404
       | HrUpdateStaffSetupStatus409
@@ -97,6 +101,7 @@ export function useHrUpdateStaffSetup<TContext>(
   return useMutation<
     HrUpdateStaffSetupStatus200,
     ResponseErrorConfig<
+      | HrUpdateStaffSetupStatus400
       | HrUpdateStaffSetupStatus403
       | HrUpdateStaffSetupStatus404
       | HrUpdateStaffSetupStatus409
@@ -114,6 +119,7 @@ export function useHrUpdateStaffSetup<TContext>(
   ) as UseMutationResult<
     HrUpdateStaffSetupStatus200,
     ResponseErrorConfig<
+      | HrUpdateStaffSetupStatus400
       | HrUpdateStaffSetupStatus403
       | HrUpdateStaffSetupStatus404
       | HrUpdateStaffSetupStatus409

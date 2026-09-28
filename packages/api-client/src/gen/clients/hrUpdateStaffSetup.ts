@@ -11,7 +11,7 @@ import type {
 } from "../models/HrUpdateStaffSetup.js";
 
 /**
- * @description Complete or update staff onboarding.
+ * @description Complete or update staff onboarding, including separately verified continuous service and probation facts with their HR source. Does not infer eligibility or alter role assignments.
  * @summary Complete or update staff onboarding
  * {@link /api/v1/hr/setup/staff/:user_id}
  */

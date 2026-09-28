@@ -20,7 +20,11 @@ from src.baseline.schemas import (
 from src.exceptions import AppException
 from src.hr.leave import ledger
 from src.hr.models import Department, EmploymentRecord, EmploymentStatus, Grade
-from src.hr.organisations import department_for
+from src.hr.organisations import (
+    department_for,
+    validate_service_facts,
+    validate_supervisor,
+)
 from src.utils.datetime import utc_now
 
 
@@ -150,6 +154,18 @@ async def list_staff(session: AsyncSession) -> list[StaffSetup]:
                 employee_number=employment.employee_number if employment else None,
                 employment_type=employment.employment_type if employment else None,
                 start_date=employment.start_date if employment else None,
+                continuous_service_date=employment.continuous_service_date
+                if employment
+                else None,
+                probation_end_date=employment.probation_end_date
+                if employment
+                else None,
+                probation_completed_date=employment.probation_completed_date
+                if employment
+                else None,
+                service_details_source=employment.service_details_source
+                if employment
+                else None,
                 supervisor_id=employment.supervisor_id if employment else None,
                 status="inactive"
                 if credential and credential.revoked_at
@@ -213,6 +229,24 @@ async def save_staff(
             raise AppException(
                 "Supervisor must be another active employee in the department", 400
             )
+    await validate_supervisor(
+        session, body.supervisor_id, department.organisation_id, user_id
+    )
+    personnel_updates = body.model_dump(exclude_unset=True)
+    # Existing onboarding blanks preserve verified commencement and identity fields.
+    personnel_updates = {
+        key: value
+        for key, value in personnel_updates.items()
+        if value is not None
+        or key
+        in {
+            "continuous_service_date",
+            "probation_end_date",
+            "probation_completed_date",
+            "service_details_source",
+        }
+    }
+    await validate_service_facts(personnel_updates, employment)
     employment.department_id = body.department_id
     employment.grade_id = body.grade_id
     employment.position = grade.label
@@ -223,6 +257,14 @@ async def save_staff(
         value = getattr(body, field)
         if value is not None:
             setattr(employment, field, value)
+    for field in (
+        "continuous_service_date",
+        "probation_end_date",
+        "probation_completed_date",
+        "service_details_source",
+    ):
+        if field in body.model_fields_set:
+            setattr(employment, field, getattr(body, field))
     session.add(employment)
     if body.mailbox_ready and not user.is_active:
         user.email_verification_required = True

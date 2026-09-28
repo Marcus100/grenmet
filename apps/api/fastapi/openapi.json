@@ -2213,7 +2213,7 @@
           "hr"
         ],
         "summary": "Update employment (admin)",
-        "description": "Update a user's employment record and approval authority. Supervisor or admin only.",
+        "description": "Update employment, approval authority and verified service/probation facts with their HR source. Scoped supervisor or admin only; no inferred eligibility.",
         "operationId": "hrUpdateHrEmployment",
         "security": [
           {
@@ -2262,6 +2262,9 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid supervisor or recorded service facts"
           },
           "403": {
             "description": "Insufficient permission"
@@ -16610,7 +16613,7 @@
           "staff-setup"
         ],
         "summary": "Complete or update staff onboarding",
-        "description": "Complete or update staff onboarding.",
+        "description": "Complete or update staff onboarding, including separately verified continuous service and probation facts with their HR source. Does not infer eligibility or alter role assignments.",
         "operationId": "hrUpdateStaffSetup",
         "security": [
           {
@@ -16668,6 +16671,9 @@
           },
           "409": {
             "description": "Setup conflict"
+          },
+          "400": {
+            "description": "Invalid grade, supervisor or recorded service facts"
           }
         }
       }
@@ -24569,6 +24575,54 @@
             ],
             "title": "Start Date"
           },
+          "continuous_service_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Continuous Service Date"
+          },
+          "probation_end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probation End Date"
+          },
+          "probation_completed_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probation Completed Date"
+          },
+          "service_details_source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service Details Source"
+          },
           "supervisor_id": {
             "anyOf": [
               {
@@ -24694,6 +24748,54 @@
             ],
             "title": "Start Date"
           },
+          "continuous_service_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Continuous Service Date"
+          },
+          "probation_end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probation End Date"
+          },
+          "probation_completed_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probation Completed Date"
+          },
+          "service_details_source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service Details Source"
+          },
           "supervisor_id": {
             "anyOf": [
               {
@@ -24794,6 +24896,54 @@
               }
             ],
             "title": "Start Date"
+          },
+          "continuous_service_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Continuous Service Date"
+          },
+          "probation_end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probation End Date"
+          },
+          "probation_completed_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probation Completed Date"
+          },
+          "service_details_source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service Details Source"
           },
           "supervisor_id": {
             "anyOf": [
@@ -24910,6 +25060,54 @@
               }
             ],
             "title": "Start Date"
+          },
+          "continuous_service_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Continuous Service Date"
+          },
+          "probation_end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probation End Date"
+          },
+          "probation_completed_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probation Completed Date"
+          },
+          "service_details_source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service Details Source"
           },
           "supervisor_id": {
             "anyOf": [
@@ -32812,6 +33010,54 @@
             ],
             "title": "Start Date"
           },
+          "continuous_service_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Continuous Service Date"
+          },
+          "probation_end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probation End Date"
+          },
+          "probation_completed_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probation Completed Date"
+          },
+          "service_details_source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service Details Source"
+          },
           "supervisor_id": {
             "anyOf": [
               {
@@ -32913,6 +33159,54 @@
               }
             ],
             "title": "Start Date"
+          },
+          "continuous_service_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Continuous Service Date"
+          },
+          "probation_end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probation End Date"
+          },
+          "probation_completed_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Probation Completed Date"
+          },
+          "service_details_source": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service Details Source"
           },
           "supervisor_id": {
             "anyOf": [

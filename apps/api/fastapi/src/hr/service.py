@@ -6,7 +6,13 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
+from src.auth.models import (
+    Role,
+    RoleAssignmentScope,
+    User,
+    UserImage,
+    UserRoleAssignment,
+)
 from src.auth.policy import can_act_on_user, require_permission
 from src.hr.leave import ledger
 from src.hr.organisations import (
@@ -14,6 +20,7 @@ from src.hr.organisations import (
     permitted_departments,
     require_organisation_permission,
     resolve_organisation,
+    validate_service_facts,
     validate_supervisor,
 )
 from src.utils.datetime import utc_now
@@ -140,9 +147,12 @@ async def create_employment_for_user(
     department = await session.get(Department, payload.department_id)
     if not department:
         raise DepartmentNotFoundError()
+    if payload.supervisor_id == target_user_id:
+        raise HRValidationError("An employee cannot supervise themselves")
     await validate_supervisor(
-        session, payload.supervisor_id, department.organisation_id
+        session, payload.supervisor_id, department.organisation_id, target_user_id
     )
+    await validate_service_facts(payload.model_dump(), None)
     record = EmploymentRecord(
         user_id=target_user_id,
         organisation_id=department.organisation_id,
@@ -424,7 +434,9 @@ async def _build_profile_response(
         for role in user.roles
     ]
 
-    avatar_url = user.user_image.object_key if user.user_image else None
+    avatar_url = await session.scalar(
+        select(UserImage.object_key).where(UserImage.user_id == user.id)
+    )
 
     from src.baseline.service import employment_complete
 
@@ -462,6 +474,18 @@ async def _build_profile_response(
             employment_record.employment_type if employment_record else None
         ),
         start_date=employment_record.start_date if employment_record else None,
+        continuous_service_date=employment_record.continuous_service_date
+        if employment_record
+        else None,
+        probation_end_date=employment_record.probation_end_date
+        if employment_record
+        else None,
+        probation_completed_date=employment_record.probation_completed_date
+        if employment_record
+        else None,
+        service_details_source=employment_record.service_details_source
+        if employment_record
+        else None,
         supervisor_id=employment_record.supervisor_id if employment_record else None,
         work_location=employment_record.work_location if employment_record else None,
         status=employment_record.status if employment_record else None,
@@ -760,8 +784,16 @@ async def update_employment_for_user(
         raise EmploymentNotFoundError()
 
     if employment_update:
+        await validate_service_facts(
+            employment_update.model_dump(exclude_unset=True), employment
+        )
+        if employment_update.supervisor_id == target_user_id:
+            raise HRValidationError("An employee cannot supervise themselves")
         await validate_supervisor(
-            session, employment_update.supervisor_id, employment.organisation_id
+            session,
+            employment_update.supervisor_id,
+            employment.organisation_id,
+            target_user_id,
         )
         if employment_update.department_id:
             destination = await department_for(session, employment_update.department_id)

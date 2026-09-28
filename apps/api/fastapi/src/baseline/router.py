@@ -71,7 +71,10 @@ async def read_staff_setup(
     response_model=Message,
     summary="Complete or update staff onboarding",
     status_code=200,
-    description="Complete or update staff onboarding.",
+    description="Complete or update staff onboarding, including separately verified continuous service and probation facts with their HR source. Does not infer eligibility or alter role assignments.",
+    responses={
+        400: {"description": "Invalid grade, supervisor or recorded service facts"}
+    },
 )
 async def update_staff_setup(
     *,
