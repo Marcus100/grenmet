@@ -102,18 +102,37 @@ async def save_attendance(
 ) -> AttendanceRecord:
     # Lock the schedule row too: concurrent first punches must serialize before
     # checking the unique attendance row, so retries cannot create duplicates.
+    code = await session.scalar(
+        select(RosterAssignment.shift_code).where(
+            RosterAssignment.id == payload.roster_assignment_id
+        )
+    )
+    if code is None:
+        raise AppException("Roster assignment not found", 404)
+    # Catalogue first, assignment second is shared with roster writes. This
+    # serializes timing edits even when the first assignment is being created.
+    shift = await session.scalar(
+        select(ShiftCatalog)
+        .where(ShiftCatalog.code == code)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    if shift is None:
+        raise AppException("Shift not found", 404)
     row = (
         await session.execute(
-            select(RosterAssignment, RosterPeriod, ShiftCatalog)
+            select(RosterAssignment, RosterPeriod)
             .join(RosterPeriod, RosterPeriod.id == RosterAssignment.roster_period_id)
-            .join(ShiftCatalog, ShiftCatalog.code == RosterAssignment.shift_code)
             .where(RosterAssignment.id == payload.roster_assignment_id)
             .with_for_update(of=RosterAssignment)
+            .execution_options(populate_existing=True)
         )
     ).first()
     if row is None:
         raise AppException("Roster assignment not found", 404)
-    assignment, period, shift = row
+    assignment, period = row
+    if assignment.shift_code != code:
+        raise AppException("Roster changed; reload before recording attendance", 409)
     await _require_subject(
         session, current_user, assignment.user_id, period.department_id
     )
@@ -135,10 +154,18 @@ async def save_attendance(
             and record.break_minutes == payload.break_minutes
             and record.notes == payload.notes
         )
-        if same_values:
-            return (
-                record  # A retried identical save is safe, including after submission.
-            )
+        workflow = (
+            await session.get(WorkflowInstance, record.workflow_instance_id)
+            if record.workflow_instance_id
+            else None
+        )
+        terminal_review = workflow and workflow.status in {
+            WorkflowStatus.REJECTED,
+            WorkflowStatus.RETURNED,
+            WorkflowStatus.CANCELLED,
+        }
+        if same_values and not terminal_review:
+            return record  # Retries of active reviews remain idempotent.
         if record.revision != payload.expected_revision:
             raise AppException("Attendance changed; reload before saving", 409)
         if (
@@ -149,11 +176,6 @@ async def save_attendance(
                 "Explain changes to previously recorded arrival or departure in shift remarks",
                 400,
             )
-        workflow = (
-            await session.get(WorkflowInstance, record.workflow_instance_id)
-            if record.workflow_instance_id
-            else None
-        )
         if workflow and workflow.status not in {
             WorkflowStatus.REJECTED,
             WorkflowStatus.RETURNED,
@@ -203,7 +225,16 @@ async def submit_attendance(
     if record.revision != expected_revision:
         raise AppException("Attendance changed; reload before submitting", 409)
     if record.workflow_instance_id:
-        return record  # Idempotent: never create two approval chains for one revision.
+        workflow = await session.get(WorkflowInstance, record.workflow_instance_id)
+        if workflow is None or workflow.status not in {
+            WorkflowStatus.REJECTED,
+            WorkflowStatus.RETURNED,
+            WorkflowStatus.CANCELLED,
+        }:
+            return record  # Idempotent while this revision is under review/approved.
+        record.revision += 1
+        # Keep the old instance and its steps as historical evidence.
+        record.workflow_instance_id = None
     if record.departed_at is None:
         raise AppException(
             "Record departure before submitting for supervisor review", 400
@@ -434,15 +465,23 @@ async def read_review(
         raise AppException("Attendance not found", 404)
     allowed = current_user.id == record.user_id
     if not allowed:
-        for key in ("timesheet.read.department", "timesheet.approve"):
-            if await can_act_on_user(
-                session=session,
-                current_user=current_user,
-                target_user_id=record.user_id,
-                permission_key=key,
-            ):
-                allowed = True
-                break
+        department = await session.get(Department, record.department_id)
+        if department:
+            for key in ("timesheet.read.department", "timesheet.approve"):
+                try:
+                    await require_organisation_permission(
+                        session,
+                        current_user,
+                        department.organisation_id,
+                        key,
+                        record.department_id,
+                    )
+                except AppException as exc:
+                    if exc.status_code != 403:
+                        raise
+                else:
+                    allowed = True
+                    break
     if not allowed:
         instance_id = (
             correction.workflow_instance_id

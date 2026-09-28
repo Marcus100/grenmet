@@ -1181,3 +1181,5 @@ department scope. `POST /hr/parking-permits/{id}/issue` requires an approved
 application and approved linked workflow. Identical issuance retries preserve
 the issuer and date; changed issuance is rejected, with renewal/replacement filed
 as a new application. Issuance does not rewrite the original signed evidence.
+
+Roster writes and CSV/grid imports enforce the filing department scope and employee membership. They preserve assignment IDs and protect actual attendance and legacy recorded/submitted/approved timesheets. Catalogue and assignment locks serialize timing edits with first punches. Attendance history reads use the recorded filing department after transfers; unchanged terminal reviews reopen as a fresh cycle, retaining prior steps. Generic workflow submission cannot bypass the attendance submit route.
