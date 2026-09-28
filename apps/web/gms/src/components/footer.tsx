@@ -1,219 +1,141 @@
 import { Logo } from "@barrelsgd/gms/components/logo";
+import Link from "next/link";
 
-const LINK_ROWS = [
-  [
-    { label: "About GMS", href: "/about" },
-    { label: "Contact", href: "/about/contact" },
-  ],
-  [
-    { label: "GMS Weather app", href: "/app-guide" },
-    { label: "Glossary", href: "/explore/glossary" },
-  ],
-  [
-    { label: "Events", href: "/services/tourism/events" },
-    { label: "Website help", href: "/help" },
-  ],
-  [{ label: "News and media", href: "/explore/news" }],
-];
+const COLUMNS = [
+  {
+    heading: "Weather",
+    links: [
+      { label: "Forecasts", href: "/weather" },
+      { label: "Radar", href: "/weather/radar" },
+      { label: "Satellite", href: "/weather/satellite" },
+      { label: "Tropics", href: "/weather/tropics" },
+      { label: "Observations", href: "/weather/observations" },
+    ],
+  },
+  {
+    heading: "Warnings & marine",
+    links: [
+      { label: "Warnings in effect", href: "/warnings" },
+      { label: "Get alerts", href: "/warnings/get-alerts" },
+      { label: "Marine forecast", href: "/marine/forecast" },
+      { label: "Tides", href: "/marine/tides" },
+      { label: "Marine safety", href: "/marine/safety" },
+    ],
+  },
+  {
+    heading: "Climate & services",
+    links: [
+      { label: "Climate", href: "/climate" },
+      { label: "Climate data", href: "/climate/rainfall" },
+      { label: "Aviation", href: "/services/aviation" },
+      { label: "Agriculture", href: "/services/agriculture" },
+      { label: "Events", href: "/services/tourism/events" },
+    ],
+  },
+  {
+    heading: "About",
+    links: [
+      { label: "About GMS", href: "/about" },
+      { label: "Contact", href: "/about/contact" },
+      { label: "Careers", href: "/about/careers" },
+      { label: "For media", href: "/services/media" },
+      { label: "GMS Weather app", href: "/app-guide" },
+    ],
+  },
+] as const;
 
 const SOCIAL = [
-  {
-    label: "X / Twitter",
-    abbr: "X",
-    href: "https://x.com",
-    size: "text-body",
-  },
-  {
-    label: "Facebook",
-    abbr: "f",
-    href: "https://facebook.com",
-    size: "text-heading-sm",
-  },
-  {
-    label: "Instagram",
-    abbr: "ig",
-    href: "https://instagram.com",
-    size: "text-caption",
-  },
-  {
-    label: "YouTube",
-    abbr: "yt",
-    href: "https://youtube.com",
-    size: "text-caption",
-  },
-  {
-    label: "LinkedIn",
-    abbr: "in",
-    href: "https://linkedin.com",
-    size: "text-body-sm",
-  },
-  {
-    label: "WhatsApp",
-    abbr: "wa",
-    href: "https://whatsapp.com",
-    size: "text-caption",
-  },
-];
+  { label: "X / Twitter", abbr: "X", href: "https://x.com" },
+  { label: "Facebook", abbr: "f", href: "https://facebook.com" },
+  { label: "Instagram", abbr: "ig", href: "https://instagram.com" },
+  { label: "YouTube", abbr: "yt", href: "https://youtube.com" },
+  { label: "LinkedIn", abbr: "in", href: "https://linkedin.com" },
+  { label: "WhatsApp", abbr: "wa", href: "https://whatsapp.com" },
+] as const;
 
 const LEGAL_LINKS = [
   { label: "Sitemap", href: "/sitemap" },
-  { label: "Disclaimer", href: "/disclaimer" },
-  { label: "Privacy", href: "/privacy" },
+  { label: "Website help", href: "/help" },
   { label: "Accessibility", href: "/accessibility" },
-];
+  { label: "Privacy", href: "/privacy" },
+  { label: "Disclaimer", href: "/disclaimer" },
+] as const;
 
-const FLAT_LINKS = LINK_ROWS.flat();
+const LINK = "hover:text-gm-text-inverse hover:underline";
 
-const ABOUT_SERVICES_COPY =
-  "We provide weather, climate, marine and aviation services for Grenada, Carriacou and Petite Martinique — for everyone who lives, works, farms and sails here.";
-
-const DIVIDER = <div className="h-px w-full bg-gm-border" />;
-const MOBILE_DIVIDER = <div className="h-px w-full bg-gm-border lg:hidden" />;
-
+/** Bold sky footer: navy, brand block and four link columns. */
 export function Footer() {
   const copyright = `Copyright © Grenada Airports Authority ${new Date().getFullYear()}, Grenada Meteorological Service`;
 
   return (
-    <footer className="flex flex-col bg-background lg:mx-auto lg:max-w-6xl lg:px-8">
-      {DIVIDER}
-
-      {/* Links — mobile: stacked pairs */}
-      <div className="flex flex-col gap-1 px-6 py-2 lg:hidden">
-        {LINK_ROWS.map((row) => (
-          <div
-            className="flex gap-4 py-1.5"
-            key={row.map((l) => l.label).join()}
+    // pb-20 on phones clears the fixed tab bar.
+    <footer className="bg-gm-navy pb-20 text-body text-gm-text-inverse/80 leading-body lg:pb-0">
+      <div className="mx-auto grid max-w-6xl grid-cols-2 gap-x-6 gap-y-8 px-4 pt-10 pb-8 sm:px-6 lg:grid-cols-[1.4fr_repeat(4,minmax(0,1fr))] xl:px-8">
+        <div className="col-span-2 flex flex-col gap-3 lg:col-span-1">
+          <Link
+            aria-label="Grenada Meteorological Service — home"
+            className="dark w-fit"
+            href="/"
           >
-            {row.map((link) => (
-              <a
-                className="flex-1 text-body-base text-gm-text-primary leading-body-base underline"
-                href={link.href}
-                key={link.label}
-              >
-                {link.label}
-              </a>
+            <Logo className="h-10 w-auto" variant="primary" />
+          </Link>
+          <p className="max-w-sm text-body-sm leading-body-sm">
+            <b className="text-gm-text-inverse">
+              Grenada Meteorological Service
+            </b>
+            <br />A department of the Grenada Airports Authority. Maurice Bishop
+            International Airport, St. George&apos;s. Forecast office open 24
+            hours.
+          </p>
+          <ul aria-label="GMS on social media" className="flex flex-wrap gap-2">
+            {SOCIAL.map((s) => (
+              <li key={s.href}>
+                <a
+                  aria-label={s.label}
+                  className="flex size-9 items-center justify-center rounded-full border border-gm-text-inverse/30 font-bold text-caption leading-caption hover:bg-gm-text-inverse/10"
+                  href={s.href}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  {s.abbr}
+                </a>
+              </li>
             ))}
-          </div>
+          </ul>
+        </div>
+
+        {COLUMNS.map((column) => (
+          <nav aria-label={column.heading} key={column.heading}>
+            <h2 className="mb-3 font-bold text-gm-text-inverse text-label uppercase leading-label tracking-wider">
+              {column.heading}
+            </h2>
+            <ul className="flex flex-col gap-2">
+              {column.links.map((link) => (
+                <li key={link.href}>
+                  <Link className={LINK} href={link.href}>
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
         ))}
       </div>
 
-      {/* Links — desktop: description + 3-col grid */}
-      <div className="hidden gap-20 pt-14 pb-14 lg:flex">
-        <div className="flex w-130 min-w-0 flex-col gap-6">
-          <p className="text-body-base text-gm-text-primary leading-body-base">
-            {ABOUT_SERVICES_COPY}
-          </p>
-          <a
-            className="font-bold text-body-base text-gm-blue-ink leading-body-base"
-            href="/about"
-          >
-            About our services
-          </a>
+      <div className="border-gm-text-inverse/15 border-t">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-4 text-body-sm leading-body-sm sm:px-6 xl:px-8">
+          <span>Partners: WMO · ICAO · CMO · CIMH · NHC · NaDMA</span>
+          <ul className="flex flex-wrap gap-x-5 gap-y-2 lg:ml-auto">
+            {LEGAL_LINKS.map((link) => (
+              <li key={link.href}>
+                <Link className={LINK} href={link.href}>
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <p className="w-full text-caption leading-caption">{copyright}</p>
         </div>
-        <div className="grid min-w-96 flex-1 grid-cols-2 content-start gap-x-8 gap-y-6 xl:grid-cols-3">
-          {FLAT_LINKS.map((link) => (
-            <a
-              className="text-body-base text-gm-text-primary leading-body-base"
-              href={link.href}
-              key={link.label}
-            >
-              {link.label}
-            </a>
-          ))}
-        </div>
-      </div>
-
-      {MOBILE_DIVIDER}
-
-      {/* Social — mobile/tablet */}
-      <div className="flex gap-3 px-6 py-7 md:hidden">
-        {SOCIAL.map((s) => (
-          <a
-            aria-label={s.label}
-            className={`flex size-11 items-center justify-center rounded-full bg-gm-navy font-semibold text-gm-text-inverse ${s.size}`}
-            href={s.href}
-            key={s.label}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            {s.abbr}
-          </a>
-        ))}
-      </div>
-
-      {/* Social + institutional lockup — desktop/tablet, same row */}
-      <div className="hidden items-end justify-between py-10 md:flex">
-        <div className="flex gap-3.5">
-          {SOCIAL.map((s) => (
-            <a
-              aria-label={s.label}
-              className={`flex size-11.5 items-center justify-center rounded-full bg-gm-navy font-semibold text-gm-text-inverse ${s.size}`}
-              href={s.href}
-              key={s.label}
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              {s.abbr}
-            </a>
-          ))}
-        </div>
-        <div className="flex flex-col gap-2">
-          <Logo className="h-11.5 w-auto" variant="primary" />
-          <p className="font-semibold text-body-sm text-gm-text-primary">
-            Grenada Airports Authority
-          </p>
-        </div>
-      </div>
-
-      <div className="h-px w-full bg-gm-border md:hidden" />
-
-      {/* Institutional lockup — mobile */}
-      <div className="flex flex-col gap-2.5 px-6 py-7 md:hidden">
-        <Logo className="h-11 w-auto" variant="primary" />
-        <p className="font-semibold text-body-sm text-gm-text-primary">
-          Grenada Airports Authority
-        </p>
-        <p className="text-caption text-gm-text-muted">
-          Grenada Meteorological Service
-        </p>
-      </div>
-
-      {MOBILE_DIVIDER}
-
-      {/* Legal links — mobile */}
-      <div className="flex gap-5 px-6 py-5 lg:hidden">
-        {LEGAL_LINKS.map((link) => (
-          <a
-            className="shrink-0 text-caption text-gm-text-muted underline"
-            href={link.href}
-            key={link.label}
-          >
-            {link.label}
-          </a>
-        ))}
-      </div>
-
-      {MOBILE_DIVIDER}
-
-      {/* Copyright — mobile */}
-      <div className="px-6 pt-5 pb-7 lg:hidden">
-        <p className="text-gm-text-muted text-label">{copyright}</p>
-      </div>
-
-      {/* Legal links + copyright — desktop, same row */}
-      <div className="hidden items-center justify-between border-gm-border border-t py-7 lg:flex">
-        <div className="flex gap-8">
-          {LEGAL_LINKS.map((link) => (
-            <a
-              className="shrink-0 text-body-sm text-gm-text-secondary"
-              href={link.href}
-              key={link.label}
-            >
-              {link.label}
-            </a>
-          ))}
-        </div>
-        <p className="text-body-sm text-gm-text-secondary">{copyright}</p>
       </div>
     </footer>
   );
