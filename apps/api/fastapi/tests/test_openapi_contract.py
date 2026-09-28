@@ -107,6 +107,13 @@ def _missing_response_models(application: FastAPI) -> list[str]:
         "read_cap_xml",
         "preview_product_pdf",
         "product_revision_pdf",
+        # HR previews and attendance exports return authenticated Python PDFs.
+        "read_week_pdf",
+        "preview_leave_request_pdf",
+        "preview_absentee_report_pdf",
+        "preview_shift_swap",
+        "preview_status_report_pdf",
+        "preview_parking_permit",
     }
     offenders = [
         route.name
