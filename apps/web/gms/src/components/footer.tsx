@@ -7,13 +7,13 @@ const LINK_ROWS = [
   ],
   [
     { label: "GMS Weather app", href: "/app-guide" },
-    { label: "Glossary", href: "/resources/glossary" },
+    { label: "Glossary", href: "/explore/glossary" },
   ],
   [
-    { label: "Events", href: "/events" },
+    { label: "Events", href: "/services/tourism/events" },
     { label: "Website help", href: "/help" },
   ],
-  [{ label: "News and media", href: "/news" }],
+  [{ label: "News and media", href: "/explore/news" }],
 ];
 
 const SOCIAL = [

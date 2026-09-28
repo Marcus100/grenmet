@@ -45,7 +45,7 @@ function FeaturedCard({
   alerts: AlertsResult;
   feature: NavFeature;
 }) {
-  if (feature === "alerts") {
+  if (feature.kind === "alerts") {
     const unavailable = alerts.status === "unavailable";
     const level = alertsLevel(alerts);
     return (

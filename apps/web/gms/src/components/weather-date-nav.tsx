@@ -15,9 +15,9 @@ export function WeatherDateNav({ days }: { days: ForecastDay[] }) {
       {days.map((day) => {
         // Today is reachable both from the home page and from /forecasts;
         // every other day is /forecasts/YYYY/MM/DD.
-        const href = day.isToday ? "/forecasts" : day.path;
+        const href = day.isToday ? "/weather" : day.path;
         const isActive = day.isToday
-          ? pathname === "/" || pathname === "/forecasts"
+          ? pathname === "/" || pathname === "/weather"
           : pathname === href;
         const Icon = weatherIcon(day.condition);
         const isSunny =

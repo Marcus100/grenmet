@@ -53,7 +53,7 @@ export default function SitemapPage() {
             <li key={key}>
               <Link
                 className="text-gm-blue-ink underline"
-                href={`/bulletins/${key}`}
+                href={`/warnings/bulletins/${key}`}
               >
                 {label}
               </Link>

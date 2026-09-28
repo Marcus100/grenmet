@@ -34,7 +34,7 @@ export async function WeatherNews() {
   const rows: NewsRow[] = result.articles.map((article) => ({
     byline: "Weather News",
     category: "Weather News",
-    href: `/news/${article.slug}`,
+    href: `/explore/news/${article.slug}`,
     id: article.id,
     published: new Intl.DateTimeFormat("en-GB", {
       dateStyle: "medium",
@@ -48,7 +48,7 @@ export async function WeatherNews() {
         <p className="font-bold text-gm-navy text-heading-sm leading-heading-sm lg:text-heading-md lg:leading-heading-md">
           Weather News
         </p>
-        <Link className="text-gm-blue-ink underline" href="/news">
+        <Link className="text-gm-blue-ink underline" href="/explore/news">
           All news
         </Link>
       </div>

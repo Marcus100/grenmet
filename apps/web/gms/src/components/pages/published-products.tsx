@@ -31,7 +31,7 @@ export async function PublishedProducts({ kinds }: { kinds: ProductKind[] }) {
                   >
                     <Link
                       className="font-semibold underline underline-offset-4"
-                      href={`/products/issued/${product.id}`}
+                      href={`/weather/issued/${product.id}`}
                     >
                       {productTitle(kind)} ·{" "}
                       {product.values.issuedAt.replace("T", " ")}

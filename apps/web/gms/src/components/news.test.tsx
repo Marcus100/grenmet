@@ -43,7 +43,7 @@ for (const [name, component] of [
     );
     expect(
       screen.getAllByRole("link", { name: MARINE_TITLE })[0]
-    ).toHaveAttribute("href", "/news/marine-test");
+    ).toHaveAttribute("href", "/explore/news/marine-test");
   });
   it(`${name} distinguishes unavailable content from an empty feed`, async () => {
     vi.mocked(fetchPublishedContent).mockResolvedValue({
@@ -92,7 +92,7 @@ it("lets Latest visitors copy the article link when native sharing is unavailabl
   fireEvent.click(screen.getAllByRole("button", { name: "Share update" })[0]);
   await waitFor(() =>
     expect(writeText).toHaveBeenCalledWith(
-      expect.stringContaining("/news/marine-test")
+      expect.stringContaining("/explore/news/marine-test")
     )
   );
   expect(screen.getByRole("status")).toHaveTextContent("copied");

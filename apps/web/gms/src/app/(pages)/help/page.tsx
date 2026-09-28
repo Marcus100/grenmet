@@ -81,7 +81,7 @@ export default function HelpPage() {
           links={[
             {
               name: "Understanding warnings",
-              href: "/resources/warnings-guide",
+              href: "/warnings/understanding",
               description: "How to read a warning and act on it",
             },
             {
@@ -91,7 +91,7 @@ export default function HelpPage() {
             },
             {
               name: "Weather glossary",
-              href: "/resources/glossary",
+              href: "/explore/glossary",
               description: "The terms used in forecasts and warnings",
             },
             {

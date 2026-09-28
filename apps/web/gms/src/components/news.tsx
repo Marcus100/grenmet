@@ -69,7 +69,7 @@ export async function News() {
         <p className="font-bold text-gm-navy text-heading-sm leading-heading-sm lg:text-heading-md lg:leading-heading-md">
           Latest publications
         </p>
-        <a className="text-gm-blue-ink underline" href="/news">
+        <a className="text-gm-blue-ink underline" href="/explore/news">
           All Publications
         </a>
       </div>

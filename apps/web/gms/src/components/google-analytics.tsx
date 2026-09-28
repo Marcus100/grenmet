@@ -33,17 +33,16 @@ export function GoogleAnalytics({
     if (!(ready && validId && pathname)) return;
     // Group dynamic pages; never transmit query strings, fragments or referrers.
     const section = pathname.split("/")[1] ?? "";
+    // The seven navigation roots (see NAV_SECTIONS); everything else is "other".
     const safeSection = [
       "",
       "weather",
-      "forecast",
+      "warnings",
       "marine",
-      "aviation",
       "climate",
-      "news",
-      "alerts",
+      "services",
+      "explore",
       "about",
-      "contact",
     ].includes(section)
       ? section
       : "other";

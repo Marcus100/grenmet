@@ -3,9 +3,9 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 const RELATED_LINKS = [
-  { href: "/sectors/marine", label: "Marine and coastal waters" },
-  { href: "/sectors/aviation", label: "Aviation forecasts" },
-  { href: "/resources/hurricane", label: "Hurricane preparedness" },
+  { href: "/marine", label: "Marine and coastal waters" },
+  { href: "/services/aviation", label: "Aviation forecasts" },
+  { href: "/warnings/prepare/hurricane", label: "Hurricane preparedness" },
   { href: "/climate/data-request", label: "Climate data and requests" },
 ];
 

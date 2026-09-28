@@ -8,15 +8,15 @@ describe("breadcrumbTrail", () => {
   it("mirrors the nav: Section › Group › Page", () => {
     expect(breadcrumbTrail("/about")).toEqual([
       { href: "/about", label: "About" },
-      { href: "/sitemap#about--the-service", label: "The service" },
-      { current: true, href: "/about", label: "About GMS" },
+      { href: "/sitemap#about--about-gms", label: "About GMS" },
+      { current: true, href: "/about", label: "What we do" },
     ]);
   });
 
-  it("links a section without its own page to the sitemap", () => {
-    expect(breadcrumbTrail("/forecasts/3-day").slice(0, 2)).toEqual([
-      { href: "/sitemap#weather", label: "Weather" },
-      { href: "/sitemap#weather--daily", label: "Daily" },
+  it("links the section crumb to the section's index page", () => {
+    expect(breadcrumbTrail("/weather/3-day").slice(0, 2)).toEqual([
+      { href: "/weather", label: "Weather" },
+      { href: "/sitemap#weather--forecasts", label: "Forecasts" },
     ]);
   });
 
@@ -40,26 +40,28 @@ describe("breadcrumbTrail", () => {
   });
 
   it("shows a nested page's nav parent, linked", () => {
-    expect(breadcrumbTrail("/bulletins/flood")).toEqual([
-      { href: "/sitemap#warnings", label: "Warnings" },
+    expect(breadcrumbTrail("/warnings/bulletins/cyclone")).toEqual([
+      { href: "/warnings", label: "Warnings" },
       { href: "/sitemap#warnings--in-effect", label: "In effect" },
-      { current: false, href: "/products/bulletins", label: "Bulletins" },
+      { current: false, href: "/warnings/bulletins", label: "All bulletins" },
     ]);
-    expect(labels("/events/hurricane-expo")).toEqual([
-      "Sectors",
-      "Industry and community",
-      "Event Forecasts",
+    expect(labels("/services/tourism/events/hurricane-expo")).toEqual([
+      "Services",
+      "Tourism & events",
+      "Event forecasts",
     ]);
   });
 
   it("links dated content to its listing page", () => {
-    expect(breadcrumbTrail("/news/2026/storm-season")).toEqual([
-      { href: "/news", label: "News" },
+    expect(labels("/explore/news/2026/storm-season")).toEqual([
+      "Learn & Explore",
+      "Earth & Weather",
+      "Latest news",
     ]);
   });
 
   it("gives pages outside the navigation no trail", () => {
-    for (const path of ["/", "/privacy", "/sitemap", "/news"]) {
+    for (const path of ["/", "/privacy", "/sitemap"]) {
       expect(breadcrumbTrail(path)).toEqual([]);
     }
   });
