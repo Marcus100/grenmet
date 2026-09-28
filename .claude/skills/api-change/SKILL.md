@@ -20,9 +20,10 @@ Any edit under `apps/api/fastapi/src/**/router.py`, `routes.py`, `schemas.py`,
 or `apps/api/fastapi/src/main.py`. Also applies in reverse: a web app needs a
 field or endpoint `@barrelsgd/api-client` doesn't expose yet.
 
-Adding or modifying a **public** route, or anything that changes the OpenAPI
-contract, is Ask-First per `AGENTS.md` — confirm with the user before starting,
-not after.
+Compatible route and OpenAPI changes required by an authorized task can proceed
+with the complete procedure below. Ask first for breaking contracts, widened
+public access or permissions, or work outside the authorized scope, as defined
+in `AGENTS.md`; do not request existing session authorization again.
 
 ## Procedure
 

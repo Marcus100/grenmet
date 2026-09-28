@@ -16,6 +16,7 @@ All tables live in the `hr` schema of the main database (main Alembic history).
 
 ## Adding a form module
 Follow `docs/hr/adding-a-form-module.md`; map paper forms with `docs/hr/forms-inventory.md`.
+For cross-form attendance, roster and PDF alignment, follow `docs/hr/end-to-end-alignment.md`; distinguish scheduled work, actual attendance and approved absence.
 
 ## Tests
 `tests/hr/` — service tests per sub-domain, `test_authz.py`, `test_organisation_boundary.py`, workflow tests. Use real JWT fixtures and `db_async`.

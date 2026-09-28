@@ -74,27 +74,30 @@ uv run --frozen --package fast-back python -c "from src.main import app; import 
 - Explain reasoning before proposing any new pattern, library, or abstraction
 
 ### Ask First (stop before proceeding)
-- Touching any file not explicitly named in the request
+- Work outside the task or domain the user has authorized
 - Adding any npm package not in `pnpm-workspace.yaml` catalog, or any Python dependency
-- Creating new files in `packages/` (shared — affects all apps)
 - Modifying `turbo.json`, `biome.jsonc`, or any `tsconfig*.json`
-- Modifying any SQLAlchemy model schema or creating an Alembic migration
-- Adding or modifying FastAPI routes that are public or change the OpenAPI contract — update `docs/api/contracts.md` and regenerate the client
-- Introducing a new pattern, abstraction, or design approach
+- Destructive schema/data changes, breaking API changes, or widening public access or permissions
+- Cross-project architecture changes or business-policy decisions the repository and session do not resolve
+
+Existing session authorization counts; do not request it again. Within an assigned
+task, proceed with related files, tests, documentation, generated clients, shared
+package changes, compatible API changes, and additive migrations; apply the
+Blast-Radius Gate and explain material tradeoffs.
 
 ### Never
 - `gh pr merge` or any deploy command without explicit user authorization.
 - Destructive Git operations remain blocked by `.claude/hooks/block-dangerous-git.mjs`.
 - Write to `.env.*` or `.env.local` files — blocked by `.claude/hooks/protect-files.mjs`
 - Manually edit `packages/api-client/src/gen/` — blocked by the same hook
-- Implement after analysis without explicit approval
+- Implement a review-only or planning-only request before the user authorizes implementation
 
 ## Behavioral Rules
 
 ### Scope Gate
-Only touch files explicitly named in the request. If the task reveals related
-changes needed elsewhere, finish the requested task, then describe the finding
-and ask before continuing.
+Treat the requested outcome as scope: related source, tests, contracts, generated
+artifacts, and documentation are authorized even when filenames are not listed.
+Respect explicit file limits; ask before expanding into unrelated work.
 
 ### Host/Container Boundary
 Run `pnpm start` and `pnpm dev:web:*` on the host, never inside the
@@ -132,8 +135,8 @@ case, not the general one. Use the `api-change` skill for FastAPI contract
 changes and the `gaa-admin-change` skill before touching `apps/web/gaa-admin`
 (five formerly separate apps: cap/hr/wxwatch/wxproducts/salesbus).
 
-This gate finds impact; it does not override the Scope Gate. Report files you
-were not asked to change and ask — never silently expand scope.
+This gate finds impact; it does not override explicit file limits or authorize
+unrelated work. Complete affected layers within the authorized task.
 
 | If you change… | Also verify… |
 | --- | --- |
@@ -148,15 +151,18 @@ were not asked to change and ask — never silently expand scope.
 ### Reasoning Gate
 Before introducing any new pattern, library, abstraction, or approach: state
 (1) the problem it solves, (2) why the existing approach is insufficient,
-(3) the tradeoffs. Wait for approval before implementing.
+(3) the tradeoffs. Routine choices within authorized work can proceed; wait only
+when an Ask First boundary applies.
 
 ### Tests Alongside Features
 Every new feature, component, server action, or significant logic change
-includes tests in the same task. If there is no clear test target, flag it and ask.
+includes tests in the same task. If there is no clear test target, explain the
+verification used and its limits.
 
 ### Correction Handling
-When corrected mid-session, ask "Should I add this to AGENTS.md?" before writing
-anything to project files or memory.
+Apply user clarifications to ongoing work immediately. Record durable domain
+rules in domain docs and durable agent conventions in the relevant `AGENTS.md`;
+ask only when the lasting rule or its scope is ambiguous.
 
 ### AGENTS.md Update Protocol
 - **Behavioral rule** → the right tier, or a named rule under Behavioral Rules
@@ -164,6 +170,7 @@ anything to project files or memory.
 - **CI/CD fact** → CI/CD Conventions
 - **Lookup pointer** → Where to Look
 - **Directory-specific rule** → that directory's `AGENTS.md` and add it to the Instruction map
+- **Domain or operational rule** → domain docs; add an instruction-file pointer only when useful
 - One or two lines per entry; no narrative prose. Keep this file under 20 KB — Codex concatenates root + nested files against a byte budget.
 
 ### Session Handoff
@@ -266,6 +273,7 @@ Other:
 | Data architecture and governance | `docs/data-architecture.md` |
 | GMS programme / SOPs | `docs/internal/` |
 | HR forms and new form modules | `docs/hr/adding-a-form-module.md` |
+| HR forms, roster, attendance and timesheet alignment | `docs/hr/end-to-end-alignment.md` |
 | Agent configuration (how this layout works) | `docs/agent-configuration-guide.md` |
 | Vendored ops apps (SURFACE, wis2box) | `VENDORED.md` |
 
