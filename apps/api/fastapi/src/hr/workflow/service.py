@@ -343,6 +343,58 @@ async def apply_workflow_action(
         current_user=current_user if require_actor_permission else None,
     )
 
+    if (
+        workflow_instance.entity_type == "shift_swap"
+        and workflow_instance.status == WorkflowStatus.APPROVED
+        and action_in.action == WorkflowAction.CANCEL
+    ):
+        from src.auth.policy import can_act_on_user
+        from src.hr.exchange import roster_effects
+        from src.hr.exchange.models import ShiftSwapRequest
+        from src.hr.models import RequestStatus
+
+        require_permission(
+            current_user=current_user, permission_key="shift_swap.request.action"
+        )
+        request = await session.get(ShiftSwapRequest, workflow_instance.entity_id)
+        if (
+            request is None
+            or request.workflow_instance_id != workflow_instance.id
+            or not await can_act_on_user(
+                session=session,
+                current_user=current_user,
+                target_user_id=workflow_instance.requested_by_user_id,
+                permission_key="shift_swap.request.action",
+            )
+        ):
+            raise HRPermissionDeniedError(ERROR_WORKFLOW_PERMISSION_DENIED)
+        await roster_effects.reverse_exchange(session, request, current_user.id)
+        request.status = RequestStatus.CANCELLED
+        request.updated_at = utc_now()
+        workflow_instance.status = WorkflowStatus.CANCELLED
+        workflow_instance.resolved_at = workflow_instance.updated_at = utc_now()
+        session.add(
+            ApprovalActionLog(
+                workflow_instance_id=workflow_instance.id,
+                action=WorkflowAction.CANCEL,
+                actor_user_id=current_user.id,
+                comments=action_in.comments,
+            )
+        )
+        await session.flush()
+        await hr_notifications.workflow_transitioned(
+            session,
+            instance=workflow_instance,
+            action=WorkflowAction.CANCEL,
+            actor_id=current_user.id,
+            previous_status=WorkflowStatus.APPROVED,
+            previous_order=workflow_instance.current_step_order,
+        )
+        if commit:
+            await session.commit()
+            await session.refresh(workflow_instance)
+        return workflow_instance
+
     if action_in.action == WorkflowAction.SUBMIT:
         if workflow_instance.status not in {
             WorkflowStatus.DRAFT,
@@ -369,6 +421,29 @@ async def apply_workflow_action(
                 await require_leave_ready(
                     session, leave.user_id, leave.department_id, leave.leave_type.value
                 )
+        if workflow_instance.entity_type == "shift_swap":
+            from src.hr.exchange import service as exchange_service
+            from src.hr.exchange.models import ShiftSwapRequest
+
+            request = await session.get(ShiftSwapRequest, workflow_instance.entity_id)
+            if (
+                request is None
+                or request.workflow_instance_id not in {None, workflow_instance.id}
+                or request.department_id != workflow_instance.department_id
+            ):
+                raise HRValidationError("Workflow does not match this exchange")
+            await exchange_service.validate_request(session, request, submitting=True)
+            if not any(
+                step.required_user_id == request.counterpart_user_id
+                and step.is_required
+                and step.step_order == 1
+                for step in steps
+            ):
+                raise HRValidationError(
+                    "The other employee must be a required first-stage approver"
+                )
+            request.counterpart_agreed = False
+            request.counterpart_agreed_at = None
         if workflow_instance.status == WorkflowStatus.DRAFT:
             policy = await session.get(
                 ApprovalPolicy,
@@ -487,6 +562,28 @@ async def apply_workflow_action(
     }:
         raise HRValidationError("Invalid stage action")
     previous_status = workflow_instance.status
+    if workflow_instance.entity_type == "shift_swap":
+        from src.hr.exchange.models import ShiftSwapRequest
+        from src.hr.models import RequestStatus
+
+        request = await session.get(ShiftSwapRequest, workflow_instance.entity_id)
+        if request is None or request.workflow_instance_id != workflow_instance.id:
+            raise HRValidationError("Workflow does not match this exchange")
+        if target_step.required_user_id == request.counterpart_user_id:
+            request.counterpart_agreed = action_in.action == WorkflowAction.APPROVE
+            request.counterpart_agreed_at = (
+                utc_now() if request.counterpart_agreed else None
+            )
+        if action_in.action in {
+            WorkflowAction.RETURN,
+            WorkflowAction.CANCEL,
+            WorkflowAction.REJECT,
+        }:
+            request.counterpart_agreed = False
+            request.counterpart_agreed_at = None
+        if action_in.action == WorkflowAction.CANCEL:
+            request.status = RequestStatus.CANCELLED
+        request.updated_at = utc_now()
     target_step.approver_user_id = current_user.id
     target_step.action = action_in.action
     target_step.comments = action_in.comments

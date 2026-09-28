@@ -92,6 +92,14 @@ async def finalize_entity(
     )
     if entity.status == target:
         return
+    if isinstance(entity, ShiftSwapRequest) and target == RequestStatus.APPROVED:
+        from src.hr.exchange import roster_effects
+
+        if not entity.counterpart_agreed:
+            raise AppException(
+                "The other employee must agree before final approval", 400
+            )
+        await roster_effects.apply_exchange(session, entity, actor_id)
     if isinstance(entity, LeaveRequest) and target == RequestStatus.APPROVED:
         from src.baseline.models import StaffCredential
 

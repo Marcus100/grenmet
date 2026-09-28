@@ -1060,3 +1060,26 @@ employee names, reporter, supervisor and submission timestamp. Creation, editing
 reading, listing and staffing require scoped department access; personnel rows
 must belong to that department. Draft details return persisted personnel rows
 with resolved names, arrival/departure observations and notes.
+
+Shift exchanges: `POST /api/v1/hr/shift-swaps/preview-pdf` renders an unsaved,
+authenticated PDF with resolved department, employee, counterpart and supervisor
+names, using the same Python renderer as the immutable signed submission. It does
+not persist a request or signature. Codes are limited to 10 characters; reasons
+to 1000. Both employees must belong to the request department. Submission always
+adds the counterpart as a required first-stage approver, before the department
+approval chain; duplicates are removed and the requester cannot co-approve.
+Final approval validates published, open roster assignments again, swaps the
+employees' shift codes on the stated local start dates, and records before/after
+values and the request reference in roster revisions in the same transaction.
+Different-date exchanges require each employee to be off on the date they take
+over; same-date exchanges swap their work shifts. Approved leave/absence blocks
+the exchange. Overlap checks include adjacent overnight shifts;
+recorded actual hours and submitted/approved timesheets require an HR correction
+before roster reassignment or reversal. Permanent roster-pattern changes are not handled by this dated
+temporary-exchange journey. Pending, rejected and returned exchanges leave the
+roster intact. Scoped managers can cancel an approved exchange through its action
+route or workflow action; reversal refuses closed rosters or later roster edits
+instead of overwriting corrections. The signed submission is not rewritten by
+approval or cancellation; agreement, recommendation, decisions and dates remain
+in the workflow. A returned signed form currently requires a new corrected
+request rather than editing its immutable signed values in place.

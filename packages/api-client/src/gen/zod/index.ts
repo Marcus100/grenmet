@@ -852,6 +852,7 @@ export {
   hrActionShiftSwapPathShiftSwapIdSchema,
   hrActionShiftSwapResponseSchema,
   hrActionShiftSwapStatus200Schema,
+  hrActionShiftSwapStatus400Schema,
   hrActionShiftSwapStatus403Schema,
   hrActionShiftSwapStatus404Schema,
   hrActionShiftSwapStatus422Schema,
@@ -1014,6 +1015,7 @@ export {
   hrCreateShiftSwapErrorSchema,
   hrCreateShiftSwapResponseSchema,
   hrCreateShiftSwapStatus201Schema,
+  hrCreateShiftSwapStatus400Schema,
   hrCreateShiftSwapStatus403Schema,
   hrCreateShiftSwapStatus422Schema,
 } from "./hrCreateShiftSwapSchema.js";
@@ -1642,6 +1644,15 @@ export {
   hrPreviewOrganisationStatus409Schema,
   hrPreviewOrganisationStatus422Schema,
 } from "./hrPreviewOrganisationSchema.js";
+export {
+  hrPreviewShiftSwapPdfBodySchema,
+  hrPreviewShiftSwapPdfErrorSchema,
+  hrPreviewShiftSwapPdfResponseSchema,
+  hrPreviewShiftSwapPdfStatus200Schema,
+  hrPreviewShiftSwapPdfStatus400Schema,
+  hrPreviewShiftSwapPdfStatus403Schema,
+  hrPreviewShiftSwapPdfStatus422Schema,
+} from "./hrPreviewShiftSwapPdfSchema.js";
 export {
   hrPreviewStatusReportPdfBodySchema,
   hrPreviewStatusReportPdfErrorSchema,

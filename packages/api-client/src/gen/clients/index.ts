@@ -173,6 +173,7 @@ export { hrPreviewAbsenteeReportPdf } from "./hrPreviewAbsenteeReportPdf.js";
 export { hrPreviewCatalogue } from "./hrPreviewCatalogue.js";
 export { hrPreviewLeaveRequestPdf } from "./hrPreviewLeaveRequestPdf.js";
 export { hrPreviewOrganisation } from "./hrPreviewOrganisation.js";
+export { hrPreviewShiftSwapPdf } from "./hrPreviewShiftSwapPdf.js";
 export { hrPreviewStatusReportPdf } from "./hrPreviewStatusReportPdf.js";
 export { hrPublishPeriod } from "./hrPublishPeriod.js";
 export { hrRemoveHoliday } from "./hrRemoveHoliday.js";

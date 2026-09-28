@@ -960,6 +960,7 @@ export type {
   HrActionShiftSwapResponse,
   HrActionShiftSwapResponses,
   HrActionShiftSwapStatus200,
+  HrActionShiftSwapStatus400,
   HrActionShiftSwapStatus403,
   HrActionShiftSwapStatus404,
   HrActionShiftSwapStatus422,
@@ -1139,6 +1140,7 @@ export type {
   HrCreateShiftSwapResponse,
   HrCreateShiftSwapResponses,
   HrCreateShiftSwapStatus201,
+  HrCreateShiftSwapStatus400,
   HrCreateShiftSwapStatus403,
   HrCreateShiftSwapStatus422,
 } from "./HrCreateShiftSwap.js";
@@ -1797,6 +1799,16 @@ export type {
   HrPreviewOrganisationStatus409,
   HrPreviewOrganisationStatus422,
 } from "./HrPreviewOrganisation.js";
+export type {
+  HrPreviewShiftSwapPdfBody,
+  HrPreviewShiftSwapPdfOptions,
+  HrPreviewShiftSwapPdfResponse,
+  HrPreviewShiftSwapPdfResponses,
+  HrPreviewShiftSwapPdfStatus200,
+  HrPreviewShiftSwapPdfStatus400,
+  HrPreviewShiftSwapPdfStatus403,
+  HrPreviewShiftSwapPdfStatus422,
+} from "./HrPreviewShiftSwapPdf.js";
 export type {
   HrPreviewStatusReportPdfBody,
   HrPreviewStatusReportPdfOptions,
