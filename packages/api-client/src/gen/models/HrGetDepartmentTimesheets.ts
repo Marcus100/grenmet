@@ -27,6 +27,8 @@ export type HrGetDepartmentTimesheetsQuery = {
 
 export type HrGetDepartmentTimesheetsStatus200 = TimesheetListPublic;
 
+export type HrGetDepartmentTimesheetsStatus400 = unknown;
+
 export type HrGetDepartmentTimesheetsStatus403 = unknown;
 
 /**
@@ -44,6 +46,7 @@ export type HrGetDepartmentTimesheetsOptions = {
 
 export type HrGetDepartmentTimesheetsResponses = {
   "200": HrGetDepartmentTimesheetsStatus200;
+  "400": HrGetDepartmentTimesheetsStatus400;
   "403": HrGetDepartmentTimesheetsStatus403;
   "422": HrGetDepartmentTimesheetsStatus422;
 };
@@ -53,5 +56,6 @@ export type HrGetDepartmentTimesheetsResponses = {
  */
 export type HrGetDepartmentTimesheetsResponse =
   | HrGetDepartmentTimesheetsStatus200
+  | HrGetDepartmentTimesheetsStatus400
   | HrGetDepartmentTimesheetsStatus403
   | HrGetDepartmentTimesheetsStatus422;

@@ -14,6 +14,7 @@ import { hrIssueParkingDecal } from "../clients/hrIssueParkingDecal.js";
 import type {
   HrIssueParkingDecalOptions,
   HrIssueParkingDecalStatus200,
+  HrIssueParkingDecalStatus400,
   HrIssueParkingDecalStatus403,
   HrIssueParkingDecalStatus404,
   HrIssueParkingDecalStatus422,
@@ -31,6 +32,7 @@ export function hrIssueParkingDecalMutationOptions<TContext = unknown>(
   return mutationOptions<
     HrIssueParkingDecalStatus200,
     ResponseErrorConfig<
+      | HrIssueParkingDecalStatus400
       | HrIssueParkingDecalStatus403
       | HrIssueParkingDecalStatus404
       | HrIssueParkingDecalStatus422
@@ -51,7 +53,7 @@ export function hrIssueParkingDecalMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Record decal issuance for a parking permit. Requires parking.permit.issue permission.
+ * @description Record issuance only after approval, within active organisation/department scope. Identical retries preserve the original issuer/date; renewals and replacements are separate applications.
  * @summary Issue a parking decal
  * {@link /api/v1/hr/parking-permits/:permit_id/issue}
  */
@@ -60,6 +62,7 @@ export function useHrIssueParkingDecal<TContext>(
     mutation?: UseMutationOptions<
       HrIssueParkingDecalStatus200,
       ResponseErrorConfig<
+        | HrIssueParkingDecalStatus400
         | HrIssueParkingDecalStatus403
         | HrIssueParkingDecalStatus404
         | HrIssueParkingDecalStatus422
@@ -82,6 +85,7 @@ export function useHrIssueParkingDecal<TContext>(
   ) as UseMutationOptions<
     HrIssueParkingDecalStatus200,
     ResponseErrorConfig<
+      | HrIssueParkingDecalStatus400
       | HrIssueParkingDecalStatus403
       | HrIssueParkingDecalStatus404
       | HrIssueParkingDecalStatus422
@@ -93,6 +97,7 @@ export function useHrIssueParkingDecal<TContext>(
   return useMutation<
     HrIssueParkingDecalStatus200,
     ResponseErrorConfig<
+      | HrIssueParkingDecalStatus400
       | HrIssueParkingDecalStatus403
       | HrIssueParkingDecalStatus404
       | HrIssueParkingDecalStatus422
@@ -109,6 +114,7 @@ export function useHrIssueParkingDecal<TContext>(
   ) as UseMutationResult<
     HrIssueParkingDecalStatus200,
     ResponseErrorConfig<
+      | HrIssueParkingDecalStatus400
       | HrIssueParkingDecalStatus403
       | HrIssueParkingDecalStatus404
       | HrIssueParkingDecalStatus422

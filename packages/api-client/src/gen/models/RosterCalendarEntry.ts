@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { RosterAvailability } from "./RosterAvailability.js";
 import type { ShiftCategory } from "./ShiftCategory.js";
 
 /**
@@ -31,4 +32,9 @@ export type RosterCalendarEntry = {
   ends_at_local?: string | null;
   all_day: boolean;
   is_draft: boolean;
+  /**
+   * @default 'SCHEDULED'
+   * @type string | undefined
+   */
+  availability?: RosterAvailability;
 };

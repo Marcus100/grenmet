@@ -6,6 +6,7 @@ from decimal import Decimal
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.auth.models import RoleAssignmentScope
 from src.exceptions import AuthorizationError
 from src.hr.exceptions import ParkingPermitNotFoundError
 from src.hr.models import RequestStatus
@@ -16,7 +17,7 @@ from src.hr.parking.service import (
     issue_decal,
     list_parking_permits,
 )
-from src.hr.workflow.models import WorkflowType
+from src.hr.workflow.models import WorkflowInstance, WorkflowStatus, WorkflowType
 from tests.factories import (
     assign_role,
     make_department,
@@ -105,7 +106,17 @@ async def test_issue_decal_sets_fields(db_async: AsyncSession) -> None:
 
     officer = await make_user(db_async)
     issue_role, _ = await make_role_with_permission(db_async, "parking.permit.issue")
-    await assign_role(db_async, user=officer, role=issue_role)
+    await assign_role(
+        db_async,
+        user=officer,
+        role=issue_role,
+        scope=RoleAssignmentScope.DEPARTMENT,
+        department_id=dept.id,
+    )
+    permit.status = RequestStatus.APPROVED
+    workflow = await db_async.get(WorkflowInstance, permit.workflow_instance_id)
+    workflow.status = WorkflowStatus.APPROVED
+    await db_async.commit()
 
     issued = await issue_decal(
         session=db_async,

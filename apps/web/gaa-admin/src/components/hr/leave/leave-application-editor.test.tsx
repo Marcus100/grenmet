@@ -17,6 +17,7 @@ import {
 import {
   buildLeaveRequestPayload,
   LeaveApplicationEditor,
+  validateLeaveValues,
 } from "./leave-application-editor";
 import { EMPTY_LEAVE } from "./leave-document";
 import { LeaveSubmissions } from "./leave-submissions";
@@ -32,6 +33,16 @@ vi.mock("next/navigation", () => ({
 const BASE = "http://localhost";
 
 const server = setupServer(
+  http.post(`${BASE}/api/v1/hr/leave-requests/preview-pdf`, () =>
+    HttpResponse.text("%PDF-1.7", {
+      headers: { "content-type": "application/pdf" },
+    })
+  ),
+  http.get(`${BASE}/api/v1/hr/signed-documents/:documentId/pdf`, () =>
+    HttpResponse.text("%PDF-1.7", {
+      headers: { "content-type": "application/pdf" },
+    })
+  ),
   http.get(`${BASE}/api/v1/hr/signature/me`, () =>
     HttpResponse.json({
       version: "11111111-1111-4111-8111-111111111111",
@@ -70,6 +81,8 @@ const server = setupServer(
 
 beforeAll(() => {
   configureApiClient({ baseURL: BASE });
+  URL.createObjectURL = vi.fn(() => "blob:hr-preview");
+  URL.revokeObjectURL = vi.fn();
   server.listen({ onUnhandledRequest: "bypass" });
 });
 afterEach(() => {
@@ -120,6 +133,12 @@ describe("buildLeaveRequestPayload", () => {
       end_date: "2026-08-14",
       days_requested: "10",
       reason: undefined,
+      professional_appointment_subtype: undefined,
+      salary_in_advance: false,
+      leave_address: undefined,
+      travel_from_date: undefined,
+      travel_to_date: undefined,
+      requires_acting_appointment: false,
     });
   });
 
@@ -130,6 +149,68 @@ describe("buildLeaveRequestPayload", () => {
     );
     expect(payload.leave_type).toBe("OTHER");
     expect(payload.reason).toBe("Jury duty");
+  });
+
+  it("keeps applicant details from the paper form in the API payload", () => {
+    const payload = buildLeaveRequestPayload(
+      {
+        ...EMPTY_LEAVE,
+        leaveType: "Professional Appointment",
+        professionalAppointmentSubtype: "MEDICAL",
+        salaryInAdvance: true,
+        leaveAddress: "St. George's",
+        travelFromDate: "2026-10-01",
+        travelToDate: "2026-10-03",
+        requiresActingAppointment: true,
+      },
+      "dept_met"
+    );
+    expect(payload).toMatchObject({
+      leave_type: "PROFESSIONAL_APPOINTMENT",
+      professional_appointment_subtype: "MEDICAL",
+      salary_in_advance: true,
+      leave_address: "St. George's",
+      travel_from_date: "2026-10-01",
+      travel_to_date: "2026-10-03",
+      requires_acting_appointment: true,
+    });
+  });
+});
+
+describe("validateLeaveValues", () => {
+  const valid = {
+    ...EMPTY_LEAVE,
+    startDate: "2026-10-01",
+    endDate: "2026-10-03",
+    daysRequested: "2",
+    leaveType: "Annual Vacation",
+  };
+
+  it("rejects reversed dates and invalid requested days", () => {
+    expect(validateLeaveValues({ ...valid, leaveType: "" }, false)).toBe(
+      "Choose a type of leave"
+    );
+    expect(
+      validateLeaveValues({ ...valid, endDate: "2026-09-30" }, false)
+    ).toBe("End date must be on or after start date");
+    expect(validateLeaveValues({ ...valid, daysRequested: "0" }, false)).toBe(
+      "Enter a positive number of days requested"
+    );
+  });
+
+  it("requires the paper-form details for selected choices", () => {
+    expect(validateLeaveValues({ ...valid, leaveType: "Other" }, false)).toBe(
+      "State the reason for other leave"
+    );
+    expect(
+      validateLeaveValues(
+        { ...valid, leaveType: "Professional Appointment" },
+        false
+      )
+    ).toBe("Choose the professional appointment type");
+    expect(
+      validateLeaveValues({ ...valid, travelFromDate: "2026-10-01" }, false)
+    ).toBe("Enter both travel dates or leave both blank");
   });
 });
 
@@ -177,6 +258,12 @@ it("keeps a submitted draft printable with the server date and resets cleanly", 
   );
   wrap(<LeaveApplicationEditor />);
   await screen.findByText("Editing saved draft");
+  expect(screen.getByRole("textbox", { name: "Employee Name" })).toHaveValue(
+    "Tester"
+  );
+  expect(screen.getByRole("textbox", { name: "Department" })).toHaveValue(
+    "Met"
+  );
   expect(screen.getAllByText("Not submitted").length).toBeGreaterThan(0);
   await waitFor(() =>
     expect(screen.getByRole("button", { name: "Sign & submit" })).toBeEnabled()
@@ -188,7 +275,7 @@ it("keeps a submitted draft printable with the server date and resets cleanly", 
   expect(
     screen.queryByRole("button", { name: "Sign & submit" })
   ).not.toBeInTheDocument();
-  expect(screen.getAllByText("2026-08-14").length).toBeGreaterThan(0);
+  expect(screen.getByText("Leave Application PDF preview")).toBeVisible();
   fireEvent.click(screen.getByRole("button", { name: "Reset" }));
   expect(screen.getAllByText("Not submitted").length).toBeGreaterThan(0);
 });
@@ -219,4 +306,47 @@ it("requires both dates before sending a new leave draft to the API", async () =
     expect(toast.error).toHaveBeenCalledWith("Start and end dates are required")
   );
   expect(create).not.toHaveBeenCalled();
+}, 20_000);
+
+it("shows the API reason when leave submission is rejected", async () => {
+  navigation.search = "draft=lr-draft";
+  server.use(
+    http.get(`${BASE}/api/v1/hr/leave-requests/me`, () =>
+      HttpResponse.json({
+        data: [
+          {
+            id: "lr-draft",
+            user_id: "u-1",
+            department_id: "dept_met",
+            leave_type: "VACATION",
+            start_date: "2026-10-01",
+            end_date: "2026-10-02",
+            days_requested: "2",
+            status: "DRAFT",
+          },
+        ],
+        count: 1,
+      })
+    ),
+    http.patch(`${BASE}/api/v1/hr/leave-requests/lr-draft`, () =>
+      HttpResponse.json({ id: "lr-draft", status: "DRAFT" })
+    ),
+    http.post(`${BASE}/api/v1/hr/leave-requests/lr-draft/submit`, () =>
+      HttpResponse.json(
+        { detail: "Verify the opening balance for this leave type" },
+        { status: 400 }
+      )
+    )
+  );
+  wrap(<LeaveApplicationEditor />);
+  await screen.findByText("Editing saved draft");
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Sign & submit" })).toBeEnabled()
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Sign & submit" }));
+  await waitFor(() =>
+    expect(toast.error).toHaveBeenCalledWith(
+      "Submission failed: Verify the opening balance for this leave type"
+    )
+  );
 }, 20_000);

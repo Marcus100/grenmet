@@ -9,6 +9,8 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrCreateLeaveRequestStatus201 = LeaveRequestPublic;
 
+export type HrCreateLeaveRequestStatus400 = unknown;
+
 export type HrCreateLeaveRequestStatus403 = unknown;
 
 /**
@@ -28,6 +30,7 @@ export type HrCreateLeaveRequestOptions = {
 
 export type HrCreateLeaveRequestResponses = {
   "201": HrCreateLeaveRequestStatus201;
+  "400": HrCreateLeaveRequestStatus400;
   "403": HrCreateLeaveRequestStatus403;
   "422": HrCreateLeaveRequestStatus422;
 };
@@ -37,5 +40,6 @@ export type HrCreateLeaveRequestResponses = {
  */
 export type HrCreateLeaveRequestResponse =
   | HrCreateLeaveRequestStatus201
+  | HrCreateLeaveRequestStatus400
   | HrCreateLeaveRequestStatus403
   | HrCreateLeaveRequestStatus422;

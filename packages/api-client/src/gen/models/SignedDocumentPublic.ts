@@ -17,6 +17,12 @@ export type SignedDocumentPublic = {
    * @type string
    */
   entity_id: string;
+  /**
+   * @default 1
+   * @type integer | undefined
+   */
+  revision?: number;
+  supersedes_document_id?: string | null;
   signer_name: string;
   /**
    * @description

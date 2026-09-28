@@ -14,6 +14,7 @@ import { hrCreateShiftSwap } from "../clients/hrCreateShiftSwap.js";
 import type {
   HrCreateShiftSwapOptions,
   HrCreateShiftSwapStatus201,
+  HrCreateShiftSwapStatus400,
   HrCreateShiftSwapStatus403,
   HrCreateShiftSwapStatus422,
 } from "../models/HrCreateShiftSwap.js";
@@ -30,7 +31,9 @@ export function hrCreateShiftSwapMutationOptions<TContext = unknown>(
   return mutationOptions<
     HrCreateShiftSwapStatus201,
     ResponseErrorConfig<
-      HrCreateShiftSwapStatus403 | HrCreateShiftSwapStatus422
+      | HrCreateShiftSwapStatus400
+      | HrCreateShiftSwapStatus403
+      | HrCreateShiftSwapStatus422
     >,
     HrCreateShiftSwapOptions,
     TContext
@@ -56,7 +59,9 @@ export function useHrCreateShiftSwap<TContext>(
     mutation?: UseMutationOptions<
       HrCreateShiftSwapStatus201,
       ResponseErrorConfig<
-        HrCreateShiftSwapStatus403 | HrCreateShiftSwapStatus422
+        | HrCreateShiftSwapStatus400
+        | HrCreateShiftSwapStatus403
+        | HrCreateShiftSwapStatus422
       >,
       HrCreateShiftSwapOptions,
       TContext
@@ -76,7 +81,9 @@ export function useHrCreateShiftSwap<TContext>(
   ) as UseMutationOptions<
     HrCreateShiftSwapStatus201,
     ResponseErrorConfig<
-      HrCreateShiftSwapStatus403 | HrCreateShiftSwapStatus422
+      | HrCreateShiftSwapStatus400
+      | HrCreateShiftSwapStatus403
+      | HrCreateShiftSwapStatus422
     >,
     HrCreateShiftSwapOptions,
     TContext
@@ -85,7 +92,9 @@ export function useHrCreateShiftSwap<TContext>(
   return useMutation<
     HrCreateShiftSwapStatus201,
     ResponseErrorConfig<
-      HrCreateShiftSwapStatus403 | HrCreateShiftSwapStatus422
+      | HrCreateShiftSwapStatus400
+      | HrCreateShiftSwapStatus403
+      | HrCreateShiftSwapStatus422
     >,
     HrCreateShiftSwapOptions,
     TContext
@@ -99,7 +108,9 @@ export function useHrCreateShiftSwap<TContext>(
   ) as UseMutationResult<
     HrCreateShiftSwapStatus201,
     ResponseErrorConfig<
-      HrCreateShiftSwapStatus403 | HrCreateShiftSwapStatus422
+      | HrCreateShiftSwapStatus400
+      | HrCreateShiftSwapStatus403
+      | HrCreateShiftSwapStatus422
     >,
     HrCreateShiftSwapOptions,
     TContext

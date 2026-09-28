@@ -11,6 +11,7 @@ from src.utils.datetime import utc_now
 
 
 class PersonnelStatus(str, Enum):
+    UNCONFIRMED = "UNCONFIRMED"
     PRESENT = "PRESENT"
     ABSENT = "ABSENT"
     LATE = "LATE"
@@ -74,6 +75,8 @@ class StatusReport(Base):
 
 
 class StatusReportEntry(Base):
+    __allow_unmapped__ = True
+    employee_name: str | None = None
     __tablename__ = "status_report_entry"
     __table_args__ = {"schema": "hr"}
 

@@ -10,6 +10,8 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 
 export const hrCreateShiftSwapStatus201Schema = shiftSwapRequestPublicSchema;
 
+export const hrCreateShiftSwapStatus400Schema = z.unknown();
+
 export const hrCreateShiftSwapStatus403Schema = z.unknown();
 
 export const hrCreateShiftSwapStatus422Schema =
@@ -20,6 +22,7 @@ export const hrCreateShiftSwapStatus422Schema =
 export const hrCreateShiftSwapResponseSchema = hrCreateShiftSwapStatus201Schema;
 
 export const hrCreateShiftSwapErrorSchema = z.union([
+  hrCreateShiftSwapStatus400Schema,
   hrCreateShiftSwapStatus403Schema,
   hrCreateShiftSwapStatus422Schema,
 ]);

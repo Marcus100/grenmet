@@ -18,8 +18,9 @@ from src.exceptions import AppException
 from src.orm import Base
 
 from .absentee.models import AbsenteeReport
+from .attendance.models import AttendanceCorrection, AttendanceRecord
 from .calendar.models import CalendarEvent
-from .dailystatus.models import StatusReport
+from .dailystatus.models import StatusReport, StatusReportEntry
 from .documents.models import EmployeeDocument
 from .exchange.models import ShiftSwapRequest
 from .leave.models import LeaveRequest
@@ -188,6 +189,7 @@ def register() -> None:
         entity_type="employee",
         entity_id_attr="user_id",
         label="Employment",
+        sensitive=("service_details_source",),
     )
     registry.track(
         ApprovalAuthority,
@@ -236,12 +238,42 @@ def register() -> None:
     registry.track(
         StatusReport, record_type="status_report", label="Daily status report"
     )
+    registry.track(
+        StatusReportEntry,
+        record_type="status_report_entry",
+        entity_type="status_report",
+        entity_id_attr="status_report_id",
+        label="Daily status personnel entry",
+        sensitive=("notes",),
+    )
 
     registry.register_entity(
         "timesheet",
         _owned(Timesheet, ("user_id",), ("timesheet.read.department",)),
     )
     registry.track(Timesheet, record_type="timesheet", label="Timesheet")
+    registry.register_entity(
+        "attendance",
+        _owned(
+            AttendanceRecord,
+            ("user_id",),
+            ("timesheet.read.department", "timesheet.approve"),
+        ),
+    )
+    registry.track(
+        AttendanceRecord,
+        record_type="attendance",
+        label="Shift attendance",
+        sensitive=("notes",),
+    )
+    registry.track(
+        AttendanceCorrection,
+        record_type="attendance_correction",
+        entity_type="attendance",
+        entity_id_attr="attendance_id",
+        label="Attendance correction",
+        sensitive=("reason",),
+    )
     registry.track(
         TimesheetEntry,
         record_type="timesheet_entry",

@@ -25,7 +25,10 @@ class SignedDocument(Base):
     __tablename__ = "signed_document"
     __table_args__ = (
         sa.UniqueConstraint(
-            "entity_type", "entity_id", name="uq_signed_document_entity"
+            "entity_type",
+            "entity_id",
+            "revision",
+            name="uq_signed_document_entity_revision",
         ),
         {"schema": "hr"},
     )
@@ -33,6 +36,10 @@ class SignedDocument(Base):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     entity_type: Mapped[str] = mapped_column(String(60))
     entity_id: Mapped[uuid.UUID] = mapped_column(index=True)
+    revision: Mapped[int] = mapped_column(default=1, server_default="1")
+    supersedes_document_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("hr.signed_document.id"), nullable=True
+    )
     signer_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"), index=True)
     subject_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
     department_id: Mapped[str] = mapped_column(ForeignKey("hr.department.id"))

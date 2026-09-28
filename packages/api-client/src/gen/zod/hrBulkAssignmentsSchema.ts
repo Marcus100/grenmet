@@ -12,6 +12,8 @@ export const hrBulkAssignmentsStatus200Schema = z.array(
   rosterAssignmentPublicSchema
 );
 
+export const hrBulkAssignmentsStatus400Schema = z.unknown();
+
 export const hrBulkAssignmentsStatus403Schema = z.unknown();
 
 export const hrBulkAssignmentsStatus404Schema = z.unknown();
@@ -24,6 +26,7 @@ export const hrBulkAssignmentsStatus422Schema =
 export const hrBulkAssignmentsResponseSchema = hrBulkAssignmentsStatus200Schema;
 
 export const hrBulkAssignmentsErrorSchema = z.union([
+  hrBulkAssignmentsStatus400Schema,
   hrBulkAssignmentsStatus403Schema,
   hrBulkAssignmentsStatus404Schema,
   hrBulkAssignmentsStatus422Schema,

@@ -3,6 +3,7 @@ import uuid
 from collections import defaultdict
 from decimal import Decimal
 
+from pydantic import ValidationError
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -10,11 +11,9 @@ from src.auth.models import User
 from src.auth.policy import can_act_on_user, require_permission
 from src.hr.constants import (
     ERROR_TIMESHEET_ALREADY_SUBMITTED,
-    ERROR_TIMESHEET_APPROVE_NOT_ALLOWED,
     ERROR_TIMESHEET_NOT_SUBMITTED,
     ERROR_TIMESHEET_PROXY_SUBMIT_DISABLED,
     ERROR_TIMESHEET_PROXY_SUBMIT_NOT_ALLOWED,
-    ERROR_TIMESHEET_READ_NOT_ALLOWED,
     ERROR_TIMESHEET_SELF_SUBMIT_DISABLED,
     ERROR_TIMESHEET_SELF_SUBMIT_ONLY_OWN,
     ERROR_TIMESHEET_SUBMIT_FOR_USER_NOT_ALLOWED,
@@ -24,12 +23,20 @@ from src.hr.exceptions import (
     HRPermissionDeniedError,
     HRValidationError,
 )
-from src.hr.roster.models import RosterAssignment
+from src.hr.models import Department, EmploymentRecord, EmploymentStatus
+from src.hr.organisations import require_organisation_permission
+from src.hr.roster.models import (
+    RosterAssignment,
+    RosterPeriod,
+    RosterPeriodStatus,
+    ShiftCatalog,
+)
 from src.hr.signatures import service as signature_service
 from src.hr.workflow import service as workflow_service
 from src.hr.workflow.models import (
     WorkflowAction,
     WorkflowInstance,
+    WorkflowStepInstance,
     WorkflowTemplate,
     WorkflowType,
 )
@@ -52,6 +59,9 @@ logger = logging.getLogger(__name__)
 async def _get_or_create_policy(
     *, session: AsyncSession, department_id: str
 ) -> DepartmentPolicy:
+    await session.execute(
+        select(Department).where(Department.id == department_id).with_for_update()
+    )
     result = await session.execute(
         select(DepartmentPolicy).where(DepartmentPolicy.department_id == department_id)
     )
@@ -60,24 +70,73 @@ async def _get_or_create_policy(
         return policy
     policy = DepartmentPolicy(department_id=department_id)
     session.add(policy)
-    await session.commit()
-    await session.refresh(policy)
+    await session.flush()
     return policy
+
+
+async def _validate_department_membership(
+    session: AsyncSession, user_id: uuid.UUID, department_id: str
+) -> None:
+    employment = await session.scalar(
+        select(EmploymentRecord).where(EmploymentRecord.user_id == user_id)
+    )
+    if (
+        employment is None
+        or employment.department_id != department_id
+        or employment.status != EmploymentStatus.ACTIVE
+    ):
+        raise HRPermissionDeniedError(
+            "Timesheet department must match the employee's active employment"
+        )
+
+
+async def _require_record_access(
+    session: AsyncSession,
+    current_user: User,
+    timesheet: Timesheet,
+    permission_key: str,
+    *,
+    allow_self: bool = False,
+) -> None:
+    if allow_self and current_user.id == timesheet.user_id:
+        return
+    latest_workflow = (
+        select(WorkflowInstance.id)
+        .where(
+            WorkflowInstance.entity_type == "timesheet",
+            WorkflowInstance.entity_id == timesheet.id,
+        )
+        .order_by(WorkflowInstance.created_at.desc())
+        .limit(1)
+        .scalar_subquery()
+    )
+    if await session.scalar(
+        select(WorkflowStepInstance.id)
+        .where(
+            WorkflowStepInstance.workflow_instance_id == latest_workflow,
+            WorkflowStepInstance.required_user_id == current_user.id,
+        )
+        .limit(1)
+    ):
+        return
+    department = await session.get(Department, timesheet.department_id)
+    if department is None:
+        raise HRValidationError("Timesheet department not found")
+    await require_organisation_permission(
+        session,
+        current_user,
+        department.organisation_id,
+        permission_key,
+        timesheet.department_id,
+    )
 
 
 async def create_timesheet(
     *, session: AsyncSession, current_user: User, payload: TimesheetCreate
 ) -> tuple[Timesheet, list[TimesheetEntry]]:
-    policy = await _get_or_create_policy(
-        session=session, department_id=payload.department_id
-    )
     target_user_id = payload.user_id or current_user.id
     is_proxy = target_user_id != current_user.id
 
-    if not is_proxy and not policy.allow_employee_self_submit:
-        raise HRPermissionDeniedError(ERROR_TIMESHEET_SELF_SUBMIT_DISABLED)
-    if is_proxy and not policy.allow_supervisor_proxy_submit:
-        raise HRPermissionDeniedError(ERROR_TIMESHEET_PROXY_SUBMIT_DISABLED)
     if not is_proxy:
         require_permission(
             current_user=current_user, permission_key="timesheet.submit.self"
@@ -94,6 +153,27 @@ async def create_timesheet(
     ):
         raise HRPermissionDeniedError(ERROR_TIMESHEET_SUBMIT_FOR_USER_NOT_ALLOWED)
 
+    await _validate_department_membership(
+        session, target_user_id, payload.department_id
+    )
+    policy = await _get_or_create_policy(
+        session=session, department_id=payload.department_id
+    )
+    if not is_proxy and not policy.allow_employee_self_submit:
+        raise HRPermissionDeniedError(ERROR_TIMESHEET_SELF_SUBMIT_DISABLED)
+    if is_proxy and not policy.allow_supervisor_proxy_submit:
+        raise HRPermissionDeniedError(ERROR_TIMESHEET_PROXY_SUBMIT_DISABLED)
+    codes = {entry.shift_code for entry in payload.entries if entry.shift_code}
+    known = set(
+        (
+            await session.scalars(
+                select(ShiftCatalog.code).where(ShiftCatalog.code.in_(codes))
+            )
+        ).all()
+    )
+    if codes - known:
+        raise HRValidationError("Unknown timesheet shift code")
+
     timesheet = Timesheet(
         user_id=target_user_id,
         department_id=payload.department_id,
@@ -101,15 +181,21 @@ async def create_timesheet(
         period_end=payload.period_end,
     )
     session.add(timesheet)
-    await session.commit()
-    await session.refresh(timesheet)
+    await session.flush()
 
     roster_result = await session.execute(
-        select(RosterAssignment).where(
+        select(RosterAssignment)
+        .join(RosterPeriod, RosterPeriod.id == RosterAssignment.roster_period_id)
+        .where(
+            RosterPeriod.department_id == payload.department_id,
+            RosterPeriod.status.in_(
+                [RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED]
+            ),
             RosterAssignment.user_id == target_user_id,
             RosterAssignment.assignment_date >= payload.period_start,
             RosterAssignment.assignment_date <= payload.period_end,
         )
+        .with_for_update(of=RosterAssignment)
     )
     roster_assignments = {
         ra.assignment_date: ra for ra in roster_result.scalars().all()
@@ -118,6 +204,10 @@ async def create_timesheet(
     entries: list[TimesheetEntry] = []
     for entry in payload.entries:
         linked_ra = roster_assignments.get(entry.entry_date)
+        if linked_ra and entry.shift_code and linked_ra.shift_code != entry.shift_code:
+            raise HRValidationError(
+                "Entry shift must match the published roster assignment"
+            )
         db_entry = TimesheetEntry(
             timesheet_id=timesheet.id,
             entry_date=entry.entry_date,
@@ -160,21 +250,13 @@ async def submit_timesheet(
     if timesheet.status != TimesheetStatus.DRAFT:
         raise HRValidationError(ERROR_TIMESHEET_ALREADY_SUBMITTED)
 
-    policy = await _get_or_create_policy(
-        session=session, department_id=timesheet.department_id
-    )
-
     if submission_mode == SubmissionMode.SELF and current_user.id != timesheet.user_id:
         raise HRPermissionDeniedError(ERROR_TIMESHEET_SELF_SUBMIT_ONLY_OWN)
     if submission_mode == SubmissionMode.SELF:
-        if not policy.allow_employee_self_submit:
-            raise HRPermissionDeniedError(ERROR_TIMESHEET_SELF_SUBMIT_DISABLED)
         require_permission(
             current_user=current_user, permission_key="timesheet.submit.self"
         )
     if submission_mode == SubmissionMode.PROXY:
-        if not policy.allow_supervisor_proxy_submit:
-            raise HRPermissionDeniedError(ERROR_TIMESHEET_PROXY_SUBMIT_DISABLED)
         require_permission(
             current_user=current_user, permission_key="timesheet.submit.proxy"
         )
@@ -185,6 +267,75 @@ async def submit_timesheet(
             permission_key="timesheet.submit.proxy",
         ):
             raise HRPermissionDeniedError(ERROR_TIMESHEET_PROXY_SUBMIT_NOT_ALLOWED)
+
+    await _validate_department_membership(
+        session, timesheet.user_id, timesheet.department_id
+    )
+    policy = await _get_or_create_policy(
+        session=session, department_id=timesheet.department_id
+    )
+    if submission_mode == SubmissionMode.SELF and not policy.allow_employee_self_submit:
+        raise HRPermissionDeniedError(ERROR_TIMESHEET_SELF_SUBMIT_DISABLED)
+    if (
+        submission_mode == SubmissionMode.PROXY
+        and not policy.allow_supervisor_proxy_submit
+    ):
+        raise HRPermissionDeniedError(ERROR_TIMESHEET_PROXY_SUBMIT_DISABLED)
+    entries = list(
+        (
+            await session.scalars(
+                select(TimesheetEntry).where(
+                    TimesheetEntry.timesheet_id == timesheet.id
+                )
+            )
+        ).all()
+    )
+    try:
+        TimesheetCreate.model_validate(
+            {
+                "department_id": timesheet.department_id,
+                "period_start": timesheet.period_start,
+                "period_end": timesheet.period_end,
+                "entries": entries,
+            },
+            from_attributes=True,
+        )
+    except ValidationError:
+        raise HRValidationError(
+            "Correct invalid dates or hours before submitting this timesheet"
+        ) from None
+
+    linked_ids = {
+        entry.roster_assignment_id for entry in entries if entry.roster_assignment_id
+    }
+    linked_assignments = {
+        assignment.id: assignment
+        for assignment in await session.scalars(
+            select(RosterAssignment)
+            .join(RosterPeriod, RosterPeriod.id == RosterAssignment.roster_period_id)
+            .where(
+                RosterAssignment.id.in_(linked_ids),
+                RosterAssignment.user_id == timesheet.user_id,
+                RosterPeriod.department_id == timesheet.department_id,
+                RosterPeriod.status.in_(
+                    [RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED]
+                ),
+            )
+            .with_for_update(of=RosterAssignment)
+        )
+    }
+    for entry in entries:
+        if not entry.roster_assignment_id:
+            continue
+        assignment = linked_assignments.get(entry.roster_assignment_id)
+        if (
+            assignment is None
+            or assignment.assignment_date != entry.entry_date
+            or assignment.shift_code != entry.shift_code
+        ):
+            raise HRValidationError(
+                "Correct the roster date, employee, department or shift before submitting"
+            )
 
     await ensure_timesheet_workflow(
         session=session, current_user=current_user, timesheet=timesheet
@@ -228,13 +379,7 @@ async def approve_timesheet(
     timesheet = await get_timesheet_or_404(session=session, timesheet_id=timesheet_id)
     if timesheet.status != TimesheetStatus.SUBMITTED:
         raise HRValidationError(ERROR_TIMESHEET_NOT_SUBMITTED)
-    if not await can_act_on_user(
-        session=session,
-        current_user=current_user,
-        target_user_id=timesheet.user_id,
-        permission_key="timesheet.approve",
-    ):
-        raise HRPermissionDeniedError(ERROR_TIMESHEET_APPROVE_NOT_ALLOWED)
+    await _require_record_access(session, current_user, timesheet, "timesheet.approve")
 
     instance = (
         (
@@ -302,6 +447,16 @@ async def list_department_timesheets(
     require_permission(
         current_user=current_user, permission_key="timesheet.read.department"
     )
+    department = await session.get(Department, department_id)
+    if department is None:
+        raise HRValidationError("Department not found")
+    await require_organisation_permission(
+        session,
+        current_user,
+        department.organisation_id,
+        "timesheet.read.department",
+        department_id,
+    )
     base = select(Timesheet).where(Timesheet.department_id == department_id)
     total = await session.scalar(select(func.count()).select_from(base.subquery()))
     result = await session.execute(
@@ -314,13 +469,9 @@ async def read_timesheet_details(
     *, session: AsyncSession, current_user: User, timesheet_id: uuid.UUID
 ) -> tuple[Timesheet, list[TimesheetEntry]]:
     timesheet = await get_timesheet_or_404(session=session, timesheet_id=timesheet_id)
-    if current_user.id != timesheet.user_id and not await can_act_on_user(
-        session=session,
-        current_user=current_user,
-        target_user_id=timesheet.user_id,
-        permission_key="timesheet.read.department",
-    ):
-        raise HRPermissionDeniedError(ERROR_TIMESHEET_READ_NOT_ALLOWED)
+    await _require_record_access(
+        session, current_user, timesheet, "timesheet.read.department", allow_self=True
+    )
     result = await session.execute(
         select(TimesheetEntry).where(TimesheetEntry.timesheet_id == timesheet_id)
     )
@@ -332,13 +483,9 @@ async def get_timesheet_summary(
     *, session: AsyncSession, current_user: User, timesheet_id: uuid.UUID
 ) -> TimesheetSummaryByShift:
     timesheet = await get_timesheet_or_404(session=session, timesheet_id=timesheet_id)
-    if current_user.id != timesheet.user_id and not await can_act_on_user(
-        session=session,
-        current_user=current_user,
-        target_user_id=timesheet.user_id,
-        permission_key="timesheet.read.department",
-    ):
-        raise HRPermissionDeniedError(ERROR_TIMESHEET_READ_NOT_ALLOWED)
+    await _require_record_access(
+        session, current_user, timesheet, "timesheet.read.department", allow_self=True
+    )
 
     result = await session.execute(
         select(TimesheetEntry).where(TimesheetEntry.timesheet_id == timesheet_id)

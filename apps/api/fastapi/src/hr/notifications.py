@@ -58,6 +58,8 @@ REQUESTER_LINKS: dict[str, str] = {
     "shift_swap": "/hr/shift",
     "status_report": "/hr/status",
     "timesheet": "/hr/timesheet",
+    "attendance": "/hr/timesheet",
+    "attendance_correction": "/hr/timesheet",
     "parking_permit": "/hr/parking",
 }
 APPROVALS_LINK = "/hr/approvals"
@@ -266,6 +268,18 @@ async def _summary(session: AsyncSession, instance: WorkflowInstance) -> str:
             timesheet = await session.get(Timesheet, entity_id)
             if timesheet:
                 return f"{_day(timesheet.period_start)} to {_day(timesheet.period_end)}"
+        case "attendance":
+            from src.hr.attendance.models import AttendanceRecord
+            from src.hr.roster.models import RosterAssignment
+
+            attendance = await session.get(AttendanceRecord, entity_id)
+            assignment = (
+                await session.get(RosterAssignment, attendance.roster_assignment_id)
+                if attendance
+                else None
+            )
+            if assignment:
+                return f"Shift {assignment.shift_code} on {_day(assignment.assignment_date)}"
         case "parking_permit":
             return "Parking decal application"
     return REQUEST_TYPE_LABELS.get(instance.workflow_type, "Request")

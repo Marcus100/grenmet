@@ -14,6 +14,7 @@ import { hrBulkAssignments } from "../clients/hrBulkAssignments.js";
 import type {
   HrBulkAssignmentsOptions,
   HrBulkAssignmentsStatus200,
+  HrBulkAssignmentsStatus400,
   HrBulkAssignmentsStatus403,
   HrBulkAssignmentsStatus404,
   HrBulkAssignmentsStatus422,
@@ -31,6 +32,7 @@ export function hrBulkAssignmentsMutationOptions<TContext = unknown>(
   return mutationOptions<
     HrBulkAssignmentsStatus200,
     ResponseErrorConfig<
+      | HrBulkAssignmentsStatus400
       | HrBulkAssignmentsStatus403
       | HrBulkAssignmentsStatus404
       | HrBulkAssignmentsStatus422
@@ -50,7 +52,7 @@ export function hrBulkAssignmentsMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Create or replace roster assignments for a period. Requires roster.manage permission.
+ * @description Create or update roster assignments while preserving linked row IDs. Requires roster.manage permission. Rejects closed periods, invalid dates/codes, duplicate employee dates and cross-period overwrite.
  * @summary Bulk upsert roster assignments
  * {@link /api/v1/hr/rosters/assignments/bulk}
  */
@@ -59,6 +61,7 @@ export function useHrBulkAssignments<TContext>(
     mutation?: UseMutationOptions<
       HrBulkAssignmentsStatus200,
       ResponseErrorConfig<
+        | HrBulkAssignmentsStatus400
         | HrBulkAssignmentsStatus403
         | HrBulkAssignmentsStatus404
         | HrBulkAssignmentsStatus422
@@ -81,6 +84,7 @@ export function useHrBulkAssignments<TContext>(
   ) as UseMutationOptions<
     HrBulkAssignmentsStatus200,
     ResponseErrorConfig<
+      | HrBulkAssignmentsStatus400
       | HrBulkAssignmentsStatus403
       | HrBulkAssignmentsStatus404
       | HrBulkAssignmentsStatus422
@@ -92,6 +96,7 @@ export function useHrBulkAssignments<TContext>(
   return useMutation<
     HrBulkAssignmentsStatus200,
     ResponseErrorConfig<
+      | HrBulkAssignmentsStatus400
       | HrBulkAssignmentsStatus403
       | HrBulkAssignmentsStatus404
       | HrBulkAssignmentsStatus422
@@ -108,6 +113,7 @@ export function useHrBulkAssignments<TContext>(
   ) as UseMutationResult<
     HrBulkAssignmentsStatus200,
     ResponseErrorConfig<
+      | HrBulkAssignmentsStatus400
       | HrBulkAssignmentsStatus403
       | HrBulkAssignmentsStatus404
       | HrBulkAssignmentsStatus422

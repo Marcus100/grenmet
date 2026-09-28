@@ -7,6 +7,7 @@ import * as z from "zod";
 import { personnelStatusSchema } from "./personnelStatusSchema.js";
 
 export const statusReportEntryPublicSchema = z.object({
+  employee_name: z.union([z.string(), z.null()]).optional(),
   id: z.uuid(),
   status_report_id: z.uuid(),
   user_id: z.uuid(),

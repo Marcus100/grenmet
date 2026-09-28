@@ -9,6 +9,8 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrBulkAssignmentsStatus200 = RosterAssignmentPublic[];
 
+export type HrBulkAssignmentsStatus400 = unknown;
+
 export type HrBulkAssignmentsStatus403 = unknown;
 
 export type HrBulkAssignmentsStatus404 = unknown;
@@ -30,6 +32,7 @@ export type HrBulkAssignmentsOptions = {
 
 export type HrBulkAssignmentsResponses = {
   "200": HrBulkAssignmentsStatus200;
+  "400": HrBulkAssignmentsStatus400;
   "403": HrBulkAssignmentsStatus403;
   "404": HrBulkAssignmentsStatus404;
   "422": HrBulkAssignmentsStatus422;
@@ -40,6 +43,7 @@ export type HrBulkAssignmentsResponses = {
  */
 export type HrBulkAssignmentsResponse =
   | HrBulkAssignmentsStatus200
+  | HrBulkAssignmentsStatus400
   | HrBulkAssignmentsStatus403
   | HrBulkAssignmentsStatus404
   | HrBulkAssignmentsStatus422;

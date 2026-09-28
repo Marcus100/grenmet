@@ -43,6 +43,7 @@ from src.exceptions import (
     validation_exception_handler,
 )
 from src.hr.absentee.router import router as hr_absentee_router
+from src.hr.attendance.router import router as hr_attendance_router
 from src.hr.calendar.router import router as hr_calendar_router
 from src.hr.dailystatus.router import router as hr_dailystatus_router
 from src.hr.dashboard.router import router as hr_dashboard_router
@@ -149,6 +150,10 @@ OPENAPI_TAGS = [
     {"name": "governance", "description": "Access governance and policy operations."},
     {"name": "hr", "description": "Human resources profile operations."},
     {"name": "hr-absentee", "description": "HR absentee reporting operations."},
+    {
+        "name": "hr-attendance",
+        "description": "Actual shift arrival, departure and supervisor review.",
+    },
     {"name": "hr-calendar", "description": "HR calendar operations."},
     {"name": "hr-dailystatus", "description": "HR daily status reporting operations."},
     {"name": "hr-dashboard", "description": "HR dashboard operations."},
@@ -317,6 +322,7 @@ app.include_router(hr_workflow_router, prefix="/api/v1")
 app.include_router(hr_roster_router, prefix="/api/v1")
 app.include_router(hr_calendar_router, prefix="/api/v1")
 app.include_router(hr_timesheet_router, prefix="/api/v1")
+app.include_router(hr_attendance_router, prefix="/api/v1")
 app.include_router(hr_training_router, prefix="/api/v1")
 app.include_router(hr_signatures_router, prefix="/api/v1")
 app.include_router(hr_leave_router, prefix="/api/v1")

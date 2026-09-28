@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { rosterAvailabilitySchema } from "./rosterAvailabilitySchema.js";
 import { shiftCategorySchema } from "./shiftCategorySchema.js";
 
 export const rosterCalendarEntrySchema = z
@@ -19,6 +20,7 @@ export const rosterCalendarEntrySchema = z
     ends_at_local: z.union([z.string(), z.null()]).optional(),
     all_day: z.boolean(),
     is_draft: z.boolean(),
+    availability: rosterAvailabilitySchema.optional().default("SCHEDULED"),
   })
   .describe(
     "One rostered day for one person, expanded to concrete time.\n\n`starts_at_local`/`ends_at_local` are ISO-8601 **without an offset**: they are\ndepartment-local wall-clock times, exactly as the shift catalog records them\nand as the printed roster reads. They are deliberately not UtcDateTime — a\n05:30 morning shift is 05:30 on the wall in Grenada, and stamping it UTC\nwould move it four hours. Codes with no clock time (Off, Leave, Vacation,\nStudy Leave) carry `all_day: true` and no times."

@@ -5,10 +5,12 @@
 
 import type { AbsenceReason } from "./AbsenceReason.js";
 import type { RequestStatus } from "./RequestStatus.js";
+import type { WorkflowStatus } from "./WorkflowStatus.js";
 
 export type AbsenteeReportPublic = {
   signed_document_id?: string | null;
   submitted_at?: string | null;
+  workflow_status?: WorkflowStatus | null;
   /**
    * @description
    * Format: `uuid`

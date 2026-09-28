@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 
-from .models import LeaveBalanceEvent, LeaveEntryKind
+from .models import LeaveBalanceEvent, LeaveEntryKind, LeaveRequest
 
 
 async def _latest(
@@ -55,16 +55,17 @@ async def post(
     leave_request_id: uuid.UUID | None = None,
 ) -> LeaveBalanceEvent:
     """Append one entry. An approval debit already posted for the request is returned unchanged."""
-    if kind == LeaveEntryKind.APPROVAL_DEBIT and leave_request_id is None:
+    linked_kinds = {LeaveEntryKind.APPROVAL_DEBIT, LeaveEntryKind.CANCELLATION_REVERSAL}
+    if kind in linked_kinds and leave_request_id is None:
         raise ValueError("An approval debit needs its leave request")
     await lock_employee(session, user_id)
-    if kind == LeaveEntryKind.APPROVAL_DEBIT:
+    if kind in linked_kinds:
         existing = (
             (
                 await session.execute(
                     select(LeaveBalanceEvent).where(
                         LeaveBalanceEvent.related_leave_request_id == leave_request_id,
-                        LeaveBalanceEvent.entry_kind == LeaveEntryKind.APPROVAL_DEBIT,
+                        LeaveBalanceEvent.entry_kind == kind,
                     )
                 )
             )
@@ -89,6 +90,31 @@ async def post(
     session.add(event)
     await session.flush()
     return event
+
+
+async def reverse_approval(
+    session: AsyncSession, *, request: LeaveRequest, actor_id: uuid.UUID
+) -> LeaveBalanceEvent | None:
+    """Restore exactly the posted debit, retaining both immutable ledger entries."""
+    await lock_employee(session, request.user_id)
+    debit = await session.scalar(
+        select(LeaveBalanceEvent).where(
+            LeaveBalanceEvent.related_leave_request_id == request.id,
+            LeaveBalanceEvent.entry_kind == LeaveEntryKind.APPROVAL_DEBIT,
+        )
+    )
+    if debit is None:
+        return None
+    return await post(
+        session,
+        user_id=debit.user_id,
+        leave_type=debit.leave_type,
+        kind=LeaveEntryKind.CANCELLATION_REVERSAL,
+        delta=-debit.delta_days,
+        reason="Cancelled approved leave request",
+        actor_id=actor_id,
+        leave_request_id=request.id,
+    )
 
 
 async def set_to(

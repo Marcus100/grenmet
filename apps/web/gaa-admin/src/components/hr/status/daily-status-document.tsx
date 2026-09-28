@@ -1,8 +1,13 @@
+import type { StatusReportEntryInput } from "@barrelsgd/api-client";
 import { Paper } from "@/components/document/paper";
 import {
   SubmissionDate,
   type SubmissionMetadata,
 } from "@/components/hr/submission-date";
+
+export type DailyStatusEntry = StatusReportEntryInput & {
+  employee_name?: string | null;
+};
 
 export interface DailyStatusValues {
   absenteeism: string;
@@ -12,19 +17,31 @@ export interface DailyStatusValues {
   comments: string;
   date: string;
   department: string;
+  entries: DailyStatusEntry[];
+  equipmentOperational: string;
+  equipmentReason: string;
+  equipmentRemedy: string;
+  incidentExplain: string;
+  incidentsSubmitted: string;
   notReportedExplain: string;
   shift: string;
 }
 
-export const SHIFT_OPTIONS = ["A.M.", "P.M."];
+export const SHIFT_OPTIONS = ["M", "E", "N"];
 export const YES_NO = ["Yes", "No"];
 
 export const EMPTY_DAILY_STATUS: DailyStatusValues = {
   department: "",
   date: "",
-  shift: "A.M.",
+  shift: "M",
+  entries: [],
+  equipmentOperational: "",
+  equipmentReason: "",
+  equipmentRemedy: "",
+  incidentsSubmitted: "",
+  incidentExplain: "",
   absenteeism: "",
-  allReported: "Yes",
+  allReported: "",
   notReportedExplain: "",
   affectedEfficiency: "No",
   affectedExplain: "",

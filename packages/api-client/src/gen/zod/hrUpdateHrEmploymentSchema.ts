@@ -12,6 +12,8 @@ export const hrUpdateHrEmploymentPathUserIdSchema = z.uuid();
 
 export const hrUpdateHrEmploymentStatus200Schema = userProfilePublicSchema;
 
+export const hrUpdateHrEmploymentStatus400Schema = z.unknown();
+
 export const hrUpdateHrEmploymentStatus403Schema = z.unknown();
 
 export const hrUpdateHrEmploymentStatus404Schema = z.unknown();
@@ -25,6 +27,7 @@ export const hrUpdateHrEmploymentResponseSchema =
   hrUpdateHrEmploymentStatus200Schema;
 
 export const hrUpdateHrEmploymentErrorSchema = z.union([
+  hrUpdateHrEmploymentStatus400Schema,
   hrUpdateHrEmploymentStatus403Schema,
   hrUpdateHrEmploymentStatus404Schema,
   hrUpdateHrEmploymentStatus422Schema,

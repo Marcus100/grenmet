@@ -14,6 +14,7 @@ import { hrCreateStatusReport } from "../clients/hrCreateStatusReport.js";
 import type {
   HrCreateStatusReportOptions,
   HrCreateStatusReportStatus201,
+  HrCreateStatusReportStatus400,
   HrCreateStatusReportStatus403,
   HrCreateStatusReportStatus422,
 } from "../models/HrCreateStatusReport.js";
@@ -30,7 +31,9 @@ export function hrCreateStatusReportMutationOptions<TContext = unknown>(
   return mutationOptions<
     HrCreateStatusReportStatus201,
     ResponseErrorConfig<
-      HrCreateStatusReportStatus403 | HrCreateStatusReportStatus422
+      | HrCreateStatusReportStatus400
+      | HrCreateStatusReportStatus403
+      | HrCreateStatusReportStatus422
     >,
     HrCreateStatusReportOptions,
     TContext
@@ -47,7 +50,7 @@ export function hrCreateStatusReportMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Create a status report with optional personnel entries. Requires status.report.create permission.
+ * @description Create a scoped shift status report with persisted personnel entries. M/E/N submission requires confirmed operational answers and personnel status. Requires status.report.create permission.
  * @summary Create status report
  * {@link /api/v1/hr/status-reports}
  */
@@ -56,7 +59,9 @@ export function useHrCreateStatusReport<TContext>(
     mutation?: UseMutationOptions<
       HrCreateStatusReportStatus201,
       ResponseErrorConfig<
-        HrCreateStatusReportStatus403 | HrCreateStatusReportStatus422
+        | HrCreateStatusReportStatus400
+        | HrCreateStatusReportStatus403
+        | HrCreateStatusReportStatus422
       >,
       HrCreateStatusReportOptions,
       TContext
@@ -76,7 +81,9 @@ export function useHrCreateStatusReport<TContext>(
   ) as UseMutationOptions<
     HrCreateStatusReportStatus201,
     ResponseErrorConfig<
-      HrCreateStatusReportStatus403 | HrCreateStatusReportStatus422
+      | HrCreateStatusReportStatus400
+      | HrCreateStatusReportStatus403
+      | HrCreateStatusReportStatus422
     >,
     HrCreateStatusReportOptions,
     TContext
@@ -85,7 +92,9 @@ export function useHrCreateStatusReport<TContext>(
   return useMutation<
     HrCreateStatusReportStatus201,
     ResponseErrorConfig<
-      HrCreateStatusReportStatus403 | HrCreateStatusReportStatus422
+      | HrCreateStatusReportStatus400
+      | HrCreateStatusReportStatus403
+      | HrCreateStatusReportStatus422
     >,
     HrCreateStatusReportOptions,
     TContext
@@ -99,7 +108,9 @@ export function useHrCreateStatusReport<TContext>(
   ) as UseMutationResult<
     HrCreateStatusReportStatus201,
     ResponseErrorConfig<
-      HrCreateStatusReportStatus403 | HrCreateStatusReportStatus422
+      | HrCreateStatusReportStatus400
+      | HrCreateStatusReportStatus403
+      | HrCreateStatusReportStatus422
     >,
     HrCreateStatusReportOptions,
     TContext

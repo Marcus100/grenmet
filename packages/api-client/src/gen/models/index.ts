@@ -21,6 +21,13 @@ export type { AreaCreatePropertiesSpaceTypeAnyOfEnum } from "./AreaCreatePropert
 export { areaCreatePropertiesSpaceTypeAnyOfEnum } from "./AreaCreatePropertiesSpaceTypeAnyOfEnum.js";
 export type { AreaUpdate } from "./AreaUpdate.js";
 export type { AreaView } from "./AreaView.js";
+export type { AttendanceCorrectionCreate } from "./AttendanceCorrectionCreate.js";
+export type { AttendanceCorrectionPublic } from "./AttendanceCorrectionPublic.js";
+export type { AttendanceReviewPublic } from "./AttendanceReviewPublic.js";
+export type { AttendanceSave } from "./AttendanceSave.js";
+export type { AttendanceShiftPublic } from "./AttendanceShiftPublic.js";
+export type { AttendanceSubmit } from "./AttendanceSubmit.js";
+export type { AttendanceWeekPublic } from "./AttendanceWeekPublic.js";
 export type { AuditChangePublic } from "./AuditChangePublic.js";
 export type { AuditEntryPublic } from "./AuditEntryPublic.js";
 export type {
@@ -960,6 +967,7 @@ export type {
   HrActionShiftSwapResponse,
   HrActionShiftSwapResponses,
   HrActionShiftSwapStatus200,
+  HrActionShiftSwapStatus400,
   HrActionShiftSwapStatus403,
   HrActionShiftSwapStatus404,
   HrActionShiftSwapStatus422,
@@ -1013,6 +1021,7 @@ export type {
   HrBulkAssignmentsResponse,
   HrBulkAssignmentsResponses,
   HrBulkAssignmentsStatus200,
+  HrBulkAssignmentsStatus400,
   HrBulkAssignmentsStatus403,
   HrBulkAssignmentsStatus404,
   HrBulkAssignmentsStatus422,
@@ -1034,6 +1043,7 @@ export type {
   HrCreateAbsenteeReportResponse,
   HrCreateAbsenteeReportResponses,
   HrCreateAbsenteeReportStatus201,
+  HrCreateAbsenteeReportStatus400,
   HrCreateAbsenteeReportStatus403,
   HrCreateAbsenteeReportStatus422,
 } from "./HrCreateAbsenteeReport.js";
@@ -1098,6 +1108,7 @@ export type {
   HrCreateLeaveRequestResponse,
   HrCreateLeaveRequestResponses,
   HrCreateLeaveRequestStatus201,
+  HrCreateLeaveRequestStatus400,
   HrCreateLeaveRequestStatus403,
   HrCreateLeaveRequestStatus422,
 } from "./HrCreateLeaveRequest.js";
@@ -1107,6 +1118,7 @@ export type {
   HrCreateParkingPermitResponse,
   HrCreateParkingPermitResponses,
   HrCreateParkingPermitStatus201,
+  HrCreateParkingPermitStatus400,
   HrCreateParkingPermitStatus403,
   HrCreateParkingPermitStatus422,
 } from "./HrCreateParkingPermit.js";
@@ -1136,6 +1148,7 @@ export type {
   HrCreateShiftSwapResponse,
   HrCreateShiftSwapResponses,
   HrCreateShiftSwapStatus201,
+  HrCreateShiftSwapStatus400,
   HrCreateShiftSwapStatus403,
   HrCreateShiftSwapStatus422,
 } from "./HrCreateShiftSwap.js";
@@ -1145,6 +1158,7 @@ export type {
   HrCreateStatusReportResponse,
   HrCreateStatusReportResponses,
   HrCreateStatusReportStatus201,
+  HrCreateStatusReportStatus400,
   HrCreateStatusReportStatus403,
   HrCreateStatusReportStatus422,
 } from "./HrCreateStatusReport.js";
@@ -1176,6 +1190,7 @@ export type {
   HrCreateTimesheetResponse,
   HrCreateTimesheetResponses,
   HrCreateTimesheetStatus201,
+  HrCreateTimesheetStatus400,
   HrCreateTimesheetStatus403,
   HrCreateTimesheetStatus422,
 } from "./HrCreateTimesheet.js";
@@ -1276,11 +1291,48 @@ export type {
   HrGetAbsenteeReportsStatus422,
 } from "./HrGetAbsenteeReports.js";
 export type {
+  HrGetAttendanceReviewOptions,
+  HrGetAttendanceReviewQuery,
+  HrGetAttendanceReviewResponse,
+  HrGetAttendanceReviewResponses,
+  HrGetAttendanceReviewStatus200,
+  HrGetAttendanceReviewStatus400,
+  HrGetAttendanceReviewStatus403,
+  HrGetAttendanceReviewStatus404,
+  HrGetAttendanceReviewStatus409,
+  HrGetAttendanceReviewStatus422,
+} from "./HrGetAttendanceReview.js";
+export type {
+  HrGetAttendanceWeekOptions,
+  HrGetAttendanceWeekQuery,
+  HrGetAttendanceWeekResponse,
+  HrGetAttendanceWeekResponses,
+  HrGetAttendanceWeekStatus200,
+  HrGetAttendanceWeekStatus400,
+  HrGetAttendanceWeekStatus403,
+  HrGetAttendanceWeekStatus404,
+  HrGetAttendanceWeekStatus409,
+  HrGetAttendanceWeekStatus422,
+} from "./HrGetAttendanceWeek.js";
+export type {
+  HrGetAttendanceWeekPdfOptions,
+  HrGetAttendanceWeekPdfQuery,
+  HrGetAttendanceWeekPdfResponse,
+  HrGetAttendanceWeekPdfResponses,
+  HrGetAttendanceWeekPdfStatus200,
+  HrGetAttendanceWeekPdfStatus400,
+  HrGetAttendanceWeekPdfStatus403,
+  HrGetAttendanceWeekPdfStatus404,
+  HrGetAttendanceWeekPdfStatus409,
+  HrGetAttendanceWeekPdfStatus422,
+} from "./HrGetAttendanceWeekPdf.js";
+export type {
   HrGetDepartmentTimesheetsOptions,
   HrGetDepartmentTimesheetsQuery,
   HrGetDepartmentTimesheetsResponse,
   HrGetDepartmentTimesheetsResponses,
   HrGetDepartmentTimesheetsStatus200,
+  HrGetDepartmentTimesheetsStatus400,
   HrGetDepartmentTimesheetsStatus403,
   HrGetDepartmentTimesheetsStatus422,
 } from "./HrGetDepartmentTimesheets.js";
@@ -1527,6 +1579,17 @@ export type {
   HrGetStatusReportsStatus422,
 } from "./HrGetStatusReports.js";
 export type {
+  HrGetStatusStaffingOptions,
+  HrGetStatusStaffingQuery,
+  HrGetStatusStaffingResponse,
+  HrGetStatusStaffingResponses,
+  HrGetStatusStaffingStatus200,
+  HrGetStatusStaffingStatus400,
+  HrGetStatusStaffingStatus403,
+  HrGetStatusStaffingStatus404,
+  HrGetStatusStaffingStatus422,
+} from "./HrGetStatusStaffing.js";
+export type {
   HrGetTemplatesOptions,
   HrGetTemplatesQuery,
   HrGetTemplatesResponse,
@@ -1632,6 +1695,7 @@ export type {
   HrIssueParkingDecalResponse,
   HrIssueParkingDecalResponses,
   HrIssueParkingDecalStatus200,
+  HrIssueParkingDecalStatus400,
   HrIssueParkingDecalStatus403,
   HrIssueParkingDecalStatus404,
   HrIssueParkingDecalStatus422,
@@ -1738,6 +1802,18 @@ export type {
   HrPatchDocumentStatus422,
 } from "./HrPatchDocument.js";
 export type {
+  HrPreviewAbsenteeReportPdfBody,
+  HrPreviewAbsenteeReportPdfOptions,
+  HrPreviewAbsenteeReportPdfResponse,
+  HrPreviewAbsenteeReportPdfResponses,
+  HrPreviewAbsenteeReportPdfStatus200,
+  HrPreviewAbsenteeReportPdfStatus200Json,
+  HrPreviewAbsenteeReportPdfStatus200Pdf,
+  HrPreviewAbsenteeReportPdfStatus400,
+  HrPreviewAbsenteeReportPdfStatus403,
+  HrPreviewAbsenteeReportPdfStatus422,
+} from "./HrPreviewAbsenteeReportPdf.js";
+export type {
   HrPreviewCatalogueOptions,
   HrPreviewCatalogueQuery,
   HrPreviewCatalogueResponse,
@@ -1749,6 +1825,18 @@ export type {
   HrPreviewCatalogueStatus422,
 } from "./HrPreviewCatalogue.js";
 export type {
+  HrPreviewLeaveRequestPdfBody,
+  HrPreviewLeaveRequestPdfOptions,
+  HrPreviewLeaveRequestPdfResponse,
+  HrPreviewLeaveRequestPdfResponses,
+  HrPreviewLeaveRequestPdfStatus200,
+  HrPreviewLeaveRequestPdfStatus200Json,
+  HrPreviewLeaveRequestPdfStatus200Pdf,
+  HrPreviewLeaveRequestPdfStatus400,
+  HrPreviewLeaveRequestPdfStatus403,
+  HrPreviewLeaveRequestPdfStatus422,
+} from "./HrPreviewLeaveRequestPdf.js";
+export type {
   HrPreviewOrganisationOptions,
   HrPreviewOrganisationResponse,
   HrPreviewOrganisationResponses,
@@ -1758,6 +1846,50 @@ export type {
   HrPreviewOrganisationStatus409,
   HrPreviewOrganisationStatus422,
 } from "./HrPreviewOrganisation.js";
+export type {
+  HrPreviewParkingPermitPdfBody,
+  HrPreviewParkingPermitPdfOptions,
+  HrPreviewParkingPermitPdfResponse,
+  HrPreviewParkingPermitPdfResponses,
+  HrPreviewParkingPermitPdfStatus200,
+  HrPreviewParkingPermitPdfStatus400,
+  HrPreviewParkingPermitPdfStatus403,
+  HrPreviewParkingPermitPdfStatus422,
+} from "./HrPreviewParkingPermitPdf.js";
+export type {
+  HrPreviewShiftSwapPdfBody,
+  HrPreviewShiftSwapPdfOptions,
+  HrPreviewShiftSwapPdfResponse,
+  HrPreviewShiftSwapPdfResponses,
+  HrPreviewShiftSwapPdfStatus200,
+  HrPreviewShiftSwapPdfStatus400,
+  HrPreviewShiftSwapPdfStatus403,
+  HrPreviewShiftSwapPdfStatus422,
+} from "./HrPreviewShiftSwapPdf.js";
+export type {
+  HrPreviewStatusReportPdfBody,
+  HrPreviewStatusReportPdfOptions,
+  HrPreviewStatusReportPdfResponse,
+  HrPreviewStatusReportPdfResponses,
+  HrPreviewStatusReportPdfStatus200,
+  HrPreviewStatusReportPdfStatus400,
+  HrPreviewStatusReportPdfStatus403,
+  HrPreviewStatusReportPdfStatus404,
+  HrPreviewStatusReportPdfStatus422,
+} from "./HrPreviewStatusReportPdf.js";
+export type {
+  HrProposeAttendanceCorrectionBody,
+  HrProposeAttendanceCorrectionOptions,
+  HrProposeAttendanceCorrectionPath,
+  HrProposeAttendanceCorrectionResponse,
+  HrProposeAttendanceCorrectionResponses,
+  HrProposeAttendanceCorrectionStatus201,
+  HrProposeAttendanceCorrectionStatus400,
+  HrProposeAttendanceCorrectionStatus403,
+  HrProposeAttendanceCorrectionStatus404,
+  HrProposeAttendanceCorrectionStatus409,
+  HrProposeAttendanceCorrectionStatus422,
+} from "./HrProposeAttendanceCorrection.js";
 export type {
   HrPublishPeriodOptions,
   HrPublishPeriodPath,
@@ -1779,6 +1911,18 @@ export type {
   HrRemoveHolidayStatus404,
   HrRemoveHolidayStatus422,
 } from "./HrRemoveHoliday.js";
+export type {
+  HrSaveAttendanceBody,
+  HrSaveAttendanceOptions,
+  HrSaveAttendanceResponse,
+  HrSaveAttendanceResponses,
+  HrSaveAttendanceStatus200,
+  HrSaveAttendanceStatus400,
+  HrSaveAttendanceStatus403,
+  HrSaveAttendanceStatus404,
+  HrSaveAttendanceStatus409,
+  HrSaveAttendanceStatus422,
+} from "./HrSaveAttendance.js";
 export type {
   HrSaveMySignatureBody,
   HrSaveMySignatureOptions,
@@ -1814,6 +1958,19 @@ export type {
   HrSubmitAbsenteeReportStatus422,
 } from "./HrSubmitAbsenteeReport.js";
 export type {
+  HrSubmitAttendanceBody,
+  HrSubmitAttendanceOptions,
+  HrSubmitAttendancePath,
+  HrSubmitAttendanceResponse,
+  HrSubmitAttendanceResponses,
+  HrSubmitAttendanceStatus200,
+  HrSubmitAttendanceStatus400,
+  HrSubmitAttendanceStatus403,
+  HrSubmitAttendanceStatus404,
+  HrSubmitAttendanceStatus409,
+  HrSubmitAttendanceStatus422,
+} from "./HrSubmitAttendance.js";
+export type {
   HrSubmitLeaveRequestBody,
   HrSubmitLeaveRequestOptions,
   HrSubmitLeaveRequestPath,
@@ -1825,6 +1982,18 @@ export type {
   HrSubmitLeaveRequestStatus404,
   HrSubmitLeaveRequestStatus422,
 } from "./HrSubmitLeaveRequest.js";
+export type {
+  HrSubmitParkingPermitBody,
+  HrSubmitParkingPermitOptions,
+  HrSubmitParkingPermitPath,
+  HrSubmitParkingPermitResponse,
+  HrSubmitParkingPermitResponses,
+  HrSubmitParkingPermitStatus200,
+  HrSubmitParkingPermitStatus400,
+  HrSubmitParkingPermitStatus403,
+  HrSubmitParkingPermitStatus404,
+  HrSubmitParkingPermitStatus422,
+} from "./HrSubmitParkingPermit.js";
 export type {
   HrSubmitShiftSwapBody,
   HrSubmitShiftSwapOptions,
@@ -1916,6 +2085,7 @@ export type {
   HrUpdateHrEmploymentResponse,
   HrUpdateHrEmploymentResponses,
   HrUpdateHrEmploymentStatus200,
+  HrUpdateHrEmploymentStatus400,
   HrUpdateHrEmploymentStatus403,
   HrUpdateHrEmploymentStatus404,
   HrUpdateHrEmploymentStatus422,
@@ -1941,6 +2111,18 @@ export type {
   HrUpdateLeaveRequestStatus404,
   HrUpdateLeaveRequestStatus422,
 } from "./HrUpdateLeaveRequest.js";
+export type {
+  HrUpdateParkingPermitBody,
+  HrUpdateParkingPermitOptions,
+  HrUpdateParkingPermitPath,
+  HrUpdateParkingPermitResponse,
+  HrUpdateParkingPermitResponses,
+  HrUpdateParkingPermitStatus200,
+  HrUpdateParkingPermitStatus400,
+  HrUpdateParkingPermitStatus403,
+  HrUpdateParkingPermitStatus404,
+  HrUpdateParkingPermitStatus422,
+} from "./HrUpdateParkingPermit.js";
 export type {
   HrUpdateProductPolicyBody,
   HrUpdateProductPolicyOptions,
@@ -2033,6 +2215,7 @@ export type {
   HrUpdateStaffSetupResponse,
   HrUpdateStaffSetupResponses,
   HrUpdateStaffSetupStatus200,
+  HrUpdateStaffSetupStatus400,
   HrUpdateStaffSetupStatus403,
   HrUpdateStaffSetupStatus404,
   HrUpdateStaffSetupStatus409,
@@ -2545,6 +2728,7 @@ export type { ParkingPermitCreate } from "./ParkingPermitCreate.js";
 export type { ParkingPermitIssue } from "./ParkingPermitIssue.js";
 export type { ParkingPermitListPublic } from "./ParkingPermitListPublic.js";
 export type { ParkingPermitPublic } from "./ParkingPermitPublic.js";
+export type { ParkingPermitSubmit } from "./ParkingPermitSubmit.js";
 export type { PermissionCreate } from "./PermissionCreate.js";
 export type { PermissionPublic } from "./PermissionPublic.js";
 export type { PersonnelStatus } from "./PersonnelStatus.js";
@@ -2597,6 +2781,8 @@ export type { RoleUpdate } from "./RoleUpdate.js";
 export type { RosterAssignmentBulkCreate } from "./RosterAssignmentBulkCreate.js";
 export type { RosterAssignmentInput } from "./RosterAssignmentInput.js";
 export type { RosterAssignmentPublic } from "./RosterAssignmentPublic.js";
+export type { RosterAvailability } from "./RosterAvailability.js";
+export { rosterAvailability } from "./RosterAvailability.js";
 export type { RosterCalendarEntry } from "./RosterCalendarEntry.js";
 export type { RosterCalendarPublic } from "./RosterCalendarPublic.js";
 export type { RosterCsvImportResponse } from "./RosterCsvImportResponse.js";
@@ -2677,6 +2863,8 @@ export type { StatusReportEntryPublic } from "./StatusReportEntryPublic.js";
 export type { StatusReportListPublic } from "./StatusReportListPublic.js";
 export type { StatusReportPublic } from "./StatusReportPublic.js";
 export type { StatusReportSubmit } from "./StatusReportSubmit.js";
+export type { StatusStaffingEntry } from "./StatusStaffingEntry.js";
+export type { StatusStaffingPublic } from "./StatusStaffingPublic.js";
 export type { StopView } from "./StopView.js";
 export type { SubmissionMode } from "./SubmissionMode.js";
 export { submissionMode } from "./SubmissionMode.js";

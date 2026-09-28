@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-09-23
+**Last updated:** 2026-09-27
 
 The end-to-end path for a feature that touches the database, FastAPI, the
 generated client, and a web app. Each step names the pattern to copy and the
@@ -10,9 +10,11 @@ gate that proves it. Rules come from the root `AGENTS.md`,
 `apps/api/fastapi/AGENTS.md`, the domain's `src/<domain>/AGENTS.md`, and the
 app's `AGENTS.md`. Read those first.
 
-Ask First applies to: schema changes and migrations, public or
-contract-changing routes, new files in `packages/`, and new dependencies.
-Confirm scope with the user before step 1 if any of them are involved.
+Within an authorized feature, related files, additive migrations, compatible
+API contracts, and generated clients can proceed together. Ask First applies
+to destructive data/schema changes, breaking contracts, widened access,
+new dependencies, and the other boundaries in the root `AGENTS.md`.
+Existing session authorization counts; do not ask again for the same work.
 
 ## 0. Locate the owner
 

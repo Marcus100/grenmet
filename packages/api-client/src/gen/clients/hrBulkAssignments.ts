@@ -11,7 +11,7 @@ import type {
 } from "../models/HrBulkAssignments.js";
 
 /**
- * @description Create or replace roster assignments for a period. Requires roster.manage permission.
+ * @description Create or update roster assignments while preserving linked row IDs. Requires roster.manage permission. Rejects closed periods, invalid dates/codes, duplicate employee dates and cross-period overwrite.
  * @summary Bulk upsert roster assignments
  * {@link /api/v1/hr/rosters/assignments/bulk}
  */
