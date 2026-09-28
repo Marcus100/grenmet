@@ -2,8 +2,8 @@
 
 import { usePathname } from "next/navigation";
 
-/** Today is served at both `/` and `/forecasts`; dated routes are other days. */
-const TODAY_PATHS = new Set(["/", "/forecasts"]);
+/** Today is served at both `/` and `/weather`; dated routes are other days. */
+const TODAY_PATHS = new Set(["/", "/weather"]);
 
 export function useIsToday() {
   const pathname = usePathname();

@@ -42,7 +42,7 @@ export default function PublicationsPage() {
             },
             {
               name: "Hurricane season outlook",
-              href: "/resources/hurricane",
+              href: "/warnings/prepare/hurricane",
               description:
                 "Pre-season briefing on the outlook and what to prepare",
               meta: "Annual, before 1 June",

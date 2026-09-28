@@ -8,7 +8,7 @@ export async function GmsNews() {
   const posts = result.articles.slice(0, 5).map((content) => ({
     id: content.id,
     title: content.title,
-    href: `/news/${content.slug}`,
+    href: `/explore/news/${content.slug}`,
     imageUrl: contentToArticle(content).imageUrl,
     summary: content.summary ?? content.body,
     issuedAt: new Intl.DateTimeFormat("sv-SE", {
@@ -25,7 +25,7 @@ export async function GmsNews() {
         <h2 className="font-bold text-gm-navy text-heading-md">
           Latest from us
         </h2>
-        <Link className="text-gm-blue-ink underline" href="/updates">
+        <Link className="text-gm-blue-ink underline" href="/explore/updates">
           All updates
         </Link>
       </header>

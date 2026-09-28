@@ -40,7 +40,7 @@ describe("NavDrawer", () => {
 
     const [firstLink] = FIRST_SECTION.groups[0].links;
     expect(
-      screen.getByRole("link", { name: new RegExp(firstLink.name, "i") })
+      screen.getByRole("link", { name: new RegExp(`^${firstLink.name}`, "i") })
     ).toHaveAttribute("href", firstLink.href);
     expect(screen.getByText(firstLink.description)).toBeInTheDocument();
   });
@@ -66,7 +66,7 @@ describe("NavDrawer", () => {
 
     await user.click(screen.getByText(FIRST_SECTION.label));
     const link = screen.getByRole("link", {
-      name: new RegExp(FIRST_SECTION.groups[0].links[0].name, "i"),
+      name: new RegExp(`^${FIRST_SECTION.groups[0].links[0].name}`, "i"),
     });
     expect(link).toHaveAttribute("href", FIRST_SECTION.groups[0].links[0].href);
     // Verify the close callback without asking jsdom to navigate documents.

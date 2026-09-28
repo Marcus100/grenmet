@@ -2,7 +2,9 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { GoogleAnalytics } from "./google-analytics";
 
-const route = vi.hoisted(() => ({ pathname: "/news/private-customer" }));
+const route = vi.hoisted(() => ({
+  pathname: "/explore/news/private-customer",
+}));
 vi.mock("next/navigation", () => ({ usePathname: () => route.pathname }));
 vi.mock("next/script", () => ({
   default: ({ onReady }: { onReady: () => void }) => (
@@ -38,7 +40,7 @@ it("disables automatic pageviews and publishes only a safe public section", () =
     "event",
     "page_view",
     expect.objectContaining({
-      page_title: "news",
+      page_title: "explore",
       page_referrer: "",
       debug_mode: true,
     }),
