@@ -22,6 +22,7 @@ from src.hr.roster.service import (
     create_roster_period,
     publish_roster_period,
 )
+from tests.factories import make_employee
 from tests.utils.utils import random_email, random_lower_string
 
 
@@ -62,6 +63,8 @@ async def test_publish_snapshots_full_assignments(db_async: AsyncSession) -> Non
                 )
             )
     await db_async.commit()
+
+    await make_employee(db_async, user=manager, department_id="dept_pub")
 
     period = await create_roster_period(
         session=db_async,

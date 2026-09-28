@@ -21,9 +21,12 @@ from sqlalchemy.inspection import inspect
 
 from src.auth.models import User
 from src.exceptions import AppException
-from src.hr.documents import access
 from src.hr.exceptions import HRValidationError
-from src.hr.organisations import department_for
+from src.hr.organisations import (
+    department_for,
+    permitted_departments,
+    require_organisation_permission,
+)
 from src.utils.datetime import utc_now
 
 from .models import SavedSignature, SignedDocument
@@ -648,8 +651,27 @@ async def get_document(
             return record
     if actor.id not in {record.signer_id, record.subject_id}:
         department = await department_for(session, record.department_id)
-        scope = await access.resolve_access(session, actor, department.organisation_id)
-        if record.subject_id not in scope.read_users:
+        for key in ("hr.document.read.department", "hr.document.manage"):
+            departments = await permitted_departments(
+                session, actor, department.organisation_id, key
+            )
+            if record.department_id not in departments:
+                continue
+            try:
+                # SELF grants never confer access to another employee's evidence.
+                await require_organisation_permission(
+                    session,
+                    actor,
+                    department.organisation_id,
+                    key,
+                    record.department_id,
+                )
+            except AppException as error:
+                if error.status_code != 403:
+                    raise
+            else:
+                break
+        else:
             raise AppException("Not allowed to read this signed document", 403)
     return record
 

@@ -3,7 +3,7 @@ import uuid
 from datetime import date
 from io import StringIO
 
-from sqlalchemy import case, exists, or_, select, tuple_
+from sqlalchemy import and_, case, exists, false, or_, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
@@ -83,6 +83,56 @@ async def require_roster_read_scope(
     )
     if department_id not in allowed:
         raise HRPermissionDeniedError("Roster department is outside your scope")
+
+
+async def require_roster_manage_scope(
+    session: AsyncSession, actor: User, department_id: str, key: str = "roster.manage"
+) -> None:
+    department = await organisations.department_for(session, department_id)
+    await organisations.require_organisation_permission(
+        session, actor, department.organisation_id, key, department_id
+    )
+
+
+async def _has_recorded_work(
+    session: AsyncSession, rows: list[RosterAssignment], code: str | None = None
+) -> bool:
+    from src.hr.attendance.models import AttendanceRecord
+    from src.hr.timesheet.models import Timesheet, TimesheetEntry, TimesheetStatus
+
+    if await session.scalar(
+        select(AttendanceRecord.id)
+        .where(AttendanceRecord.roster_assignment_id.in_([row.id for row in rows]))
+        .limit(1)
+    ):
+        return True
+    cells = [
+        and_(
+            Timesheet.user_id == row.user_id,
+            TimesheetEntry.entry_date == row.assignment_date,
+        )
+        for row in rows
+    ]
+    return bool(
+        await session.scalar(
+            select(TimesheetEntry.id)
+            .join(Timesheet)
+            .where(
+                or_(
+                    TimesheetEntry.roster_assignment_id.in_([row.id for row in rows]),
+                    or_(*cells) if cells else false(),
+                    TimesheetEntry.shift_code == code if code else false(),
+                ),
+                or_(
+                    Timesheet.status.in_(
+                        [TimesheetStatus.SUBMITTED, TimesheetStatus.APPROVED]
+                    ),
+                    TimesheetEntry.actual_hours > 0,
+                ),
+            )
+            .limit(1)
+        )
+    )
 
 
 async def assignment_availability(
@@ -256,7 +306,8 @@ async def list_roster_revisions(
     *, session: AsyncSession, current_user: User, period_id: uuid.UUID
 ) -> list[RosterRevision]:
     require_permission(current_user=current_user, permission_key="roster.view")
-    await get_roster_period_or_404(session=session, period_id=period_id)
+    period = await get_roster_period_or_404(session=session, period_id=period_id)
+    await require_roster_read_scope(session, current_user, period.department_id)
     result = await session.execute(
         select(RosterRevision)
         .where(RosterRevision.roster_period_id == period_id)
@@ -271,6 +322,7 @@ async def publish_roster_period(
 ) -> RosterPeriod:
     require_permission(current_user=current_user, permission_key="roster.manage")
     period = await get_roster_period_or_404(session=session, period_id=period_id)
+    await require_roster_manage_scope(session, current_user, period.department_id)
     if period.status == RosterPeriodStatus.PUBLISHED:
         raise HRValidationError(ERROR_ROSTER_PERIOD_ALREADY_PUBLISHED)
     if period.status == RosterPeriodStatus.CLOSED:
@@ -321,6 +373,7 @@ async def close_roster_period(
 ) -> RosterPeriod:
     require_permission(current_user=current_user, permission_key="roster.manage")
     period = await get_roster_period_or_404(session=session, period_id=period_id)
+    await require_roster_manage_scope(session, current_user, period.department_id)
     if period.status == RosterPeriodStatus.CLOSED:
         raise HRValidationError(ERROR_ROSTER_PERIOD_ALREADY_CLOSED)
     if period.status != RosterPeriodStatus.PUBLISHED:
@@ -397,7 +450,12 @@ async def update_shift(
     shift_in: ShiftCatalogUpdate,
 ) -> ShiftCatalog:
     require_permission(current_user=current_user, permission_key="roster.manage")
-    db_shift = await session.get(ShiftCatalog, code)
+    db_shift = await session.scalar(
+        select(ShiftCatalog)
+        .where(ShiftCatalog.code == code)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
     if db_shift is None:
         raise ShiftCatalogNotFoundError()
     changes = shift_in.model_dump(exclude_unset=True)
@@ -413,23 +471,16 @@ async def update_shift(
         and getattr(db_shift, key) != value
         for key, value in changes.items()
     ):
-        from src.hr.attendance.models import AttendanceRecord
-
-        # First punches lock the assignment too. A catalogue edit cannot pass
-        # this check concurrently with a punch on an existing assignment.
-        assignment_ids = list(
+        # Catalogue-first locks match punches and bulk assignment writes.
+        assignments = list(
             await session.scalars(
-                select(RosterAssignment.id)
+                select(RosterAssignment)
                 .where(RosterAssignment.shift_code == code)
                 .order_by(RosterAssignment.id)
                 .with_for_update()
             )
         )
-        if await session.scalar(
-            select(AttendanceRecord.id)
-            .where(AttendanceRecord.roster_assignment_id.in_(assignment_ids))
-            .limit(1)
-        ):
+        if await _has_recorded_work(session, assignments, code):
             raise HRValidationError(
                 "Recorded attendance protects shift times and category; use a new shift code for future schedules"
             )
@@ -467,6 +518,7 @@ async def create_roster_period(
     *, session: AsyncSession, current_user: User, period_in: RosterPeriodCreate
 ) -> RosterPeriod:
     require_permission(current_user=current_user, permission_key="roster.manage")
+    await require_roster_manage_scope(session, current_user, period_in.department_id)
     if period_in.period_end < period_in.period_start:
         raise HRValidationError(ERROR_ROSTER_PERIOD_END_BEFORE_START)
     db_period = RosterPeriod(
@@ -487,9 +539,14 @@ async def create_roster_period(
 
 
 async def bulk_upsert_roster_assignments(
-    *, session: AsyncSession, current_user: User, payload: RosterAssignmentBulkCreate
+    *,
+    session: AsyncSession,
+    current_user: User,
+    payload: RosterAssignmentBulkCreate,
+    permission_key: str = "roster.manage",
+    commit: bool = True,
 ) -> list[RosterAssignment]:
-    require_permission(current_user=current_user, permission_key="roster.manage")
+    require_permission(current_user=current_user, permission_key=permission_key)
     period = await session.scalar(
         select(RosterPeriod)
         .where(RosterPeriod.id == payload.roster_period_id)
@@ -497,6 +554,9 @@ async def bulk_upsert_roster_assignments(
     )
     if period is None:
         raise RosterPeriodNotFoundError()
+    await require_roster_manage_scope(
+        session, current_user, period.department_id, permission_key
+    )
     if period.status == RosterPeriodStatus.CLOSED:
         raise HRValidationError("A closed roster cannot be edited")
     if not payload.assignments:
@@ -507,11 +567,25 @@ async def bulk_upsert_roster_assignments(
         raise HRValidationError("Each employee can have only one assignment per date")
     if any(not period.period_start <= day <= period.period_end for _, day in pairs):
         raise HRValidationError("Assignment dates must fall within the roster period")
+    employee_ids = {item.user_id for item in payload.assignments}
+    members = set(
+        await session.scalars(
+            select(EmploymentRecord.user_id).where(
+                EmploymentRecord.user_id.in_(employee_ids),
+                EmploymentRecord.department_id == period.department_id,
+            )
+        )
+    )
+    if members != employee_ids:
+        raise HRValidationError("Every employee must belong to the roster department")
     codes = {assignment.shift_code for assignment in payload.assignments}
     known_codes = set(
         (
             await session.scalars(
-                select(ShiftCatalog.code).where(ShiftCatalog.code.in_(codes))
+                select(ShiftCatalog.code)
+                .where(ShiftCatalog.code.in_(codes))
+                .order_by(ShiftCatalog.code)
+                .with_for_update()
             )
         ).all()
     )
@@ -528,6 +602,7 @@ async def bulk_upsert_roster_assignments(
             )
             .order_by(RosterAssignment.id)
             .with_for_update()
+            .execution_options(populate_existing=True)
         )
     ).all()
     if any(row.roster_period_id != period.id for row in existing):
@@ -541,17 +616,12 @@ async def bulk_upsert_roster_assignments(
         if (row := by_cell.get((item.user_id, item.assignment_date))) is not None
         and row.shift_code != item.shift_code
     ]
-    if changed_ids:
-        from src.hr.attendance.models import AttendanceRecord
-
-        if await session.scalar(
-            select(AttendanceRecord.id)
-            .where(AttendanceRecord.roster_assignment_id.in_(changed_ids))
-            .limit(1)
-        ):
-            raise HRValidationError(
-                "Recorded attendance prevents changing the roster shift; retain the assignment and review a correction"
-            )
+    if changed_ids and await _has_recorded_work(
+        session, [row for row in existing if row.id in changed_ids]
+    ):
+        raise HRValidationError(
+            "Recorded attendance or submitted work prevents changing the roster shift; review an HR correction"
+        )
     # Preserve identifiers: timesheets and attendance refer to these rows, even
     # when the same roster is imported or saved again.
     for assignment in payload.assignments:
@@ -577,7 +647,10 @@ async def bulk_upsert_roster_assignments(
             "user_ids": list({str(a.user_id) for a in payload.assignments}),
         },
     )
-    await session.commit()
+    if commit:
+        await session.commit()
+    else:
+        await session.flush()
     result = await session.execute(
         select(RosterAssignment).where(
             RosterAssignment.roster_period_id == payload.roster_period_id
@@ -859,6 +932,7 @@ async def validate_roster_grid(
     *, session: AsyncSession, current_user: User, payload: RosterGridImportRequest
 ) -> RosterGridPreview:
     require_permission(current_user=current_user, permission_key="roster.manage")
+    await require_roster_manage_scope(session, current_user, payload.department_id)
     _, preview = await _resolve_grid(session, payload)
     return preview
 
@@ -867,6 +941,7 @@ async def import_roster_grid(
     *, session: AsyncSession, current_user: User, payload: RosterGridImportRequest
 ) -> RosterGridImportResult:
     require_permission(current_user=current_user, permission_key="roster.manage")
+    await require_roster_manage_scope(session, current_user, payload.department_id)
     if payload.period_end < payload.period_start:
         raise HRValidationError(ERROR_ROSTER_PERIOD_END_BEFORE_START)
     assignments, preview = await _resolve_grid(session, payload)
@@ -917,6 +992,15 @@ async def validate_roster_csv(
     *, session: AsyncSession, current_user: User, payload: RosterCsvValidationRequest
 ) -> RosterCsvValidationResponse:
     require_permission(current_user=current_user, permission_key="roster.import")
+    await require_roster_manage_scope(
+        session, current_user, payload.department_id, "roster.import"
+    )
+    if payload.roster_period_id:
+        period = await get_roster_period_or_404(
+            session=session, period_id=payload.roster_period_id
+        )
+        if period.department_id != payload.department_id:
+            raise HRValidationError("Import department must match the roster period")
     result = await session.execute(
         select(ShiftCatalog).where(ShiftCatalog.is_active == True)  # noqa: E712
     )
@@ -940,62 +1024,57 @@ async def import_roster_csv(
     validation_result = await validate_roster_csv(
         session=session, current_user=current_user, payload=payload
     )
-    catalog_result = await session.execute(select(ShiftCatalog))
-    known_shifts = [s for s in catalog_result.scalars().all() if s.is_active]
-    _, valid_assignments = _validate_csv_rows(
-        csv_text=payload.csv_text,
-        known_shift_codes={shift.code for shift in known_shifts},
+    codes = set(
+        await session.scalars(
+            select(ShiftCatalog.code).where(ShiftCatalog.is_active.is_(True))
+        )
     )
+    _, assignments = _validate_csv_rows(
+        csv_text=payload.csv_text, known_shift_codes=codes
+    )
+    valid = validation_result.invalid_rows == 0
+    if valid and payload.roster_period_id:
+        # Use the same scope, membership, history and catalogue locks as the
+        # editor. Keep assignments, revision and import evidence atomic.
+        await bulk_upsert_roster_assignments(
+            session=session,
+            current_user=current_user,
+            payload=RosterAssignmentBulkCreate(
+                roster_period_id=payload.roster_period_id, assignments=assignments
+            ),
+            permission_key="roster.import",
+            commit=False,
+        )
     job = RosterImportJob(
         department_id=payload.department_id,
         roster_period_id=payload.roster_period_id,
         file_name=payload.file_name,
-        status=ImportStatus.VALIDATED
-        if validation_result.invalid_rows == 0
+        status=(
+            ImportStatus.COMPLETED
+            if payload.roster_period_id
+            else ImportStatus.VALIDATED
+        )
+        if valid
         else ImportStatus.FAILED,
         created_by_user_id=current_user.id,
         total_rows=validation_result.total_rows,
         valid_rows=validation_result.valid_rows,
         invalid_rows=validation_result.invalid_rows,
-        error_summary=None
-        if validation_result.invalid_rows == 0
-        else ERROR_CSV_IMPORT_INVALID_ROWS,
+        error_summary=None if valid else ERROR_CSV_IMPORT_INVALID_ROWS,
     )
     session.add(job)
-    await session.commit()
-    await session.refresh(job)
-
+    await session.flush()
+    raw_rows = list(csv.DictReader(StringIO(payload.csv_text)))
     for row in validation_result.rows:
-        raw_data: dict[str, object] = {}
-        if row.row_number - 2 < len(valid_assignments):
-            valid_assignment = valid_assignments[row.row_number - 2]
-            raw_data = valid_assignment.model_dump(mode="json")
         session.add(
             RosterImportRow(
                 roster_import_job_id=job.id,
                 row_number=row.row_number,
-                raw_data=raw_data,
+                raw_data=dict(raw_rows[row.row_number - 2]),
                 validation_errors=row.errors,
                 is_valid=row.is_valid,
             )
         )
     await session.commit()
-
-    if validation_result.invalid_rows == 0 and payload.roster_period_id:
-        created_assignments = [
-            RosterAssignment(
-                roster_period_id=payload.roster_period_id,
-                user_id=assignment.user_id,
-                assignment_date=assignment.assignment_date,
-                shift_code=assignment.shift_code,
-                remarks=assignment.remarks,
-            )
-            for assignment in valid_assignments
-        ]
-        session.add_all(created_assignments)
-        job.status = ImportStatus.COMPLETED
-        job.updated_at = utc_now()
-        session.add(job)
-        await session.commit()
-        await session.refresh(job)
+    await session.refresh(job)
     return job

@@ -128,6 +128,12 @@ function AttendanceShift({
             Scheduled {localDateTime(shift.scheduled_start).replace("T", " ")}{" "}
             to {localDateTime(shift.scheduled_end).replace("T", " ")} (Grenada)
           </p>
+          {shift.availability && shift.availability !== "SCHEDULED" && (
+            <p className="text-muted-foreground text-xs">
+              {shift.availability.replaceAll("_", " ").toLowerCase()} · approved
+              schedule exception. Recorded attendance remains separate.
+            </p>
+          )}
         </div>
         <span className="text-sm">
           {shift.review_status ??

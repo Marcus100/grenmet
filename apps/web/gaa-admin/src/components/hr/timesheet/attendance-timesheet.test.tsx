@@ -25,6 +25,7 @@ const PDF_LABEL = /weekly Python PDF/i;
 const GRENADA_OFFSET = /-04:00$/;
 const SHIFT_LABEL = /2026-09-26 · N/;
 const ACTUAL_HOURS_LABEL = /Elapsed 8.00 h; break 30 min; recorded work 7.50 h/;
+const APPROVED_ABSENCE_LABEL = /absent · approved schedule exception/;
 const SHIFT = {
   roster_assignment_id: "assignment-1",
   user_id: "employee-1",
@@ -74,6 +75,22 @@ function renderUi(children = <AttendanceTimesheet />) {
 }
 
 describe("AttendanceTimesheet", () => {
+  it("shows approved absence without inventing actual attendance", async () => {
+    server.use(
+      http.get(`${BASE}/api/v1/hr/attendance/week`, () =>
+        HttpResponse.json({
+          ...WEEK,
+          shifts: [{ ...SHIFT, availability: "ABSENT" }],
+        })
+      )
+    );
+    renderUi();
+    expect(await screen.findByText(APPROVED_ABSENCE_LABEL)).toBeInTheDocument();
+    expect(screen.getByLabelText("Arrival")).toHaveValue("");
+    expect(screen.getByLabelText("Departure")).toHaveValue("");
+    expect(screen.getByText(SCHEDULE_LABEL)).toBeInTheDocument();
+  });
+
   it("shows published schedule without inventing arrival and keeps Saturday night in its week", async () => {
     renderUi();
     expect(await screen.findByText(EMPLOYEE_SHIFT)).toBeInTheDocument();
