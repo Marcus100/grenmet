@@ -1,6 +1,6 @@
 import { PostHogProvider } from "@barrelsgd/ui/components/posthog-provider";
 import type { Metadata } from "next";
-import { Noto_Sans } from "next/font/google";
+import { Barlow_Condensed, Noto_Sans } from "next/font/google";
 import { Footer } from "@/components/footer";
 import { GoogleAnalytics } from "@/components/google-analytics";
 import { Header } from "@/components/header";
@@ -16,6 +16,14 @@ import {
 const notoSans = Noto_Sans({
   subsets: ["latin"],
   variable: "--font-noto-sans",
+  display: "swap",
+});
+
+// Bold sky display face: large numerals and home section headings only.
+const barlowCondensed = Barlow_Condensed({
+  subsets: ["latin"],
+  weight: ["600", "700"],
+  variable: "--font-barlow-condensed",
   display: "swap",
 });
 
@@ -40,7 +48,7 @@ export default async function RootLayout({
 
   return (
     <html
-      className={notoSans.variable}
+      className={`${notoSans.variable} ${barlowCondensed.variable}`}
       lang="en"
       style={{ colorScheme: "light" }}
     >
