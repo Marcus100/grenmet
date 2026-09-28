@@ -7,11 +7,60 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.exceptions import AuthorizationError
+from src.hr.exceptions import HRValidationError
+from src.hr.leave.models import LeaveType
 from src.hr.leave.schemas import LeaveRequestAction, LeaveRequestCreate
-from src.hr.leave.service import action_leave_request, create_leave_request
+from src.hr.leave.service import (
+    action_leave_request,
+    create_leave_request,
+    validate_leave_fields,
+)
 from src.hr.models import RequestStatus
 from tests.factories import make_ready_staff, make_supervised_pair, make_user
 from tests.hr.test_workflow import _setup_leave_template
+
+
+@pytest.mark.parametrize(
+    ("changes", "message"),
+    [
+        ({"end_date": date(2026, 9, 30)}, "End date must be"),
+        ({"days_requested": Decimal("0")}, "positive number of days"),
+        ({"leave_type": LeaveType.OTHER}, "reason for other leave"),
+        (
+            {"leave_type": LeaveType.PROFESSIONAL_APPOINTMENT},
+            "professional appointment type",
+        ),
+        ({"travel_from_date": date(2026, 10, 1)}, "both travel dates"),
+    ],
+)
+def test_leave_submission_rejects_incomplete_or_impossible_fields(changes, message):
+    fields = {
+        "start_date": date(2026, 10, 1),
+        "end_date": date(2026, 10, 3),
+        "days_requested": Decimal("2"),
+        "leave_type": LeaveType.VACATION,
+        "professional_appointment_subtype": None,
+        "reason": None,
+        "travel_from_date": None,
+        "travel_to_date": None,
+        "submitting": True,
+    }
+    with pytest.raises(HRValidationError, match=message):
+        validate_leave_fields(**(fields | changes))
+
+
+def test_leave_draft_allows_zero_days_before_submission():
+    validate_leave_fields(
+        start_date=date(2026, 10, 1),
+        end_date=date(2026, 10, 3),
+        days_requested=Decimal("0"),
+        leave_type=LeaveType.PROFESSIONAL_APPOINTMENT,
+        professional_appointment_subtype=None,
+        reason=None,
+        travel_from_date=None,
+        travel_to_date=None,
+        submitting=False,
+    )
 
 
 async def test_create_leave_request_requires_permission(db_async: AsyncSession) -> None:

@@ -3,12 +3,14 @@ import uuid
 from datetime import date
 from io import StringIO
 
-from sqlalchemy import delete, select, tuple_
+from sqlalchemy import case, exists, or_, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 from src.auth.policy import has_permission, require_permission
 from src.hr import notifications as hr_notifications
+from src.hr import organisations
+from src.hr.absentee.models import AbsenteeReport
 from src.hr.constants import (
     ERROR_CALENDAR_NO_DEPARTMENT,
     ERROR_CALENDAR_RANGE_INVALID,
@@ -30,10 +32,14 @@ from src.hr.dependencies import (
 )
 from src.hr.exceptions import (
     DepartmentNotFoundError,
+    HRPermissionDeniedError,
     HRValidationError,
+    RosterPeriodNotFoundError,
     ShiftCatalogNotFoundError,
 )
-from src.hr.models import Department, EmploymentRecord, EmploymentStatus
+from src.hr.leave.models import LeaveRequest
+from src.hr.models import Department, EmploymentRecord, EmploymentStatus, RequestStatus
+from src.hr.workflow.models import WorkflowInstance, WorkflowStatus
 from src.utils.datetime import utc_now
 
 from .expansion import expand_shift
@@ -42,6 +48,7 @@ from .models import (
     ImportStatus,
     PublicHoliday,
     RosterAssignment,
+    RosterAvailability,
     RosterImportJob,
     RosterImportRow,
     RosterPeriod,
@@ -65,6 +72,97 @@ from .schemas import (
     ShiftCatalogCreate,
     ShiftCatalogUpdate,
 )
+
+
+async def require_roster_read_scope(
+    session: AsyncSession, actor: User, department_id: str
+) -> None:
+    department = await organisations.department_for(session, department_id)
+    allowed = await organisations.permitted_departments(
+        session, actor, department.organisation_id, "roster.view"
+    )
+    if department_id not in allowed:
+        raise HRPermissionDeniedError("Roster department is outside your scope")
+
+
+async def assignment_availability(
+    session: AsyncSession, assignment_ids: list[uuid.UUID]
+) -> dict[uuid.UUID, RosterAvailability]:
+    """Compose approved exceptions without changing the published schedule or exposing reasons."""
+    if not assignment_ids:
+        return {}
+    active_absence = or_(
+        AbsenteeReport.workflow_instance_id.is_(None),
+        exists().where(
+            WorkflowInstance.id == AbsenteeReport.workflow_instance_id,
+            WorkflowInstance.status == WorkflowStatus.APPROVED,
+        ),
+    )
+    absence = (
+        select(AbsenteeReport.id)
+        .where(
+            AbsenteeReport.user_id == RosterAssignment.user_id,
+            AbsenteeReport.department_id == RosterPeriod.department_id,
+            AbsenteeReport.report_date == RosterAssignment.assignment_date,
+            AbsenteeReport.status == RequestStatus.APPROVED,
+            or_(
+                AbsenteeReport.expected_shift_code.is_(None),
+                AbsenteeReport.expected_shift_code == RosterAssignment.shift_code,
+            ),
+            active_absence,
+        )
+        .correlate(RosterAssignment, RosterPeriod, ShiftCatalog)
+    )
+    full_absence = absence.where(
+        or_(
+            (
+                AbsenteeReport.absence_start_time.is_(None)
+                & AbsenteeReport.absence_end_time.is_(None)
+            ),
+            (
+                (AbsenteeReport.absence_start_time == ShiftCatalog.start_time)
+                & (AbsenteeReport.absence_end_time == ShiftCatalog.end_time)
+            ),
+        )
+    )
+    active_leave = or_(
+        LeaveRequest.workflow_instance_id.is_(None),
+        exists().where(
+            WorkflowInstance.id == LeaveRequest.workflow_instance_id,
+            WorkflowInstance.status == WorkflowStatus.APPROVED,
+        ),
+    )
+    leave = (
+        select(LeaveRequest.id)
+        .where(
+            LeaveRequest.user_id == RosterAssignment.user_id,
+            LeaveRequest.department_id == RosterPeriod.department_id,
+            LeaveRequest.start_date <= RosterAssignment.assignment_date,
+            LeaveRequest.end_date >= RosterAssignment.assignment_date,
+            LeaveRequest.status == RequestStatus.APPROVED,
+            active_leave,
+        )
+        .correlate(RosterAssignment, RosterPeriod)
+    )
+    rows = await session.execute(
+        select(
+            RosterAssignment.id,
+            case(
+                (full_absence.exists(), RosterAvailability.ABSENT.value),
+                (leave.exists(), RosterAvailability.LEAVE.value),
+                (absence.exists(), RosterAvailability.PARTIAL_ABSENCE.value),
+                else_=RosterAvailability.SCHEDULED.value,
+            ),
+        )
+        .join(RosterPeriod, RosterAssignment.roster_period_id == RosterPeriod.id)
+        .join(ShiftCatalog, RosterAssignment.shift_code == ShiftCatalog.code)
+        .where(
+            RosterAssignment.id.in_(assignment_ids),
+            ShiftCatalog.category == ShiftCategory.WORK,
+        )
+    )
+    return {row[0]: RosterAvailability(row[1]) for row in rows}
+
 
 REQUIRED_CSV_COLUMNS = {"user_id", "assignment_date", "shift_code"}
 
@@ -302,7 +400,8 @@ async def update_shift(
     db_shift = await session.get(ShiftCatalog, code)
     if db_shift is None:
         raise ShiftCatalogNotFoundError()
-    for key, value in shift_in.model_dump(exclude_unset=True).items():
+    changes = shift_in.model_dump(exclude_unset=True)
+    for key, value in changes.items():
         setattr(db_shift, key, value)
     db_shift.updated_at = utc_now()
     session.add(db_shift)
@@ -319,6 +418,7 @@ async def list_roster_periods(
     period_status: RosterPeriodStatus | None = None,
 ) -> list[RosterPeriod]:
     require_permission(current_user=current_user, permission_key="roster.view")
+    await require_roster_read_scope(session, current_user, department_id)
     statement = (
         select(RosterPeriod)
         .where(RosterPeriod.department_id == department_id)
@@ -358,31 +458,65 @@ async def bulk_upsert_roster_assignments(
     *, session: AsyncSession, current_user: User, payload: RosterAssignmentBulkCreate
 ) -> list[RosterAssignment]:
     require_permission(current_user=current_user, permission_key="roster.manage")
-    await get_roster_period_or_404(session=session, period_id=payload.roster_period_id)
+    period = await session.scalar(
+        select(RosterPeriod)
+        .where(RosterPeriod.id == payload.roster_period_id)
+        .with_for_update()
+    )
+    if period is None:
+        raise RosterPeriodNotFoundError()
+    if period.status == RosterPeriodStatus.CLOSED:
+        raise HRValidationError("A closed roster cannot be edited")
     if not payload.assignments:
         return []
 
-    # Replace existing rows for the provided users+dates with fresh rows. Clear the
-    # whole set in one DELETE (tuple IN) instead of a query per assignment.
     pairs = [(a.user_id, a.assignment_date) for a in payload.assignments]
-    await session.execute(
-        delete(RosterAssignment).where(
-            tuple_(
-                RosterAssignment.user_id,
-                RosterAssignment.assignment_date,
-            ).in_(pairs)
-        )
+    if len(set(pairs)) != len(pairs):
+        raise HRValidationError("Each employee can have only one assignment per date")
+    if any(not period.period_start <= day <= period.period_end for _, day in pairs):
+        raise HRValidationError("Assignment dates must fall within the roster period")
+    codes = {assignment.shift_code for assignment in payload.assignments}
+    known_codes = set(
+        (
+            await session.scalars(
+                select(ShiftCatalog.code).where(ShiftCatalog.code.in_(codes))
+            )
+        ).all()
     )
+    if codes != known_codes:
+        raise HRValidationError("Choose shifts from the shift catalogue")
+    existing = (
+        await session.scalars(
+            select(RosterAssignment)
+            .where(
+                tuple_(
+                    RosterAssignment.user_id,
+                    RosterAssignment.assignment_date,
+                ).in_(pairs)
+            )
+            .order_by(RosterAssignment.id)
+            .with_for_update()
+        )
+    ).all()
+    if any(row.roster_period_id != period.id for row in existing):
+        raise HRValidationError(
+            "An assignment already belongs to another roster period; amend that period instead"
+        )
+    by_cell = {(row.user_id, row.assignment_date): row for row in existing}
+    # Preserve identifiers: timesheets and attendance refer to these rows, even
+    # when the same roster is imported or saved again.
     for assignment in payload.assignments:
-        session.add(
-            RosterAssignment(
+        row = by_cell.get((assignment.user_id, assignment.assignment_date))
+        if row is None:
+            row = RosterAssignment(
                 roster_period_id=payload.roster_period_id,
                 user_id=assignment.user_id,
                 assignment_date=assignment.assignment_date,
-                shift_code=assignment.shift_code,
-                remarks=assignment.remarks,
             )
-        )
+        row.shift_code = assignment.shift_code
+        row.remarks = assignment.remarks
+        row.updated_at = utc_now()
+        session.add(row)
     await _create_revision(
         session=session,
         roster_period_id=payload.roster_period_id,
@@ -409,6 +543,7 @@ async def read_roster_period_details(
 ) -> tuple[RosterPeriod, list[RosterAssignment]]:
     require_permission(current_user=current_user, permission_key="roster.view")
     period = await get_roster_period_or_404(session=session, period_id=period_id)
+    await require_roster_read_scope(session, current_user, period.department_id)
     result = await session.execute(
         select(RosterAssignment)
         .where(RosterAssignment.roster_period_id == period_id)
@@ -513,6 +648,8 @@ async def read_roster_calendar(
     include_draft = has_permission(
         current_user=current_user, permission_key="roster.manage"
     )
+    if department_scope:
+        await require_roster_read_scope(session, current_user, department_id)
     visible_statuses = [RosterPeriodStatus.PUBLISHED, RosterPeriodStatus.CLOSED]
     if include_draft:
         visible_statuses.append(RosterPeriodStatus.DRAFT)

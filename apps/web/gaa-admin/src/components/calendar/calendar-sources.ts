@@ -151,7 +151,12 @@ export function shiftColor(entry: RosterCalendarEntry): string {
 
 /** True when this rostered day belongs on the selected view. */
 function matchesView(entry: RosterCalendarEntry, view: CalendarView): boolean {
-  if (view === "leave") return entry.category === "LEAVE";
+  if (view === "leave") {
+    return (
+      entry.category === "LEAVE" ||
+      (entry.availability !== undefined && entry.availability !== "SCHEDULED")
+    );
+  }
   // Off-duty days would swamp a month view without adding information; the
   // duty roster grid is where a full O/M/E/N pattern is read.
   return entry.category !== "OFF";
@@ -175,9 +180,19 @@ export function toRosterLayer(
   for (const entry of entries) {
     if (!matchesView(entry, view)) continue;
     const person = entry.display_name;
-    const title = options.showPerson
+    const scheduledTitle = options.showPerson
       ? `${person} · ${entry.label}`
       : entry.label;
+    const exception = (
+      {
+        ABSENT: "Approved absence",
+        PARTIAL_ABSENCE: "Approved partial absence",
+        LEAVE: "Approved leave",
+      } as Record<string, string>
+    )[entry.availability ?? ""];
+    const title = exception
+      ? `${scheduledTitle} · ${exception}`
+      : scheduledTitle;
     events.push({
       id: `shift-${entry.user_id}-${entry.assignment_date}`,
       title: entry.is_draft ? `${title} (draft)` : title,

@@ -9,6 +9,8 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrCreateAbsenteeReportStatus201 = AbsenteeReportPublic;
 
+export type HrCreateAbsenteeReportStatus400 = unknown;
+
 export type HrCreateAbsenteeReportStatus403 = unknown;
 
 /**
@@ -28,6 +30,7 @@ export type HrCreateAbsenteeReportOptions = {
 
 export type HrCreateAbsenteeReportResponses = {
   "201": HrCreateAbsenteeReportStatus201;
+  "400": HrCreateAbsenteeReportStatus400;
   "403": HrCreateAbsenteeReportStatus403;
   "422": HrCreateAbsenteeReportStatus422;
 };
@@ -37,5 +40,6 @@ export type HrCreateAbsenteeReportResponses = {
  */
 export type HrCreateAbsenteeReportResponse =
   | HrCreateAbsenteeReportStatus201
+  | HrCreateAbsenteeReportStatus400
   | HrCreateAbsenteeReportStatus403
   | HrCreateAbsenteeReportStatus422;

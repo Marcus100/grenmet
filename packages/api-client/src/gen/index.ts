@@ -171,7 +171,9 @@ export { hrListPeriods } from "./clients/hrListPeriods.js";
 export { hrListShiftCatalog } from "./clients/hrListShiftCatalog.js";
 export { hrOffboardStaff } from "./clients/hrOffboardStaff.js";
 export { hrPatchDocument } from "./clients/hrPatchDocument.js";
+export { hrPreviewAbsenteeReportPdf } from "./clients/hrPreviewAbsenteeReportPdf.js";
 export { hrPreviewCatalogue } from "./clients/hrPreviewCatalogue.js";
+export { hrPreviewLeaveRequestPdf } from "./clients/hrPreviewLeaveRequestPdf.js";
 export { hrPreviewOrganisation } from "./clients/hrPreviewOrganisation.js";
 export { hrPublishPeriod } from "./clients/hrPublishPeriod.js";
 export { hrRemoveHoliday } from "./clients/hrRemoveHoliday.js";
@@ -1130,10 +1132,20 @@ export {
   useHrPatchDocument,
 } from "./hooks/useHrPatchDocument.js";
 export {
+  hrPreviewAbsenteeReportPdfMutationKey,
+  hrPreviewAbsenteeReportPdfMutationOptions,
+  useHrPreviewAbsenteeReportPdf,
+} from "./hooks/useHrPreviewAbsenteeReportPdf.js";
+export {
   hrPreviewCatalogueQueryKey,
   hrPreviewCatalogueQueryOptions,
   useHrPreviewCatalogue,
 } from "./hooks/useHrPreviewCatalogue.js";
+export {
+  hrPreviewLeaveRequestPdfMutationKey,
+  hrPreviewLeaveRequestPdfMutationOptions,
+  useHrPreviewLeaveRequestPdf,
+} from "./hooks/useHrPreviewLeaveRequestPdf.js";
 export {
   hrPreviewOrganisationQueryKey,
   hrPreviewOrganisationQueryOptions,
@@ -2684,6 +2696,7 @@ export type {
   HrBulkAssignmentsResponse,
   HrBulkAssignmentsResponses,
   HrBulkAssignmentsStatus200,
+  HrBulkAssignmentsStatus400,
   HrBulkAssignmentsStatus403,
   HrBulkAssignmentsStatus404,
   HrBulkAssignmentsStatus422,
@@ -2705,6 +2718,7 @@ export type {
   HrCreateAbsenteeReportResponse,
   HrCreateAbsenteeReportResponses,
   HrCreateAbsenteeReportStatus201,
+  HrCreateAbsenteeReportStatus400,
   HrCreateAbsenteeReportStatus403,
   HrCreateAbsenteeReportStatus422,
 } from "./models/HrCreateAbsenteeReport.js";
@@ -2769,6 +2783,7 @@ export type {
   HrCreateLeaveRequestResponse,
   HrCreateLeaveRequestResponses,
   HrCreateLeaveRequestStatus201,
+  HrCreateLeaveRequestStatus400,
   HrCreateLeaveRequestStatus403,
   HrCreateLeaveRequestStatus422,
 } from "./models/HrCreateLeaveRequest.js";
@@ -3409,6 +3424,18 @@ export type {
   HrPatchDocumentStatus422,
 } from "./models/HrPatchDocument.js";
 export type {
+  HrPreviewAbsenteeReportPdfBody,
+  HrPreviewAbsenteeReportPdfOptions,
+  HrPreviewAbsenteeReportPdfResponse,
+  HrPreviewAbsenteeReportPdfResponses,
+  HrPreviewAbsenteeReportPdfStatus200,
+  HrPreviewAbsenteeReportPdfStatus200Json,
+  HrPreviewAbsenteeReportPdfStatus200Pdf,
+  HrPreviewAbsenteeReportPdfStatus400,
+  HrPreviewAbsenteeReportPdfStatus403,
+  HrPreviewAbsenteeReportPdfStatus422,
+} from "./models/HrPreviewAbsenteeReportPdf.js";
+export type {
   HrPreviewCatalogueOptions,
   HrPreviewCatalogueQuery,
   HrPreviewCatalogueResponse,
@@ -3419,6 +3446,18 @@ export type {
   HrPreviewCatalogueStatus409,
   HrPreviewCatalogueStatus422,
 } from "./models/HrPreviewCatalogue.js";
+export type {
+  HrPreviewLeaveRequestPdfBody,
+  HrPreviewLeaveRequestPdfOptions,
+  HrPreviewLeaveRequestPdfResponse,
+  HrPreviewLeaveRequestPdfResponses,
+  HrPreviewLeaveRequestPdfStatus200,
+  HrPreviewLeaveRequestPdfStatus200Json,
+  HrPreviewLeaveRequestPdfStatus200Pdf,
+  HrPreviewLeaveRequestPdfStatus400,
+  HrPreviewLeaveRequestPdfStatus403,
+  HrPreviewLeaveRequestPdfStatus422,
+} from "./models/HrPreviewLeaveRequestPdf.js";
 export type {
   HrPreviewOrganisationOptions,
   HrPreviewOrganisationResponse,
@@ -4268,6 +4307,8 @@ export type { RoleUpdate } from "./models/RoleUpdate.js";
 export type { RosterAssignmentBulkCreate } from "./models/RosterAssignmentBulkCreate.js";
 export type { RosterAssignmentInput } from "./models/RosterAssignmentInput.js";
 export type { RosterAssignmentPublic } from "./models/RosterAssignmentPublic.js";
+export type { RosterAvailability } from "./models/RosterAvailability.js";
+export { rosterAvailability } from "./models/RosterAvailability.js";
 export type { RosterCalendarEntry } from "./models/RosterCalendarEntry.js";
 export type { RosterCalendarPublic } from "./models/RosterCalendarPublic.js";
 export type { RosterCsvImportResponse } from "./models/RosterCsvImportResponse.js";
@@ -5807,6 +5848,7 @@ export {
   hrBulkAssignmentsErrorSchema,
   hrBulkAssignmentsResponseSchema,
   hrBulkAssignmentsStatus200Schema,
+  hrBulkAssignmentsStatus400Schema,
   hrBulkAssignmentsStatus403Schema,
   hrBulkAssignmentsStatus404Schema,
   hrBulkAssignmentsStatus422Schema,
@@ -5826,6 +5868,7 @@ export {
   hrCreateAbsenteeReportErrorSchema,
   hrCreateAbsenteeReportResponseSchema,
   hrCreateAbsenteeReportStatus201Schema,
+  hrCreateAbsenteeReportStatus400Schema,
   hrCreateAbsenteeReportStatus403Schema,
   hrCreateAbsenteeReportStatus422Schema,
 } from "./zod/hrCreateAbsenteeReportSchema.js";
@@ -5884,6 +5927,7 @@ export {
   hrCreateLeaveRequestErrorSchema,
   hrCreateLeaveRequestResponseSchema,
   hrCreateLeaveRequestStatus201Schema,
+  hrCreateLeaveRequestStatus400Schema,
   hrCreateLeaveRequestStatus403Schema,
   hrCreateLeaveRequestStatus422Schema,
 } from "./zod/hrCreateLeaveRequestSchema.js";
@@ -6493,6 +6537,17 @@ export {
   hrPatchDocumentStatus422Schema,
 } from "./zod/hrPatchDocumentSchema.js";
 export {
+  hrPreviewAbsenteeReportPdfBodySchema,
+  hrPreviewAbsenteeReportPdfErrorSchema,
+  hrPreviewAbsenteeReportPdfResponseSchema,
+  hrPreviewAbsenteeReportPdfStatus200Schema,
+  hrPreviewAbsenteeReportPdfStatus200SchemaJson,
+  hrPreviewAbsenteeReportPdfStatus200SchemaPdf,
+  hrPreviewAbsenteeReportPdfStatus400Schema,
+  hrPreviewAbsenteeReportPdfStatus403Schema,
+  hrPreviewAbsenteeReportPdfStatus422Schema,
+} from "./zod/hrPreviewAbsenteeReportPdfSchema.js";
+export {
   hrPreviewCatalogueErrorSchema,
   hrPreviewCatalogueQueryDepartmentIdSchema,
   hrPreviewCatalogueResponseSchema,
@@ -6502,6 +6557,17 @@ export {
   hrPreviewCatalogueStatus409Schema,
   hrPreviewCatalogueStatus422Schema,
 } from "./zod/hrPreviewCatalogueSchema.js";
+export {
+  hrPreviewLeaveRequestPdfBodySchema,
+  hrPreviewLeaveRequestPdfErrorSchema,
+  hrPreviewLeaveRequestPdfResponseSchema,
+  hrPreviewLeaveRequestPdfStatus200Schema,
+  hrPreviewLeaveRequestPdfStatus200SchemaJson,
+  hrPreviewLeaveRequestPdfStatus200SchemaPdf,
+  hrPreviewLeaveRequestPdfStatus400Schema,
+  hrPreviewLeaveRequestPdfStatus403Schema,
+  hrPreviewLeaveRequestPdfStatus422Schema,
+} from "./zod/hrPreviewLeaveRequestPdfSchema.js";
 export {
   hrPreviewOrganisationErrorSchema,
   hrPreviewOrganisationResponseSchema,
@@ -7272,6 +7338,7 @@ export { roleUpdateSchema } from "./zod/roleUpdateSchema.js";
 export { rosterAssignmentBulkCreateSchema } from "./zod/rosterAssignmentBulkCreateSchema.js";
 export { rosterAssignmentInputSchema } from "./zod/rosterAssignmentInputSchema.js";
 export { rosterAssignmentPublicSchema } from "./zod/rosterAssignmentPublicSchema.js";
+export { rosterAvailabilitySchema } from "./zod/rosterAvailabilitySchema.js";
 export { rosterCalendarEntrySchema } from "./zod/rosterCalendarEntrySchema.js";
 export { rosterCalendarPublicSchema } from "./zod/rosterCalendarPublicSchema.js";
 export { rosterCsvImportResponseSchema } from "./zod/rosterCsvImportResponseSchema.js";

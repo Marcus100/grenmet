@@ -1,7 +1,7 @@
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Response, status
 
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.submission import submission_list, submission_public
@@ -19,6 +19,37 @@ router = APIRouter(prefix="/hr", tags=["hr-absentee"])
 
 
 @router.post(
+    "/absentee-reports/preview-pdf",
+    operation_id="hrPreviewAbsenteeReportPdf",
+    response_model=None,
+    status_code=status.HTTP_200_OK,
+    summary="Preview an absentee report PDF",
+    description="Render an unsaved absentee report with the Python signed-document renderer. Requires scoped absentee.report.create access. Stores no report or signature.",
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"description": "Invalid shift or absence times"},
+        200: {"content": {"application/pdf": {}}, "description": "Draft PDF preview"},
+        403: {"description": "Employee or department is outside the reporter's scope"},
+        422: {"description": "Invalid report fields"},
+    },
+)
+async def preview_absentee_report_pdf(
+    *, session: SessionDep, current_user: CurrentUser, payload: AbsenteeReportCreate
+) -> Response:
+    pdf = await service.preview_absentee_report_pdf(
+        session=session, current_user=current_user, payload=payload
+    )
+    return Response(
+        pdf,
+        media_type="application/pdf",
+        headers={
+            "Cache-Control": "private, no-store",
+            "X-Content-Type-Options": "nosniff",
+            "Content-Disposition": 'inline; filename="absentee-preview.pdf"',
+        },
+    )
+
+
+@router.post(
     "/absentee-reports",
     response_model=AbsenteeReportPublic,
     status_code=status.HTTP_201_CREATED,
@@ -26,6 +57,9 @@ router = APIRouter(prefix="/hr", tags=["hr-absentee"])
     description="Create an absentee report. Requires absentee.report.create permission.",
     responses={
         status.HTTP_201_CREATED: {"description": "Absentee report created"},
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "Required reason details are missing"
+        },
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
@@ -129,7 +163,7 @@ async def delete_absentee_report(
     "/absentee-reports",
     response_model=AbsenteeReportListPublic,
     summary="List absentee reports",
-    description="List absentee reports (own or by department). Department filter requires absentee.report.read.department.",
+    description="List reports about the current employee or filed by them. A department filter requires scoped absentee.report.read.department access.",
     responses={
         status.HTTP_200_OK: {"description": "Absentee reports returned"},
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},

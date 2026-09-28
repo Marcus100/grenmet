@@ -900,6 +900,7 @@ export {
   hrBulkAssignmentsErrorSchema,
   hrBulkAssignmentsResponseSchema,
   hrBulkAssignmentsStatus200Schema,
+  hrBulkAssignmentsStatus400Schema,
   hrBulkAssignmentsStatus403Schema,
   hrBulkAssignmentsStatus404Schema,
   hrBulkAssignmentsStatus422Schema,
@@ -919,6 +920,7 @@ export {
   hrCreateAbsenteeReportErrorSchema,
   hrCreateAbsenteeReportResponseSchema,
   hrCreateAbsenteeReportStatus201Schema,
+  hrCreateAbsenteeReportStatus400Schema,
   hrCreateAbsenteeReportStatus403Schema,
   hrCreateAbsenteeReportStatus422Schema,
 } from "./hrCreateAbsenteeReportSchema.js";
@@ -977,6 +979,7 @@ export {
   hrCreateLeaveRequestErrorSchema,
   hrCreateLeaveRequestResponseSchema,
   hrCreateLeaveRequestStatus201Schema,
+  hrCreateLeaveRequestStatus400Schema,
   hrCreateLeaveRequestStatus403Schema,
   hrCreateLeaveRequestStatus422Schema,
 } from "./hrCreateLeaveRequestSchema.js";
@@ -1586,6 +1589,17 @@ export {
   hrPatchDocumentStatus422Schema,
 } from "./hrPatchDocumentSchema.js";
 export {
+  hrPreviewAbsenteeReportPdfBodySchema,
+  hrPreviewAbsenteeReportPdfErrorSchema,
+  hrPreviewAbsenteeReportPdfResponseSchema,
+  hrPreviewAbsenteeReportPdfStatus200Schema,
+  hrPreviewAbsenteeReportPdfStatus200SchemaJson,
+  hrPreviewAbsenteeReportPdfStatus200SchemaPdf,
+  hrPreviewAbsenteeReportPdfStatus400Schema,
+  hrPreviewAbsenteeReportPdfStatus403Schema,
+  hrPreviewAbsenteeReportPdfStatus422Schema,
+} from "./hrPreviewAbsenteeReportPdfSchema.js";
+export {
   hrPreviewCatalogueErrorSchema,
   hrPreviewCatalogueQueryDepartmentIdSchema,
   hrPreviewCatalogueResponseSchema,
@@ -1595,6 +1609,17 @@ export {
   hrPreviewCatalogueStatus409Schema,
   hrPreviewCatalogueStatus422Schema,
 } from "./hrPreviewCatalogueSchema.js";
+export {
+  hrPreviewLeaveRequestPdfBodySchema,
+  hrPreviewLeaveRequestPdfErrorSchema,
+  hrPreviewLeaveRequestPdfResponseSchema,
+  hrPreviewLeaveRequestPdfStatus200Schema,
+  hrPreviewLeaveRequestPdfStatus200SchemaJson,
+  hrPreviewLeaveRequestPdfStatus200SchemaPdf,
+  hrPreviewLeaveRequestPdfStatus400Schema,
+  hrPreviewLeaveRequestPdfStatus403Schema,
+  hrPreviewLeaveRequestPdfStatus422Schema,
+} from "./hrPreviewLeaveRequestPdfSchema.js";
 export {
   hrPreviewOrganisationErrorSchema,
   hrPreviewOrganisationResponseSchema,
@@ -2365,6 +2390,7 @@ export { roleUpdateSchema } from "./roleUpdateSchema.js";
 export { rosterAssignmentBulkCreateSchema } from "./rosterAssignmentBulkCreateSchema.js";
 export { rosterAssignmentInputSchema } from "./rosterAssignmentInputSchema.js";
 export { rosterAssignmentPublicSchema } from "./rosterAssignmentPublicSchema.js";
+export { rosterAvailabilitySchema } from "./rosterAvailabilitySchema.js";
 export { rosterCalendarEntrySchema } from "./rosterCalendarEntrySchema.js";
 export { rosterCalendarPublicSchema } from "./rosterCalendarPublicSchema.js";
 export { rosterCsvImportResponseSchema } from "./rosterCsvImportResponseSchema.js";

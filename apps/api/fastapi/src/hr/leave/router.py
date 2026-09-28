@@ -1,6 +1,6 @@
 from typing import Any
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Response, status
 
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import LeaveRequestDep
@@ -20,6 +20,37 @@ router = APIRouter(prefix="/hr", tags=["hr-leave"])
 
 
 @router.post(
+    "/leave-requests/preview-pdf",
+    operation_id="hrPreviewLeaveRequestPdf",
+    response_model=None,
+    status_code=status.HTTP_200_OK,
+    summary="Preview a leave request PDF",
+    description="Render an unsaved leave application using the same Python renderer as the signed PDF. No request or signature is stored.",
+    responses={
+        200: {"content": {"application/pdf": {}}, "description": "Draft PDF preview"},
+        400: {"description": "Invalid date order, day count or travel dates"},
+        403: {"description": "Permission or department mismatch"},
+        422: {"description": "Invalid leave request fields"},
+    },
+)
+async def preview_leave_request_pdf(
+    *, session: SessionDep, current_user: CurrentUser, payload: LeaveRequestCreate
+) -> Response:
+    pdf = await service.preview_leave_request_pdf(
+        session=session, current_user=current_user, payload=payload
+    )
+    return Response(
+        pdf,
+        media_type="application/pdf",
+        headers={
+            "Cache-Control": "private, no-store",
+            "X-Content-Type-Options": "nosniff",
+            "Content-Disposition": 'inline; filename="leave-preview.pdf"',
+        },
+    )
+
+
+@router.post(
     "/leave-requests",
     response_model=LeaveRequestPublic,
     status_code=status.HTTP_201_CREATED,
@@ -27,6 +58,7 @@ router = APIRouter(prefix="/hr", tags=["hr-leave"])
     description="Create a leave request for the current user. Requires leave.request.create.self permission.",
     responses={
         status.HTTP_201_CREATED: {"description": "Leave request created"},
+        status.HTTP_400_BAD_REQUEST: {"description": "Invalid leave request fields"},
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
@@ -46,7 +78,9 @@ async def create_leave_request(
     description="Submit a previously-saved DRAFT leave request, attaching named co-approvers. Requires leave.request.create.self permission and ownership of the request.",
     responses={
         status.HTTP_200_OK: {"description": "Leave request submitted"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Leave request is not a draft"},
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "Leave request is not a draft or required fields are invalid"
+        },
         status.HTTP_403_FORBIDDEN: {
             "description": "Not allowed to submit this leave request"
         },

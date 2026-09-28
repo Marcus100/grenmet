@@ -6,6 +6,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import TimesheetDep
+from src.hr.roster import service as roster_service
+from src.hr.roster.models import RosterAvailability
 from src.hr.submission import signed_document_ids
 from src.pagination import PaginationDep
 
@@ -59,10 +61,22 @@ async def create_timesheet(
     timesheet, entries = await service.create_timesheet(
         session=session, current_user=current_user, payload=payload
     )
+    availability = await roster_service.assignment_availability(
+        session,
+        [entry.roster_assignment_id for entry in entries if entry.roster_assignment_id],
+    )
     return TimesheetDetails(
         timesheet=await _public(session, timesheet),
         entries=[
-            TimesheetEntryPublic.model_validate(entry, from_attributes=True)
+            TimesheetEntryPublic.model_validate(entry, from_attributes=True).model_copy(
+                update={
+                    "availability": availability.get(
+                        entry.roster_assignment_id, RosterAvailability.SCHEDULED
+                    )
+                    if entry.roster_assignment_id
+                    else RosterAvailability.SCHEDULED
+                }
+            )
             for entry in entries
         ],
     )
@@ -223,10 +237,22 @@ async def read_timesheet(
     timesheet_data, entries = await service.read_timesheet_details(
         session=session, current_user=current_user, timesheet_id=timesheet.id
     )
+    availability = await roster_service.assignment_availability(
+        session,
+        [entry.roster_assignment_id for entry in entries if entry.roster_assignment_id],
+    )
     return TimesheetDetails(
         timesheet=await _public(session, timesheet_data),
         entries=[
-            TimesheetEntryPublic.model_validate(entry, from_attributes=True)
+            TimesheetEntryPublic.model_validate(entry, from_attributes=True).model_copy(
+                update={
+                    "availability": availability.get(
+                        entry.roster_assignment_id, RosterAvailability.SCHEDULED
+                    )
+                    if entry.roster_assignment_id
+                    else RosterAvailability.SCHEDULED
+                }
+            )
             for entry in entries
         ],
     )

@@ -11,7 +11,7 @@ import type {
 } from "../models/HrGetAbsenteeReports.js";
 
 /**
- * @description List absentee reports (own or by department). Department filter requires absentee.report.read.department.
+ * @description List reports about the current employee or filed by them. A department filter requires scoped absentee.report.read.department access.
  * @summary List absentee reports
  * {@link /api/v1/hr/absentee-reports}
  */

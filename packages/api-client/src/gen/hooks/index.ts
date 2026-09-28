@@ -849,10 +849,20 @@ export {
   useHrPatchDocument,
 } from "./useHrPatchDocument.js";
 export {
+  hrPreviewAbsenteeReportPdfMutationKey,
+  hrPreviewAbsenteeReportPdfMutationOptions,
+  useHrPreviewAbsenteeReportPdf,
+} from "./useHrPreviewAbsenteeReportPdf.js";
+export {
   hrPreviewCatalogueQueryKey,
   hrPreviewCatalogueQueryOptions,
   useHrPreviewCatalogue,
 } from "./useHrPreviewCatalogue.js";
+export {
+  hrPreviewLeaveRequestPdfMutationKey,
+  hrPreviewLeaveRequestPdfMutationOptions,
+  useHrPreviewLeaveRequestPdf,
+} from "./useHrPreviewLeaveRequestPdf.js";
 export {
   hrPreviewOrganisationQueryKey,
   hrPreviewOrganisationQueryOptions,

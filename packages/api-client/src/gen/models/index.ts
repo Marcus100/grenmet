@@ -1013,6 +1013,7 @@ export type {
   HrBulkAssignmentsResponse,
   HrBulkAssignmentsResponses,
   HrBulkAssignmentsStatus200,
+  HrBulkAssignmentsStatus400,
   HrBulkAssignmentsStatus403,
   HrBulkAssignmentsStatus404,
   HrBulkAssignmentsStatus422,
@@ -1034,6 +1035,7 @@ export type {
   HrCreateAbsenteeReportResponse,
   HrCreateAbsenteeReportResponses,
   HrCreateAbsenteeReportStatus201,
+  HrCreateAbsenteeReportStatus400,
   HrCreateAbsenteeReportStatus403,
   HrCreateAbsenteeReportStatus422,
 } from "./HrCreateAbsenteeReport.js";
@@ -1098,6 +1100,7 @@ export type {
   HrCreateLeaveRequestResponse,
   HrCreateLeaveRequestResponses,
   HrCreateLeaveRequestStatus201,
+  HrCreateLeaveRequestStatus400,
   HrCreateLeaveRequestStatus403,
   HrCreateLeaveRequestStatus422,
 } from "./HrCreateLeaveRequest.js";
@@ -1738,6 +1741,18 @@ export type {
   HrPatchDocumentStatus422,
 } from "./HrPatchDocument.js";
 export type {
+  HrPreviewAbsenteeReportPdfBody,
+  HrPreviewAbsenteeReportPdfOptions,
+  HrPreviewAbsenteeReportPdfResponse,
+  HrPreviewAbsenteeReportPdfResponses,
+  HrPreviewAbsenteeReportPdfStatus200,
+  HrPreviewAbsenteeReportPdfStatus200Json,
+  HrPreviewAbsenteeReportPdfStatus200Pdf,
+  HrPreviewAbsenteeReportPdfStatus400,
+  HrPreviewAbsenteeReportPdfStatus403,
+  HrPreviewAbsenteeReportPdfStatus422,
+} from "./HrPreviewAbsenteeReportPdf.js";
+export type {
   HrPreviewCatalogueOptions,
   HrPreviewCatalogueQuery,
   HrPreviewCatalogueResponse,
@@ -1748,6 +1763,18 @@ export type {
   HrPreviewCatalogueStatus409,
   HrPreviewCatalogueStatus422,
 } from "./HrPreviewCatalogue.js";
+export type {
+  HrPreviewLeaveRequestPdfBody,
+  HrPreviewLeaveRequestPdfOptions,
+  HrPreviewLeaveRequestPdfResponse,
+  HrPreviewLeaveRequestPdfResponses,
+  HrPreviewLeaveRequestPdfStatus200,
+  HrPreviewLeaveRequestPdfStatus200Json,
+  HrPreviewLeaveRequestPdfStatus200Pdf,
+  HrPreviewLeaveRequestPdfStatus400,
+  HrPreviewLeaveRequestPdfStatus403,
+  HrPreviewLeaveRequestPdfStatus422,
+} from "./HrPreviewLeaveRequestPdf.js";
 export type {
   HrPreviewOrganisationOptions,
   HrPreviewOrganisationResponse,
@@ -2597,6 +2624,8 @@ export type { RoleUpdate } from "./RoleUpdate.js";
 export type { RosterAssignmentBulkCreate } from "./RosterAssignmentBulkCreate.js";
 export type { RosterAssignmentInput } from "./RosterAssignmentInput.js";
 export type { RosterAssignmentPublic } from "./RosterAssignmentPublic.js";
+export type { RosterAvailability } from "./RosterAvailability.js";
+export { rosterAvailability } from "./RosterAvailability.js";
 export type { RosterCalendarEntry } from "./RosterCalendarEntry.js";
 export type { RosterCalendarPublic } from "./RosterCalendarPublic.js";
 export type { RosterCsvImportResponse } from "./RosterCsvImportResponse.js";

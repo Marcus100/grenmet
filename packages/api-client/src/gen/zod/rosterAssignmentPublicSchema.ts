@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { rosterAvailabilitySchema } from "./rosterAvailabilitySchema.js";
 
 export const rosterAssignmentPublicSchema = z.object({
   id: z.uuid(),
@@ -12,4 +13,5 @@ export const rosterAssignmentPublicSchema = z.object({
   assignment_date: z.iso.date(),
   shift_code: z.string(),
   remarks: z.union([z.string(), z.null()]).optional(),
+  availability: rosterAvailabilitySchema.optional().default("SCHEDULED"),
 });
