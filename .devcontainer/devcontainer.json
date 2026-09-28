@@ -147,7 +147,15 @@
     "GRENMET_HOST_WORKSPACE": "${localWorkspaceFolder}"
   },
 
+  // ~/.local/bin holds the sentry link and any agent CLI self-update. A fresh
+  // container's login shell starts before that folder exists, so it is never
+  // added to PATH automatically. It must come FIRST: appending it lets the
+  // image's older pinned `claude` win over a newer self-updated one.
+  "remoteEnv": {
+    "PATH": "/home/node/.local/bin:${containerEnv:PATH}"
+  },
+
   // On create: install workspace deps and the Sentry CLI in the persisted config volume.
-  "postCreateCommand": "sudo /usr/local/bin/prepare-agent-dependencies && node .devcontainer/check-dependency-isolation.mjs && pnpm install --frozen-lockfile && uv sync --frozen --package fast-back --python 3.14.7 && (test -x /home/node/.config/sentry/bin/sentry || (curl -fsS https://cli.sentry.dev/install | SENTRY_VERSION=0.45.0 SENTRY_INSTALL_DIR=/home/node/.config/sentry/bin bash -s -- --no-modify-path --no-completions --no-agent-skills)) && ln -sf /home/node/.config/sentry/bin/sentry /home/node/.local/bin/sentry && pnpm exec turbo --version && node -v && pnpm -v && uv --version && claude --version && codex --version && sentry --version",
-  "postStartCommand": "node /workspace/.devcontainer/check-dependency-isolation.mjs && ln -sf /home/node/.config/sentry/bin/sentry /home/node/.local/bin/sentry"
+  "postCreateCommand": "sudo /usr/local/bin/prepare-agent-dependencies && node .devcontainer/check-dependency-isolation.mjs && pnpm install --frozen-lockfile && uv sync --frozen --package fast-back --python 3.14.7 && (test -x /home/node/.config/sentry/bin/sentry || (curl -fsS https://cli.sentry.dev/install | SENTRY_VERSION=0.45.0 SENTRY_INSTALL_DIR=/home/node/.config/sentry/bin bash -s -- --no-modify-path --no-completions --no-agent-skills)) && mkdir -p /home/node/.local/bin && ln -sf /home/node/.config/sentry/bin/sentry /home/node/.local/bin/sentry && pnpm exec turbo --version && node -v && pnpm -v && uv --version && claude --version && codex --version && sentry --version",
+  "postStartCommand": "node /workspace/.devcontainer/check-dependency-isolation.mjs && mkdir -p /home/node/.local/bin && ln -sf /home/node/.config/sentry/bin/sentry /home/node/.local/bin/sentry"
 }
