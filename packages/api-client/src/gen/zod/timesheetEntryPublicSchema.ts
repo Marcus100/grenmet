@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { rosterAvailabilitySchema } from "./rosterAvailabilitySchema.js";
 
 export const timesheetEntryPublicSchema = z.object({
   id: z.uuid(),
@@ -19,4 +20,5 @@ export const timesheetEntryPublicSchema = z.object({
   hours_worked: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
   medical_certificate_attached: z.boolean(),
   comments: z.union([z.string(), z.null()]).optional(),
+  availability: rosterAvailabilitySchema.optional().default("SCHEDULED"),
 });

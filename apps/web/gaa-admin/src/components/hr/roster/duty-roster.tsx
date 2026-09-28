@@ -119,6 +119,16 @@ export function DutyRoster() {
     () => buildAssignmentMap(detailsQuery.data?.assignments ?? []),
     [detailsQuery.data?.assignments]
   );
+  const availabilityByCell = useMemo(
+    () =>
+      new Map(
+        (detailsQuery.data?.assignments ?? []).map((assignment) => [
+          cellKey(assignment.user_id, assignment.assignment_date),
+          assignment.availability,
+        ])
+      ),
+    [detailsQuery.data?.assignments]
+  );
 
   const createPeriodMutation = useHrCreatePeriod();
   const bulkMutation = useHrBulkAssignments();
@@ -344,6 +354,9 @@ export function DutyRoster() {
       </div>
 
       <div className="flex flex-wrap gap-x-4 gap-y-1 text-muted-foreground text-xs">
+        <span>
+          * Approved absence or leave; the scheduled shift remains shown.
+        </span>
         {catalog.map((shift) => (
           <span className="flex items-center gap-1.5" key={shift.code}>
             <span
@@ -458,6 +471,16 @@ export function DutyRoster() {
                         const key = cellKey(member.user_id, d.iso);
                         const code = rowCodes[i];
                         const isPending = key in pendingEdits;
+                        const availability = isPending
+                          ? undefined
+                          : availabilityByCell.get(key);
+                        const exception = (
+                          {
+                            ABSENT: "Approved absence",
+                            PARTIAL_ABSENCE: "Approved partial absence",
+                            LEAVE: "Approved leave",
+                          } as Record<string, string>
+                        )[availability ?? ""];
                         return (
                           <Fragment key={`${member.user_id}-${d.day}`}>
                             {d.isSunday && i > 0 ? (
@@ -468,18 +491,30 @@ export function DutyRoster() {
                             ) : null}
                             <td className="border-border border-l p-0">
                               <button
+                                aria-label={
+                                  exception
+                                    ? `${member.full_name || rosterLabel(member)}, ${d.iso}, scheduled ${code}, ${exception}`
+                                    : undefined
+                                }
                                 className={cn(
                                   "h-6 w-full font-medium text-[11px] leading-none outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset",
                                   code && CODE_STYLE[code],
                                   runMarks[i] && "border-current border-b-2",
                                   isPending && "ring-1 ring-ring ring-inset",
-                                  !editable && "cursor-default"
+                                  !editable && "cursor-default",
+                                  exception && "text-destructive"
                                 )}
                                 disabled={!editable}
                                 onClick={() => cycle(member.user_id, d.iso)}
+                                title={
+                                  exception
+                                    ? `Scheduled ${code} · ${exception}`
+                                    : undefined
+                                }
                                 type="button"
                               >
                                 {code}
+                                {exception ? "*" : ""}
                               </button>
                             </td>
                           </Fragment>

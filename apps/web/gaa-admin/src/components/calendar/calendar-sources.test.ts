@@ -94,6 +94,27 @@ describe("toEventLayer — the department's own entries", () => {
 });
 
 describe("toRosterLayer — the duty roster read onto the calendar", () => {
+  it("shows approved exceptions on the leave view without changing the scheduled night shift", () => {
+    const [mapped] = toRosterLayer(
+      [
+        entry({
+          availability: "ABSENT",
+          shift_code: "N",
+          label: "Night",
+          assignment_date: "2026-09-26",
+          starts_at_local: "2026-09-26T22:30:00",
+          ends_at_local: "2026-09-27T06:00:00",
+        }),
+        entry({ availability: "SCHEDULED" }),
+      ],
+      "leave",
+      { showPerson: true }
+    );
+    expect(mapped.title).toBe("Jude Andre Charles · Night · Approved absence");
+    expect(mapped.extendedProps.code).toBe("N");
+    expect(mapped.start).toBe("2026-09-26T22:30:00");
+    expect(mapped.end).toBe("2026-09-27T06:00:00");
+  });
   it("keeps a timed shift on its own local wall clock", () => {
     const [mapped] = toRosterLayer([entry({})], "mine", { showPerson: false });
 

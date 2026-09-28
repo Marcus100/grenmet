@@ -14,6 +14,7 @@ import { DutyRoster } from "./duty-roster";
 
 const BASE = "http://localhost";
 const SAVE_ONE_LABEL = /Save \(1\)/;
+const APPROVED_ABSENCE_LABEL = /scheduled E, Approved absence/;
 
 const CATALOG = {
   data: [
@@ -151,6 +152,31 @@ function renderRoster() {
 }
 
 describe("DutyRoster (wired)", () => {
+  it("shows an approved exception while retaining the original scheduled shift", async () => {
+    server.use(
+      http.get(`${BASE}/api/v1/hr/rosters/periods/${PERIOD.id}`, () =>
+        HttpResponse.json({
+          period: PERIOD,
+          assignments: [
+            {
+              id: "a1",
+              roster_period_id: PERIOD.id,
+              user_id: MEMBERS.data[0].user_id,
+              assignment_date: `${year}-${pad(month + 1)}-02`,
+              shift_code: "E",
+              availability: "ABSENT",
+            },
+          ],
+        })
+      )
+    );
+    renderRoster();
+    const button = await screen.findByRole("button", {
+      name: APPROVED_ABSENCE_LABEL,
+    });
+    expect(button).toHaveTextContent("E*");
+    expect(button).toHaveAttribute("title", "Scheduled E · Approved absence");
+  });
   it("renders members, legend from the catalog, and saved assignments", async () => {
     renderRoster();
 

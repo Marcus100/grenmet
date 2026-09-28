@@ -4,6 +4,7 @@ from decimal import Decimal
 
 from pydantic import Field
 
+from src.hr.roster.models import RosterAvailability
 from src.hr.signatures.schemas import SignatureConsent
 from src.models import BaseModel, UtcDateTime
 
@@ -67,6 +68,7 @@ class TimesheetEntryPublic(BaseModel):
     hours_worked: Decimal
     medical_certificate_attached: bool
     comments: str | None = None
+    availability: RosterAvailability = RosterAvailability.SCHEDULED
 
 
 class TimesheetDetails(BaseModel):

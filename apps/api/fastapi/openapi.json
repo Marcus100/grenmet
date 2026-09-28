@@ -1,7 +1,7 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Grenmet API",
+    "title": "HR verification",
     "description": "Grenmet API for authenticated administration, human resources, weather products, CAP alerts, and observation registration.",
     "contact": {
       "name": "Grenmet API maintainers"
@@ -3101,7 +3101,7 @@
           "hr-rosters"
         ],
         "summary": "Bulk upsert roster assignments",
-        "description": "Create or replace roster assignments for a period. Requires roster.manage permission.",
+        "description": "Create or update roster assignments while preserving linked row IDs. Requires roster.manage permission. Rejects closed periods, invalid dates/codes, duplicate employee dates and cross-period overwrite.",
         "operationId": "hrBulkAssignments",
         "requestBody": {
           "content": {
@@ -3137,6 +3137,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid batch or roster conflict"
           },
           "404": {
             "description": "Roster period not found"
@@ -5063,6 +5066,51 @@
         }
       }
     },
+    "/api/v1/hr/leave-requests/preview-pdf": {
+      "post": {
+        "tags": [
+          "hr-leave"
+        ],
+        "summary": "Preview a leave request PDF",
+        "description": "Render an unsaved leave application using the same Python renderer as the signed PDF. No request or signature is stored.",
+        "operationId": "hrPreviewLeaveRequestPdf",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeaveRequestCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Draft PDF preview",
+            "content": {
+              "application/json": {
+                "schema": {}
+              },
+              "application/pdf": {}
+            }
+          },
+          "422": {
+            "description": "Invalid leave request fields"
+          },
+          "400": {
+            "description": "Invalid date order, day count or travel dates"
+          },
+          "403": {
+            "description": "Permission or department mismatch"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/hr/leave-requests": {
       "post": {
         "tags": [
@@ -5101,6 +5149,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Invalid leave request fields"
           },
           "403": {
             "description": "Insufficient permission"
@@ -5170,7 +5221,7 @@
             "description": "Unprocessable Content"
           },
           "400": {
-            "description": "Leave request is not a draft"
+            "description": "Leave request is not a draft or required fields are invalid"
           },
           "403": {
             "description": "Not allowed to submit this leave request"
@@ -5429,6 +5480,51 @@
         }
       }
     },
+    "/api/v1/hr/absentee-reports/preview-pdf": {
+      "post": {
+        "tags": [
+          "hr-absentee"
+        ],
+        "summary": "Preview an absentee report PDF",
+        "description": "Render an unsaved absentee report with the Python signed-document renderer. Requires scoped absentee.report.create access. Stores no report or signature.",
+        "operationId": "hrPreviewAbsenteeReportPdf",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AbsenteeReportCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Draft PDF preview",
+            "content": {
+              "application/json": {
+                "schema": {}
+              },
+              "application/pdf": {}
+            }
+          },
+          "422": {
+            "description": "Invalid report fields"
+          },
+          "400": {
+            "description": "Invalid shift or absence times"
+          },
+          "403": {
+            "description": "Employee or department is outside the reporter's scope"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/hr/absentee-reports": {
       "post": {
         "tags": [
@@ -5473,6 +5569,9 @@
             },
             "description": "Unprocessable Content"
           },
+          "400": {
+            "description": "Required reason details are missing"
+          },
           "403": {
             "description": "Insufficient permission"
           }
@@ -5483,7 +5582,7 @@
           "hr-absentee"
         ],
         "summary": "List absentee reports",
-        "description": "List absentee reports (own or by department). Department filter requires absentee.report.read.department.",
+        "description": "List reports about the current employee or filed by them. A department filter requires scoped absentee.report.read.department access.",
         "operationId": "hrGetAbsenteeReports",
         "security": [
           {
@@ -17264,7 +17363,8 @@
           "expected_shift_code": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 10
               },
               {
                 "type": "null"
@@ -17275,7 +17375,8 @@
           "absence_start_time": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
               },
               {
                 "type": "null"
@@ -17286,7 +17387,8 @@
           "absence_end_time": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
               },
               {
                 "type": "null"
@@ -17300,7 +17402,8 @@
           "notes": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -17316,7 +17419,8 @@
           "contact_method": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 50
               },
               {
                 "type": "null"
@@ -29249,6 +29353,10 @@
               }
             ],
             "title": "Remarks"
+          },
+          "availability": {
+            "$ref": "#/components/schemas/RosterAvailability",
+            "default": "SCHEDULED"
           }
         },
         "type": "object",
@@ -29260,6 +29368,16 @@
           "shift_code"
         ],
         "title": "RosterAssignmentPublic"
+      },
+      "RosterAvailability": {
+        "type": "string",
+        "enum": [
+          "SCHEDULED",
+          "ABSENT",
+          "PARTIAL_ABSENCE",
+          "LEAVE"
+        ],
+        "title": "RosterAvailability"
       },
       "RosterCalendarEntry": {
         "properties": {
@@ -29328,6 +29446,10 @@
           "is_draft": {
             "type": "boolean",
             "title": "Is Draft"
+          },
+          "availability": {
+            "$ref": "#/components/schemas/RosterAvailability",
+            "default": "SCHEDULED"
           }
         },
         "type": "object",
@@ -33711,6 +33833,10 @@
               }
             ],
             "title": "Comments"
+          },
+          "availability": {
+            "$ref": "#/components/schemas/RosterAvailability",
+            "default": "SCHEDULED"
           }
         },
         "type": "object",

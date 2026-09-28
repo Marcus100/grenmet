@@ -23,6 +23,13 @@ class RosterPeriodStatus(str, Enum):
     CLOSED = "CLOSED"
 
 
+class RosterAvailability(str, Enum):
+    SCHEDULED = "SCHEDULED"
+    ABSENT = "ABSENT"
+    PARTIAL_ABSENCE = "PARTIAL_ABSENCE"
+    LEAVE = "LEAVE"
+
+
 class ImportStatus(str, Enum):
     PENDING = "PENDING"
     VALIDATED = "VALIDATED"

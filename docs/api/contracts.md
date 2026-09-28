@@ -328,6 +328,26 @@ on the strength of these document checks alone.
 Draft periods are returned only to callers holding `roster.manage`, flagged
 `is_draft: true`. For everyone else a roster is not real until it is published.
 
+Roster period/grid, calendar entries and roster-linked timesheet entries include
+`availability`: `SCHEDULED`, `ABSENT`, `PARTIAL_ABSENCE`, or `LEAVE`. This is a
+read projection of approved absentee/leave records; the stored shift code and
+timesheet hours remain unchanged. Linked workflows must still be approved;
+cancelled, returned, pending and rejected reports do not supply approved markers.
+Legacy approved records without a workflow remain supported. Absence matches
+employee, filing department, local shift-start date and optional expected shift;
+paired absence times distinguish partial absence. Full absence takes precedence
+over leave, then partial absence. The department roster/grid/calendar reads check
+the caller's scoped `roster.view` access. No reason or medical notes are exposed
+by this projection. Saturday night keeps its Saturday assignment date even when
+the scheduled end is Sunday. The grid keeps the shift code and marks an approved
+exception; the calendar's Leave & absence view also includes these exceptions.
+
+Bulk assignment saves retain existing IDs so repeated grid saves/imports do not
+break timesheet or attendance links. They reject duplicate employee/date cells,
+unknown shift codes, dates outside the selected period, closed periods, and
+overwriting a cell owned by a different period. Amend the original period instead
+of importing an overlapping period over its assignments.
+
 ### Local wall-clock times
 
 `starts_at_local` / `ends_at_local` on both the calendar and roster feeds are ISO-8601
@@ -559,8 +579,29 @@ committed with submission and remain unchanged when the saved signature changes.
 
 Signed PDFs are server-rendered submission records, including stored form fields
 and timesheet/status entries; they do not depend on browser print settings or
-editable display-only fields. Existing paper preview layouts remain available for
-unsigned drafts. Signing the submission does not apply signatures for approvers.
+editable display-only fields. `POST /api/v1/hr/leave-requests/preview-pdf`
+accepts `LeaveRequestCreate`, requires `leave.request.create.self` and an employment
+department matching the request, and returns an inline `application/pdf` with
+private, no-store caching. It saves neither a request nor a signature. The leave
+editor uses this Python renderer for its draft preview and retrieves the immutable
+signed PDF after submission. The rendered leave sheet resolves employee, supervisor
+and department names from HR records and shows dates in America/Grenada.
+
+`POST /api/v1/hr/absentee-reports/preview-pdf` similarly accepts
+`AbsenteeReportCreate`, checks `absentee.report.create` subject scope and the
+subject's employment department, and returns a private, no-store Python PDF
+without saving a report or signature. Both forms download the Python PDF rather
+than printing the editor. Absentee submission snapshots distinguish the absent
+employee from the reporter/signature owner. Drafts can save incomplete reason
+notes; creation as submitted and later submission enforce the required reasons.
+Times must be a valid paired local HH:MM interval within the expected shift, or
+both blank for a full shift; overnight times remain on the shift-start report date.
+The expected work shift is inferred from a unique published/closed roster
+assignment when omitted. Reporter-owned proxy drafts are included in the default
+list, alongside reports about the caller; department lists require scoped access.
+Other HR forms still use their existing unsigned paper previews. Signing a
+submission does not apply signatures for approvers; submission PDFs retain the
+approval state at submission, while later decisions live in the workflow.
 
 
 ## WxWatch gallery reads

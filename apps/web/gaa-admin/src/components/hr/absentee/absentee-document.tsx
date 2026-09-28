@@ -6,9 +6,13 @@ import {
 } from "@/components/hr/submission-date";
 
 export interface AbsenteeValues {
+  absenceEndTime: string;
+  absenceStartTime: string;
   date: string;
   department: string;
+  employeeId: string;
   employeeName: string;
+  expectedShiftCode: string;
   notes: string;
   reason: string;
 }
@@ -23,6 +27,10 @@ export const ABSENTEE_REASONS = [
 
 export const EMPTY_ABSENTEE: AbsenteeValues = {
   employeeName: "",
+  employeeId: "",
+  expectedShiftCode: "",
+  absenceStartTime: "",
+  absenceEndTime: "",
   department: "",
   date: "",
   reason: "Uncertified Sick",

@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { RosterAvailability } from "./RosterAvailability.js";
+
 export type TimesheetEntryPublic = {
   /**
    * @description
@@ -56,4 +58,9 @@ export type TimesheetEntryPublic = {
   hours_worked: string;
   medical_certificate_attached: boolean;
   comments?: string | null;
+  /**
+   * @default 'SCHEDULED'
+   * @type string | undefined
+   */
+  availability?: RosterAvailability;
 };
