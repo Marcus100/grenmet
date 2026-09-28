@@ -4073,7 +4073,7 @@
           "hr-timesheets"
         ],
         "summary": "Create timesheet",
-        "description": "Create a new timesheet (self or proxy). Policy controls self/proxy submission.",
+        "description": "Create a timesheet atomically for active employment in the filing department. Validates dates and recorded hours; links only published or closed roster assignments. Policy controls self/proxy submission.",
         "operationId": "hrCreateTimesheet",
         "requestBody": {
           "content": {
@@ -4105,6 +4105,9 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Unknown or mismatched shift"
           },
           "403": {
             "description": "Self/proxy submission disabled or not allowed for user"
@@ -4174,7 +4177,7 @@
             "description": "Unprocessable Content"
           },
           "400": {
-            "description": "Timesheet already submitted"
+            "description": "Timesheet already submitted or invalid stored dates, hours or roster link"
           },
           "403": {
             "description": "Not allowed (self only for own; proxy not allowed)"
@@ -4191,7 +4194,7 @@
           "hr-timesheets"
         ],
         "summary": "Approve timesheet",
-        "description": "Approve a submitted timesheet. Requires timesheet.approve and scope over the user.",
+        "description": "Approve a submitted timesheet. Requires timesheet.approve and scope over the filing department, or an explicitly named review stage. Workflow approval rules still apply.",
         "operationId": "hrApproveTimesheet",
         "security": [
           {
@@ -4381,6 +4384,9 @@
             },
             "description": "Unprocessable Content"
           },
+          "400": {
+            "description": "Department not found"
+          },
           "403": {
             "description": "Insufficient permission"
           }
@@ -4393,7 +4399,7 @@
           "hr-timesheets"
         ],
         "summary": "Get timesheet summary by shift",
-        "description": "Return hours aggregated by shift code. Owner or user with timesheet.read.department over the owner.",
+        "description": "Return hours aggregated by shift code. Owner, explicitly named reviewer, or timesheet.read.department within the filing department. Employee transfers do not change historical access.",
         "operationId": "hrGetTimesheetSummary",
         "security": [
           {
@@ -4448,7 +4454,7 @@
           "hr-timesheets"
         ],
         "summary": "Get timesheet details",
-        "description": "Return a timesheet and its entries. Owner or user with timesheet.read.department over the owner.",
+        "description": "Return a timesheet and its entries. Owner, explicitly named reviewer, or timesheet.read.department within the filing department. Employee transfers do not change historical access.",
         "operationId": "hrGetTimesheet",
         "security": [
           {
@@ -35130,6 +35136,8 @@
           },
           "department_id": {
             "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
             "title": "Department Id"
           },
           "period_start": {
@@ -35188,7 +35196,8 @@
           "shift_code": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 10
               },
               {
                 "type": "null"
@@ -35199,11 +35208,13 @@
           "roster_hours": {
             "anyOf": [
               {
-                "type": "number"
+                "type": "number",
+                "maximum": 24.0,
+                "minimum": 0.0
               },
               {
                 "type": "string",
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
               }
             ],
             "title": "Roster Hours",
@@ -35212,11 +35223,13 @@
           "actual_hours": {
             "anyOf": [
               {
-                "type": "number"
+                "type": "number",
+                "maximum": 24.0,
+                "minimum": 0.0
               },
               {
                 "type": "string",
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
               }
             ],
             "title": "Actual Hours",
@@ -35225,11 +35238,13 @@
           "total_hours": {
             "anyOf": [
               {
-                "type": "number"
+                "type": "number",
+                "maximum": 24.0,
+                "minimum": 0.0
               },
               {
                 "type": "string",
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
               },
               {
                 "type": "null"
@@ -35240,11 +35255,13 @@
           "overtime_hours": {
             "anyOf": [
               {
-                "type": "number"
+                "type": "number",
+                "maximum": 24.0,
+                "minimum": 0.0
               },
               {
                 "type": "string",
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
               }
             ],
             "title": "Overtime Hours",
@@ -35253,11 +35270,13 @@
           "break_hours": {
             "anyOf": [
               {
-                "type": "number"
+                "type": "number",
+                "maximum": 24.0,
+                "minimum": 0.0
               },
               {
                 "type": "string",
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
               }
             ],
             "title": "Break Hours",
@@ -35266,11 +35285,13 @@
           "hours_worked": {
             "anyOf": [
               {
-                "type": "number"
+                "type": "number",
+                "maximum": 24.0,
+                "minimum": 0.0
               },
               {
                 "type": "string",
-                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d{0,2}0*$"
               },
               {
                 "type": "null"
@@ -35286,7 +35307,8 @@
           "comments": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 500
               },
               {
                 "type": "null"

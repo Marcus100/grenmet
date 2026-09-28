@@ -1189,6 +1189,7 @@ export type {
   HrCreateTimesheetResponse,
   HrCreateTimesheetResponses,
   HrCreateTimesheetStatus201,
+  HrCreateTimesheetStatus400,
   HrCreateTimesheetStatus403,
   HrCreateTimesheetStatus422,
 } from "./HrCreateTimesheet.js";
@@ -1330,6 +1331,7 @@ export type {
   HrGetDepartmentTimesheetsResponse,
   HrGetDepartmentTimesheetsResponses,
   HrGetDepartmentTimesheetsStatus200,
+  HrGetDepartmentTimesheetsStatus400,
   HrGetDepartmentTimesheetsStatus403,
   HrGetDepartmentTimesheetsStatus422,
 } from "./HrGetDepartmentTimesheets.js";

@@ -15,6 +15,7 @@ import { hrGetDepartmentTimesheets } from "../clients/hrGetDepartmentTimesheets.
 import type {
   HrGetDepartmentTimesheetsOptions,
   HrGetDepartmentTimesheetsStatus200,
+  HrGetDepartmentTimesheetsStatus400,
   HrGetDepartmentTimesheetsStatus403,
   HrGetDepartmentTimesheetsStatus422,
 } from "../models/HrGetDepartmentTimesheets.js";
@@ -41,7 +42,9 @@ export function hrGetDepartmentTimesheetsQueryOptions(
   return queryOptions<
     HrGetDepartmentTimesheetsStatus200,
     ResponseErrorConfig<
-      HrGetDepartmentTimesheetsStatus403 | HrGetDepartmentTimesheetsStatus422
+      | HrGetDepartmentTimesheetsStatus400
+      | HrGetDepartmentTimesheetsStatus403
+      | HrGetDepartmentTimesheetsStatus422
     >,
     HrGetDepartmentTimesheetsStatus200,
     typeof queryKey
@@ -80,6 +83,7 @@ export function useHrGetDepartmentTimesheets<
       QueryObserverOptions<
         HrGetDepartmentTimesheetsStatus200,
         ResponseErrorConfig<
+          | HrGetDepartmentTimesheetsStatus400
           | HrGetDepartmentTimesheetsStatus403
           | HrGetDepartmentTimesheetsStatus422
         >,
@@ -112,7 +116,9 @@ export function useHrGetDepartmentTimesheets<
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      HrGetDepartmentTimesheetsStatus403 | HrGetDepartmentTimesheetsStatus422
+      | HrGetDepartmentTimesheetsStatus400
+      | HrGetDepartmentTimesheetsStatus403
+      | HrGetDepartmentTimesheetsStatus422
     >
   > & { queryKey: TQueryKey };
 

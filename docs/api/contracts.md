@@ -1125,3 +1125,25 @@ completion or determine leave/pay eligibility. PATCH validates merged facts and
 preserves omitted fields. Supervisors must have active employment and accounts;
 self-supervision and reporting cycles are rejected. See
 [recorded service facts](../hr/staff-service-facts.md).
+
+### Legacy manual timesheet integrity
+
+The authenticated legacy timesheet create API verifies active employment in the
+filing department and self/proxy authorization before any policy write. Policy,
+timesheet and entries commit together. Entry dates must be unique shift start
+dates within an ordered period; recorded hours are finite, nonnegative, at most
+24 per date with two decimal places. Break duration cannot exceed actual hours,
+and recorded hours worked must equal actual hours minus break duration.
+Catalogue shifts must exist and match any linked roster assignment. Roster links
+are restricted to the filing department's published or closed periods; draft and
+foreign-department schedules are not treated as approved work. Submitted legacy
+drafts revalidate dates, hours and roster employee/date/department/shift links;
+department lists enforce organisation and department
+scope. These checks do not derive overtime entitlement or pay. New shift
+attendance is the primary arrival/departure journey; historical manual periods
+retain their existing date range rather than being rewritten into weeks.
+Historical reads, summaries and approvals use the timesheet's filing department,
+so transferring an employee does not grant the new department access to old
+records. Employees retain access to their own records, and explicitly named
+reviewers retain access to the current workflow; approvals still require
+`timesheet.approve` and the workflow's stage rules.
