@@ -9,6 +9,8 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrCreateShiftSwapStatus201 = ShiftSwapRequestPublic;
 
+export type HrCreateShiftSwapStatus400 = unknown;
+
 export type HrCreateShiftSwapStatus403 = unknown;
 
 /**
@@ -28,6 +30,7 @@ export type HrCreateShiftSwapOptions = {
 
 export type HrCreateShiftSwapResponses = {
   "201": HrCreateShiftSwapStatus201;
+  "400": HrCreateShiftSwapStatus400;
   "403": HrCreateShiftSwapStatus403;
   "422": HrCreateShiftSwapStatus422;
 };
@@ -37,5 +40,6 @@ export type HrCreateShiftSwapResponses = {
  */
 export type HrCreateShiftSwapResponse =
   | HrCreateShiftSwapStatus201
+  | HrCreateShiftSwapStatus400
   | HrCreateShiftSwapStatus403
   | HrCreateShiftSwapStatus422;

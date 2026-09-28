@@ -25,6 +25,11 @@ export type ShiftSwapRequestCreate = {
    * @type string
    */
   source_date: string;
+  /**
+   * @minLength 1
+   * @maxLength 10
+   * @type string
+   */
   source_shift_code: string;
   /**
    * @description
@@ -32,6 +37,11 @@ export type ShiftSwapRequestCreate = {
    * @type string
    */
   target_date: string;
+  /**
+   * @minLength 1
+   * @maxLength 10
+   * @type string
+   */
   target_shift_code: string;
   effective_date?: string | null;
   restoration_date?: string | null;

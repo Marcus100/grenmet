@@ -18,6 +18,8 @@ export type HrActionShiftSwapPath = {
 
 export type HrActionShiftSwapStatus200 = ShiftSwapRequestPublic;
 
+export type HrActionShiftSwapStatus400 = unknown;
+
 export type HrActionShiftSwapStatus403 = unknown;
 
 export type HrActionShiftSwapStatus404 = unknown;
@@ -39,6 +41,7 @@ export type HrActionShiftSwapOptions = {
 
 export type HrActionShiftSwapResponses = {
   "200": HrActionShiftSwapStatus200;
+  "400": HrActionShiftSwapStatus400;
   "403": HrActionShiftSwapStatus403;
   "404": HrActionShiftSwapStatus404;
   "422": HrActionShiftSwapStatus422;
@@ -49,6 +52,7 @@ export type HrActionShiftSwapResponses = {
  */
 export type HrActionShiftSwapResponse =
   | HrActionShiftSwapStatus200
+  | HrActionShiftSwapStatus400
   | HrActionShiftSwapStatus403
   | HrActionShiftSwapStatus404
   | HrActionShiftSwapStatus422;

@@ -12,6 +12,8 @@ export const hrActionShiftSwapPathShiftSwapIdSchema = z.uuid();
 
 export const hrActionShiftSwapStatus200Schema = shiftSwapRequestPublicSchema;
 
+export const hrActionShiftSwapStatus400Schema = z.unknown();
+
 export const hrActionShiftSwapStatus403Schema = z.unknown();
 
 export const hrActionShiftSwapStatus404Schema = z.unknown();
@@ -24,6 +26,7 @@ export const hrActionShiftSwapStatus422Schema =
 export const hrActionShiftSwapResponseSchema = hrActionShiftSwapStatus200Schema;
 
 export const hrActionShiftSwapErrorSchema = z.union([
+  hrActionShiftSwapStatus400Schema,
   hrActionShiftSwapStatus403Schema,
   hrActionShiftSwapStatus404Schema,
   hrActionShiftSwapStatus422Schema,

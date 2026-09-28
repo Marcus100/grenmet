@@ -1,6 +1,6 @@
 from typing import Any
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Response, status
 
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import ShiftSwapDep
@@ -17,6 +17,36 @@ from .schemas import (
 )
 
 router = APIRouter(prefix="/hr", tags=["hr-exchange"])
+
+
+@router.post(
+    "/shift-swaps/preview-pdf",
+    operation_id="hrPreviewShiftSwapPdf",
+    response_class=Response,
+    status_code=status.HTTP_200_OK,
+    summary="Preview a shift exchange PDF",
+    description="Render unsaved exchange values with resolved employee names without creating a request or signature.",
+    responses={
+        200: {"content": {"application/pdf": {}}, "description": "Draft PDF"},
+        400: {"description": "Invalid exchange"},
+        403: {"description": "Insufficient permission"},
+    },
+)
+async def preview_shift_swap(
+    *, session: SessionDep, current_user: CurrentUser, payload: ShiftSwapRequestCreate
+) -> Response:
+    pdf = await service.preview_shift_swap_pdf(
+        session=session, current_user=current_user, payload=payload
+    )
+    return Response(
+        pdf,
+        media_type="application/pdf",
+        headers={
+            "Cache-Control": "private, no-store",
+            "X-Content-Type-Options": "nosniff",
+            "Content-Disposition": 'inline; filename="shift-exchange-preview.pdf"',
+        },
+    )
 
 
 @router.get(
@@ -54,6 +84,9 @@ async def list_my_shift_swaps(
     responses={
         status.HTTP_201_CREATED: {"description": "Shift swap request created"},
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "Invalid participants or roster conflict"
+        },
     },
 )
 async def create_shift_swap(
@@ -169,6 +202,9 @@ async def delete_shift_swap(
             "description": "Not allowed to action this shift swap"
         },
         status.HTTP_404_NOT_FOUND: {"description": "Shift swap request not found"},
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "Invalid stage action or changed roster"
+        },
     },
 )
 async def action_shift_swap(

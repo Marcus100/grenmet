@@ -176,6 +176,7 @@ export { hrPreviewAbsenteeReportPdf } from "./clients/hrPreviewAbsenteeReportPdf
 export { hrPreviewCatalogue } from "./clients/hrPreviewCatalogue.js";
 export { hrPreviewLeaveRequestPdf } from "./clients/hrPreviewLeaveRequestPdf.js";
 export { hrPreviewOrganisation } from "./clients/hrPreviewOrganisation.js";
+export { hrPreviewShiftSwapPdf } from "./clients/hrPreviewShiftSwapPdf.js";
 export { hrPreviewStatusReportPdf } from "./clients/hrPreviewStatusReportPdf.js";
 export { hrPublishPeriod } from "./clients/hrPublishPeriod.js";
 export { hrRemoveHoliday } from "./clients/hrRemoveHoliday.js";
@@ -1158,6 +1159,11 @@ export {
   hrPreviewOrganisationQueryOptions,
   useHrPreviewOrganisation,
 } from "./hooks/useHrPreviewOrganisation.js";
+export {
+  hrPreviewShiftSwapPdfMutationKey,
+  hrPreviewShiftSwapPdfMutationOptions,
+  useHrPreviewShiftSwapPdf,
+} from "./hooks/useHrPreviewShiftSwapPdf.js";
 export {
   hrPreviewStatusReportPdfMutationKey,
   hrPreviewStatusReportPdfMutationOptions,
@@ -2655,6 +2661,7 @@ export type {
   HrActionShiftSwapResponse,
   HrActionShiftSwapResponses,
   HrActionShiftSwapStatus200,
+  HrActionShiftSwapStatus400,
   HrActionShiftSwapStatus403,
   HrActionShiftSwapStatus404,
   HrActionShiftSwapStatus422,
@@ -2834,6 +2841,7 @@ export type {
   HrCreateShiftSwapResponse,
   HrCreateShiftSwapResponses,
   HrCreateShiftSwapStatus201,
+  HrCreateShiftSwapStatus400,
   HrCreateShiftSwapStatus403,
   HrCreateShiftSwapStatus422,
 } from "./models/HrCreateShiftSwap.js";
@@ -3492,6 +3500,16 @@ export type {
   HrPreviewOrganisationStatus409,
   HrPreviewOrganisationStatus422,
 } from "./models/HrPreviewOrganisation.js";
+export type {
+  HrPreviewShiftSwapPdfBody,
+  HrPreviewShiftSwapPdfOptions,
+  HrPreviewShiftSwapPdfResponse,
+  HrPreviewShiftSwapPdfResponses,
+  HrPreviewShiftSwapPdfStatus200,
+  HrPreviewShiftSwapPdfStatus400,
+  HrPreviewShiftSwapPdfStatus403,
+  HrPreviewShiftSwapPdfStatus422,
+} from "./models/HrPreviewShiftSwapPdf.js";
 export type {
   HrPreviewStatusReportPdfBody,
   HrPreviewStatusReportPdfOptions,
@@ -5837,6 +5855,7 @@ export {
   hrActionShiftSwapPathShiftSwapIdSchema,
   hrActionShiftSwapResponseSchema,
   hrActionShiftSwapStatus200Schema,
+  hrActionShiftSwapStatus400Schema,
   hrActionShiftSwapStatus403Schema,
   hrActionShiftSwapStatus404Schema,
   hrActionShiftSwapStatus422Schema,
@@ -5999,6 +6018,7 @@ export {
   hrCreateShiftSwapErrorSchema,
   hrCreateShiftSwapResponseSchema,
   hrCreateShiftSwapStatus201Schema,
+  hrCreateShiftSwapStatus400Schema,
   hrCreateShiftSwapStatus403Schema,
   hrCreateShiftSwapStatus422Schema,
 } from "./zod/hrCreateShiftSwapSchema.js";
@@ -6627,6 +6647,15 @@ export {
   hrPreviewOrganisationStatus409Schema,
   hrPreviewOrganisationStatus422Schema,
 } from "./zod/hrPreviewOrganisationSchema.js";
+export {
+  hrPreviewShiftSwapPdfBodySchema,
+  hrPreviewShiftSwapPdfErrorSchema,
+  hrPreviewShiftSwapPdfResponseSchema,
+  hrPreviewShiftSwapPdfStatus200Schema,
+  hrPreviewShiftSwapPdfStatus400Schema,
+  hrPreviewShiftSwapPdfStatus403Schema,
+  hrPreviewShiftSwapPdfStatus422Schema,
+} from "./zod/hrPreviewShiftSwapPdfSchema.js";
 export {
   hrPreviewStatusReportPdfBodySchema,
   hrPreviewStatusReportPdfErrorSchema,

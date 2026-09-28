@@ -14,6 +14,7 @@ import { hrActionShiftSwap } from "../clients/hrActionShiftSwap.js";
 import type {
   HrActionShiftSwapOptions,
   HrActionShiftSwapStatus200,
+  HrActionShiftSwapStatus400,
   HrActionShiftSwapStatus403,
   HrActionShiftSwapStatus404,
   HrActionShiftSwapStatus422,
@@ -31,6 +32,7 @@ export function hrActionShiftSwapMutationOptions<TContext = unknown>(
   return mutationOptions<
     HrActionShiftSwapStatus200,
     ResponseErrorConfig<
+      | HrActionShiftSwapStatus400
       | HrActionShiftSwapStatus403
       | HrActionShiftSwapStatus404
       | HrActionShiftSwapStatus422
@@ -60,6 +62,7 @@ export function useHrActionShiftSwap<TContext>(
     mutation?: UseMutationOptions<
       HrActionShiftSwapStatus200,
       ResponseErrorConfig<
+        | HrActionShiftSwapStatus400
         | HrActionShiftSwapStatus403
         | HrActionShiftSwapStatus404
         | HrActionShiftSwapStatus422
@@ -82,6 +85,7 @@ export function useHrActionShiftSwap<TContext>(
   ) as UseMutationOptions<
     HrActionShiftSwapStatus200,
     ResponseErrorConfig<
+      | HrActionShiftSwapStatus400
       | HrActionShiftSwapStatus403
       | HrActionShiftSwapStatus404
       | HrActionShiftSwapStatus422
@@ -93,6 +97,7 @@ export function useHrActionShiftSwap<TContext>(
   return useMutation<
     HrActionShiftSwapStatus200,
     ResponseErrorConfig<
+      | HrActionShiftSwapStatus400
       | HrActionShiftSwapStatus403
       | HrActionShiftSwapStatus404
       | HrActionShiftSwapStatus422
@@ -109,6 +114,7 @@ export function useHrActionShiftSwap<TContext>(
   ) as UseMutationResult<
     HrActionShiftSwapStatus200,
     ResponseErrorConfig<
+      | HrActionShiftSwapStatus400
       | HrActionShiftSwapStatus403
       | HrActionShiftSwapStatus404
       | HrActionShiftSwapStatus422

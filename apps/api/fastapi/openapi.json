@@ -5846,6 +5846,55 @@
         }
       }
     },
+    "/api/v1/hr/shift-swaps/preview-pdf": {
+      "post": {
+        "tags": [
+          "hr-exchange"
+        ],
+        "summary": "Preview a shift exchange PDF",
+        "description": "Render unsaved exchange values with resolved employee names without creating a request or signature.",
+        "operationId": "hrPreviewShiftSwapPdf",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ShiftSwapRequestCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Draft PDF",
+            "content": {
+              "application/pdf": {}
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid exchange"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/hr/shift-swaps/me": {
       "get": {
         "tags": [
@@ -5953,6 +6002,9 @@
           },
           "403": {
             "description": "Insufficient permission"
+          },
+          "400": {
+            "description": "Invalid participants or roster conflict"
           }
         },
         "security": [
@@ -6208,6 +6260,9 @@
           },
           "404": {
             "description": "Shift swap request not found"
+          },
+          "400": {
+            "description": "Invalid stage action or changed roster"
           }
         }
       }
@@ -31273,6 +31328,8 @@
           },
           "source_shift_code": {
             "type": "string",
+            "maxLength": 10,
+            "minLength": 1,
             "title": "Source Shift Code"
           },
           "target_date": {
@@ -31282,6 +31339,8 @@
           },
           "target_shift_code": {
             "type": "string",
+            "maxLength": 10,
+            "minLength": 1,
             "title": "Target Shift Code"
           },
           "effective_date": {
@@ -31311,7 +31370,8 @@
           "reason": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
