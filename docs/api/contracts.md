@@ -1183,3 +1183,5 @@ the issuer and date; changed issuance is rejected, with renewal/replacement file
 as a new application. Issuance does not rewrite the original signed evidence.
 
 Roster writes and CSV/grid imports enforce the filing department scope and employee membership. They preserve assignment IDs and protect actual attendance and legacy recorded/submitted/approved timesheets. Catalogue and assignment locks serialize timing edits with first punches. Attendance history reads use the recorded filing department after transfers; unchanged terminal reviews reopen as a fresh cycle, retaining prior steps. Generic workflow submission cannot bypass the attendance submit route.
+
+Signed document history also uses the original filing department after an employee transfer. Department read/manage grants do not expose the former department's documents to the new department; SELF-only and expired grants cannot read another employee's history. Existing owner and named counterpart access remains available.

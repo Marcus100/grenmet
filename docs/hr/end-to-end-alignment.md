@@ -69,13 +69,13 @@ hours or an absence label: unresolved rules remain in [the policy register](poli
 
 | Slice | Current evidence / gap | Completion evidence |
 | --- | --- | --- |
-| Leave | Local changes add Python preview, shared signed renderer, resolved names/dates, additional original fields, validation and API error details. Live host browser acceptance remains outstanding. | Draft save/reopen, submit, approval/return/re-sign, immutable signed PDF, original comparison, access denial and roster effects. |
-| Absentee | Local changes add Python preview/shared signed rendering, reporter/subject draft restoration, inferred roster shift, paired local times, submission validation and scope checks. Approved absence/leave markers now project into roster/grid/calendar and linked timesheet API entries without overwriting scheduled shifts or hours. API approval/overnight/pending/rejected/cancelled checks pass; daily status propagation and host browser acceptance remain outstanding. | Reporter and subject remain distinct; supervisor approval; approved absence reflected in effective roster, timesheet and status; pending/rejected/cancelled cases tested. |
-| Shift exchange | Existing form and approval routes; verify both staff agreement, draft persistence, conflicts and approved roster effect. | One approved exchange updates the intended assignments once; rejected/returned exchanges do not alter work. Python preview matches saved output. |
-| Attendance and timesheet | Timesheet rows store supplied hours with optional roster links; no dedicated arrival/departure event history. Displayed name/period and computed API date range need alignment. | Roster-prefilled arrival/departure, supervisor review, correction history, no duplicate punches, overnight and Sunday–Saturday boundary tests, original final output. |
-| Daily status | Current UI uses AM/PM and does not submit structured attendance entries; align with M/E/N and D coverage. | Shift-prefilled staffing, approved absence and actual attendance agree with timesheet; reporter can complete operational notes and submit for review. |
-| Parking | Backend permit lifecycle exists; current browser surface primarily shows expiry. | Original vehicle-pass application fields, draft/submission/review/issue/renewal and expiry verified with correct access. |
-| Profile, setup, roster, workflow, documents, training | Existing routes and components require complete journey checks, beyond component-level success. | Scoped CRUD/read/export, accurate prefills, validation, approval transitions, attachments, immutable documents and dashboard agreement. |
+| Leave | Python preview and signed renderer preserve resolved identity, dates and original fields. Draft validation, re-signing, immutable revisions and exact cancellation ledger reversal are implemented and tested. | Host browser acceptance and GAA policy-dependent balance evidence remain outstanding. |
+| Absentee | Reporter/subject drafts, roster prefill, paired local times, scoped submission and Python PDFs are implemented. Approved exceptions project into roster, calendar, timesheet and daily status without inventing actual attendance. | Host browser acceptance remains outstanding. |
+| Shift exchange | Counterpart agreement precedes approval; dated roster effects, conflict checks, reversal and history are implemented and tested. Python preview shares the signed renderer. | Host browser acceptance remains outstanding. |
+| Attendance and timesheet | Per-shift arrival/departure, break duration, supervisor review, reasoned corrections, retained history and Sunday–Saturday output are implemented. D attendance is shared across M/E coverage and counted once. Legacy manual rows enforce scope, hours and roster-link validation. | Host browser acceptance remains outstanding; clock hardware and payroll are future work. |
+| Daily status | Structured M/E/N reports preserve original operational fields, roster prefill, confirmed attendance and approved absence. Scheduled staff remain unconfirmed until actual attendance is recorded. Python preview and signed output share a renderer. | Host browser acceptance remains outstanding. |
+| Parking | Original vehicle-pass fields and eight conditions, persisted drafts, renewal, signed submission, scoped approval/issuance and Python PDF are implemented and tested. | Host browser acceptance remains outstanding. |
+| Profile, setup, roster, workflow, documents, training | Verified service/probation facts, supervisor validation, scoped writes/imports, retained approval cycles and immutable signed document access after employee transfers are implemented. Document/training lifecycle tests cover existing scoped routes. | Complete authenticated browser journeys remain outstanding. No entitlement or employment policy is inferred from recorded facts. |
 
 The hardware presence-token proposal in ADR-0009 is future work. Manual arrival
 and departure is the current requested first step; no device integration or
@@ -83,16 +83,17 @@ automatic payroll is claimed by this plan.
 
 ## Parallel delivery coordination
 
-Attendance/timesheet, daily status and shift exchange are being implemented in
-separate worktrees. Integrate their shared workflow, signature and API contract
-changes together; regenerate OpenAPI/client after integration and verify the
-combined journeys. Scheduled staffing is unconfirmed attendance until actual
+Attendance/timesheet, daily status, shift exchange, staff facts, signed revisions
+and parking were implemented in separate worktrees and integrated into feature
+commits on `dev`. Shared workflows, signatures and generated API contracts are
+verified together. Scheduled staffing is unconfirmed attendance until actual
 arrival/departure is recorded. Approved exceptions expose status, never sensitive
 absence reasons, on department roster/calendar feeds.
 
-The next queued reviews are leave accounting/reversal and signature revisions;
-staff onboarding/service dates/probation/supervisor and scope; and parking,
-documents/training lifecycle. Policy-register decisions and HR opening-balance
+Local verification includes migration-backed API tests, frontend tests, Python
+lint/type checks, repository formatting/types and generated-client drift checks.
+Intermittent host database connection timeouts require targeted retries; they
+are recorded separately from assertion failures. Policy-register decisions and HR opening-balance
 evidence remain prerequisites only for calculations that depend on them. Full
 authenticated browser acceptance remains outstanding while host port 3001 is
 unavailable. No deployment or paper-process retirement is claimed.
