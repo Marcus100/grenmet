@@ -260,8 +260,27 @@ reminder sweep at 10:00 UTC. Emails carry only a summary and a portal link.
 All HR routes are under `/api/v1/hr`, require an authenticated session, and are gated
 by permission keys from `src/auth/permissions.py` (`tests/auth/test_permission_registry.py`
 fails if a key used in code is missing from the catalog). Routers:
-`profile`, `rosters`, `calendar`, `timesheets`, `leave-requests`, `shift-swaps`,
+`profile`, `rosters`, `calendar`, `timesheets`, `attendance`, `leave-requests`, `shift-swaps`,
 `absentee-reports`, `status-reports`, `parking-permits`, `documents`, `workflows`.
+
+### Manual shift attendance
+
+`PUT /attendance` saves actual arrival/departure against a published work roster
+assignment. `POST /attendance/{attendance_id}/submit` starts per-shift supervisor
+review through the department `TIMESHEET` workflow. Identical saves/submits are
+idempotent; changed saves require `expected_revision`, and submitted/approved time
+is locked. Existing timesheet self/proxy permissions and subject scope apply.
+
+`GET /attendance/week?day=YYYY-MM-DD` returns the Sunday–Saturday collection,
+scheduled context, actual times, break duration, elapsed/net recorded hours and
+review status. Overnight grouping uses the roster's local shift-start date.
+Approved totals exclude pending/rejected/returned/cancelled records; hours do not
+determine payroll. `GET /attendance/week/pdf` renders the same collection in Python
+with private/no-store headers. `GET /attendance/review?attendance_id=…` (or
+`correction_id=…`) lets the owner, scoped reader/approver or named approver inspect
+retained corrections. `POST /attendance/{attendance_id}/corrections` requires a
+reason and starts a separate supervisor workflow; original time stays in effect
+until approval atomically advances its revision. See [manual attendance](../hr/manual-attendance.md).
 
 ### Department calendar
 
@@ -347,6 +366,12 @@ break timesheet or attendance links. They reject duplicate employee/date cells,
 unknown shift codes, dates outside the selected period, closed periods, and
 overwriting a cell owned by a different period. Amend the original period instead
 of importing an overlapping period over its assignments.
+
+Once attendance exists, bulk saves may retain the shift and update remarks but
+cannot replace its shift code. Material catalogue timing/category changes are
+also blocked for shifts with linked attendance; use a new code for future
+schedules. Exchange approval and reversal apply the same recorded-attendance
+guard. These checks preserve historical scheduled and actual times together.
 
 ### Local wall-clock times
 
@@ -1052,6 +1077,12 @@ M covers arrival and E covers departure/final verification. Schedules never
 prove attendance: unconfirmed staffing is `UNCONFIRMED`, and submission requires
 confirmation of all personnel entries and operational answers. This report does
 not create or approve the employee's attendance record.
+
+Staffing also returns the linked actual attendance ID, arrival/departure and
+workflow review status. M/E coverage references the same D attendance. These
+times prefill report observations in Grenada local time; the reporter still
+confirms personnel status. Report edits never change actual attendance. The
+staffing feed omits employee attendance notes and correction reasons.
 
 `POST /api/v1/hr/status-reports/preview-pdf` renders unsaved form values in Python
 without storing a report, workflow or signature. The same renderer serves signed

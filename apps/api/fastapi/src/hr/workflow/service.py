@@ -175,6 +175,8 @@ async def create_workflow_instance(
         "status_report",
         "parking_permit",
         "timesheet",
+        "attendance",
+        "attendance_correction",
     }:
         raise HRValidationError(
             "Submit the HR form to create its authoritative approval workflow"

@@ -21,6 +21,13 @@ export type { AreaCreatePropertiesSpaceTypeAnyOfEnum } from "./AreaCreatePropert
 export { areaCreatePropertiesSpaceTypeAnyOfEnum } from "./AreaCreatePropertiesSpaceTypeAnyOfEnum.js";
 export type { AreaUpdate } from "./AreaUpdate.js";
 export type { AreaView } from "./AreaView.js";
+export type { AttendanceCorrectionCreate } from "./AttendanceCorrectionCreate.js";
+export type { AttendanceCorrectionPublic } from "./AttendanceCorrectionPublic.js";
+export type { AttendanceReviewPublic } from "./AttendanceReviewPublic.js";
+export type { AttendanceSave } from "./AttendanceSave.js";
+export type { AttendanceShiftPublic } from "./AttendanceShiftPublic.js";
+export type { AttendanceSubmit } from "./AttendanceSubmit.js";
+export type { AttendanceWeekPublic } from "./AttendanceWeekPublic.js";
 export type { AuditChangePublic } from "./AuditChangePublic.js";
 export type { AuditEntryPublic } from "./AuditEntryPublic.js";
 export type {
@@ -1282,6 +1289,42 @@ export type {
   HrGetAbsenteeReportsStatus422,
 } from "./HrGetAbsenteeReports.js";
 export type {
+  HrGetAttendanceReviewOptions,
+  HrGetAttendanceReviewQuery,
+  HrGetAttendanceReviewResponse,
+  HrGetAttendanceReviewResponses,
+  HrGetAttendanceReviewStatus200,
+  HrGetAttendanceReviewStatus400,
+  HrGetAttendanceReviewStatus403,
+  HrGetAttendanceReviewStatus404,
+  HrGetAttendanceReviewStatus409,
+  HrGetAttendanceReviewStatus422,
+} from "./HrGetAttendanceReview.js";
+export type {
+  HrGetAttendanceWeekOptions,
+  HrGetAttendanceWeekQuery,
+  HrGetAttendanceWeekResponse,
+  HrGetAttendanceWeekResponses,
+  HrGetAttendanceWeekStatus200,
+  HrGetAttendanceWeekStatus400,
+  HrGetAttendanceWeekStatus403,
+  HrGetAttendanceWeekStatus404,
+  HrGetAttendanceWeekStatus409,
+  HrGetAttendanceWeekStatus422,
+} from "./HrGetAttendanceWeek.js";
+export type {
+  HrGetAttendanceWeekPdfOptions,
+  HrGetAttendanceWeekPdfQuery,
+  HrGetAttendanceWeekPdfResponse,
+  HrGetAttendanceWeekPdfResponses,
+  HrGetAttendanceWeekPdfStatus200,
+  HrGetAttendanceWeekPdfStatus400,
+  HrGetAttendanceWeekPdfStatus403,
+  HrGetAttendanceWeekPdfStatus404,
+  HrGetAttendanceWeekPdfStatus409,
+  HrGetAttendanceWeekPdfStatus422,
+} from "./HrGetAttendanceWeekPdf.js";
+export type {
   HrGetDepartmentTimesheetsOptions,
   HrGetDepartmentTimesheetsQuery,
   HrGetDepartmentTimesheetsResponse,
@@ -1821,6 +1864,19 @@ export type {
   HrPreviewStatusReportPdfStatus422,
 } from "./HrPreviewStatusReportPdf.js";
 export type {
+  HrProposeAttendanceCorrectionBody,
+  HrProposeAttendanceCorrectionOptions,
+  HrProposeAttendanceCorrectionPath,
+  HrProposeAttendanceCorrectionResponse,
+  HrProposeAttendanceCorrectionResponses,
+  HrProposeAttendanceCorrectionStatus201,
+  HrProposeAttendanceCorrectionStatus400,
+  HrProposeAttendanceCorrectionStatus403,
+  HrProposeAttendanceCorrectionStatus404,
+  HrProposeAttendanceCorrectionStatus409,
+  HrProposeAttendanceCorrectionStatus422,
+} from "./HrProposeAttendanceCorrection.js";
+export type {
   HrPublishPeriodOptions,
   HrPublishPeriodPath,
   HrPublishPeriodResponse,
@@ -1841,6 +1897,18 @@ export type {
   HrRemoveHolidayStatus404,
   HrRemoveHolidayStatus422,
 } from "./HrRemoveHoliday.js";
+export type {
+  HrSaveAttendanceBody,
+  HrSaveAttendanceOptions,
+  HrSaveAttendanceResponse,
+  HrSaveAttendanceResponses,
+  HrSaveAttendanceStatus200,
+  HrSaveAttendanceStatus400,
+  HrSaveAttendanceStatus403,
+  HrSaveAttendanceStatus404,
+  HrSaveAttendanceStatus409,
+  HrSaveAttendanceStatus422,
+} from "./HrSaveAttendance.js";
 export type {
   HrSaveMySignatureBody,
   HrSaveMySignatureOptions,
@@ -1875,6 +1943,19 @@ export type {
   HrSubmitAbsenteeReportStatus404,
   HrSubmitAbsenteeReportStatus422,
 } from "./HrSubmitAbsenteeReport.js";
+export type {
+  HrSubmitAttendanceBody,
+  HrSubmitAttendanceOptions,
+  HrSubmitAttendancePath,
+  HrSubmitAttendanceResponse,
+  HrSubmitAttendanceResponses,
+  HrSubmitAttendanceStatus200,
+  HrSubmitAttendanceStatus400,
+  HrSubmitAttendanceStatus403,
+  HrSubmitAttendanceStatus404,
+  HrSubmitAttendanceStatus409,
+  HrSubmitAttendanceStatus422,
+} from "./HrSubmitAttendance.js";
 export type {
   HrSubmitLeaveRequestBody,
   HrSubmitLeaveRequestOptions,

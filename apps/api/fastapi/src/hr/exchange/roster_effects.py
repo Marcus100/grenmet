@@ -29,7 +29,17 @@ async def ensure_no_recorded_work(
     """An exchange changes future scheduling, never a submitted work record."""
     from sqlalchemy import and_, or_
 
+    from src.hr.attendance.models import AttendanceRecord
     from src.hr.timesheet.models import Timesheet, TimesheetEntry, TimesheetStatus
+
+    if await session.scalar(
+        select(AttendanceRecord.id)
+        .where(AttendanceRecord.roster_assignment_id.in_([row.id for row in rows]))
+        .limit(1)
+    ):
+        raise HRValidationError(
+            "Recorded attendance prevents exchanging or reversing this shift; review an HR correction"
+        )
 
     recorded = await session.scalar(
         select(TimesheetEntry.id)

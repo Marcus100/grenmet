@@ -21,6 +21,53 @@ from src.utils.datetime import utc_now
 async def finalize_entity(
     session: AsyncSession, instance: WorkflowInstance, actor_id: uuid.UUID
 ) -> None:
+    if instance.entity_type == "attendance_correction":
+        from src.hr.attendance.models import AttendanceCorrection, AttendanceRecord
+        from src.hr.workflow.models import WorkflowType
+
+        correction = await session.get(AttendanceCorrection, instance.entity_id)
+        if correction is None:
+            raise AppException("Attendance correction not found", 409)
+        attendance = await session.scalar(
+            select(AttendanceRecord)
+            .where(AttendanceRecord.id == correction.attendance_id)
+            .with_for_update()
+        )
+        if (
+            attendance is None
+            or correction.workflow_instance_id != instance.id
+            or attendance.department_id != instance.department_id
+            or attendance.user_id != instance.requested_by_user_id
+            or instance.workflow_type != WorkflowType.TIMESHEET
+        ):
+            raise AppException(
+                "Workflow does not match this attendance correction", 409
+            )
+        if instance.status == WorkflowStatus.APPROVED:
+            if attendance.revision != correction.expected_revision:
+                raise AppException("Attendance changed; propose a new correction", 409)
+            attendance.arrived_at = correction.arrived_at
+            attendance.departed_at = correction.departed_at
+            attendance.break_minutes = correction.break_minutes
+            attendance.revision += 1
+            attendance.workflow_instance_id = instance.id
+            attendance.updated_at = utc_now()
+        return
+    if instance.entity_type == "attendance":
+        from src.hr.attendance.models import AttendanceRecord
+        from src.hr.workflow.models import WorkflowType
+
+        attendance = await session.get(AttendanceRecord, instance.entity_id)
+        if (
+            attendance is None
+            or attendance.workflow_instance_id != instance.id
+            or attendance.department_id != instance.department_id
+            or attendance.user_id != instance.requested_by_user_id
+            or instance.workflow_type != WorkflowType.TIMESHEET
+            or attendance.departed_at is None
+        ):
+            raise AppException("Workflow does not match this attendance revision", 409)
+        return
     if instance.entity_type == "timesheet":
         timesheet = await session.get(Timesheet, instance.entity_id)
         if timesheet:

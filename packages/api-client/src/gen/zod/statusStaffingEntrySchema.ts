@@ -6,6 +6,7 @@
 import * as z from "zod";
 import { personnelStatusSchema } from "./personnelStatusSchema.js";
 import { rosterAvailabilitySchema } from "./rosterAvailabilitySchema.js";
+import { workflowStatusSchema } from "./workflowStatusSchema.js";
 
 export const statusStaffingEntrySchema = z.object({
   roster_assignment_id: z.uuid(),
@@ -17,4 +18,10 @@ export const statusStaffingEntrySchema = z.object({
   ends_next_day: z.boolean(),
   availability: rosterAvailabilitySchema,
   personnel_status: personnelStatusSchema,
+  attendance_id: z.union([z.uuid(), z.null()]).optional(),
+  arrived_at: z.union([z.iso.datetime(), z.null()]).optional(),
+  departed_at: z.union([z.iso.datetime(), z.null()]).optional(),
+  attendance_review_status: z
+    .union([workflowStatusSchema, z.null()])
+    .optional(),
 });

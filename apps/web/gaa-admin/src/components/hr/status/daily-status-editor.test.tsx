@@ -19,6 +19,7 @@ import { EMPTY_DAILY_STATUS } from "./daily-status-document";
 import {
   buildStatusReportPayload,
   DailyStatusEditor,
+  staffingEntry,
   validateStatusValues,
 } from "./daily-status-editor";
 import { StatusSubmissions } from "./status-submissions";
@@ -94,6 +95,29 @@ function wrap(children: React.ReactNode) {
 }
 
 describe("buildStatusReportPayload", () => {
+  it("prefills recorded overnight times in Grenada while retaining confirmation status", () => {
+    expect(
+      staffingEntry({
+        roster_assignment_id: "assignment-1",
+        user_id: "u-1",
+        employee_name: "Tester",
+        scheduled_shift_code: "N",
+        ends_next_day: true,
+        availability: "SCHEDULED",
+        personnel_status: "UNCONFIRMED",
+        attendance_id: "attendance-1",
+        arrived_at: "2026-09-27T02:30:00Z",
+        departed_at: "2026-09-27T10:00:00Z",
+        attendance_review_status: "APPROVED",
+      })
+    ).toEqual({
+      user_id: "u-1",
+      employee_name: "Tester",
+      personnel_status: "UNCONFIRMED",
+      arrival_time: "22:30",
+      departure_time: "06:00",
+    });
+  });
   it("maps shift labels, yes/no answers, and drops empty optionals", () => {
     const payload = buildStatusReportPayload(
       {

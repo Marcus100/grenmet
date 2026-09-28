@@ -123,6 +123,9 @@ export { hrDeleteStatusReport } from "./clients/hrDeleteStatusReport.js";
 export { hrDownloadDocument } from "./clients/hrDownloadDocument.js";
 export { hrDownloadSignedDocument } from "./clients/hrDownloadSignedDocument.js";
 export { hrGetAbsenteeReports } from "./clients/hrGetAbsenteeReports.js";
+export { hrGetAttendanceReview } from "./clients/hrGetAttendanceReview.js";
+export { hrGetAttendanceWeek } from "./clients/hrGetAttendanceWeek.js";
+export { hrGetAttendanceWeekPdf } from "./clients/hrGetAttendanceWeekPdf.js";
 export { hrGetDepartmentTimesheets } from "./clients/hrGetDepartmentTimesheets.js";
 export { hrGetDocument } from "./clients/hrGetDocument.js";
 export { hrGetDocumentEmployees } from "./clients/hrGetDocumentEmployees.js";
@@ -178,11 +181,14 @@ export { hrPreviewLeaveRequestPdf } from "./clients/hrPreviewLeaveRequestPdf.js"
 export { hrPreviewOrganisation } from "./clients/hrPreviewOrganisation.js";
 export { hrPreviewShiftSwapPdf } from "./clients/hrPreviewShiftSwapPdf.js";
 export { hrPreviewStatusReportPdf } from "./clients/hrPreviewStatusReportPdf.js";
+export { hrProposeAttendanceCorrection } from "./clients/hrProposeAttendanceCorrection.js";
 export { hrPublishPeriod } from "./clients/hrPublishPeriod.js";
 export { hrRemoveHoliday } from "./clients/hrRemoveHoliday.js";
+export { hrSaveAttendance } from "./clients/hrSaveAttendance.js";
 export { hrSaveMySignature } from "./clients/hrSaveMySignature.js";
 export { hrSaveWorkflowConfiguration } from "./clients/hrSaveWorkflowConfiguration.js";
 export { hrSubmitAbsenteeReport } from "./clients/hrSubmitAbsenteeReport.js";
+export { hrSubmitAttendance } from "./clients/hrSubmitAttendance.js";
 export { hrSubmitLeaveRequest } from "./clients/hrSubmitLeaveRequest.js";
 export { hrSubmitShiftSwap } from "./clients/hrSubmitShiftSwap.js";
 export { hrSubmitStatusReport } from "./clients/hrSubmitStatusReport.js";
@@ -895,6 +901,21 @@ export {
   useHrGetAbsenteeReports,
 } from "./hooks/useHrGetAbsenteeReports.js";
 export {
+  hrGetAttendanceReviewQueryKey,
+  hrGetAttendanceReviewQueryOptions,
+  useHrGetAttendanceReview,
+} from "./hooks/useHrGetAttendanceReview.js";
+export {
+  hrGetAttendanceWeekQueryKey,
+  hrGetAttendanceWeekQueryOptions,
+  useHrGetAttendanceWeek,
+} from "./hooks/useHrGetAttendanceWeek.js";
+export {
+  hrGetAttendanceWeekPdfQueryKey,
+  hrGetAttendanceWeekPdfQueryOptions,
+  useHrGetAttendanceWeekPdf,
+} from "./hooks/useHrGetAttendanceWeekPdf.js";
+export {
   hrGetDepartmentTimesheetsQueryKey,
   hrGetDepartmentTimesheetsQueryOptions,
   useHrGetDepartmentTimesheets,
@@ -1170,6 +1191,11 @@ export {
   useHrPreviewStatusReportPdf,
 } from "./hooks/useHrPreviewStatusReportPdf.js";
 export {
+  hrProposeAttendanceCorrectionMutationKey,
+  hrProposeAttendanceCorrectionMutationOptions,
+  useHrProposeAttendanceCorrection,
+} from "./hooks/useHrProposeAttendanceCorrection.js";
+export {
   hrPublishPeriodMutationKey,
   hrPublishPeriodMutationOptions,
   useHrPublishPeriod,
@@ -1179,6 +1205,11 @@ export {
   hrRemoveHolidayMutationOptions,
   useHrRemoveHoliday,
 } from "./hooks/useHrRemoveHoliday.js";
+export {
+  hrSaveAttendanceMutationKey,
+  hrSaveAttendanceMutationOptions,
+  useHrSaveAttendance,
+} from "./hooks/useHrSaveAttendance.js";
 export {
   hrSaveMySignatureMutationKey,
   hrSaveMySignatureMutationOptions,
@@ -1194,6 +1225,11 @@ export {
   hrSubmitAbsenteeReportMutationOptions,
   useHrSubmitAbsenteeReport,
 } from "./hooks/useHrSubmitAbsenteeReport.js";
+export {
+  hrSubmitAttendanceMutationKey,
+  hrSubmitAttendanceMutationOptions,
+  useHrSubmitAttendance,
+} from "./hooks/useHrSubmitAttendance.js";
 export {
   hrSubmitLeaveRequestMutationKey,
   hrSubmitLeaveRequestMutationOptions,
@@ -1722,6 +1758,13 @@ export type { AreaCreatePropertiesSpaceTypeAnyOfEnum } from "./models/AreaCreate
 export { areaCreatePropertiesSpaceTypeAnyOfEnum } from "./models/AreaCreatePropertiesSpaceTypeAnyOfEnum.js";
 export type { AreaUpdate } from "./models/AreaUpdate.js";
 export type { AreaView } from "./models/AreaView.js";
+export type { AttendanceCorrectionCreate } from "./models/AttendanceCorrectionCreate.js";
+export type { AttendanceCorrectionPublic } from "./models/AttendanceCorrectionPublic.js";
+export type { AttendanceReviewPublic } from "./models/AttendanceReviewPublic.js";
+export type { AttendanceSave } from "./models/AttendanceSave.js";
+export type { AttendanceShiftPublic } from "./models/AttendanceShiftPublic.js";
+export type { AttendanceSubmit } from "./models/AttendanceSubmit.js";
+export type { AttendanceWeekPublic } from "./models/AttendanceWeekPublic.js";
 export type { AuditChangePublic } from "./models/AuditChangePublic.js";
 export type { AuditEntryPublic } from "./models/AuditEntryPublic.js";
 export type {
@@ -2983,6 +3026,42 @@ export type {
   HrGetAbsenteeReportsStatus422,
 } from "./models/HrGetAbsenteeReports.js";
 export type {
+  HrGetAttendanceReviewOptions,
+  HrGetAttendanceReviewQuery,
+  HrGetAttendanceReviewResponse,
+  HrGetAttendanceReviewResponses,
+  HrGetAttendanceReviewStatus200,
+  HrGetAttendanceReviewStatus400,
+  HrGetAttendanceReviewStatus403,
+  HrGetAttendanceReviewStatus404,
+  HrGetAttendanceReviewStatus409,
+  HrGetAttendanceReviewStatus422,
+} from "./models/HrGetAttendanceReview.js";
+export type {
+  HrGetAttendanceWeekOptions,
+  HrGetAttendanceWeekQuery,
+  HrGetAttendanceWeekResponse,
+  HrGetAttendanceWeekResponses,
+  HrGetAttendanceWeekStatus200,
+  HrGetAttendanceWeekStatus400,
+  HrGetAttendanceWeekStatus403,
+  HrGetAttendanceWeekStatus404,
+  HrGetAttendanceWeekStatus409,
+  HrGetAttendanceWeekStatus422,
+} from "./models/HrGetAttendanceWeek.js";
+export type {
+  HrGetAttendanceWeekPdfOptions,
+  HrGetAttendanceWeekPdfQuery,
+  HrGetAttendanceWeekPdfResponse,
+  HrGetAttendanceWeekPdfResponses,
+  HrGetAttendanceWeekPdfStatus200,
+  HrGetAttendanceWeekPdfStatus400,
+  HrGetAttendanceWeekPdfStatus403,
+  HrGetAttendanceWeekPdfStatus404,
+  HrGetAttendanceWeekPdfStatus409,
+  HrGetAttendanceWeekPdfStatus422,
+} from "./models/HrGetAttendanceWeekPdf.js";
+export type {
   HrGetDepartmentTimesheetsOptions,
   HrGetDepartmentTimesheetsQuery,
   HrGetDepartmentTimesheetsResponse,
@@ -3522,6 +3601,19 @@ export type {
   HrPreviewStatusReportPdfStatus422,
 } from "./models/HrPreviewStatusReportPdf.js";
 export type {
+  HrProposeAttendanceCorrectionBody,
+  HrProposeAttendanceCorrectionOptions,
+  HrProposeAttendanceCorrectionPath,
+  HrProposeAttendanceCorrectionResponse,
+  HrProposeAttendanceCorrectionResponses,
+  HrProposeAttendanceCorrectionStatus201,
+  HrProposeAttendanceCorrectionStatus400,
+  HrProposeAttendanceCorrectionStatus403,
+  HrProposeAttendanceCorrectionStatus404,
+  HrProposeAttendanceCorrectionStatus409,
+  HrProposeAttendanceCorrectionStatus422,
+} from "./models/HrProposeAttendanceCorrection.js";
+export type {
   HrPublishPeriodOptions,
   HrPublishPeriodPath,
   HrPublishPeriodResponse,
@@ -3542,6 +3634,18 @@ export type {
   HrRemoveHolidayStatus404,
   HrRemoveHolidayStatus422,
 } from "./models/HrRemoveHoliday.js";
+export type {
+  HrSaveAttendanceBody,
+  HrSaveAttendanceOptions,
+  HrSaveAttendanceResponse,
+  HrSaveAttendanceResponses,
+  HrSaveAttendanceStatus200,
+  HrSaveAttendanceStatus400,
+  HrSaveAttendanceStatus403,
+  HrSaveAttendanceStatus404,
+  HrSaveAttendanceStatus409,
+  HrSaveAttendanceStatus422,
+} from "./models/HrSaveAttendance.js";
 export type {
   HrSaveMySignatureBody,
   HrSaveMySignatureOptions,
@@ -3576,6 +3680,19 @@ export type {
   HrSubmitAbsenteeReportStatus404,
   HrSubmitAbsenteeReportStatus422,
 } from "./models/HrSubmitAbsenteeReport.js";
+export type {
+  HrSubmitAttendanceBody,
+  HrSubmitAttendanceOptions,
+  HrSubmitAttendancePath,
+  HrSubmitAttendanceResponse,
+  HrSubmitAttendanceResponses,
+  HrSubmitAttendanceStatus200,
+  HrSubmitAttendanceStatus400,
+  HrSubmitAttendanceStatus403,
+  HrSubmitAttendanceStatus404,
+  HrSubmitAttendanceStatus409,
+  HrSubmitAttendanceStatus422,
+} from "./models/HrSubmitAttendance.js";
 export type {
   HrSubmitLeaveRequestBody,
   HrSubmitLeaveRequestOptions,
@@ -5022,6 +5139,13 @@ export { areaCreatePropertiesSpaceTypeAnyOfEnumSchema } from "./zod/areaCreatePr
 export { areaCreateSchema } from "./zod/areaCreateSchema.js";
 export { areaUpdateSchema } from "./zod/areaUpdateSchema.js";
 export { areaViewSchema } from "./zod/areaViewSchema.js";
+export { attendanceCorrectionCreateSchema } from "./zod/attendanceCorrectionCreateSchema.js";
+export { attendanceCorrectionPublicSchema } from "./zod/attendanceCorrectionPublicSchema.js";
+export { attendanceReviewPublicSchema } from "./zod/attendanceReviewPublicSchema.js";
+export { attendanceSaveSchema } from "./zod/attendanceSaveSchema.js";
+export { attendanceShiftPublicSchema } from "./zod/attendanceShiftPublicSchema.js";
+export { attendanceSubmitSchema } from "./zod/attendanceSubmitSchema.js";
+export { attendanceWeekPublicSchema } from "./zod/attendanceWeekPublicSchema.js";
 export { auditChangePublicSchema } from "./zod/auditChangePublicSchema.js";
 export { auditEntryPublicSchema } from "./zod/auditEntryPublicSchema.js";
 export {
@@ -6149,6 +6273,42 @@ export {
   hrGetAbsenteeReportsStatus422Schema,
 } from "./zod/hrGetAbsenteeReportsSchema.js";
 export {
+  hrGetAttendanceReviewErrorSchema,
+  hrGetAttendanceReviewQueryAttendanceIdSchema,
+  hrGetAttendanceReviewQueryCorrectionIdSchema,
+  hrGetAttendanceReviewResponseSchema,
+  hrGetAttendanceReviewStatus200Schema,
+  hrGetAttendanceReviewStatus400Schema,
+  hrGetAttendanceReviewStatus403Schema,
+  hrGetAttendanceReviewStatus404Schema,
+  hrGetAttendanceReviewStatus409Schema,
+  hrGetAttendanceReviewStatus422Schema,
+} from "./zod/hrGetAttendanceReviewSchema.js";
+export {
+  hrGetAttendanceWeekPdfErrorSchema,
+  hrGetAttendanceWeekPdfQueryDaySchema,
+  hrGetAttendanceWeekPdfQueryDepartmentIdSchema,
+  hrGetAttendanceWeekPdfResponseSchema,
+  hrGetAttendanceWeekPdfStatus200Schema,
+  hrGetAttendanceWeekPdfStatus400Schema,
+  hrGetAttendanceWeekPdfStatus403Schema,
+  hrGetAttendanceWeekPdfStatus404Schema,
+  hrGetAttendanceWeekPdfStatus409Schema,
+  hrGetAttendanceWeekPdfStatus422Schema,
+} from "./zod/hrGetAttendanceWeekPdfSchema.js";
+export {
+  hrGetAttendanceWeekErrorSchema,
+  hrGetAttendanceWeekQueryDaySchema,
+  hrGetAttendanceWeekQueryDepartmentIdSchema,
+  hrGetAttendanceWeekResponseSchema,
+  hrGetAttendanceWeekStatus200Schema,
+  hrGetAttendanceWeekStatus400Schema,
+  hrGetAttendanceWeekStatus403Schema,
+  hrGetAttendanceWeekStatus404Schema,
+  hrGetAttendanceWeekStatus409Schema,
+  hrGetAttendanceWeekStatus422Schema,
+} from "./zod/hrGetAttendanceWeekSchema.js";
+export {
   hrGetDepartmentTimesheetsErrorSchema,
   hrGetDepartmentTimesheetsQueryDepartmentIdSchema,
   hrGetDepartmentTimesheetsQueryPageSchema,
@@ -6667,6 +6827,18 @@ export {
   hrPreviewStatusReportPdfStatus422Schema,
 } from "./zod/hrPreviewStatusReportPdfSchema.js";
 export {
+  hrProposeAttendanceCorrectionBodySchema,
+  hrProposeAttendanceCorrectionErrorSchema,
+  hrProposeAttendanceCorrectionPathAttendanceIdSchema,
+  hrProposeAttendanceCorrectionResponseSchema,
+  hrProposeAttendanceCorrectionStatus201Schema,
+  hrProposeAttendanceCorrectionStatus400Schema,
+  hrProposeAttendanceCorrectionStatus403Schema,
+  hrProposeAttendanceCorrectionStatus404Schema,
+  hrProposeAttendanceCorrectionStatus409Schema,
+  hrProposeAttendanceCorrectionStatus422Schema,
+} from "./zod/hrProposeAttendanceCorrectionSchema.js";
+export {
   hrPublishPeriodErrorSchema,
   hrPublishPeriodPathPeriodIdSchema,
   hrPublishPeriodResponseSchema,
@@ -6685,6 +6857,17 @@ export {
   hrRemoveHolidayStatus404Schema,
   hrRemoveHolidayStatus422Schema,
 } from "./zod/hrRemoveHolidaySchema.js";
+export {
+  hrSaveAttendanceBodySchema,
+  hrSaveAttendanceErrorSchema,
+  hrSaveAttendanceResponseSchema,
+  hrSaveAttendanceStatus200Schema,
+  hrSaveAttendanceStatus400Schema,
+  hrSaveAttendanceStatus403Schema,
+  hrSaveAttendanceStatus404Schema,
+  hrSaveAttendanceStatus409Schema,
+  hrSaveAttendanceStatus422Schema,
+} from "./zod/hrSaveAttendanceSchema.js";
 export {
   hrSaveMySignatureBodySchema,
   hrSaveMySignatureErrorSchema,
@@ -6716,6 +6899,18 @@ export {
   hrSubmitAbsenteeReportStatus404Schema,
   hrSubmitAbsenteeReportStatus422Schema,
 } from "./zod/hrSubmitAbsenteeReportSchema.js";
+export {
+  hrSubmitAttendanceBodySchema,
+  hrSubmitAttendanceErrorSchema,
+  hrSubmitAttendancePathAttendanceIdSchema,
+  hrSubmitAttendanceResponseSchema,
+  hrSubmitAttendanceStatus200Schema,
+  hrSubmitAttendanceStatus400Schema,
+  hrSubmitAttendanceStatus403Schema,
+  hrSubmitAttendanceStatus404Schema,
+  hrSubmitAttendanceStatus409Schema,
+  hrSubmitAttendanceStatus422Schema,
+} from "./zod/hrSubmitAttendanceSchema.js";
 export {
   hrSubmitLeaveRequestBodySchema,
   hrSubmitLeaveRequestErrorSchema,

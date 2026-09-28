@@ -609,6 +609,21 @@ export {
   useHrGetAbsenteeReports,
 } from "./useHrGetAbsenteeReports.js";
 export {
+  hrGetAttendanceReviewQueryKey,
+  hrGetAttendanceReviewQueryOptions,
+  useHrGetAttendanceReview,
+} from "./useHrGetAttendanceReview.js";
+export {
+  hrGetAttendanceWeekQueryKey,
+  hrGetAttendanceWeekQueryOptions,
+  useHrGetAttendanceWeek,
+} from "./useHrGetAttendanceWeek.js";
+export {
+  hrGetAttendanceWeekPdfQueryKey,
+  hrGetAttendanceWeekPdfQueryOptions,
+  useHrGetAttendanceWeekPdf,
+} from "./useHrGetAttendanceWeekPdf.js";
+export {
   hrGetDepartmentTimesheetsQueryKey,
   hrGetDepartmentTimesheetsQueryOptions,
   useHrGetDepartmentTimesheets,
@@ -884,6 +899,11 @@ export {
   useHrPreviewStatusReportPdf,
 } from "./useHrPreviewStatusReportPdf.js";
 export {
+  hrProposeAttendanceCorrectionMutationKey,
+  hrProposeAttendanceCorrectionMutationOptions,
+  useHrProposeAttendanceCorrection,
+} from "./useHrProposeAttendanceCorrection.js";
+export {
   hrPublishPeriodMutationKey,
   hrPublishPeriodMutationOptions,
   useHrPublishPeriod,
@@ -893,6 +913,11 @@ export {
   hrRemoveHolidayMutationOptions,
   useHrRemoveHoliday,
 } from "./useHrRemoveHoliday.js";
+export {
+  hrSaveAttendanceMutationKey,
+  hrSaveAttendanceMutationOptions,
+  useHrSaveAttendance,
+} from "./useHrSaveAttendance.js";
 export {
   hrSaveMySignatureMutationKey,
   hrSaveMySignatureMutationOptions,
@@ -908,6 +933,11 @@ export {
   hrSubmitAbsenteeReportMutationOptions,
   useHrSubmitAbsenteeReport,
 } from "./useHrSubmitAbsenteeReport.js";
+export {
+  hrSubmitAttendanceMutationKey,
+  hrSubmitAttendanceMutationOptions,
+  useHrSubmitAttendance,
+} from "./useHrSubmitAttendance.js";
 export {
   hrSubmitLeaveRequestMutationKey,
   hrSubmitLeaveRequestMutationOptions,
