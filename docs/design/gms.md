@@ -26,6 +26,11 @@ colors:
   risk-amber: "#ff9900"
   risk-red: "#cc0033"
   risk-grey: "#dcdcdc"
+  sky-deep: "#0a2c6b"
+  sky-mid: "#1558b8"
+  sky-light: "#2a82d8"
+  navy-raised: "#0f1a36"
+  navy-panel: "#16244a"
 typography:
   display:
     fontFamily: Noto Sans
@@ -77,6 +82,21 @@ typography:
     fontSize: 11px
     fontWeight: 700
     lineHeight: 16px
+  numeral-hero:
+    fontFamily: Barlow Condensed
+    fontSize: 124px
+    fontWeight: 600
+    lineHeight: 0.9
+  numeral:
+    fontFamily: Barlow Condensed
+    fontSize: 46px
+    fontWeight: 700
+    lineHeight: 1
+  display-condensed:
+    fontFamily: Barlow Condensed
+    fontSize: 38px
+    fontWeight: 700
+    lineHeight: 1
   data:
     fontFamily: JetBrains Mono
     fontSize: 14px
@@ -86,6 +106,7 @@ rounded:
   sm: 4px
   md: 6px
   lg: 8px
+  card: 14px
   full: 9999px
 spacing:
   unit: 4px
@@ -173,7 +194,7 @@ components:
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-09-24
+**Last updated:** 2026-09-28
 
 Agent-readable spec for the GMS institutional lane (`gms`, `auth`, `docs`, `events`),
 in the [DESIGN.md format](https://github.com/google-labs-code/design.md): YAML tokens
@@ -238,6 +259,23 @@ the YAML is `--gm-navy`; every other key is `--gm-<key>`.
 | Border | `#d0d5dd` | `--gm-border` | Dividers and container edges. Decorative only (1.47:1). |
 | Input border | `#85888d` | `--gm-border-input` | Outlines of inputs, selects, checkboxes (`--input` in the brand layer). 3.56:1 on white, ≥3.17:1 on every surface tint. |
 
+**Bold sky** (public site `apps/web/gms`, approved 28 Sep 2026). The home hero and
+the dark masthead use these; nothing else does.
+
+| Name | Value | Token | Role |
+|---|---|---|---|
+| Sky deep | `#0a2c6b` | `--gm-sky-deep` | Gradient top. 13.25:1 with white. |
+| Sky mid | `#1558b8` | `--gm-sky-mid` | Gradient middle. 6.73:1 with white. |
+| Sky light | `#2a82d8` | `--gm-sky-light` | Gradient bottom. **3.97:1** — large text only. |
+| Sky gradient | 170° deep → mid → light | `--gm-gradient-sky` (`bg-gm-gradient-sky`) | Home hero only. |
+| Scrim | navy at 42% | `--gm-scrim` (`bg-gm-scrim`) | Panels behind small text on the gradient (~7.5:1 at the light stop). |
+| Navy raised | `#0f1a36` | `--gm-navy-raised` | Mega-menu panel under the navy masthead. |
+| Navy panel | `#16244a` | `--gm-navy-panel` | Featured card inside the navy menu. |
+
+**Gradient rule:** one gradient per page, only behind the home hero; small text on it
+always sits on `bg-gm-scrim`; hazard colours never sit on the gradient (the warning
+takeover renders above it on white).
+
 **Hazard colours** follow the CAP risk scale, not the brand. Severity only, and only as
 matched pairs:
 
@@ -253,7 +291,9 @@ Public-guidance aliases: `gm-weather-severity-{low,be-aware,be-prepared,take-act
 
 ## Typography
 
-One family, Noto Sans (`font-sans`; `font-document` for printable output). Coded data —
+Noto Sans (`font-sans`; `font-document` for printable output) for all running text
+and UI. Bold sky adds Barlow Condensed (`font-gm-display`) for large numerals and
+uppercase section headings only — never body text, labels or data tables. Coded data —
 METAR/TAF/SYNOP, station IDs — uses `font-mono` (JetBrains Mono where loaded, else
 system mono).
 
@@ -270,6 +310,9 @@ system mono).
 | Caption | regular | 12 / 16 | `text-caption leading-caption` |
 | Label, table head | bold | 11 / 16 | `text-label leading-label` |
 | Micro | regular | 10 / 16 | `text-micro leading-micro` — metadata only |
+| Hero numeral | condensed 600 | 84–124 / 0.9 | `font-gm-display text-gm-numeral-hero` — current temperature only |
+| Stat numeral | condensed bold | 46 / 1 | `font-gm-display text-gm-numeral` |
+| Condensed display | condensed bold, uppercase | 38 / 1 | `font-gm-display text-gm-display uppercase` — section h2 on the home page |
 
 - Always pair `text-<step>` with `leading-<step>`. Never raw `text-xl`/`text-3xl`.
 - Headings bold, UI emphasis semibold, body regular. No light weights.
@@ -305,13 +348,14 @@ Focus is always visible: `focus-visible:ring-*`, or `shadow-gm-focus` on custom 
 
 ## Shapes
 
-Four radii only; nest concentrically (child radius ≤ parent).
+Five radii only; nest concentrically (child radius ≤ parent).
 
 | Element | Utility | Value |
 |---|---|---|
 | Bordered containers (tables, tiles) | `rounded` | 4px |
 | Buttons, inputs, nav CTAs | `rounded-md` | 6px |
 | Cards, alert strips | `rounded-lg` | 8px |
+| Bold sky cards (home, warnings) | `rounded-gm-card` | 14px |
 | Pills, avatars, status dots | `rounded-full` | 9999px |
 
 ## Components
@@ -355,7 +399,8 @@ multi-day validity).
 - Stack shadows on in-page cards, or use radii beyond the four above.
 - Set `width`/`height` on the logo or hardcode an asset path.
 - Use the retired sun orange or any warm brand tone.
-- Reach for generic "AI" styling: gradient hero numbers, glassmorphism, emoji icons, card-kit grids with no hierarchy.
+- Use a gradient anywhere but the home hero, or put small text on it without `bg-gm-scrim`.
+- Reach for generic "AI" styling: gradient-filled text, glassmorphism, emoji icons, card-kit grids with no hierarchy.
 - Add or change a `--gm-*` token without approval.
 
 ## Accessibility & interaction
@@ -376,7 +421,7 @@ Guidelines to this lane:
 
 Quick reference: navy `gm-navy` ink/primary · blue ink `gm-blue-ink` links · sky
 `gm-sky` accent fill · lime `gm-lime` fill on navy · borders `gm-border` · body
-`gm-text-primary`/`gm-text-secondary` · white page · Noto Sans · 4 radii.
+`gm-text-primary`/`gm-text-secondary` · white page · Noto Sans (Barlow Condensed for big numerals) · sky gradient on the home hero only · 5 radii.
 
 Before coding, write a two-line plan — the page's single most important element, and its one primary action — then check it against *Overview* principles.
 
