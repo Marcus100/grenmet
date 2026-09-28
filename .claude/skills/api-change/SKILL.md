@@ -31,7 +31,7 @@ in `AGENTS.md`; do not request existing session authorization again.
    `apps/api/fastapi/src/`.
 2. **Regenerate `openapi.json`** (from `apps/api/fastapi`):
    ```bash
-   uv run --frozen --package fast-back python -c "from src.main import app; import json; json.dump(app.openapi(), open('openapi.json', 'w'), indent=2)"
+   PROJECT_NAME='Grenmet API' uv run --frozen --package fast-back python -c "from src.main import app; import json; json.dump(app.openapi(), open('openapi.json', 'w'), indent=2)"
    ```
 3. **Regenerate the TypeScript client** (from repo root):
    ```bash

@@ -51,7 +51,7 @@ uv run --frozen --package fast-back alembic upgrade head                # main D
 uv run --frozen --package fast-back alembic -c src/<domain>/alembic.ini upgrade head  # separate-DB domains
 ./scripts/lint.sh     # Ruff + format check + mypy
 ./scripts/format.sh   # Ruff fix + format
-uv run --frozen --package fast-back python -c "from src.main import app; import json; json.dump(app.openapi(), open('openapi.json', 'w'), indent=2)"  # regen openapi.json
+PROJECT_NAME='Grenmet API' uv run --frozen --package fast-back python -c "from src.main import app; import json; json.dump(app.openapi(), open('openapi.json', 'w'), indent=2)"  # regen openapi.json
 ```
 
 **Inside the agent dev container** there is no docker CLI and Compose hostnames
