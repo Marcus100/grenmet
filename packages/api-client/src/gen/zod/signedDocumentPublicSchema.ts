@@ -9,6 +9,8 @@ export const signedDocumentPublicSchema = z.object({
   id: z.uuid(),
   entity_type: z.string(),
   entity_id: z.uuid(),
+  revision: z.int().optional().default(1),
+  supersedes_document_id: z.union([z.uuid(), z.null()]).optional(),
   signer_name: z.string(),
   signed_at: z.iso.datetime(),
   sha256: z.string(),

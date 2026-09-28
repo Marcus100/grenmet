@@ -1112,8 +1112,8 @@ roster intact. Scoped managers can cancel an approved exchange through its actio
 route or workflow action; reversal refuses closed rosters or later roster edits
 instead of overwriting corrections. The signed submission is not rewritten by
 approval or cancellation; agreement, recommendation, decisions and dates remain
-in the workflow. A returned signed form currently requires a new corrected
-request rather than editing its immutable signed values in place.
+in the workflow. A returned signed form can be corrected as a draft and re-signed as a new
+immutable revision; prior approval cycles and submitted PDFs remain available.
 
 ### Recorded HR service facts
 
@@ -1147,3 +1147,19 @@ so transferring an employee does not grant the new department access to old
 records. Employees retain access to their own records, and explicitly named
 reviewers retain access to the current workflow; approvals still require
 `timesheet.approve` and the workflow's stage rules.
+
+Returned leave, absentee, exchange, daily status and parking forms become editable
+drafts while their workflow remains `RETURNED`. Resubmission uses the form's
+validated submit route and creates a fresh approval cycle; prior workflow logs
+remain intact. `workflow_status` on form responses distinguishes a returned draft.
+Signed corrections require renewed consent and append an immutable document with
+`revision` and `supersedes_document_id`. `signed_document_id` resolves to the latest
+revision; every earlier document keeps its original ID, PDF, snapshot and access
+checks, and remains in the signed-document history. Same-submission replay cannot
+append a duplicate revision. Apply `signed20260928` after `reversal20260928`.
+
+Cancelling approved leave through the scoped workflow or legacy action route
+appends one `CANCELLATION_REVERSAL` for the exact recorded `APPROVAL_DEBIT`, rather
+than recalculating from mutable form values. Pending cancellation posts no credit;
+retry cannot duplicate the reversal. No opening balance, entitlement or pay rule
+is inferred. The reversal migration is `reversal20260928`, after `staff20260928`.

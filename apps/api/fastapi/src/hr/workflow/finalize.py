@@ -132,13 +132,19 @@ async def finalize_entity(
     }[instance.entity_type]
     if instance.workflow_type.value != expected_type:
         raise AppException("Workflow type does not match this HR record", 409)
-    target = (
-        RequestStatus.APPROVED
-        if instance.status == WorkflowStatus.APPROVED
-        else RequestStatus.REJECTED
-    )
+    targets = {
+        WorkflowStatus.APPROVED: RequestStatus.APPROVED,
+        WorkflowStatus.REJECTED: RequestStatus.REJECTED,
+        WorkflowStatus.RETURNED: RequestStatus.DRAFT,
+        WorkflowStatus.CANCELLED: RequestStatus.CANCELLED,
+    }
+    target = targets.get(instance.status)
+    if target is None:
+        return
     if entity.status == target:
         return
+    if isinstance(entity, LeaveRequest) and target == RequestStatus.CANCELLED:
+        await ledger.reverse_approval(session, request=entity, actor_id=actor_id)
     if isinstance(entity, ShiftSwapRequest) and target == RequestStatus.APPROVED:
         from src.hr.exchange import roster_effects
 
