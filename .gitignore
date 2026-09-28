@@ -23,8 +23,6 @@ __pycache__/
 develop-eggs/
 downloads/
 !apps/web/*/src/app/**/downloads/
-!apps/web/gms/src/app/(pages)/resources/downloads/
-!apps/web/gms/src/app/(pages)/resources/downloads/page.tsx
 eggs/
 .eggs/
 lib64/

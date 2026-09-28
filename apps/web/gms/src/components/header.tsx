@@ -1,73 +1,90 @@
 "use client";
 
 import { Logo } from "@barrelsgd/gms/components/logo";
-import { Menu, TriangleAlertIcon } from "lucide-react";
+import { BellIcon, FishIcon, Menu, PlaneIcon } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { DesktopNav } from "@/components/desktop-nav";
+import { MobileTabBar } from "@/components/mobile-tab-bar";
 import { NavDrawer } from "@/components/nav-drawer";
-import { type AlertsResult, alertsLevel, alertsSummary } from "@/lib/cap";
-import { cn } from "@/lib/utils";
-import { WARNING_LEVEL_SURFACE } from "@/lib/warning-level";
+import { WarningRibbon } from "@/components/warning-ribbon";
+import { WarningStatusPill } from "@/components/warning-status-pill";
+import type { AlertsResult } from "@/lib/cap";
 
 interface HeaderProps {
   alerts: AlertsResult;
 }
 
+const UTILITY_LINKS = [
+  { href: "/services/aviation", label: "For pilots", Icon: PlaneIcon },
+  { href: "/marine/forecast", label: "For fishers", Icon: FishIcon },
+  { href: "/warnings/get-alerts", label: "Get alerts", Icon: BellIcon },
+] as const;
+
+/**
+ * Bold sky masthead: warning ribbon (only when there is something to say),
+ * a navy utility bar and main bar, the mega menu, and on mobile the drawer
+ * and the bottom tab bar.
+ */
 export function Header({ alerts }: HeaderProps) {
   const [navOpen, setNavOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
-  const level = alertsLevel(alerts);
 
   return (
     <>
-      {/* The bar is full-bleed so the border spans the viewport, but its
-          contents sit in the same container as the page below it. */}
+      <WarningRibbon alerts={alerts} />
       <header
-        className="sticky top-0 z-40 border-gm-border border-b bg-background"
+        className="sticky top-0 z-40 bg-gm-navy text-gm-text-inverse"
         ref={headerRef}
       >
-        <div className="mx-auto flex h-header max-w-6xl items-center gap-6 px-4 sm:px-6 lg:px-6 xl:gap-8 xl:px-8">
-          {/* shrink-0: the flex row takes the logo's width first otherwise, and
-            the lockup vanishes entirely between 1024px and 1200px. */}
+        <div className="hidden border-gm-text-inverse/15 border-b lg:block">
+          <div className="mx-auto flex min-h-9 max-w-6xl items-center gap-5 px-6 text-body-sm text-gm-text-inverse/80 leading-body-sm xl:px-8">
+            <span className="mr-auto">
+              Official weather service for Grenada, Carriacou and Petite
+              Martinique
+            </span>
+            {/* 1024–1279px: the main bar has no room for the pill, so the
+                status sits here instead — it is never hidden. */}
+            <WarningStatusPill alerts={alerts} className="flex h-7 xl:hidden" />
+            {UTILITY_LINKS.map(({ href, label, Icon }) => (
+              <Link
+                className="flex items-center gap-1.5 hover:text-gm-text-inverse hover:underline"
+                href={href}
+                key={href}
+              >
+                <Icon aria-hidden="true" className="size-4" />
+                {label}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-4 sm:px-6 xl:px-8">
+          {/* The `dark` scope swaps the Logo to its white lockup on navy. */}
           <Link
             aria-label="Grenada Meteorological Service — home"
-            className="shrink-0"
+            className="dark shrink-0"
             href="/"
           >
             <Logo className="h-9 w-auto" priority variant="primary" />
           </Link>
 
-          {/* Row is capped at max-w-6xl so logo/nav/alerts share the same
-            content column as the page below; the nav itself fills the space
-            between logo and alerts pill. */}
-          <div className="flex flex-1 justify-center">
+          <div className="flex min-w-0 flex-1 justify-center">
             <DesktopNav alerts={alerts} anchor={headerRef} />
           </div>
 
-          <div className="flex shrink-0 items-center">
-            <Link
-              className={cn(
-                "hidden h-11 shrink-0 items-center gap-2.5 whitespace-nowrap rounded-md px-4 font-semibold text-body-base leading-body-base lg:flex",
-                WARNING_LEVEL_SURFACE[level]
-              )}
-              href="/warnings"
-            >
-              <TriangleAlertIcon
-                aria-hidden="true"
-                className="size-5"
-                strokeWidth={2}
-              />
-              {alertsSummary(alerts)}
-            </Link>
-
+          <div className="flex shrink-0 items-center gap-1">
+            <WarningStatusPill
+              alerts={alerts}
+              className="hidden sm:flex lg:hidden xl:flex"
+            />
             <button
               aria-label="Open navigation"
-              className="flex size-11 items-center justify-center lg:hidden"
+              className="flex size-11 items-center justify-center rounded-md hover:bg-gm-text-inverse/10 lg:hidden"
               onClick={() => setNavOpen(true)}
               type="button"
             >
-              <Menu className="size-6 text-gm-text-primary" />
+              <Menu aria-hidden="true" className="size-6" />
             </button>
           </div>
         </div>
@@ -78,6 +95,7 @@ export function Header({ alerts }: HeaderProps) {
         onClose={() => setNavOpen(false)}
         open={navOpen}
       />
+      <MobileTabBar alerts={alerts} onOpenMenu={() => setNavOpen(true)} />
     </>
   );
 }

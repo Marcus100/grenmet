@@ -1,20 +1,12 @@
 "use client";
 
-import {
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuList,
-} from "@barrelsgd/ui/components/ui/navigation-menu";
+import { NavigationMenuItem } from "@barrelsgd/ui/components/ui/navigation-menu";
 import { NavigationMenu as NavigationMenuPrimitive } from "@base-ui/react/navigation-menu";
-import {
-  ChevronDownIcon,
-  ChevronRightIcon,
-  TriangleAlertIcon,
-} from "lucide-react";
+import { ArrowRightIcon, ChevronDownIcon } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import type { RefObject } from "react";
 import { type AlertsResult, alertsLevel, alertsSummary } from "@/lib/cap";
-
 import {
   NAV_SECTIONS,
   type NavFeature,
@@ -22,90 +14,88 @@ import {
 } from "@/lib/nav-sections";
 import { cn } from "@/lib/utils";
 import { WARNING_LEVEL_SURFACE } from "@/lib/warning-level";
-import { weatherIcon } from "@/lib/weather-icons";
 
 interface DesktopNavProps {
   alerts: AlertsResult;
-  /** The masthead; the open panel is centered below it with a capped width. */
+  /** The masthead; the open menu spans its full width, directly below it. */
   anchor: RefObject<HTMLElement | null>;
 }
 
-// nowrap plus a smaller step below xl: at 1024 the six labels, the logo and
-// the alerts pill need ~1237px on one line, which simply is not there.
-const TOP_LEVEL =
-  "flex items-center gap-1.5 whitespace-nowrap rounded-md px-2 py-2 font-semibold text-body-base text-gm-text-primary leading-body-base underline-offset-6 outline-none hover:text-gm-blue-ink focus-visible:ring-2 focus-visible:ring-gm-blue xl:px-2.5 xl:text-nav xl:leading-nav";
+// On navy: white labels, a 3px lime rule for hover/open, white for the
+// current section. nowrap plus tighter padding below xl keeps all seven on
+// one line at 1024px.
+const TRIGGER =
+  "flex h-16 items-center gap-1 whitespace-nowrap border-transparent border-y-3 px-2 font-semibold text-body-base text-gm-text-inverse leading-body-base outline-none hover:border-b-gm-lime focus-visible:ring-2 focus-visible:ring-gm-lime focus-visible:ring-inset data-popup-open:border-b-gm-lime xl:px-3";
 
-const CARD =
-  "flex w-64 flex-none flex-col items-start gap-5 rounded-md border border-gm-border p-6 outline-none hover:bg-gm-surface focus-visible:bg-gm-surface";
+const MENU_LINK =
+  "block py-1 text-body text-gm-text-inverse/90 leading-body outline-none hover:text-gm-text-inverse hover:underline focus-visible:underline";
 
-function FeaturedCard({
+function Featured({
   alerts,
   feature,
 }: {
   alerts: AlertsResult;
   feature: NavFeature;
 }) {
+  const card =
+    "flex flex-col gap-2 self-start rounded-gm-card bg-gm-navy-panel p-4";
+  const eyebrow =
+    "font-bold text-gm-text-inverse/75 text-label uppercase leading-label tracking-wider";
+  const cta =
+    "mt-1 flex items-center gap-1 font-semibold text-body text-gm-lime leading-body hover:underline";
+
   if (feature.kind === "alerts") {
-    const unavailable = alerts.status === "unavailable";
     const level = alertsLevel(alerts);
     return (
-      <NavigationMenuPrimitive.Link
-        className={CARD}
-        render={<Link href="/warnings" />}
-      >
+      <div className={card}>
+        <span className={eyebrow}>Status now</span>
         <span
           className={cn(
-            "flex size-11 items-center justify-center rounded-md",
+            "w-fit rounded-md px-2.5 py-1 font-bold text-body leading-body",
             WARNING_LEVEL_SURFACE[level]
           )}
         >
-          <TriangleAlertIcon
-            aria-hidden="true"
-            className="size-6"
-            strokeWidth={1.8}
-          />
+          {alertsSummary(alerts)}
         </span>
-        <span className="flex flex-col gap-1">
-          <span className="font-semibold text-body text-gm-text-primary leading-body">
-            {alertsSummary(alerts)}
-          </span>
-          <span className="text-body-sm text-gm-text-secondary leading-body-sm">
-            {unavailable
-              ? "Warning information cannot be retrieved right now."
-              : "Live status for Grenada, Carriacou and Petite Martinique."}
-          </span>
+        <span className="text-body-sm text-gm-text-inverse/80 leading-body-sm">
+          {level === "unknown"
+            ? "Warning information cannot be retrieved right now. This is not an all-clear."
+            : "Live status for Grenada, Carriacou and Petite Martinique."}
         </span>
-        <span className="mt-auto flex items-center gap-1.5 font-semibold text-body text-gm-blue-ink leading-body">
-          See all warnings
-          <ChevronRightIcon aria-hidden="true" className="size-4" />
-        </span>
-      </NavigationMenuPrimitive.Link>
+        <NavigationMenuPrimitive.Link
+          className={cta}
+          render={<Link href="/warnings" />}
+        >
+          See warnings in effect
+          <ArrowRightIcon aria-hidden="true" className="size-4" />
+        </NavigationMenuPrimitive.Link>
+      </div>
     );
   }
 
-  const Icon = weatherIcon("partly-cloudy");
+  const content =
+    feature.kind === "forecast"
+      ? {
+          eyebrow: "Official forecast",
+          text: "Morning, midday and evening reports from the GMS forecast desk.",
+          cta: "Today's forecast",
+          href: "/weather",
+        }
+      : feature;
   return (
-    <NavigationMenuPrimitive.Link className={CARD} render={<Link href="/" />}>
-      <span className="flex size-11 items-center justify-center rounded-md bg-gm-surface">
-        <Icon
-          aria-hidden="true"
-          className="size-6 text-gm-lime-ink"
-          strokeWidth={1.6}
-        />
+    <div className={card}>
+      <span className={eyebrow}>{content.eyebrow}</span>
+      <span className="text-body text-gm-text-inverse leading-body">
+        {content.text}
       </span>
-      <span className="flex flex-col gap-1">
-        <span className="font-semibold text-body text-gm-text-primary leading-body">
-          Issued weather forecasts
-        </span>
-        <span className="text-body-sm text-gm-text-secondary leading-body-sm">
-          Morning, midday and evening reports from the GMS forecast desk.
-        </span>
-      </span>
-      <span className="mt-auto flex items-center gap-1.5 font-semibold text-body text-gm-blue-ink leading-body">
-        Today&apos;s forecast
-        <ChevronRightIcon aria-hidden="true" className="size-4" />
-      </span>
-    </NavigationMenuPrimitive.Link>
+      <NavigationMenuPrimitive.Link
+        className={cta}
+        render={<Link href={content.href} />}
+      >
+        {content.cta}
+        <ArrowRightIcon aria-hidden="true" className="size-4" />
+      </NavigationMenuPrimitive.Link>
+    </div>
   );
 }
 
@@ -116,81 +106,97 @@ function Panel({
   alerts: AlertsResult;
   section: NavSection;
 }) {
+  // Groups flow into four columns, left to right, like the mockup.
+  const columns = [0, 1, 2, 3].map((c) =>
+    section.groups.filter((_, i) => i % 4 === c)
+  );
   return (
-    <div className="flex items-stretch gap-8 px-10 pt-9 pb-12">
-      {section.groups.map((group) => (
-        <div className="flex min-w-0 flex-1 flex-col" key={group.heading}>
-          <p className="pb-4 font-semibold text-caption text-gm-text-muted uppercase leading-caption tracking-wider">
-            {group.heading}
-          </p>
-          <ul className="flex flex-col gap-4">
-            {group.links.map((link) => (
-              <li key={link.href}>
-                <NavigationMenuPrimitive.Link
-                  className="group/link flex flex-col items-start gap-1 outline-none"
-                  render={<Link href={link.href} />}
-                >
-                  <span className="font-medium text-body text-gm-text-primary leading-body group-hover/link:text-gm-blue-ink group-focus-visible/link:text-gm-blue-ink">
-                    {link.name}
-                  </span>
-                  <span className="text-body-sm text-gm-text-secondary leading-body-sm">
-                    {link.description}
-                  </span>
-                </NavigationMenuPrimitive.Link>
-              </li>
-            ))}
-          </ul>
+    <div className="mx-auto grid max-w-6xl grid-cols-[repeat(4,minmax(0,1fr))_16rem] gap-x-7 gap-y-5 px-6 pt-6 pb-7 xl:px-8">
+      <div className="col-span-full flex items-baseline gap-4 border-gm-text-inverse/15 border-b pb-3">
+        <h2 className="font-bold font-gm-display text-gm-display text-gm-text-inverse uppercase tracking-wide">
+          {section.label}
+        </h2>
+        <p className="text-body text-gm-text-inverse/80 leading-body">
+          {section.blurb}
+        </p>
+        <NavigationMenuPrimitive.Link
+          className="ml-auto flex items-center gap-1 whitespace-nowrap font-semibold text-body text-gm-lime leading-body hover:underline"
+          render={<Link href={section.href} />}
+        >
+          All {section.label.toLowerCase()}
+          <ArrowRightIcon aria-hidden="true" className="size-4" />
+        </NavigationMenuPrimitive.Link>
+      </div>
+      {columns.map((groups, c) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: fixed four-column layout
+        <div className="flex flex-col gap-4" key={c}>
+          {groups.map((group) => (
+            <div key={group.heading}>
+              <h3 className="mb-1.5 font-bold text-gm-text-inverse/70 text-label uppercase leading-label tracking-wider">
+                {group.heading}
+              </h3>
+              <ul>
+                {group.links.map((link) => (
+                  <li key={link.href}>
+                    <NavigationMenuPrimitive.Link
+                      className={MENU_LINK}
+                      render={<Link href={link.href} />}
+                    >
+                      {link.name}
+                    </NavigationMenuPrimitive.Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
       ))}
-      {section.featured && (
-        <FeaturedCard alerts={alerts} feature={section.featured} />
-      )}
+      <Featured alerts={alerts} feature={section.featured} />
     </div>
   );
 }
 
 export function DesktopNav({ alerts, anchor }: DesktopNavProps) {
+  const pathname = usePathname();
   return (
-    <NavigationMenuPrimitive.Root className="hidden lg:block">
-      <NavigationMenuList className="justify-start gap-2">
-        {NAV_SECTIONS.map((section) =>
-          section.groups.length === 0 ? (
-            <NavigationMenuItem key={section.label}>
-              <NavigationMenuPrimitive.Link
-                className={TOP_LEVEL}
-                render={<Link href={section.href ?? "/"} />}
-              >
-                {section.label}
-              </NavigationMenuPrimitive.Link>
-            </NavigationMenuItem>
-          ) : (
+    <NavigationMenuPrimitive.Root aria-label="Main" className="hidden lg:block">
+      <NavigationMenuPrimitive.List className="flex items-center">
+        {NAV_SECTIONS.map((section) => {
+          const current =
+            pathname === section.href ||
+            pathname.startsWith(`${section.href}/`);
+          return (
             <NavigationMenuItem key={section.label}>
               <NavigationMenuPrimitive.Trigger
-                className={`group/trigger ${TOP_LEVEL} data-popup-open:underline`}
+                aria-current={current ? "page" : undefined}
+                className={cn(
+                  "group/trigger",
+                  TRIGGER,
+                  current && "border-b-gm-text-inverse"
+                )}
               >
                 {section.label}
                 <ChevronDownIcon
                   aria-hidden="true"
-                  className="size-4 transition-transform duration-200 group-data-popup-open/trigger:rotate-180"
+                  className="hidden size-4 transition-transform duration-200 group-data-popup-open/trigger:rotate-180 xl:block"
                 />
               </NavigationMenuPrimitive.Trigger>
-              <NavigationMenuContent className="w-(--anchor-width) max-w-6xl p-0">
+              <NavigationMenuPrimitive.Content className="w-full">
                 <Panel alerts={alerts} section={section} />
-              </NavigationMenuContent>
+              </NavigationMenuPrimitive.Content>
             </NavigationMenuItem>
-          )
-        )}
-      </NavigationMenuList>
+          );
+        })}
+      </NavigationMenuPrimitive.List>
 
       <NavigationMenuPrimitive.Portal>
         <NavigationMenuPrimitive.Positioner
-          align="center"
           anchor={anchor}
-          className="isolate z-50 h-(--positioner-height) w-(--anchor-width) max-w-6xl transition-[top,left] duration-200 data-instant:transition-none"
+          className="isolate z-50 h-(--positioner-height) w-(--anchor-width) data-instant:transition-none"
           side="bottom"
           sideOffset={0}
         >
-          <NavigationMenuPrimitive.Popup className="h-(--popup-height) w-(--popup-width) rounded-b-md border border-gm-border bg-background shadow-card transition-[opacity,height] duration-200 data-ending-style:opacity-0 data-starting-style:opacity-0">
+          <NavigationMenuPrimitive.Popup className="h-(--popup-height) w-(--popup-width) bg-gm-navy-raised shadow-card transition-[opacity,height] duration-200 data-ending-style:opacity-0 data-starting-style:opacity-0">
             <NavigationMenuPrimitive.Viewport className="relative size-full overflow-hidden" />
           </NavigationMenuPrimitive.Popup>
         </NavigationMenuPrimitive.Positioner>
