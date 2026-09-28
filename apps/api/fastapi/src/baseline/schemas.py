@@ -37,6 +37,10 @@ class StaffSetup(BaseModel):
     employee_number: str | None = None
     employment_type: EmploymentType | None = None
     start_date: date | None = None
+    continuous_service_date: date | None = None
+    probation_end_date: date | None = None
+    probation_completed_date: date | None = None
+    service_details_source: str | None = Field(default=None, max_length=500)
     supervisor_id: uuid.UUID | None = None
     status: str
 
@@ -60,6 +64,10 @@ class StaffInput(BaseModel):
     employee_number: str | None = Field(default=None, min_length=1, max_length=50)
     employment_type: EmploymentType | None = None
     start_date: date | None = None
+    continuous_service_date: date | None = None
+    probation_end_date: date | None = None
+    probation_completed_date: date | None = None
+    service_details_source: str | None = Field(default=None, max_length=500)
     supervisor_id: uuid.UUID | None = None
     mailbox_ready: bool = False
 

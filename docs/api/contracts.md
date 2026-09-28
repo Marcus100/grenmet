@@ -1114,3 +1114,14 @@ instead of overwriting corrections. The signed submission is not rewritten by
 approval or cancellation; agreement, recommendation, decisions and dates remain
 in the workflow. A returned signed form currently requires a new corrected
 request rather than editing its immutable signed values in place.
+
+### Recorded HR service facts
+
+Authenticated employment create/read/update, HR profile, and administrator-only
+staff setup expose optional `continuous_service_date`, `probation_end_date`,
+`probation_completed_date` and `service_details_source`. Unknown facts remain
+null. Recorded dates require an HR source; expected probation end does not imply
+completion or determine leave/pay eligibility. PATCH validates merged facts and
+preserves omitted fields. Supervisors must have active employment and accounts;
+self-supervision and reporting cycles are rejected. See
+[recorded service facts](../hr/staff-service-facts.md).

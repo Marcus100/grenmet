@@ -8,6 +8,7 @@ import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import Link from "next/link";
 import { useCallback, useEffect, useId, useState } from "react";
+import { hrApiErrorMessage } from "@/components/hr/api-error";
 import { OrganisationChart } from "@/components/hr/setup/organisation-chart";
 import { CatalogueSetup } from "./catalogue-setup";
 import {
@@ -37,6 +38,9 @@ function StaffEditor({
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [confirmOffboard, setConfirmOffboard] = useState(false);
+  const [selectedDepartment, setSelectedDepartment] = useState(
+    staff.department_id
+  );
   return (
     <details className="rounded-lg border border-border p-4">
       <summary className="cursor-pointer font-medium">
@@ -69,10 +73,8 @@ function StaffEditor({
                 await approveRegistration(staff.user_id);
                 setMessage("Registration approved. Staff access is enabled.");
                 onSaved();
-              } catch {
-                setMessage(
-                  "Approval failed. Confirm email verification and active staff setup."
-                );
+              } catch (error) {
+                setMessage(hrApiErrorMessage(error));
               } finally {
                 setBusy(false);
               }
@@ -105,15 +107,21 @@ function StaffEditor({
               employment_type:
                 String(form.get("employment_type") || "") || null,
               start_date: String(form.get("start_date") || "") || null,
+              continuous_service_date:
+                String(form.get("continuous_service_date") || "") || null,
+              probation_end_date:
+                String(form.get("probation_end_date") || "") || null,
+              probation_completed_date:
+                String(form.get("probation_completed_date") || "") || null,
+              service_details_source:
+                String(form.get("service_details_source") || "").trim() || null,
               supervisor_id: String(form.get("supervisor_id") || "") || null,
               mailbox_ready: form.get("mailbox_ready") === "on",
             });
             setMessage("Saved. Role assignments are unchanged.");
             onSaved();
           } catch (error) {
-            setMessage(
-              error instanceof Error ? error.message : "Unable to save"
-            );
+            setMessage(hrApiErrorMessage(error));
           } finally {
             setBusy(false);
           }
@@ -126,6 +134,12 @@ function StaffEditor({
             defaultValue={staff.grade_id}
             id={`${fieldId}-grade_id`}
             name="grade_id"
+            onChange={(event) =>
+              setSelectedDepartment(
+                grades.find((grade) => grade.id === event.target.value)
+                  ?.department_id ?? ""
+              )
+            }
           >
             <option value="">Choose a grade</option>
             {grades
@@ -171,7 +185,11 @@ function StaffEditor({
             {colleagues
               .filter(
                 (person) =>
-                  person.user_id !== staff.user_id && person.employment_ready
+                  person.user_id !== staff.user_id &&
+                  person.employment_ready &&
+                  person.department_id === selectedDepartment &&
+                  person.mailbox_ready &&
+                  person.status !== "inactive"
               )
               .map((person) => (
                 <option key={person.user_id} value={person.user_id}>
@@ -189,6 +207,47 @@ function StaffEditor({
             type="date"
           />
         </label>
+        <label htmlFor={`${fieldId}-continuous_service_date`}>
+          Verified continuous service date
+          <Input
+            defaultValue={staff.continuous_service_date ?? ""}
+            id={`${fieldId}-continuous_service_date`}
+            name="continuous_service_date"
+            type="date"
+          />
+        </label>
+        <label htmlFor={`${fieldId}-probation_end_date`}>
+          Recorded probation end date
+          <Input
+            defaultValue={staff.probation_end_date ?? ""}
+            id={`${fieldId}-probation_end_date`}
+            name="probation_end_date"
+            type="date"
+          />
+        </label>
+        <label htmlFor={`${fieldId}-probation_completed_date`}>
+          Verified probation completion date
+          <Input
+            defaultValue={staff.probation_completed_date ?? ""}
+            id={`${fieldId}-probation_completed_date`}
+            name="probation_completed_date"
+            type="date"
+          />
+        </label>
+        <label htmlFor={`${fieldId}-service_details_source`}>
+          HR source for service / probation facts
+          <Input
+            defaultValue={staff.service_details_source ?? ""}
+            id={`${fieldId}-service_details_source`}
+            maxLength={500}
+            name="service_details_source"
+          />
+        </label>
+        <p className="text-muted-foreground text-sm md:col-span-2">
+          Record dates from verified HR documents. Expected probation end does
+          not confirm completion. These facts do not calculate leave entitlement
+          or pay.
+        </p>
         <label
           className="flex items-center gap-2"
           htmlFor={`${fieldId}-mailbox_ready`}
@@ -245,9 +304,7 @@ function StaffEditor({
             setMessage(result.message ?? "Staff access ended");
             onSaved();
           } catch (error) {
-            setMessage(
-              error instanceof Error ? error.message : "Unable to offboard"
-            );
+            setMessage(hrApiErrorMessage(error));
           } finally {
             setBusy(false);
           }
@@ -278,8 +335,8 @@ function BalanceEditor({ userId }: { userId: string }) {
             reason: form.get("reason"),
           });
           setMessage(result.message ?? "Saved");
-        } catch {
-          setMessage("Unable to save balance");
+        } catch (error) {
+          setMessage(hrApiErrorMessage(error));
         } finally {
           setBusy(false);
         }
@@ -523,7 +580,7 @@ export function StaffSetupManager() {
           <StaffEditor
             colleagues={staff}
             grades={grades}
-            key={person.user_id}
+            key={JSON.stringify(person)}
             onSaved={load}
             staff={person}
           />

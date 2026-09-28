@@ -212,6 +212,12 @@ class EmploymentRecord(Base):
     position: Mapped[str | None] = mapped_column(String(150), nullable=True)
     employment_type: Mapped[EmploymentType | None]
     start_date: Mapped[date | None]
+    continuous_service_date: Mapped[date | None]
+    probation_end_date: Mapped[date | None]
+    probation_completed_date: Mapped[date | None]
+    service_details_source: Mapped[str | None] = mapped_column(
+        String(500), nullable=True
+    )
     supervisor_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("user.id", ondelete="SET NULL"), nullable=True
     )

@@ -189,6 +189,7 @@ def register() -> None:
         entity_type="employee",
         entity_id_attr="user_id",
         label="Employment",
+        sensitive=("service_details_source",),
     )
     registry.track(
         ApprovalAuthority,

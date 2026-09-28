@@ -12,6 +12,8 @@ export const hrUpdateStaffSetupPathUserIdSchema = z.uuid();
 
 export const hrUpdateStaffSetupStatus200Schema = messageSchema;
 
+export const hrUpdateStaffSetupStatus400Schema = z.unknown();
+
 export const hrUpdateStaffSetupStatus403Schema = z.unknown();
 
 export const hrUpdateStaffSetupStatus404Schema = z.unknown();
@@ -27,6 +29,7 @@ export const hrUpdateStaffSetupResponseSchema =
   hrUpdateStaffSetupStatus200Schema;
 
 export const hrUpdateStaffSetupErrorSchema = z.union([
+  hrUpdateStaffSetupStatus400Schema,
   hrUpdateStaffSetupStatus403Schema,
   hrUpdateStaffSetupStatus404Schema,
   hrUpdateStaffSetupStatus409Schema,
