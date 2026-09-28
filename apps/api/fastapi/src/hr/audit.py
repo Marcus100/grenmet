@@ -18,6 +18,7 @@ from src.exceptions import AppException
 from src.orm import Base
 
 from .absentee.models import AbsenteeReport
+from .attendance.models import AttendanceCorrection, AttendanceRecord
 from .calendar.models import CalendarEvent
 from .dailystatus.models import StatusReport, StatusReportEntry
 from .documents.models import EmployeeDocument
@@ -250,6 +251,28 @@ def register() -> None:
         _owned(Timesheet, ("user_id",), ("timesheet.read.department",)),
     )
     registry.track(Timesheet, record_type="timesheet", label="Timesheet")
+    registry.register_entity(
+        "attendance",
+        _owned(
+            AttendanceRecord,
+            ("user_id",),
+            ("timesheet.read.department", "timesheet.approve"),
+        ),
+    )
+    registry.track(
+        AttendanceRecord,
+        record_type="attendance",
+        label="Shift attendance",
+        sensitive=("notes",),
+    )
+    registry.track(
+        AttendanceCorrection,
+        record_type="attendance_correction",
+        entity_type="attendance",
+        entity_id_attr="attendance_id",
+        label="Attendance correction",
+        sensitive=("reason",),
+    )
     registry.track(
         TimesheetEntry,
         record_type="timesheet_entry",

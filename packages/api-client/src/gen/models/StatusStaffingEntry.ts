@@ -5,6 +5,7 @@
 
 import type { PersonnelStatus } from "./PersonnelStatus.js";
 import type { RosterAvailability } from "./RosterAvailability.js";
+import type { WorkflowStatus } from "./WorkflowStatus.js";
 
 export type StatusStaffingEntry = {
   /**
@@ -26,4 +27,8 @@ export type StatusStaffingEntry = {
   ends_next_day: boolean;
   availability: RosterAvailability;
   personnel_status: PersonnelStatus;
+  attendance_id?: string | null;
+  arrived_at?: string | null;
+  departed_at?: string | null;
+  attendance_review_status?: WorkflowStatus | null;
 };

@@ -401,6 +401,38 @@ async def update_shift(
     if db_shift is None:
         raise ShiftCatalogNotFoundError()
     changes = shift_in.model_dump(exclude_unset=True)
+    if any(
+        key
+        in {
+            "start_time",
+            "end_time",
+            "ends_next_day",
+            "category",
+            "counts_as_work_hours",
+        }
+        and getattr(db_shift, key) != value
+        for key, value in changes.items()
+    ):
+        from src.hr.attendance.models import AttendanceRecord
+
+        # First punches lock the assignment too. A catalogue edit cannot pass
+        # this check concurrently with a punch on an existing assignment.
+        assignment_ids = list(
+            await session.scalars(
+                select(RosterAssignment.id)
+                .where(RosterAssignment.shift_code == code)
+                .order_by(RosterAssignment.id)
+                .with_for_update()
+            )
+        )
+        if await session.scalar(
+            select(AttendanceRecord.id)
+            .where(AttendanceRecord.roster_assignment_id.in_(assignment_ids))
+            .limit(1)
+        ):
+            raise HRValidationError(
+                "Recorded attendance protects shift times and category; use a new shift code for future schedules"
+            )
     for key, value in changes.items():
         setattr(db_shift, key, value)
     db_shift.updated_at = utc_now()
@@ -503,6 +535,23 @@ async def bulk_upsert_roster_assignments(
             "An assignment already belongs to another roster period; amend that period instead"
         )
     by_cell = {(row.user_id, row.assignment_date): row for row in existing}
+    changed_ids = [
+        row.id
+        for item in payload.assignments
+        if (row := by_cell.get((item.user_id, item.assignment_date))) is not None
+        and row.shift_code != item.shift_code
+    ]
+    if changed_ids:
+        from src.hr.attendance.models import AttendanceRecord
+
+        if await session.scalar(
+            select(AttendanceRecord.id)
+            .where(AttendanceRecord.roster_assignment_id.in_(changed_ids))
+            .limit(1)
+        ):
+            raise HRValidationError(
+                "Recorded attendance prevents changing the roster shift; retain the assignment and review a correction"
+            )
     # Preserve identifiers: timesheets and attendance refer to these rows, even
     # when the same roster is imported or saved again.
     for assignment in payload.assignments:

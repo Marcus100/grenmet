@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 from src.auth.policy import require_permission
+from src.hr.attendance.models import AttendanceRecord
 from src.hr.constants import (
     ERROR_STATUS_REPORT_ACTION_NOT_ALLOWED,
     ERROR_STATUS_REPORT_NOT_DRAFT,
@@ -25,7 +26,7 @@ from src.hr.roster.models import (
     ShiftCatalog,
 )
 from src.hr.signatures import service as signature_service
-from src.hr.workflow.models import WorkflowInstance, WorkflowType
+from src.hr.workflow.models import WorkflowInstance, WorkflowStatus, WorkflowType
 from src.hr.workflow.service import start_workflow_for_entity, submit_draft_workflow
 from src.utils.datetime import utc_now
 
@@ -265,6 +266,12 @@ async def delete_status_report(
         raise HRValidationError(ERROR_STATUS_REPORT_NOT_DRAFT)
 
     # Remove child entries first (they FK the report), then the report, then the
+    if report.workflow_instance_id:
+        instance = await session.get(WorkflowInstance, report.workflow_instance_id)
+        if instance is not None and instance.status != WorkflowStatus.DRAFT:
+            raise HRValidationError(
+                "Previously submitted forms and approval history must be retained"
+            )
     # DRAFT workflow instance (a draft has no step rows to clean up).
     existing = await session.execute(
         select(StatusReportEntry).where(StatusReportEntry.status_report_id == report.id)
@@ -479,8 +486,27 @@ async def staffing_for_shift(
     availability = await roster_service.assignment_availability(
         session, [assignment.id for assignment, _, _ in rows]
     )
+    actual_rows = (
+        await session.execute(
+            select(AttendanceRecord, WorkflowInstance.status)
+            .outerjoin(
+                WorkflowInstance,
+                WorkflowInstance.id == AttendanceRecord.workflow_instance_id,
+            )
+            .where(
+                AttendanceRecord.roster_assignment_id.in_(
+                    [assignment.id for assignment, _, _ in rows]
+                )
+            )
+        )
+    ).all()
+    actual_by_assignment = {
+        record.roster_assignment_id: (record, review_status)
+        for record, review_status in actual_rows
+    }
     entries = []
     for assignment, name, catalog in rows:
+        actual = actual_by_assignment.get(assignment.id)
         available = availability.get(assignment.id, RosterAvailability.SCHEDULED)
         personnel = PersonnelStatus.UNCONFIRMED
         if available == RosterAvailability.ABSENT:
@@ -498,6 +524,10 @@ async def staffing_for_shift(
                 ends_next_day=catalog.ends_next_day,
                 availability=available,
                 personnel_status=personnel,
+                attendance_id=actual[0].id if actual else None,
+                arrived_at=actual[0].arrived_at if actual else None,
+                departed_at=actual[0].departed_at if actual else None,
+                attendance_review_status=actual[1] if actual else None,
             )
         )
     return StatusStaffingPublic(

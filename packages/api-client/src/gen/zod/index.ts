@@ -19,6 +19,13 @@ export { areaCreatePropertiesSpaceTypeAnyOfEnumSchema } from "./areaCreateProper
 export { areaCreateSchema } from "./areaCreateSchema.js";
 export { areaUpdateSchema } from "./areaUpdateSchema.js";
 export { areaViewSchema } from "./areaViewSchema.js";
+export { attendanceCorrectionCreateSchema } from "./attendanceCorrectionCreateSchema.js";
+export { attendanceCorrectionPublicSchema } from "./attendanceCorrectionPublicSchema.js";
+export { attendanceReviewPublicSchema } from "./attendanceReviewPublicSchema.js";
+export { attendanceSaveSchema } from "./attendanceSaveSchema.js";
+export { attendanceShiftPublicSchema } from "./attendanceShiftPublicSchema.js";
+export { attendanceSubmitSchema } from "./attendanceSubmitSchema.js";
+export { attendanceWeekPublicSchema } from "./attendanceWeekPublicSchema.js";
 export { auditChangePublicSchema } from "./auditChangePublicSchema.js";
 export { auditEntryPublicSchema } from "./auditEntryPublicSchema.js";
 export {
@@ -1146,6 +1153,42 @@ export {
   hrGetAbsenteeReportsStatus422Schema,
 } from "./hrGetAbsenteeReportsSchema.js";
 export {
+  hrGetAttendanceReviewErrorSchema,
+  hrGetAttendanceReviewQueryAttendanceIdSchema,
+  hrGetAttendanceReviewQueryCorrectionIdSchema,
+  hrGetAttendanceReviewResponseSchema,
+  hrGetAttendanceReviewStatus200Schema,
+  hrGetAttendanceReviewStatus400Schema,
+  hrGetAttendanceReviewStatus403Schema,
+  hrGetAttendanceReviewStatus404Schema,
+  hrGetAttendanceReviewStatus409Schema,
+  hrGetAttendanceReviewStatus422Schema,
+} from "./hrGetAttendanceReviewSchema.js";
+export {
+  hrGetAttendanceWeekPdfErrorSchema,
+  hrGetAttendanceWeekPdfQueryDaySchema,
+  hrGetAttendanceWeekPdfQueryDepartmentIdSchema,
+  hrGetAttendanceWeekPdfResponseSchema,
+  hrGetAttendanceWeekPdfStatus200Schema,
+  hrGetAttendanceWeekPdfStatus400Schema,
+  hrGetAttendanceWeekPdfStatus403Schema,
+  hrGetAttendanceWeekPdfStatus404Schema,
+  hrGetAttendanceWeekPdfStatus409Schema,
+  hrGetAttendanceWeekPdfStatus422Schema,
+} from "./hrGetAttendanceWeekPdfSchema.js";
+export {
+  hrGetAttendanceWeekErrorSchema,
+  hrGetAttendanceWeekQueryDaySchema,
+  hrGetAttendanceWeekQueryDepartmentIdSchema,
+  hrGetAttendanceWeekResponseSchema,
+  hrGetAttendanceWeekStatus200Schema,
+  hrGetAttendanceWeekStatus400Schema,
+  hrGetAttendanceWeekStatus403Schema,
+  hrGetAttendanceWeekStatus404Schema,
+  hrGetAttendanceWeekStatus409Schema,
+  hrGetAttendanceWeekStatus422Schema,
+} from "./hrGetAttendanceWeekSchema.js";
+export {
   hrGetDepartmentTimesheetsErrorSchema,
   hrGetDepartmentTimesheetsQueryDepartmentIdSchema,
   hrGetDepartmentTimesheetsQueryPageSchema,
@@ -1664,6 +1707,18 @@ export {
   hrPreviewStatusReportPdfStatus422Schema,
 } from "./hrPreviewStatusReportPdfSchema.js";
 export {
+  hrProposeAttendanceCorrectionBodySchema,
+  hrProposeAttendanceCorrectionErrorSchema,
+  hrProposeAttendanceCorrectionPathAttendanceIdSchema,
+  hrProposeAttendanceCorrectionResponseSchema,
+  hrProposeAttendanceCorrectionStatus201Schema,
+  hrProposeAttendanceCorrectionStatus400Schema,
+  hrProposeAttendanceCorrectionStatus403Schema,
+  hrProposeAttendanceCorrectionStatus404Schema,
+  hrProposeAttendanceCorrectionStatus409Schema,
+  hrProposeAttendanceCorrectionStatus422Schema,
+} from "./hrProposeAttendanceCorrectionSchema.js";
+export {
   hrPublishPeriodErrorSchema,
   hrPublishPeriodPathPeriodIdSchema,
   hrPublishPeriodResponseSchema,
@@ -1682,6 +1737,17 @@ export {
   hrRemoveHolidayStatus404Schema,
   hrRemoveHolidayStatus422Schema,
 } from "./hrRemoveHolidaySchema.js";
+export {
+  hrSaveAttendanceBodySchema,
+  hrSaveAttendanceErrorSchema,
+  hrSaveAttendanceResponseSchema,
+  hrSaveAttendanceStatus200Schema,
+  hrSaveAttendanceStatus400Schema,
+  hrSaveAttendanceStatus403Schema,
+  hrSaveAttendanceStatus404Schema,
+  hrSaveAttendanceStatus409Schema,
+  hrSaveAttendanceStatus422Schema,
+} from "./hrSaveAttendanceSchema.js";
 export {
   hrSaveMySignatureBodySchema,
   hrSaveMySignatureErrorSchema,
@@ -1713,6 +1779,18 @@ export {
   hrSubmitAbsenteeReportStatus404Schema,
   hrSubmitAbsenteeReportStatus422Schema,
 } from "./hrSubmitAbsenteeReportSchema.js";
+export {
+  hrSubmitAttendanceBodySchema,
+  hrSubmitAttendanceErrorSchema,
+  hrSubmitAttendancePathAttendanceIdSchema,
+  hrSubmitAttendanceResponseSchema,
+  hrSubmitAttendanceStatus200Schema,
+  hrSubmitAttendanceStatus400Schema,
+  hrSubmitAttendanceStatus403Schema,
+  hrSubmitAttendanceStatus404Schema,
+  hrSubmitAttendanceStatus409Schema,
+  hrSubmitAttendanceStatus422Schema,
+} from "./hrSubmitAttendanceSchema.js";
 export {
   hrSubmitLeaveRequestBodySchema,
   hrSubmitLeaveRequestErrorSchema,

@@ -4494,6 +4494,447 @@
         }
       }
     },
+    "/api/v1/hr/attendance/week/pdf": {
+      "get": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Download weekly shift timesheet PDF",
+        "description": "Python-rendered weekly attendance collection using the same authenticated scope as the weekly read. Shows actual times and supervisor review; approved total excludes unapproved records. No payroll inference or signed-document creation.",
+        "operationId": "hrGetAttendanceWeekPdf",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "day",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Day"
+            }
+          },
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Department Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Weekly timesheet PDF",
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid attendance or roster context"
+          },
+          "403": {
+            "description": "Employee or department access denied"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale revision, locked review, or approval workflow not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance/review": {
+      "get": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Read attendance and correction history for review",
+        "description": "Owner, scoped timesheet reader/approver or named approver can inspect actual times and retained correction proposals. Supply attendance_id or correction_id.",
+        "operationId": "hrGetAttendanceReview",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "attendance_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Attendance Id"
+            }
+          },
+          {
+            "name": "correction_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Correction Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttendanceReviewPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid attendance or roster context"
+          },
+          "403": {
+            "description": "Employee or department access denied"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale revision, locked review, or approval workflow not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance/week": {
+      "get": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Read shift attendance for a GAA week",
+        "description": "Returns published roster work shifts and actual attendance, Sunday through Saturday. A night shift belongs to its local scheduled start date. Department reads require scoped timesheet.read.department.",
+        "operationId": "hrGetAttendanceWeek",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "day",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Day"
+            }
+          },
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Department Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttendanceWeekPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid attendance or roster context"
+          },
+          "403": {
+            "description": "Employee or department access denied"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale revision, locked review, or approval workflow not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance": {
+      "put": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Save employee arrival and departure",
+        "description": "Records actual attendance against a published work shift. Uses existing self/proxy timesheet permissions. Identical retries are idempotent; changed records require their latest revision.",
+        "operationId": "hrSaveAttendance",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttendanceSave"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttendanceShiftPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid attendance or roster context"
+          },
+          "403": {
+            "description": "Employee or department access denied"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale revision, locked review, or approval workflow not configured"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/attendance/{attendance_id}/submit": {
+      "post": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Submit completed attendance for supervisor review",
+        "description": "Starts the department TIMESHEET approval workflow for this completed shift. The employee cannot approve their own attendance; retries reuse the same workflow.",
+        "operationId": "hrSubmitAttendance",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "attendance_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Attendance Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttendanceSubmit"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttendanceShiftPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid attendance or roster context"
+          },
+          "403": {
+            "description": "Employee or department access denied"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale revision, locked review, or approval workflow not configured"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance/{attendance_id}/corrections": {
+      "post": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Propose an attendance correction",
+        "description": "Preserves original arrival/departure while a reasoned correction awaits the department TIMESHEET supervisor workflow. Approval atomically replaces actual time and advances the revision; rejected proposals do not change hours.",
+        "operationId": "hrProposeAttendanceCorrection",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "attendance_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Attendance Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttendanceCorrectionCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttendanceCorrectionPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid attendance or roster context"
+          },
+          "403": {
+            "description": "Employee or department access denied"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Stale revision, locked review, or approval workflow not configured"
+          }
+        }
+      }
+    },
     "/api/v1/hr/training-records": {
       "get": {
         "tags": [
@@ -18665,6 +19106,460 @@
           "tasks"
         ],
         "title": "AreaView"
+      },
+      "AttendanceCorrectionCreate": {
+        "properties": {
+          "roster_assignment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Roster Assignment Id"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expected Revision",
+            "default": 0
+          },
+          "arrived_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Arrived At"
+          },
+          "departed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Departed At"
+          },
+          "break_minutes": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Break Minutes",
+            "default": 0
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "roster_assignment_id",
+          "arrived_at",
+          "departed_at",
+          "reason"
+        ],
+        "title": "AttendanceCorrectionCreate"
+      },
+      "AttendanceCorrectionPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "attendance_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Attendance Id"
+          },
+          "proposed_by_user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Proposed By User Id"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "title": "Expected Revision"
+          },
+          "arrived_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Arrived At"
+          },
+          "departed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Departed At"
+          },
+          "break_minutes": {
+            "type": "integer",
+            "title": "Break Minutes"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "workflow_instance_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workflow Instance Id"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "review_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "attendance_id",
+          "proposed_by_user_id",
+          "expected_revision",
+          "arrived_at",
+          "departed_at",
+          "break_minutes",
+          "reason",
+          "workflow_instance_id",
+          "created_at"
+        ],
+        "title": "AttendanceCorrectionPublic"
+      },
+      "AttendanceReviewPublic": {
+        "properties": {
+          "current": {
+            "$ref": "#/components/schemas/AttendanceShiftPublic"
+          },
+          "corrections": {
+            "items": {
+              "$ref": "#/components/schemas/AttendanceCorrectionPublic"
+            },
+            "type": "array",
+            "title": "Corrections"
+          }
+        },
+        "type": "object",
+        "required": [
+          "current",
+          "corrections"
+        ],
+        "title": "AttendanceReviewPublic"
+      },
+      "AttendanceSave": {
+        "properties": {
+          "roster_assignment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Roster Assignment Id"
+          },
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Expected Revision",
+            "default": 0
+          },
+          "arrived_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Arrived At"
+          },
+          "departed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Departed At"
+          },
+          "break_minutes": {
+            "type": "integer",
+            "maximum": 1440.0,
+            "minimum": 0.0,
+            "title": "Break Minutes",
+            "default": 0
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 500
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "roster_assignment_id",
+          "arrived_at"
+        ],
+        "title": "AttendanceSave"
+      },
+      "AttendanceShiftPublic": {
+        "properties": {
+          "roster_assignment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Roster Assignment Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "employee_name": {
+            "type": "string",
+            "title": "Employee Name"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "shift_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Shift Date"
+          },
+          "shift_code": {
+            "type": "string",
+            "title": "Shift Code"
+          },
+          "availability": {
+            "$ref": "#/components/schemas/RosterAvailability",
+            "default": "SCHEDULED"
+          },
+          "scheduled_start": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Scheduled Start"
+          },
+          "scheduled_end": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Scheduled End"
+          },
+          "attendance_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attendance Id"
+          },
+          "arrived_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arrived At"
+          },
+          "departed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Departed At"
+          },
+          "break_minutes": {
+            "type": "integer",
+            "title": "Break Minutes",
+            "default": 0
+          },
+          "actual_hours": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actual Hours"
+          },
+          "elapsed_hours": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Elapsed Hours"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision",
+            "default": 0
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "workflow_instance_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Workflow Instance Id"
+          },
+          "review_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reviewer_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewer Name"
+          },
+          "reviewed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewed At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "roster_assignment_id",
+          "user_id",
+          "employee_name",
+          "department_id",
+          "shift_date",
+          "shift_code",
+          "scheduled_start",
+          "scheduled_end"
+        ],
+        "title": "AttendanceShiftPublic"
+      },
+      "AttendanceSubmit": {
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Revision"
+          }
+        },
+        "type": "object",
+        "required": [
+          "expected_revision"
+        ],
+        "title": "AttendanceSubmit"
+      },
+      "AttendanceWeekPublic": {
+        "properties": {
+          "period_start": {
+            "type": "string",
+            "format": "date",
+            "title": "Period Start"
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date",
+            "title": "Period End"
+          },
+          "shifts": {
+            "items": {
+              "$ref": "#/components/schemas/AttendanceShiftPublic"
+            },
+            "type": "array",
+            "title": "Shifts"
+          },
+          "approved_hours": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Approved Hours"
+          },
+          "recorded_hours": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Recorded Hours"
+          }
+        },
+        "type": "object",
+        "required": [
+          "period_start",
+          "period_end",
+          "shifts",
+          "approved_hours",
+          "recorded_hours"
+        ],
+        "title": "AttendanceWeekPublic"
       },
       "AuditChangePublic": {
         "properties": {
@@ -32880,6 +33775,52 @@
           },
           "personnel_status": {
             "$ref": "#/components/schemas/PersonnelStatus"
+          },
+          "attendance_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attendance Id"
+          },
+          "arrived_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Arrived At"
+          },
+          "departed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Departed At"
+          },
+          "attendance_review_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/WorkflowStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
           }
         },
         "type": "object",
@@ -38132,6 +39073,10 @@
     {
       "name": "hr-absentee",
       "description": "HR absentee reporting operations."
+    },
+    {
+      "name": "hr-attendance",
+      "description": "Actual shift arrival, departure and supervisor review."
     },
     {
       "name": "hr-calendar",

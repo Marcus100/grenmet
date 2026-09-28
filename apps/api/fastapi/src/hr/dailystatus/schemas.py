@@ -7,6 +7,7 @@ from src.hr.models import RequestStatus
 from src.hr.roster.models import RosterAvailability
 from src.hr.signatures.schemas import SignatureConsent
 from src.hr.submission import SubmittedFormPublic
+from src.hr.workflow.models import WorkflowStatus
 from src.models import BaseModel, UtcDateTime
 
 from .models import PersonnelStatus, ShiftPeriod
@@ -119,6 +120,10 @@ class StatusStaffingEntry(BaseModel):
     ends_next_day: bool
     availability: RosterAvailability
     personnel_status: PersonnelStatus
+    attendance_id: uuid.UUID | None = None
+    arrived_at: UtcDateTime | None = None
+    departed_at: UtcDateTime | None = None
+    attendance_review_status: WorkflowStatus | None = None
 
 
 class StatusStaffingPublic(BaseModel):

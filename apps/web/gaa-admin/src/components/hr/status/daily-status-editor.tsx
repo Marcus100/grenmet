@@ -5,6 +5,7 @@ import {
   type PersonnelStatus,
   type StatusReportCreate,
   type StatusReportPublic,
+  type StatusStaffingEntry,
   useHrCreateStatusReport,
   useHrGetHrProfileMe,
   useHrGetStatusReport,
@@ -727,12 +728,7 @@ function StatusStaffing({
     if (!query.data || entries.length || filledContext.current === context)
       return;
     filledContext.current = context;
-    onChange(
-      query.data.entries.map((row) => ({
-        user_id: row.user_id,
-        personnel_status: row.personnel_status,
-      }))
-    );
+    onChange(query.data.entries.map(staffingEntry));
   }, [query.data, entries.length, context, onChange]);
   const names = new Map(
     query.data?.entries.map((row) => [row.user_id, row]) ?? []
@@ -767,13 +763,7 @@ function StatusStaffing({
       )}
       <Button
         onClick={() => {
-          if (query.data)
-            onChange(
-              query.data.entries.map((row) => ({
-                user_id: row.user_id,
-                personnel_status: row.personnel_status,
-              }))
-            );
+          if (query.data) onChange(query.data.entries.map(staffingEntry));
         }}
         type="button"
         variant="outline"
@@ -795,6 +785,18 @@ function StatusStaffing({
                 </span>
               )}
             </p>
+            {row?.attendance_id && (
+              <p className="text-muted-foreground text-xs">
+                Employee-recorded attendance ·{" "}
+                {row.attendance_review_status ?? "not submitted"}.
+                {row.arrived_at &&
+                  ` Arrival ${attendanceLocalTime(row.arrived_at)}.`}
+                {row.departed_at &&
+                  ` Departure ${attendanceLocalTime(row.departed_at)}.`}{" "}
+                Report observations do not change the employee’s attendance
+                record.
+              </p>
+            )}
             <label className="text-xs" htmlFor={`status-${entry.user_id}`}>
               Reported status
             </label>
@@ -858,4 +860,35 @@ function StatusStaffing({
       )}
     </section>
   );
+}
+
+function attendanceLocalTime(value: string): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "America/Grenada",
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).format(new Date(value));
+}
+
+export function staffingEntry(row: StatusStaffingEntry): DailyStatusEntry {
+  const clock = (value: string | null | undefined) =>
+    value
+      ? new Intl.DateTimeFormat("en-GB", {
+          timeZone: "America/Grenada",
+          hour: "2-digit",
+          minute: "2-digit",
+          hourCycle: "h23",
+        }).format(new Date(value))
+      : null;
+  return {
+    user_id: row.user_id,
+    employee_name: row.employee_name,
+    personnel_status: row.personnel_status,
+    arrival_time: clock(row.arrived_at),
+    departure_time: clock(row.departed_at),
+  };
 }
