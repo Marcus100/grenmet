@@ -153,6 +153,43 @@ test("a committed OpenAPI change requires generated API-client files", (t) => {
   assert.match(result.stderr, /pnpm generate:api-client/);
 });
 
+test("an OpenAPI title-only correction passes staged and range checks", (t) => {
+  const file = "apps/api/fastapi/openapi.json";
+  const before = {
+    openapi: "3.1.0",
+    info: { title: "HR verification" },
+    paths: {},
+  };
+  const { base, repository } = createRepository(t, {
+    [file]: JSON.stringify(before),
+  });
+  write(
+    repository,
+    file,
+    JSON.stringify({ ...before, info: { title: "Grenmet API" } })
+  );
+  git(repository, "add", file);
+  assert.equal(check(repository, ["--staged"]).status, 0);
+  const head = commit(repository);
+  assert.equal(check(repository, ["--base", base, "--head", head]).status, 0);
+});
+
+test("a title correction cannot hide an OpenAPI route change", (t) => {
+  const file = "apps/api/fastapi/openapi.json";
+  const { base, repository } = createRepository(t, {
+    [file]: JSON.stringify({ info: { title: "HR verification" }, paths: {} }),
+  });
+  write(
+    repository,
+    file,
+    JSON.stringify({ info: { title: "Grenmet API" }, paths: { "/new": {} } })
+  );
+  git(repository, "add", file);
+  assert.equal(check(repository, ["--staged"]).status, 1);
+  const head = commit(repository);
+  assert.equal(check(repository, ["--base", base, "--head", head]).status, 1);
+});
+
 const TELEMETRY_MAIN =
   "from src.utils.router import router as utils_router\nif settings.SENTRY_DSN:\n    sentry_sdk.init(\n        enable_tracing=True,\n    )\n";
 const withTelemetry = (source) =>

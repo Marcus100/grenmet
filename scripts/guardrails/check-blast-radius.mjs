@@ -160,6 +160,35 @@ const wxproductsAdvisorySessionChange = (comparison) => {
   return before !== after && expected === after;
 };
 
+// info.title does not affect Kubb output; regeneration can legitimately be clean.
+// Compare the whole document after changing only that field, failing closed.
+const openApiTitleOnlyChange = (comparison) => {
+  const file = "apps/api/fastapi/openapi.json";
+  const refs =
+    comparison.mode === "staged"
+      ? [`HEAD:${file}`, `:${file}`]
+      : [`${comparison.base}:${file}`, `${comparison.head}:${file}`];
+  try {
+    const versions = refs.map((ref) => {
+      const result = spawnSync("git", ["show", ref], { encoding: "utf8" });
+      if (result.error || result.status !== 0)
+        throw new Error("Missing schema");
+      return JSON.parse(result.stdout);
+    });
+    const [before, after] = versions;
+    if (
+      typeof before.info?.title !== "string" ||
+      typeof after.info?.title !== "string" ||
+      before.info.title === after.info.title
+    )
+      return false;
+    before.info.title = after.info.title;
+    return JSON.stringify(before) === JSON.stringify(after);
+  } catch {
+    return false;
+  }
+};
+
 const evaluateChanges = (changes, comparison) => {
   const files = new Set(changes.flatMap((change) => change.paths));
   const triggers = [...files]
@@ -204,7 +233,8 @@ const evaluateChanges = (changes, comparison) => {
   if (
     triggers.length === 0 &&
     files.has("apps/api/fastapi/openapi.json") &&
-    !generatedClientChanged
+    !generatedClientChanged &&
+    !openApiTitleOnlyChange(comparison)
   ) {
     violations.push({
       missing: ["packages/api-client/src/gen/"],
