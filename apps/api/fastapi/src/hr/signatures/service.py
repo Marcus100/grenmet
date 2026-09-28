@@ -415,6 +415,10 @@ def render_shift_exchange_pdf(snapshot: DocumentSnapshot, image: bytes | None) -
 def render_pdf(snapshot: DocumentSnapshot, image: bytes | None) -> bytes:
     if snapshot["entity_type"] == "shift_swap":
         return render_shift_exchange_pdf(snapshot, image)
+    if snapshot["entity_type"] == "status_report":
+        from src.hr.dailystatus.pdf import render_status_pdf
+
+        return render_status_pdf(snapshot, image)
     if snapshot["entity_type"] == "leave_request":
         return render_leave_pdf(snapshot, image)
     if snapshot["entity_type"] == "absentee_report":

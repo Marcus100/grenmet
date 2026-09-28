@@ -19,7 +19,7 @@ from src.orm import Base
 
 from .absentee.models import AbsenteeReport
 from .calendar.models import CalendarEvent
-from .dailystatus.models import StatusReport
+from .dailystatus.models import StatusReport, StatusReportEntry
 from .documents.models import EmployeeDocument
 from .exchange.models import ShiftSwapRequest
 from .leave.models import LeaveRequest
@@ -235,6 +235,14 @@ def register() -> None:
     )
     registry.track(
         StatusReport, record_type="status_report", label="Daily status report"
+    )
+    registry.track(
+        StatusReportEntry,
+        record_type="status_report_entry",
+        entity_type="status_report",
+        entity_id_attr="status_report_id",
+        label="Daily status personnel entry",
+        sensitive=("notes",),
     )
 
     registry.register_entity(

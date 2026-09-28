@@ -11,7 +11,7 @@ import type {
 } from "../models/HrCreateStatusReport.js";
 
 /**
- * @description Create a status report with optional personnel entries. Requires status.report.create permission.
+ * @description Create a scoped shift status report with persisted personnel entries. M/E/N submission requires confirmed operational answers and personnel status. Requires status.report.create permission.
  * @summary Create status report
  * {@link /api/v1/hr/status-reports}
  */

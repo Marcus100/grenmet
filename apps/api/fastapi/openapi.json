@@ -6212,13 +6212,141 @@
         }
       }
     },
+    "/api/v1/hr/status-reports/staffing": {
+      "get": {
+        "tags": [
+          "hr-dailystatus"
+        ],
+        "summary": "Get planned shift staffing",
+        "description": "Published or closed roster staff and approved exceptions for the local M/E/N shift start date. Scheduled staffing does not establish actual attendance. Requires scoped status.report.create permission.",
+        "operationId": "hrGetStatusStaffing",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Department Id"
+            }
+          },
+          {
+            "name": "report_date",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date",
+              "title": "Report Date"
+            }
+          },
+          {
+            "name": "shift_code",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Shift Code"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusStaffingPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid reporting shift"
+          },
+          "403": {
+            "description": "Department access denied"
+          },
+          "404": {
+            "description": "Department not found"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/status-reports/preview-pdf": {
+      "post": {
+        "tags": [
+          "hr-dailystatus"
+        ],
+        "summary": "Preview a daily status report PDF",
+        "description": "Render unsaved status values using the signed-document Python renderer. No report, workflow or signature is saved. Requires scoped status.report.create permission.",
+        "operationId": "hrPreviewStatusReportPdf",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StatusReportCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/pdf": {}
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid report values"
+          },
+          "403": {
+            "description": "Department access denied"
+          },
+          "404": {
+            "description": "Department not found"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/hr/status-reports": {
       "post": {
         "tags": [
           "hr-dailystatus"
         ],
         "summary": "Create status report",
-        "description": "Create a status report with optional personnel entries. Requires status.report.create permission.",
+        "description": "Create a scoped shift status report with persisted personnel entries. M/E/N submission requires confirmed operational answers and personnel status. Requires status.report.create permission.",
         "operationId": "hrCreateStatusReport",
         "security": [
           {
@@ -6255,6 +6383,9 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Invalid personnel or operational answers"
           },
           "403": {
             "description": "Insufficient permission"
@@ -6402,7 +6533,7 @@
             "description": "Unprocessable Content"
           },
           "400": {
-            "description": "Status report is not a draft"
+            "description": "Status report is not a draft or contains invalid personnel or operational answers"
           },
           "403": {
             "description": "Not allowed to submit this status report"
@@ -6470,7 +6601,7 @@
             "description": "Unprocessable Content"
           },
           "400": {
-            "description": "Status report is not a draft"
+            "description": "Status report is not a draft or contains invalid personnel or operational answers"
           },
           "403": {
             "description": "Not allowed to edit this status report"
@@ -6519,7 +6650,7 @@
             "description": "Unprocessable Content"
           },
           "400": {
-            "description": "Status report is not a draft"
+            "description": "Status report is not a draft or contains invalid personnel or operational answers"
           },
           "403": {
             "description": "Not allowed to delete this status report"
@@ -27827,6 +27958,7 @@
       "PersonnelStatus": {
         "type": "string",
         "enum": [
+          "UNCONFIRMED",
           "PRESENT",
           "ABSENT",
           "LATE",
@@ -31927,6 +32059,8 @@
           },
           "shift_code": {
             "type": "string",
+            "maxLength": 10,
+            "minLength": 1,
             "title": "Shift Code"
           },
           "shift_period": {
@@ -31953,7 +32087,8 @@
           "personnel_explanation": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -31975,7 +32110,8 @@
           "affected_operations_explanation": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -31997,7 +32133,8 @@
           "equipment_issue_reason": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -32008,7 +32145,8 @@
           "equipment_remedy_action": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -32030,7 +32168,8 @@
           "incident_explanation": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -32041,7 +32180,8 @@
           "weather_summary": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -32052,7 +32192,8 @@
           "equipment_summary": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -32063,7 +32204,8 @@
           "personnel_summary": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -32074,7 +32216,8 @@
           "runway_status": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -32085,7 +32228,8 @@
           "navaids_status": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -32096,7 +32240,8 @@
           "communications_status": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 1000
               },
               {
                 "type": "null"
@@ -32107,7 +32252,8 @@
           "general_remarks": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 2000
               },
               {
                 "type": "null"
@@ -32177,7 +32323,8 @@
           "arrival_time": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^(?:[01]\\d|2[0-3]):[0-5]\\d$"
               },
               {
                 "type": "null"
@@ -32188,7 +32335,8 @@
           "departure_time": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "pattern": "^(?:[01]\\d|2[0-3]):[0-5]\\d$"
               },
               {
                 "type": "null"
@@ -32199,7 +32347,8 @@
           "notes": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 500
               },
               {
                 "type": "null"
@@ -32217,6 +32366,17 @@
       },
       "StatusReportEntryPublic": {
         "properties": {
+          "employee_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Employee Name"
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -32608,6 +32768,103 @@
         },
         "type": "object",
         "title": "StatusReportSubmit"
+      },
+      "StatusStaffingEntry": {
+        "properties": {
+          "roster_assignment_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Roster Assignment Id"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "employee_name": {
+            "type": "string",
+            "title": "Employee Name"
+          },
+          "scheduled_shift_code": {
+            "type": "string",
+            "title": "Scheduled Shift Code"
+          },
+          "scheduled_start_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled Start Time"
+          },
+          "scheduled_end_time": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scheduled End Time"
+          },
+          "ends_next_day": {
+            "type": "boolean",
+            "title": "Ends Next Day"
+          },
+          "availability": {
+            "$ref": "#/components/schemas/RosterAvailability"
+          },
+          "personnel_status": {
+            "$ref": "#/components/schemas/PersonnelStatus"
+          }
+        },
+        "type": "object",
+        "required": [
+          "roster_assignment_id",
+          "user_id",
+          "employee_name",
+          "scheduled_shift_code",
+          "ends_next_day",
+          "availability",
+          "personnel_status"
+        ],
+        "title": "StatusStaffingEntry"
+      },
+      "StatusStaffingPublic": {
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "report_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Report Date"
+          },
+          "shift_code": {
+            "type": "string",
+            "title": "Shift Code"
+          },
+          "entries": {
+            "items": {
+              "$ref": "#/components/schemas/StatusStaffingEntry"
+            },
+            "type": "array",
+            "title": "Entries"
+          }
+        },
+        "type": "object",
+        "required": [
+          "department_id",
+          "report_date",
+          "shift_code",
+          "entries"
+        ],
+        "title": "StatusStaffingPublic"
       },
       "StopView": {
         "properties": {

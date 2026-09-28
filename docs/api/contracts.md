@@ -1041,3 +1041,22 @@ Each link exposes only `title`, `category` and `url`; internal Payload row IDs
 are omitted. Links use existing HTTP/HTTPS destinations, not product revision
 lookups. Staff must check the destination's audience access. Existing anonymous
 publication filtering remains unchanged; no FastAPI contract changes occur.
+
+### Daily status shift reporting
+
+Daily status uses `shift_code=M|E|N`; legacy `shift_period=AM|PM` remains readable
+for compatibility. `GET /api/v1/hr/status-reports/staffing` takes department,
+local report date and shift code, returning published/closed roster staff and
+approved absence/leave availability. D assignments remain D in both M/E coverage;
+M covers arrival and E covers departure/final verification. Schedules never
+prove attendance: unconfirmed staffing is `UNCONFIRMED`, and submission requires
+confirmation of all personnel entries and operational answers. This report does
+not create or approve the employee's attendance record.
+
+`POST /api/v1/hr/status-reports/preview-pdf` renders unsaved form values in Python
+without storing a report, workflow or signature. The same renderer serves signed
+output, including original equipment/remedy and incident-report fields, resolved
+employee names, reporter, supervisor and submission timestamp. Creation, editing,
+reading, listing and staffing require scoped department access; personnel rows
+must belong to that department. Draft details return persisted personnel rows
+with resolved names, arrival/departure observations and notes.

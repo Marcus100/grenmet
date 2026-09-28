@@ -744,6 +744,11 @@ export {
   useHrGetStatusReports,
 } from "./useHrGetStatusReports.js";
 export {
+  hrGetStatusStaffingQueryKey,
+  hrGetStatusStaffingQueryOptions,
+  useHrGetStatusStaffing,
+} from "./useHrGetStatusStaffing.js";
+export {
   hrGetTemplatesQueryKey,
   hrGetTemplatesQueryOptions,
   useHrGetTemplates,
@@ -868,6 +873,11 @@ export {
   hrPreviewOrganisationQueryOptions,
   useHrPreviewOrganisation,
 } from "./useHrPreviewOrganisation.js";
+export {
+  hrPreviewStatusReportPdfMutationKey,
+  hrPreviewStatusReportPdfMutationOptions,
+  useHrPreviewStatusReportPdf,
+} from "./useHrPreviewStatusReportPdf.js";
 export {
   hrPublishPeriodMutationKey,
   hrPublishPeriodMutationOptions,
