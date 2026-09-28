@@ -179,6 +179,7 @@ export { hrPreviewAbsenteeReportPdf } from "./clients/hrPreviewAbsenteeReportPdf
 export { hrPreviewCatalogue } from "./clients/hrPreviewCatalogue.js";
 export { hrPreviewLeaveRequestPdf } from "./clients/hrPreviewLeaveRequestPdf.js";
 export { hrPreviewOrganisation } from "./clients/hrPreviewOrganisation.js";
+export { hrPreviewParkingPermitPdf } from "./clients/hrPreviewParkingPermitPdf.js";
 export { hrPreviewShiftSwapPdf } from "./clients/hrPreviewShiftSwapPdf.js";
 export { hrPreviewStatusReportPdf } from "./clients/hrPreviewStatusReportPdf.js";
 export { hrProposeAttendanceCorrection } from "./clients/hrProposeAttendanceCorrection.js";
@@ -190,6 +191,7 @@ export { hrSaveWorkflowConfiguration } from "./clients/hrSaveWorkflowConfigurati
 export { hrSubmitAbsenteeReport } from "./clients/hrSubmitAbsenteeReport.js";
 export { hrSubmitAttendance } from "./clients/hrSubmitAttendance.js";
 export { hrSubmitLeaveRequest } from "./clients/hrSubmitLeaveRequest.js";
+export { hrSubmitParkingPermit } from "./clients/hrSubmitParkingPermit.js";
 export { hrSubmitShiftSwap } from "./clients/hrSubmitShiftSwap.js";
 export { hrSubmitStatusReport } from "./clients/hrSubmitStatusReport.js";
 export { hrSubmitTimesheet } from "./clients/hrSubmitTimesheet.js";
@@ -200,6 +202,7 @@ export { hrUpdateDepartment } from "./clients/hrUpdateDepartment.js";
 export { hrUpdateHrEmployment } from "./clients/hrUpdateHrEmployment.js";
 export { hrUpdateHrProfileMe } from "./clients/hrUpdateHrProfileMe.js";
 export { hrUpdateLeaveRequest } from "./clients/hrUpdateLeaveRequest.js";
+export { hrUpdateParkingPermit } from "./clients/hrUpdateParkingPermit.js";
 export { hrUpdateProductPolicy } from "./clients/hrUpdateProductPolicy.js";
 export { hrUpdateRoleConfiguration } from "./clients/hrUpdateRoleConfiguration.js";
 export { hrUpdateSetupGrade } from "./clients/hrUpdateSetupGrade.js";
@@ -1181,6 +1184,11 @@ export {
   useHrPreviewOrganisation,
 } from "./hooks/useHrPreviewOrganisation.js";
 export {
+  hrPreviewParkingPermitPdfMutationKey,
+  hrPreviewParkingPermitPdfMutationOptions,
+  useHrPreviewParkingPermitPdf,
+} from "./hooks/useHrPreviewParkingPermitPdf.js";
+export {
   hrPreviewShiftSwapPdfMutationKey,
   hrPreviewShiftSwapPdfMutationOptions,
   useHrPreviewShiftSwapPdf,
@@ -1236,6 +1244,11 @@ export {
   useHrSubmitLeaveRequest,
 } from "./hooks/useHrSubmitLeaveRequest.js";
 export {
+  hrSubmitParkingPermitMutationKey,
+  hrSubmitParkingPermitMutationOptions,
+  useHrSubmitParkingPermit,
+} from "./hooks/useHrSubmitParkingPermit.js";
+export {
   hrSubmitShiftSwapMutationKey,
   hrSubmitShiftSwapMutationOptions,
   useHrSubmitShiftSwap,
@@ -1285,6 +1298,11 @@ export {
   hrUpdateLeaveRequestMutationOptions,
   useHrUpdateLeaveRequest,
 } from "./hooks/useHrUpdateLeaveRequest.js";
+export {
+  hrUpdateParkingPermitMutationKey,
+  hrUpdateParkingPermitMutationOptions,
+  useHrUpdateParkingPermit,
+} from "./hooks/useHrUpdateParkingPermit.js";
 export {
   hrUpdateProductPolicyMutationKey,
   hrUpdateProductPolicyMutationOptions,
@@ -2855,6 +2873,7 @@ export type {
   HrCreateParkingPermitResponse,
   HrCreateParkingPermitResponses,
   HrCreateParkingPermitStatus201,
+  HrCreateParkingPermitStatus400,
   HrCreateParkingPermitStatus403,
   HrCreateParkingPermitStatus422,
 } from "./models/HrCreateParkingPermit.js";
@@ -3431,6 +3450,7 @@ export type {
   HrIssueParkingDecalResponse,
   HrIssueParkingDecalResponses,
   HrIssueParkingDecalStatus200,
+  HrIssueParkingDecalStatus400,
   HrIssueParkingDecalStatus403,
   HrIssueParkingDecalStatus404,
   HrIssueParkingDecalStatus422,
@@ -3582,6 +3602,16 @@ export type {
   HrPreviewOrganisationStatus422,
 } from "./models/HrPreviewOrganisation.js";
 export type {
+  HrPreviewParkingPermitPdfBody,
+  HrPreviewParkingPermitPdfOptions,
+  HrPreviewParkingPermitPdfResponse,
+  HrPreviewParkingPermitPdfResponses,
+  HrPreviewParkingPermitPdfStatus200,
+  HrPreviewParkingPermitPdfStatus400,
+  HrPreviewParkingPermitPdfStatus403,
+  HrPreviewParkingPermitPdfStatus422,
+} from "./models/HrPreviewParkingPermitPdf.js";
+export type {
   HrPreviewShiftSwapPdfBody,
   HrPreviewShiftSwapPdfOptions,
   HrPreviewShiftSwapPdfResponse,
@@ -3708,6 +3738,18 @@ export type {
   HrSubmitLeaveRequestStatus422,
 } from "./models/HrSubmitLeaveRequest.js";
 export type {
+  HrSubmitParkingPermitBody,
+  HrSubmitParkingPermitOptions,
+  HrSubmitParkingPermitPath,
+  HrSubmitParkingPermitResponse,
+  HrSubmitParkingPermitResponses,
+  HrSubmitParkingPermitStatus200,
+  HrSubmitParkingPermitStatus400,
+  HrSubmitParkingPermitStatus403,
+  HrSubmitParkingPermitStatus404,
+  HrSubmitParkingPermitStatus422,
+} from "./models/HrSubmitParkingPermit.js";
+export type {
   HrSubmitShiftSwapBody,
   HrSubmitShiftSwapOptions,
   HrSubmitShiftSwapPath,
@@ -3824,6 +3866,18 @@ export type {
   HrUpdateLeaveRequestStatus404,
   HrUpdateLeaveRequestStatus422,
 } from "./models/HrUpdateLeaveRequest.js";
+export type {
+  HrUpdateParkingPermitBody,
+  HrUpdateParkingPermitOptions,
+  HrUpdateParkingPermitPath,
+  HrUpdateParkingPermitResponse,
+  HrUpdateParkingPermitResponses,
+  HrUpdateParkingPermitStatus200,
+  HrUpdateParkingPermitStatus400,
+  HrUpdateParkingPermitStatus403,
+  HrUpdateParkingPermitStatus404,
+  HrUpdateParkingPermitStatus422,
+} from "./models/HrUpdateParkingPermit.js";
 export type {
   HrUpdateProductPolicyBody,
   HrUpdateProductPolicyOptions,
@@ -4429,6 +4483,7 @@ export type { ParkingPermitCreate } from "./models/ParkingPermitCreate.js";
 export type { ParkingPermitIssue } from "./models/ParkingPermitIssue.js";
 export type { ParkingPermitListPublic } from "./models/ParkingPermitListPublic.js";
 export type { ParkingPermitPublic } from "./models/ParkingPermitPublic.js";
+export type { ParkingPermitSubmit } from "./models/ParkingPermitSubmit.js";
 export type { PermissionCreate } from "./models/PermissionCreate.js";
 export type { PermissionPublic } from "./models/PermissionPublic.js";
 export type { PersonnelStatus } from "./models/PersonnelStatus.js";
@@ -6120,6 +6175,7 @@ export {
   hrCreateParkingPermitErrorSchema,
   hrCreateParkingPermitResponseSchema,
   hrCreateParkingPermitStatus201Schema,
+  hrCreateParkingPermitStatus400Schema,
   hrCreateParkingPermitStatus403Schema,
   hrCreateParkingPermitStatus422Schema,
 } from "./zod/hrCreateParkingPermitSchema.js";
@@ -6670,6 +6726,7 @@ export {
   hrIssueParkingDecalPathPermitIdSchema,
   hrIssueParkingDecalResponseSchema,
   hrIssueParkingDecalStatus200Schema,
+  hrIssueParkingDecalStatus400Schema,
   hrIssueParkingDecalStatus403Schema,
   hrIssueParkingDecalStatus404Schema,
   hrIssueParkingDecalStatus422Schema,
@@ -6814,6 +6871,15 @@ export {
   hrPreviewOrganisationStatus422Schema,
 } from "./zod/hrPreviewOrganisationSchema.js";
 export {
+  hrPreviewParkingPermitPdfBodySchema,
+  hrPreviewParkingPermitPdfErrorSchema,
+  hrPreviewParkingPermitPdfResponseSchema,
+  hrPreviewParkingPermitPdfStatus200Schema,
+  hrPreviewParkingPermitPdfStatus400Schema,
+  hrPreviewParkingPermitPdfStatus403Schema,
+  hrPreviewParkingPermitPdfStatus422Schema,
+} from "./zod/hrPreviewParkingPermitPdfSchema.js";
+export {
   hrPreviewShiftSwapPdfBodySchema,
   hrPreviewShiftSwapPdfErrorSchema,
   hrPreviewShiftSwapPdfResponseSchema,
@@ -6929,6 +6995,17 @@ export {
   hrSubmitLeaveRequestStatus422Schema,
 } from "./zod/hrSubmitLeaveRequestSchema.js";
 export {
+  hrSubmitParkingPermitBodySchema,
+  hrSubmitParkingPermitErrorSchema,
+  hrSubmitParkingPermitPathPermitIdSchema,
+  hrSubmitParkingPermitResponseSchema,
+  hrSubmitParkingPermitStatus200Schema,
+  hrSubmitParkingPermitStatus400Schema,
+  hrSubmitParkingPermitStatus403Schema,
+  hrSubmitParkingPermitStatus404Schema,
+  hrSubmitParkingPermitStatus422Schema,
+} from "./zod/hrSubmitParkingPermitSchema.js";
+export {
   hrSubmitShiftSwapBodySchema,
   hrSubmitShiftSwapErrorSchema,
   hrSubmitShiftSwapPathShiftSwapIdSchema,
@@ -7035,6 +7112,17 @@ export {
   hrUpdateLeaveRequestStatus404Schema,
   hrUpdateLeaveRequestStatus422Schema,
 } from "./zod/hrUpdateLeaveRequestSchema.js";
+export {
+  hrUpdateParkingPermitBodySchema,
+  hrUpdateParkingPermitErrorSchema,
+  hrUpdateParkingPermitPathPermitIdSchema,
+  hrUpdateParkingPermitResponseSchema,
+  hrUpdateParkingPermitStatus200Schema,
+  hrUpdateParkingPermitStatus400Schema,
+  hrUpdateParkingPermitStatus403Schema,
+  hrUpdateParkingPermitStatus404Schema,
+  hrUpdateParkingPermitStatus422Schema,
+} from "./zod/hrUpdateParkingPermitSchema.js";
 export {
   hrUpdateProductPolicyBodySchema,
   hrUpdateProductPolicyErrorSchema,
@@ -7585,6 +7673,7 @@ export { parkingPermitCreateSchema } from "./zod/parkingPermitCreateSchema.js";
 export { parkingPermitIssueSchema } from "./zod/parkingPermitIssueSchema.js";
 export { parkingPermitListPublicSchema } from "./zod/parkingPermitListPublicSchema.js";
 export { parkingPermitPublicSchema } from "./zod/parkingPermitPublicSchema.js";
+export { parkingPermitSubmitSchema } from "./zod/parkingPermitSubmitSchema.js";
 export { permissionCreateSchema } from "./zod/permissionCreateSchema.js";
 export { permissionPublicSchema } from "./zod/permissionPublicSchema.js";
 export { personnelStatusSchema } from "./zod/personnelStatusSchema.js";

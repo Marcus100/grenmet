@@ -889,6 +889,11 @@ export {
   useHrPreviewOrganisation,
 } from "./useHrPreviewOrganisation.js";
 export {
+  hrPreviewParkingPermitPdfMutationKey,
+  hrPreviewParkingPermitPdfMutationOptions,
+  useHrPreviewParkingPermitPdf,
+} from "./useHrPreviewParkingPermitPdf.js";
+export {
   hrPreviewShiftSwapPdfMutationKey,
   hrPreviewShiftSwapPdfMutationOptions,
   useHrPreviewShiftSwapPdf,
@@ -944,6 +949,11 @@ export {
   useHrSubmitLeaveRequest,
 } from "./useHrSubmitLeaveRequest.js";
 export {
+  hrSubmitParkingPermitMutationKey,
+  hrSubmitParkingPermitMutationOptions,
+  useHrSubmitParkingPermit,
+} from "./useHrSubmitParkingPermit.js";
+export {
   hrSubmitShiftSwapMutationKey,
   hrSubmitShiftSwapMutationOptions,
   useHrSubmitShiftSwap,
@@ -993,6 +1003,11 @@ export {
   hrUpdateLeaveRequestMutationOptions,
   useHrUpdateLeaveRequest,
 } from "./useHrUpdateLeaveRequest.js";
+export {
+  hrUpdateParkingPermitMutationKey,
+  hrUpdateParkingPermitMutationOptions,
+  useHrUpdateParkingPermit,
+} from "./useHrUpdateParkingPermit.js";
 export {
   hrUpdateProductPolicyMutationKey,
   hrUpdateProductPolicyMutationOptions,

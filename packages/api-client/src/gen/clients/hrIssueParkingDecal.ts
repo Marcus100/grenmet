@@ -11,7 +11,7 @@ import type {
 } from "../models/HrIssueParkingDecal.js";
 
 /**
- * @description Record decal issuance for a parking permit. Requires parking.permit.issue permission.
+ * @description Record issuance only after approval, within active organisation/department scope. Identical retries preserve the original issuer/date; renewals and replacements are separate applications.
  * @summary Issue a parking decal
  * {@link /api/v1/hr/parking-permits/:permit_id/issue}
  */

@@ -996,6 +996,7 @@ export {
   hrCreateParkingPermitErrorSchema,
   hrCreateParkingPermitResponseSchema,
   hrCreateParkingPermitStatus201Schema,
+  hrCreateParkingPermitStatus400Schema,
   hrCreateParkingPermitStatus403Schema,
   hrCreateParkingPermitStatus422Schema,
 } from "./hrCreateParkingPermitSchema.js";
@@ -1546,6 +1547,7 @@ export {
   hrIssueParkingDecalPathPermitIdSchema,
   hrIssueParkingDecalResponseSchema,
   hrIssueParkingDecalStatus200Schema,
+  hrIssueParkingDecalStatus400Schema,
   hrIssueParkingDecalStatus403Schema,
   hrIssueParkingDecalStatus404Schema,
   hrIssueParkingDecalStatus422Schema,
@@ -1690,6 +1692,15 @@ export {
   hrPreviewOrganisationStatus422Schema,
 } from "./hrPreviewOrganisationSchema.js";
 export {
+  hrPreviewParkingPermitPdfBodySchema,
+  hrPreviewParkingPermitPdfErrorSchema,
+  hrPreviewParkingPermitPdfResponseSchema,
+  hrPreviewParkingPermitPdfStatus200Schema,
+  hrPreviewParkingPermitPdfStatus400Schema,
+  hrPreviewParkingPermitPdfStatus403Schema,
+  hrPreviewParkingPermitPdfStatus422Schema,
+} from "./hrPreviewParkingPermitPdfSchema.js";
+export {
   hrPreviewShiftSwapPdfBodySchema,
   hrPreviewShiftSwapPdfErrorSchema,
   hrPreviewShiftSwapPdfResponseSchema,
@@ -1805,6 +1816,17 @@ export {
   hrSubmitLeaveRequestStatus422Schema,
 } from "./hrSubmitLeaveRequestSchema.js";
 export {
+  hrSubmitParkingPermitBodySchema,
+  hrSubmitParkingPermitErrorSchema,
+  hrSubmitParkingPermitPathPermitIdSchema,
+  hrSubmitParkingPermitResponseSchema,
+  hrSubmitParkingPermitStatus200Schema,
+  hrSubmitParkingPermitStatus400Schema,
+  hrSubmitParkingPermitStatus403Schema,
+  hrSubmitParkingPermitStatus404Schema,
+  hrSubmitParkingPermitStatus422Schema,
+} from "./hrSubmitParkingPermitSchema.js";
+export {
   hrSubmitShiftSwapBodySchema,
   hrSubmitShiftSwapErrorSchema,
   hrSubmitShiftSwapPathShiftSwapIdSchema,
@@ -1911,6 +1933,17 @@ export {
   hrUpdateLeaveRequestStatus404Schema,
   hrUpdateLeaveRequestStatus422Schema,
 } from "./hrUpdateLeaveRequestSchema.js";
+export {
+  hrUpdateParkingPermitBodySchema,
+  hrUpdateParkingPermitErrorSchema,
+  hrUpdateParkingPermitPathPermitIdSchema,
+  hrUpdateParkingPermitResponseSchema,
+  hrUpdateParkingPermitStatus200Schema,
+  hrUpdateParkingPermitStatus400Schema,
+  hrUpdateParkingPermitStatus403Schema,
+  hrUpdateParkingPermitStatus404Schema,
+  hrUpdateParkingPermitStatus422Schema,
+} from "./hrUpdateParkingPermitSchema.js";
 export {
   hrUpdateProductPolicyBodySchema,
   hrUpdateProductPolicyErrorSchema,
@@ -2461,6 +2494,7 @@ export { parkingPermitCreateSchema } from "./parkingPermitCreateSchema.js";
 export { parkingPermitIssueSchema } from "./parkingPermitIssueSchema.js";
 export { parkingPermitListPublicSchema } from "./parkingPermitListPublicSchema.js";
 export { parkingPermitPublicSchema } from "./parkingPermitPublicSchema.js";
+export { parkingPermitSubmitSchema } from "./parkingPermitSubmitSchema.js";
 export { permissionCreateSchema } from "./permissionCreateSchema.js";
 export { permissionPublicSchema } from "./permissionPublicSchema.js";
 export { personnelStatusSchema } from "./personnelStatusSchema.js";

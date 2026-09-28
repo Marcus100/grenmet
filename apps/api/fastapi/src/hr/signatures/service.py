@@ -413,6 +413,10 @@ def render_shift_exchange_pdf(snapshot: DocumentSnapshot, image: bytes | None) -
 
 
 def render_pdf(snapshot: DocumentSnapshot, image: bytes | None) -> bytes:
+    if snapshot["entity_type"] == "parking_permit":
+        from src.hr.parking.pdf import render_parking_pdf
+
+        return render_parking_pdf(snapshot, image)
     if snapshot["entity_type"] == "shift_swap":
         return render_shift_exchange_pdf(snapshot, image)
     if snapshot["entity_type"] == "status_report":

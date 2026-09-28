@@ -2,11 +2,14 @@
 
 **Status:** Active reference  
 **Owner:** GAA (institutional content); maintained by Barrels Grenada  
-**Last updated:** 2026-06-28
+**Last updated:** 2026-09-28
 
 Source-of-truth mapping from the Grenada Airports Authority (GAA) paper HR forms to the FastAPI
-`src/hr` data models. Raw forms live outside the repo at
-`OneDrive/bishop/raw/03-software-data/grenmet/hr`.
+`src/hr` data models. The supplied originals for this review are in
+`temp-files/gaaforms/`; the earlier external collection is
+`OneDrive/bishop/raw/03-software-data/grenmet/hr`. A modeled field alone does not
+prove the editor, stored snapshot or PDF preserves it; verify the complete
+journey using [the alignment plan](end-to-end-alignment.md).
 
 **Status legend**
 
@@ -120,6 +123,13 @@ Applies to Maurice Bishop Int'l **and Lauriston** airports.
 | DECAL ISSUANCE: decal number, received by, date | `decal_number`, `received_by`, `issued_at`, `valid_from`, `valid_to`, `issued_by_user_id` | covered |
 | AIRPORT USE ONLY: Security Manager auth, processed by, dates | — | via-workflow |
 | Indemnity / rules clauses | — | prose, not data |
+
+The application editor prefills HR identity, department, company and phone and
+supports saved drafts, signed submission and renewal from prior vehicle details.
+FastAPI renders the original fields and all eight security conditions in the
+preview and immutable signed copy. Decal issuance requires scoped approval;
+recipient print name never implies a recipient signature. Employment and
+configured workflow resolve the employee and supervisor names in the PDF.
 
 ---
 

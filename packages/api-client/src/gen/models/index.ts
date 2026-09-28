@@ -1118,6 +1118,7 @@ export type {
   HrCreateParkingPermitResponse,
   HrCreateParkingPermitResponses,
   HrCreateParkingPermitStatus201,
+  HrCreateParkingPermitStatus400,
   HrCreateParkingPermitStatus403,
   HrCreateParkingPermitStatus422,
 } from "./HrCreateParkingPermit.js";
@@ -1694,6 +1695,7 @@ export type {
   HrIssueParkingDecalResponse,
   HrIssueParkingDecalResponses,
   HrIssueParkingDecalStatus200,
+  HrIssueParkingDecalStatus400,
   HrIssueParkingDecalStatus403,
   HrIssueParkingDecalStatus404,
   HrIssueParkingDecalStatus422,
@@ -1845,6 +1847,16 @@ export type {
   HrPreviewOrganisationStatus422,
 } from "./HrPreviewOrganisation.js";
 export type {
+  HrPreviewParkingPermitPdfBody,
+  HrPreviewParkingPermitPdfOptions,
+  HrPreviewParkingPermitPdfResponse,
+  HrPreviewParkingPermitPdfResponses,
+  HrPreviewParkingPermitPdfStatus200,
+  HrPreviewParkingPermitPdfStatus400,
+  HrPreviewParkingPermitPdfStatus403,
+  HrPreviewParkingPermitPdfStatus422,
+} from "./HrPreviewParkingPermitPdf.js";
+export type {
   HrPreviewShiftSwapPdfBody,
   HrPreviewShiftSwapPdfOptions,
   HrPreviewShiftSwapPdfResponse,
@@ -1971,6 +1983,18 @@ export type {
   HrSubmitLeaveRequestStatus422,
 } from "./HrSubmitLeaveRequest.js";
 export type {
+  HrSubmitParkingPermitBody,
+  HrSubmitParkingPermitOptions,
+  HrSubmitParkingPermitPath,
+  HrSubmitParkingPermitResponse,
+  HrSubmitParkingPermitResponses,
+  HrSubmitParkingPermitStatus200,
+  HrSubmitParkingPermitStatus400,
+  HrSubmitParkingPermitStatus403,
+  HrSubmitParkingPermitStatus404,
+  HrSubmitParkingPermitStatus422,
+} from "./HrSubmitParkingPermit.js";
+export type {
   HrSubmitShiftSwapBody,
   HrSubmitShiftSwapOptions,
   HrSubmitShiftSwapPath,
@@ -2087,6 +2111,18 @@ export type {
   HrUpdateLeaveRequestStatus404,
   HrUpdateLeaveRequestStatus422,
 } from "./HrUpdateLeaveRequest.js";
+export type {
+  HrUpdateParkingPermitBody,
+  HrUpdateParkingPermitOptions,
+  HrUpdateParkingPermitPath,
+  HrUpdateParkingPermitResponse,
+  HrUpdateParkingPermitResponses,
+  HrUpdateParkingPermitStatus200,
+  HrUpdateParkingPermitStatus400,
+  HrUpdateParkingPermitStatus403,
+  HrUpdateParkingPermitStatus404,
+  HrUpdateParkingPermitStatus422,
+} from "./HrUpdateParkingPermit.js";
 export type {
   HrUpdateProductPolicyBody,
   HrUpdateProductPolicyOptions,
@@ -2692,6 +2728,7 @@ export type { ParkingPermitCreate } from "./ParkingPermitCreate.js";
 export type { ParkingPermitIssue } from "./ParkingPermitIssue.js";
 export type { ParkingPermitListPublic } from "./ParkingPermitListPublic.js";
 export type { ParkingPermitPublic } from "./ParkingPermitPublic.js";
+export type { ParkingPermitSubmit } from "./ParkingPermitSubmit.js";
 export type { PermissionCreate } from "./PermissionCreate.js";
 export type { PermissionPublic } from "./PermissionPublic.js";
 export type { PersonnelStatus } from "./PersonnelStatus.js";
