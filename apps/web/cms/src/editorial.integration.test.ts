@@ -2,19 +2,20 @@ import { randomUUID } from "node:crypto";
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { sql } from "@payloadcms/db-postgres/drizzle";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
-import { buildConfig, createLocalReq, getPayload, type Payload } from "payload";
+import { buildConfig, getPayload, type Payload } from "payload";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { Content } from "./collections/content";
+import { DeskUpdates } from "./collections/desk-updates";
 import { Media } from "./collections/media";
+import { Publications } from "./collections/publications";
+import { Stories } from "./collections/stories";
 import { Users } from "./collections/users";
 import { testDatabaseUrl } from "./env";
 import { readFastApiIdentity } from "./lib/fastapi-identity";
-import { up as migrateEditorialLinks } from "./migrations/20260923_170000_editorial_links";
-import type { Content as ContentDocument, User } from "./payload-types";
+import type { DeskUpdate, User } from "./payload-types";
 
 vi.mock("./lib/fastapi-identity", () => ({ readFastApiIdentity: vi.fn() }));
 
-function body(text: string): ContentDocument["body"] {
+function body(text: string): NonNullable<DeskUpdate["body"]> {
   return {
     root: {
       type: "root",
@@ -46,6 +47,8 @@ function body(text: string): ContentDocument["body"] {
   };
 }
 
+const DESK_SLUG = /^updates\/\d{4}\/\d{2}\/preparing-for-the-season$/;
+
 // An isolated schema keeps trial content and all other databases untouched.
 describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
   let payload: Payload;
@@ -68,22 +71,11 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
           schemaName: schema,
           push: true,
         }),
-        collections: [Users, Content, Media],
+        collections: [DeskUpdates, Stories, Publications, Media, Users],
         admin: { user: "users", importMap: { autoGenerate: false } },
         graphQL: { disable: true },
         typescript: { autoGenerate: false },
       }),
-    });
-    // Replace auto-pushed link tables with the actual additive migration, then
-    // exercise Payload writes and history against its physical schema.
-    const req = await createLocalReq({}, payload);
-    await payload.db.drizzle.transaction(async (db) => {
-      await db.execute(
-        sql.raw(
-          `SET LOCAL search_path TO "${schema}"; DROP TABLE "${schema}"."content_related_links"; DROP TABLE "${schema}"."_content_v_version_related_links"; DROP TYPE "${schema}"."enum_content_related_links_category"; DROP TYPE "${schema}"."enum__content_v_version_related_links_category";`
-        )
-      );
-      await migrateEditorialLinks({ db, payload, req });
     });
     editor = await payload.create({
       draft: true,
@@ -97,7 +89,7 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
           "cms.article.create",
           "cms.article.edit.all",
           "cms.article.manage",
-          "cms.article.publish.latest-from-us",
+          "cms.publish.desk-updates",
         ],
       },
     });
@@ -196,12 +188,14 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
   it("keeps rich text private until a permitted editor publishes a reviewed article", async () => {
     const article = await payload.create({
       draft: true,
-      collection: "content",
+      collection: "desk-updates",
       overrideAccess: false,
       user: author,
       data: {
         title: "Preparing for the season",
-        updateType: "Tropical weather outlook",
+        summary: "Check your supplies before the peak.",
+        kind: "public-notice",
+        product: "tropical-outlook",
         relatedLinks: [
           {
             title: "Read the outlook",
@@ -209,7 +203,6 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
             url: "https://weather.gd/forecasts",
           },
         ],
-        slug: "season-preparation",
         body: body("Check supplies"),
         status: "draft",
         author: editor.id,
@@ -217,13 +210,13 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
     });
     expect(article.author).toMatchObject({ id: author.id });
     const publicDrafts = await payload.find({
-      collection: "content",
+      collection: "desk-updates",
       overrideAccess: false,
     });
     expect(publicDrafts.totalDocs).toBe(0);
     await expect(
       payload.update({
-        collection: "content",
+        collection: "desk-updates",
         id: article.id,
         overrideAccess: false,
         user: editor,
@@ -231,7 +224,7 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
       })
     ).rejects.toThrow("review");
     await payload.update({
-      collection: "content",
+      collection: "desk-updates",
       id: article.id,
       overrideAccess: false,
       user: author,
@@ -239,7 +232,7 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
     });
     await expect(
       payload.update({
-        collection: "content",
+        collection: "desk-updates",
         id: article.id,
         overrideAccess: false,
         user: author,
@@ -247,26 +240,27 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
       })
     ).rejects.toThrow("permission");
     await payload.update({
-      collection: "content",
+      collection: "desk-updates",
       id: article.id,
       overrideAccess: false,
       user: editor,
       data: { status: "published" },
     });
     const visible = await payload.find({
-      collection: "content",
+      collection: "desk-updates",
       overrideAccess: false,
     });
     expect(visible.totalDocs).toBe(1);
     expect(visible.docs[0]?.body).toEqual(body("Check supplies"));
-    expect(visible.docs[0]?.updateType).toBe("Tropical weather outlook");
+    expect(visible.docs[0]?.product).toBe("tropical-outlook");
+    expect(visible.docs[0]?.slug).toMatch(DESK_SLUG);
     expect(visible.docs[0]?.relatedLinks?.[0]).toMatchObject({
       title: "Read the outlook",
       category: "forecast",
       url: "https://weather.gd/forecasts",
     });
     const history = await payload.findVersions({
-      collection: "content",
+      collection: "desk-updates",
       overrideAccess: false,
       user: editor,
       where: { parent: { equals: article.id } },
@@ -276,7 +270,7 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
     );
     await expect(
       payload.update({
-        collection: "content",
+        collection: "desk-updates",
         id: article.id,
         overrideAccess: false,
         user: editor,
@@ -288,7 +282,7 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
       })
     ).rejects.toThrow("Related links");
     await payload.update({
-      collection: "content",
+      collection: "desk-updates",
       id: article.id,
       overrideAccess: false,
       user: editor,
@@ -297,7 +291,7 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
     expect(
       (
         await payload.findByID({
-          collection: "content",
+          collection: "desk-updates",
           id: article.id,
           overrideAccess: false,
         })
@@ -306,7 +300,7 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
     expect(visible.docs[0]?.author).toBeUndefined();
     await expect(
       payload.update({
-        collection: "content",
+        collection: "desk-updates",
         id: article.id,
         overrideAccess: false,
         user: author,
@@ -314,18 +308,21 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
       })
     ).rejects.toThrow();
     await expect(
-      payload.findVersions({ collection: "content", overrideAccess: false })
+      payload.findVersions({
+        collection: "desk-updates",
+        overrideAccess: false,
+      })
     ).rejects.toThrow();
   });
-  it("prevents authors from editing each other and allows general pages", async () => {
+  it("prevents authors from editing each other's updates", async () => {
     const page = await payload.create({
       draft: true,
-      collection: "content",
+      collection: "desk-updates",
       overrideAccess: false,
       user: editor,
       data: {
         title: "About GMS",
-        slug: "about-gms",
+        summary: "Who we are.",
         status: "draft",
         body: body("About GMS"),
         author: editor.id,
@@ -333,12 +330,50 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
     });
     await expect(
       payload.update({
-        collection: "content",
+        collection: "desk-updates",
         id: page.id,
         overrideAccess: false,
         user: author,
         data: { body: body("Changed") },
       })
     ).rejects.toThrow();
+  });
+  it("keeps each section's publish permission to its own collection", async () => {
+    const image = await payload.create({
+      collection: "media",
+      overrideAccess: true,
+      data: { alt: "Haze over Grand Anse", credit: "GMS" },
+      file: {
+        data: Buffer.from("R0lGODlhAQABAAAAACw=", "base64"),
+        mimetype: "image/gif",
+        name: "haze.gif",
+        size: 14,
+      },
+    });
+    const story = await payload.create({
+      draft: true,
+      collection: "stories",
+      overrideAccess: false,
+      user: author,
+      data: {
+        title: "Why the sky turns hazy",
+        summary: "Saharan dust crosses the Atlantic.",
+        kind: "explainer",
+        image: image.id,
+        body: body("Dust"),
+        status: "review",
+        slug: "pending",
+        author: author.id,
+      },
+    });
+    await expect(
+      payload.update({
+        collection: "stories",
+        id: story.id,
+        overrideAccess: false,
+        user: editor,
+        data: { status: "published" },
+      })
+    ).rejects.toThrow("permission");
   });
 });

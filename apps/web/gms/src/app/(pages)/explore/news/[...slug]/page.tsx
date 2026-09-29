@@ -5,14 +5,12 @@ import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
 import { fetchContentBySlug } from "@/lib/cms";
 import { contentToArticle } from "@/lib/editorial";
+import { fileLabel, reportPeriod } from "@/lib/report-file";
 
 const SECTIONS = {
-  "latest-from-us": { title: "Latest from us", href: "/explore/updates" },
-  "weather-news": { title: "Stories", href: "/explore/news" },
-  "latest-publications": {
-    title: "Latest publications",
-    href: "/explore/news",
-  },
+  "desk-updates": { title: "From the Desk", href: "/explore/updates" },
+  stories: { title: "Stories", href: "/explore/news" },
+  publications: { title: "Latest reports", href: "/climate/publications" },
 } as const;
 
 /** Running text on the type scale: 16/24 body, condensed h2, a readable measure. */
@@ -56,7 +54,7 @@ export default async function ArticlePage({
   const content = result.articles[0];
   if (!content) notFound();
   const article = contentToArticle(content);
-  const section = SECTIONS[content.section ?? "latest-publications"];
+  const section = SECTIONS[content.collection];
 
   return (
     <>
@@ -88,6 +86,13 @@ export default async function ArticlePage({
             <p className="max-w-prose text-body-base text-gm-text-secondary leading-body-base">
               {article.summary}
             </p>
+            {Boolean(content.keyFindings?.length) && (
+              <ul className="max-w-prose list-disc space-y-1 pl-5 text-body-base leading-body-base">
+                {content.keyFindings?.map((finding) => (
+                  <li key={finding}>{finding}</li>
+                ))}
+              </ul>
+            )}
             <div className="flex items-center gap-3 border-gm-border border-y py-3 text-body-sm leading-body-sm">
               <span className="dark flex size-10 items-center justify-center rounded-full bg-gm-navy">
                 <Logo className="size-6" variant="icon" />
@@ -158,6 +163,29 @@ export default async function ArticlePage({
               <ArrowRightIcon aria-hidden="true" className="size-4" />
             </Link>
           </div>
+
+          {content.document && (
+            <section aria-labelledby="report-file" className={ASIDE_BOX}>
+              <h2
+                className="font-bold text-gm-text-secondary text-label uppercase leading-label tracking-wider"
+                id="report-file"
+              >
+                The report
+              </h2>
+              {(content.periodStart || content.periodEnd) && (
+                <p className="text-gm-text-secondary">
+                  Covers {reportPeriod(content.periodStart, content.periodEnd)}
+                </p>
+              )}
+              <a
+                className="font-semibold text-gm-blue-ink hover:underline"
+                download
+                href={content.document.url}
+              >
+                Download {fileLabel(content.document)}
+              </a>
+            </section>
+          )}
 
           {Boolean(content.relatedLinks?.length) && (
             <section aria-labelledby="related-links" className={ASIDE_BOX}>

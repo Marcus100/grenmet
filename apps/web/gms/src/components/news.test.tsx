@@ -12,7 +12,10 @@ import { fetchPublishedContent } from "@/lib/cms";
 
 const MARINE_TITLE = /Marine Bulletin/;
 
-vi.mock("@/lib/cms", () => ({ fetchPublishedContent: vi.fn() }));
+vi.mock("@/lib/cms", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/cms")>()),
+  fetchPublishedContent: vi.fn(),
+}));
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
@@ -20,7 +23,7 @@ afterEach(() => {
 
 for (const [name, component] of [
   ["Latest publications", News],
-  ["Latest from us", GmsNews],
+  ["From the Desk", GmsNews],
 ] as const) {
   it(`${name} renders published CMS articles`, async () => {
     vi.mocked(fetchPublishedContent).mockResolvedValue({
@@ -28,8 +31,9 @@ for (const [name, component] of [
       articles: [
         {
           id: "1",
+          collection: "desk-updates",
           title: "Marine Bulletin",
-          slug: "marine-test",
+          slug: "updates/2026/09/marine-test",
           summary: "Marine",
           body: "Bulletin",
           imageUrl: null,
@@ -39,11 +43,11 @@ for (const [name, component] of [
     });
     render(await component());
     expect(fetchPublishedContent).toHaveBeenCalledWith(
-      name === "Latest from us" ? "latest" : "latest-publications"
+      name === "From the Desk" ? "desk-updates" : "publications"
     );
     expect(
       screen.getAllByRole("link", { name: MARINE_TITLE })[0]
-    ).toHaveAttribute("href", "/explore/news/marine-test");
+    ).toHaveAttribute("href", "/explore/news/updates/2026/09/marine-test");
   });
   it(`${name} distinguishes unavailable content from an empty feed`, async () => {
     vi.mocked(fetchPublishedContent).mockResolvedValue({
@@ -79,8 +83,9 @@ it("lets Latest visitors copy the article link when native sharing is unavailabl
     articles: [
       {
         id: "1",
+        collection: "desk-updates",
         title: "Marine Bulletin",
-        slug: "marine-test",
+        slug: "updates/2026/09/marine-test",
         summary: "Marine",
         body: "Bulletin",
         imageUrl: null,
@@ -92,7 +97,7 @@ it("lets Latest visitors copy the article link when native sharing is unavailabl
   fireEvent.click(screen.getAllByRole("button", { name: "Share update" })[0]);
   await waitFor(() =>
     expect(writeText).toHaveBeenCalledWith(
-      expect.stringContaining("/explore/news/marine-test")
+      expect.stringContaining("/explore/news/updates/2026/09/marine-test")
     )
   );
   expect(screen.getByRole("status")).toHaveTextContent("copied");

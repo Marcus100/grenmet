@@ -4,14 +4,18 @@ vi.mock("@/lib/env", () => ({
   env: { CMS_API_URL: "http://cms.example.test" },
 }));
 
-import { fetchContentBySlug, fetchPublishedContent } from "@/lib/cms";
+import {
+  fetchContentBySlug,
+  fetchHomeContent,
+  fetchPublishedContent,
+} from "@/lib/cms";
 
 function article(overrides: Partial<Record<string, unknown>> = {}) {
   return {
     id: "1",
+    collection: "stories",
     title: "Season preparation",
-    slug: "season-preparation",
-    kind: "article",
+    slug: "stories/2026/09/season-preparation",
     summary: "Get ready",
     body: "# Prepare",
     imageUrl: null,
@@ -34,7 +38,7 @@ describe("published content feed", () => {
     expect(result.status).toBe("ok");
     expect(result.articles).toHaveLength(1);
     expect(fetcher).toHaveBeenCalledWith(
-      new URL("http://cms.example.test/api/public/content"),
+      new URL("http://cms.example.test/api/public/articles"),
       expect.objectContaining({ cache: "no-store" })
     );
   });
@@ -88,36 +92,62 @@ describe("published content feed", () => {
       .fn()
       .mockResolvedValue(Response.json({ articles: [article()] }));
     vi.stubGlobal("fetch", fetcher);
-    const result = await fetchContentBySlug("season-preparation");
+    const result = await fetchContentBySlug(
+      "stories/2026/09/season-preparation"
+    );
     expect(result.status).toBe("ok");
-    expect(result.articles[0]?.slug).toBe("season-preparation");
+    expect(result.articles[0]?.collection).toBe("stories");
     expect(fetcher).toHaveBeenCalledWith(
       new URL(
-        "http://cms.example.test/api/public/content?slug=season-preparation"
+        "http://cms.example.test/api/public/articles?slug=stories%2F2026%2F09%2Fseason-preparation"
       ),
       expect.objectContaining({ cache: "no-store" })
     );
   });
 });
 
-it("passes the section filter to CMS", async () => {
+it("asks CMS for one collection", async () => {
   const fetcher = vi.fn().mockResolvedValue(Response.json({ articles: [] }));
   vi.stubGlobal("fetch", fetcher);
-  await fetchPublishedContent("latest");
+  await fetchPublishedContent("publications");
   expect(fetcher).toHaveBeenCalledWith(
-    new URL("http://cms.example.test/api/public/content?placement=latest"),
+    new URL(
+      "http://cms.example.test/api/public/articles?collection=publications"
+    ),
     expect.anything()
   );
 });
 
-it("keeps publications separate from weather news", async () => {
-  const fetcher = vi.fn().mockResolvedValue(Response.json({ articles: [] }));
-  vi.stubGlobal("fetch", fetcher);
-  await fetchPublishedContent("latest-publications");
-  expect(fetcher).toHaveBeenCalledWith(
-    new URL(
-      "http://cms.example.test/api/public/content?section=latest-publications"
-    ),
-    expect.anything()
-  );
+describe("home feed", () => {
+  it("keeps each section's own state", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        Response.json({
+          deskUpdates: { status: "ok", items: [] },
+          stories: { status: "unavailable" },
+          publications: {
+            status: "ok",
+            items: [article({ collection: "publications" })],
+          },
+        })
+      )
+    );
+    const home = await fetchHomeContent();
+    expect(home.deskUpdates).toEqual({ status: "ok", articles: [] });
+    expect(home.stories.status).toBe("unavailable");
+    expect(home.publications.articles).toHaveLength(1);
+  });
+  it("reports every section unavailable when the CMS is down", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(Response.json({}, { status: 503 }))
+    );
+    const home = await fetchHomeContent();
+    expect(Object.values(home).map((part) => part.status)).toEqual([
+      "unavailable",
+      "unavailable",
+      "unavailable",
+    ]);
+  });
 });

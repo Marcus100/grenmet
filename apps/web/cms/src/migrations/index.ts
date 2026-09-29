@@ -35,6 +35,10 @@ import {
   down as downEditorialLinks,
   up as upEditorialLinks,
 } from "./20260923_170000_editorial_links";
+import {
+  down as downEditorialCollections,
+  up as upEditorialCollections,
+} from "./20260929_210000_editorial_collections";
 export const migrations = [
   {
     up: up_20260906_203710_initial,
@@ -80,5 +84,10 @@ export const migrations = [
     up: upEditorialLinks,
     down: downEditorialLinks,
     name: "20260923_170000_editorial_links",
+  },
+  {
+    up: upEditorialCollections,
+    down: downEditorialCollections,
+    name: "20260929_210000_editorial_collections",
   },
 ];
