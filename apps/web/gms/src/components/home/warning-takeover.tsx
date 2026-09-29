@@ -1,13 +1,7 @@
 import { TriangleAlertIcon } from "lucide-react";
 import Link from "next/link";
 import { type AlertsResult, alertsLevel, severityLevel } from "@/lib/cap";
-import { warningHref } from "@/lib/warning-detail";
-
-const EXPIRES = new Intl.DateTimeFormat("en-GB", {
-  timeZone: "America/Grenada",
-  dateStyle: "medium",
-  timeStyle: "short",
-});
+import { formatWarningTime, warningHref } from "@/lib/warning-detail";
 
 /**
  * Red "take action now" band above the sky hero. Renders only when a live
@@ -62,9 +56,7 @@ export function WarningTakeover({ alerts }: { alerts: AlertsResult }) {
                 </dd>
                 <dt className="font-semibold text-gm-text-secondary">Until</dt>
                 <dd>
-                  {alert.expires
-                    ? `${EXPIRES.format(new Date(alert.expires))} AST`
-                    : "Until further notice"}
+                  {formatWarningTime(alert.expires) ?? "Until further notice"}
                 </dd>
               </dl>
               <Link
