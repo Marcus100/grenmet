@@ -52,6 +52,13 @@ src/app/
   chips never use hazard colours.
 - **Bold sky:** the sky gradient and `bg-gm-scrim` are for the home hero only;
   see `docs/design/gms.md`.
+- **Locations:** places live in `src/lib/locations.ts`, keyed internally by airport
+  locator (TGPY, TGPZ) with readable slugs. The default place (Grenada) uses the
+  unprefixed URLs; others get `/<slug>` routes (`(weather)/[location]`,
+  `dynamicParams = false`). To add a place: wire its data in
+  `src/lib/location-data.ts`, then set `enabled: true`. The switcher appears only
+  when two or more places are enabled. Never show another station's reading for
+  a place.
 - **Search:** `SiteSearch` (masthead button or `/`) ranks `NAV_SECTIONS` pages plus
   published CMS articles from `/api/search` (read-only proxy) with
   `src/lib/search.ts`. New menu pages are searchable automatically.

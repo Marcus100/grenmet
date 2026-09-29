@@ -11,16 +11,26 @@ import { weatherIcon } from "@/lib/weather-icons";
  * and `/weather`; every other day is `/weather/YYYY/MM/DD`. The selected day
  * gets a lime outline and `aria-current`.
  */
-export function SkyDayStrip({ days }: { days: ForecastDay[] }) {
+export function SkyDayStrip({
+  days,
+  todayHref = "/weather",
+  todayPaths = ["/", "/weather"],
+}: {
+  days: ForecastDay[];
+  /** Where "Today" links; prefixed for a non-default location. */
+  todayHref?: string;
+  /** Paths that count as today, for the current-day outline. */
+  todayPaths?: readonly string[];
+}) {
   const pathname = usePathname();
 
   return (
     <nav aria-label="Forecast days">
       <ul className="grid auto-cols-[minmax(5.5rem,1fr)] grid-flow-col gap-2 overflow-x-auto pb-1">
         {days.map((day) => {
-          const href = day.isToday ? "/weather" : day.path;
+          const href = day.isToday ? todayHref : day.path;
           const current = day.isToday
-            ? pathname === "/" || pathname === "/weather"
+            ? todayPaths.includes(pathname)
             : pathname === href;
           const Icon = weatherIcon(day.condition);
           const missing = day.high === null && day.low === null;
