@@ -114,6 +114,7 @@ placeholder is not an implemented service.
 | gms | `/about/contact` | Pending |
 | gms | `/about/history` | Pending |
 | gms | `/about/network` | Pending |
+| gms | `/about/performance` | Pending |
 | gms | `/about/regional` | Pending |
 | gms | `/about/services` | Pending |
 | gms | `/about/standards` | Pending |
@@ -127,43 +128,63 @@ placeholder is not an implemented service.
 | gms | `/alerts/cyclone/archive` | Pending |
 | gms | `/alerts/exercise` | Pending |
 | gms | `/alerts/get-alerts` | Pending |
+| gms | `/alerts/get-alerts/cap` | Pending |
 | gms | `/alerts/impact` | Pending |
 | gms | `/alerts/levels` | Pending |
 | gms | `/alerts/marine` | Pending |
 | gms | `/alerts/prepare/flood` | Pending |
+| gms | `/alerts/prepare/heat` | Pending |
 | gms | `/alerts/prepare/hurricane` | Pending |
+| gms | `/alerts/prepare/lightning` | Pending |
+| gms | `/alerts/prepare/tsunami` | Pending |
 | gms | `/alerts/tsunami` | Pending |
 | gms | `/alerts/understanding` | Pending |
 | gms | `/app-guide` | Pending |
 | gms | `/climate` | Pending |
 | gms | `/climate/archive` | Pending |
+| gms | `/climate/by-month` | Pending |
+| gms | `/climate/change` | Pending |
+| gms | `/climate/change/sea-level` | Pending |
+| gms | `/climate/dashboard` | Pending |
 | gms | `/climate/data-request` | Pending |
 | gms | `/climate/drought` | Pending |
+| gms | `/climate/enso` | Pending |
 | gms | `/climate/historical` | Pending |
 | gms | `/climate/monthly` | Pending |
 | gms | `/climate/newsletter` | Pending |
 | gms | `/climate/normals` | Pending |
 | gms | `/climate/publications` | Pending |
 | gms | `/climate/rainfall` | Pending |
+| gms | `/climate/records` | Pending |
 | gms | `/climate/seasonal` | Pending |
 | gms | `/climate/temperature` | Pending |
 | gms | `/disclaimer` | Pending |
 | gms | `/explore` | Pending |
+| gms | `/explore/ask` | Pending |
 | gms | `/explore/downloads` | Pending |
 | gms | `/explore/explained` | Pending |
 | gms | `/explore/faqs` | Pending |
 | gms | `/explore/glossary` | Pending |
+| gms | `/explore/history/hurricanes` | Pending |
+| gms | `/explore/how-forecasts-are-made` | Pending |
 | gms | `/explore/hurricane-names` | Pending |
 | gms | `/explore/news` | Pending |
 | gms | `/explore/news/[...slug]` | Pending |
+| gms | `/explore/quiz` | Pending |
 | gms | `/explore/school` | Pending |
 | gms | `/explore/updates` | Pending |
 | gms | `/explore/updates/[slug]` | Pending |
 | gms | `/help` | Pending |
 | gms | `/marine` | Pending |
+| gms | `/marine/beaches` | Pending |
 | gms | `/marine/coastal` | Pending |
+| gms | `/marine/fishing` | Pending |
 | gms | `/marine/forecast` | Pending |
+| gms | `/marine/ocean/coral` | Pending |
+| gms | `/marine/ocean/sea-temperature` | Pending |
 | gms | `/marine/safety` | Pending |
+| gms | `/marine/safety/rip-currents` | Pending |
+| gms | `/marine/sargassum` | Pending |
 | gms | `/marine/sea-conditions` | Pending |
 | gms | `/marine/small-craft` | Pending |
 | gms | `/marine/tides` | Pending |
@@ -178,6 +199,7 @@ placeholder is not an implemented service.
 | gms | `/services/aviation/metar-taf` | Pending |
 | gms | `/services/aviation/sigwx` | Pending |
 | gms | `/services/construction` | Pending |
+| gms | `/services/data` | Pending |
 | gms | `/services/disaster-management` | Pending |
 | gms | `/services/education` | Pending |
 | gms | `/services/health` | Pending |
@@ -191,8 +213,10 @@ placeholder is not an implemented service.
 | gms | `/weather/analyses` | Pending |
 | gms | `/weather/conditions` | Pending |
 | gms | `/weather/dust` | Pending |
+| gms | `/weather/heat` | Pending |
 | gms | `/weather/issued` | Pending |
 | gms | `/weather/issued/[id]` | Pending |
+| gms | `/weather/lightning` | Pending |
 | gms | `/weather/models` | Pending |
 | gms | `/weather/nowcast` | Pending |
 | gms | `/weather/observations` | Pending |
@@ -202,16 +226,24 @@ placeholder is not an implemented service.
 | gms | `/weather/observations/upper-air` | Pending |
 | gms | `/weather/observations/water-levels` | Pending |
 | gms | `/weather/radar` | Pending |
+| gms | `/weather/rainfall` | Pending |
 | gms | `/weather/satellite` | Pending |
 | gms | `/weather/sun-and-sky` | Pending |
+| gms | `/weather/sun-and-sky/night-sky` | Pending |
 | gms | `/weather/synopsis` | Pending |
 | gms | `/weather/tropics` | Pending |
+| gms | `/weather/tropics/season` | Pending |
+| gms | `/weather/tropics/waves` | Pending |
+| gms | `/weather/uv` | Pending |
 | gms | `/weather/[year]/[month]/[day]` | Pending |
+| gms | `/[location]/weather` | Pending |
+| gms | `/[location]` | Pending |
 | gms | `/weather` | Pending |
 | gms | `/` | Pending |
 
 GMS routes follow the seven-section Bold sky IA (28 Sep 2026). Old URLs
 308-redirect via `apps/web/gms/src/lib/route-moves.ts`; accept a sample of
-them. `/[...planned]` serves every nav link marked `planned` as a
-sample-content placeholder (list: `plannedPaths()` in
+them. `/[location]` routes are empty until a second place is enabled
+(`apps/web/gms/src/lib/locations.ts`). `/[...planned]` serves every nav link
+marked `planned` as a sample-content placeholder (list: `plannedPaths()` in
 `apps/web/gms/src/lib/nav-sections.ts`).
