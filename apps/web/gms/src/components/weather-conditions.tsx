@@ -64,7 +64,7 @@ export function WeatherConditions({ conditions }: WeatherConditionsProps) {
           ICON_MAP[item.label];
         return (
           <div
-            className="flex items-center gap-3 rounded-2xl border border-gm-border bg-background p-4"
+            className="flex items-center gap-3 rounded-gm-card border border-gm-border bg-background p-4"
             key={`${item.label}-${item.value}`}
           >
             <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-gm-surface">
