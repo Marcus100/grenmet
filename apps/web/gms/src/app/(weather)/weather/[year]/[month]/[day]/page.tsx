@@ -1,4 +1,4 @@
-import { WeatherConditions } from "@/components/weather-conditions";
+import { DayDetails } from "@/components/home/day-details";
 import { getWeatherSnapshot } from "@/lib/weather-snapshot";
 
 interface Props {
@@ -14,21 +14,9 @@ export default async function ForecastDayPage({ params }: Props) {
   const forecast = snapshot.days.find(
     (item) => item.date === `${year}-${month}-${day}`
   );
-  if (!forecast)
-    return (
-      <p className="p-5">
-        No issued forecast is available for this date. Choose a date in the
-        forecast strip.
-      </p>
-    );
   return (
-    <>
-      <h2 className="p-4 font-semibold">{forecast.title}</h2>
-      <p className="border-b p-4 text-gm-text-secondary">{forecast.summary}</p>
-      <WeatherConditions conditions={forecast.conditions} />
-      {forecast.source ? (
-        <p className="p-3 text-muted-foreground text-xs">{forecast.source}</p>
-      ) : null}
-    </>
+    <div className="pb-12">
+      <DayDetails day={forecast} />
+    </div>
   );
 }
