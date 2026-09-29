@@ -46,6 +46,10 @@ import {
   down as down_20260929_214026_homepage_settings,
   up as up_20260929_214026_homepage_settings,
 } from "./20260929_214026_homepage_settings";
+import {
+  down as down_20260929_215017_discover,
+  up as up_20260929_215017_discover,
+} from "./20260929_215017_discover";
 
 export const migrations = [
   {
@@ -107,5 +111,10 @@ export const migrations = [
     up: up_20260929_214026_homepage_settings,
     down: down_20260929_214026_homepage_settings,
     name: "20260929_214026_homepage_settings",
+  },
+  {
+    up: up_20260929_215017_discover,
+    down: down_20260929_215017_discover,
+    name: "20260929_215017_discover",
   },
 ];

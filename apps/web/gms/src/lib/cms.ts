@@ -226,6 +226,84 @@ const weatherNowSchema = z.object({
 });
 export type WeatherNowContent = z.infer<typeof weatherNowSchema>;
 
+const discoverSchema = z.object({
+  today: z.string(),
+  onThisDay: z
+    .object({
+      title: z.string(),
+      day: z.number(),
+      month: z.number(),
+      year: z.number(),
+      whatHappened: z.string(),
+      imageUrl: z.string().nullable(),
+      story: z.object({ title: z.string(), slug: z.string() }).nullable(),
+    })
+    .nullable(),
+  quiz: z
+    .object({
+      title: z.string(),
+      slug: z.string(),
+      intro: z.string().nullable(),
+      questionCount: z.number(),
+    })
+    .nullable(),
+  fact: z
+    .object({
+      title: z.string(),
+      fact: z.string(),
+      source: z.string(),
+      sourceUrl: z.string().nullable(),
+    })
+    .nullable(),
+  skyNote: z.object({ title: z.string(), note: z.string() }).nullable(),
+});
+export type DiscoverContent = z.infer<typeof discoverSchema>;
+
+const quizSchema = z.object({
+  title: z.string(),
+  slug: z.string(),
+  intro: z.string().nullable(),
+  questions: z.array(
+    z.object({
+      prompt: z.string(),
+      options: z.array(z.string()).min(2),
+      answer: z.number().int().min(0),
+      explanation: z.string(),
+    })
+  ),
+});
+export type PublishedQuiz = z.infer<typeof quizSchema>;
+
+const QUIZ_PREFIX = /^discover\//;
+/** `discover/can-you-…` is played at `/explore/quiz/can-you-…`. */
+export const quizHref = (slug: string) =>
+  `/explore/quiz/${slug.replace(QUIZ_PREFIX, "")}`;
+
+/** Published quizzes with their questions; one when `slug` is given. */
+export const fetchQuizzes = cache(async function fetchQuizzes(
+  slug?: string
+): Promise<{ status: "ok" | "unavailable"; quizzes: PublishedQuiz[] }> {
+  const unavailable = { status: "unavailable" as const, quizzes: [] };
+  if (!env.CMS_API_URL) return unavailable;
+  try {
+    const url = cmsUrl("/api/public/quizzes");
+    if (slug) url.searchParams.set("slug", slug);
+    const response = await fetch(url, requestOptions());
+    if (!response.ok) return unavailable;
+    const parsed = z
+      .object({ quizzes: z.array(quizSchema) })
+      .safeParse(await response.json());
+    if (!parsed.success) {
+      reportError(parsed.error, "gms-cms-quizzes-contract");
+      return unavailable;
+    }
+    return { status: "ok", quizzes: parsed.data.quizzes };
+  } catch (error) {
+    reportError(error, "gms-cms-quizzes");
+    return unavailable;
+  }
+});
+
 /** Keys editors can hide in the CMS Homepage settings. */
 export type HomeSectionKey =
   | "weather-now"
@@ -244,6 +322,10 @@ const homeSchema = z.object({
     z.object({ status: z.literal("ok"), items: weatherNowSchema }),
     z.object({ status: z.literal("unavailable") }),
   ]),
+  discover: z.discriminatedUnion("status", [
+    z.object({ status: z.literal("ok"), items: discoverSchema }),
+    z.object({ status: z.literal("unavailable") }),
+  ]),
   settings: z.object({
     discoverCards: z.array(z.string()),
     hiddenSections: z.array(z.string()),
@@ -251,6 +333,8 @@ const homeSchema = z.object({
 });
 export interface HomeContent {
   deskUpdates: ContentResult;
+  /** Null when unavailable; the automatic sky card still shows. */
+  discover: DiscoverContent | null;
   publications: ContentResult;
   questions: QuestionsResult;
   settings: { discoverCards: string[]; hiddenSections: string[] };
@@ -276,6 +360,7 @@ export const fetchHomeContent = cache(
       publications: UNAVAILABLE,
       questions: { status: "unavailable", questions: [] },
       weatherNow: null,
+      discover: null,
       settings: { discoverCards: ALL_DISCOVER_CARDS, hiddenSections: [] },
     };
     if (!env.CMS_API_URL) return down;
@@ -301,6 +386,7 @@ export const fetchHomeContent = cache(
             : { status: "unavailable", questions: [] },
         weatherNow:
           data.weatherNow.status === "ok" ? data.weatherNow.items : null,
+        discover: data.discover.status === "ok" ? data.discover.items : null,
         settings: data.settings,
       };
     } catch (error) {

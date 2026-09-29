@@ -9,6 +9,7 @@
 import { getPayload } from "payload";
 import { slugPart } from "../src/fields/slug";
 import config from "../src/payload.config";
+import { DISCOVER_SEEDS, type DiscoverSeed } from "./seeds/discover";
 import { QUESTION_SEEDS } from "./seeds/questions";
 
 export function lexical(paragraphs: string[]) {
@@ -90,4 +91,43 @@ for (const seed of QUESTION_SEEDS) {
   created += 1;
 }
 payload.logger.info(`Seeded ${created} question(s) as Ready for review.`);
+
+/** Seed shapes to Payload's field shapes (month select, option rows). */
+function discoverFields(seed: DiscoverSeed) {
+  if (seed.type === "on-this-day")
+    return { ...seed, month: String(seed.month) };
+  if (seed.type === "quiz")
+    return {
+      ...seed,
+      questions: seed.questions.map((question) => ({
+        ...question,
+        options: question.options.map((text) => ({ text })),
+      })),
+    };
+  return seed;
+}
+
+let entries = 0;
+for (const seed of DISCOVER_SEEDS) {
+  const slug = `discover/${slugPart(seed.title)}`;
+  const existing = await payload.find({
+    collection: "discover",
+    where: { slug: { equals: slug } },
+    limit: 1,
+    overrideAccess: true,
+  });
+  if (existing.docs[0]) continue;
+  const fields = discoverFields(seed);
+  await payload.create({
+    collection: "discover",
+    overrideAccess: true,
+    draft: true,
+    user: author,
+    data: { ...fields, status: "review", slug, author: user.id } as never,
+  });
+  entries += 1;
+}
+payload.logger.info(
+  `Seeded ${entries} discover entr(ies) as Ready for review.`
+);
 process.exit(0);
