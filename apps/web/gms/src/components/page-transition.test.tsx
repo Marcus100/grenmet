@@ -2,7 +2,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { PageTransition } from "./page-transition";
 
-const route = vi.hoisted(() => ({ pathname: "/warnings" }));
+const route = vi.hoisted(() => ({ pathname: "/alerts" }));
 vi.mock("next/navigation", () => ({ usePathname: () => route.pathname }));
 
 afterEach(cleanup);

@@ -16,14 +16,15 @@ export const ROUTE_MOVES: readonly (readonly [from: string, to: string])[] = [
   ["/products/nhc", "/weather/tropics"],
   ["/products/forecasts", "/weather/issued"],
   ["/products/issued", "/weather/issued"],
-  // Warnings
-  ["/products/bulletins", "/warnings/bulletins"],
-  ["/bulletins", "/warnings/bulletins"],
+  // Alerts (renamed from Warnings, 29 Sep 2026)
+  ["/warnings", "/alerts"],
+  ["/products/bulletins", "/alerts/bulletins"],
+  ["/bulletins", "/alerts/bulletins"],
   ["/resources/hurricane-names", "/explore/hurricane-names"],
-  ["/resources/hurricane", "/warnings/prepare/hurricane"],
-  ["/resources/flood", "/warnings/prepare/flood"],
-  ["/resources/warnings-guide", "/warnings/understanding"],
-  ["/subscribe", "/warnings/get-alerts"],
+  ["/resources/hurricane", "/alerts/prepare/hurricane"],
+  ["/resources/flood", "/alerts/prepare/flood"],
+  ["/resources/warnings-guide", "/alerts/understanding"],
+  ["/subscribe", "/alerts/get-alerts"],
   // Marine
   ["/sectors/marine", "/marine"],
   ["/resources/marine-safety", "/marine/safety"],

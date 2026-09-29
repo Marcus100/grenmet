@@ -8,7 +8,7 @@ import type { AlertsResult, PublicAlert } from "@/lib/cap";
 const NOT_ALL_CLEAR = /not an all-clear/i;
 const NOT_RETRIEVED = /cannot be retrieved right now/i;
 const FEED_DOWN = /CAP feed not responding/;
-const NONE_IN_EFFECT = /^There are no warnings in effect/;
+const NONE_IN_EFFECT = /^There are no alerts in effect/;
 
 const CHECKED_AT = new Date("2026-09-28T20:40:00Z");
 
@@ -37,10 +37,7 @@ describe("AlertGroups", () => {
     expect(screen.getByText("Take action now")).toBeInTheDocument();
     expect(screen.getByText("Grenada, Carriacou")).toBeInTheDocument();
     expect(screen.getByText("Until further notice")).toBeInTheDocument();
-    expect(screen.getByRole("link")).toHaveAttribute(
-      "href",
-      "/warnings/gale-1"
-    );
+    expect(screen.getByRole("link")).toHaveAttribute("href", "/alerts/gale-1");
   });
 
   it("says plainly when nothing is in effect", () => {
@@ -77,7 +74,7 @@ describe("WarningStatusBand", () => {
         checkedAt={CHECKED_AT}
       />
     );
-    expect(screen.getByText("Warnings unavailable")).toBeInTheDocument();
+    expect(screen.getByText("Alerts unavailable")).toBeInTheDocument();
     expect(screen.getByText(NOT_ALL_CLEAR)).toBeInTheDocument();
     expect(screen.getByText(FEED_DOWN)).toBeInTheDocument();
   });
@@ -87,7 +84,7 @@ describe("WarningLegend", () => {
   it("names all five levels", () => {
     render(<WarningLegend />);
     for (const label of [
-      "No active warnings",
+      "No active alerts",
       "Be aware",
       "Be prepared",
       "Take action now",

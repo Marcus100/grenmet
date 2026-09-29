@@ -5,11 +5,11 @@ import { MobileTabBar } from "@/components/mobile-tab-bar";
 import { WarningRibbon } from "@/components/warning-ribbon";
 import type { AlertsResult } from "@/lib/cap";
 
-const route = vi.hoisted(() => ({ pathname: "/warnings" }));
+const route = vi.hoisted(() => ({ pathname: "/alerts" }));
 vi.mock("next/navigation", () => ({ usePathname: () => route.pathname }));
 
-const NOT_ALL_CLEAR = /does not mean there are no warnings/i;
-const WARNINGS_TAB = /Warnings/;
+const NOT_ALL_CLEAR = /does not mean there are no alerts/i;
+const WARNINGS_TAB = /Alerts/;
 
 const NONE: AlertsResult = { activeCount: 0, groups: [], status: "ok" };
 const SEVERE: AlertsResult = {
@@ -42,12 +42,12 @@ describe("WarningRibbon", () => {
   it("names the level and links to the warnings page", () => {
     render(<WarningRibbon alerts={SEVERE} />);
     expect(screen.getByText("Take action now · 1 active")).toBeInTheDocument();
-    expect(screen.getByRole("link")).toHaveAttribute("href", "/warnings");
+    expect(screen.getByRole("link")).toHaveAttribute("href", "/alerts");
   });
 
   it("never presents an outage as an all-clear", () => {
     render(<WarningRibbon alerts={{ status: "unavailable" }} />);
-    expect(screen.getByText("Warnings unavailable")).toBeInTheDocument();
+    expect(screen.getByText("Alerts unavailable")).toBeInTheDocument();
     expect(screen.getByText(NOT_ALL_CLEAR)).toBeInTheDocument();
   });
 });
@@ -65,7 +65,7 @@ describe("MobileTabBar", () => {
 
   it("adds no status text when nothing is in effect", () => {
     render(<MobileTabBar alerts={NONE} onOpenMenu={() => undefined} />);
-    expect(screen.getByRole("link", { name: "Warnings" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Alerts" })).toBeInTheDocument();
   });
 
   it("opens the menu from the Menu tab", async () => {

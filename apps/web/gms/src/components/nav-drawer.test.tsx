@@ -86,14 +86,14 @@ describe("NavDrawer", () => {
         open
       />
     );
-    const status = screen.getByRole("link", { name: "No active warnings" });
-    expect(status).toHaveAttribute("href", "/warnings");
+    const status = screen.getByRole("link", { name: "No active alerts" });
+    expect(status).toHaveAttribute("href", "/alerts");
   });
 
   it("omits the status row when no alert result is supplied", () => {
     render(<NavDrawer onClose={() => undefined} open />);
     expect(
-      screen.queryByRole("link", { name: "No active warnings" })
+      screen.queryByRole("link", { name: "No active alerts" })
     ).not.toBeInTheDocument();
   });
 });

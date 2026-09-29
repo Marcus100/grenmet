@@ -63,22 +63,22 @@ export function exerciseStatuses(result: AlertsResult): CapStatus[] {
 
 /**
  * The one status line every alert surface shows — header pill, mobile menu,
- * mobile accordion, desktop panel and the Warnings menu card: "No active
- * warnings", or the response level of the most severe alert with the count,
+ * mobile accordion, desktop panel and the Alerts menu card: "No active
+ * alerts", or the response level of the most severe alert with the count,
  * e.g. "Be prepared · 2 active". Naming the level keeps colour from being the
  * only signal (Warning Pattern Checklist, docs/design-system.md).
  */
 export function alertsSummary(result: AlertsResult): string {
   if (result.status === "unavailable") {
-    return "Warnings unavailable";
+    return "Alerts unavailable";
   }
   if (result.activeCount === 0) {
-    return "No active warnings";
+    return "No active alerts";
   }
   const level = alertsLevel(result);
   const count = `${result.activeCount} active`;
   // A count with no alert detail has no level to name; never pair it with
-  // "No active warnings".
+  // "No active alerts".
   return level === "none" || level === "unknown"
     ? count
     : `${WARNING_LEVEL_LABEL[level]} · ${count}`;

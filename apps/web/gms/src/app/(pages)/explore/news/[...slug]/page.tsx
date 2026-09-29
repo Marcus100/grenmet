@@ -150,7 +150,7 @@ export default async function ArticlePage({
             </Link>
             <Link
               className="flex items-center gap-1 font-semibold text-gm-blue-ink hover:underline"
-              href="/warnings"
+              href="/alerts"
             >
               Warnings in effect
               <ArrowRightIcon aria-hidden="true" className="size-4" />

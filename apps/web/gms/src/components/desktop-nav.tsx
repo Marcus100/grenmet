@@ -64,9 +64,9 @@ function Featured({
         </span>
         <NavigationMenuPrimitive.Link
           className={cta}
-          render={<Link href="/warnings" />}
+          render={<Link href="/alerts" />}
         >
-          See warnings in effect
+          See alerts in effect
           <ArrowRightIcon aria-hidden="true" className="size-4" />
         </NavigationMenuPrimitive.Link>
       </div>

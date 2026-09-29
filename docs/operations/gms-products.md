@@ -104,7 +104,7 @@ boundary; draft values, actor IDs, and revision history are never exposed. Inval
 kinds return 400; a storage outage returns 503. Responses are not cached.
 
 Public pages: `/weather/issued`, `/weather/tropics` (NHC outlook),
-`/warnings/bulletins`, and `/weather/issued/<id>` (the old `/products/*`
+`/alerts/bulletins`, and `/weather/issued/<id>` (the old `/products/*`
 URLs redirect).
 `/marine/forecast` also shows issued marine bulletins.
 All product forms have printable PDF previews, including the restored forecast and marine layouts and complete data sheets. There is no public archive, automatic NHC import or deployment in this change. Existing legacy product tables and example document components

@@ -13,10 +13,10 @@ const COLUMNS = [
     ],
   },
   {
-    heading: "Warnings & marine",
+    heading: "Alerts & marine",
     links: [
-      { label: "Warnings in effect", href: "/warnings" },
-      { label: "Get alerts", href: "/warnings/get-alerts" },
+      { label: "Alerts in effect", href: "/alerts" },
+      { label: "Get alerts", href: "/alerts/get-alerts" },
       { label: "Marine forecast", href: "/marine/forecast" },
       { label: "Tides", href: "/marine/tides" },
       { label: "Marine safety", href: "/marine/safety" },

@@ -26,7 +26,7 @@ export function WarningLegend() {
         className="font-bold text-body-base text-gm-navy leading-body-base"
         id="warning-legend-title"
       >
-        Warning levels
+        Alert levels
       </h2>
       <ul className="flex flex-col gap-3">
         {LEVELS.map((level) => (
@@ -44,14 +44,14 @@ export function WarningLegend() {
       </ul>
       <Link
         className="flex items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body hover:underline"
-        href="/warnings/levels"
+        href="/alerts/levels"
       >
-        How our warnings work
+        How alerts work
         <ArrowRightIcon aria-hidden="true" className="size-4" />
       </Link>
       <Link
         className="flex h-11 items-center justify-center gap-2 rounded-md bg-gm-blue-ink font-bold text-body text-gm-text-inverse leading-body"
-        href="/warnings/get-alerts"
+        href="/alerts/get-alerts"
       >
         <BellIcon aria-hidden="true" className="size-4" />
         Get alerts

@@ -46,7 +46,7 @@ export default function EducationPage() {
             },
             {
               name: "Understanding warnings",
-              href: "/warnings/understanding",
+              href: "/alerts/understanding",
               description: "How to read a warning and act on it",
             },
             {

@@ -37,7 +37,7 @@ export function GoogleAnalytics({
     const safeSection = [
       "",
       "weather",
-      "warnings",
+      "alerts",
       "marine",
       "climate",
       "services",

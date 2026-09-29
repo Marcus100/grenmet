@@ -40,10 +40,10 @@ describe("breadcrumbTrail", () => {
   });
 
   it("shows a nested page's nav parent, linked", () => {
-    expect(breadcrumbTrail("/warnings/bulletins/cyclone")).toEqual([
-      { href: "/warnings", label: "Warnings" },
-      { href: "/sitemap#warnings--in-effect", label: "In effect" },
-      { current: false, href: "/warnings/bulletins", label: "All bulletins" },
+    expect(breadcrumbTrail("/alerts/bulletins/cyclone")).toEqual([
+      { href: "/alerts", label: "Alerts" },
+      { href: "/sitemap#alerts--in-effect", label: "In effect" },
+      { current: false, href: "/alerts/bulletins", label: "All bulletins" },
     ]);
     expect(labels("/services/tourism/events/hurricane-expo")).toEqual([
       "Services",
