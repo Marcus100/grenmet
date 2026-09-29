@@ -1,5 +1,9 @@
 import { getPayload } from "payload";
-import { findArticles, NO_STORE } from "../../../../lib/public-feed";
+import {
+  findArticles,
+  findQuestions,
+  NO_STORE,
+} from "../../../../lib/public-feed";
 import { reportError } from "../../../../lib/report-error";
 import config from "../../../../payload.config";
 
@@ -31,7 +35,7 @@ export async function GET() {
       { status: 503, headers: NO_STORE }
     );
   }
-  const [deskUpdates, stories, publications] = await Promise.all([
+  const [deskUpdates, stories, publications, questions] = await Promise.all([
     part("desk-updates", () =>
       findArticles(payload, "desk-updates", { limit: 5 })
     ),
@@ -39,9 +43,10 @@ export async function GET() {
     part("publications", () =>
       findArticles(payload, "publications", { limit: 6 })
     ),
+    part("questions", () => findQuestions(payload, { limit: 5 })),
   ]);
   return Response.json(
-    { deskUpdates, stories, publications },
+    { deskUpdates, stories, publications, questions },
     { headers: NO_STORE }
   );
 }

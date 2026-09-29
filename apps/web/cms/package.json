@@ -18,7 +18,8 @@
     "db:migrate": "node --env-file-if-exists=.env.local scripts/migrate.mjs",
     "db:generate": "node --env-file-if-exists=.env.local node_modules/payload/bin.js migrate:create",
     "db:status": "node --env-file-if-exists=.env.local node_modules/payload/bin.js migrate:status",
-    "db:adopt": "node --env-file-if-exists=.env.local scripts/adopt.mjs"
+    "db:adopt": "node --env-file-if-exists=.env.local scripts/adopt.mjs",
+    "seed:editorial": "node --env-file-if-exists=.env.local node_modules/payload/bin.js run scripts/seed-editorial.ts"
   },
   "dependencies": {
     "@barrelsgd/api-client": "workspace:*",

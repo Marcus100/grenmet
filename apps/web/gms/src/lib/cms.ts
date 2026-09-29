@@ -122,19 +122,101 @@ export const fetchContentBySlug = cache(function fetchContentBySlug(
   return getContent({ slug });
 });
 
+/** Topic labels; values mirror `TOPICS` in the CMS (`apps/web/cms/src/fields/common.ts`). */
+export const TOPIC_LABELS: Record<string, string> = {
+  tropical: "Hurricanes and tropical weather",
+  rain: "Rain and flooding",
+  heat: "Heat and sun",
+  marine: "Sea and coast",
+  climate: "Climate",
+  sky: "Sky and space",
+  safety: "Safety and preparedness",
+  agriculture: "Farming and water",
+  aviation: "Aviation",
+  gms: "How GMS works",
+};
+
+const questionSchema = z.object({
+  id: z.string(),
+  question: z.string(),
+  slug: z.string(),
+  shortAnswer: z.string(),
+  body: z.string(),
+  topics: z.array(z.string()),
+  checkedAt: z.string().nullable(),
+  publishedAt: z.string().nullable(),
+  updatedAt: z.string(),
+  relatedLinks: contentSchema.shape.relatedLinks,
+  related: z.array(
+    z.object({
+      collection: z.enum(["questions", "stories", "publications"]),
+      title: z.string(),
+      slug: z.string(),
+    })
+  ),
+});
+export type PublishedQuestion = z.infer<typeof questionSchema>;
+export type QuestionsResult =
+  | { status: "ok"; questions: PublishedQuestion[] }
+  | { status: "unavailable"; questions: [] };
+
+const QUESTION_PREFIX = /^questions\//;
+
+/** `questions/why-…` is served at `/explore/explained/why-…`. */
+export const questionHref = (slug: string) =>
+  `/explore/explained/${slug.replace(QUESTION_PREFIX, "")}`;
+
+/** Where any related CMS item lives on the site. */
+export const relatedHref = (item: PublishedQuestion["related"][number]) =>
+  item.collection === "questions"
+    ? questionHref(item.slug)
+    : contentHref({ collection: item.collection, slug: item.slug });
+
+export const fetchQuestions = cache(async function fetchQuestions(
+  params: { slug?: string; topic?: string } = {}
+): Promise<QuestionsResult> {
+  const unavailable = { status: "unavailable" as const, questions: [] as [] };
+  if (!env.CMS_API_URL) return unavailable;
+  try {
+    const url = cmsUrl("/api/public/questions");
+    if (params.slug) url.searchParams.set("slug", params.slug);
+    if (params.topic) url.searchParams.set("topic", params.topic);
+    const response = await fetch(url, requestOptions());
+    if (!response.ok) return unavailable;
+    const parsed = z
+      .object({ questions: z.array(questionSchema) })
+      .safeParse(await response.json());
+    if (!parsed.success) {
+      reportError(parsed.error, "gms-cms-questions-contract");
+      return unavailable;
+    }
+    return { status: "ok", questions: parsed.data.questions };
+  } catch (error) {
+    reportError(error, "gms-cms-questions");
+    return unavailable;
+  }
+});
+
 const partSchema = z.discriminatedUnion("status", [
   z.object({ status: z.literal("ok"), items: z.array(contentSchema) }),
+  z.object({ status: z.literal("unavailable") }),
+]);
+const questionsPartSchema = z.discriminatedUnion("status", [
+  z.object({ status: z.literal("ok"), items: z.array(questionSchema) }),
   z.object({ status: z.literal("unavailable") }),
 ]);
 const homeSchema = z.object({
   deskUpdates: partSchema,
   stories: partSchema,
   publications: partSchema,
+  questions: questionsPartSchema,
 });
-export type HomeContent = Record<
-  keyof z.infer<typeof homeSchema>,
-  ContentResult
->;
+export interface HomeContent {
+  deskUpdates: ContentResult;
+  publications: ContentResult;
+  questions: QuestionsResult;
+  stories: ContentResult;
+}
 
 const UNAVAILABLE: ContentResult = { status: "unavailable", articles: [] };
 const toResult = (part: z.infer<typeof partSchema>): ContentResult =>
@@ -146,10 +228,11 @@ const toResult = (part: z.infer<typeof partSchema>): ContentResult =>
  */
 export const fetchHomeContent = cache(
   async function fetchHomeContent(): Promise<HomeContent> {
-    const down = {
+    const down: HomeContent = {
       deskUpdates: UNAVAILABLE,
       stories: UNAVAILABLE,
       publications: UNAVAILABLE,
+      questions: { status: "unavailable", questions: [] },
     };
     if (!env.CMS_API_URL) return down;
     try {
@@ -167,6 +250,10 @@ export const fetchHomeContent = cache(
         deskUpdates: toResult(parsed.data.deskUpdates),
         stories: toResult(parsed.data.stories),
         publications: toResult(parsed.data.publications),
+        questions:
+          parsed.data.questions.status === "ok"
+            ? { status: "ok", questions: parsed.data.questions.items }
+            : { status: "unavailable", questions: [] },
       };
     } catch (error) {
       reportError(error, "gms-cms-home");
@@ -175,6 +262,21 @@ export const fetchHomeContent = cache(
   }
 );
 
-/** Every CMS article shares one detail route; slugs carry their collection. */
-export const contentHref = (content: Pick<PublishedContent, "slug">) =>
-  `/explore/news/${content.slug}`;
+/** Slug prefix (set by the CMS) and site route for each collection. */
+const ROUTES: Record<ContentCollection, { prefix: string; base: string }> = {
+  "desk-updates": { prefix: "updates/", base: "/explore/updates/" },
+  stories: { prefix: "stories/", base: "/explore/news/" },
+  publications: { prefix: "publications/", base: "/climate/publications/" },
+};
+
+/** `stories/2026/09/x` → `/explore/news/2026/09/x`, and so on. */
+export const contentHref = (
+  content: Pick<PublishedContent, "collection" | "slug">
+) => {
+  const { prefix, base } = ROUTES[content.collection];
+  return base + content.slug.replace(prefix, "");
+};
+
+/** The CMS slug for a route's path segments. */
+export const contentSlug = (collection: ContentCollection, parts: string[]) =>
+  ROUTES[collection].prefix + parts.join("/");

@@ -7,6 +7,7 @@ import { buildConfig } from "payload";
 import { DeskUpdates } from "./collections/desk-updates";
 import { Media } from "./collections/media";
 import { Publications } from "./collections/publications";
+import { Questions } from "./collections/questions";
 import { Stories } from "./collections/stories";
 import { Users } from "./collections/users";
 import { getEnv } from "./env";
@@ -38,7 +39,7 @@ export default buildConfig({
     importMap: { baseDir },
     meta: { titleSuffix: " | GMS Content" },
   },
-  collections: [DeskUpdates, Stories, Publications, Media, Users],
+  collections: [DeskUpdates, Stories, Questions, Publications, Media, Users],
   hooks: { afterError: [reportPayloadError] },
   graphQL: { disable: true },
   typescript: {

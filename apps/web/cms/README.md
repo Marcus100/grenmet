@@ -34,12 +34,17 @@ Each GMS homepage section has its own collection under **Homepage sections**. Al
 |---|---|---|
 | Desk updates | From the Desk | `cms.publish.desk-updates` |
 | Stories | Stories from our atmosphere and ocean | `cms.publish.stories` |
+| Questions | Questions about the weather | `cms.publish.questions` |
 | Publications | Latest reports (document required) | `cms.publish.publications` |
 
 1. Create an item in the right collection. The URL is built from the title and date, and fixed once published.
 2. Optionally add related links (full HTTP/HTTPS URLs, 20 at most) and topics. Linking does not publish the destination.
 3. Save as Draft, then Ready for review.
 4. A staff member with that collection's publish permission checks and publishes it.
+
+Questions have an optional science check: a meteorologist ticks it and the site shows "Checked by a GMS meteorologist on <date>". The CMS records who checked it; the public sees only the date.
+
+Starter content (the first questions) is loaded with `pnpm --filter @barrelsgd/web-cms seed:editorial` as Ready for review, so GMS checks it before publishing. Run it after someone has signed in to the CMS once as an editor or superuser; reruns skip what exists.
 
 Desk updates are notices about products and services. Forecasts and warnings are issued only in the forecast and warning systems, never here.
 

@@ -119,3 +119,70 @@ export async function findArticles(
 }
 
 export const NO_STORE = { "Cache-Control": "no-store" };
+
+const LINKED_HREF_COLLECTIONS = new Set([
+  "questions",
+  "stories",
+  "publications",
+]);
+
+/** Public shape of one published question. */
+export function toQuestion(doc: Doc) {
+  const related = Array.isArray(doc.related) ? (doc.related as Doc[]) : [];
+  const check = (doc.scienceCheck ?? {}) as Doc;
+  return {
+    id: String(doc.id),
+    question: String(doc.question),
+    slug: String(doc.slug),
+    shortAnswer: String(doc.shortAnswer),
+    body: bodyToText(doc.body),
+    topics: Array.isArray(doc.topics) ? (doc.topics as string[]) : [],
+    checkedAt: check.checked
+      ? ((check.checkedAt as string | undefined) ?? null)
+      : null,
+    publishedAt: (doc.publishedAt as string | undefined) ?? null,
+    updatedAt: String(doc.updatedAt),
+    relatedLinks: editorialLinksSchema.parse(doc.relatedLinks ?? []),
+    // Only related items the public can read arrive populated.
+    related: related.flatMap((item) => {
+      const value = upload(item.value);
+      const collection = String(item.relationTo);
+      if (
+        !(value && LINKED_HREF_COLLECTIONS.has(collection)) ||
+        value.status !== "published"
+      )
+        return [];
+      return [
+        {
+          collection,
+          title: String(value.title ?? value.question),
+          slug: String(value.slug),
+        },
+      ];
+    }),
+  };
+}
+export type PublicQuestion = ReturnType<typeof toQuestion>;
+
+export async function findQuestions(
+  payload: Payload,
+  {
+    limit = 50,
+    slug,
+    topic,
+  }: { limit?: number; slug?: string; topic?: string } = {}
+): Promise<PublicQuestion[]> {
+  const result = await payload.find({
+    collection: "questions",
+    overrideAccess: false,
+    depth: 1,
+    limit: slug ? 1 : limit,
+    sort: "-publishedAt",
+    where: {
+      status: { equals: "published" },
+      ...(slug ? { slug: { equals: slug } } : {}),
+      ...(topic ? { topics: { contains: topic } } : {}),
+    },
+  });
+  return result.docs.map((doc) => toQuestion(doc as unknown as Doc));
+}

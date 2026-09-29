@@ -12,7 +12,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { HOME_CARD, HomeSection } from "@/components/home/home-section";
-import { fetchHomeContent } from "@/lib/cms";
+import { contentHref, fetchHomeContent, questionHref } from "@/lib/cms";
 import { contentToArticle } from "@/lib/editorial";
 import type { WeatherSnapshot } from "@/lib/forecast-data";
 
@@ -101,7 +101,7 @@ export async function ForecastDesk({ weather }: { weather: WeatherSnapshot }) {
                 >
                   <Link
                     className="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-4 py-3 hover:bg-gm-surface"
-                    href={`/explore/updates/${item.slug}`}
+                    href={contentHref(item)}
                   >
                     <span className="flex size-9 items-center justify-center rounded-lg bg-gm-surface-panel text-gm-heading">
                       <FileTextIcon aria-hidden="true" className="size-4" />
@@ -211,16 +211,9 @@ export async function Stories() {
   );
 }
 
-const QUESTIONS = [
-  { q: "What do Outlook, Watch and Warning mean?", href: "/alerts/levels" },
-  { q: "How do I read a warning?", href: "/alerts/understanding" },
-  { q: "What is Saharan dust, and why is it hazy?", href: "/weather/dust" },
-  { q: "How are hurricanes named?", href: "/explore/hurricane-names" },
-  { q: "What do the words in a forecast mean?", href: "/explore/glossary" },
-] as const;
-
-/** Explainers and the questions people ask most, answered by existing pages. */
-export function Explained() {
+/** The questions people ask most, answered in the CMS by GMS. */
+export async function Explained() {
+  const { questions } = await fetchHomeContent();
   return (
     <HomeSection
       kicker="Explained by GMS"
@@ -248,22 +241,31 @@ export function Explained() {
           </span>
         </Link>
         <div>
-          <ul className="border-gm-border border-t">
-            {QUESTIONS.map((item) => (
-              <li className="border-gm-border border-b" key={item.href}>
-                <Link
-                  className="flex items-center justify-between gap-3 py-3.5 font-semibold text-body-base text-gm-heading leading-body-base hover:underline"
-                  href={item.href}
-                >
-                  {item.q}
-                  <ChevronRightIcon
-                    aria-hidden="true"
-                    className="size-4 shrink-0"
-                  />
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <FeedState
+            count={questions.questions.length}
+            empty="No questions are published yet."
+            unavailable={
+              questions.status === "unavailable" &&
+              "Questions cannot be retrieved right now."
+            }
+          >
+            <ul className="border-gm-border border-t">
+              {questions.questions.map((item) => (
+                <li className="border-gm-border border-b" key={item.id}>
+                  <Link
+                    className="flex items-center justify-between gap-3 py-3.5 font-semibold text-body-base text-gm-heading leading-body-base hover:underline"
+                    href={questionHref(item.slug)}
+                  >
+                    {item.question}
+                    <ChevronRightIcon
+                      aria-hidden="true"
+                      className="size-4 shrink-0"
+                    />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </FeedState>
           <Link
             className="mt-4 flex items-center justify-between gap-3 rounded-gm-card bg-gm-surface-panel p-4 font-semibold text-body-base text-gm-heading leading-body-base hover:underline"
             href="/explore/ask"
