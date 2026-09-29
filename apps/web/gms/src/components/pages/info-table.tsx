@@ -47,7 +47,7 @@ export function InfoTable({
                     monoColumns?.includes(columnIndex) &&
                       "font-mono tabular-nums"
                   )}
-                  key={cell}
+                  key={headers[columnIndex] ?? cell}
                 >
                   {cell}
                 </td>
