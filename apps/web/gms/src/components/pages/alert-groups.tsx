@@ -38,7 +38,7 @@ function AlertCard({ alert }: { alert: PublicAlert }) {
           >
             {WARNING_LEVEL_LABEL[level]}
           </span>
-          <span className="font-bold text-gm-navy text-heading-sm leading-heading-sm group-hover:underline">
+          <span className="font-bold text-gm-heading text-heading-sm leading-heading-sm group-hover:underline">
             {alert.event}
           </span>
           <span className="text-body-base leading-body-base">

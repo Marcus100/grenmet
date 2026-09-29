@@ -4,6 +4,9 @@ import { describe, expect, it, vi } from "vitest";
 import { NavDrawer } from "@/components/nav-drawer";
 import { NAV_SECTIONS } from "@/lib/nav-sections";
 
+// The theme toggle needs the preferences provider; it has its own test.
+vi.mock("@/components/theme-toggle", () => ({ ThemeToggle: () => null }));
+
 const FIRST_SECTION = NAV_SECTIONS[0];
 
 describe("NavDrawer", () => {

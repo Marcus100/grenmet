@@ -6,7 +6,7 @@ import { groupId, NAV_SECTIONS, sectionId } from "@/lib/nav-sections";
 export const metadata = { title: "Sitemap" };
 
 const SECTION_HEADING =
-  "font-bold font-gm-display text-gm-navy text-heading-md leading-heading-md";
+  "font-bold font-gm-display text-gm-heading text-heading-md leading-heading-md";
 
 export default function SitemapPage() {
   return (

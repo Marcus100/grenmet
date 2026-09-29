@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect } from "react";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { type AlertsResult, alertsLevel, alertsSummary } from "@/lib/cap";
 import {
   drawerBackdrop,
@@ -106,7 +107,7 @@ export function NavDrawer({ alerts, open, onClose }: NavDrawerProps) {
             <div className="grid shrink-0 grid-cols-2 gap-2 px-4 py-3">
               {QUICK_LINKS.map(({ href, label, Icon }) => (
                 <a
-                  className="flex min-h-11 items-center gap-2 rounded-gm-card bg-gm-surface px-3 font-semibold text-body text-gm-navy leading-body"
+                  className="flex min-h-11 items-center gap-2 rounded-gm-card bg-gm-surface px-3 font-semibold text-body text-gm-heading leading-body"
                   href={href}
                   key={href}
                   onClick={onClose}
@@ -137,11 +138,11 @@ export function NavDrawer({ alerts, open, onClose }: NavDrawerProps) {
                         >
                           {/* Base UI's Accordion.Trigger marks the open state
                               with data-panel-open, not data-open. */}
-                          <span className="font-normal text-gm-text-primary text-heading-md leading-heading-md group-data-panel-open:font-semibold group-data-panel-open:text-gm-navy">
+                          <span className="font-normal text-gm-text-primary text-heading-md leading-heading-md group-data-panel-open:font-semibold group-data-panel-open:text-gm-heading">
                             {section.label}
                           </span>
                           <div className="flex size-11 items-center justify-center">
-                            <ChevronDownIcon className="size-6 text-gm-text-muted transition-transform duration-150 group-data-panel-open:rotate-180 group-data-panel-open:text-gm-navy" />
+                            <ChevronDownIcon className="size-6 text-gm-text-muted transition-transform duration-150 group-data-panel-open:rotate-180 group-data-panel-open:text-gm-heading" />
                           </div>
                         </Accordion.Trigger>
                       </Accordion.Header>
@@ -196,6 +197,12 @@ export function NavDrawer({ alerts, open, onClose }: NavDrawerProps) {
                   </motion.div>
                 ))}
               </Accordion.Root>
+              <div className="flex flex-col gap-2 border-gm-border border-t px-6 pt-5">
+                <p className="font-bold text-gm-text-muted text-label uppercase leading-label tracking-wider">
+                  Appearance
+                </p>
+                <ThemeToggle tone="drawer" />
+              </div>
             </motion.nav>
           </motion.div>
         </motion.div>

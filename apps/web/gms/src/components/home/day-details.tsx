@@ -23,7 +23,7 @@ export function DayDetails({
         {day ? (
           <>
             <div className="border-gm-border border-b p-4 lg:p-5">
-              <h2 className="font-bold text-gm-navy text-heading-sm leading-heading-sm">
+              <h2 className="font-bold text-gm-heading text-heading-sm leading-heading-sm">
                 {day.title ?? "Forecast"}
               </h2>
               <p className="mt-1 max-w-prose text-body-base text-gm-text-secondary leading-body-base">

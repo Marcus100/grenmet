@@ -22,7 +22,7 @@ export function EndedWarnings({ ended }: { ended: EndedWarning[] }) {
               <span className="rounded-full bg-gm-warning-grey-bg px-2.5 py-0.5 font-bold text-gm-warning-grey-fg text-label uppercase leading-label tracking-wide">
                 {warning.how === "cancelled" ? "Cancelled" : "Ended"}
               </span>
-              <span className="font-bold text-body-base text-gm-navy leading-body-base">
+              <span className="font-bold text-body-base text-gm-heading leading-body-base">
                 {warning.event}
               </span>
             </span>

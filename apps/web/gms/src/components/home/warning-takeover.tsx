@@ -31,7 +31,7 @@ export function WarningTakeover({ alerts }: { alerts: AlertsResult }) {
           Take action now
         </p>
         <h2
-          className="text-balance font-bold font-gm-display text-gm-display text-gm-navy uppercase tracking-wide"
+          className="text-balance font-bold font-gm-display text-gm-display text-gm-heading uppercase tracking-wide"
           id="takeover-title"
         >
           {urgent.length === 1
@@ -44,7 +44,7 @@ export function WarningTakeover({ alerts }: { alerts: AlertsResult }) {
               className="rounded-gm-card border border-gm-border border-l-6 border-l-gm-risk-red p-4"
               key={alert.identifier}
             >
-              <p className="font-bold text-body-base text-gm-navy leading-body-base">
+              <p className="font-bold text-body-base text-gm-heading leading-body-base">
                 {alert.headline}
               </p>
               <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-body leading-body">

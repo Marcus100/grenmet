@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@barrelsgd/gms": "workspace:*",
+    "@barrelsgd/theme": "workspace:*",
     "@barrelsgd/ui": "workspace:*",
     "@base-ui/react": "catalog:",
     "@sentry/nextjs": "catalog:",

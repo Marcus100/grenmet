@@ -272,6 +272,17 @@ the dark masthead use these; nothing else does.
 | Navy raised | `#0f1a36` | `--gm-navy-raised` | Mega-menu panel under the navy masthead. |
 | Navy panel | `#16244a` | `--gm-navy-panel` | Featured card inside the navy menu. |
 
+**Dark mode** (public site only, approved 29 Sep 2026). `.gm-site.dark` in
+the foundation swaps surfaces (page `#0c1427`, surface `#111b32`, panel
+`#15223e`, muted `#1a2846`), text (`#e6ecf5` / `#b3bfd2` / `#8e9bb1`), border
+`#2a3858`, input border `#6b7fa3` and the inks (blue `#79b4ff`, sky `#6fc3ff`,
+lime `#b9ee63`). All text clears AA on every dark surface; the input border
+clears 3:1. Kit hues, navy fills, the sky gradient and hazard fills do not
+change; hazard foregrounds stay dark ink. `.gm-paper` keeps printable products
+light. Headings use `text-gm-heading` (navy on light, white on dark), never
+`text-gm-navy`, which stays for text on lime and fills. The theme follows the
+device (`system`) with a Light / Dark / Auto toggle (`@barrelsgd/theme`).
+
 **Gradient rule:** one gradient per page, only behind the home hero; small text on it
 always sits on `bg-gm-scrim`; hazard colours never sit on the gradient (the warning
 takeover renders above it on white).
@@ -386,6 +397,8 @@ multi-day validity).
 **Do**
 
 - Use the `-ink` variant for text under 24px regular / 18.66px bold and icons under ~24px.
+- Colour headings with `text-gm-heading`; keep `text-gm-navy` for text on lime or other fixed light fills.
+- Check both themes: an ink used as a fill behind white text lightens in dark mode, so give it `dark:text-gm-navy`.
 - Put small white text on `bg-gm-blue-ink`, never on `bg-gm-blue`.
 - State severity in words *and* colour ("Amber warning — be prepared").
 - Show issue time, validity, and area on every product.

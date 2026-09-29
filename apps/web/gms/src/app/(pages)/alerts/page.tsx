@@ -37,7 +37,7 @@ export default async function WarningsPage() {
           <AlertGroups result={alerts} />
           {alertsLevel(alerts) === "none" && (
             <div className="flex flex-col gap-1 rounded-gm-card border border-gm-border border-dashed p-4 text-body leading-body">
-              <b className="text-gm-navy">What we are watching</b>
+              <b className="text-gm-heading">What we are watching</b>
               <span>
                 The tropical weather outlook covers systems that could affect us
                 over the next seven days.

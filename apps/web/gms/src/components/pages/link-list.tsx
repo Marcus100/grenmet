@@ -18,7 +18,7 @@ export function LinkList({ links }: { links: readonly ListedLink[] }) {
             href={link.href}
           >
             <span className="flex min-w-0 flex-1 flex-col gap-1">
-              <span className="font-bold text-body-base text-gm-navy leading-body-base group-hover:underline">
+              <span className="font-bold text-body-base text-gm-heading leading-body-base group-hover:underline">
                 {link.name}
               </span>
               <span className="text-body text-gm-text-secondary leading-body">

@@ -25,7 +25,10 @@ export default async function IssuedProductPage({
         Grenada Meteorological Service · Published {product.publishedAt} ·
         Revision {product.revision}
       </p>
-      <ProductContentView content={product} />
+      {/* A printable paper: stays light in dark mode (gm-paper). */}
+      <div className="gm-paper rounded-gm-card">
+        <ProductContentView content={product} />
+      </div>
     </div>
   );
 }

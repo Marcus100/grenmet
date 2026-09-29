@@ -20,7 +20,7 @@ export function PlaceholderNotice({
         className="mb-4 rounded border-gm-risk-yellow border-l-4 bg-gm-surface px-3 py-2 text-body-sm text-gm-text-secondary leading-body-sm"
         role="note"
       >
-        <b className="text-gm-navy">
+        <b className="text-gm-heading">
           Sample content — not an operational product.
         </b>{" "}
         {product} is not yet published from the GMS forecast system; do not use
@@ -33,7 +33,7 @@ export function PlaceholderNotice({
       className="mb-6 rounded-gm-card border border-gm-risk-yellow bg-gm-surface p-4 lg:p-5"
       role="note"
     >
-      <p className="font-bold text-body-base text-gm-navy leading-body-base">
+      <p className="font-bold text-body-base text-gm-heading leading-body-base">
         Sample content — not an operational product
       </p>
       <p className="mt-1 text-body text-gm-text-secondary leading-body">

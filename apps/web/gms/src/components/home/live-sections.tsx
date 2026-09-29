@@ -63,11 +63,11 @@ export async function ForecastDesk({ weather }: { weather: WeatherSnapshot }) {
     >
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <article className={`${HOME_CARD} flex flex-col gap-3`}>
-          <span className="flex w-fit items-center gap-1.5 rounded bg-gm-surface-panel px-2 py-1 font-bold text-gm-navy text-label uppercase leading-label tracking-wider">
+          <span className="flex w-fit items-center gap-1.5 rounded bg-gm-surface-panel px-2 py-1 font-bold text-gm-heading text-label uppercase leading-label tracking-wider">
             <ShieldCheckIcon aria-hidden="true" className="size-4" />
             Official forecast
           </span>
-          <h3 className="text-balance font-bold text-gm-navy text-heading-sm leading-heading-sm">
+          <h3 className="text-balance font-bold text-gm-heading text-heading-sm leading-heading-sm">
             {today.title ?? "Today's forecast"}
           </h3>
           <p className="max-w-prose text-body-base leading-body-base">
@@ -103,10 +103,10 @@ export async function ForecastDesk({ weather }: { weather: WeatherSnapshot }) {
                     className="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-4 py-3 hover:bg-gm-surface"
                     href={`/explore/updates/${item.slug}`}
                   >
-                    <span className="flex size-9 items-center justify-center rounded-lg bg-gm-surface-panel text-gm-navy">
+                    <span className="flex size-9 items-center justify-center rounded-lg bg-gm-surface-panel text-gm-heading">
                       <FileTextIcon aria-hidden="true" className="size-4" />
                     </span>
-                    <span className="font-semibold text-body text-gm-navy leading-body">
+                    <span className="font-semibold text-body text-gm-heading leading-body">
                       {item.title}
                     </span>
                     <time
@@ -157,7 +157,7 @@ export async function Stories() {
                   src={lead.imageUrl}
                 />
               </span>
-              <span className="text-balance font-bold text-gm-navy text-heading-base leading-heading-base group-hover:underline">
+              <span className="text-balance font-bold text-gm-heading text-heading-base leading-heading-base group-hover:underline">
                 {lead.title}
               </span>
               <span className="text-body-base text-gm-text-secondary leading-body-base">
@@ -184,7 +184,7 @@ export async function Stories() {
                       />
                     </span>
                     <span className="flex flex-col gap-1">
-                      <span className="font-bold text-body-base text-gm-navy leading-body-base group-hover:underline">
+                      <span className="font-bold text-body-base text-gm-heading leading-body-base group-hover:underline">
                         {story.title}
                       </span>
                       <span className="text-body-sm text-gm-text-muted leading-body-sm">
@@ -243,7 +243,7 @@ export function Explained() {
             {QUESTIONS.map((item) => (
               <li className="border-gm-border border-b" key={item.href}>
                 <Link
-                  className="flex items-center justify-between gap-3 py-3.5 font-semibold text-body-base text-gm-navy leading-body-base hover:underline"
+                  className="flex items-center justify-between gap-3 py-3.5 font-semibold text-body-base text-gm-heading leading-body-base hover:underline"
                   href={item.href}
                 >
                   {item.q}
@@ -256,7 +256,7 @@ export function Explained() {
             ))}
           </ul>
           <Link
-            className="mt-4 flex items-center justify-between gap-3 rounded-gm-card bg-gm-surface-panel p-4 font-semibold text-body-base text-gm-navy leading-body-base hover:underline"
+            className="mt-4 flex items-center justify-between gap-3 rounded-gm-card bg-gm-surface-panel p-4 font-semibold text-body-base text-gm-heading leading-body-base hover:underline"
             href="/explore/ask"
           >
             Have a question? Ask a meteorologist
@@ -304,7 +304,7 @@ export async function PublicationsAndAlerts() {
                   aria-hidden="true"
                   className="size-5 text-gm-sky-ink"
                 />
-                <span className="font-bold text-body text-gm-navy leading-body">
+                <span className="font-bold text-body text-gm-heading leading-body">
                   {post.title}
                 </span>
                 <span className="text-body-sm text-gm-text-secondary leading-body-sm">

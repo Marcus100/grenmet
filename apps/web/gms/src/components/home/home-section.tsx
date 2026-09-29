@@ -34,7 +34,7 @@ export function HomeSection({
             <p className="mb-1 font-bold text-gm-sky-ink text-label uppercase leading-label tracking-widest">
               {kicker}
             </p>
-            <h2 className="text-balance font-bold font-gm-display text-gm-display text-gm-navy uppercase tracking-wide">
+            <h2 className="text-balance font-bold font-gm-display text-gm-display text-gm-heading uppercase tracking-wide">
               {title}
             </h2>
           </div>

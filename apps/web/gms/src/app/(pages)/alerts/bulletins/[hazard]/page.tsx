@@ -45,7 +45,7 @@ export default async function BulletinPage({
       />
       <PublishedProducts kinds={[category]} />
       <section className="max-w-prose space-y-3 rounded-gm-card border border-gm-border bg-gm-surface p-5 text-body-base leading-body-base">
-        <h2 className="font-bold font-gm-display text-gm-navy text-heading-md leading-heading-md">
+        <h2 className="font-bold font-gm-display text-gm-heading text-heading-md leading-heading-md">
           Reading a bulletin
         </h2>
         <p>
