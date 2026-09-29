@@ -38,7 +38,7 @@ export function SkyHero({
       aria-labelledby="sky-hero-title"
       className="bg-gm-gradient-sky text-gm-text-inverse"
     >
-      <div className="mx-auto grid max-w-6xl gap-5 px-4 pt-5 pb-6 sm:px-6 lg:pt-7 lg:pb-8 xl:px-8">
+      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-5 px-4 pt-5 pb-6 sm:px-6 lg:pt-7 lg:pb-8 xl:px-8">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <h1
             className="font-bold text-body-base leading-body-base"
@@ -55,7 +55,7 @@ export function SkyHero({
           </p>
         </div>
 
-        <div className="grid gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
           <div>
             <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
               {hasForecast && (
