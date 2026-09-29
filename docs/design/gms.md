@@ -26,6 +26,11 @@ colors:
   risk-amber: "#ff9900"
   risk-red: "#cc0033"
   risk-grey: "#dcdcdc"
+  sky-deep: "#0a2c6b"
+  sky-mid: "#1558b8"
+  sky-light: "#2a82d8"
+  navy-raised: "#0f1a36"
+  navy-panel: "#16244a"
 typography:
   display:
     fontFamily: Noto Sans
@@ -77,6 +82,21 @@ typography:
     fontSize: 11px
     fontWeight: 700
     lineHeight: 16px
+  numeral-hero:
+    fontFamily: Barlow Condensed
+    fontSize: 124px
+    fontWeight: 600
+    lineHeight: 0.9
+  numeral:
+    fontFamily: Barlow Condensed
+    fontSize: 46px
+    fontWeight: 700
+    lineHeight: 1
+  display-condensed:
+    fontFamily: Barlow Condensed
+    fontSize: 38px
+    fontWeight: 700
+    lineHeight: 1
   data:
     fontFamily: JetBrains Mono
     fontSize: 14px
@@ -86,6 +106,7 @@ rounded:
   sm: 4px
   md: 6px
   lg: 8px
+  card: 14px
   full: 9999px
 spacing:
   unit: 4px
@@ -107,7 +128,7 @@ components:
   stat-tile:
     backgroundColor: "{colors.surface-page}"
     textColor: "{colors.primary}"
-    rounded: "{rounded.sm}"
+    rounded: "{rounded.card}"
     padding: "{spacing.card}"
   table-head:
     backgroundColor: "{colors.surface}"
@@ -173,7 +194,7 @@ components:
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-09-24
+**Last updated:** 2026-09-28
 
 Agent-readable spec for the GMS institutional lane (`gms`, `auth`, `docs`, `events`),
 in the [DESIGN.md format](https://github.com/google-labs-code/design.md): YAML tokens
@@ -238,6 +259,34 @@ the YAML is `--gm-navy`; every other key is `--gm-<key>`.
 | Border | `#d0d5dd` | `--gm-border` | Dividers and container edges. Decorative only (1.47:1). |
 | Input border | `#85888d` | `--gm-border-input` | Outlines of inputs, selects, checkboxes (`--input` in the brand layer). 3.56:1 on white, ≥3.17:1 on every surface tint. |
 
+**Bold sky** (public site `apps/web/gms`, approved 28 Sep 2026). The home hero and
+the dark masthead use these; nothing else does.
+
+| Name | Value | Token | Role |
+|---|---|---|---|
+| Sky deep | `#0a2c6b` | `--gm-sky-deep` | Gradient top. 13.25:1 with white. |
+| Sky mid | `#1558b8` | `--gm-sky-mid` | Gradient middle. 6.73:1 with white. |
+| Sky light | `#2a82d8` | `--gm-sky-light` | Gradient bottom. **3.97:1** — large text only. |
+| Sky gradient | 170° deep → mid → light | `--gm-gradient-sky` (`bg-gm-gradient-sky`) | Home hero only. |
+| Scrim | navy at 42% | `--gm-scrim` (`bg-gm-scrim`) | Panels behind small text on the gradient (~7.5:1 at the light stop). |
+| Navy raised | `#0f1a36` | `--gm-navy-raised` | Mega-menu panel under the navy masthead. |
+| Navy panel | `#16244a` | `--gm-navy-panel` | Featured card inside the navy menu. |
+
+**Dark mode** (public site only, approved 29 Sep 2026). `.gm-site.dark` in
+the foundation swaps surfaces (page `#0c1427`, surface `#111b32`, panel
+`#15223e`, muted `#1a2846`), text (`#e6ecf5` / `#b3bfd2` / `#8e9bb1`), border
+`#2a3858`, input border `#6b7fa3` and the inks (blue `#79b4ff`, sky `#6fc3ff`,
+lime `#b9ee63`). All text clears AA on every dark surface; the input border
+clears 3:1. Kit hues, navy fills, the sky gradient and hazard fills do not
+change; hazard foregrounds stay dark ink. `.gm-paper` keeps printable products
+light. Headings use `text-gm-heading` (navy on light, white on dark), never
+`text-gm-navy`, which stays for text on lime and fills. The theme follows the
+device (`system`) with a Light / Dark / Auto toggle (`@barrelsgd/theme`).
+
+**Gradient rule:** one gradient per page, only behind the home hero; small text on it
+always sits on `bg-gm-scrim`; hazard colours never sit on the gradient (the warning
+takeover renders above it on white).
+
 **Hazard colours** follow the CAP risk scale, not the brand. Severity only, and only as
 matched pairs:
 
@@ -253,16 +302,19 @@ Public-guidance aliases: `gm-weather-severity-{low,be-aware,be-prepared,take-act
 
 ## Typography
 
-One family, Noto Sans (`font-sans`; `font-document` for printable output). Coded data —
+Noto Sans (`font-sans`; `font-document` for printable output) for all running text
+and UI. Bold sky adds Barlow Condensed (`font-gm-display`) for large numerals and
+uppercase section headings only — never body text, labels or data tables. Coded data —
 METAR/TAF/SYNOP, station IDs — uses `font-mono` (JetBrains Mono where loaded, else
 system mono).
 
 | Role | Weight | Size / line height | Utilities |
 |---|---|---|---|
 | Display (rare) | bold | 34 / 36 | `text-heading-lg leading-heading-lg` |
-| Page title (h1) | bold | 30 / 36 | `text-heading-md leading-heading-md` |
+| Page title (h1) | condensed bold, uppercase | 38 / 1 | `PageHeader`: `font-gm-display text-gm-display uppercase tracking-wide` |
 | Sub-heading | bold | 26 / 32 | `text-heading-base leading-heading-base` |
-| Section title (h2) | bold | 22 / 28 | `text-heading-sm leading-heading-sm` |
+| Section title (h2) | condensed bold | 30 / 36 | `PageSection`: `font-gm-display text-heading-md leading-heading-md` (sentence case) |
+| Card title | bold | 22 / 28 | `text-heading-sm leading-heading-sm` |
 | Nav | semibold | 20 / 28 | `text-nav leading-nav` |
 | Body, lead | regular | 16 / 24 | `text-body-base leading-body-base` |
 | Dense body, cells | regular | 14 / 20 | `text-body leading-body` |
@@ -270,6 +322,9 @@ system mono).
 | Caption | regular | 12 / 16 | `text-caption leading-caption` |
 | Label, table head | bold | 11 / 16 | `text-label leading-label` |
 | Micro | regular | 10 / 16 | `text-micro leading-micro` — metadata only |
+| Hero numeral | condensed 600 | 84–124 / 0.9 | `font-gm-display text-gm-numeral-hero` — current temperature only |
+| Stat numeral | condensed bold | 46 / 1 | `font-gm-display text-gm-numeral` |
+| Condensed display | condensed bold, uppercase | 38 / 1 | `font-gm-display text-gm-display uppercase` — section h2 on the home page |
 
 - Always pair `text-<step>` with `leading-<step>`. Never raw `text-xl`/`text-3xl`.
 - Headings bold, UI emphasis semibold, body regular. No light weights.
@@ -305,13 +360,14 @@ Focus is always visible: `focus-visible:ring-*`, or `shadow-gm-focus` on custom 
 
 ## Shapes
 
-Four radii only; nest concentrically (child radius ≤ parent).
+Five radii only; nest concentrically (child radius ≤ parent).
 
 | Element | Utility | Value |
 |---|---|---|
-| Bordered containers (tables, tiles) | `rounded` | 4px |
+| Swatches, small chips | `rounded` | 4px |
 | Buttons, inputs, nav CTAs | `rounded-md` | 6px |
-| Cards, alert strips | `rounded-lg` | 8px |
+| Icon tiles, thumbnails | `rounded-lg` | 8px |
+| Every card and bordered container: tiles, tables, link cards, FAQs, notices, alert cards | `rounded-gm-card` | 14px |
 | Pills, avatars, status dots | `rounded-full` | 9999px |
 
 ## Components
@@ -319,11 +375,14 @@ Four radii only; nest concentrically (child radius ≤ parent).
 Each: **Role** · **Specs** · **Context**.
 
 - **Button** (`@barrelsgd/ui/components/ui/button`) · Primary action · `default` = navy fill, white text, `font-medium`, `rounded-lg`; header CTA `h-11 rounded-md px-4 font-semibold text-body-base` · One primary per view; others `outline`/`secondary`. Loading keeps the label and adds a spinner.
-- **Stat tile** (`apps/web/gms/src/components/pages/stat-tiles.tsx`) · Headline figures · `rounded border border-gm-border bg-background p-4 lg:p-5`; muted `text-label` label, navy bold `text-heading-sm` value · 1/2/4-col grid, `gap-3`.
-- **Info table** (`…/pages/info-table.tsx`) · Reference data · `rounded border`; head `bg-gm-surface` navy bold `text-label`; cells `text-body` secondary; `monoColumns` for coded data · Wrapped in `overflow-x-auto`; always has a caption.
-- **Page header / section** (`page-header.tsx`, `pages/page-section.tsx`) · Titles · h1 navy `text-heading-md`, subtitle secondary `text-body-base`; h2 navy `text-heading-sm`, `mb-3 lg:mb-4` · Every page.
-- **Alert status line** (`alertsSummary` in `apps/web/gms/src/lib/cap.ts`) · The live warning state · exactly one wording everywhere: "No active warnings", "<level> · <n> active" (e.g. "Be prepared · 1 active", level from the most severe alert), or "Warnings unavailable"; surface coloured by `WARNING_LEVEL_SURFACE` · Desktop header pill, mobile menu top row, mobile accordion title, desktop panel header, Warnings menu card — all link to `/warnings`.
+- **Stat tile** (`apps/web/gms/src/components/pages/stat-tiles.tsx`) · Headline figures · `rounded-gm-card border border-gm-border bg-background p-4 lg:p-5`; muted uppercase tracked `text-label` label, navy condensed bold `text-heading-lg` value · 1/2/4-col grid, `gap-3`.
+- **Info table** (`…/pages/info-table.tsx`) · Reference data · `rounded-gm-card border`; head `bg-gm-surface` navy bold uppercase tracked `text-label`; cells `text-body` secondary; `monoColumns` for coded data · Wrapped in `overflow-x-auto`; always has a caption.
+- **Page header / section** (`page-header.tsx`, `pages/page-section.tsx`) · Titles · h1 navy condensed uppercase `text-gm-display`, subtitle secondary `text-body-base`; h2 navy condensed `text-heading-md`, `mb-3 lg:mb-4` · Every page.
+- **Link list** (`…/pages/link-list.tsx`) · Onward links · 2-col grid of `rounded-gm-card` bordered cards, blue-ink arrow, border turns blue-ink on hover; no shadow.
+- **Alert status line** (`alertsSummary` in `apps/web/gms/src/lib/cap.ts`) · The live warning state · exactly one wording everywhere: "No active alerts", "<level> · <n> active" (e.g. "Be prepared · 1 active", level from the most severe alert), or "Alerts unavailable"; surface coloured by `WARNING_LEVEL_SURFACE` · Desktop header pill, mobile menu top row, mobile accordion title, desktop panel header, Alerts menu card — all link to `/alerts`.
 - **Alert card** (`@barrelsgd/gms/components/alert-card`) · A CAP warning · severity strip `gm-warning-*-bg/-fg`, `rounded-t-lg`, `font-document`; strip title states severity in words · The only place hazard colours are large fills.
+- **Location switcher** (`apps/web/gms/src/components/home/location-switcher.tsx`) · Choose a place on the sky hero · pill links on `bg-gm-scrim`, current place white with navy text and a pin · Renders only when two or more places are enabled; a place without its own station data shows the national forecast, labelled, never another station's reading.
+- **Site search** (`…/site-search.tsx`) · Find any page or article · masthead button and `/`; `CommandDialog` with local ranking · Planned pages show "coming soon".
 - **Breadcrumbs** (`apps/web/gms/src/components/site-breadcrumbs.tsx`) · Where am I · Home › section (sitemap anchor or section page) › URL ancestors; current page omitted (the `h1` names it); `text-body-sm` secondary, blue-ink hover · Automatic on every standing page; logic in `src/lib/breadcrumbs.ts`.
 - **Logo** (`@barrelsgd/gms/components/logo`) · Brand mark · variants `primary | submark | wordmark` (raster pairs) and `monogram | icon` (inline vector, `currentColor`); size via `className` only (`h-9 w-auto` header, `size-7` icon); dark mode handled automatically.
 - **Badge / Alert / Dialog / Tabs** (`@barrelsgd/ui`) · Already branded by the GMS brand layer — don't restyle per app.
@@ -340,6 +399,8 @@ multi-day validity).
 **Do**
 
 - Use the `-ink` variant for text under 24px regular / 18.66px bold and icons under ~24px.
+- Colour headings with `text-gm-heading`; keep `text-gm-navy` for text on lime or other fixed light fills.
+- Check both themes: an ink used as a fill behind white text lightens in dark mode, so give it `dark:text-gm-navy`.
 - Put small white text on `bg-gm-blue-ink`, never on `bg-gm-blue`.
 - State severity in words *and* colour ("Amber warning — be prepared").
 - Show issue time, validity, and area on every product.
@@ -355,7 +416,8 @@ multi-day validity).
 - Stack shadows on in-page cards, or use radii beyond the four above.
 - Set `width`/`height` on the logo or hardcode an asset path.
 - Use the retired sun orange or any warm brand tone.
-- Reach for generic "AI" styling: gradient hero numbers, glassmorphism, emoji icons, card-kit grids with no hierarchy.
+- Use a gradient anywhere but the home hero, or put small text on it without `bg-gm-scrim`.
+- Reach for generic "AI" styling: gradient-filled text, glassmorphism, emoji icons, card-kit grids with no hierarchy.
 - Add or change a `--gm-*` token without approval.
 
 ## Accessibility & interaction
@@ -376,7 +438,7 @@ Guidelines to this lane:
 
 Quick reference: navy `gm-navy` ink/primary · blue ink `gm-blue-ink` links · sky
 `gm-sky` accent fill · lime `gm-lime` fill on navy · borders `gm-border` · body
-`gm-text-primary`/`gm-text-secondary` · white page · Noto Sans · 4 radii.
+`gm-text-primary`/`gm-text-secondary` · white page · Noto Sans (Barlow Condensed for big numerals) · sky gradient on the home hero only · 5 radii.
 
 Before coding, write a two-line plan — the page's single most important element, and its one primary action — then check it against *Overview* principles.
 

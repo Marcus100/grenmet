@@ -4,6 +4,9 @@ import { describe, expect, it, vi } from "vitest";
 import { NavDrawer } from "@/components/nav-drawer";
 import { NAV_SECTIONS } from "@/lib/nav-sections";
 
+// The theme toggle needs the preferences provider; it has its own test.
+vi.mock("@/components/theme-toggle", () => ({ ThemeToggle: () => null }));
+
 const FIRST_SECTION = NAV_SECTIONS[0];
 
 describe("NavDrawer", () => {
@@ -40,7 +43,7 @@ describe("NavDrawer", () => {
 
     const [firstLink] = FIRST_SECTION.groups[0].links;
     expect(
-      screen.getByRole("link", { name: new RegExp(firstLink.name, "i") })
+      screen.getByRole("link", { name: new RegExp(`^${firstLink.name}`, "i") })
     ).toHaveAttribute("href", firstLink.href);
     expect(screen.getByText(firstLink.description)).toBeInTheDocument();
   });
@@ -66,7 +69,7 @@ describe("NavDrawer", () => {
 
     await user.click(screen.getByText(FIRST_SECTION.label));
     const link = screen.getByRole("link", {
-      name: new RegExp(FIRST_SECTION.groups[0].links[0].name, "i"),
+      name: new RegExp(`^${FIRST_SECTION.groups[0].links[0].name}`, "i"),
     });
     expect(link).toHaveAttribute("href", FIRST_SECTION.groups[0].links[0].href);
     // Verify the close callback without asking jsdom to navigate documents.
@@ -86,14 +89,14 @@ describe("NavDrawer", () => {
         open
       />
     );
-    const status = screen.getByRole("link", { name: "No active warnings" });
-    expect(status).toHaveAttribute("href", "/warnings");
+    const status = screen.getByRole("link", { name: "No active alerts" });
+    expect(status).toHaveAttribute("href", "/alerts");
   });
 
   it("omits the status row when no alert result is supplied", () => {
     render(<NavDrawer onClose={() => undefined} open />);
     expect(
-      screen.queryByRole("link", { name: "No active warnings" })
+      screen.queryByRole("link", { name: "No active alerts" })
     ).not.toBeInTheDocument();
   });
 });

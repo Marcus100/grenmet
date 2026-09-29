@@ -17,7 +17,7 @@ export function InfoTable({
   rows,
 }: InfoTableProps) {
   return (
-    <div className="overflow-x-auto rounded border border-gm-border">
+    <div className="overflow-x-auto rounded-gm-card border border-gm-border">
       <table className="w-full border-collapse text-left">
         {caption && (
           <caption className="border-gm-border border-b bg-gm-surface px-4 py-2.5 text-gm-text-secondary text-label leading-label lg:px-5">
@@ -28,7 +28,7 @@ export function InfoTable({
           <tr>
             {headers.map((header) => (
               <th
-                className="whitespace-nowrap px-4 py-2.5 font-bold text-gm-navy text-label leading-label lg:px-5 lg:py-3"
+                className="whitespace-nowrap px-4 py-2.5 font-bold text-gm-heading text-label uppercase leading-label tracking-wider lg:px-5 lg:py-3"
                 key={header}
                 scope="col"
               >
@@ -47,7 +47,7 @@ export function InfoTable({
                     monoColumns?.includes(columnIndex) &&
                       "font-mono tabular-nums"
                   )}
-                  key={cell}
+                  key={headers[columnIndex] ?? cell}
                 >
                   {cell}
                 </td>

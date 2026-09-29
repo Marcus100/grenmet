@@ -39,7 +39,7 @@ export const CERTAINTY_LABEL: Record<CapCertainty, string> = {
 
 /** Path of a warning's own page. CAP identifiers may contain `:` and `.`. */
 export function warningHref(identifier: string): string {
-  return `/warnings/${encodeURIComponent(identifier)}`;
+  return `/alerts/${encodeURIComponent(identifier)}`;
 }
 
 /** The info block the public reads: English first, then authored order. */

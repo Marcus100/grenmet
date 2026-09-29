@@ -179,9 +179,10 @@ owners unassigned. Staff acceptance and deployment verification remain pending.
   `/tmp/publishing-red.log`. Fixes also remove sample-article substitution and
   distinguish CMS outage from a missing/unpublished article. Final verification
   follows below.
-- CMS source mapping: `latest-from-us` → homepage Latest from us;
-  `weather-news` → Weather News; `latest-publications` → Latest publications
-  and `/news`. Individual published articles use `/news/[...slug]`.
+- CMS source mapping: `latest-from-us` → home forecast-desk updates and
+  `/explore/updates`; `weather-news` → home Stories; `latest-publications` →
+  home Latest reports and `/explore/news`. Individual published articles use
+  `/explore/news/[...slug]` (the old `/news/*` URLs redirect).
   Operational forecasts come from FastAPI public wxproducts snapshots; CAP
   warnings come from the public warning API. CMS is not the forecast store.
   CMS fetches use `no-store`; measured end-to-end refresh delay remains pending.

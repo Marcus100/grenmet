@@ -5,11 +5,16 @@ import { Accordion } from "@base-ui/react/accordion";
 import {
   ChevronDownIcon,
   ChevronRightIcon,
+  FishIcon,
+  PlaneIcon,
+  RadarIcon,
+  TornadoIcon,
   TriangleAlertIcon,
   XIcon,
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect } from "react";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { type AlertsResult, alertsLevel, alertsSummary } from "@/lib/cap";
 import {
   drawerBackdrop,
@@ -20,6 +25,13 @@ import {
 import { NAV_SECTIONS } from "@/lib/nav-sections";
 import { cn } from "@/lib/utils";
 import { WARNING_LEVEL_SURFACE } from "@/lib/warning-level";
+
+const QUICK_LINKS = [
+  { href: "/weather/radar", label: "Radar", Icon: RadarIcon },
+  { href: "/weather/tropics", label: "Tropics", Icon: TornadoIcon },
+  { href: "/services/aviation", label: "For pilots", Icon: PlaneIcon },
+  { href: "/marine/forecast", label: "For fishers", Icon: FishIcon },
+] as const;
 
 interface NavDrawerProps {
   /** Warning status shown above the sections; the header pill is desktop-only. */
@@ -75,7 +87,7 @@ export function NavDrawer({ alerts, open, onClose }: NavDrawerProps) {
                   "flex min-h-12 shrink-0 items-center justify-between gap-3 px-6 py-3 font-semibold text-body-base leading-body-base",
                   WARNING_LEVEL_SURFACE[alertsLevel(alerts)]
                 )}
-                href="/warnings"
+                href="/alerts"
                 onClick={onClose}
               >
                 <span className="flex items-center gap-2.5">
@@ -91,6 +103,20 @@ export function NavDrawer({ alerts, open, onClose }: NavDrawerProps) {
                 />
               </a>
             )}
+
+            <div className="grid shrink-0 grid-cols-2 gap-2 px-4 py-3">
+              {QUICK_LINKS.map(({ href, label, Icon }) => (
+                <a
+                  className="flex min-h-11 items-center gap-2 rounded-gm-card bg-gm-surface px-3 font-semibold text-body text-gm-heading leading-body"
+                  href={href}
+                  key={href}
+                  onClick={onClose}
+                >
+                  <Icon aria-hidden="true" className="size-4 text-gm-sky-ink" />
+                  {label}
+                </a>
+              ))}
+            </div>
 
             {/* Nav body */}
             <motion.nav
@@ -112,15 +138,15 @@ export function NavDrawer({ alerts, open, onClose }: NavDrawerProps) {
                         >
                           {/* Base UI's Accordion.Trigger marks the open state
                               with data-panel-open, not data-open. */}
-                          <span className="font-normal text-gm-text-primary text-heading-md leading-heading-md group-data-panel-open:font-semibold group-data-panel-open:text-gm-navy">
+                          <span className="font-normal text-gm-text-primary text-heading-md leading-heading-md group-data-panel-open:font-semibold group-data-panel-open:text-gm-heading">
                             {section.label}
                           </span>
                           <div className="flex size-11 items-center justify-center">
-                            <ChevronDownIcon className="size-6 text-gm-text-muted transition-transform duration-150 group-data-panel-open:rotate-180 group-data-panel-open:text-gm-navy" />
+                            <ChevronDownIcon className="size-6 text-gm-text-muted transition-transform duration-150 group-data-panel-open:rotate-180 group-data-panel-open:text-gm-heading" />
                           </div>
                         </Accordion.Trigger>
                       </Accordion.Header>
-                      {section.groups.length > 0 && (
+                      {
                         <Accordion.Panel
                           className="overflow-hidden transition-[height] duration-200 ease-out"
                           style={
@@ -132,6 +158,17 @@ export function NavDrawer({ alerts, open, onClose }: NavDrawerProps) {
                           {/* Group headings and descriptions mirror the
                               desktop panel so both surfaces present the same
                               structure. */}
+                          <a
+                            className="flex min-h-11 items-center gap-1 px-6 pt-2 font-semibold text-body-base text-gm-blue-ink leading-body-base"
+                            href={section.href}
+                            onClick={onClose}
+                          >
+                            All {section.label.toLowerCase()}
+                            <ChevronRightIcon
+                              aria-hidden="true"
+                              className="size-4"
+                            />
+                          </a>
                           {section.groups.map((group) => (
                             <div className="pb-2" key={group.heading}>
                               <p className="px-6 pt-4 pb-1 font-semibold text-caption text-gm-text-muted uppercase leading-caption tracking-wider">
@@ -155,11 +192,17 @@ export function NavDrawer({ alerts, open, onClose }: NavDrawerProps) {
                             </div>
                           ))}
                         </Accordion.Panel>
-                      )}
+                      }
                     </Accordion.Item>
                   </motion.div>
                 ))}
               </Accordion.Root>
+              <div className="flex flex-col gap-2 border-gm-border border-t px-6 pt-5">
+                <p className="font-bold text-gm-text-muted text-label uppercase leading-label tracking-wider">
+                  Appearance
+                </p>
+                <ThemeToggle tone="drawer" />
+              </div>
             </motion.nav>
           </motion.div>
         </motion.div>

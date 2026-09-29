@@ -18,7 +18,7 @@ function NewsCard({ post }: { post: WeatherArticle }) {
         />
       </div>
       <div className="flex flex-col gap-2 p-4">
-        <p className="font-bold text-body-base text-gm-navy leading-body-base">
+        <p className="font-bold text-body-base text-gm-heading leading-body-base">
           {post.title}
         </p>
         <p className="text-body-sm text-gm-text-secondary leading-body-sm">
@@ -45,7 +45,7 @@ function DesktopNewsCard({ post }: { post: WeatherArticle }) {
         />
       </div>
       <div className="flex flex-col gap-2">
-        <p className="font-bold text-gm-navy text-heading-sm leading-heading-sm">
+        <p className="font-bold text-gm-heading text-heading-sm leading-heading-sm">
           {post.title}
         </p>
         <p className="text-body-base text-gm-text-secondary leading-body-base">
@@ -66,10 +66,10 @@ export async function News() {
   return (
     <section className="mb-4 flex flex-col gap-4 lg:-mx-8 lg:mb-8 lg:gap-7 lg:bg-gm-surface lg:px-8 lg:py-12">
       <div className="flex h-7 items-center justify-between">
-        <p className="font-bold text-gm-navy text-heading-sm leading-heading-sm lg:text-heading-md lg:leading-heading-md">
+        <p className="font-bold text-gm-heading text-heading-sm leading-heading-sm lg:text-heading-md lg:leading-heading-md">
           Latest publications
         </p>
-        <a className="text-gm-blue-ink underline" href="/news">
+        <a className="text-gm-blue-ink underline" href="/explore/news">
           All Publications
         </a>
       </div>

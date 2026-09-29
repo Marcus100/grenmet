@@ -1,8 +1,13 @@
 export interface NavLink {
-  /** One line, shown under the name in the desktop panel. */
+  /** One line, shown under the name in the sitemap and section pages. */
   description: string;
   href: string;
   name: string;
+  /**
+   * Not built yet. The planned-page route serves it as a sample-content
+   * placeholder so the menu can show the full IA; see `plannedPage`.
+   */
+  planned?: boolean;
 }
 
 export interface NavGroup {
@@ -10,525 +15,805 @@ export interface NavGroup {
   links: NavLink[];
 }
 
-/** Live card shown beside a section's links in the desktop panel. */
-export type NavFeature = "alerts" | "forecast";
+/** Live card shown beside a section's links in the desktop menu. */
+export type NavFeature =
+  | { kind: "alerts" }
+  | { kind: "forecast" }
+  | {
+      kind: "link";
+      /** Short uppercase kicker, e.g. "For pilots". */
+      eyebrow: string;
+      href: string;
+      cta: string;
+      text: string;
+    };
 
 export interface NavSection {
-  featured?: NavFeature;
+  /** One sentence under the section name in the menu and on its index page. */
+  blurb: string;
+  featured: NavFeature;
   groups: NavGroup[];
-  /** A section with no groups is a plain link. */
-  href?: string;
+  /** The section's URL root and index page. */
+  href: string;
   label: string;
 }
 
+const link = (name: string, href: string, description: string): NavLink => ({
+  name,
+  href,
+  description,
+});
+
+const planned = (name: string, href: string, description: string): NavLink => ({
+  name,
+  href,
+  description,
+  planned: true,
+});
+
 /**
- * Primary site navigation, shared by the mobile nav drawer and the desktop
- * masthead panels so both surfaces stay in sync from one source. The drawer
- * flattens groups with `sectionLinks`.
+ * Primary site navigation — seven sections, one URL root each (Bold sky IA,
+ * 28 Sep 2026). Shared by the mobile drawer, the desktop mega menu, the
+ * sitemap, breadcrumbs and section index pages so every surface stays in sync.
  */
 export const NAV_SECTIONS: NavSection[] = [
   {
-    label: "Warnings",
-    featured: "alerts",
+    label: "Alerts",
+    href: "/alerts",
+    blurb:
+      "Official alerts, warnings and bulletins for Grenada, Carriacou and Petite Martinique.",
+    featured: { kind: "alerts" },
     groups: [
       {
         heading: "In effect",
         links: [
-          {
-            name: "Warnings in effect",
-            href: "/warnings",
-            description: "Current hazard Outlooks, Watches and Warnings",
-          },
-          {
-            name: "Bulletins",
-            href: "/products/bulletins",
-            description: "Detailed issued bulletins for nine hazards",
-          },
-          {
-            name: "Warning levels",
-            href: "/warnings/levels",
-            description: "How Outlooks, Watches and Warnings work",
-          },
-          {
-            name: "Impact-Based Warnings",
-            href: "/warnings/impact",
-            description: "What a warning means for you, not just the weather",
-          },
+          link(
+            "Alerts in effect",
+            "/alerts",
+            "Current Outlooks, Watches and Warnings"
+          ),
+          link(
+            "Advisories",
+            "/alerts/advisories",
+            "Lower-level notices in effect"
+          ),
+          link(
+            "All bulletins",
+            "/alerts/bulletins",
+            "Detailed issued bulletins for nine hazards"
+          ),
         ],
       },
       {
-        heading: "By hazard",
+        heading: "Hazards",
         links: [
-          {
-            name: "Tropical Cyclone Information",
-            href: "/warnings/cyclone",
-            description:
-              "Storm tracks, watches and warnings for the tri-island state",
-          },
-          {
-            name: "Marine Warnings",
-            href: "/warnings/marine",
-            description: "Small craft advisories and rough-sea notices",
-          },
-          {
-            name: "Tsunami Information",
-            href: "/warnings/tsunami",
-            description: "Threat levels, natural warning signs and what to do",
-          },
-          {
-            name: "Cyclone Archive",
-            href: "/warnings/cyclone/archive",
-            description:
-              "Past tropical cyclones affecting the tri-island state",
-          },
-          {
-            name: "Exercises and Drills",
-            href: "/warnings/exercise",
-            description: "How test warnings are marked during an exercise",
-          },
-          {
-            name: "Get Alerts",
-            href: "/subscribe",
-            description: "Every channel warnings reach you through",
-          },
+          link(
+            "Tropical cyclone",
+            "/alerts/cyclone",
+            "Storm tracks, watches and warnings"
+          ),
+          link(
+            "Flood & heavy rain",
+            "/alerts/bulletins/flood",
+            "Flood and heavy rain bulletins"
+          ),
+          link(
+            "Thunderstorm",
+            "/alerts/bulletins/thunderstorm",
+            "Thunderstorm bulletins"
+          ),
+          link("Wind", "/alerts/bulletins/wind", "Strong wind bulletins"),
+          link("Heat", "/alerts/bulletins/heat", "Heat bulletins"),
+          link(
+            "Marine",
+            "/alerts/marine",
+            "Small craft advisories and rough seas"
+          ),
+          link(
+            "Coastal",
+            "/alerts/bulletins/coastal",
+            "High surf, swell and coastal flooding"
+          ),
+          link(
+            "Saharan dust",
+            "/alerts/bulletins/dust",
+            "Dust and haze bulletins"
+          ),
+          link(
+            "Tsunami",
+            "/alerts/tsunami",
+            "Threat levels, natural signs and what to do"
+          ),
         ],
       },
       {
-        heading: "Understand",
+        heading: "Understand alerts",
         links: [
-          {
-            name: "Warning levels",
-            href: "/warnings/levels",
-            description: "How the green-to-red warning scale works",
-          },
+          link(
+            "Warning levels",
+            "/alerts/levels",
+            "How the green-to-red scale works"
+          ),
+          link(
+            "Impact-based warnings",
+            "/alerts/impact",
+            "What a warning means for you"
+          ),
+          link(
+            "Reading a warning",
+            "/alerts/understanding",
+            "How to read a warning and act on it"
+          ),
+        ],
+      },
+      {
+        heading: "Prepare",
+        links: [
+          link(
+            "Hurricane",
+            "/alerts/prepare/hurricane",
+            "What every household should have ready"
+          ),
+          link(
+            "Flood",
+            "/alerts/prepare/flood",
+            "Before, during and after heavy rain"
+          ),
+          link(
+            "Lightning",
+            "/alerts/prepare/lightning",
+            "Staying safe when thunder roars"
+          ),
+          link(
+            "Heat",
+            "/alerts/prepare/heat",
+            "Keeping cool on the hottest days"
+          ),
+          link(
+            "Tsunami",
+            "/alerts/prepare/tsunami",
+            "Know the signs and where to go"
+          ),
+        ],
+      },
+      {
+        heading: "Get alerts",
+        links: [
+          link(
+            "All alert channels",
+            "/alerts/get-alerts",
+            "Every channel alerts reach you through"
+          ),
+          link("GMS app", "/app-guide", "Warnings and forecasts on your phone"),
+          link(
+            "CAP alerts",
+            "/alerts/get-alerts/cap",
+            "The machine-readable alert feed we publish"
+          ),
+        ],
+      },
+      {
+        heading: "Archive",
+        links: [
+          link(
+            "Tropical cyclone archive",
+            "/alerts/cyclone/archive",
+            "Past storms affecting the tri-island state"
+          ),
+          link(
+            "Exercises & drills",
+            "/alerts/exercise",
+            "How test alerts are marked"
+          ),
         ],
       },
     ],
   },
   {
     label: "Weather",
-    featured: "forecast",
+    href: "/weather",
+    blurb: "Forecasts, what is happening now, maps and observations.",
+    featured: { kind: "forecast" },
     groups: [
       {
-        heading: "Daily",
+        heading: "Forecasts",
         links: [
-          {
-            name: "Impact-Based Forecasts",
-            href: "/products/forecasts",
-            description: "Issued morning, midday and evening reports",
-          },
-          {
-            name: "NHC Products",
-            href: "/products/nhc",
-            description: "Tropical Weather Outlook",
-          },
-          {
-            name: "Today's Forecast",
-            href: "/",
-            description: "Conditions, tides and sun times for today",
-          },
-          {
-            name: "3-Day Forecast",
-            href: "/forecasts/3-day",
-            description: "The next three days at a glance",
-          },
-          {
-            name: "7-Day Outlook",
-            href: "/forecasts/7-day",
-            description: "The week ahead, updated each morning",
-          },
-          {
-            name: "Weather Synopsis",
-            href: "/forecasts/synopsis",
-            description: "The forecaster's plain-language summary",
-          },
+          link(
+            "Today",
+            "/weather",
+            "Conditions, tides and sun times for today"
+          ),
+          link("3-day forecast", "/weather/3-day", "The next three days"),
+          link("7-day forecast", "/weather/7-day", "The week ahead"),
+          link(
+            "Weather synopsis",
+            "/weather/synopsis",
+            "The forecaster's plain-language summary"
+          ),
+          link(
+            "Nowcast",
+            "/weather/nowcast",
+            "Rain and wind over the next six hours"
+          ),
+          link(
+            "Issued forecasts",
+            "/weather/issued",
+            "Morning, midday and evening reports"
+          ),
         ],
       },
       {
-        heading: "Live",
+        heading: "Right now",
         links: [
-          {
-            name: "Radar",
-            href: "/forecasts/radar",
-            description: "Rainfall over Grenada right now",
-          },
-          {
-            name: "Satellite",
-            href: "/forecasts/satellite",
-            description: "Cloud and storms across the region",
-          },
-          {
-            name: "Current Conditions",
-            href: "/forecasts/conditions",
-            description: "The latest observations from Point Salines",
-          },
-          {
-            name: "Nowcast",
-            href: "/forecasts/nowcast",
-            description: "Rain and wind over the next six hours",
-          },
-          {
-            name: "Saharan Dust and Haze",
-            href: "/forecasts/dust",
-            description: "Five-day dust outlook and visibility",
-          },
-          {
-            name: "Sun and Moon",
-            href: "/almanac",
-            description: "Sunrise, sunset, twilight and moon phase",
-          },
-          {
-            name: "Model Guidance",
-            href: "/forecasts/models",
-            description: "The numerical guidance behind the forecast",
-          },
-          {
-            name: "Surface Analyses",
-            href: "/forecasts/analyses",
-            description: "The features driving today's weather",
-          },
+          link(
+            "Current conditions",
+            "/weather/conditions",
+            "The latest observations from Point Salines"
+          ),
+          link("Radar", "/weather/radar", "Rainfall over Grenada right now"),
+          link(
+            "Satellite",
+            "/weather/satellite",
+            "Cloud and storms across the region"
+          ),
+          link(
+            "Lightning",
+            "/weather/lightning",
+            "Recent lightning strikes around the islands"
+          ),
+          link(
+            "Rainfall",
+            "/weather/rainfall",
+            "Rain totals from the last 24 hours"
+          ),
+        ],
+      },
+      {
+        heading: "Tropical weather",
+        links: [
+          link(
+            "Tropical weather outlook",
+            "/weather/tropics",
+            "NHC outlook for the Atlantic and Caribbean"
+          ),
+          link(
+            "Tropical waves",
+            "/weather/tropics/waves",
+            "Waves crossing the Atlantic towards us"
+          ),
+          link(
+            "Hurricane season",
+            "/weather/tropics/season",
+            "This season so far, and what to expect"
+          ),
+        ],
+      },
+      {
+        heading: "Atmosphere",
+        links: [
+          link(
+            "Saharan dust",
+            "/weather/dust",
+            "Five-day dust outlook and visibility"
+          ),
+          link("UV index", "/weather/uv", "How strong the sun is today"),
+          link(
+            "Heat index",
+            "/weather/heat",
+            "How hot it feels, and when to take care"
+          ),
+        ],
+      },
+      {
+        heading: "Maps & models",
+        links: [
+          planned(
+            "Interactive map",
+            "/weather/map",
+            "Satellite, radar, rain and wind on one map"
+          ),
+          link(
+            "Model guidance",
+            "/weather/models",
+            "The numerical guidance behind the forecast"
+          ),
+          link(
+            "Surface analysis",
+            "/weather/analyses",
+            "The features driving today's weather"
+          ),
         ],
       },
       {
         heading: "Observations",
         links: [
-          {
-            name: "Observations",
-            href: "/observations",
-            description: "Latest readings from across the network",
-          },
-          {
-            name: "Stations",
-            href: "/observations/stations",
-            description: "Every station, what it measures and where it sits",
-          },
-          {
-            name: "Weather Cameras",
-            href: "/observations/cameras",
-            description: "Live views of sky and sea conditions",
-          },
-          {
-            name: "Water Level Sensors",
-            href: "/observations/water-levels",
-            description: "River and coastal water level monitoring",
-          },
-          {
-            name: "Upper Air",
-            href: "/observations/upper-air",
-            description: "Soundings through the depth of the atmosphere",
-          },
-          {
-            name: "School Stations",
-            href: "/observations/school-stations",
-            description: "Student-run stations adding density to the network",
-          },
+          link(
+            "All observations",
+            "/weather/observations",
+            "Latest readings from across the network"
+          ),
+          link(
+            "Stations",
+            "/weather/observations/stations",
+            "Every station, what it measures and where"
+          ),
+          link(
+            "Weather cameras",
+            "/weather/observations/cameras",
+            "Live views of sky and sea"
+          ),
+          link(
+            "Water levels",
+            "/weather/observations/water-levels",
+            "River and coastal water level sensors"
+          ),
+          link(
+            "Upper air",
+            "/weather/observations/upper-air",
+            "Soundings through the atmosphere"
+          ),
+          link(
+            "School stations",
+            "/weather/observations/school-stations",
+            "Student-run stations in the network"
+          ),
+        ],
+      },
+      {
+        heading: "Sun & sky",
+        links: [
+          link(
+            "Sunrise, sunset and moon",
+            "/weather/sun-and-sky",
+            "Sun times, twilight and moon phase"
+          ),
+          link(
+            "Night sky",
+            "/weather/sun-and-sky/night-sky",
+            "What to look for after dark this month"
+          ),
+        ],
+      },
+    ],
+  },
+  {
+    label: "Marine",
+    href: "/marine",
+    blurb: "Sea state, beaches, fishing, ocean and marine safety.",
+    featured: {
+      kind: "link",
+      eyebrow: "Going on the water?",
+      text: "Wind, sea state and swell for Grenada waters.",
+      cta: "Marine forecast",
+      href: "/marine/forecast",
+    },
+    groups: [
+      {
+        heading: "Forecasts",
+        links: [
+          link(
+            "Marine forecast",
+            "/marine/forecast",
+            "Wind, sea state and swell for Grenada waters"
+          ),
+          link(
+            "Coastal waters",
+            "/marine/coastal",
+            "Conditions by zone within 12 nautical miles"
+          ),
+          link(
+            "Sea conditions",
+            "/marine/sea-conditions",
+            "Observed sea state around the islands"
+          ),
+          link(
+            "Waves & swell",
+            "/marine/wave-swell",
+            "Significant height, period and direction"
+          ),
+          link("Tides", "/marine/tides", "Predicted high and low water"),
+          link(
+            "Nearshore wave model",
+            "/marine/wave-model",
+            "High-resolution wave modelling"
+          ),
+          link(
+            "Small craft advisories",
+            "/marine/small-craft",
+            "Advisories in effect for small vessels"
+          ),
+        ],
+      },
+      {
+        heading: "Beaches",
+        links: [
+          link(
+            "Beach conditions",
+            "/marine/beaches",
+            "Surf, UV and water quality at popular beaches"
+          ),
+        ],
+      },
+      {
+        heading: "Fishing",
+        links: [
+          link(
+            "Fisher's forecast",
+            "/marine/fishing",
+            "Sea, wind and weather for a day's fishing"
+          ),
+        ],
+      },
+      {
+        heading: "Ocean",
+        links: [
+          link(
+            "Sea temperature",
+            "/marine/ocean/sea-temperature",
+            "How warm the water is, and against normal"
+          ),
+          link(
+            "Coral heat stress",
+            "/marine/ocean/coral",
+            "Bleaching risk for Grenada's reefs"
+          ),
+        ],
+      },
+      {
+        heading: "Sargassum",
+        links: [
+          link(
+            "Sargassum outlook",
+            "/marine/sargassum",
+            "Where seaweed may reach the coast"
+          ),
+        ],
+      },
+      {
+        heading: "Safety",
+        links: [
+          link("Marine safety", "/marine/safety", "Staying safe on the water"),
+          link(
+            "Rip currents",
+            "/marine/safety/rip-currents",
+            "Spotting and escaping a rip"
+          ),
         ],
       },
     ],
   },
   {
     label: "Climate",
+    href: "/climate",
+    blurb: "Grenada's climate now, outlooks, data and records.",
+    featured: {
+      kind: "link",
+      eyebrow: "Last month",
+      text: "How last month's rain and temperature compared with normal.",
+      cta: "Monthly summary",
+      href: "/climate/monthly",
+    },
     groups: [
       {
-        heading: "Data",
+        heading: "Climate now",
         links: [
-          {
-            name: "Rainfall Data",
-            href: "/climate/rainfall",
-            description: "Monthly and daily totals by station",
-          },
-          {
-            name: "Temperature Data",
-            href: "/climate/temperature",
-            description: "Highs, lows and averages by station",
-          },
-          {
-            name: "Historical Weather Data",
-            href: "/climate/historical",
-            description: "Past observations back through the record",
-          },
-          {
-            name: "Climate Normals",
-            href: "/climate/normals",
-            description: "What a typical month looks like in Grenada",
-          },
+          link(
+            "Monthly summary",
+            "/climate/monthly",
+            "How last month compared with normal"
+          ),
+          link(
+            "Drought status",
+            "/climate/drought",
+            "Dry-spell status across the tri-island state"
+          ),
+          link(
+            "Climate dashboard",
+            "/climate/dashboard",
+            "Rain, temperature and sea at a glance"
+          ),
         ],
       },
       {
         heading: "Outlooks",
         links: [
-          {
-            name: "Monthly Climate Summary",
-            href: "/climate/monthly",
-            description: "How last month compared with normal",
-          },
-          {
-            name: "Seasonal Outlook",
-            href: "/climate/seasonal",
-            description: "Rainfall and temperature for the months ahead",
-          },
-          {
-            name: "Drought Monitoring",
-            href: "/climate/drought",
-            description: "Dry-spell status across the tri-island state",
-          },
+          link(
+            "Seasonal outlook",
+            "/climate/seasonal",
+            "Rainfall and temperature for the months ahead"
+          ),
+          link(
+            "El Niño & La Niña",
+            "/climate/enso",
+            "How the Pacific shapes our seasons"
+          ),
         ],
       },
       {
-        heading: "Requests and publications",
+        heading: "Grenada's climate",
         links: [
-          {
-            name: "Data Request Form",
-            href: "/climate/data-request",
-            description: "Ask for climate data for research or business",
-          },
-          {
-            name: "Publications",
-            href: "/climate/publications",
-            description: "Reports, bulletins and climate studies",
-          },
-          {
-            name: "Climate Newsletter",
-            href: "/climate/newsletter",
-            description: "Monthly conditions, outlooks and what they mean",
-          },
-          {
-            name: "Product Archive",
-            href: "/climate/archive",
-            description: "Past forecasts, warnings and bulletins",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    label: "Sectors",
-    groups: [
-      {
-        heading: "Safety and operations",
-        links: [
-          {
-            name: "Aviation",
-            href: "/sectors/aviation",
-            description:
-              "Terminal forecasts and briefings for pilots and airlines",
-          },
-          {
-            name: "Disaster Management",
-            href: "/sectors/disaster-management",
-            description:
-              "Hazard briefings for emergency planners and responders",
-          },
-          {
-            name: "Marine",
-            href: "/sectors/marine",
-            description: "Sea state and swell for fishers, sailors and ports",
-          },
+          link(
+            "Climate normals",
+            "/climate/normals",
+            "What a typical month looks like"
+          ),
+          link(
+            "Weather by month",
+            "/climate/by-month",
+            "What to expect each month of the year"
+          ),
         ],
       },
       {
-        heading: "Industry and community",
+        heading: "Climate data",
         links: [
-          {
-            name: "Agriculture",
-            href: "/sectors/agriculture",
-            description: "Rainfall and dry-spell outlooks for growers",
-          },
-          {
-            name: "Tourism & Events",
-            href: "/sectors/tourism",
-            description: "Planning weather for visitors and outdoor events",
-          },
-          {
-            name: "Construction",
-            href: "/sectors/construction",
-            description: "Wind and rain windows for site planning",
-          },
-          {
-            name: "Education",
-            href: "/sectors/education",
-            description: "Weather resources for schools and students",
-          },
-          {
-            name: "Health",
-            href: "/sectors/health",
-            description: "Heat, dust and air-quality guidance",
-          },
-          {
-            name: "Event Forecasts",
-            href: "/events",
-            description: "Venue forecasts for Grenada's outdoor calendar",
-          },
+          link("Rainfall", "/climate/rainfall", "Monthly and daily totals"),
+          link(
+            "Temperature",
+            "/climate/temperature",
+            "Highs, lows and averages"
+          ),
+          link(
+            "Historical data",
+            "/climate/historical",
+            "Past observations through the record"
+          ),
+          link(
+            "Records",
+            "/climate/records",
+            "Hottest, wettest and windiest on record"
+          ),
         ],
       },
       {
-        heading: "Aviation products",
+        heading: "Climate change",
         links: [
-          {
-            name: "Aviation Weather",
-            href: "/aviation",
-            description: "Observations, forecasts and briefings for aviation",
-          },
-          {
-            name: "METAR and TAF",
-            href: "/aviation/metar-taf",
-            description: "Current observations and terminal forecasts",
-          },
-          {
-            name: "Flight Winds",
-            href: "/aviation/flight-winds",
-            description: "Wind and temperature at flight levels",
-          },
-          {
-            name: "Significant Weather",
-            href: "/aviation/sigwx",
-            description: "Regional significant weather and hazards",
-          },
-          {
-            name: "Pre-flight Briefings",
-            href: "/aviation/briefing",
-            description: "The briefing service provided to operators",
-          },
+          link(
+            "Grenada trends",
+            "/climate/change",
+            "How our climate is changing"
+          ),
+          link(
+            "Sea level",
+            "/climate/change/sea-level",
+            "Rising seas around the islands"
+          ),
         ],
       },
       {
-        heading: "Marine products",
+        heading: "Reports",
         links: [
-          {
-            name: "Marine Forecast",
-            href: "/marine/forecast",
-            description: "Wind, sea state and swell for Grenada waters",
-          },
-          {
-            name: "Coastal Waters Forecast",
-            href: "/marine/coastal",
-            description: "Conditions by zone within 12 nautical miles",
-          },
-          {
-            name: "Wave / Swell Forecast",
-            href: "/marine/wave-swell",
-            description: "Significant height, period and direction",
-          },
-          {
-            name: "Nearshore Wave Model",
-            href: "/marine/wave-model",
-            description: "High-resolution modelling and wave energy flux",
-          },
-          {
-            name: "Sea Conditions",
-            href: "/marine/sea-conditions",
-            description: "Observed sea state around the tri-island state",
-          },
-          {
-            name: "Tide Information",
-            href: "/marine/tides",
-            description: "Predicted high and low water",
-          },
-          {
-            name: "Small Craft Advisories",
-            href: "/marine/small-craft",
-            description: "Advisories in effect for small vessels",
-          },
-          {
-            name: "Marine Safety",
-            href: "/marine/safety",
-            description: "Staying safe on the water",
-          },
+          link(
+            "Publications",
+            "/climate/publications",
+            "Reports, bulletins and studies"
+          ),
+          link(
+            "Climate newsletter",
+            "/climate/newsletter",
+            "Monthly conditions and outlooks"
+          ),
+          link(
+            "Product archive",
+            "/climate/archive",
+            "Past forecasts, warnings and bulletins"
+          ),
+          link(
+            "Request data",
+            "/climate/data-request",
+            "Climate data for research or business"
+          ),
         ],
       },
     ],
   },
   {
-    label: "Resources",
+    label: "Services",
+    href: "/services",
+    blurb: "Specialist weather services for sectors and partners.",
+    featured: {
+      kind: "link",
+      eyebrow: "For pilots",
+      text: "Observations, terminal forecasts and briefings for TGPY and TGPZ.",
+      cta: "Aviation weather",
+      href: "/services/aviation",
+    },
     groups: [
       {
-        heading: "Prepare",
+        heading: "Aviation",
         links: [
-          {
-            name: "Hurricane Preparedness",
-            href: "/resources/hurricane",
-            description: "What every household should have ready",
-          },
-          {
-            name: "Flood Preparedness",
-            href: "/resources/flood",
-            description: "Before, during and after heavy rain",
-          },
-          {
-            name: "Marine Safety",
-            href: "/resources/marine-safety",
-            description: "Staying safe on the water",
-          },
+          link(
+            "Aviation weather",
+            "/services/aviation",
+            "Aerodromes, products and briefings"
+          ),
+          link(
+            "METAR and TAF",
+            "/services/aviation/metar-taf",
+            "Current observations and terminal forecasts"
+          ),
+          link(
+            "Flight winds",
+            "/services/aviation/flight-winds",
+            "Wind and temperature at flight levels"
+          ),
+          link(
+            "Significant weather",
+            "/services/aviation/sigwx",
+            "Regional significant weather"
+          ),
+          link(
+            "Pre-flight briefing",
+            "/services/aviation/briefing",
+            "The briefing service for operators"
+          ),
         ],
       },
       {
-        heading: "Learn",
+        heading: "Agriculture",
         links: [
-          {
-            name: "Weather Glossary",
-            href: "/resources/glossary",
-            description: "The terms we use in forecasts and warnings",
-          },
-          {
-            name: "Understanding Warnings",
-            href: "/resources/warnings-guide",
-            description: "How to read a warning and act on it",
-          },
-          {
-            name: "School Resources",
-            href: "/resources/school",
-            description: "Lesson material about Grenada's weather",
-          },
-          {
-            name: "Atlantic Hurricane Names",
-            href: "/resources/hurricane-names",
-            description: "How storms are named and why names are retired",
-          },
-          {
-            name: "Articles",
-            href: "/resources/articles",
-            description: "Explainers on Grenada's weather and climate",
-          },
+          link(
+            "Agriculture weather",
+            "/services/agriculture",
+            "Rainfall and dry-spell outlooks for growers"
+          ),
         ],
       },
       {
-        heading: "Help & Tools",
+        heading: "Disaster management",
         links: [
-          {
-            name: "FAQs",
-            href: "/resources/faqs",
-            description: "Common questions about our services",
-          },
-          {
-            name: "Downloads",
-            href: "/resources/downloads",
-            description: "Forms, posters and guides to keep",
-          },
-          {
-            name: "Website Help",
-            href: "/help",
-            description: "How to read the warnings, forecast and this site",
-          },
-          {
-            name: "Mobile App",
-            href: "/app-guide",
-            description: "Warnings and forecasts on your phone",
-          },
+          link(
+            "Decision support",
+            "/services/disaster-management",
+            "Hazard briefings for planners and responders"
+          ),
         ],
       },
       {
-        heading: "Media & Regional",
+        heading: "Tourism & events",
         links: [
-          {
-            name: "For Media",
-            href: "/media",
-            description: "Broadcast-ready data, graphics and interviews",
-          },
-          {
-            name: "Regional Weather",
-            href: "/regional",
-            description: "Neighbouring services and regional centres",
-          },
+          link(
+            "Visitor weather",
+            "/services/tourism",
+            "Planning weather for visitors"
+          ),
+          link(
+            "Event forecasts",
+            "/services/tourism/events",
+            "Venue forecasts for Grenada's calendar"
+          ),
+        ],
+      },
+      {
+        heading: "Health",
+        links: [
+          link(
+            "Health weather",
+            "/services/health",
+            "Heat, dust and air-quality guidance"
+          ),
+        ],
+      },
+      {
+        heading: "More services",
+        links: [
+          link(
+            "Construction",
+            "/services/construction",
+            "Wind and rain windows for site planning"
+          ),
+          link(
+            "Education",
+            "/services/education",
+            "Weather resources for schools"
+          ),
+          link(
+            "Media",
+            "/services/media",
+            "Broadcast-ready data, graphics and interviews"
+          ),
+          link(
+            "Data & API",
+            "/services/data",
+            "Machine-readable forecasts and observations"
+          ),
+        ],
+      },
+    ],
+  },
+  {
+    label: "Learn & Explore",
+    href: "/explore",
+    blurb:
+      "Stories and explainers about Grenada's weather, ocean, climate and sky.",
+    featured: {
+      kind: "link",
+      eyebrow: "Explained by GMS",
+      text: "Plain-language answers to questions about Grenada's weather.",
+      cta: "Read the explainers",
+      href: "/explore/explained",
+    },
+    groups: [
+      {
+        heading: "Earth & Weather",
+        links: [
+          link(
+            "Latest news",
+            "/explore/news",
+            "Stories from the forecast desk"
+          ),
+          link(
+            "Product updates",
+            "/explore/updates",
+            "Changes to our forecasts and services"
+          ),
+        ],
+      },
+      {
+        heading: "Explained by GMS",
+        links: [
+          link(
+            "All explainers",
+            "/explore/explained",
+            "Grenada's weather and climate, explained"
+          ),
+          link(
+            "Ask a meteorologist",
+            "/explore/ask",
+            "Send us a question about the weather"
+          ),
+        ],
+      },
+      {
+        heading: "Weather history",
+        links: [
+          link(
+            "Historic hurricanes",
+            "/explore/history/hurricanes",
+            "Janet, Ivan, Emily, Beryl and more"
+          ),
+          link(
+            "Hurricane names",
+            "/explore/hurricane-names",
+            "How storms are named and names retired"
+          ),
+        ],
+      },
+      {
+        heading: "Behind the forecast",
+        links: [
+          link(
+            "How forecasts are made",
+            "/explore/how-forecasts-are-made",
+            "From observation to bulletin"
+          ),
+        ],
+      },
+      {
+        heading: "Schools & kids",
+        links: [
+          link(
+            "School resources",
+            "/explore/school",
+            "Lesson material about Grenada's weather"
+          ),
+        ],
+      },
+      {
+        heading: "Interactive",
+        links: [
+          link(
+            "Weather quiz",
+            "/explore/quiz",
+            "Test what you know about the weather"
+          ),
+          link("Glossary", "/explore/glossary", "The terms we use"),
+          link("FAQs", "/explore/faqs", "Common questions about our services"),
+          link(
+            "Downloads",
+            "/explore/downloads",
+            "Forms, posters and guides to keep"
+          ),
         ],
       },
     ],
@@ -536,55 +821,78 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     label: "About",
     href: "/about",
+    blurb:
+      "The Grenada Meteorological Service, its people, network and partners.",
+    featured: {
+      kind: "link",
+      eyebrow: "Forecast office",
+      text: "Open 24 hours at Maurice Bishop International Airport.",
+      cta: "Contact GMS",
+      href: "/about/contact",
+    },
     groups: [
       {
-        heading: "The service",
+        heading: "About GMS",
         links: [
-          {
-            name: "About GMS",
-            href: "/about",
-            description: "Who we are and what we do",
-          },
-          {
-            name: "Our services",
-            href: "/about/services",
-            description: "The full range of services we provide",
-          },
-          {
-            name: "Our history",
-            href: "/about/history",
-            description: "How meteorology in Grenada developed",
-          },
+          link("What we do", "/about", "Who we are and what we do"),
+          link(
+            "Our services",
+            "/about/services",
+            "The full range of services we provide"
+          ),
+          link(
+            "Our history",
+            "/about/history",
+            "How meteorology in Grenada developed"
+          ),
+          link("Careers", "/about/careers", "Working at GMS"),
+          link(
+            "Contact",
+            "/about/contact",
+            "Enquiries, media and data requests"
+          ),
         ],
       },
       {
-        heading: "How we work",
+        heading: "Observing network",
         links: [
-          {
-            name: "Observing network",
-            href: "/about/network",
-            description: "Where our observations come from",
-          },
-          {
-            name: "Standards and partners",
-            href: "/about/standards",
-            description: "WMO, ICAO and regional cooperation",
-          },
+          link(
+            "Observing network",
+            "/about/network",
+            "Where our observations come from"
+          ),
         ],
       },
       {
-        heading: "Get in touch",
+        heading: "Standards & partners",
         links: [
-          {
-            name: "Contact us",
-            href: "/about/contact",
-            description: "Enquiries, media and data requests",
-          },
-          {
-            name: "Careers",
-            href: "/about/careers",
-            description: "Working as a meteorologist or met assistant",
-          },
+          link(
+            "Standards and partners",
+            "/about/standards",
+            "WMO, ICAO and regional cooperation"
+          ),
+          link(
+            "Regional weather",
+            "/about/regional",
+            "Neighbouring services and regional centres"
+          ),
+        ],
+      },
+      {
+        heading: "Performance",
+        links: [
+          link(
+            "Forecast accuracy",
+            "/about/performance",
+            "How well our forecasts verify"
+          ),
+        ],
+      },
+      {
+        heading: "Help",
+        links: [
+          link("Website help", "/help", "How to read this site"),
+          link("Accessibility", "/accessibility", "Using this site your way"),
         ],
       },
     ],
@@ -594,6 +902,30 @@ export const NAV_SECTIONS: NavSection[] = [
 /** Every link in a section, in order — what the mobile drawer lists. */
 export function sectionLinks(section: NavSection): NavLink[] {
   return section.groups.flatMap((group) => group.links);
+}
+
+/** Every planned (not yet built) link, keyed by path, with its section. */
+export function plannedPage(
+  path: string
+): { link: NavLink; section: NavSection } | undefined {
+  for (const section of NAV_SECTIONS) {
+    const found = sectionLinks(section).find(
+      (entry) => entry.planned && entry.href === path
+    );
+    if (found) {
+      return { link: found, section };
+    }
+  }
+  return undefined;
+}
+
+/** Paths the planned-page route renders. */
+export function plannedPaths(): string[] {
+  return NAV_SECTIONS.flatMap((section) =>
+    sectionLinks(section)
+      .filter((entry) => entry.planned)
+      .map((entry) => entry.href)
+  );
 }
 
 const NON_SLUG_CHARS = /[^a-z0-9]+/g;
@@ -607,7 +939,7 @@ export function sectionId(label: string): string {
   return toSlug(label);
 }
 
-/** Stable sitemap anchor for a group, e.g. About / "The service" → "about--the-service". */
+/** Stable sitemap anchor for a group, e.g. About / "About GMS" → "about--about-gms". */
 export function groupId(sectionLabel: string, heading: string): string {
   return `${toSlug(sectionLabel)}--${toSlug(heading)}`;
 }

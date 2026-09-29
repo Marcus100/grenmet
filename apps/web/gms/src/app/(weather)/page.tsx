@@ -1,18 +1,58 @@
-import { WeatherConditions } from "@/components/weather-conditions";
+import { Suspense } from "react";
+import { DayDetails } from "@/components/home/day-details";
+import { HomeSection } from "@/components/home/home-section";
+import {
+  Explained,
+  ForecastDesk,
+  PublicationsAndAlerts,
+  Stories,
+} from "@/components/home/live-sections";
+import {
+  Discover,
+  ExploreToday,
+  GrenadaInData,
+  TodayAtAGlance,
+  WeatherNow,
+} from "@/components/home/sample-sections";
+import { WeatherSurface } from "@/components/home/weather-surface";
+import { defaultLocation } from "@/lib/locations";
 import { getWeatherSnapshot } from "@/lib/weather-snapshot";
-export default async function NowPage() {
-  const snapshot = await getWeatherSnapshot();
+
+function Loading({ title }: { title: string }) {
+  return (
+    <HomeSection kicker="Loading" title={title}>
+      <p aria-busy="true" role="status">
+        Loading…
+      </p>
+    </HomeSection>
+  );
+}
+
+/**
+ * Home: today's issued forecast, then the Bold sky sections in the mockup's
+ * order — official products before editorial, publications near the end.
+ */
+export default async function HomePage() {
+  const weather = await getWeatherSnapshot();
   return (
     <>
-      <p className="border-b p-4 text-gm-text-secondary">
-        {snapshot.days[0].summary}
-      </p>
-      <WeatherConditions conditions={snapshot.days[0].conditions} />
-      {snapshot.days[0].source ? (
-        <p className="p-3 text-muted-foreground text-xs">
-          {snapshot.days[0].source}
-        </p>
-      ) : null}
+      <WeatherSurface location={defaultLocation()} />
+      <DayDetails day={weather.days[0]} label={weather.label} />
+      <TodayAtAGlance />
+      <WeatherNow forecasterNote={weather.days[0].summary} />
+      <Suspense fallback={<Loading title="From the forecast desk" />}>
+        <ForecastDesk weather={weather} />
+      </Suspense>
+      <Suspense fallback={<Loading title="Stories" />}>
+        <Stories />
+      </Suspense>
+      <ExploreToday />
+      <GrenadaInData />
+      <Explained />
+      <Discover />
+      <Suspense fallback={<Loading title="Latest reports" />}>
+        <PublicationsAndAlerts />
+      </Suspense>
     </>
   );
 }

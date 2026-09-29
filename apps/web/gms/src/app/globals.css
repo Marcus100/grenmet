@@ -8,6 +8,9 @@
    own pages, so scan the shared package explicitly or those classes are never
    generated. */
 @source "../../node_modules/@barrelsgd/ui/src";
+/* The GMS package (Logo light/dark swap uses dark:hidden / dark:block) is
+   outside this app too, so scan it as well or those classes never exist. */
+@source "../../node_modules/@barrelsgd/gms/src";
 
 /* BEGIN BARRELS DESIGN SYSTEM V1 */
 @custom-variant dark (&:where(.dark, .dark *));
@@ -363,6 +366,31 @@
        border rather than the 1.47:1 hairline --brand-border resolves to. */
     --input: var(--gm-border-input);
   }
+}
+
+/*
+  Dark mode for the public site. The generated block's .dark palette is the
+  brand-neutral default; here the semantic layer resolves onto the GMS dark
+  --gm-* values (packages/gms foundation, scoped to .gm-site) instead, so
+  shared primitives and GMS utilities agree. Unlayered and after the
+  generated block, so it wins.
+*/
+.gm-site.dark {
+  --background: var(--gm-surface-page);
+  --foreground: var(--gm-text-primary);
+  --card: var(--gm-surface);
+  --card-foreground: var(--gm-text-primary);
+  --popover: var(--gm-surface);
+  --popover-foreground: var(--gm-text-primary);
+  --primary: var(--gm-blue-ink);
+  --primary-foreground: var(--gm-navy);
+  --secondary: var(--gm-surface-secondary);
+  --secondary-foreground: var(--gm-text-primary);
+  --muted: var(--gm-surface-muted);
+  --muted-foreground: var(--gm-text-secondary);
+  --border: var(--gm-border);
+  --input: var(--gm-border-input);
+  --ring: var(--gm-blue);
 }
 
 body {

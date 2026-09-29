@@ -103,8 +103,9 @@ The public GET endpoint accepts an optional `kind` query parameter and returns
 boundary; draft values, actor IDs, and revision history are never exposed. Invalid
 kinds return 400; a storage outage returns 503. Responses are not cached.
 
-Public pages: `/products/forecasts`, `/products/nhc`,
-`/products/bulletins`, and `/products/issued/<id>`.
+Public pages: `/weather/issued`, `/weather/tropics` (NHC outlook),
+`/alerts/bulletins`, and `/weather/issued/<id>` (the old `/products/*`
+URLs redirect).
 `/marine/forecast` also shows issued marine bulletins.
 All product forms have printable PDF previews, including the restored forecast and marine layouts and complete data sheets. There is no public archive, automatic NHC import or deployment in this change. Existing legacy product tables and example document components
 remain available; the new desk stores authored drafts/publications separately.

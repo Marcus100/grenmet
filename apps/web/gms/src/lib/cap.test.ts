@@ -30,14 +30,12 @@ function alert(overrides: Partial<PublicAlert> = {}): PublicAlert {
 
 describe("alertsSummary", () => {
   it("never presents an outage as an all-clear", () => {
-    expect(alertsSummary({ status: "unavailable" })).toBe(
-      "Warnings unavailable"
-    );
+    expect(alertsSummary({ status: "unavailable" })).toBe("Alerts unavailable");
   });
 
   it("reports no active warnings when the count is zero", () => {
     expect(alertsSummary({ activeCount: 0, groups: [], status: "ok" })).toBe(
-      "No active warnings"
+      "No active alerts"
     );
   });
 
@@ -123,7 +121,7 @@ describe("exerciseStatuses", () => {
   function ok(alerts: PublicAlert[]) {
     return {
       status: "ok" as const,
-      groups: [{ name: "Warnings", alerts }],
+      groups: [{ name: "Alerts", alerts }],
       activeCount: alerts.length,
     };
   }
@@ -152,7 +150,7 @@ describe("exerciseStatuses", () => {
 describe("alertsLevel", () => {
   const ok = (alerts: PublicAlert[]) => ({
     activeCount: alerts.length,
-    groups: [{ name: "Warnings", alerts }],
+    groups: [{ name: "Alerts", alerts }],
     status: "ok" as const,
   });
 

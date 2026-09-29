@@ -81,17 +81,17 @@ export default function HelpPage() {
           links={[
             {
               name: "Understanding warnings",
-              href: "/resources/warnings-guide",
+              href: "/alerts/understanding",
               description: "How to read a warning and act on it",
             },
             {
               name: "Warning levels explained",
-              href: "/warnings/levels",
+              href: "/alerts/levels",
               description: "How the green-to-red scale works",
             },
             {
               name: "Weather glossary",
-              href: "/resources/glossary",
+              href: "/explore/glossary",
               description: "The terms used in forecasts and warnings",
             },
             {
