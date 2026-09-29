@@ -17,13 +17,15 @@ export default function RouteError({
   }, [error]);
 
   return (
-    <div className="mx-auto max-w-xl space-y-3 p-6" role="alert">
-      <h1 className="font-semibold text-2xl">This page could not be loaded</h1>
-      <p className="text-muted-foreground text-sm">
+    <div className="mx-auto max-w-xl space-y-3 px-4 py-10" role="alert">
+      <h1 className="font-bold font-gm-display text-gm-display text-gm-navy uppercase tracking-wide">
+        This page could not be loaded
+      </h1>
+      <p className="text-body-base text-gm-text-secondary leading-body-base">
         Something went wrong on our side. Try again in a moment.
       </p>
       {error.digest ? (
-        <p className="font-mono text-muted-foreground text-xs">
+        <p className="font-mono text-body-sm text-gm-text-muted leading-body-sm">
           Reference: {error.digest}
         </p>
       ) : null}

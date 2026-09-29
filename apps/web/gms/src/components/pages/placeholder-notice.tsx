@@ -30,7 +30,7 @@ export function PlaceholderNotice({
   }
   return (
     <div
-      className="mb-6 rounded border border-gm-risk-yellow bg-gm-surface p-4 lg:p-5"
+      className="mb-6 rounded-gm-card border border-gm-risk-yellow bg-gm-surface p-4 lg:p-5"
       role="note"
     >
       <p className="font-bold text-body-base text-gm-navy leading-body-base">

@@ -17,7 +17,7 @@ export function ExerciseBanner({ result }: { result: AlertsResult }) {
 
   return (
     <div
-      className="mb-6 rounded border-2 border-gm-risk-red bg-gm-risk-yellow p-4 lg:p-5"
+      className="mb-6 rounded-gm-card border-2 border-gm-risk-red bg-gm-risk-yellow p-4 lg:p-5"
       role="alert"
     >
       <p className="font-bold text-gm-text-primary text-heading-sm uppercase leading-heading-sm">

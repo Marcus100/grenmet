@@ -15,7 +15,7 @@ export function EndedWarnings({ ended }: { ended: EndedWarning[] }) {
       {ended.map((warning) => (
         <li key={warning.identifier}>
           <Link
-            className="flex flex-col gap-1 rounded border border-gm-border bg-gm-surface p-4 hover:bg-gm-surface-muted lg:p-5"
+            className="flex flex-col gap-1 rounded-gm-card border border-gm-border bg-gm-surface p-4 hover:bg-gm-surface-muted lg:p-5"
             href={warningHref(warning.identifier)}
           >
             <span className="flex flex-wrap items-center gap-2">

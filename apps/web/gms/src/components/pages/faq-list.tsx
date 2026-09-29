@@ -12,7 +12,7 @@ export function FaqList({ entries }: { entries: readonly FaqEntry[] }) {
     <div className="flex flex-col gap-2">
       {entries.map((entry) => (
         <details
-          className="rounded border border-gm-border bg-background p-4 lg:p-5"
+          className="rounded-gm-card border border-gm-border bg-background p-4 lg:p-5"
           key={entry.question}
         >
           <summary className="cursor-pointer font-bold text-body-base text-gm-navy leading-body-base">
