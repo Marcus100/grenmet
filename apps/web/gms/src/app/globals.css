@@ -8,6 +8,9 @@
    own pages, so scan the shared package explicitly or those classes are never
    generated. */
 @source "../../node_modules/@barrelsgd/ui/src";
+/* The GMS package (Logo light/dark swap uses dark:hidden / dark:block) is
+   outside this app too, so scan it as well or those classes never exist. */
+@source "../../node_modules/@barrelsgd/gms/src";
 
 /* BEGIN BARRELS DESIGN SYSTEM V1 */
 @custom-variant dark (&:where(.dark, .dark *));
