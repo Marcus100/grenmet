@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** GMS (operational content); maintained by Barrels Grenada  
-**Last updated:** 2026-09-09
+**Last updated:** 2026-09-29
 
 This inventory covers every current page route and the distinct interaction
 families below. Route discovery is not browser verification. An exhaustive proof
@@ -108,22 +108,18 @@ placeholder is not an implemented service.
 | gaa-admin | `/wxwatch/[year]/[month]/[day]` | Pending |
 | gaa-admin | `/wxwatch` | Pending |
 | gaa-admin | `/signin` | Pending |
+| gms | `/[...planned]` | Pending |
+| gms | `/about` | Pending |
 | gms | `/about/careers` | Pending |
 | gms | `/about/contact` | Pending |
 | gms | `/about/history` | Pending |
 | gms | `/about/network` | Pending |
-| gms | `/about` | Pending |
+| gms | `/about/regional` | Pending |
 | gms | `/about/services` | Pending |
 | gms | `/about/standards` | Pending |
 | gms | `/accessibility` | Pending |
-| gms | `/almanac` | Pending |
 | gms | `/app-guide` | Pending |
-| gms | `/aviation/briefing` | Pending |
-| gms | `/aviation/flight-winds` | Pending |
-| gms | `/aviation/metar-taf` | Pending |
-| gms | `/aviation` | Pending |
-| gms | `/aviation/sigwx` | Pending |
-| gms | `/bulletins/[hazard]` | Pending |
+| gms | `/climate` | Pending |
 | gms | `/climate/archive` | Pending |
 | gms | `/climate/data-request` | Pending |
 | gms | `/climate/drought` | Pending |
@@ -136,19 +132,19 @@ placeholder is not an implemented service.
 | gms | `/climate/seasonal` | Pending |
 | gms | `/climate/temperature` | Pending |
 | gms | `/disclaimer` | Pending |
-| gms | `/events/[slug]` | Pending |
-| gms | `/events` | Pending |
-| gms | `/forecasts/3-day` | Pending |
-| gms | `/forecasts/7-day` | Pending |
-| gms | `/forecasts/analyses` | Pending |
-| gms | `/forecasts/conditions` | Pending |
-| gms | `/forecasts/dust` | Pending |
-| gms | `/forecasts/models` | Pending |
-| gms | `/forecasts/nowcast` | Pending |
-| gms | `/forecasts/radar` | Pending |
-| gms | `/forecasts/satellite` | Pending |
-| gms | `/forecasts/synopsis` | Pending |
+| gms | `/explore` | Pending |
+| gms | `/explore/downloads` | Pending |
+| gms | `/explore/explained` | Pending |
+| gms | `/explore/faqs` | Pending |
+| gms | `/explore/glossary` | Pending |
+| gms | `/explore/hurricane-names` | Pending |
+| gms | `/explore/news` | Pending |
+| gms | `/explore/news/[...slug]` | Pending |
+| gms | `/explore/school` | Pending |
+| gms | `/explore/updates` | Pending |
+| gms | `/explore/updates/[slug]` | Pending |
 | gms | `/help` | Pending |
+| gms | `/marine` | Pending |
 | gms | `/marine/coastal` | Pending |
 | gms | `/marine/forecast` | Pending |
 | gms | `/marine/safety` | Pending |
@@ -157,52 +153,65 @@ placeholder is not an implemented service.
 | gms | `/marine/tides` | Pending |
 | gms | `/marine/wave-model` | Pending |
 | gms | `/marine/wave-swell` | Pending |
-| gms | `/media` | Pending |
-| gms | `/news/[slug]` | Pending |
-| gms | `/news` | Pending |
-| gms | `/observations/cameras` | Pending |
-| gms | `/observations` | Pending |
-| gms | `/observations/school-stations` | Pending |
-| gms | `/observations/stations` | Pending |
-| gms | `/observations/upper-air` | Pending |
-| gms | `/observations/water-levels` | Pending |
 | gms | `/privacy` | Pending |
-| gms | `/products/bulletins` | Pending |
-| gms | `/products/forecasts` | Pending |
-| gms | `/products/issued/[id]` | Pending |
-| gms | `/products/nhc` | Pending |
-| gms | `/regional` | Pending |
-| gms | `/resources/articles` | Pending |
-| gms | `/resources/downloads` | Pending |
-| gms | `/resources/faqs` | Pending |
-| gms | `/resources/flood` | Pending |
-| gms | `/resources/glossary` | Pending |
-| gms | `/resources/hurricane` | Pending |
-| gms | `/resources/hurricane-names` | Pending |
-| gms | `/resources/marine-safety` | Pending |
-| gms | `/resources/school` | Pending |
-| gms | `/resources/warnings-guide` | Pending |
-| gms | `/sectors/agriculture` | Pending |
-| gms | `/sectors/aviation` | Pending |
-| gms | `/sectors/construction` | Pending |
-| gms | `/sectors/disaster-management` | Pending |
-| gms | `/sectors/education` | Pending |
-| gms | `/sectors/health` | Pending |
-| gms | `/sectors/marine` | Pending |
-| gms | `/sectors/tourism` | Pending |
+| gms | `/services` | Pending |
+| gms | `/services/agriculture` | Pending |
+| gms | `/services/aviation` | Pending |
+| gms | `/services/aviation/briefing` | Pending |
+| gms | `/services/aviation/flight-winds` | Pending |
+| gms | `/services/aviation/metar-taf` | Pending |
+| gms | `/services/aviation/sigwx` | Pending |
+| gms | `/services/construction` | Pending |
+| gms | `/services/disaster-management` | Pending |
+| gms | `/services/education` | Pending |
+| gms | `/services/health` | Pending |
+| gms | `/services/media` | Pending |
+| gms | `/services/tourism` | Pending |
+| gms | `/services/tourism/events` | Pending |
+| gms | `/services/tourism/events/[slug]` | Pending |
 | gms | `/sitemap` | Pending |
-| gms | `/subscribe` | Pending |
-| gms | `/updates/[slug]` | Pending |
-| gms | `/updates` | Pending |
+| gms | `/warnings` | Pending |
+| gms | `/warnings/[identifier]` | Pending |
 | gms | `/warnings/advisories` | Pending |
-| gms | `/warnings/cyclone/archive` | Pending |
+| gms | `/warnings/bulletins` | Pending |
+| gms | `/warnings/bulletins/[hazard]` | Pending |
 | gms | `/warnings/cyclone` | Pending |
+| gms | `/warnings/cyclone/archive` | Pending |
 | gms | `/warnings/exercise` | Pending |
+| gms | `/warnings/get-alerts` | Pending |
 | gms | `/warnings/impact` | Pending |
 | gms | `/warnings/levels` | Pending |
 | gms | `/warnings/marine` | Pending |
-| gms | `/warnings` | Pending |
+| gms | `/warnings/prepare/flood` | Pending |
+| gms | `/warnings/prepare/hurricane` | Pending |
 | gms | `/warnings/tsunami` | Pending |
-| gms | `/forecasts/[year]/[month]/[day]` | Pending |
-| gms | `/forecasts` | Pending |
+| gms | `/warnings/understanding` | Pending |
+| gms | `/weather/3-day` | Pending |
+| gms | `/weather/7-day` | Pending |
+| gms | `/weather/analyses` | Pending |
+| gms | `/weather/conditions` | Pending |
+| gms | `/weather/dust` | Pending |
+| gms | `/weather/issued` | Pending |
+| gms | `/weather/issued/[id]` | Pending |
+| gms | `/weather/models` | Pending |
+| gms | `/weather/nowcast` | Pending |
+| gms | `/weather/observations` | Pending |
+| gms | `/weather/observations/cameras` | Pending |
+| gms | `/weather/observations/school-stations` | Pending |
+| gms | `/weather/observations/stations` | Pending |
+| gms | `/weather/observations/upper-air` | Pending |
+| gms | `/weather/observations/water-levels` | Pending |
+| gms | `/weather/radar` | Pending |
+| gms | `/weather/satellite` | Pending |
+| gms | `/weather/sun-and-sky` | Pending |
+| gms | `/weather/synopsis` | Pending |
+| gms | `/weather/tropics` | Pending |
+| gms | `/weather/[year]/[month]/[day]` | Pending |
+| gms | `/weather` | Pending |
 | gms | `/` | Pending |
+
+GMS routes follow the seven-section Bold sky IA (28 Sep 2026). Old URLs
+308-redirect via `apps/web/gms/src/lib/route-moves.ts`; accept a sample of
+them. `/[...planned]` serves every nav link marked `planned` as a
+sample-content placeholder (list: `plannedPaths()` in
+`apps/web/gms/src/lib/nav-sections.ts`).
