@@ -13,4 +13,5 @@ export const publicForecastSchema = z.object({
   base_date: z.string(),
   periods: z.array(forecastPeriodSchema).min(5).max(5),
   observation: z.union([forecastObservationSchema, z.null()]).optional(),
+  today_issues: z.array(forecastPeriodSchema).optional(),
 });

@@ -1,5 +1,8 @@
+import type { CurrentConditions } from "@/lib/current-conditions";
 import type { WeatherCondition } from "@/lib/weather-icons";
 export interface Condition {
+  /** Secondary line under the value, e.g. knots under mph. */
+  detail?: string;
   /** Lucide icon name from the forecast feed; older data falls back to the label. */
   icon?: string;
   label: string;
@@ -17,11 +20,23 @@ export interface ForecastDayData extends DayForecast {
   summary: string;
   title?: string;
 }
+export interface TodayIssue {
+  day: ForecastDayData;
+  /** UTC ISO time of the issue slot (07:00, 12:00 or 18:00 AST). */
+  issuedAt: string;
+  kind: string;
+  label: string;
+}
 export interface WeatherSnapshot {
   baseDate: string;
+  /** Latest register reading at MBIA; null when none or not this place. */
+  current: CurrentConditions | null;
   days: ForecastDayData[];
   label: string;
+  /** Midday product temperature; the fallback when no register reading. */
   observation: { temperature: number; observedAt: string } | null;
+  /** Today's issues, oldest first; the last is `days[0]`. */
+  todayIssues: TodayIssue[];
 }
 export const REFERENCE_DATE = "2026-09-08";
 function conditions(
@@ -43,6 +58,8 @@ function conditions(
 }
 export const REFERENCE_WEATHER: WeatherSnapshot = {
   baseDate: REFERENCE_DATE,
+  current: null,
+  todayIssues: [],
   label:
     "Supplied GMS reports · 8 September 2026 · Evening issue 6 p.m. AST. Not a live observation feed.",
   observation: {

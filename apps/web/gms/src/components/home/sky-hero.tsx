@@ -1,6 +1,9 @@
 import { ArrowRightIcon } from "lucide-react";
 import Link from "next/link";
+import { HeroFacts, SourceChip } from "@/components/home/hero-facts";
 import { SkyDayStrip } from "@/components/home/sky-day-strip";
+import { TodayPanel } from "@/components/home/today-panel";
+import { isStale, localTime } from "@/lib/current-conditions";
 import type { WeatherSnapshot } from "@/lib/forecast-data";
 import { getForecastDays } from "@/lib/forecast-days";
 import {
@@ -8,30 +11,27 @@ import {
   locationHref,
   type SiteLocation,
 } from "@/lib/locations";
-import { WEATHER_CONDITION_LABEL, weatherIcon } from "@/lib/weather-icons";
-
-/** Up to four of today's issued figures, shown as facts under the reading. */
-const FACT_COUNT = 4;
 
 /**
- * Bold sky hero: the only gradient on the site. The largest element is the
- * latest MBIA temperature; small text always sits on `bg-gm-scrim` (the
- * gradient's light stop is under AA for small type).
+ * Bold sky hero (Option A): what MBIA measured beside what was issued for
+ * today, then the forecast days. Every figure carries its provenance chip.
+ * The gradient is the only one on the site; small text always sits on
+ * `bg-gm-scrim` (the gradient's light stop is under AA for small type).
  */
 export function SkyHero({
   location = defaultLocation(),
+  now,
   switcher,
   weather,
 }: {
   location?: SiteLocation;
+  /** Clock for the stale-reading label; defaults to the render time. */
+  now?: Date;
   /** Location switcher; rendered only when more than one place is enabled. */
   switcher?: React.ReactNode;
   weather: WeatherSnapshot;
 }) {
   const today = weather.days[0];
-  const Icon = weatherIcon(today.condition);
-  const hasForecast = today.high !== null || today.low !== null;
-  const facts = today.conditions.slice(0, FACT_COUNT);
 
   return (
     <section
@@ -50,72 +50,15 @@ export function SkyHero({
             </span>
           </h1>
           {switcher}
-          <p className="ml-auto rounded-md bg-gm-scrim px-2.5 py-1 text-body-sm leading-body-sm">
-            {weather.observation?.observedAt ?? "No current observation"}
-          </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-          <div>
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-              {hasForecast && (
-                <Icon
-                  aria-hidden="true"
-                  className="size-14 shrink-0"
-                  strokeWidth={1.4}
-                />
-              )}
-              <p className="font-gm-display font-semibold text-gm-numeral-hero tabular-nums">
-                {weather.observation ? (
-                  <>
-                    {Math.round(weather.observation.temperature)}°
-                    <span className="sr-only">C, latest observation</span>
-                  </>
-                ) : (
-                  <>
-                    —<span className="sr-only">No current temperature</span>
-                  </>
-                )}
-              </p>
-              <div>
-                <p className="font-bold font-gm-display text-heading-md uppercase leading-heading-md tracking-wide">
-                  {hasForecast
-                    ? WEATHER_CONDITION_LABEL[today.condition]
-                    : "Forecast pending"}
-                </p>
-                <p className="mt-1 w-fit rounded-md bg-gm-scrim px-2 py-0.5 text-body tabular-nums leading-body">
-                  High {today.high ?? "—"}° · Low {today.low ?? "—"}°
-                </p>
-              </div>
-            </div>
-
-            {facts.length > 0 && (
-              <dl className="mt-4 grid grid-cols-2 gap-px overflow-hidden rounded-gm-card sm:grid-cols-4">
-                {facts.map((fact) => (
-                  <div className="bg-gm-scrim px-3 py-2.5" key={fact.label}>
-                    <dt className="font-bold text-gm-text-inverse/85 text-label uppercase leading-label tracking-wider">
-                      {fact.label}
-                    </dt>
-                    <dd className="mt-0.5 font-bold text-body-base tabular-nums leading-body-base">
-                      {fact.value}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            )}
-          </div>
-
-          <div className="rounded-gm-card bg-gm-scrim p-4">
-            <h2 className="font-bold text-gm-text-inverse/85 text-label uppercase leading-label tracking-wider">
-              {today.title ?? "Today"}
-            </h2>
-            <p className="mt-2 text-body-base leading-body-base">
-              {today.summary}
-            </p>
-            <p className="mt-3 text-body-sm text-gm-text-inverse/80 leading-body-sm">
-              {weather.label}
-            </p>
-          </div>
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <NowPanel now={now} station={location.station} weather={weather} />
+          <TodayPanel
+            fallback={today}
+            issues={weather.todayIssues}
+            note={weather.label}
+          />
         </div>
 
         <SkyDayStrip
@@ -150,5 +93,90 @@ export function SkyHero({
         </div>
       </div>
     </section>
+  );
+}
+
+/** "Maurice Bishop International (MBIA)" → "MBIA". */
+const STATION_CODE = /^.*\((.+)\)$/;
+
+function Numeral({ value }: { value: number | null }) {
+  return (
+    <p className="font-gm-display font-semibold text-gm-numeral-hero tabular-nums">
+      {value === null ? (
+        <>
+          —<span className="sr-only">No current temperature</span>
+        </>
+      ) : (
+        <>
+          {Math.round(value)}°<span className="sr-only">C</span>
+        </>
+      )}
+    </p>
+  );
+}
+
+/** The latest register reading; the midday product temperature as fallback. */
+function NowPanel({
+  now,
+  station,
+  weather,
+}: {
+  now?: Date;
+  station: string;
+  weather: WeatherSnapshot;
+}) {
+  const current = weather.current;
+  let chip: string | null = null;
+  if (current) {
+    const time = localTime(current.observedAt);
+    chip = isStale(current.observedAt, now)
+      ? `Last observed ${time}`
+      : `Observed ${time}`;
+    if (current.provisional) chip += " · provisional";
+  } else if (weather.observation) {
+    chip = "Midday reading";
+  }
+  const temperature =
+    current?.temperature ?? weather.observation?.temperature ?? null;
+  let detail = "No current observation";
+  if (current) {
+    detail =
+      current.dewPoint === null
+        ? ""
+        : `Dew point ${Math.round(current.dewPoint)}°`;
+  } else if (weather.observation) {
+    detail = weather.observation.observedAt;
+  }
+
+  return (
+    <div className="grid min-w-0 content-start gap-3 rounded-gm-card bg-gm-scrim p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h2 className="font-bold text-gm-text-inverse/85 text-label uppercase leading-label tracking-wider">
+          Now at {station.replace(STATION_CODE, "$1")}
+        </h2>
+        {chip && <SourceChip kind="observed">{chip}</SourceChip>}
+      </div>
+      <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
+        <Numeral value={temperature} />
+        <div>
+          {current?.weather && (
+            <p className="font-bold font-gm-display text-heading-md uppercase leading-heading-md tracking-wide">
+              {current.weather}
+            </p>
+          )}
+          {detail && (
+            <p className="text-body-sm text-gm-text-inverse/85 leading-body-sm">
+              {detail}
+            </p>
+          )}
+        </div>
+      </div>
+      {current && (
+        <HeroFacts
+          foldLabel="More readings"
+          tiles={[...current.primary, ...current.extra]}
+        />
+      )}
+    </div>
   );
 }

@@ -11889,6 +11889,41 @@
         ]
       }
     },
+    "/api/v1/eregister/public/current": {
+      "get": {
+        "tags": [
+          "eregister"
+        ],
+        "summary": "Latest public observation at MBIA",
+        "description": "Anonymous. The newest SYNOP for station 78958 that has not been rejected or superseded, decoded into public units and labelled provisional until accepted. Returns 503 when the register is unavailable.",
+        "operationId": "eregisterPublicCurrentConditions",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicCurrentConditions"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Register unavailable"
+          }
+        }
+      }
+    },
     "/api/v1/wxwatch/metadata": {
       "get": {
         "tags": [
@@ -29906,6 +29941,22 @@
         ],
         "title": "ProfileIdentityPublic"
       },
+      "PublicCurrentConditions": {
+        "properties": {
+          "observation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicObservation"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "type": "object",
+        "title": "PublicCurrentConditions"
+      },
       "PublicForecast": {
         "properties": {
           "as_of": {
@@ -29941,6 +29992,13 @@
                 "type": "null"
               }
             ]
+          },
+          "today_issues": {
+            "items": {
+              "$ref": "#/components/schemas/ForecastPeriod"
+            },
+            "type": "array",
+            "title": "Today Issues"
           }
         },
         "type": "object",
@@ -30047,6 +30105,227 @@
           "count"
         ],
         "title": "PublicHolidaysPublic"
+      },
+      "PublicObservation": {
+        "properties": {
+          "station_id": {
+            "type": "string",
+            "title": "Station Id"
+          },
+          "station_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station Name"
+          },
+          "observed_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Observed At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PublicObservationPropertiesStatusEnum"
+          },
+          "temperature_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Temperature C"
+          },
+          "dew_point_c": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dew Point C"
+          },
+          "relative_humidity": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relative Humidity"
+          },
+          "wind_calm": {
+            "type": "boolean",
+            "title": "Wind Calm",
+            "default": false
+          },
+          "wind_direction_deg": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Direction Deg"
+          },
+          "wind_direction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Direction"
+          },
+          "wind_speed_kt": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Speed Kt"
+          },
+          "wind_speed_mph": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Speed Mph"
+          },
+          "msl_pressure_hpa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Msl Pressure Hpa"
+          },
+          "pressure_trend": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PublicObservationPropertiesPressureTrendAnyOfEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pressure Trend"
+          },
+          "pressure_change_hpa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pressure Change Hpa"
+          },
+          "rain_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rain Mm"
+          },
+          "rain_trace": {
+            "type": "boolean",
+            "title": "Rain Trace",
+            "default": false
+          },
+          "rain_period_hours": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rain Period Hours"
+          },
+          "rain_24h_mm": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rain 24H Mm"
+          },
+          "weather": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Weather"
+          },
+          "cloud_oktas": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cloud Oktas"
+          },
+          "cloud": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cloud"
+          }
+        },
+        "type": "object",
+        "required": [
+          "station_id",
+          "observed_at",
+          "status"
+        ],
+        "title": "PublicObservation",
+        "description": "Decoded, public subset of one MBIA SYNOP; no staff or QC fields."
       },
       "PublicPublishedProduct": {
         "properties": {
@@ -39558,6 +39837,21 @@
           "SYNOP",
           "METAR",
           "SPECI"
+        ]
+      },
+      "PublicObservationPropertiesStatusEnum": {
+        "type": "string",
+        "enum": [
+          "provisional",
+          "accepted"
+        ]
+      },
+      "PublicObservationPropertiesPressureTrendAnyOfEnum": {
+        "type": "string",
+        "enum": [
+          "rising",
+          "steady",
+          "falling"
         ]
       },
       "PublicWarningPropertiesColourAnyOfEnum": {

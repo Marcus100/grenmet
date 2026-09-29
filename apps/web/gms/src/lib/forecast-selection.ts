@@ -2,10 +2,16 @@ import type { ForecastPeriod, PublicForecast } from "@barrelsgd/api-client";
 import type {
   Condition,
   ForecastDayData,
+  TodayIssue,
   WeatherSnapshot,
 } from "@/lib/forecast-data";
 import type { WeatherCondition } from "@/lib/weather-icons";
 
+const ISSUE_LABELS: Record<string, string> = {
+  morning: "Morning",
+  midday: "Midday",
+  evening: "Evening",
+};
 const PERIOD_TITLES: Record<string, string> = {
   morning: "Morning Forecast",
   midday: "Midday Forecast",
@@ -96,9 +102,24 @@ function periodData(period: ForecastPeriod, index: number): ForecastDayData {
 export function weatherFromForecast(forecast: PublicForecast): WeatherSnapshot {
   const days = forecast.periods.map(periodData);
   const observed = forecast.observation;
+  const todayIssues: TodayIssue[] = (forecast.today_issues ?? []).flatMap(
+    (issue) =>
+      issue.source
+        ? [
+            {
+              day: periodData(issue, 0),
+              issuedAt: issue.source.issued_at,
+              kind: issue.source.kind,
+              label: ISSUE_LABELS[issue.source.kind] ?? "Forecast",
+            },
+          ]
+        : []
+  );
   return {
     baseDate: forecast.base_date,
+    current: null,
     days,
+    todayIssues,
     observation: observed
       ? {
           temperature: observed.temperature,
@@ -135,7 +156,9 @@ export function unavailableWeather(): WeatherSnapshot {
   return {
     baseDate,
     days,
+    current: null,
     observation: null,
+    todayIssues: [],
     label: "Weather product information cannot be retrieved right now.",
   };
 }

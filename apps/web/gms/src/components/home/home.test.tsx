@@ -80,13 +80,12 @@ describe("SkyHero", () => {
     render(<SkyHero weather={unavailableWeather()} />);
     expect(screen.getByText("No current observation")).toBeInTheDocument();
     expect(screen.getByText("No current temperature")).toBeInTheDocument();
-    expect(screen.getByText("Forecast pending")).toBeInTheDocument();
+    expect(screen.getByText("Forecast unavailable")).toBeInTheDocument();
   });
 });
 
 describe("sample sections", () => {
   it.each([
-    ["Today at a glance", <TodayAtAGlance key="a" />],
     ["Explore today", <ExploreToday key="b" />],
     ["Grenada in data", <GrenadaInData key="c" />],
     ["Discover", <Discover key="d" />],
@@ -94,6 +93,11 @@ describe("sample sections", () => {
     render(section);
     expect(screen.getByRole("note")).toHaveTextContent(SAMPLE_NOTE);
     expect(screen.queryByText(ALL_CLEAR)).not.toBeInTheDocument();
+  });
+
+  it("shows Today at a glance without a sample notice", () => {
+    render(<TodayAtAGlance />);
+    expect(screen.queryByRole("note")).not.toBeInTheDocument();
   });
 
   it("shows the issued summary as the forecaster note", () => {
