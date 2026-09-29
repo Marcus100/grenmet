@@ -102,8 +102,14 @@ export interface Config {
     defaultIDType: number;
   };
   fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    "weather-now": WeatherNow;
+    homepage: Homepage;
+  };
+  globalsSelect: {
+    "weather-now": WeatherNowSelect<false> | WeatherNowSelect<true>;
+    homepage: HomepageSelect<false> | HomepageSelect<true>;
+  };
   jobs: {
     tasks: unknown;
     workflows: unknown;
@@ -1028,6 +1034,136 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   createdAt?: T;
   name?: T;
+  updatedAt?: T;
+}
+/**
+ * The duty forecaster's short note and the imagery cards on the homepage. The note is a plain-words aside, never a forecast or a warning.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "weather-now".
+ */
+export interface WeatherNow {
+  createdAt?: string | null;
+  id: number;
+  /**
+   * Up to four live imagery cards. Editors manage these.
+   */
+  imagery?:
+    | {
+        layer: "satellite" | "radar" | "rainfall" | "lightning";
+        title: string;
+        /**
+         * A still image, or leave empty and give a feed URL.
+         */
+        image?: (number | null) | Media;
+        imageUrl?: string | null;
+        /**
+         * The site page to open, e.g. /weather/radar.
+         */
+        href: string;
+        credit?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  note?: {
+    /**
+     * Two or three plain sentences, e.g. what to expect this afternoon. Published as soon as you save. Clear it to remove the note.
+     */
+    text?: string | null;
+    /**
+     * Required only if the note mentions a warning, watch or advisory.
+     */
+    alertUrl?: string | null;
+    /**
+     * Defaults to the next forecast issue (07:00, 12:00 or 18:00).
+     */
+    expiresAt?: string | null;
+    postedAt?: string | null;
+    postedBy?: (number | null) | User;
+  };
+  updatedAt?: string | null;
+}
+/**
+ * Choose what leads each homepage section, or hide a section (for example during a hurricane). Anything left empty shows the newest published items.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "homepage".
+ */
+export interface Homepage {
+  createdAt?: string | null;
+  /**
+   * Which cards Sky, history and a little fun shows.
+   */
+  discoverCards?: ("sky" | "on-this-day" | "quiz" | "fact")[] | null;
+  /**
+   * Shown first in Latest reports.
+   */
+  featuredPublication?: (number | null) | Publication;
+  /**
+   * Up to five, in order. Default: the newest.
+   */
+  featuredQuestions?: (number | Question)[] | null;
+  /**
+   * Sections to hide from the homepage for now.
+   */
+  hiddenSections?:
+    | (
+        | "weather-now"
+        | "desk"
+        | "stories"
+        | "questions"
+        | "discover"
+        | "reports"
+      )[]
+    | null;
+  id: number;
+  /**
+   * The large story. Default: the newest.
+   */
+  leadStory?: (number | null) | Story;
+  updatedAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "weather-now_select".
+ */
+export interface WeatherNowSelect<T extends boolean = true> {
+  createdAt?: T;
+  globalType?: T;
+  imagery?:
+    | T
+    | {
+        layer?: T;
+        title?: T;
+        image?: T;
+        imageUrl?: T;
+        href?: T;
+        credit?: T;
+        id?: T;
+      };
+  note?:
+    | T
+    | {
+        text?: T;
+        alertUrl?: T;
+        expiresAt?: T;
+        postedAt?: T;
+        postedBy?: T;
+      };
+  updatedAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "homepage_select".
+ */
+export interface HomepageSelect<T extends boolean = true> {
+  createdAt?: T;
+  discoverCards?: T;
+  featuredPublication?: T;
+  featuredQuestions?: T;
+  globalType?: T;
+  hiddenSections?: T;
+  leadStory?: T;
   updatedAt?: T;
 }
 /**

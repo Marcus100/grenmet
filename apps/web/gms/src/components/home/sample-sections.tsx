@@ -1,14 +1,11 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  ArrowRightIcon,
   CloudRainIcon,
   FishIcon,
   FootprintsIcon,
   HazeIcon,
   MoonIcon,
-  RadarIcon,
   SailboatIcon,
-  SatelliteDishIcon,
   SproutIcon,
   SunIcon,
   TornadoIcon,
@@ -106,66 +103,6 @@ export function TodayAtAGlance() {
           </li>
         ))}
       </ul>
-    </HomeSection>
-  );
-}
-
-/**
- * Live imagery entry points beside the forecaster's note. The note is the
- * issued summary (live); only the map panel is a placeholder until the
- * interactive map exists.
- */
-export function WeatherNow({ forecasterNote }: { forecasterNote: string }) {
-  const layers = [
-    { href: "/weather/satellite", label: "Satellite", Icon: SatelliteDishIcon },
-    { href: "/weather/radar", label: "Radar", Icon: RadarIcon },
-    { href: "/weather/rainfall", label: "Rainfall", Icon: UmbrellaIcon },
-  ];
-  return (
-    <HomeSection
-      kicker="Live"
-      link={{ href: "/weather/map", label: "Open interactive map" }}
-      title="Weather now"
-      tone="surface"
-    >
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <div className="flex flex-col overflow-hidden rounded-gm-card bg-gm-navy text-gm-text-inverse">
-          <div className="flex gap-1 overflow-x-auto p-2">
-            {layers.map(({ href, label, Icon }) => (
-              <Link
-                className="flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-2 font-semibold text-body leading-body hover:bg-gm-text-inverse/10"
-                href={href}
-                key={href}
-              >
-                <Icon aria-hidden="true" className="size-4" />
-                {label}
-              </Link>
-            ))}
-          </div>
-          <div className="flex aspect-16/10 flex-col items-center justify-center gap-2 bg-gm-navy-raised p-6 text-center">
-            <p className="font-bold font-gm-display text-heading-md uppercase leading-heading-md tracking-wide">
-              Interactive map coming soon
-            </p>
-            <p className="max-w-sm text-body text-gm-text-inverse/80 leading-body">
-              Satellite, radar, rainfall, lightning and wind on one map of the
-              southern Windwards. Until then, open each layer above.
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-col gap-3 border-gm-sky border-l-3 pl-4">
-          <p className="font-bold text-gm-text-muted text-label uppercase leading-label tracking-wider">
-            From the duty forecaster
-          </p>
-          <p className="text-body-base leading-body-base">{forecasterNote}</p>
-          <Link
-            className="flex items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body hover:underline"
-            href="/weather/synopsis"
-          >
-            Read the weather synopsis
-            <ArrowRightIcon aria-hidden="true" className="size-4" />
-          </Link>
-        </div>
-      </div>
     </HomeSection>
   );
 }

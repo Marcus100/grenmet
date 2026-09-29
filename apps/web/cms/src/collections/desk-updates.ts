@@ -1,9 +1,32 @@
+import type { CollectionBeforeChangeHook } from "payload";
 import { PUBLISH_KEYS } from "../access";
 import { bodyField, socialField, summaryField } from "../fields/common";
+import { assertNoUnlinkedHazard, isCapLink } from "../fields/hazard-guard";
+import { bodyToText } from "../lib/lexical";
 import { editorialCollection } from "./editorial";
 
+/** Desk updates may mention a warning only with a link to its CAP alert. */
+export const guardHazardWords: CollectionBeforeChangeHook = ({
+  data,
+  originalDoc,
+}) => {
+  const links = (data.relatedLinks ?? originalDoc?.relatedLinks ?? []) as {
+    category?: string;
+    url?: string;
+  }[];
+  assertNoUnlinkedHazard(
+    [
+      data.title ?? originalDoc?.title,
+      data.summary ?? originalDoc?.summary,
+      bodyToText(data.body ?? originalDoc?.body),
+    ],
+    links.some(isCapLink)
+  );
+  return data;
+};
+
 /** "From the Desk": short notices from the forecast office. */
-export const DeskUpdates = editorialCollection({
+const base = editorialCollection({
   slug: "desk-updates",
   prefix: "updates",
   publishKey: PUBLISH_KEYS["desk-updates"],
@@ -46,3 +69,11 @@ export const DeskUpdates = editorialCollection({
     socialField,
   ],
 });
+
+export const DeskUpdates = {
+  ...base,
+  hooks: {
+    ...base.hooks,
+    beforeChange: [...(base.hooks?.beforeChange ?? []), guardHazardWords],
+  },
+};

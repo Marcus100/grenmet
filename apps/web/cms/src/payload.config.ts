@@ -11,6 +11,8 @@ import { Questions } from "./collections/questions";
 import { Stories } from "./collections/stories";
 import { Users } from "./collections/users";
 import { getEnv } from "./env";
+import { Homepage } from "./globals/homepage";
+import { WeatherNow } from "./globals/weather-now";
 import { reportPayloadError } from "./lib/report-payload-error";
 
 const env = getEnv();
@@ -40,6 +42,7 @@ export default buildConfig({
     meta: { titleSuffix: " | GMS Content" },
   },
   collections: [DeskUpdates, Stories, Questions, Publications, Media, Users],
+  globals: [WeatherNow, Homepage],
   hooks: { afterError: [reportPayloadError] },
   graphQL: { disable: true },
   typescript: {
