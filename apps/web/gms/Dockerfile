@@ -56,6 +56,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Explicit application sources and workspace dependency closure.
 COPY packages/api-client/ packages/api-client/
 COPY packages/gms/ packages/gms/
+COPY packages/theme/ packages/theme/
 COPY packages/tsconfig/ packages/tsconfig/
 COPY packages/ui/ packages/ui/
 COPY apps/web/gms/ apps/web/gms/
