@@ -30,6 +30,7 @@ const hidden = (sections: string[]): HomeContent => ({
   publications: { status: "ok", articles: [] },
   questions: { status: "ok", questions: [] },
   weatherNow: null,
+  discover: null,
   settings: { discoverCards: [], hiddenSections: sections },
 });
 

@@ -71,6 +71,7 @@ export interface Config {
     "desk-updates": DeskUpdate;
     stories: Story;
     questions: Question;
+    discover: Discover;
     publications: Publication;
     media: Media;
     users: User;
@@ -84,6 +85,7 @@ export interface Config {
     "desk-updates": DeskUpdatesSelect<false> | DeskUpdatesSelect<true>;
     stories: StoriesSelect<false> | StoriesSelect<true>;
     questions: QuestionsSelect<false> | QuestionsSelect<true>;
+    discover: DiscoverSelect<false> | DiscoverSelect<true>;
     publications: PublicationsSelect<false> | PublicationsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
@@ -695,6 +697,94 @@ export interface Publication {
   updatedAt: string;
 }
 /**
+ * Sky, history and a little fun: On this day, quizzes, Did you know facts and sky notes. Tonight's sun and moon times are calculated automatically.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "discover".
+ */
+export interface Discover {
+  author: number | User;
+  createdAt: string;
+  day?: number | null;
+  endsOn?: string | null;
+  fact?: string | null;
+  id: number;
+  /**
+   * Shown on cards and at the top of the page.
+   */
+  image?: (number | null) | Media;
+  imageCaption?: string | null;
+  intro?: string | null;
+  month?:
+    | ("1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "10" | "11" | "12")
+    | null;
+  /**
+   * For example "The Perseids peak tonight; look north-east after midnight."
+   */
+  note?: string | null;
+  /**
+   * Set when first published; used for ordering and the URL.
+   */
+  publishedAt?: string | null;
+  /**
+   * Three to eight questions.
+   */
+  questions?:
+    | {
+        prompt: string;
+        options?:
+          | {
+              text: string;
+              id?: string | null;
+            }[]
+          | null;
+        correct: number;
+        explanation: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Built from the title. Fixed once published so links last.
+   */
+  slug: string;
+  source?: string | null;
+  sourceUrl?: string | null;
+  startsOn?: string | null;
+  /**
+   * Save as Ready for review. An editor with this section's permission publishes.
+   */
+  status: "draft" | "review" | "published";
+  /**
+   * Optional: the story that tells it in full.
+   */
+  story?: (number | null) | Story;
+  title: string;
+  /**
+   * Used to link related questions, stories and reports.
+   */
+  topics?:
+    | (
+        | "tropical"
+        | "rain"
+        | "heat"
+        | "marine"
+        | "climate"
+        | "sky"
+        | "safety"
+        | "agriculture"
+        | "aviation"
+        | "gms"
+      )[]
+    | null;
+  /**
+   * Choose first; the form shows that type's fields.
+   */
+  type: "on-this-day" | "quiz" | "fact" | "sky-note";
+  updatedAt: string;
+  whatHappened?: string | null;
+  year?: number | null;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -729,6 +819,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: "questions";
         value: number | Question;
+      } | null)
+    | ({
+        relationTo: "discover";
+        value: number | Discover;
       } | null)
     | ({
         relationTo: "publications";
@@ -906,6 +1000,49 @@ export interface QuestionsSelect<T extends boolean = true> {
   status?: T;
   topics?: T;
   updatedAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "discover_select".
+ */
+export interface DiscoverSelect<T extends boolean = true> {
+  author?: T;
+  createdAt?: T;
+  day?: T;
+  endsOn?: T;
+  fact?: T;
+  image?: T;
+  imageCaption?: T;
+  intro?: T;
+  month?: T;
+  note?: T;
+  publishedAt?: T;
+  questions?:
+    | T
+    | {
+        prompt?: T;
+        options?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+            };
+        correct?: T;
+        explanation?: T;
+        id?: T;
+      };
+  slug?: T;
+  source?: T;
+  sourceUrl?: T;
+  startsOn?: T;
+  status?: T;
+  story?: T;
+  title?: T;
+  topics?: T;
+  type?: T;
+  updatedAt?: T;
+  whatHappened?: T;
+  year?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

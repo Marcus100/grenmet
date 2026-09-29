@@ -36,6 +36,7 @@ Each GMS homepage section has its own collection under **Homepage sections**. Al
 | Stories | Stories from our atmosphere and ocean | `cms.publish.stories` |
 | Questions | Questions about the weather | `cms.publish.questions` |
 | Publications | Latest reports (document required) | `cms.publish.publications` |
+| Sky, history and fun | On this day, quizzes, Did you know, sky notes | `cms.publish.discover` |
 
 1. Create an item in the right collection. The URL is built from the title and date, and fixed once published.
 2. Optionally add related links (full HTTP/HTTPS URLs, 20 at most) and topics. Linking does not publish the destination.
@@ -44,7 +45,9 @@ Each GMS homepage section has its own collection under **Homepage sections**. Al
 
 Questions have an optional science check: a meteorologist ticks it and the site shows "Checked by a GMS meteorologist on <date>". The CMS records who checked it; the public sees only the date.
 
-Starter content (the first questions) is loaded with `pnpm --filter @barrelsgd/web-cms seed:editorial` as Ready for review, so GMS checks it before publishing. Run it after someone has signed in to the CMS once as an editor or superuser; reruns skip what exists.
+Tonight's sunrise, sunset and moon phase are calculated by the GMS site; a Sky note only adds an editor's line for a date range. On this day shows today's entry or the nearest within a week; Did you know rotates daily.
+
+Starter content (the first questions, On this day entries, a cloud quiz and five facts) is loaded with `pnpm --filter @barrelsgd/web-cms seed:editorial` as Ready for review, so GMS checks it before publishing. Run it after someone has signed in to the CMS once as an editor or superuser; reruns skip what exists.
 
 **Weather now** (settings page): duty forecasters with `cms.weather-now.note` post a short note that goes live on save, signed and timed automatically, and expires at the next forecast issue (07:00, 12:00 or 18:00) unless they set a time. After it expires the homepage shows the issued forecast summary again. Editors manage up to four imagery cards.
 

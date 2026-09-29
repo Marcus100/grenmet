@@ -266,3 +266,194 @@ export function withPins<T extends { id: string }>(
     limit
   );
 }
+
+const GRENADA_DATE = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "America/Grenada",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+/** Today's date in Grenada as numbers and as `YYYY-MM-DD`. */
+export function grenadaToday(now: Date) {
+  const iso = GRENADA_DATE.format(now);
+  const [year, month, day] = iso.split("-").map(Number);
+  return { iso, year, month, day };
+}
+
+/** Day of the year in a non-leap year, so 29 Feb shares 1 Mar's slot. */
+const dayOfYear = (month: number, day: number) =>
+  Math.round(
+    (Date.UTC(2001, month - 1, Math.min(day, 28 + (month === 2 ? 0 : 3))) -
+      Date.UTC(2001, 0, 1)) /
+      86_400_000
+  );
+
+/** Days between two calendar days, wrapping round the year end. */
+export function daysApart(
+  a: { month: number; day: number },
+  b: { month: number; day: number }
+) {
+  const gap = Math.abs(dayOfYear(a.month, a.day) - dayOfYear(b.month, b.day));
+  return Math.min(gap, 365 - gap);
+}
+
+/** Today's entry, or the nearest within a week; the exact day wins ties. */
+export function pickOnThisDay<T extends { day: number; month: number }>(
+  entries: T[],
+  today: { month: number; day: number },
+  window = 7
+): T | null {
+  let best: T | null = null;
+  let bestGap = window + 1;
+  for (const entry of entries) {
+    const gap = daysApart(entry, today);
+    if (gap < bestGap) {
+      best = entry;
+      bestGap = gap;
+    }
+  }
+  return best;
+}
+
+/** One fact per Grenada day, cycling through them in a stable order. */
+export function pickDaily<T>(
+  items: T[],
+  today: { year: number; month: number; day: number }
+) {
+  if (items.length === 0) return null;
+  const days = Math.floor(
+    Date.UTC(today.year, today.month - 1, today.day) / 86_400_000
+  );
+  return items[days % items.length] ?? null;
+}
+
+async function publishedDiscover(
+  payload: Payload,
+  type: string,
+  extra: object = {}
+) {
+  const result = await payload.find({
+    collection: "discover",
+    overrideAccess: false,
+    depth: 1,
+    limit: 400,
+    sort: "createdAt",
+    where: {
+      status: { equals: "published" },
+      type: { equals: type },
+      ...extra,
+    },
+  });
+  return result.docs as unknown as Doc[];
+}
+
+export function toQuiz(doc: Doc) {
+  const questions = Array.isArray(doc.questions)
+    ? (doc.questions as Doc[])
+    : [];
+  return {
+    title: String(doc.title),
+    slug: String(doc.slug),
+    intro: (doc.intro as string | undefined) ?? null,
+    questions: questions.map((row) => ({
+      prompt: String(row.prompt),
+      options: (Array.isArray(row.options) ? (row.options as Doc[]) : []).map(
+        (option) => String(option.text)
+      ),
+      answer: Number(row.correct) - 1,
+      explanation: String(row.explanation),
+    })),
+  };
+}
+export type PublicQuiz = ReturnType<typeof toQuiz>;
+
+/** What the homepage's Sky, history and a little fun section shows today. */
+export async function findDiscover(payload: Payload, now: Date = new Date()) {
+  const today = grenadaToday(now);
+  const [history, quizzes, facts, notes] = await Promise.all([
+    publishedDiscover(payload, "on-this-day"),
+    payload.find({
+      collection: "discover",
+      overrideAccess: false,
+      depth: 0,
+      limit: 1,
+      sort: "-publishedAt",
+      where: { status: { equals: "published" }, type: { equals: "quiz" } },
+    }),
+    publishedDiscover(payload, "fact"),
+    publishedDiscover(payload, "sky-note"),
+  ]);
+  const entry = pickOnThisDay(
+    history.map((doc) => ({
+      doc,
+      day: Number(doc.day),
+      month: Number(doc.month),
+    })),
+    today
+  )?.doc;
+  const story = upload(entry?.story);
+  const quiz = quizzes.docs[0] as unknown as Doc | undefined;
+  const fact = pickDaily(facts, today);
+  const note = notes.find(
+    (doc) =>
+      String(doc.startsOn).slice(0, 10) <= today.iso &&
+      String(doc.endsOn).slice(0, 10) >= today.iso
+  );
+  return {
+    today: today.iso,
+    onThisDay: entry
+      ? {
+          title: String(entry.title),
+          day: Number(entry.day),
+          month: Number(entry.month),
+          year: Number(entry.year),
+          whatHappened: String(entry.whatHappened),
+          imageUrl: (upload(entry.image)?.url as string | undefined) ?? null,
+          story:
+            story && story.status === "published"
+              ? { title: String(story.title), slug: String(story.slug) }
+              : null,
+        }
+      : null,
+    quiz: quiz
+      ? {
+          title: String(quiz.title),
+          slug: String(quiz.slug),
+          intro: (quiz.intro as string | undefined) ?? null,
+          questionCount: Array.isArray(quiz.questions)
+            ? quiz.questions.length
+            : 0,
+        }
+      : null,
+    fact: fact
+      ? {
+          title: String(fact.title),
+          fact: String(fact.fact),
+          source: String(fact.source),
+          sourceUrl: (fact.sourceUrl as string | undefined) || null,
+        }
+      : null,
+    skyNote: note
+      ? { title: String(note.title), note: String(note.note) }
+      : null,
+  };
+}
+export type PublicDiscover = Awaited<ReturnType<typeof findDiscover>>;
+
+/** Published quizzes, newest first, or one by slug with its questions. */
+export async function findQuizzes(payload: Payload, slug?: string) {
+  const result = await payload.find({
+    collection: "discover",
+    overrideAccess: false,
+    depth: 0,
+    limit: slug ? 1 : 50,
+    sort: "-publishedAt",
+    where: {
+      status: { equals: "published" },
+      type: { equals: "quiz" },
+      ...(slug ? { slug: { equals: slug } } : {}),
+    },
+  });
+  return result.docs.map((doc) => toQuiz(doc as unknown as Doc));
+}

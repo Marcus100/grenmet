@@ -143,6 +143,7 @@ describe("home feed", () => {
               imagery: [],
             },
           },
+          discover: { status: "unavailable" },
           settings: { discoverCards: ["sky"], hiddenSections: ["stories"] },
         })
       )

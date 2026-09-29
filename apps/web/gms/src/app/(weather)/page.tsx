@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { Discover } from "@/components/home/discover";
 import { HomeSection } from "@/components/home/home-section";
 import {
   Explained,
@@ -7,7 +8,6 @@ import {
   Stories,
 } from "@/components/home/live-sections";
 import {
-  Discover,
   ExploreToday,
   GrenadaInData,
   TodayAtAGlance,

@@ -1,7 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import {
-  Discover,
   ExploreToday,
   GrenadaInData,
   TodayAtAGlance,
@@ -89,7 +88,6 @@ describe("sample sections", () => {
   it.each([
     ["Explore today", <ExploreToday key="b" />],
     ["Grenada in data", <GrenadaInData key="c" />],
-    ["Discover", <Discover key="d" />],
   ])("%s is marked as sample content", (_name, section) => {
     render(section);
     expect(screen.getByRole("note")).toHaveTextContent(SAMPLE_NOTE);

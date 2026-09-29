@@ -1,6 +1,7 @@
 import { getPayload } from "payload";
 import {
   findArticles,
+  findDiscover,
   findHomepage,
   findQuestions,
   findWeatherNow,
@@ -54,7 +55,7 @@ export async function GET() {
     reportError(error, "cms-public-home-settings");
     return DEFAULT_SETTINGS;
   });
-  const [deskUpdates, stories, publications, questions, weatherNow] =
+  const [deskUpdates, stories, publications, questions, weatherNow, discover] =
     await Promise.all([
       part("desk-updates", () =>
         findArticles(payload, "desk-updates", { limit: 5 })
@@ -83,6 +84,7 @@ export async function GET() {
         )
       ),
       part("weather-now", () => findWeatherNow(payload)),
+      part("discover", () => findDiscover(payload)),
     ]);
   return Response.json(
     {
@@ -91,6 +93,7 @@ export async function GET() {
       publications,
       questions,
       weatherNow,
+      discover,
       settings: {
         discoverCards: settings.discoverCards,
         hiddenSections: settings.hiddenSections,

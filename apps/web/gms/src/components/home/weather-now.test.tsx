@@ -30,6 +30,7 @@ function home(overrides: Partial<HomeContent> = {}): HomeContent {
     publications: none,
     questions: { status: "ok", questions: [] },
     weatherNow: null,
+    discover: null,
     settings: { discoverCards: [], hiddenSections: [] },
     ...overrides,
   };
