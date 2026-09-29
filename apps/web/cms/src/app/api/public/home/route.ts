@@ -29,7 +29,6 @@ async function part<T>(area: string, load: () => Promise<T>): Promise<Part<T>> {
 const DEFAULT_SETTINGS = {
   leadStory: null,
   featuredQuestions: [],
-  featuredPublication: null,
   discoverCards: ["sky", "on-this-day", "quiz", "fact"],
   hiddenSections: [],
 };
@@ -55,7 +54,7 @@ export async function GET() {
     reportError(error, "cms-public-home-settings");
     return DEFAULT_SETTINGS;
   });
-  const [deskUpdates, stories, publications, questions, weatherNow, discover] =
+  const [deskUpdates, stories, questions, weatherNow, discover] =
     await Promise.all([
       part("desk-updates", () =>
         findArticles(payload, "desk-updates", { limit: 5 })
@@ -65,15 +64,6 @@ export async function GET() {
           settings.leadStory ? [toArticle("stories", settings.leadStory)] : [],
           await findArticles(payload, "stories", { limit: 5 }),
           5
-        )
-      ),
-      part("publications", async () =>
-        withPins(
-          settings.featuredPublication
-            ? [toArticle("publications", settings.featuredPublication)]
-            : [],
-          await findArticles(payload, "publications", { limit: 6 }),
-          6
         )
       ),
       part("questions", async () =>
@@ -90,7 +80,6 @@ export async function GET() {
     {
       deskUpdates,
       stories,
-      publications,
       questions,
       weatherNow,
       discover,

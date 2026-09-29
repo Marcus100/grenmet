@@ -4,7 +4,6 @@ import type { SearchArticle } from "@/lib/search";
 const SECTION_LABEL: Record<string, string> = {
   "desk-updates": "From the Desk",
   stories: "Stories",
-  publications: "Reports",
 };
 
 /**

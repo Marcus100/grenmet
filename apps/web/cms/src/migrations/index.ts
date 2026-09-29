@@ -50,6 +50,10 @@ import {
   down as down_20260929_215017_discover,
   up as up_20260929_215017_discover,
 } from "./20260929_215017_discover";
+import {
+  down as down_20260929_220653_reports_and_imagery_to_fastapi,
+  up as up_20260929_220653_reports_and_imagery_to_fastapi,
+} from "./20260929_220653_reports_and_imagery_to_fastapi";
 
 export const migrations = [
   {
@@ -116,5 +120,10 @@ export const migrations = [
     up: up_20260929_215017_discover,
     down: down_20260929_215017_discover,
     name: "20260929_215017_discover",
+  },
+  {
+    up: up_20260929_220653_reports_and_imagery_to_fastapi,
+    down: down_20260929_220653_reports_and_imagery_to_fastapi,
+    name: "20260929_220653_reports_and_imagery_to_fastapi",
   },
 ];

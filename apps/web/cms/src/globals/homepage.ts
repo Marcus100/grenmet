@@ -24,7 +24,7 @@ export const Homepage: GlobalConfig = {
   admin: {
     group: "Homepage sections",
     description:
-      "Choose what leads each homepage section, or hide a section (for example during a hurricane). Anything left empty shows the newest published items.",
+      "Choose what leads the editorial homepage sections, or hide a section (for example during a hurricane). Anything left empty shows the newest published items.",
   },
   access: {
     read: () => true,
@@ -46,12 +46,6 @@ export const Homepage: GlobalConfig = {
       hasMany: true,
       maxRows: 5,
       admin: { description: "Up to five, in order. Default: the newest." },
-    },
-    {
-      name: "featuredPublication",
-      type: "relationship",
-      relationTo: "publications",
-      admin: { description: "Shown first in Latest reports." },
     },
     {
       name: "discoverCards",

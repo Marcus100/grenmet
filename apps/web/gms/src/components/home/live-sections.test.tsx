@@ -27,7 +27,6 @@ afterEach(() => {
 const hidden = (sections: string[]): HomeContent => ({
   deskUpdates: { status: "ok", articles: [] },
   stories: { status: "ok", articles: [] },
-  publications: { status: "ok", articles: [] },
   questions: { status: "ok", questions: [] },
   weatherNow: null,
   discover: null,
@@ -57,4 +56,22 @@ it("shows an empty state, not a stale list, when no questions are published", as
   expect(
     screen.getByText("No questions are published yet.")
   ).toBeInTheDocument();
+});
+
+it("lists current bulletins and outlooks, never daily forecasts", async () => {
+  const { latestReports } = await import("@/components/home/live-sections");
+  const product = (id: string, kind: string, issuedAt: string) =>
+    ({
+      id,
+      kind,
+      revision: 1,
+      publishedAt: issuedAt,
+      values: { issuedAt },
+    }) as never;
+  const reports = latestReports([
+    product("a", "morning", "2026-09-29T07:00"),
+    product("b", "outlook", "2026-09-29T14:00"),
+    product("c", "outlook", "2026-09-29T08:00"),
+  ]);
+  expect(reports.map((item: { id: string }) => item.id)).toEqual(["b", "c"]);
 });

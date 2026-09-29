@@ -10,6 +10,9 @@ import { GmsNews } from "@/components/gms-news";
 import { News } from "@/components/news";
 import { fetchPublishedContent } from "@/lib/cms";
 
+const CANNOT_RETRIEVE = /cannot be retrieved/;
+const EMPTY =
+  /^No (published articles are available|stories are published yet)\.$/;
 const MARINE_TITLE = /Marine Bulletin/;
 
 vi.mock("@/lib/cms", async (importOriginal) => ({
@@ -22,7 +25,7 @@ afterEach(() => {
 });
 
 for (const [name, component] of [
-  ["Latest publications", News],
+  ["Stories", News],
   ["From the Desk", GmsNews],
 ] as const) {
   it(`${name} renders published CMS articles`, async () => {
@@ -43,7 +46,7 @@ for (const [name, component] of [
     });
     render(await component());
     expect(fetchPublishedContent).toHaveBeenCalledWith(
-      name === "From the Desk" ? "desk-updates" : "publications"
+      name === "From the Desk" ? "desk-updates" : "stories"
     );
     expect(
       screen.getAllByRole("link", { name: MARINE_TITLE })[0]
@@ -55,12 +58,8 @@ for (const [name, component] of [
       articles: [],
     });
     render(await component());
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "News cannot be retrieved"
-    );
-    expect(
-      screen.queryByText("No published articles are available.")
-    ).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(CANNOT_RETRIEVE);
+    expect(screen.queryByText(EMPTY)).not.toBeInTheDocument();
     expect(screen.queryAllByRole("img")).toHaveLength(0);
     cleanup();
     vi.mocked(fetchPublishedContent).mockResolvedValue({
@@ -68,9 +67,7 @@ for (const [name, component] of [
       articles: [],
     });
     render(await component());
-    expect(
-      screen.getByText("No published articles are available.")
-    ).toBeInTheDocument();
+    expect(screen.getByText(EMPTY)).toBeInTheDocument();
     expect(screen.queryAllByRole("img")).toHaveLength(0);
   });
 }

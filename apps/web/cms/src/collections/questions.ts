@@ -60,11 +60,11 @@ const base = editorialCollection({
     {
       name: "related",
       type: "relationship",
-      relationTo: ["questions", "stories", "publications"],
+      relationTo: ["questions", "stories"],
       hasMany: true,
       maxRows: 6,
       admin: {
-        description: "Other questions, stories or reports to read next.",
+        description: "Other questions or stories to read next.",
       },
     },
     topicsField,

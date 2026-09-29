@@ -109,11 +109,9 @@ describe("published content feed", () => {
 it("asks CMS for one collection", async () => {
   const fetcher = vi.fn().mockResolvedValue(Response.json({ articles: [] }));
   vi.stubGlobal("fetch", fetcher);
-  await fetchPublishedContent("publications");
+  await fetchPublishedContent("stories");
   expect(fetcher).toHaveBeenCalledWith(
-    new URL(
-      "http://cms.example.test/api/public/articles?collection=publications"
-    ),
+    new URL("http://cms.example.test/api/public/articles?collection=stories"),
     expect.anything()
   );
 });
@@ -124,12 +122,11 @@ describe("home feed", () => {
       "fetch",
       vi.fn().mockResolvedValue(
         Response.json({
-          deskUpdates: { status: "ok", items: [] },
-          stories: { status: "unavailable" },
-          publications: {
+          deskUpdates: {
             status: "ok",
-            items: [article({ collection: "publications" })],
+            items: [article({ collection: "desk-updates" })],
           },
+          stories: { status: "unavailable" },
           questions: { status: "ok", items: [] },
           weatherNow: {
             status: "ok",
@@ -140,7 +137,6 @@ describe("home feed", () => {
                 expiresAt: "2026-09-29T16:00:00Z",
                 alertUrl: null,
               },
-              imagery: [],
             },
           },
           discover: { status: "unavailable" },
@@ -149,9 +145,8 @@ describe("home feed", () => {
       )
     );
     const home = await fetchHomeContent();
-    expect(home.deskUpdates).toEqual({ status: "ok", articles: [] });
+    expect(home.deskUpdates.articles).toHaveLength(1);
     expect(home.stories.status).toBe("unavailable");
-    expect(home.publications.articles).toHaveLength(1);
     expect(home.weatherNow?.note?.text).toBe("Showers ease by mid-afternoon.");
     expect(home.settings.hiddenSections).toEqual(["stories"]);
   });
@@ -162,10 +157,10 @@ describe("home feed", () => {
     );
     const home = await fetchHomeContent();
     expect(
-      [home.deskUpdates, home.stories, home.publications, home.questions].map(
+      [home.deskUpdates, home.stories, home.questions].map(
         (part) => part.status
       )
-    ).toEqual(["unavailable", "unavailable", "unavailable", "unavailable"]);
+    ).toEqual(["unavailable", "unavailable", "unavailable"]);
     expect(home.weatherNow).toBeNull();
     expect(home.settings.hiddenSections).toEqual([]);
   });
@@ -182,12 +177,6 @@ describe("routes", () => {
     expect(
       contentHref({ collection: "stories", slug: "stories/2026/09/x" })
     ).toBe("/explore/news/2026/09/x");
-    expect(
-      contentHref({
-        collection: "publications",
-        slug: "publications/2026/09/x",
-      })
-    ).toBe("/climate/publications/2026/09/x");
     expect(contentSlug("stories", ["2026", "09", "x"])).toBe(
       "stories/2026/09/x"
     );

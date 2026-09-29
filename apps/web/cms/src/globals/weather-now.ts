@@ -5,8 +5,6 @@ import { nextIssueSlot } from "../lib/issue-slots";
 
 const EDITOR_KEY = "cms.article.manage";
 const HTTP_URL = /^https?:\/\/[^\s@]+$/;
-const HTTPS_URL = /^https:\/\/[^\s@]+$/;
-const SITE_PATH = /^\/[a-z0-9/-]*$/;
 
 /**
  * A new note is signed and timed automatically and, unless the forecaster
@@ -50,14 +48,14 @@ export const stampNote: GlobalBeforeChangeHook = ({
   return data;
 };
 
-/** "Weather now": the duty forecaster's note and the imagery cards. */
+/** "Weather now": the duty forecaster's note. Imagery is FastAPI data. */
 export const WeatherNow: GlobalConfig = {
   slug: "weather-now",
   label: "Weather now",
   admin: {
     group: "Homepage sections",
     description:
-      "The duty forecaster's short note and the imagery cards on the homepage. The note is a plain-words aside, never a forecast or a warning.",
+      "The duty forecaster's short note on the homepage. The note is a plain-words aside, never a forecast or a warning.",
   },
   access: {
     read: () => true,
@@ -114,61 +112,6 @@ export const WeatherNow: GlobalConfig = {
           admin: { readOnly: true },
           access: { read: staffField },
         },
-      ],
-    },
-    {
-      name: "imagery",
-      type: "array",
-      maxRows: 4,
-      access: {
-        update: ({ req }) => hasPermission(req.user, EDITOR_KEY),
-      },
-      admin: {
-        description: "Up to four live imagery cards. Editors manage these.",
-      },
-      fields: [
-        {
-          name: "layer",
-          type: "select",
-          required: true,
-          options: [
-            { label: "Satellite", value: "satellite" },
-            { label: "Radar", value: "radar" },
-            { label: "Rainfall", value: "rainfall" },
-            { label: "Lightning", value: "lightning" },
-          ],
-        },
-        { name: "title", type: "text", required: true, maxLength: 60 },
-        {
-          name: "image",
-          type: "upload",
-          relationTo: "media",
-          admin: {
-            description: "A still image, or leave empty and give a feed URL.",
-          },
-        },
-        {
-          name: "imageUrl",
-          label: "Live image URL",
-          type: "text",
-          maxLength: 2000,
-          validate: (value: unknown) =>
-            !value ||
-            (typeof value === "string" && HTTPS_URL.test(value)) ||
-            "Use a full HTTPS link.",
-        },
-        {
-          name: "href",
-          label: "Opens",
-          type: "text",
-          required: true,
-          defaultValue: "/weather/satellite",
-          admin: { description: "The site page to open, e.g. /weather/radar." },
-          validate: (value: unknown) =>
-            (typeof value === "string" && SITE_PATH.test(value)) ||
-            "Use a page on this site starting with /.",
-        },
-        { name: "credit", type: "text", maxLength: 120 },
       ],
     },
   ],

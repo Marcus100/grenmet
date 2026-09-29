@@ -35,7 +35,6 @@ Each GMS homepage section has its own collection under **Homepage sections**. Al
 | Desk updates | From the Desk | `cms.publish.desk-updates` |
 | Stories | Stories from our atmosphere and ocean | `cms.publish.stories` |
 | Questions | Questions about the weather | `cms.publish.questions` |
-| Publications | Latest reports (document required) | `cms.publish.publications` |
 | Sky, history and fun | On this day, quizzes, Did you know, sky notes | `cms.publish.discover` |
 
 1. Create an item in the right collection. The URL is built from the title and date, and fixed once published.
@@ -49,9 +48,9 @@ Tonight's sunrise, sunset and moon phase are calculated by the GMS site; a Sky n
 
 Starter content (the first questions, On this day entries, a cloud quiz and five facts) is loaded with `pnpm --filter @barrelsgd/web-cms seed:editorial` as Ready for review, so GMS checks it before publishing. Run it after someone has signed in to the CMS once as an editor or superuser; reruns skip what exists.
 
-**Weather now** (settings page): duty forecasters with `cms.weather-now.note` post a short note that goes live on save, signed and timed automatically, and expires at the next forecast issue (07:00, 12:00 or 18:00) unless they set a time. After it expires the homepage shows the issued forecast summary again. Editors manage up to four imagery cards.
+**Weather now** (settings page): duty forecasters with `cms.weather-now.note` post a short note that goes live on save, signed and timed automatically, and expires at the next forecast issue (07:00, 12:00 or 18:00) unless they set a time. After it expires the homepage shows the issued forecast summary again. Imagery (satellite, radar) is live data and comes from FastAPI, not the CMS.
 
-**Homepage** (settings page, `cms.homepage.manage`): pin the lead story, up to five questions and a featured report; choose the Discover cards; hide a section for now (for example during a hurricane). Empty choices show the newest published items.
+**Homepage** (settings page, `cms.homepage.manage`): pin the lead story and up to five questions; choose the Discover cards; hide a section for now (for example during a hurricane). Empty choices show the newest published items.
 
 A note or desk update that uses the words warning, watch or advisory must link to the CAP alert it refers to; otherwise saving is refused. Warnings are issued only in the warning system.
 

@@ -3,11 +3,8 @@ import { z } from "zod";
 import { env } from "@/lib/env";
 import { reportError } from "@/lib/report-error";
 
-export const CONTENT_COLLECTIONS = [
-  "desk-updates",
-  "stories",
-  "publications",
-] as const;
+/** Editorial only; reports and datasets are FastAPI products. */
+export const CONTENT_COLLECTIONS = ["desk-updates", "stories"] as const;
 export type ContentCollection = (typeof CONTENT_COLLECTIONS)[number];
 
 const contentSchema = z.object({
@@ -26,19 +23,6 @@ const contentSchema = z.object({
   topics: z.array(z.string()).optional(),
   publishedAt: z.string().nullable().optional(),
   updatedAt: z.string(),
-  series: z.string().nullable().optional(),
-  periodStart: z.string().nullable().optional(),
-  periodEnd: z.string().nullable().optional(),
-  keyFindings: z.array(z.string()).optional(),
-  document: z
-    .object({
-      url: z.string(),
-      filename: z.string(),
-      mimeType: z.string().nullable(),
-      filesize: z.number().nullable(),
-    })
-    .nullable()
-    .optional(),
   relatedLinks: z
     .array(
       z.object({
@@ -149,7 +133,7 @@ const questionSchema = z.object({
   relatedLinks: contentSchema.shape.relatedLinks,
   related: z.array(
     z.object({
-      collection: z.enum(["questions", "stories", "publications"]),
+      collection: z.enum(["questions", "stories"]),
       title: z.string(),
       slug: z.string(),
     })
@@ -214,15 +198,6 @@ const weatherNowSchema = z.object({
       alertUrl: z.string().nullable(),
     })
     .nullable(),
-  imagery: z.array(
-    z.object({
-      layer: z.string(),
-      title: z.string(),
-      imageUrl: z.string().nullable(),
-      href: z.string().startsWith("/"),
-      credit: z.string().nullable(),
-    })
-  ),
 });
 export type WeatherNowContent = z.infer<typeof weatherNowSchema>;
 
@@ -316,7 +291,6 @@ export type HomeSectionKey =
 const homeSchema = z.object({
   deskUpdates: partSchema,
   stories: partSchema,
-  publications: partSchema,
   questions: questionsPartSchema,
   weatherNow: z.discriminatedUnion("status", [
     z.object({ status: z.literal("ok"), items: weatherNowSchema }),
@@ -335,7 +309,6 @@ export interface HomeContent {
   deskUpdates: ContentResult;
   /** Null when unavailable; the automatic sky card still shows. */
   discover: DiscoverContent | null;
-  publications: ContentResult;
   questions: QuestionsResult;
   settings: { discoverCards: string[]; hiddenSections: string[] };
   stories: ContentResult;
@@ -357,7 +330,6 @@ export const fetchHomeContent = cache(
     const down: HomeContent = {
       deskUpdates: UNAVAILABLE,
       stories: UNAVAILABLE,
-      publications: UNAVAILABLE,
       questions: { status: "unavailable", questions: [] },
       weatherNow: null,
       discover: null,
@@ -379,7 +351,6 @@ export const fetchHomeContent = cache(
       return {
         deskUpdates: toResult(data.deskUpdates),
         stories: toResult(data.stories),
-        publications: toResult(data.publications),
         questions:
           data.questions.status === "ok"
             ? { status: "ok", questions: data.questions.items }
@@ -406,7 +377,6 @@ export async function isSectionHidden(key: HomeSectionKey): Promise<boolean> {
 const ROUTES: Record<ContentCollection, { prefix: string; base: string }> = {
   "desk-updates": { prefix: "updates/", base: "/explore/updates/" },
   stories: { prefix: "stories/", base: "/explore/news/" },
-  publications: { prefix: "publications/", base: "/climate/publications/" },
 };
 
 /** `stories/2026/09/x` → `/explore/news/2026/09/x`, and so on. */

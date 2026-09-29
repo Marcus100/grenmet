@@ -4,7 +4,6 @@ import type { Access, FieldAccess, Where } from "payload";
 export const PUBLISH_KEYS = {
   "desk-updates": "cms.publish.desk-updates",
   stories: "cms.publish.stories",
-  publications: "cms.publish.publications",
   questions: "cms.publish.questions",
   discover: "cms.publish.discover",
 } as const;

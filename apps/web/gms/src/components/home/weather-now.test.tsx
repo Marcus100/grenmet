@@ -15,8 +15,6 @@ vi.mock("@/lib/cms", async (importOriginal) => {
       ),
   };
 });
-const RADAR = /Radar/;
-
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
@@ -27,7 +25,6 @@ function home(overrides: Partial<HomeContent> = {}): HomeContent {
   return {
     deskUpdates: none,
     stories: none,
-    publications: none,
     questions: { status: "ok", questions: [] },
     weatherNow: null,
     discover: null,
@@ -46,15 +43,6 @@ it("uses the forecaster's current note and its alert link", async () => {
           expiresAt: "2026-09-29T16:00:00Z",
           alertUrl: "https://weather.gd/alerts/1",
         },
-        imagery: [
-          {
-            layer: "radar",
-            title: "Radar",
-            imageUrl: null,
-            href: "/weather/radar",
-            credit: "Météo-France",
-          },
-        ],
       },
     })
   );
@@ -68,16 +56,13 @@ it("uses the forecaster's current note and its alert link", async () => {
     "href",
     "https://weather.gd/alerts/1"
   );
-  expect(screen.getByRole("link", { name: RADAR })).toHaveAttribute(
+  expect(screen.getByRole("link", { name: "Satellite" })).toHaveAttribute(
     "href",
-    "/weather/radar"
+    "/weather/satellite"
   );
-  expect(
-    screen.queryByText("Interactive map coming soon")
-  ).not.toBeInTheDocument();
 });
 
-it("falls back to the issued summary and the layer links", async () => {
+it("falls back to the issued summary", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(home());
   render(await WeatherNow({ forecasterNote: "Issued summary" }));
   expect(screen.getByText("Issued summary")).toBeInTheDocument();
