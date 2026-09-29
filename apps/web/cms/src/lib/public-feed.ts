@@ -186,3 +186,83 @@ export async function findQuestions(
   });
   return result.docs.map((doc) => toQuestion(doc as unknown as Doc));
 }
+
+/** The Weather now note (only while unexpired) and imagery cards. */
+export async function findWeatherNow(payload: Payload, now: Date = new Date()) {
+  const global = (await payload.findGlobal({
+    slug: "weather-now",
+    depth: 1,
+    overrideAccess: false,
+  })) as unknown as Doc;
+  const note = (global.note ?? {}) as Doc;
+  const live =
+    typeof note.text === "string" &&
+    note.text.trim() !== "" &&
+    typeof note.expiresAt === "string" &&
+    new Date(note.expiresAt) > now;
+  return {
+    note: live
+      ? {
+          text: String(note.text),
+          postedAt: (note.postedAt as string | undefined) ?? null,
+          expiresAt: String(note.expiresAt),
+          alertUrl: (note.alertUrl as string | undefined) || null,
+        }
+      : null,
+    imagery: (Array.isArray(global.imagery)
+      ? (global.imagery as Doc[])
+      : []
+    ).map((row) => ({
+      layer: String(row.layer),
+      title: String(row.title),
+      imageUrl:
+        (upload(row.image)?.url as string | undefined) ??
+        ((row.imageUrl as string | undefined) || null),
+      href: String(row.href),
+      credit: (row.credit as string | undefined) ?? null,
+    })),
+  };
+}
+export type PublicWeatherNow = Awaited<ReturnType<typeof findWeatherNow>>;
+
+/** Homepage settings; pins arrive populated only when published. */
+export async function findHomepage(payload: Payload) {
+  const global = (await payload.findGlobal({
+    slug: "homepage",
+    depth: 1,
+    overrideAccess: false,
+  })) as unknown as Doc;
+  const published = (value: unknown) => {
+    const doc = upload(value);
+    return doc && doc.status === "published" ? doc : null;
+  };
+  return {
+    leadStory: published(global.leadStory),
+    featuredQuestions: (Array.isArray(global.featuredQuestions)
+      ? global.featuredQuestions
+      : []
+    )
+      .map(published)
+      .filter((doc): doc is Doc => doc !== null),
+    featuredPublication: published(global.featuredPublication),
+    discoverCards: Array.isArray(global.discoverCards)
+      ? (global.discoverCards as string[])
+      : ["sky", "on-this-day", "quiz", "fact"],
+    hiddenSections: Array.isArray(global.hiddenSections)
+      ? (global.hiddenSections as string[])
+      : [],
+  };
+}
+
+/** Pinned items first, in order, then the newest; no duplicates. */
+export function withPins<T extends { id: string }>(
+  pinned: T[],
+  newest: T[],
+  limit: number
+): T[] {
+  const seen = new Set(pinned.map((item) => item.id));
+  return [...pinned, ...newest.filter((item) => !seen.has(item.id))].slice(
+    0,
+    limit
+  );
+}

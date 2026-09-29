@@ -46,6 +46,12 @@ Questions have an optional science check: a meteorologist ticks it and the site 
 
 Starter content (the first questions) is loaded with `pnpm --filter @barrelsgd/web-cms seed:editorial` as Ready for review, so GMS checks it before publishing. Run it after someone has signed in to the CMS once as an editor or superuser; reruns skip what exists.
 
+**Weather now** (settings page): duty forecasters with `cms.weather-now.note` post a short note that goes live on save, signed and timed automatically, and expires at the next forecast issue (07:00, 12:00 or 18:00) unless they set a time. After it expires the homepage shows the issued forecast summary again. Editors manage up to four imagery cards.
+
+**Homepage** (settings page, `cms.homepage.manage`): pin the lead story, up to five questions and a featured report; choose the Discover cards; hide a section for now (for example during a hurricane). Empty choices show the newest published items.
+
+A note or desk update that uses the words warning, watch or advisory must link to the CAP alert it refers to; otherwise saving is refused. Warnings are issued only in the warning system.
+
 Desk updates are notices about products and services. Forecasts and warnings are issued only in the forecast and warning systems, never here.
 
 Authors edit their own unpublished items. Editors (`cms.article.edit.all`) edit everything. Version history keeps earlier copies.

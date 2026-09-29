@@ -131,6 +131,19 @@ describe("home feed", () => {
             items: [article({ collection: "publications" })],
           },
           questions: { status: "ok", items: [] },
+          weatherNow: {
+            status: "ok",
+            items: {
+              note: {
+                text: "Showers ease by mid-afternoon.",
+                postedAt: "2026-09-29T14:00:00Z",
+                expiresAt: "2026-09-29T16:00:00Z",
+                alertUrl: null,
+              },
+              imagery: [],
+            },
+          },
+          settings: { discoverCards: ["sky"], hiddenSections: ["stories"] },
         })
       )
     );
@@ -138,6 +151,8 @@ describe("home feed", () => {
     expect(home.deskUpdates).toEqual({ status: "ok", articles: [] });
     expect(home.stories.status).toBe("unavailable");
     expect(home.publications.articles).toHaveLength(1);
+    expect(home.weatherNow?.note?.text).toBe("Showers ease by mid-afternoon.");
+    expect(home.settings.hiddenSections).toEqual(["stories"]);
   });
   it("reports every section unavailable when the CMS is down", async () => {
     vi.stubGlobal(
@@ -145,10 +160,13 @@ describe("home feed", () => {
       vi.fn().mockResolvedValue(Response.json({}, { status: 503 }))
     );
     const home = await fetchHomeContent();
-    expect(new Set(Object.values(home).map((part) => part.status))).toEqual(
-      new Set(["unavailable"])
-    );
-    expect(Object.keys(home)).toHaveLength(4);
+    expect(
+      [home.deskUpdates, home.stories, home.publications, home.questions].map(
+        (part) => part.status
+      )
+    ).toEqual(["unavailable", "unavailable", "unavailable", "unavailable"]);
+    expect(home.weatherNow).toBeNull();
+    expect(home.settings.hiddenSections).toEqual([]);
   });
 });
 

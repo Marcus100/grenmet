@@ -5,15 +5,16 @@ import {
   ExploreToday,
   GrenadaInData,
   TodayAtAGlance,
-  WeatherNow,
 } from "@/components/home/sample-sections";
 import { SkyHero } from "@/components/home/sky-hero";
 import { WarningTakeover } from "@/components/home/warning-takeover";
+import { WeatherNow } from "@/components/home/weather-now";
 import type { AlertsResult, PublicAlert } from "@/lib/cap";
 import { REFERENCE_WEATHER } from "@/lib/forecast-data";
 import { unavailableWeather } from "@/lib/forecast-selection";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
+vi.mock("@/lib/env", () => ({ env: { CMS_API_URL: "" } }));
 
 const SAMPLE_NOTE = /Sample content — not an operational product/;
 const ALL_CLEAR = /no active alerts/i;
@@ -100,8 +101,8 @@ describe("sample sections", () => {
     expect(screen.queryByRole("note")).not.toBeInTheDocument();
   });
 
-  it("shows the issued summary as the forecaster note", () => {
-    render(<WeatherNow forecasterNote="Passing showers tonight." />);
+  it("shows the issued summary as the forecaster note", async () => {
+    render(await WeatherNow({ forecasterNote: "Passing showers tonight." }));
     expect(screen.getByText("Passing showers tonight.")).toBeInTheDocument();
   });
 });

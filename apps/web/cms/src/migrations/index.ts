@@ -42,6 +42,10 @@ import {
   down as down_20260929_212041_questions,
   up as up_20260929_212041_questions,
 } from "./20260929_212041_questions";
+import {
+  down as down_20260929_214026_homepage_settings,
+  up as up_20260929_214026_homepage_settings,
+} from "./20260929_214026_homepage_settings";
 
 export const migrations = [
   {
@@ -98,5 +102,10 @@ export const migrations = [
     up: up_20260929_212041_questions,
     down: down_20260929_212041_questions,
     name: "20260929_212041_questions",
+  },
+  {
+    up: up_20260929_214026_homepage_settings,
+    down: down_20260929_214026_homepage_settings,
+    name: "20260929_214026_homepage_settings",
   },
 ];

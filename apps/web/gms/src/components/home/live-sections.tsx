@@ -12,7 +12,12 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { HOME_CARD, HomeSection } from "@/components/home/home-section";
-import { contentHref, fetchHomeContent, questionHref } from "@/lib/cms";
+import {
+  contentHref,
+  fetchHomeContent,
+  isSectionHidden,
+  questionHref,
+} from "@/lib/cms";
 import { contentToArticle } from "@/lib/editorial";
 import type { WeatherSnapshot } from "@/lib/forecast-data";
 
@@ -53,6 +58,7 @@ function FeedState({
  * latest product updates beside it. Kept visually separate from editorial.
  */
 export async function ForecastDesk({ weather }: { weather: WeatherSnapshot }) {
+  if (await isSectionHidden("desk")) return null;
   const today = weather.days[0];
   const { deskUpdates: updates } = await fetchHomeContent();
   return (
@@ -137,6 +143,7 @@ export async function ForecastDesk({ weather }: { weather: WeatherSnapshot }) {
 
 /** Editorial stories: one lead, the rest in a side column. */
 export async function Stories() {
+  if (await isSectionHidden("stories")) return null;
   const { stories: result } = await fetchHomeContent();
   const [lead, ...rest] = result.articles.map(contentToArticle);
   return (
@@ -213,6 +220,7 @@ export async function Stories() {
 
 /** The questions people ask most, answered in the CMS by GMS. */
 export async function Explained() {
+  if (await isSectionHidden("questions")) return null;
   const { questions } = await fetchHomeContent();
   return (
     <HomeSection
@@ -287,6 +295,17 @@ const CHANNELS = [
 
 /** Latest publications, then the navy "get official alerts first" band. */
 export async function PublicationsAndAlerts() {
+  if (await isSectionHidden("reports"))
+    return (
+      <section
+        aria-label="Get official alerts"
+        className="bg-gm-surface py-8 lg:py-12"
+      >
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 xl:px-8">
+          <AlertsBand className="" />
+        </div>
+      </section>
+    );
   const { publications: result } = await fetchHomeContent();
   const posts = result.articles.map((content) => ({
     ...contentToArticle(content),
@@ -331,48 +350,57 @@ export async function PublicationsAndAlerts() {
         </ul>
       </FeedState>
 
-      <div className="mt-8 grid items-center gap-5 rounded-gm-card bg-gm-navy p-6 text-gm-text-inverse lg:grid-cols-[1.3fr_1fr]">
-        <div>
-          <h2 className="font-bold font-gm-display text-gm-display uppercase tracking-wide">
-            Get official alerts first
-          </h2>
-          <p className="mt-2 max-w-prose text-body-base text-gm-text-inverse/85 leading-body-base">
-            The GMS app sends alerts the moment we issue them. Prefer something
-            else? Choose WhatsApp, email or a feed.
-          </p>
-        </div>
-        <div className="flex flex-col gap-3">
-          <Link
-            className="flex h-11 w-fit items-center gap-2 rounded-md bg-gm-lime px-4 font-bold text-body text-gm-navy leading-body"
-            href="/app-guide"
-          >
-            <SmartphoneIcon aria-hidden="true" className="size-4" />
-            Get the GMS app
-          </Link>
-          <ul className="flex flex-wrap gap-2">
-            {CHANNELS.map(({ label, Icon }) => (
-              <li key={label}>
-                <Link
-                  className="flex items-center gap-1.5 rounded-full border border-gm-text-inverse/30 px-3 py-1.5 font-semibold text-body-sm leading-body-sm hover:bg-gm-text-inverse/10"
-                  href="/alerts/get-alerts"
-                >
-                  <Icon aria-hidden="true" className="size-4" />
-                  {label}
-                </Link>
-              </li>
-            ))}
-            <li>
+      <AlertsBand />
+    </HomeSection>
+  );
+}
+
+/** The navy "get official alerts first" band; stays even if reports hide. */
+function AlertsBand({ className = "mt-8" }: { className?: string }) {
+  return (
+    <div
+      className={`${className} grid items-center gap-5 rounded-gm-card bg-gm-navy p-6 text-gm-text-inverse lg:grid-cols-[1.3fr_1fr]`}
+    >
+      <div>
+        <h2 className="font-bold font-gm-display text-gm-display uppercase tracking-wide">
+          Get official alerts first
+        </h2>
+        <p className="mt-2 max-w-prose text-body-base text-gm-text-inverse/85 leading-body-base">
+          The GMS app sends alerts the moment we issue them. Prefer something
+          else? Choose WhatsApp, email or a feed.
+        </p>
+      </div>
+      <div className="flex flex-col gap-3">
+        <Link
+          className="flex h-11 w-fit items-center gap-2 rounded-md bg-gm-lime px-4 font-bold text-body text-gm-navy leading-body"
+          href="/app-guide"
+        >
+          <SmartphoneIcon aria-hidden="true" className="size-4" />
+          Get the GMS app
+        </Link>
+        <ul className="flex flex-wrap gap-2">
+          {CHANNELS.map(({ label, Icon }) => (
+            <li key={label}>
               <Link
                 className="flex items-center gap-1.5 rounded-full border border-gm-text-inverse/30 px-3 py-1.5 font-semibold text-body-sm leading-body-sm hover:bg-gm-text-inverse/10"
                 href="/alerts/get-alerts"
               >
-                <BellIcon aria-hidden="true" className="size-4" />
-                All channels
+                <Icon aria-hidden="true" className="size-4" />
+                {label}
               </Link>
             </li>
-          </ul>
-        </div>
+          ))}
+          <li>
+            <Link
+              className="flex items-center gap-1.5 rounded-full border border-gm-text-inverse/30 px-3 py-1.5 font-semibold text-body-sm leading-body-sm hover:bg-gm-text-inverse/10"
+              href="/alerts/get-alerts"
+            >
+              <BellIcon aria-hidden="true" className="size-4" />
+              All channels
+            </Link>
+          </li>
+        </ul>
       </div>
-    </HomeSection>
+    </div>
   );
 }

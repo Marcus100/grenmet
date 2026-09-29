@@ -11,8 +11,8 @@ import {
   ExploreToday,
   GrenadaInData,
   TodayAtAGlance,
-  WeatherNow,
 } from "@/components/home/sample-sections";
+import { WeatherNow } from "@/components/home/weather-now";
 import { WeatherSurface } from "@/components/home/weather-surface";
 import { defaultLocation } from "@/lib/locations";
 import { getWeatherSnapshot } from "@/lib/weather-snapshot";

@@ -205,22 +205,64 @@ const questionsPartSchema = z.discriminatedUnion("status", [
   z.object({ status: z.literal("ok"), items: z.array(questionSchema) }),
   z.object({ status: z.literal("unavailable") }),
 ]);
+const weatherNowSchema = z.object({
+  note: z
+    .object({
+      text: z.string(),
+      postedAt: z.string().nullable(),
+      expiresAt: z.string(),
+      alertUrl: z.string().nullable(),
+    })
+    .nullable(),
+  imagery: z.array(
+    z.object({
+      layer: z.string(),
+      title: z.string(),
+      imageUrl: z.string().nullable(),
+      href: z.string().startsWith("/"),
+      credit: z.string().nullable(),
+    })
+  ),
+});
+export type WeatherNowContent = z.infer<typeof weatherNowSchema>;
+
+/** Keys editors can hide in the CMS Homepage settings. */
+export type HomeSectionKey =
+  | "weather-now"
+  | "desk"
+  | "stories"
+  | "questions"
+  | "discover"
+  | "reports";
+
 const homeSchema = z.object({
   deskUpdates: partSchema,
   stories: partSchema,
   publications: partSchema,
   questions: questionsPartSchema,
+  weatherNow: z.discriminatedUnion("status", [
+    z.object({ status: z.literal("ok"), items: weatherNowSchema }),
+    z.object({ status: z.literal("unavailable") }),
+  ]),
+  settings: z.object({
+    discoverCards: z.array(z.string()),
+    hiddenSections: z.array(z.string()),
+  }),
 });
 export interface HomeContent {
   deskUpdates: ContentResult;
   publications: ContentResult;
   questions: QuestionsResult;
+  settings: { discoverCards: string[]; hiddenSections: string[] };
   stories: ContentResult;
+  /** Null when unavailable; the site then uses the issued summary. */
+  weatherNow: WeatherNowContent | null;
 }
 
 const UNAVAILABLE: ContentResult = { status: "unavailable", articles: [] };
 const toResult = (part: z.infer<typeof partSchema>): ContentResult =>
   part.status === "ok" ? { status: "ok", articles: part.items } : UNAVAILABLE;
+const ALL_DISCOVER_CARDS = ["sky", "on-this-day", "quiz", "fact"];
 
 /**
  * Everything the homepage reads from the CMS, in one request. Each section
@@ -233,6 +275,8 @@ export const fetchHomeContent = cache(
       stories: UNAVAILABLE,
       publications: UNAVAILABLE,
       questions: { status: "unavailable", questions: [] },
+      weatherNow: null,
+      settings: { discoverCards: ALL_DISCOVER_CARDS, hiddenSections: [] },
     };
     if (!env.CMS_API_URL) return down;
     try {
@@ -246,14 +290,18 @@ export const fetchHomeContent = cache(
         reportError(parsed.error, "gms-cms-home-contract");
         return down;
       }
+      const { data } = parsed;
       return {
-        deskUpdates: toResult(parsed.data.deskUpdates),
-        stories: toResult(parsed.data.stories),
-        publications: toResult(parsed.data.publications),
+        deskUpdates: toResult(data.deskUpdates),
+        stories: toResult(data.stories),
+        publications: toResult(data.publications),
         questions:
-          parsed.data.questions.status === "ok"
-            ? { status: "ok", questions: parsed.data.questions.items }
+          data.questions.status === "ok"
+            ? { status: "ok", questions: data.questions.items }
             : { status: "unavailable", questions: [] },
+        weatherNow:
+          data.weatherNow.status === "ok" ? data.weatherNow.items : null,
+        settings: data.settings,
       };
     } catch (error) {
       reportError(error, "gms-cms-home");
@@ -261,6 +309,12 @@ export const fetchHomeContent = cache(
     }
   }
 );
+
+/** Whether editors have hidden a homepage section in the CMS. */
+export async function isSectionHidden(key: HomeSectionKey): Promise<boolean> {
+  const { settings } = await fetchHomeContent();
+  return settings.hiddenSections.includes(key);
+}
 
 /** Slug prefix (set by the CMS) and site route for each collection. */
 const ROUTES: Record<ContentCollection, { prefix: string; base: string }> = {
