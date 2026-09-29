@@ -28,7 +28,7 @@ export function StatTiles({ stats }: { stats: readonly Stat[] }) {
           <p className="font-bold text-gm-text-muted text-label uppercase leading-label tracking-wider">
             {stat.label}
           </p>
-          <p className="font-bold font-gm-display text-gm-navy text-heading-lg tabular-nums leading-heading-lg">
+          <p className="font-bold font-gm-display text-gm-heading text-heading-lg tabular-nums leading-heading-lg">
             {stat.value}
           </p>
           {stat.detail && (

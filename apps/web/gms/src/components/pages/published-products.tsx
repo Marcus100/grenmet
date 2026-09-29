@@ -24,7 +24,7 @@ export async function PublishedProducts({ kinds }: { kinds: ProductKind[] }) {
         const issues = products.filter((product) => product.kind === kind);
         return (
           <section className="space-y-3" key={kind}>
-            <h2 className="font-bold font-gm-display text-gm-navy text-heading-md leading-heading-md">
+            <h2 className="font-bold font-gm-display text-gm-heading text-heading-md leading-heading-md">
               {productTitle(kind)}
             </h2>
             {issues.length ? (
@@ -35,7 +35,7 @@ export async function PublishedProducts({ kinds }: { kinds: ProductKind[] }) {
                     key={product.id}
                   >
                     <Link
-                      className="font-bold text-body-base text-gm-navy leading-body-base underline underline-offset-4 hover:text-gm-blue-ink"
+                      className="font-bold text-body-base text-gm-heading leading-body-base underline underline-offset-4 hover:text-gm-blue-ink"
                       href={`/weather/issued/${product.id}`}
                     >
                       {productTitle(kind)} ·{" "}

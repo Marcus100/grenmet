@@ -28,7 +28,7 @@ export function InfoTable({
           <tr>
             {headers.map((header) => (
               <th
-                className="whitespace-nowrap px-4 py-2.5 font-bold text-gm-navy text-label uppercase leading-label tracking-wider lg:px-5 lg:py-3"
+                className="whitespace-nowrap px-4 py-2.5 font-bold text-gm-heading text-label uppercase leading-label tracking-wider lg:px-5 lg:py-3"
                 key={header}
                 scope="col"
               >

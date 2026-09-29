@@ -18,7 +18,7 @@ export default function RouteError({
 
   return (
     <div className="mx-auto max-w-xl space-y-3 px-4 py-10" role="alert">
-      <h1 className="font-bold font-gm-display text-gm-display text-gm-navy uppercase tracking-wide">
+      <h1 className="font-bold font-gm-display text-gm-display text-gm-heading uppercase tracking-wide">
         This page could not be loaded
       </h1>
       <p className="text-body-base text-gm-text-secondary leading-body-base">

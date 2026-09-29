@@ -7,6 +7,7 @@ import { useRef, useState } from "react";
 import { DesktopNav } from "@/components/desktop-nav";
 import { MobileTabBar } from "@/components/mobile-tab-bar";
 import { NavDrawer } from "@/components/nav-drawer";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { WarningRibbon } from "@/components/warning-ribbon";
 import { WarningStatusPill } from "@/components/warning-status-pill";
 import type { AlertsResult } from "@/lib/cap";
@@ -56,6 +57,7 @@ export function Header({ alerts }: HeaderProps) {
                 {label}
               </Link>
             ))}
+            <ThemeToggle />
           </div>
         </div>
 

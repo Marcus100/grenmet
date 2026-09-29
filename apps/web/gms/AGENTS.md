@@ -52,6 +52,10 @@ src/app/
   chips never use hazard colours.
 - **Bold sky:** the sky gradient and `bg-gm-scrim` are for the home hero only;
   see `docs/design/gms.md`.
+- **Dark mode:** `<html class="gm-site">` scopes the GMS dark palette; the theme
+  follows the device via `@barrelsgd/theme` (`ThemeBootScript` defaults to
+  `system`, `ThemeToggle` in the utility bar and drawer). Headings use
+  `text-gm-heading`, not `text-gm-navy`; printable products sit in `.gm-paper`.
 
 ## Key dependencies (unique to this app)
 

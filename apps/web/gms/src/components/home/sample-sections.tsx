@@ -27,7 +27,7 @@ import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
  */
 
 const CHIP =
-  "w-fit rounded-full bg-gm-surface-secondary px-2 py-0.5 font-bold text-caption text-gm-navy leading-caption";
+  "w-fit rounded-full bg-gm-surface-secondary px-2 py-0.5 font-bold text-caption text-gm-heading leading-caption";
 
 interface GlanceTile {
   detail: string;
@@ -97,7 +97,7 @@ export function TodayAtAGlance() {
                 {tile.label}
               </span>
               <span className={CHIP}>{tile.status}</span>
-              <span className="font-bold text-body-base text-gm-navy leading-body-base">
+              <span className="font-bold text-body-base text-gm-heading leading-body-base">
                 {tile.value}
               </span>
               <span className="text-body-sm text-gm-text-secondary leading-body-sm">
@@ -238,10 +238,10 @@ export function ExploreToday() {
               <span className="flex size-10 items-center justify-center rounded-lg bg-gm-navy text-gm-lime">
                 <Icon aria-hidden="true" className="size-5" />
               </span>
-              <span className="font-bold text-body-base text-gm-navy leading-body-base">
+              <span className="font-bold text-body-base text-gm-heading leading-body-base">
                 {activity.label}
               </span>
-              <span className="font-semibold text-body text-gm-navy leading-body">
+              <span className="font-semibold text-body text-gm-heading leading-body">
                 {activity.value}
               </span>
               <span
@@ -317,7 +317,7 @@ export function GrenadaInData() {
             <span className="font-bold text-gm-text-secondary text-label uppercase leading-label tracking-wider">
               {stat.label}
             </span>
-            <span className="font-bold font-gm-display text-gm-navy text-gm-numeral tabular-nums">
+            <span className="font-bold font-gm-display text-gm-heading text-gm-numeral tabular-nums">
               {stat.value}
               <span className="ml-1 font-sans font-semibold text-body-base text-gm-text-secondary leading-body-base">
                 {stat.unit}
@@ -407,7 +407,7 @@ export function Discover() {
                 <span className="font-bold text-gm-sky-ink text-label uppercase leading-label tracking-wider">
                   {card.kicker}
                 </span>
-                <span className="font-bold text-body-base text-gm-navy leading-body-base">
+                <span className="font-bold text-body-base text-gm-heading leading-body-base">
                   {card.title}
                 </span>
                 <span className="text-body-sm text-gm-text-secondary leading-body-sm">

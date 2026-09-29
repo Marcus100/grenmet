@@ -17,7 +17,7 @@ const SECTIONS = {
 
 /** Running text on the type scale: 16/24 body, condensed h2, a readable measure. */
 const PROSE =
-  "max-w-prose space-y-4 text-body-base leading-body-base [&_a]:text-gm-blue-ink [&_a]:underline [&_h2]:mt-8 [&_h2]:font-bold [&_h2]:font-gm-display [&_h2]:text-gm-navy [&_h2]:text-heading-md [&_h2]:leading-heading-md [&_h3]:font-bold [&_h3]:text-gm-navy [&_h3]:text-heading-sm [&_h3]:leading-heading-sm [&_li]:ml-5 [&_ol]:list-decimal [&_ul]:list-disc";
+  "max-w-prose space-y-4 text-body-base leading-body-base [&_a]:text-gm-blue-ink [&_a]:underline [&_h2]:mt-8 [&_h2]:font-bold [&_h2]:font-gm-display [&_h2]:text-gm-heading [&_h2]:text-heading-md [&_h2]:leading-heading-md [&_h3]:font-bold [&_h3]:text-gm-heading [&_h3]:text-heading-sm [&_h3]:leading-heading-sm [&_li]:ml-5 [&_ol]:list-decimal [&_ul]:list-disc";
 
 const ASIDE_BOX =
   "flex flex-col gap-2 rounded-gm-card border border-gm-border p-4 text-body leading-body";
@@ -77,7 +77,7 @@ export default async function ArticlePage({
             <p className="font-bold text-gm-sky-ink text-label uppercase leading-label tracking-widest">
               {section.title}
             </p>
-            <h1 className="max-w-[24ch] text-balance font-bold font-gm-display text-gm-display text-gm-navy uppercase tracking-wide">
+            <h1 className="max-w-[24ch] text-balance font-bold font-gm-display text-gm-display text-gm-heading uppercase tracking-wide">
               {article.title}
             </h1>
             {content.category && (
@@ -93,7 +93,9 @@ export default async function ArticlePage({
                 <Logo className="size-6" variant="icon" />
               </span>
               <span>
-                <b className="text-gm-navy">Grenada Meteorological Service</b>
+                <b className="text-gm-heading">
+                  Grenada Meteorological Service
+                </b>
                 <br />
                 <span className="text-gm-text-secondary">
                   Updated {article.published}

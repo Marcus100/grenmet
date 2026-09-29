@@ -22,7 +22,7 @@ export async function GmsNews() {
   return (
     <section className="mb-8 space-y-5">
       <header className="flex items-center justify-between">
-        <h2 className="font-bold text-gm-navy text-heading-md">
+        <h2 className="font-bold text-gm-heading text-heading-md">
           Latest from us
         </h2>
         <Link className="text-gm-blue-ink underline" href="/explore/updates">

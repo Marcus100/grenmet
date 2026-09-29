@@ -23,7 +23,7 @@ export function WarningLegend() {
       className="flex flex-col gap-3 self-start rounded-gm-card border border-gm-border bg-background p-4 lg:p-5"
     >
       <h2
-        className="font-bold text-body-base text-gm-navy leading-body-base"
+        className="font-bold text-body-base text-gm-heading leading-body-base"
         id="warning-legend-title"
       >
         Alert levels
@@ -36,7 +36,9 @@ export function WarningLegend() {
               className={`h-5 rounded ${WARNING_LEVEL_SWATCH[level]}`}
             />
             <span className="text-body-sm leading-body-sm">
-              <b className="block text-gm-navy">{WARNING_LEVEL_LABEL[level]}</b>
+              <b className="block text-gm-heading">
+                {WARNING_LEVEL_LABEL[level]}
+              </b>
               {WARNING_LEVEL_GUIDANCE[level]}
             </span>
           </li>
@@ -50,7 +52,7 @@ export function WarningLegend() {
         <ArrowRightIcon aria-hidden="true" className="size-4" />
       </Link>
       <Link
-        className="flex h-11 items-center justify-center gap-2 rounded-md bg-gm-blue-ink font-bold text-body text-gm-text-inverse leading-body"
+        className="flex h-11 items-center justify-center gap-2 rounded-md bg-gm-blue-ink font-bold text-body text-gm-text-inverse leading-body dark:text-gm-navy"
         href="/alerts/get-alerts"
       >
         <BellIcon aria-hidden="true" className="size-4" />
