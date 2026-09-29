@@ -52,6 +52,9 @@ src/app/
   chips never use hazard colours.
 - **Bold sky:** the sky gradient and `bg-gm-scrim` are for the home hero only;
   see `docs/design/gms.md`.
+- **Search:** `SiteSearch` (masthead button or `/`) ranks `NAV_SECTIONS` pages plus
+  published CMS articles from `/api/search` (read-only proxy) with
+  `src/lib/search.ts`. New menu pages are searchable automatically.
 - **Dark mode:** `<html class="gm-site">` scopes the GMS dark palette; the theme
   follows the device via `@barrelsgd/theme` (`ThemeBootScript` defaults to
   `system`, `ThemeToggle` in the utility bar and drawer). Headings use

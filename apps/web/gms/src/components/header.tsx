@@ -7,6 +7,7 @@ import { useRef, useState } from "react";
 import { DesktopNav } from "@/components/desktop-nav";
 import { MobileTabBar } from "@/components/mobile-tab-bar";
 import { NavDrawer } from "@/components/nav-drawer";
+import { SiteSearch } from "@/components/site-search";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { WarningRibbon } from "@/components/warning-ribbon";
 import { WarningStatusPill } from "@/components/warning-status-pill";
@@ -76,6 +77,7 @@ export function Header({ alerts }: HeaderProps) {
           </div>
 
           <div className="flex shrink-0 items-center gap-1">
+            <SiteSearch />
             <WarningStatusPill
               alerts={alerts}
               className="hidden sm:flex lg:hidden xl:flex"
