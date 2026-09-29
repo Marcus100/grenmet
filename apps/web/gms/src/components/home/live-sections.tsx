@@ -12,7 +12,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { HOME_CARD, HomeSection } from "@/components/home/home-section";
-import { fetchPublishedContent } from "@/lib/cms";
+import { fetchHomeContent } from "@/lib/cms";
 import { contentToArticle } from "@/lib/editorial";
 import type { WeatherSnapshot } from "@/lib/forecast-data";
 
@@ -54,12 +54,12 @@ function FeedState({
  */
 export async function ForecastDesk({ weather }: { weather: WeatherSnapshot }) {
   const today = weather.days[0];
-  const updates = await fetchPublishedContent("latest");
+  const { deskUpdates: updates } = await fetchHomeContent();
   return (
     <HomeSection
       kicker="Official GMS products"
-      link={{ href: "/alerts/bulletins", label: "All bulletins" }}
-      title="From the forecast desk"
+      link={{ href: "/explore/updates", label: "All desk updates" }}
+      title="From the Desk"
     >
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <article className={`${HOME_CARD} flex flex-col gap-3`}>
@@ -87,10 +87,10 @@ export async function ForecastDesk({ weather }: { weather: WeatherSnapshot }) {
         <div className="rounded-gm-card border border-gm-border bg-background">
           <FeedState
             count={updates.articles.length}
-            empty="No product updates are published yet."
+            empty="No desk updates are published yet."
             unavailable={
               updates.status === "unavailable" &&
-              "Product updates cannot be retrieved right now."
+              "Desk updates cannot be retrieved right now."
             }
           >
             <ul>
@@ -106,14 +106,23 @@ export async function ForecastDesk({ weather }: { weather: WeatherSnapshot }) {
                     <span className="flex size-9 items-center justify-center rounded-lg bg-gm-surface-panel text-gm-heading">
                       <FileTextIcon aria-hidden="true" className="size-4" />
                     </span>
-                    <span className="font-semibold text-body text-gm-heading leading-body">
-                      {item.title}
+                    <span className="flex min-w-0 flex-col">
+                      <span className="font-semibold text-body text-gm-heading leading-body">
+                        {item.title}
+                      </span>
+                      {item.category && (
+                        <span className="text-body-sm text-gm-text-secondary leading-body-sm">
+                          {item.category}
+                        </span>
+                      )}
                     </span>
                     <time
                       className="font-mono text-body-sm text-gm-text-secondary leading-body-sm"
-                      dateTime={item.updatedAt}
+                      dateTime={item.publishedAt ?? item.updatedAt}
                     >
-                      {SHORT_DATE.format(new Date(item.updatedAt))}
+                      {SHORT_DATE.format(
+                        new Date(item.publishedAt ?? item.updatedAt)
+                      )}
                     </time>
                   </Link>
                 </li>
@@ -128,7 +137,7 @@ export async function ForecastDesk({ weather }: { weather: WeatherSnapshot }) {
 
 /** Editorial stories: one lead, the rest in a side column. */
 export async function Stories() {
-  const result = await fetchPublishedContent("weather-news");
+  const { stories: result } = await fetchHomeContent();
   const [lead, ...rest] = result.articles.map(contentToArticle);
   return (
     <HomeSection
@@ -215,8 +224,8 @@ export function Explained() {
   return (
     <HomeSection
       kicker="Explained by GMS"
-      link={{ href: "/explore/explained", label: "All explainers" }}
-      title="Questions about Grenada's weather"
+      link={{ href: "/explore/explained", label: "All questions" }}
+      title="Questions about the weather"
     >
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <Link
@@ -276,8 +285,11 @@ const CHANNELS = [
 
 /** Latest publications, then the navy "get official alerts first" band. */
 export async function PublicationsAndAlerts() {
-  const result = await fetchPublishedContent("latest-publications");
-  const posts = result.articles.map(contentToArticle);
+  const { publications: result } = await fetchHomeContent();
+  const posts = result.articles.map((content) => ({
+    ...contentToArticle(content),
+    category: content.category,
+  }));
   return (
     <HomeSection
       kicker="Reports & publications"
@@ -308,6 +320,7 @@ export async function PublicationsAndAlerts() {
                   {post.title}
                 </span>
                 <span className="text-body-sm text-gm-text-secondary leading-body-sm">
+                  {post.category ? `${post.category} · ` : ""}
                   {post.published}
                 </span>
               </Link>

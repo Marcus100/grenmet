@@ -4,8 +4,10 @@ import { postgresAdapter } from "@payloadcms/db-postgres";
 import { resendAdapter } from "@payloadcms/email-resend";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import { buildConfig } from "payload";
-import { Content } from "./collections/content";
+import { DeskUpdates } from "./collections/desk-updates";
 import { Media } from "./collections/media";
+import { Publications } from "./collections/publications";
+import { Stories } from "./collections/stories";
 import { Users } from "./collections/users";
 import { getEnv } from "./env";
 import { reportPayloadError } from "./lib/report-payload-error";
@@ -36,7 +38,7 @@ export default buildConfig({
     importMap: { baseDir },
     meta: { titleSuffix: " | GMS Content" },
   },
-  collections: [Users, Content, Media],
+  collections: [DeskUpdates, Stories, Publications, Media, Users],
   hooks: { afterError: [reportPayloadError] },
   graphQL: { disable: true },
   typescript: {

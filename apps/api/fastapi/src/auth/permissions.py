@@ -111,13 +111,19 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("cms.article.edit.own", "Edit own CMS article drafts"),
     PermissionDef("cms.article.edit.all", "Edit all CMS articles"),
     PermissionDef("cms.article.submit", "Submit CMS articles for review"),
+    PermissionDef("cms.publish.desk-updates", "Publish From the Desk updates"),
+    PermissionDef("cms.publish.stories", "Publish Stories"),
+    PermissionDef("cms.publish.publications", "Publish Latest reports"),
+    PermissionDef("cms.publish.questions", "Publish Questions about the weather"),
     PermissionDef(
-        "cms.article.publish.latest-from-us", "Publish Latest from us articles"
+        "cms.publish.discover", "Publish Sky, history and a little fun entries"
     ),
-    PermissionDef("cms.article.publish.weather-news", "Publish Weather News articles"),
     PermissionDef(
-        "cms.article.publish.latest-publications",
-        "Publish Latest publications articles",
+        "cms.weather-now.note",
+        "Post the Weather now forecaster's note (published immediately)",
+    ),
+    PermissionDef(
+        "cms.homepage.manage", "Choose featured and hidden homepage sections"
     ),
     PermissionDef("cms.article.unpublish", "Unpublish CMS articles"),
     PermissionDef("cms.article.social.manage", "Manage CMS social publishing"),

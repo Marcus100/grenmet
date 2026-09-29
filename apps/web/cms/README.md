@@ -1,6 +1,6 @@
 # GMS content trial
 
-Payload at http://localhost:3006/admin, using a dedicated `gms_cms` database and role inside the existing `grenmet-postgres` Docker service. One collection contains articles/blogs and general pages. Weather operations stay in gaa-admin.
+Payload at http://localhost:3006/admin, using a dedicated `gms_cms` database and role inside the existing `grenmet-postgres` Docker service. Each homepage section has its own collection. Weather operations stay in gaa-admin.
 
 ## Start on the host
 
@@ -28,15 +28,24 @@ These database credentials match the local Compose defaults. Use your configured
 
 ## Write and publish
 
-1. Create Content and choose Latest from us (GMS product-update blog), Weather news (interesting weather stories), or Latest publications (publications and articles). URLs are generated from the section, category, date and title.
-2. Write in the rich-text editor. For Latest from us, choose a product category such as Tropical weather outlook, Bulletin, Forecasts, Marine, Aviation or CAP alerts. Older general categories remain available.
-3. Optionally add Related links with a title, category and full HTTP/HTTPS URL. Link to existing forecasts, alerts, aviation products, bulletins, publications or news sources. Check that the intended audience can open each destination. Links do not publish the destination or preserve a historical copy. Maximum 20 unique destinations; credentials and executable URLs are rejected.
-4. Save as Draft, then Ready for review.
-5. A staff member with the section's publication permission checks and publishes the post. Creating an operational product never automatically creates or publishes a blog post.
+Each GMS homepage section has its own collection under **Homepage sections**. All of them use the same review workflow, image, link and topic fields.
 
-Authors can edit their own unpublished content. Publication requires the section-specific permission. To return a published item to an author, an authorised editor must change its status to Draft; this removes it from the public API while it is edited. Version history preserves prior content and links. There is no separate live/draft publication workflow or automatic scheduling.
+| Collection | Homepage section | Who publishes |
+|---|---|---|
+| Desk updates | From the Desk | `cms.publish.desk-updates` |
+| Stories | Stories from our atmosphere and ocean | `cms.publish.stories` |
+| Publications | Latest reports (document required) | `cms.publish.publications` |
 
-GMS reads anonymous `GET /api/public/content`, which returns only published posts, their section/category and related links. Article pages display the selected section and product category. The feed currently converts rich text to plain text; it does not preserve all rich-text formatting.
+1. Create an item in the right collection. The URL is built from the title and date, and fixed once published.
+2. Optionally add related links (full HTTP/HTTPS URLs, 20 at most) and topics. Linking does not publish the destination.
+3. Save as Draft, then Ready for review.
+4. A staff member with that collection's publish permission checks and publishes it.
+
+Desk updates are notices about products and services. Forecasts and warnings are issued only in the forecast and warning systems, never here.
+
+Authors edit their own unpublished items. Editors (`cms.article.edit.all`) edit everything. Version history keeps earlier copies.
+
+GMS reads anonymous `GET /api/public/home` for the homepage and `GET /api/public/articles` for lists and article pages. Both return published items only, never staff fields. Rich text is converted to plain paragraphs.
 
 ## Verification and generated files
 
@@ -47,4 +56,4 @@ pnpm --filter @barrelsgd/web-cms generate:types
 pnpm --filter @barrelsgd/web-cms generate:importmap
 ```
 
-Database integration tests create and remove an isolated randomly named schema in the CMS database, and are skipped unless `CMS_TEST_DATABASE_URL` is set. Generated types and the admin import map are checked in. Runtime schema push is disabled. Apply `20260923_170000_editorial_links` before deploying the related-links code; it adds live/version link tables and product categories without rewriting older posts. Back up first: destructive rollback is blocked to preserve editorial history. This agent has not applied migrations to operational databases.
+Database integration tests create and remove an isolated randomly named schema in the CMS database, and are skipped unless `CMS_TEST_DATABASE_URL` is set. Generated types and the admin import map are checked in. Runtime schema push is disabled. Apply `20260929_210000_editorial_collections` before deploying this code. It replaces the old single Content collection and **deletes its posts** (cleared by decision on 29 Sep 2026), then creates the new collections. Back up first: destructive rollback is blocked to preserve editorial history. This agent has not applied migrations to operational databases.

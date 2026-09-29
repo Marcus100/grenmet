@@ -3,19 +3,42 @@ import { z } from "zod";
 import { env } from "@/lib/env";
 import { reportError } from "@/lib/report-error";
 
+export const CONTENT_COLLECTIONS = [
+  "desk-updates",
+  "stories",
+  "publications",
+] as const;
+export type ContentCollection = (typeof CONTENT_COLLECTIONS)[number];
+
 const contentSchema = z.object({
   id: z.string(),
+  collection: z.enum(CONTENT_COLLECTIONS),
   title: z.string(),
   slug: z.string(),
-  section: z
-    .enum(["latest-from-us", "weather-news", "latest-publications"])
-    .nullable()
-    .optional(),
+  kicker: z.string().nullable().optional(),
   summary: z.string().nullable(),
   category: z.string().nullable().optional(),
   body: z.string(),
   imageUrl: z.string().nullable(),
+  imageAlt: z.string().nullable().optional(),
+  imageCredit: z.string().nullable().optional(),
+  imageCaption: z.string().nullable().optional(),
+  topics: z.array(z.string()).optional(),
+  publishedAt: z.string().nullable().optional(),
   updatedAt: z.string(),
+  series: z.string().nullable().optional(),
+  periodStart: z.string().nullable().optional(),
+  periodEnd: z.string().nullable().optional(),
+  keyFindings: z.array(z.string()).optional(),
+  document: z
+    .object({
+      url: z.string(),
+      filename: z.string(),
+      mimeType: z.string().nullable(),
+      filesize: z.number().nullable(),
+    })
+    .nullable()
+    .optional(),
   relatedLinks: z
     .array(
       z.object({
@@ -52,25 +75,25 @@ export type ContentResult =
   | { status: "ok"; articles: PublishedContent[] }
   | { status: "unavailable"; articles: [] };
 
+function cmsUrl(path: string) {
+  return new URL(path, env.CMS_API_URL);
+}
+const requestOptions = () => ({
+  cache: "no-store" as const,
+  signal: AbortSignal.timeout(5000),
+});
+
 async function getContent(params: {
   slug?: string;
-  placement?: "latest" | "news" | "weather-news" | "latest-publications";
+  collection?: ContentCollection;
 }): Promise<ContentResult> {
   if (!env.CMS_API_URL) return { status: "unavailable", articles: [] };
   try {
-    const url = new URL("/api/public/content", env.CMS_API_URL);
-    if (
-      params.placement === "weather-news" ||
-      params.placement === "latest-publications"
-    )
-      url.searchParams.set("section", params.placement);
-    else if (params.placement)
-      url.searchParams.set("placement", params.placement);
+    const url = cmsUrl("/api/public/articles");
+    if (params.collection)
+      url.searchParams.set("collection", params.collection);
     if (params.slug) url.searchParams.set("slug", params.slug);
-    const response = await fetch(url, {
-      cache: "no-store",
-      signal: AbortSignal.timeout(5000),
-    });
+    const response = await fetch(url, requestOptions());
     if (!response.ok) return { status: "unavailable", articles: [] };
     const parsed = z
       .object({ articles: z.array(contentSchema) })
@@ -86,10 +109,11 @@ async function getContent(params: {
   }
 }
 
+/** Published articles, newest first; all three collections when none given. */
 export const fetchPublishedContent = cache(function fetchPublishedContent(
-  placement?: "latest" | "news" | "weather-news" | "latest-publications"
+  collection?: ContentCollection
 ): Promise<ContentResult> {
-  return getContent({ placement });
+  return getContent({ collection });
 });
 
 export const fetchContentBySlug = cache(function fetchContentBySlug(
@@ -97,3 +121,60 @@ export const fetchContentBySlug = cache(function fetchContentBySlug(
 ): Promise<ContentResult> {
   return getContent({ slug });
 });
+
+const partSchema = z.discriminatedUnion("status", [
+  z.object({ status: z.literal("ok"), items: z.array(contentSchema) }),
+  z.object({ status: z.literal("unavailable") }),
+]);
+const homeSchema = z.object({
+  deskUpdates: partSchema,
+  stories: partSchema,
+  publications: partSchema,
+});
+export type HomeContent = Record<
+  keyof z.infer<typeof homeSchema>,
+  ContentResult
+>;
+
+const UNAVAILABLE: ContentResult = { status: "unavailable", articles: [] };
+const toResult = (part: z.infer<typeof partSchema>): ContentResult =>
+  part.status === "ok" ? { status: "ok", articles: part.items } : UNAVAILABLE;
+
+/**
+ * Everything the homepage reads from the CMS, in one request. Each section
+ * keeps its own state, so one failing part never hides the others.
+ */
+export const fetchHomeContent = cache(
+  async function fetchHomeContent(): Promise<HomeContent> {
+    const down = {
+      deskUpdates: UNAVAILABLE,
+      stories: UNAVAILABLE,
+      publications: UNAVAILABLE,
+    };
+    if (!env.CMS_API_URL) return down;
+    try {
+      const response = await fetch(
+        cmsUrl("/api/public/home"),
+        requestOptions()
+      );
+      if (!response.ok) return down;
+      const parsed = homeSchema.safeParse(await response.json());
+      if (!parsed.success) {
+        reportError(parsed.error, "gms-cms-home-contract");
+        return down;
+      }
+      return {
+        deskUpdates: toResult(parsed.data.deskUpdates),
+        stories: toResult(parsed.data.stories),
+        publications: toResult(parsed.data.publications),
+      };
+    } catch (error) {
+      reportError(error, "gms-cms-home");
+      return down;
+    }
+  }
+);
+
+/** Every CMS article shares one detail route; slugs carry their collection. */
+export const contentHref = (content: Pick<PublishedContent, "slug">) =>
+  `/explore/news/${content.slug}`;

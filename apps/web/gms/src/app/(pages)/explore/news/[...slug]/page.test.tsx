@@ -4,7 +4,10 @@ import { afterEach, expect, it, vi } from "vitest";
 import { fetchContentBySlug } from "@/lib/cms";
 import ArticlePage from "./page";
 
-vi.mock("@/lib/cms", () => ({ fetchContentBySlug: vi.fn() }));
+vi.mock("@/lib/cms", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/cms")>()),
+  fetchContentBySlug: vi.fn(),
+}));
 vi.mock("next/navigation", () => ({
   notFound: vi.fn(() => {
     throw new Error("not-found");
@@ -43,7 +46,7 @@ it("renders only the fetched published article", async () => {
     articles: [
       {
         id: "1",
-        section: "latest-from-us",
+        collection: "desk-updates",
         category: "Tropical weather outlook",
         relatedLinks: [
           {
@@ -71,6 +74,6 @@ it("renders only the fetched published article", async () => {
     screen.getByRole("link", { name: "Read the outlook" })
   ).toHaveAttribute("href", "https://weather.gd/forecasts");
   expect(
-    screen.getByRole("link", { name: "More from Latest from us" })
+    screen.getByRole("link", { name: "More from From the Desk" })
   ).toHaveAttribute("href", "/explore/updates");
 });

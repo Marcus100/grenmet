@@ -7,7 +7,7 @@ export async function GET() {
   try {
     const payload = await getPayload({ config });
     await payload.find({
-      collection: "content",
+      collection: "stories",
       limit: 1,
       depth: 0,
       overrideAccess: false,
