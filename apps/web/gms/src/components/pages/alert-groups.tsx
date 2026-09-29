@@ -1,49 +1,64 @@
-import { ChevronRightIcon } from "lucide-react";
+import { ArrowRightIcon } from "lucide-react";
 import Link from "next/link";
-import type { AlertsResult, HazardGroup, PublicAlert } from "@/lib/cap";
+import {
+  type AlertsResult,
+  type HazardGroup,
+  type PublicAlert,
+  severityLevel,
+} from "@/lib/cap";
 import { cn } from "@/lib/utils";
 import { formatWarningTime, warningHref } from "@/lib/warning-detail";
+import {
+  WARNING_LEVEL_LABEL,
+  WARNING_LEVEL_SURFACE,
+  WARNING_LEVEL_SWATCH,
+} from "@/lib/warning-level";
 
-const SEVERITY_CLASS: Record<PublicAlert["severity"], string> = {
-  Extreme: "bg-gm-risk-red",
-  Severe: "bg-gm-risk-amber",
-  Moderate: "bg-gm-risk-yellow",
-  Minor: "bg-gm-risk-green",
-  Unknown: "bg-gm-risk-grey",
-};
-
-function AlertRow({ alert }: { alert: PublicAlert }) {
+/**
+ * One warning: a level stripe, the level in words, then what, where and
+ * until when — the same fields in the same order on every card. Colour comes
+ * from `severityLevel`, so a card always matches the header pill.
+ */
+function AlertCard({ alert }: { alert: PublicAlert }) {
+  const level = severityLevel(alert.severity);
   const until = formatWarningTime(alert.expires);
   return (
-    <li className="border-gm-border border-t first:border-t-0">
+    <li>
       <Link
-        className="group flex gap-3 p-4 hover:bg-gm-surface focus-visible:bg-gm-surface lg:p-5"
+        className="group grid grid-cols-[6px_minmax(0,1fr)] overflow-hidden rounded-gm-card border border-gm-border bg-background hover:border-gm-blue-ink focus-visible:border-gm-blue-ink"
         href={warningHref(alert.identifier)}
       >
-        <span
-          aria-hidden="true"
-          className={cn(
-            "mt-1 size-3 shrink-0 rounded-full",
-            SEVERITY_CLASS[alert.severity]
-          )}
-        />
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <p className="font-bold text-body-base text-gm-navy leading-body-base group-hover:underline">
+        <span aria-hidden="true" className={WARNING_LEVEL_SWATCH[level]} />
+        <span className="flex min-w-0 flex-col gap-2 p-4 lg:p-5">
+          <span
+            className={cn(
+              "w-fit rounded px-2 py-0.5 font-bold text-label uppercase leading-label tracking-wider",
+              WARNING_LEVEL_SURFACE[level]
+            )}
+          >
+            {WARNING_LEVEL_LABEL[level]}
+          </span>
+          <span className="font-bold text-gm-navy text-heading-sm leading-heading-sm group-hover:underline">
             {alert.event}
-          </p>
-          <p className="text-body text-gm-text-secondary leading-body">
+          </span>
+          <span className="text-body-base leading-body-base">
             {alert.headline}
-          </p>
-          <p className="text-gm-text-muted text-label leading-label">
-            {alert.severity}
-            {alert.areas.length > 0 && ` · ${alert.areas.join(", ")}`}
-            {until && ` · until ${until}`}
-          </p>
-        </div>
-        <ChevronRightIcon
-          aria-hidden="true"
-          className="mt-1 size-5 shrink-0 text-gm-text-muted"
-        />
+          </span>
+          <span className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-body leading-body">
+            <span className="font-semibold text-gm-text-secondary">Where</span>
+            <span>
+              {alert.areas.length > 0
+                ? alert.areas.join(", ")
+                : "Grenada, Carriacou and Petite Martinique"}
+            </span>
+            <span className="font-semibold text-gm-text-secondary">Until</span>
+            <span>{until ?? "Until further notice"}</span>
+          </span>
+          <span className="flex items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body">
+            Full warning
+            <ArrowRightIcon aria-hidden="true" className="size-4" />
+          </span>
+        </span>
       </Link>
     </li>
   );
@@ -51,28 +66,22 @@ function AlertRow({ alert }: { alert: PublicAlert }) {
 
 function GroupCard({ group }: { group: HazardGroup }) {
   return (
-    <div className="rounded border border-gm-border bg-background">
-      <p className="border-gm-border border-b bg-gm-surface px-4 py-2.5 font-bold text-gm-navy text-label leading-label lg:px-5">
+    <section aria-label={group.name}>
+      <h3 className="mb-2 font-bold text-gm-text-secondary text-label uppercase leading-label tracking-wider">
         {group.name}
-      </p>
-      {group.alerts.length === 0 ? (
-        <p className="p-4 text-body text-gm-text-secondary leading-body lg:p-5">
-          Nothing in effect.
-        </p>
-      ) : (
-        <ul>
-          {group.alerts.map((alert) => (
-            <AlertRow alert={alert} key={alert.identifier} />
-          ))}
-        </ul>
-      )}
-    </div>
+      </h3>
+      <ul className="flex flex-col gap-3">
+        {group.alerts.map((alert) => (
+          <AlertCard alert={alert} key={alert.identifier} />
+        ))}
+      </ul>
+    </section>
   );
 }
 
 /**
  * Renders live CAP groups. When the feed is unavailable the wording matches
- * AlertsPanel deliberately: an unreachable feed must never be presented as
+ * the masthead ribbon deliberately: an unreachable feed must never be presented as
  * "no warnings in effect".
  */
 export function AlertGroups({
@@ -86,7 +95,7 @@ export function AlertGroups({
 }) {
   if (result.status === "unavailable") {
     return (
-      <div className="rounded border border-gm-risk-amber bg-gm-surface p-4 lg:p-5">
+      <div className="rounded-gm-card border border-gm-risk-amber bg-gm-surface p-4 lg:p-5">
         <p className="text-body text-gm-text-secondary leading-body">
           Warning information cannot be retrieved right now. This does not mean
           there are no warnings in effect — check the Grenada Meteorological
@@ -103,7 +112,7 @@ export function AlertGroups({
 
   if (total === 0) {
     return (
-      <div className="rounded border border-gm-border bg-background p-4 lg:p-5">
+      <div className="rounded-gm-card border border-gm-border bg-background p-4 lg:p-5">
         <p className="text-body text-gm-text-secondary leading-body">
           {emptyLabel}
         </p>
@@ -112,7 +121,7 @@ export function AlertGroups({
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-5">
       {groups
         .filter((group) => group.alerts.length > 0)
         .map((group) => (
