@@ -7,7 +7,6 @@ import { buildConfig } from "payload";
 import { DeskUpdates } from "./collections/desk-updates";
 import { Discover } from "./collections/discover";
 import { Media } from "./collections/media";
-import { Publications } from "./collections/publications";
 import { Questions } from "./collections/questions";
 import { Stories } from "./collections/stories";
 import { Users } from "./collections/users";
@@ -42,15 +41,7 @@ export default buildConfig({
     importMap: { baseDir },
     meta: { titleSuffix: " | GMS Content" },
   },
-  collections: [
-    DeskUpdates,
-    Stories,
-    Questions,
-    Discover,
-    Publications,
-    Media,
-    Users,
-  ],
+  collections: [DeskUpdates, Stories, Questions, Discover, Media, Users],
   globals: [WeatherNow, Homepage],
   hooks: { afterError: [reportPayloadError] },
   graphQL: { disable: true },

@@ -56,23 +56,15 @@ describe("public articles feed", () => {
     );
   });
 
-  it("finds one slug across all collections, publications with their document", async () => {
+  it("finds one slug across both collections", async () => {
     const find = vi.fn(({ collection }: { collection: string }) =>
       Promise.resolve({
         docs:
-          collection === "publications"
+          collection === "desk-updates"
             ? [
                 {
-                  ...story({ slug: "publications/2026/09/august" }),
-                  type: "climate-bulletin",
-                  series: "monthly-climate",
-                  keyFindings: [{ text: "68% of normal rain" }],
-                  document: {
-                    url: "/media/aug.pdf",
-                    filename: "aug.pdf",
-                    mimeType: "application/pdf",
-                    filesize: 1200,
-                  },
+                  ...story({ slug: "updates/2026/09/new-marine-page" }),
+                  kind: "product-update",
                 },
               ]
             : [],
@@ -81,18 +73,17 @@ describe("public articles feed", () => {
     vi.mocked(getPayload).mockResolvedValue({ find } as never);
     const response = await GET(
       new Request(
-        "http://localhost/api/public/articles?slug=publications/2026/09/august"
+        "http://localhost/api/public/articles?slug=updates/2026/09/new-marine-page"
       )
     );
     const { articles } = await response.json();
-    expect(find).toHaveBeenCalledTimes(3);
+    expect(find).toHaveBeenCalledTimes(2);
     expect(articles).toHaveLength(1);
     expect(articles[0]).toMatchObject({
-      category: "Climate bulletin",
-      series: "Monthly climate summary",
-      keyFindings: ["68% of normal rain"],
-      document: { url: "/media/aug.pdf", mimeType: "application/pdf" },
+      collection: "desk-updates",
+      category: "Product update",
     });
+    expect(articles[0]).not.toHaveProperty("document");
   });
 
   it("rejects unknown collections and reports outages as 503", async () => {

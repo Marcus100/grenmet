@@ -33,7 +33,7 @@ describe("public home feed", () => {
     expect(body.stories).toEqual({ status: "unavailable" });
     expect(body.deskUpdates.status).toBe("ok");
     expect(body.deskUpdates.items[0].category).toBe("Announcement");
-    expect(body.publications.status).toBe("ok");
+    expect(body).not.toHaveProperty("publications");
   });
 });
 
@@ -65,14 +65,6 @@ describe("homepage pins and Weather now", () => {
                 text: "Old note",
                 expiresAt: "2020-01-01T00:00:00.000Z",
               },
-              imagery: [
-                {
-                  layer: "radar",
-                  title: "Radar",
-                  href: "/weather/radar",
-                  imageUrl: "https://example.test/r.png",
-                },
-              ],
             }
       )
     );
@@ -85,9 +77,6 @@ describe("homepage pins and Weather now", () => {
     expect(body.questions).toEqual({ status: "ok", items: [] });
     expect(body.settings.hiddenSections).toEqual(["discover"]);
     expect(body.weatherNow.items.note).toBeNull();
-    expect(body.weatherNow.items.imagery[0]).toMatchObject({
-      layer: "radar",
-      imageUrl: "https://example.test/r.png",
-    });
+    expect(body.weatherNow.items).not.toHaveProperty("imagery");
   });
 });

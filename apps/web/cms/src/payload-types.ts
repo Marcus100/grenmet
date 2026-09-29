@@ -72,7 +72,6 @@ export interface Config {
     stories: Story;
     questions: Question;
     discover: Discover;
-    publications: Publication;
     media: Media;
     users: User;
     "payload-kv": PayloadKv;
@@ -86,7 +85,6 @@ export interface Config {
     stories: StoriesSelect<false> | StoriesSelect<true>;
     questions: QuestionsSelect<false> | QuestionsSelect<true>;
     discover: DiscoverSelect<false> | DiscoverSelect<true>;
-    publications: PublicationsSelect<false> | PublicationsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     "payload-kv": PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -462,7 +460,7 @@ export interface Question {
    */
   question: string;
   /**
-   * Other questions, stories or reports to read next.
+   * Other questions or stories to read next.
    */
   related?:
     | (
@@ -473,10 +471,6 @@ export interface Question {
         | {
             relationTo: "stories";
             value: number | Story;
-          }
-        | {
-            relationTo: "publications";
-            value: number | Publication;
           }
       )[]
     | null;
@@ -543,157 +537,6 @@ export interface Question {
         | "gms"
       )[]
     | null;
-  updatedAt: string;
-}
-/**
- * Latest reports: climate summaries, outlooks, reports and datasets. Each has the document itself and the period it covers.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "publications".
- */
-export interface Publication {
-  author: number | User;
-  body?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ("ltr" | "rtl") | null;
-      format: "left" | "start" | "center" | "right" | "end" | "justify" | "";
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  createdAt: string;
-  /**
-   * The PDF, CSV or spreadsheet itself.
-   */
-  document: number | Media;
-  id: number;
-  /**
-   * Shown on cards and at the top of the page.
-   */
-  image?: (number | null) | Media;
-  imageCaption?: string | null;
-  /**
-   * Up to three one-line findings for the card.
-   */
-  keyFindings?:
-    | {
-        text: string;
-        id?: string | null;
-      }[]
-    | null;
-  periodEnd?: string | null;
-  periodStart?: string | null;
-  /**
-   * Set when first published; used for ordering and the URL.
-   */
-  publishedAt?: string | null;
-  /**
-   * Link to an existing product, publication or news source. Linking does not publish the destination.
-   */
-  relatedLinks?:
-    | {
-        title: string;
-        category:
-          | "forecast"
-          | "cap"
-          | "aviation"
-          | "bulletin"
-          | "publication"
-          | "article"
-          | "source";
-        url: string;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Optional. Falls back to the title, summary and image.
-   */
-  seo?: {
-    title?: string | null;
-    description?: string | null;
-    image?: (number | null) | Media;
-  };
-  /**
-   * Groups regular reports so readers can browse them.
-   */
-  series?:
-    | (
-        | "monthly-climate"
-        | "seasonal-outlook"
-        | "hurricane-season"
-        | "annual-report"
-      )
-    | null;
-  /**
-   * Built from the title. Fixed once published so links last.
-   */
-  slug: string;
-  /**
-   * Prepare platform-specific copy. Automatic delivery can be added later.
-   */
-  social?: {
-    caption?: string | null;
-    enabledPlatforms?:
-      | (
-          | "X"
-          | "Facebook"
-          | "Instagram"
-          | "YouTube"
-          | "LinkedIn"
-          | "WhatsApp Channel"
-        )[]
-      | null;
-    /**
-     * Leave empty for manual or immediate sharing.
-     */
-    publishAt?: string | null;
-    xText?: string | null;
-    facebookText?: string | null;
-    instagramText?: string | null;
-    linkedinText?: string | null;
-    whatsappText?: string | null;
-  };
-  /**
-   * Save as Ready for review. An editor with this section's permission publishes.
-   */
-  status: "draft" | "review" | "published";
-  /**
-   * Shown on cards and in search. 280 characters at most.
-   */
-  summary: string;
-  title: string;
-  /**
-   * Used to link related questions, stories and reports.
-   */
-  topics?:
-    | (
-        | "tropical"
-        | "rain"
-        | "heat"
-        | "marine"
-        | "climate"
-        | "sky"
-        | "safety"
-        | "agriculture"
-        | "aviation"
-        | "gms"
-      )[]
-    | null;
-  type:
-    | "report"
-    | "climate-bulletin"
-    | "outlook"
-    | "guide"
-    | "dataset"
-    | "policy"
-    | "research";
   updatedAt: string;
 }
 /**
@@ -823,10 +666,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: "discover";
         value: number | Discover;
-      } | null)
-    | ({
-        relationTo: "publications";
-        value: number | Publication;
       } | null)
     | ({
         relationTo: "media";
@@ -1046,62 +885,6 @@ export interface DiscoverSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "publications_select".
- */
-export interface PublicationsSelect<T extends boolean = true> {
-  author?: T;
-  body?: T;
-  createdAt?: T;
-  document?: T;
-  image?: T;
-  imageCaption?: T;
-  keyFindings?:
-    | T
-    | {
-        text?: T;
-        id?: T;
-      };
-  periodEnd?: T;
-  periodStart?: T;
-  publishedAt?: T;
-  relatedLinks?:
-    | T
-    | {
-        title?: T;
-        category?: T;
-        url?: T;
-        id?: T;
-      };
-  seo?:
-    | T
-    | {
-        title?: T;
-        description?: T;
-        image?: T;
-      };
-  series?: T;
-  slug?: T;
-  social?:
-    | T
-    | {
-        caption?: T;
-        enabledPlatforms?: T;
-        publishAt?: T;
-        xText?: T;
-        facebookText?: T;
-        instagramText?: T;
-        linkedinText?: T;
-        whatsappText?: T;
-      };
-  status?: T;
-  summary?: T;
-  title?: T;
-  topics?: T;
-  type?: T;
-  updatedAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
@@ -1174,7 +957,7 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   updatedAt?: T;
 }
 /**
- * The duty forecaster's short note and the imagery cards on the homepage. The note is a plain-words aside, never a forecast or a warning.
+ * The duty forecaster's short note on the homepage. The note is a plain-words aside, never a forecast or a warning.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "weather-now".
@@ -1182,26 +965,6 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
 export interface WeatherNow {
   createdAt?: string | null;
   id: number;
-  /**
-   * Up to four live imagery cards. Editors manage these.
-   */
-  imagery?:
-    | {
-        layer: "satellite" | "radar" | "rainfall" | "lightning";
-        title: string;
-        /**
-         * A still image, or leave empty and give a feed URL.
-         */
-        image?: (number | null) | Media;
-        imageUrl?: string | null;
-        /**
-         * The site page to open, e.g. /weather/radar.
-         */
-        href: string;
-        credit?: string | null;
-        id?: string | null;
-      }[]
-    | null;
   note?: {
     /**
      * Two or three plain sentences, e.g. what to expect this afternoon. Published as soon as you save. Clear it to remove the note.
@@ -1221,7 +984,7 @@ export interface WeatherNow {
   updatedAt?: string | null;
 }
 /**
- * Choose what leads each homepage section, or hide a section (for example during a hurricane). Anything left empty shows the newest published items.
+ * Choose what leads the editorial homepage sections, or hide a section (for example during a hurricane). Anything left empty shows the newest published items.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "homepage".
@@ -1232,10 +995,6 @@ export interface Homepage {
    * Which cards Sky, history and a little fun shows.
    */
   discoverCards?: ("sky" | "on-this-day" | "quiz" | "fact")[] | null;
-  /**
-   * Shown first in Latest reports.
-   */
-  featuredPublication?: (number | null) | Publication;
   /**
    * Up to five, in order. Default: the newest.
    */
@@ -1267,17 +1026,6 @@ export interface Homepage {
 export interface WeatherNowSelect<T extends boolean = true> {
   createdAt?: T;
   globalType?: T;
-  imagery?:
-    | T
-    | {
-        layer?: T;
-        title?: T;
-        image?: T;
-        imageUrl?: T;
-        href?: T;
-        credit?: T;
-        id?: T;
-      };
   note?:
     | T
     | {
@@ -1296,7 +1044,6 @@ export interface WeatherNowSelect<T extends boolean = true> {
 export interface HomepageSelect<T extends boolean = true> {
   createdAt?: T;
   discoverCards?: T;
-  featuredPublication?: T;
   featuredQuestions?: T;
   globalType?: T;
   hiddenSections?: T;

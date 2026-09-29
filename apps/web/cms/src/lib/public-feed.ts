@@ -1,6 +1,5 @@
 import type { CollectionConfig, Field, Payload } from "payload";
 import { DeskUpdates } from "../collections/desk-updates";
-import { Publications } from "../collections/publications";
 import { Stories } from "../collections/stories";
 import { editorialLinksSchema } from "./editorial-links";
 import { bodyToText } from "./lexical";
@@ -8,7 +7,6 @@ import { bodyToText } from "./lexical";
 export const ARTICLE_COLLECTIONS = {
   "desk-updates": DeskUpdates,
   stories: Stories,
-  publications: Publications,
 } as const;
 export type ArticleCollection = keyof typeof ARTICLE_COLLECTIONS;
 export const isArticleCollection = (
@@ -19,7 +17,6 @@ export const isArticleCollection = (
 const CATEGORY_FIELD: Record<ArticleCollection, string> = {
   "desk-updates": "kind",
   stories: "kind",
-  publications: "type",
 };
 
 function flatFields(fields: Field[]): Field[] {
@@ -54,7 +51,6 @@ const upload = (value: unknown) =>
 export function toArticle(collection: ArticleCollection, doc: Doc) {
   const config = ARTICLE_COLLECTIONS[collection];
   const image = upload(doc.image);
-  const document = upload(doc.document);
   return {
     id: String(doc.id),
     collection,
@@ -76,24 +72,6 @@ export function toArticle(collection: ArticleCollection, doc: Doc) {
     publishedAt: (doc.publishedAt as string | undefined) ?? null,
     updatedAt: String(doc.updatedAt),
     relatedLinks: editorialLinksSchema.parse(doc.relatedLinks ?? []),
-    ...(collection === "publications"
-      ? {
-          series: optionLabel(config, "series", doc.series),
-          periodStart: (doc.periodStart as string | undefined) ?? null,
-          periodEnd: (doc.periodEnd as string | undefined) ?? null,
-          keyFindings: Array.isArray(doc.keyFindings)
-            ? (doc.keyFindings as { text: string }[]).map((row) => row.text)
-            : [],
-          document: document
-            ? {
-                url: String(document.url),
-                filename: String(document.filename),
-                mimeType: (document.mimeType as string | undefined) ?? null,
-                filesize: (document.filesize as number | undefined) ?? null,
-              }
-            : null,
-        }
-      : {}),
   };
 }
 export type PublicArticle = ReturnType<typeof toArticle>;
@@ -120,11 +98,7 @@ export async function findArticles(
 
 export const NO_STORE = { "Cache-Control": "no-store" };
 
-const LINKED_HREF_COLLECTIONS = new Set([
-  "questions",
-  "stories",
-  "publications",
-]);
+const LINKED_HREF_COLLECTIONS = new Set(["questions", "stories"]);
 
 /** Public shape of one published question. */
 export function toQuestion(doc: Doc) {
@@ -187,7 +161,7 @@ export async function findQuestions(
   return result.docs.map((doc) => toQuestion(doc as unknown as Doc));
 }
 
-/** The Weather now note (only while unexpired) and imagery cards. */
+/** The Weather now note, only while unexpired. Imagery is FastAPI's. */
 export async function findWeatherNow(payload: Payload, now: Date = new Date()) {
   const global = (await payload.findGlobal({
     slug: "weather-now",
@@ -209,18 +183,6 @@ export async function findWeatherNow(payload: Payload, now: Date = new Date()) {
           alertUrl: (note.alertUrl as string | undefined) || null,
         }
       : null,
-    imagery: (Array.isArray(global.imagery)
-      ? (global.imagery as Doc[])
-      : []
-    ).map((row) => ({
-      layer: String(row.layer),
-      title: String(row.title),
-      imageUrl:
-        (upload(row.image)?.url as string | undefined) ??
-        ((row.imageUrl as string | undefined) || null),
-      href: String(row.href),
-      credit: (row.credit as string | undefined) ?? null,
-    })),
   };
 }
 export type PublicWeatherNow = Awaited<ReturnType<typeof findWeatherNow>>;
@@ -244,7 +206,6 @@ export async function findHomepage(payload: Payload) {
     )
       .map(published)
       .filter((doc): doc is Doc => doc !== null),
-    featuredPublication: published(global.featuredPublication),
     discoverCards: Array.isArray(global.discoverCards)
       ? (global.discoverCards as string[])
       : ["sky", "on-this-day", "quiz", "fact"],

@@ -113,7 +113,6 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("cms.article.submit", "Submit CMS articles for review"),
     PermissionDef("cms.publish.desk-updates", "Publish From the Desk updates"),
     PermissionDef("cms.publish.stories", "Publish Stories"),
-    PermissionDef("cms.publish.publications", "Publish Latest reports"),
     PermissionDef("cms.publish.questions", "Publish Questions about the weather"),
     PermissionDef(
         "cms.publish.discover", "Publish Sky, history and a little fun entries"

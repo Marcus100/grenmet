@@ -29,7 +29,6 @@ function home(overrides: Partial<HomeContent> = {}): HomeContent {
   return {
     deskUpdates: none,
     stories: none,
-    publications: none,
     questions: { status: "ok", questions: [] },
     weatherNow: null,
     discover: {

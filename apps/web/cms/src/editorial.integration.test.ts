@@ -6,7 +6,6 @@ import { buildConfig, getPayload, type Payload } from "payload";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { DeskUpdates } from "./collections/desk-updates";
 import { Media } from "./collections/media";
-import { Publications } from "./collections/publications";
 import { Stories } from "./collections/stories";
 import { Users } from "./collections/users";
 import { testDatabaseUrl } from "./env";
@@ -71,7 +70,7 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
           schemaName: schema,
           push: true,
         }),
-        collections: [DeskUpdates, Stories, Publications, Media, Users],
+        collections: [DeskUpdates, Stories, Media, Users],
         admin: { user: "users", importMap: { autoGenerate: false } },
         graphQL: { disable: true },
         typescript: { autoGenerate: false },

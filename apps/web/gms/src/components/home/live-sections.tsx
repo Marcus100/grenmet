@@ -1,3 +1,5 @@
+import type { PublicPublishedProduct } from "@barrelsgd/api-client";
+import { isForecastKind, productTitle } from "@barrelsgd/gms/products";
 import {
   ArrowRightIcon,
   BellIcon,
@@ -20,6 +22,7 @@ import {
 } from "@/lib/cms";
 import { contentToArticle } from "@/lib/editorial";
 import type { WeatherSnapshot } from "@/lib/forecast-data";
+import { fetchPublishedProducts } from "@/lib/products";
 
 const SHORT_DATE = new Intl.DateTimeFormat("en-GB", {
   timeZone: "America/Grenada",
@@ -293,7 +296,20 @@ const CHANNELS = [
   { label: "CAP & RSS", Icon: RssIcon },
 ] as const;
 
-/** Latest publications, then the navy "get official alerts first" band. */
+/** Newest current reports first; forecasts have their own sections. */
+export function latestReports(products: PublicPublishedProduct[], limit = 6) {
+  return products
+    .filter((product) => !isForecastKind(product.kind))
+    .sort((a, b) =>
+      (b.values.issuedAt ?? "").localeCompare(a.values.issuedAt ?? "")
+    )
+    .slice(0, limit);
+}
+
+/**
+ * Latest reports are issued products from FastAPI (bulletins, outlooks),
+ * never CMS content; then the navy "get official alerts first" band.
+ */
 export async function PublicationsAndAlerts() {
   if (await isSectionHidden("reports"))
     return (
@@ -306,43 +322,39 @@ export async function PublicationsAndAlerts() {
         </div>
       </section>
     );
-  const { publications: result } = await fetchHomeContent();
-  const posts = result.articles.map((content) => ({
-    ...contentToArticle(content),
-    category: content.category,
-  }));
+  const result = await fetchPublishedProducts();
+  const reports = latestReports(result.products);
   return (
     <HomeSection
-      kicker="Reports & publications"
-      link={{ href: "/climate/publications", label: "All publications" }}
+      kicker="Official GMS products"
+      link={{ href: "/weather/issued", label: "All issued products" }}
       title="Latest reports"
       tone="surface"
     >
       <FeedState
-        count={posts.length}
-        empty="No publications are available."
+        count={reports.length}
+        empty="No bulletins or outlooks are current."
         unavailable={
           result.status === "unavailable" &&
-          "Publications cannot be retrieved right now."
+          "Reports cannot be retrieved right now."
         }
       >
         <ul className="flex gap-3 overflow-x-auto pb-1">
-          {posts.slice(0, 6).map((post) => (
-            <li className="w-56 shrink-0" key={post.id}>
+          {reports.map((product) => (
+            <li className="w-56 shrink-0" key={product.id}>
               <Link
                 className={`${HOME_CARD} flex h-full flex-col gap-2 hover:border-gm-blue-ink`}
-                href={post.href}
+                href={`/weather/issued/${product.id}`}
               >
                 <FileTextIcon
                   aria-hidden="true"
                   className="size-5 text-gm-sky-ink"
                 />
                 <span className="font-bold text-body text-gm-heading leading-body">
-                  {post.title}
+                  {productTitle(product.kind)}
                 </span>
                 <span className="text-body-sm text-gm-text-secondary leading-body-sm">
-                  {post.category ? `${post.category} · ` : ""}
-                  {post.published}
+                  Issued {(product.values.issuedAt ?? "").replace("T", " ")}
                 </span>
               </Link>
             </li>
