@@ -1,10 +1,13 @@
 import { fileURLToPath } from "node:url";
 import { withSentryConfig } from "@sentry/nextjs/config";
 import type { NextConfig } from "next";
+import { routeMoveRedirects } from "./src/lib/route-moves";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
   output: "standalone",
+  // Bold sky IA: old section roots redirect to their new homes.
+  redirects: async () => routeMoveRedirects(),
   images: {
     remotePatterns: [{ hostname: "images.unsplash.com" }],
   },

@@ -31,7 +31,7 @@ export function SiteBreadcrumbs() {
                 {index > 0 && <BreadcrumbSeparator />}
                 <BreadcrumbItem>
                   {crumb.current ? (
-                    <BreadcrumbPage className="font-semibold text-gm-navy">
+                    <BreadcrumbPage className="font-semibold text-gm-heading">
                       {crumb.label}
                     </BreadcrumbPage>
                   ) : (

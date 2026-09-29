@@ -63,7 +63,7 @@ export function ProductUpdateFeed({
             key={post.id}
           >
             <header className="flex items-center gap-3">
-              <span className="grid size-10 place-items-center rounded-full bg-gm-blue-ink font-bold text-gm-text-inverse">
+              <span className="grid size-10 place-items-center rounded-full bg-gm-blue-ink font-bold text-gm-text-inverse dark:text-gm-navy">
                 G
               </span>
               <div>
@@ -77,7 +77,7 @@ export function ProductUpdateFeed({
                 </p>
               </div>
             </header>
-            <h3 className="font-bold text-gm-navy text-nav leading-nav">
+            <h3 className="font-bold text-gm-heading text-nav leading-nav">
               <Link href={post.href}>{post.title}</Link>
             </h3>
             {mobileCarousel ? (

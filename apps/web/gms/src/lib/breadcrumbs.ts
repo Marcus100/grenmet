@@ -4,7 +4,6 @@ import {
   type NavGroup,
   type NavLink,
   type NavSection,
-  sectionId,
 } from "@/lib/nav-sections";
 
 export interface Crumb {
@@ -26,21 +25,6 @@ const NAV_ENTRIES: NavEntry[] = NAV_SECTIONS.flatMap((section) =>
   )
 );
 
-/**
- * Routes outside the navigation whose parent is a nav page. `/bulletins/<hazard>`
- * has no index of its own; its listing is the Bulletins nav page.
- */
-const PARENT_OVERRIDES: Record<string, string> = {
-  "/bulletins": "/products/bulletins",
-};
-
-/** Listing pages that are not in the navigation but parent dated content. */
-const STANDALONE_PARENTS: Record<string, string> = {
-  "/news": "News",
-  "/warnings": "Warnings in effect",
-  "/updates": "Product updates",
-};
-
 const TRAILING_SLASHES = /\/+$/;
 
 function isWithin(pathname: string, href: string): boolean {
@@ -51,7 +35,7 @@ function navTrail(entry: NavEntry, current: boolean): Crumb[] {
   const { group, link, section } = entry;
   return [
     {
-      href: section.href ?? `/sitemap#${sectionId(section.label)}`,
+      href: section.href,
       label: section.label,
     },
     {
@@ -80,22 +64,11 @@ export function breadcrumbTrail(pathname: string): Crumb[] {
     return navTrail(exact, true);
   }
 
-  const segments = path.split("/").filter(Boolean);
-  const [first] = segments;
-  const overridden = first ? PARENT_OVERRIDES[`/${first}`] : undefined;
-  const lookup = overridden
-    ? `${overridden}/${segments.slice(1).join("/")}`
-    : path;
   const parent = NAV_ENTRIES.filter(
-    (entry) => entry.link.href !== "/" && isWithin(lookup, entry.link.href)
+    (entry) => entry.link.href !== "/" && isWithin(path, entry.link.href)
   ).sort((a, b) => b.link.href.length - a.link.href.length)[0];
   if (parent) {
     return navTrail(parent, false);
-  }
-
-  const standalone = first ? STANDALONE_PARENTS[`/${first}`] : undefined;
-  if (standalone && segments.length > 1) {
-    return [{ href: `/${first}`, label: standalone }];
   }
   return [];
 }

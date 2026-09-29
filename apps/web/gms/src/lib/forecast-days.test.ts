@@ -9,7 +9,7 @@ import {
 } from "@/lib/forecast-days";
 
 /** Hoisted: a regex literal rebuilt on every call is a needless allocation. */
-const DATED_PATH = /^\/forecasts\/\d{4}\/\d{2}\/\d{2}$/;
+const DATED_PATH = /^\/weather\/\d{4}\/\d{2}\/\d{2}$/;
 const SLUG_SEPARATOR = /-/g;
 
 describe("getForecastDays", () => {
@@ -20,7 +20,7 @@ describe("getForecastDays", () => {
     expect(days.slice(1).every((d) => !d.isToday)).toBe(true);
   });
 
-  it("builds a /forecasts/YYYY/MM/DD path for every day", () => {
+  it("builds a /weather/YYYY/MM/DD path for every day", () => {
     for (const day of getForecastDays()) {
       expect(day.path).toMatch(DATED_PATH);
     }
@@ -29,7 +29,7 @@ describe("getForecastDays", () => {
   it("keeps path and slug describing the same date", () => {
     for (const day of getForecastDays()) {
       expect(day.path).toBe(
-        `/forecasts/${day.slug.replace(SLUG_SEPARATOR, "/")}`
+        `/weather/${day.slug.replace(SLUG_SEPARATOR, "/")}`
       );
     }
   });
