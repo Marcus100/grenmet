@@ -14,53 +14,53 @@
  * via the `definition` "supportedTimezones".
  */
 export type SupportedTimezones =
-  | 'Pacific/Midway'
-  | 'Pacific/Niue'
-  | 'Pacific/Honolulu'
-  | 'Pacific/Rarotonga'
-  | 'America/Anchorage'
-  | 'Pacific/Gambier'
-  | 'America/Los_Angeles'
-  | 'America/Tijuana'
-  | 'America/Denver'
-  | 'America/Phoenix'
-  | 'America/Chicago'
-  | 'America/Guatemala'
-  | 'America/New_York'
-  | 'America/Bogota'
-  | 'America/Caracas'
-  | 'America/Santiago'
-  | 'America/Buenos_Aires'
-  | 'America/Sao_Paulo'
-  | 'Atlantic/South_Georgia'
-  | 'Atlantic/Azores'
-  | 'Atlantic/Cape_Verde'
-  | 'Europe/London'
-  | 'Europe/Berlin'
-  | 'Africa/Lagos'
-  | 'Europe/Athens'
-  | 'Africa/Cairo'
-  | 'Europe/Moscow'
-  | 'Asia/Riyadh'
-  | 'Asia/Dubai'
-  | 'Asia/Baku'
-  | 'Asia/Karachi'
-  | 'Asia/Tashkent'
-  | 'Asia/Calcutta'
-  | 'Asia/Dhaka'
-  | 'Asia/Almaty'
-  | 'Asia/Jakarta'
-  | 'Asia/Bangkok'
-  | 'Asia/Shanghai'
-  | 'Asia/Singapore'
-  | 'Asia/Tokyo'
-  | 'Asia/Seoul'
-  | 'Australia/Brisbane'
-  | 'Australia/Sydney'
-  | 'Pacific/Guam'
-  | 'Pacific/Noumea'
-  | 'Pacific/Auckland'
-  | 'Pacific/Fiji';
+  | "Pacific/Midway"
+  | "Pacific/Niue"
+  | "Pacific/Honolulu"
+  | "Pacific/Rarotonga"
+  | "America/Anchorage"
+  | "Pacific/Gambier"
+  | "America/Los_Angeles"
+  | "America/Tijuana"
+  | "America/Denver"
+  | "America/Phoenix"
+  | "America/Chicago"
+  | "America/Guatemala"
+  | "America/New_York"
+  | "America/Bogota"
+  | "America/Caracas"
+  | "America/Santiago"
+  | "America/Buenos_Aires"
+  | "America/Sao_Paulo"
+  | "Atlantic/South_Georgia"
+  | "Atlantic/Azores"
+  | "Atlantic/Cape_Verde"
+  | "Europe/London"
+  | "Europe/Berlin"
+  | "Africa/Lagos"
+  | "Europe/Athens"
+  | "Africa/Cairo"
+  | "Europe/Moscow"
+  | "Asia/Riyadh"
+  | "Asia/Dubai"
+  | "Asia/Baku"
+  | "Asia/Karachi"
+  | "Asia/Tashkent"
+  | "Asia/Calcutta"
+  | "Asia/Dhaka"
+  | "Asia/Almaty"
+  | "Asia/Jakarta"
+  | "Asia/Bangkok"
+  | "Asia/Shanghai"
+  | "Asia/Singapore"
+  | "Asia/Tokyo"
+  | "Asia/Seoul"
+  | "Australia/Brisbane"
+  | "Australia/Sydney"
+  | "Pacific/Guam"
+  | "Pacific/Noumea"
+  | "Pacific/Auckland"
+  | "Pacific/Fiji";
 
 export interface Config {
   auth: {
@@ -68,27 +68,35 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    'desk-updates': DeskUpdate;
+    "desk-updates": DeskUpdate;
     stories: Story;
+    questions: Question;
     publications: Publication;
     media: Media;
     users: User;
-    'payload-kv': PayloadKv;
-    'payload-locked-documents': PayloadLockedDocument;
-    'payload-preferences': PayloadPreference;
-    'payload-migrations': PayloadMigration;
+    "payload-kv": PayloadKv;
+    "payload-locked-documents": PayloadLockedDocument;
+    "payload-preferences": PayloadPreference;
+    "payload-migrations": PayloadMigration;
   };
   collectionsJoins: {};
   collectionsSelect: {
-    'desk-updates': DeskUpdatesSelect<false> | DeskUpdatesSelect<true>;
+    "desk-updates": DeskUpdatesSelect<false> | DeskUpdatesSelect<true>;
     stories: StoriesSelect<false> | StoriesSelect<true>;
+    questions: QuestionsSelect<false> | QuestionsSelect<true>;
     publications: PublicationsSelect<false> | PublicationsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
-    'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
-    'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
-    'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
-    'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
+    "payload-kv": PayloadKvSelect<false> | PayloadKvSelect<true>;
+    "payload-locked-documents":
+      | PayloadLockedDocumentsSelect<false>
+      | PayloadLockedDocumentsSelect<true>;
+    "payload-preferences":
+      | PayloadPreferencesSelect<false>
+      | PayloadPreferencesSelect<true>;
+    "payload-migrations":
+      | PayloadMigrationsSelect<false>
+      | PayloadMigrationsSelect<true>;
   };
   db: {
     defaultIDType: number;
@@ -96,14 +104,14 @@ export interface Config {
   fallbackLocale: null;
   globals: {};
   globalsSelect: {};
-  locale: null;
-  widgets: {
-    collections: CollectionsWidget;
-  };
-  user: User;
   jobs: {
     tasks: unknown;
     workflows: unknown;
+  };
+  locale: null;
+  user: User;
+  widgets: {
+    collections: CollectionsWidget;
   };
 }
 export interface UserAuthOperations {
@@ -131,17 +139,7 @@ export interface UserAuthOperations {
  * via the `definition` "desk-updates".
  */
 export interface DeskUpdate {
-  id: number;
-  title: string;
-  kind: 'product-update' | 'service-update' | 'announcement' | 'public-notice' | 'community-update';
-  /**
-   * The product this update is about, if any.
-   */
-  product?: ('tropical-outlook' | 'bulletins' | 'forecasts' | 'marine' | 'aviation' | 'cap') | null;
-  /**
-   * Shown on cards and in search. 200 characters at most.
-   */
-  summary: string;
+  author: number | User;
   body?: {
     root: {
       type: string;
@@ -150,19 +148,75 @@ export interface DeskUpdate {
         version: number;
         [k: string]: unknown;
       }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      direction: ("ltr" | "rtl") | null;
+      format: "left" | "start" | "center" | "right" | "end" | "justify" | "";
       indent: number;
       version: number;
     };
     [k: string]: unknown;
   } | null;
+  createdAt: string;
+  id: number;
+  kind:
+    | "product-update"
+    | "service-update"
+    | "announcement"
+    | "public-notice"
+    | "community-update";
+  /**
+   * The product this update is about, if any.
+   */
+  product?:
+    | (
+        | "tropical-outlook"
+        | "bulletins"
+        | "forecasts"
+        | "marine"
+        | "aviation"
+        | "cap"
+      )
+    | null;
+  /**
+   * Set when first published; used for ordering and the URL.
+   */
+  publishedAt?: string | null;
+  /**
+   * Link to an existing product, publication or news source. Linking does not publish the destination.
+   */
+  relatedLinks?:
+    | {
+        title: string;
+        category:
+          | "forecast"
+          | "cap"
+          | "aviation"
+          | "bulletin"
+          | "publication"
+          | "article"
+          | "source";
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Built from the title. Fixed once published so links last.
+   */
+  slug: string;
   /**
    * Prepare platform-specific copy. Automatic delivery can be added later.
    */
   social?: {
     caption?: string | null;
-    enabledPlatforms?: ('X' | 'Facebook' | 'Instagram' | 'YouTube' | 'LinkedIn' | 'WhatsApp Channel')[] | null;
+    enabledPlatforms?:
+      | (
+          | "X"
+          | "Facebook"
+          | "Instagram"
+          | "YouTube"
+          | "LinkedIn"
+          | "WhatsApp Channel"
+        )[]
+      | null;
     /**
      * Leave empty for manual or immediate sharing.
      */
@@ -174,31 +228,15 @@ export interface DeskUpdate {
     whatsappText?: string | null;
   };
   /**
-   * Link to an existing product, publication or news source. Linking does not publish the destination.
-   */
-  relatedLinks?:
-    | {
-        title: string;
-        category: 'forecast' | 'cap' | 'aviation' | 'bulletin' | 'publication' | 'article' | 'source';
-        url: string;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Built from the title. Fixed once published so links last.
-   */
-  slug: string;
-  /**
    * Save as Ready for review. An editor with this section's permission publishes.
    */
-  status: 'draft' | 'review' | 'published';
+  status: "draft" | "review" | "published";
   /**
-   * Set when first published; used for ordering and the URL.
+   * Shown on cards and in search. 200 characters at most.
    */
-  publishedAt?: string | null;
-  author: number | User;
+  summary: string;
+  title: string;
   updatedAt: string;
-  createdAt: string;
 }
 /**
  * Identity comes from FastAPI. Only the CMS editorial role is managed here.
@@ -207,10 +245,12 @@ export interface DeskUpdate {
  * via the `definition` "users".
  */
 export interface User {
-  id: number;
-  fastapiUserId: string;
-  username: string;
+  collection: "users";
+  createdAt: string;
   email: string;
+  fastapiUserId: string;
+  id: number;
+  isSuperuser?: boolean | null;
   permissionKeys?:
     | {
         [k: string]: unknown;
@@ -220,11 +260,9 @@ export interface User {
     | number
     | boolean
     | null;
-  isSuperuser?: boolean | null;
-  role: 'author' | 'editor';
+  role: "author" | "editor";
   updatedAt: string;
-  createdAt: string;
-  collection: 'users';
+  username: string;
 }
 /**
  * Stories from our atmosphere and ocean: features that explain the weather, the sea and the climate around us.
@@ -233,22 +271,7 @@ export interface User {
  * via the `definition` "stories".
  */
 export interface Story {
-  id: number;
-  title: string;
-  /**
-   * Short label above the headline.
-   */
-  kicker?: string | null;
-  kind: 'local-story' | 'weather-event' | 'climate' | 'ocean' | 'explainer' | 'community';
-  /**
-   * Shown on cards and in search. 240 characters at most.
-   */
-  summary: string;
-  /**
-   * Shown on cards and at the top of the page.
-   */
-  image: number | Media;
-  imageCaption?: string | null;
+  author: number | User;
   body: {
     root: {
       type: string;
@@ -257,18 +280,52 @@ export interface Story {
         version: number;
         [k: string]: unknown;
       }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      direction: ("ltr" | "rtl") | null;
+      format: "left" | "start" | "center" | "right" | "end" | "justify" | "";
       indent: number;
       version: number;
     };
     [k: string]: unknown;
   };
+  createdAt: string;
+  id: number;
   /**
-   * Used to link related questions, stories and reports.
+   * Shown on cards and at the top of the page.
    */
-  topics?:
-    | ('tropical' | 'rain' | 'heat' | 'marine' | 'climate' | 'sky' | 'safety' | 'agriculture' | 'aviation' | 'gms')[]
+  image: number | Media;
+  imageCaption?: string | null;
+  /**
+   * Short label above the headline.
+   */
+  kicker?: string | null;
+  kind:
+    | "local-story"
+    | "weather-event"
+    | "climate"
+    | "ocean"
+    | "explainer"
+    | "community";
+  /**
+   * Set when first published; used for ordering and the URL.
+   */
+  publishedAt?: string | null;
+  /**
+   * Link to an existing product, publication or news source. Linking does not publish the destination.
+   */
+  relatedLinks?:
+    | {
+        title: string;
+        category:
+          | "forecast"
+          | "cap"
+          | "aviation"
+          | "bulletin"
+          | "publication"
+          | "article"
+          | "source";
+        url: string;
+        id?: string | null;
+      }[]
     | null;
   /**
    * Optional. Falls back to the title, summary and image.
@@ -279,11 +336,24 @@ export interface Story {
     image?: (number | null) | Media;
   };
   /**
+   * Built from the title. Fixed once published so links last.
+   */
+  slug: string;
+  /**
    * Prepare platform-specific copy. Automatic delivery can be added later.
    */
   social?: {
     caption?: string | null;
-    enabledPlatforms?: ('X' | 'Facebook' | 'Instagram' | 'YouTube' | 'LinkedIn' | 'WhatsApp Channel')[] | null;
+    enabledPlatforms?:
+      | (
+          | "X"
+          | "Facebook"
+          | "Instagram"
+          | "YouTube"
+          | "LinkedIn"
+          | "WhatsApp Channel"
+        )[]
+      | null;
     /**
      * Leave empty for manual or immediate sharing.
      */
@@ -295,31 +365,32 @@ export interface Story {
     whatsappText?: string | null;
   };
   /**
-   * Link to an existing product, publication or news source. Linking does not publish the destination.
-   */
-  relatedLinks?:
-    | {
-        title: string;
-        category: 'forecast' | 'cap' | 'aviation' | 'bulletin' | 'publication' | 'article' | 'source';
-        url: string;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Built from the title. Fixed once published so links last.
-   */
-  slug: string;
-  /**
    * Save as Ready for review. An editor with this section's permission publishes.
    */
-  status: 'draft' | 'review' | 'published';
+  status: "draft" | "review" | "published";
   /**
-   * Set when first published; used for ordering and the URL.
+   * Shown on cards and in search. 240 characters at most.
    */
-  publishedAt?: string | null;
-  author: number | User;
+  summary: string;
+  title: string;
+  /**
+   * Used to link related questions, stories and reports.
+   */
+  topics?:
+    | (
+        | "tropical"
+        | "rain"
+        | "heat"
+        | "marine"
+        | "climate"
+        | "sky"
+        | "safety"
+        | "agriculture"
+        | "aviation"
+        | "gms"
+      )[]
+    | null;
   updatedAt: string;
-  createdAt: string;
 }
 /**
  * Images and documents for GMS website content.
@@ -328,26 +399,143 @@ export interface Story {
  * via the `definition` "media".
  */
 export interface Media {
-  id: number;
   /**
    * Alt text shown to screen readers.
    */
   alt: string;
+  createdAt: string;
   /**
    * Who made or supplied it, e.g. "GMS / J. Pryce" or "NOAA".
    */
   credit?: string | null;
-  updatedAt: string;
-  createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
   filename?: string | null;
-  mimeType?: string | null;
   filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
   focalX?: number | null;
   focalY?: number | null;
+  height?: number | null;
+  id: number;
+  mimeType?: string | null;
+  thumbnailURL?: string | null;
+  updatedAt: string;
+  url?: string | null;
+  width?: number | null;
+}
+/**
+ * Questions about the weather: the questions people ask, each with a short answer and a full explainer.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "questions".
+ */
+export interface Question {
+  author: number | User;
+  body: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ("ltr" | "rtl") | null;
+      format: "left" | "start" | "center" | "right" | "end" | "justify" | "";
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  createdAt: string;
+  id: number;
+  /**
+   * Set when first published; used for ordering and the URL.
+   */
+  publishedAt?: string | null;
+  /**
+   * Phrase it the way the public asks it.
+   */
+  question: string;
+  /**
+   * Other questions, stories or reports to read next.
+   */
+  related?:
+    | (
+        | {
+            relationTo: "questions";
+            value: number | Question;
+          }
+        | {
+            relationTo: "stories";
+            value: number | Story;
+          }
+        | {
+            relationTo: "publications";
+            value: number | Publication;
+          }
+      )[]
+    | null;
+  /**
+   * Link to an existing product, publication or news source. Linking does not publish the destination.
+   */
+  relatedLinks?:
+    | {
+        title: string;
+        category:
+          | "forecast"
+          | "cap"
+          | "aviation"
+          | "bulletin"
+          | "publication"
+          | "article"
+          | "source";
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * A meteorologist confirms the answer is correct.
+   */
+  scienceCheck?: {
+    checked?: boolean | null;
+    checkedAt?: string | null;
+    checkedBy?: (number | null) | User;
+  };
+  /**
+   * Optional. Falls back to the title, summary and image.
+   */
+  seo?: {
+    title?: string | null;
+    description?: string | null;
+    image?: (number | null) | Media;
+  };
+  /**
+   * Two or three plain sentences. Shown on the homepage and in search.
+   */
+  shortAnswer: string;
+  /**
+   * Built from the title. Fixed once published so links last.
+   */
+  slug: string;
+  /**
+   * Save as Ready for review. An editor with this section's permission publishes.
+   */
+  status: "draft" | "review" | "published";
+  /**
+   * Used to link related questions, stories and reports.
+   */
+  topics?:
+    | (
+        | "tropical"
+        | "rain"
+        | "heat"
+        | "marine"
+        | "climate"
+        | "sky"
+        | "safety"
+        | "agriculture"
+        | "aviation"
+        | "gms"
+      )[]
+    | null;
+  updatedAt: string;
 }
 /**
  * Latest reports: climate summaries, outlooks, reports and datasets. Each has the document itself and the period it covers.
@@ -356,23 +544,33 @@ export interface Media {
  * via the `definition` "publications".
  */
 export interface Publication {
-  id: number;
-  title: string;
-  type: 'report' | 'climate-bulletin' | 'outlook' | 'guide' | 'dataset' | 'policy' | 'research';
-  /**
-   * Groups regular reports so readers can browse them.
-   */
-  series?: ('monthly-climate' | 'seasonal-outlook' | 'hurricane-season' | 'annual-report') | null;
+  author: number | User;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ("ltr" | "rtl") | null;
+      format: "left" | "start" | "center" | "right" | "end" | "justify" | "";
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  createdAt: string;
   /**
    * The PDF, CSV or spreadsheet itself.
    */
   document: number | Media;
-  periodStart?: string | null;
-  periodEnd?: string | null;
+  id: number;
   /**
-   * Shown on cards and in search. 280 characters at most.
+   * Shown on cards and at the top of the page.
    */
-  summary: string;
+  image?: (number | null) | Media;
+  imageCaption?: string | null;
   /**
    * Up to three one-line findings for the card.
    */
@@ -382,31 +580,29 @@ export interface Publication {
         id?: string | null;
       }[]
     | null;
+  periodEnd?: string | null;
+  periodStart?: string | null;
   /**
-   * Shown on cards and at the top of the page.
+   * Set when first published; used for ordering and the URL.
    */
-  image?: (number | null) | Media;
-  imageCaption?: string | null;
-  body?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
+  publishedAt?: string | null;
   /**
-   * Used to link related questions, stories and reports.
+   * Link to an existing product, publication or news source. Linking does not publish the destination.
    */
-  topics?:
-    | ('tropical' | 'rain' | 'heat' | 'marine' | 'climate' | 'sky' | 'safety' | 'agriculture' | 'aviation' | 'gms')[]
+  relatedLinks?:
+    | {
+        title: string;
+        category:
+          | "forecast"
+          | "cap"
+          | "aviation"
+          | "bulletin"
+          | "publication"
+          | "article"
+          | "source";
+        url: string;
+        id?: string | null;
+      }[]
     | null;
   /**
    * Optional. Falls back to the title, summary and image.
@@ -417,11 +613,35 @@ export interface Publication {
     image?: (number | null) | Media;
   };
   /**
+   * Groups regular reports so readers can browse them.
+   */
+  series?:
+    | (
+        | "monthly-climate"
+        | "seasonal-outlook"
+        | "hurricane-season"
+        | "annual-report"
+      )
+    | null;
+  /**
+   * Built from the title. Fixed once published so links last.
+   */
+  slug: string;
+  /**
    * Prepare platform-specific copy. Automatic delivery can be added later.
    */
   social?: {
     caption?: string | null;
-    enabledPlatforms?: ('X' | 'Facebook' | 'Instagram' | 'YouTube' | 'LinkedIn' | 'WhatsApp Channel')[] | null;
+    enabledPlatforms?:
+      | (
+          | "X"
+          | "Facebook"
+          | "Instagram"
+          | "YouTube"
+          | "LinkedIn"
+          | "WhatsApp Channel"
+        )[]
+      | null;
     /**
      * Leave empty for manual or immediate sharing.
      */
@@ -433,39 +653,46 @@ export interface Publication {
     whatsappText?: string | null;
   };
   /**
-   * Link to an existing product, publication or news source. Linking does not publish the destination.
-   */
-  relatedLinks?:
-    | {
-        title: string;
-        category: 'forecast' | 'cap' | 'aviation' | 'bulletin' | 'publication' | 'article' | 'source';
-        url: string;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Built from the title. Fixed once published so links last.
-   */
-  slug: string;
-  /**
    * Save as Ready for review. An editor with this section's permission publishes.
    */
-  status: 'draft' | 'review' | 'published';
+  status: "draft" | "review" | "published";
   /**
-   * Set when first published; used for ordering and the URL.
+   * Shown on cards and in search. 280 characters at most.
    */
-  publishedAt?: string | null;
-  author: number | User;
+  summary: string;
+  title: string;
+  /**
+   * Used to link related questions, stories and reports.
+   */
+  topics?:
+    | (
+        | "tropical"
+        | "rain"
+        | "heat"
+        | "marine"
+        | "climate"
+        | "sky"
+        | "safety"
+        | "agriculture"
+        | "aviation"
+        | "gms"
+      )[]
+    | null;
+  type:
+    | "report"
+    | "climate-bulletin"
+    | "outlook"
+    | "guide"
+    | "dataset"
+    | "policy"
+    | "research";
   updatedAt: string;
-  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
-  id: number;
-  key: string;
   data:
     | {
         [k: string]: unknown;
@@ -475,53 +702,61 @@ export interface PayloadKv {
     | number
     | boolean
     | null;
+  id: number;
+  key: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
-  id: number;
+  createdAt: string;
   document?:
     | ({
-        relationTo: 'desk-updates';
+        relationTo: "desk-updates";
         value: number | DeskUpdate;
       } | null)
     | ({
-        relationTo: 'stories';
+        relationTo: "stories";
         value: number | Story;
       } | null)
     | ({
-        relationTo: 'publications';
+        relationTo: "questions";
+        value: number | Question;
+      } | null)
+    | ({
+        relationTo: "publications";
         value: number | Publication;
       } | null)
     | ({
-        relationTo: 'media';
+        relationTo: "media";
         value: number | Media;
       } | null)
     | ({
-        relationTo: 'users';
+        relationTo: "users";
         value: number | User;
       } | null);
   globalSlug?: string | null;
+  id: number;
+  updatedAt: string;
   user: {
-    relationTo: 'users';
+    relationTo: "users";
     value: number | User;
   };
-  updatedAt: string;
-  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-preferences".
  */
 export interface PayloadPreference {
+  createdAt: string;
   id: number;
+  key?: string | null;
+  updatedAt: string;
   user: {
-    relationTo: 'users';
+    relationTo: "users";
     value: number | User;
   };
-  key?: string | null;
   value?:
     | {
         [k: string]: unknown;
@@ -531,30 +766,38 @@ export interface PayloadPreference {
     | number
     | boolean
     | null;
-  updatedAt: string;
-  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-migrations".
  */
 export interface PayloadMigration {
+  batch?: number | null;
+  createdAt: string;
   id: number;
   name?: string | null;
-  batch?: number | null;
   updatedAt: string;
-  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "desk-updates_select".
  */
 export interface DeskUpdatesSelect<T extends boolean = true> {
-  title?: T;
+  author?: T;
+  body?: T;
+  createdAt?: T;
   kind?: T;
   product?: T;
-  summary?: T;
-  body?: T;
+  publishedAt?: T;
+  relatedLinks?:
+    | T
+    | {
+        title?: T;
+        category?: T;
+        url?: T;
+        id?: T;
+      };
+  slug?: T;
   social?:
     | T
     | {
@@ -567,34 +810,32 @@ export interface DeskUpdatesSelect<T extends boolean = true> {
         linkedinText?: T;
         whatsappText?: T;
       };
-  relatedLinks?:
-    | T
-    | {
-        title?: T;
-        category?: T;
-        url?: T;
-        id?: T;
-      };
-  slug?: T;
   status?: T;
-  publishedAt?: T;
-  author?: T;
+  summary?: T;
+  title?: T;
   updatedAt?: T;
-  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "stories_select".
  */
 export interface StoriesSelect<T extends boolean = true> {
-  title?: T;
-  kicker?: T;
-  kind?: T;
-  summary?: T;
+  author?: T;
+  body?: T;
+  createdAt?: T;
   image?: T;
   imageCaption?: T;
-  body?: T;
-  topics?: T;
+  kicker?: T;
+  kind?: T;
+  publishedAt?: T;
+  relatedLinks?:
+    | T
+    | {
+        title?: T;
+        category?: T;
+        url?: T;
+        id?: T;
+      };
   seo?:
     | T
     | {
@@ -602,6 +843,7 @@ export interface StoriesSelect<T extends boolean = true> {
         description?: T;
         image?: T;
       };
+  slug?: T;
   social?:
     | T
     | {
@@ -614,6 +856,23 @@ export interface StoriesSelect<T extends boolean = true> {
         linkedinText?: T;
         whatsappText?: T;
       };
+  status?: T;
+  summary?: T;
+  title?: T;
+  topics?: T;
+  updatedAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "questions_select".
+ */
+export interface QuestionsSelect<T extends boolean = true> {
+  author?: T;
+  body?: T;
+  createdAt?: T;
+  publishedAt?: T;
+  question?: T;
+  related?: T;
   relatedLinks?:
     | T
     | {
@@ -622,35 +881,54 @@ export interface StoriesSelect<T extends boolean = true> {
         url?: T;
         id?: T;
       };
+  scienceCheck?:
+    | T
+    | {
+        checked?: T;
+        checkedAt?: T;
+        checkedBy?: T;
+      };
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  shortAnswer?: T;
   slug?: T;
   status?: T;
-  publishedAt?: T;
-  author?: T;
+  topics?: T;
   updatedAt?: T;
-  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "publications_select".
  */
 export interface PublicationsSelect<T extends boolean = true> {
-  title?: T;
-  type?: T;
-  series?: T;
+  author?: T;
+  body?: T;
+  createdAt?: T;
   document?: T;
-  periodStart?: T;
-  periodEnd?: T;
-  summary?: T;
+  image?: T;
+  imageCaption?: T;
   keyFindings?:
     | T
     | {
         text?: T;
         id?: T;
       };
-  image?: T;
-  imageCaption?: T;
-  body?: T;
-  topics?: T;
+  periodEnd?: T;
+  periodStart?: T;
+  publishedAt?: T;
+  relatedLinks?:
+    | T
+    | {
+        title?: T;
+        category?: T;
+        url?: T;
+        id?: T;
+      };
   seo?:
     | T
     | {
@@ -658,6 +936,8 @@ export interface PublicationsSelect<T extends boolean = true> {
         description?: T;
         image?: T;
       };
+  series?: T;
+  slug?: T;
   social?:
     | T
     | {
@@ -670,20 +950,12 @@ export interface PublicationsSelect<T extends boolean = true> {
         linkedinText?: T;
         whatsappText?: T;
       };
-  relatedLinks?:
-    | T
-    | {
-        title?: T;
-        category?: T;
-        url?: T;
-        id?: T;
-      };
-  slug?: T;
   status?: T;
-  publishedAt?: T;
-  author?: T;
+  summary?: T;
+  title?: T;
+  topics?: T;
+  type?: T;
   updatedAt?: T;
-  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -691,72 +963,72 @@ export interface PublicationsSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
-  credit?: T;
-  updatedAt?: T;
   createdAt?: T;
-  url?: T;
-  thumbnailURL?: T;
+  credit?: T;
   filename?: T;
-  mimeType?: T;
   filesize?: T;
-  width?: T;
-  height?: T;
   focalX?: T;
   focalY?: T;
+  height?: T;
+  mimeType?: T;
+  thumbnailURL?: T;
+  updatedAt?: T;
+  url?: T;
+  width?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
-  fastapiUserId?: T;
-  username?: T;
+  createdAt?: T;
   email?: T;
-  permissionKeys?: T;
+  fastapiUserId?: T;
   isSuperuser?: T;
+  permissionKeys?: T;
   role?: T;
   updatedAt?: T;
-  createdAt?: T;
+  username?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
-  key?: T;
   data?: T;
+  key?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents_select".
  */
 export interface PayloadLockedDocumentsSelect<T extends boolean = true> {
+  createdAt?: T;
   document?: T;
   globalSlug?: T;
-  user?: T;
   updatedAt?: T;
-  createdAt?: T;
+  user?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-preferences_select".
  */
 export interface PayloadPreferencesSelect<T extends boolean = true> {
-  user?: T;
-  key?: T;
-  value?: T;
-  updatedAt?: T;
   createdAt?: T;
+  key?: T;
+  updatedAt?: T;
+  user?: T;
+  value?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-migrations_select".
  */
 export interface PayloadMigrationsSelect<T extends boolean = true> {
-  name?: T;
   batch?: T;
-  updatedAt?: T;
   createdAt?: T;
+  name?: T;
+  updatedAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -766,7 +1038,7 @@ export interface CollectionsWidget {
   data?: {
     [k: string]: unknown;
   };
-  width: 'full';
+  width: "full";
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -776,7 +1048,6 @@ export interface Auth {
   [k: string]: unknown;
 }
 
-
-declare module 'payload' {
+declare module "payload" {
   export interface GeneratedTypes extends Config {}
 }

@@ -130,6 +130,7 @@ describe("home feed", () => {
             status: "ok",
             items: [article({ collection: "publications" })],
           },
+          questions: { status: "ok", items: [] },
         })
       )
     );
@@ -144,10 +145,35 @@ describe("home feed", () => {
       vi.fn().mockResolvedValue(Response.json({}, { status: 503 }))
     );
     const home = await fetchHomeContent();
-    expect(Object.values(home).map((part) => part.status)).toEqual([
-      "unavailable",
-      "unavailable",
-      "unavailable",
-    ]);
+    expect(new Set(Object.values(home).map((part) => part.status))).toEqual(
+      new Set(["unavailable"])
+    );
+    expect(Object.keys(home)).toHaveLength(4);
+  });
+});
+
+describe("routes", () => {
+  it("serves each collection under its own section", async () => {
+    const { contentHref, contentSlug, questionHref } = await import(
+      "@/lib/cms"
+    );
+    expect(
+      contentHref({ collection: "desk-updates", slug: "updates/2026/09/x" })
+    ).toBe("/explore/updates/2026/09/x");
+    expect(
+      contentHref({ collection: "stories", slug: "stories/2026/09/x" })
+    ).toBe("/explore/news/2026/09/x");
+    expect(
+      contentHref({
+        collection: "publications",
+        slug: "publications/2026/09/x",
+      })
+    ).toBe("/climate/publications/2026/09/x");
+    expect(contentSlug("stories", ["2026", "09", "x"])).toBe(
+      "stories/2026/09/x"
+    );
+    expect(questionHref("questions/what-is-a-tropical-wave")).toBe(
+      "/explore/explained/what-is-a-tropical-wave"
+    );
   });
 });

@@ -18,7 +18,6 @@ import {
   down as down_20260919_010000_cms_permissions,
   up as up_20260919_010000_cms_permissions,
 } from "./20260919_010000_cms_permissions";
-
 import {
   down as down_20260919_020000_social_enabled_platforms,
   up as up_20260919_020000_social_enabled_platforms,
@@ -32,13 +31,18 @@ import {
   up as up_20260919_040000_fix_version_social_platforms,
 } from "./20260919_040000_fix_version_social_platforms";
 import {
-  down as downEditorialLinks,
-  up as upEditorialLinks,
+  down as down_20260923_170000_editorial_links,
+  up as up_20260923_170000_editorial_links,
 } from "./20260923_170000_editorial_links";
 import {
-  down as downEditorialCollections,
-  up as upEditorialCollections,
+  down as down_20260929_210000_editorial_collections,
+  up as up_20260929_210000_editorial_collections,
 } from "./20260929_210000_editorial_collections";
+import {
+  down as down_20260929_212041_questions,
+  up as up_20260929_212041_questions,
+} from "./20260929_212041_questions";
+
 export const migrations = [
   {
     up: up_20260906_203710_initial,
@@ -81,13 +85,18 @@ export const migrations = [
     name: "20260919_040000_fix_version_social_platforms",
   },
   {
-    up: upEditorialLinks,
-    down: downEditorialLinks,
+    up: up_20260923_170000_editorial_links,
+    down: down_20260923_170000_editorial_links,
     name: "20260923_170000_editorial_links",
   },
   {
-    up: upEditorialCollections,
-    down: downEditorialCollections,
+    up: up_20260929_210000_editorial_collections,
+    down: down_20260929_210000_editorial_collections,
     name: "20260929_210000_editorial_collections",
+  },
+  {
+    up: up_20260929_212041_questions,
+    down: down_20260929_212041_questions,
+    name: "20260929_212041_questions",
   },
 ];
