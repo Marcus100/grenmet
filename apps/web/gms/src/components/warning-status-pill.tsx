@@ -19,7 +19,7 @@ export function WarningStatusPill({
         WARNING_LEVEL_SURFACE[alertsLevel(alerts)],
         className
       )}
-      href="/warnings"
+      href="/alerts"
     >
       <TriangleAlertIcon aria-hidden="true" className="size-4" />
       {alertsSummary(alerts)}

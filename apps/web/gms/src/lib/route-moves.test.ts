@@ -21,6 +21,12 @@ describe("ROUTE_MOVES", () => {
     expect(isServed(to)).toBe(true);
   });
 
+  it("sends every old URL straight to its final page, never via another move", () => {
+    for (const [, to] of ROUTE_MOVES) {
+      expect(movedPath(to)).toBe(to);
+    }
+  });
+
   it("lists more specific prefixes before the prefixes that contain them", () => {
     for (const [i, [from]] of ROUTE_MOVES.entries()) {
       const shadowedBy = ROUTE_MOVES.slice(0, i).find(([earlier]) =>
@@ -36,15 +42,19 @@ describe("movedPath", () => {
     ["/forecasts/2026/09/28", "/weather/2026/09/28"],
     ["/forecasts", "/weather"],
     ["/products/issued/abc", "/weather/issued/abc"],
-    ["/bulletins/flood", "/warnings/bulletins/flood"],
-    ["/resources/hurricane", "/warnings/prepare/hurricane"],
+    ["/bulletins/flood", "/alerts/bulletins/flood"],
+    ["/resources/hurricane", "/alerts/prepare/hurricane"],
+    ["/warnings", "/alerts"],
+    ["/warnings/levels", "/alerts/levels"],
+    ["/warnings/cyclone/archive", "/alerts/cyclone/archive"],
     ["/resources/hurricane-names", "/explore/hurricane-names"],
     ["/sectors/aviation", "/services/aviation"],
     ["/aviation/metar-taf", "/services/aviation/metar-taf"],
     ["/events/spicemas", "/services/tourism/events/spicemas"],
     ["/news/2026/storm", "/explore/news/2026/storm"],
     ["/newsletter", "/newsletter"],
-    ["/warnings", "/warnings"],
+    ["/alerts", "/alerts"],
+    ["/warnings-archive", "/warnings-archive"],
   ])("%s → %s", (from, to) => {
     expect(movedPath(from)).toBe(to);
   });

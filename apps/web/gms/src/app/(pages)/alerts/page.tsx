@@ -12,9 +12,9 @@ import { alertsLevel, fetchActiveAlerts, fetchPastAlerts } from "@/lib/cap";
 import { recentlyEnded } from "@/lib/warning-detail";
 
 export const metadata = {
-  title: "Warnings in effect",
+  title: "Alerts in effect",
   description:
-    "Every weather warning and advisory in effect for Grenada, Carriacou and Petite Martinique.",
+    "Every weather alert — warnings, watches and advisories — in effect for Grenada, Carriacou and Petite Martinique.",
 };
 
 export default async function WarningsPage() {
@@ -27,8 +27,8 @@ export default async function WarningsPage() {
   return (
     <>
       <PageHeader
-        description="Every warning and advisory in effect right now, grouped by hazard."
-        title="Warnings in effect"
+        description="Every warning, watch and advisory in effect right now, grouped by hazard."
+        title="Alerts in effect"
       />
       <ExerciseBanner result={alerts} />
       <WarningStatusBand alerts={alerts} checkedAt={new Date()} />

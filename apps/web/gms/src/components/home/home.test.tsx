@@ -16,7 +16,7 @@ import { unavailableWeather } from "@/lib/forecast-selection";
 vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
 
 const SAMPLE_NOTE = /Sample content — not an operational product/;
-const ALL_CLEAR = /no active warnings/i;
+const ALL_CLEAR = /no active alerts/i;
 const HERO_NAME = /^Grenada weather/;
 
 function alert(overrides: Partial<PublicAlert>): PublicAlert {
@@ -49,7 +49,7 @@ describe("WarningTakeover", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: "Read the warning" })
-    ).toHaveAttribute("href", "/warnings/urn%3Agms%3A1");
+    ).toHaveAttribute("href", "/alerts/urn%3Agms%3A1");
   });
 
   it.each([

@@ -51,7 +51,7 @@ export default async function WarningPage({ params, searchParams }: Props) {
         <p className="rounded border border-gm-risk-amber bg-gm-surface p-4 text-body text-gm-text-secondary leading-body lg:p-5">
           This warning cannot be retrieved right now. This does not mean it has
           ended — check{" "}
-          <Link className="text-gm-blue-ink underline" href="/warnings">
+          <Link className="text-gm-blue-ink underline" href="/alerts">
             warnings in effect
           </Link>{" "}
           or contact the Grenada Meteorological Service directly.
@@ -171,12 +171,12 @@ export default async function WarningPage({ params, searchParams }: Props) {
           </dl>
           <ul className="mt-4 flex flex-col gap-2 text-body text-gm-blue-ink leading-body">
             <li>
-              <Link className="underline" href="/warnings">
+              <Link className="underline" href="/alerts">
                 All warnings in effect
               </Link>
             </li>
             <li>
-              <Link className="underline" href="/warnings/levels">
+              <Link className="underline" href="/alerts/levels">
                 How warning levels work
               </Link>
             </li>

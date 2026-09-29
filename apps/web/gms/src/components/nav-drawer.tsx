@@ -86,7 +86,7 @@ export function NavDrawer({ alerts, open, onClose }: NavDrawerProps) {
                   "flex min-h-12 shrink-0 items-center justify-between gap-3 px-6 py-3 font-semibold text-body-base leading-body-base",
                   WARNING_LEVEL_SURFACE[alertsLevel(alerts)]
                 )}
-                href="/warnings"
+                href="/alerts"
                 onClick={onClose}
               >
                 <span className="flex items-center gap-2.5">

@@ -58,7 +58,7 @@ export async function ForecastDesk({ weather }: { weather: WeatherSnapshot }) {
   return (
     <HomeSection
       kicker="Official GMS products"
-      link={{ href: "/warnings/bulletins", label: "All bulletins" }}
+      link={{ href: "/alerts/bulletins", label: "All bulletins" }}
       title="From the forecast desk"
     >
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
@@ -203,8 +203,8 @@ export async function Stories() {
 }
 
 const QUESTIONS = [
-  { q: "What do Outlook, Watch and Warning mean?", href: "/warnings/levels" },
-  { q: "How do I read a warning?", href: "/warnings/understanding" },
+  { q: "What do Outlook, Watch and Warning mean?", href: "/alerts/levels" },
+  { q: "How do I read a warning?", href: "/alerts/understanding" },
   { q: "What is Saharan dust, and why is it hazy?", href: "/weather/dust" },
   { q: "How are hurricanes named?", href: "/explore/hurricane-names" },
   { q: "What do the words in a forecast mean?", href: "/explore/glossary" },
@@ -274,7 +274,7 @@ const CHANNELS = [
   { label: "CAP & RSS", Icon: RssIcon },
 ] as const;
 
-/** Latest publications, then the navy "get official warnings first" band. */
+/** Latest publications, then the navy "get official alerts first" band. */
 export async function PublicationsAndAlerts() {
   const result = await fetchPublishedContent("latest-publications");
   const posts = result.articles.map(contentToArticle);
@@ -319,11 +319,11 @@ export async function PublicationsAndAlerts() {
       <div className="mt-8 grid items-center gap-5 rounded-gm-card bg-gm-navy p-6 text-gm-text-inverse lg:grid-cols-[1.3fr_1fr]">
         <div>
           <h2 className="font-bold font-gm-display text-gm-display uppercase tracking-wide">
-            Get official warnings first
+            Get official alerts first
           </h2>
           <p className="mt-2 max-w-prose text-body-base text-gm-text-inverse/85 leading-body-base">
-            The GMS app sends warnings the moment we issue them. Prefer
-            something else? Choose WhatsApp, email or a feed.
+            The GMS app sends alerts the moment we issue them. Prefer something
+            else? Choose WhatsApp, email or a feed.
           </p>
         </div>
         <div className="flex flex-col gap-3">
@@ -339,7 +339,7 @@ export async function PublicationsAndAlerts() {
               <li key={label}>
                 <Link
                   className="flex items-center gap-1.5 rounded-full border border-gm-text-inverse/30 px-3 py-1.5 font-semibold text-body-sm leading-body-sm hover:bg-gm-text-inverse/10"
-                  href="/warnings/get-alerts"
+                  href="/alerts/get-alerts"
                 >
                   <Icon aria-hidden="true" className="size-4" />
                   {label}
@@ -349,7 +349,7 @@ export async function PublicationsAndAlerts() {
             <li>
               <Link
                 className="flex items-center gap-1.5 rounded-full border border-gm-text-inverse/30 px-3 py-1.5 font-semibold text-body-sm leading-body-sm hover:bg-gm-text-inverse/10"
-                href="/warnings/get-alerts"
+                href="/alerts/get-alerts"
               >
                 <BellIcon aria-hidden="true" className="size-4" />
                 All channels

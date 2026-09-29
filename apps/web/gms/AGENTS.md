@@ -12,15 +12,15 @@ Delegates to `web-auth` (`:3000`) via redirect — does not handle sign-in itsel
 
 Static/mock data currently (`src/lib/mock-data.ts`, `src/lib/forecast-data.ts`,
 `src/lib/events.ts`). No Drizzle, no direct DB access. The exception is the live
-CAP warnings feed via `src/lib/cap.ts` — `/warnings`, `/warnings/cyclone`,
-`/warnings/marine`, `/warnings/tsunami` and `/marine/small-craft` render real
+CAP warnings feed via `src/lib/cap.ts` — `/alerts`, `/alerts/cyclone`,
+`/alerts/marine`, `/alerts/tsunami` and `/marine/small-craft` render real
 alerts. When that feed is unreachable those pages say so; they must never render
-an empty list as "no warnings in effect".
+an empty list as "no alerts in effect".
 
 ## Routes
 
-Seven sections, one URL root each (Bold sky IA, 28 Sep 2026): `/weather`,
-`/warnings`, `/marine`, `/climate`, `/services`, `/explore`, `/about`.
+Seven sections, one URL root each (Bold sky IA, 28 Sep 2026; Warnings became
+Alerts and moved first on 29 Sep): `/alerts`, `/weather`, `/marine`, `/climate`, `/services`, `/explore`, `/about`.
 
 ```
 src/app/
@@ -30,7 +30,7 @@ src/app/
     weather/page.tsx             ← today at /weather
     weather/[year]/[month]/[day] ← a dated forecast day
   (pages)/                       ← standing pages, breadcrumbs + max-w-6xl
-    weather/ warnings/ marine/ climate/ services/ explore/ about/
+    alerts/ weather/ marine/ climate/ services/ explore/ about/
     [...planned]/                ← placeholders for nav links marked `planned`
     help/ app-guide/ sitemap/ privacy/ accessibility/ disclaimer/
   layout.tsx                     ← root layout: masthead, footer, tab bar

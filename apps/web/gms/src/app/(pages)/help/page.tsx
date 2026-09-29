@@ -81,12 +81,12 @@ export default function HelpPage() {
           links={[
             {
               name: "Understanding warnings",
-              href: "/warnings/understanding",
+              href: "/alerts/understanding",
               description: "How to read a warning and act on it",
             },
             {
               name: "Warning levels explained",
-              href: "/warnings/levels",
+              href: "/alerts/levels",
               description: "How the green-to-red scale works",
             },
             {

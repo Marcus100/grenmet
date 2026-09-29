@@ -82,10 +82,10 @@ function GroupCard({ group }: { group: HazardGroup }) {
 /**
  * Renders live CAP groups. When the feed is unavailable the wording matches
  * the masthead ribbon deliberately: an unreachable feed must never be presented as
- * "no warnings in effect".
+ * "no alerts in effect".
  */
 export function AlertGroups({
-  emptyLabel = "There are no warnings in effect for Grenada, Carriacou or Petite Martinique.",
+  emptyLabel = "There are no alerts in effect for Grenada, Carriacou or Petite Martinique.",
   only,
   result,
 }: {

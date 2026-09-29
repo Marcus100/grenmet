@@ -18,7 +18,7 @@ interface HeaderProps {
 const UTILITY_LINKS = [
   { href: "/services/aviation", label: "For pilots", Icon: PlaneIcon },
   { href: "/marine/forecast", label: "For fishers", Icon: FishIcon },
-  { href: "/warnings/get-alerts", label: "Get alerts", Icon: BellIcon },
+  { href: "/alerts/get-alerts", label: "Get alerts", Icon: BellIcon },
 ] as const;
 
 /**

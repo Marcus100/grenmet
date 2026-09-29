@@ -16,7 +16,7 @@ import { WARNING_LEVEL_SURFACE } from "@/lib/warning-level";
 const TABS = [
   { href: "/", label: "Today", Icon: HouseIcon },
   { href: "/weather/radar", label: "Radar", Icon: RadarIcon },
-  { href: "/warnings", label: "Warnings", Icon: TriangleAlertIcon },
+  { href: "/alerts", label: "Alerts", Icon: TriangleAlertIcon },
   { href: "/marine", label: "Marine", Icon: WavesIcon },
 ] as const;
 
@@ -60,7 +60,7 @@ export function MobileTabBar({
           >
             <Icon aria-hidden="true" className="size-5" />
             {label}
-            {href === "/warnings" && level !== "none" && (
+            {href === "/alerts" && level !== "none" && (
               <>
                 <span
                   aria-hidden="true"

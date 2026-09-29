@@ -58,6 +58,158 @@ const planned = (name: string, href: string, description: string): NavLink => ({
  */
 export const NAV_SECTIONS: NavSection[] = [
   {
+    label: "Alerts",
+    href: "/alerts",
+    blurb:
+      "Official alerts, warnings and bulletins for Grenada, Carriacou and Petite Martinique.",
+    featured: { kind: "alerts" },
+    groups: [
+      {
+        heading: "In effect",
+        links: [
+          link(
+            "Alerts in effect",
+            "/alerts",
+            "Current Outlooks, Watches and Warnings"
+          ),
+          link(
+            "Advisories",
+            "/alerts/advisories",
+            "Lower-level notices in effect"
+          ),
+          link(
+            "All bulletins",
+            "/alerts/bulletins",
+            "Detailed issued bulletins for nine hazards"
+          ),
+        ],
+      },
+      {
+        heading: "Hazards",
+        links: [
+          link(
+            "Tropical cyclone",
+            "/alerts/cyclone",
+            "Storm tracks, watches and warnings"
+          ),
+          link(
+            "Flood & heavy rain",
+            "/alerts/bulletins/flood",
+            "Flood and heavy rain bulletins"
+          ),
+          link(
+            "Thunderstorm",
+            "/alerts/bulletins/thunderstorm",
+            "Thunderstorm bulletins"
+          ),
+          link("Wind", "/alerts/bulletins/wind", "Strong wind bulletins"),
+          link("Heat", "/alerts/bulletins/heat", "Heat bulletins"),
+          link(
+            "Marine",
+            "/alerts/marine",
+            "Small craft advisories and rough seas"
+          ),
+          link(
+            "Coastal",
+            "/alerts/bulletins/coastal",
+            "High surf, swell and coastal flooding"
+          ),
+          link(
+            "Saharan dust",
+            "/alerts/bulletins/dust",
+            "Dust and haze bulletins"
+          ),
+          link(
+            "Tsunami",
+            "/alerts/tsunami",
+            "Threat levels, natural signs and what to do"
+          ),
+        ],
+      },
+      {
+        heading: "Understand alerts",
+        links: [
+          link(
+            "Warning levels",
+            "/alerts/levels",
+            "How the green-to-red scale works"
+          ),
+          link(
+            "Impact-based warnings",
+            "/alerts/impact",
+            "What a warning means for you"
+          ),
+          link(
+            "Reading a warning",
+            "/alerts/understanding",
+            "How to read a warning and act on it"
+          ),
+        ],
+      },
+      {
+        heading: "Prepare",
+        links: [
+          link(
+            "Hurricane",
+            "/alerts/prepare/hurricane",
+            "What every household should have ready"
+          ),
+          link(
+            "Flood",
+            "/alerts/prepare/flood",
+            "Before, during and after heavy rain"
+          ),
+          planned(
+            "Lightning",
+            "/alerts/prepare/lightning",
+            "Staying safe when thunder roars"
+          ),
+          planned(
+            "Heat",
+            "/alerts/prepare/heat",
+            "Keeping cool on the hottest days"
+          ),
+          planned(
+            "Tsunami",
+            "/alerts/prepare/tsunami",
+            "Know the signs and where to go"
+          ),
+        ],
+      },
+      {
+        heading: "Get alerts",
+        links: [
+          link(
+            "All alert channels",
+            "/alerts/get-alerts",
+            "Every channel alerts reach you through"
+          ),
+          link("GMS app", "/app-guide", "Warnings and forecasts on your phone"),
+          planned(
+            "CAP alerts",
+            "/alerts/get-alerts/cap",
+            "The machine-readable alert feed we publish"
+          ),
+        ],
+      },
+      {
+        heading: "Archive",
+        links: [
+          link(
+            "Tropical cyclone archive",
+            "/alerts/cyclone/archive",
+            "Past storms affecting the tri-island state"
+          ),
+          link(
+            "Exercises & drills",
+            "/alerts/exercise",
+            "How test alerts are marked"
+          ),
+        ],
+      },
+    ],
+  },
+  {
     label: "Weather",
     href: "/weather",
     blurb: "Forecasts, what is happening now, maps and observations.",
@@ -219,157 +371,6 @@ export const NAV_SECTIONS: NavSection[] = [
             "Night sky",
             "/weather/sun-and-sky/night-sky",
             "What to look for after dark this month"
-          ),
-        ],
-      },
-    ],
-  },
-  {
-    label: "Warnings",
-    href: "/warnings",
-    blurb: "Official warnings for Grenada, Carriacou and Petite Martinique.",
-    featured: { kind: "alerts" },
-    groups: [
-      {
-        heading: "In effect",
-        links: [
-          link(
-            "Warnings in effect",
-            "/warnings",
-            "Current Outlooks, Watches and Warnings"
-          ),
-          link(
-            "Advisories",
-            "/warnings/advisories",
-            "Lower-level notices in effect"
-          ),
-          link(
-            "All bulletins",
-            "/warnings/bulletins",
-            "Detailed issued bulletins for nine hazards"
-          ),
-        ],
-      },
-      {
-        heading: "Hazards",
-        links: [
-          link(
-            "Tropical cyclone",
-            "/warnings/cyclone",
-            "Storm tracks, watches and warnings"
-          ),
-          link(
-            "Flood & heavy rain",
-            "/warnings/bulletins/flood",
-            "Flood and heavy rain bulletins"
-          ),
-          link(
-            "Thunderstorm",
-            "/warnings/bulletins/thunderstorm",
-            "Thunderstorm bulletins"
-          ),
-          link("Wind", "/warnings/bulletins/wind", "Strong wind bulletins"),
-          link("Heat", "/warnings/bulletins/heat", "Heat bulletins"),
-          link(
-            "Marine",
-            "/warnings/marine",
-            "Small craft advisories and rough seas"
-          ),
-          link(
-            "Coastal",
-            "/warnings/bulletins/coastal",
-            "High surf, swell and coastal flooding"
-          ),
-          link(
-            "Saharan dust",
-            "/warnings/bulletins/dust",
-            "Dust and haze bulletins"
-          ),
-          link(
-            "Tsunami",
-            "/warnings/tsunami",
-            "Threat levels, natural signs and what to do"
-          ),
-        ],
-      },
-      {
-        heading: "Understand warnings",
-        links: [
-          link(
-            "Warning levels",
-            "/warnings/levels",
-            "How the green-to-red scale works"
-          ),
-          link(
-            "Impact-based warnings",
-            "/warnings/impact",
-            "What a warning means for you"
-          ),
-          link(
-            "Reading a warning",
-            "/warnings/understanding",
-            "How to read a warning and act on it"
-          ),
-        ],
-      },
-      {
-        heading: "Prepare",
-        links: [
-          link(
-            "Hurricane",
-            "/warnings/prepare/hurricane",
-            "What every household should have ready"
-          ),
-          link(
-            "Flood",
-            "/warnings/prepare/flood",
-            "Before, during and after heavy rain"
-          ),
-          planned(
-            "Lightning",
-            "/warnings/prepare/lightning",
-            "Staying safe when thunder roars"
-          ),
-          planned(
-            "Heat",
-            "/warnings/prepare/heat",
-            "Keeping cool on the hottest days"
-          ),
-          planned(
-            "Tsunami",
-            "/warnings/prepare/tsunami",
-            "Know the signs and where to go"
-          ),
-        ],
-      },
-      {
-        heading: "Get alerts",
-        links: [
-          link(
-            "Get alerts",
-            "/warnings/get-alerts",
-            "Every channel warnings reach you through"
-          ),
-          link("GMS app", "/app-guide", "Warnings and forecasts on your phone"),
-          planned(
-            "CAP alerts",
-            "/warnings/get-alerts/cap",
-            "The machine-readable alert feed we publish"
-          ),
-        ],
-      },
-      {
-        heading: "Archive",
-        links: [
-          link(
-            "Tropical cyclone archive",
-            "/warnings/cyclone/archive",
-            "Past storms affecting the tri-island state"
-          ),
-          link(
-            "Exercises & drills",
-            "/warnings/exercise",
-            "How test warnings are marked"
           ),
         ],
       },

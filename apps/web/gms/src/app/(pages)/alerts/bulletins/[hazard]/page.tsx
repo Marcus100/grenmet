@@ -60,7 +60,7 @@ export default async function BulletinPage({
         </p>
         <Link
           className="font-semibold text-gm-blue-ink underline"
-          href="/warnings"
+          href="/alerts"
         >
           View current CAP alerts
         </Link>
@@ -69,7 +69,7 @@ export default async function BulletinPage({
         {Object.entries(BULLETIN_CATEGORIES).map(([key, label]) => (
           <Link
             className="rounded-lg border px-3 py-2 hover:bg-muted"
-            href={`/warnings/bulletins/${key}`}
+            href={`/alerts/bulletins/${key}`}
             key={key}
           >
             {label}

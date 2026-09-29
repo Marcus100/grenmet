@@ -30,7 +30,7 @@ export const DYNAMIC_SEGMENT = /^\[(\.\.\.)?[^\]]+\]$/;
 const CATCH_ALL = /^\[\.\.\./;
 
 /**
- * Does a route pattern such as `/warnings/bulletins/[hazard]` serve `href`?
+ * Does a route pattern such as `/alerts/bulletins/[hazard]` serve `href`?
  * The planned-page catch-all is excluded so it cannot vouch for real links.
  */
 export function serves(pattern: string, href: string): boolean {

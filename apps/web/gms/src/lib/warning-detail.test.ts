@@ -65,7 +65,7 @@ describe("formatWarningTime", () => {
 describe("warningHref", () => {
   it("encodes CAP identifiers safely", () => {
     expect(warningHref("urn:oid:2.49.0.1")).toBe(
-      "/warnings/urn%3Aoid%3A2.49.0.1"
+      "/alerts/urn%3Aoid%3A2.49.0.1"
     );
   });
 });

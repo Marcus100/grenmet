@@ -23,19 +23,19 @@ export default function DownloadsPage() {
           links={[
             {
               name: "Hurricane preparedness checklist",
-              href: "/warnings/prepare/hurricane",
+              href: "/alerts/prepare/hurricane",
               description: "Household kit and action list for the season",
               meta: "Read online — printable version to follow",
             },
             {
               name: "Flood preparedness guide",
-              href: "/warnings/prepare/flood",
+              href: "/alerts/prepare/flood",
               description: "Before, during and after heavy rain",
               meta: "Read online — printable version to follow",
             },
             {
               name: "Warning levels poster",
-              href: "/warnings/levels",
+              href: "/alerts/levels",
               description: "The advisory, watch and warning scale",
               meta: "Read online — printable version to follow",
             },
