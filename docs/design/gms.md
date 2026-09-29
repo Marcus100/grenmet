@@ -128,7 +128,7 @@ components:
   stat-tile:
     backgroundColor: "{colors.surface-page}"
     textColor: "{colors.primary}"
-    rounded: "{rounded.sm}"
+    rounded: "{rounded.card}"
     padding: "{spacing.card}"
   table-head:
     backgroundColor: "{colors.surface}"
@@ -300,9 +300,10 @@ system mono).
 | Role | Weight | Size / line height | Utilities |
 |---|---|---|---|
 | Display (rare) | bold | 34 / 36 | `text-heading-lg leading-heading-lg` |
-| Page title (h1) | bold | 30 / 36 | `text-heading-md leading-heading-md` |
+| Page title (h1) | condensed bold, uppercase | 38 / 1 | `PageHeader`: `font-gm-display text-gm-display uppercase tracking-wide` |
 | Sub-heading | bold | 26 / 32 | `text-heading-base leading-heading-base` |
-| Section title (h2) | bold | 22 / 28 | `text-heading-sm leading-heading-sm` |
+| Section title (h2) | condensed bold | 30 / 36 | `PageSection`: `font-gm-display text-heading-md leading-heading-md` (sentence case) |
+| Card title | bold | 22 / 28 | `text-heading-sm leading-heading-sm` |
 | Nav | semibold | 20 / 28 | `text-nav leading-nav` |
 | Body, lead | regular | 16 / 24 | `text-body-base leading-body-base` |
 | Dense body, cells | regular | 14 / 20 | `text-body leading-body` |
@@ -352,10 +353,10 @@ Five radii only; nest concentrically (child radius ≤ parent).
 
 | Element | Utility | Value |
 |---|---|---|
-| Bordered containers (tables, tiles) | `rounded` | 4px |
+| Swatches, small chips | `rounded` | 4px |
 | Buttons, inputs, nav CTAs | `rounded-md` | 6px |
-| Cards, alert strips | `rounded-lg` | 8px |
-| Bold sky cards (home, warnings) | `rounded-gm-card` | 14px |
+| Icon tiles, thumbnails | `rounded-lg` | 8px |
+| Every card and bordered container: tiles, tables, link cards, FAQs, notices, alert cards | `rounded-gm-card` | 14px |
 | Pills, avatars, status dots | `rounded-full` | 9999px |
 
 ## Components
@@ -363,9 +364,10 @@ Five radii only; nest concentrically (child radius ≤ parent).
 Each: **Role** · **Specs** · **Context**.
 
 - **Button** (`@barrelsgd/ui/components/ui/button`) · Primary action · `default` = navy fill, white text, `font-medium`, `rounded-lg`; header CTA `h-11 rounded-md px-4 font-semibold text-body-base` · One primary per view; others `outline`/`secondary`. Loading keeps the label and adds a spinner.
-- **Stat tile** (`apps/web/gms/src/components/pages/stat-tiles.tsx`) · Headline figures · `rounded border border-gm-border bg-background p-4 lg:p-5`; muted `text-label` label, navy bold `text-heading-sm` value · 1/2/4-col grid, `gap-3`.
-- **Info table** (`…/pages/info-table.tsx`) · Reference data · `rounded border`; head `bg-gm-surface` navy bold `text-label`; cells `text-body` secondary; `monoColumns` for coded data · Wrapped in `overflow-x-auto`; always has a caption.
-- **Page header / section** (`page-header.tsx`, `pages/page-section.tsx`) · Titles · h1 navy `text-heading-md`, subtitle secondary `text-body-base`; h2 navy `text-heading-sm`, `mb-3 lg:mb-4` · Every page.
+- **Stat tile** (`apps/web/gms/src/components/pages/stat-tiles.tsx`) · Headline figures · `rounded-gm-card border border-gm-border bg-background p-4 lg:p-5`; muted uppercase tracked `text-label` label, navy condensed bold `text-heading-lg` value · 1/2/4-col grid, `gap-3`.
+- **Info table** (`…/pages/info-table.tsx`) · Reference data · `rounded-gm-card border`; head `bg-gm-surface` navy bold uppercase tracked `text-label`; cells `text-body` secondary; `monoColumns` for coded data · Wrapped in `overflow-x-auto`; always has a caption.
+- **Page header / section** (`page-header.tsx`, `pages/page-section.tsx`) · Titles · h1 navy condensed uppercase `text-gm-display`, subtitle secondary `text-body-base`; h2 navy condensed `text-heading-md`, `mb-3 lg:mb-4` · Every page.
+- **Link list** (`…/pages/link-list.tsx`) · Onward links · 2-col grid of `rounded-gm-card` bordered cards, blue-ink arrow, border turns blue-ink on hover; no shadow.
 - **Alert status line** (`alertsSummary` in `apps/web/gms/src/lib/cap.ts`) · The live warning state · exactly one wording everywhere: "No active warnings", "<level> · <n> active" (e.g. "Be prepared · 1 active", level from the most severe alert), or "Warnings unavailable"; surface coloured by `WARNING_LEVEL_SURFACE` · Desktop header pill, mobile menu top row, mobile accordion title, desktop panel header, Warnings menu card — all link to `/warnings`.
 - **Alert card** (`@barrelsgd/gms/components/alert-card`) · A CAP warning · severity strip `gm-warning-*-bg/-fg`, `rounded-t-lg`, `font-document`; strip title states severity in words · The only place hazard colours are large fills.
 - **Breadcrumbs** (`apps/web/gms/src/components/site-breadcrumbs.tsx`) · Where am I · Home › section (sitemap anchor or section page) › URL ancestors; current page omitted (the `h1` names it); `text-body-sm` secondary, blue-ink hover · Automatic on every standing page; logic in `src/lib/breadcrumbs.ts`.

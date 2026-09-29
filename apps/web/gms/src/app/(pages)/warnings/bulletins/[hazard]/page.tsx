@@ -44,8 +44,10 @@ export default async function BulletinPage({
         title={`${BULLETIN_CATEGORIES[category]} bulletins`}
       />
       <PublishedProducts kinds={[category]} />
-      <section className="space-y-3 rounded-lg border bg-card p-5">
-        <h2 className="font-semibold text-xl">Reading a bulletin</h2>
+      <section className="max-w-prose space-y-3 rounded-gm-card border border-gm-border bg-gm-surface p-5 text-body-base leading-body-base">
+        <h2 className="font-bold font-gm-display text-gm-navy text-heading-md leading-heading-md">
+          Reading a bulletin
+        </h2>
         <p>
           Check the issue time, area covered and validity first. Read the
           expected impacts and recommended response together. A later issue may
@@ -56,7 +58,10 @@ export default async function BulletinPage({
           pages are maintained separately while the product formats are
           developed.
         </p>
-        <Link className="underline" href="/warnings">
+        <Link
+          className="font-semibold text-gm-blue-ink underline"
+          href="/warnings"
+        >
           View current CAP alerts
         </Link>
       </section>
