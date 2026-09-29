@@ -1,6 +1,8 @@
 import {
+  type PublicCurrentConditions,
   type PublicForecast,
   type PublicPublishedProduct,
+  publicCurrentConditionsSchema,
   publicForecastSchema,
   publishedProductsSchema,
 } from "@barrelsgd/api-client";
@@ -13,11 +15,11 @@ export type ProductsResult =
   | { status: "ok"; products: PublicPublishedProduct[] }
   | { status: "unavailable"; products: [] };
 
-function endpoint(path: string) {
+function endpoint(path: string, domain = "wxproducts") {
   const configured = env.AUTH_API_V1_STR.trim() || "/api/v1";
   const prefix = configured.startsWith("/") ? configured : `/${configured}`;
   const normalized = prefix.endsWith("/") ? prefix.slice(0, -1) : prefix;
-  return new URL(`${normalized}/wxproducts/public/${path}`, env.AUTH_API_URL);
+  return new URL(`${normalized}/${domain}/public/${path}`, env.AUTH_API_URL);
 }
 const requestOptions = () => ({
   cache: "no-store" as const,
@@ -61,6 +63,30 @@ export const fetchPublicForecast = cache(
       return parsed.data;
     } catch (error) {
       reportError(error, "gms-forecast");
+      return null;
+    }
+  }
+);
+
+/** Latest MBIA reading from the observation register; null on any failure. */
+export const fetchCurrentConditions = cache(
+  async function fetchCurrentConditions(): Promise<PublicCurrentConditions | null> {
+    try {
+      const response = await fetch(
+        endpoint("current", "eregister"),
+        requestOptions()
+      );
+      if (!response.ok) return null;
+      const parsed = publicCurrentConditionsSchema.safeParse(
+        await response.json()
+      );
+      if (!parsed.success) {
+        reportError(parsed.error, "gms-current-contract");
+        return null;
+      }
+      return parsed.data;
+    } catch (error) {
+      reportError(error, "gms-current");
       return null;
     }
   }

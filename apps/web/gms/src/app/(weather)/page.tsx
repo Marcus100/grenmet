@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import { DayDetails } from "@/components/home/day-details";
 import { HomeSection } from "@/components/home/home-section";
 import {
   Explained,
@@ -37,7 +36,6 @@ export default async function HomePage() {
   return (
     <>
       <WeatherSurface location={defaultLocation()} />
-      <DayDetails day={weather.days[0]} label={weather.label} />
       <TodayAtAGlance />
       <WeatherNow forecasterNote={weather.days[0].summary} />
       <Suspense fallback={<Loading title="From the forecast desk" />}>

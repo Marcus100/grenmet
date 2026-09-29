@@ -119,3 +119,37 @@ class RegisterObservationCreate(RegisterObservationWrite):
     observed_at: Annotated[UtcDateTime, AwareDatetime()]
     issued_at: Annotated[UtcDateTime, AwareDatetime()] | None = None
     id: UUID = Field(default_factory=uuid4)
+
+
+PressureTrend = Literal["rising", "steady", "falling"]
+
+
+class PublicObservation(BaseModel):
+    """Decoded, public subset of one MBIA SYNOP; no staff or QC fields."""
+
+    station_id: str
+    station_name: str | None = None
+    observed_at: UtcDateTime
+    status: Literal["provisional", "accepted"]
+    temperature_c: float | None = None
+    dew_point_c: float | None = None
+    relative_humidity: int | None = None
+    wind_calm: bool = False
+    wind_direction_deg: int | None = None
+    wind_direction: str | None = None
+    wind_speed_kt: int | None = None
+    wind_speed_mph: int | None = None
+    msl_pressure_hpa: float | None = None
+    pressure_trend: PressureTrend | None = None
+    pressure_change_hpa: float | None = None
+    rain_mm: float | None = None
+    rain_trace: bool = False
+    rain_period_hours: int | None = None
+    rain_24h_mm: float | None = None
+    weather: str | None = None
+    cloud_oktas: int | None = None
+    cloud: str | None = None
+
+
+class PublicCurrentConditions(BaseModel):
+    observation: PublicObservation | None = None

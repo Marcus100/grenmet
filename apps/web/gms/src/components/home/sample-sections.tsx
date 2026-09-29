@@ -84,7 +84,6 @@ const GLANCE: GlanceTile[] = [
 export function TodayAtAGlance() {
   return (
     <HomeSection kicker="Today" title="Today at a glance">
-      <PlaceholderNotice compact product="Today at a glance" />
       <ul className="grid grid-cols-2 gap-3 md:grid-cols-5">
         {GLANCE.map(({ Icon, ...tile }) => (
           <li key={tile.label}>

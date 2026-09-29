@@ -162,3 +162,15 @@ def test_periods_carry_display_ready_conditions():
     assert ("thermometer-sun", "32°C", "Max temp") in {
         (c.icon, c.value, c.label) for c in outlook_day.conditions
     }
+
+
+def test_today_issues_keep_earlier_issues_beside_the_newest():
+    newer = publication("morning", revision=2)
+    newer.values["summary"] = "Morning update"
+    products = [publication(), newer, publication("midday"), publication("evening")]
+    result = at("2026-09-14T13:00", products)
+    kinds = [issue.source.kind for issue in result.today_issues]
+    assert kinds == ["morning", "midday"]  # evening is not eligible until 18:00
+    assert result.today_issues[0].details["summary"] == "Morning update"
+    assert result.today_issues[-1].source == result.periods[0].source
+    assert at("2026-09-15T07:00", products).today_issues == []

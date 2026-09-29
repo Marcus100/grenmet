@@ -21,4 +21,5 @@ export type PublicForecast = {
   base_date: string;
   periods: ForecastPeriod[];
   observation?: ForecastObservation | null;
+  today_issues?: ForecastPeriod[];
 };

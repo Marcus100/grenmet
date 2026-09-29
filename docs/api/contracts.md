@@ -804,6 +804,23 @@ publication; its times describe the expected forecast slot, not issued evidence.
 The separately selected midday temperature carries `time_basis=product_issue`:
 its source issue timestamp must not be represented as a measured observation time.
 
+`today_issues` lists every current issue for the base date (newest revision per
+kind, oldest issue first); its last entry is `periods[0]`. weather.gd offers the
+earlier issues as Morning / Midday / Evening tabs beside the newest.
+
+### Public current conditions
+
+`GET /api/v1/eregister/public/current` is anonymous and `no-store`. It returns the
+newest SYNOP for MBIA (station 78958) that is not rejected or superseded (by state
+or by a newer row's `supersedes_id`) and is not timed more than 15 minutes ahead,
+decoded into public units: temperature/dew point (°C), relative humidity (Magnus),
+wind (compass, kt, mph; `wind_calm`), MSL pressure (hPa) with 3-hour trend,
+precipitation with its period (trace flagged), 24-hour rainfall, plain-English
+present weather and cloud cover. `status` is `provisional` until the reading is
+`accepted`, following real-time practice; weather.gd labels it so. Staff fields
+(actor, QC notes, raw TAC, WIS2 data) never leave `src/eregister/public.py`. No
+reading returns `{"observation": null}`; an unavailable register returns 503.
+
 GMS now fetches this endpoint directly from the existing FastAPI origin
 `AUTH_API_URL` and prefix `AUTH_API_V1_STR`, without cookies. Its published-product
 pages use `/wxproducts/public/products` at the same origin and generated Kubb
