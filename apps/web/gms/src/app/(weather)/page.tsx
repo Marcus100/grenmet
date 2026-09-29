@@ -14,6 +14,8 @@ import {
   TodayAtAGlance,
   WeatherNow,
 } from "@/components/home/sample-sections";
+import { WeatherSurface } from "@/components/home/weather-surface";
+import { defaultLocation } from "@/lib/locations";
 import { getWeatherSnapshot } from "@/lib/weather-snapshot";
 
 function Loading({ title }: { title: string }) {
@@ -34,6 +36,7 @@ export default async function HomePage() {
   const weather = await getWeatherSnapshot();
   return (
     <>
+      <WeatherSurface location={defaultLocation()} />
       <DayDetails day={weather.days[0]} label={weather.label} />
       <TodayAtAGlance />
       <WeatherNow forecasterNote={weather.days[0].summary} />

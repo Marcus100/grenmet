@@ -1,5 +1,6 @@
 import { existsSync, readdirSync } from "node:fs";
 import path from "node:path";
+import { prefixedLocationParams } from "@/lib/locations";
 
 /** Node-only helpers for tests that check links against the routes on disk. */
 export const APP_DIR = path.resolve(import.meta.dirname, "../app");
@@ -28,6 +29,10 @@ export function routesOnDisk(dir: string, segments: string[] = []): string[] {
 
 export const DYNAMIC_SEGMENT = /^\[(\.\.\.)?[^\]]+\]$/;
 const CATCH_ALL = /^\[\.\.\./;
+/** `[location]` has dynamicParams = false: only enabled place slugs exist. */
+const LOCATION_SLUGS = new Set(
+  prefixedLocationParams().map((params) => params.location)
+);
 
 /**
  * Does a route pattern such as `/alerts/bulletins/[hazard]` serve `href`?
@@ -44,6 +49,9 @@ export function serves(pattern: string, href: string): boolean {
       return want.length > i;
     }
     if (want[i] === undefined) {
+      return false;
+    }
+    if (segment === "[location]" && !LOCATION_SLUGS.has(want[i])) {
       return false;
     }
     if (!DYNAMIC_SEGMENT.test(segment) && segment !== want[i]) {

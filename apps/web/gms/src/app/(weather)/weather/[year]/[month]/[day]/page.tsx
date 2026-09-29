@@ -1,4 +1,6 @@
 import { DayDetails } from "@/components/home/day-details";
+import { WeatherSurface } from "@/components/home/weather-surface";
+import { defaultLocation } from "@/lib/locations";
 import { getWeatherSnapshot } from "@/lib/weather-snapshot";
 
 interface Props {
@@ -16,6 +18,7 @@ export default async function ForecastDayPage({ params }: Props) {
   );
   return (
     <div className="pb-12">
+      <WeatherSurface location={defaultLocation()} />
       <DayDetails day={forecast} />
     </div>
   );

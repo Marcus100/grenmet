@@ -3,6 +3,11 @@ import Link from "next/link";
 import { SkyDayStrip } from "@/components/home/sky-day-strip";
 import type { WeatherSnapshot } from "@/lib/forecast-data";
 import { getForecastDays } from "@/lib/forecast-days";
+import {
+  defaultLocation,
+  locationHref,
+  type SiteLocation,
+} from "@/lib/locations";
 import { WEATHER_CONDITION_LABEL, weatherIcon } from "@/lib/weather-icons";
 
 /** Up to four of today's issued figures, shown as facts under the reading. */
@@ -13,7 +18,16 @@ const FACT_COUNT = 4;
  * latest MBIA temperature; small text always sits on `bg-gm-scrim` (the
  * gradient's light stop is under AA for small type).
  */
-export function SkyHero({ weather }: { weather: WeatherSnapshot }) {
+export function SkyHero({
+  location = defaultLocation(),
+  switcher,
+  weather,
+}: {
+  location?: SiteLocation;
+  /** Location switcher; rendered only when more than one place is enabled. */
+  switcher?: React.ReactNode;
+  weather: WeatherSnapshot;
+}) {
   const today = weather.days[0];
   const Icon = weatherIcon(today.condition);
   const hasForecast = today.high !== null || today.low !== null;
@@ -30,11 +44,12 @@ export function SkyHero({ weather }: { weather: WeatherSnapshot }) {
             className="font-bold text-body-base leading-body-base"
             id="sky-hero-title"
           >
-            Grenada weather
+            {location.name} weather
             <span className="ml-2 font-normal text-gm-text-inverse/85">
-              Maurice Bishop International (MBIA)
+              {location.station}
             </span>
           </h1>
+          {switcher}
           <p className="ml-auto rounded-md bg-gm-scrim px-2.5 py-1 text-body-sm leading-body-sm">
             {weather.observation?.observedAt ?? "No current observation"}
           </p>
@@ -103,7 +118,14 @@ export function SkyHero({ weather }: { weather: WeatherSnapshot }) {
           </div>
         </div>
 
-        <SkyDayStrip days={getForecastDays(weather.baseDate, weather.days)} />
+        <SkyDayStrip
+          days={getForecastDays(weather.baseDate, weather.days)}
+          todayHref={locationHref(location, "/weather")}
+          todayPaths={[
+            locationHref(location, "/"),
+            locationHref(location, "/weather"),
+          ]}
+        />
 
         <div className="flex flex-wrap gap-2">
           <Link
