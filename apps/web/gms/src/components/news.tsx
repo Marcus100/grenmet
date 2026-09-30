@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { fetchPublishedContent } from "@/lib/cms";
+import { fetchPublishedContent, isOptimizableImage } from "@/lib/cms";
 import { contentToArticle, type WeatherArticle } from "@/lib/editorial";
 
 function NewsCard({ post }: { post: WeatherArticle }) {
@@ -15,6 +15,7 @@ function NewsCard({ post }: { post: WeatherArticle }) {
           fill
           sizes="100vw"
           src={post.imageUrl}
+          unoptimized={!isOptimizableImage(post.imageUrl)}
         />
       </div>
       <div className="flex flex-col gap-2 p-4">
@@ -42,6 +43,7 @@ function DesktopNewsCard({ post }: { post: WeatherArticle }) {
           fill
           sizes="33vw"
           src={post.imageUrl}
+          unoptimized={!isOptimizableImage(post.imageUrl)}
         />
       </div>
       <div className="flex flex-col gap-2">

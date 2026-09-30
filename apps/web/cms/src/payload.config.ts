@@ -19,6 +19,8 @@ const env = getEnv();
 const baseDir = path.dirname(fileURLToPath(import.meta.url));
 export default buildConfig({
   secret: env.PAYLOAD_SECRET,
+  // Public address; makes media URLs absolute so other sites (GMS) can load them.
+  serverURL: env.CMS_URL,
   editor: lexicalEditor(),
   email:
     env.RESEND_API_KEY && env.EMAILS_FROM_EMAIL

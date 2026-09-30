@@ -1075,7 +1075,20 @@ Security-session `last_used_at` and `expires_at` use the same UTC response forma
 including naive-UTC database values. Generated TypeScript fields remain strings
 and generated validation schemas carry the date-time constraint.
 
-### CMS editorial links — September 23
+### CMS editorial feeds — September 29
+
+The single CMS `content` collection and `GET /api/public/content` are retired.
+Editorial content lives in bounded collections (`desk-updates`, `stories`,
+`questions`, `discover`) plus `weather-now` and `homepage` globals. Anonymous,
+published-only feeds: `GET /api/public/home` (every homepage part, each
+`{status: "ok", items}` or `{status: "unavailable"}`), `/api/public/articles`,
+`/api/public/questions` and `/api/public/quizzes`. Reports and imagery are
+FastAPI data; the homepage reads reports from `/wxproducts/public/products`.
+No FastAPI contract changes; the permission catalogue replaces
+`cms.article.publish.*` with `cms.publish.*`, `cms.weather-now.note` and
+`cms.homepage.manage`.
+
+### CMS editorial links — September 23 (superseded by the feeds above)
 
 CMS `GET /api/public/content` additionally returns nullable `category` selected
 from the post's editorial section and `relatedLinks` (empty for older posts).
