@@ -1,9 +1,6 @@
 import { notFound } from "next/navigation";
-import { DayDetails } from "@/components/home/day-details";
 import { WeatherSurface } from "@/components/home/weather-surface";
-import { weatherForLocation } from "@/lib/location-data";
 import { locationBySlug, prefixedLocationParams } from "@/lib/locations";
-import { getWeatherSnapshot } from "@/lib/weather-snapshot";
 
 /**
  * Today for a non-default place, e.g. `/carriacou`. Only enabled places are
@@ -27,11 +24,9 @@ export default async function LocationHomePage({ params }: { params: Params }) {
   if (!place || place.isDefault) {
     notFound();
   }
-  const weather = weatherForLocation(await getWeatherSnapshot(), place);
   return (
     <div className="pb-12">
       <WeatherSurface location={place} />
-      <DayDetails day={weather.days[0]} label={weather.label} />
     </div>
   );
 }

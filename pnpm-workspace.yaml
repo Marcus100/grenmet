@@ -184,6 +184,9 @@ catalog:
 overrides:
   "@esbuild-kit/core-utils@3.3.2>esbuild": "0.28.2"
   "drizzle-kit@0.31.7>esbuild": "0.28.2"
+  # CVE-2026-19534 / CVE-2026-84961: payload@3.90.1 pins undici 7.29.0.
+  # Remove once Payload ships a release depending on a fixed undici.
+  "payload@3.90.1>undici": "7.29.1"
 
 # Payload migration tooling expects the JavaScript compiler API. Keep the
 # application build/type-check catalog on TypeScript 7.

@@ -1,9 +1,11 @@
 import { PageHeader } from "@/components/page-header";
+import { LinkList } from "@/components/pages/link-list";
 import { PageSection } from "@/components/pages/page-section";
 import {
   type QuizQuestion,
   WeatherQuiz,
 } from "@/components/pages/weather-quiz";
+import { fetchQuizzes, quizHref } from "@/lib/cms";
 
 export const metadata = {
   title: "Weather quiz",
@@ -64,7 +66,8 @@ const QUESTIONS: QuizQuestion[] = [
   },
 ];
 
-export default function QuizPage() {
+export default async function QuizPage() {
+  const more = await fetchQuizzes();
   return (
     <>
       <PageHeader
@@ -74,6 +77,17 @@ export default function QuizPage() {
       <PageSection>
         <WeatherQuiz questions={QUESTIONS} />
       </PageSection>
+      {more.quizzes.length > 0 && (
+        <PageSection heading="More quizzes">
+          <LinkList
+            links={more.quizzes.map((quiz) => ({
+              name: quiz.title,
+              description: quiz.intro ?? `${quiz.questions.length} questions`,
+              href: quizHref(quiz.slug),
+            }))}
+          />
+        </PageSection>
+      )}
     </>
   );
 }

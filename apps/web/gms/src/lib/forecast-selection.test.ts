@@ -52,6 +52,26 @@ describe("forecast presentation", () => {
     expect(result.days[4].date).toBe("2026-09-18");
     expect(result.days[4].high).toBe(32);
   });
+  it("labels today's issues oldest first for the forecast tabs", () => {
+    const data = selection();
+    const [first] = data.periods;
+    const morning = {
+      ...first,
+      source: first.source && {
+        ...first.source,
+        kind: "morning" as const,
+        issued_at: "2026-09-14T11:00:00Z",
+      },
+    };
+    data.today_issues = [morning, first];
+    const result = weatherFromForecast(data);
+    expect(result.todayIssues.map((issue) => issue.label)).toEqual([
+      "Morning",
+      "Evening",
+    ]);
+    expect(result.todayIssues[1].day.summary).toBe("LOCAL TEST — Fair");
+    expect(weatherFromForecast(selection()).todayIssues).toEqual([]);
+  });
   it("distinguishes missing publication from a service outage", () => {
     const data = selection();
     data.periods[0].source = null;

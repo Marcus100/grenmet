@@ -1,10 +1,9 @@
-import { fetchPublishedContent } from "@/lib/cms";
+import { contentHref, fetchPublishedContent } from "@/lib/cms";
 import type { SearchArticle } from "@/lib/search";
 
 const SECTION_LABEL: Record<string, string> = {
-  "latest-from-us": "Latest from us",
-  "weather-news": "Stories",
-  "latest-publications": "Publications",
+  "desk-updates": "From the Desk",
+  stories: "Stories",
 };
 
 /**
@@ -17,8 +16,8 @@ export async function GET() {
   const articles: SearchArticle[] = result.articles.map((content) => ({
     title: content.title,
     summary: content.summary ?? "",
-    href: `/explore/news/${content.slug}`,
-    section: SECTION_LABEL[content.section ?? ""] ?? "Stories",
+    href: contentHref(content),
+    section: SECTION_LABEL[content.collection] ?? "Stories",
   }));
   return Response.json(
     { articles, status: result.status },

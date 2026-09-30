@@ -4,16 +4,23 @@ import { postgresAdapter } from "@payloadcms/db-postgres";
 import { resendAdapter } from "@payloadcms/email-resend";
 import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import { buildConfig } from "payload";
-import { Content } from "./collections/content";
+import { DeskUpdates } from "./collections/desk-updates";
+import { Discover } from "./collections/discover";
 import { Media } from "./collections/media";
+import { Questions } from "./collections/questions";
+import { Stories } from "./collections/stories";
 import { Users } from "./collections/users";
 import { getEnv } from "./env";
+import { Homepage } from "./globals/homepage";
+import { WeatherNow } from "./globals/weather-now";
 import { reportPayloadError } from "./lib/report-payload-error";
 
 const env = getEnv();
 const baseDir = path.dirname(fileURLToPath(import.meta.url));
 export default buildConfig({
   secret: env.PAYLOAD_SECRET,
+  // Public address; makes media URLs absolute so other sites (GMS) can load them.
+  serverURL: env.CMS_URL,
   editor: lexicalEditor(),
   email:
     env.RESEND_API_KEY && env.EMAILS_FROM_EMAIL
@@ -36,7 +43,8 @@ export default buildConfig({
     importMap: { baseDir },
     meta: { titleSuffix: " | GMS Content" },
   },
-  collections: [Users, Content, Media],
+  collections: [DeskUpdates, Stories, Questions, Discover, Media, Users],
+  globals: [WeatherNow, Homepage],
   hooks: { afterError: [reportPayloadError] },
   graphQL: { disable: true },
   typescript: {

@@ -1,3 +1,5 @@
+import type { PublicPublishedProduct } from "@barrelsgd/api-client";
+import { isForecastKind, productTitle } from "@barrelsgd/gms/products";
 import {
   ArrowRightIcon,
   BellIcon,
@@ -12,9 +14,16 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { HOME_CARD, HomeSection } from "@/components/home/home-section";
-import { fetchPublishedContent } from "@/lib/cms";
+import {
+  contentHref,
+  fetchHomeContent,
+  isOptimizableImage,
+  isSectionHidden,
+  questionHref,
+} from "@/lib/cms";
 import { contentToArticle } from "@/lib/editorial";
 import type { WeatherSnapshot } from "@/lib/forecast-data";
+import { fetchPublishedProducts } from "@/lib/products";
 
 const SHORT_DATE = new Intl.DateTimeFormat("en-GB", {
   timeZone: "America/Grenada",
@@ -53,13 +62,14 @@ function FeedState({
  * latest product updates beside it. Kept visually separate from editorial.
  */
 export async function ForecastDesk({ weather }: { weather: WeatherSnapshot }) {
+  if (await isSectionHidden("desk")) return null;
   const today = weather.days[0];
-  const updates = await fetchPublishedContent("latest");
+  const { deskUpdates: updates } = await fetchHomeContent();
   return (
     <HomeSection
       kicker="Official GMS products"
-      link={{ href: "/alerts/bulletins", label: "All bulletins" }}
-      title="From the forecast desk"
+      link={{ href: "/explore/updates", label: "All desk updates" }}
+      title="From the Desk"
     >
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <article className={`${HOME_CARD} flex flex-col gap-3`}>
@@ -87,10 +97,10 @@ export async function ForecastDesk({ weather }: { weather: WeatherSnapshot }) {
         <div className="rounded-gm-card border border-gm-border bg-background">
           <FeedState
             count={updates.articles.length}
-            empty="No product updates are published yet."
+            empty="No desk updates are published yet."
             unavailable={
               updates.status === "unavailable" &&
-              "Product updates cannot be retrieved right now."
+              "Desk updates cannot be retrieved right now."
             }
           >
             <ul>
@@ -101,19 +111,28 @@ export async function ForecastDesk({ weather }: { weather: WeatherSnapshot }) {
                 >
                   <Link
                     className="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-4 py-3 hover:bg-gm-surface"
-                    href={`/explore/updates/${item.slug}`}
+                    href={contentHref(item)}
                   >
                     <span className="flex size-9 items-center justify-center rounded-lg bg-gm-surface-panel text-gm-heading">
                       <FileTextIcon aria-hidden="true" className="size-4" />
                     </span>
-                    <span className="font-semibold text-body text-gm-heading leading-body">
-                      {item.title}
+                    <span className="flex min-w-0 flex-col">
+                      <span className="font-semibold text-body text-gm-heading leading-body">
+                        {item.title}
+                      </span>
+                      {item.category && (
+                        <span className="text-body-sm text-gm-text-secondary leading-body-sm">
+                          {item.category}
+                        </span>
+                      )}
                     </span>
                     <time
                       className="font-mono text-body-sm text-gm-text-secondary leading-body-sm"
-                      dateTime={item.updatedAt}
+                      dateTime={item.publishedAt ?? item.updatedAt}
                     >
-                      {SHORT_DATE.format(new Date(item.updatedAt))}
+                      {SHORT_DATE.format(
+                        new Date(item.publishedAt ?? item.updatedAt)
+                      )}
                     </time>
                   </Link>
                 </li>
@@ -128,7 +147,8 @@ export async function ForecastDesk({ weather }: { weather: WeatherSnapshot }) {
 
 /** Editorial stories: one lead, the rest in a side column. */
 export async function Stories() {
-  const result = await fetchPublishedContent("weather-news");
+  if (await isSectionHidden("stories")) return null;
+  const { stories: result } = await fetchHomeContent();
   const [lead, ...rest] = result.articles.map(contentToArticle);
   return (
     <HomeSection
@@ -155,6 +175,7 @@ export async function Stories() {
                   fill
                   sizes="(min-width: 1024px) 60vw, 100vw"
                   src={lead.imageUrl}
+                  unoptimized={!isOptimizableImage(lead.imageUrl)}
                 />
               </span>
               <span className="text-balance font-bold text-gm-heading text-heading-base leading-heading-base group-hover:underline">
@@ -181,6 +202,7 @@ export async function Stories() {
                         fill
                         sizes="120px"
                         src={story.imageUrl}
+                        unoptimized={!isOptimizableImage(story.imageUrl)}
                       />
                     </span>
                     <span className="flex flex-col gap-1">
@@ -202,21 +224,15 @@ export async function Stories() {
   );
 }
 
-const QUESTIONS = [
-  { q: "What do Outlook, Watch and Warning mean?", href: "/alerts/levels" },
-  { q: "How do I read a warning?", href: "/alerts/understanding" },
-  { q: "What is Saharan dust, and why is it hazy?", href: "/weather/dust" },
-  { q: "How are hurricanes named?", href: "/explore/hurricane-names" },
-  { q: "What do the words in a forecast mean?", href: "/explore/glossary" },
-] as const;
-
-/** Explainers and the questions people ask most, answered by existing pages. */
-export function Explained() {
+/** The questions people ask most, answered in the CMS by GMS. */
+export async function Explained() {
+  if (await isSectionHidden("questions")) return null;
+  const { questions } = await fetchHomeContent();
   return (
     <HomeSection
       kicker="Explained by GMS"
-      link={{ href: "/explore/explained", label: "All explainers" }}
-      title="Questions about Grenada's weather"
+      link={{ href: "/explore/explained", label: "All questions" }}
+      title="Questions about the weather"
     >
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <Link
@@ -239,22 +255,31 @@ export function Explained() {
           </span>
         </Link>
         <div>
-          <ul className="border-gm-border border-t">
-            {QUESTIONS.map((item) => (
-              <li className="border-gm-border border-b" key={item.href}>
-                <Link
-                  className="flex items-center justify-between gap-3 py-3.5 font-semibold text-body-base text-gm-heading leading-body-base hover:underline"
-                  href={item.href}
-                >
-                  {item.q}
-                  <ChevronRightIcon
-                    aria-hidden="true"
-                    className="size-4 shrink-0"
-                  />
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <FeedState
+            count={questions.questions.length}
+            empty="No questions are published yet."
+            unavailable={
+              questions.status === "unavailable" &&
+              "Questions cannot be retrieved right now."
+            }
+          >
+            <ul className="border-gm-border border-t">
+              {questions.questions.map((item) => (
+                <li className="border-gm-border border-b" key={item.id}>
+                  <Link
+                    className="flex items-center justify-between gap-3 py-3.5 font-semibold text-body-base text-gm-heading leading-body-base hover:underline"
+                    href={questionHref(item.slug)}
+                  >
+                    {item.question}
+                    <ChevronRightIcon
+                      aria-hidden="true"
+                      className="size-4 shrink-0"
+                    />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </FeedState>
           <Link
             className="mt-4 flex items-center justify-between gap-3 rounded-gm-card bg-gm-surface-panel p-4 font-semibold text-body-base text-gm-heading leading-body-base hover:underline"
             href="/explore/ask"
@@ -274,41 +299,65 @@ const CHANNELS = [
   { label: "CAP & RSS", Icon: RssIcon },
 ] as const;
 
-/** Latest publications, then the navy "get official alerts first" band. */
+/** Newest current reports first; forecasts have their own sections. */
+export function latestReports(products: PublicPublishedProduct[], limit = 6) {
+  return products
+    .filter((product) => !isForecastKind(product.kind))
+    .sort((a, b) =>
+      (b.values.issuedAt ?? "").localeCompare(a.values.issuedAt ?? "")
+    )
+    .slice(0, limit);
+}
+
+/**
+ * Latest reports are issued products from FastAPI (bulletins, outlooks),
+ * never CMS content; then the navy "get official alerts first" band.
+ */
 export async function PublicationsAndAlerts() {
-  const result = await fetchPublishedContent("latest-publications");
-  const posts = result.articles.map(contentToArticle);
+  if (await isSectionHidden("reports"))
+    return (
+      <section
+        aria-label="Get official alerts"
+        className="bg-gm-surface py-8 lg:py-12"
+      >
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 xl:px-8">
+          <AlertsBand className="" />
+        </div>
+      </section>
+    );
+  const result = await fetchPublishedProducts();
+  const reports = latestReports(result.products);
   return (
     <HomeSection
-      kicker="Reports & publications"
-      link={{ href: "/climate/publications", label: "All publications" }}
+      kicker="Official GMS products"
+      link={{ href: "/weather/issued", label: "All issued products" }}
       title="Latest reports"
       tone="surface"
     >
       <FeedState
-        count={posts.length}
-        empty="No publications are available."
+        count={reports.length}
+        empty="No bulletins or outlooks are current."
         unavailable={
           result.status === "unavailable" &&
-          "Publications cannot be retrieved right now."
+          "Reports cannot be retrieved right now."
         }
       >
         <ul className="flex gap-3 overflow-x-auto pb-1">
-          {posts.slice(0, 6).map((post) => (
-            <li className="w-56 shrink-0" key={post.id}>
+          {reports.map((product) => (
+            <li className="w-56 shrink-0" key={product.id}>
               <Link
                 className={`${HOME_CARD} flex h-full flex-col gap-2 hover:border-gm-blue-ink`}
-                href={post.href}
+                href={`/weather/issued/${product.id}`}
               >
                 <FileTextIcon
                   aria-hidden="true"
                   className="size-5 text-gm-sky-ink"
                 />
                 <span className="font-bold text-body text-gm-heading leading-body">
-                  {post.title}
+                  {productTitle(product.kind)}
                 </span>
                 <span className="text-body-sm text-gm-text-secondary leading-body-sm">
-                  {post.published}
+                  Issued {(product.values.issuedAt ?? "").replace("T", " ")}
                 </span>
               </Link>
             </li>
@@ -316,48 +365,57 @@ export async function PublicationsAndAlerts() {
         </ul>
       </FeedState>
 
-      <div className="mt-8 grid items-center gap-5 rounded-gm-card bg-gm-navy p-6 text-gm-text-inverse lg:grid-cols-[1.3fr_1fr]">
-        <div>
-          <h2 className="font-bold font-gm-display text-gm-display uppercase tracking-wide">
-            Get official alerts first
-          </h2>
-          <p className="mt-2 max-w-prose text-body-base text-gm-text-inverse/85 leading-body-base">
-            The GMS app sends alerts the moment we issue them. Prefer something
-            else? Choose WhatsApp, email or a feed.
-          </p>
-        </div>
-        <div className="flex flex-col gap-3">
-          <Link
-            className="flex h-11 w-fit items-center gap-2 rounded-md bg-gm-lime px-4 font-bold text-body text-gm-navy leading-body"
-            href="/app-guide"
-          >
-            <SmartphoneIcon aria-hidden="true" className="size-4" />
-            Get the GMS app
-          </Link>
-          <ul className="flex flex-wrap gap-2">
-            {CHANNELS.map(({ label, Icon }) => (
-              <li key={label}>
-                <Link
-                  className="flex items-center gap-1.5 rounded-full border border-gm-text-inverse/30 px-3 py-1.5 font-semibold text-body-sm leading-body-sm hover:bg-gm-text-inverse/10"
-                  href="/alerts/get-alerts"
-                >
-                  <Icon aria-hidden="true" className="size-4" />
-                  {label}
-                </Link>
-              </li>
-            ))}
-            <li>
+      <AlertsBand />
+    </HomeSection>
+  );
+}
+
+/** The navy "get official alerts first" band; stays even if reports hide. */
+function AlertsBand({ className = "mt-8" }: { className?: string }) {
+  return (
+    <div
+      className={`${className} grid items-center gap-5 rounded-gm-card bg-gm-navy p-6 text-gm-text-inverse lg:grid-cols-[1.3fr_1fr]`}
+    >
+      <div>
+        <h2 className="font-bold font-gm-display text-gm-display uppercase tracking-wide">
+          Get official alerts first
+        </h2>
+        <p className="mt-2 max-w-prose text-body-base text-gm-text-inverse/85 leading-body-base">
+          The GMS app sends alerts the moment we issue them. Prefer something
+          else? Choose WhatsApp, email or a feed.
+        </p>
+      </div>
+      <div className="flex flex-col gap-3">
+        <Link
+          className="flex h-11 w-fit items-center gap-2 rounded-md bg-gm-lime px-4 font-bold text-body text-gm-navy leading-body"
+          href="/app-guide"
+        >
+          <SmartphoneIcon aria-hidden="true" className="size-4" />
+          Get the GMS app
+        </Link>
+        <ul className="flex flex-wrap gap-2">
+          {CHANNELS.map(({ label, Icon }) => (
+            <li key={label}>
               <Link
                 className="flex items-center gap-1.5 rounded-full border border-gm-text-inverse/30 px-3 py-1.5 font-semibold text-body-sm leading-body-sm hover:bg-gm-text-inverse/10"
                 href="/alerts/get-alerts"
               >
-                <BellIcon aria-hidden="true" className="size-4" />
-                All channels
+                <Icon aria-hidden="true" className="size-4" />
+                {label}
               </Link>
             </li>
-          </ul>
-        </div>
+          ))}
+          <li>
+            <Link
+              className="flex items-center gap-1.5 rounded-full border border-gm-text-inverse/30 px-3 py-1.5 font-semibold text-body-sm leading-body-sm hover:bg-gm-text-inverse/10"
+              href="/alerts/get-alerts"
+            >
+              <BellIcon aria-hidden="true" className="size-4" />
+              All channels
+            </Link>
+          </li>
+        </ul>
       </div>
-    </HomeSection>
+    </div>
   );
 }

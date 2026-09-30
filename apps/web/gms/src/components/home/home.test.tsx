@@ -1,19 +1,19 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import {
-  Discover,
   ExploreToday,
   GrenadaInData,
   TodayAtAGlance,
-  WeatherNow,
 } from "@/components/home/sample-sections";
 import { SkyHero } from "@/components/home/sky-hero";
 import { WarningTakeover } from "@/components/home/warning-takeover";
+import { WeatherNow } from "@/components/home/weather-now";
 import type { AlertsResult, PublicAlert } from "@/lib/cap";
 import { REFERENCE_WEATHER } from "@/lib/forecast-data";
 import { unavailableWeather } from "@/lib/forecast-selection";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
+vi.mock("@/lib/env", () => ({ env: { CMS_API_URL: "" } }));
 
 const SAMPLE_NOTE = /Sample content — not an operational product/;
 const ALL_CLEAR = /no active alerts/i;
@@ -80,24 +80,27 @@ describe("SkyHero", () => {
     render(<SkyHero weather={unavailableWeather()} />);
     expect(screen.getByText("No current observation")).toBeInTheDocument();
     expect(screen.getByText("No current temperature")).toBeInTheDocument();
-    expect(screen.getByText("Forecast pending")).toBeInTheDocument();
+    expect(screen.getByText("Forecast unavailable")).toBeInTheDocument();
   });
 });
 
 describe("sample sections", () => {
   it.each([
-    ["Today at a glance", <TodayAtAGlance key="a" />],
     ["Explore today", <ExploreToday key="b" />],
     ["Grenada in data", <GrenadaInData key="c" />],
-    ["Discover", <Discover key="d" />],
   ])("%s is marked as sample content", (_name, section) => {
     render(section);
     expect(screen.getByRole("note")).toHaveTextContent(SAMPLE_NOTE);
     expect(screen.queryByText(ALL_CLEAR)).not.toBeInTheDocument();
   });
 
-  it("shows the issued summary as the forecaster note", () => {
-    render(<WeatherNow forecasterNote="Passing showers tonight." />);
+  it("shows Today at a glance without a sample notice", () => {
+    render(<TodayAtAGlance />);
+    expect(screen.queryByRole("note")).not.toBeInTheDocument();
+  });
+
+  it("shows the issued summary as the forecaster note", async () => {
+    render(await WeatherNow({ forecasterNote: "Passing showers tonight." }));
     expect(screen.getByText("Passing showers tonight.")).toBeInTheDocument();
   });
 });

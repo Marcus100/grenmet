@@ -820,6 +820,13 @@ export {
   eregisterListRegisterObservationsStatus422Schema,
 } from "./eregisterListRegisterObservationsSchema.js";
 export {
+  eregisterPublicCurrentConditionsErrorSchema,
+  eregisterPublicCurrentConditionsResponseSchema,
+  eregisterPublicCurrentConditionsStatus200Schema,
+  eregisterPublicCurrentConditionsStatus422Schema,
+  eregisterPublicCurrentConditionsStatus503Schema,
+} from "./eregisterPublicCurrentConditionsSchema.js";
+export {
   eregisterValidateSynopObservationBodySchema,
   eregisterValidateSynopObservationErrorSchema,
   eregisterValidateSynopObservationResponseSchema,
@@ -2512,10 +2519,14 @@ export { profileAuditPublicSchema } from "./profileAuditPublicSchema.js";
 export { profileDetailsPublicSchema } from "./profileDetailsPublicSchema.js";
 export { profileDetailsUpdateSchema } from "./profileDetailsUpdateSchema.js";
 export { profileIdentityPublicSchema } from "./profileIdentityPublicSchema.js";
+export { publicCurrentConditionsSchema } from "./publicCurrentConditionsSchema.js";
 export { publicForecastSchema } from "./publicForecastSchema.js";
 export { publicHolidayCreateSchema } from "./publicHolidayCreateSchema.js";
 export { publicHolidayPublicSchema } from "./publicHolidayPublicSchema.js";
 export { publicHolidaysPublicSchema } from "./publicHolidaysPublicSchema.js";
+export { publicObservationPropertiesPressureTrendAnyOfEnumSchema } from "./publicObservationPropertiesPressureTrendAnyOfEnumSchema.js";
+export { publicObservationPropertiesStatusEnumSchema } from "./publicObservationPropertiesStatusEnumSchema.js";
+export { publicObservationSchema } from "./publicObservationSchema.js";
 export { publicPublishedProductSchema } from "./publicPublishedProductSchema.js";
 export { publicWarningGroupSchema } from "./publicWarningGroupSchema.js";
 export { publicWarningPropertiesColourAnyOfEnumSchema } from "./publicWarningPropertiesColourAnyOfEnumSchema.js";

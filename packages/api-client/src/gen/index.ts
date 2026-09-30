@@ -90,6 +90,7 @@ export { capUpdateFeed } from "./clients/capUpdateFeed.js";
 export { capValidateAlert } from "./clients/capValidateAlert.js";
 export { eregisterCreateRegisterObservation } from "./clients/eregisterCreateRegisterObservation.js";
 export { eregisterListRegisterObservations } from "./clients/eregisterListRegisterObservations.js";
+export { eregisterPublicCurrentConditions } from "./clients/eregisterPublicCurrentConditions.js";
 export { eregisterValidateSynopObservation } from "./clients/eregisterValidateSynopObservation.js";
 export { hrActionLeaveRequest } from "./clients/hrActionLeaveRequest.js";
 export { hrActionShiftSwap } from "./clients/hrActionShiftSwap.js";
@@ -738,6 +739,11 @@ export {
   eregisterListRegisterObservationsQueryOptions,
   useEregisterListRegisterObservations,
 } from "./hooks/useEregisterListRegisterObservations.js";
+export {
+  eregisterPublicCurrentConditionsQueryKey,
+  eregisterPublicCurrentConditionsQueryOptions,
+  useEregisterPublicCurrentConditions,
+} from "./hooks/useEregisterPublicCurrentConditions.js";
 export {
   eregisterValidateSynopObservationMutationKey,
   eregisterValidateSynopObservationMutationOptions,
@@ -2677,6 +2683,14 @@ export type {
   EregisterListRegisterObservationsStatus422,
 } from "./models/EregisterListRegisterObservations.js";
 export type {
+  EregisterPublicCurrentConditionsOptions,
+  EregisterPublicCurrentConditionsResponse,
+  EregisterPublicCurrentConditionsResponses,
+  EregisterPublicCurrentConditionsStatus200,
+  EregisterPublicCurrentConditionsStatus422,
+  EregisterPublicCurrentConditionsStatus503,
+} from "./models/EregisterPublicCurrentConditions.js";
+export type {
   EregisterValidateSynopObservationBody,
   EregisterValidateSynopObservationOptions,
   EregisterValidateSynopObservationResponse,
@@ -4503,10 +4517,16 @@ export type { ProfileAuditPublic } from "./models/ProfileAuditPublic.js";
 export type { ProfileDetailsPublic } from "./models/ProfileDetailsPublic.js";
 export type { ProfileDetailsUpdate } from "./models/ProfileDetailsUpdate.js";
 export type { ProfileIdentityPublic } from "./models/ProfileIdentityPublic.js";
+export type { PublicCurrentConditions } from "./models/PublicCurrentConditions.js";
 export type { PublicForecast } from "./models/PublicForecast.js";
 export type { PublicHolidayCreate } from "./models/PublicHolidayCreate.js";
 export type { PublicHolidayPublic } from "./models/PublicHolidayPublic.js";
 export type { PublicHolidaysPublic } from "./models/PublicHolidaysPublic.js";
+export type { PublicObservation } from "./models/PublicObservation.js";
+export type { PublicObservationPropertiesPressureTrendAnyOfEnum } from "./models/PublicObservationPropertiesPressureTrendAnyOfEnum.js";
+export { publicObservationPropertiesPressureTrendAnyOfEnum } from "./models/PublicObservationPropertiesPressureTrendAnyOfEnum.js";
+export type { PublicObservationPropertiesStatusEnum } from "./models/PublicObservationPropertiesStatusEnum.js";
+export { publicObservationPropertiesStatusEnum } from "./models/PublicObservationPropertiesStatusEnum.js";
 export type { PublicPublishedProduct } from "./models/PublicPublishedProduct.js";
 export type { PublicWarning } from "./models/PublicWarning.js";
 export type { PublicWarningGroup } from "./models/PublicWarningGroup.js";
@@ -5998,6 +6018,13 @@ export {
   eregisterListRegisterObservationsStatus200Schema,
   eregisterListRegisterObservationsStatus422Schema,
 } from "./zod/eregisterListRegisterObservationsSchema.js";
+export {
+  eregisterPublicCurrentConditionsErrorSchema,
+  eregisterPublicCurrentConditionsResponseSchema,
+  eregisterPublicCurrentConditionsStatus200Schema,
+  eregisterPublicCurrentConditionsStatus422Schema,
+  eregisterPublicCurrentConditionsStatus503Schema,
+} from "./zod/eregisterPublicCurrentConditionsSchema.js";
 export {
   eregisterValidateSynopObservationBodySchema,
   eregisterValidateSynopObservationErrorSchema,
@@ -7691,10 +7718,14 @@ export { profileAuditPublicSchema } from "./zod/profileAuditPublicSchema.js";
 export { profileDetailsPublicSchema } from "./zod/profileDetailsPublicSchema.js";
 export { profileDetailsUpdateSchema } from "./zod/profileDetailsUpdateSchema.js";
 export { profileIdentityPublicSchema } from "./zod/profileIdentityPublicSchema.js";
+export { publicCurrentConditionsSchema } from "./zod/publicCurrentConditionsSchema.js";
 export { publicForecastSchema } from "./zod/publicForecastSchema.js";
 export { publicHolidayCreateSchema } from "./zod/publicHolidayCreateSchema.js";
 export { publicHolidayPublicSchema } from "./zod/publicHolidayPublicSchema.js";
 export { publicHolidaysPublicSchema } from "./zod/publicHolidaysPublicSchema.js";
+export { publicObservationPropertiesPressureTrendAnyOfEnumSchema } from "./zod/publicObservationPropertiesPressureTrendAnyOfEnumSchema.js";
+export { publicObservationPropertiesStatusEnumSchema } from "./zod/publicObservationPropertiesStatusEnumSchema.js";
+export { publicObservationSchema } from "./zod/publicObservationSchema.js";
 export { publicPublishedProductSchema } from "./zod/publicPublishedProductSchema.js";
 export { publicWarningGroupSchema } from "./zod/publicWarningGroupSchema.js";
 export { publicWarningPropertiesColourAnyOfEnumSchema } from "./zod/publicWarningPropertiesColourAnyOfEnumSchema.js";
