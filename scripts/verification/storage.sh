@@ -9,4 +9,4 @@ node --test apps/web/cms/scripts/storage.integration.test.mjs scripts/production
 # The editorial suite owns a UUID schema on this disposable instance. Override
 # inherited CMS configuration and invoke Vitest directly: acceptance cannot cache.
 CMS_TEST_DATABASE_URL="$STORAGE_TEST_POSTGRES_URL" \
-  pnpm --filter @barrelsgd/web-cms exec vitest run src/content.integration.test.ts
+  pnpm --filter @barrelsgd/web-cms exec vitest run src/editorial.integration.test.ts

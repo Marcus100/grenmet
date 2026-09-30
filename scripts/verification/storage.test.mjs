@@ -15,7 +15,7 @@ function runStorage(integrationExit = 0) {
     for (const command of ["pnpm", "node", "psql"]) {
       writeFileSync(
         join(directory, command),
-        `#!/bin/bash\nprintf '%s|%s|%s\\n' "${command}" "$*" "\${CMS_TEST_DATABASE_URL:-}" >> "$TEST_CALLS"\nif [[ "$*" == *content.integration.test.ts* ]]; then exit "$INTEGRATION_EXIT"; fi\n`,
+        `#!/bin/bash\nprintf '%s|%s|%s\\n' "${command}" "$*" "\${CMS_TEST_DATABASE_URL:-}" >> "$TEST_CALLS"\nif [[ "$*" == *editorial.integration.test.ts* ]]; then exit "$INTEGRATION_EXIT"; fi\n`,
         { mode: 0o755 }
       );
     }
@@ -43,7 +43,7 @@ test("storage verification runs editorial integration against its explicit dispo
   assert.equal(result.status, 0, result.stderr);
   assert.ok(
     result.calls.includes(
-      "pnpm|--filter @barrelsgd/web-cms exec vitest run src/content.integration.test.ts|postgresql://test-only@localhost/disposable"
+      "pnpm|--filter @barrelsgd/web-cms exec vitest run src/editorial.integration.test.ts|postgresql://test-only@localhost/disposable"
     ),
     result.calls
   );
