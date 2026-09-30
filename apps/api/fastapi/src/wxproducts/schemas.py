@@ -330,6 +330,9 @@ class PublicForecast(BaseModel):
     base_date: str
     periods: list[ForecastPeriod] = Field(min_length=5, max_length=5)
     observation: ForecastObservation | None = None
+    # Every current issue for the base date, oldest first; the last one is
+    # periods[0]. Lets the public site offer earlier issues beside the newest.
+    today_issues: list[ForecastPeriod] = Field(default_factory=list)
 
 
 AviationKind = Literal["METAR", "SPECI", "TAF"]

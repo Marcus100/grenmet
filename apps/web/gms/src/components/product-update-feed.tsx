@@ -11,6 +11,7 @@ import { MoreHorizontal } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { isOptimizableImage } from "@/lib/cms";
 import type { ProductPost } from "@/lib/editorial";
 import { cn } from "@/lib/utils";
 
@@ -102,6 +103,7 @@ export function ProductUpdateFeed({
                 height={600}
                 sizes="(min-width: 768px) 50vw, 80vw"
                 src={post.imageUrl}
+                unoptimized={!isOptimizableImage(post.imageUrl)}
                 width={800}
               />
               <span className="absolute right-2 bottom-2 rounded bg-black/60 px-2 py-1 text-[10px] text-white">
@@ -210,6 +212,7 @@ function DesktopFeed({
               height={600}
               sizes="25vw"
               src={post.imageUrl}
+              unoptimized={!isOptimizableImage(post.imageUrl)}
               width={800}
             />
           </Link>

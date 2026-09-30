@@ -1,5 +1,5 @@
 import { type PublishedProduct, productTitle } from "@barrelsgd/gms/products";
-import type { PublishedContent } from "@/lib/cms";
+import { contentHref, type PublishedContent } from "@/lib/cms";
 export interface ProductPost {
   href: string;
   id: string;
@@ -263,12 +263,14 @@ export function contentToArticle(content: PublishedContent): WeatherArticle {
     title: content.title,
     summary: content.summary ?? "",
     imageUrl: content.imageUrl ?? PLACEHOLDER_ARTICLE_IMAGE,
-    published: new Date(content.updatedAt).toLocaleDateString("en-GB", {
+    published: new Date(
+      content.publishedAt ?? content.updatedAt
+    ).toLocaleDateString("en-GB", {
       day: "numeric",
       month: "long",
       year: "numeric",
     }),
-    href: `/explore/news/${content.slug}`,
+    href: contentHref(content),
     body: content.body,
   };
 }

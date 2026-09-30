@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { DayDetails } from "@/components/home/day-details";
+import { Discover } from "@/components/home/discover";
 import { HomeSection } from "@/components/home/home-section";
 import {
   Explained,
@@ -8,12 +8,11 @@ import {
   Stories,
 } from "@/components/home/live-sections";
 import {
-  Discover,
   ExploreToday,
   GrenadaInData,
   TodayAtAGlance,
-  WeatherNow,
 } from "@/components/home/sample-sections";
+import { WeatherNow } from "@/components/home/weather-now";
 import { WeatherSurface } from "@/components/home/weather-surface";
 import { defaultLocation } from "@/lib/locations";
 import { getWeatherSnapshot } from "@/lib/weather-snapshot";
@@ -37,7 +36,6 @@ export default async function HomePage() {
   return (
     <>
       <WeatherSurface location={defaultLocation()} />
-      <DayDetails day={weather.days[0]} label={weather.label} />
       <TodayAtAGlance />
       <WeatherNow forecasterNote={weather.days[0].summary} />
       <Suspense fallback={<Loading title="From the forecast desk" />}>

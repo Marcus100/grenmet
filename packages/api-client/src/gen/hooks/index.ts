@@ -444,6 +444,11 @@ export {
   useEregisterListRegisterObservations,
 } from "./useEregisterListRegisterObservations.js";
 export {
+  eregisterPublicCurrentConditionsQueryKey,
+  eregisterPublicCurrentConditionsQueryOptions,
+  useEregisterPublicCurrentConditions,
+} from "./useEregisterPublicCurrentConditions.js";
+export {
   eregisterValidateSynopObservationMutationKey,
   eregisterValidateSynopObservationMutationOptions,
   useEregisterValidateSynopObservation,

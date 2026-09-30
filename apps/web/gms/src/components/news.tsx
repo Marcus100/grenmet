@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { fetchPublishedContent } from "@/lib/cms";
+import { fetchPublishedContent, isOptimizableImage } from "@/lib/cms";
 import { contentToArticle, type WeatherArticle } from "@/lib/editorial";
 
 function NewsCard({ post }: { post: WeatherArticle }) {
@@ -15,6 +15,7 @@ function NewsCard({ post }: { post: WeatherArticle }) {
           fill
           sizes="100vw"
           src={post.imageUrl}
+          unoptimized={!isOptimizableImage(post.imageUrl)}
         />
       </div>
       <div className="flex flex-col gap-2 p-4">
@@ -42,6 +43,7 @@ function DesktopNewsCard({ post }: { post: WeatherArticle }) {
           fill
           sizes="33vw"
           src={post.imageUrl}
+          unoptimized={!isOptimizableImage(post.imageUrl)}
         />
       </div>
       <div className="flex flex-col gap-2">
@@ -60,25 +62,25 @@ function DesktopNewsCard({ post }: { post: WeatherArticle }) {
 }
 
 export async function News() {
-  const result = await fetchPublishedContent("latest-publications");
+  const result = await fetchPublishedContent("stories");
   const posts = result.articles.map(contentToArticle);
 
   return (
     <section className="mb-4 flex flex-col gap-4 lg:-mx-8 lg:mb-8 lg:gap-7 lg:bg-gm-surface lg:px-8 lg:py-12">
       <div className="flex h-7 items-center justify-between">
         <p className="font-bold text-gm-heading text-heading-sm leading-heading-sm lg:text-heading-md lg:leading-heading-md">
-          Latest publications
+          Stories from our atmosphere and ocean
         </p>
-        <a className="text-gm-blue-ink underline" href="/explore/news">
-          All Publications
+        <a className="text-gm-blue-ink underline" href="/climate/publications">
+          Reports and publications
         </a>
       </div>
 
       {result.status === "unavailable" && (
-        <p role="status">News cannot be retrieved right now.</p>
+        <p role="status">Stories cannot be retrieved right now.</p>
       )}
       {result.status === "ok" && posts.length === 0 && (
-        <p>No published articles are available.</p>
+        <p>No stories are published yet.</p>
       )}
       {/* Mobile: stacked equal cards */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:hidden [&>*:first-child]:md:col-span-2">

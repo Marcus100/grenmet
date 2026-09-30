@@ -5,7 +5,7 @@ import { alertCoversLocation, type SiteLocation } from "@/lib/locations";
 /**
  * The weather shown for a place. The default place gets the national snapshot
  * unchanged. Other places have no local forecast or observation feed yet, so
- * they get the national forecast, no observation (never another station's
+ * they get the national forecast, no observation or register reading (never another station's
  * reading), and a label that says so.
  */
 export function weatherForLocation(
@@ -17,6 +17,7 @@ export function weatherForLocation(
   }
   return {
     ...national,
+    current: null,
     observation: null,
     label: `National forecast for Grenada, Carriacou and Petite Martinique. ${national.label}`,
   };

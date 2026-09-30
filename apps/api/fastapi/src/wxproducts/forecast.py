@@ -127,11 +127,18 @@ def select_forecast(products: list[PublishedProduct], now: datetime) -> PublicFo
             observation = ForecastObservation(
                 temperature=value, source=source(observed)
             )
+    today = [p for p in forecasts if source(p).issued_at.date() == base.date()]
+    # One per kind (the newest revision), in issue order.
+    by_kind = {p.kind: p for p in reversed(today)}
     return PublicForecast(
         as_of=now.astimezone(UTC),
         base_date=base.date().isoformat(),
         periods=periods,
         observation=observation,
+        today_issues=[
+            period(p, base, "")
+            for p in sorted(by_kind.values(), key=lambda p: source(p).issued_at)
+        ],
     )
 
 

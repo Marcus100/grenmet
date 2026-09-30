@@ -922,6 +922,14 @@ export type {
   EregisterListRegisterObservationsStatus422,
 } from "./EregisterListRegisterObservations.js";
 export type {
+  EregisterPublicCurrentConditionsOptions,
+  EregisterPublicCurrentConditionsResponse,
+  EregisterPublicCurrentConditionsResponses,
+  EregisterPublicCurrentConditionsStatus200,
+  EregisterPublicCurrentConditionsStatus422,
+  EregisterPublicCurrentConditionsStatus503,
+} from "./EregisterPublicCurrentConditions.js";
+export type {
   EregisterValidateSynopObservationBody,
   EregisterValidateSynopObservationOptions,
   EregisterValidateSynopObservationResponse,
@@ -2748,10 +2756,16 @@ export type { ProfileAuditPublic } from "./ProfileAuditPublic.js";
 export type { ProfileDetailsPublic } from "./ProfileDetailsPublic.js";
 export type { ProfileDetailsUpdate } from "./ProfileDetailsUpdate.js";
 export type { ProfileIdentityPublic } from "./ProfileIdentityPublic.js";
+export type { PublicCurrentConditions } from "./PublicCurrentConditions.js";
 export type { PublicForecast } from "./PublicForecast.js";
 export type { PublicHolidayCreate } from "./PublicHolidayCreate.js";
 export type { PublicHolidayPublic } from "./PublicHolidayPublic.js";
 export type { PublicHolidaysPublic } from "./PublicHolidaysPublic.js";
+export type { PublicObservation } from "./PublicObservation.js";
+export type { PublicObservationPropertiesPressureTrendAnyOfEnum } from "./PublicObservationPropertiesPressureTrendAnyOfEnum.js";
+export { publicObservationPropertiesPressureTrendAnyOfEnum } from "./PublicObservationPropertiesPressureTrendAnyOfEnum.js";
+export type { PublicObservationPropertiesStatusEnum } from "./PublicObservationPropertiesStatusEnum.js";
+export { publicObservationPropertiesStatusEnum } from "./PublicObservationPropertiesStatusEnum.js";
 export type { PublicPublishedProduct } from "./PublicPublishedProduct.js";
 export type { PublicWarning } from "./PublicWarning.js";
 export type { PublicWarningGroup } from "./PublicWarningGroup.js";

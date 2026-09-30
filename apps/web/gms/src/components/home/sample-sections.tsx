@@ -1,14 +1,11 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  ArrowRightIcon,
   CloudRainIcon,
   FishIcon,
   FootprintsIcon,
   HazeIcon,
   MoonIcon,
-  RadarIcon,
   SailboatIcon,
-  SatelliteDishIcon,
   SproutIcon,
   SunIcon,
   TornadoIcon,
@@ -84,7 +81,6 @@ const GLANCE: GlanceTile[] = [
 export function TodayAtAGlance() {
   return (
     <HomeSection kicker="Today" title="Today at a glance">
-      <PlaceholderNotice compact product="Today at a glance" />
       <ul className="grid grid-cols-2 gap-3 md:grid-cols-5">
         {GLANCE.map(({ Icon, ...tile }) => (
           <li key={tile.label}>
@@ -107,66 +103,6 @@ export function TodayAtAGlance() {
           </li>
         ))}
       </ul>
-    </HomeSection>
-  );
-}
-
-/**
- * Live imagery entry points beside the forecaster's note. The note is the
- * issued summary (live); only the map panel is a placeholder until the
- * interactive map exists.
- */
-export function WeatherNow({ forecasterNote }: { forecasterNote: string }) {
-  const layers = [
-    { href: "/weather/satellite", label: "Satellite", Icon: SatelliteDishIcon },
-    { href: "/weather/radar", label: "Radar", Icon: RadarIcon },
-    { href: "/weather/rainfall", label: "Rainfall", Icon: UmbrellaIcon },
-  ];
-  return (
-    <HomeSection
-      kicker="Live"
-      link={{ href: "/weather/map", label: "Open interactive map" }}
-      title="Weather now"
-      tone="surface"
-    >
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <div className="flex flex-col overflow-hidden rounded-gm-card bg-gm-navy text-gm-text-inverse">
-          <div className="flex gap-1 overflow-x-auto p-2">
-            {layers.map(({ href, label, Icon }) => (
-              <Link
-                className="flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-2 font-semibold text-body leading-body hover:bg-gm-text-inverse/10"
-                href={href}
-                key={href}
-              >
-                <Icon aria-hidden="true" className="size-4" />
-                {label}
-              </Link>
-            ))}
-          </div>
-          <div className="flex aspect-16/10 flex-col items-center justify-center gap-2 bg-gm-navy-raised p-6 text-center">
-            <p className="font-bold font-gm-display text-heading-md uppercase leading-heading-md tracking-wide">
-              Interactive map coming soon
-            </p>
-            <p className="max-w-sm text-body text-gm-text-inverse/80 leading-body">
-              Satellite, radar, rainfall, lightning and wind on one map of the
-              southern Windwards. Until then, open each layer above.
-            </p>
-          </div>
-        </div>
-        <div className="flex flex-col gap-3 border-gm-sky border-l-3 pl-4">
-          <p className="font-bold text-gm-text-muted text-label uppercase leading-label tracking-wider">
-            From the duty forecaster
-          </p>
-          <p className="text-body-base leading-body-base">{forecasterNote}</p>
-          <Link
-            className="flex items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body hover:underline"
-            href="/weather/synopsis"
-          >
-            Read the weather synopsis
-            <ArrowRightIcon aria-hidden="true" className="size-4" />
-          </Link>
-        </div>
-      </div>
     </HomeSection>
   );
 }
@@ -342,79 +278,6 @@ export function GrenadaInData() {
                 />
               </span>
             )}
-          </li>
-        ))}
-      </ul>
-    </HomeSection>
-  );
-}
-
-export function Discover() {
-  const cards = [
-    {
-      kicker: "Tonight",
-      title: "Waning gibbous moon, Saturn in the east",
-      detail: "Sun, moon and twilight times",
-      href: "/weather/sun-and-sky",
-      Icon: MoonIcon,
-      tone: "bg-gm-navy text-gm-lime",
-    },
-    {
-      kicker: "On this day",
-      title: "7 September 2004: Hurricane Ivan",
-      detail: "The storm that changed how Grenada prepares",
-      href: "/explore/history/hurricanes",
-      Icon: TornadoIcon,
-      tone: "bg-gm-sky-deep text-gm-text-inverse",
-    },
-    {
-      kicker: "Weather quiz",
-      title: "Can you name these five clouds?",
-      detail: "5 questions · 2 minutes",
-      href: "/explore/quiz",
-      Icon: CloudRainIcon,
-      tone: "bg-gm-lime text-gm-navy",
-    },
-    {
-      kicker: "Hurricane names",
-      title: "How storms are named, and why names retire",
-      detail: "The Atlantic lists explained",
-      href: "/explore/hurricane-names",
-      Icon: WavesIcon,
-      tone: "bg-gm-sky-mid text-gm-text-inverse",
-    },
-  ];
-  return (
-    <HomeSection kicker="Discover" title="Sky, history and a little fun">
-      <PlaceholderNotice compact product="Tonight's sky" />
-      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {cards.map(({ Icon, ...card }) => (
-          <li key={card.href}>
-            <Link
-              className="flex h-full flex-col overflow-hidden rounded-gm-card border border-gm-border bg-background hover:border-gm-blue-ink"
-              href={card.href}
-            >
-              <span
-                className={`flex aspect-16/7 items-center justify-center ${card.tone}`}
-              >
-                <Icon
-                  aria-hidden="true"
-                  className="size-12"
-                  strokeWidth={1.4}
-                />
-              </span>
-              <span className="flex flex-col gap-1 p-4">
-                <span className="font-bold text-gm-sky-ink text-label uppercase leading-label tracking-wider">
-                  {card.kicker}
-                </span>
-                <span className="font-bold text-body-base text-gm-heading leading-body-base">
-                  {card.title}
-                </span>
-                <span className="text-body-sm text-gm-text-secondary leading-body-sm">
-                  {card.detail}
-                </span>
-              </span>
-            </Link>
           </li>
         ))}
       </ul>

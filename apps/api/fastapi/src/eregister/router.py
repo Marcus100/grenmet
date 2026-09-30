@@ -1,13 +1,18 @@
+from datetime import UTC, datetime
 from typing import Annotated, Any
 
 from fastapi import APIRouter, Query, Response
+from fastapi.responses import JSONResponse
 from sqlalchemy import bindparam, text
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.exc import SQLAlchemyError
 
 from src.auth.browser import BrowserUser
 
-from .dependencies import RegisterSession
+from . import public
+from .dependencies import PublicRegisterSession, RegisterSession
 from .schemas import (
+    PublicCurrentConditions,
     RegisterObservationCreate,
     RegisterObservationList,
     RegisterObservationRead,
@@ -142,3 +147,33 @@ async def create_register_observation(
     )
     await session.commit()
     return _read(dict(result.mappings().one()))
+
+
+@router.get(
+    "/public/current",
+    response_model=PublicCurrentConditions,
+    summary="Latest public observation at MBIA",
+    description=(
+        "Anonymous. The newest SYNOP for station 78958 that has not been rejected "
+        "or superseded, decoded into public units and labelled provisional until "
+        "accepted. Returns 503 when the register is unavailable."
+    ),
+    responses={503: {"description": "Register unavailable"}},
+)
+async def public_current_conditions(
+    session: PublicRegisterSession, response: Response
+) -> PublicCurrentConditions | JSONResponse:
+    unavailable = JSONResponse(
+        {"error": "Current conditions are unavailable"},
+        status_code=503,
+        headers={"Cache-Control": "no-store"},
+    )
+    response.headers["Cache-Control"] = "no-store"
+    if session is None:
+        return unavailable
+    try:
+        return PublicCurrentConditions(
+            observation=await public.latest(session, datetime.now(UTC))
+        )
+    except SQLAlchemyError, OSError, TimeoutError:
+        return unavailable

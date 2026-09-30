@@ -419,9 +419,11 @@ manager grades; each product can override its permitted grade IDs.
 
 GMS's news pages read published editorial content from the CMS via
 `CMS_API_URL` (optional; pointed at the `apps/web/cms` deployment's base URL).
-With it unset, GMS falls back to its static reference articles. The CMS itself
-exposes this feed unauthenticated at `/api/public/content`, filtered to
-`status: published` content by the `content` collection's own access control.
+With it unset, the editorial homepage sections say their content cannot be
+retrieved. The CMS exposes anonymous, published-only feeds at
+`/api/public/home`, `/api/public/articles`, `/api/public/questions` and
+`/api/public/quizzes` (see `apps/web/cms/AGENTS.md`). The deploy smoke check
+reads `/api/public/home`.
 
 ### GitHub environment secret names
 

@@ -87,6 +87,7 @@ export { capUpdateFeed } from "./capUpdateFeed.js";
 export { capValidateAlert } from "./capValidateAlert.js";
 export { eregisterCreateRegisterObservation } from "./eregisterCreateRegisterObservation.js";
 export { eregisterListRegisterObservations } from "./eregisterListRegisterObservations.js";
+export { eregisterPublicCurrentConditions } from "./eregisterPublicCurrentConditions.js";
 export { eregisterValidateSynopObservation } from "./eregisterValidateSynopObservation.js";
 export { hrActionLeaveRequest } from "./hrActionLeaveRequest.js";
 export { hrActionShiftSwap } from "./hrActionShiftSwap.js";

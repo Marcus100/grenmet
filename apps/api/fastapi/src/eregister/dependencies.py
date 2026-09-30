@@ -20,3 +20,16 @@ async def get_session() -> AsyncGenerator[AsyncSession]:
 
 
 RegisterSession = Annotated[AsyncSession, Depends(get_session)]
+
+
+async def get_public_session() -> AsyncGenerator[AsyncSession | None]:
+    """Anonymous reads report an outage in their own shape, so no 503 here."""
+    session = database.create_session()
+    if session is None:
+        yield None
+    else:
+        async with session:
+            yield session
+
+
+PublicRegisterSession = Annotated[AsyncSession | None, Depends(get_public_session)]
