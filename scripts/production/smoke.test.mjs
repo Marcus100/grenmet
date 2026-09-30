@@ -21,7 +21,7 @@ test("deployment probes the real sign-in route and requires its form", async () 
     }
     return Promise.resolve(
       new Response(
-        '<main>{"status":"ok","docs":[],"ready":true,"data":[],"products":[]}</main>'
+        '<main>{"status":"ok","deskUpdates":{},"docs":[],"ready":true,"data":[],"products":[]}</main>'
       )
     );
   };
@@ -78,7 +78,7 @@ test("CAP and product storage failures block release rather than reading as empt
           new Response(
             new URL(url).pathname === failedPath
               ? "Unavailable"
-              : '<main><form>{"status":"ok","docs":[],"ready":true,"data":[],"products":[]}</form></main>',
+              : '<main><form>{"status":"ok","deskUpdates":{},"docs":[],"ready":true,"data":[],"products":[]}</form></main>',
             { status: new URL(url).pathname === failedPath ? 503 : 200 }
           )
         )
@@ -95,11 +95,14 @@ test("deployment smoke no longer probes the retired Hono API", async () => {
       return Promise.resolve(new Response(cmsLink("example.test")));
     return Promise.resolve(
       new Response(
-        '<main><form>{"docs":[],"ready":true,"data":[],"products":[]}</form></main>'
+        '<main><form>{"deskUpdates":{},"docs":[],"ready":true,"data":[],"products":[]}</form></main>'
       )
     );
   });
   assert.ok(!urls.some((url) => new URL(url).hostname.startsWith("hapi.")));
+  // The CMS check uses the homepage feed GMS reads, not a removed collection.
+  assert.ok(urls.includes("https://cms.example.test/api/public/home"));
+  assert.ok(!urls.some((url) => new URL(url).pathname === "/api/content"));
 });
 
 function cmsLink(domain) {

@@ -17,6 +17,7 @@ import { HOME_CARD, HomeSection } from "@/components/home/home-section";
 import {
   contentHref,
   fetchHomeContent,
+  isOptimizableImage,
   isSectionHidden,
   questionHref,
 } from "@/lib/cms";
@@ -174,6 +175,7 @@ export async function Stories() {
                   fill
                   sizes="(min-width: 1024px) 60vw, 100vw"
                   src={lead.imageUrl}
+                  unoptimized={!isOptimizableImage(lead.imageUrl)}
                 />
               </span>
               <span className="text-balance font-bold text-gm-heading text-heading-base leading-heading-base group-hover:underline">
@@ -200,6 +202,7 @@ export async function Stories() {
                         fill
                         sizes="120px"
                         src={story.imageUrl}
+                        unoptimized={!isOptimizableImage(story.imageUrl)}
                       />
                     </span>
                     <span className="flex flex-col gap-1">

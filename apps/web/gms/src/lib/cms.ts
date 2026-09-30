@@ -390,3 +390,10 @@ export const contentHref = (
 /** The CMS slug for a route's path segments. */
 export const contentSlug = (collection: ContentCollection, parts: string[]) =>
   ROUTES[collection].prefix + parts.join("/");
+
+/**
+ * Next only optimises images from hosts listed in next.config. CMS media
+ * comes from each environment's own CMS address, so it loads directly.
+ */
+export const isOptimizableImage = (src: string) =>
+  src.startsWith("/") || src.startsWith("https://images.unsplash.com/");
