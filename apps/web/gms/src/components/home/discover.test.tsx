@@ -30,6 +30,8 @@ function home(overrides: Partial<HomeContent> = {}): HomeContent {
     deskUpdates: none,
     stories: none,
     questions: { status: "ok", questions: [] },
+    reportNotes: { status: "ok", articles: [] },
+    livePosts: { status: "ok", posts: [] },
     weatherNow: null,
     discover: {
       today: "2026-09-29",
@@ -59,6 +61,8 @@ function home(overrides: Partial<HomeContent> = {}): HomeContent {
     settings: {
       discoverCards: ["sky", "on-this-day", "quiz", "fact"],
       hiddenSections: [],
+      sectionCopy: {},
+      exploreReading: {},
     },
     ...overrides,
   };
@@ -83,7 +87,12 @@ it("shows the calculated sky and each published card, linked", async () => {
 
 it("follows the editors' card choice and drops cards with no entry", async () => {
   const content = home({
-    settings: { discoverCards: ["quiz", "on-this-day"], hiddenSections: [] },
+    settings: {
+      discoverCards: ["quiz", "on-this-day"],
+      hiddenSections: [],
+      sectionCopy: {},
+      exploreReading: {},
+    },
   });
   if (content.discover) content.discover.onThisDay = null;
   vi.mocked(fetchHomeContent).mockResolvedValue(content);
@@ -97,7 +106,14 @@ it("keeps the sky card when the CMS is down, and hides on request", async () => 
   render(await Discover({ now: NOW }));
   expect(screen.getAllByRole("listitem")).toHaveLength(1);
   vi.mocked(fetchHomeContent).mockResolvedValue(
-    home({ settings: { discoverCards: ["sky"], hiddenSections: ["discover"] } })
+    home({
+      settings: {
+        discoverCards: ["sky"],
+        hiddenSections: ["discover"],
+        sectionCopy: {},
+        exploreReading: {},
+      },
+    })
   );
   expect(await Discover({ now: NOW })).toBeNull();
 });

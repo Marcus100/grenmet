@@ -32,29 +32,9 @@ export const staggerContainer: Variants = {
   },
 };
 
-export const drawerBackdrop: Variants = {
+/** The mobile menu: a quick fade under the header, which stays put. */
+export const menuSheet: Variants = {
   hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { duration: DURATION.base } },
+  show: { opacity: 1, transition: { duration: DURATION.fast } },
   exit: { opacity: 0, transition: { duration: DURATION.fast } },
-};
-
-export const drawerPanel: Variants = {
-  hidden: { x: "-100%" },
-  show: {
-    x: 0,
-    transition: { duration: DURATION.slow, ease: EASE_OUT },
-  },
-  exit: {
-    x: "-100%",
-    transition: { duration: DURATION.fast, ease: "easeIn" },
-  },
-};
-
-export const drawerItem: Variants = {
-  hidden: { opacity: 0, x: -12 },
-  show: {
-    opacity: 1,
-    x: 0,
-    transition: { duration: DURATION.base, ease: EASE_OUT },
-  },
 };

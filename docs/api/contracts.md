@@ -47,6 +47,14 @@ expire at 07:00 five days after the issue date, covering tonight plus four days.
 Forecast boundaries are derived from the issue date, matching the existing editor.
 Other product kinds use their explicit issue and validity fields.
 
+`GET /api/v1/wxproducts/public/products/{id}` (added 30 Sep 2026) is the anonymous
+read behind editorial links (CMS desk posts and report write-ups). It returns
+the same snapshot fields plus `current` (boolean). Unlike the feed, it stays
+readable after the validity window ends; `current` is then false. A republished
+product returns its newest revision. Withdrawn, unpublished, future-dated or
+unknown IDs return 404, a malformed ID returns 422, and unavailable storage
+returns 503. Errors use `{ "error": "..." }`, with `Cache-Control: no-store`.
+
 GAA Admin's existing `/api/public/products` forwards anonymously to this FastAPI
 route using its configured `AUTH_API_URL` and `AUTH_API_V1_STR`. The GMS website's
 URL and response shape are unchanged. FastAPI needs `WXPRODUCTS_DATABASE_URL`
@@ -64,7 +72,7 @@ access policy on every request. Account activation alone grants no authoring acc
 
 | Endpoint | Contract |
 | --- | --- |
-| `GET /api/v1/wxproducts/products?kind=marine&issue_date=2026-09-17` | `{ products: StoredProduct[] }`; selected kind/date plus undated drafts, newest update first |
+| `GET /api/v1/wxproducts/products` | `{ products: StoredProduct[] }`; all authorized authored product kinds/dates, including drafts and historical products; newest update first with ID tie-break. Optional `kind` and `issue_date` filters (date includes undated drafts), `limit` (1–100, default 100), `offset` (default 0). |
 | `POST /api/v1/wxproducts/products` | Body: `id`, `expectedRevision`, `kind`, `values`, `action` (`draft`, `publish`, `withdraw`), `changeSummary`, `reviewed`; returns `StoredProduct` |
 | `GET /api/v1/wxproducts/products/{id}/history` | `{ history: [...] }`; up to 100 newest permitted revisions, exposing action, revision, actor name, note and timestamp, never revision content or actor IDs |
 
@@ -824,8 +832,8 @@ reading returns `{"observation": null}`; an unavailable register returns 503.
 GMS now fetches this endpoint directly from the existing FastAPI origin
 `AUTH_API_URL` and prefix `AUTH_API_V1_STR`, without cookies. Its published-product
 pages use `/wxproducts/public/products` at the same origin and generated Kubb
-validators. `WXPRODUCTS_API_URL` (the old GAA Admin proxy origin) is no longer used
-by these fetchers. The GAA Admin public-products compatibility route remains
+validators. GMS never calls GAA Admin; the old `WXPRODUCTS_API_URL` proxy
+origin has been removed. The GAA Admin public-products compatibility route remains
 available to other callers.
 
 The website formats labels, icons and units; it no longer selects forecast
@@ -1081,7 +1089,13 @@ The single CMS `content` collection and `GET /api/public/content` are retired.
 Editorial content lives in bounded collections (`desk-updates`, `stories`,
 `questions`, `discover`) plus `weather-now` and `homepage` globals. Anonymous,
 published-only feeds: `GET /api/public/home` (every homepage part, each
-`{status: "ok", items}` or `{status: "unavailable"}`), `/api/public/articles`,
+`{status: "ok", items}` or `{status: "unavailable"}`; `settings` also carries
+`sectionCopy` — editor kicker/title/intro by section key, blanks omitted — and
+`exploreReading` — published read-more links by Explore today activity;
+`reportNotes` and `livePosts` parts added 30 Sep 2026; articles carry
+`linkedProduct: {productId, kind} | null`, resolved by GMS through
+`/wxproducts/public/products/{id}`),
+`/api/public/articles`,
 `/api/public/questions` and `/api/public/quizzes`. Reports and imagery are
 FastAPI data; the homepage reads reports from `/wxproducts/public/products`.
 No FastAPI contract changes; the permission catalogue replaces

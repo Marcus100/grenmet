@@ -1,17 +1,17 @@
 "use client";
 
 import { Logo } from "@barrelsgd/gms/components/logo";
-import { BellIcon, FishIcon, Menu, PlaneIcon } from "lucide-react";
+import { AnchorIcon, BellIcon, PlaneIcon } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
 import { DesktopNav } from "@/components/desktop-nav";
-import { MobileTabBar } from "@/components/mobile-tab-bar";
 import { NavDrawer } from "@/components/nav-drawer";
 import { SiteSearch } from "@/components/site-search";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { WarningRibbon } from "@/components/warning-ribbon";
 import { WarningStatusPill } from "@/components/warning-status-pill";
 import type { AlertsResult } from "@/lib/cap";
+import { cn } from "@/lib/utils";
 
 interface HeaderProps {
   alerts: AlertsResult;
@@ -19,18 +19,25 @@ interface HeaderProps {
 
 const UTILITY_LINKS = [
   { href: "/services/aviation", label: "For pilots", Icon: PlaneIcon },
-  { href: "/marine/forecast", label: "For fishers", Icon: FishIcon },
+  { href: "/marine/forecast", label: "For mariners", Icon: AnchorIcon },
   { href: "/alerts/get-alerts", label: "Get alerts", Icon: BellIcon },
 ] as const;
 
 /**
  * Bold sky masthead: warning ribbon (only when there is something to say),
- * a navy utility bar and main bar, the mega menu, and on mobile the drawer
- * and the bottom tab bar.
+ * a navy utility bar and main bar, the mega menu, and on mobile the drawer.
  */
 export function Header({ alerts }: HeaderProps) {
   const [navOpen, setNavOpen] = useState(false);
+  const [menuTop, setMenuTop] = useState(0);
   const headerRef = useRef<HTMLElement>(null);
+
+  /** The menu opens under the header, so the logo and the button never move. */
+  function toggleNav() {
+    if (!navOpen && headerRef.current)
+      setMenuTop(headerRef.current.getBoundingClientRect().bottom);
+    setNavOpen((open) => !open);
+  }
 
   return (
     <>
@@ -80,15 +87,31 @@ export function Header({ alerts }: HeaderProps) {
             <SiteSearch />
             <WarningStatusPill
               alerts={alerts}
-              className="hidden sm:flex lg:hidden xl:flex"
+              className="flex lg:hidden xl:flex"
             />
             <button
-              aria-label="Open navigation"
-              className="flex size-11 items-center justify-center rounded-md hover:bg-gm-text-inverse/10 lg:hidden"
-              onClick={() => setNavOpen(true)}
+              aria-controls="site-menu"
+              aria-expanded={navOpen}
+              aria-label={navOpen ? "Close navigation" : "Open navigation"}
+              className="flex size-11 items-center justify-center rounded-md outline-none hover:bg-gm-text-inverse/10 focus-visible:ring-2 focus-visible:ring-gm-lime lg:hidden"
+              onClick={toggleNav}
               type="button"
             >
-              <Menu aria-hidden="true" className="size-6" />
+              {/* Three bars that fold into an X. */}
+              <span aria-hidden="true" className="relative block h-3.5 w-6">
+                {["top-0", "top-1.5", "top-3"].map((position, bar) => (
+                  <span
+                    className={cn(
+                      "absolute left-0 h-0.5 w-6 rounded-full bg-current transition duration-200 ease-out motion-reduce:transition-none",
+                      position,
+                      navOpen && bar === 0 && "translate-y-1.5 rotate-45",
+                      navOpen && bar === 1 && "scale-x-0 opacity-0",
+                      navOpen && bar === 2 && "-translate-y-1.5 -rotate-45"
+                    )}
+                    key={position}
+                  />
+                ))}
+              </span>
             </button>
           </div>
         </div>
@@ -98,8 +121,8 @@ export function Header({ alerts }: HeaderProps) {
         alerts={alerts}
         onClose={() => setNavOpen(false)}
         open={navOpen}
+        top={menuTop}
       />
-      <MobileTabBar alerts={alerts} onOpenMenu={() => setNavOpen(true)} />
     </>
   );
 }

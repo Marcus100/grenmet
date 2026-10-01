@@ -8,6 +8,8 @@ export interface CurrentConditions {
   dewPoint: number | null;
   /** Shown only in the "More readings" fold on phones. */
   extra: Condition[];
+  /** Relative humidity, %; feeds the feels-like figure. */
+  humidity: number | null;
   observedAt: string;
   /** Four headline readings: wind, pressure, rain, humidity. */
   primary: Condition[];
@@ -85,6 +87,7 @@ export function currentConditions(o: PublicObservation): CurrentConditions {
   return {
     dewPoint: o.dew_point_c ?? null,
     extra,
+    humidity: o.relative_humidity ?? null,
     observedAt: o.observed_at,
     primary,
     provisional: o.status !== "accepted",

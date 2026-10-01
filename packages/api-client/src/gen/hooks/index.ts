@@ -1344,6 +1344,11 @@ export {
   utilsTestEmailMutationOptions,
 } from "./useUtilsTestEmail.js";
 export {
+  useWxproductsGetPublicProduct,
+  wxproductsGetPublicProductQueryKey,
+  wxproductsGetPublicProductQueryOptions,
+} from "./useWxproductsGetPublicProduct.js";
+export {
   useWxproductsListPublicProducts,
   wxproductsListPublicProductsQueryKey,
   wxproductsListPublicProductsQueryOptions,

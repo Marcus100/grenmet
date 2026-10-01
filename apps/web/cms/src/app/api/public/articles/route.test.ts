@@ -56,7 +56,7 @@ describe("public articles feed", () => {
     );
   });
 
-  it("finds one slug across both collections", async () => {
+  it("finds one slug across every article collection", async () => {
     const find = vi.fn(({ collection }: { collection: string }) =>
       Promise.resolve({
         docs:
@@ -77,7 +77,7 @@ describe("public articles feed", () => {
       )
     );
     const { articles } = await response.json();
-    expect(find).toHaveBeenCalledTimes(2);
+    expect(find).toHaveBeenCalledTimes(3);
     expect(articles).toHaveLength(1);
     expect(articles[0]).toMatchObject({
       collection: "desk-updates",

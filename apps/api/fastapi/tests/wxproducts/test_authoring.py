@@ -264,3 +264,46 @@ async def test_private_routes_check_access_validate_and_preserve_contract(
         assert denied.status_code == 403
     finally:
         app.dependency_overrides.pop(get_browser_or_token_user, None)
+
+
+async def test_archive_spans_dates_kinds_and_pages_without_widening_access(
+    async_client: httpx.AsyncClient, weather_sessions, actor, monkeypatch
+):
+    ids = []
+    for kind, day in [
+        ("morning", "2026-01-01"),
+        ("evening", "2026-02-01"),
+        ("marine", "2026-03-01"),
+    ]:
+        payload = body(kind, action="draft", values={"issuedAt": f"{day}T07:00"})
+        async with weather_sessions() as session:
+            saved = await service.write_product(session, payload, actor)
+            ids.append(str(saved.id))
+    denied = await async_client.get("/api/v1/wxproducts/products")
+    assert denied.status_code == 401
+    app.dependency_overrides[get_browser_or_token_user] = lambda: actor
+    try:
+        response = await async_client.get("/api/v1/wxproducts/products")
+        assert response.status_code == 200, response.text
+        assert response.headers["cache-control"] == "no-store"
+        assert [p["id"] for p in response.json()["products"]] == ids[::-1]
+        page = await async_client.get("/api/v1/wxproducts/products?limit=1&offset=1")
+        assert [p["id"] for p in page.json()["products"]] == [ids[1]]
+        filtered = await async_client.get(
+            "/api/v1/wxproducts/products?kind=morning&issue_date=2026-01-01"
+        )
+        assert [p["id"] for p in filtered.json()["products"]] == [ids[0]]
+        for query in ["limit=101", "offset=-1"]:
+            invalid = await async_client.get(f"/api/v1/wxproducts/products?{query}")
+            assert invalid.status_code == 422
+
+        async def allowed(*_args):
+            return ["morning", "evening"]
+
+        monkeypatch.setattr(product_access, "allowed_kinds", allowed)
+        restricted = await async_client.get("/api/v1/wxproducts/products")
+        assert [p["id"] for p in restricted.json()["products"]] == ids[1::-1]
+        forbidden = await async_client.get("/api/v1/wxproducts/products?kind=marine")
+        assert forbidden.status_code == 403
+    finally:
+        app.dependency_overrides.pop(get_browser_or_token_user, None)

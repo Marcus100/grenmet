@@ -8,6 +8,7 @@ import {
   fetchContentBySlug,
   fetchHomeContent,
   fetchPublishedContent,
+  sectionWords,
 } from "@/lib/cms";
 
 function article(overrides: Partial<Record<string, unknown>> = {}) {
@@ -149,6 +150,9 @@ describe("home feed", () => {
     expect(home.stories.status).toBe("unavailable");
     expect(home.weatherNow?.note?.text).toBe("Showers ease by mid-afternoon.");
     expect(home.settings.hiddenSections).toEqual(["stories"]);
+    // A CMS without section wording or read-more links still parses.
+    expect(home.settings.sectionCopy).toEqual({});
+    expect(home.settings.exploreReading).toEqual({});
   });
   it("reports every section unavailable when the CMS is down", async () => {
     vi.stubGlobal(
@@ -182,6 +186,25 @@ describe("routes", () => {
     );
     expect(questionHref("questions/what-is-a-tropical-wave")).toBe(
       "/explore/explained/what-is-a-tropical-wave"
+    );
+  });
+
+  it("words a section with editor text over the code's defaults", () => {
+    const settings = {
+      sectionCopy: { stories: { title: "Island stories", intro: "" } },
+    };
+    const defaults = { kicker: "Earth & Weather", title: "Stories" };
+    expect(sectionWords(settings, "stories", defaults)).toEqual({
+      kicker: "Earth & Weather",
+      title: "Island stories",
+      intro: undefined,
+    });
+    expect(sectionWords(settings, "desk", defaults)).toEqual({
+      ...defaults,
+      intro: undefined,
+    });
+    expect(sectionWords({ sectionCopy: {} }, "stories", defaults).title).toBe(
+      "Stories"
     );
   });
 });

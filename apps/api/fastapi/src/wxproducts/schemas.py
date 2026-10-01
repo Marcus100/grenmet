@@ -264,6 +264,16 @@ class PublishedProducts(BaseModel):
     products: list[PublicPublishedProduct]
 
 
+class PublicProductDetail(PublicPublishedProduct):
+    """One published snapshot by id, for editorial links to a product.
+
+    Unlike the feed it stays readable after its validity window; `current` says
+    whether it is still in force. Withdrawn products are not returned.
+    """
+
+    current: bool
+
+
 class ProductFeedError(BaseModel):
     error: str
 

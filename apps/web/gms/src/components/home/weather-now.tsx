@@ -1,18 +1,16 @@
-import {
-  ArrowRightIcon,
-  RadarIcon,
-  SatelliteDishIcon,
-  UmbrellaIcon,
-} from "lucide-react";
-import Link from "next/link";
+import { ArrowRightIcon } from "lucide-react";
 import { HomeSection } from "@/components/home/home-section";
-import { fetchHomeContent, isSectionHidden } from "@/lib/cms";
-
-const LAYERS = [
-  { href: "/weather/satellite", title: "Satellite", Icon: SatelliteDishIcon },
-  { href: "/weather/radar", title: "Radar", Icon: RadarIcon },
-  { href: "/weather/rainfall", title: "Rainfall", Icon: UmbrellaIcon },
-] as const;
+import {
+  type MediaItem,
+  WeatherNowPanel,
+} from "@/components/home/weather-now-panel";
+import {
+  fetchHomeContent,
+  isSectionHidden,
+  type LivePost,
+  sectionWords,
+} from "@/lib/cms";
+import { mediaEmbed } from "@/lib/media-embed";
 
 const TIME = new Intl.DateTimeFormat("en-GB", {
   timeZone: "America/Grenada",
@@ -20,51 +18,73 @@ const TIME = new Intl.DateTimeFormat("en-GB", {
   minute: "2-digit",
 });
 
+/** A quick text update under the duty forecaster's note. */
+function UpdateItem({ post }: { post: LivePost }) {
+  return (
+    <li className="flex flex-col gap-1 border-gm-border border-t pt-3">
+      <p className="flex flex-wrap items-baseline gap-x-2 font-bold text-body text-gm-heading leading-body">
+        {post.title}
+        {post.publishedAt && (
+          <time
+            className="font-mono font-normal text-body-sm text-gm-text-secondary leading-body-sm"
+            dateTime={post.publishedAt}
+          >
+            {TIME.format(new Date(post.publishedAt))}
+          </time>
+        )}
+      </p>
+      {post.text && <p className="text-body leading-body">{post.text}</p>}
+    </li>
+  );
+}
+
+/** Video or audio posts whose links pass the allowlist, ready to play. */
+function mediaItems(posts: LivePost[], kind: "video" | "audio"): MediaItem[] {
+  return posts.flatMap((post) => {
+    const embed = post.kind === kind ? mediaEmbed(kind, post.mediaUrl) : null;
+    return embed
+      ? [
+          {
+            id: post.id,
+            title: post.title,
+            text: post.text,
+            posted: post.publishedAt
+              ? TIME.format(new Date(post.publishedAt))
+              : null,
+            embed,
+          },
+        ]
+      : [];
+  });
+}
+
 /**
- * Imagery layer links beside the duty forecaster's note. The note comes from
- * the CMS while it is current; otherwise the issued forecast summary stands
- * in. Imagery itself is real data and will come from FastAPI.
+ * The Weather now panel (imagery tabs for FastAPI data; Audio and Video tabs
+ * that play CMS live posts in place) beside a blog column: the duty
+ * forecaster's note and quick updates, all CMS. The column never shows
+ * issued weather data; with no current note it says so.
  */
-export async function WeatherNow({
-  forecasterNote,
-}: {
-  forecasterNote: string;
-}) {
+export async function WeatherNow() {
   if (await isSectionHidden("weather-now")) return null;
-  const { weatherNow } = await fetchHomeContent();
+  const { weatherNow, livePosts, settings } = await fetchHomeContent();
+  const updates = livePosts.posts.filter((post) => post.kind === "update");
   const note = weatherNow?.note;
+  const words = sectionWords(settings, "weather-now", {
+    kicker: "Live",
+    title: "Weather now",
+  });
 
   return (
     <HomeSection
-      kicker="Live"
+      {...words}
       link={{ href: "/weather/map", label: "Open interactive map" }}
-      title="Weather now"
       tone="surface"
     >
       <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <div className="flex flex-col overflow-hidden rounded-gm-card bg-gm-navy text-gm-text-inverse">
-          <div className="flex gap-1 overflow-x-auto p-2">
-            {LAYERS.map(({ href, title, Icon }) => (
-              <Link
-                className="flex items-center gap-1.5 whitespace-nowrap rounded-md px-3 py-2 font-semibold text-body leading-body hover:bg-gm-text-inverse/10"
-                href={href}
-                key={href}
-              >
-                <Icon aria-hidden="true" className="size-4" />
-                {title}
-              </Link>
-            ))}
-          </div>
-          <div className="flex aspect-16/10 flex-col items-center justify-center gap-2 bg-gm-navy-raised p-6 text-center">
-            <p className="font-bold font-gm-display text-heading-md uppercase leading-heading-md tracking-wide">
-              Interactive map coming soon
-            </p>
-            <p className="max-w-sm text-body text-gm-text-inverse/80 leading-body">
-              Satellite, radar, rainfall, lightning and wind on one map of the
-              southern Windwards. Until then, open each layer above.
-            </p>
-          </div>
-        </div>
+        <WeatherNowPanel
+          audio={mediaItems(livePosts.posts, "audio")}
+          video={mediaItems(livePosts.posts, "video")}
+        />
         <div className="flex flex-col gap-3 border-gm-sky border-l-3 pl-4">
           <p className="font-bold text-gm-text-muted text-label uppercase leading-label tracking-wider">
             From the duty forecaster
@@ -76,7 +96,7 @@ export async function WeatherNow({
             )}
           </p>
           <p className="text-body-base leading-body-base">
-            {note?.text ?? forecasterNote}
+            {note?.text ?? "No note from the duty forecaster right now."}
           </p>
           {note?.alertUrl && (
             <a
@@ -87,13 +107,18 @@ export async function WeatherNow({
               <ArrowRightIcon aria-hidden="true" className="size-4" />
             </a>
           )}
-          <Link
-            className="flex items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body hover:underline"
-            href="/weather/synopsis"
-          >
-            Read the weather synopsis
-            <ArrowRightIcon aria-hidden="true" className="size-4" />
-          </Link>
+          {updates.length > 0 && (
+            <section aria-label="Live from GMS" className="mt-2">
+              <h3 className="mb-1 font-bold text-gm-text-muted text-label uppercase leading-label tracking-wider">
+                Live from GMS
+              </h3>
+              <ul className="flex flex-col gap-3">
+                {updates.map((post) => (
+                  <UpdateItem key={post.id} post={post} />
+                ))}
+              </ul>
+            </section>
+          )}
         </div>
       </div>
     </HomeSection>

@@ -90,22 +90,63 @@ async def list_published_products(
     )
 
 
+async def get_published_product(
+    session: AsyncSession, product_id: UUID, *, now: datetime | None = None
+) -> tuple[PublishedProduct, bool] | None:
+    """The published snapshot and whether it is current; None when withdrawn."""
+    row = (
+        await session.execute(
+            text(
+                "SELECT published FROM authored_products "
+                "WHERE id = :id AND published IS NOT NULL"
+            ),
+            {"id": product_id},
+        )
+    ).scalar_one_or_none()
+    if row is None:
+        return None
+    try:
+        product = PublishedProductAdapter.validate_python(row)
+    except ValidationError:
+        logger.warning("Ignoring invalid published weather product row")
+        return None
+    instant = now if now is not None else datetime.now(UTC)
+    try:
+        if datetime.fromisoformat(product.publishedAt) > instant:
+            return None
+    except ValueError:
+        return None
+    return product, is_current(product, instant)
+
+
 async def list_authored(
-    session: AsyncSession, kind: ProductKind, issue_date: date
+    session: AsyncSession,
+    kind: ProductKind | None,
+    issue_date: date | None,
+    *,
+    allowed_kinds: list[str] | None = None,
+    limit: int = 100,
+    offset: int = 0,
 ) -> list[AuthoredProduct]:
     issued = AuthoredProduct.draft["values"]["issuedAt"].astext
     from sqlalchemy import func, or_
 
-    statement = (
-        select(AuthoredProduct)
-        .where(
-            AuthoredProduct.kind == kind,
+    statement = select(AuthoredProduct)
+    if allowed_kinds is not None:
+        statement = statement.where(AuthoredProduct.kind.in_(allowed_kinds))
+    if kind is not None:
+        statement = statement.where(AuthoredProduct.kind == kind)
+    if issue_date is not None:
+        statement = statement.where(
             or_(
                 func.coalesce(issued, "") == "",
                 func.left(issued, 10) == issue_date.isoformat(),
             ),
         )
-        .order_by(AuthoredProduct.updated_at.desc())
+    statement = (
+        statement.order_by(AuthoredProduct.updated_at.desc(), AuthoredProduct.id.desc())
+        .limit(limit)
+        .offset(offset)
     )
     return list((await session.execute(statement)).scalars())
 
