@@ -1,9 +1,11 @@
 import {
   type PublicCurrentConditions,
   type PublicForecast,
+  type PublicProductDetail,
   type PublicPublishedProduct,
   publicCurrentConditionsSchema,
   publicForecastSchema,
+  publicProductDetailSchema,
   publishedProductsSchema,
 } from "@barrelsgd/api-client";
 import type { ProductKind } from "@barrelsgd/gms/products";
@@ -49,6 +51,40 @@ export const fetchPublishedProducts = cache(
     }
   }
 );
+
+export type ProductResult =
+  | { status: "ok"; product: PublicProductDetail }
+  | { status: "not-found" }
+  | { status: "unavailable" };
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * One published product by id, for pages and editorial links. Stays readable
+ * after it expires (`current` false); withdrawn or unknown ids are not found.
+ */
+export const fetchPublishedProduct = cache(async function fetchPublishedProduct(
+  id: string
+): Promise<ProductResult> {
+  if (!UUID.test(id)) return { status: "not-found" };
+  try {
+    const response = await fetch(
+      endpoint(`products/${encodeURIComponent(id)}`),
+      requestOptions()
+    );
+    if (response.status === 404) return { status: "not-found" };
+    if (!response.ok) return { status: "unavailable" };
+    const parsed = publicProductDetailSchema.safeParse(await response.json());
+    if (!parsed.success) {
+      reportError(parsed.error, "gms-product-contract");
+      return { status: "unavailable" };
+    }
+    return { status: "ok", product: parsed.data };
+  } catch (error) {
+    reportError(error, "gms-product");
+    return { status: "unavailable" };
+  }
+});
 
 export const fetchPublicForecast = cache(
   async function fetchPublicForecast(): Promise<PublicForecast | null> {

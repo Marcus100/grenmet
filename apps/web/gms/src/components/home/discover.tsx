@@ -13,6 +13,7 @@ import {
   fetchHomeContent,
   isSectionHidden,
   quizHref,
+  sectionWords,
 } from "@/lib/cms";
 import { moonPhase, sunTimes } from "@/lib/sky";
 
@@ -180,8 +181,12 @@ export async function Discover({ now = new Date() }: { now?: Date } = {}) {
     .filter((card): card is Card => Boolean(card))
     .slice(0, 4);
   if (cards.length === 0) return null;
+  const words = sectionWords(settings, "discover", {
+    kicker: "Discover",
+    title: "Sky, history and a little fun",
+  });
   return (
-    <HomeSection kicker="Discover" title="Sky, history and a little fun">
+    <HomeSection tone="surface" {...words}>
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((card) => (
           <li key={card.key}>

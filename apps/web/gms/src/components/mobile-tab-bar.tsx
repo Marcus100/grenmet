@@ -31,6 +31,8 @@ function isCurrent(pathname: string, href: string) {
 
 /**
  * Bottom tab bar on phones: the four things people open most, plus the menu.
+ * Reserved for the GMS app; the website does not mount it (the header's menu
+ * button opens the drawer on phones).
  * The Warnings tab carries a level dot when anything is in effect; the dot
  * always has the status wording beside it for screen readers.
  */

@@ -5,7 +5,11 @@ vi.mock("@/lib/env", () => ({
   env: { AUTH_API_URL: "http://api.example.test", AUTH_API_V1_STR: "/api/v1" },
 }));
 
-import { fetchPublicForecast, fetchPublishedProducts } from "@/lib/products";
+import {
+  fetchPublicForecast,
+  fetchPublishedProduct,
+  fetchPublishedProducts,
+} from "@/lib/products";
 
 function publication() {
   const values = emptyProduct("marine", "2026-09-08");
@@ -97,4 +101,43 @@ it("treats invalid forecast responses and outages as unavailable", async () => {
     vi.fn().mockResolvedValue(new Response(null, { status: 503 }))
   );
   expect(await fetchPublicForecast()).toBeNull();
+});
+
+describe("one published product", () => {
+  const id = "7d517fe0-a25b-4f12-a2b4-eaaed8116010";
+  it("reads it by id, including whether it is still current", async () => {
+    const fetcher = vi
+      .fn()
+      .mockResolvedValue(Response.json({ ...publication(), current: false }));
+    vi.stubGlobal("fetch", fetcher);
+    const result = await fetchPublishedProduct(id);
+    expect(result).toMatchObject({
+      status: "ok",
+      product: { id, current: false },
+    });
+    expect(String(fetcher.mock.calls[0][0])).toBe(
+      `http://api.example.test/api/v1/wxproducts/public/products/${id}`
+    );
+    expect(fetcher.mock.calls[0][1]).toMatchObject({ credentials: "omit" });
+  });
+  it("tells withdrawn apart from unavailable", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(Response.json({ error: "x" }, { status: 404 }))
+    );
+    expect(await fetchPublishedProduct(id)).toEqual({ status: "not-found" });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(Response.json({ error: "x" }, { status: 503 }))
+    );
+    expect(await fetchPublishedProduct(id)).toEqual({ status: "unavailable" });
+  });
+  it("never requests a malformed id", async () => {
+    const fetcher = vi.fn();
+    vi.stubGlobal("fetch", fetcher);
+    expect(await fetchPublishedProduct("../forecast")).toEqual({
+      status: "not-found",
+    });
+    expect(fetcher).not.toHaveBeenCalled();
+  });
 });

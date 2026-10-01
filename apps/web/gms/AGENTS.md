@@ -8,14 +8,28 @@ Port **3003**. Public weather dashboard for Spice Island (Grenada) — daily for
 
 Delegates to `web-auth` (`:3000`) via redirect — does not handle sign-in itself.
 
-## No database
+## Data sources — no database
 
-Static/mock data currently (`src/lib/mock-data.ts`, `src/lib/forecast-data.ts`,
-`src/lib/events.ts`). No Drizzle, no direct DB access. The exception is the live
-CAP warnings feed via `src/lib/cap.ts` — `/alerts`, `/alerts/cyclone`,
-`/alerts/marine`, `/alerts/tsunami` and `/marine/small-craft` render real
-alerts. When that feed is unreachable those pages say so; they must never render
-an empty list as "no alerts in effect".
+No DB access. Two backends, never gaa-admin (it only authors into FastAPI):
+- **FastAPI = weather data** (`AUTH_API_URL` + `AUTH_API_V1_STR`, no cookies):
+  forecast, current conditions, published products (`src/lib/products.ts`,
+  `src/lib/weather-snapshot.ts`); CAP alerts via `CAP_API_URL` (`src/lib/cap.ts`).
+  Types/validators come from `@barrelsgd/api-client`; new data = new FastAPI
+  public endpoint.
+- **Payload CMS = the words around it** (`CMS_API_URL`, `src/lib/cms.ts`):
+  desk updates, stories, questions, quizzes, Discover, weather-now note, home
+  settings, report write-ups, Weather now live posts. The homepage reads CMS
+  content in one call (`fetchHomeContent`). The CMS holds no figures: a post's
+  `linkedProduct` is an id that `components/linked-product.tsx` resolves live via
+  `fetchPublishedProduct`. Live media are click-to-load (`media-player.tsx`,
+  allowlist in `lib/media-embed.ts`).
+- Each home section fetches copy and data separately; either may be unavailable
+  without hiding the other. An unavailable feed says so. It never falls back to
+  sample figures, and alert pages never render an empty list as "no alerts in
+  effect".
+- Static samples remain in `src/lib/forecast-data.ts` (tests/reference),
+  `src/lib/events.ts`, and `src/components/home/sample-sections.tsx`
+  (to be replaced by FastAPI data + CMS copy).
 
 ## Routes
 
@@ -50,6 +64,17 @@ src/app/
   renders `<PlaceholderNotice />` (`compact` inside an otherwise live page).
   Sample figures must never read as an operational product, and sample status
   chips never use hazard colours.
+  Owner exception (30 Sep 2026): the home Explore today and Grenada in data
+  sections carry no notice, and the sky hero fills fields FastAPI does not
+  carry yet from `src/lib/hero-samples.ts` (only inside a real reading or
+  issued day, never during an outage). Delete a sample once FastAPI supplies it.
+- **Home hero:** Now card beside five day tabs (stacked on phones); each tab
+  links to its dated route and the selected day's panel sits inside the hero
+  (`SkyHero selected=`). Readings are icon · value · label rows
+  (`lib/hero-readings.ts`). No provenance chips or issue tabs (owner, 30 Sep
+  2026); a reading over 3 h old still says "Last observed". No other hero
+  tabs (Marine tab removed 30 Sep 2026; marine lives at `/marine`). The website has no bottom tab bar;
+  `MobileTabBar` is kept for the app.
 - **Bold sky:** the sky gradient and `bg-gm-scrim` are for the home hero only;
   see `docs/design/gms.md`.
 - **Locations:** places live in `src/lib/locations.ts`, keyed internally by airport

@@ -4,7 +4,11 @@ import { env } from "@/lib/env";
 import { reportError } from "@/lib/report-error";
 
 /** Editorial only; reports and datasets are FastAPI products. */
-export const CONTENT_COLLECTIONS = ["desk-updates", "stories"] as const;
+export const CONTENT_COLLECTIONS = [
+  "desk-updates",
+  "stories",
+  "report-notes",
+] as const;
 export type ContentCollection = (typeof CONTENT_COLLECTIONS)[number];
 
 const contentSchema = z.object({
@@ -51,6 +55,11 @@ const contentSchema = z.object({
       })
     )
     .max(20)
+    .optional(),
+  /** A FastAPI product whose live figures show beside the post. */
+  linkedProduct: z
+    .object({ productId: z.string(), kind: z.string().nullable() })
+    .nullable()
     .optional(),
 });
 export type PublishedContent = z.infer<typeof contentSchema>;
@@ -286,7 +295,39 @@ export type HomeSectionKey =
   | "stories"
   | "questions"
   | "discover"
-  | "reports";
+  | "reports"
+  | "explore-today"
+  | "grenada-in-data";
+
+/** Editor wording for a home section; figures never come from the CMS. */
+export interface SectionWords {
+  intro?: string;
+  kicker: string;
+  title: string;
+}
+
+const wordsSchema = z.object({
+  kicker: z.string().optional(),
+  title: z.string().optional(),
+  intro: z.string().optional(),
+});
+const livePostSchema = z.object({
+  id: z.string(),
+  kind: z.enum(["update", "video", "audio"]),
+  title: z.string(),
+  text: z.string().nullable(),
+  mediaUrl: z.string().nullable(),
+  publishedAt: z.string().nullable(),
+  expiresAt: z.string().nullable(),
+});
+export type LivePost = z.infer<typeof livePostSchema>;
+
+const readingSchema = z.object({
+  collection: z.enum(["questions", "stories"]),
+  title: z.string(),
+  slug: z.string(),
+});
+export type ExploreReading = z.infer<typeof readingSchema>;
 
 const homeSchema = z.object({
   deskUpdates: partSchema,
@@ -300,17 +341,31 @@ const homeSchema = z.object({
     z.object({ status: z.literal("ok"), items: discoverSchema }),
     z.object({ status: z.literal("unavailable") }),
   ]),
+  // Defaults keep an older CMS response valid.
+  reportNotes: partSchema.default({ status: "unavailable" }),
+  livePosts: z
+    .discriminatedUnion("status", [
+      z.object({ status: z.literal("ok"), items: z.array(livePostSchema) }),
+      z.object({ status: z.literal("unavailable") }),
+    ])
+    .default({ status: "unavailable" }),
   settings: z.object({
     discoverCards: z.array(z.string()),
     hiddenSections: z.array(z.string()),
+    // Defaults keep an older CMS response valid.
+    sectionCopy: z.record(z.string(), wordsSchema).default({}),
+    exploreReading: z.record(z.string(), readingSchema).default({}),
   }),
 });
+type HomeSettings = z.infer<typeof homeSchema>["settings"];
 export interface HomeContent {
   deskUpdates: ContentResult;
   /** Null when unavailable; the automatic sky card still shows. */
   discover: DiscoverContent | null;
+  livePosts: { status: "ok" | "unavailable"; posts: LivePost[] };
   questions: QuestionsResult;
-  settings: { discoverCards: string[]; hiddenSections: string[] };
+  reportNotes: ContentResult;
+  settings: HomeSettings;
   stories: ContentResult;
   /** Null when unavailable; the site then uses the issued summary. */
   weatherNow: WeatherNowContent | null;
@@ -333,7 +388,14 @@ export const fetchHomeContent = cache(
       questions: { status: "unavailable", questions: [] },
       weatherNow: null,
       discover: null,
-      settings: { discoverCards: ALL_DISCOVER_CARDS, hiddenSections: [] },
+      reportNotes: UNAVAILABLE,
+      livePosts: { status: "unavailable", posts: [] },
+      settings: {
+        discoverCards: ALL_DISCOVER_CARDS,
+        hiddenSections: [],
+        sectionCopy: {},
+        exploreReading: {},
+      },
     };
     if (!env.CMS_API_URL) return down;
     try {
@@ -358,6 +420,11 @@ export const fetchHomeContent = cache(
         weatherNow:
           data.weatherNow.status === "ok" ? data.weatherNow.items : null,
         discover: data.discover.status === "ok" ? data.discover.items : null,
+        reportNotes: toResult(data.reportNotes),
+        livePosts:
+          data.livePosts.status === "ok"
+            ? { status: "ok", posts: data.livePosts.items }
+            : { status: "unavailable", posts: [] },
         settings: data.settings,
       };
     } catch (error) {
@@ -373,10 +440,25 @@ export async function isSectionHidden(key: HomeSectionKey): Promise<boolean> {
   return settings.hiddenSections.includes(key);
 }
 
+/** A section's wording: the editor's words where set, else the code's. */
+export function sectionWords(
+  settings: Pick<HomeSettings, "sectionCopy">,
+  key: HomeSectionKey,
+  defaults: SectionWords
+): SectionWords {
+  const words = settings.sectionCopy[key] ?? {};
+  return {
+    kicker: words.kicker || defaults.kicker,
+    title: words.title || defaults.title,
+    intro: words.intro || defaults.intro,
+  };
+}
+
 /** Slug prefix (set by the CMS) and site route for each collection. */
 const ROUTES: Record<ContentCollection, { prefix: string; base: string }> = {
   "desk-updates": { prefix: "updates/", base: "/explore/updates/" },
   stories: { prefix: "stories/", base: "/explore/news/" },
+  "report-notes": { prefix: "reports/", base: "/explore/reports/" },
 };
 
 /** `stories/2026/09/x` → `/explore/news/2026/09/x`, and so on. */

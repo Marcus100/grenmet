@@ -1,29 +1,25 @@
-import type { PublicPublishedProduct } from "@barrelsgd/api-client";
-import { isForecastKind, productTitle } from "@barrelsgd/gms/products";
+import { isProductKind, productTitle } from "@barrelsgd/gms/products";
 import {
   ArrowRightIcon,
   BellIcon,
   ChevronRightIcon,
   FileTextIcon,
-  MailIcon,
-  MessageCircleIcon,
-  RssIcon,
-  ShieldCheckIcon,
   SmartphoneIcon,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { HOME_CARD, HomeSection } from "@/components/home/home-section";
+import { LinkedProduct } from "@/components/linked-product";
 import {
   contentHref,
   fetchHomeContent,
   isOptimizableImage,
   isSectionHidden,
+  type PublishedContent,
   questionHref,
+  sectionWords,
 } from "@/lib/cms";
 import { contentToArticle } from "@/lib/editorial";
-import type { WeatherSnapshot } from "@/lib/forecast-data";
-import { fetchPublishedProducts } from "@/lib/products";
 
 const SHORT_DATE = new Intl.DateTimeFormat("en-GB", {
   timeZone: "America/Grenada",
@@ -57,90 +53,96 @@ function FeedState({
   return children;
 }
 
+/** One desk post in the side list: icon, title, category, date. */
+function DeskListItem({ item }: { item: PublishedContent }) {
+  return (
+    <li className="border-gm-border border-t first:border-t-0">
+      <Link
+        className="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-4 py-3 hover:bg-gm-surface"
+        href={contentHref(item)}
+      >
+        <span className="flex size-9 items-center justify-center rounded-lg bg-gm-surface-panel text-gm-heading">
+          <FileTextIcon aria-hidden="true" className="size-4" />
+        </span>
+        <span className="flex min-w-0 flex-col">
+          <span className="font-semibold text-body text-gm-heading leading-body">
+            {item.title}
+          </span>
+          {item.category && (
+            <span className="text-body-sm text-gm-text-secondary leading-body-sm">
+              {item.category}
+            </span>
+          )}
+        </span>
+        <time
+          className="font-mono text-body-sm text-gm-text-secondary leading-body-sm"
+          dateTime={item.publishedAt ?? item.updatedAt}
+        >
+          {SHORT_DATE.format(new Date(item.publishedAt ?? item.updatedAt))}
+        </time>
+      </Link>
+    </li>
+  );
+}
+
 /**
- * Official products, labelled as such: the issued forecast as a memo, and the
- * latest product updates beside it. Kept visually separate from editorial.
+ * From the Desk: the forecast office blogging about what it issues. Posts are
+ * CMS content; any product a post attaches is read live from FastAPI, so the
+ * section never shows a forecast itself.
  */
-export async function ForecastDesk({ weather }: { weather: WeatherSnapshot }) {
+export async function ForecastDesk() {
   if (await isSectionHidden("desk")) return null;
-  const today = weather.days[0];
-  const { deskUpdates: updates } = await fetchHomeContent();
+  const { deskUpdates: updates, settings } = await fetchHomeContent();
+  const words = sectionWords(settings, "desk", {
+    kicker: "GMS forecast desk",
+    title: "From the Desk",
+  });
+  const [lead, ...rest] = updates.articles;
   return (
     <HomeSection
-      kicker="Official GMS products"
+      {...words}
       link={{ href: "/explore/updates", label: "All desk updates" }}
-      title="From the Desk"
     >
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-        <article className={`${HOME_CARD} flex flex-col gap-3`}>
-          <span className="flex w-fit items-center gap-1.5 rounded bg-gm-surface-panel px-2 py-1 font-bold text-gm-heading text-label uppercase leading-label tracking-wider">
-            <ShieldCheckIcon aria-hidden="true" className="size-4" />
-            Official forecast
-          </span>
-          <h3 className="text-balance font-bold text-gm-heading text-heading-sm leading-heading-sm">
-            {today.title ?? "Today's forecast"}
-          </h3>
-          <p className="max-w-prose text-body-base leading-body-base">
-            {today.summary}
-          </p>
-          <p className="text-body-sm text-gm-text-secondary leading-body-sm">
-            {weather.label}
-          </p>
-          <Link
-            className="flex h-11 w-fit items-center rounded-md bg-gm-navy px-4 font-bold text-body text-gm-text-inverse leading-body"
-            href="/weather/issued"
-          >
-            Issued forecasts
-          </Link>
-        </article>
-
-        <div className="rounded-gm-card border border-gm-border bg-background">
-          <FeedState
-            count={updates.articles.length}
-            empty="No desk updates are published yet."
-            unavailable={
-              updates.status === "unavailable" &&
-              "Desk updates cannot be retrieved right now."
-            }
-          >
-            <ul>
-              {updates.articles.slice(0, 5).map((item) => (
-                <li
-                  className="border-gm-border border-t first:border-t-0"
-                  key={item.id}
-                >
-                  <Link
-                    className="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-4 py-3 hover:bg-gm-surface"
-                    href={contentHref(item)}
-                  >
-                    <span className="flex size-9 items-center justify-center rounded-lg bg-gm-surface-panel text-gm-heading">
-                      <FileTextIcon aria-hidden="true" className="size-4" />
-                    </span>
-                    <span className="flex min-w-0 flex-col">
-                      <span className="font-semibold text-body text-gm-heading leading-body">
-                        {item.title}
-                      </span>
-                      {item.category && (
-                        <span className="text-body-sm text-gm-text-secondary leading-body-sm">
-                          {item.category}
-                        </span>
-                      )}
-                    </span>
-                    <time
-                      className="font-mono text-body-sm text-gm-text-secondary leading-body-sm"
-                      dateTime={item.publishedAt ?? item.updatedAt}
-                    >
-                      {SHORT_DATE.format(
-                        new Date(item.publishedAt ?? item.updatedAt)
-                      )}
-                    </time>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </FeedState>
-        </div>
-      </div>
+      <FeedState
+        count={updates.articles.length}
+        empty="No desk updates are published yet."
+        unavailable={
+          updates.status === "unavailable" &&
+          "Desk updates cannot be retrieved right now."
+        }
+      >
+        {lead && (
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+            <article className={`${HOME_CARD} flex flex-col gap-3`}>
+              {lead.category && (
+                <p className="font-bold text-gm-sky-ink text-label uppercase leading-label tracking-wider">
+                  {lead.category}
+                </p>
+              )}
+              <h3 className="text-balance font-bold text-gm-heading text-heading-sm leading-heading-sm">
+                <Link className="hover:underline" href={contentHref(lead)}>
+                  {lead.title}
+                </Link>
+              </h3>
+              {lead.summary && (
+                <p className="max-w-prose text-body-base leading-body-base">
+                  {lead.summary}
+                </p>
+              )}
+              {lead.linkedProduct && (
+                <LinkedProduct productId={lead.linkedProduct.productId} />
+              )}
+            </article>
+            {rest.length > 0 && (
+              <ul className="rounded-gm-card border border-gm-border bg-background">
+                {rest.slice(0, 4).map((item) => (
+                  <DeskListItem item={item} key={item.id} />
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
+      </FeedState>
     </HomeSection>
   );
 }
@@ -148,14 +150,17 @@ export async function ForecastDesk({ weather }: { weather: WeatherSnapshot }) {
 /** Editorial stories: one lead, the rest in a side column. */
 export async function Stories() {
   if (await isSectionHidden("stories")) return null;
-  const { stories: result } = await fetchHomeContent();
+  const { stories: result, settings } = await fetchHomeContent();
+  const words = sectionWords(settings, "stories", {
+    kicker: "Earth & Weather",
+    title: "Stories from our atmosphere and ocean",
+  });
   const [lead, ...rest] = result.articles.map(contentToArticle);
   return (
     <HomeSection
-      kicker="Earth & Weather"
-      link={{ href: "/explore/news", label: "More stories" }}
-      title="Stories from our atmosphere and ocean"
       tone="surface"
+      {...words}
+      link={{ href: "/explore/news", label: "More stories" }}
     >
       <FeedState
         count={lead ? 1 : 0}
@@ -227,12 +232,15 @@ export async function Stories() {
 /** The questions people ask most, answered in the CMS by GMS. */
 export async function Explained() {
   if (await isSectionHidden("questions")) return null;
-  const { questions } = await fetchHomeContent();
+  const { questions, settings } = await fetchHomeContent();
+  const words = sectionWords(settings, "questions", {
+    kicker: "Explained by GMS",
+    title: "Questions about the weather",
+  });
   return (
     <HomeSection
-      kicker="Explained by GMS"
+      {...words}
       link={{ href: "/explore/explained", label: "All questions" }}
-      title="Questions about the weather"
     >
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <Link
@@ -293,129 +301,123 @@ export async function Explained() {
   );
 }
 
-const CHANNELS = [
-  { label: "WhatsApp", Icon: MessageCircleIcon },
-  { label: "Email", Icon: MailIcon },
-  { label: "CAP & RSS", Icon: RssIcon },
-] as const;
-
-/** Newest current reports first; forecasts have their own sections. */
-export function latestReports(products: PublicPublishedProduct[], limit = 6) {
-  return products
-    .filter((product) => !isForecastKind(product.kind))
-    .sort((a, b) =>
-      (b.values.issuedAt ?? "").localeCompare(a.values.issuedAt ?? "")
-    )
-    .slice(0, limit);
-}
-
 /**
- * Latest reports are issued products from FastAPI (bulletins, outlooks),
- * never CMS content; then the navy "get official alerts first" band.
+ * Latest reports: CMS write-ups, each about one issued report whose live
+ * summary comes from FastAPI. Only written-up reports appear here; every issued
+ * product stays in "All issued products". Then the "get official alerts" band.
  */
-export async function PublicationsAndAlerts() {
-  if (await isSectionHidden("reports"))
-    return (
-      <section
-        aria-label="Get official alerts"
-        className="bg-gm-surface py-8 lg:py-12"
-      >
-        <div className="mx-auto max-w-6xl px-4 sm:px-6 xl:px-8">
-          <AlertsBand className="" />
-        </div>
-      </section>
-    );
-  const result = await fetchPublishedProducts();
-  const reports = latestReports(result.products);
+export async function LatestReports() {
+  if (await isSectionHidden("reports")) return null;
+  const { reportNotes: notes, settings } = await fetchHomeContent();
+  const words = sectionWords(settings, "reports", {
+    kicker: "Official GMS products, explained",
+    title: "Latest reports",
+  });
+  const [lead, ...rest] = notes.articles;
   return (
     <HomeSection
-      kicker="Official GMS products"
+      {...words}
       link={{ href: "/weather/issued", label: "All issued products" }}
-      title="Latest reports"
-      tone="surface"
     >
       <FeedState
-        count={reports.length}
-        empty="No bulletins or outlooks are current."
+        count={notes.articles.length}
+        empty="No report write-ups are published yet."
         unavailable={
-          result.status === "unavailable" &&
-          "Reports cannot be retrieved right now."
+          notes.status === "unavailable" &&
+          "Report write-ups cannot be retrieved right now."
         }
       >
-        <ul className="flex gap-3 overflow-x-auto pb-1">
-          {reports.map((product) => (
-            <li className="w-56 shrink-0" key={product.id}>
-              <Link
-                className={`${HOME_CARD} flex h-full flex-col gap-2 hover:border-gm-blue-ink`}
-                href={`/weather/issued/${product.id}`}
-              >
-                <FileTextIcon
-                  aria-hidden="true"
-                  className="size-5 text-gm-sky-ink"
-                />
-                <span className="font-bold text-body text-gm-heading leading-body">
-                  {productTitle(product.kind)}
-                </span>
-                <span className="text-body-sm text-gm-text-secondary leading-body-sm">
-                  Issued {(product.values.issuedAt ?? "").replace("T", " ")}
-                </span>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        {lead && (
+          <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+            <article className={`${HOME_CARD} flex flex-col gap-3`}>
+              <h3 className="text-balance font-bold text-gm-heading text-heading-sm leading-heading-sm">
+                <Link className="hover:underline" href={contentHref(lead)}>
+                  {lead.title}
+                </Link>
+              </h3>
+              {lead.summary && (
+                <p className="max-w-prose text-body-base leading-body-base">
+                  {lead.summary}
+                </p>
+              )}
+              {lead.linkedProduct && (
+                <LinkedProduct productId={lead.linkedProduct.productId} />
+              )}
+            </article>
+            {rest.length > 0 && (
+              <ul className="flex flex-col gap-3">
+                {rest.slice(0, 5).map((note) => (
+                  <li key={note.id}>
+                    <Link
+                      className={`${HOME_CARD} flex flex-col gap-1 hover:border-gm-blue-ink`}
+                      href={contentHref(note)}
+                    >
+                      {note.linkedProduct?.kind &&
+                        isProductKind(note.linkedProduct.kind) && (
+                          <span className="font-bold text-gm-sky-ink text-label uppercase leading-label tracking-wider">
+                            {productTitle(note.linkedProduct.kind)}
+                          </span>
+                        )}
+                      <span className="font-bold text-body text-gm-heading leading-body">
+                        {note.title}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </FeedState>
-
-      <AlertsBand />
     </HomeSection>
   );
 }
 
-/** The navy "get official alerts first" band; stays even if reports hide. */
-function AlertsBand({ className = "mt-8" }: { className?: string }) {
+/**
+ * A slim navy strip under the sky hero: subscribe to warnings before they are
+ * needed. Live alerts themselves sit above it (header pill, hero takeover).
+ */
+export function GetAlertsStrip() {
   return (
-    <div
-      className={`${className} grid items-center gap-5 rounded-gm-card bg-gm-navy p-6 text-gm-text-inverse lg:grid-cols-[1.3fr_1fr]`}
+    <section
+      aria-labelledby="get-alerts-title"
+      className="bg-background pt-3 pb-4 lg:pt-4 lg:pb-6"
     >
-      <div>
-        <h2 className="font-bold font-gm-display text-gm-display uppercase tracking-wide">
-          Get official alerts first
-        </h2>
-        <p className="mt-2 max-w-prose text-body-base text-gm-text-inverse/85 leading-body-base">
-          The GMS app sends alerts the moment we issue them. Prefer something
-          else? Choose WhatsApp, email or a feed.
-        </p>
-      </div>
-      <div className="flex flex-col gap-3">
-        <Link
-          className="flex h-11 w-fit items-center gap-2 rounded-md bg-gm-lime px-4 font-bold text-body text-gm-navy leading-body"
-          href="/app-guide"
-        >
-          <SmartphoneIcon aria-hidden="true" className="size-4" />
-          Get the GMS app
-        </Link>
-        <ul className="flex flex-wrap gap-2">
-          {CHANNELS.map(({ label, Icon }) => (
-            <li key={label}>
-              <Link
-                className="flex items-center gap-1.5 rounded-full border border-gm-text-inverse/30 px-3 py-1.5 font-semibold text-body-sm leading-body-sm hover:bg-gm-text-inverse/10"
-                href="/alerts/get-alerts"
-              >
-                <Icon aria-hidden="true" className="size-4" />
-                {label}
-              </Link>
-            </li>
-          ))}
-          <li>
+      <div className="mx-auto max-w-6xl px-4 sm:px-6 xl:px-8">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-gm-card bg-gm-navy px-4 py-3 text-gm-text-inverse">
+          <BellIcon
+            aria-hidden="true"
+            className="size-5 shrink-0 text-gm-lime"
+          />
+          <div className="min-w-0 flex-1">
+            <h2
+              className="font-bold text-body-base leading-body-base"
+              id="get-alerts-title"
+            >
+              Get official alerts first
+            </h2>
+            <p className="hidden text-body-sm text-gm-text-inverse/85 leading-body-sm sm:block">
+              The GMS app sends alerts the moment we issue them, or choose
+              WhatsApp, email or a feed.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
             <Link
-              className="flex items-center gap-1.5 rounded-full border border-gm-text-inverse/30 px-3 py-1.5 font-semibold text-body-sm leading-body-sm hover:bg-gm-text-inverse/10"
+              className="flex h-11 items-center gap-2 rounded-md bg-gm-lime px-4 font-bold text-body text-gm-navy leading-body"
+              href="/app-guide"
+            >
+              <SmartphoneIcon aria-hidden="true" className="size-4" />
+              Get the app
+            </Link>
+            <Link
+              className="flex h-11 items-center rounded-md border border-gm-text-inverse/30 px-3 font-semibold text-body-sm leading-body-sm hover:bg-gm-text-inverse/10"
               href="/alerts/get-alerts"
             >
-              <BellIcon aria-hidden="true" className="size-4" />
-              All channels
+              Other channels
             </Link>
-          </li>
-        </ul>
+          </div>
+        </div>
       </div>
-    </div>
+    </section>
   );
 }
