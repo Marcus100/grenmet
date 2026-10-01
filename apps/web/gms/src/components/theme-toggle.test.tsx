@@ -12,6 +12,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 const SYSTEM_DEFAULT = /"theme_mode":"system"/;
+const THEME = /Current theme/;
 
 function renderToggle() {
   // What the boot script leaves on <html> before hydration.
@@ -35,7 +36,7 @@ afterEach(() => {
 });
 
 describe("ThemeToggle", () => {
-  it("starts on Auto and switches the page to dark", async () => {
+  it("is one button that cycles auto → light → dark", async () => {
     vi.stubGlobal(
       "matchMedia",
       vi.fn(() => ({
@@ -45,22 +46,21 @@ describe("ThemeToggle", () => {
       }))
     );
     renderToggle();
-    expect(screen.getByRole("button", { name: "Auto" })).toHaveAttribute(
-      "aria-pressed",
-      "true"
+    expect(screen.getAllByRole("button")).toHaveLength(1);
+    const toggle = () => screen.getByRole("button", { name: THEME });
+    expect(toggle()).toHaveAccessibleName(
+      "Current theme: auto. Click to cycle themes"
     );
 
-    await userEvent.click(screen.getByRole("button", { name: "Dark" }));
-
-    expect(screen.getByRole("button", { name: "Dark" })).toHaveAttribute(
-      "aria-pressed",
-      "true"
+    await userEvent.click(toggle());
+    expect(toggle()).toHaveAccessibleName(
+      "Current theme: light. Click to cycle themes"
     );
+    expect(document.documentElement).not.toHaveClass("dark");
+
+    await userEvent.click(toggle());
     expect(document.documentElement).toHaveClass("dark");
     expect(getClientCookie("theme_mode")).toBe("dark");
-
-    await userEvent.click(screen.getByRole("button", { name: "Light" }));
-    expect(document.documentElement).not.toHaveClass("dark");
   });
 });
 

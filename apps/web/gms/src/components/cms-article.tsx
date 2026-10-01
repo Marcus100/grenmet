@@ -3,12 +3,14 @@ import { ArrowRightIcon } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import ReactMarkdown from "react-markdown";
+import { LinkedProduct } from "@/components/linked-product";
 import { fetchContentBySlug } from "@/lib/cms";
 import { contentToArticle } from "@/lib/editorial";
 
 const SECTIONS = {
   "desk-updates": { title: "From the Desk", href: "/explore/updates" },
   stories: { title: "Stories", href: "/explore/news" },
+  "report-notes": { title: "Latest reports", href: "/explore/reports" },
 } as const;
 
 /** Running text on the type scale: 16/24 body, condensed h2, a readable measure. */
@@ -122,6 +124,9 @@ export async function CmsArticle({ slug }: { slug: string }) {
         </article>
 
         <aside className="flex flex-col gap-4 self-start lg:sticky lg:top-28">
+          {content.linkedProduct && (
+            <LinkedProduct productId={content.linkedProduct.productId} />
+          )}
           <div
             className={`${ASIDE_BOX} border-transparent bg-gm-surface-panel`}
           >

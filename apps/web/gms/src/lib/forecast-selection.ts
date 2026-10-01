@@ -132,6 +132,9 @@ export function weatherFromForecast(forecast: PublicForecast): WeatherSnapshot {
   };
 }
 /** Navigation placeholders during an outage; no forecast selection or sample weather. */
+/** Marks the placeholder days built when no forecast can be retrieved. */
+export const UNAVAILABLE_SOURCE = "Unavailable";
+
 export function unavailableWeather(): WeatherSnapshot {
   const baseDate = new Intl.DateTimeFormat("en-CA", {
     timeZone: "America/Grenada",
@@ -150,7 +153,7 @@ export function unavailableWeather(): WeatherSnapshot {
       condition: "cloudy",
       title: "Forecast unavailable",
       summary: "Weather product information cannot be retrieved right now.",
-      source: "Unavailable",
+      source: UNAVAILABLE_SOURCE,
     };
   });
   return {
