@@ -6,7 +6,6 @@ import {
   capInsertTargets,
   emptyProduct,
   grenadaDate,
-  ISSUE_TIMES,
   isBulletin,
   isComposedForecastField,
   isForecastKind,
@@ -52,6 +51,7 @@ import {
   previewProductAction,
   saveProductAction,
 } from "@/app/(admin)/wxproducts/product-actions";
+import { ProductDeskLayout } from "@/components/wxproducts/product-desk-layout";
 import { ProductPdfPreview } from "@/components/wxproducts/product-pdf-preview";
 import { bulletinExample } from "@/lib/wxproducts/bulletin-examples";
 import { feetHint, nauticalMilesHint, windHint } from "@/lib/wxproducts/units";
@@ -183,18 +183,18 @@ function ProductEditor({
   kind,
   initial,
   issueDate,
-  issueTime,
   onSaved,
   onDirty,
   onBusy,
   disabled,
   controls,
+  archive,
 }: {
+  archive: ReactNode;
   controls: ReactNode;
   kind: ProductKind;
   initial: StoredProduct | null;
   issueDate: string;
-  issueTime: string;
   onSaved: (product: StoredProduct) => void;
   onDirty: (dirty: boolean) => void;
   onBusy: (busy: boolean) => void;
@@ -209,7 +209,7 @@ function ProductEditor({
   const [start] = useState(() =>
     withIssuer(
       kind,
-      initial?.values ?? emptyProduct(kind, issueDate, issueTime),
+      initial?.values ?? emptyProduct(kind, issueDate),
       sessionUser.full_name ?? sessionUser.email
     )
   );
@@ -404,369 +404,375 @@ function ProductEditor({
         }
         return (
           <div className="@container">
-            <div className="grid @4xl:grid-cols-2 items-start gap-5">
-              <Card className="gap-5 p-4 sm:p-6">
-                {controls}
-                <DirtyState dirty={dirty} onDirty={onDirty} />
-                <AlertDialog onOpenChange={setWithdrawOpen} open={withdrawOpen}>
-                  <AlertDialogContent>
-                    <AlertDialogTitle>Withdraw publication?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This removes the published product from GMS. Its revision
-                      history remains. If this had an escalated CAP Alert,
-                      cancel it separately in CAP Admin — withdrawing here does
-                      not do that automatically.
-                    </AlertDialogDescription>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        disabled={pending}
-                        onClick={() => {
-                          setWithdrawOpen(false);
-                          submit(values, "withdraw");
-                        }}
-                      >
-                        Confirm withdrawal
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-                <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <Badge variant="outline">
-                      {revision ? `Revision ${revision}` : "New draft"}
-                    </Badge>
-                    {publishedRevision ? (
-                      <Badge variant="light-success">
-                        Published r{publishedRevision}
-                      </Badge>
-                    ) : (
-                      <Badge variant="outline">Not published</Badge>
-                    )}
-                    {dirty ? (
-                      <Badge variant="light-warning">Unsaved changes</Badge>
-                    ) : null}
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {isBulletin(kind) && revision === 0 ? (
-                      <Button
-                        onClick={() => {
-                          replaceValues(bulletinExample(kind, issueDate));
-                          setMessage(
-                            "Illustrative draft loaded. Replace the example wording and review before issuing."
-                          );
-                        }}
-                        type="button"
-                        variant="outline"
-                      >
-                        Load example draft
-                      </Button>
-                    ) : null}
-                    {capInsertTargets(kind).length ? (
-                      <CapForecastPicker
-                        disabled={pending || disabled}
-                        onInsert={(target, text) => {
-                          const appended = [values[target], text]
-                            .filter(Boolean)
-                            .join("\n\n");
-                          if (appended.length > 12_000)
-                            throw new Error(
-                              "This would exceed the forecast field limit. Select less text or shorten the existing forecast."
-                            );
-                          form.setFieldValue(target, appended);
-                          setReviewed(false);
-                          setPreview(null);
-                        }}
-                        targets={capInsertTargets(kind)}
-                      />
-                    ) : null}
-                  </div>
-                </div>
-                <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
-                  <dt className="text-muted-foreground">Forecaster</dt>
-                  <dd>{values.forecaster}</dd>
-                  {isForecastKind(kind) ? (
-                    <>
-                      <dt className="text-muted-foreground">Area</dt>
-                      <dd>{values.area}</dd>
-                      <dt className="text-muted-foreground">Issued</dt>
-                      <dd>
-                        {formatComputedValue(
-                          values.issuedAt ?? "",
-                          "datetime-local"
-                        )}
-                      </dd>
-                      <dt className="text-muted-foreground">Valid</dt>
-                      <dd>
-                        {formatComputedValue(
-                          values.validFrom ?? "",
-                          "datetime-local"
-                        )}{" "}
-                        –{" "}
-                        {formatComputedValue(
-                          values.validTo ?? "",
-                          "datetime-local"
-                        )}
-                        {values.validity ? (
-                          <span className="block text-muted-foreground">
-                            {values.validity}
-                          </span>
-                        ) : null}
-                      </dd>
-                    </>
-                  ) : null}
-                </dl>
-                {message ? (
-                  <p
-                    className="whitespace-pre-wrap rounded-lg border p-4 text-sm"
-                    role="status"
+            <ProductDeskLayout
+              archive={archive}
+              editor={
+                <Card className="gap-5 p-4 sm:p-6">
+                  {controls}
+                  <DirtyState dirty={dirty} onDirty={onDirty} />
+                  <AlertDialog
+                    onOpenChange={setWithdrawOpen}
+                    open={withdrawOpen}
                   >
-                    {message}
-                  </p>
-                ) : null}
-                <form
-                  className="space-y-4"
-                  onSubmit={(event) => {
-                    event.preventDefault();
-                    submit(values, "draft");
-                  }}
-                >
-                  <fieldset
-                    className="space-y-4"
-                    disabled={pending || disabled}
-                  >
-                    {sections.map((section) => {
-                      const { group, prefix } = sectionParts(section);
-                      const k = (name: string) => parameterKey(prefix, name);
-                      const rows = tideRows[prefix] ?? 1;
-                      return (
-                        <section
-                          className="@container space-y-4 rounded-lg border p-4"
-                          key={section}
+                    <AlertDialogContent>
+                      <AlertDialogTitle>Withdraw publication?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        This removes the published product from GMS. Its
+                        revision history remains. If this had an escalated CAP
+                        Alert, cancel it separately in CAP Admin — withdrawing
+                        here does not do that automatically.
+                      </AlertDialogDescription>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction
+                          disabled={pending}
+                          onClick={() => {
+                            setWithdrawOpen(false);
+                            submit(values, "withdraw");
+                          }}
                         >
-                          <h2 className="font-medium">
-                            {section}
-                            {DAY_SECTION.test(section) &&
-                            values[`day${section.slice(4)}Date`] ? (
-                              <span className="font-normal text-muted-foreground">
-                                {" · "}
-                                {formatComputedValue(
-                                  values[`day${section.slice(4)}Date`],
-                                  "date"
-                                )}
-                              </span>
-                            ) : null}
-                          </h2>
-                          <div className="flex flex-wrap items-end gap-4">
-                            {group === "Tides" ? (
-                              <div className="flex basis-full flex-col gap-3">
-                                {TIDE_SLOTS.slice(0, rows).map((n) => (
-                                  <div
-                                    className="flex flex-wrap items-end gap-3"
-                                    key={n}
-                                  >
-                                    {fields
-                                      .filter((f) =>
-                                        f.key.startsWith(k(`tide${n}`))
-                                      )
-                                      .map(renderField)}
-                                    <Button
-                                      aria-label={`Remove tide ${n}${prefix ? ` (${section.split(" · ")[0]})` : ""}`}
-                                      onClick={() => removeTide(prefix, n)}
-                                      size="icon"
-                                      type="button"
-                                      variant="ghost"
-                                    >
-                                      <X />
-                                    </Button>
-                                  </div>
-                                ))}
-                                {rows < TIDE_SLOTS.length ? (
-                                  <Button
-                                    className="w-fit"
-                                    onClick={() =>
-                                      setTideRows((r) => ({
-                                        ...r,
-                                        [prefix]: rows + 1,
-                                      }))
-                                    }
-                                    size="sm"
-                                    type="button"
-                                    variant="outline"
-                                  >
-                                    <Plus data-icon="inline-start" />
-                                    Add tide
-                                  </Button>
-                                ) : null}
-                              </div>
-                            ) : (
-                              fields
-                                .filter((f) => f.section === section)
-                                .map(renderField)
-                            )}
-                          </div>
-                          {group === "Wind" &&
-                          windHint(
-                            values[k("windSpeedMin")],
-                            values[k("windSpeedMax")],
-                            values[k("windGust")]
-                          ) ? (
-                            <p className="text-muted-foreground text-xs">
-                              {windHint(
-                                values[k("windSpeedMin")],
-                                values[k("windSpeedMax")],
-                                values[k("windGust")]
-                              )}
-                            </p>
-                          ) : null}
-                          {group === "Marine" &&
-                          feetHint(
-                            values[k("waveHeightMin")],
-                            values[k("waveHeightMax")]
-                          ) ? (
-                            <p className="text-muted-foreground text-xs">
-                              Waves{" "}
-                              {feetHint(
-                                values[k("waveHeightMin")],
-                                values[k("waveHeightMax")]
-                              )}
-                              {values[k("swellHeight")]
-                                ? ` · swell ${feetHint(values[k("swellHeight")])}`
-                                : ""}
-                            </p>
-                          ) : null}
-                          {group === "Visibility" &&
-                          nauticalMilesHint(
-                            values[k("visibilityMin")],
-                            values[k("visibilityMax")]
-                          ) ? (
-                            <p className="text-muted-foreground text-xs">
-                              {nauticalMilesHint(
-                                values[k("visibilityMin")],
-                                values[k("visibilityMax")]
-                              )}
-                            </p>
-                          ) : null}
-                          {legacyNote(section, values)}
-                        </section>
-                      );
-                    })}
-                    <p className="text-muted-foreground text-sm">
-                      * Required to publish. All issue and validity times use
-                      Grenada time (UTC−04:00).
-                      {isForecastKind(kind)
-                        ? " Coverage is calculated from the selected issue date. Early publications appear at their scheduled issue time. Warnings are supplied separately through CAP."
-                        : ""}
-                    </p>
-                    <Field>
-                      <FieldLabel htmlFor="change-summary">
-                        Issue / revision note
-                      </FieldLabel>
-                      <Textarea
-                        id="change-summary"
-                        maxLength={1000}
-                        onChange={(e) => setChangeSummary(e.target.value)}
-                        value={changeSummary}
-                      />
-                    </Field>
-                    <div className="flex flex-wrap gap-3">
-                      <Button type="submit">Save draft</Button>
-                      <Button
-                        onClick={() => review(values)}
-                        type="button"
-                        variant="outline"
-                      >
-                        Validate and preview
-                      </Button>
+                          Confirm withdrawal
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <Badge variant="outline">
+                        {revision ? `Revision ${revision}` : "New draft"}
+                      </Badge>
                       {publishedRevision ? (
+                        <Badge variant="light-success">
+                          Published r{publishedRevision}
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline">Not published</Badge>
+                      )}
+                      {dirty ? (
+                        <Badge variant="light-warning">Unsaved changes</Badge>
+                      ) : null}
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {isBulletin(kind) && revision === 0 ? (
                         <Button
                           onClick={() => {
-                            if (!changeSummary.trim()) {
-                              setMessage(
-                                "Explain the withdrawal in the revision note."
-                              );
-                              return;
-                            }
-                            setWithdrawOpen(true);
+                            replaceValues(bulletinExample(kind, issueDate));
+                            setMessage(
+                              "Illustrative draft loaded. Replace the example wording and review before issuing."
+                            );
                           }}
                           type="button"
                           variant="outline"
                         >
-                          Withdraw publication
+                          Load example draft
                         </Button>
                       ) : null}
+                      {capInsertTargets(kind).length ? (
+                        <CapForecastPicker
+                          disabled={pending || disabled}
+                          onInsert={(target, text) => {
+                            const appended = [values[target], text]
+                              .filter(Boolean)
+                              .join("\n\n");
+                            if (appended.length > 12_000)
+                              throw new Error(
+                                "This would exceed the forecast field limit. Select less text or shorten the existing forecast."
+                              );
+                            form.setFieldValue(target, appended);
+                            setReviewed(false);
+                            setPreview(null);
+                          }}
+                          targets={capInsertTargets(kind)}
+                        />
+                      ) : null}
                     </div>
-                  </fieldset>
-                </form>
-                {previewCurrent && preview ? (
-                  <section
-                    aria-label="Publication preview"
-                    className="space-y-5 rounded-lg border p-5"
-                  >
-                    <p className="font-semibold text-sm">
-                      Review before publication
-                    </p>
-                    <ProductContentView content={{ kind, values: preview }} />
-                    <label className="flex items-start gap-3 text-sm">
-                      <input
-                        checked={reviewed}
-                        disabled={pending}
-                        onChange={(e) => setReviewed(e.target.checked)}
-                        type="checkbox"
-                      />
-                      I have checked the content, affected areas and validity
-                      times and authorize publication.
-                    </label>
-                    <Button
-                      disabled={!reviewed || pending}
-                      onClick={() => submit(preview, "publish")}
-                      type="button"
-                    >
-                      Publish to GMS
-                    </Button>
-                  </section>
-                ) : null}
-                {revision ? (
-                  <section className="space-y-3">
-                    <Button
-                      disabled={pending}
-                      onClick={() =>
-                        startTransition(async () => {
-                          const result = await loadProductHistoryAction(id);
-                          if (result.ok) setHistory(result.history);
-                          else setMessage(result.error);
-                        })
-                      }
-                      type="button"
-                      variant="outline"
-                    >
-                      View revision history
-                    </Button>
-                    <ul className="space-y-2">
-                      {history.map((item) => (
-                        <li
-                          className="rounded-lg border p-3 text-sm"
-                          key={item.revision}
-                        >
-                          Revision {item.revision} · {item.action} ·{" "}
-                          {item.actorName} · {item.createdAt}
-                          {item.changeSummary ? (
-                            <p>{item.changeSummary}</p>
+                  </div>
+                  <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
+                    <dt className="text-muted-foreground">Forecaster</dt>
+                    <dd>{values.forecaster}</dd>
+                    {isForecastKind(kind) ? (
+                      <>
+                        <dt className="text-muted-foreground">Area</dt>
+                        <dd>{values.area}</dd>
+                        <dt className="text-muted-foreground">Issued</dt>
+                        <dd>
+                          {formatComputedValue(
+                            values.issuedAt ?? "",
+                            "datetime-local"
+                          )}
+                        </dd>
+                        <dt className="text-muted-foreground">Valid</dt>
+                        <dd>
+                          {formatComputedValue(
+                            values.validFrom ?? "",
+                            "datetime-local"
+                          )}{" "}
+                          –{" "}
+                          {formatComputedValue(
+                            values.validTo ?? "",
+                            "datetime-local"
+                          )}
+                          {values.validity ? (
+                            <span className="block text-muted-foreground">
+                              {values.validity}
+                            </span>
                           ) : null}
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
-                ) : null}
-              </Card>
-              <aside className="@4xl:sticky @4xl:top-4 min-w-0">
+                        </dd>
+                      </>
+                    ) : null}
+                  </dl>
+                  {message ? (
+                    <p
+                      className="whitespace-pre-wrap rounded-lg border p-4 text-sm"
+                      role="status"
+                    >
+                      {message}
+                    </p>
+                  ) : null}
+                  <form
+                    className="space-y-4"
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      submit(values, "draft");
+                    }}
+                  >
+                    <fieldset
+                      className="space-y-4"
+                      disabled={pending || disabled}
+                    >
+                      {sections.map((section) => {
+                        const { group, prefix } = sectionParts(section);
+                        const k = (name: string) => parameterKey(prefix, name);
+                        const rows = tideRows[prefix] ?? 1;
+                        return (
+                          <section
+                            className="@container space-y-4 rounded-lg border p-4"
+                            key={section}
+                          >
+                            <h2 className="font-medium">
+                              {section}
+                              {DAY_SECTION.test(section) &&
+                              values[`day${section.slice(4)}Date`] ? (
+                                <span className="font-normal text-muted-foreground">
+                                  {" · "}
+                                  {formatComputedValue(
+                                    values[`day${section.slice(4)}Date`],
+                                    "date"
+                                  )}
+                                </span>
+                              ) : null}
+                            </h2>
+                            <div className="flex flex-wrap items-end gap-4">
+                              {group === "Tides" ? (
+                                <div className="flex basis-full flex-col gap-3">
+                                  {TIDE_SLOTS.slice(0, rows).map((n) => (
+                                    <div
+                                      className="flex flex-wrap items-end gap-3"
+                                      key={n}
+                                    >
+                                      {fields
+                                        .filter((f) =>
+                                          f.key.startsWith(k(`tide${n}`))
+                                        )
+                                        .map(renderField)}
+                                      <Button
+                                        aria-label={`Remove tide ${n}${prefix ? ` (${section.split(" · ")[0]})` : ""}`}
+                                        onClick={() => removeTide(prefix, n)}
+                                        size="icon"
+                                        type="button"
+                                        variant="ghost"
+                                      >
+                                        <X />
+                                      </Button>
+                                    </div>
+                                  ))}
+                                  {rows < TIDE_SLOTS.length ? (
+                                    <Button
+                                      className="w-fit"
+                                      onClick={() =>
+                                        setTideRows((r) => ({
+                                          ...r,
+                                          [prefix]: rows + 1,
+                                        }))
+                                      }
+                                      size="sm"
+                                      type="button"
+                                      variant="outline"
+                                    >
+                                      <Plus data-icon="inline-start" />
+                                      Add tide
+                                    </Button>
+                                  ) : null}
+                                </div>
+                              ) : (
+                                fields
+                                  .filter((f) => f.section === section)
+                                  .map(renderField)
+                              )}
+                            </div>
+                            {group === "Wind" &&
+                            windHint(
+                              values[k("windSpeedMin")],
+                              values[k("windSpeedMax")],
+                              values[k("windGust")]
+                            ) ? (
+                              <p className="text-muted-foreground text-xs">
+                                {windHint(
+                                  values[k("windSpeedMin")],
+                                  values[k("windSpeedMax")],
+                                  values[k("windGust")]
+                                )}
+                              </p>
+                            ) : null}
+                            {group === "Marine" &&
+                            feetHint(
+                              values[k("waveHeightMin")],
+                              values[k("waveHeightMax")]
+                            ) ? (
+                              <p className="text-muted-foreground text-xs">
+                                Waves{" "}
+                                {feetHint(
+                                  values[k("waveHeightMin")],
+                                  values[k("waveHeightMax")]
+                                )}
+                                {values[k("swellHeight")]
+                                  ? ` · swell ${feetHint(values[k("swellHeight")])}`
+                                  : ""}
+                              </p>
+                            ) : null}
+                            {group === "Visibility" &&
+                            nauticalMilesHint(
+                              values[k("visibilityMin")],
+                              values[k("visibilityMax")]
+                            ) ? (
+                              <p className="text-muted-foreground text-xs">
+                                {nauticalMilesHint(
+                                  values[k("visibilityMin")],
+                                  values[k("visibilityMax")]
+                                )}
+                              </p>
+                            ) : null}
+                            {legacyNote(section, values)}
+                          </section>
+                        );
+                      })}
+                      <p className="text-muted-foreground text-sm">
+                        * Required to publish. All issue and validity times use
+                        Grenada time (UTC−04:00).
+                        {isForecastKind(kind)
+                          ? " Coverage is calculated from the selected issue date. Early publications appear at their scheduled issue time. Warnings are supplied separately through CAP."
+                          : ""}
+                      </p>
+                      <Field>
+                        <FieldLabel htmlFor="change-summary">
+                          Issue / revision note
+                        </FieldLabel>
+                        <Textarea
+                          id="change-summary"
+                          maxLength={1000}
+                          onChange={(e) => setChangeSummary(e.target.value)}
+                          value={changeSummary}
+                        />
+                      </Field>
+                      <div className="flex flex-wrap gap-3">
+                        <Button type="submit">Save draft</Button>
+                        <Button
+                          onClick={() => review(values)}
+                          type="button"
+                          variant="outline"
+                        >
+                          Validate and preview
+                        </Button>
+                        {publishedRevision ? (
+                          <Button
+                            onClick={() => {
+                              if (!changeSummary.trim()) {
+                                setMessage(
+                                  "Explain the withdrawal in the revision note."
+                                );
+                                return;
+                              }
+                              setWithdrawOpen(true);
+                            }}
+                            type="button"
+                            variant="outline"
+                          >
+                            Withdraw publication
+                          </Button>
+                        ) : null}
+                      </div>
+                    </fieldset>
+                  </form>
+                  {previewCurrent && preview ? (
+                    <section
+                      aria-label="Publication preview"
+                      className="space-y-5 rounded-lg border p-5"
+                    >
+                      <p className="font-semibold text-sm">
+                        Review before publication
+                      </p>
+                      <ProductContentView content={{ kind, values: preview }} />
+                      <label className="flex items-start gap-3 text-sm">
+                        <input
+                          checked={reviewed}
+                          disabled={pending}
+                          onChange={(e) => setReviewed(e.target.checked)}
+                          type="checkbox"
+                        />
+                        I have checked the content, affected areas and validity
+                        times and authorize publication.
+                      </label>
+                      <Button
+                        disabled={!reviewed || pending}
+                        onClick={() => submit(preview, "publish")}
+                        type="button"
+                      >
+                        Publish to GMS
+                      </Button>
+                    </section>
+                  ) : null}
+                  {revision ? (
+                    <section className="space-y-3">
+                      <Button
+                        disabled={pending}
+                        onClick={() =>
+                          startTransition(async () => {
+                            const result = await loadProductHistoryAction(id);
+                            if (result.ok) setHistory(result.history);
+                            else setMessage(result.error);
+                          })
+                        }
+                        type="button"
+                        variant="outline"
+                      >
+                        View revision history
+                      </Button>
+                      <ul className="space-y-2">
+                        {history.map((item) => (
+                          <li
+                            className="rounded-lg border p-3 text-sm"
+                            key={item.revision}
+                          >
+                            Revision {item.revision} · {item.action} ·{" "}
+                            {item.actorName} · {item.createdAt}
+                            {item.changeSummary ? (
+                              <p>{item.changeSummary}</p>
+                            ) : null}
+                          </li>
+                        ))}
+                      </ul>
+                    </section>
+                  ) : null}
+                </Card>
+              }
+              preview={
                 <ProductPdfPreview
                   content={{ kind, values }}
                   dirty={dirty}
                   saved={{ id, revision, publishedRevision }}
                 />
-              </aside>
-            </div>
+              }
+            />
           </div>
         );
       }}
@@ -803,10 +809,6 @@ export function ProductDesk({
   initialKind?: ProductKind;
 }) {
   const [kind, setKind] = useState(initialKind ?? kinds[0]);
-  const [issueDate, setIssueDate] = useState(grenadaDate);
-  const [issueTime, setIssueTime] = useState(
-    ISSUE_TIMES[initialKind ?? kinds[0]]?.[0] ?? ""
-  );
   const [discard, setDiscard] = useState<(() => void) | null>(null);
   const [products, setProducts] = useState<StoredProduct[]>([]);
   const [selected, setSelected] = useState<StoredProduct | null>(null);
@@ -816,12 +818,14 @@ export function ProductDesk({
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [reload, setReload] = useState(0);
+  const [archivePage, setArchivePage] = useState(0);
+  const deskKinds = kinds.includes(kind) ? kinds : [...kinds, kind];
   useEffect(() => {
     if (reload < 0) return;
     let active = true;
     setLoading(true);
     setLoadError("");
-    loadProductsAction(kind, issueDate)
+    loadProductsAction(undefined, undefined, archivePage * 50)
       .then((result) => {
         if (!active) return;
         if (result.ok) setProducts(result.products);
@@ -840,7 +844,7 @@ export function ProductDesk({
     return () => {
       active = false;
     };
-  }, [kind, issueDate, reload]);
+  }, [archivePage, reload]);
   function leave(action: () => void) {
     if (saving) return;
     if (dirty) setDiscard(() => action);
@@ -880,129 +884,75 @@ export function ProductDesk({
         </AlertDialogContent>
       </AlertDialog>
       <ProductEditor
+        archive={
+          <ProductList
+            error={loadError}
+            loading={loading}
+            onNew={() => {
+              leave(() => {
+                setSelected(null);
+                setDirty(false);
+                setEditorKey((key) => key + 1);
+              });
+            }}
+            onPageChange={setArchivePage}
+            onRetry={() => setReload((value) => value + 1)}
+            onSelect={(product) => {
+              leave(() => {
+                setKind(product.kind);
+                setSelected(product);
+                setDirty(false);
+                setEditorKey((key) => key + 1);
+              });
+            }}
+            page={archivePage}
+            productKind={kind}
+            products={products}
+            selectedId={selected?.id}
+          />
+        }
         controls={
-          <>
-            {kinds.length > 1 ? (
-              <Tabs
-                onValueChange={(value) => {
-                  const next = value as ProductKind;
-                  if (next === kind) return;
-                  leave(() => {
-                    setKind(next);
-                    setIssueTime(ISSUE_TIMES[next]?.[0] ?? "");
-                    setSelected(null);
-                    setDirty(false);
-                    setEditorKey((key) => key + 1);
-                  });
-                }}
-                value={kind}
-              >
-                <TabsList className="h-9 w-full justify-start overflow-x-auto rounded-lg bg-foreground/5 p-1 sm:justify-center">
-                  {kinds.map((value) => (
-                    <TabsTrigger
-                      className="font-normal text-muted-foreground data-active:text-foreground"
-                      key={value}
-                      value={value}
-                    >
-                      {isForecastKind(value)
-                        ? value[0].toUpperCase() + value.slice(1)
-                        : productTitle(value)}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-              </Tabs>
-            ) : null}
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field>
-                <FieldLabel htmlFor="desk-date">
-                  Forecast / issue date
-                </FieldLabel>
-                <Input
-                  id="desk-date"
-                  onChange={(event) => {
-                    const date = event.target.value;
-                    if (!date) return;
-                    leave(() => {
-                      setIssueDate(date);
-                      setSelected(null);
-                      setDirty(false);
-                      setEditorKey((key) => key + 1);
-                    });
-                  }}
-                  type="date"
-                  value={issueDate}
-                />
-              </Field>
-              {ISSUE_TIMES[kind] ? (
-                <Field>
-                  <FieldLabel htmlFor="desk-time">
-                    Scheduled issue (Grenada time)
-                  </FieldLabel>
-                  <Select
-                    onValueChange={(value) => {
-                      if (!value) return;
-                      leave(() => {
-                        setIssueTime(value);
-                        setSelected(null);
-                        setDirty(false);
-                        setEditorKey((key) => key + 1);
-                      });
-                    }}
-                    value={issueTime}
-                  >
-                    <SelectTrigger id="desk-time">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {ISSUE_TIMES[kind]?.map((time) => (
-                        <SelectItem key={time} value={time}>
-                          {time}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-              ) : null}
-            </div>
-            <ProductList
-              error={loadError}
-              issueDate={issueDate}
-              loading={loading}
-              onNew={() => {
+          deskKinds.length > 1 ? (
+            <Tabs
+              onValueChange={(value) => {
+                const next = value as ProductKind;
+                if (next === kind) return;
                 leave(() => {
+                  setKind(next);
                   setSelected(null);
                   setDirty(false);
                   setEditorKey((key) => key + 1);
                 });
               }}
-              onRetry={() => setReload((value) => value + 1)}
-              onSelect={(product) => {
-                leave(() => {
-                  setSelected(product);
-                  setDirty(false);
-                  setEditorKey((key) => key + 1);
-                });
-              }}
-              productKind={kind}
-              products={products}
-              selectedId={selected?.id}
-            />
-          </>
+              value={kind}
+            >
+              <TabsList className="h-9 w-full justify-start overflow-x-auto rounded-lg bg-foreground/5 p-1 sm:justify-center">
+                {deskKinds.map((value) => (
+                  <TabsTrigger
+                    className="font-normal text-muted-foreground data-active:text-foreground"
+                    key={value}
+                    value={value}
+                  >
+                    {isForecastKind(value)
+                      ? value[0].toUpperCase() + value.slice(1)
+                      : productTitle(value)}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+          ) : null
         }
         disabled={loading}
         initial={selected}
-        issueDate={issueDate}
-        issueTime={issueTime}
+        issueDate={grenadaDate()}
         key={`${kind}-${editorKey}`}
         kind={kind}
         onBusy={setSaving}
         onDirty={setDirty}
-        onSaved={(product) =>
-          setProducts((items) => [
-            product,
-            ...items.filter((item) => item.id !== product.id),
-          ])
-        }
+        onSaved={() => {
+          setArchivePage(0);
+          setReload((value) => value + 1);
+        }}
       />
     </div>
   );
