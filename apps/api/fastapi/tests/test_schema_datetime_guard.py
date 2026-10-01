@@ -121,6 +121,7 @@ MAP_TYPE_EXEMPTIONS = {
     "src.wxproducts.schemas.LegacyStoredProduct.values": "frozen legacy product payload",
     "src.wxproducts.schemas.ProductPdfSourceBase[dict[str, str]].values": "frozen legacy product payload",
     "src.wxproducts.schemas.ProductPreviewBase[dict[str, str]].values": "frozen legacy product payload",
+    "src.wxproducts.schemas.PublicProductDetail.values": "frozen anonymous product feed contract",
     "src.wxproducts.schemas.PublicPublishedProduct.values": "frozen anonymous product feed contract",
     "src.wxproducts.schemas.PublishedProductBase[dict[str, str]].values": "frozen legacy product payload",
     "src.wxproducts.schemas.StoredProductBase[dict[str, str]].values": "frozen legacy product payload",
