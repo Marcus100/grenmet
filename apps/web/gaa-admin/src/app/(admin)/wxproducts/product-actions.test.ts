@@ -86,6 +86,17 @@ it("rejects invalid inputs without a request", async () => {
   expect(fetcher).not.toHaveBeenCalled();
 });
 
+it("requests an archive page without kind or date restrictions", async () => {
+  fetcher.mockResolvedValueOnce(Response.json({ products: [] }));
+  expect(await loadProductsAction(undefined, undefined, 50)).toEqual({
+    ok: true,
+    products: [],
+  });
+  expect(fetcher.mock.calls[0][0]).toBe(
+    "/_backend/weather/products?limit=50&offset=50"
+  );
+});
+
 it("previews through FastAPI and preserves normalized values and errors", async () => {
   const preview = {
     kind: "morning",
