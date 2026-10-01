@@ -250,7 +250,7 @@ test("staging and production pass integrations to the intended services", () => 
       );
       assert.equal(
         model.services["web-gms"].environment.WXPRODUCTS_API_URL,
-        "http://web-admin:3001"
+        undefined
       );
       assert.equal(
         model.services["web-auth"].environment.EMAIL_RENDER_SECRET,

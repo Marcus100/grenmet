@@ -411,8 +411,8 @@ these through GitHub environment settings before claiming those integrations
 are connected. Datadog logging hooks alone do not establish an APM connection;
 a collector/agent is not configured by this release.
 
-GMS local authored-product rendering requires `WXPRODUCTS_API_URL` in its typed
-server environment. Publication authorization is configured through the
+GMS reads forecasts, observations and published products from FastAPI via
+`AUTH_API_URL`; it never calls gaa-admin. Publication authorization is configured through the
 superuser-only grade policy API, not environment user-ID allowlists. Defaults
 permit active staff in ingested GMS senior technician, assistant manager and
 manager grades; each product can override its permitted grade IDs.
