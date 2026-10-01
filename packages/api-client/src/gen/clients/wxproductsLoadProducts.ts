@@ -11,12 +11,12 @@ import type {
 } from "../models/WxproductsLoadProducts.js";
 
 /**
- * @description Load drafts for an authorized product kind and issue date, including undated drafts.
+ * @description Page through all saved products the author may access, newest update first. Optionally filter by kind or issue date (including undated drafts).
  * @summary Load saved weather products
  * {@link /api/v1/wxproducts/products}
  */
 export function wxproductsLoadProducts<ThrowOnError extends boolean = true>(
-  options: Options<WxproductsLoadProductsOptions, ThrowOnError>
+  options: Options<WxproductsLoadProductsOptions, ThrowOnError> = {}
 ): Unwrappable<RequestResult<WxproductsLoadProductsResponses, ThrowOnError>> {
   const { client: request = client, ...config } = options;
 

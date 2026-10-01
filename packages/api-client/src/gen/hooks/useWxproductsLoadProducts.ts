@@ -23,7 +23,7 @@ import type {
 
 export const wxproductsLoadProductsQueryKey = ({
   query,
-}: Omit<WxproductsLoadProductsOptions, "headers">) =>
+}: Omit<WxproductsLoadProductsOptions, "headers"> = {}) =>
   [{ url: "/api/v1/wxproducts/products" }, ...(query ? [query] : [])] as const;
 
 type WxproductsLoadProductsQueryKey = ReturnType<
@@ -31,7 +31,7 @@ type WxproductsLoadProductsQueryKey = ReturnType<
 >;
 
 export function wxproductsLoadProductsQueryOptions(
-  { query }: WxproductsLoadProductsOptions,
+  { query }: WxproductsLoadProductsOptions = {},
   config: Partial<
     Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
   > = {}
@@ -61,7 +61,7 @@ export function wxproductsLoadProductsQueryOptions(
 }
 
 /**
- * @description Load drafts for an authorized product kind and issue date, including undated drafts.
+ * @description Page through all saved products the author may access, newest update first. Optionally filter by kind or issue date (including undated drafts).
  * @summary Load saved weather products
  * {@link /api/v1/wxproducts/products}
  */
@@ -73,10 +73,10 @@ export function useWxproductsLoadProducts<
   {
     query,
   }: {
-    query:
+    query?:
       | WxproductsLoadProductsOptions["query"]
       | (() => WxproductsLoadProductsOptions["query"]);
-  },
+  } = {},
   options: {
     query?: Partial<
       QueryObserverOptions<
