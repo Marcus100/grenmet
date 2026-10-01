@@ -1,10 +1,6 @@
 import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import {
-  ExploreToday,
-  GrenadaInData,
-  TodayAtAGlance,
-} from "@/components/home/sample-sections";
+import { ExploreToday, GrenadaInData } from "@/components/home/sample-sections";
 import { SkyHero } from "@/components/home/sky-hero";
 import { WarningTakeover } from "@/components/home/warning-takeover";
 import { WeatherNow } from "@/components/home/weather-now";
@@ -15,9 +11,8 @@ import { unavailableWeather } from "@/lib/forecast-selection";
 vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
 vi.mock("@/lib/env", () => ({ env: { CMS_API_URL: "" } }));
 
-const SAMPLE_NOTE = /Sample content — not an operational product/;
-const ALL_CLEAR = /no active alerts/i;
 const HERO_NAME = /^Grenada weather/;
+const STATION_NAME = /Maurice Bishop International \(MBIA\)/;
 
 function alert(overrides: Partial<PublicAlert>): PublicAlert {
   return {
@@ -67,13 +62,17 @@ describe("SkyHero", () => {
   it("leads with the latest observation and today's issued figures", () => {
     render(<SkyHero weather={REFERENCE_WEATHER} />);
     const hero = screen.getByRole("region", { name: HERO_NAME });
+    expect(within(hero).getByRole("heading", { level: 1 })).toHaveTextContent(
+      "MBIA"
+    );
+    expect(within(hero).queryByText(STATION_NAME)).not.toBeInTheDocument();
     expect(within(hero).getByText("32°", { exact: false })).toBeInTheDocument();
     expect(
       within(hero).getByText(REFERENCE_WEATHER.days[0].summary)
     ).toBeInTheDocument();
     expect(
-      within(hero).getByRole("link", { name: "7-day forecast" })
-    ).toHaveAttribute("href", "/weather/7-day");
+      within(hero).queryByRole("link", { name: "Marine" })
+    ).not.toBeInTheDocument();
   });
 
   it("says so when there is no observation or forecast", () => {
@@ -86,21 +85,21 @@ describe("SkyHero", () => {
 
 describe("sample sections", () => {
   it.each([
-    ["Explore today", <ExploreToday key="b" />],
-    ["Grenada in data", <GrenadaInData key="c" />],
-  ])("%s is marked as sample content", (_name, section) => {
-    render(section);
-    expect(screen.getByRole("note")).toHaveTextContent(SAMPLE_NOTE);
-    expect(screen.queryByText(ALL_CLEAR)).not.toBeInTheDocument();
-  });
-
-  it("shows Today at a glance without a sample notice", () => {
-    render(<TodayAtAGlance />);
+    ["Explore today", ExploreToday],
+    ["Grenada in data", GrenadaInData],
+  ])("shows %s without a sample notice", async (_name, Section) => {
+    render(await Section());
     expect(screen.queryByRole("note")).not.toBeInTheDocument();
   });
 
-  it("shows the issued summary as the forecaster note", async () => {
-    render(await WeatherNow({ forecasterNote: "Passing showers tonight." }));
-    expect(screen.getByText("Passing showers tonight.")).toBeInTheDocument();
+  it("offers imagery, audio and video as tabs in the Weather now panel", async () => {
+    render(await WeatherNow());
+    expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
+      "Satellite",
+      "Radar",
+      "Rainfall",
+      "Audio",
+      "Video",
+    ]);
   });
 });

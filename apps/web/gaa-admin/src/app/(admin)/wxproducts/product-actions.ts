@@ -130,13 +130,24 @@ export async function saveProductAction(raw: unknown) {
     };
   }
 }
-export async function loadProductsAction(kind: string, issueDate: string) {
+export async function loadProductsAction(
+  kind?: string,
+  issueDate?: string,
+  offset = 0
+) {
   try {
-    if (!isProductKind(kind))
+    if (kind !== undefined && !isProductKind(kind))
       return { ok: false as const, error: "Unknown product type" };
-    if (!z.string().date().safeParse(issueDate).success)
+    if (
+      issueDate !== undefined &&
+      !z.string().date().safeParse(issueDate).success
+    )
       return { ok: false as const, error: "Select a valid issue date" };
-    const query = new URLSearchParams({ kind, issue_date: issueDate });
+    if (!Number.isSafeInteger(offset) || offset < 0)
+      return { ok: false as const, error: "Invalid archive page" };
+    const query = new URLSearchParams({ limit: "50", offset: String(offset) });
+    if (kind !== undefined) query.set("kind", kind);
+    if (issueDate !== undefined) query.set("issue_date", issueDate);
     const { products } = authoredProductsSchema.parse(
       await request(`/_backend/weather/products?${query}`)
     );

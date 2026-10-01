@@ -37,6 +37,7 @@ from .schemas import (
     ProductPreviewInput,
     ProductWrite,
     PublicForecast,
+    PublicProductDetail,
     PublicPublishedProduct,
     PublishedProducts,
     StoredProduct,
@@ -118,11 +119,48 @@ async def list_public_products(
 
 
 @router.get(
+    "/wxproducts/public/products/{product_id}",
+    response_model=PublicProductDetail,
+    status_code=status.HTTP_200_OK,
+    summary="Get one published weather product",
+    description="Anonymous read of one published snapshot for editorial links. Stays readable after it expires (`current` is false); withdrawn or unknown products are 404.",
+    tags=["wxproducts"],
+    responses={404: {"model": ProductFeedError}, 503: {"model": ProductFeedError}},
+)
+async def get_public_product(
+    *, session: WxProductsSessionDep, response: Response, product_id: UUID
+) -> PublicProductDetail | JSONResponse:
+    response.headers.update(NO_STORE)
+    if session is not None:
+        try:
+            found = await service.get_published_product(session, product_id)
+        except SQLAlchemyError, OSError, TimeoutError:
+            logger.warning("Weather product unavailable")
+        else:
+            if found is None:
+                return JSONResponse(
+                    {"error": "Product not found"}, status_code=404, headers=NO_STORE
+                )
+            product, current = found
+            return PublicProductDetail.model_validate(
+                {
+                    **product.model_dump(mode="json", exclude_none=True),
+                    "current": current,
+                }
+            )
+    return JSONResponse(
+        {"error": "Product information is unavailable"},
+        status_code=503,
+        headers=NO_STORE,
+    )
+
+
+@router.get(
     "/wxproducts/products",
     response_model=AuthoredProducts,
     status_code=200,
     summary="Load saved weather products",
-    description="Load drafts for an authorized product kind and issue date, including undated drafts.",
+    description="Page through all saved products the author may access, newest update first. Optionally filter by kind or issue date (including undated drafts).",
     tags=["wxproducts"],
     responses={
         401: {"model": AuthoringError, "description": "Sign-in required"},
@@ -135,13 +173,23 @@ async def load_products(
     author: AuthorDep,
     session: AuthoringSessionDep,
     response: Response,
-    kind: ProductKind,
-    issue_date: date,
+    kind: ProductKind | None = None,
+    issue_date: date | None = None,
+    limit: int = Query(default=100, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
 ) -> AuthoredProducts:
     response.headers.update(NO_STORE)
-    author.require_kind(kind)
+    if kind is not None:
+        author.require_kind(kind)
     try:
-        products = await service.list_authored(session, kind, issue_date)
+        products = await service.list_authored(
+            session,
+            kind,
+            issue_date,
+            allowed_kinds=author.allowed_kinds,
+            limit=limit,
+            offset=offset,
+        )
         return AuthoredProducts(
             products=[StoredProductAdapter.validate_python(row) for row in products]
         )

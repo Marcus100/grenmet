@@ -11,7 +11,17 @@ import { getWeatherSnapshot } from "@/lib/weather-snapshot";
  * when one is live for that place, then the sky hero with its switcher.
  * Both fetches are React-cached, so pages can call them again below.
  */
-export async function WeatherSurface({ location }: { location: SiteLocation }) {
+export async function WeatherSurface({
+  children,
+  location,
+  selected,
+}: {
+  /** Extra hero rows, forwarded to `SkyHero`. */
+  children?: React.ReactNode;
+  location: SiteLocation;
+  /** `YYYY-MM-DD` of the day in the hero's panel; defaults to today. */
+  selected?: string;
+}) {
   const [alerts, national] = await Promise.all([
     fetchActiveAlerts(),
     getWeatherSnapshot(),
@@ -21,9 +31,12 @@ export async function WeatherSurface({ location }: { location: SiteLocation }) {
       <WarningTakeover alerts={alertsForLocation(alerts, location)} />
       <SkyHero
         location={location}
+        selected={selected}
         switcher={<LocationSwitcher current={location} />}
         weather={weatherForLocation(national, location)}
-      />
+      >
+        {children}
+      </SkyHero>
     </>
   );
 }

@@ -36,6 +36,8 @@ Each GMS homepage section has its own collection under **Homepage sections**. Al
 | Stories | Stories from our atmosphere and ocean | `cms.publish.stories` |
 | Questions | Questions about the weather | `cms.publish.questions` |
 | Sky, history and fun | On this day, quizzes, Did you know, sky notes | `cms.publish.discover` |
+| Report write-ups | Latest reports (each linked to one issued FastAPI report) | `cms.publish.report-notes` |
+| Live posts | Weather now feed (updates, YouTube/Facebook video, SoundCloud audio links) | `cms.publish.live-posts` |
 
 1. Create an item in the right collection. The URL is built from the title and date, and fixed once published.
 2. Optionally add related links (full HTTP/HTTPS URLs, 20 at most) and topics. Linking does not publish the destination.

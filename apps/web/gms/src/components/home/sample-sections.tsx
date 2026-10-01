@@ -1,115 +1,33 @@
-import type { LucideIcon } from "lucide-react";
 import {
-  CloudRainIcon,
   FishIcon,
   FootprintsIcon,
-  HazeIcon,
   MoonIcon,
   SailboatIcon,
   SproutIcon,
-  SunIcon,
-  TornadoIcon,
   UmbrellaIcon,
-  WavesIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { HOME_CARD, HomeSection } from "@/components/home/home-section";
-import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
+import {
+  fetchHomeContent,
+  isSectionHidden,
+  relatedHref,
+  sectionWords,
+} from "@/lib/cms";
+import { cn } from "@/lib/utils";
 
 /*
  * Home sections with no data source yet. Every figure here is sample content
- * from the Bold sky mockup and each section says so with PlaceholderNotice;
- * status chips are neutral, never hazard colours, so a sample can never read
+ * from the Bold sky mockup. Explore today and Grenada in data carry no
+ * notice by owner decision (30 Sep 2026); their figures move to
+ * FastAPI endpoints. Status chips are neutral, never hazard colours, so a sample can never read
  * as a warning. Replace each with its product once it is issued.
  */
-
-const CHIP =
-  "w-fit rounded-full bg-gm-surface-secondary px-2 py-0.5 font-bold text-caption text-gm-heading leading-caption";
-
-interface GlanceTile {
-  detail: string;
-  href: string;
-  Icon: LucideIcon;
-  label: string;
-  status: string;
-  value: string;
-}
-
-const GLANCE: GlanceTile[] = [
-  {
-    Icon: TornadoIcon,
-    label: "Tropics",
-    status: "Watching",
-    value: "Tropical wave near 50°W",
-    detail: "20% chance of development in 7 days.",
-    href: "/weather/tropics",
-  },
-  {
-    Icon: WavesIcon,
-    label: "Sea",
-    status: "Caution",
-    value: "Moderate, 1.5–2.0 m",
-    detail: "Easterly swell, period 8 s.",
-    href: "/marine/forecast",
-  },
-  {
-    Icon: SunIcon,
-    label: "UV",
-    status: "Extreme",
-    value: "Extreme, 11",
-    detail: "Strongest 10 AM to 2 PM.",
-    href: "/weather/uv",
-  },
-  {
-    Icon: HazeIcon,
-    label: "Saharan dust",
-    status: "Low",
-    value: "Low",
-    detail: "A thin plume may arrive Friday.",
-    href: "/weather/dust",
-  },
-  {
-    Icon: CloudRainIcon,
-    label: "Rain",
-    status: "40%",
-    value: "Scattered showers",
-    detail: "Mostly in the east and interior.",
-    href: "/weather/rainfall",
-  },
-];
-
-export function TodayAtAGlance() {
-  return (
-    <HomeSection kicker="Today" title="Today at a glance">
-      <ul className="grid grid-cols-2 gap-3 md:grid-cols-5">
-        {GLANCE.map(({ Icon, ...tile }) => (
-          <li key={tile.label}>
-            <Link
-              className={`${HOME_CARD} flex h-full flex-col gap-1.5 hover:border-gm-blue-ink`}
-              href={tile.href}
-            >
-              <span className="flex items-center gap-2 font-bold text-gm-text-secondary text-label uppercase leading-label tracking-wider">
-                <Icon aria-hidden="true" className="size-4" />
-                {tile.label}
-              </span>
-              <span className={CHIP}>{tile.status}</span>
-              <span className="font-bold text-body-base text-gm-heading leading-body-base">
-                {tile.value}
-              </span>
-              <span className="text-body-sm text-gm-text-secondary leading-body-sm">
-                {tile.detail}
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-    </HomeSection>
-  );
-}
 
 const ACTIVITIES = [
   {
     Icon: UmbrellaIcon,
+    key: "beach",
     label: "Beach",
     rating: 4,
     value: "Good until 11 AM",
@@ -118,6 +36,7 @@ const ACTIVITIES = [
   },
   {
     Icon: FishIcon,
+    key: "fishing",
     label: "Fishing",
     rating: 3,
     value: "Fair",
@@ -126,6 +45,7 @@ const ACTIVITIES = [
   },
   {
     Icon: SailboatIcon,
+    key: "boating",
     label: "Boating",
     rating: 2,
     value: "Use caution",
@@ -134,6 +54,7 @@ const ACTIVITIES = [
   },
   {
     Icon: SproutIcon,
+    key: "growing",
     label: "Growing",
     rating: 2,
     value: "Dry spell, 8 days",
@@ -142,6 +63,7 @@ const ACTIVITIES = [
   },
   {
     Icon: FootprintsIcon,
+    key: "outdoors",
     label: "Outdoors",
     rating: 3,
     value: "Hot after 11 AM",
@@ -150,6 +72,7 @@ const ACTIVITIES = [
   },
   {
     Icon: MoonIcon,
+    key: "night-sky",
     label: "Night sky",
     rating: 4,
     value: "Good viewing",
@@ -160,48 +83,74 @@ const ACTIVITIES = [
 
 const METER_STEPS = [1, 2, 3, 4, 5] as const;
 
-export function ExploreToday() {
+/**
+ * Activities, ratings and figures will come from FastAPI; editors can only
+ * reword the heading and hang a published story or explainer off an activity.
+ */
+export async function ExploreToday() {
+  if (await isSectionHidden("explore-today")) return null;
+  const { settings } = await fetchHomeContent();
+  const words = sectionWords(settings, "explore-today", {
+    kicker: "Plan your day",
+    title: "Explore today",
+  });
   return (
-    <HomeSection kicker="Plan your day" title="Explore today">
-      <PlaceholderNotice compact product="Explore today" />
-      <ul className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
-        {ACTIVITIES.map(({ Icon, ...activity }) => (
-          <li key={activity.label}>
-            <Link
-              className={`${HOME_CARD} flex h-full flex-col gap-2 hover:border-gm-blue-ink`}
-              href={activity.href}
-            >
-              <span className="flex size-10 items-center justify-center rounded-lg bg-gm-navy text-gm-lime">
-                <Icon aria-hidden="true" className="size-5" />
-              </span>
-              <span className="font-bold text-body-base text-gm-heading leading-body-base">
-                {activity.label}
-              </span>
-              <span className="font-semibold text-body text-gm-heading leading-body">
-                {activity.value}
-              </span>
-              <span
-                aria-label={`${activity.rating} of 5`}
-                className="flex gap-0.5"
-                role="img"
+    <HomeSection tone="surface" {...words}>
+      <ul className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-6">
+        {ACTIVITIES.map(({ Icon, ...activity }) => {
+          const reading = settings.exploreReading[activity.key];
+          return (
+            <li className="flex flex-col gap-0.5 sm:gap-1" key={activity.key}>
+              <Link
+                className={cn(
+                  HOME_CARD,
+                  "flex h-full flex-col gap-1.5 p-3 hover:border-gm-blue-ink sm:gap-2 sm:p-4 lg:p-5"
+                )}
+                href={activity.href}
               >
-                {METER_STEPS.map((step) => (
-                  <span
-                    className={
-                      step <= activity.rating
-                        ? "h-1.5 flex-1 rounded-full bg-gm-sky-ink"
-                        : "h-1.5 flex-1 rounded-full bg-gm-surface-muted"
-                    }
-                    key={step}
-                  />
-                ))}
-              </span>
-              <span className="text-body-sm text-gm-text-secondary leading-body-sm">
-                {activity.detail}
-              </span>
-            </Link>
-          </li>
-        ))}
+                <span className="flex items-center gap-2">
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gm-navy text-gm-lime sm:size-10">
+                    <Icon aria-hidden="true" className="size-4 sm:size-5" />
+                  </span>
+                  <span className="font-bold text-body-base text-gm-heading leading-body-base">
+                    {activity.label}
+                  </span>
+                </span>
+                <span className="font-semibold text-body text-gm-heading leading-body">
+                  {activity.value}
+                </span>
+                <span
+                  aria-label={`${activity.rating} of 5`}
+                  className="flex gap-0.5"
+                  role="img"
+                >
+                  {METER_STEPS.map((step) => (
+                    <span
+                      className={
+                        step <= activity.rating
+                          ? "h-1.5 flex-1 rounded-full bg-gm-sky-ink"
+                          : "h-1.5 flex-1 rounded-full bg-gm-surface-muted"
+                      }
+                      key={step}
+                    />
+                  ))}
+                </span>
+                <span className="text-body-sm text-gm-text-secondary leading-body-sm">
+                  {activity.detail}
+                </span>
+              </Link>
+              {reading && (
+                <Link
+                  className="px-1 font-semibold text-body-sm text-gm-blue-ink leading-body-sm hover:underline"
+                  href={relatedHref(reading)}
+                >
+                  <span className="sr-only">{activity.label}: </span>
+                  Read: {reading.title}
+                </Link>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </HomeSection>
   );
@@ -211,7 +160,13 @@ const RAIN_SO_FAR = 86;
 const RAIN_NORMAL = 120;
 const RAIN_SCALE = 140;
 
-export function GrenadaInData() {
+export async function GrenadaInData() {
+  if (await isSectionHidden("grenada-in-data")) return null;
+  const { settings } = await fetchHomeContent();
+  const words = sectionWords(settings, "grenada-in-data", {
+    kicker: "From the national climate record",
+    title: "Grenada in data",
+  });
   const stats = [
     {
       label: "Rainfall this month · MBIA",
@@ -240,32 +195,29 @@ export function GrenadaInData() {
     },
   ];
   return (
-    <HomeSection
-      kicker="From the national climate record"
-      link={{ href: "/climate", label: "Climate" }}
-      title="Grenada in data"
-      tone="surface"
-    >
-      <PlaceholderNotice compact product="Grenada in data" />
-      <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+    <HomeSection {...words} link={{ href: "/climate", label: "Climate" }}>
+      <ul className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
         {stats.map((stat) => (
-          <li className={`${HOME_CARD} flex flex-col gap-1.5`} key={stat.label}>
+          <li
+            className={cn(HOME_CARD, "flex flex-col gap-1 p-3 sm:p-4 lg:p-5")}
+            key={stat.label}
+          >
             <span className="font-bold text-gm-text-secondary text-label uppercase leading-label tracking-wider">
               {stat.label}
             </span>
-            <span className="font-bold font-gm-display text-gm-heading text-gm-numeral tabular-nums">
+            <span className="font-bold font-gm-display text-gm-heading text-heading-md tabular-nums leading-heading-md lg:text-gm-numeral">
               {stat.value}
-              <span className="ml-1 font-sans font-semibold text-body-base text-gm-text-secondary leading-body-base">
+              <span className="ml-1 font-sans font-semibold text-body-sm text-gm-text-secondary leading-body-sm lg:text-body-base lg:leading-body-base">
                 {stat.unit}
               </span>
             </span>
-            <span className="text-body-sm text-gm-text-secondary leading-body-sm">
+            <span className="text-caption text-gm-text-secondary leading-caption lg:text-body-sm lg:leading-body-sm">
               {stat.detail}
             </span>
             {stat.bar && (
               <span
                 aria-label={`${RAIN_SO_FAR} mm against a ${RAIN_NORMAL} mm normal`}
-                className="relative mt-2 block h-3 rounded-full bg-gm-surface-muted"
+                className="relative mt-1 block h-2 rounded-full bg-gm-surface-muted lg:mt-2 lg:h-3"
                 role="img"
               >
                 <span

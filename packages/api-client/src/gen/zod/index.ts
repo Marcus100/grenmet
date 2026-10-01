@@ -2527,6 +2527,7 @@ export { publicHolidaysPublicSchema } from "./publicHolidaysPublicSchema.js";
 export { publicObservationPropertiesPressureTrendAnyOfEnumSchema } from "./publicObservationPropertiesPressureTrendAnyOfEnumSchema.js";
 export { publicObservationPropertiesStatusEnumSchema } from "./publicObservationPropertiesStatusEnumSchema.js";
 export { publicObservationSchema } from "./publicObservationSchema.js";
+export { publicProductDetailSchema } from "./publicProductDetailSchema.js";
 export { publicPublishedProductSchema } from "./publicPublishedProductSchema.js";
 export { publicWarningGroupSchema } from "./publicWarningGroupSchema.js";
 export { publicWarningPropertiesColourAnyOfEnumSchema } from "./publicWarningPropertiesColourAnyOfEnumSchema.js";
@@ -2916,6 +2917,15 @@ export { workflowTemplatePublicSchema } from "./workflowTemplatePublicSchema.js"
 export { workflowTemplatesPublicSchema } from "./workflowTemplatesPublicSchema.js";
 export { workflowTypeSchema } from "./workflowTypeSchema.js";
 export {
+  wxproductsGetPublicProductErrorSchema,
+  wxproductsGetPublicProductPathProductIdSchema,
+  wxproductsGetPublicProductResponseSchema,
+  wxproductsGetPublicProductStatus200Schema,
+  wxproductsGetPublicProductStatus404Schema,
+  wxproductsGetPublicProductStatus422Schema,
+  wxproductsGetPublicProductStatus503Schema,
+} from "./wxproductsGetPublicProductSchema.js";
+export {
   wxproductsListPublicProductsErrorSchema,
   wxproductsListPublicProductsQueryKindSchema,
   wxproductsListPublicProductsResponseSchema,
@@ -2970,6 +2980,8 @@ export {
   wxproductsLoadProductsErrorSchema,
   wxproductsLoadProductsQueryIssueDateSchema,
   wxproductsLoadProductsQueryKindSchema,
+  wxproductsLoadProductsQueryLimitSchema,
+  wxproductsLoadProductsQueryOffsetSchema,
   wxproductsLoadProductsResponseSchema,
   wxproductsLoadProductsStatus200Schema,
   wxproductsLoadProductsStatus401Schema,

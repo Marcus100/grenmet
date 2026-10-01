@@ -1,5 +1,9 @@
 import Image from "next/image";
-import { fetchPublishedContent, isOptimizableImage } from "@/lib/cms";
+import {
+  type ContentCollection,
+  fetchPublishedContent,
+  isOptimizableImage,
+} from "@/lib/cms";
 import { contentToArticle, type WeatherArticle } from "@/lib/editorial";
 
 function NewsCard({ post }: { post: WeatherArticle }) {
@@ -61,15 +65,24 @@ function DesktopNewsCard({ post }: { post: WeatherArticle }) {
   );
 }
 
-export async function News() {
-  const result = await fetchPublishedContent("stories");
+/** An editorial index: Stories by default, or report write-ups. */
+export async function News({
+  collection = "stories",
+  title = "Stories from our atmosphere and ocean",
+  noun = "stories",
+}: {
+  collection?: ContentCollection;
+  noun?: string;
+  title?: string;
+} = {}) {
+  const result = await fetchPublishedContent(collection);
   const posts = result.articles.map(contentToArticle);
 
   return (
     <section className="mb-4 flex flex-col gap-4 lg:-mx-8 lg:mb-8 lg:gap-7 lg:bg-gm-surface lg:px-8 lg:py-12">
       <div className="flex h-7 items-center justify-between">
         <p className="font-bold text-gm-heading text-heading-sm leading-heading-sm lg:text-heading-md lg:leading-heading-md">
-          Stories from our atmosphere and ocean
+          {title}
         </p>
         <a className="text-gm-blue-ink underline" href="/climate/publications">
           Reports and publications
@@ -77,10 +90,13 @@ export async function News() {
       </div>
 
       {result.status === "unavailable" && (
-        <p role="status">Stories cannot be retrieved right now.</p>
+        <p role="status">
+          {noun.charAt(0).toUpperCase() + noun.slice(1)} cannot be retrieved
+          right now.
+        </p>
       )}
       {result.status === "ok" && posts.length === 0 && (
-        <p>No stories are published yet.</p>
+        <p>No {noun} are published yet.</p>
       )}
       {/* Mobile: stacked equal cards */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:hidden [&>*:first-child]:md:col-span-2">

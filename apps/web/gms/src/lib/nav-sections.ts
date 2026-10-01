@@ -266,6 +266,16 @@ export const NAV_SECTIONS: NavSection[] = [
             "/weather/rainfall",
             "Rain totals from the last 24 hours"
           ),
+          planned(
+            "Audio forecast",
+            "/weather/audio",
+            "Listen to the latest forecast"
+          ),
+          planned(
+            "Video forecast",
+            "/weather/video",
+            "Watch the latest weather briefing"
+          ),
         ],
       },
       {
@@ -743,9 +753,14 @@ export const NAV_SECTIONS: NavSection[] = [
             "Stories from the forecast desk"
           ),
           link(
-            "Product updates",
+            "From the Desk",
             "/explore/updates",
-            "Changes to our forecasts and services"
+            "The forecast desk on what we issue"
+          ),
+          link(
+            "Latest reports",
+            "/explore/reports",
+            "Our reports and bulletins, explained"
           ),
         ],
       },

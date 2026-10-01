@@ -3,8 +3,10 @@ import {
   findArticles,
   findDiscover,
   findHomepage,
+  findLivePosts,
   findQuestions,
   findWeatherNow,
+  LIVE_POST_KINDS,
   NO_STORE,
   toArticle,
   toQuestion,
@@ -31,6 +33,8 @@ const DEFAULT_SETTINGS = {
   featuredQuestions: [],
   discoverCards: ["sky", "on-this-day", "quiz", "fact"],
   hiddenSections: [],
+  exploreReading: {},
+  sectionCopy: {},
 };
 
 /**
@@ -54,28 +58,46 @@ export async function GET() {
     reportError(error, "cms-public-home-settings");
     return DEFAULT_SETTINGS;
   });
-  const [deskUpdates, stories, questions, weatherNow, discover] =
-    await Promise.all([
-      part("desk-updates", () =>
-        findArticles(payload, "desk-updates", { limit: 5 })
-      ),
-      part("stories", async () =>
-        withPins(
-          settings.leadStory ? [toArticle("stories", settings.leadStory)] : [],
-          await findArticles(payload, "stories", { limit: 5 }),
-          5
+  const [
+    deskUpdates,
+    stories,
+    questions,
+    weatherNow,
+    discover,
+    reportNotes,
+    livePosts,
+  ] = await Promise.all([
+    part("desk-updates", () =>
+      findArticles(payload, "desk-updates", { limit: 5 })
+    ),
+    part("stories", async () =>
+      withPins(
+        settings.leadStory ? [toArticle("stories", settings.leadStory)] : [],
+        await findArticles(payload, "stories", { limit: 5 }),
+        5
+      )
+    ),
+    part("questions", async () =>
+      withPins(
+        settings.featuredQuestions.map(toQuestion),
+        await findQuestions(payload, { limit: 5 }),
+        5
+      )
+    ),
+    part("weather-now", () => findWeatherNow(payload)),
+    part("discover", () => findDiscover(payload)),
+    part("report-notes", () =>
+      findArticles(payload, "report-notes", { limit: 6 })
+    ),
+    // Newest five of each kind, so updates never crowd out videos.
+    part("live-posts", async () =>
+      (
+        await Promise.all(
+          LIVE_POST_KINDS.map((kind) => findLivePosts(payload, { kind }))
         )
-      ),
-      part("questions", async () =>
-        withPins(
-          settings.featuredQuestions.map(toQuestion),
-          await findQuestions(payload, { limit: 5 }),
-          5
-        )
-      ),
-      part("weather-now", () => findWeatherNow(payload)),
-      part("discover", () => findDiscover(payload)),
-    ]);
+      ).flat()
+    ),
+  ]);
   return Response.json(
     {
       deskUpdates,
@@ -83,9 +105,13 @@ export async function GET() {
       questions,
       weatherNow,
       discover,
+      reportNotes,
+      livePosts,
       settings: {
         discoverCards: settings.discoverCards,
         hiddenSections: settings.hiddenSections,
+        exploreReading: settings.exploreReading,
+        sectionCopy: settings.sectionCopy,
       },
     },
     { headers: NO_STORE }

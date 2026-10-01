@@ -9,12 +9,14 @@ import { cn } from "@/lib/utils";
  */
 export function HomeSection({
   children,
+  intro,
   kicker,
   link,
   title,
   tone = "page",
 }: {
   children: React.ReactNode;
+  intro?: string;
   kicker: string;
   link?: { href: string; label: string };
   title: string;
@@ -37,6 +39,11 @@ export function HomeSection({
             <h2 className="text-balance font-bold font-gm-display text-gm-display text-gm-heading uppercase tracking-wide">
               {title}
             </h2>
+            {intro && (
+              <p className="mt-2 max-w-prose text-body-base text-gm-text-secondary leading-body-base">
+                {intro}
+              </p>
+            )}
           </div>
           {link && (
             <Link

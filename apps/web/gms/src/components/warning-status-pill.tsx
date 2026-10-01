@@ -1,10 +1,14 @@
-import { TriangleAlertIcon } from "lucide-react";
 import Link from "next/link";
-import { type AlertsResult, alertsLevel, alertsSummary } from "@/lib/cap";
+import { AlertsIcon, AlertsSummary } from "@/components/alerts-summary";
+import { type AlertsResult, alertsLevel } from "@/lib/cap";
 import { cn } from "@/lib/utils";
 import { WARNING_LEVEL_SURFACE } from "@/lib/warning-level";
 
-/** The masthead's live warning status: colour, icon and the shared wording. */
+/**
+ * The masthead's live warning status: colour, icon and the shared wording.
+ * Icon and colour only (owner decision, 30 Sep 2026): the warning ribbon at
+ * the top of the page names active alerts. The words stay for screen readers.
+ */
 export function WarningStatusPill({
   alerts,
   className,
@@ -21,8 +25,8 @@ export function WarningStatusPill({
       )}
       href="/alerts"
     >
-      <TriangleAlertIcon aria-hidden="true" className="size-4" />
-      {alertsSummary(alerts)}
+      <AlertsIcon alerts={alerts} className="size-4" />
+      <AlertsSummary alerts={alerts} />
     </Link>
   );
 }

@@ -1,5 +1,10 @@
 import { SessionUserProvider } from "@barrelsgd/auth";
 import {
+  emptyProduct,
+  grenadaDate,
+  type StoredProduct,
+} from "@barrelsgd/gms/products";
+import {
   render as baseRender,
   fireEvent,
   screen,
@@ -140,8 +145,12 @@ it("shows a tab per forecast kind and switches when the form is clean", async ()
     )
   );
   expect(actions.loadProductsAction).toHaveBeenCalledWith(
-    "midday",
-    expect.any(String)
+    undefined,
+    undefined,
+    0
+  );
+  expect(screen.getByText("Issued").nextElementSibling).toHaveTextContent(
+    "12:00"
   );
 });
 
@@ -178,6 +187,93 @@ it("asks before switching tabs with unsaved changes", async () => {
 it("hides the tab bar for a single product kind", async () => {
   await openEditor();
   expect(screen.queryByRole("tablist")).toBeNull();
+});
+
+it("uses today's fixed forecast slot without redundant date controls", async () => {
+  await openEditor();
+  expect(screen.queryByLabelText("Forecast / issue date")).toBeNull();
+  expect(document.getElementById("desk-time")).toBeNull();
+  expect(screen.queryByLabelText("Saved forecast date")).toBeNull();
+  const issued = screen.getByText("Issued").nextElementSibling?.textContent;
+  expect(issued).toContain("07:00");
+});
+
+it("keeps bulletin issue timing editable without duplicate desk controls", async () => {
+  render(<ProductDesk kinds={["marine"]} title="Bulletins" />);
+  await waitFor(() =>
+    expect(
+      screen.getByRole("button", { name: "Validate and preview" })
+    ).toBeEnabled()
+  );
+  expect(screen.queryByLabelText("Forecast / issue date")).toBeNull();
+  expect(document.getElementById("desk-time")).toBeNull();
+  const issue = screen.getByLabelText(ISSUE_DATE_LABEL);
+  fireEvent.change(issue, { target: { value: "2026-09-30T08:30" } });
+  expect(issue).toHaveValue("2026-09-30T08:30");
+});
+
+it("pages through the archive without filtering by the active editor", async () => {
+  const products: StoredProduct[] = Array.from({ length: 50 }, (_, index) => ({
+    id: `product-${index}`,
+    kind: "marine",
+    values: { issuedAt: "2026-01-01T05:00" },
+    revision: 1,
+    publishedRevision: null,
+    updatedAt: "2026-01-01T09:00:00Z",
+  }));
+  actions.loadProductsAction
+    .mockResolvedValueOnce({ ok: true, products })
+    .mockResolvedValueOnce({ ok: true, products: [] });
+  await openEditor();
+  fireEvent.click(screen.getByRole("button", { name: "Next" }));
+  await waitFor(() =>
+    expect(actions.loadProductsAction).toHaveBeenLastCalledWith(
+      undefined,
+      undefined,
+      50
+    )
+  );
+  await screen.findByText("No saved products on this page.");
+  expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "Previous" })).toBeEnabled();
+});
+
+it("opens older products across kinds from the shared archive and starts new forecasts today", async () => {
+  const archived: StoredProduct = {
+    id: "7d517fe0-a25b-4f12-a2b4-eaaed8116010",
+    kind: "evening",
+    values: emptyProduct("evening", "2026-01-01"),
+    revision: 1,
+    publishedRevision: null,
+    updatedAt: "2026-01-01T22:00:00Z",
+  };
+  actions.loadProductsAction.mockResolvedValue({
+    ok: true,
+    products: [archived],
+  });
+  render(<ProductDesk kinds={["marine", "cyclone"]} title="Bulletins" />);
+  fireEvent.click(
+    await screen.findByRole("button", {
+      name: "Open Evening Forecast 2026-01-01T18:00",
+    })
+  );
+  expect(screen.getByRole("tab", { name: "Evening" })).toHaveAttribute(
+    "aria-selected",
+    "true"
+  );
+  expect(screen.getByText("Issued").nextElementSibling).toHaveTextContent(
+    "1 Jan 2026, 18:00"
+  );
+  fireEvent.click(screen.getByRole("button", { name: "New Evening Forecast" }));
+  actions.saveProductAction.mockResolvedValue({
+    ok: false,
+    error: "Test draft not persisted",
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Save draft" }));
+  await waitFor(() => expect(actions.saveProductAction).toHaveBeenCalled());
+  expect(actions.saveProductAction.mock.calls[0][0].values.issuedAt).toBe(
+    `${grenadaDate()}T18:00`
+  );
 });
 
 it("shows scheduled and fixed issue details as text, not fields", async () => {

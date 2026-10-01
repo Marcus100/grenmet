@@ -201,3 +201,70 @@ async def test_database_error_is_unavailable(
         assert response.json() == {"error": "Product information is unavailable"}
     finally:
         app.dependency_overrides.pop(get_session, None)
+
+
+async def test_one_product_stays_readable_after_expiry(
+    weather_db: AsyncSession,
+) -> None:
+    product = snapshot()
+    await insert_product(weather_db, product)
+    during = datetime(2026, 9, 8, 12, tzinfo=UTC)
+    after = datetime(2026, 9, 10, 12, tzinfo=UTC)
+    assert await service.get_published_product(weather_db, product.id, now=during) == (
+        product,
+        True,
+    )
+    assert await service.get_published_product(weather_db, product.id, now=after) == (
+        product,
+        False,
+    )
+    before = datetime(2026, 9, 8, 8, tzinfo=UTC)
+    assert (
+        await service.get_published_product(weather_db, product.id, now=before) is None
+    )
+    assert await service.get_published_product(weather_db, uuid4(), now=during) is None
+
+
+async def test_one_product_route_hides_drafts_and_withdrawals(
+    async_client: httpx.AsyncClient, weather_db: AsyncSession
+) -> None:
+    product = snapshot(
+        issuedAt="2000-01-01T00:00",
+        validFrom="2000-01-01T00:00",
+        validTo="2000-01-02T00:00",
+    )
+    draft = snapshot()
+    await insert_product(weather_db, product)
+    await insert_product(weather_db, draft, published=False)
+
+    async def override() -> AsyncGenerator[AsyncSession]:
+        yield weather_db
+
+    app.dependency_overrides[get_session] = override
+    url = "/api/v1/wxproducts/public/products/"
+    try:
+        result = await async_client.get(url + str(product.id))
+        assert result.status_code == 200, result.text
+        assert result.headers["cache-control"] == "no-store"
+        assert result.json() == {**product.model_dump(mode="json"), "current": False}
+        assert "PRIVATE" not in result.text
+        for missing in (draft.id, uuid4()):
+            result = await async_client.get(url + str(missing))
+            assert result.status_code == 404
+            assert set(result.json()) == {"error"}
+        await weather_db.execute(text("UPDATE authored_products SET published = NULL"))
+        result = await async_client.get(url + str(product.id))
+        assert result.status_code == 404
+        assert (await async_client.get(url + "not-a-uuid")).status_code == 422
+    finally:
+        app.dependency_overrides.pop(get_session, None)
+
+
+async def test_one_product_unconfigured_is_unavailable(
+    async_client: httpx.AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(database.wxproducts_settings, "DATABASE_URL", None)
+    monkeypatch.setattr(database, "_engine", None)
+    response = await async_client.get(f"/api/v1/wxproducts/public/products/{uuid4()}")
+    assert response.status_code == 503
+    assert response.headers["cache-control"] == "no-store"

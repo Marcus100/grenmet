@@ -2766,6 +2766,7 @@ export type { PublicObservationPropertiesPressureTrendAnyOfEnum } from "./Public
 export { publicObservationPropertiesPressureTrendAnyOfEnum } from "./PublicObservationPropertiesPressureTrendAnyOfEnum.js";
 export type { PublicObservationPropertiesStatusEnum } from "./PublicObservationPropertiesStatusEnum.js";
 export { publicObservationPropertiesStatusEnum } from "./PublicObservationPropertiesStatusEnum.js";
+export type { PublicProductDetail } from "./PublicProductDetail.js";
 export type { PublicPublishedProduct } from "./PublicPublishedProduct.js";
 export type { PublicWarning } from "./PublicWarning.js";
 export type { PublicWarningGroup } from "./PublicWarningGroup.js";
@@ -3201,6 +3202,16 @@ export type { WorkflowTemplatePublic } from "./WorkflowTemplatePublic.js";
 export type { WorkflowTemplatesPublic } from "./WorkflowTemplatesPublic.js";
 export type { WorkflowType } from "./WorkflowType.js";
 export { workflowType } from "./WorkflowType.js";
+export type {
+  WxproductsGetPublicProductOptions,
+  WxproductsGetPublicProductPath,
+  WxproductsGetPublicProductResponse,
+  WxproductsGetPublicProductResponses,
+  WxproductsGetPublicProductStatus200,
+  WxproductsGetPublicProductStatus404,
+  WxproductsGetPublicProductStatus422,
+  WxproductsGetPublicProductStatus503,
+} from "./WxproductsGetPublicProduct.js";
 export type {
   WxproductsListPublicProductsOptions,
   WxproductsListPublicProductsQuery,
