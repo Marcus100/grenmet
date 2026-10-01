@@ -10798,13 +10798,77 @@
         }
       }
     },
+    "/api/v1/wxproducts/public/products/{product_id}": {
+      "get": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "Get one published weather product",
+        "description": "Anonymous read of one published snapshot for editorial links. Stays readable after it expires (`current` is false); withdrawn or unknown products are 404.",
+        "operationId": "wxproductsGetPublicProduct",
+        "parameters": [
+          {
+            "name": "product_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Product Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublicProductDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFeedError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductFeedError"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
     "/api/v1/wxproducts/products": {
       "get": {
         "tags": [
           "wxproducts"
         ],
         "summary": "Load saved weather products",
-        "description": "Load drafts for an authorized product kind and issue date, including undated drafts.",
+        "description": "Page through all saved products the author may access, newest update first. Optionally filter by kind or issue date (including undated drafts).",
         "operationId": "wxproductsLoadProducts",
         "security": [
           {
@@ -10818,19 +10882,57 @@
           {
             "name": "kind",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
-              "$ref": "#/components/schemas/ForecastSourcePropertiesKindEnum"
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/ForecastSourcePropertiesKindEnum"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Kind"
             }
           },
           {
             "name": "issue_date",
             "in": "query",
-            "required": true,
+            "required": false,
             "schema": {
-              "type": "string",
-              "format": "date",
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
               "title": "Issue Date"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
             }
           }
         ],
@@ -30326,6 +30428,50 @@
         ],
         "title": "PublicObservation",
         "description": "Decoded, public subset of one MBIA SYNOP; no staff or QC fields."
+      },
+      "PublicProductDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "revision": {
+            "type": "integer",
+            "exclusiveMinimum": 0.0,
+            "title": "Revision"
+          },
+          "publishedAt": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Publishedat"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ForecastSourcePropertiesKindEnum"
+          },
+          "values": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Values"
+          },
+          "current": {
+            "type": "boolean",
+            "title": "Current"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "revision",
+          "publishedAt",
+          "kind",
+          "values",
+          "current"
+        ],
+        "title": "PublicProductDetail",
+        "description": "One published snapshot by id, for editorial links to a product.\n\nUnlike the feed it stays readable after its validity window; `current` says\nwhether it is still in force. Withdrawn products are not returned."
       },
       "PublicPublishedProduct": {
         "properties": {

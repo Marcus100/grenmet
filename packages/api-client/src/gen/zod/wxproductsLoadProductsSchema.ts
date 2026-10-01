@@ -9,10 +9,26 @@ import { authoringErrorSchema } from "./authoringErrorSchema.js";
 import { forecastSourcePropertiesKindEnumSchema } from "./forecastSourcePropertiesKindEnumSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
-export const wxproductsLoadProductsQueryKindSchema =
-  forecastSourcePropertiesKindEnumSchema;
+export const wxproductsLoadProductsQueryKindSchema = z
+  .union([forecastSourcePropertiesKindEnumSchema, z.null()])
+  .optional();
 
-export const wxproductsLoadProductsQueryIssueDateSchema = z.iso.date();
+export const wxproductsLoadProductsQueryIssueDateSchema = z
+  .union([z.iso.date(), z.null()])
+  .optional();
+
+export const wxproductsLoadProductsQueryLimitSchema = z
+  .int()
+  .min(1)
+  .max(100)
+  .optional()
+  .default(100);
+
+export const wxproductsLoadProductsQueryOffsetSchema = z
+  .int()
+  .min(0)
+  .optional()
+  .default(0);
 
 export const wxproductsLoadProductsStatus200Schema = authoredProductsSchema;
 

@@ -267,6 +267,7 @@ export { transportUpdateTimetableDraft } from "./transportUpdateTimetableDraft.j
 export { utilsHealthCheck } from "./utilsHealthCheck.js";
 export { utilsReady } from "./utilsReady.js";
 export { utilsTestEmail } from "./utilsTestEmail.js";
+export { wxproductsGetPublicProduct } from "./wxproductsGetPublicProduct.js";
 export { wxproductsListPublicProducts } from "./wxproductsListPublicProducts.js";
 export { wxproductsLoadAviationDrafts } from "./wxproductsLoadAviationDrafts.js";
 export { wxproductsLoadAviationHistory } from "./wxproductsLoadAviationHistory.js";

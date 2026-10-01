@@ -9,13 +9,21 @@ import type { ForecastSourcePropertiesKindEnum } from "./ForecastSourcePropertie
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type WxproductsLoadProductsQuery = {
-  kind: ForecastSourcePropertiesKindEnum;
+  kind?: ForecastSourcePropertiesKindEnum | null;
+  issue_date?: string | null;
   /**
-   * @description
-   * Format: `date`
-   * @type string
+   * @minLength 1
+   * @maxLength 100
+   * @default 100
+   * @type integer | undefined
    */
-  issue_date: string;
+  limit?: number;
+  /**
+   * @minLength 0
+   * @default 0
+   * @type integer | undefined
+   */
+  offset?: number;
 };
 
 export type WxproductsLoadProductsStatus200 = AuthoredProducts;
@@ -35,7 +43,7 @@ export type WxproductsLoadProductsStatus503 = AuthoringError;
 export type WxproductsLoadProductsOptions = {
   body?: never;
   path?: never;
-  query: WxproductsLoadProductsQuery;
+  query?: WxproductsLoadProductsQuery;
   headers?: never;
 };
 

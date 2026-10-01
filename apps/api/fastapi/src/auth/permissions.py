@@ -117,6 +117,8 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef(
         "cms.publish.discover", "Publish Sky, history and a little fun entries"
     ),
+    PermissionDef("cms.publish.report-notes", "Publish Latest reports write-ups"),
+    PermissionDef("cms.publish.live-posts", "Publish Weather now live posts"),
     PermissionDef(
         "cms.weather-now.note",
         "Post the Weather now forecaster's note (published immediately)",
