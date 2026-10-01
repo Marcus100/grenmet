@@ -27,9 +27,12 @@ import {
   RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,
 } from "@payloadcms/richtext-lexical/rsc";
 import { LogoutButton as LogoutButton_5e1d745b0d87601ca959b57385835784 } from "../../../components/logout-button";
+import { ProductPicker as ProductPicker_e822a76e57f2b7a522e06b1b0b638e35 } from "../../../components/product-picker";
 
 /** @type import('payload').ImportMap */
 export const importMap = {
+  "/components/product-picker#ProductPicker":
+    ProductPicker_e822a76e57f2b7a522e06b1b0b638e35,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell":
     RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField":

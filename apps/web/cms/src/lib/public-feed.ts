@@ -1,12 +1,19 @@
 import type { CollectionConfig, Field, Payload } from "payload";
 import { DeskUpdates } from "../collections/desk-updates";
+import { ReportNotes } from "../collections/report-notes";
 import { Stories } from "../collections/stories";
+import {
+  copyFieldName,
+  EXPLORE_ACTIVITIES,
+  HOMEPAGE_SECTIONS,
+} from "../globals/homepage";
 import { editorialLinksSchema } from "./editorial-links";
 import { bodyToText } from "./lexical";
 
 export const ARTICLE_COLLECTIONS = {
   "desk-updates": DeskUpdates,
   stories: Stories,
+  "report-notes": ReportNotes,
 } as const;
 export type ArticleCollection = keyof typeof ARTICLE_COLLECTIONS;
 export const isArticleCollection = (
@@ -17,6 +24,7 @@ export const isArticleCollection = (
 const CATEGORY_FIELD: Record<ArticleCollection, string> = {
   "desk-updates": "kind",
   stories: "kind",
+  "report-notes": "kind",
 };
 
 function flatFields(fields: Field[]): Field[] {
@@ -47,6 +55,18 @@ type Doc = Record<string, unknown>;
 const upload = (value: unknown) =>
   value && typeof value === "object" ? (value as Doc) : null;
 
+/** The FastAPI product a post points at; its figures are never stored here. */
+export function toLinkedProduct(value: unknown) {
+  const group = upload(value);
+  const productId = group?.productId;
+  return typeof productId === "string" && productId
+    ? {
+        productId,
+        kind: typeof group?.kind === "string" && group.kind ? group.kind : null,
+      }
+    : null;
+}
+
 /** Public shape of one published article; never staff or workflow fields. */
 export function toArticle(collection: ArticleCollection, doc: Doc) {
   const config = ARTICLE_COLLECTIONS[collection];
@@ -72,6 +92,7 @@ export function toArticle(collection: ArticleCollection, doc: Doc) {
     publishedAt: (doc.publishedAt as string | undefined) ?? null,
     updatedAt: String(doc.updatedAt),
     relatedLinks: editorialLinksSchema.parse(doc.relatedLinks ?? []),
+    linkedProduct: toLinkedProduct(doc.linkedProduct),
   };
 }
 export type PublicArticle = ReturnType<typeof toArticle>;
@@ -94,6 +115,52 @@ export async function findArticles(
     },
   });
   return result.docs.map((doc) => toArticle(collection, doc as unknown as Doc));
+}
+
+/** Public shape of one Weather now live post. */
+export function toLivePost(doc: Doc) {
+  const kind = String(doc.kind);
+  return {
+    id: String(doc.id),
+    kind,
+    title: String(doc.title),
+    text: (doc.text as string | undefined) || null,
+    mediaUrl:
+      kind === "update" ? null : (doc.mediaUrl as string | undefined) || null,
+    publishedAt: (doc.publishedAt as string | undefined) ?? null,
+    expiresAt: (doc.expiresAt as string | undefined) ?? null,
+    relatedLinks: editorialLinksSchema.parse(doc.relatedLinks ?? []),
+  };
+}
+export type PublicLivePost = ReturnType<typeof toLivePost>;
+
+export const LIVE_POST_KINDS = ["update", "video", "audio"] as const;
+
+/** Newest published live posts of one kind that have not expired. */
+export async function findLivePosts(
+  payload: Payload,
+  {
+    kind,
+    limit = 5,
+    now = new Date(),
+  }: { kind: (typeof LIVE_POST_KINDS)[number]; limit?: number; now?: Date }
+): Promise<PublicLivePost[]> {
+  const result = await payload.find({
+    collection: "live-posts",
+    overrideAccess: false,
+    depth: 0,
+    limit,
+    sort: "-publishedAt",
+    where: {
+      status: { equals: "published" },
+      kind: { equals: kind },
+      or: [
+        { expiresAt: { exists: false } },
+        { expiresAt: { greater_than: now.toISOString() } },
+      ],
+    },
+  });
+  return result.docs.map((doc) => toLivePost(doc as unknown as Doc));
 }
 
 export const NO_STORE = { "Cache-Control": "no-store" };
@@ -119,21 +186,26 @@ export function toQuestion(doc: Doc) {
     relatedLinks: editorialLinksSchema.parse(doc.relatedLinks ?? []),
     // Only related items the public can read arrive populated.
     related: related.flatMap((item) => {
-      const value = upload(item.value);
-      const collection = String(item.relationTo);
-      if (
-        !(value && LINKED_HREF_COLLECTIONS.has(collection)) ||
-        value.status !== "published"
-      )
-        return [];
-      return [
-        {
-          collection,
-          title: String(value.title ?? value.question),
-          slug: String(value.slug),
-        },
-      ];
+      const link = toRelated(item);
+      return link ? [link] : [];
     }),
+  };
+}
+
+/** A populated polymorphic link, or null unless the public can read it. */
+export function toRelated(item: unknown) {
+  if (!item || typeof item !== "object") return null;
+  const value = upload((item as Doc).value);
+  const collection = String((item as Doc).relationTo);
+  if (
+    !(value && LINKED_HREF_COLLECTIONS.has(collection)) ||
+    value.status !== "published"
+  )
+    return null;
+  return {
+    collection,
+    title: String(value.title ?? value.question),
+    slug: String(value.slug),
   };
 }
 export type PublicQuestion = ReturnType<typeof toQuestion>;
@@ -187,6 +259,42 @@ export async function findWeatherNow(payload: Payload, now: Date = new Date()) {
 }
 export type PublicWeatherNow = Awaited<ReturnType<typeof findWeatherNow>>;
 
+export interface SectionCopy {
+  intro?: string;
+  kicker?: string;
+  title?: string;
+}
+
+/** Editor wording keyed by section; blank fields are dropped so GMS keeps its own. */
+export function toSectionCopy(value: unknown): Record<string, SectionCopy> {
+  const groups = value && typeof value === "object" ? (value as Doc) : {};
+  const copy: Record<string, SectionCopy> = {};
+  for (const { value: key } of HOMEPAGE_SECTIONS) {
+    const group = groups[copyFieldName(key)];
+    if (!group || typeof group !== "object") continue;
+    const words: SectionCopy = {};
+    for (const field of ["kicker", "title", "intro"] as const) {
+      const text = (group as Doc)[field];
+      if (typeof text === "string" && text.trim()) words[field] = text.trim();
+    }
+    if (Object.keys(words).length > 0) copy[key] = words;
+  }
+  return copy;
+}
+
+/** Published "read more" links keyed by Explore today activity. */
+export function toExploreReading(
+  value: unknown
+): Record<string, NonNullable<ReturnType<typeof toRelated>>> {
+  const groups = value && typeof value === "object" ? (value as Doc) : {};
+  const links: Record<string, NonNullable<ReturnType<typeof toRelated>>> = {};
+  for (const { value: key } of EXPLORE_ACTIVITIES) {
+    const link = toRelated(groups[copyFieldName(key)]);
+    if (link) links[key] = link;
+  }
+  return links;
+}
+
 /** Homepage settings; pins arrive populated only when published. */
 export async function findHomepage(payload: Payload) {
   const global = (await payload.findGlobal({
@@ -212,6 +320,8 @@ export async function findHomepage(payload: Payload) {
     hiddenSections: Array.isArray(global.hiddenSections)
       ? (global.hiddenSections as string[])
       : [],
+    exploreReading: toExploreReading(global.exploreReading),
+    sectionCopy: toSectionCopy(global.sectionCopy),
   };
 }
 

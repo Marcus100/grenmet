@@ -2,6 +2,7 @@ import type { CollectionBeforeChangeHook } from "payload";
 import { PUBLISH_KEYS } from "../access";
 import { bodyField, socialField, summaryField } from "../fields/common";
 import { assertNoUnlinkedHazard, isCapLink } from "../fields/hazard-guard";
+import { linkedProductField } from "../fields/linked-product";
 import { bodyToText } from "../lib/lexical";
 import { editorialCollection } from "./editorial";
 
@@ -25,7 +26,7 @@ export const guardHazardWords: CollectionBeforeChangeHook = ({
   return data;
 };
 
-/** "From the Desk": short notices from the forecast office. */
+/** "From the Desk": the forecast office blogging about what it issues. */
 const base = editorialCollection({
   slug: "desk-updates",
   prefix: "updates",
@@ -34,7 +35,7 @@ const base = editorialCollection({
   admin: {
     group: "Homepage sections",
     description:
-      "From the Desk: product changes, service notices and announcements. Never a forecast or a warning; those are issued in the forecast system.",
+      "From the Desk: the forecast office writing about what it issues, plus service notices. Attach a product to show its live figures; never type forecast figures or warnings here.",
   },
   fields: [
     { name: "title", type: "text", required: true, maxLength: 120 },
@@ -64,6 +65,10 @@ const base = editorialCollection({
       ],
       admin: { description: "The product this update is about, if any." },
     },
+    linkedProductField({
+      description:
+        "Optional. Shows this product's live figures with the post; they always come from the forecast system.",
+    }),
     summaryField(200),
     bodyField(false),
     socialField,

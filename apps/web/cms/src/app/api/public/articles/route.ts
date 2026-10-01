@@ -13,7 +13,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * Anonymous, published-only articles. `collection` narrows to one of
- * desk-updates or stories; `slug` finds one article (slugs are
+ * desk-updates, stories or report-notes; `slug` finds one article (slugs are
  * unique across collections because each carries its collection prefix).
  */
 export async function GET(request: Request) {

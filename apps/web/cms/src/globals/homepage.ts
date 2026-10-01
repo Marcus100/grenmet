@@ -8,7 +8,21 @@ export const HOMEPAGE_SECTIONS = [
   { label: "Questions about the weather", value: "questions" },
   { label: "Sky, history and a little fun", value: "discover" },
   { label: "Latest reports", value: "reports" },
+  { label: "Explore today", value: "explore-today" },
+  { label: "Grenada in data", value: "grenada-in-data" },
 ] as const;
+
+export const EXPLORE_ACTIVITIES = [
+  { label: "Beach", value: "beach" },
+  { label: "Fishing", value: "fishing" },
+  { label: "Boating", value: "boating" },
+  { label: "Growing", value: "growing" },
+  { label: "Outdoors", value: "outdoors" },
+  { label: "Night sky", value: "night-sky" },
+] as const;
+
+/** Payload field names cannot contain hyphens. */
+export const copyFieldName = (key: string) => key.replaceAll("-", "_");
 
 export const DISCOVER_CARDS = [
   { label: "Tonight's sky", value: "sky" },
@@ -56,6 +70,41 @@ export const Homepage: GlobalConfig = {
       admin: {
         description: "Which cards Sky, history and a little fun shows.",
       },
+    },
+    {
+      name: "exploreReading",
+      type: "group",
+      label: "Explore today: read more",
+      admin: {
+        description:
+          "Optionally link a published story or explainer under an activity. Which activities show, and their ratings, come from the forecast system.",
+      },
+      fields: EXPLORE_ACTIVITIES.map((activity) => ({
+        name: copyFieldName(activity.value),
+        label: activity.label,
+        type: "relationship" as const,
+        relationTo: ["stories", "questions"],
+      })),
+    },
+    {
+      name: "sectionCopy",
+      type: "group",
+      label: "Section wording",
+      admin: {
+        description:
+          "Words only: figures and statuses come from the forecast system. Leave a field empty to keep the standard wording.",
+      },
+      fields: HOMEPAGE_SECTIONS.map((section) => ({
+        name: copyFieldName(section.value),
+        label: section.label,
+        type: "group" as const,
+        admin: { hideGutter: true },
+        fields: [
+          { name: "kicker", type: "text" as const, maxLength: 40 },
+          { name: "title", type: "text" as const, maxLength: 80 },
+          { name: "intro", type: "textarea" as const, maxLength: 240 },
+        ],
+      })),
     },
     {
       name: "hiddenSections",

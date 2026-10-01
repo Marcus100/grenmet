@@ -6,13 +6,16 @@ import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import { buildConfig } from "payload";
 import { DeskUpdates } from "./collections/desk-updates";
 import { Discover } from "./collections/discover";
+import { LivePosts } from "./collections/live-posts";
 import { Media } from "./collections/media";
 import { Questions } from "./collections/questions";
+import { ReportNotes } from "./collections/report-notes";
 import { Stories } from "./collections/stories";
 import { Users } from "./collections/users";
 import { getEnv } from "./env";
 import { Homepage } from "./globals/homepage";
 import { WeatherNow } from "./globals/weather-now";
+import { linkedProductsEndpoint } from "./lib/linked-products";
 import { reportPayloadError } from "./lib/report-payload-error";
 
 const env = getEnv();
@@ -43,8 +46,24 @@ export default buildConfig({
     importMap: { baseDir },
     meta: { titleSuffix: " | GMS Content" },
   },
-  collections: [DeskUpdates, Stories, Questions, Discover, Media, Users],
+  collections: [
+    DeskUpdates,
+    Stories,
+    Questions,
+    Discover,
+    ReportNotes,
+    LivePosts,
+    Media,
+    Users,
+  ],
   globals: [WeatherNow, Homepage],
+  endpoints: [
+    {
+      path: "/linked-products",
+      method: "get",
+      handler: linkedProductsEndpoint,
+    },
+  ],
   hooks: { afterError: [reportPayloadError] },
   graphQL: { disable: true },
   typescript: {

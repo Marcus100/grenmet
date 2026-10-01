@@ -6,6 +6,8 @@ export const PUBLISH_KEYS = {
   stories: "cms.publish.stories",
   questions: "cms.publish.questions",
   discover: "cms.publish.discover",
+  "report-notes": "cms.publish.report-notes",
+  "live-posts": "cms.publish.live-posts",
 } as const;
 export const WEATHER_NOW_NOTE_KEY = "cms.weather-now.note";
 export const HOMEPAGE_KEY = "cms.homepage.manage";
