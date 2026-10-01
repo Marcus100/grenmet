@@ -54,6 +54,14 @@ import {
   down as down_20260929_220653_reports_and_imagery_to_fastapi,
   up as up_20260929_220653_reports_and_imagery_to_fastapi,
 } from "./20260929_220653_reports_and_imagery_to_fastapi";
+import {
+  down as down_20260930_211540_homepage_section_copy,
+  up as up_20260930_211540_homepage_section_copy,
+} from "./20260930_211540_homepage_section_copy";
+import {
+  down as down_20260930_214145_editorial_reports_and_live,
+  up as up_20260930_214145_editorial_reports_and_live,
+} from "./20260930_214145_editorial_reports_and_live";
 
 export const migrations = [
   {
@@ -125,5 +133,15 @@ export const migrations = [
     up: up_20260929_220653_reports_and_imagery_to_fastapi,
     down: down_20260929_220653_reports_and_imagery_to_fastapi,
     name: "20260929_220653_reports_and_imagery_to_fastapi",
+  },
+  {
+    up: up_20260930_211540_homepage_section_copy,
+    down: down_20260930_211540_homepage_section_copy,
+    name: "20260930_211540_homepage_section_copy",
+  },
+  {
+    up: up_20260930_214145_editorial_reports_and_live,
+    down: down_20260930_214145_editorial_reports_and_live,
+    name: "20260930_214145_editorial_reports_and_live",
   },
 ];

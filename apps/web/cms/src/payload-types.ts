@@ -72,6 +72,8 @@ export interface Config {
     stories: Story;
     questions: Question;
     discover: Discover;
+    "report-notes": ReportNote;
+    "live-posts": LivePost;
     media: Media;
     users: User;
     "payload-kv": PayloadKv;
@@ -85,6 +87,8 @@ export interface Config {
     stories: StoriesSelect<false> | StoriesSelect<true>;
     questions: QuestionsSelect<false> | QuestionsSelect<true>;
     discover: DiscoverSelect<false> | DiscoverSelect<true>;
+    "report-notes": ReportNotesSelect<false> | ReportNotesSelect<true>;
+    "live-posts": LivePostsSelect<false> | LivePostsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     "payload-kv": PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -139,7 +143,7 @@ export interface UserAuthOperations {
   };
 }
 /**
- * From the Desk: product changes, service notices and announcements. Never a forecast or a warning; those are issued in the forecast system.
+ * From the Desk: the forecast office writing about what it issues, plus service notices. Attach a product to show its live figures; never type forecast figures or warnings here.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "desk-updates".
@@ -169,6 +173,13 @@ export interface DeskUpdate {
     | "announcement"
     | "public-notice"
     | "community-update";
+  /**
+   * Optional. Shows this product's live figures with the post; they always come from the forecast system.
+   */
+  linkedProduct?: {
+    productId?: string | null;
+    kind?: string | null;
+  };
   /**
    * The product this update is about, if any.
    */
@@ -628,6 +639,183 @@ export interface Discover {
   year?: number | null;
 }
 /**
+ * Latest reports: explain an issued report in plain language. Only reports with a published write-up appear on the homepage.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "report-notes".
+ */
+export interface ReportNote {
+  author: number | User;
+  body: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ("ltr" | "rtl") | null;
+      format: "left" | "start" | "center" | "right" | "end" | "justify" | "";
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  createdAt: string;
+  id: number;
+  /**
+   * Shown on cards and at the top of the page.
+   */
+  image?: (number | null) | Media;
+  imageCaption?: string | null;
+  /**
+   * The issued report this write-up is about. Its figures come from the forecast system.
+   */
+  linkedProduct: {
+    productId: string;
+    kind?: string | null;
+  };
+  /**
+   * Set when first published; used for ordering and the URL.
+   */
+  publishedAt?: string | null;
+  /**
+   * Link to an existing product, publication or news source. Linking does not publish the destination.
+   */
+  relatedLinks?:
+    | {
+        title: string;
+        category:
+          | "forecast"
+          | "cap"
+          | "aviation"
+          | "bulletin"
+          | "publication"
+          | "article"
+          | "source";
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Optional. Falls back to the title, summary and image.
+   */
+  seo?: {
+    title?: string | null;
+    description?: string | null;
+    image?: (number | null) | Media;
+  };
+  /**
+   * Built from the title. Fixed once published so links last.
+   */
+  slug: string;
+  /**
+   * Prepare platform-specific copy. Automatic delivery can be added later.
+   */
+  social?: {
+    caption?: string | null;
+    enabledPlatforms?:
+      | (
+          | "X"
+          | "Facebook"
+          | "Instagram"
+          | "YouTube"
+          | "LinkedIn"
+          | "WhatsApp Channel"
+        )[]
+      | null;
+    /**
+     * Leave empty for manual or immediate sharing.
+     */
+    publishAt?: string | null;
+    xText?: string | null;
+    facebookText?: string | null;
+    instagramText?: string | null;
+    linkedinText?: string | null;
+    whatsappText?: string | null;
+  };
+  /**
+   * Save as Ready for review. An editor with this section's permission publishes.
+   */
+  status: "draft" | "review" | "published";
+  /**
+   * Shown on cards and in search. 240 characters at most.
+   */
+  summary: string;
+  title: string;
+  /**
+   * Used to link related questions, stories and reports.
+   */
+  topics?:
+    | (
+        | "tropical"
+        | "rain"
+        | "heat"
+        | "marine"
+        | "climate"
+        | "sky"
+        | "safety"
+        | "agriculture"
+        | "aviation"
+        | "gms"
+      )[]
+    | null;
+  updatedAt: string;
+}
+/**
+ * Weather now: videos and audio play under the Video and Audio tabs beside Satellite, Radar and Rainfall; quick updates appear under the duty forecaster's note (which stays on the Weather now page).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "live-posts".
+ */
+export interface LivePost {
+  author: number | User;
+  createdAt: string;
+  /**
+   * Optional. The post leaves the homepage at this time.
+   */
+  expiresAt?: string | null;
+  id: number;
+  kind: "update" | "video" | "audio";
+  /**
+   * Paste the share link. The site shows it only when a reader presses play.
+   */
+  mediaUrl?: string | null;
+  /**
+   * Set when first published; used for ordering and the URL.
+   */
+  publishedAt?: string | null;
+  /**
+   * Link to an existing product, publication or news source. Linking does not publish the destination.
+   */
+  relatedLinks?:
+    | {
+        title: string;
+        category:
+          | "forecast"
+          | "cap"
+          | "aviation"
+          | "bulletin"
+          | "publication"
+          | "article"
+          | "source";
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Built from the title. Fixed once published so links last.
+   */
+  slug: string;
+  /**
+   * Save as Ready for review. An editor with this section's permission publishes.
+   */
+  status: "draft" | "review" | "published";
+  text?: string | null;
+  title: string;
+  updatedAt: string;
+}
+/**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
@@ -666,6 +854,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: "discover";
         value: number | Discover;
+      } | null)
+    | ({
+        relationTo: "report-notes";
+        value: number | ReportNote;
+      } | null)
+    | ({
+        relationTo: "live-posts";
+        value: number | LivePost;
       } | null)
     | ({
         relationTo: "media";
@@ -726,6 +922,12 @@ export interface DeskUpdatesSelect<T extends boolean = true> {
   body?: T;
   createdAt?: T;
   kind?: T;
+  linkedProduct?:
+    | T
+    | {
+        productId?: T;
+        kind?: T;
+      };
   product?: T;
   publishedAt?: T;
   relatedLinks?:
@@ -885,6 +1087,82 @@ export interface DiscoverSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "report-notes_select".
+ */
+export interface ReportNotesSelect<T extends boolean = true> {
+  author?: T;
+  body?: T;
+  createdAt?: T;
+  image?: T;
+  imageCaption?: T;
+  linkedProduct?:
+    | T
+    | {
+        productId?: T;
+        kind?: T;
+      };
+  publishedAt?: T;
+  relatedLinks?:
+    | T
+    | {
+        title?: T;
+        category?: T;
+        url?: T;
+        id?: T;
+      };
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  slug?: T;
+  social?:
+    | T
+    | {
+        caption?: T;
+        enabledPlatforms?: T;
+        publishAt?: T;
+        xText?: T;
+        facebookText?: T;
+        instagramText?: T;
+        linkedinText?: T;
+        whatsappText?: T;
+      };
+  status?: T;
+  summary?: T;
+  title?: T;
+  topics?: T;
+  updatedAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "live-posts_select".
+ */
+export interface LivePostsSelect<T extends boolean = true> {
+  author?: T;
+  createdAt?: T;
+  expiresAt?: T;
+  kind?: T;
+  mediaUrl?: T;
+  publishedAt?: T;
+  relatedLinks?:
+    | T
+    | {
+        title?: T;
+        category?: T;
+        url?: T;
+        id?: T;
+      };
+  slug?: T;
+  status?: T;
+  text?: T;
+  title?: T;
+  updatedAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
@@ -996,6 +1274,65 @@ export interface Homepage {
    */
   discoverCards?: ("sky" | "on-this-day" | "quiz" | "fact")[] | null;
   /**
+   * Optionally link a published story or explainer under an activity. Which activities show, and their ratings, come from the forecast system.
+   */
+  exploreReading?: {
+    beach?:
+      | ({
+          relationTo: "stories";
+          value: number | Story;
+        } | null)
+      | ({
+          relationTo: "questions";
+          value: number | Question;
+        } | null);
+    fishing?:
+      | ({
+          relationTo: "stories";
+          value: number | Story;
+        } | null)
+      | ({
+          relationTo: "questions";
+          value: number | Question;
+        } | null);
+    boating?:
+      | ({
+          relationTo: "stories";
+          value: number | Story;
+        } | null)
+      | ({
+          relationTo: "questions";
+          value: number | Question;
+        } | null);
+    growing?:
+      | ({
+          relationTo: "stories";
+          value: number | Story;
+        } | null)
+      | ({
+          relationTo: "questions";
+          value: number | Question;
+        } | null);
+    outdoors?:
+      | ({
+          relationTo: "stories";
+          value: number | Story;
+        } | null)
+      | ({
+          relationTo: "questions";
+          value: number | Question;
+        } | null);
+    night_sky?:
+      | ({
+          relationTo: "stories";
+          value: number | Story;
+        } | null)
+      | ({
+          relationTo: "questions";
+          value: number | Question;
+        } | null);
+  };
+  /**
    * Up to five, in order. Default: the newest.
    */
   featuredQuestions?: (number | Question)[] | null;
@@ -1010,6 +1347,8 @@ export interface Homepage {
         | "questions"
         | "discover"
         | "reports"
+        | "explore-today"
+        | "grenada-in-data"
       )[]
     | null;
   id: number;
@@ -1017,6 +1356,51 @@ export interface Homepage {
    * The large story. Default: the newest.
    */
   leadStory?: (number | null) | Story;
+  /**
+   * Words only: figures and statuses come from the forecast system. Leave a field empty to keep the standard wording.
+   */
+  sectionCopy?: {
+    weather_now?: {
+      kicker?: string | null;
+      title?: string | null;
+      intro?: string | null;
+    };
+    desk?: {
+      kicker?: string | null;
+      title?: string | null;
+      intro?: string | null;
+    };
+    stories?: {
+      kicker?: string | null;
+      title?: string | null;
+      intro?: string | null;
+    };
+    questions?: {
+      kicker?: string | null;
+      title?: string | null;
+      intro?: string | null;
+    };
+    discover?: {
+      kicker?: string | null;
+      title?: string | null;
+      intro?: string | null;
+    };
+    reports?: {
+      kicker?: string | null;
+      title?: string | null;
+      intro?: string | null;
+    };
+    explore_today?: {
+      kicker?: string | null;
+      title?: string | null;
+      intro?: string | null;
+    };
+    grenada_in_data?: {
+      kicker?: string | null;
+      title?: string | null;
+      intro?: string | null;
+    };
+  };
   updatedAt?: string | null;
 }
 /**
@@ -1044,10 +1428,80 @@ export interface WeatherNowSelect<T extends boolean = true> {
 export interface HomepageSelect<T extends boolean = true> {
   createdAt?: T;
   discoverCards?: T;
+  exploreReading?:
+    | T
+    | {
+        beach?: T;
+        fishing?: T;
+        boating?: T;
+        growing?: T;
+        outdoors?: T;
+        night_sky?: T;
+      };
   featuredQuestions?: T;
   globalType?: T;
   hiddenSections?: T;
   leadStory?: T;
+  sectionCopy?:
+    | T
+    | {
+        weather_now?:
+          | T
+          | {
+              kicker?: T;
+              title?: T;
+              intro?: T;
+            };
+        desk?:
+          | T
+          | {
+              kicker?: T;
+              title?: T;
+              intro?: T;
+            };
+        stories?:
+          | T
+          | {
+              kicker?: T;
+              title?: T;
+              intro?: T;
+            };
+        questions?:
+          | T
+          | {
+              kicker?: T;
+              title?: T;
+              intro?: T;
+            };
+        discover?:
+          | T
+          | {
+              kicker?: T;
+              title?: T;
+              intro?: T;
+            };
+        reports?:
+          | T
+          | {
+              kicker?: T;
+              title?: T;
+              intro?: T;
+            };
+        explore_today?:
+          | T
+          | {
+              kicker?: T;
+              title?: T;
+              intro?: T;
+            };
+        grenada_in_data?:
+          | T
+          | {
+              kicker?: T;
+              title?: T;
+              intro?: T;
+            };
+      };
   updatedAt?: T;
 }
 /**
