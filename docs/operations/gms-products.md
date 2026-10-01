@@ -16,7 +16,14 @@ The editor and write boundary derive validity and evening dates from the issue d
 The existing JSON content storage is retained. A dedicated Alembic baseline adopts verified Drizzle history without resetting product records.
 Morning is issued at 07:00, midday at 12:00, evening at 18:00; marine at 05:00.
 Tropical Weather Outlook is issued at 02:00, 08:00, 14:00 and 20:00.
-These are Grenada times. Select the date and scheduled issue before authoring.
+These are Grenada times. New forecasts use today's Grenada date and the fixed
+Morning/Midday/Evening slot; issue and validity are read-only. Late publication
+retains its scheduled slot and records the actual publication separately.
+Bulletins and outlooks retain editable issue/validity fields in their forms,
+without duplicate date or schedule selectors above the editor.
+The shared Saved products archive includes all dates and authorized forecast,
+bulletin and outlook types, paginated by latest update. Opening a saved product
+preserves its original issue date; New starts a forecast for today.
 Reports are independently entered; automatic carry-forward is not enabled.
 
 Additional schedules supplied: METAR hourly; TAF 00:00/06:00/12:00/18:00;
@@ -92,10 +99,9 @@ cd apps/api/fastapi
 uv run --frozen --package fast-back alembic -c src/wxproducts/alembic.ini upgrade head
 ```
 
-Set `WXPRODUCTS_API_URL` for the gms server to the reachable gaa-admin origin.
-The gms server reads `/api/public/products` from that origin. No browser token
-or CORS setup is needed. Local development defaults to `http://localhost:3001`;
-deployed environments must supply their reachable gaa-admin origin. Unavailable
+The gms server reads published products straight from FastAPI
+(`AUTH_API_URL` + `/api/v1/wxproducts/public/products`), never through
+gaa-admin. No browser token or CORS setup is needed. Unavailable
 feeds never fall back to the dated September reference weather on the homepage.
 
 The public GET endpoint accepts an optional `kind` query parameter and returns

@@ -75,7 +75,6 @@ jobs:
           clean: false
       - name: Run serialized core delivery
         env:
-          WXPRODUCTS_API_URL: ${{ vars.WXPRODUCTS_API_URL }}
           CORE_REDIS_IMAGE: ${{ vars.CORE_REDIS_IMAGE }}
           CORE_POSTGRES_IMAGE: ${{ vars.CORE_POSTGRES_IMAGE }}
           CORE_PRIVATE_IP: ${{ vars.CORE_PRIVATE_IP }}
