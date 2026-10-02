@@ -22,6 +22,7 @@ directory. **Before editing under a path below, open its `AGENTS.md`.**
 | `apps/api/fastapi/AGENTS.md` | FastAPI conventions, testing, OpenAPI contract |
 | `apps/api/fastapi/src/<domain>/AGENTS.md` | Per-domain ownership, invariants, tests (auth, hr, cap, wxproducts, wxwatch, audit, notifications, storage, billing, worker, eregister, janitorial, transport, baseline) |
 | `apps/web/<app>/AGENTS.md` | auth, cms, docs, elections, events, gaa-admin, gms, mbia, signal |
+| `apps/web/barrels/AGENTS.md` | Static Barrels Grenada company homepage |
 | `packages/<pkg>/AGENTS.md` | api-client, auth, email-templates, gms, theme, ui |
 | `docs/playbooks/full-stack-feature.md` | End-to-end: model → migration → route → OpenAPI → client → UI → tests |
 
