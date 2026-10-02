@@ -20,8 +20,8 @@ export function HouseStrip({ seats }: { seats: SeatOutlook[] }) {
   return (
     <figure className="m-0">
       <figcaption className="mb-1.5 flex items-baseline justify-between gap-3 font-semibold text-[11px] text-el-muted uppercase tracking-[0.07em]">
-        <span>House of Representatives now · {SEATS} seats</span>
-        <span>{MAJORITY} for a majority</span>
+        <span>The House now · {SEATS} seats</span>
+        <span className="whitespace-nowrap">{MAJORITY} for a majority</span>
       </figcaption>
       <div className="relative grid grid-cols-15 gap-[3px]">
         {sorted.map((seat) => (

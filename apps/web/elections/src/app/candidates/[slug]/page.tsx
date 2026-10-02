@@ -6,6 +6,7 @@ import { PartyDot } from "@/components/party-chip";
 import { PageHead, Section } from "@/components/section";
 import { SourceLink } from "@/components/source-link";
 import { findPerson, type Person } from "@/data/candidates";
+import { candidateNote, candidateSource } from "@/data/election-2026";
 import { eventSlug, eventSource } from "@/data/events";
 import { campaign, data, people, results } from "@/data/load";
 import { constituencyHref, slugify } from "@/data/model";
@@ -86,7 +87,14 @@ export default async function PersonPage({ params }: Props) {
             {next.map((n) => (
               <li key={`${n.party}${n.code}`}>
                 <PartyDot party={n.party} />
-                {n.name} for the {partyInfo(n.party).name} in{" "}
+                {n.name}
+                {candidateNote(campaign, n.party, n.code) && (
+                  <Flag
+                    note={candidateNote(campaign, n.party, n.code)}
+                    status="unverified"
+                  />
+                )}{" "}
+                for the {partyInfo(n.party).name} in{" "}
                 <Link
                   className="underline underline-offset-2"
                   href={constituencyHref(results, n.code)}
@@ -97,12 +105,11 @@ export default async function PersonPage({ params }: Props) {
                   note="Matched to this record by surname and first initial, not an official identifier."
                   status="unverified"
                 />
-                {campaign.candidate_sources[n.party] && (
+                {candidateSource(campaign, n.party, n.code) && (
                   <span className="text-el-muted">
-                    {" "}
-                    ·{" "}
+                    {" · "}
                     <SourceLink
-                      id={campaign.candidate_sources[n.party] ?? ""}
+                      id={candidateSource(campaign, n.party, n.code) ?? ""}
                       sources={campaign.sources}
                     />
                   </span>
@@ -131,7 +138,7 @@ export default async function PersonPage({ params }: Props) {
                   y2={y(v)}
                 />
                 <text
-                  className="fill-(--el-muted) text-[10px]"
+                  className="fill-(--el-muted) text-[10px] max-sm:text-[16px]"
                   x={0}
                   y={y(v) + 3}
                 >
@@ -156,7 +163,7 @@ export default async function PersonPage({ params }: Props) {
               ))}
             {[...new Set(years)].map((yr) => (
               <text
-                className="fill-(--el-muted) text-[10px]"
+                className="fill-(--el-muted) text-[10px] max-sm:text-[16px]"
                 key={yr}
                 textAnchor="middle"
                 x={x(yr)}

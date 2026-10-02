@@ -31,6 +31,8 @@ export const metadata: Metadata = {
 const LABEL =
   "font-semibold text-[11px] text-el-muted uppercase tracking-[0.07em]";
 const GENERAL = EVENTS.filter((e) => e.kind === "general");
+/** Years labelled on phones, where every election year won't fit. */
+const PHONE_YEARS = new Set([1951, 1962, 1972, 1984, 1995, 2003, 2013, 2022]);
 const MAIN = new Set(["GULP", "MMWU", "NNP", "NDC", "GNP", "PA", "TNP"]);
 
 const SERIES = [
@@ -69,7 +71,7 @@ function seriesShare(id: string, parties: string[]): number {
 function ShareChart() {
   const W = 1000;
   const H = 360;
-  const m = { l: 40, r: 70, t: 12, b: 28 };
+  const m = { l: 70, r: 70, t: 12, b: 28 };
   const x = (y: number) => m.l + ((y - 1951) / (2022 - 1951)) * (W - m.l - m.r);
   const yv = (v: number) => H - m.b - (v / 0.7) * (H - m.t - m.b);
   return (
@@ -107,7 +109,7 @@ function ShareChart() {
             y2={yv(v)}
           />
           <text
-            className="fill-(--el-muted) text-[12px]"
+            className="fill-(--el-muted) text-[12px] max-sm:text-[28px]"
             textAnchor="end"
             x={m.l - 6}
             y={yv(v) + 4}
@@ -118,7 +120,7 @@ function ShareChart() {
       ))}
       {GENERAL.map((e) => (
         <text
-          className="fill-(--el-muted) text-[12px]"
+          className={`fill-(--el-muted) text-[12px] max-sm:text-[28px] ${PHONE_YEARS.has(e.year) ? "" : "max-sm:hidden"}`}
           key={e.id}
           textAnchor="middle"
           x={x(e.year)}
@@ -164,7 +166,7 @@ function ShareChart() {
             ))}
             {last && ["NDC", "NNP", "GULP"].includes(s.key) && (
               <text
-                className="fill-(--el-ink) font-semibold text-[12px]"
+                className="fill-(--el-ink) font-semibold text-[12px] max-sm:hidden"
                 x={x(last.e.year) + 8}
                 y={yv(last.v) + 4}
               >
@@ -181,7 +183,7 @@ function ShareChart() {
 function TurnoutChart() {
   const W = 1000;
   const H = 220;
-  const m = { l: 40, r: 20, t: 12, b: 28 };
+  const m = { l: 70, r: 20, t: 12, b: 28 };
   const x = (y: number) => m.l + ((y - 1951) / (2022 - 1951)) * (W - m.l - m.r);
   const yv = (v: number) => H - m.b - v * (H - m.t - m.b);
   const elections = GENERAL.map((e) => ({
@@ -211,7 +213,7 @@ function TurnoutChart() {
             y2={yv(v)}
           />
           <text
-            className="fill-(--el-muted) text-[12px]"
+            className="fill-(--el-muted) text-[12px] max-sm:text-[28px]"
             textAnchor="end"
             x={m.l - 6}
             y={yv(v) + 4}
@@ -254,7 +256,7 @@ function TurnoutChart() {
       ))}
       {GENERAL.map((e) => (
         <text
-          className="fill-(--el-muted) text-[12px]"
+          className={`fill-(--el-muted) text-[12px] max-sm:text-[28px] ${PHONE_YEARS.has(e.year) ? "" : "max-sm:hidden"}`}
           key={e.id}
           textAnchor="middle"
           x={x(e.year)}

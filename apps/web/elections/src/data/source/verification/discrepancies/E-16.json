@@ -1,0 +1,13 @@
+{
+  "id": "E-16",
+  "area": "1990 results",
+  "status": "resolved",
+  "impact": "data",
+  "what": "For 1990 the PEO’s later compilation (Old Elections Results) disagrees with the Supervisor of Elections’ Gazette declaration for 5 winners, among them St. George NW, Keith Mitchell 1,148 not 1,348, and St. George NE, George Brizan 1,853 not 1,952. The Grenada Newsletter of 24 March 1990 matches the Gazette for all 15 winners, and its full tables sum to the votes cast in 14 of 15 constituencies. The compilation has 21 wrong 1990 figures in all, including losing candidates (e.g. St. Patrick West, Paul Richards 328 not 407).",
+  "action": "1990 now uses the Gazette (winners) and the Newsletter (others, marked †). The PEO compilation is not used for 1990.",
+  "sources": [
+    "Government Gazette No. 15 of 1990",
+    "The Grenada Newsletter, 24 March 1990, pp. 3–13",
+    "PEO Old Elections Results"
+  ]
+}

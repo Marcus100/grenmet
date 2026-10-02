@@ -40,7 +40,7 @@ function nextDirection(sort: Sort, key: SortKey): 1 | -1 {
 }
 
 const SELECT =
-  "h-9 rounded-md border border-el-rule-2 bg-background px-2 text-sm";
+  "h-9 w-full rounded-md border border-el-rule-2 bg-background px-2 text-sm sm:w-auto sm:max-w-64";
 
 /** Search, filter and sort everyone who has stood since 1951. */
 export function CandidateDirectory({
@@ -103,10 +103,10 @@ export function CandidateDirectory({
   return (
     <div>
       <div className="flex flex-wrap items-end gap-3">
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex w-full flex-col gap-1 text-sm sm:w-auto">
           Name
           <input
-            className={`${SELECT} w-56`}
+            className={`${SELECT} sm:w-56`}
             onChange={(e) => {
               setQ(e.target.value);
               setLimit(60);
@@ -116,7 +116,7 @@ export function CandidateDirectory({
             value={q}
           />
         </label>
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex w-full flex-col gap-1 text-sm sm:w-auto">
           Party
           <select
             className={SELECT}
@@ -131,7 +131,7 @@ export function CandidateDirectory({
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex w-full flex-col gap-1 text-sm sm:w-auto">
           Constituency
           <select
             className={SELECT}
@@ -146,7 +146,7 @@ export function CandidateDirectory({
             ))}
           </select>
         </label>
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex w-full flex-col gap-1 text-sm sm:w-auto">
           Result
           <select
             className={SELECT}

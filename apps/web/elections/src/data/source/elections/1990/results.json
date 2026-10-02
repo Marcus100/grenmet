@@ -1,0 +1,278 @@
+{
+  "A": {
+    "reg": 2995,
+    "cast": 2005,
+    "rej": null,
+    "c": [
+      ["Nicholas Brathwaite", "NDC", 1346, "official"],
+      ["Michael Caesar", "TNP", 455, "corroborated"],
+      ["Bonfield Bristol", "GULP", 136, "corroborated"],
+      ["Winston Fleary", "NNP", 35, "corroborated"],
+      ["Lyle Bullen", "GULP", 33, "corroborated"]
+    ],
+    "src": "gazette-newsletter-1990",
+    "castIsValid": false,
+    "page": 12,
+    "official": true,
+    "gazette": "Government Gazette No. 15, 16 March 1990: Parliamentary Elections Office, Results of the Grenada General Elections, 1990",
+    "note": "Winner’s votes: the Supervisor of Elections’ declaration in the Government Gazette (16 March 1990). Other candidates, electors on the roll and votes cast: The Grenada Newsletter, 24 March 1990, which matches the Gazette for all 15 winners. The PEO’s later compilation (Old Elections Results) differs in places and is not used for 1990."
+  },
+  "B": {
+    "reg": 3067,
+    "cast": 2139,
+    "rej": null,
+    "c": [
+      ["Winifred Strachan", "GULP", 802, "official"],
+      ["Pauline Andrew", "TNP", 645, "corroborated"],
+      ["Norton Noel", "NDC", 446, "corroborated"],
+      ["Lawrence Joseph", "NNP", 246, "corroborated"]
+    ],
+    "src": "gazette-newsletter-1990",
+    "castIsValid": false,
+    "page": 12,
+    "official": true,
+    "gazette": "Government Gazette No. 15, 16 March 1990: Parliamentary Elections Office, Results of the Grenada General Elections, 1990",
+    "note": "Winner’s votes: the Supervisor of Elections’ declaration in the Government Gazette (16 March 1990). Other candidates, electors on the roll and votes cast: The Grenada Newsletter, 24 March 1990, which matches the Gazette for all 15 winners. The PEO’s later compilation (Old Elections Results) differs in places and is not used for 1990."
+  },
+  "C": {
+    "reg": 4441,
+    "cast": 2950,
+    "rej": null,
+    "c": [
+      ["Ben Jones", "TNP", 1430, "official"],
+      ["Joseph McGuire", "GULP", 690, "corroborated"],
+      ["Dennis Noel", "NDC", 624, "corroborated"],
+      ["Richard Lewis", "NNP", 143, "corroborated"],
+      ["George Lewis", "MBPM", 63, "corroborated"]
+    ],
+    "src": "gazette-newsletter-1990",
+    "castIsValid": false,
+    "page": 12,
+    "official": true,
+    "epDiff": [
+      "Joseph Mc Guire (GULP) EP=689 PEO=690 [Joseph Mc Guire]",
+      "George M. Lewis (MBPM) EP=62 PEO=63 [George M. Lewis]"
+    ],
+    "gazette": "Government Gazette No. 15, 16 March 1990: Parliamentary Elections Office, Results of the Grenada General Elections, 1990",
+    "note": "Winner’s votes: the Supervisor of Elections’ declaration in the Government Gazette (16 March 1990). Other candidates, electors on the roll and votes cast: The Grenada Newsletter, 24 March 1990, which matches the Gazette for all 15 winners. The PEO’s later compilation (Old Elections Results) differs in places and is not used for 1990."
+  },
+  "D": {
+    "reg": 3515,
+    "cast": 2317,
+    "rej": null,
+    "c": [
+      ["Lawrence Gibbs", "GULP", 819, "official"],
+      ["Marcel Peters", "NDC", 574, "corroborated"],
+      ["Clarence Renaud", "TNP", 496, "corroborated"],
+      ["McDonald George", "NNP", 408, "corroborated"],
+      ["Leslie Julien", "MBPM", 18, "corroborated"]
+    ],
+    "src": "gazette-newsletter-1990",
+    "castIsValid": false,
+    "page": 12,
+    "official": true,
+    "gazette": "Government Gazette No. 15, 16 March 1990: Parliamentary Elections Office, Results of the Grenada General Elections, 1990",
+    "note": "Winner’s votes: the Supervisor of Elections’ declaration in the Government Gazette (16 March 1990). Other candidates, electors on the roll and votes cast: The Grenada Newsletter, 24 March 1990, which matches the Gazette for all 15 winners. The PEO’s later compilation (Old Elections Results) differs in places and is not used for 1990."
+  },
+  "E": {
+    "reg": 3189,
+    "cast": 2272,
+    "rej": null,
+    "c": [
+      ["Alleyne Walker", "TNP", 730, "official"],
+      ["Herbert Fletcher", "GULP", 716, "corroborated"],
+      ["Paul Francis", "NDC", 629, "corroborated"],
+      ["Bert LaTouche", "NNP", 134, "corroborated"],
+      ["Carlton Bernard", "MBPM", 63, "corroborated"]
+    ],
+    "src": "gazette-newsletter-1990",
+    "castIsValid": false,
+    "page": 12,
+    "official": true,
+    "epDiff": ["Alleyne Walker (TNP) EP=833 PEO=730 [Alleyne Walker]"],
+    "gazette": "Government Gazette No. 15, 16 March 1990: Parliamentary Elections Office, Results of the Grenada General Elections, 1990",
+    "note": "Winner’s votes: the Supervisor of Elections’ declaration in the Government Gazette (16 March 1990). Other candidates, electors on the roll and votes cast: The Grenada Newsletter, 24 March 1990, which matches the Gazette for all 15 winners. The PEO’s later compilation (Old Elections Results) differs in places and is not used for 1990."
+  },
+  "F": {
+    "reg": 6379,
+    "cast": 4491,
+    "rej": null,
+    "c": [
+      ["Michael Andrew", "NDC", 1745, "official"],
+      ["Vincent Clyne", "GULP", 1510, "corroborated"],
+      ["Joslyn Whiteman", "NNP", 639, "corroborated"],
+      ["Catherine Hagley", "TNP", 548, "corroborated"],
+      ["Brian Lindsay", "MBPM", 49, "corroborated"]
+    ],
+    "src": "gazette-newsletter-1990",
+    "castIsValid": false,
+    "page": 12,
+    "official": true,
+    "gazette": "Government Gazette No. 15, 16 March 1990: Parliamentary Elections Office, Results of the Grenada General Elections, 1990",
+    "note": "Winner’s votes: the Supervisor of Elections’ declaration in the Government Gazette (16 March 1990). Other candidates, electors on the roll and votes cast: The Grenada Newsletter, 24 March 1990, which matches the Gazette for all 15 winners. The PEO’s later compilation (Old Elections Results) differs in places and is not used for 1990."
+  },
+  "G": {
+    "reg": 3674,
+    "cast": 2300,
+    "rej": null,
+    "c": [
+      ["Joan Purcell", "NDC", 772, "official"],
+      ["George McGuire", "TNP", 566, "corroborated"],
+      ["Herbert Preudhomme", "GULP", 554, "corroborated"],
+      ["Dennis Campbell", "NNP", 349, "corroborated"],
+      ["Terrence Marryshow", "MBPM", 42, "corroborated"],
+      ["Michael Donelan", "IND", 11, "corroborated"],
+      ["Justin McBurnie", "GOD", 6, "corroborated"]
+    ],
+    "src": "gazette-newsletter-1990",
+    "castIsValid": false,
+    "page": 12,
+    "official": true,
+    "gazette": "Government Gazette No. 15, 16 March 1990: Parliamentary Elections Office, Results of the Grenada General Elections, 1990",
+    "note": "Winner’s votes: the Supervisor of Elections’ declaration in the Government Gazette (16 March 1990). Other candidates, electors on the roll and votes cast: The Grenada Newsletter, 24 March 1990, which matches the Gazette for all 15 winners. The PEO’s later compilation (Old Elections Results) differs in places and is not used for 1990."
+  },
+  "H": {
+    "reg": 5029,
+    "cast": 3248,
+    "rej": null,
+    "c": [
+      ["George Brizan", "NDC", 1853, "official"],
+      ["Gerald Arlin", "GULP", 607, "corroborated"],
+      ["John Munro", "NNP", 543, "corroborated"],
+      ["Fitzroy Alexander", "TNP", 207, "corroborated"],
+      ["Valentine Joseph", "MBPM", 34, "corroborated"],
+      ["Michael Radix", "IND", 4, "corroborated"]
+    ],
+    "src": "gazette-newsletter-1990",
+    "castIsValid": false,
+    "page": 12,
+    "official": true,
+    "gazette": "Government Gazette No. 15, 16 March 1990: Parliamentary Elections Office, Results of the Grenada General Elections, 1990",
+    "note": "Winner’s votes: the Supervisor of Elections’ declaration in the Government Gazette (16 March 1990). Other candidates, electors on the roll and votes cast: The Grenada Newsletter, 24 March 1990, which matches the Gazette for all 15 winners. The PEO’s later compilation (Old Elections Results) differs in places and is not used for 1990."
+  },
+  "J": {
+    "reg": 3373,
+    "cast": 2114,
+    "rej": null,
+    "c": [
+      ["Keith Mitchell", "NNP", 1148, "official"],
+      ["Jerry Seales", "GULP", 574, "corroborated"],
+      ["Carl Hood", "NDC", 280, "corroborated"],
+      ["Michael Stewart", "TNP", 74, "corroborated"],
+      ["Carlton Briggs", "MBPM", 38, "corroborated"]
+    ],
+    "src": "gazette-newsletter-1990",
+    "castIsValid": false,
+    "page": 12,
+    "official": true,
+    "gazette": "Government Gazette No. 15, 16 March 1990: Parliamentary Elections Office, Results of the Grenada General Elections, 1990",
+    "note": "Winner’s votes: the Supervisor of Elections’ declaration in the Government Gazette (16 March 1990). Other candidates, electors on the roll and votes cast: The Grenada Newsletter, 24 March 1990, which matches the Gazette for all 15 winners. The PEO’s later compilation (Old Elections Results) differs in places and is not used for 1990."
+  },
+  "K": {
+    "reg": 3587,
+    "cast": 2399,
+    "rej": null,
+    "c": [
+      ["Francis Alexis", "NDC", 1214, "official"],
+      ["Norman DeSousa", "GULP", 585, "corroborated"],
+      ["Joseph Robertson", "TNP", 292, "corroborated"],
+      ["Robert Grant", "NNP", 265, "corroborated"],
+      ["Joseph Charter", "MBPM", 43, "corroborated"]
+    ],
+    "src": "gazette-newsletter-1990",
+    "castIsValid": false,
+    "page": 12,
+    "official": true,
+    "gazette": "Government Gazette No. 15, 16 March 1990: Parliamentary Elections Office, Results of the Grenada General Elections, 1990",
+    "note": "Winner’s votes: the Supervisor of Elections’ declaration in the Government Gazette (16 March 1990). Other candidates, electors on the roll and votes cast: The Grenada Newsletter, 24 March 1990, which matches the Gazette for all 15 winners. The PEO’s later compilation (Old Elections Results) differs in places and is not used for 1990."
+  },
+  "L": {
+    "reg": 4844,
+    "cast": 3113,
+    "rej": null,
+    "c": [
+      ["Phinsley St. Louis", "NDC", 1278, "official"],
+      ["Eric Gairy", "GULP", 1088, "corroborated"],
+      ["Winston Whyte", "NNP", 454, "corroborated"],
+      ["Cephas Pilgrim", "TNP", 293, "corroborated"]
+    ],
+    "src": "gazette-newsletter-1990",
+    "castIsValid": false,
+    "page": 12,
+    "official": true,
+    "gazette": "Government Gazette No. 15, 16 March 1990: Parliamentary Elections Office, Results of the Grenada General Elections, 1990",
+    "note": "Winner’s votes: the Supervisor of Elections’ declaration in the Government Gazette (16 March 1990). Other candidates, electors on the roll and votes cast: The Grenada Newsletter, 24 March 1990, which matches the Gazette for all 15 winners. The PEO’s later compilation (Old Elections Results) differs in places and is not used for 1990."
+  },
+  "M": {
+    "reg": 5142,
+    "cast": 3550,
+    "rej": null,
+    "c": [
+      ["Edzel Thomas", "GULP", 1227, "official"],
+      ["Grace Duncan", "NNP", 1027, "corroborated"],
+      ["Carlyle Glean", "NDC", 878, "corroborated"],
+      ["Einstein Louison", "MBPM", 239, "corroborated"],
+      ["Linda Charles", "TNP", 179, "corroborated"]
+    ],
+    "src": "gazette-newsletter-1990",
+    "castIsValid": false,
+    "page": 12,
+    "official": true,
+    "gazette": "Government Gazette No. 15, 16 March 1990: Parliamentary Elections Office, Results of the Grenada General Elections, 1990",
+    "note": "Winner’s votes: the Supervisor of Elections’ declaration in the Government Gazette (16 March 1990). Other candidates, electors on the roll and votes cast: The Grenada Newsletter, 24 March 1990, which matches the Gazette for all 15 winners. The PEO’s later compilation (Old Elections Results) differs in places and is not used for 1990."
+  },
+  "N": {
+    "reg": 2630,
+    "cast": 1861,
+    "rej": null,
+    "c": [
+      ["Malcolm Antoine", "NNP", 564, "official"],
+      ["Albert Forsythe", "GULP", 488, "corroborated"],
+      ["Henry DeAllie", "NDC", 436, "corroborated"],
+      ["Felix Alexander", "TNP", 243, "corroborated"],
+      ["George Thomas", "MBPM", 130, "corroborated"]
+    ],
+    "src": "gazette-newsletter-1990",
+    "castIsValid": false,
+    "page": 12,
+    "official": true,
+    "gazette": "Government Gazette No. 15, 16 March 1990: Parliamentary Elections Office, Results of the Grenada General Elections, 1990",
+    "note": "Winner’s votes: the Supervisor of Elections’ declaration in the Government Gazette (16 March 1990). Other candidates, electors on the roll and votes cast: The Grenada Newsletter, 24 March 1990, which matches the Gazette for all 15 winners. The PEO’s later compilation (Old Elections Results) differs in places and is not used for 1990."
+  },
+  "P": {
+    "reg": 2723,
+    "cast": 1799,
+    "rej": null,
+    "c": [
+      ["Winston Frederick", "GULP", 607, "official"],
+      ["Tillman Thomas", "NDC", 510, "corroborated"],
+      ["Prescott Swan", "NNP", 361, "corroborated"],
+      ["Nathaniel Herry", "TNP", 287, "corroborated"],
+      ["Glen St. Louis", "MBPM", 34, "corroborated"]
+    ],
+    "src": "gazette-newsletter-1990",
+    "castIsValid": false,
+    "page": 12,
+    "official": true,
+    "gazette": "Government Gazette No. 15, 16 March 1990: Parliamentary Elections Office, Results of the Grenada General Elections, 1990",
+    "note": "Winner’s votes: the Supervisor of Elections’ declaration in the Government Gazette (16 March 1990). Other candidates, electors on the roll and votes cast: The Grenada Newsletter, 24 March 1990, which matches the Gazette for all 15 winners. The PEO’s later compilation (Old Elections Results) differs in places and is not used for 1990."
+  },
+  "R": {
+    "reg": 3708,
+    "cast": 2340,
+    "rej": null,
+    "c": [
+      ["Kenny Lalsingh", "NDC", 885, "official"],
+      ["Wellington Friday", "GULP", 632, "corroborated"],
+      ["Lennox Jerome", "NNP", 361, "corroborated"],
+      ["Paul Richards", "TNP", 328, "corroborated"],
+      ["Joseph Andall", "MBPM", 134, "corroborated"]
+    ],
+    "src": "gazette-newsletter-1990",
+    "castIsValid": false,
+    "page": 12,
+    "official": true,
+    "gazette": "Government Gazette No. 15, 16 March 1990: Parliamentary Elections Office, Results of the Grenada General Elections, 1990",
+    "note": "Winner’s votes: the Supervisor of Elections’ declaration in the Government Gazette (16 March 1990). Other candidates, electors on the roll and votes cast: The Grenada Newsletter, 24 March 1990, which matches the Gazette for all 15 winners. The PEO’s later compilation (Old Elections Results) differs in places and is not used for 1990."
+  }
+}

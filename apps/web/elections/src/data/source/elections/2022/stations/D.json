@@ -1,0 +1,189 @@
+[
+  [
+    "D01",
+    "a",
+    "The Orchid Lodge",
+    366,
+    268,
+    0,
+    {
+      "NNP": 148,
+      "NDC": 120
+    }
+  ],
+  [
+    "D01",
+    "b",
+    "Paradise Pre-Primary School",
+    377,
+    294,
+    0,
+    {
+      "NNP": 187,
+      "IFP": 1,
+      "NDC": 106
+    }
+  ],
+  [
+    "D01",
+    "c",
+    "Paradise Pre-Primary School",
+    385,
+    276,
+    1,
+    {
+      "NNP": 168,
+      "NDC": 107
+    }
+  ],
+  [
+    "D02",
+    "a",
+    "Belair Government School",
+    363,
+    264,
+    1,
+    {
+      "NNP": 141,
+      "NDC": 122
+    }
+  ],
+  [
+    "D02",
+    "b",
+    "Belair Government School",
+    370,
+    254,
+    1,
+    {
+      "NNP": 120,
+      "IFP": 1,
+      "NDC": 132
+    }
+  ],
+  [
+    "D02",
+    "c",
+    "Belair Government School",
+    355,
+    258,
+    0,
+    {
+      "NNP": 107,
+      "IFP": 3,
+      "NDC": 148
+    }
+  ],
+  [
+    "D03",
+    "a",
+    "Grenada Christian Academy",
+    389,
+    293,
+    1,
+    {
+      "NNP": 151,
+      "NDC": 141
+    }
+  ],
+  [
+    "D03",
+    "b",
+    "Grenada Christian Academy",
+    477,
+    362,
+    0,
+    {
+      "NNP": 224,
+      "IFP": 1,
+      "NDC": 137
+    }
+  ],
+  [
+    "D04",
+    "a",
+    "Tivoli R.C. School",
+    385,
+    285,
+    1,
+    {
+      "NNP": 140,
+      "IFP": 1,
+      "NDC": 143
+    }
+  ],
+  [
+    "D04",
+    "b",
+    "Tivoli R.C. School",
+    364,
+    268,
+    0,
+    {
+      "NNP": 118,
+      "IFP": 2,
+      "NDC": 148
+    }
+  ],
+  [
+    "D04",
+    "c",
+    "Tivoli R.C. School",
+    413,
+    292,
+    1,
+    {
+      "NNP": 144,
+      "NDC": 147
+    }
+  ],
+  [
+    "D05",
+    "a",
+    "La Poterie Community Centre",
+    290,
+    230,
+    0,
+    {
+      "NNP": 159,
+      "NDC": 71
+    }
+  ],
+  [
+    "D05",
+    "b",
+    "La Poterie Community Centre",
+    302,
+    223,
+    1,
+    {
+      "NNP": 146,
+      "NDC": 76
+    }
+  ],
+  [
+    "D06",
+    null,
+    "Upper St. John Community Centre",
+    368,
+    296,
+    0,
+    {
+      "NNP": 151,
+      "IFP": 1,
+      "NDC": 144
+    }
+  ],
+  [
+    "D07",
+    null,
+    "Paraclete Medical Station",
+    260,
+    208,
+    0,
+    {
+      "NNP": 86,
+      "NDC": 122
+    }
+  ]
+]

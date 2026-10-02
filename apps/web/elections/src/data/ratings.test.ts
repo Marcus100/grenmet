@@ -4,6 +4,7 @@ import {
   decodeMap,
   encodeMap,
   ratingFromChances,
+  ratingFromResult,
   ratingsFor,
   tally,
   type UserRating,
@@ -58,4 +59,22 @@ describe("your prediction", () => {
       "Toss-up"
     );
   });
+});
+
+describe("starting from a past election", () => {
+  it("rates by the winner’s margin, and parties not standing as toss-ups", () => {
+    expect(ratingFromResult("NNP", 0.48)).toBe("Solid NNP");
+    expect(ratingFromResult("NDC", 0.08)).toBe("Likely NDC");
+    expect(ratingFromResult("NDC", 0.001)).toBe("Lean NDC");
+    expect(ratingFromResult("GULP", 0.3)).toBe("Toss-up");
+  });
+});
+
+it.each([
+  [0.15, "Solid NDC"],
+  [0.149_999, "Likely NDC"],
+  [0.05, "Likely NDC"],
+  [0.049_999, "Lean NDC"],
+])("rates a historical NDC margin of %s as %s", (margin, expected) => {
+  expect(ratingFromResult("NDC", margin)).toBe(expected);
 });

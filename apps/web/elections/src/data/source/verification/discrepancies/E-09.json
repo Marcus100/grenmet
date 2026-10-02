@@ -1,0 +1,9 @@
+{
+  "id": "E-09",
+  "area": "2018 report",
+  "status": "resolved",
+  "impact": "document",
+  "what": "The 2018 report prints the St. George South total page three times, once inside the St. John section.",
+  "action": "Totals checked against the stations: St. George South 9,464 registered and 6,334 cast; St. John 5,896 and 4,311. Both match.",
+  "sources": ["PEO General Election Report 2018, pp. 72–79"]
+}

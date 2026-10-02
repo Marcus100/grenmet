@@ -1,0 +1,42 @@
+[
+  {
+    "div": "A01",
+    "sub": null,
+    "place": "Windward Medical Station",
+    "yes": 83,
+    "no": 38,
+    "rej": 2,
+    "voted": 123,
+    "reg": 344
+  },
+  {
+    "div": "A02",
+    "sub": null,
+    "place": "Bogles Community Centre",
+    "yes": 47,
+    "no": 37,
+    "rej": 1,
+    "voted": 85,
+    "reg": 331
+  },
+  {
+    "div": "A03",
+    "sub": "a",
+    "place": "Dover Government School",
+    "yes": 49,
+    "no": 23,
+    "rej": 0,
+    "voted": 72,
+    "reg": 198
+  },
+  {
+    "div": "A03",
+    "sub": "b",
+    "place": "Dover Government School",
+    "yes": 31,
+    "no": 34,
+    "rej": 1,
+    "voted": 66,
+    "reg": 209
+  }
+]

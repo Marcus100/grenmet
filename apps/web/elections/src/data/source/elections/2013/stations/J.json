@@ -1,0 +1,184 @@
+[
+  [
+    "J01",
+    "a",
+    "Cornerstone Ministry's Church, Cherry Hill Main Road",
+    295,
+    266,
+    0,
+    {
+      "NNP": 233,
+      "NDC": 32,
+      "GUPM": 0,
+      "GRP": 1
+    }
+  ],
+  [
+    "J01",
+    "b",
+    "Fontenoy Community Centre",
+    305,
+    284,
+    4,
+    {
+      "NNP": 253,
+      "NDC": 27,
+      "GUPM": 0,
+      "GRP": 0
+    }
+  ],
+  [
+    "J02",
+    "a",
+    "Sunset View Restaurant",
+    270,
+    245,
+    0,
+    {
+      "NNP": 228,
+      "NDC": 17,
+      "GUPM": 0,
+      "GRP": 0
+    }
+  ],
+  [
+    "J02",
+    "b",
+    "Sunset View Restaurant",
+    291,
+    263,
+    1,
+    {
+      "NNP": 248,
+      "NDC": 14,
+      "GUPM": 0,
+      "GRP": 0
+    }
+  ],
+  [
+    "J02",
+    "c",
+    "Grand Mal Community Centre",
+    269,
+    232,
+    0,
+    {
+      "NNP": 210,
+      "NDC": 21,
+      "GUPM": 1,
+      "GRP": 0
+    }
+  ],
+  [
+    "J03",
+    null,
+    "Mt. Moritz Anglican School",
+    360,
+    308,
+    0,
+    {
+      "NNP": 257,
+      "NDC": 50,
+      "GUPM": 1,
+      "GRP": 0
+    }
+  ],
+  [
+    "J04",
+    "a",
+    "Happy Hill R.C. School",
+    313,
+    277,
+    1,
+    {
+      "NNP": 259,
+      "NDC": 16,
+      "GUPM": 0,
+      "GRP": 1
+    }
+  ],
+  [
+    "J04",
+    "b",
+    "Happy Hill R.C. School",
+    256,
+    229,
+    0,
+    {
+      "NNP": 210,
+      "NDC": 18,
+      "GUPM": 1,
+      "GRP": 0
+    }
+  ],
+  [
+    "J04",
+    "c",
+    "Happy Hill R.C. School",
+    288,
+    239,
+    3,
+    {
+      "NNP": 228,
+      "NDC": 6,
+      "GUPM": 0,
+      "GRP": 2
+    }
+  ],
+  [
+    "J05",
+    "a",
+    "Brizan Community Centre",
+    246,
+    214,
+    0,
+    {
+      "NNP": 198,
+      "NDC": 11,
+      "GUPM": 5,
+      "GRP": 0
+    }
+  ],
+  [
+    "J05",
+    "b",
+    "Brizan Community Centre",
+    196,
+    176,
+    0,
+    {
+      "NNP": 160,
+      "NDC": 14,
+      "GUPM": 1,
+      "GRP": 1
+    }
+  ],
+  [
+    "J06",
+    null,
+    "St. Luke’s Anglican Church",
+    64,
+    60,
+    0,
+    {
+      "NNP": 46,
+      "NDC": 14,
+      "GUPM": 0,
+      "GRP": 0
+    }
+  ],
+  [
+    "J07",
+    null,
+    "Willis Community Centre",
+    263,
+    232,
+    0,
+    {
+      "NNP": 147,
+      "NDC": 83,
+      "GUPM": 1,
+      "GRP": 1
+    }
+  ]
+]

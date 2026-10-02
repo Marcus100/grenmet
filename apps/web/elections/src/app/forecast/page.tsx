@@ -60,7 +60,7 @@ const CHANGE_LOG = [
 const STILL_NEEDED = [
   "DPB Global’s full 2026 report: party shares, questionnaire, sample design and fieldwork dates.",
   "CADRES’s Grenada poll archive, including the original June 2008 release and any polls from 2012–2022.",
-  "The NDC’s candidate slate for the next election.",
+  "Public announcements corroborating the owner-confirmed NDC candidate names.",
   "The NNP candidate for St. Andrew North West.",
   "House of Representatives Hansard for 31 August 2022, which confirms the first sitting and so the deadline.",
   "Any poll that measures DPM support. The DPM settings above are assumptions until then.",
@@ -307,10 +307,15 @@ export default function ForecastPage() {
                       party={winner}
                     />
                     <Link
-                      className="w-40 shrink-0 truncate hover:underline"
+                      className="w-32 shrink-0 truncate hover:underline sm:w-40"
                       href={constituencyHref(results, code)}
                     >
-                      {constituencyName(results, code)}
+                      <span className="sm:hidden">
+                        {constituencyShortName(results, code)}
+                      </span>
+                      <span className="hidden sm:inline">
+                        {constituencyName(results, code)}
+                      </span>
                     </Link>
                     <span className="relative h-2 flex-1 bg-el-paper-2">
                       <span
@@ -459,7 +464,7 @@ export default function ForecastPage() {
                       y2={rows.length * 30 + 26}
                     />
                     <text
-                      className="fill-(--el-muted) text-[11px]"
+                      className="fill-(--el-muted) text-[11px] max-sm:text-[17px]"
                       textAnchor="middle"
                       x={x}
                       y={12}
@@ -475,7 +480,7 @@ export default function ForecastPage() {
                 return (
                   <g key={r.to}>
                     <text
-                      className="fill-(--el-ink) text-[12px]"
+                      className="fill-(--el-ink) text-[12px] max-sm:text-[18px]"
                       x={0}
                       y={cy + 4}
                     >
@@ -631,7 +636,7 @@ export default function ForecastPage() {
                       y2={scored.length * 40 + 30}
                     />
                     <text
-                      className="fill-(--el-muted) text-[11px]"
+                      className="fill-(--el-muted) text-[11px] max-sm:text-[17px]"
                       textAnchor="middle"
                       x={x}
                       y={12}
@@ -647,14 +652,14 @@ export default function ForecastPage() {
                 return (
                   <g key={poll.id}>
                     <text
-                      className="fill-(--el-ink) text-[12px]"
+                      className="fill-(--el-ink) text-[12px] max-sm:text-[18px]"
                       x={0}
                       y={cy - 2}
                     >
                       {poll.pollster}
                     </text>
                     <text
-                      className="fill-(--el-muted) text-[11px]"
+                      className="fill-(--el-muted) text-[11px] max-sm:text-[17px]"
                       x={0}
                       y={cy + 13}
                     >
@@ -683,7 +688,7 @@ export default function ForecastPage() {
                       r={6.5}
                     />
                     <text
-                      className="fill-(--el-ink-2) text-[11px]"
+                      className="fill-(--el-ink-2) text-[11px] max-sm:text-[17px]"
                       textAnchor="middle"
                       x={(x(score.estimate) + x(score.actual)) / 2}
                       y={cy - 9}
@@ -896,7 +901,7 @@ export default function ForecastPage() {
                   y2={y}
                 />
                 <text
-                  className="fill-(--el-muted) text-[12px]"
+                  className="fill-(--el-muted) text-[12px] max-sm:text-[28px]"
                   textAnchor="end"
                   x={52}
                   y={y + 4}
@@ -936,7 +941,7 @@ export default function ForecastPage() {
                   strokeWidth={2}
                 />
                 <text
-                  className="fill-(--el-ink-2) text-[12px]"
+                  className="fill-(--el-ink-2) text-[12px] max-sm:text-[28px]"
                   textAnchor="middle"
                   x={x}
                   y={y - 14}
@@ -944,7 +949,7 @@ export default function ForecastPage() {
                   {leanLabel(t.lean)}
                 </text>
                 <text
-                  className="fill-(--el-ink) font-semibold text-[12px]"
+                  className="fill-(--el-ink) font-semibold text-[12px] max-sm:text-[28px]"
                   textAnchor="middle"
                   x={x}
                   y={208}
@@ -952,7 +957,7 @@ export default function ForecastPage() {
                   {t.year}
                 </text>
                 <text
-                  className="fill-(--el-muted) text-[11px]"
+                  className="fill-(--el-muted) text-[11px] max-sm:text-[26px]"
                   textAnchor="middle"
                   x={x}
                   y={224}

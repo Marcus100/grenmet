@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import resultsJson from "@/data/derived/results";
 import {
   CODES,
   codeFromSlug,
@@ -17,7 +18,6 @@ import {
   seatTwoParty,
   slugify,
 } from "@/data/model";
-import resultsJson from "@/data/source/results.json";
 import type { ResultsFile } from "@/data/types";
 
 const results = resultsJson as unknown as ResultsFile;

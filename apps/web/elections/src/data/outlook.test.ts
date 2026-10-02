@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import resultsJson from "@/data/derived/results";
 import {
   backtest,
   candidateEffects,
@@ -14,7 +15,6 @@ import {
   spreads,
 } from "@/data/outlook";
 import campaignJson from "@/data/source/campaign.json";
-import resultsJson from "@/data/source/results.json";
 import type { CampaignFile, ResultsFile } from "@/data/types";
 
 const results = resultsJson as unknown as ResultsFile;
@@ -22,6 +22,18 @@ const campaign = campaignJson as unknown as CampaignFile;
 const dpb = campaign.polls.find((p) => p.id === "dpb26") as unknown as {
   bases: { NDC: [number, number]; NNP: [number, number] };
 };
+
+/** DPM candidates as of the prototype (27 Sep 2026), which the reference values assume. */
+const PROTOTYPE_DPM = {
+  G: "x",
+  M: "x",
+  R: "x",
+  D: "x",
+  E: "x",
+  C: "x",
+  L: "x",
+  A: "x",
+} as const;
 
 // Reference values from running the prototype's own model code on the same
 // data, so the port can't drift from what was published.
@@ -56,7 +68,8 @@ describe("outlook model matches the prototype", () => {
       sp.sL,
       lean,
       {
-        seats: campaign.candidates.DPM ?? {},
+        // The 8-seat DPM slate the prototype's reference values were computed with.
+        seats: PROTOTYPE_DPM,
         share: 0.05,
         fromNnp: 0.6,
         personal: { G: 0.12 },
@@ -90,12 +103,7 @@ describe("outlook model matches the prototype", () => {
   });
 
   it("rates seats from their chances", () => {
-    const chances = seatChances(
-      lean,
-      sp.sL,
-      inputs.defaults,
-      campaign.candidates.DPM ?? {}
-    );
+    const chances = seatChances(lean, sp.sL, inputs.defaults, PROTOTYPE_DPM);
     expect(chances.E.NDC).toBeCloseTo(0.519_644_398, 8);
     expect(chances.G.NDC).toBeCloseTo(0.670_656_881, 8);
     expect(rate({ NDC: 0.97, NNP: 0.03, DPM: 0 })).toBe("Safe NDC");
@@ -144,4 +152,23 @@ describe("candidate effects match the prototype", () => {
     expect(ce.incumbency.open).toHaveLength(26);
     expect(mean(ce.incumbency.open)).toBeCloseTo(-0.014_519_296, 8);
   });
+});
+
+it("uses the current DPM slate without changing the prototype regression fixture", () => {
+  const sp = spreads(results, null);
+  const lean = leanTable(results, "2022");
+  const inputs = modelInputs(results, dpb.bases);
+  const current = seatChances(
+    lean,
+    sp.sL,
+    inputs.defaults,
+    campaign.candidates.DPM ?? {}
+  );
+  const prototype = seatChances(lean, sp.sL, inputs.defaults, PROTOTYPE_DPM);
+  for (const code of ["P", "B"] as const) {
+    expect(current[code]).not.toEqual(prototype[code]);
+  }
+  for (const chances of Object.values(current)) {
+    expect(chances.NDC + chances.NNP + chances.DPM).toBeCloseTo(1, 8);
+  }
 });

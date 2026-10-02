@@ -1,0 +1,102 @@
+[
+  {
+    "div": "P01",
+    "sub": null,
+    "place": "Hermitage Government School",
+    "yes": 59,
+    "no": 59,
+    "rej": 1,
+    "voted": 119,
+    "reg": 379
+  },
+  {
+    "div": "P02",
+    "sub": null,
+    "place": "River Sallee Government School",
+    "yes": 46,
+    "no": 82,
+    "rej": 0,
+    "voted": 128,
+    "reg": 425
+  },
+  {
+    "div": "P03",
+    "sub": "a",
+    "place": "River Sallee Government School",
+    "yes": 68,
+    "no": 30,
+    "rej": 0,
+    "voted": 98,
+    "reg": 345
+  },
+  {
+    "div": "P03",
+    "sub": "b",
+    "place": "River Sallee Government School",
+    "yes": 65,
+    "no": 48,
+    "rej": 1,
+    "voted": 114,
+    "reg": 332
+  },
+  {
+    "div": "P03",
+    "sub": "c",
+    "place": "Jim Cornwall Premises, MorneFendue",
+    "yes": 58,
+    "no": 41,
+    "rej": 1,
+    "voted": 100,
+    "reg": 337
+  },
+  {
+    "div": "P04",
+    "sub": null,
+    "place": "St. Ann’s Pre Primary School",
+    "yes": 37,
+    "no": 51,
+    "rej": 2,
+    "voted": 90,
+    "reg": 368
+  },
+  {
+    "div": "P05",
+    "sub": "a",
+    "place": "St. Ann’s Pre Primary School",
+    "yes": 63,
+    "no": 62,
+    "rej": 0,
+    "voted": 125,
+    "reg": 395
+  },
+  {
+    "div": "P05",
+    "sub": "b",
+    "place": "St. Ann’s Pre Primary School",
+    "yes": 59,
+    "no": 62,
+    "rej": 0,
+    "voted": 121,
+    "reg": 388
+  },
+  {
+    "div": "P06",
+    "sub": "a",
+    "place": "St. Patrick’s R.C. School",
+    "yes": 33,
+    "no": 57,
+    "rej": 2,
+    "voted": 92,
+    "reg": 319
+  },
+  {
+    "div": "P06",
+    "sub": "b",
+    "place": "St. Patrick’s R.C. School",
+    "yes": 54,
+    "no": 71,
+    "rej": 0,
+    "voted": 125,
+    "reg": 373
+  }
+]

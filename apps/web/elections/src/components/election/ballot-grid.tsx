@@ -21,8 +21,8 @@ function Slot({
         {note && <Flag note={note} status="unverified" />}
       </>
     );
-  // No NDC slate is published; the sitting NDC member is the likely
-  // candidate, labelled as not confirmed.
+  // Where no NDC candidate is named, show the sitting member explicitly
+  // as an MP rather than implying a confirmed candidacy.
   if (party === "NDC" && seat.sitting.party === "NDC")
     return (
       <span className="text-el-ink-2">

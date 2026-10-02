@@ -1,0 +1,197 @@
+[
+  [
+    "D01",
+    "a",
+    "Paradise Pre-Primary School",
+    354,
+    318,
+    3,
+    {
+      "NNP": 180,
+      "IND": 2,
+      "NDC": 133
+    }
+  ],
+  [
+    "D01",
+    "b",
+    "Paradise Pre-Primary School",
+    259,
+    223,
+    0,
+    {
+      "NNP": 147,
+      "IND": 0,
+      "NDC": 76
+    }
+  ],
+  [
+    "D01",
+    null,
+    "[c]",
+    253,
+    225,
+    4,
+    {
+      "NNP": 150,
+      "IND": 0,
+      "NDC": 71
+    }
+  ],
+  [
+    "D02",
+    "a",
+    "Belair Government School",
+    285,
+    257,
+    0,
+    {
+      "NNP": 134,
+      "IND": 0,
+      "NDC": 123
+    }
+  ],
+  [
+    "D02",
+    "b",
+    "Belair Government School",
+    291,
+    245,
+    0,
+    {
+      "NNP": 114,
+      "IND": 1,
+      "NDC": 130
+    }
+  ],
+  [
+    "D02",
+    "c",
+    "Belair Government School",
+    230,
+    205,
+    0,
+    {
+      "NNP": 94,
+      "IND": 1,
+      "NDC": 110
+    }
+  ],
+  [
+    "D03",
+    "a",
+    "Pearls Community Centre",
+    274,
+    247,
+    1,
+    {
+      "NNP": 147,
+      "IND": 1,
+      "NDC": 98
+    }
+  ],
+  [
+    "D03",
+    "b",
+    "Pearls Community Centre",
+    254,
+    231,
+    0,
+    {
+      "NNP": 146,
+      "IND": 0,
+      "NDC": 85
+    }
+  ],
+  [
+    "D04",
+    "a",
+    "Tivoli R.C. School",
+    310,
+    279,
+    0,
+    {
+      "NNP": 143,
+      "IND": 0,
+      "NDC": 136
+    }
+  ],
+  [
+    "D04",
+    "b",
+    "Tivoli R.C. School",
+    319,
+    285,
+    0,
+    {
+      "NNP": 136,
+      "IND": 0,
+      "NDC": 149
+    }
+  ],
+  [
+    "D04",
+    "c",
+    "Tivoli R.C. School",
+    302,
+    266,
+    1,
+    {
+      "NNP": 123,
+      "IND": 0,
+      "NDC": 142
+    }
+  ],
+  [
+    "D05",
+    "a",
+    "La Poterie Community Centre",
+    246,
+    235,
+    0,
+    {
+      "NNP": 175,
+      "IND": 0,
+      "NDC": 60
+    }
+  ],
+  [
+    "D05",
+    "b",
+    "La Poterie Community Centre",
+    210,
+    195,
+    2,
+    {
+      "NNP": 143,
+      "IND": 0,
+      "NDC": 50
+    }
+  ],
+  [
+    "D06",
+    null,
+    "Upper St. John Community Centre",
+    314,
+    289,
+    0,
+    {
+      "NNP": 137,
+      "IND": 0,
+      "NDC": 152
+    }
+  ],
+  [
+    "D07",
+    null,
+    "Paraclete Medical Station",
+    208,
+    185,
+    0,
+    {
+      "NNP": 82,
+      "IND": 0,
+      "NDC": 103
+    }
+  ]
+]

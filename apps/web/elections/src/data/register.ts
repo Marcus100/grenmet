@@ -5,8 +5,8 @@
 
 export interface RegisterSnapshot {
   date: string;
-  /** division → [electors, male, female] */
-  div: Record<string, [number, number, number]>;
+  /** division → [electors, female, male] */
+  div: Record<string, [electors: number, female: number, male: number]>;
   file: string;
 }
 
@@ -35,8 +35,8 @@ export function snapshotTotals(file: RegisterFile) {
       date: s.date,
       file: s.file,
       electors: rows.reduce((a, r) => a + r[0], 0),
-      male: rows.reduce((a, r) => a + r[1], 0),
-      female: rows.reduce((a, r) => a + r[2], 0),
+      male: rows.reduce((a, r) => a + r[2], 0),
+      female: rows.reduce((a, r) => a + r[1], 0),
     };
   });
 }

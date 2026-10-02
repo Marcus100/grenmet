@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { PageHead, Section } from "@/components/section";
 import { eventSlug, eventSource } from "@/data/events";
-import { data, register } from "@/data/load";
+import {
+  data,
+  discrepancies as discrepanciesJson,
+  register,
+  validation as validationJson,
+} from "@/data/load";
 import { EVENTS } from "@/data/model";
 import { snapshotTotals } from "@/data/register";
-import discrepanciesJson from "@/data/source/discrepancies.json";
-import validationJson from "@/data/source/validation.json";
 import { fmt, formatIsoDate, pct } from "@/lib/format";
 
 export const metadata: Metadata = {

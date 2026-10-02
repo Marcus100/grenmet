@@ -1,0 +1,9 @@
+{
+  "id": "E-08",
+  "area": "2022 report",
+  "status": "open",
+  "impact": "document",
+  "what": "The Town of St. George total page is headed “Polling Divisions G01 – G10”, but only G01–G07 were used in 2022.",
+  "action": "Figures are unaffected. Note for the PEO.",
+  "sources": ["PEO General Election Report 2022, p. 54"]
+}

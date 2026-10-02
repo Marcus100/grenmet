@@ -119,14 +119,6 @@ export default function Election2026Page() {
 
       <Section
         id="standing"
-        intro={
-          <>
-            Candidates as named by each party; the NDC has not published a
-            slate. Updated {formatIsoDate(campaign.updated)}. Sources: NNP,{" "}
-            <SourceLink id="nnp14" sources={campaign.sources} />; DPM,{" "}
-            <SourceLink id="dpmcong" sources={campaign.sources} />.
-          </>
-        }
         more={{ href: "/candidates", label: "All candidates" }}
         title="Who is standing"
       >

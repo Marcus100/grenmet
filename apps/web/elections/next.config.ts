@@ -10,7 +10,8 @@ const nextConfig: NextConfig = {
 
 export default withSentryConfig(nextConfig, {
   org: "grenmet",
-  project: process.env.SENTRY_PROJECT ?? "grenmet-staging",
+  // This independently hosted product must use its own Sentry configuration.
+  project: process.env.SENTRY_PROJECT,
   silent: false,
   widenClientFileUpload: true,
 

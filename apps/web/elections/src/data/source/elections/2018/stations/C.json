@@ -1,0 +1,262 @@
+[
+  [
+    "C01",
+    null,
+    "Munich R.C. School (downstairs)",
+    221,
+    154,
+    1,
+    {
+      "NNP": 93,
+      "IND": 2,
+      "NDC": 58
+    }
+  ],
+  [
+    "C02",
+    null,
+    "Munich R.C. School (downstairs)",
+    70,
+    48,
+    0,
+    {
+      "NNP": 31,
+      "IND": 0,
+      "NDC": 17
+    }
+  ],
+  [
+    "C03",
+    null,
+    "Mt. Carmel Medical Station",
+    208,
+    154,
+    1,
+    {
+      "NNP": 74,
+      "IND": 0,
+      "NDC": 79
+    }
+  ],
+  [
+    "C04",
+    null,
+    "Walker Church of God",
+    160,
+    125,
+    1,
+    {
+      "NNP": 77,
+      "IND": 1,
+      "NDC": 46
+    }
+  ],
+  [
+    "C05",
+    null,
+    "Mr. Cuthbert Alexis’ Shop, Richmond",
+    238,
+    186,
+    0,
+    {
+      "NNP": 117,
+      "IND": 0,
+      "NDC": 69
+    }
+  ],
+  [
+    "C06",
+    null,
+    "Union Community Centre",
+    229,
+    169,
+    1,
+    {
+      "NNP": 110,
+      "IND": 2,
+      "NDC": 56
+    }
+  ],
+  [
+    "C07",
+    "a",
+    "Grenville Pre-Primary School, Cook Hill Road (up",
+    404,
+    315,
+    3,
+    {
+      "NNP": 194,
+      "IND": 4,
+      "NDC": 114
+    }
+  ],
+  [
+    "C07",
+    "b",
+    "Grenville Pre-Primary School, Cook Hill Road (upstairs)",
+    324,
+    237,
+    1,
+    {
+      "NNP": 159,
+      "IND": 0,
+      "NDC": 77
+    }
+  ],
+  [
+    "C08",
+    "a",
+    "Harford Village Community Centre (upstairs)",
+    226,
+    175,
+    0,
+    {
+      "NNP": 86,
+      "IND": 3,
+      "NDC": 86
+    }
+  ],
+  [
+    "C08",
+    "b",
+    "Harford Village Community Centre (upstairs)",
+    223,
+    157,
+    1,
+    {
+      "NNP": 80,
+      "IND": 4,
+      "NDC": 72
+    }
+  ],
+  [
+    "C09",
+    "a",
+    "Grand Bras Health Centre",
+    239,
+    184,
+    0,
+    {
+      "NNP": 92,
+      "IND": 5,
+      "NDC": 87
+    }
+  ],
+  [
+    "C09",
+    "b",
+    "Grand Bras Health Centre",
+    248,
+    167,
+    0,
+    {
+      "NNP": 58,
+      "IND": 0,
+      "NDC": 109
+    }
+  ],
+  [
+    "C10",
+    "a",
+    "Forde Pre-Primary School",
+    233,
+    181,
+    0,
+    {
+      "NNP": 89,
+      "IND": 3,
+      "NDC": 89
+    }
+  ],
+  [
+    "C10",
+    "b",
+    "Forde Pre-Primary School",
+    227,
+    158,
+    2,
+    {
+      "NNP": 64,
+      "IND": 3,
+      "NDC": 89
+    }
+  ],
+  [
+    "C11",
+    "a",
+    "Grenville Secondary School",
+    227,
+    169,
+    0,
+    {
+      "NNP": 98,
+      "IND": 0,
+      "NDC": 71
+    }
+  ],
+  [
+    "C11",
+    "b",
+    "Grenville Secondary School",
+    224,
+    157,
+    1,
+    {
+      "NNP": 81,
+      "IND": 1,
+      "NDC": 74
+    }
+  ],
+  [
+    "C12",
+    null,
+    "Holy Innocents Anglican School",
+    316,
+    218,
+    0,
+    {
+      "NNP": 119,
+      "IND": 3,
+      "NDC": 96
+    }
+  ],
+  [
+    "C13",
+    null,
+    "St. James Community Centre",
+    372,
+    278,
+    1,
+    {
+      "NNP": 148,
+      "IND": 3,
+      "NDC": 126
+    }
+  ],
+  [
+    "C14",
+    "a",
+    "Birchgrove Community Centre",
+    218,
+    164,
+    1,
+    {
+      "NNP": 110,
+      "IND": 0,
+      "NDC": 53
+    }
+  ],
+  [
+    "C14",
+    "b",
+    "Birchgrove Community Centre",
+    211,
+    159,
+    0,
+    {
+      "NNP": 98,
+      "IND": 0,
+      "NDC": 61
+    }
+  ]
+]

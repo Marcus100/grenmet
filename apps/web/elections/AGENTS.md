@@ -1,7 +1,8 @@
 # Elections Grenada
 
 Port **3007**. Package: `@barrelsgd/web-elections`. Lane spec:
-`docs/design/elections.md`.
+`docs/design/elections.md`. Deployment: [Vercel guide](../../../docs/web/elections-deployment.md).
+Elections and the separate Barrels holding page use Vercel; the operational apps retain their existing DigitalOcean release pipelines.
 
 ## Product boundary
 
@@ -24,12 +25,12 @@ Port **3007**. Package: `@barrelsgd/web-elections`. Lane spec:
 
 ## Data rules
 
-- Data is a checked static snapshot in `src/data/source/` from the Elections Grenada
-  pipeline. Import it only through `src/data/load.ts` (`server-only`). Client
-  islands get only the slice they need. A FastAPI domain comes later, for results night.
+- Historical data stays in small JSON records by event, constituency or register date; see [the data guide](src/data/README.md). Pages read through `src/data/load.ts`; small reference catalogues may be shared, and tests may read assembled records.
+- Edit `src/data/source/`, then run `pnpm data:build` and `pnpm data:check`. Never hand-edit `src/data/derived/` or public CSV exports. Preserve independently reported totals and source discrepancies.
+- Client islands receive only the slice they need. A FastAPI domain comes later, for results night.
 - Every figure needs a source. Show uncertain figures, but mark them: ✱ unverified,
   ✱✱ conflicting or unclear, † corroborated by a contemporaneous report (`Flag`).
-- Map constituency codes to names from `results.json` `cons`, never from memory
+- Map constituency codes to names from `source/reference/constituencies.json`, never from memory
   (J = St. George North West, G = Town of St. George).
 - Coverage posts are editorial. They live in `src/data/coverage.ts` until they move to
   Payload CMS. Every post lists its sources.

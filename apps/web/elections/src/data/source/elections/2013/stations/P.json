@@ -1,0 +1,142 @@
+[
+  [
+    "P01",
+    null,
+    "Hermitage Government School",
+    335,
+    322,
+    1,
+    {
+      "NNP": 143,
+      "NDC": 177,
+      "NUF": 1,
+      "PULP": 0
+    }
+  ],
+  [
+    "P02",
+    null,
+    "Mt. Rose S.D.A. School",
+    342,
+    308,
+    0,
+    {
+      "NNP": 116,
+      "NDC": 187,
+      "NUF": 1,
+      "PULP": 4
+    }
+  ],
+  [
+    "P03",
+    "a",
+    "River Sallee Government School",
+    289,
+    263,
+    0,
+    {
+      "NNP": 184,
+      "NDC": 76,
+      "NUF": 1,
+      "PULP": 2
+    }
+  ],
+  [
+    "P03",
+    "b",
+    "River Sallee Government School",
+    279,
+    258,
+    2,
+    {
+      "NNP": 180,
+      "NDC": 74,
+      "NUF": 2,
+      "PULP": 0
+    }
+  ],
+  [
+    "P03",
+    "c",
+    "River Sallee Government School",
+    276,
+    246,
+    2,
+    {
+      "NNP": 139,
+      "NDC": 102,
+      "NUF": 3,
+      "PULP": 0
+    }
+  ],
+  [
+    "P04",
+    null,
+    "Jim Cornwall's Premises, Morne Fendue",
+    298,
+    257,
+    2,
+    {
+      "NNP": 111,
+      "NDC": 143,
+      "NUF": 0,
+      "PULP": 1
+    }
+  ],
+  [
+    "P05",
+    "a",
+    "Rose Hill Pre Primary School",
+    324,
+    291,
+    2,
+    {
+      "NNP": 166,
+      "NDC": 119,
+      "NUF": 4,
+      "PULP": 0
+    }
+  ],
+  [
+    "P05",
+    "b",
+    "Rose Hill Pre Primary School",
+    306,
+    276,
+    1,
+    {
+      "NNP": 146,
+      "NDC": 126,
+      "NUF": 1,
+      "PULP": 2
+    }
+  ],
+  [
+    "P06",
+    "a",
+    "St. Patrick’s Anglican School",
+    295,
+    259,
+    4,
+    {
+      "NNP": 102,
+      "NDC": 150,
+      "NUF": 1,
+      "PULP": 2
+    }
+  ],
+  [
+    "P06",
+    "b",
+    "St. Patrick’s Anglican School",
+    267,
+    242,
+    1,
+    {
+      "NNP": 118,
+      "NDC": 123,
+      "NUF": 0,
+      "PULP": 0
+    }
+  ]
+]

@@ -1,0 +1,122 @@
+[
+  {
+    "div": "G01",
+    "sub": null,
+    "place": "Magistrate’s Court #1",
+    "yes": 16,
+    "no": 21,
+    "rej": 0,
+    "voted": 37,
+    "reg": 137
+  },
+  {
+    "div": "G02",
+    "sub": "a",
+    "place": "Old Wesley Hall School, Lucas Street",
+    "yes": 34,
+    "no": 37,
+    "rej": 0,
+    "voted": 71,
+    "reg": 238
+  },
+  {
+    "div": "G02",
+    "sub": "b",
+    "place": "Old Wesley Hall School, Lucas Street",
+    "yes": 17,
+    "no": 41,
+    "rej": 1,
+    "voted": 59,
+    "reg": 239
+  },
+  {
+    "div": "G03",
+    "sub": "a",
+    "place": "National Stadium, River Road End",
+    "yes": 49,
+    "no": 35,
+    "rej": 0,
+    "voted": 84,
+    "reg": 331
+  },
+  {
+    "div": "G03",
+    "sub": "b",
+    "place": "National Stadium, River Road End",
+    "yes": 44,
+    "no": 34,
+    "rej": 0,
+    "voted": 78,
+    "reg": 349
+  },
+  {
+    "div": "G03",
+    "sub": "c",
+    "place": "National Stadium, River Road End",
+    "yes": 38,
+    "no": 44,
+    "rej": 0,
+    "voted": 82,
+    "reg": 338
+  },
+  {
+    "div": "G03",
+    "sub": "d",
+    "place": "National Stadium, River Road End",
+    "yes": 34,
+    "no": 53,
+    "rej": 0,
+    "voted": 87,
+    "reg": 346
+  },
+  {
+    "div": "G03",
+    "sub": "e",
+    "place": "National Stadium, River Road End",
+    "yes": 42,
+    "no": 51,
+    "rej": 0,
+    "voted": 93,
+    "reg": 333
+  },
+  {
+    "div": "G04",
+    "sub": null,
+    "place": "Marryshow House (H.A. Blaize)",
+    "yes": 33,
+    "no": 29,
+    "rej": 0,
+    "voted": 62,
+    "reg": 183
+  },
+  {
+    "div": "G05",
+    "sub": null,
+    "place": "St. George’s Anglican Senior School",
+    "yes": 34,
+    "no": 48,
+    "rej": 2,
+    "voted": 84,
+    "reg": 254
+  },
+  {
+    "div": "G06",
+    "sub": null,
+    "place": "Berean Christian Academy, Lucas Street",
+    "yes": 37,
+    "no": 69,
+    "rej": 0,
+    "voted": 106,
+    "reg": 345
+  },
+  {
+    "div": "G07",
+    "sub": null,
+    "place": "St. George’s Anglican Senior School",
+    "yes": 31,
+    "no": 53,
+    "rej": 0,
+    "voted": 84,
+    "reg": 388
+  }
+]

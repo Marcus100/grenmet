@@ -1,0 +1,9 @@
+{
+  "id": "R-01",
+  "area": "2016 referendum",
+  "status": "resolved",
+  "impact": "data",
+  "what": "The PEO certificate’s national total is 71,240 registered, 23,651 voted (33.2%), Yes 51,946, No 100,140. Wikipedia and NOW Grenada give 71,241 registered and 32.5% turnout.",
+  "action": "The certificate figures are used.",
+  "sources": ["PEO Referendum 2016 Certificates, national total"]
+}

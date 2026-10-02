@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
+import registerJson from "@/data/derived/register";
 import {
   divisionGrowth,
   type RegisterFile,
   rollChecks,
   snapshotTotals,
 } from "@/data/register";
-import registerJson from "@/data/source/register.json";
 
 const register = registerJson as unknown as RegisterFile;
 
@@ -28,36 +28,24 @@ describe("voter register", () => {
   });
 });
 
-describe("roll reconciliation matches the published pipeline", () => {
-  it("agrees with discrepancies.json for every pair of lists", async () => {
-    const { reconciliation } = (
-      await import("@/data/source/discrepancies.json")
-    ).default as unknown as {
-      reconciliation: {
-        from: string;
-        to: string;
-        before: number;
-        after: number;
-        added: number;
-        impliedRemovals: number;
-      }[];
-    };
-    const mine = rollChecks(register).map((c) => [
-      c.from,
-      c.to,
-      c.previous,
-      c.next,
-      c.added,
-      c.implied,
-    ]);
-    const theirs = reconciliation.map((r) => [
-      r.from,
-      r.to,
-      r.before,
-      r.after,
-      r.added,
-      r.impliedRemovals,
-    ]);
-    expect(mine).toEqual(theirs);
+describe("register schema", () => {
+  it("reads published tuples as total, female, male", () => {
+    const [list] = snapshotTotals({
+      ...register,
+      snapshots: [
+        { date: "2019-12-31", file: "fixture", div: { A01: [357, 166, 191] } },
+      ],
+    });
+    expect(list).toMatchObject({ electors: 357, female: 166, male: 191 });
+  });
+  it("preserves the historical reconciliation for the first two lists", () => {
+    expect(rollChecks(register)[0]).toEqual({
+      from: "2019-12-31",
+      to: "2020-06-30",
+      previous: 80_683,
+      next: 81_072,
+      added: 7663,
+      implied: 7274,
+    });
   });
 });

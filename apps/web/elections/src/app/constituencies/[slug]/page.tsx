@@ -6,7 +6,7 @@ import { FlatMap } from "@/components/map/flat-map";
 import { PartyDot } from "@/components/party-chip";
 import { PageHead, Section } from "@/components/section";
 import { SourceLink } from "@/components/source-link";
-import { seatOutlook } from "@/data/election-2026";
+import { candidateSource, seatOutlook } from "@/data/election-2026";
 import { campaign, geo, registerHistory, results } from "@/data/load";
 import {
   CODES,
@@ -104,9 +104,18 @@ export default async function ConstituencyPage({ params }: Props) {
           })}
         </ul>
         <p className="mt-2 text-el-muted text-xs">
-          Updated {formatIsoDate(campaign.updated)}. NNP:{" "}
-          <SourceLink id="nnp14" sources={campaign.sources} />. DPM:{" "}
-          <SourceLink id="dpmcong" sources={campaign.sources} />.
+          Updated {formatIsoDate(campaign.updated)}.
+          {(["NDC", "NNP", "DPM"] as const).map((party) => {
+            const id = seat.candidates.some((c) => c.party === party)
+              ? candidateSource(campaign, party, code)
+              : null;
+            return id ? (
+              <span key={party}>
+                {" "}
+                {party}: <SourceLink id={id} sources={campaign.sources} />.
+              </span>
+            ) : null;
+          })}
         </p>
       </Section>
 

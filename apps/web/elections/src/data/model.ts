@@ -1,60 +1,30 @@
+import constituencyRecords from "@/data/source/reference/constituencies.json";
+import eventRecords from "@/data/source/reference/events.json";
 import type {
   CandidateRow,
   ConstituencyCode,
   ContestResult,
   ResultsFile,
 } from "@/data/types";
+import { formatIsoDate } from "@/lib/format";
 
 /** The 15 constituencies in PEO letter order. */
-export const CODES: readonly ConstituencyCode[] = [
-  "A",
-  "B",
-  "C",
-  "D",
-  "E",
-  "F",
-  "G",
-  "H",
-  "J",
-  "K",
-  "L",
-  "M",
-  "N",
-  "P",
-  "R",
-];
+export const CODES: readonly ConstituencyCode[] = Object.keys(
+  constituencyRecords
+).sort() as ConstituencyCode[];
+export const SEATS = CODES.length;
+export const MAJORITY = Math.floor(SEATS / 2) + 1;
 
-export const SEATS = 15;
-export const MAJORITY = 8;
-
-const DATES: Record<number, string> = {
-  1951: "10 October 1951",
-  1954: "20 September 1954",
-  1957: "24 September 1957",
-  1961: "27 March 1961",
-  1962: "13 September 1962",
-  1967: "24 August 1967",
-  1972: "28 February 1972",
-  1976: "7 December 1976",
-  1984: "3 December 1984",
-  1990: "13 March 1990",
-  1995: "20 June 1995",
-  1999: "18 January 1999",
-  2003: "27 November 2003",
-  2008: "8 July 2008",
-  2013: "19 February 2013",
-  2018: "13 March 2018",
-  2022: "23 June 2022",
-};
-
-/** Elections before 1972 used different boundaries, so they aren't mapped. */
-export const EARLY_YEARS = [1951, 1954, 1957, 1961, 1962, 1967] as const;
-/** Elections drawn on today's 15 constituencies. */
-export const MAPPED_YEARS = [
-  1972, 1976, 1984, 1990, 1995, 1999, 2003, 2008, 2013, 2018, 2022,
-] as const;
-/** Elections with published polling-division results. */
-export const DIVISION_YEARS = [2013, 2018, 2022] as const;
+/** Event dates and coverage are maintained once, alongside the archive. */
+export const EARLY_YEARS = eventRecords
+  .filter((e) => e.kind === "general" && !e.mapped)
+  .map((e) => Number(e.id));
+export const MAPPED_YEARS = eventRecords
+  .filter((e) => e.kind === "general" && e.mapped)
+  .map((e) => Number(e.id));
+export const DIVISION_YEARS = eventRecords
+  .filter((e) => e.kind === "general" && e.divisions)
+  .map((e) => Number(e.id));
 
 export interface ElectionEvent {
   date: string;
@@ -67,52 +37,17 @@ export interface ElectionEvent {
   year: number;
 }
 
-function order(e: ElectionEvent): number {
-  if (e.kind === "ref") return e.year + (e.id === "2018r" ? 0.9 : 0.8);
-  return e.year + (e.year === 2018 ? 0.2 : 0);
-}
-
 /** Every general election and referendum, oldest first. */
-export const EVENTS: readonly ElectionEvent[] = [
-  ...EARLY_YEARS.map((year) => ({
-    id: String(year),
-    kind: "general" as const,
-    year,
-    date: DATES[year] ?? String(year),
-    map: false,
-    divs: false,
-    label: String(year),
-  })),
-  ...MAPPED_YEARS.map((year) => ({
-    id: String(year),
-    kind: "general" as const,
-    year,
-    date: DATES[year] ?? String(year),
-    map: true,
-    divs: (DIVISION_YEARS as readonly number[]).includes(year),
-    label: String(year),
-  })),
-  {
-    id: "2016r",
-    kind: "ref" as const,
-    year: 2016,
-    date: "24 November 2016",
-    map: true,
-    divs: true,
-    label: "2016",
-    sub: "Referendum",
-  },
-  {
-    id: "2018r",
-    kind: "ref" as const,
-    year: 2018,
-    date: "6 November 2018",
-    map: true,
-    divs: true,
-    label: "2018",
-    sub: "Referendum",
-  },
-].sort((a, b) => order(a) - order(b));
+export const EVENTS: readonly ElectionEvent[] = eventRecords.map((e) => ({
+  id: e.id,
+  kind: e.kind === "ref" ? "ref" : "general",
+  year: Number(e.date.slice(0, 4)),
+  date: formatIsoDate(e.date),
+  map: e.mapped,
+  divs: e.divisions,
+  label: e.date.slice(0, 4),
+  ...(e.kind === "ref" ? { sub: "Referendum" } : {}),
+}));
 
 export function getEvent(id: string): ElectionEvent | undefined {
   return EVENTS.find((e) => e.id === id);

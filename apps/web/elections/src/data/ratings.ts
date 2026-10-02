@@ -96,3 +96,15 @@ export function ratingFromChances(chance: Record<Party, number>): UserRating {
   if (q >= 0.95) return `Solid ${top}`;
   return q >= 0.8 ? `Likely ${top}` : `Lean ${top}`;
 }
+
+/**
+ * A rating from a past result: the winner's margin sets the strength
+ * (15+ points Solid, 5–15 Likely, under 5 Lean). Seats won by a party not
+ * standing in 2026 become Toss-up.
+ */
+export function ratingFromResult(winner: string, margin: number): UserRating {
+  if (!(PARTIES as readonly string[]).includes(winner)) return "Toss-up";
+  const party = winner as Party;
+  if (margin >= 0.15) return `Solid ${party}`;
+  return margin >= 0.05 ? `Likely ${party}` : `Lean ${party}`;
+}

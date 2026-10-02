@@ -1,0 +1,272 @@
+[
+  {
+    "div": "F01",
+    "sub": null,
+    "place": "Jane Donald's Shop Perdmontemps",
+    "yes": 19,
+    "no": 61,
+    "rej": 1,
+    "voted": 81,
+    "reg": 376
+  },
+  {
+    "div": "F02",
+    "sub": "a",
+    "place": "St. Dominic’s R.C. Church Centre",
+    "yes": 38,
+    "no": 52,
+    "rej": 0,
+    "voted": 90,
+    "reg": 384
+  },
+  {
+    "div": "F02",
+    "sub": "b",
+    "place": "St. Dominic’s R.C. Church Centre",
+    "yes": 39,
+    "no": 50,
+    "rej": 1,
+    "voted": 90,
+    "reg": 390
+  },
+  {
+    "div": "F03",
+    "sub": "a",
+    "place": "St. Dominic’s R.C. School",
+    "yes": 19,
+    "no": 43,
+    "rej": 0,
+    "voted": 62,
+    "reg": 223
+  },
+  {
+    "div": "F03",
+    "sub": "b",
+    "place": "St. Dominic’s R.C. School",
+    "yes": 19,
+    "no": 46,
+    "rej": 0,
+    "voted": 65,
+    "reg": 221
+  },
+  {
+    "div": "F04",
+    "sub": "a",
+    "place": "Windsor Forest Pre School",
+    "yes": 30,
+    "no": 68,
+    "rej": 0,
+    "voted": 98,
+    "reg": 278
+  },
+  {
+    "div": "F04",
+    "sub": "b",
+    "place": "Windsor Forest Pre School",
+    "yes": 31,
+    "no": 56,
+    "rej": 0,
+    "voted": 87,
+    "reg": 276
+  },
+  {
+    "div": "F04",
+    "sub": "c",
+    "place": "Windsor Forest Pre School",
+    "yes": 28,
+    "no": 62,
+    "rej": 1,
+    "voted": 91,
+    "reg": 273
+  },
+  {
+    "div": "F05",
+    "sub": "a",
+    "place": "St. Theresa’s R.C. School, Vincennes",
+    "yes": 12,
+    "no": 55,
+    "rej": 1,
+    "voted": 68,
+    "reg": 333
+  },
+  {
+    "div": "F05",
+    "sub": "b",
+    "place": "St. Theresa’s R.C. School, Vincennes",
+    "yes": 20,
+    "no": 71,
+    "rej": 0,
+    "voted": 91,
+    "reg": 342
+  },
+  {
+    "div": "F06",
+    "sub": "a",
+    "place": "Corinth Government School",
+    "yes": 32,
+    "no": 54,
+    "rej": 0,
+    "voted": 86,
+    "reg": 321
+  },
+  {
+    "div": "F06",
+    "sub": "b",
+    "place": "Corinth Government School",
+    "yes": 39,
+    "no": 45,
+    "rej": 0,
+    "voted": 84,
+    "reg": 301
+  },
+  {
+    "div": "F06",
+    "sub": "c",
+    "place": "Corinth Government School",
+    "yes": 22,
+    "no": 69,
+    "rej": 1,
+    "voted": 92,
+    "reg": 311
+  },
+  {
+    "div": "F06",
+    "sub": "d",
+    "place": "Corinth Government School",
+    "yes": 32,
+    "no": 38,
+    "rej": 0,
+    "voted": 70,
+    "reg": 296
+  },
+  {
+    "div": "F07",
+    "sub": null,
+    "place": "St. David’s R.C. School",
+    "yes": 25,
+    "no": 82,
+    "rej": 0,
+    "voted": 107,
+    "reg": 382
+  },
+  {
+    "div": "F08",
+    "sub": "a",
+    "place": "Magistrate Court, St. David’s",
+    "yes": 62,
+    "no": 80,
+    "rej": 0,
+    "voted": 142,
+    "reg": 469
+  },
+  {
+    "div": "F08",
+    "sub": "b",
+    "place": "Magistrate Court, St. David’s",
+    "yes": 15,
+    "no": 70,
+    "rej": 0,
+    "voted": 85,
+    "reg": 350
+  },
+  {
+    "div": "F09",
+    "sub": "a",
+    "place": "Berean Pre-School, Marlmount",
+    "yes": 22,
+    "no": 36,
+    "rej": 0,
+    "voted": 58,
+    "reg": 257
+  },
+  {
+    "div": "F09",
+    "sub": "b",
+    "place": "Berean Pre-School, Marlmount",
+    "yes": 26,
+    "no": 32,
+    "rej": 0,
+    "voted": 58,
+    "reg": 249
+  },
+  {
+    "div": "F10",
+    "sub": "a",
+    "place": "Pomme Rose R.C. School",
+    "yes": 48,
+    "no": 45,
+    "rej": 2,
+    "voted": 95,
+    "reg": 358
+  },
+  {
+    "div": "F10",
+    "sub": "b",
+    "place": "Pomme Rose R.C. School",
+    "yes": 42,
+    "no": 41,
+    "rej": 1,
+    "voted": 84,
+    "reg": 338
+  },
+  {
+    "div": "F11",
+    "sub": "a",
+    "place": "Melting Pot, La Tante",
+    "yes": 28,
+    "no": 36,
+    "rej": 0,
+    "voted": 64,
+    "reg": 308
+  },
+  {
+    "div": "F11",
+    "sub": "b",
+    "place": "Melting Pot, La Tante",
+    "yes": 35,
+    "no": 34,
+    "rej": 2,
+    "voted": 71,
+    "reg": 312
+  },
+  {
+    "div": "F12",
+    "sub": "a",
+    "place": "Westerhall Secondary School",
+    "yes": 29,
+    "no": 69,
+    "rej": 1,
+    "voted": 99,
+    "reg": 319
+  },
+  {
+    "div": "F12",
+    "sub": "b",
+    "place": "Westerhall Secondary School",
+    "yes": 35,
+    "no": 68,
+    "rej": 0,
+    "voted": 103,
+    "reg": 312
+  },
+  {
+    "div": "F12",
+    "sub": "c",
+    "place": "Westerhall Secondary School",
+    "yes": 38,
+    "no": 62,
+    "rej": 2,
+    "voted": 102,
+    "reg": 313
+  },
+  {
+    "div": "F12",
+    "sub": "d",
+    "place": "Westerhall Secondary School",
+    "yes": 32,
+    "no": 61,
+    "rej": 0,
+    "voted": 93,
+    "reg": 316
+  }
+]

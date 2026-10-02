@@ -1,0 +1,9 @@
+{
+  "id": "E-05",
+  "area": "1984–2008 turnout",
+  "status": "open",
+  "impact": "data",
+  "what": "The PEO table gives candidate votes and registered voters but not rejected ballots or ballots cast, so turnout for these years is valid votes ÷ registered, slightly below true turnout.",
+  "action": "Needs official reports (or statements of poll) for 1984–2008 with ballots cast and rejected.",
+  "sources": ["PEO Old Elections Results"]
+}

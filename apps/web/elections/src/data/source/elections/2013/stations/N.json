@@ -1,0 +1,146 @@
+[
+  [
+    "N01",
+    null,
+    "Maran Community Centre",
+    246,
+    216,
+    0,
+    {
+      "NNP": 158,
+      "NDC": 58
+    }
+  ],
+  [
+    "N02",
+    "a",
+    "Victoria Pre Primary School",
+    240,
+    216,
+    1,
+    {
+      "NNP": 144,
+      "NDC": 71
+    }
+  ],
+  [
+    "N02",
+    "b",
+    "Victoria Pre Primary School",
+    252,
+    217,
+    1,
+    {
+      "NNP": 145,
+      "NDC": 71
+    }
+  ],
+  [
+    "N02",
+    "c",
+    "Victoria Pre Primary School",
+    237,
+    219,
+    2,
+    {
+      "NNP": 157,
+      "NDC": 60
+    }
+  ],
+  [
+    "N03",
+    "a",
+    "Parliamentary Elections Constituency",
+    282,
+    250,
+    0,
+    {
+      "NNP": 176,
+      "NDC": 74
+    }
+  ],
+  [
+    "N03",
+    "b",
+    "Parliamentary Elections Constituency Office",
+    205,
+    181,
+    1,
+    {
+      "NNP": 110,
+      "NDC": 70
+    }
+  ],
+  [
+    "N04",
+    "a",
+    "St. Mark's Secondary School",
+    283,
+    260,
+    2,
+    {
+      "NNP": 169,
+      "NDC": 89
+    }
+  ],
+  [
+    "N04",
+    "b",
+    "St. Mark's Secondary School",
+    179,
+    156,
+    1,
+    {
+      "NNP": 117,
+      "NDC": 38
+    }
+  ],
+  [
+    "N04",
+    "c",
+    "St. Mark's Secondary School",
+    194,
+    165,
+    0,
+    {
+      "NNP": 108,
+      "NDC": 57
+    }
+  ],
+  [
+    "N05",
+    "a",
+    "Mrs. De Allie's Residence, Duquesnse",
+    209,
+    187,
+    0,
+    {
+      "NNP": 133,
+      "NDC": 54
+    }
+  ],
+  [
+    "N05",
+    "b",
+    "Mrs. De Allie's Residence, Duquesnse",
+    209,
+    186,
+    1,
+    {
+      "NNP": 139,
+      "NDC": 46
+    }
+  ],
+  [
+    "N06",
+    null,
+    "Samaritan Presbyterian School",
+    294,
+    262,
+    1,
+    {
+      "NNP": 164,
+      "NDC": 97
+    }
+  ]
+]

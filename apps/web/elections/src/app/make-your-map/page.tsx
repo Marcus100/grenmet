@@ -8,7 +8,13 @@ import { ringPath } from "@/components/map/flat-map";
 import { PageHead } from "@/components/section";
 import { seatOutlook } from "@/data/election-2026";
 import { campaign, geo, results } from "@/data/load";
-import { constituencyShortName, leanLabel } from "@/data/model";
+import {
+  constituencyShortName,
+  contestStats,
+  generalResult,
+  leanLabel,
+  MAPPED_YEARS,
+} from "@/data/model";
 import { leanTable, modelInputs, seatChances, spreads } from "@/data/outlook";
 import { ratingFromChances } from "@/data/ratings";
 import { formatIsoDate } from "@/lib/format";
@@ -40,8 +46,16 @@ export default function YourPredictionPage() {
     model: ratingFromChances(chances[s.code]),
     result2022: `${s.winner2022.party} by ${(s.margin2022 * 100).toFixed(1)} pts`,
     sitting: `${s.sitting.name} (${s.sitting.party}${s.sitting.was ? `, elected ${s.sitting.was}` : ""})`,
-    won2022: s.winner2022.party === "NDC" ? "NDC" : "NNP",
+    history: Object.fromEntries(
+      MAPPED_YEARS.filter((y) => y >= 1990).flatMap((y) => {
+        const contest = generalResult(results, String(y), s.code);
+        if (!contest?.c[0]) return [];
+        const st = contestStats(contest);
+        return [[String(y), { winner: st.winner[1], margin: st.margin }]];
+      })
+    ),
     candidates: s.candidates,
+    notes: s.notes,
   }));
 
   return (
@@ -51,12 +65,13 @@ export default function YourPredictionPage() {
           <>
             Rate each of the 15 constituencies, from Solid NDC to Solid NNP, and
             for the DPM in the {Object.keys(dpmSlate).length} where it has named
-            a candidate. Your map starts from our{" "}
+            a candidate. Your map starts from the 2022 result, or any election
+            since 1990; change any constituency you disagree with, then share
+            the link. Our own ratings are on the{" "}
             <Link className="underline underline-offset-4" href="/forecast">
-              model’s ratings
-            </Link>
-            ; change any you disagree with, then share the link. This is your
-            prediction, not ours.
+              Forecast
+            </Link>{" "}
+            page. This is your prediction, not ours.
           </>
         }
         eyebrow={`General election 2026 · Candidates as of ${formatIsoDate(campaign.updated)}`}
@@ -69,9 +84,10 @@ export default function YourPredictionPage() {
           seats={seats}
         />
         <p className="mt-6 max-w-[70ch] text-el-muted text-xs">
-          Solid, Likely and Lean follow the model’s bands (95%+, 80–95%, 60–80%
-          chance); Toss-up is under 60% for the leader. Nothing you choose is
-          stored by us: your map lives only in its link.
+          Starting from an election, a seat won by 15 points or more is Solid,
+          by at least 5 but less than 15 Likely, and by less than 5 Lean; seats
+          won by parties not standing in 2026 start as Toss-up. Nothing you
+          choose is stored by us: your map lives only in its link.
         </p>
       </div>
     </>

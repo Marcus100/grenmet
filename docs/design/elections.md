@@ -183,6 +183,11 @@ for body, UI and every figure. Numbers use `tabular-nums`.
 - The page is `mx-auto max-w-[1240px] px-4 sm:px-6`. Design at 375px first, with no sideways page scroll.
 - The masthead is sticky at `h-14` with an ink bottom rule and the wordmark "Elections *Grenada*". From `lg` up it shows task-named links (Election 2026, Candidates, Forecast, Make your map, Results, Constituencies) and More ▾. Below `lg`, a **hamburger** (bars fold into an X) opens one panel under the masthead: the election status, the main pages as large serif rows, then the More pages. The header has no search box and no theme toggle; Find your constituency lives on the front page and Constituencies.
 - The site is light only for now (owner decision). The `.dark` palette stays in the CSS for later.
+- Homepage party cards omit the long results/candidate/timeline source paragraphs (owner decision); individual candidate sources and uncertainty notes remain on the detailed pages.
+- The `/2026` “Who is standing” section has no introductory source paragraph (owner decision); candidate-level uncertainty marks remain.
+- Results uses a full-width atlas with the year selector above the summary and map, Previous/Next event controls, and a larger map stage. Map is the default, Seats uses equal-sized constituency tiles (labelled Constituencies for referendums), and selection zooms to polling divisions. 3D is retired. The introductory paragraph is omitted (owner decision).
+- The Results timeline includes 1951–1967. Those years show historical constituency result cards and source caveats, with eight- or ten-seat totals; geographic and equal-seat maps begin in 1972.
+- Make your map starts from 2022, offers historical presets from 1990, and shares encoded ratings in the URL. Historical margins set Solid at 15+ points, Likely at 5–<15, and Lean below 5.
 - Sections are spaced `pt-12` and each opens with a 2px ink rule.
 - Wide tables become one card per row on phones.
 
@@ -206,22 +211,20 @@ are square.
 - **BallotGrid** (`election/ballot-grid.tsx`) · Who is standing in each seat, as small cards rather than a wide table.
 - **Flag** (`flag.tsx`) · ✱ unverified, ✱✱ conflicting, † corroborated. The reason is in the title and in screen-reader text.
 - **PartyDot / SeatSquare** (`party-chip.tsx`) · Party colour, always next to a name or code.
-- Ported from the prototype: AtlasStage (three.js, client only), FlatMap (SVG), MapModeSwitch, YearScrubber, ResultsPanel (sidebar, or a bottom sheet on phones), StatusPill, ProvenanceLine, HistoryGrid, CandidateRecord.
+- Ported from the prototype: Atlas (SVG Map/Seats), FlatMap (SVG), MapModeSwitch, YearScrubber, ResultsPanel (sidebar, or a bottom sheet on phones), StatusPill, ProvenanceLine, HistoryGrid, CandidateRecord.
 
 ## Motion
 
 Motion explains a change; it doesn't decorate. Everything is instant under reduced
-motion (`MotionConfig reducedMotion="user"`). The menu fades in over 150ms. On the
-map, a year change animates column height and colour in a west-to-east wave over
-800ms, ease `[.22,1,.36,1]`. Hero figures count up once per change.
+motion (`MotionConfig reducedMotion="user"`). The menu fades in over 150ms. Results map changes are immediate; no 3D column animation is used.
 
 ## Do's and Don'ts
 
 - **Do** name the party in text wherever its colour appears.
 - **Do** work percentages out from raw votes, and show the source line under every result.
-- **Do** take constituency names from the data (`results.json` `cons`), never from memory.
+- **Do** take constituency names from the data (`source/reference/constituencies.json`), never from memory.
 - **Do** say *constituency* for the place and *seat* only for House counts.
 - **Don't** use party colours for chrome, links or brand.
 - **Don't** put NDC yellow or "other" grey text on paper. Use the `-ink` step.
 - **Don't** map pre-1972 results onto today's 15 constituencies.
-- **Don't** run the WebGL render loop while nothing is moving.
+- **Do** keep results accessible through the constituency list as well as the map.

@@ -227,7 +227,7 @@ export default function ReferendumsPage() {
           />
           . {r16.totalsSource}.
         </p>
-        <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <ReferendumMap
             id="2016r"
             label="2016 referendum: Yes share by polling division"
@@ -280,7 +280,7 @@ export default function ReferendumsPage() {
         <p className="mt-3 max-w-[70ch] border-el-rule border-l-2 pl-3 text-el-ink-2 text-sm">
           {r18.note}
         </p>
-        <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <ReferendumMap
             id="2018r"
             label="2018 referendum: Yes share by polling division"

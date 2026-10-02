@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+import resultsJson from "@/data/derived/results";
 import { CODES } from "@/data/model";
-import resultsJson from "@/data/source/results.json";
 import {
   gallagher,
   governmentAt,

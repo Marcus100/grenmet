@@ -1,0 +1,83 @@
+{
+  "sources": {
+    "SUMMARY": "PEO Final Summary tables, 2013, 2018 and 2022",
+    "REGTOT": "PEO Old Elections Results, national registration figures",
+    "SEATS": "Recorded seat outcomes used by the original archive validation suite"
+  },
+  "SUMMARY": {
+    "2013": {
+      "NNP": 32205,
+      "NDC": 22377,
+      "_rej": 201,
+      "_cast": 55058,
+      "_reg": 62155
+    },
+    "2018": {
+      "NNP": 33792,
+      "NDC": 23249,
+      "_rej": 251,
+      "_cast": 57615,
+      "_reg": 78295
+    },
+    "2022": {
+      "NNP": 28960,
+      "NDC": 31432,
+      "_rej": 218,
+      "_cast": 60853,
+      "_reg": 87566
+    }
+  },
+  "REGTOT": {
+    "1984": 48158,
+    "1995": 71413,
+    "1999": 73673,
+    "2003": 82278,
+    "2008": 71751
+  },
+  "SEATS": {
+    "1972": {
+      "GULP": 13,
+      "GNP": 2
+    },
+    "1976": {
+      "GULP": 9,
+      "PA": 6
+    },
+    "1984": {
+      "NNP": 14,
+      "GULP": 1
+    },
+    "1990": {
+      "NDC": 7,
+      "GULP": 4,
+      "TNP": 2,
+      "NNP": 2
+    },
+    "1995": {
+      "NNP": 8,
+      "NDC": 5,
+      "GULP": 2
+    },
+    "1999": {
+      "NNP": 15
+    },
+    "2003": {
+      "NNP": 8,
+      "NDC": 7
+    },
+    "2008": {
+      "NDC": 11,
+      "NNP": 4
+    },
+    "2013": {
+      "NNP": 15
+    },
+    "2018": {
+      "NNP": 15
+    },
+    "2022": {
+      "NDC": 9,
+      "NNP": 6
+    }
+  }
+}

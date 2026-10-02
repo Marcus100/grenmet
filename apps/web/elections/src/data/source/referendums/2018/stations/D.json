@@ -1,0 +1,152 @@
+[
+  {
+    "div": "D01",
+    "sub": "a",
+    "place": "The Orchid Lodge",
+    "yes": 46,
+    "no": 51,
+    "rej": 0,
+    "voted": 97,
+    "reg": 327
+  },
+  {
+    "div": "D01",
+    "sub": "b",
+    "place": "Paradise Pre-Primary School",
+    "yes": 59,
+    "no": 51,
+    "rej": 0,
+    "voted": 110,
+    "reg": 348
+  },
+  {
+    "div": "D01",
+    "sub": "c",
+    "place": "Paradise Pre-Primary School",
+    "yes": 47,
+    "no": 45,
+    "rej": 0,
+    "voted": 92,
+    "reg": 337
+  },
+  {
+    "div": "D02",
+    "sub": "a",
+    "place": "Belair Government School",
+    "yes": 28,
+    "no": 43,
+    "rej": 0,
+    "voted": 71,
+    "reg": 323
+  },
+  {
+    "div": "D02",
+    "sub": "b",
+    "place": "Belair Government School",
+    "yes": 42,
+    "no": 38,
+    "rej": 1,
+    "voted": 81,
+    "reg": 332
+  },
+  {
+    "div": "D02",
+    "sub": "c",
+    "place": "Belair Government School",
+    "yes": 38,
+    "no": 53,
+    "rej": 0,
+    "voted": 91,
+    "reg": 317
+  },
+  {
+    "div": "D03",
+    "sub": "a",
+    "place": "Pearls Community Centre",
+    "yes": 46,
+    "no": 54,
+    "rej": 0,
+    "voted": 100,
+    "reg": 352
+  },
+  {
+    "div": "D03",
+    "sub": "b",
+    "place": "Pearls Community Centre",
+    "yes": 74,
+    "no": 48,
+    "rej": 0,
+    "voted": 122,
+    "reg": 424
+  },
+  {
+    "div": "D04",
+    "sub": "a",
+    "place": "Tivoli R.C. School",
+    "yes": 51,
+    "no": 54,
+    "rej": 0,
+    "voted": 105,
+    "reg": 371
+  },
+  {
+    "div": "D04",
+    "sub": "b",
+    "place": "Tivoli R.C. School",
+    "yes": 34,
+    "no": 53,
+    "rej": 0,
+    "voted": 87,
+    "reg": 364
+  },
+  {
+    "div": "D04",
+    "sub": "c",
+    "place": "Tivoli R.C. School",
+    "yes": 46,
+    "no": 60,
+    "rej": 0,
+    "voted": 106,
+    "reg": 361
+  },
+  {
+    "div": "D05",
+    "sub": "a",
+    "place": "La Poterie Community Centre",
+    "yes": 55,
+    "no": 16,
+    "rej": 0,
+    "voted": 71,
+    "reg": 267
+  },
+  {
+    "div": "D05",
+    "sub": "b",
+    "place": "La Poterie Community Centre",
+    "yes": 50,
+    "no": 17,
+    "rej": 0,
+    "voted": 67,
+    "reg": 272
+  },
+  {
+    "div": "D06",
+    "sub": null,
+    "place": "Upper St. John Community Centre",
+    "yes": 35,
+    "no": 64,
+    "rej": 0,
+    "voted": 99,
+    "reg": 357
+  },
+  {
+    "div": "D07",
+    "sub": null,
+    "place": "Paraclete Medical Station",
+    "yes": 32,
+    "no": 67,
+    "rej": 0,
+    "voted": 99,
+    "reg": 251
+  }
+]
