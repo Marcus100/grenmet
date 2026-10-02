@@ -1,0 +1,563 @@
+{
+  "items": [
+    {
+      "id": "E-01",
+      "area": "1984–2008 results",
+      "status": "resolved",
+      "impact": "data",
+      "what": "12 candidate vote counts in the ElectionPassport compilation differ from the PEO’s own table (largest: 2003 St. George South, Ann David-Antoine 1,795 vs PEO 795; 1990 St. Andrew North West, Alleyne Walker 833 vs PEO 730).",
+      "action": "The PEO figures are now used everywhere.",
+      "sources": ["PEO Old Elections Results", "ElectionPassport GD.xlsx"],
+      "detail": [
+        "1984 M: Einstein Louison (MBPM) EP=472 PEO=512 [Einstein Louison]",
+        "1990 C: Joseph Mc Guire (GULP) EP=689 PEO=690 [Joseph Mc Guire]",
+        "1990 C: George M. Lewis (MBPM) EP=62 PEO=63 [George M. Lewis]",
+        "1990 E: Alleyne Walker (TNP) EP=833 PEO=730 [Alleyne Walker]",
+        "1995 L: Mark Isaac (NNP) EP=1329 PEO=1349 [Mark Isaac]",
+        "1995 N: Albert O. Forsyth (IND) EP=167 PEO=161 [Albert Forsythe]",
+        "2003 L: Ann David-Antoine (NNP) EP=1795 PEO=795 [Ann-David Antoine]",
+        "2008 C: Slyvester Quarless (NDC) EP=2137 PEO=2135 [Sylvester Quarless]",
+        "2008 C: Yolande Bain-Horsford* (NNP) EP=1759 PEO=1757 [Yolande Bain-Horsford]",
+        "2008 D: Roland Bhola* (NNP) EP=1774 PEO=1775 [Roland Bhola]",
+        "2008 D: Ingrid Rush (NDC) EP=1747 PEO=1740 [Ingrid Rush]",
+        "2008 D: Keith Braveboy (ULP) EP=25 PEO=26 [Keith Braveboy]"
+      ]
+    },
+    {
+      "id": "E-02",
+      "area": "1984 results",
+      "status": "resolved",
+      "impact": "data",
+      "what": "Fenderson J. Felix (GFLP, 10 votes, St. Andrew South East, 1984) is in ElectionPassport but not in the PEO table. Two independent sources confirm he stood: The Grenada Newsletter (24 March 1990) and the IFES/Emmanuel 1984 table.",
+      "action": "Restored and marked †. The PEO table omits him.",
+      "sources": [
+        "The Grenada Newsletter, 24 March 1990, p. 10",
+        "IFES R01622 (1989)"
+      ]
+    },
+    {
+      "id": "E-03",
+      "area": "1984–2008 results",
+      "status": "open",
+      "impact": "document",
+      "what": "The PEO document’s winners’ summary page and its candidate table disagree for 6 winners: 1984 St. Andrew NE (1,286 vs 1,276), 2003 St. Andrew NW (1,600 vs 1,599), 2003 St. David (2,892 vs 2,829), 2008 St. Andrew SW (2,137 vs 2,135), 2008 St. Andrew NE (1,774 vs 1,775), 2008 St. Patrick West (printed “1,1833” vs 1,833). No winner changes.",
+      "action": "The candidate table is used and each difference is shown beside the result. Ask the PEO which figure is certified.",
+      "sources": ["PEO Old Elections Results"]
+    },
+    {
+      "id": "E-04",
+      "area": "1990 registration",
+      "status": "open",
+      "impact": "source",
+      "what": "The PEO document’s 1990 registration column repeats votes cast. Electors on the roll and votes cast now come from The Grenada Newsletter (24 March 1990): 58,296 electors in all, against Wikipedia’s 58,374.",
+      "action": "Figures shown with †. An official 1990 registration list or report would replace them.",
+      "sources": [
+        "PEO Old Elections Results, PDF p. 12",
+        "The Grenada Newsletter, 24 March 1990"
+      ]
+    },
+    {
+      "id": "E-05",
+      "area": "1984–2008 turnout",
+      "status": "open",
+      "impact": "data",
+      "what": "The PEO table gives candidate votes and registered voters but not rejected ballots or ballots cast, so turnout for these years is valid votes ÷ registered, slightly below true turnout.",
+      "action": "Needs official reports (or statements of poll) for 1984–2008 with ballots cast and rejected.",
+      "sources": ["PEO Old Elections Results"]
+    },
+    {
+      "id": "E-06",
+      "area": "1951 and 1967 results",
+      "status": "open",
+      "impact": "source",
+      "what": "No official or contemporaneous record has been found for 1951 or 1967: UF’s digitised Gazette has no issues for those years, and The Grenada Newsletter began in 1973. These years come only from ElectionPassport, and every figure is marked ✱. 1976 is now covered by the Newsletter and the Gazette’s 1976 electors notice (see E-18).",
+      "action": "Ask the Grenada National Archives or the Government Printery for the Gazette results notices of October 1951 and August–September 1967.",
+      "sources": [
+        "ElectionPassport GD.xlsx",
+        "UF Digital Collections, Grenada Government Gazette (UF00076858)"
+      ]
+    },
+    {
+      "id": "E-14",
+      "area": "1954–1962 results",
+      "status": "open",
+      "impact": "data",
+      "what": "The Supervisor of Elections’ Gazette notices for 1954, 1957, 1961 and 1962 give each winner’s votes. 35 winners match ElectionPassport and 2 were corrected: 1954 Carriacou (Paterson 1,295, not 1,296) and 1962 St. Andrew South (Bhola 1,609, not 1,610). The 1962 Carriacou seat, missing from ElectionPassport, was added: Herbert Blaize, returned unopposed. Two Gazette digits are unclear: 1954 St. George’s Town (983 or 988) and 1957 St. David (985 or 983). The notices don’t give losing candidates’ votes, so those remain secondary (✱).",
+      "action": "Find each election’s full returns (Returning Officers’ statements or the Legislative Council papers) to verify losing candidates and settle the two unclear digits.",
+      "sources": [
+        "Government Gazette (Extraordinary) No. 54/1954, No. 53/1957, No. 18/1961, Nos. 56 and 63/1962"
+      ]
+    },
+    {
+      "id": "E-15",
+      "area": "1972 results",
+      "status": "open",
+      "impact": "document",
+      "what": "The Gazette of 11 March 1972 publishes every candidate’s votes and electors by polling division, 135 divisions in all. They are now used, and the electors total the stated 41,529. One ElectionPassport figure was wrong: St. Andrew South West, Sylvester 1,572, not 1,576. The Gazette’s own printed totals disagree with its division rows in St. George North East (Dolland 1,504 printed vs 1,502 summed; O’Neale 1,292 vs 1,337) and St. George North West (Hosten 1,340 vs 1,341). Ballots cast and rejected aren’t published.",
+      "action": "Printed totals are shown and flagged. Needs the Returning Officers’ statements for those two constituencies.",
+      "sources": ["Government Gazette No. 20, 11 March 1972, pp. 132–137"]
+    },
+    {
+      "id": "E-16",
+      "area": "1990 results",
+      "status": "resolved",
+      "impact": "data",
+      "what": "For 1990 the PEO’s later compilation (Old Elections Results) disagrees with the Supervisor of Elections’ Gazette declaration for 5 winners, among them St. George NW, Keith Mitchell 1,148 not 1,348, and St. George NE, George Brizan 1,853 not 1,952. The Grenada Newsletter of 24 March 1990 matches the Gazette for all 15 winners, and its full tables sum to the votes cast in 14 of 15 constituencies. The compilation has 21 wrong 1990 figures in all, including losing candidates (e.g. St. Patrick West, Paul Richards 328 not 407).",
+      "action": "1990 now uses the Gazette (winners) and the Newsletter (others, marked †). The PEO compilation is not used for 1990.",
+      "sources": [
+        "Government Gazette No. 15 of 1990",
+        "The Grenada Newsletter, 24 March 1990, pp. 3–13",
+        "PEO Old Elections Results"
+      ]
+    },
+    {
+      "id": "E-17",
+      "area": "1995 results",
+      "status": "open",
+      "impact": "data",
+      "what": "The Supervisor of Elections’ 1995 declaration (Gazette No. 36, 30 June 1995) disagrees with the PEO compilation for 3 winners: Town of St. George, Fletcher 855 vs 791; St. George South, Isaac 1,350 vs 1,349; St. Andrew SW, Baptiste 940 vs 935. The notice mentions a recount in one constituency. The Grenada Newsletter ended in 1994, so there is no independent check.",
+      "action": "Both figures shown (✱✱). Ask the PEO for the certified 1995 statements of poll.",
+      "sources": [
+        "Government Gazette No. 36 of 1995, p. 369",
+        "PEO Old Elections Results"
+      ]
+    },
+    {
+      "id": "E-18",
+      "area": "1976 results",
+      "status": "open",
+      "impact": "source",
+      "what": "1976 votes now come from The Grenada Newsletter (11 December 1976), “based on figures supplied by the Supervisor of Elections”; its totals reconcile (Alliance 19,671, GULP 21,085). Electors come from Government Gazette (Extraordinary) No. 58, 30 November 1976, which totals 63,193. ElectionPassport differed on 4 candidates (e.g. St. Andrew SE, Alexis 1,290 vs 1,270). The official results notice itself isn’t in UF’s scans.",
+      "action": "Shown with †. Needs the Gazette results notice of December 1976 (probably an Extraordinary issue).",
+      "sources": [
+        "The Grenada Newsletter, 11 December 1976",
+        "Government Gazette No. 58 of 1976"
+      ]
+    },
+    {
+      "id": "E-19",
+      "area": "Secondary sources, 1951–1984",
+      "status": "open",
+      "impact": "source",
+      "what": "The secondary compilations disagree with each other on national party totals: PDBA and IFES (both from Emmanuel) vs ElectionPassport differ for 1951 (20,837 vs 20,622 total votes), 1961 (21,760 vs 21,754), 1967 (28,999 vs 29,037) and 1984 (IFES NNP 23,997 vs PEO 24,045). 1957 matches exactly, and 1954 and 1962 match once the Gazette corrections are applied.",
+      "action": "Pre-1972 figures stay ✱ until official returns are found.",
+      "sources": [
+        "PDBA Georgetown, 1951–1976",
+        "IFES R01622 (1989)",
+        "ElectionPassport GD.xlsx"
+      ]
+    },
+    {
+      "id": "E-07",
+      "area": "2022 St. Patrick East",
+      "status": "open",
+      "impact": "document",
+      "what": "The 2022 report prints division P05 twice, leaves out P06(b), and gives no St. Patrick East total. Its figures are the national Final Summary minus the other 14 constituencies (NDC 1,443, NNP 1,322, GULP 18, 2,791 cast, 3,967 registered). The division map for St. Patrick East is missing P06(b).",
+      "action": "Ask the PEO for the P06(b) statement of poll and the constituency total page.",
+      "sources": [
+        "PEO General Election Report 2022, pp. 92–95 and Final Summary"
+      ]
+    },
+    {
+      "id": "E-08",
+      "area": "2022 report",
+      "status": "open",
+      "impact": "document",
+      "what": "The Town of St. George total page is headed “Polling Divisions G01 – G10”, but only G01–G07 were used in 2022.",
+      "action": "Figures are unaffected. Note for the PEO.",
+      "sources": ["PEO General Election Report 2022, p. 54"]
+    },
+    {
+      "id": "E-09",
+      "area": "2018 report",
+      "status": "resolved",
+      "impact": "document",
+      "what": "The 2018 report prints the St. George South total page three times, once inside the St. John section.",
+      "action": "Totals checked against the stations: St. George South 9,464 registered and 6,334 cast; St. John 5,896 and 4,311. Both match.",
+      "sources": ["PEO General Election Report 2018, pp. 72–79"]
+    },
+    {
+      "id": "E-10",
+      "area": "2013 report",
+      "status": "open",
+      "impact": "document",
+      "what": "In Carriacou & Petite Martinique one station lists the winner as “George Elvin Nimrod” (119 votes) while the rest say “Elvin G. Nimrod”.",
+      "action": "Treated as the same candidate. Votes are unaffected.",
+      "sources": ["PEO Final Report, Elections 2013"]
+    },
+    {
+      "id": "E-11",
+      "area": "2022 registration",
+      "status": "open",
+      "impact": "data",
+      "what": "The report’s registered voters are the election-day list plus police voters, but 60 registrations remain unexplained (A +5, B +5, D +11, F +5, H +2, J +2, K +2, L +13, M +2, N +7, P +1, R +5).",
+      "action": "Probably the “Addendum Included” voters. Ask the PEO for the addendum used on election day.",
+      "sources": [
+        "PEO Consolidated List as at 10 June 2022",
+        "PEO General Election Report 2022"
+      ],
+      "detail": {
+        "A": 5,
+        "B": 5,
+        "C": 0,
+        "D": 11,
+        "E": 0,
+        "F": 5,
+        "G": 0,
+        "H": 2,
+        "J": 2,
+        "K": 2,
+        "L": 13,
+        "M": 2,
+        "N": 7,
+        "P": 1,
+        "R": 5
+      }
+    },
+    {
+      "id": "E-12",
+      "area": "Candidate names",
+      "status": "open",
+      "impact": "presentation",
+      "what": "Names are spelled differently across PEO documents and sources (e.g. Slyvester/Sylvester Quarless, Forsyth/Forsythe, De Coteau/De Choteau, Sealey/Sealy, Henry/Herry, Bain-Joseph/Bain-Horsford). Candidates are matched across years by surname and first initial.",
+      "action": "Needs a reviewed list of candidate identities.",
+      "sources": ["All PEO reports"]
+    },
+    {
+      "id": "E-13",
+      "area": "Extraction",
+      "status": "resolved",
+      "impact": "data",
+      "what": "While checking, five candidates were found missing from the site’s 2013–2022 data because of how party names were printed: Preudhomme (GULP, 2022 St. John), Fletcher and Whiteman (independents, 2018), Raleigh Date (2013) and Lawrence Amedé (MIC, 2013). Some rejected-ballot counts were also misread.",
+      "action": "Fixed. 2013, 2018 and 2022 now match each report’s Final Summary exactly, party by party.",
+      "sources": ["PEO reports 2013, 2018, 2022"]
+    },
+    {
+      "id": "R-01",
+      "area": "2016 referendum",
+      "status": "resolved",
+      "impact": "data",
+      "what": "The PEO certificate’s national total is 71,240 registered, 23,651 voted (33.2%), Yes 51,946, No 100,140. Wikipedia and NOW Grenada give 71,241 registered and 32.5% turnout.",
+      "action": "The certificate figures are used.",
+      "sources": ["PEO Referendum 2016 Certificates, national total"]
+    },
+    {
+      "id": "R-02",
+      "area": "2016 referendum",
+      "status": "open",
+      "impact": "source",
+      "what": "The certificates give Yes and No for all seven bills combined. Results for each bill exist only in secondary sources, and they disagree. For example, the CCJ bill is 9,639 Yes and 12,635 No on Wikipedia but 9,637 and 12,611 on NOW Grenada (an image credited to peogrenada.org, probably preliminary).",
+      "action": "Needs the PEO’s certified results for each bill, ideally by constituency.",
+      "sources": ["Wikipedia", "NOW Grenada, 25 Nov 2016"]
+    },
+    {
+      "id": "R-03",
+      "area": "2018 referendum",
+      "status": "resolved",
+      "impact": "data",
+      "what": "The official results are in Government Gazette No. 52 (16 November 2018), signed by the Supervisor of Elections (Ag.): Yes 9,848, No 12,134, rejected 116, voted 22,098, enrolled 79,410 (27.83%). Wikipedia gives 119 invalid, and a second Wikipedia table gives the preliminary 9,846 and 12,133.",
+      "action": "The Gazette figures are now used, down to polling station.",
+      "sources": ["Government Gazette No. 52 of 2018, pp. 701–711"]
+    },
+    {
+      "id": "R-04",
+      "area": "2018 referendum",
+      "status": "open",
+      "impact": "data",
+      "what": "The Gazette PDF at gazettes.gov.gd is damaged (a compression error; re-downloading gives the same file). Page 702 stops after A04 and page 710 is blank, so A04 (registered)–A11, B01–B06, H09, J01–J07 and K01–K07 are unreadable. Carriacou & PM, St. Andrew SE, St. George NE, St. George NW and St. George SE therefore have no constituency result. Together they hold 3,656 Yes and 3,985 No.",
+      "action": "Ask the Government Printery (govprintery@gov.gd) or the PEO for an undamaged copy of Gazette No. 52 of 2018 or the certified results sheets.",
+      "sources": ["Government Gazette No. 52 of 2018"]
+    },
+    {
+      "id": "R-05",
+      "area": "Wikipedia cross-checks",
+      "status": "open",
+      "impact": "source",
+      "what": "Wikipedia disagrees with the PEO in several places: 2022 registered 86,658 vs PEO 87,566 (Wikipedia uses the list without police voters); 2022 GULP 64 vs PEO 66; 2016 registered 71,241 vs certificate 71,240; 2018 invalid 119 vs Gazette 116.",
+      "action": "Wikipedia is used only as a cross-check, never as the source, from 1984 onward.",
+      "sources": ["Wikipedia election and referendum articles"]
+    },
+    {
+      "id": "V-01",
+      "area": "Voter register",
+      "status": "open",
+      "impact": "data",
+      "what": "Between consecutive consolidated lists, the change doesn’t match the new registrations in the addenda, implying large removals: 2019-12→2020-06: 7,274; 2020-06→2020-12: 8,143; 2020-12→2021-06: 2,427; 2021-06→2021-12: 5,209; 2021-12→2022-05: 9,993; 2022-05→2022-06: 315; 2022-06→2022-12: 469; 2022-12→2023-06: 201; 2023-06→2023-12: 1,311; 2023-12→2024-06: 1,163; 2024-06→2024-12: 656; 2024-12→2025-06: 1,521; 2025-06→2025-12: 969; 2025-12→2026-06: 1,334. The PEO doesn’t publish removal lists, and it isn’t clear whether addenda include transfers.",
+      "action": "Ask the PEO for removal and transfer counts, or for the addendum definition.",
+      "sources": [
+        "PEO consolidated lists Dec 2019 – Jun 2026",
+        "PEO constituency addenda Jun 2020 – Jun 2026"
+      ],
+      "detail": [
+        {
+          "from": "2019-12-31",
+          "to": "2020-06-30",
+          "before": 80683,
+          "after": 81072,
+          "added": 7663,
+          "impliedRemovals": 7274
+        },
+        {
+          "from": "2020-06-30",
+          "to": "2020-12-31",
+          "before": 81072,
+          "after": 79526,
+          "added": 6597,
+          "impliedRemovals": 8143
+        },
+        {
+          "from": "2020-12-31",
+          "to": "2021-06-30",
+          "before": 79526,
+          "after": 83074,
+          "added": 5975,
+          "impliedRemovals": 2427
+        },
+        {
+          "from": "2021-06-30",
+          "to": "2021-12-31",
+          "before": 83074,
+          "after": 83257,
+          "added": 5392,
+          "impliedRemovals": 5209
+        },
+        {
+          "from": "2021-12-31",
+          "to": "2022-05-27",
+          "before": 83257,
+          "after": 86907,
+          "added": 13643,
+          "impliedRemovals": 9993
+        },
+        {
+          "from": "2022-05-27",
+          "to": "2022-06-10",
+          "before": 86907,
+          "after": 86592,
+          "added": 0,
+          "impliedRemovals": 315
+        },
+        {
+          "from": "2022-06-10",
+          "to": "2022-12-31",
+          "before": 86592,
+          "after": 87302,
+          "added": 1179,
+          "impliedRemovals": 469
+        },
+        {
+          "from": "2022-12-31",
+          "to": "2023-06-30",
+          "before": 87302,
+          "after": 88241,
+          "added": 1140,
+          "impliedRemovals": 201
+        },
+        {
+          "from": "2023-06-30",
+          "to": "2023-12-31",
+          "before": 88241,
+          "after": 88945,
+          "added": 2015,
+          "impliedRemovals": 1311
+        },
+        {
+          "from": "2023-12-31",
+          "to": "2024-06-30",
+          "before": 88945,
+          "after": 89741,
+          "added": 1959,
+          "impliedRemovals": 1163
+        },
+        {
+          "from": "2024-06-30",
+          "to": "2024-12-31",
+          "before": 89741,
+          "after": 90587,
+          "added": 1502,
+          "impliedRemovals": 656
+        },
+        {
+          "from": "2024-12-31",
+          "to": "2025-06-30",
+          "before": 90587,
+          "after": 90738,
+          "added": 1672,
+          "impliedRemovals": 1521
+        },
+        {
+          "from": "2025-06-30",
+          "to": "2025-12-31",
+          "before": 90738,
+          "after": 91405,
+          "added": 1636,
+          "impliedRemovals": 969
+        },
+        {
+          "from": "2025-12-31",
+          "to": "2026-06-30",
+          "before": 91405,
+          "after": 92573,
+          "added": 2502,
+          "impliedRemovals": 1334
+        }
+      ]
+    },
+    {
+      "id": "V-02",
+      "area": "Voter register",
+      "status": "open",
+      "impact": "data",
+      "what": "The list fell by 315 between 27 May 2022 and the election list of 10 June 2022, with no addendum in between.",
+      "action": "Ask the PEO what changed before the election.",
+      "sources": [
+        "PEO Current Consolidated List as at 17 May 2022",
+        "PEO Consolidated List as at 10 June 2022"
+      ]
+    },
+    {
+      "id": "V-03",
+      "area": "Voter register",
+      "status": "open",
+      "impact": "data",
+      "what": "Counts come from the published lists’ non-police pages. Police electors are listed separately and aren’t in these totals.",
+      "action": "Add police lists if published.",
+      "sources": ["PEO consolidated lists"]
+    },
+    {
+      "id": "G-01",
+      "area": "Map",
+      "status": "open",
+      "impact": "presentation",
+      "what": "No official boundary map exists in the archive. Divisions are built from census enumeration districts (a public ArcGIS layer whose publisher is unverified), grouped by the PEO’s village table. 7 divisions couldn’t be placed from their village names: B02, B10, C04, D06, H06, K02, K10.",
+      "action": "Needs official polling-division boundary files (PEO or Lands and Surveys).",
+      "sources": [
+        "Census ED layer",
+        "PEO Electoral Constituencies and Polling Divisions Table (Jan 2018)"
+      ]
+    },
+    {
+      "id": "G-02",
+      "area": "Boundary table",
+      "status": "open",
+      "impact": "document",
+      "what": "The PEO village table (dated January 2018) heads St. Andrew South West “C 01 – C 10” but lists C11–C14. Divisions G08 and G09, used in 2013, aren’t in it.",
+      "action": "Ask the PEO for the current table and the pre-2018 division changes.",
+      "sources": ["PEO Electoral Constituencies and Polling Divisions Table"]
+    }
+  ],
+  "reconciliation": [
+    {
+      "from": "2019-12-31",
+      "to": "2020-06-30",
+      "before": 80683,
+      "after": 81072,
+      "added": 7663,
+      "impliedRemovals": 7274
+    },
+    {
+      "from": "2020-06-30",
+      "to": "2020-12-31",
+      "before": 81072,
+      "after": 79526,
+      "added": 6597,
+      "impliedRemovals": 8143
+    },
+    {
+      "from": "2020-12-31",
+      "to": "2021-06-30",
+      "before": 79526,
+      "after": 83074,
+      "added": 5975,
+      "impliedRemovals": 2427
+    },
+    {
+      "from": "2021-06-30",
+      "to": "2021-12-31",
+      "before": 83074,
+      "after": 83257,
+      "added": 5392,
+      "impliedRemovals": 5209
+    },
+    {
+      "from": "2021-12-31",
+      "to": "2022-05-27",
+      "before": 83257,
+      "after": 86907,
+      "added": 13643,
+      "impliedRemovals": 9993
+    },
+    {
+      "from": "2022-05-27",
+      "to": "2022-06-10",
+      "before": 86907,
+      "after": 86592,
+      "added": 0,
+      "impliedRemovals": 315
+    },
+    {
+      "from": "2022-06-10",
+      "to": "2022-12-31",
+      "before": 86592,
+      "after": 87302,
+      "added": 1179,
+      "impliedRemovals": 469
+    },
+    {
+      "from": "2022-12-31",
+      "to": "2023-06-30",
+      "before": 87302,
+      "after": 88241,
+      "added": 1140,
+      "impliedRemovals": 201
+    },
+    {
+      "from": "2023-06-30",
+      "to": "2023-12-31",
+      "before": 88241,
+      "after": 88945,
+      "added": 2015,
+      "impliedRemovals": 1311
+    },
+    {
+      "from": "2023-12-31",
+      "to": "2024-06-30",
+      "before": 88945,
+      "after": 89741,
+      "added": 1959,
+      "impliedRemovals": 1163
+    },
+    {
+      "from": "2024-06-30",
+      "to": "2024-12-31",
+      "before": 89741,
+      "after": 90587,
+      "added": 1502,
+      "impliedRemovals": 656
+    },
+    {
+      "from": "2024-12-31",
+      "to": "2025-06-30",
+      "before": 90587,
+      "after": 90738,
+      "added": 1672,
+      "impliedRemovals": 1521
+    },
+    {
+      "from": "2025-06-30",
+      "to": "2025-12-31",
+      "before": 90738,
+      "after": 91405,
+      "added": 1636,
+      "impliedRemovals": 969
+    },
+    {
+      "from": "2025-12-31",
+      "to": "2026-06-30",
+      "before": 91405,
+      "after": 92573,
+      "added": 2502,
+      "impliedRemovals": 1334
+    }
+  ]
+}

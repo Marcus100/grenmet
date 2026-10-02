@@ -13,6 +13,7 @@ const sources = {
     "packages/gms/src/styles/foundation.css",
     "apps/web/gaa-admin/src/app/globals.css",
   ],
+  "elections.md": ["apps/web/elections/src/app/globals.css"],
   "gms.md": ["packages/gms/src/styles/foundation.css"],
   "mbia.md": ["apps/web/mbia/src/app/globals.css"],
   "signal.md": ["apps/web/signal/src/app/globals.css"],

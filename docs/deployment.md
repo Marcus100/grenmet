@@ -419,6 +419,7 @@ hurricane/spice hosts; no legacy redirects are installed.
 | Signal | 3004 | https://signal.barrels.gd | https://signal.staging.barrels.gd |
 | MBIA | 3005 | https://mbia.barrels.gd | https://mbia.staging.barrels.gd |
 | Events | 3009 | https://events.barrels.gd | https://events.staging.barrels.gd |
+| Elections | 3007 | not yet deployed | not yet deployed |
 | FastAPI | 8000 | https://api.barrels.gd | https://api.staging.barrels.gd |
 
 Cloudflare wildcard A records point `*.barrels.gd` to `134.122.119.220` and

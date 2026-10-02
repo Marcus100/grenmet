@@ -115,6 +115,10 @@ catalog:
   # Animation — motion (successor to framer-motion); import from "motion/react"
   motion: ^13.4.0
 
+  # 3D — elections atlas (client-only map island)
+  three: ^0.186.1
+  "@types/three": ^0.186.0
+
   # Types
   "@types/node": ^26.6.2
   "@types/react": ^19.3.0

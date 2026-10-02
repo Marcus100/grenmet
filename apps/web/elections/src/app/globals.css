@@ -1,0 +1,189 @@
+@import "tailwindcss";
+@import "@barrelsgd/ui/styles/globals";
+
+/* Tailwind v4 only auto-scans this app's own source. The reused @barrelsgd/ui
+   primitives (navigation-menu, accordion, …) use utilities found nowhere in
+   this app's own pages, so scan the shared package explicitly or those classes
+   are never generated. */
+@source "../../node_modules/@barrelsgd/ui/src";
+
+/*
+  Elections Grenada brand layer (docs/design/elections.md).
+
+  A civic results atlas in newspaper form: ink on paper, hairline rules, serif
+  for the story, sans for the numbers. Colour is saved for data, so a party
+  colour on the page always means a party — never chrome, links or brand.
+
+  Consumes the @barrelsgd/ui foundation and overrides the shadcn semantics so
+  reused primitives reskin. Dark mode is a chosen palette, not an inversion:
+  party hues step to their own validated dark values. The site is light only
+  for now (owner decision); the `.dark` palette is kept for later.
+*/
+@layer base {
+  :root {
+    --el-paper: #ffffff;
+    --el-paper-2: #f4f5f6;
+    --el-ink: #121314;
+    --el-ink-2: #3b3f45;
+    --el-muted: #5d636b;
+    --el-rule: #dfe1e4;
+    --el-rule-2: #b9bec4;
+    --el-sea: #e8edf1;
+    --el-land: #d5d9dd;
+    --el-focus: #2b59c3;
+
+    /* Parties: fill only. Text uses the -ink step; -tint is the low end of
+       margin ramps. Ordered NDC, NNP, historical, GULP so red and green are
+       never neighbours. */
+    --el-ndc: #e0a300;
+    --el-ndc-ink: #7f5a00;
+    --el-ndc-tint: #f6e6b6;
+    --el-nnp: #0b7a4b;
+    --el-nnp-ink: #0b6a41;
+    --el-nnp-tint: #cde5d8;
+    --el-gulp: #e0623e;
+    --el-gulp-ink: #a8401f;
+    --el-gulp-tint: #f7d5c9;
+    --el-hist: #4a6fd0;
+    --el-hist-ink: #3556b0;
+    --el-hist-tint: #d6def5;
+    --el-other: #9aa0a8;
+    --el-other-ink: #5d636b;
+    --el-other-tint: #e3e5e8;
+
+    /* Referendums get their own pair so a referendum never looks partisan. */
+    --el-yes: #2d6cc0;
+    --el-yes-ink: #255aa1;
+    --el-yes-tint: #d7e3f5;
+    --el-no: #b04a86;
+    --el-no-ink: #943c70;
+    --el-no-tint: #f1d9e7;
+
+    /* Map ramps */
+    --el-seq-0: #e1e8f1;
+    --el-seq-1: #23467f;
+    --el-div-mid: #cfd2d6;
+
+    --background: var(--el-paper);
+    --foreground: var(--el-ink);
+    --card: var(--el-paper);
+    --card-foreground: var(--el-ink);
+    --popover: var(--el-paper);
+    --popover-foreground: var(--el-ink);
+    --primary: var(--el-ink);
+    --primary-foreground: var(--el-paper);
+    --secondary: var(--el-paper-2);
+    --secondary-foreground: var(--el-ink);
+    --muted: var(--el-paper-2);
+    --muted-foreground: var(--el-muted);
+    --accent: var(--el-paper-2);
+    --accent-foreground: var(--el-ink);
+    --border: var(--el-rule);
+    --input: var(--el-rule-2);
+    --ring: var(--el-focus);
+    --radius: 0.375rem;
+
+    color-scheme: light;
+  }
+
+  .dark {
+    --el-paper: #111214;
+    --el-paper-2: #1a1c1f;
+    --el-ink: #ecebe8;
+    --el-ink-2: #c7c9cd;
+    --el-muted: #9ba1a9;
+    --el-rule: #2b2e33;
+    --el-rule-2: #454a51;
+    --el-sea: #0e171e;
+    --el-land: #2a2e33;
+    --el-focus: #8fb0ff;
+
+    --el-ndc: #d9a21c;
+    --el-ndc-ink: #f0c350;
+    --el-ndc-tint: #3a3016;
+    --el-nnp: #279a66;
+    --el-nnp-ink: #63c998;
+    --el-nnp-tint: #16301f;
+    --el-gulp: #e4704c;
+    --el-gulp-ink: #f29b7b;
+    --el-gulp-tint: #3b2119;
+    --el-hist: #6f8fe6;
+    --el-hist-ink: #a3b8f3;
+    --el-hist-tint: #1d2640;
+    --el-other: #80868e;
+    --el-other-ink: #a9afb6;
+    --el-other-tint: #2a2d31;
+
+    --el-yes: #5b8fe0;
+    --el-yes-ink: #8fb3ee;
+    --el-yes-tint: #1b2940;
+    --el-no: #d0679f;
+    --el-no-ink: #e69cc3;
+    --el-no-tint: #3a1d2d;
+
+    --el-seq-0: #1d2835;
+    --el-seq-1: #a4c3f2;
+    --el-div-mid: #3b3f45;
+
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --font-sans: var(--font-inter, ui-sans-serif, system-ui, sans-serif);
+  --font-serif: var(--font-source-serif, Georgia, "Times New Roman", serif);
+
+  --color-el-paper: var(--el-paper);
+  --color-el-paper-2: var(--el-paper-2);
+  --color-el-ink: var(--el-ink);
+  --color-el-ink-2: var(--el-ink-2);
+  --color-el-muted: var(--el-muted);
+  --color-el-rule: var(--el-rule);
+  --color-el-rule-2: var(--el-rule-2);
+  --color-el-sea: var(--el-sea);
+  --color-el-land: var(--el-land);
+  --color-el-focus: var(--el-focus);
+  --color-el-ndc: var(--el-ndc);
+  --color-el-ndc-ink: var(--el-ndc-ink);
+  --color-el-ndc-tint: var(--el-ndc-tint);
+  --color-el-nnp: var(--el-nnp);
+  --color-el-nnp-ink: var(--el-nnp-ink);
+  --color-el-nnp-tint: var(--el-nnp-tint);
+  --color-el-gulp: var(--el-gulp);
+  --color-el-gulp-ink: var(--el-gulp-ink);
+  --color-el-gulp-tint: var(--el-gulp-tint);
+  --color-el-hist: var(--el-hist);
+  --color-el-hist-ink: var(--el-hist-ink);
+  --color-el-hist-tint: var(--el-hist-tint);
+  --color-el-other: var(--el-other);
+  --color-el-other-ink: var(--el-other-ink);
+  --color-el-other-tint: var(--el-other-tint);
+  --color-el-yes: var(--el-yes);
+  --color-el-yes-ink: var(--el-yes-ink);
+  --color-el-yes-tint: var(--el-yes-tint);
+  --color-el-no: var(--el-no);
+  --color-el-no-ink: var(--el-no-ink);
+  --color-el-no-tint: var(--el-no-tint);
+  --color-el-seq-0: var(--el-seq-0);
+  --color-el-seq-1: var(--el-seq-1);
+  --color-el-div-mid: var(--el-div-mid);
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  color: var(--foreground);
+  background: var(--background);
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-serif);
+  text-wrap: balance;
+}
+
+:focus-visible {
+  outline: 2px solid var(--el-focus);
+  outline-offset: 2px;
+}
