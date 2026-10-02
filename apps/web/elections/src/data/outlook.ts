@@ -6,8 +6,8 @@
  * Shares are the NDC share of the NDC–NNP vote (the "two-party share").
  */
 // biome-ignore-all lint/suspicious/noBitwiseOperators: the seeded PRNG must match the prototype bit for bit so published simulations reproduce exactly.
-import { CODES, generalResult } from "@/data/model";
-import type { ConstituencyCode, ResultsFile } from "@/data/types";
+import { CODES, divisionResults, generalResult } from "@/data/model";
+import type { CandidateRow, ConstituencyCode, ResultsFile } from "@/data/types";
 
 /** Elections the model learns from: the NDC and the NNP have both stood since 1990. */
 export const MODEL_YEARS = [
@@ -555,4 +555,342 @@ export function seatChances(
       ),
     ])
   ) as ByCode<SeatChance>;
+}
+
+/* ---------- Do candidates matter? ---------- */
+
+const NAME_TITLE = /^(Dr|Mr|Mrs|Ms|Hon|Sir|Dame)\.?\s+/i;
+const STAR = /\*/g;
+const SPACE = /\s+/;
+
+/** "Dr Keith Mitchell" → "k|mitchell": first initial and surname. */
+export function personKey(name: string): string {
+  const t = name
+    .replace(STAR, "")
+    .replace(NAME_TITLE, "")
+    .trim()
+    .toLowerCase()
+    .split(SPACE);
+  return `${t[0]?.[0] ?? "x"}|${t.at(-1) ?? ""}`;
+}
+
+export interface CandidateRace {
+  code: Seat;
+  /** How far the candidate ran ahead (+) of what the national vote and the seat's lean predicted. */
+  effect: number;
+  key: string;
+  name: string;
+  party: "NDC" | "NNP";
+  year: ModelYear;
+}
+
+export interface IncumbencyRace {
+  code: Seat;
+  name: string;
+  party: string;
+  /** Change toward the party that held the seat, beyond expectation. */
+  relative: number;
+  year: ModelYear;
+}
+
+export interface CandidateEffects {
+  incumbency: {
+    open: IncumbencyRace[];
+    reran: IncumbencyRace[];
+    switched: IncumbencyRace[];
+  };
+  people: { code: Seat; name: string; races: CandidateRace[] }[];
+  races: CandidateRace[];
+}
+
+/** One constituency's NDC/NNP candidates and incumbency case for an election pair. */
+function seatEffects(
+  data: ResultsFile,
+  a: ModelYear,
+  b: ModelYear,
+  code: Seat,
+  out: { incumbency: CandidateEffects["incumbency"]; races: CandidateRace[] }
+): void {
+  const share = twoParty(data, b, code);
+  if (share == null) return;
+  const r = share - (nationalShare(data, b) + leanAt(data, a, code));
+  const now = generalResult(data, b, code)?.c ?? [];
+  for (const [name, party] of now)
+    if (party === "NDC" || party === "NNP")
+      out.races.push({
+        year: b,
+        code,
+        name,
+        key: personKey(name),
+        party,
+        effect: party === "NDC" ? r : -r,
+      });
+  const held = generalResult(data, a, code)?.c[0];
+  if (!held || (held[1] !== "NDC" && held[1] !== "NNP")) return;
+  const again = now.find((k) => personKey(k[0]) === personKey(held[0]));
+  const entry = {
+    year: b,
+    code,
+    name: held[0],
+    party: held[1],
+    relative: held[1] === "NDC" ? r : -r,
+  };
+  if (!again) out.incumbency.open.push(entry);
+  else if (again[1] === held[1]) out.incumbency.reran.push(entry);
+  else out.incumbency.switched.push(entry);
+}
+
+/** Each NDC/NNP candidate since 1995 against what the national vote and the seat's lean predicted. */
+export function candidateEffects(data: ResultsFile): CandidateEffects {
+  const out = {
+    races: [] as CandidateRace[],
+    incumbency: {
+      reran: [],
+      open: [],
+      switched: [],
+    } as CandidateEffects["incumbency"],
+  };
+  for (let i = 1; i < MODEL_YEARS.length; i++)
+    for (const code of CODES)
+      seatEffects(
+        data,
+        MODEL_YEARS[i - 1] as ModelYear,
+        MODEL_YEARS[i] as ModelYear,
+        code,
+        out
+      );
+  const byPerson = new Map<
+    string,
+    { code: Seat; name: string; races: CandidateRace[] }
+  >();
+  for (const r of out.races) {
+    const k = `${r.key}|${r.code}`;
+    const p = byPerson.get(k) ?? { name: r.name, code: r.code, races: [] };
+    p.races.push(r);
+    byPerson.set(k, p);
+  }
+  return {
+    races: out.races,
+    incumbency: out.incumbency,
+    people: [...byPerson.values()],
+  };
+}
+
+/* ---------- Election night, replayed: 2022 ---------- */
+
+export interface ReplayDivision {
+  /** NDC two-party share expected from 2018 (the division's, else its constituency's). */
+  base: number;
+  code: Seat;
+  division: string;
+  ndc: number;
+  nnp: number;
+  place: string;
+  /** Expected NDC+NNP votes, used for divisions not yet counted. */
+  weight: number;
+}
+
+export interface ReplayInputs {
+  divisions: ReplayDivision[];
+  /** Spread of constituency swings around the national swing (2013 → 2018). */
+  sC: number;
+  /** Spread of division swings within a constituency (2013 → 2018). */
+  sE: number;
+  sN: number;
+}
+
+function divisionTwoParty(rows: CandidateRow[]): {
+  ndc: number;
+  nnp: number;
+  share: number | null;
+} {
+  const ndc = rows.filter((r) => r[1] === "NDC").reduce((a, r) => a + r[2], 0);
+  const nnp = rows.filter((r) => r[1] === "NNP").reduce((a, r) => a + r[2], 0);
+  return { ndc, nnp, share: ndc + nnp ? ndc / (ndc + nnp) : null };
+}
+
+/**
+ * What the replay needs: every 2022 division with its 2018 baseline, and how
+ * much divisions and constituencies strayed from the national swing in the
+ * previous pair of elections (2013 → 2018, not the replayed one).
+ */
+export function replayInputs(data: ResultsFile): ReplayInputs {
+  const by = (year: string) =>
+    Object.fromEntries(
+      CODES.flatMap((c) => divisionResults(data, year, c)).map((d) => [
+        d.division,
+        d,
+      ])
+    );
+  const d13 = by("2013");
+  const d18 = by("2018");
+  const ns = nationalShare(data, "2018") - nationalShare(data, "2013");
+  const groups = new Map<string, number[]>();
+  for (const d of Object.values(d18)) {
+    const o = d13[d.division];
+    const now = divisionTwoParty(d.c).share;
+    const before = o ? divisionTwoParty(o.c).share : null;
+    if (now == null || before == null) continue;
+    const code = d.division.slice(0, 1);
+    groups.set(code, [...(groups.get(code) ?? []), now - before - ns]);
+  }
+  const lists = [...groups.values()];
+  const mean = (a: number[]) => a.reduce((x, y) => x + y, 0) / a.length;
+  const sC = sd(lists.map(mean));
+  const sE = sd(lists.flatMap((a) => a.map((v) => v - mean(a))));
+
+  const divisions: ReplayDivision[] = CODES.flatMap((code) =>
+    divisionResults(data, "2022", code).map((d) => {
+      const now = divisionTwoParty(d.c);
+      const o = d18[d.division];
+      const before = o ? divisionTwoParty(o.c) : null;
+      return {
+        division: d.division,
+        code,
+        place: d.places[0] ?? "",
+        ndc: now.ndc,
+        nnp: now.nnp,
+        base: before?.share ?? twoParty(data, "2018", code) ?? 0.5,
+        weight: before ? before.ndc + before.nnp : Number.NaN,
+      };
+    })
+  );
+  for (const code of CODES) {
+    const inSeat = divisions.filter((d) => d.code === code);
+    const known = inSeat.filter((d) => !Number.isNaN(d.weight));
+    const avg = known.reduce((a, d) => a + d.weight, 0) / (known.length || 1);
+    for (const d of inSeat) if (Number.isNaN(d.weight)) d.weight = avg;
+  }
+  return { divisions, sC, sE, sN: spreads(data, null).sN };
+}
+
+export interface ReplayEstimate {
+  hi: number;
+  lo: number;
+  median: number;
+  /** Chance the NDC wins 8+ seats. */
+  ndcMajority: number;
+  /** Chance the NDC wins each seat. */
+  seatChance: Record<string, number>;
+  swing: number;
+  swingSd: number;
+}
+
+/** Counted divisions' swings since 2018, grouped by constituency. */
+function countedSwings(
+  inputs: ReplayInputs,
+  reported: ReadonlySet<string>
+): Map<string, number[]> {
+  const byCode = new Map<string, number[]>();
+  for (const d of inputs.divisions)
+    if (reported.has(d.division))
+      byCode.set(d.code, [
+        ...(byCode.get(d.code) ?? []),
+        d.ndc / (d.ndc + d.nnp || 1) - d.base,
+      ]);
+  return byCode;
+}
+
+/** National swing estimate: constituency means pooled with a prior from past national swings. */
+function pooledSwing(
+  inputs: ReplayInputs,
+  byCode: Map<string, number[]>
+): { swing: number; swingSd: number } {
+  const { sN, sC, sE } = inputs;
+  let precision = 1 / sN ** 2;
+  let num = 0;
+  for (const a of byCode.values()) {
+    const m = a.reduce((x, y) => x + y, 0) / a.length;
+    const v = sC ** 2 + sE ** 2 / a.length;
+    precision += 1 / v;
+    num += m / v;
+  }
+  return { swing: num / precision, swingSd: Math.sqrt(1 / precision) };
+}
+
+/** One simulated finish to the count; returns the seats the NDC wins. Draw order is fixed. */
+function simulateCount(
+  inputs: ReplayInputs,
+  reported: ReadonlySet<string>,
+  byCode: Map<string, number[]>,
+  sw: number,
+  r: Rng
+): string[] {
+  const { sC, sE } = inputs;
+  const totals = new Map<string, { a: number; b: number; local: number }>();
+  for (const c of CODES) {
+    const a = byCode.get(c);
+    const n = a ? a.length : 0;
+    const resid = a ? a.reduce((x, y) => x + y, 0) / n - sw : 0;
+    const vU = 1 / (1 / sC ** 2 + n / sE ** 2);
+    const u = n ? (resid * vU * n) / sE ** 2 : 0;
+    totals.set(c, { a: 0, b: 0, local: u + Math.sqrt(vU) * r.n() });
+  }
+  for (const d of inputs.divisions) {
+    const t = totals.get(d.code);
+    if (!t) continue;
+    if (reported.has(d.division)) {
+      t.a += d.ndc;
+      t.b += d.nnp;
+      continue;
+    }
+    const s = Math.max(0, Math.min(1, d.base + sw + t.local + sE * r.n()));
+    t.a += d.weight * s;
+    t.b += d.weight * (1 - s);
+  }
+  return CODES.filter((c) => {
+    const t = totals.get(c);
+    return t ? t.a > t.b : false;
+  });
+}
+
+/**
+ * The needle: pool the counted divisions' swings since 2018 (constituency
+ * effects shrunk toward the national swing), then simulate the rest.
+ */
+export function replayEstimate(
+  inputs: ReplayInputs,
+  reported: ReadonlySet<string>
+): ReplayEstimate {
+  const byCode = countedSwings(inputs, reported);
+  const { swing, swingSd } = pooledSwing(inputs, byCode);
+  const r = rng(99);
+  const runs = 800;
+  const seats = new Array<number>(16).fill(0);
+  const wins: Record<string, number> = Object.fromEntries(
+    CODES.map((c) => [c, 0])
+  );
+  for (let i = 0; i < runs; i++) {
+    const won = simulateCount(
+      inputs,
+      reported,
+      byCode,
+      swing + swingSd * r.n(),
+      r
+    );
+    for (const c of won) wins[c] = (wins[c] ?? 0) + 1;
+    seats[won.length] = (seats[won.length] ?? 0) + 1;
+  }
+  return {
+    ndcMajority: seats.slice(8).reduce((a, b) => a + b, 0) / runs,
+    swing,
+    swingSd,
+    lo: percentile(seats, runs, 0.1),
+    hi: percentile(seats, runs, 0.9),
+    median: percentile(seats, runs, 0.5),
+    seatChance: Object.fromEntries(
+      CODES.map((c) => [c, (wins[c] ?? 0) / runs])
+    ),
+  };
+}
+
+/** A seeded counting order, since the real 2022 reporting order isn't published (✱). */
+export function countingOrder(divisions: string[], seed: number): string[] {
+  const a = [...divisions];
+  const r = rng(seed);
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(r.u() * (i + 1));
+    [a[i], a[j]] = [a[j] as string, a[i] as string];
+  }
+  return a;
 }

@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
 import {
   backtest,
+  candidateEffects,
+  countingOrder,
   leanTable,
   modelInputs,
   nationalShare,
   rate,
+  replayEstimate,
+  replayInputs,
   seatChances,
   simulateThreeWay,
   spreads,
@@ -97,5 +101,47 @@ describe("outlook model matches the prototype", () => {
     expect(rate({ NDC: 0.97, NNP: 0.03, DPM: 0 })).toBe("Safe NDC");
     expect(rate({ NDC: 0.3, NNP: 0.7, DPM: 0 })).toBe("Lean NNP");
     expect(rate({ NDC: 0.55, NNP: 0.45, DPM: 0 })).toBe("Toss-up");
+  });
+});
+
+describe("election-night replay matches the prototype", () => {
+  const inputs = replayInputs(results);
+  const order = countingOrder(
+    inputs.divisions.map((d) => d.division),
+    2022
+  );
+
+  it("measures how divisions strayed from the national swing, 2013 → 2018", () => {
+    expect(inputs.sC).toBeCloseTo(0.034_903_284, 8);
+    expect(inputs.sE).toBeCloseTo(0.037_580_048, 8);
+    expect(inputs.divisions).toHaveLength(132);
+    expect(order.slice(0, 5)).toEqual(["R05", "D06", "B02", "L03", "N03"]);
+  });
+
+  it("moves the needle as divisions are counted", () => {
+    const at = (k: number) => {
+      const e = replayEstimate(inputs, new Set(order.slice(0, k)));
+      return [e.ndcMajority, e.lo, e.hi, e.median];
+    };
+    expect(at(0)).toEqual([0.263_75, 0, 12, 1]);
+    expect(at(30)).toEqual([0.9875, 8, 11, 10]);
+    expect(at(132)).toEqual([1, 9, 9, 9]);
+    expect(
+      replayEstimate(inputs, new Set(order.slice(0, 30))).swing
+    ).toBeCloseTo(0.111_417_418, 8);
+  });
+});
+
+describe("candidate effects match the prototype", () => {
+  const ce = candidateEffects(results);
+  const mean = (a: { relative: number }[]) =>
+    a.reduce((x, y) => x + y.relative, 0) / a.length;
+
+  it("separates sitting members who ran again from open seats", () => {
+    expect(ce.races).toHaveLength(204);
+    expect(ce.incumbency.reran).toHaveLength(66);
+    expect(mean(ce.incumbency.reran)).toBeCloseTo(-0.012_544_452, 8);
+    expect(ce.incumbency.open).toHaveLength(26);
+    expect(mean(ce.incumbency.open)).toBeCloseTo(-0.014_519_296, 8);
   });
 });

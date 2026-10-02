@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Flag } from "@/components/flag";
 import { Forecast, type ForecastSeat } from "@/components/forecast/forecast";
-import { FlatMap } from "@/components/map/flat-map";
+import { Replay } from "@/components/forecast/replay";
+import { FlatMap, ringPath } from "@/components/map/flat-map";
 import { SeatSquare } from "@/components/party-chip";
 import { PageHead, Section } from "@/components/section";
 import { SourceLink } from "@/components/source-link";
-import { campaign, geo, results } from "@/data/load";
+import { personHref } from "@/data/candidates";
+import { campaign, geo, people, results } from "@/data/load";
 import {
   CODES,
   constituencyHref,
@@ -15,12 +17,17 @@ import {
   divisionResults,
   leanLabel,
   pollScore,
+  seatTwoParty,
 } from "@/data/model";
 import {
   backtest,
+  candidateEffects,
   leanTable,
+  MODEL_YEARS,
   modelInputs,
   nationalShare,
+  personKey,
+  replayInputs,
   spreads,
 } from "@/data/outlook";
 import { partyColor } from "@/data/parties";
@@ -139,6 +146,57 @@ export default function ForecastPage() {
   const meanError =
     scored.reduce((a, x) => a + x.score.error, 0) / scored.length;
   const dpbShare = inputs.presets.dpb;
+
+  const replay = replayInputs(results);
+  const divisionPaths = Object.fromEntries(
+    Object.entries(geo.divisions).map(([id, shape]) => [
+      id,
+      ringPath(shape.rings),
+    ])
+  );
+  const names = Object.fromEntries(
+    CODES.map((c) => [c, constituencyName(results, c)])
+  );
+
+  const effects = candidateEffects(results);
+  const meanRel = (a: { relative: number }[]) =>
+    a.reduce((x, y) => x + y.relative, 0) / a.length;
+  const reran = meanRel(effects.incumbency.reran);
+  const open = meanRel(effects.incumbency.open);
+  const incumbency = (reran - open) * 100;
+  const effectSd =
+    Math.sqrt(
+      effects.races.reduce((a, r) => a + r.effect ** 2, 0) /
+        effects.races.length -
+        (effects.races.reduce((a, r) => a + r.effect, 0) /
+          effects.races.length) **
+          2
+    ) * 100;
+  const ranked = effects.people
+    .filter((p) => p.races.length >= 2)
+    .map((p) => ({
+      ...p,
+      avg: p.races.reduce((a, r) => a + r.effect, 0) / p.races.length,
+    }))
+    .sort((a, b) => b.avg - a.avg);
+  /** The candidate's full record: same first initial + surname, and a race in the same constituency. */
+  const recordFor = (name: string, code: ConstituencyCode) =>
+    people().find(
+      (p) =>
+        personKey(p.name) === personKey(name) &&
+        p.races.some((r) => r.code === code)
+    );
+  const town = MODEL_YEARS.filter(
+    (y) => seatTwoParty(results, y, "G") != null
+  ).map((year) => ({
+    year,
+    lean:
+      (seatTwoParty(results, year, "G") ?? 0) - nationalShare(results, year),
+    winner: results.results[year]?.G?.c[0],
+  }));
+  const townShift =
+    (town.find((t) => t.year === "2008")?.lean ?? 0) -
+    (town.find((t) => t.year === "2018")?.lean ?? 0);
 
   return (
     <>
@@ -530,9 +588,23 @@ export default function ForecastPage() {
       </Section>
 
       <Section
+        id="replay"
+        intro="Replay the 2022 count one polling division at a time. After each division, the estimate compares it with how that division voted in 2018, works out the swing, projects the divisions still to come and simulates the result, as the New York Times “needle” does. Watch how early the answer becomes clear."
+        title="5 · Election night, replayed: 2022"
+      >
+        <Replay
+          divisionPaths={divisionPaths}
+          inputs={replay}
+          inset={geo.inset}
+          land={ringPath(geo.land)}
+          names={names}
+        />
+      </Section>
+
+      <Section
         id="polls"
         intro="Every published Grenada poll we could find with party figures, compared with the result that followed. Shares are of all respondents, as published; the comparison uses each party’s share of the NDC–NNP vote."
-        title="5 · Polls"
+        title="6 · Polls"
       >
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
           <figure>
@@ -709,6 +781,201 @@ export default function ForecastPage() {
             </tbody>
           </table>
         </div>
+      </Section>
+
+      <Section
+        id="candidates"
+        intro="For every NDC and NNP candidate since 1995, their result compared with what the national vote and the constituency’s lean predicted. A positive number means they ran ahead of their party. It includes the effect of their opponent, so treat single races with care."
+        title="7 · Do candidates matter?"
+      >
+        <dl className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {[
+            [
+              "Sitting MP ran again",
+              `${reran >= 0 ? "+" : "−"}${Math.abs(reran * 100).toFixed(1)}`,
+              `points for their party, ${effects.incumbency.reran.length} races`,
+            ],
+            [
+              "Seat left open",
+              `${open >= 0 ? "+" : "−"}${Math.abs(open * 100).toFixed(1)}`,
+              `points for the party that held it, ${effects.incumbency.open.length} races`,
+            ],
+            [
+              "Incumbency effect",
+              `${incumbency >= 0 ? "+" : "−"}${Math.abs(incumbency).toFixed(1)}`,
+              Math.abs(incumbency) < 1
+                ? "points: almost none. Grenadians vote for the party more than the MP"
+                : "points",
+            ],
+            [
+              "Typical candidate effect",
+              `±${effectSd.toFixed(1)}`,
+              "points in a single race (NDC–NNP, 1995–2022)",
+            ],
+          ].map(([label, value, note]) => (
+            <div key={label}>
+              <dt className="font-semibold text-[11px] text-el-muted uppercase tracking-[0.07em]">
+                {label}
+              </dt>
+              <dd className="mt-0.5 font-semibold text-xl tabular-nums">
+                {value}
+              </dd>
+              <dd className="text-el-muted text-xs">{note}</dd>
+            </div>
+          ))}
+        </dl>
+        <div className="mt-6 grid gap-8 md:grid-cols-2">
+          {[
+            {
+              title: "Ran furthest ahead of their party",
+              list: ranked.slice(0, 8),
+            },
+            { title: "Ran furthest behind", list: ranked.slice(-8).reverse() },
+          ].map(({ title, list }) => (
+            <div key={title}>
+              <h3 className="font-semibold text-[11px] text-el-muted uppercase tracking-[0.07em]">
+                {title}
+              </h3>
+              <p className="text-el-muted text-xs">
+                Average over at least two races in the same constituency
+              </p>
+              <ul className="mt-2 divide-y divide-el-rule text-sm">
+                {list.map((p) => {
+                  const record = recordFor(p.name, p.code);
+                  return (
+                    <li
+                      className="flex items-baseline gap-3 py-1.5"
+                      key={`${p.code}${p.name}`}
+                    >
+                      <span className="min-w-0 flex-1">
+                        {record ? (
+                          <Link
+                            className="font-semibold hover:underline"
+                            href={personHref(record)}
+                          >
+                            {p.name}
+                          </Link>
+                        ) : (
+                          <b className="font-semibold">{p.name}</b>
+                        )}
+                        <span className="block text-el-muted text-xs">
+                          {constituencyShortName(results, p.code)} ·{" "}
+                          {[...new Set(p.races.map((r) => r.party))].join(", ")}{" "}
+                          · {p.races.map((r) => r.year).join(", ")}
+                        </span>
+                      </span>
+                      <b className="shrink-0 tabular-nums">
+                        {p.avg >= 0 ? "+" : "−"}
+                        {Math.abs(p.avg * 100).toFixed(1)}
+                      </b>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))}
+        </div>
+        <h3 className="mt-8 font-bold text-lg">
+          Town of St. George: one MP, two parties
+        </h3>
+        <svg
+          aria-label="Town of St. George lean at each election, with the winner"
+          className="mt-2 h-auto w-full max-w-4xl"
+          role="img"
+          viewBox="0 0 1000 230"
+        >
+          {[-0.2, -0.1, 0, 0.1, 0.2].map((v) => {
+            const y = 20 + (1 - (v + 0.2) / 0.4) * 166;
+            return (
+              <g key={v}>
+                <line
+                  stroke={v === 0 ? "var(--el-ink)" : "var(--el-rule)"}
+                  x1={60}
+                  x2={980}
+                  y1={y}
+                  y2={y}
+                />
+                <text
+                  className="fill-(--el-muted) text-[12px]"
+                  textAnchor="end"
+                  x={52}
+                  y={y + 4}
+                >
+                  {leanLabel(v)}
+                </text>
+              </g>
+            );
+          })}
+          <polyline
+            fill="none"
+            points={town
+              .map(
+                (t, i) =>
+                  `${60 + (i * 920) / (town.length - 1)},${20 + (1 - (t.lean + 0.2) / 0.4) * 166}`
+              )
+              .join(" ")}
+            stroke="var(--el-ink-2)"
+            strokeWidth={2}
+          />
+          {town.map((t, i) => {
+            const x = 60 + (i * 920) / (town.length - 1);
+            const y =
+              20 +
+              (1 - (Math.max(-0.2, Math.min(0.2, t.lean)) + 0.2) / 0.4) * 166;
+            const david = t.winner
+              ? personKey(t.winner[0]) === "p|david"
+              : false;
+            return (
+              <g key={t.year}>
+                <circle
+                  cx={x}
+                  cy={y}
+                  fill={partyColor(t.winner?.[1] ?? "")}
+                  r={david ? 9 : 6}
+                  stroke={david ? "var(--el-ink)" : "var(--el-paper)"}
+                  strokeWidth={2}
+                />
+                <text
+                  className="fill-(--el-ink-2) text-[12px]"
+                  textAnchor="middle"
+                  x={x}
+                  y={y - 14}
+                >
+                  {leanLabel(t.lean)}
+                </text>
+                <text
+                  className="fill-(--el-ink) font-semibold text-[12px]"
+                  textAnchor="middle"
+                  x={x}
+                  y={208}
+                >
+                  {t.year}
+                </text>
+                <text
+                  className="fill-(--el-muted) text-[11px]"
+                  textAnchor="middle"
+                  x={x}
+                  y={224}
+                >
+                  {t.winner
+                    ? `${t.winner[0].split(" ").at(-1)} (${t.winner[1]})`
+                    : ""}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+        <p className="mt-2 max-w-[70ch] text-el-ink-2 text-sm">
+          Dot colour shows the winning party; outlined dots are Peter David. The
+          seat leaned{" "}
+          {leanLabel(town.find((t) => t.year === "2008")?.lean ?? 0)} with him
+          as the NDC candidate in 2008 and{" "}
+          {leanLabel(town.find((t) => t.year === "2018")?.lean ?? 0)} with him
+          as the NNP candidate in 2018, so about {Math.round(townShift * 100)}{" "}
+          points moved with him. That is a rare personal vote in a system where
+          most MPs add almost nothing. How many of those voters follow him to
+          the DPM is the biggest local question of 2026.
+        </p>
       </Section>
 
       <Section id="log" title="Changes to the model">
