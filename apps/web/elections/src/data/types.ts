@@ -1,6 +1,6 @@
 /**
- * Shapes of the checked data files in `src/data/source/`, produced by the
- * Elections Grenada data pipeline. Arrays are kept as tuples to match the files.
+ * Shapes assembled from the small JSON records in `src/data/source/`.
+ * Arrays are kept as tuples to match the checked source records; see README.md.
  */
 
 /** How far a figure can be trusted; drives the ✱ / ✱✱ / † markers. */
@@ -99,6 +99,17 @@ export interface CampaignFile {
     NDC: string;
     NNP: Partial<Record<ConstituencyCode, string>>;
   };
+  /** Why a named candidate is uncertain (✱), by party and seat. */
+  candidate_seat_flags?: Record<
+    string,
+    Partial<Record<ConstituencyCode, string>>
+  >;
+  /** Source id for candidates named later, by party and seat. */
+  candidate_seat_sources?: Record<
+    string,
+    Partial<Record<ConstituencyCode, string>>
+  >;
+  /** Source id for each party's slate as first published. */
   candidate_sources: Record<string, string | null>;
   candidates: Record<string, Partial<Record<ConstituencyCode, string>>>;
   deadline: string;

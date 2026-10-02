@@ -1,0 +1,170 @@
+[
+  [
+    "R01",
+    null,
+    "Hermitage Medical Station",
+    463,
+    370,
+    1,
+    {
+      "NDC": 140,
+      "NNP": 229
+    }
+  ],
+  [
+    "R02",
+    "a",
+    "Mt. Rich Pre Primary School",
+    253,
+    205,
+    0,
+    {
+      "NDC": 96,
+      "NNP": 109
+    }
+  ],
+  [
+    "R02",
+    "b",
+    "Mt. Rich Pre Primary School",
+    257,
+    214,
+    2,
+    {
+      "NDC": 94,
+      "NNP": 118
+    }
+  ],
+  [
+    "R03",
+    "a",
+    "TAMCC, St. Patrick's Campus",
+    372,
+    277,
+    1,
+    {
+      "NDC": 135,
+      "NNP": 141
+    }
+  ],
+  [
+    "R03",
+    "b",
+    "TAMCC, St. Patrick's Campus",
+    368,
+    257,
+    2,
+    {
+      "NDC": 137,
+      "NNP": 118
+    }
+  ],
+  [
+    "R04",
+    null,
+    "St. Patrick's R. C. School",
+    264,
+    180,
+    0,
+    {
+      "NDC": 105,
+      "NNP": 75
+    }
+  ],
+  [
+    "R05",
+    "a",
+    "Mac Donald College",
+    269,
+    205,
+    0,
+    {
+      "NDC": 74,
+      "NNP": 131
+    }
+  ],
+  [
+    "R05",
+    "b",
+    "Mac Donald College",
+    273,
+    200,
+    0,
+    {
+      "NDC": 80,
+      "NNP": 120
+    }
+  ],
+  [
+    "R06",
+    "a",
+    "Fond Community Centre",
+    301,
+    238,
+    0,
+    {
+      "NDC": 102,
+      "NNP": 136
+    }
+  ],
+  [
+    "R06",
+    "b",
+    "Fond Community Centre",
+    305,
+    235,
+    4,
+    {
+      "NDC": 104,
+      "NNP": 127
+    }
+  ],
+  [
+    "R07",
+    null,
+    "Mt. Alexander Pentecostal Church, Prospect",
+    276,
+    214,
+    1,
+    {
+      "NDC": 81,
+      "NNP": 132
+    }
+  ],
+  [
+    "R08",
+    "a",
+    "Chantimelle R. C. School",
+    317,
+    261,
+    2,
+    {
+      "NDC": 107,
+      "NNP": 152
+    }
+  ],
+  [
+    "R08",
+    "b",
+    "Chantimelle R. C. School",
+    315,
+    250,
+    1,
+    {
+      "NDC": 76,
+      "NNP": 173
+    }
+  ],
+  [
+    "R09",
+    null,
+    "Presbyterian Church Hall, Samaritan",
+    287,
+    240,
+    0,
+    {
+      "NDC": 111,
+      "NNP": 129
+    }
+  ]
+]

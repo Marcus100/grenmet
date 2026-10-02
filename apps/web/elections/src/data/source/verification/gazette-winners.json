@@ -1,0 +1,42 @@
+{
+  "1990": {
+    "src": "Government Gazette No. 15, 16 March 1990: Parliamentary Elections Office, Results of the Grenada General Elections, 1990",
+    "w": {
+      "G": ["Purcell", "NDC", 772],
+      "H": ["Brizan", "NDC", 1853],
+      "L": ["St. Louis", "NDC", 1278],
+      "A": ["Brathwaite", "NDC", 1346],
+      "K": ["Alexis", "NDC", 1214],
+      "J": ["Mitchell", "NNP", 1148],
+      "E": ["Walker", "TNP", 730],
+      "M": ["Thomas", "GULP", 1227],
+      "N": ["Antoine", "NNP", 564],
+      "R": ["Lalsingh", "NDC", 885],
+      "P": ["Frederick", "GULP", 607],
+      "B": ["Strachan", "GULP", 802],
+      "D": ["Gibbs", "GULP", 819],
+      "F": ["Andrew", "NDC", 1745],
+      "C": ["Jones", "TNP", 1430]
+    }
+  },
+  "1995": {
+    "src": "Government Gazette No. 36, 30 June 1995, p. 369: Parliamentary Elections Office, Results of the Grenada General Elections 1995 (James T. Andrews, Supervisor of Elections, 28 June 1995)",
+    "w": {
+      "G": ["Fletcher", "NNP", 855],
+      "H": ["Brizan", "NDC", 1887],
+      "J": ["Mitchell", "NNP", 1850],
+      "L": ["Isaac", "NNP", 1350],
+      "K": ["Alexis", "NDC", 1196],
+      "F": ["Andrew", "NDC", 1746],
+      "B": ["Rapier", "GULP", 830],
+      "C": ["Baptiste", "GULP", 940],
+      "D": ["Archibald", "NNP", 828],
+      "E": ["Waldron", "NNP", 782],
+      "P": ["Mitchell", "NNP", 686],
+      "R": ["Lalsingh", "NDC", 1063],
+      "N": ["Dewsbury", "NNP", 621],
+      "M": ["Duncan", "NNP", 1720],
+      "A": ["Purcell", "NDC", 765]
+    }
+  }
+}

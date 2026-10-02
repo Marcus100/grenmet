@@ -1,20 +1,19 @@
 import "server-only";
 
 import { buildPeople, type Person } from "@/data/candidates";
+import featuresJson from "@/data/derived/features.json";
+import geoJson from "@/data/derived/geo";
+import referendumJson from "@/data/derived/referendum";
+import registerJson from "@/data/derived/register";
+import resultsJson from "@/data/derived/results";
 import type { Data, ReferendumFile } from "@/data/events";
 import type { RegisterFile } from "@/data/register";
 import campaignJson from "@/data/source/campaign.json";
-import featuresJson from "@/data/source/features.json";
-import geoJson from "@/data/source/geo.json";
-import referendumJson from "@/data/source/referendum.json";
-import registerJson from "@/data/source/register.json";
-import resultsJson from "@/data/source/results.json";
 import type { CampaignFile, GeoFile, ResultsFile } from "@/data/types";
 
 /**
- * The checked data snapshot, read on the server only so the ~1 MB of JSON
- * never ships to the browser. Pages pass client islands just the slice they
- * need.
+ * Server-only access to the archive assembled from small JSON records.
+ * Pages pass interactive components only the data they need.
  */
 export const results = resultsJson as unknown as ResultsFile;
 export const campaign = campaignJson as unknown as CampaignFile;
@@ -38,15 +37,7 @@ export const referendum = referendumJson as unknown as ReferendumFile;
 /** Results and referendums together, for the event model. */
 export const data: Data = { results, referendum };
 
-interface RegisterSnapshot {
-  date: string;
-  /** division → [electors, male, female] */
-  div: Record<string, [number, number, number]>;
-  file: string;
-}
-
-const snapshots = (registerJson as unknown as { snapshots: RegisterSnapshot[] })
-  .snapshots;
+const snapshots = register.snapshots;
 
 /** Electors on the latest consolidated list (counts only, police excluded). */
 export function latestRegister(): {
@@ -80,3 +71,6 @@ export function people(): Person[] {
   peopleCache ??= buildPeople(results);
   return peopleCache;
 }
+
+export { default as discrepancies } from "@/data/derived/discrepancies";
+export { default as validation } from "@/data/derived/validation.json";

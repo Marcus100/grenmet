@@ -1,0 +1,142 @@
+[
+  {
+    "div": "E01",
+    "sub": null,
+    "place": "Downstairs Catholic Church, Paraclete",
+    "yes": 51,
+    "no": 35,
+    "rej": 0,
+    "voted": 86,
+    "reg": 223
+  },
+  {
+    "div": "E02",
+    "sub": "a",
+    "place": "La Fillette R.C. School",
+    "yes": 53,
+    "no": 44,
+    "rej": 2,
+    "voted": 99,
+    "reg": 320
+  },
+  {
+    "div": "E02",
+    "sub": "b",
+    "place": "La Fillette R.C. School",
+    "yes": 44,
+    "no": 44,
+    "rej": 0,
+    "voted": 88,
+    "reg": 320
+  },
+  {
+    "div": "E02",
+    "sub": "c",
+    "place": "La Fillette R.C. School",
+    "yes": 37,
+    "no": 57,
+    "rej": 0,
+    "voted": 94,
+    "reg": 322
+  },
+  {
+    "div": "E02",
+    "sub": "d",
+    "place": "La Fillette R.C. School",
+    "yes": 45,
+    "no": 51,
+    "rej": 1,
+    "voted": 97,
+    "reg": 324
+  },
+  {
+    "div": "E03",
+    "sub": "a",
+    "place": "Byelands R.C. School",
+    "yes": 12,
+    "no": 49,
+    "rej": 0,
+    "voted": 61,
+    "reg": 268
+  },
+  {
+    "div": "E03",
+    "sub": "b",
+    "place": "Byelands R.C. School",
+    "yes": 25,
+    "no": 25,
+    "rej": 0,
+    "voted": 50,
+    "reg": 251
+  },
+  {
+    "div": "E04",
+    "sub": "a",
+    "place": "Paradise Medical Station",
+    "yes": 44,
+    "no": 57,
+    "rej": 2,
+    "voted": 103,
+    "reg": 337
+  },
+  {
+    "div": "E04",
+    "sub": "b",
+    "place": "Paradise Medical Station",
+    "yes": 32,
+    "no": 68,
+    "rej": 0,
+    "voted": 100,
+    "reg": 329
+  },
+  {
+    "div": "E05",
+    "sub": "a",
+    "place": "Mirabeau Agricultural Station",
+    "yes": 30,
+    "no": 41,
+    "rej": 1,
+    "voted": 72,
+    "reg": 314
+  },
+  {
+    "div": "E05",
+    "sub": "b",
+    "place": "Mirabeau Agricultural Station",
+    "yes": 45,
+    "no": 42,
+    "rej": 0,
+    "voted": 87,
+    "reg": 308
+  },
+  {
+    "div": "E05",
+    "sub": "c",
+    "place": "Mirabeau Agricultural Station",
+    "yes": 36,
+    "no": 56,
+    "rej": 2,
+    "voted": 94,
+    "reg": 386
+  },
+  {
+    "div": "E06",
+    "sub": null,
+    "place": "Sio’s Bar, Birchgrove",
+    "yes": 38,
+    "no": 72,
+    "rej": 0,
+    "voted": 110,
+    "reg": 393
+  },
+  {
+    "div": "E07",
+    "sub": null,
+    "place": "Paul’s Bakery, Birchgrove",
+    "yes": 56,
+    "no": 94,
+    "rej": 1,
+    "voted": 151,
+    "reg": 387
+  }
+]

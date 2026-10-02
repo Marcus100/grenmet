@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import referendumJson from "@/data/derived/referendum";
+import resultsJson from "@/data/derived/results";
 import {
   type Data,
   eventDivisions,
@@ -8,8 +10,6 @@ import {
   isOfficial,
   type ReferendumFile,
 } from "@/data/events";
-import referendumJson from "@/data/source/referendum.json";
-import resultsJson from "@/data/source/results.json";
 import type { ResultsFile } from "@/data/types";
 
 const data: Data = {

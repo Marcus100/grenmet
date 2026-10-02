@@ -105,8 +105,11 @@ export function seatOutlook(
       const name = campaign.candidates[party]?.[code];
       return name ? [{ name, party }] : [];
     });
-    const nnpNote = campaign.candidate_flags.NNP[code];
-    const notes: Record<string, string> = nnpNote ? { NNP: nnpNote } : {};
+    const notes: Record<string, string> = {};
+    for (const party of SLATE_ORDER) {
+      const note = candidateNote(campaign, party, code);
+      if (note) notes[party] = note;
+    }
     return [
       {
         code,
@@ -150,4 +153,67 @@ export function electionStatus(calendar: ElectionCalendar, now: Date): string {
   }
   if (phase === "polling-day") return "Grenada votes today";
   return "Counting and results";
+}
+
+export interface PartyNote {
+  /** Campaign source id for `text`, or "PEO" for official results. */
+  source: string;
+  text: string;
+  /** Set when the fact still needs an official or primary source. */
+  unverified?: string;
+}
+
+/**
+ * One sourced line per party for the front page. Only facts our sources
+ * record; nothing from memory.
+ */
+export const PARTY_NOTES: Record<"NDC" | "NNP" | "DPM", PartyNote> = {
+  NDC: {
+    text: "In government since winning the 2022 election.",
+    source: "PEO",
+  },
+  NNP: {
+    text: "In opposition. Emmalin Pierre became political leader in December 2024, succeeding Keith Mitchell.",
+    source: "pierre",
+    unverified:
+      "From Wikipedia and NOW Grenada; to be confirmed from party or Gazette records.",
+  },
+  DPM: {
+    text: "A new party, launched by Peter David in November 2025. It has not yet contested an election.",
+    source: "dpmlaunch",
+  },
+};
+
+/** Source id for a party's candidate in a seat: a later report if there is one, else the slate's source. */
+export function candidateSource(
+  campaign: CampaignFile,
+  party: string,
+  code: ConstituencyCode
+): string | null {
+  return (
+    campaign.candidate_seat_sources?.[party]?.[code] ??
+    campaign.candidate_sources[party] ??
+    null
+  );
+}
+
+/** The same uncertainty note wherever a named candidate is displayed. */
+export function candidateNote(
+  campaign: CampaignFile,
+  party: string,
+  code: ConstituencyCode
+): string | undefined {
+  return (
+    campaign.candidate_seat_flags?.[party]?.[code] ??
+    (party === "NNP" ? campaign.candidate_flags.NNP[code] : undefined)
+  );
+}
+
+/** Every source id behind a party's named candidates, slate first. */
+export function slateSources(campaign: CampaignFile, party: string): string[] {
+  const ids = [
+    campaign.candidate_sources[party],
+    ...Object.values(campaign.candidate_seat_sources?.[party] ?? {}),
+  ].filter((id): id is string => Boolean(id));
+  return [...new Set(ids)];
 }

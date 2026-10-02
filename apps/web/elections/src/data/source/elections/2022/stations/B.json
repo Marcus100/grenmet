@@ -1,0 +1,194 @@
+[
+  [
+    "B01",
+    "a",
+    "St. Andrew’s Anglican Secondary School",
+    416,
+    293,
+    1,
+    {
+      "NDC": 146,
+      "NNP": 146
+    }
+  ],
+  [
+    "B01",
+    "b",
+    "St. Andrew’s Anglican Secondary School",
+    405,
+    296,
+    3,
+    {
+      "NDC": 127,
+      "NNP": 166
+    }
+  ],
+  [
+    "B01",
+    "c",
+    "St. Andrew’s Anglican Secondary School",
+    417,
+    272,
+    2,
+    {
+      "NDC": 128,
+      "NNP": 142
+    }
+  ],
+  [
+    "B02",
+    "a",
+    "St. Andrew Anglican Primary School",
+    325,
+    230,
+    5,
+    {
+      "NDC": 117,
+      "NNP": 108
+    }
+  ],
+  [
+    "B02",
+    "b",
+    "St. Andrew Anglican Primary School",
+    276,
+    185,
+    1,
+    {
+      "NDC": 101,
+      "NNP": 83
+    }
+  ],
+  [
+    "B03",
+    null,
+    "R & J’s Sports Bar, Soubise",
+    341,
+    238,
+    2,
+    {
+      "NDC": 110,
+      "NNP": 126
+    }
+  ],
+  [
+    "B04",
+    null,
+    "Post Royal Pre-School",
+    268,
+    187,
+    1,
+    {
+      "NDC": 79,
+      "NNP": 107
+    }
+  ],
+  [
+    "B05",
+    null,
+    "Marquis Pre-School",
+    427,
+    324,
+    2,
+    {
+      "NDC": 154,
+      "NNP": 168
+    }
+  ],
+  [
+    "B06",
+    "a",
+    "St. Giles Anglican School",
+    313,
+    231,
+    0,
+    {
+      "NDC": 122,
+      "NNP": 109
+    }
+  ],
+  [
+    "B06",
+    "b",
+    "St. Giles Anglican School",
+    324,
+    236,
+    0,
+    {
+      "NDC": 125,
+      "NNP": 111
+    }
+  ],
+  [
+    "B07",
+    "a",
+    "Grenada Baptist Church",
+    219,
+    154,
+    0,
+    {
+      "NDC": 59,
+      "NNP": 95
+    }
+  ],
+  [
+    "B07",
+    "b",
+    "Grenada Baptist Church",
+    226,
+    175,
+    0,
+    {
+      "NDC": 61,
+      "NNP": 114
+    }
+  ],
+  [
+    "B08",
+    null,
+    "Crochu R.C. School",
+    232,
+    179,
+    0,
+    {
+      "NDC": 63,
+      "NNP": 116
+    }
+  ],
+  [
+    "B09",
+    "a",
+    "Crochu Skills Training Centre",
+    241,
+    174,
+    2,
+    {
+      "NDC": 93,
+      "NNP": 79
+    }
+  ],
+  [
+    "B09",
+    "b",
+    "Crochu Skills Training Centre",
+    242,
+    191,
+    0,
+    {
+      "NDC": 95,
+      "NNP": 96
+    }
+  ],
+  [
+    "B10",
+    null,
+    "Hansel Japal’s (Down Stairs), Mamma Cannes",
+    256,
+    208,
+    1,
+    {
+      "NDC": 80,
+      "NNP": 127
+    }
+  ]
+]

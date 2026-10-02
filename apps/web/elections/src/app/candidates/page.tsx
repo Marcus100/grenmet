@@ -7,8 +7,9 @@ import {
 import { Flag } from "@/components/flag";
 import { PartyDot } from "@/components/party-chip";
 import { PageHead, Section } from "@/components/section";
-import { SourceLink } from "@/components/source-link";
+import { SlateSources } from "@/components/slate-sources";
 import { findPerson, personHref } from "@/data/candidates";
+import { candidateNote, slateSources } from "@/data/election-2026";
 import { campaign, people, results } from "@/data/load";
 import { CODES, constituencyHref, constituencyName } from "@/data/model";
 import { partyInfo } from "@/data/parties";
@@ -65,9 +66,9 @@ export default function CandidatesPage() {
         id="2026"
         intro={
           <>
-            As named by each party; updated {formatIsoDate(campaign.updated)}. A
-            link to a past record means a name match with someone who stood
-            since 2008
+            Names reported so far, with sources and uncertainty notes; updated{" "}
+            {formatIsoDate(campaign.updated)}. A link to a past record means a
+            name match with someone who stood since 2008
             <Flag
               note="Matched by surname and first initial, not by an official identifier."
               status="unverified"
@@ -83,7 +84,6 @@ export default function CandidatesPage() {
               ConstituencyCode,
               string,
             ][];
-            const sourceId = campaign.candidate_sources[party];
             return (
               <section className="bg-background p-4" key={party}>
                 <h3 className="font-bold text-lg">
@@ -92,10 +92,10 @@ export default function CandidatesPage() {
                 </h3>
                 <p className="text-el-muted text-xs">
                   {slate.length} named
-                  {sourceId && (
+                  {slateSources(campaign, party).length > 0 && (
                     <>
                       {" · "}
-                      <SourceLink id={sourceId} sources={campaign.sources} />
+                      <SlateSources campaign={campaign} party={party} />
                     </>
                   )}
                 </p>
@@ -115,10 +115,7 @@ export default function CandidatesPage() {
                       )
                       .map(([code, name]) => {
                         const past = findPerson(everyone, name);
-                        const note =
-                          party === "NNP"
-                            ? campaign.candidate_flags.NNP[code]
-                            : undefined;
+                        const note = candidateNote(campaign, party, code);
                         return (
                           <li key={code}>
                             <b className="font-semibold">{name}</b>

@@ -339,7 +339,7 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
           {expected("NNP").toFixed(1)}
           {expected("DPM") >= 0.05 && `, DPM ${expected("DPM").toFixed(1)}`}.
         </p>
-        <div className="mt-4 grid grid-cols-2 gap-px border border-el-rule bg-el-rule sm:grid-cols-4 lg:grid-cols-7">
+        <div className="mt-4 grid gap-px border border-el-rule bg-el-rule sm:grid-cols-4 lg:grid-cols-7">
           {RATING_COLUMNS.map((column) => {
             const inColumn = seats
               .filter((s) => ratings[s.code] === column)
@@ -446,7 +446,7 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
                       <title>{`NDC ${k} seats: ${v.toLocaleString("en-GB")} of 10,000 simulations`}</title>
                     </rect>
                     <text
-                      className="fill-(--el-muted) text-[11px]"
+                      className="fill-(--el-muted) text-[11px] max-sm:text-[17px]"
                       textAnchor="middle"
                       x={x + bw / 2}
                       y={238}
@@ -466,7 +466,7 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
                 y2={224}
               />
               <text
-                className="fill-(--el-ink) font-semibold text-[11px]"
+                className="fill-(--el-ink) font-semibold text-[11px] max-sm:text-[17px]"
                 x={40 + 8 * ((560 - 46) / 16)}
                 y={16}
               >

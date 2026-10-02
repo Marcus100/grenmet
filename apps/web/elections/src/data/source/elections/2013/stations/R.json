@@ -1,0 +1,170 @@
+[
+  [
+    "R01",
+    null,
+    "Hermitage Medical Station",
+    421,
+    393,
+    0,
+    {
+      "NNP": 215,
+      "NDC": 178
+    }
+  ],
+  [
+    "R02",
+    "a",
+    "Mt. Rich Pre School",
+    205,
+    190,
+    0,
+    {
+      "NNP": 90,
+      "NDC": 100
+    }
+  ],
+  [
+    "R02",
+    "b",
+    "Mt. Rich Pre School",
+    212,
+    198,
+    0,
+    {
+      "NNP": 86,
+      "NDC": 112
+    }
+  ],
+  [
+    "R03",
+    "a",
+    "TAMCC, Sauteurs",
+    304,
+    276,
+    1,
+    {
+      "NNP": 133,
+      "NDC": 142
+    }
+  ],
+  [
+    "R03",
+    "b",
+    "TAMCC, Sauteurs",
+    306,
+    274,
+    0,
+    {
+      "NNP": 121,
+      "NDC": 153
+    }
+  ],
+  [
+    "R04",
+    null,
+    "Sauteurs R. C. School",
+    215,
+    183,
+    1,
+    {
+      "NNP": 62,
+      "NDC": 120
+    }
+  ],
+  [
+    "R05",
+    "a",
+    "Mac Donald's College",
+    234,
+    220,
+    0,
+    {
+      "NNP": 137,
+      "NDC": 83
+    }
+  ],
+  [
+    "R05",
+    "b",
+    "Mac Donald's College",
+    208,
+    189,
+    0,
+    {
+      "NNP": 106,
+      "NDC": 83
+    }
+  ],
+  [
+    "R06",
+    "a",
+    "Fond Community Centre",
+    237,
+    204,
+    0,
+    {
+      "NNP": 126,
+      "NDC": 78
+    }
+  ],
+  [
+    "R06",
+    "b",
+    "Fond Community Centre",
+    238,
+    220,
+    1,
+    {
+      "NNP": 130,
+      "NDC": 89
+    }
+  ],
+  [
+    "R07",
+    null,
+    "Mt. Alexander Pentecostal Church, Prospect",
+    236,
+    215,
+    0,
+    {
+      "NNP": 128,
+      "NDC": 87
+    }
+  ],
+  [
+    "R08",
+    "a",
+    "Chantimelle R. C. School",
+    266,
+    241,
+    0,
+    {
+      "NNP": 152,
+      "NDC": 89
+    }
+  ],
+  [
+    "R08",
+    "b",
+    "Chantimelle R. C. School",
+    236,
+    216,
+    1,
+    {
+      "NNP": 135,
+      "NDC": 80
+    }
+  ],
+  [
+    "R09",
+    null,
+    "Presbyterian Church Hall, Union",
+    246,
+    218,
+    0,
+    {
+      "NNP": 118,
+      "NDC": 100
+    }
+  ]
+]

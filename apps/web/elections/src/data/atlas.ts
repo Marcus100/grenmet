@@ -9,8 +9,9 @@ import {
   eventResult,
   eventSource,
   isOfficial,
+  turnoutNote,
 } from "@/data/events";
-import { CODES, EVENTS, prevGeneral } from "@/data/model";
+import { CODES, EVENTS, getEvent, prevGeneral } from "@/data/model";
 import type {
   CandidateRow,
   ConstituencyCode,
@@ -39,15 +40,20 @@ export interface AtlasDivision {
 export interface AtlasEvent {
   date: string;
   divisions: AtlasDivision[];
+  /** Earlier constituencies retain their names; never assign modern letter codes. */
+  historicalResults: (AtlasContest & { name: string; gazette?: string })[];
   id: string;
   kind: "general" | "ref";
   label: string;
+  mapped: boolean;
   /** Constituencies with no readable result. */
   missing: ConstituencyCode[];
   national: {
+    races: number;
     seats: Record<string, number>;
     total: number;
     turnout: number | null;
+    turnoutNote: string;
     votes: Record<string, number>;
     registered: number | null;
     cast: number;
@@ -65,44 +71,58 @@ export interface AtlasData {
   names: Record<ConstituencyCode, [string, string]>;
 }
 
+/** Serialize results only where modern constituency codes apply. */
+function mappedResults(
+  data: Data,
+  id: string
+): Partial<Record<ConstituencyCode, AtlasContest>> {
+  const contests: Partial<Record<ConstituencyCode, AtlasContest>> = {};
+  for (const code of CODES) {
+    const r = eventResult(data, id, code);
+    if (r)
+      contests[code] = {
+        c: r.c,
+        reg: r.reg,
+        cast: r.cast,
+        rej: r.rej,
+        ...(r.note ? { note: r.note } : {}),
+      };
+  }
+  return contests;
+}
+
 export function buildAtlas(
   data: Data,
   geo: GeoFile,
   results: ResultsFile
 ): AtlasData {
-  const events = EVENTS.filter((e) => e.map).map((e): AtlasEvent => {
+  const events = EVENTS.map((e): AtlasEvent => {
     const n = eventNational(data, e.id);
-    const contests: Partial<Record<ConstituencyCode, AtlasContest>> = {};
-    for (const code of CODES) {
-      const r = eventResult(data, e.id, code);
-      if (r)
-        contests[code] = {
-          c: r.c,
-          reg: r.reg,
-          cast: r.cast,
-          rej: r.rej,
-          ...(r.note ? { note: r.note } : {}),
-        };
-    }
+    const previous = prevGeneral(e.id);
+    const contests = e.map ? mappedResults(data, e.id) : {};
     return {
       id: e.id,
       kind: e.kind,
       year: e.year,
       date: e.date,
       label: e.sub ? `${e.year} ${e.sub.toLowerCase()}` : String(e.year),
+      mapped: e.map,
+      historicalResults: e.map ? [] : (data.results.early[e.id] ?? []),
       official: isOfficial(e.id),
       source: eventSource(data, e.id).text,
-      prev: prevGeneral(e.id),
+      prev: previous && getEvent(previous)?.map ? previous : null,
       national: {
+        races: n.races,
         seats: n.seats,
         votes: n.votes,
         total: n.total,
         turnout: n.turnout,
+        turnoutNote: turnoutNote(n.turnoutSource),
         registered: n.registered,
         cast: n.cast,
       },
       results: contests,
-      missing: CODES.filter((c) => !contests[c]),
+      missing: e.map ? CODES.filter((c) => !contests[c]) : [],
       divisions: eventDivisions(data, e.id).map((d) => ({
         division: d.division,
         code: d.code,

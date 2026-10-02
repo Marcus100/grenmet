@@ -123,7 +123,7 @@ export default function RegisterPage() {
                   y2={y(v)}
                 />
                 <text
-                  className="fill-(--el-muted) text-[10px]"
+                  className="fill-(--el-muted) text-[10px] max-sm:text-[16px]"
                   x={0}
                   y={y(v) + 3}
                 >
@@ -159,7 +159,7 @@ export default function RegisterPage() {
           ))}
           {[...new Set(lists.map((l) => l.date.slice(0, 4)))].map((yr) => (
             <text
-              className="fill-(--el-muted) text-[10px]"
+              className="fill-(--el-muted) text-[10px] max-sm:text-[16px]"
               key={yr}
               textAnchor="middle"
               x={x(`${yr}-07-01`)}

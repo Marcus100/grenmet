@@ -1,0 +1,353 @@
+[
+  [
+    "F01",
+    null,
+    "Communal Credit Union Building Perdmontemps",
+    437,
+    305,
+    1,
+    {
+      "IFP": 0,
+      "NNP": 113,
+      "NDC": 191
+    }
+  ],
+  [
+    "F02",
+    "a",
+    "St. Dominic’s R.C. Church Centre",
+    508,
+    363,
+    0,
+    {
+      "IFP": 2,
+      "NNP": 137,
+      "NDC": 224
+    }
+  ],
+  [
+    "F02",
+    "b",
+    "St. Dominic’s R.C. Church Centre",
+    489,
+    358,
+    1,
+    {
+      "IFP": 1,
+      "NNP": 125,
+      "NDC": 231
+    }
+  ],
+  [
+    "F03",
+    "a",
+    "St. Dominic’s R.C. School",
+    269,
+    192,
+    0,
+    {
+      "IFP": 0,
+      "NNP": 85,
+      "NDC": 107
+    }
+  ],
+  [
+    "F03",
+    "b",
+    "St. Dominic’s R.C. School",
+    254,
+    187,
+    0,
+    {
+      "IFP": 0,
+      "NNP": 64,
+      "NDC": 123
+    }
+  ],
+  [
+    "F04",
+    "a",
+    "Minorca Pre School, Windsor Forest",
+    323,
+    255,
+    1,
+    {
+      "IFP": 3,
+      "NNP": 97,
+      "NDC": 154
+    }
+  ],
+  [
+    "F04",
+    "b",
+    "Minorca Pre School, Windsor Forest",
+    320,
+    233,
+    0,
+    {
+      "IFP": 1,
+      "NNP": 92,
+      "NDC": 140
+    }
+  ],
+  [
+    "F04",
+    "c",
+    "Minorca Pre School, Windsor Forest",
+    326,
+    262,
+    1,
+    {
+      "IFP": 1,
+      "NNP": 101,
+      "NDC": 159
+    }
+  ],
+  [
+    "F05",
+    "a",
+    "St. Theresa’s R.C. School, Vincennes",
+    379,
+    283,
+    1,
+    {
+      "IFP": 0,
+      "NNP": 110,
+      "NDC": 172
+    }
+  ],
+  [
+    "F05",
+    "b",
+    "St. Theresa’s R.C. School, Vincennes",
+    369,
+    281,
+    1,
+    {
+      "IFP": 1,
+      "NNP": 92,
+      "NDC": 187
+    }
+  ],
+  [
+    "F06",
+    "a",
+    "Corinth Government School",
+    363,
+    284,
+    2,
+    {
+      "IFP": 0,
+      "NNP": 95,
+      "NDC": 187
+    }
+  ],
+  [
+    "F06",
+    "b",
+    "Corinth Government School",
+    363,
+    250,
+    0,
+    {
+      "IFP": 0,
+      "NNP": 101,
+      "NDC": 149
+    }
+  ],
+  [
+    "F06",
+    "c",
+    "Corinth Government School",
+    372,
+    264,
+    0,
+    {
+      "IFP": 1,
+      "NNP": 77,
+      "NDC": 186
+    }
+  ],
+  [
+    "F06",
+    "d",
+    "Corinth Government School",
+    355,
+    244,
+    0,
+    {
+      "IFP": 0,
+      "NNP": 111,
+      "NDC": 133
+    }
+  ],
+  [
+    "F07",
+    null,
+    "St. David’s R.C. School",
+    419,
+    292,
+    3,
+    {
+      "IFP": 2,
+      "NNP": 82,
+      "NDC": 205
+    }
+  ],
+  [
+    "F08",
+    "a",
+    "Magistrate’s Court, St. David’s",
+    503,
+    359,
+    2,
+    {
+      "IFP": 0,
+      "NNP": 136,
+      "NDC": 221
+    }
+  ],
+  [
+    "F08",
+    "b",
+    "Magistrate’s Court, St. David’s",
+    383,
+    273,
+    0,
+    {
+      "IFP": 1,
+      "NNP": 92,
+      "NDC": 180
+    }
+  ],
+  [
+    "F09",
+    "a",
+    "Berean Pre-School, Marlmount",
+    297,
+    207,
+    1,
+    {
+      "IFP": 0,
+      "NNP": 103,
+      "NDC": 103
+    }
+  ],
+  [
+    "F09",
+    "b",
+    "Berean Pre-School, Marlmount",
+    292,
+    211,
+    0,
+    {
+      "IFP": 1,
+      "NNP": 104,
+      "NDC": 106
+    }
+  ],
+  [
+    "F10",
+    "a",
+    "Pomme Rose R. C. School",
+    381,
+    280,
+    0,
+    {
+      "IFP": 1,
+      "NNP": 137,
+      "NDC": 142
+    }
+  ],
+  [
+    "F10",
+    "b",
+    "Pomme Rose R. C. School",
+    376,
+    302,
+    1,
+    {
+      "IFP": 1,
+      "NNP": 136,
+      "NDC": 164
+    }
+  ],
+  [
+    "F11",
+    "a",
+    "Melting Pot, La Tante",
+    360,
+    244,
+    0,
+    {
+      "IFP": 0,
+      "NNP": 113,
+      "NDC": 131
+    }
+  ],
+  [
+    "F11",
+    "b",
+    "Melting Pot, La Tante",
+    368,
+    256,
+    0,
+    {
+      "IFP": 1,
+      "NNP": 103,
+      "NDC": 152
+    }
+  ],
+  [
+    "F12",
+    "a",
+    "Westerhall Secondary School",
+    371,
+    254,
+    0,
+    {
+      "IFP": 0,
+      "NNP": 86,
+      "NDC": 168
+    }
+  ],
+  [
+    "F12",
+    "b",
+    "Westerhall Secondary School",
+    370,
+    264,
+    0,
+    {
+      "IFP": 0,
+      "NNP": 77,
+      "NDC": 187
+    }
+  ],
+  [
+    "F12",
+    "c",
+    "Westerhall Secondary School",
+    372,
+    249,
+    0,
+    {
+      "IFP": 1,
+      "NNP": 88,
+      "NDC": 160
+    }
+  ],
+  [
+    "F12",
+    "d",
+    "Westerhall Secondary School",
+    365,
+    237,
+    0,
+    {
+      "IFP": 0,
+      "NNP": 85,
+      "NDC": 152
+    }
+  ]
+]

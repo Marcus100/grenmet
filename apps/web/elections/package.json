@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "next dev --turbopack --port 3007",
-    "build": "next build",
+    "build": "pnpm data:check && next build",
     "start": "next start --port 3007",
     "lint": "biome lint .",
     "lint:fix": "biome lint --write .",
@@ -14,8 +14,10 @@
     "check:fix": "biome check --write .",
     "check:ci": "biome ci .",
     "type-check": "rm -f next-env.d.ts && rm -rf .next/dev/types && next typegen && tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "test": "node --test scripts/history/check.test.mjs && vitest run",
+    "test:watch": "vitest",
+    "data:build": "python3 scripts/history/build.py",
+    "data:check": "node scripts/history/check.mjs"
   },
   "dependencies": {
     "@barrelsgd/ui": "workspace:*",
@@ -26,8 +28,7 @@
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "server-only": "catalog:",
-    "three": "catalog:"
+    "server-only": "catalog:"
   },
   "devDependencies": {
     "@barrelsgd/tsconfig": "workspace:*",
@@ -38,11 +39,13 @@
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "@types/three": "catalog:",
     "babel-plugin-react-compiler": "catalog:",
     "jsdom": "catalog:",
     "tailwindcss": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
+  },
+  "engines": {
+    "node": "24.x"
   }
 }

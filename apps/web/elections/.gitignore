@@ -1,27 +1,13 @@
-# dependencies
-/node_modules
+# Shared dependencies, builds, test reports, Python caches, environment files
+# and temporary-file rules are inherited from the repository .gitignore.
+/next-env.d.ts
 
-# testing
-/coverage
+# Optional local research downloads and historical-pipeline scratch work.
+/.source/
+/scripts/history/.scratch/
 
-# next.js
-/.next/
-/out/
-/build
-
-# misc
-*.pem
-
-# debug
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# env files
-.env*
-!.env.example
-!.env.*.example
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
+# Keep these versioned: source JSON, generated imports/reports/manifest,
+# and public CSV exports. Production builds verify and consume them.
+#   src/data/source/
+#   src/data/derived/
+#   public/data/master_*.csv

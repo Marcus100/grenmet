@@ -5,7 +5,7 @@ import {
   parseName,
   personHref,
 } from "@/data/candidates";
-import resultsJson from "@/data/source/results.json";
+import resultsJson from "@/data/derived/results";
 import type { ResultsFile } from "@/data/types";
 
 const people = buildPeople(resultsJson as unknown as ResultsFile);

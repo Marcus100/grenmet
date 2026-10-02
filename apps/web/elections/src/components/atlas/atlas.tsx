@@ -1,9 +1,8 @@
 "use client";
 
 import { cn } from "@barrelsgd/ui/lib/utils";
-import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ringPath } from "@/components/map/flat-map";
 import type {
   AtlasContest,
@@ -28,16 +27,15 @@ import { CODES, contestStats, slugify } from "@/data/model";
 import { partyColor, partyFillIsDark, partyInfo } from "@/data/parties";
 import type { ConstituencyCode, Ring, Verification } from "@/data/types";
 import { fmt, pct } from "@/lib/format";
-import type { SceneRegion } from "./scene-3d";
 
-const Scene3D = dynamic(() => import("./scene-3d").then((m) => m.Scene3D), {
-  ssr: false,
-  loading: () => (
-    <p className="p-6 text-el-muted text-sm">Loading the 3D map…</p>
-  ),
-});
-
-type View = "3d" | "flat" | "tiles";
+type View = "flat" | "tiles";
+interface MapRegion {
+  height: number;
+  key: string;
+  rgb: Rgb;
+  rings: Ring[];
+  selected?: boolean;
+}
 const MODES: [MapMode, string][] = [
   ["winner", "Winner"],
   ["margin", "Margin"],
@@ -136,7 +134,7 @@ function readUrl(): Partial<UrlState> {
   const m = q.get("mode");
   if (m && MODES.some(([k]) => k === m)) out.mode = m as MapMode;
   const v = q.get("view");
-  if (v === "flat" || v === "tiles" || v === "3d") out.view = v;
+  if (v === "flat" || v === "tiles") out.view = v;
   return out;
 }
 
@@ -146,7 +144,7 @@ function writeUrl(s: UrlState) {
   if (s.seat) q.set("c", s.seat.toLowerCase());
   if (s.division) q.set("d", s.division.toLowerCase());
   if (s.mode !== "winner") q.set("mode", s.mode);
-  if (s.view !== "3d") q.set("view", s.view);
+  if (s.view !== "flat") q.set("view", s.view);
   try {
     history.replaceState(null, "", `?${q.toString()}`);
   } catch {
@@ -170,7 +168,7 @@ function Segmented<T extends string>({
   return (
     <fieldset
       aria-label={label}
-      className="inline-flex shrink-0 gap-0.5 rounded-md border border-el-rule-2 p-0.5"
+      className="inline-flex flex-wrap gap-0.5 rounded-md border border-el-rule-2 p-0.5"
     >
       {options.map(([v, text]) => (
         <button
@@ -189,75 +187,131 @@ function Segmented<T extends string>({
 }
 
 function EventHeader({ event }: { event: AtlasEvent }) {
-  const ref = event.kind === "ref";
-  const n = event.national;
-  const order = Object.entries(n.seats).sort((a, b) => b[1] - a[1]);
-  const votes = Object.entries(n.votes).sort((a, b) => b[1] - a[1]);
+  const referendum = event.kind === "ref";
+  const national = event.national;
+  const seats = Object.entries(national.seats).sort((a, b) => b[1] - a[1]);
+  const votes = Object.entries(national.votes).sort((a, b) => b[1] - a[1]);
+  const totals = referendum ? votes : seats;
+  const total = referendum ? national.total : national.races;
+  const majority = Math.floor(national.races / 2) + 1;
   return (
-    <div className="grid items-end gap-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
-      <div>
-        <p className="font-semibold text-el-ink-2 text-xs uppercase tracking-[0.08em]">
-          {ref ? "Constitutional referendum" : "General election"} ·{" "}
-          {event.date}
-        </p>
-        <h2 className="mt-1 font-bold text-3xl">
-          {ref
-            ? eventTitle(event.id)
-            : order.map(([p, k]) => `${p} ${k}`).join(" · ")}
-        </h2>
-        <p className="mt-1 text-el-muted text-xs">
-          {!event.official && (
-            <b className="mr-1 text-el-ink-2">Not officially sourced.</b>
-          )}
-          Source: {event.source}.
+    <section aria-label="National result">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <h2 className="font-bold text-2xl">{eventTitle(event.id)}</h2>
+        <p className="text-el-muted text-sm">
+          {event.date} · Turnout {pct(national.turnout)}
         </p>
       </div>
-      <div>
+      <dl className="mt-4 flex flex-wrap gap-x-10 gap-y-4">
+        {totals.map(([party, count]) => (
+          <div className="min-w-24 flex-1" key={party}>
+            <dt className="font-semibold text-sm">{sideLabel(party)}</dt>
+            <dd
+              className="mt-1 font-bold text-5xl tabular-nums"
+              style={{ color: partyColor(party, "ink") }}
+            >
+              {referendum ? pct(count / (total || 1)) : count}
+              {!referendum && (
+                <span className="ml-2 font-normal text-el-muted text-sm">
+                  seats
+                </span>
+              )}
+            </dd>
+            <dd className="mt-1 text-el-muted text-sm tabular-nums">
+              {fmt(national.votes[party] ?? 0)} votes
+              {!referendum &&
+                ` · ${pct((national.votes[party] ?? 0) / (national.total || 1))}`}
+            </dd>
+          </div>
+        ))}
+      </dl>
+      <div className="relative mt-4">
         <div
-          aria-label={votes
-            .map(([p, v]) => `${sideLabel(p)} ${pct(v / n.total)}`)
+          aria-label={totals
+            .map(
+              ([party, count]) =>
+                `${sideLabel(party)} ${referendum ? pct(count / (total || 1)) : `${count} seats`}`
+            )
             .join(", ")}
-          className="flex h-3.5 gap-0.5"
+          className="flex h-4 gap-px"
           role="img"
         >
-          {votes
-            .filter(([, v]) => v / n.total >= 0.01)
-            .map(([p, v]) => (
-              <span
-                key={p}
-                style={{
-                  width: `${(v / n.total) * 100}%`,
-                  background: partyColor(p),
-                }}
-              />
-            ))}
-        </div>
-        <p className="mt-1.5 flex flex-wrap gap-x-4 text-[13px]">
-          {votes.slice(0, 4).map(([p, v]) => (
-            <span key={p}>
-              <i
-                className="mr-1.5 inline-block size-2.5 rounded-[2px] align-[-1px]"
-                style={{ background: partyColor(p) }}
-              />
-              <b>{sideLabel(p)}</b> {pct(v / n.total)}
-            </span>
+          {totals.map(([party, count]) => (
+            <span
+              key={party}
+              style={{
+                width: `${(count / (total || 1)) * 100}%`,
+                background: partyColor(party),
+              }}
+            />
           ))}
-          <span className="text-el-muted">Turnout {pct(n.turnout)}</span>
-        </p>
+        </div>
+        {!referendum && (
+          <span
+            aria-hidden="true"
+            className="absolute -inset-y-1 w-0.5 bg-el-ink"
+            style={{ left: `${(majority / national.races) * 100}%` }}
+          />
+        )}
       </div>
-    </div>
+      {!referendum && (
+        <p className="mt-2 text-el-muted text-xs">
+          {majority} seats needed for a majority · {national.races}{" "}
+          constituencies
+        </p>
+      )}
+      <p className="mt-2 text-el-muted text-xs">
+        {!event.official && (
+          <b className="mr-1 text-el-ink-2">
+            Includes secondary-source figures.
+          </b>
+        )}
+        Source: {event.source}.
+        {national.turnoutNote && <> {national.turnoutNote}.</>}
+      </p>
+    </section>
   );
 }
 
-function Legend({
-  event,
-  mode,
-  view,
-}: {
-  event: AtlasEvent;
-  mode: MapMode;
-  view: View;
-}) {
+function HistoricalResults({ event }: { event: AtlasEvent }) {
+  return (
+    <section
+      aria-label="Historical constituency results"
+      className="mt-6 border-el-ink border-t-2 pt-4"
+    >
+      <h3 className="font-bold text-xl">Results by constituency</h3>
+      <p className="mt-2 max-w-prose text-el-ink-2 text-sm">
+        This election used {event.national.races} constituencies with different
+        boundaries from today’s 15. Results are listed under their historical
+        names. ✱ marks unverified figures; ✱✱ marks a source conflict.
+      </p>
+      <div className="mt-4 grid gap-px border border-el-rule bg-el-rule md:grid-cols-2 xl:grid-cols-3">
+        {event.historicalResults.map((contest) => (
+          <article className="bg-background p-4" key={contest.name}>
+            <h4 className="font-bold font-serif text-lg">{contest.name}</h4>
+            <ContestRows contest={contest} referendum={false} />
+            {contest.note && (
+              <p className="mt-3 text-el-ink-2 text-xs">{contest.note}</p>
+            )}
+            {contest.gazette && (
+              <p className="mt-2 text-el-muted text-xs">
+                Winner’s votes: {contest.gazette}.
+              </p>
+            )}
+          </article>
+        ))}
+      </div>
+      <Link
+        className="mt-4 inline-block text-sm underline underline-offset-2"
+        href={`/elections/${event.id}`}
+      >
+        Full election record and sources →
+      </Link>
+    </section>
+  );
+}
+
+function Legend({ event, mode }: { event: AtlasEvent; mode: MapMode }) {
   const legend = modeLegend(mode, event.kind === "ref", event.prev);
   const order = Object.entries(event.national.seats).sort(
     (a, b) => b[1] - a[1]
@@ -285,9 +339,6 @@ function Legend({
           <span>{legend.ends[1]}</span>
         </p>
       )}
-      {view === "3d" && (
-        <p className="mt-1 text-el-muted">Height: {legend.height}</p>
-      )}
     </div>
   );
 }
@@ -296,21 +347,23 @@ function FlatView({
   land,
   landRings,
   regions,
+  bounds,
   label,
   onPick,
   names,
 }: {
   land: Rgb;
   landRings: Ring[];
-  regions: SceneRegion[];
+  regions: MapRegion[];
   label: string;
+  bounds: typeof ALL;
   onPick: (k: string) => void;
   names: AtlasData["names"];
 }) {
   return (
     <svg
       className="absolute inset-0 h-full w-full"
-      viewBox="-15.5 -25.5 43 41.5"
+      viewBox={`${bounds.x0 - 1} ${-bounds.y1 - 1} ${bounds.x1 - bounds.x0 + 2} ${bounds.y1 - bounds.y0 + 2}`}
     >
       <title>{label}</title>
       <path d={ringPath(landRings)} fill={rgbCss(land)} />
@@ -335,7 +388,13 @@ function FlatView({
           onKeyDown={activate(() => onPick(r.key))}
           role="button"
           tabIndex={0}
-        />
+        >
+          <title>
+            {r.key.length === 1
+              ? names[r.key as ConstituencyCode][0]
+              : `Polling division ${r.key}`}
+          </title>
+        </path>
       ))}
     </svg>
   );
@@ -653,52 +712,98 @@ function Timeline({
   current: string;
   onChange: (id: string) => void;
 }) {
+  const track = useRef<HTMLDivElement>(null);
+  const currentIndex = events.findIndex((event) => event.id === current);
+  const previous = events[currentIndex - 1];
+  const next = events[currentIndex + 1];
+  useEffect(() => {
+    const container = track.current;
+    const selected = container?.querySelector<HTMLButtonElement>(
+      `[data-event="${current}"]`
+    );
+    if (container && selected) {
+      container.scrollLeft =
+        selected.offsetLeft -
+        (container.clientWidth - selected.clientWidth) / 2;
+    }
+  }, [current]);
   return (
     <nav
       aria-label="Election or referendum"
-      className="flex gap-1 overflow-x-auto border-el-rule border-t py-3"
+      className="mb-6 border-el-rule border-y py-3"
     >
-      {events.map((e) => {
-        const lead =
-          Object.entries(e.national.seats).sort(
-            (a, b) => b[1] - a[1]
-          )[0]?.[0] ?? "";
-        return (
+      <div className="mb-2 flex items-center justify-between gap-3">
+        <span className={LABEL}>Choose an election</span>
+        <div className="flex gap-2">
           <button
-            aria-pressed={e.id === current}
-            className="flex min-w-14 shrink-0 flex-col items-center rounded-md px-2 py-1.5 text-sm aria-pressed:bg-el-ink aria-pressed:text-el-paper"
-            key={e.id}
-            onClick={() => onChange(e.id)}
+            aria-label="Previous election or referendum"
+            className="min-h-11 rounded-md border border-el-rule-2 px-3 text-sm hover:bg-el-paper-2 disabled:opacity-40"
+            disabled={!previous}
+            onClick={() => previous && onChange(previous.id)}
             type="button"
           >
-            <span className={cn("tabular-nums", e.kind === "ref" && "italic")}>
-              {e.year}
-            </span>
-            {e.kind === "ref" && (
-              <small className="font-semibold text-[9px] uppercase tracking-[0.04em] opacity-80">
-                Ref.
-              </small>
-            )}
-            <span
-              className="mt-1 block h-1 w-8 rounded-full"
-              style={{ background: partyColor(lead) }}
-            />
+            ← Previous
           </button>
-        );
-      })}
+          <button
+            aria-label="Next election or referendum"
+            className="min-h-11 rounded-md border border-el-rule-2 px-3 text-sm hover:bg-el-paper-2 disabled:opacity-40"
+            disabled={!next}
+            onClick={() => next && onChange(next.id)}
+            type="button"
+          >
+            Next →
+          </button>
+        </div>
+      </div>
+      <div className="relative flex gap-1 overflow-x-auto" ref={track}>
+        {events.map((e) => {
+          const lead =
+            Object.entries(e.national.seats).sort(
+              (a, b) => b[1] - a[1]
+            )[0]?.[0] ?? "";
+          return (
+            <button
+              aria-label={
+                e.kind === "ref" ? `${e.year} referendum` : String(e.year)
+              }
+              aria-pressed={e.id === current}
+              className="flex min-h-14 min-w-14 shrink-0 flex-col items-center rounded-md px-2 py-1.5 text-sm hover:bg-el-paper-2 focus-visible:outline-2 focus-visible:outline-el-focus aria-pressed:bg-el-ink aria-pressed:text-el-paper"
+              data-event={e.id}
+              key={e.id}
+              onClick={() => onChange(e.id)}
+              type="button"
+            >
+              <span
+                className={cn("tabular-nums", e.kind === "ref" && "italic")}
+              >
+                {e.year}
+              </span>
+              {e.kind === "ref" && (
+                <small className="font-semibold text-[9px] uppercase tracking-[0.04em] opacity-80">
+                  Ref.
+                </small>
+              )}
+              <span
+                className="mt-1 block h-1 w-8 rounded-full"
+                style={{ background: partyColor(lead) }}
+              />
+            </button>
+          );
+        })}
+      </div>
     </nav>
   );
 }
 
 /** Regions to draw: constituencies, or the selected one's polling divisions, dimming the rest. */
-function sceneRegions(
+function mapRegions(
   data: AtlasData,
   encoded: Record<string, Encoded>,
   land: Rgb,
   seat: ConstituencyCode | null,
   division: string | null,
   showDivisions: boolean
-): SceneRegion[] {
+): MapRegion[] {
   const dim = (e: Encoded): Encoded => ({
     rgb: [
       land[0] * 0.72 + e.rgb[0] * 0.28,
@@ -707,7 +812,7 @@ function sceneRegions(
     ],
     height: 0.12,
   });
-  const out: SceneRegion[] = [];
+  const out: MapRegion[] = [];
   for (const code of CODES) {
     if (showDivisions && code === seat) continue;
     let e = encoded[code] ?? { rgb: land, height: 0.08 };
@@ -772,7 +877,7 @@ function useEncoded(
   }, [event, previous, palette, mode]);
 }
 
-/** The results atlas: every mapped vote since 1972, in 3D, flat or as tiles. */
+/** Every vote since 1951, retaining historical constituency names before 1972. */
 export function Atlas() {
   const [data, setData] = useState<AtlasData | null>(null);
   const [failed, setFailed] = useState(false);
@@ -780,7 +885,7 @@ export function Atlas() {
   const [state, setState] = useState<UrlState>({
     eventId: "2022",
     mode: "winner",
-    view: "3d",
+    view: "flat",
     seat: null,
     division: null,
   });
@@ -824,11 +929,32 @@ export function Atlas() {
     );
 
   const { seat, division, view } = state;
+  const chooseEvent = (eventId: string) =>
+    set({
+      eventId,
+      seat: data.events.find((item) => item.id === eventId)?.mapped
+        ? seat
+        : null,
+      division: null,
+    });
+  if (!event.mapped) {
+    return (
+      <div>
+        <Timeline
+          current={event.id}
+          events={data.events}
+          onChange={chooseEvent}
+        />
+        <EventHeader event={event} />
+        <HistoricalResults event={event} />
+      </div>
+    );
+  }
   const land = palette.land ?? [0.8, 0.8, 0.8];
   const showDivisions = Boolean(
     view !== "tiles" && seat && event.divisions.length > 0
   );
-  const regions = sceneRegions(
+  const regions = mapRegions(
     data,
     encoded,
     land,
@@ -845,10 +971,15 @@ export function Atlas() {
 
   return (
     <div>
+      <Timeline
+        current={event.id}
+        events={data.events}
+        onChange={chooseEvent}
+      />
       <EventHeader event={event} />
       <div className="mt-4 border-el-ink border-t-2">
         <div className="flex flex-wrap items-center gap-3 border-el-rule border-b py-3">
-          <div className="max-w-full overflow-x-auto">
+          <div className="max-w-full">
             <Segmented
               disabled={(m) => !modeAvailable(event, m)}
               label="Map shows"
@@ -870,9 +1001,8 @@ export function Atlas() {
               )
             }
             options={[
-              ["3d", "3D"],
-              ["flat", "Flat"],
-              ["tiles", "Tiles"],
+              ["flat", "Map"],
+              ["tiles", event.kind === "ref" ? "Constituencies" : "Seats"],
             ]}
             value={view}
           />
@@ -886,24 +1016,13 @@ export function Atlas() {
             </button>
           )}
         </div>
-        <div className="grid lg:grid-cols-[minmax(0,1fr)_380px]">
-          <div className="relative h-[min(70vh,640px)] min-h-[360px] overflow-hidden bg-el-sea">
-            {view === "3d" && (
-              <Scene3D
-                bbox={seat ? bboxOf(data.geo.constituencies[seat].rings) : ALL}
-                colours={{
-                  sea: palette.sea ?? land,
-                  land,
-                  edge: palette["div-mid"] ?? land,
-                }}
-                inset={data.geo.inset}
-                land={data.geo.land}
-                onPick={pick}
-                regions={regions}
-              />
-            )}
+        <div className="grid grid-cols-[minmax(0,1fr)] lg:grid-cols-[minmax(0,1fr)_380px]">
+          <div className="relative h-112 overflow-hidden bg-el-sea sm:h-144 lg:h-176">
             {view === "flat" && (
               <FlatView
+                bounds={
+                  seat ? bboxOf(data.geo.constituencies[seat].rings) : ALL
+                }
                 label={`${event.label} map`}
                 land={land}
                 landRings={data.geo.land}
@@ -922,7 +1041,7 @@ export function Atlas() {
                 onPick={(c) => set({ view: "flat", seat: c, division: null })}
               />
             )}
-            <Legend event={event} mode={mode} view={view} />
+            <Legend event={event} mode={mode} />
             <p className="absolute bottom-2 left-3 max-w-[calc(100%-24px)] rounded-[3px] bg-el-sea/80 px-1.5 text-[11px] text-el-muted">
               Boundaries are illustrative. Carriacou and Petite Martinique are
               drawn closer than they are.
@@ -931,7 +1050,7 @@ export function Atlas() {
           <aside
             aria-label="Results"
             aria-live="polite"
-            className="max-h-[min(70vh,640px)] overflow-auto border-el-rule p-4 lg:border-l"
+            className="border-el-rule px-0 py-4 lg:max-h-176 lg:overflow-auto lg:border-l lg:px-4"
           >
             {seat ? (
               <ConstituencyPanel
@@ -951,11 +1070,6 @@ export function Atlas() {
             )}
           </aside>
         </div>
-        <Timeline
-          current={event.id}
-          events={data.events}
-          onChange={(id) => set({ eventId: id, division: null })}
-        />
       </div>
     </div>
   );

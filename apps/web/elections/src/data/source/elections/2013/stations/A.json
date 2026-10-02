@@ -1,0 +1,197 @@
+[
+  [
+    "A01",
+    null,
+    "Windward Medical Station",
+    238,
+    205,
+    0,
+    {
+      "NNP": 119,
+      "NDC": 85,
+      "MIC": 1
+    }
+  ],
+  [
+    "A02",
+    null,
+    "Bogles Community Centre",
+    266,
+    225,
+    0,
+    {
+      "NNP": 125,
+      "NDC": 97,
+      "MIC": 3
+    }
+  ],
+  [
+    "A03",
+    null,
+    "Dover Government School",
+    319,
+    267,
+    3,
+    {
+      "NNP": 135,
+      "NDC": 123,
+      "MIC": 6
+    }
+  ],
+  [
+    "A04",
+    null,
+    "Mt. Pleasant Government Community Centre",
+    202,
+    174,
+    0,
+    {
+      "NNP": 80,
+      "NDC": 93,
+      "MIC": 1
+    }
+  ],
+  [
+    "A05",
+    null,
+    "Top Hill R.C. Church",
+    265,
+    244,
+    2,
+    {
+      "NNP": 149,
+      "NDC": 93,
+      "MIC": 0
+    }
+  ],
+  [
+    "A06",
+    "a",
+    "Hillsborough Government School",
+    207,
+    183,
+    0,
+    {
+      "NNP": 114,
+      "NDC": 69,
+      "MIC": 0
+    }
+  ],
+  [
+    "A06",
+    "b",
+    "Hillsborough Government School",
+    200,
+    174,
+    1,
+    {
+      "NNP": 78,
+      "NDC": 95,
+      "MIC": 0
+    }
+  ],
+  [
+    "A07",
+    null,
+    "Hillsborough Police Station",
+    243,
+    225,
+    0,
+    {
+      "NNP": 142,
+      "NDC": 82,
+      "MIC": 1
+    }
+  ],
+  [
+    "A08",
+    null,
+    "TAMCC Campus, Brunswick",
+    359,
+    320,
+    1,
+    {
+      "NNP": 244,
+      "NDC": 74,
+      "MIC": 1
+    }
+  ],
+  [
+    "A09",
+    "a",
+    "L’Esterre R.C. School",
+    280,
+    246,
+    1,
+    {
+      "NNP": 149,
+      "NDC": 96,
+      "MIC": 0
+    }
+  ],
+  [
+    "A09",
+    "b",
+    "L’Esterre R.C. School",
+    333,
+    288,
+    1,
+    {
+      "NNP": 172,
+      "NDC": 115,
+      "MIC": 0
+    }
+  ],
+  [
+    "A10",
+    "a",
+    "Harvey Vale Community Centre",
+    245,
+    211,
+    0,
+    {
+      "NNP": 135,
+      "NDC": 76,
+      "MIC": 0
+    }
+  ],
+  [
+    "A10",
+    "b",
+    "Harvey Vale Community Centre",
+    224,
+    173,
+    0,
+    {
+      "NNP": 118,
+      "NDC": 54,
+      "MIC": 1
+    }
+  ],
+  [
+    "A11",
+    "a",
+    "Petite Martinique R.C. School",
+    275,
+    244,
+    1,
+    {
+      "NNP": 140,
+      "NDC": 103,
+      "MIC": 0
+    }
+  ],
+  [
+    "A11",
+    "b",
+    "Petite Martinique R.C. School",
+    184,
+    156,
+    0,
+    {
+      "NNP": 69,
+      "NDC": 86,
+      "MIC": 1
+    }
+  ]
+]

@@ -1,5 +1,5 @@
 {
-  "updated": "2026-09-27",
+  "updated": "2026-10-02",
   "sources": {
     "conch": [
       "NOW Grenada, 26 Sep 2026",
@@ -69,6 +69,30 @@
     "nacta10": [
       "Stabroek News letter, 3 Feb 2010",
       "https://www.stabroeknews.com/2010/02/03/opinion/letters/poll-results-at-the-constituency-level-in-grenada-were-almost-all-within-the-margin-of-error/"
+    ],
+    "ct30sep": [
+      "Caribbean Today, 30 Sep 2026",
+      "https://www.caribbeantoday.com/sections/politics/grenada-s-government-hints-at-election-date-announcement-on-october-4"
+    ],
+    "mikey30sep": [
+      "Mikey Live, 30 Sep 2026",
+      "https://www.mikeylive.com/featured/dpm-government-services-decentralization-urged-appeal-to-register-to-vote/"
+    ],
+    "ndcspw18sep": [
+      "NDC St. Patrick West Facebook post, 18 Sep 2026 (supplied to us; not independently checked)",
+      ""
+    ],
+    "ndcdegannes": [
+      "NDC Facebook video presenting Caris DeGannes to St. Mark (undated)",
+      "https://www.facebook.com/supportndc/videos/caris-degannes-a-humble-daughter-of-st-mark-is-seeking-your-help-to-make-history/1056241807254788/"
+    ],
+    "owner2oct": [
+      "Confirmed to Elections Grenada by the site owner, 2 Oct 2026 (no public source linked yet)",
+      ""
+    ],
+    "gbn-ndc2": [
+      "GBN, 23 Sep 2026, “NDC new faces step up”",
+      "https://gbn.gd/ndc-new-faces-step-up/"
     ]
   },
   "events": [
@@ -131,6 +155,32 @@
       "note": "It says 9 seats but lists 10 constituencies. See the polls table."
     },
     {
+      "date": "2026-09-18",
+      "text": "A supplied NDC St. Patrick West post reports Carl Andall’s selection for St. Patrick East.",
+      "src": "ndcspw18sep",
+      "flag": "unverified",
+      "note": "The supplied post has no public link and has not been independently checked; GBN subsequently reported the candidacy on 23 September."
+    },
+    {
+      "date": "2026-09-23",
+      "text": "GBN reports Nigel Degale as the NDC candidate for St. George North West and Carl Andall for St. Patrick East.",
+      "src": "gbn-ndc2",
+      "flag": null
+    },
+    {
+      "date": "2026-09-30",
+      "text": "The Prime Minister says the NDC will present all 15 of its candidates on 4 October.",
+      "src": "ct30sep",
+      "flag": null
+    },
+    {
+      "date": "2026-09-30",
+      "text": "The DPM names Dishon Edwards for St. Patrick East and Rolanda McQueen for St. Andrew South East, bringing its slate to 10.",
+      "src": "mikey30sep",
+      "flag": "unverified",
+      "note": "The linked report could not be independently checked; these two names remain provisional."
+    },
+    {
       "date": "2026-10-04",
       "text": "The Prime Minister is due to announce the election date at an event in St. Mark.",
       "src": "conch",
@@ -161,7 +211,8 @@
       "C": "Amanda Japal-George",
       "N": "Myanna Charles",
       "M": "Alvin Da Breo",
-      "P": "Robert Whyte"
+      "P": "Robert Whyte",
+      "E": "Marcia Francis"
     },
     "DPM": {
       "G": "Peter David",
@@ -171,9 +222,27 @@
       "E": "Olvine Holas",
       "C": "Aaron Lewis",
       "L": "Charmaine Gibbs",
-      "A": "Christopher Cudjoe"
+      "A": "Christopher Cudjoe",
+      "P": "Dishon Edwards",
+      "B": "Rolanda McQueen"
     },
-    "NDC": {}
+    "NDC": {
+      "P": "Carl Andall",
+      "N": "Caris DeGannes",
+      "A": "Tevin Andrews",
+      "K": "Phillip Telesford",
+      "F": "Dickon Mitchell",
+      "R": "Joseph Andall",
+      "L": "Andy Williams",
+      "J": "Nigel Degale",
+      "D": "Niecal Joseph",
+      "G": "Claudette Joseph",
+      "H": "Ron Livingston Redhead",
+      "M": "Kerryne James",
+      "C": "Lennox Andrews",
+      "E": "Delma Thomas",
+      "B": "David Andrew"
+    }
   },
   "candidate_sources": {
     "NNP": "nnp14",
@@ -183,9 +252,9 @@
   "candidate_flags": {
     "NNP": {
       "H": "Spelled “Ollivere” in The New Today and “Oliverre” elsewhere.",
-      "E": "St. Andrew North West had no named NNP candidate on 14 Feb 2026. One unconfirmed report names “Marcia Francis”."
+      "E": "Named as the NNP candidate (also as “Teacher Lisa”) in a DPB Global commentary in The New Today, April 2026. Not yet confirmed by the party."
     },
-    "NDC": "We have not found a published NDC slate for the next election. The NDC column shows the sitting member where the NDC holds the seat."
+    "NDC": "All 15 NDC candidates are named, with sources and notes where public confirmation is still pending."
   },
   "sitting": {
     "E": {
@@ -299,5 +368,52 @@
     }
   ],
   "deadline": "2027-11-30",
-  "announce": "2026-10-04"
+  "announce": "2026-10-04",
+  "candidate_seat_sources": {
+    "NNP": {
+      "E": "dpb"
+    },
+    "DPM": {
+      "P": "mikey30sep",
+      "B": "mikey30sep"
+    },
+    "NDC": {
+      "P": "gbn-ndc2",
+      "N": "ndcdegannes",
+      "A": "owner2oct",
+      "K": "owner2oct",
+      "F": "owner2oct",
+      "R": "owner2oct",
+      "L": "owner2oct",
+      "J": "gbn-ndc2",
+      "D": "owner2oct",
+      "G": "owner2oct",
+      "H": "owner2oct",
+      "M": "owner2oct",
+      "C": "owner2oct",
+      "E": "owner2oct",
+      "B": "owner2oct"
+    }
+  },
+  "candidate_seat_flags": {
+    "NDC": {
+      "N": "From an undated NDC Facebook video presenting her to St. Mark voters, and Grenada Chronicle headlines we could not open. Not yet in a published NDC slate.",
+      "A": "Confirmed to us on 2 October 2026; we have not yet seen a public announcement to link.",
+      "K": "Confirmed to us on 2 October 2026; we have not yet seen a public announcement to link.",
+      "F": "Confirmed to us on 2 October 2026; we have not yet seen a public announcement to link.",
+      "R": "Confirmed to us on 2 October 2026; we have not yet seen a public announcement to link.",
+      "L": "Confirmed to us on 2 October 2026; we have not yet seen a public announcement to link.",
+      "D": "Confirmed to us on 2 October 2026; we have not yet seen a public announcement to link.",
+      "G": "Confirmed to us on 2 October 2026; we have not yet seen a public announcement to link.",
+      "H": "Confirmed to us on 2 October 2026; we have not yet seen a public announcement to link.",
+      "M": "Confirmed to us on 2 October 2026; we have not yet seen a public announcement to link.",
+      "C": "Confirmed to us on 2 October 2026; we have not yet seen a public announcement to link.",
+      "E": "Confirmed to us on 2 October 2026; we have not yet seen a public announcement to link.",
+      "B": "Confirmed to us on 2 October 2026; we have not yet seen a public announcement to link."
+    },
+    "DPM": {
+      "P": "Named in a linked 30 September report that we have not yet been able to independently check.",
+      "B": "Named in a linked 30 September report that we have not yet been able to independently check."
+    }
+  }
 }

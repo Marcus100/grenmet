@@ -95,7 +95,7 @@ export default async function PartyPage({ params }: Props) {
                   y2={y(v)}
                 />
                 <text
-                  className="fill-(--el-muted) text-[10px]"
+                  className="fill-(--el-muted) text-[10px] max-sm:text-[16px]"
                   x={0}
                   y={y(v) + 3}
                 >
@@ -120,7 +120,7 @@ export default async function PartyPage({ params }: Props) {
                   <title>{`${p.year}: ${pct(p.share)}, ${p.seats} seat${p.seats === 1 ? "" : "s"}`}</title>
                 </circle>
                 <text
-                  className="fill-(--el-muted) text-[10px]"
+                  className="fill-(--el-muted) text-[10px] max-sm:text-[16px]"
                   textAnchor="middle"
                   x={x(p.year)}
                   y={H - 6}

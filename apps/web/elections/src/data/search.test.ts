@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
+import geoJson from "@/data/derived/geo";
+import resultsJson from "@/data/derived/results";
 import { buildSearchIndex, searchConstituencies } from "@/data/search";
 import campaignJson from "@/data/source/campaign.json";
-import geoJson from "@/data/source/geo.json";
-import resultsJson from "@/data/source/results.json";
 import type { CampaignFile, GeoFile, ResultsFile } from "@/data/types";
 
 const index = buildSearchIndex(
@@ -41,5 +41,12 @@ describe("constituency search", () => {
   it("waits for two letters and caps the list", () => {
     expect(searchConstituencies(index, "s")).toEqual([]);
     expect(searchConstituencies(index, "st").length).toBeLessThanOrEqual(8);
+  });
+});
+
+it("finds Niecal Joseph in St. Andrew North East", () => {
+  expect(searchConstituencies(index, "niecal joseph")[0]).toMatchObject({
+    label: "Niecal Joseph",
+    href: "/constituencies/st-andrew-north-east",
   });
 });

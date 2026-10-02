@@ -1,0 +1,301 @@
+[
+  [
+    "H01",
+    "a",
+    "Vendome R.C. School",
+    219,
+    154,
+    0,
+    {
+      "GRP": 1,
+      "NNP": 82,
+      "NDC": 71
+    }
+  ],
+  [
+    "H01",
+    "b",
+    "Vendome R.C. School",
+    220,
+    164,
+    1,
+    {
+      "GRP": 0,
+      "NNP": 75,
+      "NDC": 88
+    }
+  ],
+  [
+    "H02",
+    "a",
+    "New Hampshire Medical Station",
+    405,
+    285,
+    1,
+    {
+      "GRP": 1,
+      "NNP": 129,
+      "NDC": 154
+    }
+  ],
+  [
+    "H02",
+    "b",
+    "New Hampshire Medical Station",
+    404,
+    282,
+    2,
+    {
+      "GRP": 3,
+      "NNP": 123,
+      "NDC": 154
+    }
+  ],
+  [
+    "H03",
+    null,
+    "Constantine Methodist School",
+    167,
+    128,
+    1,
+    {
+      "GRP": 1,
+      "NNP": 67,
+      "NDC": 59
+    }
+  ],
+  [
+    "H04",
+    "a",
+    "Boca Secondary School",
+    337,
+    251,
+    0,
+    {
+      "GRP": 1,
+      "NNP": 78,
+      "NDC": 172
+    }
+  ],
+  [
+    "H04",
+    "b",
+    "Boca Secondary School",
+    364,
+    247,
+    0,
+    {
+      "GRP": 3,
+      "NNP": 87,
+      "NDC": 157
+    }
+  ],
+  [
+    "H05",
+    "a",
+    "Beaulieu R.C. School",
+    386,
+    262,
+    3,
+    {
+      "GRP": 1,
+      "NNP": 100,
+      "NDC": 158
+    }
+  ],
+  [
+    "H05",
+    "b",
+    "Beaulieu R.C. School, Pre School Department",
+    366,
+    279,
+    1,
+    {
+      "GRP": 0,
+      "NNP": 127,
+      "NDC": 151
+    }
+  ],
+  [
+    "H05",
+    "c",
+    "Beaulieu R.C. School, Pre School Department",
+    407,
+    286,
+    0,
+    {
+      "GRP": 0,
+      "NNP": 121,
+      "NDC": 165
+    }
+  ],
+  [
+    "H06",
+    "a",
+    "L.A. Purcell's Building, La Mode",
+    358,
+    263,
+    1,
+    {
+      "GRP": 0,
+      "NNP": 116,
+      "NDC": 146
+    }
+  ],
+  [
+    "H06",
+    "b",
+    "L.A. Purcell's Building, La Mode",
+    344,
+    232,
+    0,
+    {
+      "GRP": 0,
+      "NNP": 63,
+      "NDC": 169
+    }
+  ],
+  [
+    "H07",
+    "a",
+    "St. Mary’s R. C. School, Tempe",
+    338,
+    222,
+    2,
+    {
+      "GRP": 0,
+      "NNP": 94,
+      "NDC": 126
+    }
+  ],
+  [
+    "H07",
+    "b",
+    "St. Mary’s R. C. School, Tempe",
+    359,
+    222,
+    2,
+    {
+      "GRP": 0,
+      "NNP": 88,
+      "NDC": 132
+    }
+  ],
+  [
+    "H07",
+    "c",
+    "St. Mary’s R. C. School, Tempe",
+    348,
+    220,
+    0,
+    {
+      "GRP": 0,
+      "NNP": 94,
+      "NDC": 126
+    }
+  ],
+  [
+    "H07",
+    "d",
+    "St. Mary’s R. C. School, Tempe",
+    363,
+    292,
+    2,
+    {
+      "GRP": 1,
+      "NNP": 131,
+      "NDC": 158
+    }
+  ],
+  [
+    "H07",
+    "e",
+    "St. Mary’s R. C. School, Tempe",
+    434,
+    237,
+    0,
+    {
+      "GRP": 2,
+      "NNP": 77,
+      "NDC": 158
+    }
+  ],
+  [
+    "H08",
+    "a",
+    "Alpha Junior School, Mt. Parnassus",
+    339,
+    235,
+    0,
+    {
+      "GRP": 0,
+      "NNP": 64,
+      "NDC": 171
+    }
+  ],
+  [
+    "H08",
+    "b",
+    "Alpha Junior School, Mt. Parnassus",
+    339,
+    224,
+    0,
+    {
+      "GRP": 0,
+      "NNP": 66,
+      "NDC": 158
+    }
+  ],
+  [
+    "H08",
+    "c",
+    "Alpha Junior School, Mt. Parnassus",
+    341,
+    239,
+    1,
+    {
+      "GRP": 0,
+      "NNP": 100,
+      "NDC": 138
+    }
+  ],
+  [
+    "H09",
+    "a",
+    "St. Paul’s Government School",
+    324,
+    215,
+    0,
+    {
+      "GRP": 1,
+      "NNP": 80,
+      "NDC": 134
+    }
+  ],
+  [
+    "H09",
+    "b",
+    "St. Paul’s Government School",
+    324,
+    221,
+    0,
+    {
+      "GRP": 0,
+      "NNP": 95,
+      "NDC": 126
+    }
+  ],
+  [
+    "H09",
+    "c",
+    "St. Paul’s Government School",
+    318,
+    230,
+    1,
+    {
+      "GRP": 0,
+      "NNP": 78,
+      "NDC": 151
+    }
+  ]
+]

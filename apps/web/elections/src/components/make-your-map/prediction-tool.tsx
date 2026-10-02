@@ -2,12 +2,14 @@
 
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { useEffect, useId, useMemo, useState } from "react";
+import { Flag } from "@/components/flag";
 import { partyColor, partyFillIsDark } from "@/data/parties";
 import {
   decodeMap,
   encodeMap,
   PARTIES,
   RATING_ORDER,
+  ratingFromResult,
   ratingParty,
   ratingsFor,
   tally,
@@ -22,16 +24,18 @@ export interface PredictionSeat {
   /** SVG path for the constituency, in map units. */
   d: string;
   dpmStands: boolean;
+  /** Each past election's winner and margin, by year (1990 on). */
+  history: Record<string, { margin: number; winner: string }>;
   href: string;
   leanLabel: string;
   /** The model's rating at its default settings. */
   model: UserRating;
   name: string;
+  notes: Record<string, string>;
   /** 2022 result, e.g. "NDC by 4.0 pts". */
   result2022: string;
   short: string;
   sitting: string;
-  won2022: "NDC" | "NNP";
 }
 
 interface Props {
@@ -52,7 +56,7 @@ export function ratingStyle(rating: UserRating): React.CSSProperties {
   if (strength === "Solid")
     return {
       background: partyColor(party),
-      color: partyFillIsDark(party) ? "#fff" : "#121314",
+      color: partyFillIsDark(party) ? "var(--el-paper)" : "var(--el-ink)",
     };
   if (strength === "Likely")
     return {
@@ -79,7 +83,13 @@ export function PredictionTool({ seats, land, inset }: Props) {
   const from = (pick: (s: PredictionSeat) => UserRating) =>
     Object.fromEntries(seats.map((s) => [s.code, pick(s)])) as PredictionMap;
 
-  const [map, setMap] = useState<PredictionMap>(() => from((s) => s.model));
+  // Start from the most recent election; readers change what they disagree with.
+  const fromResult = (year: string) =>
+    from((s) => {
+      const r = s.history[year];
+      return r ? ratingFromResult(r.winner, r.margin) : "Toss-up";
+    });
+  const [map, setMap] = useState<PredictionMap>(() => fromResult("2022"));
   const [selected, setSelected] = useState<ConstituencyCode | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
   const pickerId = useId();
@@ -99,6 +109,24 @@ export function PredictionTool({ seats, land, inset }: Props) {
     }
   }
 
+  /** Select a constituency; on narrow screens, bring the rating picker into view. */
+  function select(code: ConstituencyCode) {
+    setSelected(code);
+    if (window.innerWidth >= 1024) return;
+    const reduce = window.matchMedia(
+      "(prefers-reduced-motion: reduce)"
+    ).matches;
+    requestAnimationFrame(() =>
+      document.getElementById(pickerId)?.scrollIntoView({
+        block: "start",
+        behavior: reduce ? "auto" : "smooth",
+      })
+    );
+  }
+
+  const years = [...new Set(seats.flatMap((s) => Object.keys(s.history)))]
+    .sort()
+    .reverse();
   const t = tally(map);
   const seat = seats.find((s) => s.code === selected) ?? null;
   const ordered = [...seats].sort(
@@ -115,30 +143,42 @@ export function PredictionTool({ seats, land, inset }: Props) {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap gap-2">
-        {(
-          [
-            ["Start from the model", () => update(from((s) => s.model))],
-            [
-              "2022 result",
-              () => update(from((s) => `Solid ${s.won2022}` as UserRating)),
-            ],
-            ["All toss-ups", () => update(from(() => "Toss-up"))],
-          ] as const
-        ).map(([label, run]) => (
-          <button
-            className="rounded-md border border-el-rule-2 px-3 py-1.5 text-sm hover:bg-el-paper-2"
-            key={label}
-            onClick={run}
-            type="button"
+        <button
+          className="rounded-md border border-el-rule-2 px-3 py-1.5 text-sm hover:bg-el-paper-2"
+          onClick={() => update(from(() => "Toss-up"))}
+          type="button"
+        >
+          All toss-ups
+        </button>
+        <label className="flex items-center gap-2 text-sm">
+          <span className="sr-only sm:not-sr-only">Start from an election</span>
+          <select
+            aria-label="Start from an election"
+            className="h-9 rounded-md border border-el-rule-2 bg-background px-2"
+            onChange={(e) => {
+              const year = e.target.value;
+              if (!year) return;
+              update(fromResult(year));
+              e.target.value = "";
+            }}
+            value=""
           >
-            {label}
-          </button>
-        ))}
+            <option value="">Start from an election…</option>
+            {years.map((y) => (
+              <option key={y} value={y}>
+                {y} result
+              </option>
+            ))}
+          </select>
+        </label>
         <button
           className="rounded-md bg-el-ink px-3 py-1.5 font-semibold text-el-paper text-sm hover:opacity-90"
           onClick={async () => {
+            const url = new URL(window.location.href);
+            url.hash = `map=${encodeMap(codes, map)}`;
+            update(map);
             try {
-              await navigator.clipboard.writeText(window.location.href);
+              await navigator.clipboard.writeText(url.href);
               setCopied("Link copied");
             } catch {
               setCopied("Copy the address bar");
@@ -175,12 +215,11 @@ export function PredictionTool({ seats, land, inset }: Props) {
           </span>
           <span className="text-el-ink-2">{verdict}</span>
         </div>
-        <div
+        <fieldset
           aria-label={RATING_ORDER.map((r) => `${r} ${t.byRating[r]}`).join(
             ", "
           )}
           className="relative mt-3 flex h-8 gap-px"
-          role="img"
         >
           {ordered.map((s) => (
             <button
@@ -191,7 +230,7 @@ export function PredictionTool({ seats, land, inset }: Props) {
                   "outline-2 outline-el-ink outline-offset-1"
               )}
               key={s.code}
-              onClick={() => setSelected(s.code)}
+              onClick={() => select(s.code)}
               style={ratingStyle(map[s.code])}
               title={`${s.name}: ${map[s.code]}`}
               type="button"
@@ -204,7 +243,7 @@ export function PredictionTool({ seats, land, inset }: Props) {
             className="absolute -inset-y-1.5 w-0.5 bg-el-ink"
             style={{ left: `calc(${(8 / 15) * 100}% - 1px)` }}
           />
-        </div>
+        </fieldset>
         <p className="mt-1 text-el-muted text-xs">
           Eight seats is a majority. Lean, Likely and Solid all count towards a
           party’s seats.
@@ -242,7 +281,7 @@ export function PredictionTool({ seats, land, inset }: Props) {
                 key={s.code}
                 onClick={(e) => {
                   e.preventDefault();
-                  setSelected(s.code);
+                  select(s.code);
                 }}
               >
                 <path
@@ -277,7 +316,7 @@ export function PredictionTool({ seats, land, inset }: Props) {
 
         <div
           aria-live="polite"
-          className="border border-el-rule p-4"
+          className="scroll-mt-20 border border-el-rule p-4"
           id={pickerId}
         >
           {seat ? (
@@ -302,10 +341,25 @@ export function PredictionTool({ seats, land, inset }: Props) {
                 <dt className="text-el-muted">Named for 2026</dt>
                 <dd>
                   {seat.candidates.length
-                    ? seat.candidates
-                        .map((c) => `${c.name} (${c.party})`)
-                        .join(", ")
-                    : "None named yet"}
+                    ? seat.candidates.map((c, index) => (
+                        <span key={c.party}>
+                          {index > 0 && ", "}
+                          {c.name} ({c.party})
+                          {seat.notes[c.party] && (
+                            <Flag
+                              note={seat.notes[c.party]}
+                              status="unverified"
+                            />
+                          )}
+                        </span>
+                      ))
+                    : "None named yet"}{" "}
+                  <a
+                    className="underline underline-offset-2"
+                    href={`${seat.href}#standing-title`}
+                  >
+                    Sources
+                  </a>
                 </dd>
               </dl>
               <fieldset className="mt-4">
@@ -314,7 +368,7 @@ export function PredictionTool({ seats, land, inset }: Props) {
                   {ratingsFor(seat.dpmStands).map((r) => (
                     <label
                       className={cn(
-                        "flex cursor-pointer items-center gap-2 rounded-md border px-2.5 py-2 text-sm",
+                        "flex cursor-pointer items-center gap-2 rounded-md border px-2.5 py-2 text-sm has-focus-visible:outline-2 has-focus-visible:outline-el-focus",
                         map[seat.code] === r
                           ? "border-2 border-el-ink font-semibold"
                           : "border-el-rule"
@@ -347,8 +401,8 @@ export function PredictionTool({ seats, land, inset }: Props) {
             </>
           ) : (
             <p className="text-el-ink-2">
-              Select a constituency to rate it. Each starts at the model’s
-              rating; change any you disagree with.
+              Select a constituency to rate it. Each starts from its 2022
+              result; change any you disagree with.
             </p>
           )}
         </div>
@@ -372,7 +426,7 @@ export function PredictionTool({ seats, land, inset }: Props) {
               </span>
               <button
                 className="min-w-0 flex-1 text-left font-semibold hover:underline"
-                onClick={() => setSelected(s.code)}
+                onClick={() => select(s.code)}
                 type="button"
               >
                 {s.name}

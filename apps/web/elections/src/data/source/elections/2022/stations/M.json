@@ -1,0 +1,257 @@
+[
+  [
+    "M01",
+    "a",
+    "St. John’s Anglican School",
+    331,
+    246,
+    3,
+    {
+      "NNP": 112,
+      "NDC": 130,
+      "GULP": 1
+    }
+  ],
+  [
+    "M01",
+    "b",
+    "St. John’s Anglican School",
+    276,
+    196,
+    2,
+    {
+      "NNP": 71,
+      "NDC": 122,
+      "GULP": 1
+    }
+  ],
+  [
+    "M02",
+    "a",
+    "St. John’s R.C. School - Pre-School Department",
+    302,
+    206,
+    1,
+    {
+      "NNP": 86,
+      "NDC": 119
+    }
+  ],
+  [
+    "M02",
+    "b",
+    "St. John’s R.C. School - Pre-School Department",
+    294,
+    193,
+    0,
+    {
+      "NNP": 83,
+      "NDC": 108,
+      "GULP": 2
+    }
+  ],
+  [
+    "M02",
+    "c",
+    "St. John’s R.C. School - Pre-School Department",
+    304,
+    201,
+    1,
+    {
+      "NNP": 87,
+      "NDC": 112,
+      "GULP": 1
+    }
+  ],
+  [
+    "M03",
+    "a",
+    "Gouyave Methodist Church",
+    351,
+    246,
+    2,
+    {
+      "NNP": 123,
+      "NDC": 120,
+      "GULP": 1
+    }
+  ],
+  [
+    "M03",
+    "b",
+    "Gouyave Methodist Church",
+    331,
+    213,
+    1,
+    {
+      "NNP": 102,
+      "NDC": 109,
+      "GULP": 1
+    }
+  ],
+  [
+    "M04",
+    "a",
+    "Grand Roy Government School",
+    382,
+    255,
+    3,
+    {
+      "NNP": 114,
+      "NDC": 137,
+      "GULP": 1
+    }
+  ],
+  [
+    "M04",
+    "b",
+    "Grand Roy Government School",
+    380,
+    268,
+    0,
+    {
+      "NNP": 149,
+      "NDC": 117,
+      "GULP": 2
+    }
+  ],
+  [
+    "M04",
+    "c",
+    "Grand Roy Government School",
+    386,
+    251,
+    0,
+    {
+      "NNP": 132,
+      "NDC": 118,
+      "GULP": 1
+    }
+  ],
+  [
+    "M05",
+    "a",
+    "Concord Government School",
+    323,
+    219,
+    1,
+    {
+      "NNP": 121,
+      "NDC": 97
+    }
+  ],
+  [
+    "M05",
+    "b",
+    "Concord Government School",
+    325,
+    219,
+    0,
+    {
+      "NNP": 125,
+      "NDC": 94
+    }
+  ],
+  [
+    "M05",
+    "c",
+    "Concord Government School",
+    342,
+    209,
+    0,
+    {
+      "NNP": 124,
+      "NDC": 83,
+      "GULP": 2
+    }
+  ],
+  [
+    "M06",
+    null,
+    "Florida Medical Station",
+    247,
+    182,
+    1,
+    {
+      "NNP": 112,
+      "NDC": 68,
+      "GULP": 1
+    }
+  ],
+  [
+    "M07",
+    "a",
+    "Florida Government School",
+    325,
+    236,
+    1,
+    {
+      "NNP": 127,
+      "NDC": 108
+    }
+  ],
+  [
+    "M07",
+    "b",
+    "Florida Government School",
+    325,
+    230,
+    1,
+    {
+      "NNP": 118,
+      "NDC": 110,
+      "GULP": 1
+    }
+  ],
+  [
+    "M07",
+    "c",
+    "Florida Government School",
+    314,
+    210,
+    0,
+    {
+      "NNP": 92,
+      "NDC": 116,
+      "GULP": 2
+    }
+  ],
+  [
+    "M08",
+    "a",
+    "Mt. Nesbit Community Centre",
+    333,
+    250,
+    2,
+    {
+      "NNP": 101,
+      "NDC": 145,
+      "GULP": 2
+    }
+  ],
+  [
+    "M08",
+    "b",
+    "Mt. Nesbit Community Centre",
+    315,
+    219,
+    0,
+    {
+      "NNP": 101,
+      "NDC": 116,
+      "GULP": 2
+    }
+  ],
+  [
+    "M09",
+    null,
+    "Clozier Community Centre",
+    280,
+    214,
+    1,
+    {
+      "NNP": 128,
+      "NDC": 85
+    }
+  ]
+]

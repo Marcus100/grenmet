@@ -11,6 +11,8 @@ export function SourceLink({
   if (id === "PEO") return <span>Parliamentary Elections Office</span>;
   const ref = sources[id];
   if (!ref) return <span>{id}</span>;
+  // A source we were given without a public link is named, not linked.
+  if (!ref[1]) return <span>{ref[0]}</span>;
   return (
     <a
       className="underline decoration-el-rule-2 underline-offset-2 hover:decoration-el-ink"

@@ -1,0 +1,170 @@
+[
+  [
+    "J01",
+    "a",
+    "Fontenoy Community Center",
+    405,
+    265,
+    1,
+    {
+      "NDC": 71,
+      "NNP": 193
+    }
+  ],
+  [
+    "J01",
+    "b",
+    "Fontenoy Community Centre",
+    431,
+    288,
+    1,
+    {
+      "NDC": 82,
+      "NNP": 205
+    }
+  ],
+  [
+    "J02",
+    "a",
+    "Pier 57, Grand Mal",
+    361,
+    225,
+    1,
+    {
+      "NDC": 47,
+      "NNP": 177
+    }
+  ],
+  [
+    "J02",
+    "b",
+    "Pier 57, Grand Mal",
+    366,
+    243,
+    0,
+    {
+      "NDC": 58,
+      "NNP": 185
+    }
+  ],
+  [
+    "J02",
+    "c",
+    "Pier 57, Grand Mal",
+    360,
+    208,
+    0,
+    {
+      "NDC": 51,
+      "NNP": 157
+    }
+  ],
+  [
+    "J03",
+    "a",
+    "Mt. Moritz Anglican School",
+    257,
+    146,
+    1,
+    {
+      "NDC": 41,
+      "NNP": 104
+    }
+  ],
+  [
+    "J03",
+    "b",
+    "Mt. Moritz Anglican School",
+    257,
+    168,
+    0,
+    {
+      "NDC": 59,
+      "NNP": 109
+    }
+  ],
+  [
+    "J04",
+    "a",
+    "Happy Hill R.C. School",
+    379,
+    270,
+    0,
+    {
+      "NDC": 62,
+      "NNP": 208
+    }
+  ],
+  [
+    "J04",
+    "b",
+    "Happy Hill R.C. School",
+    345,
+    239,
+    1,
+    {
+      "NDC": 50,
+      "NNP": 188
+    }
+  ],
+  [
+    "J04",
+    "c",
+    "Happy Hill R.C. School",
+    353,
+    197,
+    1,
+    {
+      "NDC": 28,
+      "NNP": 168
+    }
+  ],
+  [
+    "J05",
+    "a",
+    "Brizan Community Centre",
+    283,
+    198,
+    1,
+    {
+      "NDC": 41,
+      "NNP": 156
+    }
+  ],
+  [
+    "J05",
+    "b",
+    "Brizan Community Centre",
+    314,
+    217,
+    1,
+    {
+      "NDC": 28,
+      "NNP": 188
+    }
+  ],
+  [
+    "J06",
+    null,
+    "Anglican Church Building, Grenville Vale",
+    98,
+    77,
+    1,
+    {
+      "NDC": 36,
+      "NNP": 40
+    }
+  ],
+  [
+    "J07",
+    null,
+    "Willis Community Centre",
+    364,
+    254,
+    2,
+    {
+      "NDC": 119,
+      "NNP": 133
+    }
+  ]
+]

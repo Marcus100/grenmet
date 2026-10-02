@@ -1,0 +1,223 @@
+[
+  [
+    "M01",
+    "a",
+    "St. John’s Anglican School",
+    286,
+    258,
+    4,
+    {
+      "NDC": 122,
+      "NNP": 131,
+      "GRP": 1
+    }
+  ],
+  [
+    "M01",
+    "b",
+    "St. John’s Anglican School",
+    183,
+    163,
+    1,
+    {
+      "NDC": 98,
+      "NNP": 64,
+      "GRP": 0
+    }
+  ],
+  [
+    "M02",
+    "a",
+    "St. John’s R.C. School - Pre-School Department",
+    321,
+    278,
+    0,
+    {
+      "NDC": 151,
+      "NNP": 127,
+      "GRP": 0
+    }
+  ],
+  [
+    "M02",
+    "b",
+    "St. John’s R.C. School - Pre-School Department",
+    304,
+    268,
+    2,
+    {
+      "NDC": 139,
+      "NNP": 127,
+      "GRP": 0
+    }
+  ],
+  [
+    "M03",
+    "a",
+    "Gouyave Methodist Church",
+    256,
+    225,
+    0,
+    {
+      "NDC": 100,
+      "NNP": 125,
+      "GRP": 0
+    }
+  ],
+  [
+    "M03",
+    "b",
+    "Gouyave Methodist Church",
+    229,
+    208,
+    0,
+    {
+      "NDC": 102,
+      "NNP": 105,
+      "GRP": 1
+    }
+  ],
+  [
+    "M04",
+    "a",
+    "Grand Roy Government School",
+    285,
+    253,
+    2,
+    {
+      "NDC": 111,
+      "NNP": 139,
+      "GRP": 1
+    }
+  ],
+  [
+    "M04",
+    "b",
+    "Grand Roy Government School",
+    259,
+    231,
+    1,
+    {
+      "NDC": 83,
+      "NNP": 147,
+      "GRP": 0
+    }
+  ],
+  [
+    "M04",
+    "c",
+    "Grand Roy Government School",
+    258,
+    225,
+    0,
+    {
+      "NDC": 84,
+      "NNP": 138,
+      "GRP": 3
+    }
+  ],
+  [
+    "M05",
+    "a",
+    "Concord Government School",
+    328,
+    292,
+    2,
+    {
+      "NDC": 91,
+      "NNP": 198,
+      "GRP": 1
+    }
+  ],
+  [
+    "M05",
+    "b",
+    "Concord Government School",
+    365,
+    329,
+    6,
+    {
+      "NDC": 87,
+      "NNP": 236,
+      "GRP": 0
+    }
+  ],
+  [
+    "M06",
+    null,
+    "Florida Medical Station",
+    182,
+    157,
+    0,
+    {
+      "NDC": 48,
+      "NNP": 109,
+      "GRP": 0
+    }
+  ],
+  [
+    "M07",
+    "a",
+    "Cocoa Grove Community Centre",
+    358,
+    311,
+    0,
+    {
+      "NDC": 138,
+      "NNP": 173,
+      "GRP": 0
+    }
+  ],
+  [
+    "M07",
+    "b",
+    "Cocoa Grove Community Centre",
+    308,
+    254,
+    2,
+    {
+      "NDC": 125,
+      "NNP": 127,
+      "GRP": 0
+    }
+  ],
+  [
+    "M08",
+    "a",
+    "Mt. Nesbit Community Centre",
+    251,
+    224,
+    0,
+    {
+      "NDC": 105,
+      "NNP": 119,
+      "GRP": 0
+    }
+  ],
+  [
+    "M08",
+    "b",
+    "Mt. Nesbit Community Centre",
+    218,
+    191,
+    0,
+    {
+      "NDC": 103,
+      "NNP": 88,
+      "GRP": 0
+    }
+  ],
+  [
+    "M09",
+    null,
+    "Clozier Community Centre",
+    193,
+    177,
+    1,
+    {
+      "NDC": 59,
+      "NNP": 117,
+      "GRP": 0
+    }
+  ]
+]

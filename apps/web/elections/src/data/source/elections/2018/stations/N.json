@@ -1,0 +1,146 @@
+[
+  [
+    "N01",
+    null,
+    "Maran Community Centre",
+    273,
+    197,
+    1,
+    {
+      "NNP": 145,
+      "NDC": 51
+    }
+  ],
+  [
+    "N02",
+    "a",
+    "Victoria Pre Primary School",
+    288,
+    198,
+    0,
+    {
+      "NNP": 136,
+      "NDC": 62
+    }
+  ],
+  [
+    "N02",
+    "b",
+    "Victoria Pre Primary School",
+    287,
+    207,
+    3,
+    {
+      "NNP": 136,
+      "NDC": 68
+    }
+  ],
+  [
+    "N02",
+    "c",
+    "Victoria Pre Primary School",
+    285,
+    212,
+    2,
+    {
+      "NNP": 146,
+      "NDC": 64
+    }
+  ],
+  [
+    "N03",
+    "a",
+    "Victoria Hotel",
+    305,
+    217,
+    2,
+    {
+      "NNP": 160,
+      "NDC": 55
+    }
+  ],
+  [
+    "N03",
+    "b",
+    "Victoria Hotel",
+    269,
+    184,
+    0,
+    {
+      "NNP": 114,
+      "NDC": 70
+    }
+  ],
+  [
+    "N04",
+    "a",
+    "St. Mark's Secondary School",
+    253,
+    173,
+    0,
+    {
+      "NNP": 135,
+      "NDC": 38
+    }
+  ],
+  [
+    "N04",
+    "b",
+    "St. Mark's Secondary School",
+    266,
+    182,
+    0,
+    {
+      "NNP": 132,
+      "NDC": 50
+    }
+  ],
+  [
+    "N04",
+    "c",
+    "St. Mark's Secondary School",
+    269,
+    173,
+    2,
+    {
+      "NNP": 130,
+      "NDC": 41
+    }
+  ],
+  [
+    "N05",
+    "a",
+    "Mrs. De Allie's Residence, Duquesnse",
+    275,
+    196,
+    0,
+    {
+      "NNP": 145,
+      "NDC": 51
+    }
+  ],
+  [
+    "N05",
+    "b",
+    "Mrs. De Allie's Residence, Duquesnse",
+    273,
+    189,
+    0,
+    {
+      "NNP": 147,
+      "NDC": 42
+    }
+  ],
+  [
+    "N06",
+    null,
+    "Samaritan Presbyterian School",
+    339,
+    240,
+    1,
+    {
+      "NNP": 167,
+      "NDC": 72
+    }
+  ]
+]

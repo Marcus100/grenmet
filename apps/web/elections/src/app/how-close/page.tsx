@@ -145,7 +145,7 @@ function DivisionSwing({ from, to }: { from: string; to: string }) {
           ))}
           {[-30, -15, 0, 15, 30].map((v) => (
             <text
-              className="fill-(--el-muted) text-[10px]"
+              className="fill-(--el-muted) text-[10px] max-sm:text-[16px]"
               key={v}
               textAnchor="middle"
               x={x(v)}
@@ -406,7 +406,7 @@ export default function HowClosePage() {
                       y2={votesSeats.length * 28 + 28}
                     />
                     <text
-                      className="fill-(--el-muted) text-[11px]"
+                      className="fill-(--el-muted) text-[11px] max-sm:text-[17px]"
                       textAnchor="middle"
                       x={x}
                       y={12}
@@ -422,7 +422,7 @@ export default function HowClosePage() {
                 return (
                   <g key={r.id}>
                     <text
-                      className="fill-(--el-ink) text-[12px]"
+                      className="fill-(--el-ink) text-[12px] max-sm:text-[18px]"
                       textAnchor="end"
                       x={44}
                       y={cy + 4}
@@ -452,7 +452,7 @@ export default function HowClosePage() {
                       r={6.5}
                     />
                     <text
-                      className="fill-(--el-ink-2) text-[11px]"
+                      className="fill-(--el-ink-2) text-[11px] max-sm:text-[17px]"
                       x={Math.min(x(Math.max(r.vote, r.seat)) + 12, 480)}
                       y={cy + 4}
                     >

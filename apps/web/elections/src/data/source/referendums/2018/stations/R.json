@@ -1,0 +1,146 @@
+[
+  {
+    "div": "R01",
+    "sub": null,
+    "place": "Hermitage Medical Station",
+    "yes": 58,
+    "no": 50,
+    "rej": 0,
+    "voted": 108,
+    "reg": 464
+  },
+  {
+    "div": "R02",
+    "sub": "a",
+    "place": "Mt. Rich Pre School",
+    "yes": 28,
+    "no": 23,
+    "rej": 0,
+    "voted": 51,
+    "reg": 252
+  },
+  {
+    "div": "R02",
+    "sub": "b",
+    "place": "Mt. Rich Pre School",
+    "yes": 30,
+    "no": 23,
+    "rej": 0,
+    "voted": 53,
+    "reg": 269
+  },
+  {
+    "div": "R03",
+    "sub": "a",
+    "place": "Multi-Purpose Training Centre",
+    "yes": 38,
+    "no": 72,
+    "rej": 0,
+    "voted": 110,
+    "reg": 376
+  },
+  {
+    "div": "R03",
+    "sub": "b",
+    "place": "Multi-Purpose Training Centre",
+    "yes": 29,
+    "no": 57,
+    "rej": 1,
+    "voted": 87,
+    "reg": 374
+  },
+  {
+    "div": "R04",
+    "sub": null,
+    "place": "St. Patrick R.C. School",
+    "yes": 26,
+    "no": 43,
+    "rej": 1,
+    "voted": 70,
+    "reg": 269
+  },
+  {
+    "div": "R05",
+    "sub": "a",
+    "place": "Mc Donald College",
+    "yes": 36,
+    "no": 30,
+    "rej": 0,
+    "voted": 66,
+    "reg": 273
+  },
+  {
+    "div": "R05",
+    "sub": "b",
+    "place": "Mc Donald College",
+    "yes": 30,
+    "no": 36,
+    "rej": 0,
+    "voted": 66,
+    "reg": 272,
+    "manual": true
+  },
+  {
+    "div": "R06",
+    "sub": "a",
+    "place": "Fond Community Centre",
+    "yes": 31,
+    "no": 56,
+    "rej": 0,
+    "voted": 87,
+    "reg": 307,
+    "manual": true
+  },
+  {
+    "div": "R06",
+    "sub": "b",
+    "place": "Fond Community Centre",
+    "yes": 43,
+    "no": 63,
+    "rej": 0,
+    "voted": 106,
+    "reg": 311,
+    "manual": true
+  },
+  {
+    "div": "R07",
+    "sub": null,
+    "place": "Mt. Alexander Pentecostal Church, Prospect",
+    "yes": 53,
+    "no": 45,
+    "rej": 0,
+    "voted": 98,
+    "reg": 276,
+    "manual": true
+  },
+  {
+    "div": "R08",
+    "sub": "a",
+    "place": "Chantimelle R.C. School",
+    "yes": 59,
+    "no": 52,
+    "rej": 2,
+    "voted": 113,
+    "reg": 321
+  },
+  {
+    "div": "R08",
+    "sub": "b",
+    "place": "Chantimelle R.C. School",
+    "yes": 58,
+    "no": 42,
+    "rej": 0,
+    "voted": 100,
+    "reg": 315
+  },
+  {
+    "div": "R09",
+    "sub": null,
+    "place": "Presbyterian Church Hall, Samaritan",
+    "yes": 23,
+    "no": 71,
+    "rej": 1,
+    "voted": 95,
+    "reg": 288
+  }
+]
