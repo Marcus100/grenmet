@@ -48,7 +48,7 @@ catalog:
   "@payloadcms/ui": 3.90.1
   "@payloadcms/email-resend": 3.90.1
   "@payloadcms/richtext-lexical": 3.90.1
-  graphql: ^16.14.2
+  graphql: ^17.0.2
   react-markdown: "^10.1.0"
 
   # Core
