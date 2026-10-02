@@ -8,7 +8,7 @@
 
 > **Figma is not linked to this repository** (see [ADR-0012](./adr/0012-decouple-design-tooling-from-figma.md)). Design intent arrives as a Claude Design canvas, a screenshot, or a brief — see [Design Workflow](./design-workflow.md). Sections below that describe the old Figma file map and the Code Connect pilots are retained as **history**, not current process.
 
-Compact, agent-readable lane specs in the [DESIGN.md format](https://github.com/google-labs-code/design.md) — tokens by role, type scale, shape, elevation, components, do/don't — live in `docs/design/`: [gms](./design/gms.md), [gaa-admin](./design/gaa-admin.md), [mbia](./design/mbia.md), [signal](./design/signal.md). `scripts/docs/design-md.test.mjs` fails if their colours drift from the CSS.
+Compact, agent-readable lane specs in the [DESIGN.md format](https://github.com/google-labs-code/design.md) — tokens by role, type scale, shape, elevation, components, do/don't — live in `docs/design/`: [gms](./design/gms.md), [gaa-admin](./design/gaa-admin.md), [mbia](./design/mbia.md), [signal](./design/signal.md), [elections](./design/elections.md). `scripts/docs/design-md.test.mjs` fails if their colours drift from the CSS.
 
 This guide stays implementation-focused. The broader GMS service framing, catalogue, draft warning model, and roadmap live in [GMS Digital Service Architecture](./architecture.md).
 
@@ -35,6 +35,8 @@ This guide stays implementation-focused. The broader GMS service framing, catalo
      own `@theme inline` block.
   4. **`signal`** (a separate consumer/editorial brand) — Source Serif 4 (headlines) +
      Inter (body), same override pattern as `mbia`.
+  4b. **`elections`** (Elections Grenada, a separate consumer brand) — Source Serif 4 +
+      Inter like `signal`, with its own `--el-*` palette; see `docs/design/elections.md`.
   5. **Transactional email** (`packages/email-templates`) — hardcoded
      `Arial, Helvetica, sans-serif`. Intentional, not a gap: email clients don't
      reliably honor custom/web fonts, so a web-safe stack is the correct choice here.
@@ -434,6 +436,7 @@ they are folded into `gaa-admin` as internal modules (a cross-cutting surface; s
 | `mbia` | Not yet on the generated foundation block; imports `@barrelsgd/ui/styles/globals` directly | Highest hard-coded-color count outside `gaa-admin`/`docs`; bring under the same audit/doc coverage as the other apps. |
 | `signal` | Not yet on the generated foundation block; imports `@barrelsgd/ui/styles/globals` directly | Uses `Source_Serif_4` instead of the shared sans; carries app-local `--signal-*` tokens unmapped to the design system. |
 | `events` | Not yet on the generated foundation block; imports `@barrelsgd/ui/styles/globals` directly | Lowest drift of the three direct-import apps as of this writing. |
+| `elections` | Imports `@barrelsgd/ui/styles/globals` directly with app-local `--el-*` tokens (party, referendum and map colours) | Colour is reserved for data; lane spec in `docs/design/elections.md`. |
 | `cms` | Payload CMS admin; out of design-system scope | Payload's own admin UI is not migrated; do not extend `--gm-*`/foundation coverage here without a separate decision. |
 
 **Foundation block coverage.** `gms`, `gaa-admin`, `auth`, and `docs` receive the generated
@@ -461,6 +464,7 @@ current state, not a settled decision; whether the two patterns converge is open
 | `mbia` | Not on the generated block | — | Bring onto foundation coverage or confirm direct-import stays the pattern; see App Roles above. |
 | `signal` | Not on the generated block | — | Same as `mbia`, plus resolve the `Source_Serif_4` / non-canonical font drift. |
 | `events` | Not on the generated block | — | Same as `mbia`. |
+| `elections` | Not on the generated block | Party/referendum/map colours are data colours, not brand | Keep `--el-*` app-local; colours drift-tested via `docs/design/elections.md`. |
 
 Run the warning-only audit command to find foundation drift:
 

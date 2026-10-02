@@ -27,6 +27,7 @@ acceptance.
 | `apps/web/cms` | GMS editorial content service delivered by Barrels | Active development | Dedicated CMS database, shared FastAPI identity, reviewed migrations and publishing |
 | `apps/web/docs` | GMS public documentation and preparedness content | Active content application; renamed at transition boundary 8 | `apps/web/docs` on the dedicated GMS documentation host |
 | `apps/web/events` | Barrels Events product | Prototype | Approved Events discovery/ticketing pilot after transition gates |
+| `apps/web/elections` | Barrels Elections Grenada product (Grenada election coverage and history) | Prototype; 2026 coverage first | Election coverage and results history from static checked data; a FastAPI domain for results night later |
 | `apps/web/signal` | Barrels Signal media product | Active | Maintain separately; deepen according to product evidence |
 | `apps/web/mbia` | GAA/MBIA passenger public service | Active | Keep distinct from GAA corporate and staff applications |
 | `apps/api/fastapi` | Barrels-operated shared API serving client and product domains | Active | Preserve domain boundaries; own migrations, catalogue seeds, authorization, and generated contracts |
