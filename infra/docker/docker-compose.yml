@@ -65,7 +65,7 @@ services:
       - grenmet
 
   mailcatcher:
-    image: axllent/mailpit:v1.30.5@sha256:b868afa176bfd6cce2323ea316cd99ccad77915e51e595748f6d786700ecf109
+    image: axllent/mailpit:v1.31.3@sha256:ed9b00c609e77e99c79b93f1178255ebc271868920f2c69a8d166bd5634ed10d
     container_name: grenmet-mailcatcher
     restart: "no"
     ports:
