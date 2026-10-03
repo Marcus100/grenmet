@@ -1,37 +1,51 @@
 # Grenada Signal (`@barrelsgd/web-signal`)
 
-Mobile-first civic-media front door for **Grenada Signal** — a Morning Brew-style
-single-column reader. Port **3004**, domain `signal.barrels.gd`.
+An editorial reader for Grenadians everywhere. Port **3004**; domain
+`signal.barrels.gd`. Source Serif 4 headlines, Inter reading text, restrained
+green and gold. Desktop columns become a single reading sequence on phones.
 
-MVP scope: static MDX content, light mode, no auth, no database.
+## Current phase: frontend design
+
+The owner requested the reader first and the dedicated Signal CMS last.
+This version uses the existing seven MDX documents as clearly labelled design
+samples. All pages are excluded from indexing. No new reporting, email
+collection, CMS, credentials, database or deployment is included.
 
 ```bash
-pnpm --filter @barrelsgd/web-signal dev     # http://localhost:3004
+pnpm dev:web:signal                        # host only
 pnpm --filter @barrelsgd/web-signal build
 pnpm --filter @barrelsgd/web-signal test
 ```
 
-## Content
+## Reading routes
 
-All content is in-repo MDX, typed via **content-collections** (`content-collections.ts`):
+- `/`: dated briefing, lead/supporting stories, selected collection, populated topics.
+- `/briefs` and `/today/<date>`: edition archive and original edition URLs.
+- `/topics` and `/<section>`: all seven areas, including topics without coverage.
+- `/<section>/<slug>`: original article URLs, sources and public bylines.
+- `/learn`: selected sample guides and explainers.
+- `/collections/<slug>`: ordered reading selections.
+- `/archive`: all available editions and stories.
+- `/search`: title, summary and topic matching in the browser; queries stay local.
+- `/about`: intended editorial approach and preview status.
 
-- `content/briefs/<date>.mdx` — the daily **Morning Signal** brief (`/today/<date>`).
-- `content/<section>/<slug>.mdx` — section articles (`/<section>/<slug>`).
+Selections are in `src/lib/discovery.ts`; coverage and series are in
+`src/lib/nav.ts`. Existing MDX files retain their dates, authors and sources.
+Images are optional and placeholder artwork is not displayed. Search uses only
+the existing non-draft story query. The design preview has no signup form.
 
-Sections: `weather-ready`, `check-d-ting`, `opportunity` (see `src/lib/nav.ts`).
+See [the design specification](../../../docs/design/signal.md).
+The future dedicated Payload CMS will replace the live MDX source and import
+these files as demo drafts. That work remains deferred until frontend review.
 
-To add a story, drop an MDX file in the right folder with the frontmatter the Zod
-schema in `content-collections.ts` requires (`title`, `dek`, `section`, `author`,
-`publishedAt`, `heroImage`, `heroAlt`, `sources`). Hero images live in
-`public/images/`.
 
-## Design
+## October editorial previews
 
-Tailwind v4 on the `@barrelsgd/ui` foundation, reskinned to the Signal palette in
-`src/app/globals.css` (Grenada green + gold, ink text; red reserved for alerts).
-Source Serif 4 headlines + Inter body. UI primitives come from `@barrelsgd/ui`.
-
-## Subscribe
-
-`src/components/subscribe-band.tsx` posts to `src/app/api/subscribe/route.ts`,
-which validates (`src/lib/subscribe.ts`) and logs only — **storage is deferred**.
+Sixteen attributed summaries and a 3 October 2026 briefing now drive the homepage,
+current topics, guides and local search. The October collection replaces the
+weather collection on the homepage; existing URLs and June fixtures remain.
+`reviewStatus: editorial-preview` distinguishes researched drafts awaiting human
+review from `sample` fixtures. `draft: false` only enables display in this noindex
+preview; it is not editorial approval. Attribution names the original source,
+not an invented author of a Signal article. Images retain their archive labels
+and licences in `public/images/CREDITS.md`.

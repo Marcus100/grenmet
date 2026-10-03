@@ -33,6 +33,7 @@ export const metadata: Metadata = {
     default: "Grenada Signal — Know what going on.",
     template: "%s | Grenada Signal",
   },
+  robots: { index: false, follow: false },
   description:
     "Clear signal through the noise: what happened, why it matters, who is affected, and what to do next. Grenada news, weather, and verification in 5 minutes.",
 };
