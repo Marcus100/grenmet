@@ -290,7 +290,14 @@ Quick reference:
 
 ## License
 
-Proprietary — Grenada Airports Authority (GAA) / Grenada Meteorological Service (GMS)
+Proprietary — © 2026 Barrels Grenada. All rights reserved.
+
+All software in this repository, including software built for clients such as
+the Grenada Airports Authority (GAA), is owned by Barrels Grenada. Clients use
+it under written agreement with Barrels Grenada. Client data, client names and
+logos, and documents marked as client-owned (for example `Owner: GMS` or
+`Owner: GAA`) belong to the client. Third-party code (see `VENDORED.md` and
+per-directory licence files) keeps its own licence.
 
 ### Shared dependency versions
 

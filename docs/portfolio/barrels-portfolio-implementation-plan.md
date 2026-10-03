@@ -177,10 +177,11 @@ this plan to implementation surfaces.
 
 - This plan does not approve payments, production cutovers, infrastructure
   purchases, public warning policy, or changes to operational thresholds.
-- GAA and GMS data ownership, software rights, residency, support, and exit
-  terms remain commercial/legal gates until formally agreed. A proposed
-  classification is in the
-  [IP boundary draft](../strategy/barrels-ip-boundary.md).
+- Repository software is Barrels Grenada IP; GAA/GMS data, marks, and
+  client-owned documents belong to the client (owner decision, 2026-10-03).
+  GAA's licence scope, data residency, support, and exit terms remain
+  commercial/legal gates until formally agreed. See the
+  [IP boundary](../strategy/barrels-ip-boundary.md).
 - A repository prototype is not a launched product, and implemented code is
   not proof of institutional acceptance.
 
