@@ -106,7 +106,11 @@ it("opens legacy 3D links in Map view without losing the event or constituency",
   );
   expect(window.location.search).toContain("e=2018");
   expect(window.location.search).toContain("c=n");
-  expect(window.location.search).not.toContain("3d");
+  await waitFor(() => {
+    expect(window.location.search).toContain("e=2018");
+    expect(window.location.search).toContain("c=n");
+    expect(window.location.search).not.toContain("3d");
+  });
 });
 
 it("distinguishes House seats from referendum vote shares in the national summary", async () => {
