@@ -32,6 +32,10 @@ Do not manufacture observations, leave balances, employee numbers, employment da
 
 The SURFACE command is `python manage.py seed_production_baseline` (preview) and accepts `--apply`. It must be included in the running API image; an upstream image will not automatically contain a command added only to this checkout. It excludes publisher offsets and operational history. Review wis2box metadata through its existing management tooling; there is no generic safe seed for publication state.
 
+### 2026-10-03: v0.17 → v0.18 ordering
+
+The organisation-boundary migration (`2026-09-10_hr_organisation_boundary`) refuses role assignments with no department or employment record. Production at v0.17 held the 21 GMS accounts with only a SELF `staff` grant, so the first v0.18 deploy stopped in prestart and rolled back. Resolution: run step 4 (the staff baseline, using the v0.17 API container's `seed_production.py` and the approved `gms.json`) **before** the migration, then re-run the deploy. Any environment upgrading from a pre-baseline database must seed the baseline first.
+
 ## Accounts and employee setup
 
 - Intended administrators: `ewhint@weather.gd` and `admin@weather.gd`. The generic administrator receives no employee credential.
