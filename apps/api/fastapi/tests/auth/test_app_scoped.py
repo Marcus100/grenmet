@@ -15,17 +15,23 @@ BASE = "/api/v1/auth/apps/events"
 
 
 @pytest.fixture
-def fixed_code(monkeypatch):
+async def fixed_code(monkeypatch, db_async):
+    """Seed app roles, use a known code, and capture email instead of sending."""
+    from src.auth.permissions import seed_permissions_and_roles_async
+
+    await seed_permissions_and_roles_async(db_async)
+    sent: list[dict[str, str]] = []
     monkeypatch.setattr(app_service, "new_code", lambda: "123456")
-    return "123456"
+    monkeypatch.setattr(app_service, "send_email", lambda **kwargs: sent.append(kwargs))
+    return sent
 
 
-async def _sign_up(async_client, email="resident@example.test"):
+async def _sign_up(async_client, email="resident@example.com"):
     start = await async_client.post(
         f"{BASE}/email-code/start",
         json={"email": email, "first_name": "Kezia", "last_name": "Mitchell"},
     )
-    assert start.status_code == 200
+    assert start.status_code == 200, start.text
     return await async_client.post(
         f"{BASE}/email-code/verify", json={"email": email, "code": "123456"}
     )
@@ -78,7 +84,7 @@ async def test_email_code_creates_member_with_only_the_events_role(
     assert claims["app"] == "events"
 
     user = await service.get_user_by_email(
-        session=db_async, email="resident@example.test"
+        session=db_async, email="resident@example.com"
     )
     assert user is not None
     assert user.first_name == "Kezia"
@@ -96,10 +102,10 @@ async def test_requesting_a_code_does_not_create_an_account(
 ):
     _ = fixed_code
     await async_client.post(
-        f"{BASE}/email-code/start", json={"email": "drive-by@example.test"}
+        f"{BASE}/email-code/start", json={"email": "drive-by@example.com"}
     )
     assert (
-        await service.get_user_by_email(session=db_async, email="drive-by@example.test")
+        await service.get_user_by_email(session=db_async, email="drive-by@example.com")
         is None
     )
 
@@ -111,7 +117,7 @@ async def test_resident_token_is_refused_by_staff_routes(
     _ = (db_async, fixed_code)
     token = (await _sign_up(async_client)).json()["access_token"]
     staff = await async_client.get(
-        "/api/v1/users/me", headers={"Authorization": f"Bearer {token}"}
+        "/api/v1/auth/users/me", headers={"Authorization": f"Bearer {token}"}
     )
     assert staff.status_code == 401
 
@@ -121,7 +127,7 @@ async def test_resident_cannot_open_a_staff_session(async_client, db_async, fixe
     _ = fixed_code
     await _sign_up(async_client)
     user = await service.get_user_by_email(
-        session=db_async, email="resident@example.test"
+        session=db_async, email="resident@example.com"
     )
     assert user is not None
     with pytest.raises(AppException):
@@ -154,7 +160,7 @@ async def test_app_session_exchange_and_refresh_keep_the_app_claim(
 @pytest.mark.asyncio
 async def test_legacy_login_cannot_claim_an_app_name(async_client, db_async):
     user = User(
-        email="staffer@example.test",
+        email="staffer@example.com",
         username="staffer",
         first_name="Staff",
         last_name="Member",
@@ -165,7 +171,7 @@ async def test_legacy_login_cannot_claim_an_app_name(async_client, db_async):
     response = await async_client.post(
         "/api/v1/login/session",
         json={
-            "email": "staffer@example.test",
+            "email": "staffer@example.com",
             "password": "Staff-password-123!",
             "app_name": "events",
         },
@@ -179,7 +185,7 @@ async def test_codes_are_single_use_and_lock_after_wrong_guesses(
     async_client, db_async, fixed_code
 ):
     _ = (db_async, fixed_code)
-    email = "guesser@example.test"
+    email = "guesser@example.com"
     await async_client.post(f"{BASE}/email-code/start", json={"email": email})
     for _attempt in range(app_service.MAX_CODE_ATTEMPTS):
         wrong = await async_client.post(
@@ -208,7 +214,7 @@ async def test_revoking_access_ends_app_sessions(async_client, db_async, fixed_c
     _ = fixed_code
     secret = (await _sign_up(async_client)).json()["session_token"]
     user = await service.get_user_by_email(
-        session=db_async, email="resident@example.test"
+        session=db_async, email="resident@example.com"
     )
     assert user is not None
     user.is_active = False
@@ -253,3 +259,26 @@ async def test_phone_link_and_sign_in_with_console_provider(
     )
     assert signed_in.status_code == 200
     assert signed_in.json()["session"]["app_name"] == "events"
+
+
+@pytest.mark.asyncio
+async def test_member_role_lacks_organiser_and_moderator_access(
+    async_client, db_async, fixed_code
+):
+    _ = fixed_code
+    await _sign_up(async_client)
+    user = await service.get_user_by_email(
+        session=db_async, email="resident@example.com"
+    )
+    assert user is not None
+    for key, expected in (
+        ("events.member.write", True),
+        ("events.organiser.manage", False),
+        ("events.moderate", False),
+    ):
+        assert (
+            await service.has_effective_permission(
+                session=db_async, user=user, permission_key=key
+            )
+            is expected
+        )

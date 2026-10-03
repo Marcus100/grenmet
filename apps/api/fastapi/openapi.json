@@ -16453,6 +16453,2086 @@
         ]
       }
     },
+    "/api/v1/events/listings": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "List upcoming events",
+        "description": "Published public events, soonest first, filtered by Grenada-calendar window, category, parish, price, tag or text.",
+        "operationId": "eventsListListings",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "when",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/EventsListListingsParametersSchemaAnyOfEnum"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "When"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Category"
+            }
+          },
+          {
+            "name": "parish",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Parish"
+            }
+          },
+          {
+            "name": "price",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/EventsListListingsParametersSchemaAnyOfEnum2"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Price"
+            }
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 30
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Tag"
+            }
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 100
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Q"
+            }
+          },
+          {
+            "name": "organiser",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Organiser"
+            }
+          },
+          {
+            "name": "include_past",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Include Past"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 200,
+              "minimum": 1,
+              "default": 100,
+              "title": "Limit"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListingCardList"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          }
+        }
+      }
+    },
+    "/api/v1/events/listings/{slug}": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get an event",
+        "description": "A published event with organiser, group and ticket tiers.",
+        "operationId": "eventsGetListing",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,79}$",
+              "title": "Slug"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListingDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/v1/events/organisers/{slug}": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get an organiser",
+        "description": "Public organiser profile with follower count.",
+        "operationId": "eventsGetOrganiser",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,79}$",
+              "title": "Slug"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganiserPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/v1/events/groups": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "List groups",
+        "description": "Every group with member counts and its next meetup.",
+        "operationId": "eventsListGroups",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/GroupSummary"
+                  },
+                  "type": "array",
+                  "title": "Response Eventslistgroups"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/events/groups/{slug}": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get a group",
+        "description": "Group with members, announcements, upcoming meetups and (for members) its chat.",
+        "operationId": "eventsGetGroup",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,79}$",
+              "title": "Slug"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GroupDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/v1/events/people/{handle}": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get a member profile",
+        "description": "Respects profile visibility and blocks; restricted profiles show only name and headline.",
+        "operationId": "eventsGetPerson",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "handle",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,29}$",
+              "title": "Handle"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfilePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Not found"
+          }
+        }
+      }
+    },
+    "/api/v1/events/suggestions": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Suggest a missing event",
+        "description": "Anyone may suggest an event; suggestions are reviewed before anything is published.",
+        "operationId": "eventsCreateSuggestion",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuggestionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/events/me/profile": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get my profile",
+        "description": "The signed-in member's editable profile, created on first use.",
+        "operationId": "eventsGetMyProfile",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyProfile"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Update my profile",
+        "description": "Change handle, name, headline, bio, parish, interests, intents or visibility.",
+        "operationId": "eventsUpdateMyProfile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MyProfile"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "409": {
+            "description": "Handle taken"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/events/me/plans": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get my plans",
+        "description": "Upcoming events I'm going to or saved, my groups and organisers I follow.",
+        "operationId": "eventsGetMyPlans",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PlansPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/events/listings/{slug}/rsvp": {
+      "put": {
+        "tags": [
+          "events"
+        ],
+        "summary": "RSVP to an event",
+        "description": "Mark yourself as going. Idempotent.",
+        "operationId": "eventsRsvpListing",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,79}$",
+              "title": "Slug"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Cancel an RSVP",
+        "description": "Remove yourself from an event's going list. Idempotent.",
+        "operationId": "eventsCancelListingRsvp",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,79}$",
+              "title": "Slug"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        }
+      }
+    },
+    "/api/v1/events/listings/{slug}/save": {
+      "put": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Save an event",
+        "description": "Bookmark an event. Idempotent.",
+        "operationId": "eventsSaveListing",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,79}$",
+              "title": "Slug"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Unsave an event",
+        "description": "Remove a bookmark. Idempotent.",
+        "operationId": "eventsUnsaveListing",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,79}$",
+              "title": "Slug"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        }
+      }
+    },
+    "/api/v1/events/organisers/{slug}/follow": {
+      "put": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Follow an organiser",
+        "description": "Follow to hear about new events. Idempotent.",
+        "operationId": "eventsFollowOrganiser",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,79}$",
+              "title": "Slug"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Unfollow an organiser",
+        "description": "Stop following. Idempotent.",
+        "operationId": "eventsUnfollowOrganiser",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,79}$",
+              "title": "Slug"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        }
+      }
+    },
+    "/api/v1/events/groups/{slug}/membership": {
+      "put": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Join a group",
+        "description": "Join an open group, or request to join an approval group.",
+        "operationId": "eventsJoinGroup",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,79}$",
+              "title": "Slug"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Leave a group",
+        "description": "Leave a group or withdraw a join request. Idempotent.",
+        "operationId": "eventsLeaveGroup",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,79}$",
+              "title": "Slug"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        }
+      }
+    },
+    "/api/v1/events/me/network": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get my network",
+        "description": "Connections, pending requests both ways, and people you may know.",
+        "operationId": "eventsGetMyNetwork",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NetworkPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/events/connections": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Request a connection",
+        "description": "Send a connection request; accepts theirs if they already asked you.",
+        "operationId": "eventsRequestConnection",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConnectionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "409": {
+            "description": "Not allowed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/events/connections/{connection_id}/accept": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Accept a connection request",
+        "description": "Accept a request addressed to you.",
+        "operationId": "eventsAcceptConnection",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "connection_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Connection Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        }
+      }
+    },
+    "/api/v1/events/connections/{connection_id}": {
+      "delete": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Remove a connection",
+        "description": "Remove a connection, cancel your request or decline theirs.",
+        "operationId": "eventsRemoveConnection",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "connection_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Connection Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        }
+      }
+    },
+    "/api/v1/events/blocks/{handle}": {
+      "put": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Block a member",
+        "description": "Hide each of you from the other and end any connection. Idempotent.",
+        "operationId": "eventsBlockMember",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "handle",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,29}$",
+              "title": "Handle"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "409": {
+            "description": "Not allowed"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Unblock a member",
+        "description": "Remove a block. Idempotent.",
+        "operationId": "eventsUnblockMember",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "handle",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,29}$",
+              "title": "Handle"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        }
+      }
+    },
+    "/api/v1/events/reports": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Report something",
+        "description": "Report a profile, message, group or event to the moderators.",
+        "operationId": "eventsCreateReport",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/events/threads": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "List my conversations",
+        "description": "Direct and group conversations, most recent first.",
+        "operationId": "eventsListThreads",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ThreadSummary"
+                  },
+                  "type": "array",
+                  "title": "Response Eventslistthreads"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Open a direct conversation",
+        "description": "Open (or reuse) a direct thread. Allowed only between connections or members of a shared group.",
+        "operationId": "eventsOpenThread",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ThreadCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThreadSummary"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Messaging not allowed"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/events/threads/{thread_id}": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get a conversation",
+        "description": "Messages in a conversation you take part in; blocked members are hidden.",
+        "operationId": "eventsGetThread",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Thread Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ThreadDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        }
+      }
+    },
+    "/api/v1/events/threads/{thread_id}/messages": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Send a message",
+        "description": "Post to a conversation. The messaging rule is re-checked on every send.",
+        "operationId": "eventsSendMessage",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "thread_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Thread Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessageCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessagePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Messaging not allowed"
+          }
+        }
+      }
+    },
+    "/api/v1/events/manage": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Get my organiser workspace",
+        "description": "The organiser I belong to and all its listings, including drafts.",
+        "operationId": "eventsGetManagedOrganiser",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedOrganiser"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Organiser access required"
+          },
+          "409": {
+            "description": "Invalid listing"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/events/manage/listings": {
+      "post": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Create an event listing",
+        "description": "Create a draft or published listing for my organiser, with ticket tiers.",
+        "operationId": "eventsCreateManagedListing",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListingUpsert"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedListing"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Organiser access required"
+          },
+          "409": {
+            "description": "Invalid listing"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/events/manage/listings/{listing_id}": {
+      "put": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Update an event listing",
+        "description": "Replace a listing's details and tiers.",
+        "operationId": "eventsUpdateManagedListing",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "listing_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Listing Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListingUpsert"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ManagedListing"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Organiser access required"
+          },
+          "409": {
+            "description": "Invalid listing"
+          }
+        }
+      }
+    },
+    "/api/v1/events/moderation/reports": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "List open reports",
+        "description": "Reports awaiting review.",
+        "operationId": "eventsListReports",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ReportPublic"
+                  },
+                  "type": "array",
+                  "title": "Response Eventslistreports"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Moderator access required"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/events/moderation/reports/{report_id}": {
+      "patch": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Resolve a report",
+        "description": "Mark a report actioned or dismissed.",
+        "operationId": "eventsUpdateReport",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "report_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Report Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReportUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReportPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Moderator access required"
+          }
+        }
+      }
+    },
+    "/api/v1/events/moderation/suggestions": {
+      "get": {
+        "tags": [
+          "events"
+        ],
+        "summary": "List pending suggestions",
+        "description": "Resident event suggestions awaiting review.",
+        "operationId": "eventsListSuggestions",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SuggestionPublic"
+                  },
+                  "type": "array",
+                  "title": "Response Eventslistsuggestions"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Moderator access required"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/events/moderation/suggestions/{suggestion_id}": {
+      "patch": {
+        "tags": [
+          "events"
+        ],
+        "summary": "Review a suggestion",
+        "description": "Approve or reject a resident suggestion.",
+        "operationId": "eventsUpdateSuggestion",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "suggestion_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Suggestion Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuggestionUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestionPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign in to Barrels Events"
+          },
+          "404": {
+            "description": "Not found"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "403": {
+            "description": "Moderator access required"
+          }
+        }
+      }
+    },
     "/api/v1/auth/modern/email/request": {
       "post": {
         "tags": [
@@ -19652,6 +21732,42 @@
         },
         "type": "object",
         "title": "AddressUpdate"
+      },
+      "AnnouncementPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "author": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PersonChip"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "body": {
+            "type": "string",
+            "title": "Body"
+          },
+          "posted_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Posted At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "author",
+          "body",
+          "posted_at"
+        ],
+        "title": "AnnouncementPublic"
       },
       "ApiError": {
         "properties": {
@@ -24797,6 +26913,47 @@
         ],
         "title": "CheckoutSessionPublic"
       },
+      "ConnectionCreate": {
+        "properties": {
+          "handle": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{1,29}$",
+            "title": "Handle"
+          }
+        },
+        "type": "object",
+        "required": [
+          "handle"
+        ],
+        "title": "ConnectionCreate"
+      },
+      "ConnectionPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "person": {
+            "$ref": "#/components/schemas/PersonChip"
+          },
+          "headline": {
+            "type": "string",
+            "title": "Headline"
+          },
+          "state": {
+            "$ref": "#/components/schemas/ConnectionPublicPropertiesStateEnum"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "person",
+          "headline",
+          "state"
+        ],
+        "title": "ConnectionPublic"
+      },
       "ContractorCreate": {
         "properties": {
           "name": {
@@ -26882,6 +29039,212 @@
         ],
         "title": "GrantCreate"
       },
+      "GroupDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "tagline": {
+            "type": "string",
+            "title": "Tagline"
+          },
+          "category": {
+            "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+          },
+          "parish": {
+            "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"
+          },
+          "join_policy": {
+            "$ref": "#/components/schemas/GroupDetailPropertiesJoinPolicyEnum"
+          },
+          "member_count": {
+            "type": "integer",
+            "title": "Member Count"
+          },
+          "next_listing_starts_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Listing Starts At"
+          },
+          "viewer_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroupDetailPropertiesViewerStatusAnyOfEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Viewer Status"
+          },
+          "about": {
+            "type": "string",
+            "title": "About"
+          },
+          "announcements": {
+            "items": {
+              "$ref": "#/components/schemas/AnnouncementPublic"
+            },
+            "type": "array",
+            "title": "Announcements"
+          },
+          "members": {
+            "items": {
+              "$ref": "#/components/schemas/GroupMemberPublic"
+            },
+            "type": "array",
+            "title": "Members"
+          },
+          "upcoming": {
+            "items": {
+              "$ref": "#/components/schemas/ListingCard"
+            },
+            "type": "array",
+            "title": "Upcoming"
+          },
+          "chat_thread_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chat Thread Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "tagline",
+          "category",
+          "parish",
+          "join_policy",
+          "member_count",
+          "about",
+          "announcements",
+          "members",
+          "upcoming"
+        ],
+        "title": "GroupDetail"
+      },
+      "GroupMemberPublic": {
+        "properties": {
+          "handle": {
+            "type": "string",
+            "title": "Handle"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "headline": {
+            "type": "string",
+            "title": "Headline"
+          },
+          "role": {
+            "$ref": "#/components/schemas/GroupMemberPublicPropertiesRoleEnum"
+          }
+        },
+        "type": "object",
+        "required": [
+          "handle",
+          "display_name",
+          "headline",
+          "role"
+        ],
+        "title": "GroupMemberPublic"
+      },
+      "GroupSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "tagline": {
+            "type": "string",
+            "title": "Tagline"
+          },
+          "category": {
+            "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+          },
+          "parish": {
+            "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"
+          },
+          "join_policy": {
+            "$ref": "#/components/schemas/GroupDetailPropertiesJoinPolicyEnum"
+          },
+          "member_count": {
+            "type": "integer",
+            "title": "Member Count"
+          },
+          "next_listing_starts_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Listing Starts At"
+          },
+          "viewer_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroupDetailPropertiesViewerStatusAnyOfEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Viewer Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "tagline",
+          "category",
+          "parish",
+          "join_policy",
+          "member_count"
+        ],
+        "title": "GroupSummary"
+      },
       "HrDashboardPublic": {
         "properties": {
           "date": {
@@ -28689,6 +31052,688 @@
         ],
         "title": "LegacyStoredProduct"
       },
+      "ListingCard": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "category": {
+            "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+          },
+          "parish": {
+            "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"
+          },
+          "venue": {
+            "type": "string",
+            "title": "Venue"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ends At"
+          },
+          "admission": {
+            "$ref": "#/components/schemas/ListingCardPropertiesAdmissionEnum"
+          },
+          "price_from_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price From Minor"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/ListingCardPropertiesCurrencyEnum"
+          },
+          "recurrence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recurrence"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
+          "featured": {
+            "type": "boolean",
+            "title": "Featured"
+          },
+          "organiser_slug": {
+            "type": "string",
+            "title": "Organiser Slug"
+          },
+          "going_count": {
+            "type": "integer",
+            "title": "Going Count"
+          },
+          "going_preview": {
+            "items": {
+              "$ref": "#/components/schemas/PersonChip"
+            },
+            "type": "array",
+            "title": "Going Preview"
+          },
+          "viewer_going": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Viewer Going"
+          },
+          "viewer_saved": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Viewer Saved"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "summary",
+          "category",
+          "parish",
+          "venue",
+          "starts_at",
+          "ends_at",
+          "admission",
+          "price_from_minor",
+          "currency",
+          "recurrence",
+          "tags",
+          "featured",
+          "organiser_slug",
+          "going_count",
+          "going_preview"
+        ],
+        "title": "ListingCard"
+      },
+      "ListingCardList": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/ListingCard"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "ListingCardList"
+      },
+      "ListingDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "category": {
+            "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+          },
+          "parish": {
+            "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"
+          },
+          "venue": {
+            "type": "string",
+            "title": "Venue"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ends At"
+          },
+          "admission": {
+            "$ref": "#/components/schemas/ListingCardPropertiesAdmissionEnum"
+          },
+          "price_from_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price From Minor"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/ListingCardPropertiesCurrencyEnum"
+          },
+          "recurrence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recurrence"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
+          "featured": {
+            "type": "boolean",
+            "title": "Featured"
+          },
+          "organiser_slug": {
+            "type": "string",
+            "title": "Organiser Slug"
+          },
+          "going_count": {
+            "type": "integer",
+            "title": "Going Count"
+          },
+          "going_preview": {
+            "items": {
+              "$ref": "#/components/schemas/PersonChip"
+            },
+            "type": "array",
+            "title": "Going Preview"
+          },
+          "viewer_going": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Viewer Going"
+          },
+          "viewer_saved": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Viewer Saved"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "capacity": {
+            "type": "integer",
+            "title": "Capacity"
+          },
+          "organiser": {
+            "$ref": "#/components/schemas/OrganiserPublic"
+          },
+          "group": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroupSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tiers": {
+            "items": {
+              "$ref": "#/components/schemas/TierPublic"
+            },
+            "type": "array",
+            "title": "Tiers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "summary",
+          "category",
+          "parish",
+          "venue",
+          "starts_at",
+          "ends_at",
+          "admission",
+          "price_from_minor",
+          "currency",
+          "recurrence",
+          "tags",
+          "featured",
+          "organiser_slug",
+          "going_count",
+          "going_preview",
+          "description",
+          "capacity",
+          "organiser",
+          "group",
+          "tiers"
+        ],
+        "title": "ListingDetail"
+      },
+      "ListingUpsert": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 3,
+            "title": "Title"
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 10,
+            "title": "Summary"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 8000,
+            "title": "Description",
+            "default": ""
+          },
+          "category": {
+            "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+          },
+          "parish": {
+            "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"
+          },
+          "venue": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 2,
+            "title": "Venue"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ends At"
+          },
+          "admission": {
+            "$ref": "#/components/schemas/ListingCardPropertiesAdmissionEnum"
+          },
+          "capacity": {
+            "type": "integer",
+            "maximum": 1000000.0,
+            "minimum": 0.0,
+            "title": "Capacity"
+          },
+          "recurrence": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recurrence"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Tags"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/ListingUpsertPropertiesVisibilityEnum"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ListingUpsertPropertiesStatusEnum"
+          },
+          "group_slug": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]{1,79}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group Slug"
+          },
+          "tiers": {
+            "items": {
+              "$ref": "#/components/schemas/TierInput"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Tiers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "summary",
+          "category",
+          "parish",
+          "venue",
+          "starts_at",
+          "ends_at",
+          "admission",
+          "capacity"
+        ],
+        "title": "ListingUpsert"
+      },
+      "ManagedListing": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "summary": {
+            "type": "string",
+            "title": "Summary"
+          },
+          "category": {
+            "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+          },
+          "parish": {
+            "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"
+          },
+          "venue": {
+            "type": "string",
+            "title": "Venue"
+          },
+          "starts_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Starts At"
+          },
+          "ends_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Ends At"
+          },
+          "admission": {
+            "$ref": "#/components/schemas/ListingCardPropertiesAdmissionEnum"
+          },
+          "price_from_minor": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Price From Minor"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/ListingCardPropertiesCurrencyEnum"
+          },
+          "recurrence": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recurrence"
+          },
+          "tags": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tags"
+          },
+          "featured": {
+            "type": "boolean",
+            "title": "Featured"
+          },
+          "organiser_slug": {
+            "type": "string",
+            "title": "Organiser Slug"
+          },
+          "going_count": {
+            "type": "integer",
+            "title": "Going Count"
+          },
+          "going_preview": {
+            "items": {
+              "$ref": "#/components/schemas/PersonChip"
+            },
+            "type": "array",
+            "title": "Going Preview"
+          },
+          "viewer_going": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Viewer Going"
+          },
+          "viewer_saved": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Viewer Saved"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "capacity": {
+            "type": "integer",
+            "title": "Capacity"
+          },
+          "organiser": {
+            "$ref": "#/components/schemas/OrganiserPublic"
+          },
+          "group": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroupSummary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "tiers": {
+            "items": {
+              "$ref": "#/components/schemas/TierPublic"
+            },
+            "type": "array",
+            "title": "Tiers"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ListingUpsertPropertiesStatusEnum"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/ListingUpsertPropertiesVisibilityEnum"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "summary",
+          "category",
+          "parish",
+          "venue",
+          "starts_at",
+          "ends_at",
+          "admission",
+          "price_from_minor",
+          "currency",
+          "recurrence",
+          "tags",
+          "featured",
+          "organiser_slug",
+          "going_count",
+          "going_preview",
+          "description",
+          "capacity",
+          "organiser",
+          "group",
+          "tiers",
+          "status",
+          "visibility"
+        ],
+        "title": "ManagedListing"
+      },
+      "ManagedOrganiser": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "bio": {
+            "type": "string",
+            "title": "Bio"
+          },
+          "verified": {
+            "type": "boolean",
+            "title": "Verified"
+          },
+          "follower_count": {
+            "type": "integer",
+            "title": "Follower Count"
+          },
+          "viewer_following": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Viewer Following"
+          },
+          "listings": {
+            "items": {
+              "$ref": "#/components/schemas/ManagedListing"
+            },
+            "type": "array",
+            "title": "Listings"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "bio",
+          "verified",
+          "follower_count",
+          "listings"
+        ],
+        "title": "ManagedOrganiser"
+      },
       "Message": {
         "properties": {
           "message": {
@@ -28701,6 +31746,138 @@
           "message"
         ],
         "title": "Message"
+      },
+      "MessageCreate": {
+        "properties": {
+          "body": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Body"
+          }
+        },
+        "type": "object",
+        "required": [
+          "body"
+        ],
+        "title": "MessageCreate"
+      },
+      "MessagePublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "author": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PersonChip"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "body": {
+            "type": "string",
+            "title": "Body"
+          },
+          "sent_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Sent At"
+          },
+          "mine": {
+            "type": "boolean",
+            "title": "Mine"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "author",
+          "body",
+          "sent_at",
+          "mine"
+        ],
+        "title": "MessagePublic"
+      },
+      "MyProfile": {
+        "properties": {
+          "handle": {
+            "type": "string",
+            "title": "Handle"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "headline": {
+            "type": "string",
+            "title": "Headline"
+          },
+          "bio": {
+            "type": "string",
+            "title": "Bio"
+          },
+          "parish": {
+            "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"
+          },
+          "interests": {
+            "items": {
+              "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+            },
+            "type": "array",
+            "title": "Interests"
+          },
+          "intents": {
+            "items": {
+              "$ref": "#/components/schemas/MyProfilePropertiesIntentsItemsEnum"
+            },
+            "type": "array",
+            "title": "Intents"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/MyProfilePropertiesVisibilityEnum"
+          }
+        },
+        "type": "object",
+        "required": [
+          "handle",
+          "display_name",
+          "headline",
+          "bio",
+          "parish",
+          "interests",
+          "intents",
+          "visibility"
+        ],
+        "title": "MyProfile"
+      },
+      "NetworkPublic": {
+        "properties": {
+          "connections": {
+            "items": {
+              "$ref": "#/components/schemas/ConnectionPublic"
+            },
+            "type": "array",
+            "title": "Connections"
+          },
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/PersonSuggestion"
+            },
+            "type": "array",
+            "title": "Suggestions"
+          }
+        },
+        "type": "object",
+        "required": [
+          "connections",
+          "suggestions"
+        ],
+        "title": "NetworkPublic"
       },
       "NewPassword": {
         "properties": {
@@ -29363,6 +32540,56 @@
           "name"
         ],
         "title": "OrganisationPublic"
+      },
+      "OrganiserPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "slug": {
+            "type": "string",
+            "title": "Slug"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "bio": {
+            "type": "string",
+            "title": "Bio"
+          },
+          "verified": {
+            "type": "boolean",
+            "title": "Verified"
+          },
+          "follower_count": {
+            "type": "integer",
+            "title": "Follower Count"
+          },
+          "viewer_following": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Viewer Following"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "slug",
+          "name",
+          "bio",
+          "verified",
+          "follower_count"
+        ],
+        "title": "OrganiserPublic"
       },
       "OutlookProductPreview": {
         "properties": {
@@ -30438,6 +33665,55 @@
         ],
         "title": "PermissionPublic"
       },
+      "PersonChip": {
+        "properties": {
+          "handle": {
+            "type": "string",
+            "title": "Handle"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "handle",
+          "display_name"
+        ],
+        "title": "PersonChip"
+      },
+      "PersonSuggestion": {
+        "properties": {
+          "handle": {
+            "type": "string",
+            "title": "Handle"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "headline": {
+            "type": "string",
+            "title": "Headline"
+          },
+          "intents": {
+            "items": {
+              "$ref": "#/components/schemas/MyProfilePropertiesIntentsItemsEnum"
+            },
+            "type": "array",
+            "title": "Intents"
+          }
+        },
+        "type": "object",
+        "required": [
+          "handle",
+          "display_name",
+          "headline",
+          "intents"
+        ],
+        "title": "PersonSuggestion"
+      },
       "PersonnelStatus": {
         "type": "string",
         "enum": [
@@ -30449,6 +33725,46 @@
           "EXCUSED"
         ],
         "title": "PersonnelStatus"
+      },
+      "PlansPublic": {
+        "properties": {
+          "going": {
+            "items": {
+              "$ref": "#/components/schemas/ListingCard"
+            },
+            "type": "array",
+            "title": "Going"
+          },
+          "saved": {
+            "items": {
+              "$ref": "#/components/schemas/ListingCard"
+            },
+            "type": "array",
+            "title": "Saved"
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/GroupSummary"
+            },
+            "type": "array",
+            "title": "Groups"
+          },
+          "following": {
+            "items": {
+              "$ref": "#/components/schemas/OrganiserPublic"
+            },
+            "type": "array",
+            "title": "Following"
+          }
+        },
+        "type": "object",
+        "required": [
+          "going",
+          "saved",
+          "groups",
+          "following"
+        ],
+        "title": "PlansPublic"
       },
       "PolicyInput": {
         "properties": {
@@ -30970,6 +34286,202 @@
           "status"
         ],
         "title": "ProfileIdentityPublic"
+      },
+      "ProfilePublic": {
+        "properties": {
+          "handle": {
+            "type": "string",
+            "title": "Handle"
+          },
+          "display_name": {
+            "type": "string",
+            "title": "Display Name"
+          },
+          "headline": {
+            "type": "string",
+            "title": "Headline"
+          },
+          "parish": {
+            "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"
+          },
+          "restricted": {
+            "type": "boolean",
+            "title": "Restricted"
+          },
+          "bio": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bio"
+          },
+          "interests": {
+            "items": {
+              "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+            },
+            "type": "array",
+            "title": "Interests"
+          },
+          "intents": {
+            "items": {
+              "$ref": "#/components/schemas/MyProfilePropertiesIntentsItemsEnum"
+            },
+            "type": "array",
+            "title": "Intents"
+          },
+          "groups": {
+            "items": {
+              "$ref": "#/components/schemas/GroupSummary"
+            },
+            "type": "array",
+            "title": "Groups"
+          },
+          "connection_state": {
+            "$ref": "#/components/schemas/ProfilePublicPropertiesConnectionStateEnum"
+          },
+          "can_message": {
+            "type": "boolean",
+            "title": "Can Message"
+          },
+          "direct_thread_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Direct Thread Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "handle",
+          "display_name",
+          "headline",
+          "parish",
+          "restricted",
+          "bio",
+          "interests",
+          "intents",
+          "groups",
+          "connection_state",
+          "can_message"
+        ],
+        "title": "ProfilePublic"
+      },
+      "ProfileUpdate": {
+        "properties": {
+          "handle": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-z0-9][a-z0-9-]{1,29}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Handle"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "headline": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Headline"
+          },
+          "bio": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bio"
+          },
+          "parish": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parish"
+          },
+          "interests": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+                },
+                "type": "array",
+                "maxItems": 10
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interests"
+          },
+          "intents": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/MyProfilePropertiesIntentsItemsEnum"
+                },
+                "type": "array",
+                "maxItems": 5
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Intents"
+          },
+          "visibility": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MyProfilePropertiesVisibilityEnum"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visibility"
+          }
+        },
+        "type": "object",
+        "title": "ProfileUpdate"
       },
       "PublicCurrentConditions": {
         "properties": {
@@ -31906,6 +35418,86 @@
           "updated_at"
         ],
         "title": "RegisterObservationRead"
+      },
+      "ReportCreate": {
+        "properties": {
+          "subject_type": {
+            "$ref": "#/components/schemas/ReportCreatePropertiesSubjectTypeEnum"
+          },
+          "subject_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Subject Id"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 3,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject_type",
+          "subject_id",
+          "reason"
+        ],
+        "title": "ReportCreate"
+      },
+      "ReportPublic": {
+        "properties": {
+          "subject_type": {
+            "$ref": "#/components/schemas/ReportCreatePropertiesSubjectTypeEnum"
+          },
+          "subject_id": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Subject Id"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 1000,
+            "minLength": 3,
+            "title": "Reason"
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ReportPublicPropertiesStatusEnum"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "subject_type",
+          "subject_id",
+          "reason",
+          "id",
+          "status",
+          "created_at"
+        ],
+        "title": "ReportPublic"
+      },
+      "ReportUpdate": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/ReportUpdatePropertiesStatusEnum"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "ReportUpdate"
       },
       "RequestStatus": {
         "type": "string",
@@ -35859,6 +39451,154 @@
         ],
         "title": "SubmissionMode"
       },
+      "SuggestionCreate": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 3,
+            "title": "Title"
+          },
+          "event_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Event Date"
+          },
+          "start_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{2}:\\d{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Time"
+          },
+          "venue": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 2,
+            "title": "Venue"
+          },
+          "category": {
+            "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+          },
+          "parish": {
+            "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"
+          },
+          "source": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Source",
+            "default": ""
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Notes",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "event_date",
+          "venue",
+          "category",
+          "parish"
+        ],
+        "title": "SuggestionCreate"
+      },
+      "SuggestionPublic": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 3,
+            "title": "Title"
+          },
+          "event_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Event Date"
+          },
+          "start_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{2}:\\d{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Time"
+          },
+          "venue": {
+            "type": "string",
+            "maxLength": 160,
+            "minLength": 2,
+            "title": "Venue"
+          },
+          "category": {
+            "$ref": "#/components/schemas/GroupDetailPropertiesCategoryEnum"
+          },
+          "parish": {
+            "$ref": "#/components/schemas/GroupDetailPropertiesParishEnum"
+          },
+          "source": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Source",
+            "default": ""
+          },
+          "notes": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Notes",
+            "default": ""
+          },
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SuggestionPublicPropertiesStatusEnum"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title",
+          "event_date",
+          "venue",
+          "category",
+          "parish",
+          "id",
+          "status",
+          "created_at"
+        ],
+        "title": "SuggestionPublic"
+      },
+      "SuggestionUpdate": {
+        "properties": {
+          "status": {
+            "$ref": "#/components/schemas/SuggestionUpdatePropertiesStatusEnum"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "SuggestionUpdate"
+      },
       "SwapType": {
         "type": "string",
         "enum": [
@@ -36773,6 +40513,201 @@
           "mode"
         ],
         "title": "TaskView"
+      },
+      "ThreadCreate": {
+        "properties": {
+          "handle": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]{1,29}$",
+            "title": "Handle"
+          }
+        },
+        "type": "object",
+        "required": [
+          "handle"
+        ],
+        "title": "ThreadCreate"
+      },
+      "ThreadDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ThreadDetailPropertiesKindEnum"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "group_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group Slug"
+          },
+          "participants": {
+            "items": {
+              "$ref": "#/components/schemas/PersonChip"
+            },
+            "type": "array",
+            "title": "Participants"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/MessagePublic"
+            },
+            "type": "array",
+            "title": "Messages"
+          },
+          "can_send": {
+            "type": "boolean",
+            "title": "Can Send"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "group_slug",
+          "participants",
+          "messages",
+          "can_send"
+        ],
+        "title": "ThreadDetail"
+      },
+      "ThreadSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/ThreadDetailPropertiesKindEnum"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "group_slug": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group Slug"
+          },
+          "last_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Message"
+          },
+          "last_sent_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Sent At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "title",
+          "group_slug",
+          "last_message",
+          "last_sent_at"
+        ],
+        "title": "ThreadSummary"
+      },
+      "TierInput": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 60,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "price_minor": {
+            "type": "integer",
+            "maximum": 10000000.0,
+            "minimum": 0.0,
+            "title": "Price Minor"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/ListingCardPropertiesCurrencyEnum"
+          },
+          "allocation": {
+            "type": "integer",
+            "maximum": 1000000.0,
+            "minimum": 0.0,
+            "title": "Allocation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "price_minor",
+          "allocation"
+        ],
+        "title": "TierInput"
+      },
+      "TierPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "price_minor": {
+            "type": "integer",
+            "title": "Price Minor"
+          },
+          "currency": {
+            "$ref": "#/components/schemas/ListingCardPropertiesCurrencyEnum"
+          },
+          "allocation": {
+            "type": "integer",
+            "title": "Allocation"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "price_minor",
+          "currency",
+          "allocation"
+        ],
+        "title": "TierPublic"
       },
       "TimesheetCreate": {
         "properties": {
@@ -40818,6 +44753,14 @@
         ],
         "default": ">="
       },
+      "ConnectionPublicPropertiesStateEnum": {
+        "type": "string",
+        "enum": [
+          "connected",
+          "sent",
+          "received"
+        ]
+      },
       "ForecastSourcePropertiesKindEnum": {
         "type": "string",
         "enum": [
@@ -40834,6 +44777,55 @@
           "dust",
           "coastal",
           "tsunami"
+        ]
+      },
+      "GroupDetailPropertiesCategoryEnum": {
+        "type": "string",
+        "enum": [
+          "fete",
+          "music",
+          "food",
+          "sport",
+          "business",
+          "tech",
+          "culture",
+          "faith",
+          "family",
+          "wellness"
+        ]
+      },
+      "GroupDetailPropertiesParishEnum": {
+        "type": "string",
+        "enum": [
+          "st-george",
+          "st-andrew",
+          "st-david",
+          "st-patrick",
+          "st-mark",
+          "st-john",
+          "carriacou"
+        ]
+      },
+      "GroupDetailPropertiesJoinPolicyEnum": {
+        "type": "string",
+        "enum": [
+          "open",
+          "approval"
+        ]
+      },
+      "GroupDetailPropertiesViewerStatusAnyOfEnum": {
+        "type": "string",
+        "enum": [
+          "host",
+          "member",
+          "pending"
+        ]
+      },
+      "GroupMemberPublicPropertiesRoleEnum": {
+        "type": "string",
+        "enum": [
+          "host",
+          "member"
         ]
       },
       "ImageInputPropertiesTimeBasisEnum": {
@@ -40895,6 +44887,55 @@
           "withdraw"
         ]
       },
+      "ListingCardPropertiesAdmissionEnum": {
+        "type": "string",
+        "enum": [
+          "free",
+          "rsvp",
+          "ticketed"
+        ]
+      },
+      "ListingCardPropertiesCurrencyEnum": {
+        "type": "string",
+        "enum": [
+          "XCD",
+          "USD"
+        ]
+      },
+      "ListingUpsertPropertiesVisibilityEnum": {
+        "type": "string",
+        "enum": [
+          "public",
+          "unlisted"
+        ],
+        "default": "public"
+      },
+      "ListingUpsertPropertiesStatusEnum": {
+        "type": "string",
+        "enum": [
+          "draft",
+          "published",
+          "cancelled"
+        ],
+        "default": "draft"
+      },
+      "MyProfilePropertiesIntentsItemsEnum": {
+        "type": "string",
+        "enum": [
+          "making-friends",
+          "hiring",
+          "looking-for-work",
+          "collaborating",
+          "mentoring"
+        ]
+      },
+      "MyProfilePropertiesVisibilityEnum": {
+        "type": "string",
+        "enum": [
+          "public",
+          "connections"
+        ]
+      },
       "ObservationProvenancePropertiesTimeBasisEnum": {
         "type": "string",
         "enum": [
@@ -40919,6 +44960,17 @@
           "SYNOP",
           "METAR",
           "SPECI"
+        ]
+      },
+      "ProfilePublicPropertiesConnectionStateEnum": {
+        "type": "string",
+        "enum": [
+          "self",
+          "none",
+          "connected",
+          "sent",
+          "received",
+          "blocked"
         ]
       },
       "PublicObservationPropertiesStatusEnum": {
@@ -40955,6 +45007,30 @@
           "superseded"
         ]
       },
+      "ReportCreatePropertiesSubjectTypeEnum": {
+        "type": "string",
+        "enum": [
+          "profile",
+          "message",
+          "group",
+          "listing"
+        ]
+      },
+      "ReportPublicPropertiesStatusEnum": {
+        "type": "string",
+        "enum": [
+          "open",
+          "actioned",
+          "dismissed"
+        ]
+      },
+      "ReportUpdatePropertiesStatusEnum": {
+        "type": "string",
+        "enum": [
+          "actioned",
+          "dismissed"
+        ]
+      },
       "ReviewInputPropertiesDecisionEnum": {
         "type": "string",
         "enum": [
@@ -40977,6 +45053,28 @@
           "cimss",
           "trackthetropics",
           "uwyo"
+        ]
+      },
+      "SuggestionPublicPropertiesStatusEnum": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "approved",
+          "rejected"
+        ]
+      },
+      "SuggestionUpdatePropertiesStatusEnum": {
+        "type": "string",
+        "enum": [
+          "approved",
+          "rejected"
+        ]
+      },
+      "ThreadDetailPropertiesKindEnum": {
+        "type": "string",
+        "enum": [
+          "direct",
+          "group"
         ]
       },
       "TrainingRecordInputPropertiesResultEnum": {
@@ -41003,6 +45101,22 @@
         ],
         "type": "string",
         "default": "me"
+      },
+      "EventsListListingsParametersSchemaAnyOfEnum": {
+        "enum": [
+          "tonight",
+          "weekend",
+          "week",
+          "month"
+        ],
+        "type": "string"
+      },
+      "EventsListListingsParametersSchemaAnyOfEnum2": {
+        "enum": [
+          "free",
+          "paid"
+        ],
+        "type": "string"
       }
     },
     "securitySchemes": {
@@ -41154,6 +45268,10 @@
     {
       "name": "transport",
       "description": "Transport timetable operations."
+    },
+    {
+      "name": "events",
+      "description": "Barrels Events: listings, groups, members and messaging."
     },
     {
       "name": "users",

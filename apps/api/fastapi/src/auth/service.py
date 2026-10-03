@@ -468,6 +468,22 @@ async def rotate_session(
     )
 
 
+async def has_effective_permission(
+    *, session: AsyncSession, user: User, permission_key: str
+) -> bool:
+    """Permission check for app-scoped users, whose roles aren't preloaded."""
+    if user.is_superuser:
+        return True
+    from src.auth.access import effective_roles
+
+    roles = await effective_roles(session, user)
+    return any(
+        permission.key == permission_key
+        for role in roles
+        for permission in role.permissions
+    )
+
+
 async def is_eligible_for_app(
     *, session: AsyncSession, user: User, app_key: str
 ) -> bool:
