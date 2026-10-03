@@ -1,5 +1,6 @@
 """Content-minimising Sentry policy shared by HTTP and CAP workers."""
 
+import os
 from typing import Any
 
 # Tags without customer content or identity; must match the web scrubber in
@@ -48,4 +49,6 @@ def sentry_options() -> dict[str, Any]:
         "max_request_body_size": "never",
         "traces_sample_rate": 0.0,
         "before_send": scrub_sentry_event,
+        "before_send_transaction": lambda _event, _hint: None,
+        "release": os.environ.get("SENTRY_RELEASE"),
     }

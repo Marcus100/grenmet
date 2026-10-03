@@ -24,6 +24,14 @@ Current repository domains are `*.staging.barrels.gd` and `*.barrels.gd`;
 confirm the GMS public aliases before changing DNS. GAA/GMS and Barrels products
 must retain separate ownership, reporting and access boundaries.
 
+## Current rollout
+
+The [analytics and monitoring rollout](analytics-monitoring.md) supersedes the
+historical analytics configuration below: dev → staging → production, consent
+before optional collection, and catalogue-based per-app provider mapping without
+shared-key fallbacks. The older evidence remains a dated audit, not live delivery
+proof. Current deployment blockers and monitor IDs are in that rollout record.
+
 ## Recommended order
 
 1. Reuse the existing DigitalOcean VMs, Traefik and Resend. Inventory actual

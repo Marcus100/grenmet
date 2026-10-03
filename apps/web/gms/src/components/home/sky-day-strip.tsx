@@ -108,6 +108,8 @@ export function SkyDayStrip({
                     ? "border-gm-lime bg-gm-text-inverse/20"
                     : "border-transparent"
                 )}
+                data-analytics-day="next"
+                data-analytics-event="forecast_tab_selected"
                 href={day.href}
                 scroll={false}
               >

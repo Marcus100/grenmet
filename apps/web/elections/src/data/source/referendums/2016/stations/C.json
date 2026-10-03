@@ -1,0 +1,212 @@
+[
+  {
+    "div": "C01",
+    "sub": null,
+    "reg": 203,
+    "voted": 41,
+    "rej": 33,
+    "spoilt": 1,
+    "yes": 92,
+    "no": 162
+  },
+  {
+    "div": "C02",
+    "sub": null,
+    "reg": 66,
+    "voted": 24,
+    "rej": 33,
+    "spoilt": 0,
+    "yes": 42,
+    "no": 93
+  },
+  {
+    "div": "C03",
+    "sub": null,
+    "reg": 189,
+    "voted": 61,
+    "rej": 21,
+    "spoilt": 0,
+    "yes": 84,
+    "no": 322
+  },
+  {
+    "div": "C04",
+    "sub": null,
+    "reg": 142,
+    "voted": 43,
+    "rej": 3,
+    "spoilt": 0,
+    "yes": 93,
+    "no": 215
+  },
+  {
+    "div": "C05",
+    "sub": null,
+    "reg": 226,
+    "voted": 76,
+    "rej": 22,
+    "spoilt": 1,
+    "yes": 171,
+    "no": 335
+  },
+  {
+    "div": "C06",
+    "sub": null,
+    "reg": 199,
+    "voted": 51,
+    "rej": 24,
+    "spoilt": 0,
+    "yes": 128,
+    "no": 205
+  },
+  {
+    "div": "C07",
+    "sub": "a",
+    "reg": 282,
+    "voted": 63,
+    "rej": 13,
+    "spoilt": 5,
+    "yes": 157,
+    "no": 257
+  },
+  {
+    "div": "C07",
+    "sub": "b",
+    "reg": 274,
+    "voted": 104,
+    "rej": 32,
+    "spoilt": 0,
+    "yes": 289,
+    "no": 407
+  },
+  {
+    "div": "C08",
+    "sub": "a",
+    "reg": 210,
+    "voted": 89,
+    "rej": 19,
+    "spoilt": 0,
+    "yes": 144,
+    "no": 460
+  },
+  {
+    "div": "C08",
+    "sub": "b",
+    "reg": 197,
+    "voted": 77,
+    "rej": 8,
+    "spoilt": 0,
+    "yes": 134,
+    "no": 397
+  },
+  {
+    "div": "C09",
+    "sub": "a",
+    "reg": 235,
+    "voted": 94,
+    "rej": 29,
+    "spoilt": 0,
+    "yes": 167,
+    "no": 462
+  },
+  {
+    "div": "C09",
+    "sub": "b",
+    "reg": 228,
+    "voted": 97,
+    "rej": 55,
+    "spoilt": 0,
+    "yes": 132,
+    "no": 491
+  },
+  {
+    "div": "C10",
+    "sub": "a",
+    "reg": 212,
+    "voted": 85,
+    "rej": 55,
+    "spoilt": 0,
+    "yes": 140,
+    "no": 400
+  },
+  {
+    "div": "C10",
+    "sub": "b",
+    "reg": 215,
+    "voted": 100,
+    "rej": 68,
+    "spoilt": 0,
+    "yes": 162,
+    "no": 470
+  },
+  {
+    "div": "C11",
+    "sub": "a",
+    "reg": 205,
+    "voted": 63,
+    "rej": 14,
+    "spoilt": 0,
+    "yes": 130,
+    "no": 297
+  },
+  {
+    "div": "C11",
+    "sub": "b",
+    "reg": 211,
+    "voted": 62,
+    "rej": 12,
+    "spoilt": 0,
+    "yes": 97,
+    "no": 325
+  },
+  {
+    "div": "C12",
+    "sub": null,
+    "reg": 298,
+    "voted": 118,
+    "rej": 55,
+    "spoilt": 0,
+    "yes": 264,
+    "no": 507
+  },
+  {
+    "div": "C13",
+    "sub": "a",
+    "reg": 170,
+    "voted": 62,
+    "rej": 25,
+    "spoilt": 0,
+    "yes": 114,
+    "no": 292
+  },
+  {
+    "div": "C13",
+    "sub": "b",
+    "reg": 170,
+    "voted": 66,
+    "rej": 18,
+    "spoilt": 0,
+    "yes": 102,
+    "no": 342
+  },
+  {
+    "div": "C14",
+    "sub": "a",
+    "reg": 218,
+    "voted": 73,
+    "rej": 41,
+    "spoilt": 0,
+    "yes": 211,
+    "no": 259
+  },
+  {
+    "div": "C14",
+    "sub": "b",
+    "reg": 176,
+    "voted": 85,
+    "rej": 78,
+    "spoilt": 0,
+    "yes": 221,
+    "no": 296
+  }
+]

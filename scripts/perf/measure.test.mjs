@@ -59,6 +59,10 @@ test("CLI saves and compares samples; sends cookies only to admin paths", async 
   const received = [];
   const url = await fixture(t, (req, res) => {
     received.push({ path: req.url, cookie: req.headers.cookie });
+    if (req.url === "/news") {
+      res.statusCode = 308;
+      res.setHeader("Location", "/explore/news");
+    }
     res.end("fixture");
   });
   const directory = await mkdtemp(join(tmpdir(), "perf-test-"));

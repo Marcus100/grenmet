@@ -1,0 +1,9 @@
+{
+  "id": "V-03",
+  "area": "Voter register",
+  "status": "open",
+  "impact": "data",
+  "what": "Counts come from the published lists’ non-police pages. Police electors are listed separately and aren’t in these totals.",
+  "action": "Add police lists if published.",
+  "sources": ["PEO consolidated lists"]
+}

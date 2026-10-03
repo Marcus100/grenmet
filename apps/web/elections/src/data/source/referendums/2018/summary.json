@@ -1,0 +1,19 @@
+{
+  "date": "2018-11-06",
+  "title": "Caribbean Court of Justice referendum",
+  "registered": 79410,
+  "voted": 22098,
+  "yes": 9848,
+  "no": 12134,
+  "invalid": 116,
+  "complete": ["C", "D", "E", "F", "G", "L", "M", "N", "P", "R"],
+  "missingDivisions": {
+    "A": ["A04", "A05", "A06", "A07", "A08", "A09", "A10", "A11"],
+    "B": ["B01", "B02", "B03", "B04", "B05", "B06"],
+    "H": ["H09"],
+    "J": ["J01", "J02", "J03", "J04", "J05", "J06", "J07"],
+    "K": ["K01", "K02", "K03", "K04", "K05", "K06", "K07"]
+  },
+  "source": "Government Gazette No. 52, Friday 16 November 2018, pp. 701–711, results notice signed by the Supervisor of Elections (Ag.)",
+  "note": "The Gazette PDF published at gazettes.gov.gd is damaged: page 702 stops after division A04 and page 710 is blank, so A04–B06, H09, all of J and K01–K07 can’t be read. National totals are complete."
+}

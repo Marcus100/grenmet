@@ -1,0 +1,224 @@
+{
+  "A": {
+    "reg": 4420,
+    "cast": 3614,
+    "rej": null,
+    "c": [
+      ["Elvin G. Nimrod", "NNP", 1948, "official"],
+      ["George W. Prime", "NDC", 1666, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 1,
+    "official": true
+  },
+  "D": {
+    "reg": 4381,
+    "cast": 3546,
+    "rej": null,
+    "c": [
+      ["Roland Bhola", "NNP", 1775, "official"],
+      ["Ingrid Rush", "NDC", 1740, "official"],
+      ["Keith Braveboy", "ULP", 26, "official"],
+      ["Raleigh Date", "IND", 5, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 1,
+    "official": true,
+    "note": "The winners’ summary on an earlier page of the same PEO document gives Roland Bhola 1,774 votes; the candidate table, used here, gives 1,775.",
+    "epDiff": [
+      "Roland Bhola* (NNP) EP=1774 PEO=1775 [Roland Bhola]",
+      "Ingrid Rush (NDC) EP=1747 PEO=1740 [Ingrid Rush]",
+      "Keith Braveboy (ULP) EP=25 PEO=26 [Keith Braveboy]"
+    ]
+  },
+  "E": {
+    "reg": 3974,
+    "cast": 3282,
+    "rej": null,
+    "c": [
+      ["Alleyne Walker", "NDC", 1775, "official"],
+      ["Delma Thomas", "NNP", 1488, "official"],
+      ["Joseph Cyrus", "ULP", 19, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 1,
+    "official": true
+  },
+  "B": {
+    "reg": 4170,
+    "cast": 3258,
+    "rej": null,
+    "c": [
+      ["Patrick Simmons", "NDC", 1637, "official"],
+      ["Emmalin Pierre", "NNP", 1607, "official"],
+      ["Garvin Thomas", "ULP", 14, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 1,
+    "official": true
+  },
+  "C": {
+    "reg": 4897,
+    "cast": 3892,
+    "rej": null,
+    "c": [
+      ["Sylvester Quarless", "NDC", 2135, "official"],
+      ["Yolande Bain-Horsford", "NNP", 1757, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 1,
+    "official": true,
+    "note": "The winners’ summary on an earlier page of the same PEO document gives Sylvester Quarless 2,137 votes; the candidate table, used here, gives 2,135.",
+    "epDiff": [
+      "Slyvester Quarless (NDC) EP=2137 PEO=2135 [Sylvester Quarless]",
+      "Yolande Bain-Horsford* (NNP) EP=1759 PEO=1757 [Yolande Bain-Horsford]"
+    ]
+  },
+  "F": {
+    "reg": 7648,
+    "cast": 6101,
+    "rej": null,
+    "c": [
+      ["Michael D. Lett", "NDC", 3425, "official"],
+      ["Devon Rachae", "NNP", 2632, "official"],
+      ["Earlyn Francis", "ULP", 44, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 1,
+    "official": true
+  },
+  "H": {
+    "reg": 6143,
+    "cast": 4766,
+    "rej": null,
+    "c": [
+      ["Nazim V. Burke", "NDC", 2951, "official"],
+      ["Kennedy Roberts", "NNP", 1791, "official"],
+      ["Martin Edwards", "ULP", 24, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 1,
+    "official": true
+  },
+  "J": {
+    "reg": 3916,
+    "cast": 3007,
+    "rej": null,
+    "c": [
+      ["Keith C. Mitchell", "NNP", 2422, "official"],
+      ["Ingrid Jackson", "NDC", 568, "official"],
+      ["Desmond C. Sandy", "ULP", 17, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 1,
+    "official": true
+  },
+  "L": {
+    "reg": 7943,
+    "cast": 5908,
+    "rej": null,
+    "c": [
+      ["Glynis Roberts", "NDC", 3268, "official"],
+      ["Ann-David Antoine", "NNP", 2516, "official"],
+      ["Keith Davis", "ULP", 120, "official"],
+      ["Derick Sealy", "IND", 4, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 1,
+    "official": true
+  },
+  "K": {
+    "reg": 4531,
+    "cast": 3615,
+    "rej": null,
+    "c": [
+      ["Ignatiaus K. Hood", "NDC", 1903, "official"],
+      ["Gregory Bowen", "NNP", 1639, "official"],
+      ["Francis R. Alexis", "ULP", 73, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 1,
+    "official": true
+  },
+  "M": {
+    "reg": 5537,
+    "cast": 4416,
+    "rej": null,
+    "c": [
+      ["Michael A. Church", "NDC", 2309, "official"],
+      ["Fitzroy Bedeau", "NNP", 2021, "official"],
+      ["Collin Francis", "ULP", 83, "official"],
+      ["Francis Mc Burnie", "GOD", 3, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 1,
+    "official": true
+  },
+  "N": {
+    "reg": 3180,
+    "cast": 2503,
+    "rej": null,
+    "c": [
+      ["Clarice Modeste-Curwen", "NNP", 1569, "official"],
+      ["Osborne James", "NDC", 909, "official"],
+      ["Dennis Nedd", "ULP", 25, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 1,
+    "official": true
+  },
+  "P": {
+    "reg": 3492,
+    "cast": 2790,
+    "rej": null,
+    "c": [
+      ["Tillman Thomas", "NDC", 1434, "official"],
+      ["Carl Caton", "NNP", 1330, "official"],
+      ["Reynold Benjamin", "ULP", 26, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 1,
+    "official": true
+  },
+  "R": {
+    "reg": 4078,
+    "cast": 3378,
+    "rej": null,
+    "c": [
+      ["Joseph Gilbert", "NDC", 1833, "official"],
+      ["Anthony Boatswain", "NNP", 1545, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 1,
+    "official": true,
+    "note": "The winners’ summary on an earlier page of the same PEO document gives Joseph Gilbert 1,1833 votes; the candidate table, used here, gives 1,833."
+  },
+  "G": {
+    "reg": 3441,
+    "cast": 2601,
+    "rej": null,
+    "c": [
+      ["Peter C. David", "NDC", 1445, "official"],
+      ["Brenda Hood", "NNP", 1148, "official"],
+      ["Gillian Lewis", "ULP", 8, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 1,
+    "official": true
+  }
+}

@@ -11,9 +11,9 @@ spec = importlib.util.spec_from_file_location("age", "scripts/production/check-b
 module = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(module)
 now = datetime.datetime.now(datetime.timezone.utc)
-good = {"environment": "staging", "completed_at": now.isoformat(), "databases": [{"database": name} for name in ["app", "wxwatch", "wxproducts", "transport", "janitorial", "cms"]]}
+good = {"environment": "staging", "completed_at": now.isoformat(), "databases": [{"database": name} for name in ["app_staging", "wxwatch_staging", "wxproducts_staging", "transport_staging", "janitorial_staging", "eregister_staging", "gms_cms_staging"]]}
 module.check_marker(good, "staging", "core", now)
-for bad in [good | {"databases": good["databases"][:-1]}, good | {"databases": [good["databases"][0]] * 6}, good | {"completed_at": (now - datetime.timedelta(hours=25)).isoformat()}, good | {"environment": "production"}]:
+for bad in [good | {"databases": [row for row in good["databases"] if row["database"] != "eregister_staging"]}, good | {"databases": good["databases"][:-1] + [{"database": "other"}]}, good | {"databases": good["databases"][:-1]}, good | {"databases": [good["databases"][0]] * 7}, good | {"completed_at": (now - datetime.timedelta(hours=25)).isoformat()}, good | {"environment": "production"}]:
     try:
         module.check_marker(bad, "staging", "core", now)
     except ValueError:

@@ -31,8 +31,32 @@ test("shared packages and copied manifests invalidate every Node consumer", () =
   for (const path of [
     "packages/auth/src/index.ts",
     "apps/web/cms/package.json",
+    "apps/web/elections/package.json",
   ])
     assert.deepEqual(selectImages([path]).web, webImages);
+});
+test("Elections source deploys independently while mixed changes retain core checks", () => {
+  for (const path of [
+    "apps/web/elections/src/app/page.tsx",
+    "apps/web/elections/src/data/source/elections/2022/results.json",
+    "apps/web/elections/vercel.json",
+    "apps/web/barrels/index.html",
+    "apps/web/barrels/build.mjs",
+  ])
+    assert.deepEqual(selectImages([path]), {
+      web: [],
+      weather: [],
+      api: false,
+    });
+  const mixed = selectImages([
+    "apps/web/elections/src/app/page.tsx",
+    "apps/web/auth/src/app/page.tsx",
+  ]);
+  assert.deepEqual(
+    mixed.web.map((image) => image.app),
+    ["auth"]
+  );
+  assert.equal(mixed.api, false);
 });
 test("SURFACE source does not enter the release", () => {
   const selected = selectImages(["surface/api/tempestas_api/settings.py"]);

@@ -1,109 +1,155 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import posthog, { type CaptureResult } from "posthog-js";
-import { PostHogProvider as PHProvider, usePostHog } from "posthog-js/react";
 import { Suspense, useEffect, useState } from "react";
+import {
+  browserOptOut,
+  CONSENT_KEY,
+  CONSENT_MS,
+  configForOrigin,
+  type PublicApp,
+  pageSection,
+  readConsent,
+} from "../lib/analytics-policy";
+import {
+  captureMarkedLink,
+  capturePage,
+  startAnalytics,
+  stopAnalytics,
+} from "../lib/analytics-runtime";
+import { Button } from "./ui/button";
 
-const PAGE_SECTIONS = new Set([
-  "home",
-  "cap",
-  "wxproducts",
-  "wxwatch",
-  "weather",
-  "forecast",
-  "marine",
-  "aviation",
-  "climate",
-  "news",
-  "alerts",
-  "about",
-  "contact",
-  "security",
-  "sign-in",
-  "sign-up",
-  "other",
-]);
+export { filterAnalyticsEvent } from "../lib/analytics-runtime";
 
-/** Allow page counts only, excluding arbitrary properties, URLs and content. */
-export function filterAnalyticsEvent(
-  event: CaptureResult | null
-): CaptureResult | null {
-  if (event?.event !== "$pageview") return null;
-  const properties = event.properties;
-  return {
-    uuid: event.uuid,
-    event: event.event,
-    timestamp: event.timestamp,
-    properties: {
-      page_section: PAGE_SECTIONS.has(properties.page_section)
-        ? properties.page_section
-        : "other",
-      token: properties.token,
-      distinct_id: properties.distinct_id,
-      $lib: properties.$lib,
-      $lib_version: properties.$lib_version,
-      $process_person_profile: false,
-      $geoip_disable: true,
-    },
-  };
-}
-
-function PostHogPageView() {
+function PublicAnalytics({ app }: { app: PublicApp }) {
   const pathname = usePathname();
-  const ph = usePostHog();
-
-  useEffect(() => {
-    if (pathname && ph) {
-      const section = pathname.split("/")[1] || "home";
-      ph.capture("$pageview", {
-        page_section: PAGE_SECTIONS.has(section) ? section : "other",
-      });
-    }
-  }, [pathname, ph]);
-
-  return null;
-}
-
-interface PostHogProviderProps {
-  apiHost: string;
-  apiKey: string;
-  children: React.ReactNode;
-}
-
-export function PostHogProvider({
-  apiKey,
-  apiHost,
-  children,
-}: PostHogProviderProps) {
+  const [preference, setPreference] = useState<"accepted" | "declined" | null>(
+    null
+  );
+  const [open, setOpen] = useState(false);
   const [ready, setReady] = useState(false);
   useEffect(() => {
-    if (!apiKey) return;
-    if (posthog.__loaded) {
+    const update = () => {
+      const value = readConsent();
+      setPreference(value);
+      setOpen(value === null && configForOrigin(app, location.origin) !== null);
+      if (value !== "accepted") stopAnalytics();
       setReady(true);
-      return;
+    };
+    update();
+    window.addEventListener("storage", update);
+    window.addEventListener("focus", update);
+    const timer = window.setInterval(update, 60_000);
+    return () => {
+      window.removeEventListener("storage", update);
+      window.removeEventListener("focus", update);
+      window.clearInterval(timer);
+    };
+  }, [app]);
+  useEffect(() => {
+    let active = true;
+    const config = configForOrigin(app, location.origin);
+    if (preference === "accepted" && config)
+      startAnalytics(config).then(() => {
+        if (!(active && pathname)) return;
+        capturePage(pathname, pageSection(pathname));
+      });
+    return () => {
+      active = false;
+    };
+  }, [app, preference, pathname]);
+  useEffect(() => {
+    const onClick = (event: MouseEvent) => {
+      const link =
+        event.target instanceof Element
+          ? event.target.closest("a[data-analytics-event]")
+          : null;
+      if (link instanceof HTMLAnchorElement) captureMarkedLink(link);
+    };
+    document.addEventListener("click", onClick);
+    return () => document.removeEventListener("click", onClick);
+  }, []);
+  function choose(value: "accepted" | "declined") {
+    const choice = browserOptOut() ? "declined" : value;
+    try {
+      localStorage.setItem(
+        CONSENT_KEY,
+        JSON.stringify({ value: choice, expires: Date.now() + CONSENT_MS })
+      );
+    } catch {
+      /* Fail closed if consent cannot be saved. */
     }
-    posthog.init(apiKey, {
-      api_host: apiHost,
-      defaults: "2026-01-30",
-      person_profiles: "never",
-      capture_pageview: false,
-      capture_pageleave: false,
-      autocapture: false,
-      capture_exceptions: false,
-      disable_session_recording: true,
-      disable_surveys: true,
-      before_send: filterAnalyticsEvent,
-      loaded: () => setReady(true),
-    });
-  }, [apiKey, apiHost]);
-
+    if (choice !== "accepted") stopAnalytics();
+    setPreference(readConsent());
+    setOpen(false);
+  }
   return (
-    <PHProvider client={posthog}>
-      <Suspense fallback={null}>
-        {ready && apiKey ? <PostHogPageView /> : null}
-      </Suspense>
+    <div className="border-border border-t bg-background p-4 text-foreground text-sm">
+      <button
+        className="underline"
+        onClick={() => setOpen(!open)}
+        type="button"
+      >
+        Privacy settings
+      </button>
+      {ready && open ? (
+        <section aria-label="Privacy settings" className="space-y-3 py-3">
+          <p>
+            Optional Google Analytics and PostHog help us understand page use
+            and selected actions. They load only if you accept. No replay,
+            advertising or cross-site identity is used. Your choice stays on
+            this site for six months; you can withdraw here anytime.
+          </p>
+          <p>
+            Detailed product events are retained for up to 90 days and Google
+            Analytics analysis data for 14 months. Minimal operational errors
+            and availability checks continue independently.
+          </p>
+          {browserOptOut() ? (
+            <p>
+              Your browser’s opt-out signal keeps optional analytics disabled.
+            </p>
+          ) : null}
+          {configForOrigin(app, location.origin) ? null : (
+            <p>Optional analytics is currently disabled for this site.</p>
+          )}
+          <div className="flex flex-wrap gap-3">
+            <Button
+              disabled={
+                browserOptOut() || !configForOrigin(app, location.origin)
+              }
+              onClick={() => choose("accepted")}
+              variant="outline"
+            >
+              Accept
+            </Button>
+            <Button onClick={() => choose("declined")} variant="outline">
+              Decline
+            </Button>
+          </div>
+        </section>
+      ) : null}
+    </div>
+  );
+}
+/** Legacy keys are deliberately ignored; staff mounts never collect browser analytics. */
+export function PostHogProvider({
+  children,
+  app,
+}: {
+  children: React.ReactNode;
+  app?: PublicApp;
+  apiKey?: string;
+  apiHost?: string;
+}) {
+  return (
+    <>
       {children}
-    </PHProvider>
+      {app ? (
+        <Suspense fallback={null}>
+          <PublicAnalytics app={app} />
+        </Suspense>
+      ) : null}
+    </>
   );
 }

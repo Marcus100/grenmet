@@ -1,0 +1,353 @@
+[
+  [
+    "L01",
+    "a",
+    "South St. George Government School",
+    210,
+    183,
+    0,
+    {
+      "NNP": 100,
+      "NDC": 81,
+      "NUF": 2
+    }
+  ],
+  [
+    "L01",
+    "b",
+    "South St. George Government School",
+    230,
+    194,
+    1,
+    {
+      "NNP": 111,
+      "NDC": 79,
+      "NUF": 3
+    }
+  ],
+  [
+    "L01",
+    "c",
+    "South St. George Government School",
+    239,
+    208,
+    2,
+    {
+      "NNP": 125,
+      "NDC": 77,
+      "NUF": 4
+    }
+  ],
+  [
+    "L01",
+    "d",
+    "South St. George Government School",
+    192,
+    164,
+    2,
+    {
+      "NNP": 84,
+      "NDC": 76,
+      "NUF": 2
+    }
+  ],
+  [
+    "L02",
+    null,
+    "Springs Child Development Centre",
+    293,
+    236,
+    0,
+    {
+      "NNP": 120,
+      "NDC": 114,
+      "NUF": 2
+    }
+  ],
+  [
+    "L03",
+    "a",
+    "Woburn Community Centre",
+    216,
+    194,
+    0,
+    {
+      "NNP": 100,
+      "NDC": 83,
+      "NUF": 11
+    }
+  ],
+  [
+    "L03",
+    "b",
+    "Woburn Community Centre",
+    193,
+    176,
+    0,
+    {
+      "NNP": 82,
+      "NDC": 79,
+      "NUF": 15
+    }
+  ],
+  [
+    "L04",
+    "a",
+    "Woburn Methodist Church and Church",
+    262,
+    226,
+    0,
+    {
+      "NNP": 132,
+      "NDC": 90,
+      "NUF": 4
+    }
+  ],
+  [
+    "L04",
+    "b",
+    "Woburn Methodist Church and Church",
+    286,
+    246,
+    0,
+    {
+      "NNP": 150,
+      "NDC": 94,
+      "NUF": 2
+    }
+  ],
+  [
+    "L04",
+    "c",
+    "Woburn Methodist Church and Church Hall",
+    242,
+    214,
+    0,
+    {
+      "NNP": 130,
+      "NDC": 80,
+      "NUF": 4
+    }
+  ],
+  [
+    "L05",
+    "a",
+    "The Church of Jesus Christ of Latter Day Saints",
+    242,
+    206,
+    0,
+    {
+      "NNP": 115,
+      "NDC": 86,
+      "NUF": 5
+    }
+  ],
+  [
+    "L05",
+    "b",
+    "The Church of Jesus Christ of Latter Day Saints",
+    222,
+    198,
+    0,
+    {
+      "NNP": 99,
+      "NDC": 99,
+      "NUF": 0
+    }
+  ],
+  [
+    "L06",
+    "a",
+    "School for Special Education , The Limes",
+    350,
+    296,
+    0,
+    {
+      "NNP": 195,
+      "NDC": 97,
+      "NUF": 4
+    }
+  ],
+  [
+    "L06",
+    "b",
+    "School for Special Education , The Limes",
+    239,
+    209,
+    2,
+    {
+      "NNP": 111,
+      "NDC": 94,
+      "NUF": 2
+    }
+  ],
+  [
+    "L06",
+    "c",
+    "School for Special Education , The Limes",
+    287,
+    239,
+    0,
+    {
+      "NNP": 137,
+      "NDC": 95,
+      "NUF": 7
+    }
+  ],
+  [
+    "L06",
+    "d",
+    "School for Special Education , The Limes",
+    247,
+    210,
+    0,
+    {
+      "NNP": 118,
+      "NDC": 90,
+      "NUF": 2
+    }
+  ],
+  [
+    "L07",
+    "a",
+    "Sandino Plant",
+    267,
+    225,
+    1,
+    {
+      "NNP": 138,
+      "NDC": 81,
+      "NUF": 5
+    }
+  ],
+  [
+    "L07",
+    "b",
+    "Sandino Plant, Lance-Aux-Epines",
+    322,
+    280,
+    1,
+    {
+      "NNP": 180,
+      "NDC": 92,
+      "NUF": 7
+    }
+  ],
+  [
+    "L07",
+    "c",
+    "Sandino Plant, Lance-Aux-Epines",
+    274,
+    219,
+    1,
+    {
+      "NNP": 146,
+      "NDC": 64,
+      "NUF": 8
+    }
+  ],
+  [
+    "L07",
+    "d",
+    "Sandino Plant, Lance-Aux-Epines",
+    246,
+    215,
+    2,
+    {
+      "NNP": 142,
+      "NDC": 66,
+      "NUF": 5
+    }
+  ],
+  [
+    "L07",
+    "e",
+    "Sandino Plant",
+    332,
+    278,
+    1,
+    {
+      "NNP": 177,
+      "NDC": 92,
+      "NUF": 8
+    }
+  ],
+  [
+    "L07",
+    "f",
+    "Sandino Plant",
+    188,
+    161,
+    1,
+    {
+      "NNP": 105,
+      "NDC": 53,
+      "NUF": 2
+    }
+  ],
+  [
+    "L08",
+    "a",
+    "Calliste Government School",
+    347,
+    293,
+    1,
+    {
+      "NNP": 175,
+      "NDC": 112,
+      "NUF": 5
+    }
+  ],
+  [
+    "L08",
+    "b",
+    "Calliste Government School",
+    299,
+    253,
+    0,
+    {
+      "NNP": 151,
+      "NDC": 100,
+      "NUF": 2
+    }
+  ],
+  [
+    "L08",
+    "c",
+    "Calliste Government School",
+    247,
+    205,
+    0,
+    {
+      "NNP": 128,
+      "NDC": 74,
+      "NUF": 3
+    }
+  ],
+  [
+    "L08",
+    "d",
+    "Calliste Government School",
+    292,
+    251,
+    0,
+    {
+      "NNP": 147,
+      "NDC": 102,
+      "NUF": 2
+    }
+  ],
+  [
+    "L08",
+    "e",
+    "Calliste Government School",
+    333,
+    292,
+    0,
+    {
+      "NNP": 179,
+      "NDC": 107,
+      "NUF": 6
+    }
+  ]
+]

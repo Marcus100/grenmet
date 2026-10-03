@@ -141,7 +141,9 @@ test("staging and production pass integrations to the intended services", () => 
         readFileSync(`infra/docker/${deploymentEnvironment}.env`, "utf8")
       );
       Object.assign(env, {
-        SENTRY_DSN: "https://public@example.test/1",
+        SENTRY_DSN: "https://unused@example.test/1",
+        SENTRY_DSN_STAGING: "https://stage@example.test/1",
+        SENTRY_DSN_PRODUCTION: "https://prod@example.test/2",
         NEXT_PUBLIC_POSTHOG_KEY: "phc_test",
         NEXT_PUBLIC_POSTHOG_HOST: "https://us.i.posthog.com",
         BILLING_STRIPE_SECRET_KEY:
@@ -206,7 +208,10 @@ test("staging and production pass integrations to the intended services", () => 
         api.BILLING_STRIPE_SECRET_KEY,
         env.BILLING_STRIPE_SECRET_KEY
       );
-      assert.equal(api.SENTRY_DSN, env.SENTRY_DSN);
+      assert.equal(
+        api.SENTRY_DSN,
+        env[`SENTRY_DSN_${deploymentEnvironment.toUpperCase()}`]
+      );
       assert.equal(api.REDIS_URL, "redis://redis:6379/0");
       assert.equal(api.EMAIL_RENDER_URL, "http://web-auth:3000");
       const baseDomain =
@@ -242,7 +247,7 @@ test("staging and production pass integrations to the intended services", () => 
       }
       assert.equal(
         model.services.worker.environment.SENTRY_DSN,
-        env.SENTRY_DSN
+        api.SENTRY_DSN
       );
       assert.equal(
         model.services["web-gms"].environment.CAP_API_URL,
@@ -259,7 +264,7 @@ test("staging and production pass integrations to the intended services", () => 
       for (const service of ["web-auth", "web-admin", "web-docs", "web-gms"]) {
         assert.equal(
           model.services[service].environment.NEXT_PUBLIC_POSTHOG_KEY,
-          env.NEXT_PUBLIC_POSTHOG_KEY
+          undefined
         );
         assert.equal(
           model.services[service].environment.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
@@ -377,5 +382,25 @@ test("partial provider configuration and live Stripe keys in staging fail closed
     } finally {
       rmSync(directory, { recursive: true, force: true });
     }
+  }
+});
+
+test("runtime missing staging Sentry never selects production", () => {
+  const directory = mkdtempSync(join(tmpdir(), "sentry-isolation-"));
+  try {
+    const { env, config, destination } = fixture(directory);
+    env.SENTRY_DSN_STAGING = undefined;
+    env.SENTRY_DSN_PRODUCTION = "https://prod@example.test/2";
+    execFileSync(
+      "python3",
+      ["scripts/production/render-env.py", config, destination],
+      { env }
+    );
+    const rendered = readFileSync(destination, "utf8");
+    assert.ok(rendered.includes('SENTRY_DSN_API=""'));
+    assert.ok(rendered.includes('SENTRY_DSN_WORKER=""'));
+    assert.equal(rendered.includes("https://prod@example.test/2"), false);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
   }
 });

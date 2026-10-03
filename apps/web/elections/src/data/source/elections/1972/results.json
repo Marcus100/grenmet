@@ -1,0 +1,409 @@
+{
+  "G": {
+    "reg": 3381,
+    "cast": 2437,
+    "rej": null,
+    "c": [
+      ["Morris, J.N.", "GULP", 1229, "official"],
+      ["Scipio, H.R.", "GNP", 1208, "official"]
+    ],
+    "src": "gazette1972",
+    "official": true,
+    "castIsValid": true,
+    "page": 132,
+    "divisions": {
+      "cands": ["H. R. Scipio", "J. N. Morris"],
+      "rows": [
+        ["1", "York House", 260, 115, 89],
+        ["2", "Julie Aird's Residence, Lucas Street", 275, 108, 82],
+        ["3", "Telesford's Residence, River Road", 690, 142, 364],
+        ["4", "The Empire Cinema", 346, 154, 84],
+        ["5", "The Town Hall", 335, 106, 162],
+        ["6", "The New Testament Church", 302, 170, 75],
+        ["7", "Church Hall", 84, 48, 25],
+        ["8", "Girl Guide Headquarters", 478, 235, 132],
+        ["9", "Wesley Hall School", 136, 79, 23],
+        ["10", "Police Station", 475, 51, 193]
+      ]
+    }
+  },
+  "J": {
+    "reg": 2204,
+    "cast": 1898,
+    "rej": null,
+    "c": [
+      ["Hosten, G.F.", "GULP", 1340, "official"],
+      ["Mitchell, E.A.", "GNP", 558, "official"]
+    ],
+    "src": "gazette1972",
+    "official": true,
+    "castIsValid": true,
+    "page": 136,
+    "note": "In the Gazette, the polling-division figures add up to G. Hosten 1,341 and K. Mitchell 558, but the printed totals are 1,340 and 558. The printed totals are shown.",
+    "divisions": {
+      "cands": ["G. Hosten", "K. Mitchell"],
+      "rows": [
+        ["1", "Cardinal Alexander's Residence, Fontenoy", 444, 302, 63],
+        ["2", "Pre-primary School (Grand Mal)", 317, 190, 70],
+        ["3", "Anglican School, Mt. Moritz", 372, 116, 218],
+        ["4", "Happy Hill R. C. School", 501, 338, 102],
+        ["5", "Brizan Chapel", 171, 116, 38],
+        ["6", "St. Luke's Anglican School", 83, 61, 13],
+        ["7", "Gooding Shop (New Hampshire)", 316, 218, 54]
+      ]
+    }
+  },
+  "H": {
+    "reg": 3251,
+    "cast": 2796,
+    "rej": null,
+    "c": [
+      ["Dolland, F.O.", "GULP", 1504, "official"],
+      ["O'Neil, F.G.", "GNP", 1292, "official"]
+    ],
+    "src": "gazette1972",
+    "official": true,
+    "castIsValid": true,
+    "page": 136,
+    "note": "In the Gazette, the polling-division figures add up to F. Dolland 1,502 and F. O'Neale 1,337, but the printed totals are 1,504 and 1,292. The printed totals are shown.",
+    "divisions": {
+      "cands": ["F. Dolland", "F. O'Neale"],
+      "rows": [
+        ["1", "Vendomme R. C. School", 239, 176, 53],
+        ["2", "Willis Visiting Station", 307, 212, 48],
+        ["3", "Constantine Old Methodist Church", 90, 51, 37],
+        ["4", "Penny's Residence (Boca)", 391, 197, 152],
+        ["5", "Beaulieu R. C. School", 684, 254, 361],
+        ["6", "LaMode Community Centre", 316, 112, 171],
+        ["7", "Ventour's Residence (Tempe)", 525, 212, 207],
+        ["8", "Palmer's Residence (Mt. Parnassus)", 256, 122, 109],
+        ["9", "Model School (St. Paul's)", 443, 166, 199]
+      ]
+    }
+  },
+  "K": {
+    "reg": 2620,
+    "cast": 2096,
+    "rej": null,
+    "c": [
+      ["Williams, A.J.", "GULP", 1328, "official"],
+      ["Renwick, G.C.", "GNP", 768, "official"]
+    ],
+    "src": "gazette1972",
+    "official": true,
+    "castIsValid": true,
+    "page": 137,
+    "divisions": {
+      "cands": ["A. Williams", "G. Renwick"],
+      "rows": [
+        ["1", "Nimblette's Tailor Shop", 226, 86, 87],
+        ["2", "Clement Pascall's House (Springs)", 192, 95, 72],
+        ["3", "Lyn Lowe's House (Calivigny)", 137, 104, 22],
+        ["4", "St. Paul's Anglican School", 380, 131, 172],
+        ["5", "George Rullow's Shop", 252, 107, 102],
+        ["6", "Hope Vale Estate Premises", 60, 41, 8],
+        ["7", "Society Hall (LaBorie)", 404, 197, 112],
+        ["8", "Community Centre (Marian)", 259, 198, 30],
+        ["9", "Richmond Hill Tailor Shop", 327, 153, 68],
+        ["10", "Morne Jaloux R. C. School", 383, 216, 95]
+      ]
+    }
+  },
+  "L": {
+    "reg": 2726,
+    "cast": 2186,
+    "rej": null,
+    "c": [
+      ["Gairy, E.M.", "GULP", 1548, "official"],
+      ["Strachan, S.H.", "GNP", 638, "official"]
+    ],
+    "src": "gazette1972",
+    "official": true,
+    "castIsValid": true,
+    "page": 137,
+    "divisions": {
+      "cands": ["E. M. Gairy", "S. H. Strachan"],
+      "rows": [
+        ["1", "Belmont Society Hall", 715, 385, 159],
+        ["2", "Domingo DeFreitas' Shop", 234, 95, 92],
+        ["3", "Woburn Community Centre", 226, 138, 69],
+        ["4", "Woburn Methodist School", 283, 175, 59],
+        ["5", "Bruno's Bakery", 416, 261, 82],
+        ["6", "Mrs. McIntyre's Hall", 331, 202, 68],
+        ["7", "Cecil Maitland's Residence", 266, 104, 80],
+        ["8", "Calliste Medical Station", 255, 188, 29]
+      ]
+    }
+  },
+  "M": {
+    "reg": 3731,
+    "cast": 2947,
+    "rej": null,
+    "c": [
+      ["Preudhomme, H.J.", "GULP", 1777, "official"],
+      ["Branch, J.A.", "GNP", 1170, "official"]
+    ],
+    "src": "gazette1972",
+    "official": true,
+    "castIsValid": true,
+    "page": 135,
+    "divisions": {
+      "cands": ["H. Preudhomme", "J. Branch"],
+      "rows": [
+        ["1", "Court House (Gouyave)", 479, 179, 226],
+        ["2", "The Orphan Benefit Society Hall", 325, 151, 76],
+        ["3", "The Mechanic Lodge (Gouyave)", 711, 316, 158],
+        ["4", "Grand Roy Government School", 742, 327, 248],
+        ["5", "Concord Government School", 505, 312, 127],
+        ["6", "Florida Visiting Station", 200, 89, 84],
+        ["7", "St. John's Christian Secondary School (Brothers)", 394, 218, 91],
+        ["8", "The Community Centre", 196, 117, 63],
+        ["9", "The Community Centre (Clozier)", 179, 68, 97]
+      ]
+    }
+  },
+  "N": {
+    "reg": 1883,
+    "cast": 1652,
+    "rej": null,
+    "c": [
+      ["Forsyth, A.O.", "GULP", 1037, "official"],
+      ["Japal, R.R.", "GNP", 615, "official"]
+    ],
+    "src": "gazette1972",
+    "official": true,
+    "castIsValid": true,
+    "page": 135,
+    "divisions": {
+      "cands": ["A. Forsyth", "R. Japal"],
+      "rows": [
+        ["1", "The Office of Maran Cocoa Station", 189, 96, 56],
+        ["2", "Court House, Victoria", 470, 263, 146],
+        ["3", "New District Board", 348, 192, 101],
+        ["4", "Waltham Boucan", 355, 311, 15],
+        ["5", "Downstairs Harris DeAllie's Shop", 216, 99, 95],
+        ["6", "Samaritan Presbyterian School", 305, 76, 202]
+      ]
+    }
+  },
+  "P": {
+    "reg": 2207,
+    "cast": 1731,
+    "rej": null,
+    "c": [
+      ["Raeburn, O.A.T.", "GULP", 965, "official"],
+      ["Nyack, W.L.", "GNP", 766, "official"]
+    ],
+    "src": "gazette1972",
+    "official": true,
+    "castIsValid": true,
+    "page": 134,
+    "divisions": {
+      "cands": ["O. Raeburn", "W. Nyack"],
+      "rows": [
+        ["1", "The Old Anglican Church (Hermitage)", 152, 88, 44],
+        ["2", "Mt. Rose Society Hall", 459, 158, 157],
+        ["3", "River Sallee Government School", 582, 289, 182],
+        ["4", "George Alexander's House (Snell Hall)", 240, 103, 71],
+        ["5", "Alleyne's House (Rose Hill junction)", 377, 224, 68],
+        ["6", "Court House (Sauteurs)", 397, 103, 244]
+      ]
+    }
+  },
+  "R": {
+    "reg": 2723,
+    "cast": 2369,
+    "rej": null,
+    "c": [
+      ["Friday, W.R.L.", "GNP", 1185, "official"],
+      ["Whyte, W.M.", "GULP", 1184, "official"]
+    ],
+    "src": "gazette1972",
+    "official": true,
+    "castIsValid": true,
+    "page": 135,
+    "divisions": {
+      "cands": ["W. Whyte", "W. Friday"],
+      "rows": [
+        ["1", "Police Station (Hermitage)", 351, 191, 114],
+        ["2", "Mt. Reuil Boucan", 340, 276, 28],
+        ["3", "Trevallyan House", 423, 175, 162],
+        ["4", "P.W.D. Sauteurs", 298, 56, 188],
+        ["5", "Society Hall (Marli)", 271, 80, 156],
+        ["6", "Community Centre (Mt. Rodney)", 328, 34, 250],
+        ["7", "Isidore Alexander House", 205, 29, 156],
+        ["8", "G. A. Glean's Boucan", 330, 253, 57],
+        ["9", "Chantimelle R. C. School", 177, 90, 74]
+      ]
+    }
+  },
+  "D": {
+    "reg": 2571,
+    "cast": 2025,
+    "rej": null,
+    "c": [
+      ["Nedd, W.", "GULP", 1461, "official"],
+      ["Simon, V.B.", "GNP", 564, "official"]
+    ],
+    "src": "gazette1972",
+    "official": true,
+    "castIsValid": true,
+    "page": 134,
+    "divisions": {
+      "cands": ["W. Nedd", "V. Simon"],
+      "rows": [
+        ["1", "Shine Scott P. School", 396, 219, 118],
+        ["2", "Linton Thomas' Shop", 448, 255, 108],
+        ["3", "Belair Government School", 392, 239, 99],
+        ["4", "Tivoli R. C. School", 384, 253, 74],
+        ["5", "Mr. Francois' Home", 254, 155, 60],
+        ["6", "St. John Society Hall", 498, 210, 61],
+        ["7", "Paraclete Visiting Station", 199, 130, 44]
+      ]
+    }
+  },
+  "E": {
+    "reg": 1841,
+    "cast": 1666,
+    "rej": null,
+    "c": [
+      ["Benjamin, N.", "GULP", 1166, "official"],
+      ["Jones, B.J.", "GNP", 500, "official"]
+    ],
+    "src": "gazette1972",
+    "official": true,
+    "castIsValid": true,
+    "page": 134,
+    "divisions": {
+      "cands": ["N. Benjamin", "B. Jones"],
+      "rows": [
+        ["1", "Paraclete Government School", 117, 88, 20],
+        ["2", "LaFillette Old School", 328, 217, 74],
+        ["3", "Byelands R. C. School", 370, 258, 79],
+        ["4", "Paradise Community Centre", 347, 203, 96],
+        ["5", "Mirabeau Agricultural Station", 210, 167, 28],
+        ["6", "Beauregard (Collins Building)", 250, 151, 83],
+        ["7", "Society Hall, Adelphi", 219, 82, 120]
+      ]
+    }
+  },
+  "C": {
+    "reg": 3306,
+    "cast": 2905,
+    "rej": null,
+    "c": [
+      ["Sylvester, D.T.", "GULP", 1572, "official"],
+      ["Ogilvie, H.W.H.", "GNP", 1333, "official"]
+    ],
+    "src": "gazette1972",
+    "official": true,
+    "castIsValid": true,
+    "page": 133,
+    "divisions": {
+      "cands": ["D. Sylvester", "H. Ogilvie"],
+      "rows": [
+        ["1", "Pre-primary School, Munich", 263, 188, 57],
+        ["2", "Munich R. C. School", 123, 65, 43],
+        ["3", "Mt. Carmel Health Centre", 130, 58, 63],
+        ["4", "Lynch DeGannes' Shop (DeBlandeau)", 170, 89, 54],
+        ["5", "Mr. Morris Henry's house (Richmond)", 241, 139, 80],
+        ["6", "Union Pre-primary School", 140, 82, 44],
+        ["7", "Mr. Charles' house (Soubise)", 273, 92, 113],
+        ["8", "Mrs. Clyne's Shop (Harford Village)", 349, 126, 177],
+        ["9", "Grand Bras Health Centre", 277, 77, 154],
+        ["10", "Grand Bras Day Nursery", 240, 102, 138],
+        ["11", "Grenville R. C. School", 247, 89, 127],
+        ["12", "Harold Noel's Garage (LaDigue)", 274, 132, 125],
+        ["13", "St. James Banana Shed", 254, 170, 62],
+        ["14", "Birchgrove Community Centre", 325, 163, 96]
+      ]
+    }
+  },
+  "B": {
+    "reg": 1958,
+    "cast": 1697,
+    "rej": null,
+    "c": [
+      ["Alexis, H.P.G.", "GULP", 1102, "official"],
+      ["Bhola, R.M.", "GNP", 595, "official"]
+    ],
+    "src": "gazette1972",
+    "official": true,
+    "castIsValid": true,
+    "page": 133,
+    "divisions": {
+      "cands": ["R. M. Bhola", "H. Alexis"],
+      "rows": [
+        ["1", "Anglican Senior School", 316, 145, 121],
+        ["2", "The Court House", 223, 105, 82],
+        ["3", "Mr. Peter Bertrand's Shop, Soubise", 191, 69, 90],
+        ["4", "Miss Rhoda Mason's Shop, Post Royal", 183, 65, 99],
+        ["5", "Marquis Society Hall", 160, 21, 130],
+        ["6", "Mr. Franklin Carriman's house, Mt. Fan", 177, 35, 123],
+        ["7", "Mr. DeCosta Carriman's Shop, Conma", 142, 58, 69],
+        ["8", "The New Crochu R. C. School", 183, 28, 137],
+        ["9", "The Old R. C. School, Crochu", 209, 55, 118],
+        ["10", "Mr. Gordon Carriman's Shop, Mamma Cannes", 174, 14, 133]
+      ]
+    }
+  },
+  "F": {
+    "reg": 4454,
+    "cast": 3666,
+    "rej": null,
+    "c": [
+      ["Gairy, C.B.", "GULP", 2404, "official"],
+      ["Whiteman, U.", "GNP", 1262, "official"]
+    ],
+    "src": "gazette1972",
+    "official": true,
+    "castIsValid": true,
+    "page": 133,
+    "divisions": {
+      "cands": ["C. B. Gairy", "I. Whiteman"],
+      "rows": [
+        ["1", "Alfred Cornwall's Shop", 281, 196, 43],
+        ["1A", "Westerhall Farm", 299, 147, 75],
+        ["2", "Old School, Perdmontemps", 300, 143, 102],
+        ["3", "New School, Perdmontemps", 456, 258, 115],
+        ["4", "Windsor Forest Community Centre", 490, 307, 75],
+        ["5", "Vincennes R. C. School", 544, 288, 141],
+        ["6", "Corinth Community Centre", 300, 204, 52],
+        ["7", "Foresters' Court", 399, 144, 173],
+        ["8", "The Court House", 338, 168, 132],
+        ["9", "Balmoral Hall", 235, 143, 68],
+        ["10", "Pomme Rose R. C. School", 277, 112, 130],
+        ["11", "Charlie Blesadille's Club", 535, 294, 156]
+      ]
+    }
+  },
+  "A": {
+    "reg": 2673,
+    "cast": 2170,
+    "rej": null,
+    "c": [
+      ["Blaize, H.A.", "GNP", 1632, "official"],
+      ["Caesar, M.A.", "GULP", 538, "official"]
+    ],
+    "src": "gazette1972",
+    "official": true,
+    "castIsValid": true,
+    "page": 136,
+    "divisions": {
+      "cands": ["H. A. Blaize", "M. Caesar"],
+      "rows": [
+        ["1", "Windward Clinic", 283, 194, 30],
+        ["2", "Mrs. Margaret Peters' House (Bogles)", 181, 121, 23],
+        ["3", "Dover Government School", 186, 113, 40],
+        ["4", "Mt. Pleasant Government School", 219, 106, 66],
+        ["5", "Top Hill Rest House", 172, 108, 20],
+        ["6", "Hillsborough Government School", 214, 147, 35],
+        ["7", "Police Station (Hillsborough)", 254, 181, 48],
+        ["8", "Six Roads Primary School", 215, 171, 15],
+        ["9", "L'Esterre R. C. School", 325, 244, 18],
+        ["10", "Harvey Vale Government School", 293, 172, 72],
+        ["11", "Petit Martinique School", 331, 75, 171]
+      ]
+    }
+  }
+}

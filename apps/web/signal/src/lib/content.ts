@@ -13,8 +13,14 @@ export function getPublishedArticles(): Article[] {
   return publishedArticles(allArticles);
 }
 
+export function getCurrentArticles(): Article[] {
+  return getPublishedArticles().filter(
+    (article) => article.reviewStatus === "editorial-preview"
+  );
+}
+
 export function getArticlesBySection(section: string): Article[] {
-  return bySection(allArticles, section);
+  return bySection(getCurrentArticles(), section);
 }
 
 export function getArticle(section: string, slug: string): Article | undefined {

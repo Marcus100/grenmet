@@ -1,0 +1,11 @@
+{
+  "id": "E-14",
+  "area": "1954–1962 results",
+  "status": "open",
+  "impact": "data",
+  "what": "The Supervisor of Elections’ Gazette notices for 1954, 1957, 1961 and 1962 give each winner’s votes. 35 winners match ElectionPassport and 2 were corrected: 1954 Carriacou (Paterson 1,295, not 1,296) and 1962 St. Andrew South (Bhola 1,609, not 1,610). The 1962 Carriacou seat, missing from ElectionPassport, was added: Herbert Blaize, returned unopposed. Two Gazette digits are unclear: 1954 St. George’s Town (983 or 988) and 1957 St. David (985 or 983). The notices don’t give losing candidates’ votes, so those remain secondary (✱).",
+  "action": "Find each election’s full returns (Returning Officers’ statements or the Legislative Council papers) to verify losing candidates and settle the two unclear digits.",
+  "sources": [
+    "Government Gazette (Extraordinary) No. 54/1954, No. 53/1957, No. 18/1961, Nos. 56 and 63/1962"
+  ]
+}

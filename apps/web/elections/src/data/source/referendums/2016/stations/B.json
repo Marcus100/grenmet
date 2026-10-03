@@ -1,0 +1,162 @@
+[
+  {
+    "div": "B01",
+    "sub": "a",
+    "reg": 339,
+    "voted": 111,
+    "rej": 37,
+    "spoilt": 2,
+    "yes": 250,
+    "no": 480
+  },
+  {
+    "div": "B01",
+    "sub": "b",
+    "reg": 335,
+    "voted": 100,
+    "rej": 64,
+    "spoilt": 2,
+    "yes": 232,
+    "no": 404
+  },
+  {
+    "div": "B01",
+    "sub": "c",
+    "reg": 340,
+    "voted": 105,
+    "rej": 50,
+    "spoilt": 0,
+    "yes": 199,
+    "no": 486
+  },
+  {
+    "div": "B02",
+    "sub": "a",
+    "reg": 213,
+    "voted": 79,
+    "rej": 27,
+    "spoilt": 0,
+    "yes": 117,
+    "no": 409
+  },
+  {
+    "div": "B02",
+    "sub": "b",
+    "reg": 237,
+    "voted": 78,
+    "rej": 17,
+    "spoilt": 0,
+    "yes": 109,
+    "no": 420
+  },
+  {
+    "div": "B03",
+    "sub": null,
+    "reg": 293,
+    "voted": 107,
+    "rej": 62,
+    "spoilt": 0,
+    "yes": 316,
+    "no": 371
+  },
+  {
+    "div": "B04",
+    "sub": null,
+    "reg": 237,
+    "voted": 86,
+    "rej": 40,
+    "spoilt": 1,
+    "yes": 216,
+    "no": 343
+  },
+  {
+    "div": "B05",
+    "sub": null,
+    "reg": 343,
+    "voted": 112,
+    "rej": 36,
+    "spoilt": 2,
+    "yes": 252,
+    "no": 493
+  },
+  {
+    "div": "B06",
+    "sub": "a",
+    "reg": 247,
+    "voted": 84,
+    "rej": 22,
+    "spoilt": 0,
+    "yes": 198,
+    "no": 368
+  },
+  {
+    "div": "B06",
+    "sub": "b",
+    "reg": 255,
+    "voted": 83,
+    "rej": 37,
+    "spoilt": 1,
+    "yes": 147,
+    "no": 397
+  },
+  {
+    "div": "B07",
+    "sub": "a",
+    "reg": 191,
+    "voted": 50,
+    "rej": 38,
+    "spoilt": 0,
+    "yes": 76,
+    "no": 236
+  },
+  {
+    "div": "B07",
+    "sub": "b",
+    "reg": 204,
+    "voted": 64,
+    "rej": 33,
+    "spoilt": 1,
+    "yes": 163,
+    "no": 252
+  },
+  {
+    "div": "B08",
+    "sub": null,
+    "reg": 181,
+    "voted": 56,
+    "rej": 49,
+    "spoilt": 0,
+    "yes": 142,
+    "no": 201
+  },
+  {
+    "div": "B09",
+    "sub": "a",
+    "reg": 182,
+    "voted": 52,
+    "rej": 8,
+    "spoilt": 0,
+    "yes": 135,
+    "no": 220
+  },
+  {
+    "div": "B09",
+    "sub": "b",
+    "reg": 215,
+    "voted": 68,
+    "rej": 38,
+    "spoilt": 0,
+    "yes": 200,
+    "no": 238
+  },
+  {
+    "div": "B10",
+    "sub": null,
+    "reg": 228,
+    "voted": 81,
+    "rej": 28,
+    "spoilt": 0,
+    "yes": 194,
+    "no": 345
+  }
+]

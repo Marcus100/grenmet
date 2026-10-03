@@ -1,0 +1,272 @@
+[
+  {
+    "div": "L01",
+    "sub": "a",
+    "place": "South St. George Government School",
+    "yes": 26,
+    "no": 55,
+    "rej": 1,
+    "voted": 82,
+    "reg": 382
+  },
+  {
+    "div": "L01",
+    "sub": "b",
+    "place": "South St. George Government School",
+    "yes": 30,
+    "no": 51,
+    "rej": 0,
+    "voted": 81,
+    "reg": 390
+  },
+  {
+    "div": "L01",
+    "sub": "c",
+    "place": "South St. George Government School",
+    "yes": 30,
+    "no": 77,
+    "rej": 0,
+    "voted": 107,
+    "reg": 384
+  },
+  {
+    "div": "L02",
+    "sub": null,
+    "place": "Springs Child Development Centre",
+    "yes": 37,
+    "no": 69,
+    "rej": 2,
+    "voted": 108,
+    "reg": 388
+  },
+  {
+    "div": "L03",
+    "sub": "a",
+    "place": "Woburn Community Centre",
+    "yes": 28,
+    "no": 62,
+    "rej": 0,
+    "voted": 90,
+    "reg": 291
+  },
+  {
+    "div": "L03",
+    "sub": "b",
+    "place": "Woburn Community Centre",
+    "yes": 26,
+    "no": 55,
+    "rej": 0,
+    "voted": 81,
+    "reg": 287
+  },
+  {
+    "div": "L04",
+    "sub": "a",
+    "place": "Woburn Methodist Church and Church Hall",
+    "yes": 35,
+    "no": 71,
+    "rej": 4,
+    "voted": 110,
+    "reg": 346
+  },
+  {
+    "div": "L04",
+    "sub": "b",
+    "place": "Woburn Methodist Church and Church Hall",
+    "yes": 31,
+    "no": 72,
+    "rej": 2,
+    "voted": 105,
+    "reg": 333
+  },
+  {
+    "div": "L04",
+    "sub": "c",
+    "place": "Woburn Methodist Church and Church Hall",
+    "yes": 37,
+    "no": 58,
+    "rej": 2,
+    "voted": 97,
+    "reg": 340
+  },
+  {
+    "div": "L05",
+    "sub": "a",
+    "place": "The Church of Jesus Christ of Latter Day Saints",
+    "yes": 23,
+    "no": 72,
+    "rej": 1,
+    "voted": 96,
+    "reg": 316
+  },
+  {
+    "div": "L05",
+    "sub": "b",
+    "place": "The Church of Jesus Christ of Latter Day Saints",
+    "yes": 21,
+    "no": 57,
+    "rej": 2,
+    "voted": 80,
+    "reg": 302
+  },
+  {
+    "div": "L06",
+    "sub": "a",
+    "place": "School for Special Education, The Limes",
+    "yes": 36,
+    "no": 63,
+    "rej": 1,
+    "voted": 100,
+    "reg": 378
+  },
+  {
+    "div": "L06",
+    "sub": "b",
+    "place": "School for Special Education, The Limes",
+    "yes": 57,
+    "no": 59,
+    "rej": 6,
+    "voted": 122,
+    "reg": 447
+  },
+  {
+    "div": "L06",
+    "sub": "c",
+    "place": "School for Special Education, The Limes",
+    "yes": 30,
+    "no": 51,
+    "rej": 0,
+    "voted": 81,
+    "reg": 377
+  },
+  {
+    "div": "L06",
+    "sub": "d",
+    "place": "School for Special Education, The Limes",
+    "yes": 28,
+    "no": 42,
+    "rej": 0,
+    "voted": 70,
+    "reg": 363
+  },
+  {
+    "div": "L07",
+    "sub": "a",
+    "place": "Blessed Sacrament School Maurice Bishop Highway",
+    "yes": 36,
+    "no": 52,
+    "rej": 0,
+    "voted": 88,
+    "reg": 374
+  },
+  {
+    "div": "L07",
+    "sub": "b",
+    "place": "Blessed Sacrament School Maurice Bishop Highway",
+    "yes": 25,
+    "no": 41,
+    "rej": 0,
+    "voted": 66,
+    "reg": 369
+  },
+  {
+    "div": "L07",
+    "sub": "c",
+    "place": "Blessed Sacrament School Maurice Bishop Highway",
+    "yes": 15,
+    "no": 43,
+    "rej": 1,
+    "voted": 59,
+    "reg": 379
+  },
+  {
+    "div": "L07",
+    "sub": "d",
+    "place": "Blessed Sacrament School Maurice Bishop Highway",
+    "yes": 23,
+    "no": 41,
+    "rej": 3,
+    "voted": 67,
+    "reg": 368
+  },
+  {
+    "div": "L07",
+    "sub": "e",
+    "place": "Blessed Sacrament School Maurice Bishop Highway",
+    "yes": 31,
+    "no": 41,
+    "rej": 0,
+    "voted": 72,
+    "reg": 376
+  },
+  {
+    "div": "L07",
+    "sub": "f",
+    "place": "Blessed Sacrament School Maurice Bishop Highway",
+    "yes": 24,
+    "no": 38,
+    "rej": 1,
+    "voted": 63,
+    "reg": 379
+  },
+  {
+    "div": "L08",
+    "sub": "a",
+    "place": "Calliste Government School",
+    "yes": 42,
+    "no": 65,
+    "rej": 1,
+    "voted": 108,
+    "reg": 382
+  },
+  {
+    "div": "L08",
+    "sub": "b",
+    "place": "Calliste Government School",
+    "yes": 28,
+    "no": 64,
+    "rej": 1,
+    "voted": 93,
+    "reg": 356
+  },
+  {
+    "div": "L08",
+    "sub": "c",
+    "place": "Calliste Government School",
+    "yes": 41,
+    "no": 54,
+    "rej": 0,
+    "voted": 95,
+    "reg": 372
+  },
+  {
+    "div": "L08",
+    "sub": "d",
+    "place": "Calliste Government School",
+    "yes": 22,
+    "no": 52,
+    "rej": 0,
+    "voted": 74,
+    "reg": 367
+  },
+  {
+    "div": "L08",
+    "sub": "e",
+    "place": "Calliste Government School",
+    "yes": 40,
+    "no": 50,
+    "rej": 1,
+    "voted": 91,
+    "reg": 352
+  },
+  {
+    "div": "L08",
+    "sub": "f",
+    "place": "Calliste Government School",
+    "yes": 26,
+    "no": 43,
+    "rej": 1,
+    "voted": 70,
+    "reg": 292
+  }
+]

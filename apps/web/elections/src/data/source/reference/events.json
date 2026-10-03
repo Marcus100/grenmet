@@ -1,0 +1,135 @@
+[
+  {
+    "id": "1951",
+    "kind": "general",
+    "date": "1951-10-10",
+    "mapped": false,
+    "divisions": false
+  },
+  {
+    "id": "1954",
+    "kind": "general",
+    "date": "1954-09-20",
+    "mapped": false,
+    "divisions": false
+  },
+  {
+    "id": "1957",
+    "kind": "general",
+    "date": "1957-09-24",
+    "mapped": false,
+    "divisions": false
+  },
+  {
+    "id": "1961",
+    "kind": "general",
+    "date": "1961-03-27",
+    "mapped": false,
+    "divisions": false
+  },
+  {
+    "id": "1962",
+    "kind": "general",
+    "date": "1962-09-13",
+    "mapped": false,
+    "divisions": false
+  },
+  {
+    "id": "1967",
+    "kind": "general",
+    "date": "1967-08-24",
+    "mapped": false,
+    "divisions": false
+  },
+  {
+    "id": "1972",
+    "kind": "general",
+    "date": "1972-02-28",
+    "mapped": true,
+    "divisions": false
+  },
+  {
+    "id": "1976",
+    "kind": "general",
+    "date": "1976-12-07",
+    "mapped": true,
+    "divisions": false
+  },
+  {
+    "id": "1984",
+    "kind": "general",
+    "date": "1984-12-03",
+    "mapped": true,
+    "divisions": false
+  },
+  {
+    "id": "1990",
+    "kind": "general",
+    "date": "1990-03-13",
+    "mapped": true,
+    "divisions": false
+  },
+  {
+    "id": "1995",
+    "kind": "general",
+    "date": "1995-06-20",
+    "mapped": true,
+    "divisions": false
+  },
+  {
+    "id": "1999",
+    "kind": "general",
+    "date": "1999-01-18",
+    "mapped": true,
+    "divisions": false
+  },
+  {
+    "id": "2003",
+    "kind": "general",
+    "date": "2003-11-27",
+    "mapped": true,
+    "divisions": false
+  },
+  {
+    "id": "2008",
+    "kind": "general",
+    "date": "2008-07-08",
+    "mapped": true,
+    "divisions": false
+  },
+  {
+    "id": "2013",
+    "kind": "general",
+    "date": "2013-02-19",
+    "mapped": true,
+    "divisions": true
+  },
+  {
+    "id": "2016r",
+    "kind": "ref",
+    "date": "2016-11-24",
+    "mapped": true,
+    "divisions": true
+  },
+  {
+    "id": "2018",
+    "kind": "general",
+    "date": "2018-03-13",
+    "mapped": true,
+    "divisions": true
+  },
+  {
+    "id": "2018r",
+    "kind": "ref",
+    "date": "2018-11-06",
+    "mapped": true,
+    "divisions": true
+  },
+  {
+    "id": "2022",
+    "kind": "general",
+    "date": "2022-06-23",
+    "mapped": true,
+    "divisions": true
+  }
+]

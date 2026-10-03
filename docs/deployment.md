@@ -9,7 +9,8 @@
 > `docker-compose.staging.yml` files describe the retired prototype layout.
 
 This monorepo uses GitHub Actions with self-hosted runners to deploy to staging and production.
-Each environment runs on its own dedicated Digital Ocean droplet.
+Each environment runs on its own dedicated Digital Ocean droplet. Elections Grenada
+is the exception: it deploys independently to Vercel; see [its deployment guide](web/elections-deployment.md).
 
 ## Pipeline overview
 
@@ -412,6 +413,7 @@ hurricane/spice hosts; no legacy redirects are installed.
 
 | App | Local port | Production | Staging |
 | --- | --- | --- | --- |
+| Barrels homepage | Static | https://barrels.gd (Vercel; www redirects here) | Vercel preview deployments |
 | Auth | 3000 | https://auth.barrels.gd | https://auth.staging.barrels.gd |
 | GAA Admin | 3001 | https://admin.barrels.gd | https://admin.staging.barrels.gd |
 | Docs | 3002 | https://docs.barrels.gd | https://docs.staging.barrels.gd |
@@ -419,6 +421,7 @@ hurricane/spice hosts; no legacy redirects are installed.
 | Signal | 3004 | https://signal.barrels.gd | https://signal.staging.barrels.gd |
 | MBIA | 3005 | https://mbia.barrels.gd | https://mbia.staging.barrels.gd |
 | Events | 3009 | https://events.barrels.gd | https://events.staging.barrels.gd |
+| Elections | 3007 | https://elections.barrels.gd (Vercel) | Vercel preview deployments |
 | FastAPI | 8000 | https://api.barrels.gd | https://api.staging.barrels.gd |
 
 Cloudflare wildcard A records point `*.barrels.gd` to `134.122.119.220` and

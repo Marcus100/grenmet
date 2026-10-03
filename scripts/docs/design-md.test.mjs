@@ -9,10 +9,12 @@ const root = fileURLToPath(new URL("../../", import.meta.url));
 const read = (path) => readFileSync(`${root}${path}`, "utf8").toLowerCase();
 
 const sources = {
+  "barrels.md": ["packages/ui/src/styles/globals.css"],
   "gaa-admin.md": [
     "packages/gms/src/styles/foundation.css",
     "apps/web/gaa-admin/src/app/globals.css",
   ],
+  "elections.md": ["apps/web/elections/src/app/globals.css"],
   "gms.md": ["packages/gms/src/styles/foundation.css"],
   "mbia.md": ["apps/web/mbia/src/app/globals.css"],
   "signal.md": ["apps/web/signal/src/app/globals.css"],

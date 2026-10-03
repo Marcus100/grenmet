@@ -103,7 +103,45 @@ const telemetryOnlyStartupChange = (comparison) => {
       "from src.telemetry import sentry_options\nfrom src.utils.router import router as utils_router"
     )
     .replace("        enable_tracing=True,", "        **sentry_options(),");
-  return before !== after && expected === after;
+  const middlewareExpected = before
+    .replace(
+      "from src.audit.router",
+      "from src import operational_metrics\nfrom src.audit.router"
+    )
+    .replace(
+      `async def request_logging_middleware(request: Request, call_next: Any) -> Any:
+    start = time.perf_counter()
+    response = await call_next(request)
+    duration_s = time.perf_counter() - start
+    logger.info(
+        "%s %s %s %.3fs origin=%s cors_allow_origin=%s requested_headers=%s",
+        request.method,
+        request.url.path,
+        response.status_code,
+        duration_s,
+        request.headers.get("origin", "-"),
+        response.headers.get("access-control-allow-origin", "-"),
+        request.headers.get("access-control-request-headers", "-"),
+    )
+    return response`,
+      `async def request_logging_middleware(request: Request, call_next: Any) -> Any:
+    start = time.perf_counter()
+    status = 500
+    try:
+        response = await call_next(request)
+        status = response.status_code
+    finally:
+        duration_s = time.perf_counter() - start
+        route = getattr(request.scope.get("route"), "path", "unmatched")
+        logger.info(
+            "request route=%s status=%s duration=%.3fs", route, status, duration_s
+        )
+        await operational_metrics.record_request(route, status, duration_s)
+    return response`
+    );
+  return (
+    before !== after && (expected === after || middlewareExpected === after)
+  );
 };
 
 // This exact query fix includes areas without a section in the existing

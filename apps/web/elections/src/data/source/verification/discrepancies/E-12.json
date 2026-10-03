@@ -1,0 +1,9 @@
+{
+  "id": "E-12",
+  "area": "Candidate names",
+  "status": "open",
+  "impact": "presentation",
+  "what": "Names are spelled differently across PEO documents and sources (e.g. Slyvester/Sylvester Quarless, Forsyth/Forsythe, De Coteau/De Choteau, Sealey/Sealy, Henry/Herry, Bain-Joseph/Bain-Horsford). Candidates are matched across years by surname and first initial.",
+  "action": "Needs a reviewed list of candidate identities.",
+  "sources": ["All PEO reports"]
+}

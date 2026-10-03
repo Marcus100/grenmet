@@ -85,20 +85,20 @@ test("build environment and Sentry selection keep staging isolated when its key 
     assert.equal(environment, expected);
     for (const expression of sentryExpressions) {
       const context = {
-        steps: { ctx: { outputs: { environment } } },
+        steps: {
+          ctx: { outputs: { environment } },
+          telemetry: { outputs: { sentry_dsn: "" } },
+        },
         secrets: {
           SENTRY_DSN_STAGING: "",
           SENTRY_DSN_PRODUCTION: "production-only",
         },
       };
+      assert.equal(runInNewContext(expression, context), "");
+      context.steps.telemetry.outputs.sentry_dsn = `${environment}-app-only`;
       assert.equal(
         runInNewContext(expression, context),
-        expected === "staging" ? "" : "production-only"
-      );
-      context.secrets.SENTRY_DSN_STAGING = "staging-only";
-      assert.equal(
-        runInNewContext(expression, context),
-        expected === "staging" ? "staging-only" : "production-only"
+        `${environment}-app-only`
       );
     }
   }

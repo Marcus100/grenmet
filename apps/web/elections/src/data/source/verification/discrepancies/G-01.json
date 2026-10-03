@@ -1,0 +1,12 @@
+{
+  "id": "G-01",
+  "area": "Map",
+  "status": "open",
+  "impact": "presentation",
+  "what": "No official boundary map exists in the archive. Divisions are built from census enumeration districts (a public ArcGIS layer whose publisher is unverified), grouped by the PEO’s village table. 7 divisions couldn’t be placed from their village names: B02, B10, C04, D06, H06, K02, K10.",
+  "action": "Needs official polling-division boundary files (PEO or Lands and Surveys).",
+  "sources": [
+    "Census ED layer",
+    "PEO Electoral Constituencies and Polling Divisions Table (Jan 2018)"
+  ]
+}

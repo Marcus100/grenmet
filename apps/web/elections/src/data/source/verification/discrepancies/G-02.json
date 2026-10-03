@@ -1,0 +1,9 @@
+{
+  "id": "G-02",
+  "area": "Boundary table",
+  "status": "open",
+  "impact": "document",
+  "what": "The PEO village table (dated January 2018) heads St. Andrew South West “C 01 – C 10” but lists C11–C14. Divisions G08 and G09, used in 2013, aren’t in it.",
+  "action": "Ask the PEO for the current table and the pre-2018 division changes.",
+  "sources": ["PEO Electoral Constituencies and Polling Divisions Table"]
+}

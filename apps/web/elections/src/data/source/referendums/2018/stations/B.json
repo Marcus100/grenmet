@@ -1,0 +1,62 @@
+[
+  {
+    "div": "B07",
+    "sub": "a",
+    "place": "Grenada Baptist Church",
+    "yes": 27,
+    "no": 38,
+    "rej": 0,
+    "voted": 65,
+    "reg": 217
+  },
+  {
+    "div": "B07",
+    "sub": "b",
+    "place": "Grenada Baptist Church",
+    "yes": 41,
+    "no": 20,
+    "rej": 0,
+    "voted": 61,
+    "reg": 219
+  },
+  {
+    "div": "B08",
+    "sub": null,
+    "place": "Crochu R.C. School",
+    "yes": 40,
+    "no": 20,
+    "rej": 0,
+    "voted": 60,
+    "reg": 217
+  },
+  {
+    "div": "B09",
+    "sub": "a",
+    "place": "Crochu Skills Training Centre",
+    "yes": 34,
+    "no": 29,
+    "rej": 0,
+    "voted": 63,
+    "reg": 217
+  },
+  {
+    "div": "B09",
+    "sub": "b",
+    "place": "Crochu Skills Training Centre",
+    "yes": 49,
+    "no": 39,
+    "rej": 0,
+    "voted": 88,
+    "reg": 221
+  },
+  {
+    "div": "B10",
+    "sub": null,
+    "place": "Hansel Japal’s Residence",
+    "yes": 58,
+    "no": 32,
+    "rej": 0,
+    "voted": 90,
+    "reg": 255
+  }
+]

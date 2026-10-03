@@ -1,7 +1,6 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { captureServerEvent } from "@/lib/posthog-server";
 import { reportError } from "@/lib/report-error";
 import { getRequestedAppName, getSafeReturnTo } from "@/lib/return-to";
 import type { SessionLoginResponse } from "@/lib/session";
@@ -105,8 +104,6 @@ export async function signInAction(
     };
   }
 
-  await captureServerEvent("sign_in");
-
   redirect(returnTo ?? "/");
 }
 
@@ -133,7 +130,6 @@ async function endSession({
     }
   }
 
-  await captureServerEvent("sign_out");
   await clearSessionCookie();
   redirect(returnTo ?? "/");
 }
@@ -244,7 +240,6 @@ export async function signUpAction(
       lastName,
       middleName,
     });
-    await captureServerEvent("sign_up");
     return { email, error: null, success: true };
   } catch (error) {
     reportError(error, "auth-sign-up");

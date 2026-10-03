@@ -1,0 +1,158 @@
+[
+  [
+    "G01",
+    null,
+    "Magistrate’s Court #1",
+    133,
+    84,
+    0,
+    {
+      "NNP": 48,
+      "TLP": 0,
+      "NDC": 36
+    }
+  ],
+  [
+    "G02",
+    "a",
+    "St. George's Anglican Senior School",
+    235,
+    170,
+    2,
+    {
+      "NNP": 108,
+      "TLP": 0,
+      "NDC": 60
+    }
+  ],
+  [
+    "G02",
+    "b",
+    "St. George's Anglican Senior School",
+    233,
+    154,
+    1,
+    {
+      "NNP": 87,
+      "TLP": 1,
+      "NDC": 65
+    }
+  ],
+  [
+    "G03",
+    "a",
+    "National Stadium, River Road End",
+    328,
+    257,
+    0,
+    {
+      "NNP": 174,
+      "TLP": 9,
+      "NDC": 74
+    }
+  ],
+  [
+    "G03",
+    "b",
+    "National Stadium, River Road End",
+    340,
+    264,
+    4,
+    {
+      "NNP": 191,
+      "TLP": 11,
+      "NDC": 58
+    }
+  ],
+  [
+    "G03",
+    "c",
+    "National Stadium, River Road End",
+    335,
+    259,
+    0,
+    {
+      "NNP": 180,
+      "TLP": 7,
+      "NDC": 72
+    }
+  ],
+  [
+    "G03",
+    "d",
+    "National Stadium, River Road End",
+    334,
+    244,
+    0,
+    {
+      "NNP": 178,
+      "TLP": 6,
+      "NDC": 60
+    }
+  ],
+  [
+    "G03",
+    "e",
+    "National Stadium, River Road End",
+    326,
+    249,
+    0,
+    {
+      "NNP": 185,
+      "TLP": 9,
+      "NDC": 55
+    }
+  ],
+  [
+    "G04",
+    null,
+    "Marryshow House",
+    181,
+    137,
+    1,
+    {
+      "NNP": 95,
+      "TLP": 1,
+      "NDC": 40
+    }
+  ],
+  [
+    "G05",
+    null,
+    "Parliamentary Elections Office, GUT Building",
+    246,
+    169,
+    1,
+    {
+      "NNP": 93,
+      "TLP": 2,
+      "NDC": 73
+    }
+  ],
+  [
+    "G06",
+    null,
+    "Berean Christian Academy, Lucas Street",
+    341,
+    210,
+    0,
+    {
+      "NNP": 118,
+      "TLP": 0,
+      "NDC": 92
+    }
+  ],
+  [
+    "G07",
+    null,
+    "St. George's Anglican Senior School",
+    383,
+    265,
+    0,
+    {
+      "NNP": 158,
+      "TLP": 3,
+      "NDC": 104
+    }
+  ]
+]

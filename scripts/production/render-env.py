@@ -33,6 +33,18 @@ def render(config, environment):
         raise ValueError("PAYLOAD_SECRET must contain at least 32 characters")
     for key in ["WXWATCH_INGEST_TOKEN", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "SENTRY_DSN", "STORAGE_ENDPOINT_URL", "STORAGE_REGION", "STORAGE_BUCKET", "STORAGE_ACCESS_KEY_ID", "STORAGE_SECRET_ACCESS_KEY", "STORAGE_PUBLIC_BASE_URL", 'BILLING_STRIPE_SECRET_KEY', 'BILLING_STRIPE_WEBHOOK_SECRET', 'BILLING_STRIPE_PRICE_ID', 'BILLING_CHECKOUT_SUCCESS_URL', 'BILLING_CHECKOUT_CANCEL_URL', 'RESEND_WEBHOOK_SECRET', 'EMAIL_RENDER_SECRET', 'NEXT_PUBLIC_POSTHOG_KEY', 'NEXT_PUBLIC_POSTHOG_HOST', 'CAP_SIGNING_CERT', 'CAP_SIGNING_KEY', 'CAP_SIGNING_KEY_REF']:
         values[key] = environment.get(key, "")
+    values["TELEMETRY_ENABLED"] = "true" if environment.get("TELEMETRY_ENABLED") == "true" else "false"
+    values["TELEMETRY_WORKER_HEARTBEAT_URL"] = environment.get("TELEMETRY_WORKER_HEARTBEAT_URL", "")
+    catalogue_path = Path(__file__).resolve().parents[2] / "packages/ui/src/lib/service-catalogue.json"
+    catalogue = json.loads(catalogue_path.read_text())
+    for service in catalogue["services"]:
+        app = service["id"].upper().replace("-", "_")
+        entry = service["environments"].get(config.get("ENVIRONMENT"), {})
+        sentry = entry.get("sentry", {})
+        secret_ref = sentry.get("secretRef")
+        if secret_ref and (service["id"] not in {"elections", "auth", "gaa-admin", "docs", "gms", "signal", "mbia", "events", "cms", "api", "worker"} or config.get("ENVIRONMENT") not in {"staging", "production"} or secret_ref != f"SENTRY_DSN_{config['ENVIRONMENT'].upper()}" or sentry.get("project") != f"grenmet-{config['ENVIRONMENT']}" or sentry.get("dsn")):
+            raise ValueError("Invalid shared Sentry routing")
+        values[f"SENTRY_DSN_{app}"] = environment.get(secret_ref, "") if secret_ref else sentry.get("dsn") or ""
     for domain in ["WXWATCH", "WXPRODUCTS", "EREGISTER", "TRANSPORT", "JANITORIAL", "CMS"]:
         user = quote(config[f"{domain}_DB_USER"], safe="")
         password = quote(values[f"{domain}_DB_PASSWORD"], safe="")
@@ -77,6 +89,7 @@ def render(config, environment):
     ):
         raise ValueError("NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS must contain comma-separated domain names")
     values["NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS"] = ",".join(domains)
+    values["SENTRY_RELEASE"] = tag.removeprefix("sha-")
     values.update(TAG=f"{deployment_environment}-{tag}", WEB_TAG=f"{deployment_environment}-{tag}")
     for keys in [
         ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"],

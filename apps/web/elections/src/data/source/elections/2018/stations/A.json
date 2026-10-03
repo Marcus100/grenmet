@@ -1,0 +1,223 @@
+[
+  [
+    "A01",
+    null,
+    "Windward Medical Station",
+    334,
+    227,
+    0,
+    {
+      "NDC": 86,
+      "NNP": 140,
+      "TPP": 1
+    }
+  ],
+  [
+    "A02",
+    null,
+    "Bogles Community Centre",
+    328,
+    224,
+    2,
+    {
+      "NDC": 117,
+      "NNP": 98,
+      "TPP": 7
+    }
+  ],
+  [
+    "A03",
+    "a",
+    "Dover Government School",
+    198,
+    144,
+    1,
+    {
+      "NDC": 47,
+      "NNP": 96,
+      "TPP": 0
+    }
+  ],
+  [
+    "A03",
+    "b",
+    "Dover Government School",
+    204,
+    147,
+    2,
+    {
+      "NDC": 83,
+      "NNP": 60,
+      "TPP": 2
+    }
+  ],
+  [
+    "A04",
+    null,
+    "Mt. Pleasant Government Community Centre",
+    288,
+    200,
+    0,
+    {
+      "NDC": 108,
+      "NNP": 92,
+      "TPP": 0
+    }
+  ],
+  [
+    "A05",
+    null,
+    "Top Hill Senior Cotizens Home",
+    328,
+    236,
+    1,
+    {
+      "NDC": 94,
+      "NNP": 141,
+      "TPP": 0
+    }
+  ],
+  [
+    "A06",
+    "a",
+    "Hillsborough Government School",
+    254,
+    186,
+    1,
+    {
+      "NDC": 98,
+      "NNP": 87,
+      "TPP": 0
+    }
+  ],
+  [
+    "A06",
+    "b",
+    "Hillsborough Government School",
+    262,
+    188,
+    1,
+    {
+      "NDC": 121,
+      "NNP": 66,
+      "TPP": 0
+    }
+  ],
+  [
+    "A07",
+    null,
+    "Hillsborough Police Station",
+    286,
+    205,
+    1,
+    {
+      "NDC": 93,
+      "NNP": 111,
+      "TPP": 0
+    }
+  ],
+  [
+    "A08",
+    "a",
+    "TAMCC Campus, Brunswick",
+    259,
+    181,
+    1,
+    {
+      "NDC": 63,
+      "NNP": 116,
+      "TPP": 1
+    }
+  ],
+  [
+    "A08",
+    "b",
+    "TAMCC Campus, Brunswick",
+    211,
+    147,
+    1,
+    {
+      "NDC": 50,
+      "NNP": 96,
+      "TPP": 0
+    }
+  ],
+  [
+    "A09",
+    "a",
+    "L’Esterre R.C. School",
+    371,
+    271,
+    0,
+    {
+      "NDC": 144,
+      "NNP": 126,
+      "TPP": 1
+    }
+  ],
+  [
+    "A09",
+    "b",
+    "L’Esterre R.C. School",
+    369,
+    280,
+    1,
+    {
+      "NDC": 129,
+      "NNP": 149,
+      "TPP": 1
+    }
+  ],
+  [
+    "A10",
+    "a",
+    "Harvey Vale Governmnet School",
+    309,
+    217,
+    1,
+    {
+      "NDC": 116,
+      "NNP": 98,
+      "TPP": 2
+    }
+  ],
+  [
+    "A10",
+    "b",
+    "Harvey Vale Government School",
+    305,
+    211,
+    1,
+    {
+      "NDC": 94,
+      "NNP": 116,
+      "TPP": 0
+    }
+  ],
+  [
+    "A11",
+    "a",
+    "Petite Martinique R.C. School",
+    280,
+    204,
+    1,
+    {
+      "NDC": 89,
+      "NNP": 114,
+      "TPP": 0
+    }
+  ],
+  [
+    "A11",
+    "b",
+    "Petite Martinique R.C. School",
+    296,
+    220,
+    0,
+    {
+      "NDC": 112,
+      "NNP": 108,
+      "TPP": 0
+    }
+  ]
+]

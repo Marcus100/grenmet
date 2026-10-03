@@ -1,0 +1,123 @@
+[
+  {
+    "name": "St. George's Town",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Marryshow, T.A.", "IND", 988, "check"],
+      ["Lewis, J.J.", "GULP", 521, "unverified"],
+      ["Franco, G.V.", "IND", 282, "unverified"],
+      ["Archibald, F.J.", "IND", 165, "unverified"]
+    ],
+    "src": "ep",
+    "official": false,
+    "gazette": "Government Gazette (Extraordinary) No. 54, 30 September 1954, notice No. 265",
+    "note": "The Gazette’s last digit is unclear: it looks like 983, ElectionPassport gives 988."
+  },
+  {
+    "name": "St. George Parish",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Gairy, E.M.", "GULP", 2675, "official"],
+      ["Knight, J.M.", "IND", 454, "unverified"],
+      ["Paterson, D.M.", "IND", 246, "unverified"]
+    ],
+    "src": "ep",
+    "official": false,
+    "gazette": "Government Gazette (Extraordinary) No. 54, 30 September 1954, notice No. 265"
+  },
+  {
+    "name": "St. John/St. Mark",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Thomas, L.C.J.", "GULP", 1869, "official"],
+      ["Ferguson, C.A.", "IND", 1262, "unverified"],
+      ["Boyke, C.J.", "IND", 181, "unverified"],
+      ["Benjamin, P.M.", "IND", 158, "unverified"],
+      ["McKie, H.A.", "IND", 138, "unverified"]
+    ],
+    "src": "ep",
+    "official": false,
+    "gazette": "Government Gazette (Extraordinary) No. 54, 30 September 1954, notice No. 265"
+  },
+  {
+    "name": "St. Patrick",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Williams, R.O.", "GULP", 1138, "official"],
+      ["Copland, W.E.", "IND", 991, "unverified"],
+      ["Moore, R.C.P.", "IND", 884, "unverified"]
+    ],
+    "src": "ep",
+    "official": false,
+    "gazette": "Government Gazette (Extraordinary) No. 54, 30 September 1954, notice No. 265"
+  },
+  {
+    "name": "St. Andrew North",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Keens-Douglas, R.A.", "GULP", 1726, "official"],
+      ["Morrison, C.W.", "IND", 339, "unverified"]
+    ],
+    "src": "ep",
+    "official": false,
+    "gazette": "Government Gazette (Extraordinary) No. 54, 30 September 1954, notice No. 265"
+  },
+  {
+    "name": "St. Andrew South",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Williams, A.L.", "GULP", 1363, "official"],
+      ["Noel, F.C.", "IND", 1310, "unverified"],
+      ["Lowe, C.A.", "IND", 386, "unverified"],
+      ["Sergeant, L.", "IND", 238, "unverified"],
+      ["Rennie, S.W.", "IND", 48, "unverified"]
+    ],
+    "src": "ep",
+    "official": false,
+    "gazette": "Government Gazette (Extraordinary) No. 54, 30 September 1954, notice No. 265"
+  },
+  {
+    "name": "St. David",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Gibbs, T.J.", "GULP", 1055, "official"],
+      ["Radix, D.W.", "IND", 572, "unverified"],
+      ["Duncan, I.I.", "IND", 416, "unverified"],
+      ["Hypolite, C.", "IND", 358, "unverified"],
+      ["Whiteman, A.", "IND", 134, "unverified"]
+    ],
+    "src": "ep",
+    "official": false,
+    "gazette": "Government Gazette (Extraordinary) No. 54, 30 September 1954, notice No. 265"
+  },
+  {
+    "name": "Carriacou",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Paterson, F.B.", "IND", 1295, "official"],
+      ["Sylvester, E.L.", "GULP", 590, "unverified"],
+      ["Blaize, H.A.", "IND", 517, "unverified"],
+      ["McIntosh, W.T.", "IND", 176, "unverified"]
+    ],
+    "src": "ep",
+    "official": false,
+    "gazette": "Government Gazette (Extraordinary) No. 54, 30 September 1954, notice No. 265",
+    "note": "Winner’s vote corrected from ElectionPassport’s 1,296 to the Gazette’s 1,295."
+  }
+]

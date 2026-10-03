@@ -1,0 +1,287 @@
+[
+  [
+    "F01",
+    null,
+    "Perdmontemps Agricultural Station",
+    306,
+    271,
+    0,
+    {
+      "NDC": 102,
+      "NNP": 169,
+      "GOD": 0
+    }
+  ],
+  [
+    "F02",
+    "a",
+    "St. Dominic’s R.C. Church Centre",
+    293,
+    267,
+    0,
+    {
+      "NDC": 109,
+      "NNP": 158,
+      "GOD": 0
+    }
+  ],
+  [
+    "F02",
+    "b",
+    "St. Dominic’s R.C. Church Centre",
+    248,
+    223,
+    0,
+    {
+      "NDC": 86,
+      "NNP": 137,
+      "GOD": 0
+    }
+  ],
+  [
+    "F03",
+    null,
+    "St. Dominic’s R.C. School",
+    366,
+    331,
+    0,
+    {
+      "NDC": 158,
+      "NNP": 172,
+      "GOD": 1
+    }
+  ],
+  [
+    "F04",
+    "a",
+    "Windsor Forest Pre School",
+    334,
+    314,
+    1,
+    {
+      "NDC": 140,
+      "NNP": 173,
+      "GOD": 0
+    }
+  ],
+  [
+    "F04",
+    "b",
+    "Windsor Forest Pre School",
+    304,
+    270,
+    0,
+    {
+      "NDC": 143,
+      "NNP": 126,
+      "GOD": 1
+    }
+  ],
+  [
+    "F05",
+    "a",
+    "St. Theresa’s R.C. School, Vincennes",
+    240,
+    215,
+    0,
+    {
+      "NDC": 101,
+      "NNP": 113,
+      "GOD": 1
+    }
+  ],
+  [
+    "F05",
+    "b",
+    "St. Theresa’s R.C. School, Vincennes",
+    247,
+    221,
+    1,
+    {
+      "NDC": 114,
+      "NNP": 106,
+      "GOD": 0
+    }
+  ],
+  [
+    "F06",
+    "a",
+    "Corinth Government School",
+    270,
+    241,
+    3,
+    {
+      "NDC": 112,
+      "NNP": 126,
+      "GOD": 0
+    }
+  ],
+  [
+    "F06",
+    "b",
+    "Corinth Government School",
+    281,
+    258,
+    1,
+    {
+      "NDC": 114,
+      "NNP": 143,
+      "GOD": 0
+    }
+  ],
+  [
+    "F06",
+    "c",
+    "Corinth Government School",
+    344,
+    306,
+    0,
+    {
+      "NDC": 127,
+      "NNP": 179,
+      "GOD": 0
+    }
+  ],
+  [
+    "F07",
+    null,
+    "St. David’s R.C. School",
+    302,
+    272,
+    3,
+    {
+      "NDC": 163,
+      "NNP": 105,
+      "GOD": 1
+    }
+  ],
+  [
+    "F08",
+    "a",
+    "Magistrate’s Court, St. David’s",
+    382,
+    335,
+    0,
+    {
+      "NDC": 144,
+      "NNP": 191,
+      "GOD": 0
+    }
+  ],
+  [
+    "F08",
+    "b",
+    "Parliamentary Elections Constituency Office, St. David's",
+    210,
+    183,
+    1,
+    {
+      "NDC": 90,
+      "NNP": 90,
+      "GOD": 2
+    }
+  ],
+  [
+    "F09",
+    null,
+    "Berean Pre-School, Marlmount",
+    362,
+    315,
+    2,
+    {
+      "NDC": 104,
+      "NNP": 208,
+      "GOD": 1
+    }
+  ],
+  [
+    "F10",
+    "a",
+    "Pomme Rose R. C. School",
+    284,
+    267,
+    2,
+    {
+      "NDC": 99,
+      "NNP": 166,
+      "GOD": 0
+    }
+  ],
+  [
+    "F10",
+    "b",
+    "Pomme Rose R. C. School",
+    245,
+    221,
+    1,
+    {
+      "NDC": 71,
+      "NNP": 146,
+      "GOD": 3
+    }
+  ],
+  [
+    "F11",
+    "a",
+    "Fraser's Saloon, La Tante",
+    233,
+    204,
+    1,
+    {
+      "NDC": 93,
+      "NNP": 109,
+      "GOD": 1
+    }
+  ],
+  [
+    "F11",
+    "b",
+    "Fraser's Saloon, La Tante",
+    220,
+    192,
+    0,
+    {
+      "NDC": 59,
+      "NNP": 133
+    }
+  ],
+  [
+    "F12",
+    "a",
+    "Westerhall Secondary School",
+    336,
+    290,
+    0,
+    {
+      "NDC": 128,
+      "NNP": 161,
+      "GOD": 1
+    }
+  ],
+  [
+    "F12",
+    "b",
+    "Westerhall Secondary School",
+    244,
+    223,
+    0,
+    {
+      "NDC": 100,
+      "NNP": 123,
+      "GOD": 0
+    }
+  ],
+  [
+    "F12",
+    "c",
+    "Westerhall Secondary School",
+    295,
+    265,
+    1,
+    {
+      "NDC": 130,
+      "NNP": 134,
+      "GOD": 0
+    }
+  ]
+]

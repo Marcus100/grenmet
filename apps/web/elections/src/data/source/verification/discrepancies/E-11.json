@@ -1,0 +1,29 @@
+{
+  "id": "E-11",
+  "area": "2022 registration",
+  "status": "open",
+  "impact": "data",
+  "what": "The report’s registered voters are the election-day list plus police voters, but 60 registrations remain unexplained (A +5, B +5, D +11, F +5, H +2, J +2, K +2, L +13, M +2, N +7, P +1, R +5).",
+  "action": "Probably the “Addendum Included” voters. Ask the PEO for the addendum used on election day.",
+  "sources": [
+    "PEO Consolidated List as at 10 June 2022",
+    "PEO General Election Report 2022"
+  ],
+  "detail": {
+    "A": 5,
+    "B": 5,
+    "C": 0,
+    "D": 11,
+    "E": 0,
+    "F": 5,
+    "G": 0,
+    "H": 2,
+    "J": 2,
+    "K": 2,
+    "L": 13,
+    "M": 2,
+    "N": 7,
+    "P": 1,
+    "R": 5
+  }
+}

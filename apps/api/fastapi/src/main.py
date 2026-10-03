@@ -19,6 +19,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 
+from src import operational_metrics
 from src.audit.router import router as audit_router
 from src.auth.browser import router as browser_auth_router
 from src.auth.modern import router as modern_auth_router
@@ -280,18 +281,17 @@ logger = logging.getLogger("src.request")
 
 async def request_logging_middleware(request: Request, call_next: Any) -> Any:
     start = time.perf_counter()
-    response = await call_next(request)
-    duration_s = time.perf_counter() - start
-    logger.info(
-        "%s %s %s %.3fs origin=%s cors_allow_origin=%s requested_headers=%s",
-        request.method,
-        request.url.path,
-        response.status_code,
-        duration_s,
-        request.headers.get("origin", "-"),
-        response.headers.get("access-control-allow-origin", "-"),
-        request.headers.get("access-control-request-headers", "-"),
-    )
+    status = 500
+    try:
+        response = await call_next(request)
+        status = response.status_code
+    finally:
+        duration_s = time.perf_counter() - start
+        route = getattr(request.scope.get("route"), "path", "unmatched")
+        logger.info(
+            "request route=%s status=%s duration=%.3fs", route, status, duration_s
+        )
+        await operational_metrics.record_request(route, status, duration_s)
     return response
 
 

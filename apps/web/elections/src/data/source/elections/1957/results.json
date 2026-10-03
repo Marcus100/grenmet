@@ -1,0 +1,115 @@
+[
+  {
+    "name": "St. George's Town",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Marryshow, T.A.", "IND", 741, "official"],
+      ["Mitchell, E.A.", "GNP", 726, "unverified"],
+      ["LaHee, S.L.", "GULP", 572, "unverified"]
+    ],
+    "src": "ep",
+    "official": false,
+    "gazette": "Government Gazette (Extraordinary) No. 53, 5 October 1957"
+  },
+  {
+    "name": "St. George Parish",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Gairy, E.M.", "GULP", 2998, "official"],
+      ["Purcell, L.A.", "PDM", 955, "unverified"],
+      ["Bullen, M.A.", "GNP", 946, "unverified"]
+    ],
+    "src": "ep",
+    "official": false,
+    "gazette": "Government Gazette (Extraordinary) No. 53, 5 October 1957"
+  },
+  {
+    "name": "St. John/St. Mark",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Thomas, L.C.J", "PDM", 1340, "official"],
+      ["McLean, H.", "GULP", 1303, "unverified"],
+      ["St. Bernard, G.", "GNP", 229, "unverified"],
+      ["Felix, A.J.", "GFLP", 19, "unverified"]
+    ],
+    "src": "ep",
+    "official": false,
+    "gazette": "Government Gazette (Extraordinary) No. 53, 5 October 1957"
+  },
+  {
+    "name": "St. Patrick",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Copland, W.E.", "GNP", 1657, "official"],
+      ["Williams, R.O.", "GULP", 1518, "unverified"],
+      ["Mascoll, H.E.", "PDM", 476, "unverified"]
+    ],
+    "src": "ep",
+    "official": false,
+    "gazette": "Government Gazette (Extraordinary) No. 53, 5 October 1957"
+  },
+  {
+    "name": "St. Andrew North",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Keens-Douglas, R.A.", "IND", 1404, "official"],
+      ["Forrester, R.T.A.", "GULP", 1143, "unverified"],
+      ["Fitz-Abraham, R.", "PDM", 59, "unverified"]
+    ],
+    "src": "ep",
+    "official": false,
+    "gazette": "Government Gazette (Extraordinary) No. 53, 5 October 1957"
+  },
+  {
+    "name": "St. Andrew South",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Noel, F.C.", "PDM", 1912, "official"],
+      ["Moore, R.C.P.", "GULP", 1438, "unverified"],
+      ["Felix, F.J.", "GFLP", 227, "unverified"]
+    ],
+    "src": "ep",
+    "official": false,
+    "gazette": "Government Gazette (Extraordinary) No. 53, 5 October 1957"
+  },
+  {
+    "name": "St. David",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Gibbs, T.J.", "GULP", 983, "check"],
+      ["Radix, D.W.", "GNP", 960, "unverified"],
+      ["Clyne, R.H.", "PDM", 585, "unverified"]
+    ],
+    "src": "ep",
+    "official": false,
+    "gazette": "Government Gazette (Extraordinary) No. 53, 5 October 1957",
+    "note": "The Gazette’s last digit is faint: it reads 985, ElectionPassport gives 983."
+  },
+  {
+    "name": "Carriacou",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Blaize, H.A.", "GNP", 1494, "official"],
+      ["Paterson, F.B.", "GULP", 997, "unverified"]
+    ],
+    "src": "ep",
+    "official": false,
+    "gazette": "Government Gazette (Extraordinary) No. 53, 5 October 1957"
+  }
+]

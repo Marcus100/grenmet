@@ -7,7 +7,9 @@ allowed-tools: Bash(pnpm *), Bash(turbo run *), Bash(gh *), Bash(git *), Bash(cu
 
 Follow `docs/operations/release-runbook.md` exactly. You drive verification,
 PR creation, and CI watching; **the user merges every PR and publishes the
-release** — never merge, push, or deploy yourself.
+release** unless explicitly authorized otherwise. Agents may stage, commit, push
+and open PRs after the required checks pass; preserve unrelated work and never
+bypass hooks or force-push. Follow `AGENTS.md` for merge/deployment authorization.
 
 **1. Pre-flight**
 Confirm the latest `dev` CI run is green (`gh run list --branch dev --limit 3`);

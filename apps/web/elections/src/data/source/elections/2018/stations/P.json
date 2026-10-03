@@ -1,0 +1,132 @@
+[
+  [
+    "P01",
+    null,
+    "Hermitage Government School",
+    380,
+    314,
+    0,
+    {
+      "NDC": 163,
+      "NNP": 151,
+      "GRP": 0
+    }
+  ],
+  [
+    "P02",
+    null,
+    "Mt. Rose S.D.A. School",
+    418,
+    331,
+    3,
+    {
+      "NDC": 182,
+      "NNP": 144,
+      "GRP": 2
+    }
+  ],
+  [
+    "P03",
+    "a",
+    "Mt. Rose S.D.A. School",
+    339,
+    260,
+    4,
+    {
+      "NDC": 70,
+      "NNP": 182,
+      "GRP": 4
+    }
+  ],
+  [
+    "P03",
+    "b",
+    "River Sallee Government School",
+    325,
+    269,
+    1,
+    {
+      "NDC": 80,
+      "NNP": 184,
+      "GRP": 4
+    }
+  ],
+  [
+    "P03",
+    "c",
+    "River Sallee Government School",
+    331,
+    252,
+    0,
+    {
+      "NDC": 97,
+      "NNP": 153,
+      "GRP": 2
+    }
+  ],
+  [
+    "P04",
+    null,
+    "New Testament Church, Morne Fendue",
+    362,
+    253,
+    0,
+    {
+      "NDC": 112,
+      "NNP": 139,
+      "GRP": 2
+    }
+  ],
+  [
+    "P05",
+    "a",
+    "St. Ann's Pre Primary School",
+    393,
+    310,
+    0,
+    {
+      "NDC": 120,
+      "NNP": 190,
+      "GRP": 0
+    }
+  ],
+  [
+    "P05",
+    "b",
+    "St. Ann's Pre Primary School",
+    385,
+    296,
+    2,
+    {
+      "NDC": 120,
+      "NNP": 174,
+      "GRP": 0
+    }
+  ],
+  [
+    "P06",
+    "a",
+    "St. Patrick’s Anglican School",
+    357,
+    269,
+    0,
+    {
+      "NDC": 120,
+      "NNP": 149,
+      "GRP": 0
+    }
+  ],
+  [
+    "P06",
+    "b",
+    "St. Patrick’s Anglican School",
+    319,
+    252,
+    0,
+    {
+      "NDC": 136,
+      "NNP": 116,
+      "GRP": 0
+    }
+  ]
+]

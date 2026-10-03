@@ -1,0 +1,197 @@
+{
+  "G": {
+    "reg": 5691,
+    "cast": 3001,
+    "rej": null,
+    "c": [
+      ["Bernard Coard", "PA", 1685, "corroborated"],
+      ["Roy St. John", "GULP", 1316, "corroborated"]
+    ],
+    "src": "newsletter-1976",
+    "official": false,
+    "castIsValid": true,
+    "note": "Votes: The Grenada Newsletter, 11 December 1976, reporting the Supervisor of Elections’ figures. Electors: Government Gazette (Extraordinary) No. 58, 30 November 1976, which totals 63,193. The official results notice itself has not been found."
+  },
+  "J": {
+    "reg": 3191,
+    "cast": 2202,
+    "rej": null,
+    "c": [
+      ["George Hosten", "GULP", 1399, "corroborated"],
+      ["Blanche Sylvester", "IND", 803, "corroborated"]
+    ],
+    "src": "newsletter-1976",
+    "official": false,
+    "castIsValid": true,
+    "note": "Votes: The Grenada Newsletter, 11 December 1976, reporting the Supervisor of Elections’ figures. Electors: Government Gazette (Extraordinary) No. 58, 30 November 1976, which totals 63,193. The official results notice itself has not been found."
+  },
+  "H": {
+    "reg": 5047,
+    "cast": 3321,
+    "rej": null,
+    "c": [
+      ["Unison Whiteman", "PA", 1858, "corroborated"],
+      ["Franklyn Dolland", "GULP", 1463, "corroborated"]
+    ],
+    "src": "newsletter-1976",
+    "official": false,
+    "castIsValid": true,
+    "note": "Votes: The Grenada Newsletter, 11 December 1976, reporting the Supervisor of Elections’ figures. Electors: Government Gazette (Extraordinary) No. 58, 30 November 1976, which totals 63,193. The official results notice itself has not been found."
+  },
+  "K": {
+    "reg": 3943,
+    "cast": 2530,
+    "rej": null,
+    "c": [
+      ["Maurice Bishop", "PA", 1319, "corroborated"],
+      ["Norman DeSousa", "GULP", 1211, "corroborated"]
+    ],
+    "src": "newsletter-1976",
+    "official": false,
+    "castIsValid": true,
+    "note": "Votes: The Grenada Newsletter, 11 December 1976, reporting the Supervisor of Elections’ figures. Electors: Government Gazette (Extraordinary) No. 58, 30 November 1976, which totals 63,193. The official results notice itself has not been found."
+  },
+  "L": {
+    "reg": 5175,
+    "cast": 3092,
+    "rej": null,
+    "c": [
+      ["Eric Gairy", "GULP", 1989, "corroborated"],
+      ["Selwin Strachan", "PA", 1103, "corroborated"]
+    ],
+    "src": "newsletter-1976",
+    "official": false,
+    "castIsValid": true,
+    "note": "Votes: The Grenada Newsletter, 11 December 1976, reporting the Supervisor of Elections’ figures. Electors: Government Gazette (Extraordinary) No. 58, 30 November 1976, which totals 63,193. The official results notice itself has not been found."
+  },
+  "M": {
+    "reg": 5538,
+    "cast": 3746,
+    "rej": null,
+    "c": [
+      ["Herbert Preudhomme", "GULP", 2096, "corroborated"],
+      ["Lloyd Noel", "PA", 1650, "corroborated"]
+    ],
+    "src": "newsletter-1976",
+    "official": false,
+    "castIsValid": true,
+    "note": "Votes: The Grenada Newsletter, 11 December 1976, reporting the Supervisor of Elections’ figures. Electors: Government Gazette (Extraordinary) No. 58, 30 November 1976, which totals 63,193. The official results notice itself has not been found."
+  },
+  "N": {
+    "reg": 2518,
+    "cast": 1940,
+    "rej": null,
+    "c": [
+      ["Albert Forsythe", "GULP", 1079, "corroborated"],
+      ["Rupert Japal", "PA", 861, "corroborated"]
+    ],
+    "src": "newsletter-1976",
+    "official": false,
+    "castIsValid": true,
+    "note": "Votes: The Grenada Newsletter, 11 December 1976, reporting the Supervisor of Elections’ figures. Electors: Government Gazette (Extraordinary) No. 58, 30 November 1976, which totals 63,193. The official results notice itself has not been found."
+  },
+  "P": {
+    "reg": 3082,
+    "cast": 1944,
+    "rej": null,
+    "c": [
+      ["Oliver Raeburn", "GULP", 1002, "corroborated"],
+      ["Wilberforce Nyack", "PA", 942, "corroborated"]
+    ],
+    "src": "newsletter-1976",
+    "official": false,
+    "castIsValid": true,
+    "note": "Votes: The Grenada Newsletter, 11 December 1976, reporting the Supervisor of Elections’ figures. Electors: Government Gazette (Extraordinary) No. 58, 30 November 1976, which totals 63,193. The official results notice itself has not been found."
+  },
+  "R": {
+    "reg": 3909,
+    "cast": 2812,
+    "rej": null,
+    "c": [
+      ["Winston Whyte", "PA", 1548, "corroborated"],
+      ["Ashton Frame", "GULP", 1264, "corroborated"]
+    ],
+    "src": "newsletter-1976",
+    "official": false,
+    "castIsValid": true,
+    "note": "Votes: The Grenada Newsletter, 11 December 1976, reporting the Supervisor of Elections’ figures. Electors: Government Gazette (Extraordinary) No. 58, 30 November 1976, which totals 63,193. The official results notice itself has not been found."
+  },
+  "D": {
+    "reg": 4043,
+    "cast": 2385,
+    "rej": null,
+    "c": [
+      ["Cysler Thomas", "GULP", 1410, "corroborated"],
+      ["Vernon Simon", "PA", 975, "corroborated"]
+    ],
+    "src": "newsletter-1976",
+    "official": false,
+    "castIsValid": true,
+    "note": "Votes: The Grenada Newsletter, 11 December 1976, reporting the Supervisor of Elections’ figures. Electors: Government Gazette (Extraordinary) No. 58, 30 November 1976, which totals 63,193. The official results notice itself has not been found."
+  },
+  "E": {
+    "reg": 3081,
+    "cast": 2151,
+    "rej": null,
+    "c": [
+      ["Innocent Belmar", "GULP", 1330, "corroborated"],
+      ["Raymond Rush", "PA", 821, "corroborated"]
+    ],
+    "src": "newsletter-1976",
+    "official": false,
+    "castIsValid": true,
+    "note": "Votes: The Grenada Newsletter, 11 December 1976, reporting the Supervisor of Elections’ figures. Electors: Government Gazette (Extraordinary) No. 58, 30 November 1976, which totals 63,193. The official results notice itself has not been found."
+  },
+  "C": {
+    "reg": 5054,
+    "cast": 3287,
+    "rej": null,
+    "c": [
+      ["Norris Bain", "PA", 1771, "corroborated"],
+      ["Lloyd St. Louis", "GULP", 1516, "corroborated"]
+    ],
+    "src": "newsletter-1976",
+    "official": false,
+    "castIsValid": true,
+    "note": "Votes: The Grenada Newsletter, 11 December 1976, reporting the Supervisor of Elections’ figures. Electors: Government Gazette (Extraordinary) No. 58, 30 November 1976, which totals 63,193. The official results notice itself has not been found."
+  },
+  "B": {
+    "reg": 3016,
+    "cast": 2055,
+    "rej": null,
+    "c": [
+      ["Hubert Alexis", "GULP", 1270, "corroborated"],
+      ["Sydney Ambrose", "PA", 785, "corroborated"]
+    ],
+    "src": "newsletter-1976",
+    "official": false,
+    "castIsValid": true,
+    "note": "Votes: The Grenada Newsletter, 11 December 1976, reporting the Supervisor of Elections’ figures. Electors: Government Gazette (Extraordinary) No. 58, 30 November 1976, which totals 63,193. The official results notice itself has not been found."
+  },
+  "F": {
+    "reg": 6589,
+    "cast": 4279,
+    "rej": null,
+    "c": [
+      ["Cynthia Gairy", "GULP", 2271, "corroborated"],
+      ["Kenrick Radix", "PA", 2008, "corroborated"]
+    ],
+    "src": "newsletter-1976",
+    "official": false,
+    "castIsValid": true,
+    "note": "Votes: The Grenada Newsletter, 11 December 1976, reporting the Supervisor of Elections’ figures. Electors: Government Gazette (Extraordinary) No. 58, 30 November 1976, which totals 63,193. The official results notice itself has not been found."
+  },
+  "A": {
+    "reg": 3316,
+    "cast": 2011,
+    "rej": null,
+    "c": [
+      ["Herbert Blaize", "PA", 1542, "corroborated"],
+      ["Charles Cayenne", "GULP", 469, "corroborated"]
+    ],
+    "src": "newsletter-1976",
+    "official": false,
+    "castIsValid": true,
+    "note": "Votes: The Grenada Newsletter, 11 December 1976, reporting the Supervisor of Elections’ figures. Electors: Government Gazette (Extraordinary) No. 58, 30 November 1976, which totals 63,193. The official results notice itself has not been found."
+  }
+}

@@ -1,0 +1,227 @@
+{
+  "A": {
+    "reg": 4882,
+    "cast": 3488,
+    "rej": 15,
+    "c": [
+      ["Kindra Mathurine-Stewart", "NNP", 1814, "official"],
+      ["Tevin Camilloh Andrews", "NDC", 1644, "official"],
+      ["Kerry Velon Simmons", "TPP", 15, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 15,
+    "stationsComplete": true,
+    "official": true,
+    "page": 10
+  },
+  "B": {
+    "reg": 4534,
+    "cast": 3448,
+    "rej": 22,
+    "c": [
+      ["Emmalin Pierre", "NNP", 2292, "official"],
+      ["Patrick Simmons", "NDC", 1134, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 22,
+    "stationsComplete": true,
+    "official": true,
+    "page": 16
+  },
+  "C": {
+    "reg": 4818,
+    "cast": 3555,
+    "rej": 14,
+    "c": [
+      ["Yolande Bain-Horsford", "NNP", 1978, "official"],
+      ["Sylvester Quarless", "NDC", 1529, "official"],
+      ["John Richard Arnold Fletcher", "IND", 34, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 14,
+    "stationsComplete": true,
+    "official": true,
+    "page": 21
+  },
+  "D": {
+    "reg": 4946,
+    "cast": 3991,
+    "rej": 15,
+    "c": [
+      ["Kate Skeeter Lewis", "NNP", 2301, "official"],
+      ["Terry Glenroy Hillaire", "NDC", 1675, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 15,
+    "stationsComplete": true,
+    "official": true,
+    "page": 27
+  },
+  "E": {
+    "reg": 4437,
+    "cast": 3531,
+    "rej": 9,
+    "c": [
+      ["Delma Thomas", "NNP", 2012, "official"],
+      ["Phillip Reginald Alexander", "NDC", 1510, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 9,
+    "stationsComplete": true,
+    "official": true,
+    "page": 32
+  },
+  "F": {
+    "reg": 8442,
+    "cast": 6240,
+    "rej": 20,
+    "c": [
+      ["Oliver Thomas Joseph", "NNP", 3282, "official"],
+      ["Adrian Augustine Thomas", "NDC", 2895, "official"],
+      ["Joslyn Raphael Whiteman", "IND", 34, "official"],
+      ["Junior Francis", "GRP", 9, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 20,
+    "stationsComplete": true,
+    "official": true,
+    "page": 37
+  },
+  "G": {
+    "reg": 3415,
+    "cast": 2462,
+    "rej": 9,
+    "c": [
+      ["Peter David", "NNP", 1615, "official"],
+      ["Claudette Joseph", "NDC", 789, "official"],
+      ["Venescia Christine Francis-Banfield", "TLP", 49, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 9,
+    "stationsComplete": true,
+    "official": true,
+    "page": 45
+  },
+  "H": {
+    "reg": 7029,
+    "cast": 5183,
+    "rej": 20,
+    "c": [
+      ["Tobias Clement", "NNP", 2621, "official"],
+      ["Nazim V. Burke", "NDC", 2494, "official"],
+      ["Basil Williams", "TPP", 19, "official"],
+      ["Earl Joseph Maitland", "GEM", 17, "official"],
+      ["Martin Washington Edwards", "GRP", 12, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 20,
+    "stationsComplete": true,
+    "official": true,
+    "page": 49
+  },
+  "J": {
+    "reg": 4171,
+    "cast": 2986,
+    "rej": 13,
+    "c": [
+      ["Keith Claudius Mitchell", "NNP", 2551, "official"],
+      ["Ali Anthony Brian Dowden", "NDC", 412, "official"],
+      ["Oswald Peter", "GUPM", 10, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 13,
+    "stationsComplete": true,
+    "official": true,
+    "page": 56
+  },
+  "K": {
+    "reg": 4950,
+    "cast": 3566,
+    "rej": 16,
+    "c": [
+      ["Clarence Gregory Bowen", "NNP", 2103, "official"],
+      ["Franka E.R. Alexis-Bernadine", "NDC", 1430, "official"],
+      ["Rosemarie Rohilia Rajwant", "GEM", 8, "official"],
+      ["Kevin Peterkin", "TPP", 7, "official"],
+      ["Dennyka Checkley", "GRP", 2, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 16,
+    "stationsComplete": true,
+    "official": true,
+    "page": 61
+  },
+  "L": {
+    "reg": 9464,
+    "cast": 6334,
+    "rej": 27,
+    "c": [
+      ["Nickolas Tang Conway Steele", "NNP", 3536, "official"],
+      ["Philip Raymond Roberts", "NDC", 2678, "official"],
+      ["Terrance A.C. Forrester", "GPM", 86, "official"],
+      ["Nyasha A.R. Paul", "GRP", 7, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 27,
+    "stationsComplete": true,
+    "official": true,
+    "page": 66
+  },
+  "M": {
+    "reg": 5896,
+    "cast": 4311,
+    "rej": 36,
+    "c": [
+      ["Alvin Martin Da Breo", "NNP", 2522, "official"],
+      ["George Anthony Edward Vincent", "NDC", 1753, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 36,
+    "stationsComplete": true,
+    "official": true,
+    "page": 74
+  },
+  "N": {
+    "reg": 3382,
+    "cast": 2368,
+    "rej": 11,
+    "c": [
+      ["Clarice Modeste-Curwen", "NNP", 1693, "official"],
+      ["Jerome Augustine Thomas", "NDC", 664, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 11,
+    "stationsComplete": true,
+    "official": true,
+    "page": 80
+  },
+  "P": {
+    "reg": 3609,
+    "cast": 2806,
+    "rej": 10,
+    "c": [
+      ["Pamela Moses", "NNP", 1582, "official"],
+      ["Cecilia Ann John", "NDC", 1200, "official"],
+      ["Oral James Roberts", "GRP", 14, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 10,
+    "stationsComplete": true,
+    "official": true,
+    "page": 84
+  },
+  "R": {
+    "reg": 4320,
+    "cast": 3346,
+    "rej": 14,
+    "c": [
+      ["Anthony Boatswain", "NNP", 1890, "official"],
+      ["Joseph Andall", "NDC", 1442, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 14,
+    "stationsComplete": true,
+    "official": true,
+    "page": 88
+  }
+}

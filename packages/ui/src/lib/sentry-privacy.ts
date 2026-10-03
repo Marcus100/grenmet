@@ -1,7 +1,20 @@
 interface ErrorEvent {
   breadcrumbs?: unknown;
   contexts?: unknown;
-  exception?: { values?: { value?: string }[] };
+  exception?: {
+    values?: {
+      value?: string;
+      type?: string;
+      stacktrace?: {
+        frames?: {
+          vars?: unknown;
+          filename?: string;
+          lineno?: number;
+          colno?: number;
+        }[];
+      };
+    }[];
+  };
   extra?: unknown;
   logentry?: unknown;
   message?: string;
@@ -41,6 +54,13 @@ export function scrubSentryEvent<T extends ErrorEvent>(event: T): T {
   if (event.message) event.message = "[redacted]";
   for (const exception of event.exception?.values ?? []) {
     if (exception.value) exception.value = "[redacted]";
+    for (const frame of exception.stacktrace?.frames ?? [])
+      frame.vars = undefined;
   }
   return event;
+}
+
+/** Performance stays off until quota and span sanitation have delivery evidence. */
+export function scrubSentryTransaction(_event: unknown): null {
+  return null;
 }

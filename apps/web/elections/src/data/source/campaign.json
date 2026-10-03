@@ -1,0 +1,433 @@
+{
+  "updated": "2026-10-02",
+  "sources": {
+    "conch": [
+      "NOW Grenada, 26 Sep 2026",
+      "https://nowgrenada.com/2026/09/conch-shell-4-october/"
+    ],
+    "wiki27": [
+      "Wikipedia: 2027 Grenadian general election",
+      "https://en.wikipedia.org/wiki/2027_Grenadian_general_election"
+    ],
+    "cato": ["Wikipedia: Leo Cato", "https://en.wikipedia.org/wiki/Leo_Cato"],
+    "hansard": [
+      "House of Representatives Hansard, 29 Sep 2022",
+      "https://grenadaparliament.gd/wp-content/uploads/2023/07/HOR-Handsard-Report-Sept-29-2022.pdf"
+    ],
+    "nnp4": [
+      "NOW Grenada, 20 Jan 2025",
+      "https://nowgrenada.com/2025/01/nnp-seats-lower-house-of-parliament-reduced-to-4/"
+    ],
+    "dpmlaunch": [
+      "The New Today, 22 Nov 2025",
+      "https://www.thenewtodaygrenada.com/local-news/peter-david-unity-is-dpms-code/"
+    ],
+    "dpmcong": [
+      "WEE FM, 26 Mar 2026",
+      "https://www.weefmgrenada.com/dpm-names-candidate-executive-at-congress/"
+    ],
+    "nnp14": [
+      "The New Today, 14 Feb 2026",
+      "https://www.thenewtodaygrenada.com/local-news/nnp-prepares-for-battle/"
+    ],
+    "leaders": [
+      "NOW Grenada, Jul 2026",
+      "https://nowgrenada.com/2026/07/comparing-grenadas-political-leaders-in-a-changing-political-landscape/"
+    ],
+    "pierre": [
+      "Wikipedia: Emmalin Pierre",
+      "https://en.wikipedia.org/wiki/Emmalin_Pierre"
+    ],
+    "dthomas": [
+      "Wikipedia: Saint Andrew North West",
+      "https://en.wikipedia.org/wiki/Saint_Andrew_North_West_(Grenada)"
+    ],
+    "dpb": [
+      "The New Today, 25 Apr 2026",
+      "https://www.thenewtodaygrenada.com/commentary/nnp-projected-to-win-9-seats-a-ddata-deep-dive-into-grenadas-current-electoral-landscape-april-17-2026/"
+    ],
+    "dpbmed": [
+      "Medium, Aug 2026 (not reachable)",
+      "https://medium.com/@cjustinepierre/grenada-most-accurate-political-opinion-survey-0a52d2435ee3"
+    ],
+    "town": [
+      "The New Today, 22 Feb 2025",
+      "https://www.thenewtodaygrenada.com/local-news/poll-for-town-seat/"
+    ],
+    "cad17": [
+      "NOW Grenada, 10 Mar 2017",
+      "https://nowgrenada.com/2017/03/political-opinion-poll-conducted-grenada/"
+    ],
+    "cad08": [
+      "Wikipedia: 2008 election (citing Angus Reid Global Monitor, 29 Jun 2008)",
+      "https://en.wikipedia.org/wiki/2008_Grenadian_general_election"
+    ],
+    "nacta08": [
+      "Stabroek News letter, 4 Jul 2008",
+      "https://www.stabroeknews.com/2008/07/04/opinion/letters/nacta-poll-shows-pm-mitchell%E2%80%99s-party-winning-grenada-election/"
+    ],
+    "nacta10": [
+      "Stabroek News letter, 3 Feb 2010",
+      "https://www.stabroeknews.com/2010/02/03/opinion/letters/poll-results-at-the-constituency-level-in-grenada-were-almost-all-within-the-margin-of-error/"
+    ],
+    "ct30sep": [
+      "Caribbean Today, 30 Sep 2026",
+      "https://www.caribbeantoday.com/sections/politics/grenada-s-government-hints-at-election-date-announcement-on-october-4"
+    ],
+    "mikey30sep": [
+      "Mikey Live, 30 Sep 2026",
+      "https://www.mikeylive.com/featured/dpm-government-services-decentralization-urged-appeal-to-register-to-vote/"
+    ],
+    "ndcspw18sep": [
+      "NDC St. Patrick West Facebook post, 18 Sep 2026 (supplied to us; not independently checked)",
+      ""
+    ],
+    "ndcdegannes": [
+      "NDC Facebook video presenting Caris DeGannes to St. Mark (undated)",
+      "https://www.facebook.com/supportndc/videos/caris-degannes-a-humble-daughter-of-st-mark-is-seeking-your-help-to-make-history/1056241807254788/"
+    ],
+    "owner2oct": [
+      "Confirmed to Elections Grenada by the site owner, 2 Oct 2026 (no public source linked yet)",
+      ""
+    ],
+    "gbn-ndc2": [
+      "GBN, 23 Sep 2026, “NDC new faces step up”",
+      "https://gbn.gd/ndc-new-faces-step-up/"
+    ],
+    "constitution": [
+      "Constitution of Grenada, ss. 52–53 (Cap. 128A, Parliament of Grenada)",
+      "https://grenadaparliament.gd/wp-content/uploads/2021/08/Cap128A-GRENADA-CONSTITUTION-ACT.pdf"
+    ],
+    "dissolution": [
+      "Proclamation by the Governor-General and media release from the Clerk of Parliament, 2 Oct 2026 (copies supplied to us; no public link yet)",
+      ""
+    ]
+  },
+  "events": [
+    {
+      "date": "2022-06-23",
+      "text": "General election: NDC 9 seats, NNP 6.",
+      "src": "PEO",
+      "flag": null
+    },
+    {
+      "date": "2022-08-31",
+      "text": "The new House of Representatives first sits, which starts the five-year term.",
+      "src": "cato",
+      "flag": "unverified",
+      "note": "Date from Wikipedia. Confirm it from the House Hansard or the Gazette."
+    },
+    {
+      "date": "2023-05",
+      "text": "Delma Thomas, NNP MP for St. Andrew North West, crosses to the NDC and joins the Cabinet.",
+      "src": "dthomas",
+      "flag": "unverified",
+      "note": "Month from a secondary source. The crossing itself is confirmed by NOW Grenada (20 Jan 2025)."
+    },
+    {
+      "date": "2024-12-15",
+      "text": "NNP convention: Emmalin Pierre becomes political leader, succeeding Keith Mitchell.",
+      "src": "pierre",
+      "flag": "unverified",
+      "note": "Wikipedia says she has led the party since December 2024, and NOW Grenada dates the convention to 15 December 2024. Confirm from party or Gazette records."
+    },
+    {
+      "date": "2025-01-20",
+      "text": "Peter David, MP for the Town of St. George, resigns from the NNP and sits as an independent. The NNP is down to 4 seats.",
+      "src": "nnp4",
+      "flag": null
+    },
+    {
+      "date": "2025-11",
+      "text": "Peter David launches the Democratic People’s Movement (DPM).",
+      "src": "dpmlaunch",
+      "flag": null
+    },
+    {
+      "date": "2026-02-14",
+      "text": "The NNP has named 14 of its 15 candidates.",
+      "src": "nnp14",
+      "flag": null
+    },
+    {
+      "date": "2026-03-26",
+      "text": "The DPM’s first congress names 8 candidates, with Arley Gill as deputy leader.",
+      "src": "dpmcong",
+      "flag": null
+    },
+    {
+      "date": "2026-04-17",
+      "text": "DPB Global projection: NNP 9 seats, NDC 6.",
+      "src": "dpb",
+      "flag": "check",
+      "note": "It says 9 seats but lists 10 constituencies. See the polls table."
+    },
+    {
+      "date": "2026-09-18",
+      "text": "A supplied NDC St. Patrick West post reports Carl Andall’s selection for St. Patrick East.",
+      "src": "ndcspw18sep",
+      "flag": "unverified",
+      "note": "The supplied post has no public link and has not been independently checked; GBN subsequently reported the candidacy on 23 September."
+    },
+    {
+      "date": "2026-09-23",
+      "text": "GBN reports Nigel Degale as the NDC candidate for St. George North West and Carl Andall for St. Patrick East.",
+      "src": "gbn-ndc2",
+      "flag": null
+    },
+    {
+      "date": "2026-09-30",
+      "text": "The Prime Minister says the NDC will present all 15 of its candidates on 4 October.",
+      "src": "ct30sep",
+      "flag": null
+    },
+    {
+      "date": "2026-09-30",
+      "text": "The DPM names Dishon Edwards for St. Patrick East and Rolanda McQueen for St. Andrew South East, bringing its slate to 10.",
+      "src": "mikey30sep",
+      "flag": "unverified",
+      "note": "The linked report could not be independently checked; these two names remain provisional."
+    },
+    {
+      "date": "2026-10-02",
+      "text": "Governor-General Dame Cécile La Grenade dissolves Parliament on the Prime Minister’s advice, ending the fourth session of the Eleventh Parliament.",
+      "src": "dissolution",
+      "flag": null
+    },
+    {
+      "date": "2026-10-04",
+      "text": "The Prime Minister is due to announce the election date at an event in St. Mark.",
+      "src": "conch",
+      "flag": null,
+      "future": true
+    },
+    {
+      "date": "2027-01-02",
+      "text": "The latest possible election date: the Constitution requires the general election within three months after a dissolution.",
+      "src": "constitution",
+      "flag": null,
+      "future": true
+    }
+  ],
+  "candidates": {
+    "NNP": {
+      "B": "Emmalin Pierre",
+      "D": "Kate Lewis",
+      "A": "Norland Cox",
+      "H": "Nimrod Ollivere",
+      "K": "Dwight Horsford",
+      "R": "Jelani Glean",
+      "G": "Troy Noel",
+      "L": "Christopher DeAllie Jr",
+      "J": "Adrian Joseph",
+      "F": "Noleen Thompson",
+      "C": "Amanda Japal-George",
+      "N": "Myanna Charles",
+      "M": "Alvin Da Breo",
+      "P": "Robert Whyte",
+      "E": "Marcia Francis"
+    },
+    "DPM": {
+      "G": "Peter David",
+      "M": "Arley Gill",
+      "R": "Andy Best",
+      "D": "Pamela Williams",
+      "E": "Olvine Holas",
+      "C": "Aaron Lewis",
+      "L": "Charmaine Gibbs",
+      "A": "Christopher Cudjoe",
+      "P": "Dishon Edwards",
+      "B": "Rolanda McQueen"
+    },
+    "NDC": {
+      "P": "Carl Andall",
+      "N": "Caris DeGannes",
+      "A": "Tevin Andrews",
+      "K": "Phillip Telesford",
+      "F": "Dickon Mitchell",
+      "R": "Joseph Andall",
+      "L": "Andy Williams",
+      "J": "Nigel Degale",
+      "D": "Niecal Joseph",
+      "G": "Claudette Joseph",
+      "H": "Ron Livingston Redhead",
+      "M": "Kerryne James",
+      "C": "Lennox Andrews",
+      "E": "Delma Thomas",
+      "B": "David Andrew"
+    }
+  },
+  "candidate_sources": {
+    "NNP": "nnp14",
+    "DPM": "dpmcong",
+    "NDC": null
+  },
+  "candidate_flags": {
+    "NNP": {
+      "H": "Spelled “Ollivere” in The New Today and “Oliverre” elsewhere.",
+      "E": "Named as the NNP candidate (also as “Teacher Lisa”) in a DPB Global commentary in The New Today, April 2026. Not yet confirmed by the party."
+    },
+    "NDC": "All 15 NDC candidates are named, with sources and notes where public confirmation is still pending."
+  },
+  "sitting": {
+    "E": {
+      "name": "Delma Thomas",
+      "party": "NDC",
+      "was": "NNP",
+      "src": "nnp4"
+    },
+    "G": {
+      "name": "Peter David",
+      "party": "DPM",
+      "was": "NNP",
+      "src": "nnp4"
+    }
+  },
+  "polls": [
+    {
+      "id": "nacta08a",
+      "pollster": "NACTA",
+      "field": "May 2008",
+      "pub": "2008-07-04",
+      "n": null,
+      "NNP": 49,
+      "NDC": 40,
+      "target": "2008",
+      "src": "nacta08",
+      "flag": "unverified",
+      "note": "An earlier poll, mentioned in the same letter. The fieldwork dates and sample size weren’t published."
+    },
+    {
+      "id": "cad08",
+      "pollster": "CADRES",
+      "field": "6–9 Jun 2008",
+      "pub": "2008-06-29",
+      "n": null,
+      "NNP": 36.4,
+      "NDC": 32.3,
+      "other": 1.9,
+      "target": "2008",
+      "src": "cad08",
+      "flag": "unverified",
+      "note": "Sourced through Wikipedia and Angus Reid; we haven’t found the original CADRES release."
+    },
+    {
+      "id": "nacta08b",
+      "pollster": "NACTA",
+      "field": "Late Jun–early Jul 2008",
+      "pub": "2008-07-04",
+      "n": 2100,
+      "NNP": 51,
+      "NDC": 41,
+      "target": "2008",
+      "src": "nacta08",
+      "flag": "check",
+      "note": "Said the NNP led in 9 seats; it won 4. A later letter from the same pollster (3 Feb 2010) gives the national figures as 52–46, which doesn’t match this published 51–41.",
+      "seats": {
+        "NNP": 9
+      }
+    },
+    {
+      "id": "cad17",
+      "pollster": "CADRES",
+      "field": "Jan 2017",
+      "pub": "2017-03-10",
+      "n": null,
+      "NNP": 40,
+      "NDC": 18,
+      "other": 3,
+      "undecided": 39,
+      "moe": 5,
+      "target": "2018",
+      "src": "cad17",
+      "flag": null,
+      "note": "Taken 14 months before the March 2018 election."
+    },
+    {
+      "id": "dpb26",
+      "pollster": "DPB Global (Dr Justine Pierre)",
+      "field": "About Apr 2026",
+      "pub": "2026-04-25",
+      "n": 4142,
+      "NNP": null,
+      "NDC": null,
+      "target": "next",
+      "src": "dpb",
+      "flag": "check",
+      "bases": {
+        "NNP": [30000, 30000],
+        "NDC": [22000, 24000],
+        "undecided": [5000, 7000]
+      },
+      "note": "Only estimated voter numbers were published: NNP about 30,000, NDC 22,000–24,000, undecided 5,000–7,000. It says the NDC led by 12 points on 1 Dec 2025. Newspaper reports say the poll is under scrutiny.",
+      "seats": {
+        "NNP": 9,
+        "NDC": 6
+      },
+      "seat_list_NNP": ["B", "D", "C", "E", "R", "P", "N", "M", "J", "A"]
+    },
+    {
+      "id": "dpbtown",
+      "pollster": "DPB Global, Town of St. George seat",
+      "field": "Planned Feb–Mar 2025",
+      "pub": null,
+      "n": 1300,
+      "NNP": null,
+      "NDC": null,
+      "target": "next",
+      "src": "town",
+      "flag": "unverified",
+      "note": "A candidate-preference poll for one seat. We haven’t found any results."
+    }
+  ],
+  "deadline": "2027-01-02",
+  "dissolved": "2026-10-02",
+  "announce": "2026-10-04",
+  "candidate_seat_sources": {
+    "NNP": {
+      "E": "dpb"
+    },
+    "DPM": {
+      "P": "mikey30sep",
+      "B": "mikey30sep"
+    },
+    "NDC": {
+      "P": "gbn-ndc2",
+      "N": "ndcdegannes",
+      "A": "owner2oct",
+      "K": "owner2oct",
+      "F": "owner2oct",
+      "R": "owner2oct",
+      "L": "owner2oct",
+      "J": "gbn-ndc2",
+      "D": "owner2oct",
+      "G": "owner2oct",
+      "H": "owner2oct",
+      "M": "owner2oct",
+      "C": "owner2oct",
+      "E": "owner2oct",
+      "B": "owner2oct"
+    }
+  },
+  "candidate_seat_flags": {
+    "NDC": {
+      "N": "From an undated NDC Facebook video presenting her to St. Mark voters, and Grenada Chronicle headlines we could not open. Not yet in a published NDC slate.",
+      "A": "Confirmed to us on 2 October 2026; we have not yet seen a public announcement to link.",
+      "K": "Confirmed to us on 2 October 2026; we have not yet seen a public announcement to link.",
+      "F": "Confirmed to us on 2 October 2026; we have not yet seen a public announcement to link.",
+      "R": "Confirmed to us on 2 October 2026; we have not yet seen a public announcement to link.",
+      "L": "Confirmed to us on 2 October 2026; we have not yet seen a public announcement to link.",
+      "D": "Confirmed to us on 2 October 2026; we have not yet seen a public announcement to link.",
+      "G": "Confirmed to us on 2 October 2026; we have not yet seen a public announcement to link.",
+      "H": "Confirmed to us on 2 October 2026; we have not yet seen a public announcement to link.",
+      "M": "Confirmed to us on 2 October 2026; we have not yet seen a public announcement to link.",
+      "C": "Confirmed to us on 2 October 2026; we have not yet seen a public announcement to link.",
+      "E": "Confirmed to us on 2 October 2026; we have not yet seen a public announcement to link.",
+      "B": "Confirmed to us on 2 October 2026; we have not yet seen a public announcement to link."
+    },
+    "DPM": {
+      "P": "Named in a linked 30 September report that we have not yet been able to independently check.",
+      "B": "Named in a linked 30 September report that we have not yet been able to independently check."
+    }
+  }
+}

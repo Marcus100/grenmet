@@ -1,0 +1,86 @@
+{
+  "date": "2016-11-24",
+  "title": "Constitutional referendum on seven bills",
+  "registered": 71240,
+  "voted": 23651,
+  "turnout": 0.3319904548006738,
+  "bills": [
+    ["Caribbean Court of Justice and other justice matters", 9639, 12635, 903],
+    ["Elections and Boundaries Commission", 8944, 13239, 989],
+    [
+      "Ensuring the appointment of a Leader of the Opposition",
+      6116,
+      15556,
+      1492
+    ],
+    ["Fixed date for elections", 7089, 14536, 1545],
+    ["Name of the State", 9694, 12485, 1002],
+    ["Rights and freedoms", 5067, 16388, 1703],
+    ["Term of office of the Prime Minister", 5396, 15301, 2442]
+  ],
+  "billsSource": "Wikipedia, citing the PEO (per-bill results are not in the certificates)",
+  "totalsSource": "PEO certificate, national total: 71,240 registered, 23,651 voted, Yes 51,946, No 100,140",
+  "police": {
+    "A": {
+      "reg": 21,
+      "voted": 14
+    },
+    "B": {
+      "reg": 53,
+      "voted": 30
+    },
+    "C": {
+      "reg": 72,
+      "voted": 48
+    },
+    "D": {
+      "reg": 80,
+      "voted": 42
+    },
+    "E": {
+      "reg": 71,
+      "voted": 43
+    },
+    "F": {
+      "reg": 103,
+      "voted": 63
+    },
+    "G": {
+      "reg": 33,
+      "voted": 14
+    },
+    "H": {
+      "reg": 69,
+      "voted": 41
+    },
+    "J": {
+      "reg": 33,
+      "voted": 18
+    },
+    "K": {
+      "reg": 42,
+      "voted": 21
+    },
+    "L": {
+      "reg": 56,
+      "voted": 32
+    },
+    "M": {
+      "reg": 55,
+      "voted": 30
+    },
+    "N": {
+      "reg": 38,
+      "voted": 17
+    },
+    "P": {
+      "reg": 47,
+      "voted": 28
+    },
+    "R": {
+      "reg": 67,
+      "voted": 37
+    }
+  },
+  "note": "Station figures sum the yes, no and rejected votes over all seven bills."
+}

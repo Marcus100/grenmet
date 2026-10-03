@@ -1,0 +1,122 @@
+[
+  {
+    "name": "St. George's Town",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Scipio, H.R.", "GNP", 1311, "unverified"],
+      ["Clyne, G.E.D.", "GULP", 934, "unverified"]
+    ],
+    "src": "ep",
+    "official": false
+  },
+  {
+    "name": "St. George Parish North",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Hosten, G.F.", "GULP", 2142, "unverified"],
+      ["Purcell, L.A.", "GNP", 1724, "unverified"]
+    ],
+    "src": "ep",
+    "official": false
+  },
+  {
+    "name": "St. George Parish South",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Gairy, E.M.", "GULP", 2196, "unverified"],
+      ["Cruickshank, A.M.", "GNP", 1309, "unverified"]
+    ],
+    "src": "ep",
+    "official": false
+  },
+  {
+    "name": "St. John",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Preudhomme, H.J.", "GULP", 1529, "unverified"],
+      ["Welsh, McD.", "GNP", 920, "unverified"]
+    ],
+    "src": "ep",
+    "official": false
+  },
+  {
+    "name": "St. Mark",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Forsyth, A.O.", "GULP", 918, "unverified"],
+      ["Frederick, G.O.", "GNP", 473, "unverified"]
+    ],
+    "src": "ep",
+    "official": false
+  },
+  {
+    "name": "St. Patrick",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Friday, W.R.L.", "GNP", 1862, "unverified"],
+      ["Prosper, J.M.I.", "GULP", 1689, "unverified"]
+    ],
+    "src": "ep",
+    "official": false
+  },
+  {
+    "name": "St. Andrew North",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Williams, A.L.", "GULP", 2124, "unverified"],
+      ["Jones, B.J.", "GNP", 1020, "unverified"]
+    ],
+    "src": "ep",
+    "official": false
+  },
+  {
+    "name": "St. Andrew South",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Sylvester, D.T.", "GULP", 2038, "unverified"],
+      ["Bhola, R.M.", "GNP", 1771, "unverified"]
+    ],
+    "src": "ep",
+    "official": false
+  },
+  {
+    "name": "St. David",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Gairy, C.B.", "GULP", 2026, "unverified"],
+      ["Radix, D.A.", "GNP", 1013, "unverified"]
+    ],
+    "src": "ep",
+    "official": false
+  },
+  {
+    "name": "Carriacou",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Blaize, H.A.", "GNP", 1807, "unverified"],
+      ["Sylvester, M.J.", "GULP", 231, "unverified"]
+    ],
+    "src": "ep",
+    "official": false
+  }
+]

@@ -5,11 +5,9 @@ import { PostHogProvider } from "@barrelsgd/ui/components/posthog-provider";
 import type { Metadata } from "next";
 import { Barlow_Condensed, Noto_Sans } from "next/font/google";
 import { Footer } from "@/components/footer";
-import { GoogleAnalytics } from "@/components/google-analytics";
 import { Header } from "@/components/header";
 import { MotionProvider } from "@/components/motion-provider";
 import { fetchActiveAlerts } from "@/lib/cap";
-import { env } from "@/lib/env";
 import "./globals.css";
 import {
   MAIN_CONTENT_ID,
@@ -66,10 +64,7 @@ export default async function RootLayout({
       </head>
       <body className="flex min-h-screen flex-col bg-background font-sans text-foreground">
         <SkipLink />
-        <PostHogProvider
-          apiHost={env.NEXT_PUBLIC_POSTHOG_HOST}
-          apiKey={env.NEXT_PUBLIC_POSTHOG_KEY}
-        >
+        <PostHogProvider app="gms">
           <PreferencesStoreProvider
             contentLayout={PREFERENCE_DEFAULTS.content_layout}
             font={PREFERENCE_DEFAULTS.font}
@@ -89,10 +84,6 @@ export default async function RootLayout({
               <Footer />
             </MotionProvider>
           </PreferencesStoreProvider>
-          <GoogleAnalytics
-            environment={env.NEXT_PUBLIC_SENTRY_ENVIRONMENT}
-            measurementId={env.NEXT_PUBLIC_GA_MEASUREMENT_ID}
-          />
         </PostHogProvider>
       </body>
     </html>

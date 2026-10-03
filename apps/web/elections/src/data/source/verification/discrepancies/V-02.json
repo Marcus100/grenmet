@@ -1,0 +1,12 @@
+{
+  "id": "V-02",
+  "area": "Voter register",
+  "status": "open",
+  "impact": "data",
+  "what": "The list fell by 315 between 27 May 2022 and the election list of 10 June 2022, with no addendum in between.",
+  "action": "Ask the PEO what changed before the election.",
+  "sources": [
+    "PEO Current Consolidated List as at 17 May 2022",
+    "PEO Consolidated List as at 10 June 2022"
+  ]
+}
