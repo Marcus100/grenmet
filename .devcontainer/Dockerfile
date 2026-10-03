@@ -31,7 +31,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # uv — Python package manager used by apps/api/fastapi. Installed system-wide
 # so the agent can work on the FastAPI app too.
-COPY --from=ghcr.io/astral-sh/uv:0.12.17@sha256:10787c682e4184e4f290de1171fd4703dc63de99221f10fe1c99002ce7fa9acc /uv /uvx /usr/local/bin/
+COPY --from=ghcr.io/astral-sh/uv:0.12.22@sha256:f513a91fc62fe7c17567eee97230dd198e43edb8a9fbecca843714a4358fe1bc /uv /uvx /usr/local/bin/
 
 # Keep the Python interpreter in the image, outside mutable login/cache volumes.
 ENV UV_PYTHON_INSTALL_DIR=/opt/uv/python
@@ -43,7 +43,7 @@ RUN corepack enable && corepack prepare pnpm@12.3.4 --activate
 
 # The coding agents themselves. Pinned so a rebuild doesn't silently drift —
 # bump deliberately (check current versions with `npm view <pkg> version`).
-RUN npm install -g @anthropic-ai/claude-code@2.1.283 @openai/codex@0.155.1
+RUN npm install -g @anthropic-ai/claude-code@2.1.288 @openai/codex@0.160.0
 
 # GitHub CLI (gh) — used by the repo's issue/PR workflow. Official apt repo.
 RUN mkdir -p -m 755 /etc/apt/keyrings \
