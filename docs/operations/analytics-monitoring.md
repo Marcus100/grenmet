@@ -12,6 +12,16 @@ remediation, Discord integration or application deployment was added in this pas
 
 ## Source of truth
 
+### Existing analytics continuity
+
+On 2026-10-03 the owner requested restoration of existing integrations. The
+staging Weather GA4 property `G-6PY9N83HCP` was confirmed in both the live tag
+and the staging variable. Its explicit `continuity-approved` mapping preserves
+that destination with consent controls. Retention/access flags remain false
+until provider settings are inspected; this is not a claim of delivery verification.
+The exception is restricted to that app, origin, environment and GA4 ID, with
+no PostHog or production fallback. Other app mappings still need assignment.
+
 [Service catalogue](../../packages/ui/src/lib/service-catalogue.json) records every
 app, owner, environment, deployment target, provider mapping and coverage status.
 `development` means local dev; it is not staging. Personal and NISA application
