@@ -12,6 +12,7 @@ export default withSentryConfig(nextConfig, {
   org: "grenmet",
   // This independently hosted product must use its own Sentry configuration.
   project: process.env.SENTRY_PROJECT,
+  release: { name: process.env.NEXT_PUBLIC_RELEASE },
   silent: false,
   widenClientFileUpload: true,
 

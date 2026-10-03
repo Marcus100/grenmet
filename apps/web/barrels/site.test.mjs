@@ -13,6 +13,8 @@ test("holding page ships accessible content and a real personal-site link withou
   assert.ok(html.includes('href="https://eugine.me/"'));
   assert.ok(html.includes("Built by Eugine Whint"));
   assert.ok(!html.includes("<script"));
+  assert.ok(html.includes("Privacy settings"));
+  assert.ok(html.includes("Optional analytics is currently disabled"));
 });
 
 test("all stylesheet tokens resolve from the shared foundation", () => {

@@ -6,7 +6,6 @@ import { Noto_Sans } from "next/font/google";
 import { Providers } from "@/app/providers";
 import { Layout } from "@/components/Layout";
 import type { Section } from "@/components/SectionProvider";
-import { env } from "@/lib/env";
 
 import "@/styles/tailwind.css";
 
@@ -51,10 +50,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="flex min-h-full bg-white antialiased">
-        <PostHogProvider
-          apiHost={env.NEXT_PUBLIC_POSTHOG_HOST}
-          apiKey={env.NEXT_PUBLIC_POSTHOG_KEY}
-        >
+        <PostHogProvider app="docs">
           <Providers>
             <div className="w-full">
               <Layout allSections={allSections}>{children}</Layout>

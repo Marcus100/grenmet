@@ -361,3 +361,54 @@ test("another janitorial route edit still requires contract companions", (t) => 
   assert.equal(result.status, 1);
   assert.match(result.stderr, /FastAPI contract companions/);
 });
+
+const REQUEST_LOGGING_BEFORE = `from src.audit.router import router as audit_router
+async def request_logging_middleware(request: Request, call_next: Any) -> Any:
+    start = time.perf_counter()
+    response = await call_next(request)
+    duration_s = time.perf_counter() - start
+    logger.info(
+        "%s %s %s %.3fs origin=%s cors_allow_origin=%s requested_headers=%s",
+        request.method,
+        request.url.path,
+        response.status_code,
+        duration_s,
+        request.headers.get("origin", "-"),
+        response.headers.get("access-control-allow-origin", "-"),
+        request.headers.get("access-control-request-headers", "-"),
+    )
+    return response
+`;
+const REQUEST_LOGGING_AFTER = `from src import operational_metrics
+from src.audit.router import router as audit_router
+async def request_logging_middleware(request: Request, call_next: Any) -> Any:
+    start = time.perf_counter()
+    status = 500
+    try:
+        response = await call_next(request)
+        status = response.status_code
+    finally:
+        duration_s = time.perf_counter() - start
+        route = getattr(request.scope.get("route"), "path", "unmatched")
+        logger.info(
+            "request route=%s status=%s duration=%.3fs", route, status, duration_s
+        )
+        await operational_metrics.record_request(route, status, duration_s)
+    return response
+`;
+for (const suffix of ["", "app.include_router(new_router)\n"]) {
+  test(`request metrics exemption rejects additional route edits: ${Boolean(suffix)}`, (t) => {
+    const file = "apps/api/fastapi/src/main.py";
+    const { base, repository } = createRepository(t, {
+      [file]: REQUEST_LOGGING_BEFORE,
+    });
+    write(repository, file, REQUEST_LOGGING_AFTER + suffix);
+    git(repository, "add", file);
+    assert.equal(check(repository, ["--staged"]).status, suffix ? 1 : 0);
+    const head = commit(repository);
+    assert.equal(
+      check(repository, ["--base", base, "--head", head]).status,
+      suffix ? 1 : 0
+    );
+  });
+}

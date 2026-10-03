@@ -1,48 +1,8 @@
-import { scrubSentryEvent } from "@barrelsgd/ui/lib/sentry-privacy";
-import { beforeEach, expect, it, vi } from "vitest";
-
-const sdk = vi.hoisted(() => ({ capture: vi.fn(), shutdown: vi.fn() }));
-vi.mock("posthog-node", () => ({
-  PostHog: class {
-    capture = sdk.capture;
-    shutdown = sdk.shutdown;
-  },
-}));
-vi.mock("@/lib/env", () => ({
-  env: {
-    NEXT_PUBLIC_POSTHOG_KEY: "test-key",
-    NEXT_PUBLIC_POSTHOG_HOST: "https://example.test",
-  },
-}));
-
-import { captureServerEvent } from "@/lib/posthog-server";
-
-beforeEach(() => {
-  sdk.capture.mockReset();
-  sdk.shutdown.mockReset();
-});
-
-it("counts auth outcomes without a session token or email identifier", async () => {
-  await captureServerEvent("sign_in");
-  await captureServerEvent("sign_out");
-  const first = sdk.capture.mock.calls[0]?.[0];
-  const second = sdk.capture.mock.calls[1]?.[0];
-  expect(first.distinctId).not.toBe(second.distinctId);
-  expect(first).toEqual({
-    distinctId: expect.any(String),
-    event: "sign_in",
-    properties: { $process_person_profile: false, $geoip_disable: true },
-  });
-});
-
-it("does not propagate analytics failures into authentication", async () => {
-  sdk.shutdown.mockRejectedValue(new Error("provider unavailable"));
-  await expect(captureServerEvent("sign_out")).resolves.toBeUndefined();
-  sdk.capture.mockImplementation(() => {
-    throw new Error("capture failure");
-  });
-  await expect(captureServerEvent("sign_in")).resolves.toBeUndefined();
-});
+import {
+  scrubSentryEvent,
+  scrubSentryTransaction,
+} from "@barrelsgd/ui/lib/sentry-privacy";
+import { expect, it } from "vitest";
 
 it("removes sensitive Sentry context while retaining error types and stack locations", () => {
   const result = scrubSentryEvent({
@@ -74,4 +34,18 @@ it("keeps only the digest and area tags, dropping anything else", () => {
   });
   expect(result.tags).toEqual({ digest: "abc123", area: "cap" });
   expect(scrubSentryEvent({ tags: { email: "private" } }).tags).toBeUndefined();
+});
+
+it("drops performance events until their sanitation and quota are verified", () => {
+  expect(
+    scrubSentryTransaction({
+      spans: [{ data: { email: "private@example.test" } }],
+    })
+  ).toBeNull();
+  const event = scrubSentryEvent({
+    exception: {
+      values: [{ stacktrace: { frames: [{ vars: { password: "private" } }] } }],
+    },
+  });
+  expect(JSON.stringify(event)).not.toContain("private");
 });

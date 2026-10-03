@@ -1,3 +1,4 @@
+import { PostHogProvider } from "@barrelsgd/ui/components/posthog-provider";
 import {
   MAIN_CONTENT_ID,
   SkipLink,
@@ -43,19 +44,21 @@ export default function RootLayout({
   return (
     <html className={`${inter.variable} ${sourceSerif.variable}`} lang="en-GB">
       <body className="flex min-h-screen flex-col bg-background font-sans text-foreground">
-        <SkipLink />
+        <PostHogProvider app="elections">
+          <SkipLink />
 
-        <MotionProvider>
-          <SiteHeader status={status} />
-          <main
-            className="flex-1 outline-none"
-            id={MAIN_CONTENT_ID}
-            tabIndex={-1}
-          >
-            {children}
-          </main>
-          <SiteFooter />
-        </MotionProvider>
+          <MotionProvider>
+            <SiteHeader status={status} />
+            <main
+              className="flex-1 outline-none"
+              id={MAIN_CONTENT_ID}
+              tabIndex={-1}
+            >
+              {children}
+            </main>
+            <SiteFooter />
+          </MotionProvider>
+        </PostHogProvider>
       </body>
     </html>
   );

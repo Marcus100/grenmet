@@ -39,6 +39,7 @@ export function SiteHeader() {
           {NAV_LINKS.map((link) => (
             <Link
               className="font-medium text-foreground/80 text-sm transition-colors hover:text-signal-green"
+              data-analytics-event="navigation_category_selected"
               href={link.href}
               key={link.href}
             >
@@ -67,6 +68,7 @@ export function SiteHeader() {
               {NAV_LINKS.map((link) => (
                 <Link
                   className="rounded-md px-2 py-2.5 font-medium text-base hover:bg-secondary"
+                  data-analytics-event="navigation_category_selected"
                   href={link.href}
                   key={link.href}
                   onClick={() => setOpen(false)}
@@ -76,6 +78,7 @@ export function SiteHeader() {
               ))}
               <Link
                 className={cn(buttonVariants(), "mt-3")}
+                data-analytics-event="navigation_category_selected"
                 href="/#subscribe"
                 onClick={() => setOpen(false)}
               >

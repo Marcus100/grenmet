@@ -206,7 +206,7 @@ test("staging and production pass integrations to the intended services", () => 
         api.BILLING_STRIPE_SECRET_KEY,
         env.BILLING_STRIPE_SECRET_KEY
       );
-      assert.equal(api.SENTRY_DSN, env.SENTRY_DSN);
+      assert.equal(api.SENTRY_DSN, ""); // Missing app mapping never uses legacy DSN.
       assert.equal(api.REDIS_URL, "redis://redis:6379/0");
       assert.equal(api.EMAIL_RENDER_URL, "http://web-auth:3000");
       const baseDomain =
@@ -240,10 +240,7 @@ test("staging and production pass integrations to the intended services", () => 
           `https://${subdomain}.${baseDomain}`
         );
       }
-      assert.equal(
-        model.services.worker.environment.SENTRY_DSN,
-        env.SENTRY_DSN
-      );
+      assert.equal(model.services.worker.environment.SENTRY_DSN, "");
       assert.equal(
         model.services["web-gms"].environment.CAP_API_URL,
         "http://api:8000"
@@ -259,7 +256,7 @@ test("staging and production pass integrations to the intended services", () => 
       for (const service of ["web-auth", "web-admin", "web-docs", "web-gms"]) {
         assert.equal(
           model.services[service].environment.NEXT_PUBLIC_POSTHOG_KEY,
-          env.NEXT_PUBLIC_POSTHOG_KEY
+          undefined
         );
         assert.equal(
           model.services[service].environment.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
