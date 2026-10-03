@@ -1,7 +1,5 @@
 "use client";
 
-import { captureEvent } from "@barrelsgd/ui/lib/analytics-runtime";
-
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { useEffect, useId, useMemo, useState } from "react";
 import { Flag } from "@/components/flag";
@@ -181,9 +179,6 @@ export function PredictionTool({ seats, land, inset }: Props) {
             update(map);
             try {
               await navigator.clipboard.writeText(url.href);
-              captureEvent("prediction_share_completed", {
-                method: "clipboard",
-              });
               setCopied("Link copied");
             } catch {
               setCopied("Copy the address bar");
