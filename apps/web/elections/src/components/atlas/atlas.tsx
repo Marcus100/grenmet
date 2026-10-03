@@ -1,8 +1,5 @@
 "use client";
 
-import type { EventProperties } from "@barrelsgd/ui/lib/analytics-policy";
-import { captureEvent } from "@barrelsgd/ui/lib/analytics-runtime";
-
 import { cn } from "@barrelsgd/ui/lib/utils";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -906,19 +903,8 @@ export function Atlas() {
     seat: null,
     division: null,
   });
-  const set = (patch: Partial<UrlState>) => {
-    if (patch.mode) captureEvent("map_mode_changed", { mode: patch.mode });
-    if (patch.seat && patch.seat !== state.seat)
-      captureEvent("constituency_opened", {});
-    if (patch.eventId)
-      captureEvent("year_selected", {
-        year: patch.eventId.slice(
-          0,
-          4
-        ) as EventProperties<"year_selected">["year"],
-      });
+  const set = (patch: Partial<UrlState>) =>
     setState((s) => ({ ...s, ...patch }));
-  };
 
   useEffect(() => {
     fetch("/atlas-data.json")
