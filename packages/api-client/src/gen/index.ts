@@ -2,6 +2,16 @@ export * from "./.kubb/client.js";
 export * from "./.kubb/serializers.js";
 export * from "./.kubb/standardSchema.js";
 export { auditGetHistory } from "./clients/auditGetHistory.js";
+export { authAppEmailCodeStart } from "./clients/authAppEmailCodeStart.js";
+export { authAppEmailCodeVerify } from "./clients/authAppEmailCodeVerify.js";
+export { authAppGoogleComplete } from "./clients/authAppGoogleComplete.js";
+export { authAppGoogleFinish } from "./clients/authAppGoogleFinish.js";
+export { authAppGoogleStart } from "./clients/authAppGoogleStart.js";
+export { authAppPasswordLogin } from "./clients/authAppPasswordLogin.js";
+export { authAppPhoneCodeStart } from "./clients/authAppPhoneCodeStart.js";
+export { authAppPhoneCodeVerify } from "./clients/authAppPhoneCodeVerify.js";
+export { authAppPhoneLinkStart } from "./clients/authAppPhoneLinkStart.js";
+export { authAppPhoneLinkVerify } from "./clients/authAppPhoneLinkVerify.js";
 export { authBrowserSession } from "./clients/authBrowserSession.js";
 export { authCreatePermission } from "./clients/authCreatePermission.js";
 export { authCreateRole } from "./clients/authCreateRole.js";
@@ -16,6 +26,7 @@ export { authEmailRequest } from "./clients/authEmailRequest.js";
 export { authExchangeSessionForAccessToken } from "./clients/authExchangeSessionForAccessToken.js";
 export { authGetAccessReviews } from "./clients/authGetAccessReviews.js";
 export { authGetAccountSecurity } from "./clients/authGetAccountSecurity.js";
+export { authGetAppSignInOptions } from "./clients/authGetAppSignInOptions.js";
 export { authGetEffectiveAccess } from "./clients/authGetEffectiveAccess.js";
 export { authGetPermission } from "./clients/authGetPermission.js";
 export { authGetPermissions } from "./clients/authGetPermissions.js";
@@ -301,6 +312,56 @@ export {
   useAuditGetHistory,
 } from "./hooks/useAuditGetHistory.js";
 export {
+  authAppEmailCodeStartMutationKey,
+  authAppEmailCodeStartMutationOptions,
+  useAuthAppEmailCodeStart,
+} from "./hooks/useAuthAppEmailCodeStart.js";
+export {
+  authAppEmailCodeVerifyMutationKey,
+  authAppEmailCodeVerifyMutationOptions,
+  useAuthAppEmailCodeVerify,
+} from "./hooks/useAuthAppEmailCodeVerify.js";
+export {
+  authAppGoogleCompleteMutationKey,
+  authAppGoogleCompleteMutationOptions,
+  useAuthAppGoogleComplete,
+} from "./hooks/useAuthAppGoogleComplete.js";
+export {
+  authAppGoogleFinishMutationKey,
+  authAppGoogleFinishMutationOptions,
+  useAuthAppGoogleFinish,
+} from "./hooks/useAuthAppGoogleFinish.js";
+export {
+  authAppGoogleStartMutationKey,
+  authAppGoogleStartMutationOptions,
+  useAuthAppGoogleStart,
+} from "./hooks/useAuthAppGoogleStart.js";
+export {
+  authAppPasswordLoginMutationKey,
+  authAppPasswordLoginMutationOptions,
+  useAuthAppPasswordLogin,
+} from "./hooks/useAuthAppPasswordLogin.js";
+export {
+  authAppPhoneCodeStartMutationKey,
+  authAppPhoneCodeStartMutationOptions,
+  useAuthAppPhoneCodeStart,
+} from "./hooks/useAuthAppPhoneCodeStart.js";
+export {
+  authAppPhoneCodeVerifyMutationKey,
+  authAppPhoneCodeVerifyMutationOptions,
+  useAuthAppPhoneCodeVerify,
+} from "./hooks/useAuthAppPhoneCodeVerify.js";
+export {
+  authAppPhoneLinkStartMutationKey,
+  authAppPhoneLinkStartMutationOptions,
+  useAuthAppPhoneLinkStart,
+} from "./hooks/useAuthAppPhoneLinkStart.js";
+export {
+  authAppPhoneLinkVerifyMutationKey,
+  authAppPhoneLinkVerifyMutationOptions,
+  useAuthAppPhoneLinkVerify,
+} from "./hooks/useAuthAppPhoneLinkVerify.js";
+export {
   authBrowserSessionQueryKey,
   authBrowserSessionQueryOptions,
   useAuthBrowserSession,
@@ -370,6 +431,11 @@ export {
   authGetAccountSecurityQueryOptions,
   useAuthGetAccountSecurity,
 } from "./hooks/useAuthGetAccountSecurity.js";
+export {
+  authGetAppSignInOptionsQueryKey,
+  authGetAppSignInOptionsQueryOptions,
+  useAuthGetAppSignInOptions,
+} from "./hooks/useAuthGetAppSignInOptions.js";
 export {
   authGetEffectiveAccessQueryKey,
   authGetEffectiveAccessQueryOptions,
@@ -1776,6 +1842,14 @@ export type { AccountSecurityPublic } from "./models/AccountSecurityPublic.js";
 export type { AddressPublic } from "./models/AddressPublic.js";
 export type { AddressUpdate } from "./models/AddressUpdate.js";
 export type { ApiError } from "./models/ApiError.js";
+export type { AppEmailCodeStart } from "./models/AppEmailCodeStart.js";
+export type { AppEmailCodeVerify } from "./models/AppEmailCodeVerify.js";
+export type { AppPasswordLogin } from "./models/AppPasswordLogin.js";
+export type { AppPhoneCodeStart } from "./models/AppPhoneCodeStart.js";
+export type { AppPhoneCodeStartPropertiesChannelEnum } from "./models/AppPhoneCodeStartPropertiesChannelEnum.js";
+export { appPhoneCodeStartPropertiesChannelEnum } from "./models/AppPhoneCodeStartPropertiesChannelEnum.js";
+export type { AppPhoneCodeVerify } from "./models/AppPhoneCodeVerify.js";
+export type { AppPublic } from "./models/AppPublic.js";
 export type { ApprovalAuthorityPublic } from "./models/ApprovalAuthorityPublic.js";
 export type { ApprovalAuthorityUpdate } from "./models/ApprovalAuthorityUpdate.js";
 export type { ArchiveBulletin } from "./models/ArchiveBulletin.js";
@@ -1808,6 +1882,149 @@ export type {
   AuditGetHistoryStatus404,
   AuditGetHistoryStatus422,
 } from "./models/AuditGetHistory.js";
+export type {
+  AuthAppEmailCodeStartBody,
+  AuthAppEmailCodeStartOptions,
+  AuthAppEmailCodeStartPath,
+  AuthAppEmailCodeStartResponse,
+  AuthAppEmailCodeStartResponses,
+  AuthAppEmailCodeStartStatus200,
+  AuthAppEmailCodeStartStatus400,
+  AuthAppEmailCodeStartStatus403,
+  AuthAppEmailCodeStartStatus404,
+  AuthAppEmailCodeStartStatus422,
+  AuthAppEmailCodeStartStatus429,
+  AuthAppEmailCodeStartStatus503,
+} from "./models/AuthAppEmailCodeStart.js";
+export type {
+  AuthAppEmailCodeVerifyBody,
+  AuthAppEmailCodeVerifyOptions,
+  AuthAppEmailCodeVerifyPath,
+  AuthAppEmailCodeVerifyResponse,
+  AuthAppEmailCodeVerifyResponses,
+  AuthAppEmailCodeVerifyStatus200,
+  AuthAppEmailCodeVerifyStatus400,
+  AuthAppEmailCodeVerifyStatus403,
+  AuthAppEmailCodeVerifyStatus404,
+  AuthAppEmailCodeVerifyStatus422,
+  AuthAppEmailCodeVerifyStatus429,
+  AuthAppEmailCodeVerifyStatus503,
+} from "./models/AuthAppEmailCodeVerify.js";
+export type {
+  AuthAppGoogleCompleteBody,
+  AuthAppGoogleCompleteOptions,
+  AuthAppGoogleCompletePath,
+  AuthAppGoogleCompleteResponse,
+  AuthAppGoogleCompleteResponses,
+  AuthAppGoogleCompleteStatus200,
+  AuthAppGoogleCompleteStatus400,
+  AuthAppGoogleCompleteStatus403,
+  AuthAppGoogleCompleteStatus404,
+  AuthAppGoogleCompleteStatus422,
+  AuthAppGoogleCompleteStatus429,
+  AuthAppGoogleCompleteStatus503,
+} from "./models/AuthAppGoogleComplete.js";
+export type {
+  AuthAppGoogleFinishBody,
+  AuthAppGoogleFinishOptions,
+  AuthAppGoogleFinishPath,
+  AuthAppGoogleFinishResponse,
+  AuthAppGoogleFinishResponses,
+  AuthAppGoogleFinishStatus200,
+  AuthAppGoogleFinishStatus400,
+  AuthAppGoogleFinishStatus403,
+  AuthAppGoogleFinishStatus404,
+  AuthAppGoogleFinishStatus422,
+  AuthAppGoogleFinishStatus429,
+  AuthAppGoogleFinishStatus503,
+} from "./models/AuthAppGoogleFinish.js";
+export type {
+  AuthAppGoogleStartBody,
+  AuthAppGoogleStartOptions,
+  AuthAppGoogleStartPath,
+  AuthAppGoogleStartResponse,
+  AuthAppGoogleStartResponses,
+  AuthAppGoogleStartStatus200,
+  AuthAppGoogleStartStatus400,
+  AuthAppGoogleStartStatus403,
+  AuthAppGoogleStartStatus404,
+  AuthAppGoogleStartStatus422,
+  AuthAppGoogleStartStatus429,
+  AuthAppGoogleStartStatus503,
+} from "./models/AuthAppGoogleStart.js";
+export type {
+  AuthAppPasswordLoginBody,
+  AuthAppPasswordLoginOptions,
+  AuthAppPasswordLoginPath,
+  AuthAppPasswordLoginResponse,
+  AuthAppPasswordLoginResponses,
+  AuthAppPasswordLoginStatus200,
+  AuthAppPasswordLoginStatus400,
+  AuthAppPasswordLoginStatus403,
+  AuthAppPasswordLoginStatus404,
+  AuthAppPasswordLoginStatus422,
+  AuthAppPasswordLoginStatus429,
+  AuthAppPasswordLoginStatus503,
+} from "./models/AuthAppPasswordLogin.js";
+export type {
+  AuthAppPhoneCodeStartBody,
+  AuthAppPhoneCodeStartOptions,
+  AuthAppPhoneCodeStartPath,
+  AuthAppPhoneCodeStartResponse,
+  AuthAppPhoneCodeStartResponses,
+  AuthAppPhoneCodeStartStatus200,
+  AuthAppPhoneCodeStartStatus400,
+  AuthAppPhoneCodeStartStatus403,
+  AuthAppPhoneCodeStartStatus404,
+  AuthAppPhoneCodeStartStatus422,
+  AuthAppPhoneCodeStartStatus429,
+  AuthAppPhoneCodeStartStatus503,
+} from "./models/AuthAppPhoneCodeStart.js";
+export type {
+  AuthAppPhoneCodeVerifyBody,
+  AuthAppPhoneCodeVerifyOptions,
+  AuthAppPhoneCodeVerifyPath,
+  AuthAppPhoneCodeVerifyResponse,
+  AuthAppPhoneCodeVerifyResponses,
+  AuthAppPhoneCodeVerifyStatus200,
+  AuthAppPhoneCodeVerifyStatus400,
+  AuthAppPhoneCodeVerifyStatus403,
+  AuthAppPhoneCodeVerifyStatus404,
+  AuthAppPhoneCodeVerifyStatus422,
+  AuthAppPhoneCodeVerifyStatus429,
+  AuthAppPhoneCodeVerifyStatus503,
+} from "./models/AuthAppPhoneCodeVerify.js";
+export type {
+  AuthAppPhoneLinkStartBody,
+  AuthAppPhoneLinkStartOptions,
+  AuthAppPhoneLinkStartPath,
+  AuthAppPhoneLinkStartResponse,
+  AuthAppPhoneLinkStartResponses,
+  AuthAppPhoneLinkStartStatus200,
+  AuthAppPhoneLinkStartStatus400,
+  AuthAppPhoneLinkStartStatus401,
+  AuthAppPhoneLinkStartStatus403,
+  AuthAppPhoneLinkStartStatus404,
+  AuthAppPhoneLinkStartStatus422,
+  AuthAppPhoneLinkStartStatus429,
+  AuthAppPhoneLinkStartStatus503,
+} from "./models/AuthAppPhoneLinkStart.js";
+export type {
+  AuthAppPhoneLinkVerifyBody,
+  AuthAppPhoneLinkVerifyOptions,
+  AuthAppPhoneLinkVerifyPath,
+  AuthAppPhoneLinkVerifyResponse,
+  AuthAppPhoneLinkVerifyResponses,
+  AuthAppPhoneLinkVerifyStatus200,
+  AuthAppPhoneLinkVerifyStatus400,
+  AuthAppPhoneLinkVerifyStatus401,
+  AuthAppPhoneLinkVerifyStatus403,
+  AuthAppPhoneLinkVerifyStatus404,
+  AuthAppPhoneLinkVerifyStatus409,
+  AuthAppPhoneLinkVerifyStatus422,
+  AuthAppPhoneLinkVerifyStatus429,
+  AuthAppPhoneLinkVerifyStatus503,
+} from "./models/AuthAppPhoneLinkVerify.js";
 export type {
   AuthBrowserSessionOptions,
   AuthBrowserSessionResponse,
@@ -1933,6 +2150,15 @@ export type {
   AuthGetAccountSecurityStatus403,
   AuthGetAccountSecurityStatus422,
 } from "./models/AuthGetAccountSecurity.js";
+export type {
+  AuthGetAppSignInOptionsOptions,
+  AuthGetAppSignInOptionsPath,
+  AuthGetAppSignInOptionsResponse,
+  AuthGetAppSignInOptionsResponses,
+  AuthGetAppSignInOptionsStatus200,
+  AuthGetAppSignInOptionsStatus404,
+  AuthGetAppSignInOptionsStatus422,
+} from "./models/AuthGetAppSignInOptions.js";
 export type {
   AuthGetEffectiveAccessOptions,
   AuthGetEffectiveAccessResponse,
@@ -5224,6 +5450,13 @@ export { accountSecurityPublicSchema } from "./zod/accountSecurityPublicSchema.j
 export { addressPublicSchema } from "./zod/addressPublicSchema.js";
 export { addressUpdateSchema } from "./zod/addressUpdateSchema.js";
 export { apiErrorSchema } from "./zod/apiErrorSchema.js";
+export { appEmailCodeStartSchema } from "./zod/appEmailCodeStartSchema.js";
+export { appEmailCodeVerifySchema } from "./zod/appEmailCodeVerifySchema.js";
+export { appPasswordLoginSchema } from "./zod/appPasswordLoginSchema.js";
+export { appPhoneCodeStartPropertiesChannelEnumSchema } from "./zod/appPhoneCodeStartPropertiesChannelEnumSchema.js";
+export { appPhoneCodeStartSchema } from "./zod/appPhoneCodeStartSchema.js";
+export { appPhoneCodeVerifySchema } from "./zod/appPhoneCodeVerifySchema.js";
+export { appPublicSchema } from "./zod/appPublicSchema.js";
 export { approvalAuthorityPublicSchema } from "./zod/approvalAuthorityPublicSchema.js";
 export { approvalAuthorityUpdateSchema } from "./zod/approvalAuthorityUpdateSchema.js";
 export { archiveBulletinSchema } from "./zod/archiveBulletinSchema.js";
@@ -5256,6 +5489,139 @@ export {
   auditGetHistoryStatus404Schema,
   auditGetHistoryStatus422Schema,
 } from "./zod/auditGetHistorySchema.js";
+export {
+  authAppEmailCodeStartBodySchema,
+  authAppEmailCodeStartErrorSchema,
+  authAppEmailCodeStartPathAppSchema,
+  authAppEmailCodeStartResponseSchema,
+  authAppEmailCodeStartStatus200Schema,
+  authAppEmailCodeStartStatus400Schema,
+  authAppEmailCodeStartStatus403Schema,
+  authAppEmailCodeStartStatus404Schema,
+  authAppEmailCodeStartStatus422Schema,
+  authAppEmailCodeStartStatus429Schema,
+  authAppEmailCodeStartStatus503Schema,
+} from "./zod/authAppEmailCodeStartSchema.js";
+export {
+  authAppEmailCodeVerifyBodySchema,
+  authAppEmailCodeVerifyErrorSchema,
+  authAppEmailCodeVerifyPathAppSchema,
+  authAppEmailCodeVerifyResponseSchema,
+  authAppEmailCodeVerifyStatus200Schema,
+  authAppEmailCodeVerifyStatus400Schema,
+  authAppEmailCodeVerifyStatus403Schema,
+  authAppEmailCodeVerifyStatus404Schema,
+  authAppEmailCodeVerifyStatus422Schema,
+  authAppEmailCodeVerifyStatus429Schema,
+  authAppEmailCodeVerifyStatus503Schema,
+} from "./zod/authAppEmailCodeVerifySchema.js";
+export {
+  authAppGoogleCompleteBodySchema,
+  authAppGoogleCompleteErrorSchema,
+  authAppGoogleCompletePathAppSchema,
+  authAppGoogleCompleteResponseSchema,
+  authAppGoogleCompleteStatus200Schema,
+  authAppGoogleCompleteStatus400Schema,
+  authAppGoogleCompleteStatus403Schema,
+  authAppGoogleCompleteStatus404Schema,
+  authAppGoogleCompleteStatus422Schema,
+  authAppGoogleCompleteStatus429Schema,
+  authAppGoogleCompleteStatus503Schema,
+} from "./zod/authAppGoogleCompleteSchema.js";
+export {
+  authAppGoogleFinishBodySchema,
+  authAppGoogleFinishErrorSchema,
+  authAppGoogleFinishPathAppSchema,
+  authAppGoogleFinishResponseSchema,
+  authAppGoogleFinishStatus200Schema,
+  authAppGoogleFinishStatus400Schema,
+  authAppGoogleFinishStatus403Schema,
+  authAppGoogleFinishStatus404Schema,
+  authAppGoogleFinishStatus422Schema,
+  authAppGoogleFinishStatus429Schema,
+  authAppGoogleFinishStatus503Schema,
+} from "./zod/authAppGoogleFinishSchema.js";
+export {
+  authAppGoogleStartBodySchema,
+  authAppGoogleStartErrorSchema,
+  authAppGoogleStartPathAppSchema,
+  authAppGoogleStartResponseSchema,
+  authAppGoogleStartStatus200Schema,
+  authAppGoogleStartStatus400Schema,
+  authAppGoogleStartStatus403Schema,
+  authAppGoogleStartStatus404Schema,
+  authAppGoogleStartStatus422Schema,
+  authAppGoogleStartStatus429Schema,
+  authAppGoogleStartStatus503Schema,
+} from "./zod/authAppGoogleStartSchema.js";
+export {
+  authAppPasswordLoginBodySchema,
+  authAppPasswordLoginErrorSchema,
+  authAppPasswordLoginPathAppSchema,
+  authAppPasswordLoginResponseSchema,
+  authAppPasswordLoginStatus200Schema,
+  authAppPasswordLoginStatus400Schema,
+  authAppPasswordLoginStatus403Schema,
+  authAppPasswordLoginStatus404Schema,
+  authAppPasswordLoginStatus422Schema,
+  authAppPasswordLoginStatus429Schema,
+  authAppPasswordLoginStatus503Schema,
+} from "./zod/authAppPasswordLoginSchema.js";
+export {
+  authAppPhoneCodeStartBodySchema,
+  authAppPhoneCodeStartErrorSchema,
+  authAppPhoneCodeStartPathAppSchema,
+  authAppPhoneCodeStartResponseSchema,
+  authAppPhoneCodeStartStatus200Schema,
+  authAppPhoneCodeStartStatus400Schema,
+  authAppPhoneCodeStartStatus403Schema,
+  authAppPhoneCodeStartStatus404Schema,
+  authAppPhoneCodeStartStatus422Schema,
+  authAppPhoneCodeStartStatus429Schema,
+  authAppPhoneCodeStartStatus503Schema,
+} from "./zod/authAppPhoneCodeStartSchema.js";
+export {
+  authAppPhoneCodeVerifyBodySchema,
+  authAppPhoneCodeVerifyErrorSchema,
+  authAppPhoneCodeVerifyPathAppSchema,
+  authAppPhoneCodeVerifyResponseSchema,
+  authAppPhoneCodeVerifyStatus200Schema,
+  authAppPhoneCodeVerifyStatus400Schema,
+  authAppPhoneCodeVerifyStatus403Schema,
+  authAppPhoneCodeVerifyStatus404Schema,
+  authAppPhoneCodeVerifyStatus422Schema,
+  authAppPhoneCodeVerifyStatus429Schema,
+  authAppPhoneCodeVerifyStatus503Schema,
+} from "./zod/authAppPhoneCodeVerifySchema.js";
+export {
+  authAppPhoneLinkStartBodySchema,
+  authAppPhoneLinkStartErrorSchema,
+  authAppPhoneLinkStartPathAppSchema,
+  authAppPhoneLinkStartResponseSchema,
+  authAppPhoneLinkStartStatus200Schema,
+  authAppPhoneLinkStartStatus400Schema,
+  authAppPhoneLinkStartStatus401Schema,
+  authAppPhoneLinkStartStatus403Schema,
+  authAppPhoneLinkStartStatus404Schema,
+  authAppPhoneLinkStartStatus422Schema,
+  authAppPhoneLinkStartStatus429Schema,
+  authAppPhoneLinkStartStatus503Schema,
+} from "./zod/authAppPhoneLinkStartSchema.js";
+export {
+  authAppPhoneLinkVerifyBodySchema,
+  authAppPhoneLinkVerifyErrorSchema,
+  authAppPhoneLinkVerifyPathAppSchema,
+  authAppPhoneLinkVerifyResponseSchema,
+  authAppPhoneLinkVerifyStatus200Schema,
+  authAppPhoneLinkVerifyStatus400Schema,
+  authAppPhoneLinkVerifyStatus401Schema,
+  authAppPhoneLinkVerifyStatus403Schema,
+  authAppPhoneLinkVerifyStatus404Schema,
+  authAppPhoneLinkVerifyStatus409Schema,
+  authAppPhoneLinkVerifyStatus422Schema,
+  authAppPhoneLinkVerifyStatus429Schema,
+  authAppPhoneLinkVerifyStatus503Schema,
+} from "./zod/authAppPhoneLinkVerifySchema.js";
 export {
   authBrowserSessionErrorSchema,
   authBrowserSessionResponseSchema,
@@ -5367,6 +5733,14 @@ export {
   authGetAccountSecurityStatus403Schema,
   authGetAccountSecurityStatus422Schema,
 } from "./zod/authGetAccountSecuritySchema.js";
+export {
+  authGetAppSignInOptionsErrorSchema,
+  authGetAppSignInOptionsPathAppSchema,
+  authGetAppSignInOptionsResponseSchema,
+  authGetAppSignInOptionsStatus200Schema,
+  authGetAppSignInOptionsStatus404Schema,
+  authGetAppSignInOptionsStatus422Schema,
+} from "./zod/authGetAppSignInOptionsSchema.js";
 export {
   authGetEffectiveAccessErrorSchema,
   authGetEffectiveAccessResponseSchema,

@@ -8,6 +8,13 @@ export { accountSecurityPublicSchema } from "./accountSecurityPublicSchema.js";
 export { addressPublicSchema } from "./addressPublicSchema.js";
 export { addressUpdateSchema } from "./addressUpdateSchema.js";
 export { apiErrorSchema } from "./apiErrorSchema.js";
+export { appEmailCodeStartSchema } from "./appEmailCodeStartSchema.js";
+export { appEmailCodeVerifySchema } from "./appEmailCodeVerifySchema.js";
+export { appPasswordLoginSchema } from "./appPasswordLoginSchema.js";
+export { appPhoneCodeStartPropertiesChannelEnumSchema } from "./appPhoneCodeStartPropertiesChannelEnumSchema.js";
+export { appPhoneCodeStartSchema } from "./appPhoneCodeStartSchema.js";
+export { appPhoneCodeVerifySchema } from "./appPhoneCodeVerifySchema.js";
+export { appPublicSchema } from "./appPublicSchema.js";
 export { approvalAuthorityPublicSchema } from "./approvalAuthorityPublicSchema.js";
 export { approvalAuthorityUpdateSchema } from "./approvalAuthorityUpdateSchema.js";
 export { archiveBulletinSchema } from "./archiveBulletinSchema.js";
@@ -40,6 +47,139 @@ export {
   auditGetHistoryStatus404Schema,
   auditGetHistoryStatus422Schema,
 } from "./auditGetHistorySchema.js";
+export {
+  authAppEmailCodeStartBodySchema,
+  authAppEmailCodeStartErrorSchema,
+  authAppEmailCodeStartPathAppSchema,
+  authAppEmailCodeStartResponseSchema,
+  authAppEmailCodeStartStatus200Schema,
+  authAppEmailCodeStartStatus400Schema,
+  authAppEmailCodeStartStatus403Schema,
+  authAppEmailCodeStartStatus404Schema,
+  authAppEmailCodeStartStatus422Schema,
+  authAppEmailCodeStartStatus429Schema,
+  authAppEmailCodeStartStatus503Schema,
+} from "./authAppEmailCodeStartSchema.js";
+export {
+  authAppEmailCodeVerifyBodySchema,
+  authAppEmailCodeVerifyErrorSchema,
+  authAppEmailCodeVerifyPathAppSchema,
+  authAppEmailCodeVerifyResponseSchema,
+  authAppEmailCodeVerifyStatus200Schema,
+  authAppEmailCodeVerifyStatus400Schema,
+  authAppEmailCodeVerifyStatus403Schema,
+  authAppEmailCodeVerifyStatus404Schema,
+  authAppEmailCodeVerifyStatus422Schema,
+  authAppEmailCodeVerifyStatus429Schema,
+  authAppEmailCodeVerifyStatus503Schema,
+} from "./authAppEmailCodeVerifySchema.js";
+export {
+  authAppGoogleCompleteBodySchema,
+  authAppGoogleCompleteErrorSchema,
+  authAppGoogleCompletePathAppSchema,
+  authAppGoogleCompleteResponseSchema,
+  authAppGoogleCompleteStatus200Schema,
+  authAppGoogleCompleteStatus400Schema,
+  authAppGoogleCompleteStatus403Schema,
+  authAppGoogleCompleteStatus404Schema,
+  authAppGoogleCompleteStatus422Schema,
+  authAppGoogleCompleteStatus429Schema,
+  authAppGoogleCompleteStatus503Schema,
+} from "./authAppGoogleCompleteSchema.js";
+export {
+  authAppGoogleFinishBodySchema,
+  authAppGoogleFinishErrorSchema,
+  authAppGoogleFinishPathAppSchema,
+  authAppGoogleFinishResponseSchema,
+  authAppGoogleFinishStatus200Schema,
+  authAppGoogleFinishStatus400Schema,
+  authAppGoogleFinishStatus403Schema,
+  authAppGoogleFinishStatus404Schema,
+  authAppGoogleFinishStatus422Schema,
+  authAppGoogleFinishStatus429Schema,
+  authAppGoogleFinishStatus503Schema,
+} from "./authAppGoogleFinishSchema.js";
+export {
+  authAppGoogleStartBodySchema,
+  authAppGoogleStartErrorSchema,
+  authAppGoogleStartPathAppSchema,
+  authAppGoogleStartResponseSchema,
+  authAppGoogleStartStatus200Schema,
+  authAppGoogleStartStatus400Schema,
+  authAppGoogleStartStatus403Schema,
+  authAppGoogleStartStatus404Schema,
+  authAppGoogleStartStatus422Schema,
+  authAppGoogleStartStatus429Schema,
+  authAppGoogleStartStatus503Schema,
+} from "./authAppGoogleStartSchema.js";
+export {
+  authAppPasswordLoginBodySchema,
+  authAppPasswordLoginErrorSchema,
+  authAppPasswordLoginPathAppSchema,
+  authAppPasswordLoginResponseSchema,
+  authAppPasswordLoginStatus200Schema,
+  authAppPasswordLoginStatus400Schema,
+  authAppPasswordLoginStatus403Schema,
+  authAppPasswordLoginStatus404Schema,
+  authAppPasswordLoginStatus422Schema,
+  authAppPasswordLoginStatus429Schema,
+  authAppPasswordLoginStatus503Schema,
+} from "./authAppPasswordLoginSchema.js";
+export {
+  authAppPhoneCodeStartBodySchema,
+  authAppPhoneCodeStartErrorSchema,
+  authAppPhoneCodeStartPathAppSchema,
+  authAppPhoneCodeStartResponseSchema,
+  authAppPhoneCodeStartStatus200Schema,
+  authAppPhoneCodeStartStatus400Schema,
+  authAppPhoneCodeStartStatus403Schema,
+  authAppPhoneCodeStartStatus404Schema,
+  authAppPhoneCodeStartStatus422Schema,
+  authAppPhoneCodeStartStatus429Schema,
+  authAppPhoneCodeStartStatus503Schema,
+} from "./authAppPhoneCodeStartSchema.js";
+export {
+  authAppPhoneCodeVerifyBodySchema,
+  authAppPhoneCodeVerifyErrorSchema,
+  authAppPhoneCodeVerifyPathAppSchema,
+  authAppPhoneCodeVerifyResponseSchema,
+  authAppPhoneCodeVerifyStatus200Schema,
+  authAppPhoneCodeVerifyStatus400Schema,
+  authAppPhoneCodeVerifyStatus403Schema,
+  authAppPhoneCodeVerifyStatus404Schema,
+  authAppPhoneCodeVerifyStatus422Schema,
+  authAppPhoneCodeVerifyStatus429Schema,
+  authAppPhoneCodeVerifyStatus503Schema,
+} from "./authAppPhoneCodeVerifySchema.js";
+export {
+  authAppPhoneLinkStartBodySchema,
+  authAppPhoneLinkStartErrorSchema,
+  authAppPhoneLinkStartPathAppSchema,
+  authAppPhoneLinkStartResponseSchema,
+  authAppPhoneLinkStartStatus200Schema,
+  authAppPhoneLinkStartStatus400Schema,
+  authAppPhoneLinkStartStatus401Schema,
+  authAppPhoneLinkStartStatus403Schema,
+  authAppPhoneLinkStartStatus404Schema,
+  authAppPhoneLinkStartStatus422Schema,
+  authAppPhoneLinkStartStatus429Schema,
+  authAppPhoneLinkStartStatus503Schema,
+} from "./authAppPhoneLinkStartSchema.js";
+export {
+  authAppPhoneLinkVerifyBodySchema,
+  authAppPhoneLinkVerifyErrorSchema,
+  authAppPhoneLinkVerifyPathAppSchema,
+  authAppPhoneLinkVerifyResponseSchema,
+  authAppPhoneLinkVerifyStatus200Schema,
+  authAppPhoneLinkVerifyStatus400Schema,
+  authAppPhoneLinkVerifyStatus401Schema,
+  authAppPhoneLinkVerifyStatus403Schema,
+  authAppPhoneLinkVerifyStatus404Schema,
+  authAppPhoneLinkVerifyStatus409Schema,
+  authAppPhoneLinkVerifyStatus422Schema,
+  authAppPhoneLinkVerifyStatus429Schema,
+  authAppPhoneLinkVerifyStatus503Schema,
+} from "./authAppPhoneLinkVerifySchema.js";
 export {
   authBrowserSessionErrorSchema,
   authBrowserSessionResponseSchema,
@@ -151,6 +291,14 @@ export {
   authGetAccountSecurityStatus403Schema,
   authGetAccountSecurityStatus422Schema,
 } from "./authGetAccountSecuritySchema.js";
+export {
+  authGetAppSignInOptionsErrorSchema,
+  authGetAppSignInOptionsPathAppSchema,
+  authGetAppSignInOptionsResponseSchema,
+  authGetAppSignInOptionsStatus200Schema,
+  authGetAppSignInOptionsStatus404Schema,
+  authGetAppSignInOptionsStatus422Schema,
+} from "./authGetAppSignInOptionsSchema.js";
 export {
   authGetEffectiveAccessErrorSchema,
   authGetEffectiveAccessResponseSchema,

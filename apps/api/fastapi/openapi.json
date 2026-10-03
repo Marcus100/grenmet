@@ -16838,6 +16838,762 @@
         }
       }
     },
+    "/api/v1/auth/apps/{app}": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Describe an app's sign-in options",
+        "description": "Public: which sign-in methods the app offers and whether anyone may sign up.",
+        "operationId": "authGetAppSignInOptions",
+        "parameters": [
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,30}$",
+              "title": "App"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Unknown app"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/apps/{app}/email-code/start": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Send an email sign-in code",
+        "description": "Send a 6-digit code. The reply never reveals whether the address has an account.",
+        "operationId": "authAppEmailCodeStart",
+        "parameters": [
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,30}$",
+              "title": "App"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppEmailCodeStart"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Unknown app"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "400": {
+            "description": "Wrong or expired code, or bad credentials"
+          },
+          "403": {
+            "description": "Account cannot use this app"
+          },
+          "503": {
+            "description": "Sign-in method not available"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/apps/{app}/email-code/verify": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Sign in with an email code",
+        "description": "Verify the code and create an app-scoped session; creates the account on first sign-in when the app allows sign-up.",
+        "operationId": "authAppEmailCodeVerify",
+        "parameters": [
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,30}$",
+              "title": "App"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppEmailCodeVerify"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionLoginResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Unknown app"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "400": {
+            "description": "Wrong or expired code, or bad credentials"
+          },
+          "403": {
+            "description": "Account cannot use this app"
+          },
+          "503": {
+            "description": "Sign-in method not available"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/apps/{app}/login": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Sign in with email and password",
+        "description": "Create an app-scoped session with an email and password.",
+        "operationId": "authAppPasswordLogin",
+        "parameters": [
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,30}$",
+              "title": "App"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppPasswordLogin"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionLoginResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Unknown app"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "400": {
+            "description": "Wrong or expired code, or bad credentials"
+          },
+          "403": {
+            "description": "Account cannot use this app"
+          },
+          "503": {
+            "description": "Sign-in method not available"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/apps/{app}/google/start": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Start Google sign-in for an app",
+        "description": "Return the Google authorisation URL using this app's redirect URI.",
+        "operationId": "authAppGoogleStart",
+        "parameters": [
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,30}$",
+              "title": "App"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoogleStart"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoogleStartPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Unknown app"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "400": {
+            "description": "Wrong or expired code, or bad credentials"
+          },
+          "403": {
+            "description": "Account cannot use this app"
+          },
+          "503": {
+            "description": "Sign-in method not available"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/apps/{app}/google/complete": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Verify the Google callback for an app",
+        "description": "Verify Google's callback and return a short-lived challenge to finish sign-in.",
+        "operationId": "authAppGoogleComplete",
+        "parameters": [
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,30}$",
+              "title": "App"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoogleComplete"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoogleChallengePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Unknown app"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "400": {
+            "description": "Wrong or expired code, or bad credentials"
+          },
+          "403": {
+            "description": "Account cannot use this app"
+          },
+          "503": {
+            "description": "Sign-in method not available"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/apps/{app}/google/finish": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Finish Google sign-in for an app",
+        "description": "Exchange the challenge (plus an authenticator code if enabled) for an app-scoped session.",
+        "operationId": "authAppGoogleFinish",
+        "parameters": [
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,30}$",
+              "title": "App"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoogleFinish"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionLoginResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Unknown app"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "400": {
+            "description": "Wrong or expired code, or bad credentials"
+          },
+          "403": {
+            "description": "Account cannot use this app"
+          },
+          "503": {
+            "description": "Sign-in method not available"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/apps/{app}/phone-code/start": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Send a phone or WhatsApp sign-in code",
+        "description": "Send a code to a phone number already linked to an account. Disabled until a provider is configured.",
+        "operationId": "authAppPhoneCodeStart",
+        "parameters": [
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,30}$",
+              "title": "App"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppPhoneCodeStart"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Unknown app"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "400": {
+            "description": "Wrong or expired code, or bad credentials"
+          },
+          "403": {
+            "description": "Account cannot use this app"
+          },
+          "503": {
+            "description": "Sign-in method not available"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/apps/{app}/phone-code/verify": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Sign in with a phone or WhatsApp code",
+        "description": "Verify a phone code and create an app-scoped session.",
+        "operationId": "authAppPhoneCodeVerify",
+        "parameters": [
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,30}$",
+              "title": "App"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppPhoneCodeVerify"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionLoginResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Unknown app"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "400": {
+            "description": "Wrong or expired code, or bad credentials"
+          },
+          "403": {
+            "description": "Account cannot use this app"
+          },
+          "503": {
+            "description": "Sign-in method not available"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/apps/{app}/phone/link/start": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Send a code to link a phone number",
+        "description": "Signed-in members link a phone number for code sign-in.",
+        "operationId": "authAppPhoneLinkStart",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,30}$",
+              "title": "App"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppPhoneCodeStart"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Unknown app"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "400": {
+            "description": "Wrong or expired code, or bad credentials"
+          },
+          "403": {
+            "description": "Account cannot use this app"
+          },
+          "503": {
+            "description": "Sign-in method not available"
+          },
+          "401": {
+            "description": "Not signed in to this app"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/apps/{app}/phone/link/verify": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Confirm a phone number link",
+        "description": "Verify the code and attach the phone number to the signed-in account.",
+        "operationId": "authAppPhoneLinkVerify",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,30}$",
+              "title": "App"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppPhoneCodeVerify"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Unknown app"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "400": {
+            "description": "Wrong or expired code, or bad credentials"
+          },
+          "403": {
+            "description": "Account cannot use this app"
+          },
+          "503": {
+            "description": "Sign-in method not available"
+          },
+          "401": {
+            "description": "Not signed in to this app"
+          },
+          "409": {
+            "description": "Number linked elsewhere"
+          }
+        }
+      }
+    },
     "/api/v1/hr/staff-card/me": {
       "get": {
         "tags": [
@@ -18910,6 +19666,178 @@
         ],
         "title": "ApiError",
         "description": "Stable error envelope for documented API failures."
+      },
+      "AppEmailCodeStart": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "first_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "First Name"
+          },
+          "last_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email"
+        ],
+        "title": "AppEmailCodeStart"
+      },
+      "AppEmailCodeVerify": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^\\d{6}$",
+            "title": "Code"
+          },
+          "totp_code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Totp Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "code"
+        ],
+        "title": "AppEmailCodeVerify"
+      },
+      "AppPasswordLogin": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password"
+          },
+          "totp_code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Totp Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "AppPasswordLogin"
+      },
+      "AppPhoneCodeStart": {
+        "properties": {
+          "phone": {
+            "type": "string",
+            "pattern": "^\\+[1-9]\\d{7,14}$",
+            "title": "Phone",
+            "description": "E.164, e.g. +14734401234"
+          },
+          "channel": {
+            "$ref": "#/components/schemas/AppPhoneCodeStartPropertiesChannelEnum"
+          }
+        },
+        "type": "object",
+        "required": [
+          "phone"
+        ],
+        "title": "AppPhoneCodeStart"
+      },
+      "AppPhoneCodeVerify": {
+        "properties": {
+          "phone": {
+            "type": "string",
+            "pattern": "^\\+[1-9]\\d{7,14}$",
+            "title": "Phone"
+          },
+          "code": {
+            "type": "string",
+            "pattern": "^\\d{6}$",
+            "title": "Code"
+          }
+        },
+        "type": "object",
+        "required": [
+          "phone",
+          "code"
+        ],
+        "title": "AppPhoneCodeVerify"
+      },
+      "AppPublic": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "self_signup": {
+            "type": "boolean",
+            "title": "Self Signup"
+          },
+          "methods": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Methods"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "self_signup",
+          "methods"
+        ],
+        "title": "AppPublic"
       },
       "ApprovalAuthorityPublic": {
         "properties": {
@@ -39802,6 +40730,14 @@
           "scope"
         ],
         "title": "RolePublic"
+      },
+      "AppPhoneCodeStartPropertiesChannelEnum": {
+        "type": "string",
+        "enum": [
+          "sms",
+          "whatsapp"
+        ],
+        "default": "sms"
       },
       "AreaCreatePropertiesSpaceTypeAnyOfEnum": {
         "type": "string",

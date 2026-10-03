@@ -44,6 +44,12 @@ FastAPI authorization currently has three layers:
 2. Role and permission checks through `src.auth.policy`.
 3. Scoped role assignments with `SELF`, `DEPARTMENT`, and `ALL` scopes.
 
+App-scoped access (ADR-0016) adds a fourth layer: self-service apps grant
+`app.<key>.access` through a default role, their tokens carry an `app` claim that
+staff routes refuse, and self-service accounts keep `registration_pending=True` so
+the staff gate never admits them. Phone code delivery stays disabled until a
+provider is approved.
+
 CAP operations rely on permission keys:
 
 | Permission | Typical use |

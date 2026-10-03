@@ -21,6 +21,7 @@ from starlette.requests import Request
 
 from src import operational_metrics
 from src.audit.router import router as audit_router
+from src.auth.app_router import router as app_auth_router
 from src.auth.browser import router as browser_auth_router
 from src.auth.modern import router as modern_auth_router
 from src.auth.routers.login import router as login_router
@@ -375,6 +376,7 @@ def get_scalar_docs() -> Any:
 
 
 app.include_router(modern_auth_router, prefix=settings.API_V1_STR)
+app.include_router(app_auth_router, prefix=settings.API_V1_STR)
 
 app.include_router(staff_setup_router, prefix=settings.API_V1_STR)
 

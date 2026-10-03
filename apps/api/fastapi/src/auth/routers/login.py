@@ -17,7 +17,7 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import delete
 from starlette.requests import Request
 
-from src.auth import modern_service, service
+from src.auth import apps, modern_service, service
 from src.auth.account_security import verify_factor
 from src.auth.constants import (
     ERROR_INACTIVE_USER,
@@ -235,7 +235,8 @@ async def login_session(
         session=session,
         user=user,
         client_type=body.client_type,
-        app_name=body.app_name,
+        # Registered app keys are reserved for /auth/apps/{app}/... sign-in.
+        app_name=None if apps.is_app_scoped(body.app_name) else body.app_name,
         user_agent=user_agent,
         ip_address=ip_address,
     )
@@ -320,7 +321,19 @@ async def refresh_session(
         )
 
     user = await service.get_user_by_id(session=session, user_id=db_session.user_id)
-    if not user or not user.is_active:
+    scoped_app = (
+        db_session.app_name if apps.is_app_scoped(db_session.app_name) else None
+    )
+    if (
+        not user
+        or not user.is_active
+        or (
+            scoped_app is not None
+            and not await service.is_eligible_for_app(
+                session=session, user=user, app_key=scoped_app
+            )
+        )
+    ):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=ERROR_INVALID_CREDENTIALS,
@@ -338,6 +351,7 @@ async def refresh_session(
     access_token, access_token_expires_at = service.issue_access_token_for_user(
         user=user,
         expires_delta=service.get_session_access_token_expires_delta(),
+        app=scoped_app,
     )
     return _session_auth_response(
         access_token=access_token,

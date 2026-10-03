@@ -4,6 +4,56 @@ export {
   useAuditGetHistory,
 } from "./useAuditGetHistory.js";
 export {
+  authAppEmailCodeStartMutationKey,
+  authAppEmailCodeStartMutationOptions,
+  useAuthAppEmailCodeStart,
+} from "./useAuthAppEmailCodeStart.js";
+export {
+  authAppEmailCodeVerifyMutationKey,
+  authAppEmailCodeVerifyMutationOptions,
+  useAuthAppEmailCodeVerify,
+} from "./useAuthAppEmailCodeVerify.js";
+export {
+  authAppGoogleCompleteMutationKey,
+  authAppGoogleCompleteMutationOptions,
+  useAuthAppGoogleComplete,
+} from "./useAuthAppGoogleComplete.js";
+export {
+  authAppGoogleFinishMutationKey,
+  authAppGoogleFinishMutationOptions,
+  useAuthAppGoogleFinish,
+} from "./useAuthAppGoogleFinish.js";
+export {
+  authAppGoogleStartMutationKey,
+  authAppGoogleStartMutationOptions,
+  useAuthAppGoogleStart,
+} from "./useAuthAppGoogleStart.js";
+export {
+  authAppPasswordLoginMutationKey,
+  authAppPasswordLoginMutationOptions,
+  useAuthAppPasswordLogin,
+} from "./useAuthAppPasswordLogin.js";
+export {
+  authAppPhoneCodeStartMutationKey,
+  authAppPhoneCodeStartMutationOptions,
+  useAuthAppPhoneCodeStart,
+} from "./useAuthAppPhoneCodeStart.js";
+export {
+  authAppPhoneCodeVerifyMutationKey,
+  authAppPhoneCodeVerifyMutationOptions,
+  useAuthAppPhoneCodeVerify,
+} from "./useAuthAppPhoneCodeVerify.js";
+export {
+  authAppPhoneLinkStartMutationKey,
+  authAppPhoneLinkStartMutationOptions,
+  useAuthAppPhoneLinkStart,
+} from "./useAuthAppPhoneLinkStart.js";
+export {
+  authAppPhoneLinkVerifyMutationKey,
+  authAppPhoneLinkVerifyMutationOptions,
+  useAuthAppPhoneLinkVerify,
+} from "./useAuthAppPhoneLinkVerify.js";
+export {
   authBrowserSessionQueryKey,
   authBrowserSessionQueryOptions,
   useAuthBrowserSession,
@@ -73,6 +123,11 @@ export {
   authGetAccountSecurityQueryOptions,
   useAuthGetAccountSecurity,
 } from "./useAuthGetAccountSecurity.js";
+export {
+  authGetAppSignInOptionsQueryKey,
+  authGetAppSignInOptionsQueryOptions,
+  useAuthGetAppSignInOptions,
+} from "./useAuthGetAppSignInOptions.js";
 export {
   authGetEffectiveAccessQueryKey,
   authGetEffectiveAccessQueryOptions,
