@@ -88,6 +88,51 @@ beforeEach(() => {
   });
 });
 afterEach(cleanup);
+it("sends Google commands in the documented Arguments format and retains the queue on withdrawal", async () => {
+  accept();
+  await startAnalytics({ ...config, posthog: null });
+  capturePage("/results", "results");
+  const queue = window.dataLayer;
+  expect(queue).toBeDefined();
+  const commands = queue?.map((entry) => {
+    expect(Object.prototype.toString.call(entry)).toBe("[object Arguments]");
+    return Array.from(entry as IArguments);
+  });
+  expect(commands?.[0]).toMatchObject([
+    "consent",
+    "default",
+    { analytics_storage: "granted", ad_storage: "denied" },
+  ]);
+  expect(commands).toContainEqual([
+    "event",
+    "page_view",
+    expect.objectContaining({
+      send_to: "G-TEST123",
+      page_location: "http://localhost:3007/results",
+    }),
+  ]);
+  stopAnalytics();
+  expect(window.dataLayer).toBe(queue);
+  expect(queue).toHaveLength(0);
+});
+
+it("keeps GA available if the optional PostHog SDK fails", async () => {
+  accept();
+  posthog.init.mockImplementation(() => {
+    throw new Error("SDK unavailable");
+  });
+  posthog.capture.mockImplementationOnce(() => {
+    throw new Error("capture unavailable");
+  });
+  await startAnalytics(config);
+  expect(document.getElementById("optional-google-analytics")).not.toBeNull();
+  capturePage("/results", "results");
+  expect(
+    window.dataLayer?.some(
+      (entry) => Array.from(entry as IArguments)[0] === "event"
+    )
+  ).toBe(true);
+});
 it("does not load or persist optional identifiers before consent; decline stays off", async () => {
   show();
   expect(screen.getByText("Content")).toBeTruthy();
