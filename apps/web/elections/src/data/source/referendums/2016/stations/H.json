@@ -1,0 +1,232 @@
+[
+  {
+    "div": "H01",
+    "sub": "a",
+    "reg": 183,
+    "voted": 73,
+    "rej": 6,
+    "spoilt": 0,
+    "yes": 144,
+    "no": 361
+  },
+  {
+    "div": "H01",
+    "sub": "b",
+    "reg": 194,
+    "voted": 90,
+    "rej": 26,
+    "spoilt": 0,
+    "yes": 159,
+    "no": 445
+  },
+  {
+    "div": "H02",
+    "sub": "a",
+    "reg": 330,
+    "voted": 132,
+    "rej": 46,
+    "spoilt": 0,
+    "yes": 241,
+    "no": 637
+  },
+  {
+    "div": "H02",
+    "sub": "b",
+    "reg": 334,
+    "voted": 122,
+    "rej": 44,
+    "spoilt": 1,
+    "yes": 186,
+    "no": 624
+  },
+  {
+    "div": "H03",
+    "sub": null,
+    "reg": 131,
+    "voted": 56,
+    "rej": 17,
+    "spoilt": 0,
+    "yes": 127,
+    "no": 248
+  },
+  {
+    "div": "H04",
+    "sub": "a",
+    "reg": 292,
+    "voted": 106,
+    "rej": 42,
+    "spoilt": 0,
+    "yes": 150,
+    "no": 550
+  },
+  {
+    "div": "H04",
+    "sub": "b",
+    "reg": 254,
+    "voted": 92,
+    "rej": 28,
+    "spoilt": 0,
+    "yes": 144,
+    "no": 474
+  },
+  {
+    "div": "H05",
+    "sub": "a",
+    "reg": 314,
+    "voted": 96,
+    "rej": 31,
+    "spoilt": 0,
+    "yes": 197,
+    "no": 444
+  },
+  {
+    "div": "H05",
+    "sub": "b",
+    "reg": 338,
+    "voted": 119,
+    "rej": 77,
+    "spoilt": 0,
+    "yes": 267,
+    "no": 490
+  },
+  {
+    "div": "H05",
+    "sub": "c",
+    "reg": 300,
+    "voted": 107,
+    "rej": 29,
+    "spoilt": 1,
+    "yes": 229,
+    "no": 492
+  },
+  {
+    "div": "H06",
+    "sub": "a",
+    "reg": 271,
+    "voted": 92,
+    "rej": 29,
+    "spoilt": 3,
+    "yes": 204,
+    "no": 410
+  },
+  {
+    "div": "H06",
+    "sub": "b",
+    "reg": 275,
+    "voted": 86,
+    "rej": 16,
+    "spoilt": 1,
+    "yes": 146,
+    "no": 438
+  },
+  {
+    "div": "H07",
+    "sub": "a",
+    "reg": 278,
+    "voted": 97,
+    "rej": 14,
+    "spoilt": 2,
+    "yes": 437,
+    "no": 226
+  },
+  {
+    "div": "H07",
+    "sub": "b",
+    "reg": 280,
+    "voted": 96,
+    "rej": 34,
+    "spoilt": 2,
+    "yes": 188,
+    "no": 448
+  },
+  {
+    "div": "H07",
+    "sub": "c",
+    "reg": 282,
+    "voted": 107,
+    "rej": 43,
+    "spoilt": 1,
+    "yes": 198,
+    "no": 508
+  },
+  {
+    "div": "H07",
+    "sub": "d",
+    "reg": 275,
+    "voted": 131,
+    "rej": 55,
+    "spoilt": 0,
+    "yes": 251,
+    "no": 611
+  },
+  {
+    "div": "H07",
+    "sub": "e",
+    "reg": 284,
+    "voted": 115,
+    "rej": 16,
+    "spoilt": 0,
+    "yes": 265,
+    "no": 524
+  },
+  {
+    "div": "H08",
+    "sub": "a",
+    "reg": 282,
+    "voted": 122,
+    "rej": 65,
+    "spoilt": 0,
+    "yes": 236,
+    "no": 556
+  },
+  {
+    "div": "H08",
+    "sub": "b",
+    "reg": 266,
+    "voted": 108,
+    "rej": 16,
+    "spoilt": 0,
+    "yes": 183,
+    "no": 559
+  },
+  {
+    "div": "H08",
+    "sub": "c",
+    "reg": 270,
+    "voted": 114,
+    "rej": 9,
+    "spoilt": 2,
+    "yes": 239,
+    "no": 554
+  },
+  {
+    "div": "H09",
+    "sub": "a",
+    "reg": 253,
+    "voted": 96,
+    "rej": 29,
+    "spoilt": 1,
+    "yes": 225,
+    "no": 418
+  },
+  {
+    "div": "H09",
+    "sub": "b",
+    "reg": 268,
+    "voted": 115,
+    "rej": 48,
+    "spoilt": 2,
+    "yes": 246,
+    "no": 511
+  },
+  {
+    "div": "H09",
+    "sub": "c",
+    "reg": 250,
+    "voted": 99,
+    "rej": 37,
+    "spoilt": 0,
+    "yes": 179,
+    "no": 477
+  }
+]

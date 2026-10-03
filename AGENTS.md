@@ -21,7 +21,8 @@ directory. **Before editing under a path below, open its `AGENTS.md`.**
 | --- | --- |
 | `apps/api/fastapi/AGENTS.md` | FastAPI conventions, testing, OpenAPI contract |
 | `apps/api/fastapi/src/<domain>/AGENTS.md` | Per-domain ownership, invariants, tests (auth, hr, cap, wxproducts, wxwatch, audit, notifications, storage, billing, worker, eregister, janitorial, transport, baseline) |
-| `apps/web/<app>/AGENTS.md` | auth, cms, docs, events, gaa-admin, gms, mbia, signal |
+| `apps/web/<app>/AGENTS.md` | auth, cms, docs, elections, events, gaa-admin, gms, mbia, signal |
+| `apps/web/barrels/AGENTS.md` | Static Barrels Grenada company homepage |
 | `packages/<pkg>/AGENTS.md` | api-client, auth, email-templates, gms, theme, ui |
 | `docs/playbooks/full-stack-feature.md` | End-to-end: model → migration → route → OpenAPI → client → UI → tests |
 
@@ -30,7 +31,7 @@ directory. **Before editing under a path below, open its `AGENTS.md`.**
 ```bash
 pnpm install                 # dependencies
 pnpm start                   # Docker services (Postgres, Redis, FastAPI, worker) — HOST ONLY
-pnpm dev:web:<app>           # auth:3000 gaa-admin:3001 docs:3002 gms:3003 signal:3004 mbia:3005 cms:3006 events:3009 — HOST ONLY
+pnpm dev:web:<app>           # auth:3000 gaa-admin:3001 docs:3002 gms:3003 signal:3004 mbia:3005 cms:3006 elections:3007 events:3009 — HOST ONLY
 pnpm fix:changed             # Biome/Ultracite fix on this session's changed files
 pnpm type-check              # TypeScript across all packages
 pnpm fix                     # repo-wide fix — only when deliberate (e.g. dependency bump)
@@ -62,6 +63,7 @@ PROJECT_NAME='Grenmet API' uv run --frozen --package fast-back python -c "from s
 ## Behavioral Tiers
 
 ### Always (no confirmation needed)
+- Stage, commit, push and open PRs for authorized work after required formatting, types, affected tests and blast-radius checks pass; review the diff, preserve unrelated changes and never bypass hooks or force-push.
 - Run `pnpm fix:changed` then `pnpm type-check` before marking any task done.
   Repo-wide `pnpm fix` reformats unrelated in-progress files and can bust
   turbo's cache, surfacing pre-existing issues as if new
@@ -233,6 +235,11 @@ Other:
 
 ## CI/CD Conventions
 
+- Sentry: owner-approved shared projects for this repo are `grenmet-staging` and `grenmet-production`; route only through the matching environment secret, never cross-environment fallback. Preserve existing reporting during migration.
+
+- **Telemetry rollout:** verify dev → staging → production, with app/environment mappings in `packages/ui/src/lib/service-catalogue.json`; missing mappings disable collection, never fall back to another owner’s project.
+- **Monitoring ownership:** manage provider configuration, host probes and backup/restore jobs through reviewed CI/CD; activation and evidence gates are in `docs/operations/analytics-monitoring.md`.
+
 - Docker image names in GitHub workflows must be lowercase.
 - Pin all GitHub Actions to SHAs, not tags.
 - After modifying Biome config, verify both `assist` and `formatter` override keys — Linux CI formatting can differ from macOS.
@@ -241,7 +248,7 @@ Other:
 
 ## Design
 
-- Loop: `docs/design-workflow.md`. Token contract: `docs/design-system.md`. Before building UI, read the lane spec `docs/design/<gms|gaa-admin|mbia|signal>.md` (DESIGN.md format; drift-tested by `pnpm test:docs`).
+- Loop: `docs/design-workflow.md`. Token contract: `docs/design-system.md`. Before building UI, read the lane spec `docs/design/<gms|gaa-admin|mbia|signal|elections>.md` (DESIGN.md format; drift-tested by `pnpm test:docs`).
 - **Figma is not linked to this repo.** Ignore Figma tools and node URLs; design intent arrives via Claude Design or a supplied screenshot. Never ask for a Figma frame URL.
 - Style only with `--gm-*` tokens / Tailwind aliases / shadcn semantics — never hardcode color/spacing/radius or add design values to Tailwind config. New or changed `--gm-*` tokens need approval and land in `packages/gms/src/styles/foundation.css`, **not** `packages/ui`. Run `pnpm design-system:sync` after editing the canonical block in `packages/ui/src/styles/globals.css`.
 - Brand: navy `#0b132b`, blue `#2878f5`, sky `#37a3ef`, lime `#b9ee63`. Kit hues fail AA as small text — use `--gm-*-ink` for text under 24px regular / 18.66px bold, icons under ~24px, and fills behind small white text.

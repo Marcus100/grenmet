@@ -1,0 +1,212 @@
+[
+  [
+    "R01",
+    "a",
+    "Hermitage Medical Station",
+    217,
+    226,
+    1,
+    {
+      "NDC": 92,
+      "GULP": 0,
+      "IND": 0,
+      "NNP": 133
+    }
+  ],
+  [
+    "R01",
+    "b",
+    "Hermitage Medical Station",
+    275,
+    146,
+    0,
+    {
+      "NDC": 82,
+      "GULP": 0,
+      "IND": 4,
+      "NNP": 60
+    }
+  ],
+  [
+    "R02",
+    "a",
+    "Mt. Rich Pre Primary School",
+    283,
+    214,
+    1,
+    {
+      "NDC": 113,
+      "GULP": 0,
+      "IND": 1,
+      "NNP": 99
+    }
+  ],
+  [
+    "R02",
+    "b",
+    "Mt. Rich Pre Primary School",
+    274,
+    216,
+    0,
+    {
+      "NDC": 103,
+      "GULP": 0,
+      "IND": 3,
+      "NNP": 110
+    }
+  ],
+  [
+    "R03",
+    "a",
+    "TAMCC, St. Patrick's Campus",
+    410,
+    279,
+    1,
+    {
+      "NDC": 162,
+      "GULP": 2,
+      "IND": 6,
+      "NNP": 108
+    }
+  ],
+  [
+    "R03",
+    "b",
+    "TAMCC, St. Patrick's Campus",
+    410,
+    275,
+    1,
+    {
+      "NDC": 168,
+      "GULP": 0,
+      "IND": 4,
+      "NNP": 102
+    }
+  ],
+  [
+    "R04",
+    null,
+    "St. Patrick's R. C. School",
+    289,
+    179,
+    0,
+    {
+      "NDC": 126,
+      "GULP": 0,
+      "IND": 1,
+      "NNP": 52
+    }
+  ],
+  [
+    "R05",
+    "a",
+    "St. Patrick's R. C. School",
+    287,
+    176,
+    0,
+    {
+      "NDC": 97,
+      "GULP": 0,
+      "IND": 0,
+      "NNP": 79
+    }
+  ],
+  [
+    "R05",
+    "b",
+    "St. Patrick's R. C. School",
+    282,
+    177,
+    1,
+    {
+      "NDC": 101,
+      "GULP": 3,
+      "IND": 0,
+      "NNP": 72
+    }
+  ],
+  [
+    "R06",
+    "a",
+    "Fond Community Centre",
+    333,
+    225,
+    0,
+    {
+      "NDC": 117,
+      "GULP": 1,
+      "IND": 7,
+      "NNP": 100
+    }
+  ],
+  [
+    "R06",
+    "b",
+    "Fond Community Centre",
+    334,
+    242,
+    2,
+    {
+      "NDC": 125,
+      "GULP": 0,
+      "IND": 13,
+      "NNP": 102
+    }
+  ],
+  [
+    "R07",
+    null,
+    "Mt. Alexander Pentecostal Church, Prospect",
+    314,
+    233,
+    1,
+    {
+      "NDC": 104,
+      "GULP": 2,
+      "IND": 12,
+      "NNP": 114
+    }
+  ],
+  [
+    "R08",
+    "a",
+    "Chantimelle R. C. School",
+    343,
+    260,
+    1,
+    {
+      "NDC": 128,
+      "GULP": 1,
+      "IND": 4,
+      "NNP": 126
+    }
+  ],
+  [
+    "R08",
+    "b",
+    "Chantimelle R. C. School",
+    354,
+    252,
+    0,
+    {
+      "NDC": 103,
+      "GULP": 0,
+      "IND": 15,
+      "NNP": 134
+    }
+  ],
+  [
+    "R09",
+    null,
+    "Presbyterian Church Hall, Samaritan",
+    268,
+    188,
+    0,
+    {
+      "NDC": 105,
+      "GULP": 0,
+      "IND": 16,
+      "NNP": 67
+    }
+  ]
+]

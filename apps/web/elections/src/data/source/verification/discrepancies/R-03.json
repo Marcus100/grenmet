@@ -1,0 +1,9 @@
+{
+  "id": "R-03",
+  "area": "2018 referendum",
+  "status": "resolved",
+  "impact": "data",
+  "what": "The official results are in Government Gazette No. 52 (16 November 2018), signed by the Supervisor of Elections (Ag.): Yes 9,848, No 12,134, rejected 116, voted 22,098, enrolled 79,410 (27.83%). Wikipedia gives 119 invalid, and a second Wikipedia table gives the preliminary 9,846 and 12,133.",
+  "action": "The Gazette figures are now used, down to polling station.",
+  "sources": ["Government Gazette No. 52 of 2018, pp. 701–711"]
+}

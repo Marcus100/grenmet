@@ -1,0 +1,142 @@
+[
+  {
+    "div": "G01",
+    "sub": null,
+    "reg": 97,
+    "voted": 25,
+    "rej": 6,
+    "spoilt": 0,
+    "yes": 57,
+    "no": 112
+  },
+  {
+    "div": "G02",
+    "sub": "a",
+    "reg": 211,
+    "voted": 70,
+    "rej": 18,
+    "spoilt": 0,
+    "yes": 201,
+    "no": 271
+  },
+  {
+    "div": "G02",
+    "sub": "b",
+    "reg": 223,
+    "voted": 75,
+    "rej": 49,
+    "spoilt": 0,
+    "yes": 148,
+    "no": 328
+  },
+  {
+    "div": "G03",
+    "sub": "a",
+    "reg": 282,
+    "voted": 86,
+    "rej": 37,
+    "spoilt": 2,
+    "yes": 258,
+    "no": 307
+  },
+  {
+    "div": "G03",
+    "sub": "b",
+    "reg": 298,
+    "voted": 80,
+    "rej": 24,
+    "spoilt": 0,
+    "yes": 216,
+    "no": 320
+  },
+  {
+    "div": "G03",
+    "sub": "c",
+    "reg": 284,
+    "voted": 77,
+    "rej": 19,
+    "spoilt": 0,
+    "yes": 192,
+    "no": 328
+  },
+  {
+    "div": "G03",
+    "sub": "d",
+    "reg": 290,
+    "voted": 76,
+    "rej": 17,
+    "spoilt": 0,
+    "yes": 236,
+    "no": 279
+  },
+  {
+    "div": "G03",
+    "sub": "e",
+    "reg": 277,
+    "voted": 88,
+    "rej": 53,
+    "spoilt": 0,
+    "yes": 242,
+    "no": 320
+  },
+  {
+    "div": "G04",
+    "sub": null,
+    "reg": 131,
+    "voted": 63,
+    "rej": 26,
+    "spoilt": 0,
+    "yes": 143,
+    "no": 272
+  },
+  {
+    "div": "G05",
+    "sub": null,
+    "reg": 228,
+    "voted": 77,
+    "rej": 19,
+    "spoilt": 0,
+    "yes": 157,
+    "no": 363
+  },
+  {
+    "div": "G06",
+    "sub": null,
+    "reg": 316,
+    "voted": 117,
+    "rej": 7,
+    "spoilt": 3,
+    "yes": 320,
+    "no": 492
+  },
+  {
+    "div": "G07",
+    "sub": null,
+    "reg": 27,
+    "voted": 12,
+    "rej": 4,
+    "spoilt": 0,
+    "yes": 24,
+    "no": 56
+  },
+  {
+    "div": "G08",
+    "sub": null,
+    "reg": 327,
+    "voted": 91,
+    "rej": 31,
+    "spoilt": 1,
+    "yes": 201,
+    "no": 404
+  },
+  {
+    "div": "G09",
+    "sub": null,
+    "reg": 31,
+    "voted": 12,
+    "rej": 6,
+    "spoilt": 0,
+    "yes": 40,
+    "no": 38
+  }
+]

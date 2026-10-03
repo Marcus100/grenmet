@@ -1,0 +1,73 @@
+{
+  "teamId": 476349,
+  "limitsVerified": false,
+  "limits": { "monitors": 10, "heartbeats": 10 },
+  "resources": [
+    {
+      "environment": "staging",
+      "kind": "monitors",
+      "id": "5014248",
+      "settings": {
+        "pronounceable_name": "Staging · GAA API readiness",
+        "url": "https://api.staging.barrels.gd/api/v1/utils/ready/",
+        "monitor_type": "keyword",
+        "required_keyword": "\"status\":\"ready\"",
+        "check_frequency": 180,
+        "confirmation_period": 180,
+        "recovery_period": 180,
+        "verify_ssl": true,
+        "follow_redirects": false,
+        "email": true,
+        "sms": false,
+        "call": false,
+        "push": false,
+        "paused": false
+      }
+    },
+    {
+      "environment": "staging",
+      "kind": "heartbeats",
+      "id": "501599",
+      "settings": {
+        "name": "Staging · probe runner",
+        "period": 300,
+        "grace": 600,
+        "email": true,
+        "sms": false,
+        "call": false,
+        "push": false,
+        "paused": false
+      }
+    },
+    {
+      "environment": "staging",
+      "kind": "heartbeats",
+      "id": "501600",
+      "settings": {
+        "name": "Staging · verified core backup",
+        "period": 86400,
+        "grace": 7200,
+        "email": true,
+        "sms": false,
+        "call": false,
+        "push": false,
+        "paused": true
+      }
+    },
+    {
+      "environment": "staging",
+      "kind": "heartbeats",
+      "id": "501601",
+      "settings": {
+        "name": "Staging · worker poll completion",
+        "period": 60,
+        "grace": 120,
+        "email": true,
+        "sms": false,
+        "call": false,
+        "push": false,
+        "paused": true
+      }
+    }
+  ]
+}

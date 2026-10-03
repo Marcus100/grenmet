@@ -1,0 +1,182 @@
+[
+  {
+    "div": "H01",
+    "sub": null,
+    "place": "Vendomme Community Centre",
+    "yes": 35,
+    "no": 91,
+    "rej": 0,
+    "voted": 126,
+    "reg": 423
+  },
+  {
+    "div": "H02",
+    "sub": "a",
+    "place": "Brownies Hideaway & Disco",
+    "yes": 39,
+    "no": 68,
+    "rej": 0,
+    "voted": 107,
+    "reg": 369
+  },
+  {
+    "div": "H02",
+    "sub": "b",
+    "place": "Brownies Hideaway & Disco",
+    "yes": 25,
+    "no": 57,
+    "rej": 1,
+    "voted": 83,
+    "reg": 347
+  },
+  {
+    "div": "H03",
+    "sub": null,
+    "place": "Constantine Methodist School",
+    "yes": 24,
+    "no": 21,
+    "rej": 0,
+    "voted": 45,
+    "reg": 160
+  },
+  {
+    "div": "H04",
+    "sub": "a",
+    "place": "Boca Secondary School",
+    "yes": 16,
+    "no": 83,
+    "rej": 1,
+    "voted": 100,
+    "reg": 334
+  },
+  {
+    "div": "H04",
+    "sub": "b",
+    "place": "Boca Secondary School",
+    "yes": 18,
+    "no": 68,
+    "rej": 2,
+    "voted": 88,
+    "reg": 310
+  },
+  {
+    "div": "H05",
+    "sub": "a",
+    "place": "Beaulieu R.C. School",
+    "yes": 26,
+    "no": 55,
+    "rej": 2,
+    "voted": 83,
+    "reg": 363
+  },
+  {
+    "div": "H05",
+    "sub": "b",
+    "place": "Beaulieu R.C. School",
+    "yes": 38,
+    "no": 54,
+    "rej": 0,
+    "voted": 92,
+    "reg": 356
+  },
+  {
+    "div": "H05",
+    "sub": "c",
+    "place": "Beaulieu R.C. School, Pre School Department",
+    "yes": 29,
+    "no": 62,
+    "rej": 0,
+    "voted": 91,
+    "reg": 383
+  },
+  {
+    "div": "H06",
+    "sub": "a",
+    "place": "L.A. Purcell’s Building, La Mode",
+    "yes": 18,
+    "no": 59,
+    "rej": 0,
+    "voted": 77,
+    "reg": 326
+  },
+  {
+    "div": "H06",
+    "sub": "b",
+    "place": "L.A. Purcell’s Building, La Mode",
+    "yes": 18,
+    "no": 61,
+    "rej": 0,
+    "voted": 79,
+    "reg": 298
+  },
+  {
+    "div": "H07",
+    "sub": "a",
+    "place": "St. Mary’s R.C. School, Tempe",
+    "yes": 33,
+    "no": 76,
+    "rej": 0,
+    "voted": 109,
+    "reg": 392
+  },
+  {
+    "div": "H07",
+    "sub": "b",
+    "place": "St. Mary’s R.C. School, Tempe",
+    "yes": 51,
+    "no": 70,
+    "rej": 0,
+    "voted": 121,
+    "reg": 381
+  },
+  {
+    "div": "H07",
+    "sub": "c",
+    "place": "St. Mary’s R.C. School, Tempe",
+    "yes": 31,
+    "no": 87,
+    "rej": 0,
+    "voted": 118,
+    "reg": 391
+  },
+  {
+    "div": "H07",
+    "sub": "d",
+    "place": "St. Mary’s R.C. School, Tempe",
+    "yes": 56,
+    "no": 103,
+    "rej": 1,
+    "voted": 160,
+    "reg": 463
+  },
+  {
+    "div": "H08",
+    "sub": "a",
+    "place": "Alpha Junior School, Mt. Parnassus",
+    "yes": 31,
+    "no": 63,
+    "rej": 0,
+    "voted": 94,
+    "reg": 293
+  },
+  {
+    "div": "H08",
+    "sub": "b",
+    "place": "Alpha Junior School, Mt. Parnassus",
+    "yes": 25,
+    "no": 73,
+    "rej": 0,
+    "voted": 98,
+    "reg": 303
+  },
+  {
+    "div": "H08",
+    "sub": "c",
+    "place": "Alpha Junior School, Mt. Parnassus",
+    "yes": 31,
+    "no": 67,
+    "rej": 0,
+    "voted": 98,
+    "reg": 302
+  }
+]

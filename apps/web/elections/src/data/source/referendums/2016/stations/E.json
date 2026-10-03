@@ -1,0 +1,162 @@
+[
+  {
+    "div": "E01",
+    "sub": null,
+    "reg": 211,
+    "voted": 88,
+    "rej": 46,
+    "spoilt": 0,
+    "yes": 267,
+    "no": 303
+  },
+  {
+    "div": "E02",
+    "sub": "a",
+    "reg": 307,
+    "voted": 118,
+    "rej": 98,
+    "spoilt": 0,
+    "yes": 194,
+    "no": 534
+  },
+  {
+    "div": "E02",
+    "sub": "b",
+    "reg": 267,
+    "voted": 109,
+    "rej": 96,
+    "spoilt": 3,
+    "yes": 203,
+    "no": 464
+  },
+  {
+    "div": "E02",
+    "sub": "c",
+    "reg": 300,
+    "voted": 107,
+    "rej": 79,
+    "spoilt": 2,
+    "yes": 176,
+    "no": 494
+  },
+  {
+    "div": "E02",
+    "sub": "d",
+    "reg": 284,
+    "voted": 104,
+    "rej": 84,
+    "spoilt": 1,
+    "yes": 239,
+    "no": 405
+  },
+  {
+    "div": "E03",
+    "sub": "a",
+    "reg": 233,
+    "voted": 91,
+    "rej": 23,
+    "spoilt": 0,
+    "yes": 111,
+    "no": 503
+  },
+  {
+    "div": "E03",
+    "sub": "b",
+    "reg": 237,
+    "voted": 58,
+    "rej": 37,
+    "spoilt": 1,
+    "yes": 88,
+    "no": 279
+  },
+  {
+    "div": "E04",
+    "sub": "a",
+    "reg": 299,
+    "voted": 107,
+    "rej": 56,
+    "spoilt": 0,
+    "yes": 217,
+    "no": 476
+  },
+  {
+    "div": "E04",
+    "sub": "b",
+    "reg": 297,
+    "voted": 123,
+    "rej": 42,
+    "spoilt": 0,
+    "yes": 219,
+    "no": 600
+  },
+  {
+    "div": "E05",
+    "sub": "a",
+    "reg": 287,
+    "voted": 90,
+    "rej": 46,
+    "spoilt": 0,
+    "yes": 172,
+    "no": 412
+  },
+  {
+    "div": "E05",
+    "sub": "b",
+    "reg": 296,
+    "voted": 91,
+    "rej": 90,
+    "spoilt": 0,
+    "yes": 146,
+    "no": 401
+  },
+  {
+    "div": "E05",
+    "sub": "c",
+    "reg": 261,
+    "voted": 132,
+    "rej": 49,
+    "spoilt": 2,
+    "yes": 245,
+    "no": 630
+  },
+  {
+    "div": "E06",
+    "sub": "a",
+    "reg": 179,
+    "voted": 70,
+    "rej": 31,
+    "spoilt": 0,
+    "yes": 119,
+    "no": 340
+  },
+  {
+    "div": "E06",
+    "sub": "b",
+    "reg": 188,
+    "voted": 64,
+    "rej": 49,
+    "spoilt": 0,
+    "yes": 104,
+    "no": 295
+  },
+  {
+    "div": "E07",
+    "sub": "a",
+    "reg": 184,
+    "voted": 85,
+    "rej": 25,
+    "spoilt": 1,
+    "yes": 148,
+    "no": 422
+  },
+  {
+    "div": "E07",
+    "sub": "b",
+    "reg": 174,
+    "voted": 86,
+    "rej": 44,
+    "spoilt": 0,
+    "yes": 168,
+    "no": 391
+  }
+]

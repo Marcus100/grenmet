@@ -134,7 +134,8 @@ services:
       FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
       ENVIRONMENT: ${ENVIRONMENT}
       DOMAIN: ${DOMAIN}
-      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_DSN: ${SENTRY_DSN_API:-}
+      SENTRY_RELEASE: ${SENTRY_RELEASE:-}
       BILLING_STRIPE_SECRET_KEY: ${BILLING_STRIPE_SECRET_KEY:-}
       BILLING_STRIPE_WEBHOOK_SECRET: ${BILLING_STRIPE_WEBHOOK_SECRET:-}
       BILLING_STRIPE_PRICE_ID: ${BILLING_STRIPE_PRICE_ID:-}
@@ -160,6 +161,9 @@ services:
       EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
       FRONTEND_HOST: ${FRONTEND_HOST:-}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      TELEMETRY_ENABLED: ${TELEMETRY_ENABLED:-false}
+      TELEMETRY_ENVIRONMENT: ${ENVIRONMENT}
+      TELEMETRY_REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       STORAGE_ENDPOINT_URL: ${STORAGE_ENDPOINT_URL:-}
       STORAGE_REGION: ${STORAGE_REGION:-}
       STORAGE_BUCKET: ${STORAGE_BUCKET:-}
@@ -222,7 +226,9 @@ services:
       FIRST_SUPERUSER: ${FIRST_SUPERUSER}
       FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
       ENVIRONMENT: ${ENVIRONMENT}
-      SENTRY_DSN: ${SENTRY_DSN:-}
+      SENTRY_DSN: ${SENTRY_DSN_WORKER:-}
+      SENTRY_RELEASE: ${SENTRY_RELEASE:-}
+      TELEMETRY_WORKER_HEARTBEAT_URL: ${TELEMETRY_WORKER_HEARTBEAT_URL:-}
       CAP_SIGNING_CERT: ${CAP_SIGNING_CERT:-}
       CAP_SIGNING_KEY: ${CAP_SIGNING_KEY:-}
       CAP_SIGNING_KEY_REF: ${CAP_SIGNING_KEY_REF:-cap-signing-key}
@@ -234,6 +240,9 @@ services:
       NOTIFICATIONS_WEB_BASE_URL: https://admin.${BASE_DOMAIN}
       NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS: ${NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS?Render notification policy before deployment}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      TELEMETRY_ENABLED: ${TELEMETRY_ENABLED:-false}
+      TELEMETRY_ENVIRONMENT: ${ENVIRONMENT}
+      TELEMETRY_REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       STORAGE_ENDPOINT_URL: ${STORAGE_ENDPOINT_URL:-}
       STORAGE_REGION: ${STORAGE_REGION:-}
       STORAGE_BUCKET: ${STORAGE_BUCKET:-}
@@ -260,7 +269,7 @@ services:
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
       SESSION_COOKIE_DOMAIN: .${BASE_DOMAIN}
-      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN:-}
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_CMS:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
     depends_on:
       db:
@@ -305,10 +314,8 @@ services:
       retries: 3
       start_period: 20s
     environment:
-      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN:-}
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_AUTH:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
-      NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_KEY:-}
-      NEXT_PUBLIC_POSTHOG_HOST: ${NEXT_PUBLIC_POSTHOG_HOST:-https://us.i.posthog.com}
       EMAIL_RENDER_SECRET: ${EMAIL_RENDER_SECRET:-}
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
       AUTH_API_URL: https://api.${BASE_DOMAIN}
@@ -344,10 +351,8 @@ services:
       # services. Give migrations and API startup time to complete before probing.
       start_period: 120s
     environment:
-      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN:-}
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_GAA_ADMIN:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
-      NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_KEY:-}
-      NEXT_PUBLIC_POSTHOG_HOST: ${NEXT_PUBLIC_POSTHOG_HOST:-https://us.i.posthog.com}
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
       # Server-side readiness and API calls use the internal FastAPI service.
       AUTH_API_URL: http://api:8000
@@ -382,10 +387,8 @@ services:
       retries: 3
       start_period: 20s
     environment:
-      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN:-}
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_DOCS:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
-      NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_KEY:-}
-      NEXT_PUBLIC_POSTHOG_HOST: ${NEXT_PUBLIC_POSTHOG_HOST:-https://us.i.posthog.com}
       AUTH_API_URL: https://api.${BASE_DOMAIN}
       AUTH_API_V1_STR: /api/v1
       SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
@@ -411,10 +414,8 @@ services:
       retries: 3
       start_period: 20s
     environment:
-      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN:-}
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_GMS:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
-      NEXT_PUBLIC_POSTHOG_KEY: ${NEXT_PUBLIC_POSTHOG_KEY:-}
-      NEXT_PUBLIC_POSTHOG_HOST: ${NEXT_PUBLIC_POSTHOG_HOST:-https://us.i.posthog.com}
       CMS_API_URL: http://web-cms:3006
       CAP_API_URL: http://api:8000
       AUTH_API_URL: https://api.${BASE_DOMAIN}
@@ -442,7 +443,7 @@ services:
       retries: 3
       start_period: 20s
     environment:
-      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN:-}
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_SIGNAL:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
     labels:
       - "traefik.enable=true"
@@ -464,7 +465,7 @@ services:
       retries: 3
       start_period: 20s
     environment:
-      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN:-}
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_MBIA:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
     labels:
       - "traefik.enable=true"
@@ -486,7 +487,7 @@ services:
       retries: 3
       start_period: 20s
     environment:
-      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN:-}
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_EVENTS:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
     labels:
       - "traefik.enable=true"

@@ -1,5 +1,5 @@
 import { cn } from "@barrelsgd/ui/lib/utils";
-import { formatRelativeTime } from "@/lib/format";
+import { formatLongDate } from "@/lib/format";
 
 export function ArticleMeta({
   author,
@@ -11,15 +11,10 @@ export function ArticleMeta({
   className?: string;
 }) {
   return (
-    <p
-      className={cn(
-        "text-[0.7rem] text-signal-muted uppercase tracking-wide",
-        className
-      )}
-    >
-      <span className="font-medium text-foreground/70">{author}</span>
+    <p className={cn("text-signal-muted text-sm leading-relaxed", className)}>
+      <span className="font-medium text-foreground">{author}</span>
       {" · "}
-      <time dateTime={publishedAt}>{formatRelativeTime(publishedAt)}</time>
+      <time dateTime={publishedAt}>{formatLongDate(publishedAt)}</time>
     </p>
   );
 }

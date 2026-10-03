@@ -197,7 +197,13 @@ next-shadcn-admin-dashboard-baseui/
 # MBIA scraped WordPress source material (218MB, reference only)
 apps/web/mbia/.source/
 
-/temp-files
+# Local research downloads, original documents and reference screenshots.
+# Curated Elections Grenada JSON and public CSV exports live under the app
+# and must remain tracked; do not add blanket data/, *.json or *.csv ignores.
+/temp-files/
+
+# Local Signal design comparisons; selected designs live in app source.
+/design-previews/signal/
 
 .teaching/
 

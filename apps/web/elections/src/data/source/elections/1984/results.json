@@ -1,0 +1,222 @@
+{
+  "A": {
+    "reg": 2443,
+    "cast": 1979,
+    "rej": null,
+    "c": [
+      ["Herbert A. Blaize", "NNP", 1663, "official"],
+      ["Lyle A. Bullen", "MBPM", 146, "official"],
+      ["Hyacinth F. J. Clyne", "GULP", 119, "official"],
+      ["Winston T. Fleary", "IND", 51, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 15,
+    "official": true
+  },
+  "B": {
+    "reg": 2451,
+    "cast": 2133,
+    "rej": null,
+    "c": [
+      ["Pauline C. Andrew", "NNP", 1094, "official"],
+      ["Irvin I. Duncan", "GULP", 997, "official"],
+      ["George M. Lewis", "MBPM", 24, "official"],
+      ["Bert La Touche", "CDLP", 18, "official"],
+      ["Fenderson J. Felix", "GFLP", 10, "corroborated"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 15,
+    "official": true,
+    "note": "Fenderson J. Felix (GFLP, 10 votes) is missing from the PEO table but appears in The Grenada Newsletter (24 March 1990) and in IFES/Emmanuel; restored."
+  },
+  "C": {
+    "reg": 3907,
+    "cast": 3400,
+    "rej": null,
+    "c": [
+      ["Ben J. Jones", "NNP", 1964, "official"],
+      ["Winifred C. Strachan", "GULP", 1206, "official"],
+      ["Carlton A. Bernard", "MBPM", 185, "official"],
+      ["Cyril Hopkin", "IND", 45, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 15,
+    "official": true
+  },
+  "D": {
+    "reg": 2867,
+    "cast": 2416,
+    "rej": null,
+    "c": [
+      ["Marcel J. Peters", "GULP", 1276, "official"],
+      ["Mc Lean Pope", "NNP", 1140, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 15,
+    "official": true,
+    "note": "The winners’ summary on an earlier page of the same PEO document gives Marcel J. Peters 1,286 votes; the candidate table, used here, gives 1,276."
+  },
+  "E": {
+    "reg": 2592,
+    "cast": 2304,
+    "rej": null,
+    "c": [
+      ["Alleyne Walker", "NNP", 1282, "official"],
+      ["Herbert B. Fletcher", "GULP", 1004, "official"],
+      ["Neville V. Rennie", "CDLP", 18, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 15,
+    "official": true
+  },
+  "F": {
+    "reg": 5357,
+    "cast": 4723,
+    "rej": null,
+    "c": [
+      ["Daniel C. Williams", "NNP", 2856, "official"],
+      ["Denis J. Radix", "GULP", 1756, "official"],
+      ["Almando T. Williams", "MBPM", 111, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 15,
+    "official": true
+  },
+  "G": {
+    "reg": 3338,
+    "cast": 2677,
+    "rej": null,
+    "c": [
+      ["George Mc Guire", "NNP", 1745, "official"],
+      ["Raymond H. Anthony", "GULP", 756, "official"],
+      ["Earl Bullen", "MBPM", 151, "official"],
+      ["Gordon C. Robertson", "CDLP", 25, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 15,
+    "official": true
+  },
+  "H": {
+    "reg": 4031,
+    "cast": 3386,
+    "rej": null,
+    "c": [
+      ["George I. Brizan", "NNP", 2438, "official"],
+      ["Albert O. Forsyth", "GULP", 818, "official"],
+      ["Kennitha Thompson", "MBPM", 99, "official"],
+      ["Denis C. Joseph", "CDLP", 31, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 15,
+    "official": true
+  },
+  "J": {
+    "reg": 2763,
+    "cast": 2386,
+    "rej": null,
+    "c": [
+      ["Keith C. Mitchell", "NNP", 1370, "official"],
+      ["Jimmy J. Lewis", "GULP", 956, "official"],
+      ["Dunbar Byam", "MBPM", 60, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 15,
+    "official": true
+  },
+  "K": {
+    "reg": 3017,
+    "cast": 2536,
+    "rej": null,
+    "c": [
+      ["Francis R. Alexis", "NNP", 1674, "official"],
+      ["Gregory A. Hercules", "GULP", 642, "official"],
+      ["Bernard K. Radix", "MBPM", 220, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 15,
+    "official": true
+  },
+  "L": {
+    "reg": 3889,
+    "cast": 3239,
+    "rej": null,
+    "c": [
+      ["Phinsley St. Louis", "NNP", 1905, "official"],
+      ["Erleen C. Adams", "GULP", 1173, "official"],
+      ["Trevor Emmanuel", "MBPM", 153, "official"],
+      ["Justin F. Mc Burnie", "IND", 8, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 15,
+    "official": true
+  },
+  "M": {
+    "reg": 4373,
+    "cast": 3699,
+    "rej": null,
+    "c": [
+      ["Grace M. Duncan", "NNP", 1611, "official"],
+      ["Edzel V. Thomas", "GULP", 1576, "official"],
+      ["Einstein Louison", "MBPM", 512, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 15,
+    "official": true,
+    "epDiff": ["Einstein Louison (MBPM) EP=472 PEO=512 [Einstein Louison]"]
+  },
+  "N": {
+    "reg": 2085,
+    "cast": 1819,
+    "rej": null,
+    "c": [
+      ["Felix G. Alexander", "NNP", 930, "official"],
+      ["Mitchell G. James", "GULP", 750, "official"],
+      ["George Louison", "MBPM", 139, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 15,
+    "official": true
+  },
+  "P": {
+    "reg": 2121,
+    "cast": 1800,
+    "rej": null,
+    "c": [
+      ["Tillman Thomas", "NNP", 935, "official"],
+      ["Winston E. Frederick", "GULP", 787, "official"],
+      ["John Cato", "MBPM", 66, "official"],
+      ["Winston Whyte", "CDLP", 12, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 15,
+    "official": true
+  },
+  "R": {
+    "reg": 2924,
+    "cast": 2516,
+    "rej": null,
+    "c": [
+      ["Kenny Lalsingh", "NNP", 1438, "official"],
+      ["Abraham O. Raeburn", "GULP", 905, "official"],
+      ["Samuel E. Thomas", "MBPM", 173, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 15,
+    "official": true
+  }
+}

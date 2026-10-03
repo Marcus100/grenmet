@@ -1,0 +1,142 @@
+[
+  {
+    "div": "J01",
+    "sub": "a",
+    "reg": 326,
+    "voted": 90,
+    "rej": 43,
+    "spoilt": 0,
+    "yes": 278,
+    "no": 309
+  },
+  {
+    "div": "J01",
+    "sub": "b",
+    "reg": 331,
+    "voted": 100,
+    "rej": 84,
+    "spoilt": 0,
+    "yes": 319,
+    "no": 297
+  },
+  {
+    "div": "J02",
+    "sub": "a",
+    "reg": 313,
+    "voted": 72,
+    "rej": 45,
+    "spoilt": 0,
+    "yes": 242,
+    "no": 217
+  },
+  {
+    "div": "J02",
+    "sub": "b",
+    "reg": 316,
+    "voted": 97,
+    "rej": 61,
+    "spoilt": 0,
+    "yes": 300,
+    "no": 318
+  },
+  {
+    "div": "J02",
+    "sub": "c",
+    "reg": 309,
+    "voted": 83,
+    "rej": 21,
+    "spoilt": 0,
+    "yes": 286,
+    "no": 289
+  },
+  {
+    "div": "J03",
+    "sub": "a",
+    "reg": 210,
+    "voted": 89,
+    "rej": 57,
+    "spoilt": 2,
+    "yes": 339,
+    "no": 227
+  },
+  {
+    "div": "J03",
+    "sub": "b",
+    "reg": 187,
+    "voted": 76,
+    "rej": 16,
+    "spoilt": 1,
+    "yes": 230,
+    "no": 283
+  },
+  {
+    "div": "J04",
+    "sub": "a",
+    "reg": 316,
+    "voted": 116,
+    "rej": 47,
+    "spoilt": 2,
+    "yes": 427,
+    "no": 338
+  },
+  {
+    "div": "J04",
+    "sub": "b",
+    "reg": 300,
+    "voted": 102,
+    "rej": 51,
+    "spoilt": 0,
+    "yes": 383,
+    "no": 280
+  },
+  {
+    "div": "J04",
+    "sub": "c",
+    "reg": 311,
+    "voted": 79,
+    "rej": 13,
+    "spoilt": 0,
+    "yes": 304,
+    "no": 236
+  },
+  {
+    "div": "J05",
+    "sub": "a",
+    "reg": 248,
+    "voted": 77,
+    "rej": 47,
+    "spoilt": 0,
+    "yes": 291,
+    "no": 201
+  },
+  {
+    "div": "J05",
+    "sub": "b",
+    "reg": 267,
+    "voted": 81,
+    "rej": 34,
+    "spoilt": 2,
+    "yes": 290,
+    "no": 247
+  },
+  {
+    "div": "J06",
+    "sub": null,
+    "reg": 68,
+    "voted": 30,
+    "rej": 10,
+    "spoilt": 0,
+    "yes": 86,
+    "no": 113
+  },
+  {
+    "div": "J07",
+    "sub": null,
+    "reg": 280,
+    "voted": 110,
+    "rej": 48,
+    "spoilt": 0,
+    "yes": 199,
+    "no": 523
+  }
+]

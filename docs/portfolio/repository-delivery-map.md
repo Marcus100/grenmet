@@ -22,12 +22,14 @@ acceptance.
 | Repository surface | Primary classification and owner | Lifecycle | Planning destination |
 | --- | --- | --- | --- |
 | `apps/web/auth` | Barrels platform identity | Active | Product-aware shared sign-in with application-scoped access |
+| `apps/web/barrels` | Barrels Grenada company holding page | Active | Independent static Vercel site at barrels.gd |
 | `apps/web/gaa-admin` | GAA staff portal with GMS and GAA modules | Active; renamed at transition boundary 7 | `apps/web/gaa-admin`; GMS pilot followed by GAA department rollout |
 | `apps/web/gms` | GMS public weather service | Active foundation; renamed at transition boundary 6 | `apps/web/gms`; forecasts, observations, warnings, and public products |
 | `apps/web/cms` | GMS editorial content service delivered by Barrels | Active development | Dedicated CMS database, shared FastAPI identity, reviewed migrations and publishing |
 | `apps/web/docs` | GMS public documentation and preparedness content | Active content application; renamed at transition boundary 8 | `apps/web/docs` on the dedicated GMS documentation host |
 | `apps/web/events` | Barrels Events product | Prototype | Approved Events discovery/ticketing pilot after transition gates |
-| `apps/web/signal` | Barrels Signal media product | Active | Maintain separately; deepen according to product evidence |
+| `apps/web/elections` | Barrels Elections Grenada product (Grenada election coverage and history) | Prototype; 2026 coverage first | Election coverage and results history from static checked data; a FastAPI domain for results night later |
+| `apps/web/signal` | Barrels Signal media product | Active | Editorial reader redesign and discovery preview; dedicated Signal CMS deferred until frontend review |
 | `apps/web/mbia` | GAA/MBIA passenger public service | Active | Keep distinct from GAA corporate and staff applications |
 | `apps/api/fastapi` | Barrels-operated shared API serving client and product domains | Active | Preserve domain boundaries; own migrations, catalogue seeds, authorization, and generated contracts |
 
@@ -81,6 +83,7 @@ GMS or GAA.
 | `scripts/gms-ingest` | GMS weather product ingestion delivered by Barrels | Active development | Verify collection, decoding, storage, freshness, and recovery before operational acceptance |
 | `scripts/gms-roster` | GAA staff roster import tooling, piloted in GMS | Active | Review extracted assignments and month boundaries before publishing a roster |
 | `scripts/integrations` | Barrels engineering third-party integration readiness checks (Sentry, PostHog) | Active | Confirm provider credentials and host configuration per environment before relying on integration telemetry |
+| `scripts/monitoring` | Barrels engineering availability probes and sanitized monitoring reports | Active | CI/CD-managed environment configuration; verify provider delivery before declaring coverage |
 | `scripts/perf` | Barrels engineering HTTP performance measurement | Active | Compare first and repeated requests, reject failed responses, and keep credentials out of saved results |
 | `scripts/production` | Barrels engineering database provisioning | Active | Apply reviewed migrations and repeatable baseline seeds without overwriting recorded operational data |
 | `scripts/sutron-collector` | GMS observation operations delivered by Barrels | Active development | Prove hardware collection, durable spool, SURFACE export, monitoring, and recovery |

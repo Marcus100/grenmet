@@ -1,0 +1,170 @@
+[
+  [
+    "B01",
+    "a",
+    "St. Andrew’s Anglican Secondary School",
+    280,
+    256,
+    1,
+    {
+      "NNP": 143,
+      "NDC": 112
+    }
+  ],
+  [
+    "B01",
+    "b",
+    "St. Andrew’s Anglican Secondary School",
+    271,
+    253,
+    0,
+    {
+      "NNP": 155,
+      "NDC": 98
+    }
+  ],
+  [
+    "B01",
+    "c",
+    "St. Andrew’s Anglican Secondary School.",
+    317,
+    284,
+    1,
+    {
+      "NNP": 150,
+      "NDC": 133
+    }
+  ],
+  [
+    "B02",
+    "a",
+    "Grenville Police Station",
+    245,
+    224,
+    0,
+    {
+      "NNP": 118,
+      "NDC": 106
+    }
+  ],
+  [
+    "B02",
+    "b",
+    "Grenville Police Station",
+    200,
+    175,
+    1,
+    {
+      "NNP": 79,
+      "NDC": 95
+    }
+  ],
+  [
+    "B03",
+    null,
+    "R & J’s Sports Bar, Soubise",
+    258,
+    229,
+    0,
+    {
+      "NNP": 137,
+      "NDC": 92
+    }
+  ],
+  [
+    "B04",
+    null,
+    "Post Royal Pre-School",
+    211,
+    200,
+    1,
+    {
+      "NNP": 137,
+      "NDC": 62
+    }
+  ],
+  [
+    "B05",
+    null,
+    "Marquis Pre-School",
+    290,
+    267,
+    0,
+    {
+      "NNP": 188,
+      "NDC": 79
+    }
+  ],
+  [
+    "B06",
+    "a",
+    "St. Giles Anglican School",
+    218,
+    197,
+    2,
+    {
+      "NNP": 122,
+      "NDC": 73
+    }
+  ],
+  [
+    "B06",
+    "b",
+    "St. Giles Anglican School",
+    217,
+    198,
+    0,
+    {
+      "NNP": 105,
+      "NDC": 93
+    }
+  ],
+  [
+    "B07",
+    null,
+    "Grand Bacolet Educational Centre (Church)",
+    363,
+    330,
+    3,
+    {
+      "NNP": 236,
+      "NDC": 91
+    }
+  ],
+  [
+    "B08",
+    null,
+    "Crochu R.C. School",
+    177,
+    168,
+    0,
+    {
+      "NNP": 119,
+      "NDC": 49
+    }
+  ],
+  [
+    "B09",
+    null,
+    "Crochu Skills Training Centre",
+    347,
+    321,
+    0,
+    {
+      "NNP": 204,
+      "NDC": 117
+    }
+  ],
+  [
+    "B10",
+    null,
+    "Hansel Japal’s (Down Stairs), Mamma Cannes",
+    223,
+    206,
+    2,
+    {
+      "NNP": 149,
+      "NDC": 55
+    }
+  ]
+]
