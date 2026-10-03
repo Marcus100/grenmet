@@ -24,6 +24,8 @@ export interface ElectionCalendar {
   nominationDay: string | null;
   /** Polling day, once announced. */
   pollingDay: string | null;
+  /** When the writs were issued, which proclaims both dates. */
+  writs: string | null;
 }
 
 export function calendarFrom(campaign: CampaignFile): ElectionCalendar {
@@ -31,8 +33,9 @@ export function calendarFrom(campaign: CampaignFile): ElectionCalendar {
     announcement: campaign.announce,
     deadline: campaign.deadline,
     dissolved: campaign.dissolved ?? null,
-    nominationDay: null,
-    pollingDay: null,
+    nominationDay: campaign.nomination_day ?? null,
+    pollingDay: campaign.polling_day ?? null,
+    writs: campaign.writs ?? null,
   };
 }
 

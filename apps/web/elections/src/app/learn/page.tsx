@@ -13,6 +13,8 @@ export default function LearnPage() {
       <PageHead
         deck="Start with a question. Learn the idea, test it with an example, then explore Grenada’s records for yourself."
         eyebrow="Learn through the election"
+        photo="grandetang"
+        tint="green"
         title="Make sense of every vote"
       >
         <Link

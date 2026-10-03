@@ -12,6 +12,49 @@ remediation, Discord integration or application deployment was added in this pas
 
 ## Source of truth
 
+### Check public website coverage
+
+Run `node scripts/integrations/analytics-status.mjs` from the repository root.
+It reports each app/environment separately: no public analytics, missing ID,
+provider settings awaiting verification, configured, or delivery verified.
+Configured does not mean Google has received an event.
+
+Weather, Docs, MBIA, Signal and Elections mount the shared consent provider.
+Barrels' static build emits the same consent policy and Google transport as
+browser modules, with no framework dependency. Events currently contains the
+organiser console, so it remains excluded alongside Auth, Admin and CMS; add
+analytics to an attendee-facing public surface when that surface exists.
+
+For each additional public site, create/select its own GA4 property and web
+stream, record its `G-…` ID and exact origin under the appropriate environment
+in `packages/ui/src/lib/service-catalogue.json`, and verify account access and
+retention settings before setting the corresponding verification flags and
+`status: configured`. Do not copy the Weather staging ID to other sites or to
+production. Unassigned Vercel previews remain disabled. Build and deploy the
+affected app after changing the catalogue; Barrels and Elections deploy through
+their independent Vercel projects.
+
+Verify a consented visit in Google Analytics Realtime before recording delivery
+evidence. Test a fresh browser: no Google requests before consent, one page view
+after Accept, no query strings or private data in events, and no new events
+after Decline. Loading `gtag.js` alone is not delivery evidence. The shared
+transport uses Google's documented Arguments command format and preserves the
+loader's queue when consent is withdrawn. PostHog failure does not disable GA4.
+
+The measurement ID is public configuration, not a password. Property creation
+and reporting verification require access to the owner's Google Analytics
+account; repository tests cannot establish either.
+
+### Existing analytics continuity
+
+On 2026-10-03 the owner requested restoration of existing integrations. The
+staging Weather GA4 property `G-6PY9N83HCP` was confirmed in both the live tag
+and the staging variable. Its explicit `continuity-approved` mapping preserves
+that destination with consent controls. Retention/access flags remain false
+until provider settings are inspected; this is not a claim of delivery verification.
+The exception is restricted to that app, origin, environment and GA4 ID, with
+no PostHog or production fallback. Other app mappings still need assignment.
+
 [Service catalogue](../../packages/ui/src/lib/service-catalogue.json) records every
 app, owner, environment, deployment target, provider mapping and coverage status.
 `development` means local dev; it is not staging. Personal and NISA application

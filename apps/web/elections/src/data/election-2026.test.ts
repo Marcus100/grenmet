@@ -19,8 +19,14 @@ import type { CampaignFile, ResultsFile } from "@/data/types";
 const results = resultsJson as unknown as ResultsFile;
 const campaign = campaignJson as unknown as CampaignFile;
 const calendar = calendarFrom(campaign);
-const withPollingDay: ElectionCalendar = {
+const awaiting: ElectionCalendar = {
   ...calendar,
+  nominationDay: null,
+  pollingDay: null,
+  writs: null,
+};
+const withPollingDay: ElectionCalendar = {
+  ...awaiting,
   pollingDay: "2026-11-12",
 };
 
@@ -45,11 +51,27 @@ describe("calendarFrom", () => {
     expect(deadline?.src).toBe("constitution");
     expect(deadline?.flag).toBeNull();
   });
+
+  it("takes nomination and polling day from the gazetted notice of writs", () => {
+    expect(calendar).toMatchObject({
+      writs: "2026-10-02",
+      nominationDay: "2026-10-15",
+      pollingDay: "2026-11-05",
+    });
+    for (const date of [calendar.nominationDay, calendar.pollingDay]) {
+      expect(campaign.events.find((e) => e.date === date)?.src).toBe(
+        "gazette47"
+      );
+    }
+    expect(electionStatus(calendar, new Date("2026-10-03T16:00:00Z"))).toBe(
+      "Grenada votes in 33 days"
+    );
+  });
 });
 
 describe("electionPhase", () => {
   it("waits for a date until polling day is set", () => {
-    expect(electionPhase(calendar, new Date("2026-10-02T12:00:00Z"))).toBe(
+    expect(electionPhase(awaiting, new Date("2026-10-02T12:00:00Z"))).toBe(
       "awaiting-date"
     );
   });
@@ -70,13 +92,13 @@ describe("electionPhase", () => {
 describe("electionStatus", () => {
   it("counts down to the announcement, then to polling day", () => {
     expect(daysUntil("2026-10-04", new Date("2026-10-02T12:00:00Z"))).toBe(2);
-    expect(electionStatus(calendar, new Date("2026-10-02T12:00:00Z"))).toBe(
+    expect(electionStatus(awaiting, new Date("2026-10-02T12:00:00Z"))).toBe(
       "Election date due 4 October 2026"
     );
-    expect(electionStatus(calendar, new Date("2026-10-04T12:00:00Z"))).toBe(
+    expect(electionStatus(awaiting, new Date("2026-10-04T12:00:00Z"))).toBe(
       "Election date due today"
     );
-    expect(electionStatus(calendar, new Date("2026-10-05T12:00:00Z"))).toBe(
+    expect(electionStatus(awaiting, new Date("2026-10-05T12:00:00Z"))).toBe(
       "Election date not yet announced"
     );
     expect(

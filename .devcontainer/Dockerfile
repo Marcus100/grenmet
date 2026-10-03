@@ -43,7 +43,7 @@ RUN corepack enable && corepack prepare pnpm@12.3.4 --activate
 
 # The coding agents themselves. Pinned so a rebuild doesn't silently drift —
 # bump deliberately (check current versions with `npm view <pkg> version`).
-RUN npm install -g @anthropic-ai/claude-code@2.1.283 @openai/codex@0.155.1
+RUN npm install -g @anthropic-ai/claude-code@2.1.288 @openai/codex@0.160.0
 
 # GitHub CLI (gh) — used by the repo's issue/PR workflow. Official apt repo.
 RUN mkdir -p -m 755 /etc/apt/keyrings \

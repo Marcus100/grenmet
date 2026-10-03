@@ -1,5 +1,13 @@
 /** Which colour family a party or referendum side is drawn in. */
-export type PartyHue = "ndc" | "nnp" | "gulp" | "hist" | "other" | "yes" | "no";
+export type PartyHue =
+  | "ndc"
+  | "nnp"
+  | "dpm"
+  | "gulp"
+  | "hist"
+  | "other"
+  | "yes"
+  | "no";
 
 interface PartyInfo {
   hue: PartyHue;
@@ -11,7 +19,7 @@ const PARTIES: Record<string, PartyInfo> = {
   NNP: { name: "New National Party", hue: "nnp" },
   GULP: { name: "Grenada United Labour Party", hue: "gulp" },
   MMWU: { name: "Grenada Manual and Mental Workers Union", hue: "gulp" },
-  DPM: { name: "Democratic People’s Movement", hue: "gulp" },
+  DPM: { name: "Democratic People’s Movement", hue: "dpm" },
   GNP: { name: "Grenada National Party", hue: "hist" },
   PA: { name: "People’s Alliance", hue: "hist" },
   TNP: { name: "The National Party", hue: "hist" },

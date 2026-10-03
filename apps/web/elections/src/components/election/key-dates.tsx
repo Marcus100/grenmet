@@ -20,11 +20,17 @@ export function KeyDates({ calendar }: { calendar: ElectionCalendar }) {
           },
         ]
       : []),
-    {
-      label: "Date announced",
-      value: formatIsoDate(calendar.announcement),
-      note: "At an event in St. Mark",
-    },
+    calendar.writs
+      ? {
+          label: "Writs issued",
+          value: formatIsoDate(calendar.writs),
+          note: "Dates gazetted by the Supervisor of Elections",
+        }
+      : {
+          label: "Date announced",
+          value: formatIsoDate(calendar.announcement),
+          note: "At an event in St. Mark",
+        },
     {
       label: "Nomination day",
       value: calendar.nominationDay
