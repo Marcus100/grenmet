@@ -140,8 +140,11 @@
   // in the home root (outside any volume) and is wiped on every rebuild, forcing
   // re-login. Pointing CLAUDE_CONFIG_DIR at the persisted .claude volume keeps
   // .claude.json next to .credentials.json inside that volume, so logins stick.
+  // DISABLE_AUTOUPDATER: Claude Code is pinned in the Dockerfile and the npm
+  // prefix is root-owned, so self-update can only fail; bump the pin instead.
   "containerEnv": {
     "CLAUDE_CONFIG_DIR": "/home/node/.claude",
+    "DISABLE_AUTOUPDATER": "1",
     "GRENMET_HOST_WORKSPACE": "${localWorkspaceFolder}"
   },
 
