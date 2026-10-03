@@ -91,6 +91,18 @@ body {
   background: var(--background);
 }
 
-a {
-  text-decoration: none;
+/* Keep the editorial column usable under text enlargement. */
+@layer base {
+  body {
+    overflow-wrap: anywhere;
+  }
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible {
+    outline: 2px solid var(--signal-green);
+    outline-offset: 4px;
+  }
+  .bg-signal-green a:focus-visible {
+    outline-color: var(--signal-gold);
+  }
 }

@@ -27,6 +27,7 @@ export function formatRelativeTime(
 export function formatLongDate(date: Date | string): string {
   const value = typeof date === "string" ? new Date(date) : date;
   return value.toLocaleDateString("en-GB", {
+    timeZone: "UTC",
     weekday: "long",
     day: "numeric",
     month: "long",

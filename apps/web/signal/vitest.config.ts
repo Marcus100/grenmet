@@ -15,6 +15,10 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      "content-collections": path.resolve(
+        import.meta.dirname,
+        "./.content-collections/generated/index.js"
+      ),
       "@": path.resolve(import.meta.dirname, "./src"),
     },
   },

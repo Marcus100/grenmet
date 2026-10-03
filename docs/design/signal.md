@@ -1,7 +1,7 @@
 ---
 version: alpha
 name: Grenada Signal
-description: Friendly civic newsletter — serif headlines, ink on white, island green with a gold underline.
+description: Editorial reader for Grenadians everywhere — serif headlines, ink on white, island green and gold.
 colors:
   primary: "#1a7a3d"
   green-dark: "#136030"
@@ -15,24 +15,24 @@ colors:
 typography:
   lead-headline:
     fontFamily: Source Serif 4
-    fontSize: 30px
+    fontSize: 36px
     fontWeight: 700
     lineHeight: 1.25
     letterSpacing: -0.025em
   section-title:
     fontFamily: Source Serif 4
-    fontSize: 20px
+    fontSize: 24px
     fontWeight: 700
     lineHeight: 28px
     letterSpacing: -0.025em
   story-title:
     fontFamily: Source Serif 4
-    fontSize: 18px
+    fontSize: 24px
     fontWeight: 600
     lineHeight: 1.375
   body:
     fontFamily: Inter
-    fontSize: 16px
+    fontSize: 18px
     fontWeight: 400
     lineHeight: 1.75
   small:
@@ -41,14 +41,14 @@ typography:
     fontWeight: 400
     lineHeight: 20px
   eyebrow:
-    fontFamily: Source Serif 4
-    fontSize: 11.2px
+    fontFamily: Inter
+    fontSize: 14px
     fontWeight: 600
     lineHeight: 16px
     letterSpacing: 0.05em
   meta:
     fontFamily: Inter
-    fontSize: 11.2px
+    fontSize: 14px
     fontWeight: 400
     lineHeight: 16px
     letterSpacing: 0.025em
@@ -75,7 +75,7 @@ components:
     backgroundColor: "{colors.ink}"
     textColor: "{colors.paper}"
     rounded: "{rounded.md}"
-  subscribe-band:
+  briefing-panel:
     backgroundColor: "{colors.primary}"
     textColor: "{colors.paper}"
   eyebrow:
@@ -107,7 +107,7 @@ components:
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-09-24
+**Last updated:** 2026-10-03
 
 Agent-readable spec for `apps/web/signal`, the mobile-first civic news reader for
 Grenada Signal. [DESIGN.md format](https://github.com/google-labs-code/design.md);
@@ -118,118 +118,130 @@ Other lanes: [gms](./gms.md) · [gaa-admin](./gaa-admin.md) · [mbia](./mbia.md)
 
 ## Overview
 
-A daily briefing read in a few minutes on a phone, in the style of a friendly
-morning newsletter. Editorial and warm, not corporate: serif headlines, generous line
-height, ink on white, island green for identity and a gold underline as a
-signature. The characteristic element is **today's lead story and the day's
-sections**, not a product dashboard.
+A Grenada-rooted general-interest news and entertainment destination for local,
+diaspora, Caribbean and international readers. The owner prioritises broad reach
+and repeat visits: a concise dated briefing followed by reporting, curated coverage,
+entertainment, culture, sport, lifestyle, guides and opportunities. The reader
+uses Semafor-inspired editorial hierarchy and Morning Brew’s approachable voice.
+The owner requested **frontend design first, CMS last**. Current homepage content is sixteen source-attributed editorial previews checked
+on 3 October 2026, awaiting human review and excluded from indexing. June samples
+remain labelled in the archive and at their original URLs.
 
-Principles:
+## Typography and colour
 
-1. **Reading first.** A single column, ≤ 65ch, with body text at 16px or larger and loose leading.
-2. **Editorial hierarchy.** Serif carries the voice; sans carries information.
-3. **Red means alert.** `--signal-alert` is reserved for genuine alerts only.
-4. **Light and fast.** No shadows, no heavy imagery chrome; images earn their place.
+Keep the existing Signal tokens in `src/app/globals.css`: green for identity and
+links, gold for rules, ink on white for reading. No new tokens or GMS branding.
+Gold is never small text. Muted text is used only on white backgrounds.
 
-## Colors
+Source Serif 4 carries headlines; Inter carries body text, navigation and metadata.
+The masthead scales from `text-4xl` to `text-7xl`. Lead headlines use `text-3xl`
+to `text-4xl`; story headlines `text-2xl`. Article prose and summaries are 18px
+(`prose-lg`, `text-lg`); metadata is 14px (`text-sm`). Use rem-based utilities.
+Body links are underlined. Dates are absolute and rendered in UTC for consistency.
 
-The aliases are `bg-signal-*` and `text-signal-*`. shadcn semantics are mapped to this palette.
+## Layout and reading sequence
 
-| Name | Value | Token | Role |
-|---|---|---|---|
-| Green | `#1a7a3d` | `--signal-green` | `--primary`, links, eyebrows, subscribe band. 5.39:1 on white; white on it 5.39:1. |
-| Green dark | `#136030` | `--signal-green-dark` | Hover and pressed. 7.65:1. |
-| Gold | `#f5c518` | `--signal-gold` | `--accent`, eyebrow and heading underlines. **Fill or rule only**: 1.63:1 on white, 3.31:1 against green. Ink on gold is 12.14:1. |
-| Ink | `#0a0a0a` | `--signal-ink` | Text, section rules, button on the green band. 19.80:1. |
-| Alert | `#c8102e` | `--signal-alert` | `--destructive`, genuine alerts only. White on it 5.88:1. |
-| Muted | `#6b7280` | `--signal-muted` | Metadata. 4.83:1 on white only: 4.39:1 on `#f3f4f6` **fails**. |
-| Rule | `#e5e7eb` | `--signal-rule` | Hairlines between stories (decorative). |
-| Paper | `#ffffff` | `--signal-paper` | Page. |
+- Masthead: place names, substantial centred wordmark, short proposition, wrapping
+  navigation . It is not sticky.
+- Homepage: latest dated Daily Signal → lead and supporting stories → selected
+  seasonal reading collection → populated topics → archive invitation.
+- Desktop uses a `max-w-7xl` container and rule-separated columns. Phones use one
+  column, with `px-4` gutters; desktop gutters use `sm:px-8`.
+- Article and edition bodies retain a comfortable `max-w-2xl` measure. No shadows,
+  gradients or decorative image placeholders. Text-only stories stand on their own.
+- No disabled signup promotions, dummy social links, or empty media promotions.
+  Discovery and archive links provide the next reading action.
 
-## Typography
+### Editorial supply
 
-Source Serif 4 (`font-serif`) for headlines and eyebrows, Inter (`font-sans`) for body
-and UI.
+The owner will combine aggregation and original reporting. Every story published
+on Signal has a human author; AI is used internally for editorial assistance, not
+as an author or a separate public content category. Preserve attribution to
+underlying sources. Grenada leads the homepage, with selected Caribbean and
+international news, entertainment and sport alongside it. Use warm, clear English,
+with local character and no forced slang. Choose wider stories for significance,
+usefulness or enjoyment; a Grenadian connection is welcome but not compulsory.
+No fixed geographic quota or fabricated trending rankings. Do not invent reporting
+or publish an unsourced batch.
 
-| Role | Utilities |
-|---|---|
-| Lead headline | `font-serif font-bold text-2xl sm:text-3xl leading-tight tracking-tight` |
-| Section title | `font-serif font-bold text-xl tracking-tight` over a `border-b-2 border-signal-ink` rule |
-| Story title | `font-serif font-semibold text-lg leading-snug` |
-| Body / article | `prose` (typography plugin), 16px |
-| Eyebrow | `font-serif font-semibold text-[0.7rem] uppercase tracking-wider text-signal-green` with a gold `border-b-2` |
-| Meta (date, author) | `text-[0.7rem] uppercase tracking-wide text-signal-muted` |
+### Selected story section
 
-- The two families have distinct jobs. Don't use serif for UI controls, and don't use sans for headlines.
-- `text-[0.7rem]` (11.2px) is the one arbitrary size, and it's allowed only for short uppercase eyebrows and meta. Don't use it anywhere else.
-- Use curly quotes and a real ellipsis (`…`) in copy. Keep headlines in sentence case.
+The owner’s Morning Brew screenshot supersedes the earlier Option A treatment.
+At desktop widths, a bordered, lightly tinted feature card with large photography
+sits beside “The Latest”: a compact list of four selected story headlines with
+uppercase green topic labels, sans-serif headlines, fine horizontal dividers. Only the feature shows a summary and image here;
+article pages retain full imagery and source credits. The feature headline stays
+serif. An All stories link opens the archive. The two columns start at the same
+height and become a single sequence below the desktop breakpoint. More from
+Signal remains four equal series columns below the feature/list.
 
-## Layout
+## Coverage and discovery
 
-- The reading column is `mx-auto max-w-2xl px-4`. The header and footer use `max-w-5xl`.
-- Sections are spaced `py-8`. Story lists are separated by `border-b border-signal-rule` with `py-4`.
-- The header is sticky at `h-14`, using `bg-background/95 backdrop-blur` and a bottom rule.
-- The layout is mobile-first: design at 375px first. Card grids go from 1 column to 2.
+Seven topics: News & Community, Money & Opportunity, Culture & Entertainment, Sport,
+Weather & Environment, Fact Check, and Caribbean & World. Existing section URLs
+`weather-ready`, `opportunity` and `check-d-ting` remain stable, including `culture-life` and `grenada-world`. Main navigation
+exposes News, Entertainment, Sport, Money and Caribbean & World. Only populated
+story sections appear on the homepage; topic pages honestly explain missing coverage.
 
-## Elevation & Depth
+Daily Signal, Parish Pulse and Check D Ting remain the editorial series.
+`/topics` shows all coverage areas; the homepage shows only populated sections.
+`/briefs`, `/learn`, `/archive`, `/search` and `/collections/[slug]` make the
+existing samples discoverable. Search filters titles, summaries and topic labels
+on the device; the query is neither sent to a server nor added to a URL.
 
-Signal is flat. It uses no shadows at all and separates content with rules: hairline
-`signal-rule` between stories and a 2px ink rule under section titles. The only
-translucency is the sticky header's blur.
+## Components and states
 
-## Shapes
+- `SiteHeader` / `SiteFooter`: wrapping navigation and working reading links.
+- `StoryCard`: optional lead hierarchy, headline, summary, public byline and date.
+- `PageIntro`: one page title, a short introduction and a gold rule.
+- `DemoNote`: explains that sample claims, forecasts and deadlines are unverified.
+- `EmptyState`: states that no stories exist and links to all topics.
+- `SearchReader`: visible label, initial guidance, live result count and no-results help.
+- `ArchiveInvitation`: a next reading action without collecting contact details.
 
-`--radius` is 8px. Images and cards use `rounded-lg`, buttons and inputs use `rounded-md`,
-and avatars and tags use `rounded-full`. Rules are square.
+Missing stories return a designed 404. Unexpected route failures keep the site
+shell, report to Sentry and offer retry. Missing images produce no empty boxes.
+The current content pipeline is local; CMS availability states belong to the later
+integration phase and must never substitute demo content for a failed feed.
 
-## Components
+## Accessibility and verification
 
-**Role** · **Specs** · **Context**.
+Keep the skip link first, one h1 per page, meaningful section labels, visible
+keyboard focus and wrapping navigation. Main actions are at least 44px tall.
+Verify 320px and desktop widths, 200% text enlargement, original article and edition
+URLs, empty topics, no-image stories, local search and sample notices. Site-wide
+`noindex, nofollow` remains until actual publication is authorised.
 
-- **LeadStory** (`src/components/lead-story.tsx`) · The day's top story · 16:10 image `rounded-lg`, serif headline that turns green on hover, meta row · Top of each edition.
-- **SectionBlock** (`src/components/section-block.tsx`) · A themed group of stories · serif title over an ink rule, with an uppercase green "More" link · Groups the day's sections.
-- **StoryListItem** (`src/components/story-list-item.tsx`) · Headline and summary · serif `text-lg` title, separated by rules.
-- **Eyebrow** (`src/components/eyebrow.tsx`) · Section kicker · green serif uppercase with a gold underline. This is the brand signature.
-- **SubscribeBand** (`src/components/subscribe-band.tsx`) · Signup · `bg-signal-green text-white`, with a white input and an ink submit button · Used once per page at most.
-- **Podcast / Watch blocks** · Media · Always shown with a transcript or text summary.
+### Image provenance
 
-States to design: an edition with no stories yet ("Today's edition lands at 6am"),
-missing images (fall back to a green-tint `bg-signal-green/10`, not an empty box), and
-the subscribe success and error messages.
+`StoryImage` uses local optimised photographs, descriptive alt text, archive context
+and linked credits. Demo selections live in `src/lib/story-images.ts`; provenance
+is in `public/images/CREDITS.md`. No image selection means no frame.
 
-## Do's and Don'ts
+Desktop refinements: More from Signal is a heading above four equal series columns.
+The seasonal collection introduction spans the section above two story cards,
+with its reading link beside the introduction where space permits.
 
-**Do**
+## October content selection
 
-- Keep articles in a single column with `prose` and a readable measure.
-- Use gold only as an underline, rule, or fill with ink text.
-- Give every image `alt` text, and caption photos with a credit.
-- Reserve red for genuine alerts.
+The owner authorised adding the researched stories across all seven topics. Homepage lead order:
+Parliament dissolution, the 1261 film festival, then Chevening. The 3 October
+Daily Signal links to the sourced summaries. “October in Grenada” selects
+SoundLeap, conservation and film; its first two stories appear on the homepage.
+Legacy weather collection URLs remain available. No human byline is invented:
+source credits identify original reporting, while editorial-preview notices
+state that Signal human review is pending. Keep noindex until publication review.
 
-**Don't**
+Homepage topic cards exclude the five feature/latest selections and the two collection cards. Each topic has a distinct lead; further stories use compact headlines. October previews cover all seven topics, with explicitly dated scam-awareness coverage rather than manufactured rumours.
 
-- Use gold or muted grey as text on a tint, or green text on gold.
-- Add shadows, gradients, or card chrome to stories.
-- Mix in `gm-*` or `gaa-*` tokens or logos.
-- Use serif for buttons, inputs, or navigation.
-- Autoplay audio or video.
+Desktop review includes 1280px and 1440px. Caribbean & World spans the topic grid with up to three story columns, avoiding an orphaned final column; topic photography uses the shorter 2:1 crop.
 
-## Accessibility & interaction
+The owner rejected expandable editorial-context panels on discovery cards. Keep cards focused on image, headline, summary; keep source/date metadata and further context inside the article. Regional coverage grows within the existing topic section. Illustrative book/camera archive photos also illustrate grants and the creative-workshop recap.
 
-Target WCAG 2.2 AA:
+Owner refinement: omit story source/date lines from discovery cards and Latest. Keep photo credits as 12px (`text-xs`) captions with relaxed line-height and linked attribution; full story provenance remains on article pages.
 
-- Underline links in body copy. The global `a { text-decoration: none }` means prose links rely on `prose-a` styling, so keep them green **and** distinguishable by more than colour.
-- The subscribe form needs a visible (or `sr-only`) label, `type="email"`, `autocomplete="email"`, and inline errors.
-- Tap targets must be at least 44px.
+The Latest stays text-only per the owner’s final clarification. Keep photography on the lead and other discovery sections.
 
-The layout renders `SkipLink`. Known gap: `--input` is `--signal-rule` (below 3:1), so label inputs visibly.
+Remove the header editorial-preview banner per owner request; article-level review notices and noindex remain. More from Signal includes Daily Signal, Parish Pulse, Check D Ting and Opportunities.
 
-## Agent prompt guide
-
-Quick reference: ink on white · green `signal-green` for identity and links · gold
-`signal-gold` underline only · Source Serif headlines + Inter body · flat, with rules
-not shadows · `max-w-2xl` column.
-
-1. "Add a 'Weather watch' section per `docs/design/signal.md`: `SectionBlock` with an ink rule, three `StoryListItem`s, and an eyebrow with a gold underline."
-2. "Design an alert banner for a hurricane watch: `bg-signal-alert` with white text, a plain-language headline, and a link to GMS guidance. It's the only red on the page."
-3. "Build a podcast episode block: serif title, meta row, native audio controls, and a transcript link. No autoplay."
+The closing archive invitation is a full Keep reading section: an introduction and archive link alongside three pathways to past editions, guides and topics. It uses the existing secondary background and gold rule.

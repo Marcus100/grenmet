@@ -202,6 +202,9 @@ apps/web/mbia/.source/
 # and must remain tracked; do not add blanket data/, *.json or *.csv ignores.
 /temp-files/
 
+# Local Signal design comparisons; selected designs live in app source.
+/design-previews/signal/
+
 .teaching/
 
 # Collected weather products and local indexes
