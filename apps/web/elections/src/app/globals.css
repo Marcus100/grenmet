@@ -32,6 +32,16 @@
     --el-land: #d5d9dd;
     --el-focus: #2b59c3;
 
+    /* Grenada's flag, used only as the three-colour stripe (FlagStripe),
+       never one hue alone: green and gold alone would read as NNP and NDC. */
+    --el-flag-red: #ce1126;
+    --el-flag-gold: #fcd116;
+    --el-flag-green: #007a5e;
+    /* Pale panel grounds; a tinted panel always carries the full stripe. */
+    --el-flag-red-tint: #fcebed;
+    --el-flag-gold-tint: #fff7d6;
+    --el-flag-green-tint: #e3f2ee;
+
     /* Parties: fill only. Text uses the -ink step; -tint is the low end of
        margin ramps. Ordered NDC, NNP, historical, GULP so red and green are
        never neighbours. */
@@ -44,6 +54,9 @@
     --el-gulp: #e0623e;
     --el-gulp-ink: #a8401f;
     --el-gulp-tint: #f7d5c9;
+    --el-dpm: #f47321;
+    --el-dpm-ink: #9a4700;
+    --el-dpm-tint: #fde3cc;
     --el-hist: #4a6fd0;
     --el-hist-ink: #3556b0;
     --el-hist-tint: #d6def5;
@@ -107,6 +120,9 @@
     --el-gulp: #e4704c;
     --el-gulp-ink: #f29b7b;
     --el-gulp-tint: #3b2119;
+    --el-dpm: #f58a3d;
+    --el-dpm-ink: #f9a868;
+    --el-dpm-tint: #3d2512;
     --el-hist: #6f8fe6;
     --el-hist-ink: #a3b8f3;
     --el-hist-tint: #1d2640;
@@ -143,6 +159,12 @@
   --color-el-sea: var(--el-sea);
   --color-el-land: var(--el-land);
   --color-el-focus: var(--el-focus);
+  --color-el-flag-red: var(--el-flag-red);
+  --color-el-flag-gold: var(--el-flag-gold);
+  --color-el-flag-green: var(--el-flag-green);
+  --color-el-flag-red-tint: var(--el-flag-red-tint);
+  --color-el-flag-gold-tint: var(--el-flag-gold-tint);
+  --color-el-flag-green-tint: var(--el-flag-green-tint);
   --color-el-ndc: var(--el-ndc);
   --color-el-ndc-ink: var(--el-ndc-ink);
   --color-el-ndc-tint: var(--el-ndc-tint);
@@ -152,6 +174,9 @@
   --color-el-gulp: var(--el-gulp);
   --color-el-gulp-ink: var(--el-gulp-ink);
   --color-el-gulp-tint: var(--el-gulp-tint);
+  --color-el-dpm: var(--el-dpm);
+  --color-el-dpm-ink: var(--el-dpm-ink);
+  --color-el-dpm-tint: var(--el-dpm-tint);
   --color-el-hist: var(--el-hist);
   --color-el-hist-ink: var(--el-hist-ink);
   --color-el-hist-tint: var(--el-hist-tint);

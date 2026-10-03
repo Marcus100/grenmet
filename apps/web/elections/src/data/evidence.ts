@@ -105,6 +105,8 @@ export type EvidenceId = keyof typeof EVIDENCE;
 const WWW_PREFIX = /^www\./;
 export function sourceKind([label, url]: SourceRef): EvidenceKind {
   if (!url) return "supplied";
+  // Our own copy of an official document, served from this site.
+  if (url.startsWith("/documents/official/")) return "official";
   const host = new URL(url).hostname.replace(WWW_PREFIX, "");
   if (
     [

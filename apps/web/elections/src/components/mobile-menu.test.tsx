@@ -44,6 +44,20 @@ describe("MobileMenu", () => {
     );
   });
 
+  it("sets section pages a level below the main rows", () => {
+    render(<MobileMenu />);
+    fireEvent.click(screen.getByRole("button", { name: "Open menu" }));
+    expect(screen.getByRole("link", { name: "Election 2026" })).toHaveClass(
+      "font-serif"
+    );
+    expect(screen.getByRole("heading", { name: "Learn" })).toHaveClass(
+      "font-serif"
+    );
+    const sub = screen.getByRole("link", { name: "Trends" });
+    expect(sub).not.toHaveClass("font-serif");
+    expect(sub).toHaveClass("ml-4", "border-l-2");
+  });
+
   it("closes on Escape and returns focus to the menu button", () => {
     render(<MobileMenu />);
     const button = screen.getByRole("button", { name: "Open menu" });

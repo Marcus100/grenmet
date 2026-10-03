@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-02",
+  "updated": "2026-10-03",
   "sources": {
     "conch": [
       "NOW Grenada, 26 Sep 2026",
@@ -101,6 +101,26 @@
     "dissolution": [
       "Proclamation by the Governor-General and media release from the Clerk of Parliament, 2 Oct 2026 (copies supplied to us; no public link yet)",
       ""
+    ],
+    "gazette47": [
+      "Government Gazette (Extraordinary) No. 47, 2 Oct 2026: Notice of Issuance of Writs",
+      "/documents/official/gazette-2026-no-47-notice-of-writs.pdf"
+    ],
+    "peo3oct": [
+      "NOW Grenada, 3 Oct 2026: “The Writ of Election is issued” (Parliamentary Elections Office release)",
+      "https://nowgrenada.com/2026/10/the-writ-of-election-is-issued/"
+    ],
+    "cmc2oct": [
+      "NOW Grenada (CMC), 2 Oct 2026: “Dr Keith Mitchell bows out emotionally”",
+      "https://nowgrenada.com/2026/10/dr-keith-mitchell-bows-out-emotionally-i-was-not-voted-out/"
+    ],
+    "peoresults": [
+      "Official results, general elections 1984–2022 (Parliamentary Elections Office returns, as recorded in our archive)",
+      "https://www.peogrenada.org/"
+    ],
+    "rgpf1oct": [
+      "NOW Grenada, 1 Oct 2026: “Traffic arrangements: National Democratic Congress (NDC) Rally” (Royal Grenada Police Force notice)",
+      "https://nowgrenada.com/2026/10/traffic-arrangements-national-democratic-congress-ndc-rally"
     ]
   },
   "events": [
@@ -195,9 +215,16 @@
       "flag": null
     },
     {
-      "date": "2026-10-04",
-      "text": "The Prime Minister is due to announce the election date at an event in St. Mark.",
-      "src": "conch",
+      "date": "2026-10-15",
+      "text": "Nomination day: returning officers receive nominations from 9:00 a.m. to 12 noon.",
+      "src": "gazette47",
+      "flag": null,
+      "future": true
+    },
+    {
+      "date": "2026-11-05",
+      "text": "Polling day.",
+      "src": "gazette47",
       "flag": null,
       "future": true
     },
@@ -429,5 +456,8 @@
       "P": "Named in a linked 30 September report that we have not yet been able to independently check.",
       "B": "Named in a linked 30 September report that we have not yet been able to independently check."
     }
-  }
+  },
+  "writs": "2026-10-02",
+  "nomination_day": "2026-10-15",
+  "polling_day": "2026-11-05"
 }

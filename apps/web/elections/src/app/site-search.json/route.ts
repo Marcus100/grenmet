@@ -1,4 +1,5 @@
 import { findPerson, personHref } from "@/data/candidates";
+import { COVERAGE } from "@/data/coverage";
 import { eventSlug } from "@/data/events";
 import { GUIDES } from "@/data/learning";
 import { campaign, data, people, results } from "@/data/load";
@@ -15,6 +16,13 @@ import type { ConstituencyCode } from "@/data/types";
 export const dynamic = "force-static";
 export function GET() {
   const index: SiteSearchEntry[] = [
+    ...COVERAGE.map((post) => ({
+      href: `/updates/${post.slug}`,
+      title: post.title,
+      kind: "News" as const,
+      summary: post.dek,
+      keywords: ["update", "news", post.at.slice(0, 10)],
+    })),
     ...GUIDES.map((guide) => ({
       href: `/learn/${guide.slug}`,
       title: guide.title,
