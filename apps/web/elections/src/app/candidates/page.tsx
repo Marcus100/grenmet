@@ -59,6 +59,7 @@ export default function CandidatesPage() {
       <PageHead
         deck={`${fmt(races)} candidacies at 17 general elections, by about ${fmt(everyone.length)} people, and the candidates named so far for 2026.`}
         eyebrow="Candidates · 1951 to 2026"
+        learning="people"
         title="Everyone who has stood for the House"
       />
 

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { PageLearning } from "@/components/learn/page-learning";
+import type { PageLearningTopic } from "@/data/page-learning";
 
 /** A page section under a 2px ink rule, with an optional "see all" link. */
 export function Section({
@@ -20,7 +22,10 @@ export function Section({
       className="mx-auto max-w-[1240px] px-4 pt-12 sm:px-6"
     >
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-el-ink border-t-2 pt-3">
-        <h2 className="font-bold text-2xl sm:text-[26px]" id={`${id}-title`}>
+        <h2
+          className="scroll-mt-20 font-bold text-2xl sm:text-[26px]"
+          id={`${id}-title`}
+        >
           {title}
         </h2>
         {more && (
@@ -46,7 +51,9 @@ export function PageHead({
   title,
   deck,
   children,
+  learning,
 }: {
+  learning?: PageLearningTopic;
   eyebrow: string;
   title: string;
   deck?: React.ReactNode;
@@ -66,6 +73,7 @@ export function PageHead({
         </p>
       )}
       {children}
+      {learning && <PageLearning topic={learning} />}
     </header>
   );
 }

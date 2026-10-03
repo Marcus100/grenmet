@@ -68,6 +68,7 @@ export default async function PartyPage({ params }: Props) {
       <PageHead
         deck={`Contested ${years.length} general election${years.length === 1 ? "" : "s"}, ${years[0]?.year === years.at(-1)?.year ? years[0]?.year : `${years[0]?.year}–${years.at(-1)?.year}`}, winning ${seats} seat${seats === 1 ? "" : "s"} in all.`}
         eyebrow={`Party · ${code}`}
+        learning="parties"
         title={info.name}
       >
         <p className="mt-3 text-sm">

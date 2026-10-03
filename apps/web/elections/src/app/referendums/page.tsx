@@ -161,6 +161,7 @@ export default function ReferendumsPage() {
       <PageHead
         deck="Some parts of Grenada’s Constitution can only be changed by a two-thirds majority at a referendum. In 2016 voters were asked about seven bills at once, and in 2018 about the Caribbean Court of Justice. Every bill was rejected."
         eyebrow="Referendums · 2016 and 2018"
+        learning="referendum"
         title="Two votes to change the Constitution, two clear Nos"
       />
 

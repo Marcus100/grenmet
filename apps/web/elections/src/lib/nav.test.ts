@@ -2,15 +2,13 @@ import { describe, expect, it } from "vitest";
 import { currentGroup, isCurrent, isGroup, NAV } from "@/lib/nav";
 
 describe("nav", () => {
-  it("uses task words, with the election first and the rest under More", () => {
+  it("organises the site around learning, evidence and local context", () => {
     expect(NAV.map((item) => item.label)).toEqual([
       "Election 2026",
-      "Candidates",
-      "Forecast",
-      "Make your map",
-      "Results",
-      "Constituencies",
-      "More",
+      "Learn",
+      "Results & history",
+      "Your constituency",
+      "People & parties",
     ]);
     expect(NAV[0]).toEqual({ href: "/2026", label: "Election 2026" });
   });
@@ -21,9 +19,9 @@ describe("nav", () => {
     expect(isCurrent("/constituencies", "/constituencies/st-mark")).toBe(true);
   });
 
-  it("knows which pages sit under More", () => {
-    expect(currentGroup("/trends")).toBe("More");
-    expect(currentGroup("/constituencies")).toBeUndefined();
+  it("knows the learning and constituency groups", () => {
+    expect(currentGroup("/trends")).toBe("Learn");
+    expect(currentGroup("/constituencies")).toBe("Your constituency");
   });
 
   it("has no duplicate links", () => {

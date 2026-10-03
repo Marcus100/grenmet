@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const name = results.cons[code][0];
   return {
     title: name,
-    description: `${name}: who holds the seat, who is standing in 2026, and every result since 1972 down to the polling division.`,
+    description: `${name}: who held the seat at dissolution, who is standing in 2026, and every result since 1972 down to the polling division.`,
     alternates: { canonical: constituencyHref(results, code) },
   };
 }
@@ -65,8 +65,9 @@ export default async function ConstituencyPage({ params }: Props) {
   return (
     <>
       <PageHead
-        deck={`Held by ${seat.sitting.name} (${partyInfo(seat.sitting.party).name})${seat.sitting.was ? `, elected for the ${seat.sitting.was} in 2022` : ""}. ${seat.winner2022.party} won it by ${(seat.margin2022 * 100).toFixed(1)} points in 2022.`}
+        deck={`Held at the October 2026 dissolution by ${seat.sitting.name} (${partyInfo(seat.sitting.party).name})${seat.sitting.was ? `, elected for the ${seat.sitting.was} in 2022` : ""}. ${seat.winner2022.party} won it by ${(seat.margin2022 * 100).toFixed(1)} points in 2022.`}
         eyebrow={`Constituency ${code}${seat.lean == null ? "" : ` · leans ${leanLabel(seat.lean)}`}`}
+        learning="constituency"
         title={seat.name}
       >
         <p className="mt-4 text-sm">
@@ -96,7 +97,7 @@ export default async function ConstituencyPage({ params }: Props) {
                 </p>
                 {!named && party === "NDC" && seat.sitting.party === "NDC" && (
                   <p className="text-el-muted text-xs">
-                    Sitting member; not confirmed
+                    Member at dissolution; not confirmed
                   </p>
                 )}
               </li>

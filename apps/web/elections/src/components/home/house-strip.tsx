@@ -1,11 +1,13 @@
+import Link from "next/link";
 import { PartyDot, SeatSquare } from "@/components/party-chip";
 import { currentHouse, type SeatOutlook } from "@/data/election-2026";
 import { MAJORITY, SEATS } from "@/data/model";
 import { partyInfo } from "@/data/parties";
 
 /**
- * The House as it stands: 15 squares grouped by the party that holds each
- * seat now, with a tick after the eighth for a majority.
+ * The House as it stood at dissolution: 15 squares grouped by the party that
+ * held each seat, with a tick after the eighth for a majority. Each square
+ * links to its constituency, and a key names every letter.
  */
 export function HouseStrip({ seats }: { seats: SeatOutlook[] }) {
   const house = currentHouse(seats);
@@ -20,17 +22,22 @@ export function HouseStrip({ seats }: { seats: SeatOutlook[] }) {
   return (
     <figure className="m-0">
       <figcaption className="mb-1.5 flex items-baseline justify-between gap-3 font-semibold text-[11px] text-el-muted uppercase tracking-[0.07em]">
-        <span>The House now · {SEATS} seats</span>
+        <span>The House at dissolution · {SEATS} seats</span>
         <span className="whitespace-nowrap">{MAJORITY} for a majority</span>
       </figcaption>
       <div className="relative grid grid-cols-15 gap-[3px]">
         {sorted.map((seat) => (
-          <SeatSquare
-            code={seat.code}
+          <Link
+            className="rounded-[2px] focus-visible:outline-2 focus-visible:outline-el-focus focus-visible:outline-offset-1"
+            href={seat.href}
             key={seat.code}
-            label={`${seat.name}: ${seat.sitting.name}, ${partyInfo(seat.sitting.party).name}`}
-            party={seat.sitting.party}
-          />
+          >
+            <SeatSquare
+              code={seat.code}
+              label={`${seat.name}: ${seat.sitting.name}, ${partyInfo(seat.sitting.party).name}`}
+              party={seat.sitting.party}
+            />
+          </Link>
         ))}
         <span
           aria-hidden="true"
@@ -47,6 +54,33 @@ export function HouseStrip({ seats }: { seats: SeatOutlook[] }) {
           </span>
         ))}
       </p>
+      <details className="mt-2 text-[13px]">
+        <summary className="cursor-pointer font-semibold text-el-ink-2 hover:text-el-ink">
+          Which constituency is each letter?
+        </summary>
+        <ul className="mt-2 space-y-2">
+          {order.map(([party]) => (
+            <li key={party}>
+              <PartyDot party={party} />
+              <b className="font-semibold">{partyInfo(party).name}</b>
+              <ul className="mt-1 grid gap-x-4 gap-y-0.5 pl-4 sm:grid-cols-2">
+                {sorted
+                  .filter((seat) => seat.sitting.party === party)
+                  .map((seat) => (
+                    <li key={seat.code}>
+                      <span className="inline-block w-5 font-bold tabular-nums">
+                        {seat.code}
+                      </span>
+                      <Link className="hover:underline" href={seat.href}>
+                        {seat.name}
+                      </Link>
+                    </li>
+                  ))}
+              </ul>
+            </li>
+          ))}
+        </ul>
+      </details>
     </figure>
   );
 }

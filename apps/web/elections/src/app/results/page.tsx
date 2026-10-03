@@ -11,7 +11,11 @@ export const metadata: Metadata = {
 export default function ResultsPage() {
   return (
     <>
-      <PageHead eyebrow="Results · 1951 to 2022" title="The results atlas" />
+      <PageHead
+        eyebrow="Results · 1951 to 2022"
+        learning="results"
+        title="The results atlas"
+      />
       <div className="mx-auto w-full px-4 pt-6 sm:px-6">
         <Atlas />
       </div>

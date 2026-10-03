@@ -23,22 +23,38 @@ export function isGroup(item: NavItem): item is NavGroup {
  */
 export const NAV: NavItem[] = [
   { href: "/2026", label: "Election 2026" },
-  { href: "/candidates", label: "Candidates" },
-  { href: "/forecast", label: "Forecast" },
-  { href: "/make-your-map", label: "Make your map" },
-  { href: "/results", label: "Results" },
-  { href: "/constituencies", label: "Constituencies" },
   {
-    label: "More",
+    label: "Learn",
     links: [
-      { href: "/since-2022", label: "Since the 2022 election" },
-      { href: "/elections", label: "Every election" },
-      { href: "/referendums", label: "Referendums" },
-      { href: "/parties", label: "Parties" },
+      { href: "/learn", label: "Learning guides" },
       { href: "/trends", label: "Trends" },
       { href: "/how-close", label: "How close was it?" },
-      { href: "/register", label: "Voter register" },
+      { href: "/forecast", label: "Forecast" },
+      { href: "/make-your-map", label: "Make your map" },
+    ],
+  },
+  {
+    label: "Results & history",
+    links: [
+      { href: "/results", label: "Results" },
+      { href: "/elections", label: "Every election" },
+      { href: "/referendums", label: "Referendums" },
+      { href: "/since-2022", label: "Since the 2022 election" },
       { href: "/sources", label: "Sources" },
+    ],
+  },
+  {
+    label: "Your constituency",
+    links: [
+      { href: "/constituencies", label: "Constituencies" },
+      { href: "/register", label: "Voter register" },
+    ],
+  },
+  {
+    label: "People & parties",
+    links: [
+      { href: "/candidates", label: "Candidates" },
+      { href: "/parties", label: "Parties" },
     ],
   },
 ];

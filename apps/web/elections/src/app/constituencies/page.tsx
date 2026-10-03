@@ -9,7 +9,7 @@ import { campaign, geo, results } from "@/data/load";
 export const metadata: Metadata = {
   title: "Constituencies",
   description:
-    "Grenada’s 15 constituencies: who holds each one, how it voted in 2022, how it leans and who is standing in 2026.",
+    "Grenada’s 15 constituencies: who held each one at dissolution, how it voted in 2022, how it leans and who is standing in 2026.",
 };
 
 export default function ConstituenciesPage() {
@@ -17,13 +17,14 @@ export default function ConstituenciesPage() {
   return (
     <>
       <PageHead
-        deck="Who holds each of Grenada’s 15 constituencies, how it voted in 2022, how it leans, and who is standing in 2026."
+        deck="Who held each of Grenada’s 15 constituencies when Parliament was dissolved, how it voted in 2022, how it leans, and who is standing in 2026."
         eyebrow="House of Representatives · 15 seats"
+        learning="constituency"
         title="The 15 constituencies"
       >
         <ConstituencySearch className="mt-5 max-w-xl" size="large" />
       </PageHead>
-      <Section id="map" title="Who holds each seat">
+      <Section id="map" title="Who held each seat at dissolution">
         <HouseMap className="max-w-2xl" geo={geo} seats={seats} />
       </Section>
       <Section

@@ -21,7 +21,7 @@ export function DesktopNav() {
   const pathname = usePathname();
 
   return (
-    <NavigationMenu aria-label="Main" className="hidden lg:flex">
+    <NavigationMenu aria-label="Main" className="hidden xl:flex">
       <NavigationMenuList>
         {NAV.map((item) => {
           if (!isGroup(item)) {

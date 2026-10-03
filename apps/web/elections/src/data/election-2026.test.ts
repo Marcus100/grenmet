@@ -31,6 +31,22 @@ describe("grenadaDate", () => {
   });
 });
 
+describe("calendarFrom", () => {
+  it("records the dissolution and the three-month deadline", () => {
+    expect(calendar.dissolved).toBe("2026-10-02");
+    expect(calendar.deadline).toBe("2027-01-02");
+    expect(
+      campaign.events.some(
+        (e) => e.date === "2026-10-02" && e.src === "dissolution"
+      )
+    ).toBe(true);
+    expect(campaign.sources.dissolution).toBeDefined();
+    const deadline = campaign.events.find((e) => e.date === calendar.deadline);
+    expect(deadline?.src).toBe("constitution");
+    expect(deadline?.flag).toBeNull();
+  });
+});
+
 describe("electionPhase", () => {
   it("waits for a date until polling day is set", () => {
     expect(electionPhase(calendar, new Date("2026-10-02T12:00:00Z"))).toBe(

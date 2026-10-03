@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SeatBar } from "@/components/results/seat-bar";
 import { PageHead, Section } from "@/components/section";
+import { KeyFacts, ReadingNote } from "@/components/trends/reading-note";
 import {
   eventNational,
   eventResult,
@@ -20,12 +21,22 @@ import {
   seatTwoParty,
 } from "@/data/model";
 import { partyColor, partyFillIsDark } from "@/data/parties";
+import {
+  closestResult,
+  marginsExample,
+  nearestEven,
+  officialTurnoutLow,
+  partyChanges,
+  sweeps,
+  turnoutRange,
+  voteSeatMismatches,
+} from "@/data/trends";
 import { fmt, pct } from "@/lib/format";
 
 export const metadata: Metadata = {
   title: "Trends",
   description:
-    "Seventy years of Grenada’s votes: party share, seats and turnout since 1951, how competitive each election was, and how each constituency has voted since 1972.",
+    "Understand Grenada’s elections: why votes and seats differ, what turnout measures, how winning margins work, and what constituency history can tell us. Seven questions, with charts and worked examples.",
 };
 
 const LABEL =
@@ -294,6 +305,104 @@ export default function TrendsPage() {
     }
     return { code, k };
   }).sort((a, b) => b.k - a.k);
+  const n22 = eventNational(data, "2022");
+  const share22 = (party: string) => (n22.votes[party] ?? 0) / n22.total;
+  const sweepList = sweeps(data);
+  const lastSweep = sweepList.at(-1);
+  const turnout = turnoutRange(data);
+  const lowOfficial = officialTurnoutLow(data);
+  const mismatches = voteSeatMismatches(data);
+  const marginScale = Math.max(
+    1,
+    ...Object.values(features).map((f) => f.medianMargin)
+  );
+  const closestEver = closestResult(data);
+  const example = marginsExample(data, "2022");
+  const points = (v: number) => (v * 100).toFixed(1);
+  const even = nearestEven(results, "2022");
+  const changes = partyChanges(data);
+  const mostChanged = changes[0];
+  const leastChanged = changes.filter(
+    (c) => c.changes === changes.at(-1)?.changes
+  );
+  const names = (codes: { code: (typeof CODES)[number] }[]) =>
+    codes.map((c) => constituencyName(results, c.code)).join(", ");
+
+  const facts = [
+    {
+      figure: pct(share22("NDC")),
+      text: (
+        <>
+          of valid votes went to the NDC in 2022, which won {n22.seats.NDC} of
+          the 15 seats. The NNP took {pct(share22("NNP"))} and {n22.seats.NNP}{" "}
+          seats.
+        </>
+      ),
+    },
+    ...(lastSweep
+      ? [
+          {
+            figure: `${lastSweep.seats} of ${lastSweep.seats}`,
+            text: (
+              <>
+                seats went to the {lastSweep.party} in {lastSweep.year}, on{" "}
+                {pct(lastSweep.voteShare)} of the vote. One party has won every
+                seat {sweepList.length} times (
+                {sweepList.map((w) => w.year).join(", ")}): the candidate with
+                the most votes in each constituency wins, so seats can be far
+                more lopsided than votes.
+              </>
+            ),
+          },
+        ]
+      : []),
+    {
+      figure: pct(turnout.high.turnout),
+      text: (
+        <>
+          of registered voters voted in {turnout.high.year}, the highest turnout
+          on record. In 2022 it was {pct(n22.turnout)}.
+        </>
+      ),
+    },
+    {
+      figure: `${fmt(closestEver.majority)} vote${closestEver.majority === 1 ? "" : "s"}`,
+      text: (
+        <>
+          separated the top two in {constituencyName(results, closestEver.code)}{" "}
+          in {closestEver.year}, the closest officially recorded result.
+        </>
+      ),
+    },
+    {
+      figure: `${points(example.median)} points`,
+      text: (
+        <>
+          was the typical winning margin in 2022: line up all 15 constituency
+          margins from closest to widest, and this is the one in the middle.
+        </>
+      ),
+    },
+    ...(mostChanged
+      ? [
+          {
+            figure: `${mostChanged.changes} times`,
+            text: (
+              <>
+                {constituencyName(results, mostChanged.code)} has switched to a
+                different party since 1972, more than any other constituency.{" "}
+                {names(leastChanged)} switched only{" "}
+                {leastChanged[0]?.changes === 1
+                  ? "once"
+                  : `${leastChanged[0]?.changes} times`}
+                .
+              </>
+            ),
+          },
+        ]
+      : []),
+  ];
+
   const recordRow = (a: (typeof contests)[number], value: string) => (
     <li className="flex gap-3 py-2" key={`${a.e.id}${a.code}`}>
       <span className="min-w-0 flex-1">
@@ -321,12 +430,53 @@ export default function TrendsPage() {
   return (
     <>
       <PageHead
-        deck="How party support, seats and turnout have moved since universal suffrage in 1951, and how each of today’s 15 constituencies has voted since 1972. Hover any chart for the figures."
-        eyebrow="Trends · 1951 to 2022"
-        title="Seventy years of Grenada’s votes"
-      />
+        deck="Winning more votes, winning more seats and getting more people to vote are different things. Follow seven questions through Grenada’s election history to see how they fit together."
+        eyebrow="The numbers, explained · 1951 to 2022"
+        learning="statistics"
+        title="How to read an election"
+      >
+        <nav
+          aria-label="Explore the election explainer"
+          className="mt-6 border-el-rule border-y py-4"
+        >
+          <p className={LABEL}>Start with a question</p>
+          <ol className="mt-3 grid list-inside list-decimal gap-3 text-sm sm:grid-cols-2">
+            {[
+              ["share", "Who won voters’ support?"],
+              ["seats", "Why don’t votes and seats match?"],
+              ["turnout", "What does turnout actually tell us?"],
+              ["competitive", "What makes an election close?"],
+              ["grid", "Which constituencies change sides?"],
+              ["lean", "How do we compare NDC and NNP support?"],
+              ["records", "Can past results predict the next winner?"],
+            ].map(([id, question]) => (
+              <li key={id}>
+                <a
+                  className="underline decoration-el-rule-2 underline-offset-4"
+                  href={`#${id}-title`}
+                >
+                  {question}
+                </a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+        <p className="mt-4 max-w-prose text-el-muted text-sm">
+          The charts describe recorded results through 2022, not a forecast for
+          2026. Figures come from our{" "}
+          <Link className="underline underline-offset-4" href="/sources">
+            sourced election archive
+          </Link>
+          ; gaps and differences in the records are explained alongside each
+          chart.
+        </p>
+      </PageHead>
 
-      <Section id="share" title="Share of the popular vote">
+      <Section
+        id="share"
+        intro="Vote share measures support across the country. It gives each valid vote equal weight, regardless of whether that vote helped elect a constituency’s winner. Start here to see how party support has changed."
+        title="1. Who won voters’ support?"
+      >
         <ShareChart />
         <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
           {SERIES.map((s) => (
@@ -339,54 +489,173 @@ export default function TrendsPage() {
             </span>
           ))}
         </p>
-        <p className="mt-2 max-w-[70ch] text-el-muted text-xs">
-          The hatched band marks 1979–83, when there were no elections. Hollow
-          points are from secondary sources, not an official record (1951–1967
-          and 1976).
-        </p>
+        <ReadingNote
+          caveats={[
+            "A line joins election results, not opinion polls. It does not measure support between elections. GNP, PA and TNP are grouped for this display; they are not a single continuous party.",
+          ]}
+          example={
+            <>
+              In 2022, the NDC received {fmt(n22.votes.NDC ?? 0)} of{" "}
+              {fmt(n22.total)} valid votes. Divide the first number by the
+              second: that is {pct(share22("NDC"))}, or about{" "}
+              {Math.round(share22("NDC") * 100)} in every 100 valid votes.
+            </>
+          }
+          findings={[
+            `In 2022 the NDC led the NNP by ${points(share22("NDC") - share22("NNP"))} percentage points nationally. That tells us about votes; the next chart explains seats.`,
+          ]}
+          read="Each line follows one party from one election to the next. The higher the line, the more of the vote that party won. Where two lines cross, the lead changed hands. The hatched band is 1979–83, when there were no elections. Solid dots come from official records; hollow dots (1951–1967 and 1976) come from secondary sources and are less certain."
+          terms={[
+            {
+              term: "Share of the vote",
+              meaning:
+                "a party’s votes divided by all valid votes, shown as a percentage. 40% means 40 of every 100 valid votes.",
+            },
+            {
+              term: "Valid votes",
+              meaning:
+                "ballots counted for a candidate. Spoiled or rejected ballots are left out.",
+            },
+            {
+              term: "Secondary source",
+              meaning:
+                "a figure reported by someone other than the official record, such as a newspaper or Wikipedia.",
+            },
+          ]}
+        />
       </Section>
 
       <Section
         id="seats"
-        intro="One square per seat. The House had 8 seats until 1957, 10 until 1967 and 15 since 1972."
-        title="Seats won"
+        intro="Seats are won one constituency at a time. A party’s national vote share is not converted into the same share of seats: where its supporters live, and how narrowly or comfortably it wins, matter."
+        title="2. Why don’t votes and seats match?"
       >
-        <ol className="space-y-1.5">
-          {[...GENERAL].reverse().map((e) => (
-            <li className="flex items-center gap-3 text-sm" key={e.id}>
+        <ol
+          className="grid items-end gap-x-[3px] gap-y-1 sm:gap-x-2"
+          style={{
+            gridTemplateColumns: `repeat(${GENERAL.length}, minmax(0, 1fr))`,
+          }}
+        >
+          {GENERAL.map((e) => (
+            <li className="flex flex-col items-center gap-1.5" key={e.id}>
+              <SeatBar seats={eventNational(data, e.id).seats} vertical />
               <Link
-                className="w-12 shrink-0 font-semibold tabular-nums hover:underline"
+                aria-label={`Election ${e.year}`}
+                className="font-semibold text-[11px] tabular-nums hover:underline sm:text-xs"
                 href={`/elections/${eventSlug(e.id)}`}
               >
-                {e.year}
+                <span className="sm:hidden">’{String(e.year).slice(2)}</span>
+                <span className="hidden sm:inline">{e.year}</span>
+                {!isOfficial(e.id) && (
+                  <sup title="Seats from a secondary source">†</sup>
+                )}
               </Link>
-              <SeatBar seats={eventNational(data, e.id).seats} />
-              {!isOfficial(e.id) && (
-                <span className="text-el-muted text-xs">secondary source</span>
-              )}
             </li>
           ))}
         </ol>
+        <p className="mt-2 text-el-muted text-xs">
+          † From a secondary source, not the official record.
+        </p>
+        <ReadingNote
+          caveats={[
+            "An extra vote in a constituency already won by a large margin does not create another seat. National vote share alone cannot show how efficiently support was distributed.",
+          ]}
+          example={
+            <>
+              In 2022, {pct(share22("NDC"))} of valid votes gave the NDC{" "}
+              {n22.seats.NDC} of 15 seats ({pct((n22.seats.NDC ?? 0) / 15)} of
+              the House).{" "}
+              {lastSweep && (
+                <>
+                  In {lastSweep.year}, the {lastSweep.party} won all{" "}
+                  {lastSweep.seats} seats with {pct(lastSweep.voteShare)} of the
+                  vote. Winning every seat does not mean everyone voted for the
+                  winner.
+                </>
+              )}
+            </>
+          }
+          findings={[
+            `One party won every seat in ${sweepList.map((sweep) => sweep.year).join(", ")}. The seat chart shows these as one-colour columns; the vote chart shows support was still divided.`,
+            ...mismatches.map(
+              (m) =>
+                `${m.year}: ${m.mostVotes} won the most votes, but ${m.mostSeats} won the most seats.`
+            ),
+          ]}
+          read="Each column is one election, oldest on the left, in the same order as the charts. Each square is one seat, coloured by the party that won it, with the biggest party at the bottom. Taller columns mean a bigger House; count the squares of one colour to see how many seats that party won. The House had 8 seats until 1957, 10 until 1967 and 15 since 1972."
+          terms={[
+            {
+              term: "Seat",
+              meaning:
+                "one place in the House of Representatives. Each constituency elects one member.",
+            },
+            {
+              term: "First past the post",
+              meaning:
+                "Grenada’s voting system. In each constituency the candidate with the most votes wins, even with less than half. So a party can win far more of the seats than of the votes, as in the years one party won every seat.",
+            },
+            {
+              term: "Majority",
+              meaning:
+                "more than half the seats: 8 of 15 today. The party with a majority forms the government.",
+            },
+          ]}
+        />
       </Section>
 
       <Section
         id="turnout"
-        intro="Share of registered voters who voted. 2013–2022 use ballots cast (PEO reports); 1984–2008 use valid votes (the PEO table has no rejected ballots); 1972 and 1976 use valid votes over electors (Gazette); 1990 electors and votes cast are from The Grenada Newsletter; before 1972 the figures are from Wikipedia (secondary, hollow). Diamonds are referendums."
-        title="Turnout"
+        intro="Turnout asks a different question: how many registered voters took part? It is a share of the voters’ list, not a share of the whole population, and it cannot tell us why someone stayed home."
+        title="3. What does turnout actually tell us?"
       >
         <TurnoutChart />
+        <ReadingNote
+          caveats={[
+            "Turnout methods differ between years, so these figures are not an exact like-for-like comparison.",
+          ]}
+          example={
+            <>
+              Recorded turnout in 2022 was {pct(n22.turnout)}: roughly{" "}
+              {Math.round((n22.turnout ?? 0) * 100)} out of every 100 people on
+              the register voted. This does not mean the same share of all
+              residents voted; residents and registered voters are different
+              groups.
+            </>
+          }
+          findings={[
+            `The highest recorded turnout was ${pct(turnout.high.turnout)} in ${turnout.high.year}. The lowest in an official record was ${pct(lowOfficial.turnout)} in ${lowOfficial.year}.`,
+          ]}
+          read="The line shows each general election; the two diamonds are the 2016 and 2018 referendums. Higher means a bigger share of registered voters turned out. Hollow dots (1951–1967 and 1976) come from secondary sources."
+          terms={[
+            {
+              term: "Turnout",
+              meaning:
+                "votes cast divided by the number of people on the voters’ list. 70% means 70 of every 100 registered voters voted.",
+            },
+            {
+              term: "Register",
+              meaning:
+                "the official list of people entitled to vote. Turnout can look low when the list still includes people who have moved away or died.",
+            },
+            {
+              term: "Why the method varies",
+              meaning:
+                "2013–2022 use ballots cast (PEO reports); 1984–2008 use valid votes, because the PEO table has no rejected ballots; 1972 and 1976 use valid votes over electors (Gazette); 1990 electors and votes cast are from The Grenada Newsletter; before 1972 the figures are from Wikipedia.",
+            },
+          ]}
+        />
       </Section>
 
       <Section
         id="competitive"
-        intro="Derived from every constituency result under the current 15-seat map."
-        title="How competitive each election was"
+        intro="A close national vote can hide comfortable constituency wins. To see where the contest was tight, compare each winner with the runner-up. Then ask how many constituencies were close, how many switched party, and what a typical winning margin looked like."
+        title="4. What makes an election close?"
       >
         <div className="grid gap-8 lg:grid-cols-3">
           <div>
             <h3 className={LABEL}>Marginal, competitive and safe seats</h3>
             <p className="text-el-muted text-xs">
-              Winning margin under 5 points, 5–15, or over 15
+              Winning margin under 5 points, 5–under 15, or 15 and above
             </p>
             <ul className="mt-2 space-y-1 text-sm">
               {featureYears.map((y) => {
@@ -399,14 +668,14 @@ export default function TrendsPage() {
                       <span
                         style={{
                           flex: f.marginal,
-                          background: "var(--el-gulp)",
+                          background: "var(--el-seq-1)",
                         }}
                         title={`Marginal ${f.marginal}`}
                       />
                       <span
                         style={{
                           flex: f.competitive,
-                          background: "var(--el-ndc)",
+                          background: "var(--el-seq-0)",
                         }}
                         title={`Competitive ${f.competitive}`}
                       />
@@ -429,14 +698,14 @@ export default function TrendsPage() {
               <span>
                 <i
                   className="mr-1 inline-block size-2.5"
-                  style={{ background: "var(--el-gulp)" }}
+                  style={{ background: "var(--el-seq-1)" }}
                 />
                 Marginal
               </span>
               <span>
                 <i
                   className="mr-1 inline-block size-2.5"
-                  style={{ background: "var(--el-ndc)" }}
+                  style={{ background: "var(--el-seq-0)" }}
                 />
                 Competitive
               </span>
@@ -485,7 +754,7 @@ export default function TrendsPage() {
                     <span
                       className="block h-full bg-el-seq-1"
                       style={{
-                        width: `${((features[y]?.medianMargin ?? 0) / 30) * 100}%`,
+                        width: `${((features[y]?.medianMargin ?? 0) / marginScale) * 100}%`,
                       }}
                     />
                   </span>
@@ -497,12 +766,60 @@ export default function TrendsPage() {
             </ul>
           </div>
         </div>
+        <ReadingNote
+          caveats={[
+            "Marginal, competitive and safe are descriptive bands for past results, not guarantees about the next election. A national swing need not happen equally in every constituency.",
+          ]}
+          example="Illustration: a winner with 52% and a runner-up with 44% has an 8-point margin. If 4 percentage points of votes moved directly from the winner to the runner-up, both would have 48%. A margin and the swing needed to erase it are not the same number."
+          findings={[
+            `In 2022, the middle of the 15 winning margins was ${points(example.median)} points. Half the margins lay on either side of that middle result.`,
+          ]}
+          read={
+            <>
+              Each row is one election. On the left, the bar splits the 15
+              constituencies into close, fairly close and comfortable wins. In
+              the middle, a longer bar means more constituencies switched party
+              from the election before. On the right, a longer bar means the
+              typical winner won more easily. For example, in 2022 the 15
+              margins ran from {points(example.margins[0] ?? 0)} to{" "}
+              {points(example.margins.at(-1) ?? 0)} points; the eighth, in the
+              middle, was {points(example.median)}.
+            </>
+          }
+          terms={[
+            {
+              term: "Winning margin",
+              meaning:
+                "the winner’s share of the vote minus the runner-up’s, in percentage points. A winner on 52% against 44% has a margin of 8 points.",
+            },
+            {
+              term: "Percentage points",
+              meaning:
+                "the plain difference between two percentages. Going from 40% to 45% is a rise of 5 points.",
+            },
+            {
+              term: "Marginal, competitive, safe",
+              meaning:
+                "a margin under 5 points, from 5 to under 15, or 15 and above. Marginal seats are the ones most likely to change hands.",
+            },
+            {
+              term: "Changed hands",
+              meaning:
+                "won by a different party from the one that won it at the previous election.",
+            },
+            {
+              term: "Median",
+              meaning:
+                "the middle value once all the values are lined up in order. Unlike an average, one landslide cannot drag it up.",
+            },
+          ]}
+        />
       </Section>
 
       <Section
         id="grid"
-        intro="Who won each of the 15 constituencies at every general election under the current map. The gap marks 1979–83, when there were no elections."
-        title="Every seat since 1972"
+        intro="National totals hide local stories. Follow one row to see whether a constituency keeps electing the same party or changes hands. The table starts in 1972, when the House expanded to 15 seats; earlier elections had fewer constituencies."
+        title="5. Which constituencies change sides?"
       >
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] border-separate border-spacing-[3px] text-xs">
@@ -569,12 +886,55 @@ export default function TrendsPage() {
           † 1976 votes are from The Grenada Newsletter’s report of the
           Supervisor of Elections’ figures, not the official record.
         </p>
+        <ReadingNote
+          caveats={[
+            "These are election-day winners. Defections, by-elections and changes between general elections are not shown. The table does not tell us whether individual voters changed their minds.",
+          ]}
+          example={
+            <>
+              Read across St. Mark: GULP won in 1972 and 1976; NNP won at every
+              general election shown from 1984 onwards. That counts as one
+              change of winning party, even though the constituency voted many
+              times.
+            </>
+          }
+          findings={
+            mostChanged
+              ? [
+                  `${constituencyName(results, mostChanged.code)} changed winning party ${mostChanged.changes} times across the elections shown. ${names(leastChanged)} changed least often.`,
+                ]
+              : []
+          }
+          read="Each row is a constituency and each column an election. The colour and letters show which party won. Read along a row for one constituency’s history: a run of one colour is a stronghold, a mix of colours is a swing constituency. Read down a column to see one election. There were no elections between 1979 and 1983."
+          terms={[
+            {
+              term: "Party letters",
+              meaning: (
+                <>
+                  GULP is the Grenada United Labour Party, NNP the New National
+                  Party and NDC the National Democratic Congress. See{" "}
+                  <Link
+                    className="underline underline-offset-2"
+                    href="/parties"
+                  >
+                    every party
+                  </Link>
+                  .
+                </>
+              ),
+            },
+            {
+              term: "Stronghold",
+              meaning: "a constituency that keeps electing the same party.",
+            },
+          ]}
+        />
       </Section>
 
       <Section
         id="lean"
-        intro="The NDC’s share of the two-party vote (NDC plus NNP) at each election since the NDC first stood in 1990. Above the line, the NDC led."
-        title="How each constituency leans"
+        intro="These charts isolate the contest between the NDC and NNP. They ask: of the votes cast for those two parties, what share went to the NDC? That makes movement between them easier to see, while leaving smaller parties out of the picture."
+        title="6. How do we compare NDC and NNP support?"
       >
         <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {CODES.map((code) => {
@@ -630,12 +990,43 @@ export default function TrendsPage() {
             );
           })}
         </ul>
+        <ReadingNote
+          caveats={[
+            "Two-party share excludes every other candidate. A point above 50% says NDC beat NNP, not necessarily that NDC beat every candidate or won a majority of all votes.",
+          ]}
+          example="Illustration: NDC wins 45 votes, NNP 45 and other candidates 10. NDC has 45% of all valid votes, but 50% of the NDC–NNP vote: 45 ÷ (45 + 45). A dot on the dashed line means the two parties tied, not that either won half of all votes."
+          findings={[
+            `${constituencyName(results, even.code)} was closest to an even NDC–NNP split in 2022, with ${pct(even.share)} of their combined vote going to the NDC.`,
+          ]}
+          read={
+            <>
+              Each small chart is one constituency, from 1990 on the left to
+              2022 on the right. The dashed line is an even split. A dot above
+              it means the NDC got more votes than the NNP; below it, the NNP
+              did. The further from the line, the bigger the lead. In 2022{" "}
+              {constituencyName(results, even.code)} was the closest to the
+              line, at {pct(even.share)} NDC.
+            </>
+          }
+          terms={[
+            {
+              term: "Two-party share",
+              meaning:
+                "NDC votes divided by NDC plus NNP votes. Leaving out smaller parties puts every election on the same 0–100% scale, so they can be compared.",
+            },
+            {
+              term: "Swing",
+              meaning:
+                "how far the line moves between two elections. A move from 45% to 52% is a 7-point swing to the NDC.",
+            },
+          ]}
+        />
       </Section>
 
       <Section
         id="records"
-        intro="From officially sourced results only (1972 and 1984–2022)."
-        title="Records"
+        intro="History shows what happened, not what must happen next. These records identify the closest contests, biggest winning shares and constituencies that often backed the national winner. The result rankings use official records only (1972 and 1984–2022)."
+        title="7. Can past results predict the next winner?"
       >
         <div className="grid gap-8 lg:grid-cols-3">
           <div>
@@ -673,6 +1064,116 @@ export default function TrendsPage() {
             </ol>
           </div>
         </div>
+        <ReadingNote
+          caveats={[
+            "A constituency’s past record does not guarantee its next result. Candidates, turnout and party support can change; these tables do not estimate the chance of a future win.",
+          ]}
+          example={
+            <>
+              The closest officially recorded result here was{" "}
+              {constituencyName(results, closestEver.code)} in{" "}
+              {closestEver.year}: a margin of {fmt(closestEver.majority)} vote
+              {closestEver.majority === 1 ? "" : "s"}. That measures the gap in
+              ballot counts; the biggest-win list instead ranks the winner’s
+              percentage of valid votes.
+            </>
+          }
+          findings={[
+            "A bellwether has often elected a member of the party that won most seats nationally. This is a description of its track record, not a reason that it determines the national result.",
+          ]}
+          read="Each list is ranked from the top. Click a result to see the full count for that constituency and year."
+          terms={[
+            {
+              term: "Majority",
+              meaning:
+                "the winner’s votes minus the runner-up’s votes. A majority of 1 means one more vote would have tied it.",
+            },
+            {
+              term: "Biggest win",
+              meaning:
+                "the winner’s share of all valid votes in the constituency.",
+            },
+            {
+              term: "Bellwether",
+              meaning:
+                "a constituency that usually votes for the party that goes on to win the most seats nationally.",
+            },
+          ]}
+        />
+      </Section>
+      <Section
+        id="practice"
+        intro="Before opening each answer, work through the claim. These are illustrative scenarios, not Grenada election results."
+        title="Try explaining it yourself"
+      >
+        <div className="divide-y divide-el-rule border-el-rule border-y">
+          {[
+            {
+              question:
+                "A party wins 60% of the national vote. Must it win 9 of 15 seats?",
+              answer:
+                "No. Sixty per cent of 15 is 9, but Grenada does not allocate seats in proportion to national votes. Each constituency elects its own winner. We need the constituency results to know the seat total.",
+              lesson: "seats",
+            },
+            {
+              question:
+                "Turnout falls from 75% to 70%. Does that prove fewer people voted?",
+              answer:
+                "No. The voters’ list may have grown. With 1,000 registered voters, 75% turnout means 750 voted. With 1,200 registered voters, 70% means 840 voted: more people, but a smaller share. Always check both the count and the denominator.",
+              lesson: "turnout",
+            },
+            {
+              question:
+                "NDC has 55% of the NDC–NNP vote. Does that prove it won the constituency?",
+              answer:
+                "No. Imagine NDC has 44 votes, NNP 36 and another candidate 50. NDC has 44 ÷ 80 = 55% of the two-party vote, but the other candidate has the most votes and wins. Check the full result before drawing a conclusion.",
+              lesson: "lean",
+            },
+          ].map(({ question, answer, lesson }) => (
+            <details className="py-4" key={lesson}>
+              <summary className="cursor-pointer font-semibold">
+                {question}
+              </summary>
+              <p className="mt-3 max-w-prose text-el-ink-2 leading-relaxed">
+                {answer}
+              </p>
+              <a
+                className="mt-3 inline-block text-sm underline underline-offset-4"
+                href={`#${lesson}-title`}
+              >
+                Revisit the explanation
+              </a>
+            </details>
+          ))}
+        </div>
+        <p className="mt-6 max-w-prose text-el-ink-2 leading-relaxed">
+          When you encounter an election claim, ask: what is being counted, what
+          is it being divided by, which year and constituency does it cover, and
+          where is the source? Those four questions help you judge the claim for
+          yourself.
+        </p>
+        <p className="mt-4 text-sm">
+          Put this into practice with{" "}
+          <Link className="underline underline-offset-4" href="/results">
+            full election results
+          </Link>
+          , explore{" "}
+          <Link className="underline underline-offset-4" href="/constituencies">
+            your constituency
+          </Link>
+          , or inspect{" "}
+          <Link className="underline underline-offset-4" href="/sources">
+            the source records
+          </Link>
+          .
+        </p>
+      </Section>
+      <Section
+        id="facts"
+        intro="A quick reference to the results behind this explainer."
+        title="The figures to take away"
+      >
+        <KeyFacts facts={facts} />
       </Section>
     </>
   );

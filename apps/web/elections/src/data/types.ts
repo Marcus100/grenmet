@@ -113,6 +113,8 @@ export interface CampaignFile {
   candidate_sources: Record<string, string | null>;
   candidates: Record<string, Partial<Record<ConstituencyCode, string>>>;
   deadline: string;
+  /** When Parliament was dissolved, once it has been. */
+  dissolved?: string | null;
   events: CampaignEvent[];
   polls: Poll[];
   sitting: Partial<

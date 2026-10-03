@@ -293,7 +293,10 @@ export function turnoutNote(source: TurnoutSource): string {
 /** Whether an event's results come from an official record. */
 export function isOfficial(id: string): boolean {
   const e = getEvent(id);
-  return !!e && (e.kind === "ref" || e.year >= 1984 || e.year === 1972);
+  return (
+    !!e &&
+    (e.kind === "ref" || (e.year >= 1984 && e.year !== 1990) || e.year === 1972)
+  );
 }
 
 const EARLY_GAZETTES: Record<number, string> = {
@@ -333,7 +336,8 @@ export function eventSource(
     };
   if (e.year === 1990)
     return {
-      official: true,
+      official: false,
+      partial: true,
       text: "Winners: Government Gazette No. 15, 16 March 1990 (Supervisor of Elections’ declaration). Other candidates, electors and votes cast: The Grenada Newsletter, 24 March 1990, marked †",
     };
   if (e.year >= 1984)

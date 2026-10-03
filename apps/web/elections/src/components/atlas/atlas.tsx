@@ -1,5 +1,8 @@
 "use client";
 
+import type { EventProperties } from "@barrelsgd/ui/lib/analytics-policy";
+import { captureEvent } from "@barrelsgd/ui/lib/analytics-runtime";
+
 import { cn } from "@barrelsgd/ui/lib/utils";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -260,6 +263,20 @@ function EventHeader({ event }: { event: AtlasEvent }) {
           constituencies
         </p>
       )}
+      <div className="mt-3 space-y-1 text-sm">
+        {(["votes", "seats", "turnout"] as const)
+          .filter((metric) => !referendum || metric !== "seats")
+          .map((metric) => (
+            <details key={metric}>
+              <summary className="cursor-pointer">
+                {metric}: {event.evidence[metric].label}
+              </summary>
+              <p className="mt-1 text-el-muted">
+                {event.evidence[metric].formula} {event.evidence[metric].note}
+              </p>
+            </details>
+          ))}
+      </div>
       <p className="mt-2 text-el-muted text-xs">
         {!event.official && (
           <b className="mr-1 text-el-ink-2">
@@ -889,8 +906,19 @@ export function Atlas() {
     seat: null,
     division: null,
   });
-  const set = (patch: Partial<UrlState>) =>
+  const set = (patch: Partial<UrlState>) => {
+    if (patch.mode) captureEvent("map_mode_changed", { mode: patch.mode });
+    if (patch.seat && patch.seat !== state.seat)
+      captureEvent("constituency_opened", {});
+    if (patch.eventId)
+      captureEvent("year_selected", {
+        year: patch.eventId.slice(
+          0,
+          4
+        ) as EventProperties<"year_selected">["year"],
+      });
     setState((s) => ({ ...s, ...patch }));
+  };
 
   useEffect(() => {
     fetch("/atlas-data.json")

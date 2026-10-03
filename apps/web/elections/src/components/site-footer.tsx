@@ -14,6 +14,23 @@ export function SiteFooter() {
   return (
     <footer className="mt-16 border-el-rule border-t">
       <div className="mx-auto max-w-[1240px] space-y-4 px-4 py-8 text-el-muted text-sm leading-relaxed sm:px-6">
+        <p className="font-semibold text-el-ink">
+          Understand the system. Explore the evidence. Explain it for yourself.
+        </p>
+        <nav
+          aria-label="Learning and evidence"
+          className="flex flex-wrap gap-4"
+        >
+          <Link className="underline" href="/learn">
+            Learning guides
+          </Link>
+          <Link className="underline" href="/search">
+            Search the site
+          </Link>
+          <Link className="underline" href="/sources">
+            Sources and methods
+          </Link>
+        </nav>
         <p>
           Elections Grenada is an independent Barrels Grenada project, built
           from public records: Parliamentary Elections Office reports,

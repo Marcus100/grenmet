@@ -62,7 +62,7 @@ const STILL_NEEDED = [
   "CADRES’s Grenada poll archive, including the original June 2008 release and any polls from 2012–2022.",
   "Public announcements corroborating the owner-confirmed NDC candidate names.",
   "The NNP candidate for St. Andrew North West.",
-  "House of Representatives Hansard for 31 August 2022, which confirms the first sitting and so the deadline.",
+  "A public copy of the 2 October 2026 dissolution proclamation, such as the Gazette notice.",
   "Any poll that measures DPM support. The DPM settings above are assumptions until then.",
 ];
 
@@ -203,19 +203,22 @@ export default function ForecastPage() {
       <PageHead
         deck={
           <>
-            The next general election must be held by 30 November 2027
-            <Flag
-              note="Five years from the first sitting on 31 August 2022 (Wikipedia), plus 90 days. The first sitting needs confirming from the House Hansard."
-              status="unverified"
-            />
-            , and the Prime Minister is due to announce the date on 4 October
-            2026 (<SourceLink id="conch" sources={campaign.sources} />
-            ). These tools use only past official results. Treat them as a range
-            of possibilities, not a prediction.
+            Parliament was dissolved on 2 October 2026 (
+            <SourceLink id="dissolution" sources={campaign.sources} />
+            ), so the next general election must be held by 2 January 2027,
+            within three months as section 53(1) requires (
+            <SourceLink id="constitution" sources={campaign.sources} />
+            ). The Prime Minister is due to announce the date on 4 October 2026
+            (<SourceLink id="conch" sources={campaign.sources} />
+            ). These tools combine recorded results and explicit assumptions.
+            Some historical inputs, including parts of 1990, rely on secondary
+            records. Treat the outputs as conditional scenarios, not official
+            predictions.
           </>
         }
         eyebrow="Forecast · General election 2026"
-        title="Where the next election will be decided"
+        learning="forecast"
+        title="Explore what could change the result"
       >
         <dl className="mt-6 grid grid-cols-2 gap-4 border-el-rule border-t pt-4 lg:grid-cols-4">
           {[

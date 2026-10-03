@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CalculationNote, EvidenceCitation } from "@/components/learn/evidence";
 import { FlatMap } from "@/components/map/flat-map";
 import { PageHead, Section } from "@/components/section";
 import { geo, register, results } from "@/data/load";
@@ -64,6 +65,7 @@ export default function RegisterPage() {
       <PageHead
         deck="The Parliamentary Elections Office publishes the full list of electors, with names and addresses, every six months. This page uses only totals counted from those lists and shows no individual’s details."
         eyebrow={`Voter register · ${first.date.slice(0, 4)} to ${last.date.slice(0, 4)}`}
+        learning="register"
         title="Who is on Grenada’s electoral roll"
       >
         <dl className="mt-6 grid grid-cols-2 gap-4 border-el-rule border-t pt-4 lg:grid-cols-4">
@@ -105,6 +107,12 @@ export default function RegisterPage() {
         intro="Electors on each consolidated list. The dashed line marks the list used for the 23 June 2022 election (10 June 2022)."
         title="Registered electors"
       >
+        <CalculationNote formula="Snapshot total = sum of included non-police list entries. Relative change = (later − earlier) ÷ earlier. The chart’s vertical axis does not start at zero.">
+          <p className="mt-2">
+            A rise or fall is not an explanation: transfers, removals and
+            changes in coverage need separate evidence.
+          </p>
+        </CalculationNote>
         <svg
           aria-label="Electors on each consolidated list"
           className="h-auto w-full max-w-3xl"
@@ -368,6 +376,23 @@ export default function RegisterPage() {
         <p className="mt-3 max-w-[70ch] text-el-muted text-xs">
           {register.note}
         </p>
+      </Section>
+      <Section
+        id="population-context"
+        intro="Official demographic tables provide context, not a way to infer individual voting choices."
+        title="The register is not the population"
+      >
+        <p className="max-w-prose text-sm leading-relaxed">
+          The Central Statistical Office publishes population estimates and
+          census tables by age, sex and geography. We have not joined those
+          figures to constituencies: the dates, resident-population definitions
+          and geographic boundaries need to match first. Dividing the electoral
+          roll by an unmatched population estimate would create a misleading
+          registration rate.
+        </p>
+        <div className="mt-4">
+          <EvidenceCitation id="population" />
+        </div>
       </Section>
     </>
   );

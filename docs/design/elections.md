@@ -104,7 +104,7 @@ components:
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-02
+**Last updated:** 2026-10-03
 
 Agent-readable spec for `apps/web/elections`, Barrels' Grenada election coverage
 and history site. [DESIGN.md format](https://github.com/google-labs-code/design.md);
@@ -115,6 +115,12 @@ Other lanes: [gms](./gms.md) · [gaa-admin](./gaa-admin.md) · [mbia](./mbia.md)
 [signal](./signal.md).
 
 ## Overview
+
+Elections Grenada exists to educate the public about Grenada’s elections and
+adjacent civic subjects. The intended outcome is readers who can explain the
+system, interpret evidence and evaluate election claims for themselves. Pages
+should teach the reasoning with worked examples, explain common misconceptions,
+and separate recorded facts, illustrative scenarios and predictions.
 
 A civic results atlas in newspaper form. The homepage covers the coming election;
 the archive holds every result since 1951, down to the polling division from 2013.
@@ -181,7 +187,7 @@ for body, UI and every figure. Numbers use `tabular-nums`.
 ## Layout
 
 - The page is `mx-auto max-w-[1240px] px-4 sm:px-6`. Design at 375px first, with no sideways page scroll.
-- The masthead is sticky at `h-14` with an ink bottom rule and the wordmark "Elections *Grenada*". From `lg` up it shows task-named links (Election 2026, Candidates, Forecast, Make your map, Results, Constituencies) and More ▾. Below `lg`, a **hamburger** (bars fold into an X) opens one panel under the masthead: the election status, the main pages as large serif rows, then the More pages. The header has no search box and no theme toggle; Find your constituency lives on the front page and Constituencies.
+- The masthead is sticky at `h-14` with an ink bottom rule and the wordmark "Elections *Grenada*". From `xl` up it shows Election 2026, Learn, Results & history, Your constituency, and People & parties. Below `xl`, a **hamburger** (bars fold into an X) opens one panel under the masthead: the election status, the main pages as large serif rows, then the More pages. The header links to site-wide Search; there is no theme toggle. Find your constituency remains on the front page and Constituencies.
 - The site is light only for now (owner decision). The `.dark` palette stays in the CSS for later.
 - Homepage party cards omit the long results/candidate/timeline source paragraphs (owner decision); individual candidate sources and uncertainty notes remain on the detailed pages.
 - The `/2026` “Who is standing” section has no introductory source paragraph (owner decision); candidate-level uncertainty marks remain.
@@ -201,6 +207,15 @@ above the map.
 
 Controls use `rounded-md` (6px). Seat squares and party dots use 2px. Content blocks
 are square.
+
+## Education and evidence
+
+- The homepage uses current events to explain the process and links into eight `/learn` guides. Preserve practical access to current coverage, local records and historical returns.
+- Every page family pairs its task with a short reading guide, source limitations and a deeper lesson. Definitions and source detail expand on demand; explanations remain usable without completing a course.
+- Full history stays visible. National comparison tables offer an official-data-only view, withholding unsupported measures without changing their denominators. This filter is explicitly local to the comparison table.
+- Distinguish official records, original publishers, secondary reports and supplied information; label calculations and scenarios separately. 1990 has official winners but mixed-source vote and turnout inputs.
+- Interactive examples use neutral colours, visible units and reset controls. Self-check answers are not saved. Search is a static local index; no new external search service.
+- `/sources` holds the source library, formula explanations, discrepancy register, priority acquisition gaps and downloadable `/evidence.json` metadata. Missing archival evidence is not silently filled in.
 
 ## Components
 

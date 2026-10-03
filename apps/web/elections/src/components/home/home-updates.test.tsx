@@ -73,6 +73,42 @@ describe("homepage updates", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("lets a post stand for the same-day event whose source it cites", () => {
+    render(
+      <ElectionUpdates
+        coverage={[
+          {
+            at: "2026-10-02T19:00:00-04:00",
+            title: "Parliament dissolved",
+            body: "The full story",
+            sources: [{ id: "owner" }],
+          },
+        ]}
+        events={[
+          {
+            date: "2026-10-02",
+            text: "One-line event",
+            src: "owner",
+            flag: null,
+          },
+          {
+            date: "2026-10-01",
+            text: "Earlier event",
+            src: "owner",
+            flag: null,
+          },
+        ]}
+        sources={{ owner: ["Owner confirmation", ""] }}
+      />
+    );
+    expect(screen.getAllByRole("listitem")).toHaveLength(2);
+    expect(screen.queryByText("One-line event")).not.toBeInTheDocument();
+    expect(screen.getByText("Earlier event")).toBeInTheDocument();
+    expect(
+      screen.getAllByText("Supplied information: Owner confirmation")
+    ).toHaveLength(2);
+  });
+
   it("honours the feed limit", () => {
     render(
       <ElectionUpdates
@@ -108,16 +144,14 @@ describe("homepage updates", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("includes the registration cutoff and official source", () => {
+  it("routes current voting arrangements to the authority rather than stale instructions", () => {
     render(<HowToVote />);
     expect(
-      screen.getByText("Register before the election writ is issued.")
-    ).toBeInTheDocument();
+      screen.getByRole("link", { name: "Check with the PEO" })
+    ).toHaveAttribute("href", "https://www.peogrenada.org/");
     expect(
-      screen.getByRole("link", {
-        name: "Parliamentary Elections Office, Registration",
-      })
-    ).toHaveAttribute("href", "https://www.peogrenada.org/Registration");
+      screen.getByRole("link", { name: "Understand registration and voting" })
+    ).toHaveAttribute("href", "/learn/registering-and-voting");
   });
 
   it("names sources without public URLs without creating empty links", () => {

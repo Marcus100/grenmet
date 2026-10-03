@@ -75,6 +75,7 @@ export default function YourPredictionPage() {
           </>
         }
         eyebrow={`General election 2026 · Candidates as of ${formatIsoDate(campaign.updated)}`}
+        learning="scenario"
         title="Make your map"
       />
       <div className="mx-auto max-w-[1240px] px-4 pt-8 sm:px-6">
