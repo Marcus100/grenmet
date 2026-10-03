@@ -157,7 +157,7 @@ catalog:
 
   # Admin-gms map/date
   "react-day-picker": "^10.0.1"
-  "react-simple-maps": "^3.0.0"
+  "react-simple-maps": "^5.0.5"
 
   # Error tracking
   "@sentry/nextjs": ^10.75.0
