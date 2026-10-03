@@ -9,22 +9,18 @@ import {
   sanitizeEvent,
 } from "./analytics-policy";
 
-const GA_ID = /^G-[A-Z0-9]+$/;
+import {
+  captureGoogleEvent,
+  startGoogleAnalytics,
+  stopGoogleAnalytics,
+} from "./google-analytics";
+
 let config: AnalyticsConfig | null = null;
 let client: PostHog | null = null;
 let initializing: Promise<void> | null = null;
 let generation = 0;
 let lastPage: string | null = null;
 
-declare global {
-  interface Window {
-    dataLayer?: unknown[][];
-  }
-}
-function gtag(...args: unknown[]) {
-  window.dataLayer ??= [];
-  window.dataLayer.push(args);
-}
 function enabled() {
   return config !== null && readConsent() === "accepted";
 }
@@ -66,19 +62,8 @@ export function captureEvent<E extends AnalyticsEvent>(
   const safe = sanitizeEvent(config.app, event, properties);
   if (!safe) return;
   try {
+    captureGoogleEvent(config, event, safe);
     client?.capture(event, { reviewed: safe });
-    if (config.ga4)
-      gtag("event", event === "page_viewed" ? "page_view" : event, {
-        ...safe,
-        send_to: config.ga4,
-        app: config.app,
-        environment: config.environment,
-        release: config.release,
-        schema_version: SCHEMA_VERSION,
-        page_location: `${config.origin}/${safe.section ?? ""}`,
-        page_referrer: "",
-        page_title: safe.section ?? config.app,
-      });
   } catch {
     /* Analytics cannot affect navigation or business operations. */
   }
@@ -121,6 +106,7 @@ export async function startAnalytics(next: AnalyticsConfig): Promise<void> {
   config = next;
   const current = generation;
   initializing = (async () => {
+    startGoogleAnalytics(next);
     if (
       next.posthog &&
       ["https://us.i.posthog.com", "https://eu.i.posthog.com"].includes(
@@ -150,34 +136,6 @@ export async function startAnalytics(next: AnalyticsConfig): Promise<void> {
         });
       posthog.opt_in_capturing({ captureEventName: false });
     }
-    if (current !== generation || !enabled()) return;
-    if (next.ga4 && GA_ID.test(next.ga4)) {
-      Object.assign(window, { [`ga-disable-${next.ga4}`]: false });
-      gtag("consent", "default", {
-        analytics_storage: "granted",
-        ad_storage: "denied",
-        ad_user_data: "denied",
-        ad_personalization: "denied",
-      });
-      gtag("js", new Date());
-      gtag("config", next.ga4, {
-        send_page_view: false,
-        allow_google_signals: false,
-        allow_ad_personalization_signals: false,
-        cookie_domain: "none",
-        cookie_expires: 183 * 86_400,
-        page_location: next.origin,
-        page_referrer: "",
-        page_title: next.app,
-      });
-      if (!document.getElementById("optional-google-analytics")) {
-        const script = document.createElement("script");
-        script.id = "optional-google-analytics";
-        script.async = true;
-        script.src = `https://www.googletagmanager.com/gtag/js?id=${next.ga4}`;
-        document.head.append(script);
-      }
-    }
   })().catch(() => {
     /* Network/provider failure leaves the site usable. */
   });
@@ -185,8 +143,7 @@ export async function startAnalytics(next: AnalyticsConfig): Promise<void> {
 }
 export function stopAnalytics(): void {
   generation += 1;
-  if (config?.ga4)
-    Object.assign(window, { [`ga-disable-${config.ga4}`]: true });
+  stopGoogleAnalytics(config?.ga4 ?? null);
   config = null;
   initializing = null;
   lastPage = null;
@@ -196,8 +153,6 @@ export function stopAnalytics(): void {
   } catch {
     /* Best effort SDK cleanup. */
   }
-  document.getElementById("optional-google-analytics")?.remove();
-  window.dataLayer = [];
   try {
     for (const key of Object.keys(localStorage))
       if (key.startsWith("ph_") || key.startsWith("_ga"))
