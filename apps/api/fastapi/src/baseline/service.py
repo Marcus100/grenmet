@@ -1,9 +1,8 @@
 import uuid
-from decimal import Decimal
 
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from sqlmodel import col, delete, select
 
 from src.auth.models import Permission, Role, User, UserImage, UserRoleAssignment
 from src.auth.models import Session as LoginSession
@@ -19,9 +18,13 @@ from src.baseline.schemas import (
     StaffSetup,
 )
 from src.exceptions import AppException
-from src.hr.leave.models import LeaveBalanceEvent
+from src.hr.leave import ledger
 from src.hr.models import Department, EmploymentRecord, EmploymentStatus, Grade
-from src.hr.organisations import department_for
+from src.hr.organisations import (
+    department_for,
+    validate_service_facts,
+    validate_supervisor,
+)
 from src.utils.datetime import utc_now
 
 
@@ -121,7 +124,7 @@ async def list_staff(session: AsyncSession) -> list[StaffSetup]:
         await session.execute(
             select(StaffCredential, User)
             .select_from(User)
-            .outerjoin(StaffCredential, col(StaffCredential.user_id) == User.id)
+            .outerjoin(StaffCredential, StaffCredential.user_id == User.id)
             .where(User.username != "admin")
         )
     ).all()
@@ -151,6 +154,18 @@ async def list_staff(session: AsyncSession) -> list[StaffSetup]:
                 employee_number=employment.employee_number if employment else None,
                 employment_type=employment.employment_type if employment else None,
                 start_date=employment.start_date if employment else None,
+                continuous_service_date=employment.continuous_service_date
+                if employment
+                else None,
+                probation_end_date=employment.probation_end_date
+                if employment
+                else None,
+                probation_completed_date=employment.probation_completed_date
+                if employment
+                else None,
+                service_details_source=employment.service_details_source
+                if employment
+                else None,
                 supervisor_id=employment.supervisor_id if employment else None,
                 status="inactive"
                 if credential and credential.revoked_at
@@ -214,6 +229,24 @@ async def save_staff(
             raise AppException(
                 "Supervisor must be another active employee in the department", 400
             )
+    await validate_supervisor(
+        session, body.supervisor_id, department.organisation_id, user_id
+    )
+    personnel_updates = body.model_dump(exclude_unset=True)
+    # Existing onboarding blanks preserve verified commencement and identity fields.
+    personnel_updates = {
+        key: value
+        for key, value in personnel_updates.items()
+        if value is not None
+        or key
+        in {
+            "continuous_service_date",
+            "probation_end_date",
+            "probation_completed_date",
+            "service_details_source",
+        }
+    }
+    await validate_service_facts(personnel_updates, employment)
     employment.department_id = body.department_id
     employment.grade_id = body.grade_id
     employment.position = grade.label
@@ -224,6 +257,14 @@ async def save_staff(
         value = getattr(body, field)
         if value is not None:
             setattr(employment, field, value)
+    for field in (
+        "continuous_service_date",
+        "probation_end_date",
+        "probation_completed_date",
+        "service_details_source",
+    ):
+        if field in body.model_fields_set:
+            setattr(employment, field, getattr(body, field))
     session.add(employment)
     if body.mailbox_ready and not user.is_active:
         user.email_verification_required = True
@@ -231,7 +272,7 @@ async def save_staff(
     session.add(user)
     if not user.is_active:
         await session.execute(
-            delete(LoginSession).where(col(LoginSession.user_id) == user_id)
+            delete(LoginSession).where(LoginSession.user_id == user_id)
         )
     session.add(
         BaselineAudit(
@@ -256,7 +297,8 @@ async def save_grade(
     if grade is None:
         grade = Grade(id=grade_id, **body.model_dump())
     else:
-        grade.sqlmodel_update(body.model_dump())
+        for key, value in body.model_dump().items():
+            setattr(grade, key, value)
         grade.updated_at = utc_now()
     session.add(grade)
     session.add(
@@ -286,31 +328,13 @@ async def set_balance(
     )
     if not user or not await employment_for(session, user_id):
         raise AppException("Complete employment setup first", 400)
-    last = (
-        (
-            await session.execute(
-                select(LeaveBalanceEvent)
-                .where(
-                    LeaveBalanceEvent.user_id == user_id,
-                    LeaveBalanceEvent.leave_type == body.leave_type.value,
-                )
-                .order_by(col(LeaveBalanceEvent.created_at).desc())
-                .limit(1)
-            )
-        )
-        .scalars()
-        .first()
-    )
-    previous = last.balance_after_days if last else Decimal(0)
-    session.add(
-        LeaveBalanceEvent(
-            user_id=user_id,
-            leave_type=body.leave_type.value,
-            delta_days=body.balance - previous,
-            balance_after_days=body.balance,
-            reason=body.reason,
-            created_by_user_id=actor.id,
-        )
+    await ledger.set_to(
+        session,
+        user_id=user_id,
+        leave_type=body.leave_type.value,
+        target=body.balance,
+        reason=body.reason,
+        actor_id=actor.id,
     )
     session.add(
         BaselineAudit(
@@ -337,15 +361,13 @@ async def offboard(session: AsyncSession, actor: User, user_id: uuid.UUID) -> No
     if employment:
         employment.status = EmploymentStatus.TERMINATED
         session.add(employment)
+    await session.execute(delete(LoginSession).where(LoginSession.user_id == user_id))
     await session.execute(
-        delete(LoginSession).where(col(LoginSession.user_id) == user_id)
+        delete(UserRoleAssignment).where(UserRoleAssignment.user_id == user_id)
     )
-    await session.execute(
-        delete(UserRoleAssignment).where(col(UserRoleAssignment.user_id) == user_id)
-    )
-    from sqlmodel import SQLModel
+    from src.orm import Base
 
-    link = SQLModel.metadata.tables["user_role"]
+    link = Base.metadata.tables["user_role"]
     await session.execute(delete(link).where(link.c.user_id == user_id))
     session.add(user)
     session.add(credential)
@@ -392,23 +414,12 @@ async def require_leave_ready(
     session: AsyncSession, user_id: uuid.UUID, department_id: str, leave_type: str
 ) -> None:
     await require_ready(session, user_id, department_id)
-    if await session.get(StaffCredential, user_id):
-        entry = (
-            (
-                await session.execute(
-                    select(LeaveBalanceEvent).where(
-                        LeaveBalanceEvent.user_id == user_id,
-                        LeaveBalanceEvent.leave_type == leave_type,
-                    )
-                )
-            )
-            .scalars()
-            .first()
+    if await session.get(StaffCredential, user_id) and not await ledger.has_entry(
+        session, user_id, leave_type
+    ):
+        raise AppException(
+            "Verify the opening balance for this leave type before submission", 409
         )
-        if entry is None:
-            raise AppException(
-                "Verify the opening balance for this leave type before submission", 409
-            )
 
 
 async def read_setup_grades(
@@ -416,7 +427,7 @@ async def read_setup_grades(
 ) -> list[Grade]:
     require_admin(current_user)
     return list(
-        (await session.execute(select(Grade).order_by(col(Grade.rank)))).scalars().all()
+        (await session.execute(select(Grade).order_by(Grade.rank))).scalars().all()
     )
 
 
@@ -435,7 +446,8 @@ async def update_setup_policy(
     policy = await session.get(ApprovalPolicy, key)
     if policy is None:
         raise AppException("Policy not found", 404)
-    policy.sqlmodel_update(body.model_dump())
+    for key, value in body.model_dump().items():
+        setattr(policy, key, value)
     session.add(policy)
     session.add(
         BaselineAudit(
@@ -454,13 +466,7 @@ async def read_role_configuration(
 ) -> list[RoleConfiguration]:
     require_admin(current_user)
     roles = (
-        (
-            await session.execute(
-                select(Role).options(
-                    selectinload(Role.permissions)  # type: ignore[arg-type]
-                )
-            )
-        )
+        (await session.execute(select(Role).options(selectinload(Role.permissions))))
         .scalars()
         .all()
     )
@@ -488,9 +494,7 @@ async def update_role_configuration(
             await session.execute(
                 select(Role)
                 .where(Role.id == role_id)
-                .options(
-                    selectinload(Role.permissions)  # type: ignore[arg-type]
-                )
+                .options(selectinload(Role.permissions))
                 .with_for_update()
             )
         )

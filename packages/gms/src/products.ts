@@ -18,6 +18,9 @@ export const PRODUCT_KINDS = {
   ...BULLETIN_CATEGORIES,
 } as const;
 export type ProductKind = keyof typeof PRODUCT_KINDS;
+export function isForecastKind(kind: ProductKind) {
+  return kind === "morning" || kind === "midday" || kind === "evening";
+}
 export type ProductValues = Record<string, string>;
 export interface ProductField {
   key: string;
@@ -25,7 +28,7 @@ export interface ProductField {
   options?: readonly string[];
   required?: boolean;
   section: string;
-  type?: "text" | "textarea" | "date" | "datetime-local" | "number";
+  type?: "text" | "textarea" | "date" | "datetime-local" | "number" | "time";
 }
 export interface ProductContent {
   kind: ProductKind;
@@ -53,8 +56,90 @@ export function productTitle(kind: ProductKind) {
     ? `${PRODUCT_KINDS[kind]} Bulletin`
     : PRODUCT_KINDS[kind];
 }
+export interface CapInsertTarget {
+  label: string;
+  value: string;
+}
+/**
+ * Fields on this product kind that CAP text can be copied into. Forecast
+ * kinds carry `summary` (plus `dayNWeather` on evening); bulletins share the
+ * generic `Impact and response` fields from `productFields`; outlook has its
+ * own narrative fields. Empty for a kind with no sensible insertion point.
+ */
+export function capInsertTargets(kind: ProductKind): CapInsertTarget[] {
+  if (isForecastKind(kind)) {
+    const targets: CapInsertTarget[] = [
+      { label: "Forecast summary", value: "summary" },
+    ];
+    if (kind === "evening") {
+      for (let day = 1; day <= 4; day++) {
+        targets.push({
+          label: `Day ${day} weather`,
+          value: `day${day}Weather`,
+        });
+      }
+    }
+    return targets;
+  }
+  if (kind === "outlook") {
+    return [
+      { label: "Tropical waves and systems", value: "systems" },
+      { label: "Cyclone formation outlook", value: "formation" },
+    ];
+  }
+  if (isBulletin(kind)) {
+    return [
+      { label: "Synopsis", value: "synopsis" },
+      { label: "Expected impacts", value: "impacts" },
+      { label: "Recommended response", value: "response" },
+    ];
+  }
+  return [];
+}
 const levels = ["Minimal", "Minor", "Significant", "Severe"];
+/** 16-point compass (WMO wind direction is reported in degrees true). */
+export const COMPASS_DIRECTIONS = [
+  "N",
+  "NNE",
+  "NE",
+  "ENE",
+  "E",
+  "ESE",
+  "SE",
+  "SSE",
+  "S",
+  "SSW",
+  "SW",
+  "WSW",
+  "W",
+  "WNW",
+  "NW",
+  "NNW",
+  "Variable",
+] as const;
+/** WMO code table 3700 (state of the sea): term, code and height band in metres. */
+export const SEA_STATES = [
+  { term: "Calm (glassy)", code: 0, band: "0 m" },
+  { term: "Calm (rippled)", code: 1, band: "0–0.1 m" },
+  { term: "Smooth", code: 2, band: "0.1–0.5 m" },
+  { term: "Slight", code: 3, band: "0.5–1.25 m" },
+  { term: "Moderate", code: 4, band: "1.25–2.5 m" },
+  { term: "Rough", code: 5, band: "2.5–4 m" },
+  { term: "Very rough", code: 6, band: "4–6 m" },
+  { term: "High", code: 7, band: "6–9 m" },
+  { term: "Very high", code: 8, band: "9–14 m" },
+  { term: "Phenomenal", code: 9, band: "over 14 m" },
+] as const;
+/** Matches the GMS site's weather icons (`apps/web/gms/src/lib/weather-icons.ts`). */
+export const WEATHER_CONDITIONS = [
+  "Sunny",
+  "Sunny intervals",
+  "Cloudy",
+  "Showers",
+] as const;
+export const TIDE_SLOTS = [1, 2, 3, 4] as const;
 const likelihoods = ["Very low", "Low", "Medium", "High"];
+const DAY_ALERT_FIELD = /^day[1-4](Alerts|Impact|Response)$/;
 function field(
   section: string,
   key: string,
@@ -88,6 +173,88 @@ const astronomy = [
   field("Astronomy", "sunrise", "Sunrise"),
   field("Astronomy", "sunset", "Sunset"),
 ];
+/** `windDirFrom` for the main period, `day1WindDirFrom` for an evening outlook day. */
+export function parameterKey(prefix: string, name: string) {
+  return prefix ? `${prefix}${name[0].toUpperCase()}${name.slice(1)}` : name;
+}
+function windFields(section: string, prefix: string): ProductField[] {
+  const key = (name: string) => parameterKey(prefix, name);
+  return [
+    field(section, key("windDirFrom"), "Direction from", {
+      options: COMPASS_DIRECTIONS,
+      required: true,
+    }),
+    field(section, key("windDirTo"), "Direction to", {
+      options: COMPASS_DIRECTIONS,
+    }),
+    field(section, key("windSpeedMin"), "Speed from (kt)", {
+      type: "number",
+      required: true,
+    }),
+    field(section, key("windSpeedMax"), "Speed to (kt)", { type: "number" }),
+    field(section, key("windGust"), "Gusts (kt)", { type: "number" }),
+    field(section, key("wind"), "Wind summary"),
+  ];
+}
+function marineFields(section: string, prefix: string): ProductField[] {
+  const key = (name: string) => parameterKey(prefix, name);
+  const terms = SEA_STATES.map((s) => s.term);
+  return [
+    field(section, key("seaStateFrom"), "Sea state from", {
+      options: terms,
+      required: true,
+    }),
+    field(section, key("seaStateTo"), "Sea state to", { options: terms }),
+    field(section, key("waveHeightMin"), "Waves from (m)", {
+      type: "number",
+      required: true,
+    }),
+    field(section, key("waveHeightMax"), "Waves to (m)", { type: "number" }),
+    field(section, key("swellDir"), "Swell direction", {
+      options: COMPASS_DIRECTIONS,
+    }),
+    field(section, key("swellPeriod"), "Swell period (s)", { type: "number" }),
+    field(section, key("swellHeight"), "Swell height (m)", { type: "number" }),
+    field(section, key("seaState"), "Marine summary"),
+  ];
+}
+/** Horizontal visibility in km (WMO reports metres); FastAPI composes `visibility`. */
+function visibilityFields(section: string, required: boolean): ProductField[] {
+  return [
+    field(section, "visibilityMin", "Visibility from (km)", {
+      type: "number",
+      required,
+    }),
+    field(section, "visibilityMax", "Visibility to (km)", { type: "number" }),
+    field(section, "visibility", "Visibility summary"),
+  ];
+}
+function tideFields(section: string, prefix: string): ProductField[] {
+  const key = (name: string) => parameterKey(prefix, name);
+  return [
+    ...TIDE_SLOTS.flatMap((n) => [
+      field(section, key(`tide${n}Type`), `Tide ${n}`, {
+        options: ["High", "Low"],
+      }),
+      field(section, key(`tide${n}Time`), `Tide ${n} time`, { type: "time" }),
+      field(section, key(`tide${n}Height`), `Tide ${n} height (m)`, {
+        type: "number",
+      }),
+    ]),
+    ...(prefix
+      ? [
+          field(section, key("highTides"), "High tides (times)"),
+          field(section, key("lowTides"), "Low tides (times)"),
+        ]
+      : []),
+  ];
+}
+const COMPOSED_KEY =
+  /^(wind|seaState|swell|visibility|highTides|lowTides|day[1-4](Wind|SeaState|HighTides|LowTides))$/;
+/** Legacy free-text keys FastAPI composes from structured values (forecasts, evening days, marine/wind/coastal bulletins). */
+export function isComposedForecastField(key: string) {
+  return COMPOSED_KEY.test(key);
+}
 function forecastFields(kind: ProductKind): ProductField[] {
   return [
     field(
@@ -96,6 +263,10 @@ function forecastFields(kind: ProductKind): ProductField[] {
       kind === "evening" ? "Tonight's weather" : "Weather summary",
       { type: "textarea", required: true }
     ),
+    field("Weather", "condition", "Conditions", {
+      options: WEATHER_CONDITIONS,
+    }),
+    field("Weather", "rainChance", "Chance of rain (%)", { type: "number" }),
     field("Weather", "weatherAlert", "Weather alert"),
     field("Weather", "maxTemperature", "Maximum temperature (°C)", {
       type: "number",
@@ -114,16 +285,9 @@ function forecastFields(kind: ProductKind): ProductField[] {
           ),
         ]
       : []),
-    field("Wind", "wind", "Wind direction, speed and gusts (include units)", {
-      required: true,
-    }),
+    ...windFields("Wind", ""),
     field("Wind", "windAlert", "Wind alert"),
-    field(
-      "Marine",
-      "seaState",
-      "Sea state, wave height and swell (include units)",
-      { required: true }
-    ),
+    ...marineFields("Marine", ""),
     field("Marine", "marineAlert", "Marine alert"),
     ...["weather", "wind", "marine", "heat", "dust"].flatMap((hazard) => {
       const section = `${hazard[0].toUpperCase()}${hazard.slice(1)} impacts`;
@@ -140,18 +304,18 @@ function forecastFields(kind: ProductKind): ProductField[] {
         }),
       ];
     }),
+    ...tideFields("Tides", ""),
+    // JSON summary of CAP alerts and GMS bulletins in force, captured by FastAPI on save.
+    field("Issue details", "advisories", "Alerts and advisories in force"),
     ...astronomy,
     field("Risk assessment", "likelihood", "Overall likelihood", {
       options: likelihoods,
-      required: true,
     }),
     field("Risk assessment", "impact", "Overall impact", {
       options: levels,
-      required: true,
     }),
     field("Risk assessment", "response", "Overall response", {
       type: "textarea",
-      required: true,
     }),
     field("Word of the day", "word", "Term"),
     field("Word of the day", "definition", "Meaning", { type: "textarea" }),
@@ -176,15 +340,8 @@ function forecastFields(kind: ProductKind): ProductField[] {
               type: "number",
               required: true,
             }),
-            field(section, `${prefix}Wind`, "Wind (include units)", {
-              required: true,
-            }),
-            field(
-              section,
-              `${prefix}SeaState`,
-              "Sea state and swell (include units)",
-              { required: true }
-            ),
+            ...windFields(`${section} · Wind`, prefix),
+            ...marineFields(`${section} · Marine`, prefix),
             field(
               section,
               `${prefix}Alerts`,
@@ -198,6 +355,7 @@ function forecastFields(kind: ProductKind): ProductField[] {
             }),
             field(section, `${prefix}Sunrise`, "Sunrise"),
             field(section, `${prefix}Sunset`, "Sunset"),
+            ...tideFields(`${section} · Tides`, prefix),
           ];
         }).flat()
       : []),
@@ -210,21 +368,10 @@ const hazardDetails: Record<keyof typeof BULLETIN_CATEGORIES, ProductField[]> =
         type: "textarea",
         required: true,
       }),
-      field(
-        "Conditions",
-        "seaState",
-        "Sea state and wave heights (include units)",
-        { required: true }
-      ),
-      field("Conditions", "visibility", "Visibility (include units)", {
-        required: true,
-      }),
-      field(
-        "Conditions",
-        "wind",
-        "Wind direction, speed and gusts (include units)",
-        { required: true }
-      ),
+      ...visibilityFields("Visibility", true),
+      ...windFields("Wind", ""),
+      ...marineFields("Marine", ""),
+      ...tideFields("Tides", ""),
       ...astronomy,
       field("Astronomy", "moonrise", "Moonrise"),
       field("Astronomy", "moonset", "Moonset"),
@@ -257,14 +404,7 @@ const hazardDetails: Record<keyof typeof BULLETIN_CATEGORIES, ProductField[]> =
         type: "textarea",
       }),
     ],
-    wind: [
-      field(
-        "Conditions",
-        "wind",
-        "Wind direction, sustained speed and gusts (include units)",
-        { required: true }
-      ),
-    ],
+    wind: windFields("Wind", ""),
     heat: [
       field("Heat assessment", "eventType", "Event classification", {
         options: ["Hot Spell", "Heatwave"],
@@ -328,14 +468,15 @@ const hazardDetails: Record<keyof typeof BULLETIN_CATEGORIES, ProductField[]> =
       field("Conditions", "dust", "Dust / haze concentration and extent", {
         type: "textarea",
       }),
-      field("Conditions", "visibility", "Visibility (include units)"),
+      ...visibilityFields("Visibility", false),
     ],
     coastal: [
-      field(
-        "Conditions",
-        "swell",
-        "Swell height, period and direction (include units)"
-      ),
+      field("Swell", "swellDir", "Swell direction", {
+        options: COMPASS_DIRECTIONS,
+      }),
+      field("Swell", "swellPeriod", "Swell period (s)", { type: "number" }),
+      field("Swell", "swellHeight", "Swell height (m)", { type: "number" }),
+      field("Swell", "swell", "Swell summary"),
       field(
         "Conditions",
         "surge",
@@ -387,6 +528,12 @@ export function productFields(kind: ProductKind): ProductField[] {
         "Cyclone formation outlook and forecast period",
         { type: "textarea", required: true }
       ),
+      field("Outlook", "formationChance48h", "Formation chance, 48 hours (%)", {
+        type: "number",
+      }),
+      field("Outlook", "formationChance7d", "Formation chance, 7 days (%)", {
+        type: "number",
+      }),
       field("Outlook", "nextUpdate", "Next update (Grenada)", {
         type: "datetime-local",
         required: true,
@@ -452,6 +599,92 @@ export function followingDate(date: string, days: number) {
     .toISOString()
     .slice(0, 10);
 }
+
+/** Forecast issue and coverage boundaries in Grenada local time (UTC−04:00). */
+export function forecastSchedule(kind: ProductKind, date: string) {
+  if (
+    !(isForecastKind(kind) && Number.isFinite(localDateTime(`${date}T07:00`)))
+  )
+    return null;
+  const issuedAt = `${date}T${ISSUE_TIMES[kind]?.[0]}`;
+  const periods = [
+    {
+      date,
+      prefix: "",
+      label: kind === "evening" ? "Tonight" : productTitle(kind),
+      validFrom: issuedAt,
+      validTo: `${followingDate(date, 1)}T07:00`,
+    },
+  ];
+  if (kind === "evening") {
+    for (let day = 1; day <= 4; day++) {
+      periods.push({
+        date: followingDate(date, day),
+        prefix: `day${day}`,
+        label: `Day ${day}`,
+        validFrom: `${followingDate(date, day)}T07:00`,
+        validTo: `${followingDate(date, day + 1)}T07:00`,
+      });
+    }
+  }
+  return {
+    issuedAt,
+    validFrom: issuedAt,
+    validTo: periods.at(-1)?.validTo ?? `${followingDate(date, 1)}T07:00`,
+    periods,
+  };
+}
+
+export function withForecastSchedule(
+  kind: ProductKind,
+  values: ProductValues
+): ProductValues {
+  const schedule = forecastSchedule(kind, values.issuedAt?.slice(0, 10));
+  if (!schedule) return values;
+  const result: ProductValues = {
+    ...values,
+    issuedAt: schedule.issuedAt,
+    validFrom: schedule.validFrom,
+    validTo: schedule.validTo,
+    validity:
+      kind === "evening"
+        ? "Tonight (18:00–07:00) and four following days (07:00–07:00)"
+        : kind === "morning"
+          ? "Today and tonight (07:00–07:00)"
+          : "This afternoon and tonight (12:00–07:00)",
+  };
+  for (const period of schedule.periods) {
+    if (period.prefix) result[`${period.prefix}Date`] = period.date;
+  }
+  return result;
+}
+
+/** Legacy forecast assessments remain stored; CAP is the warning source. */
+export function isForecastAlertField(field: ProductField) {
+  return (
+    field.section.endsWith(" impacts") ||
+    field.section === "Risk assessment" ||
+    ["weatherAlert", "windAlert", "marineAlert"].includes(field.key) ||
+    DAY_ALERT_FIELD.test(field.key)
+  );
+}
+export function displayProductFields(kind: ProductKind) {
+  return productFields(kind).filter(
+    (f) => !(isForecastKind(kind) && isForecastAlertField(f))
+  );
+}
+const STRUCTURED_SOURCE_KEY =
+  /^(day[1-4])?([Vv]isibility(Min|Max)|[Ww]indDir(From|To)|[Ww]indSpeed(Min|Max)|[Ww]indGust|[Ss]eaState(From|To)|[Ww]aveHeight(Min|Max)|[Ss]well(Dir|Period|Height)|[Tt]ide[1-4](Type|Time|Height))$/;
+/**
+ * Fields for reading an issued product (public site, review step): structured
+ * wind/sea/tide inputs are shown through the text FastAPI composes from them,
+ * and the internal advisories snapshot is never listed.
+ */
+export function presentationFields(kind: ProductKind) {
+  return displayProductFields(kind).filter(
+    (f) => f.key !== "advisories" && !STRUCTURED_SOURCE_KEY.test(f.key)
+  );
+}
 export function emptyProduct(
   kind: ProductKind,
   date = grenadaDate(),
@@ -484,7 +717,7 @@ export function emptyProduct(
       values[`day${day}Date`] = followingDate(date, day);
     values.validity = "Tonight and the following four days";
   }
-  return values;
+  return withForecastSchedule(kind, values);
 }
 const LOCAL_DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
 /** Grenada uses UTC−04:00 year round. Reject malformed calendar values. */
@@ -497,68 +730,12 @@ export function localDateTime(value: string): number {
     ? time
     : Number.NaN;
 }
-export function validateProduct(
-  content: ProductContent,
-  publish: boolean
-): string[] {
-  const errors: string[] = [];
-  const { values, kind } = content;
-  for (const f of productFields(kind)) {
-    const value = values[f.key]?.trim() ?? "";
-    if (publish && f.required && !value)
-      errors.push(`${f.section}: ${f.label} is required`);
-    if (value && f.options && !f.options.includes(value))
-      errors.push(`${f.label}: select a listed option`);
-    if (
-      value &&
-      f.type === "datetime-local" &&
-      !Number.isFinite(localDateTime(value))
-    )
-      errors.push(`${f.label}: enter a valid date and time`);
-    if (value && f.type === "number" && !Number.isFinite(Number(value)))
-      errors.push(`${f.label}: enter a number`);
-  }
-  if (localDateTime(values.validTo) <= localDateTime(values.validFrom))
-    errors.push("Validity must end after it starts");
-  if (localDateTime(values.validTo) <= localDateTime(values.issuedAt))
-    errors.push("Validity must end after the issue time");
-  if (
-    values.nextUpdate &&
-    localDateTime(values.nextUpdate) <= localDateTime(values.issuedAt)
-  )
-    errors.push("Next update must follow the issue time");
-  if (
-    kind === "evening" &&
-    publish &&
-    Number.isFinite(localDateTime(values.issuedAt))
-  ) {
-    const issueDay = values.issuedAt.slice(0, 10);
-    for (let day = 1; day <= 4; day++) {
-      const expected = new Date(
-        Date.parse(`${issueDay}T12:00:00Z`) + day * 86_400_000
-      )
-        .toISOString()
-        .slice(0, 10);
-      if (values[`day${day}Date`] !== expected)
-        errors.push(`Day ${day} must be ${expected} (the following four days)`);
-      const min = values[`day${day}Min`];
-      const max = values[`day${day}Max`];
-      if (min && max && Number(min) > Number(max))
-        errors.push(`Day ${day}: minimum temperature exceeds maximum`);
-    }
-  }
-  if (
-    values.minTemperature &&
-    values.maxTemperature &&
-    Number(values.minTemperature) > Number(values.maxTemperature)
-  )
-    errors.push("Minimum temperature exceeds maximum");
-  return errors;
-}
 export function isCurrentProduct(product: PublishedProduct, now = Date.now()) {
+  const values = withForecastSchedule(product.kind, product.values);
   return (
-    localDateTime(product.values.issuedAt) <= now &&
-    localDateTime(product.values.validFrom) <= now &&
-    localDateTime(product.values.validTo) > now
+    Date.parse(product.publishedAt) <= now &&
+    localDateTime(values.issuedAt) <= now &&
+    localDateTime(values.validFrom) <= now &&
+    localDateTime(values.validTo) > now
   );
 }

@@ -1,5 +1,9 @@
 # API Testing Guide
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-07-25
+
 > Scope: FastAPI backend in `apps/api/fastapi`
 
 This guide focuses on current test and validation commands.
@@ -17,9 +21,6 @@ Run from `apps/api/fastapi`:
 
 # Full pytest suite
 docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api uv run --frozen --package fast-back pytest
-
-# Fast smoke suite (HTTP-level)
-docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api python scripts/quick_test.py
 ```
 
 ## Targeted Test Commands
@@ -84,8 +85,7 @@ Before promoting an API build:
 1. `./scripts/format.sh`
 2. `./scripts/lint.sh`
 3. `docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api uv run --frozen --package fast-back pytest --cov=src --cov-report=term`
-4. `docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api python scripts/quick_test.py`
-5. `docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api uv run --frozen --package fast-back alembic current`
+4. `docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec api uv run --frozen --package fast-back alembic current`
 
 ## Current Test Layout
 

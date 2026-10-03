@@ -80,7 +80,7 @@ test("lint-staged formats only staged files and preserves unstaged edits", (t) =
   assert.equal(git(repository, "show", ":notes.md"), "#Changed\n");
 });
 
-test("pre-push stops on type-check and test failures", (t) => {
+test("pre-push stops on lint, type-check and test failures", (t) => {
   const fixture = mkdtempSync(join(tmpdir(), "grenmet-pre-push-"));
   t.after(() => rmSync(fixture, { force: true, recursive: true }));
   const bin = join(fixture, "bin");
@@ -108,10 +108,18 @@ test("pre-push stops on type-check and test failures", (t) => {
 
   let result = run("sh", ["-e", prePushHook], {
     cwd: workspace,
+    env: { ...hookEnvironment, FAIL_STEP: "check:ci" },
+  });
+  assert.equal(result.status, 1);
+  assert.equal(readFileSync(log, "utf8"), "check:ci\n");
+
+  writeFileSync(log, "");
+  result = run("sh", ["-e", prePushHook], {
+    cwd: workspace,
     env: { ...hookEnvironment, FAIL_STEP: "type-check" },
   });
   assert.equal(result.status, 1);
-  assert.equal(readFileSync(log, "utf8"), "type-check\n");
+  assert.equal(readFileSync(log, "utf8"), "check:ci\ntype-check\n");
 
   writeFileSync(log, "");
   result = run("sh", ["-e", prePushHook], {
@@ -119,5 +127,5 @@ test("pre-push stops on type-check and test failures", (t) => {
     env: { ...hookEnvironment, FAIL_STEP: "test" },
   });
   assert.equal(result.status, 1);
-  assert.equal(readFileSync(log, "utf8"), "type-check\ntest\n");
+  assert.equal(readFileSync(log, "utf8"), "check:ci\ntype-check\ntest\n");
 });

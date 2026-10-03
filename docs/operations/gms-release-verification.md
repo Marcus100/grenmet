@@ -1,5 +1,9 @@
 # GMS/core release candidate verification
 
+**Status:** Active reference  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-09
+
 Candidate checkout: /tmp/gms-core-release.
 Release branch: release/gms-core-20260909 (baseline 2b3cd3c5).
 Combined branch: integration/dev-gms-core-20260909, incorporating local dev

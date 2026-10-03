@@ -81,7 +81,7 @@ const createFixture = () => {
       ...governedRoots,
       "docs/portfolio",
       "README.md",
-      "CLAUDE.md",
+      "AGENTS.md",
       "docs/technical-overview.md",
       "docs/quality-score.md",
     ]
@@ -91,7 +91,7 @@ const createFixture = () => {
 
   for (const file of [
     "README.md",
-    "CLAUDE.md",
+    "AGENTS.md",
     "docs/technical-overview.md",
     "docs/quality-score.md",
     "docs/strategy/barrels-product-strategy.md",

@@ -2,9 +2,9 @@
 
 import {
   type RosterGridPreview,
-  useImportGridApiV1HrRostersImportGridPost,
-  useListDepartmentsEndpointApiV1HrDepartmentsGet,
-  useValidateGridApiV1HrRostersImportGridValidatePost,
+  useHrImportGrid,
+  useHrListDepartments,
+  useHrValidateGrid,
 } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Checkbox } from "@barrelsgd/ui/components/ui/checkbox";
@@ -57,13 +57,12 @@ export function ImportRosterDialog() {
   const [publish, setPublish] = useState(false);
   const [preview, setPreview] = useState<RosterGridPreview | null>(null);
 
-  const departmentsQuery = useListDepartmentsEndpointApiV1HrDepartmentsGet();
+  const departmentsQuery = useHrListDepartments();
   const departments = departmentsQuery.data?.data ?? [];
   const deptId = departmentId || departments[0]?.id || "";
 
-  const validateMutation =
-    useValidateGridApiV1HrRostersImportGridValidatePost();
-  const importMutation = useImportGridApiV1HrRostersImportGridPost();
+  const validateMutation = useHrValidateGrid();
+  const importMutation = useHrImportGrid();
 
   const bounds = monthBounds(month);
   const ready = Boolean(deptId && bounds && csvText.trim());

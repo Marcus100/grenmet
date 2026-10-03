@@ -1,3 +1,4 @@
+import { AuthHeading, AuthShell } from "@/components/auth-shell";
 import { VerifyEmail } from "./verify-email";
 export default async function Page({
   searchParams,
@@ -6,9 +7,13 @@ export default async function Page({
 }) {
   const { token } = await searchParams;
   return (
-    <main className="mx-auto max-w-md space-y-4 p-6">
-      <h1 className="text-xl">Verify your email</h1>
+    <AuthShell greeting="Welcome" subtitle="Finish setting up your account.">
+      <AuthHeading title="Verify your email">
+        {token
+          ? "Choose the password you'll use to sign in."
+          : "We'll email you a link to verify your address and set a password."}
+      </AuthHeading>
       <VerifyEmail token={token ?? ""} />
-    </main>
+    </AuthShell>
   );
 }

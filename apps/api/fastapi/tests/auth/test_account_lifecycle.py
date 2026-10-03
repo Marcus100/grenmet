@@ -3,8 +3,8 @@ from datetime import timedelta
 import httpx
 import pyotp
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select
 from starlette.requests import Request
 
 from src.auth import account_security, modern_service, service

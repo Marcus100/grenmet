@@ -1,5 +1,6 @@
 import uuid
 from datetime import date
+from decimal import Decimal
 
 from pydantic import Field
 
@@ -85,6 +86,10 @@ class EmploymentCreate(BaseModel):
     position: str | None = Field(default=None, max_length=150)
     employment_type: EmploymentType = EmploymentType.FULL_TIME
     start_date: date | None = None
+    continuous_service_date: date | None = None
+    probation_end_date: date | None = None
+    probation_completed_date: date | None = None
+    service_details_source: str | None = Field(default=None, max_length=500)
     supervisor_id: uuid.UUID | None = None
     work_location: str | None = Field(default=None, max_length=255)
 
@@ -98,6 +103,10 @@ class EmploymentRecordPublic(BaseModel):
     position: str | None = None
     employment_type: EmploymentType | None = None
     start_date: date | None = None
+    continuous_service_date: date | None = None
+    probation_end_date: date | None = None
+    probation_completed_date: date | None = None
+    service_details_source: str | None = Field(default=None, max_length=500)
     supervisor_id: uuid.UUID | None = None
     work_location: str | None = None
     status: EmploymentStatus
@@ -141,6 +150,10 @@ class EmploymentPublic(BaseModel):
     position: str | None = None
     employment_type: EmploymentType | None = None
     start_date: date | None = None
+    continuous_service_date: date | None = None
+    probation_end_date: date | None = None
+    probation_completed_date: date | None = None
+    service_details_source: str | None = Field(default=None, max_length=500)
     supervisor_id: uuid.UUID | None = None
     work_location: str | None = None
     status: EmploymentStatus | None = None
@@ -159,8 +172,18 @@ class RosterPreferencesPublic(BaseModel):
 
 
 class LeavePublic(BaseModel):
-    balances: dict[str, int] = Field(default_factory=dict)
-    carry_over: dict[str, int] = Field(default_factory=dict)
+    balances: dict[str, Decimal] = Field(
+        default_factory=dict,
+        description="Current ledger balance in days for each leave type with a verified opening.",
+    )
+    unverified_carry_over: dict[str, int] = Field(
+        default_factory=dict,
+        description=(
+            "Legacy carry-over days not yet reconciled with the ledger. "
+            "Carry-over needs written approval (rule GAA-LV-VAC-CARRY-01); "
+            "these figures are not part of the balance."
+        ),
+    )
 
 
 class ApprovalAuthorityPublic(BaseModel):
@@ -237,6 +260,10 @@ class EmploymentUpdate(BaseModel):
     position: str | None = Field(default=None, max_length=150)
     employment_type: EmploymentType | None = None
     start_date: date | None = None
+    continuous_service_date: date | None = None
+    probation_end_date: date | None = None
+    probation_completed_date: date | None = None
+    service_details_source: str | None = Field(default=None, max_length=500)
     supervisor_id: uuid.UUID | None = None
     work_location: str | None = Field(default=None, max_length=255)
     status: EmploymentStatus | None = None

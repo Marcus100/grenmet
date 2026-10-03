@@ -1,7 +1,7 @@
 "use client";
 
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { Transition } from "@headlessui/react";
-import { clsx } from "cn";
 import { forwardRef, useState } from "react";
 
 function CheckIcon(props: React.ComponentPropsWithoutRef<"svg">) {
@@ -38,7 +38,7 @@ const FeedbackForm = forwardRef<
   return (
     <form
       {...props}
-      className={clsx(
+      className={cn(
         className,
         "absolute inset-0 flex items-center justify-center gap-6 md:justify-start"
       )}
@@ -64,7 +64,7 @@ const FeedbackThanks = forwardRef<
   return (
     <div
       {...props}
-      className={clsx(
+      className={cn(
         className,
         "absolute inset-0 flex justify-center md:justify-start"
       )}

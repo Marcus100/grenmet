@@ -1,13 +1,14 @@
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select
 
-from src.auth.models import Permission, Role
+from src.auth.models import Permission, Role, RoleAssignmentScope
 from src.auth.schemas import UserCreate
 from src.auth.service import create_user
 from src.hr.models import Department
 from src.hr.roster.models import ShiftCatalog, ShiftCategory
 from src.hr.roster.schemas import RosterCsvValidationRequest
 from src.hr.roster.service import validate_roster_csv
+from tests.factories import assign_role
 from tests.utils.utils import random_email, random_lower_string
 
 
@@ -67,6 +68,14 @@ async def test_roster_csv_validation_detects_invalid_shift(
     db_async.add(compatible_permission)
     db_async.add(user)
     await db_async.commit()
+
+    await assign_role(
+        db_async,
+        user=user,
+        role=role,
+        scope=RoleAssignmentScope.DEPARTMENT,
+        department_id="dept_csv",
+    )
 
     response = await validate_roster_csv(
         session=db_async,

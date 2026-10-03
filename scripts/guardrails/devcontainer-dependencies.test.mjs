@@ -14,11 +14,7 @@ const config = JSON.parse(
     .join("\n")
 );
 const projects = globSync(
-  [
-    "apps/web/*/package.json",
-    "apps/api/honoapi/package.json",
-    "packages/*/package.json",
-  ],
+  ["apps/web/*/package.json", "packages/*/package.json"],
   { cwd: root }
 )
   .map(dirname)

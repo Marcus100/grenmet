@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  readDocumentEmployeesApiV1HrDocumentEmployeesGet,
-  readOrganisationsApiV1HrOrganisationsGet,
+  hrGetDocumentEmployees,
+  hrGetOrganisations,
 } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
@@ -16,7 +16,7 @@ export function DocumentWorkspace() {
   const [selectedOrganisation, setSelectedOrganisation] = useState("");
   const organisations = useQuery({
     queryKey: ["hr-organisations"],
-    queryFn: () => readOrganisationsApiV1HrOrganisationsGet().unwrap(),
+    queryFn: () => hrGetOrganisations().unwrap(),
   });
   const organisationId =
     selectedOrganisation ||
@@ -30,7 +30,7 @@ export function DocumentWorkspace() {
     queryKey: ["document-employees", organisationId, search, page],
     enabled: Boolean(organisationId),
     queryFn: () =>
-      readDocumentEmployeesApiV1HrDocumentEmployeesGet({
+      hrGetDocumentEmployees({
         query: { search, page, size: 20, organisation_id: organisationId },
       }).unwrap(),
   });

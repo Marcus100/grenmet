@@ -1,10 +1,4 @@
-import { BULLETIN_CATEGORIES } from "@barrelsgd/gms/products";
-export function bulletinHref(name: string) {
-  const category = Object.entries(BULLETIN_CATEGORIES).find(
-    ([, label]) => label === name
-  )?.[0];
-  return category ? `/bulletins/${category}` : "/products/bulletins";
-}
+import type { BULLETIN_CATEGORIES } from "@barrelsgd/gms/products";
 export const BULLETIN_GUIDANCE: Record<
   keyof typeof BULLETIN_CATEGORIES,
   string

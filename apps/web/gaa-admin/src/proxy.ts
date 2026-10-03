@@ -1,6 +1,10 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import { getSessionCookieName } from "@/lib/auth-config";
+import {
+  getAuthApiBaseUrl,
+  getAuthApiPrefix,
+  getSessionCookieName,
+} from "@/lib/auth-config";
 
 const PUBLIC_PATHS = ["/signin", "/api", "/auth/logout", "/auth/logout-all"];
 
@@ -13,6 +17,25 @@ function isPublicPath(pathname: string): boolean {
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
   const path = pathname === "" ? "/" : pathname;
+  // Runtime routing only: FastAPI validates cookies and CSRF. This avoids
+  // baking environment-specific API hosts into the standalone build.
+  let upstreamPath: string | null = null;
+  if (path === "/_backend/browser-session")
+    upstreamPath = "/auth/browser/session";
+  else if (path.startsWith("/_backend/weather/")) {
+    upstreamPath = `/wxproducts/${path.slice("/_backend/weather/".length)}`;
+  }
+  if (path.startsWith("/_backend/wxwatch/")) {
+    upstreamPath = `/wxwatch/${path.slice("/_backend/wxwatch/".length)}`;
+  }
+  if (upstreamPath) {
+    const target = new URL(
+      `${getAuthApiPrefix()}${upstreamPath}`,
+      getAuthApiBaseUrl()
+    );
+    target.search = search;
+    return NextResponse.rewrite(target);
+  }
   const sessionToken = request.cookies.get(getSessionCookieName())?.value;
 
   if (isPublicPath(path)) {

@@ -20,7 +20,11 @@
       // Vendored GMS ops apps — keep upstream formatting so future upstream
       // diffs stay clean (see VENDORED.md).
       "!surface",
-      "!wis2box"
+      "!wis2box",
+      // Payload regenerates these on every CMS dev start in its own format;
+      // linting them fails check:ci with no real change.
+      "!apps/web/cms/src/payload-types.ts",
+      "!apps/web/cms/src/app/(payload)/admin/importMap.js"
     ]
   },
   "linter": {
@@ -197,7 +201,6 @@
         "**/instrumentation-client.ts",
         "**/sentry.server.config.ts",
         "**/sentry.edge.config.ts",
-        "**/drizzle.config.ts",
         "**/next.config.ts",
         "**/next.config.mjs",
         "**/playwright.config.ts"

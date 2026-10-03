@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 `/ui-check` compares an implementation against a reference. This does the opposite job: it judges a surface **on its own terms** when there is no canvas to compare against — "this looks off and I don't know why."
 
-Load [`refactoring-ui`](../refactoring-ui/SKILL.md) before starting. Every finding must trace to a named principle in it; a critique you cannot attribute is taste, not review.
+Load [`refactoring-ui`](../refactoring-ui/SKILL.md) and the lane spec (`docs/design/<lane>.md`) before starting. Every finding must trace to a named principle in it; a critique you cannot attribute is taste, not review.
 
 ## Step 1 — Get the subject
 
@@ -40,13 +40,13 @@ This is the yardstick for everything that follows. A hierarchy finding is only m
 
 ## Step 3 — Walk the ladder in order
 
-Work rungs 1→7 from the `refactoring-ui` ladder, loading each chapter file as you reach it. **Do not skip ahead** — a spacing complaint on a page with broken hierarchy wastes the user's attention on the wrong fix.
+Work rungs 1→8 from the `refactoring-ui` ladder, loading each chapter file as you reach it. **Do not skip ahead** — a spacing complaint on a page with broken hierarchy wastes the user's attention on the wrong fix.
 
 At each rung, record findings as:
 
 | Field | Content |
 |---|---|
-| Rung | hierarchy / spacing / type / colour / depth / images / finish |
+| Rung | hierarchy / spacing / type / colour / depth / images / finish / craft |
 | Observation | what is actually on screen, concretely |
 | Principle | the named rule it violates, e.g. "Emphasise by de-emphasising" |
 | Fix | the specific change, expressed in existing tokens or utilities |

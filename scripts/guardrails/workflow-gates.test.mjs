@@ -81,10 +81,17 @@ test("API gate permits only intentionally omitted Docker checks", () => {
     "quality",
     "security",
     "test",
+    "collectors",
     "docker",
     "docs",
   ])
-    assert.notEqual(run({ [job]: "failure" }, "false"), 0);
+    for (const result of ["failure", "cancelled", "skipped"])
+      if (job !== "docker" || result !== "skipped")
+        assert.notEqual(
+          run({ [job]: result }, "false"),
+          0,
+          `${job}: ${result}`
+        );
 });
 
 test("publishing follows successful smoke verification on the same builder", () => {

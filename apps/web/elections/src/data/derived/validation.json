@@ -1,0 +1,579 @@
+{
+  "summary": {
+    "pass": 89,
+    "fail": 0,
+    "known": 5,
+    "candidateVerification": {
+      "unverified": 109,
+      "check": 5,
+      "official": 497,
+      "corroborated": 92
+    }
+  },
+  "checks": [
+    {
+      "area": "2013 election",
+      "check": "NNP total equals the PEO Final Summary (32,205)",
+      "status": "pass",
+      "detail": "got 32,205"
+    },
+    {
+      "area": "2013 election",
+      "check": "NDC total equals the PEO Final Summary (22,377)",
+      "status": "pass",
+      "detail": "got 22,377"
+    },
+    {
+      "area": "2013 election",
+      "check": "Sum of constituency rejected ballots equals the Final Summary (201)",
+      "status": "pass",
+      "detail": "got 201"
+    },
+    {
+      "area": "2013 election",
+      "check": "Sum of constituency ballots cast equals the Final Summary (55,058)",
+      "status": "pass",
+      "detail": "got 55,058"
+    },
+    {
+      "area": "2013 election",
+      "check": "Sum of constituency registered voters equals the Final Summary (62,155)",
+      "status": "pass",
+      "detail": "got 62,155"
+    },
+    {
+      "area": "2013 election",
+      "check": "Every constituency: ballots cast = valid votes + rejected",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "2013 election",
+      "check": "Polling stations add up to each constituency result",
+      "status": "pass",
+      "detail": "St. Patrick East 2022 excluded: report pages missing (E-07)"
+    },
+    {
+      "area": "2018 election",
+      "check": "NNP total equals the PEO Final Summary (33,792)",
+      "status": "pass",
+      "detail": "got 33,792"
+    },
+    {
+      "area": "2018 election",
+      "check": "NDC total equals the PEO Final Summary (23,249)",
+      "status": "pass",
+      "detail": "got 23,249"
+    },
+    {
+      "area": "2018 election",
+      "check": "Sum of constituency rejected ballots equals the Final Summary (251)",
+      "status": "pass",
+      "detail": "got 251"
+    },
+    {
+      "area": "2018 election",
+      "check": "Sum of constituency ballots cast equals the Final Summary (57,615)",
+      "status": "pass",
+      "detail": "got 57,615"
+    },
+    {
+      "area": "2018 election",
+      "check": "Sum of constituency registered voters equals the Final Summary (78,295)",
+      "status": "pass",
+      "detail": "got 78,295"
+    },
+    {
+      "area": "2018 election",
+      "check": "Every constituency: ballots cast = valid votes + rejected",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "2018 election",
+      "check": "Polling stations add up to each constituency result",
+      "status": "pass",
+      "detail": "St. Patrick East 2022 excluded: report pages missing (E-07)"
+    },
+    {
+      "area": "2022 election",
+      "check": "NNP total equals the PEO Final Summary (28,960)",
+      "status": "pass",
+      "detail": "got 28,960"
+    },
+    {
+      "area": "2022 election",
+      "check": "NDC total equals the PEO Final Summary (31,432)",
+      "status": "pass",
+      "detail": "got 31,432"
+    },
+    {
+      "area": "2022 election",
+      "check": "Sum of constituency rejected ballots equals the Final Summary (218)",
+      "status": "pass",
+      "detail": "got 218"
+    },
+    {
+      "area": "2022 election",
+      "check": "Sum of constituency ballots cast equals the Final Summary (60,853)",
+      "status": "pass",
+      "detail": "got 60,853"
+    },
+    {
+      "area": "2022 election",
+      "check": "Sum of constituency registered voters equals the Final Summary (87,566)",
+      "status": "pass",
+      "detail": "got 87,566"
+    },
+    {
+      "area": "2022 election",
+      "check": "Every constituency: ballots cast = valid votes + rejected",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "2022 election",
+      "check": "Polling stations add up to each constituency result",
+      "status": "pass",
+      "detail": "St. Patrick East 2022 excluded: report pages missing (E-07)"
+    },
+    {
+      "area": "1984 election",
+      "check": "Registered voters by constituency sum to the national total (48,158)",
+      "status": "pass",
+      "detail": "got 48,158"
+    },
+    {
+      "area": "1995 election",
+      "check": "Registered voters by constituency sum to the national total (71,413)",
+      "status": "pass",
+      "detail": "got 71,413"
+    },
+    {
+      "area": "1999 election",
+      "check": "Registered voters by constituency sum to the national total (73,673)",
+      "status": "pass",
+      "detail": "got 73,673"
+    },
+    {
+      "area": "2003 election",
+      "check": "Registered voters by constituency sum to the national total (82,278)",
+      "status": "pass",
+      "detail": "got 82,278"
+    },
+    {
+      "area": "2008 election",
+      "check": "Registered voters by constituency sum to the national total (71,751)",
+      "status": "pass",
+      "detail": "got 71,751"
+    },
+    {
+      "area": "1990 election",
+      "check": "Electors on the roll available for every constituency",
+      "status": "pass",
+      "detail": "from The Grenada Newsletter; the PEO document’s column is unusable (E-04)"
+    },
+    {
+      "area": "1990 election",
+      "check": "All 15 winners’ votes equal the Supervisor of Elections’ Gazette declaration",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "1990 election",
+      "check": "Each constituency’s candidates sum to the votes cast printed in The Grenada Newsletter",
+      "status": "known",
+      "detail": "D: 2315 vs 2317 (likely rejected ballots)"
+    },
+    {
+      "area": "1976 election",
+      "check": "Electors in the 15 constituencies sum to the Gazette’s stated 63,193",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "1976 election",
+      "check": "Candidate votes reproduce the Newsletter’s printed totals (Alliance 19,671; GULP 21,085)",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "1972 election",
+      "check": "Electors in the 15 constituencies sum to the Gazette’s stated 41,529",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "1972 election",
+      "check": "Town of St. George: polling divisions add up to printed totals",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "1972 election",
+      "check": "St. George North West: polling divisions add up to printed totals",
+      "status": "known",
+      "detail": "In the Gazette, the polling-division figures add up to G. Hosten 1,341 and K. Mitchell 558, but the printed totals are 1,340 and 558. The printed totals are shown."
+    },
+    {
+      "area": "1972 election",
+      "check": "St. George North East: polling divisions add up to printed totals",
+      "status": "known",
+      "detail": "In the Gazette, the polling-division figures add up to F. Dolland 1,502 and F. O'Neale 1,337, but the printed totals are 1,504 and 1,292. The printed totals are shown."
+    },
+    {
+      "area": "1972 election",
+      "check": "St. George South East: polling divisions add up to printed totals",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "1972 election",
+      "check": "St. George South: polling divisions add up to printed totals",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "1972 election",
+      "check": "St. John: polling divisions add up to printed totals",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "1972 election",
+      "check": "St. Mark: polling divisions add up to printed totals",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "1972 election",
+      "check": "St. Patrick East: polling divisions add up to printed totals",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "1972 election",
+      "check": "St. Patrick West: polling divisions add up to printed totals",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "1972 election",
+      "check": "St. Andrew North East: polling divisions add up to printed totals",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "1972 election",
+      "check": "St. Andrew North West: polling divisions add up to printed totals",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "1972 election",
+      "check": "St. Andrew South West: polling divisions add up to printed totals",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "1972 election",
+      "check": "St. Andrew South East: polling divisions add up to printed totals",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "1972 election",
+      "check": "St. David: polling divisions add up to printed totals",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "1972 election",
+      "check": "Carriacou & Petite Martinique: polling divisions add up to printed totals",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "1972 election",
+      "check": "Seat totals match the recorded outcome (GULP 13, GNP 2)",
+      "status": "pass",
+      "detail": "{'GULP': 13, 'GNP': 2}"
+    },
+    {
+      "area": "1976 election",
+      "check": "Seat totals match the recorded outcome (GULP 9, PA 6)",
+      "status": "pass",
+      "detail": "{'PA': 6, 'GULP': 9}"
+    },
+    {
+      "area": "1984 election",
+      "check": "Seat totals match the recorded outcome (NNP 14, GULP 1)",
+      "status": "pass",
+      "detail": "{'NNP': 14, 'GULP': 1}"
+    },
+    {
+      "area": "1990 election",
+      "check": "Seat totals match the recorded outcome (NDC 7, GULP 4, TNP 2, NNP 2)",
+      "status": "pass",
+      "detail": "{'NDC': 7, 'GULP': 4, 'TNP': 2, 'NNP': 2}"
+    },
+    {
+      "area": "1995 election",
+      "check": "Seat totals match the recorded outcome (NNP 8, NDC 5, GULP 2)",
+      "status": "pass",
+      "detail": "{'NDC': 5, 'GULP': 2, 'NNP': 8}"
+    },
+    {
+      "area": "1999 election",
+      "check": "Seat totals match the recorded outcome (NNP 15)",
+      "status": "pass",
+      "detail": "{'NNP': 15}"
+    },
+    {
+      "area": "2003 election",
+      "check": "Seat totals match the recorded outcome (NNP 8, NDC 7)",
+      "status": "pass",
+      "detail": "{'NNP': 8, 'NDC': 7}"
+    },
+    {
+      "area": "2008 election",
+      "check": "Seat totals match the recorded outcome (NDC 11, NNP 4)",
+      "status": "pass",
+      "detail": "{'NNP': 4, 'NDC': 11}"
+    },
+    {
+      "area": "2013 election",
+      "check": "Seat totals match the recorded outcome (NNP 15)",
+      "status": "pass",
+      "detail": "{'NNP': 15}"
+    },
+    {
+      "area": "2018 election",
+      "check": "Seat totals match the recorded outcome (NNP 15)",
+      "status": "pass",
+      "detail": "{'NNP': 15}"
+    },
+    {
+      "area": "2022 election",
+      "check": "Seat totals match the recorded outcome (NDC 9, NNP 6)",
+      "status": "pass",
+      "detail": "{'NDC': 9, 'NNP': 6}"
+    },
+    {
+      "area": "2016 referendum",
+      "check": "Station Yes/No totals equal the certificate’s national total (51,946 / 100,140)",
+      "status": "pass",
+      "detail": "{'yes': 51946, 'no': 100140}"
+    },
+    {
+      "area": "2018 referendum",
+      "check": "Every readable station: Yes + No + rejected = voted",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "2018 referendum",
+      "check": "All stations readable in the official Gazette",
+      "status": "known",
+      "detail": "5 constituencies unreadable in the damaged PDF (R-04)"
+    },
+    {
+      "area": "Voter register",
+      "check": "2019-12-31: every polling division has electors",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2019-12-31: sex recorded for every elector",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2020-06-30: every polling division has electors",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2020-06-30: sex recorded for every elector",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2020-12-31: every polling division has electors",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2020-12-31: sex recorded for every elector",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2021-06-30: every polling division has electors",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2021-06-30: sex recorded for every elector",
+      "status": "known",
+      "detail": "H07: 1 elector(s) with sex blank or unreadable in the published list"
+    },
+    {
+      "area": "Voter register",
+      "check": "2021-12-31: every polling division has electors",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2021-12-31: sex recorded for every elector",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2022-05-27: every polling division has electors",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2022-05-27: sex recorded for every elector",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2022-06-10: every polling division has electors",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2022-06-10: sex recorded for every elector",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2022-12-31: every polling division has electors",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2022-12-31: sex recorded for every elector",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2023-06-30: every polling division has electors",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2023-06-30: sex recorded for every elector",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2023-12-31: every polling division has electors",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2023-12-31: sex recorded for every elector",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2024-06-30: every polling division has electors",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2024-06-30: sex recorded for every elector",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2024-12-31: every polling division has electors",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2024-12-31: sex recorded for every elector",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2025-06-30: every polling division has electors",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2025-06-30: sex recorded for every elector",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2025-12-31: every polling division has electors",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2025-12-31: sex recorded for every elector",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2026-06-30: every polling division has electors",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Voter register",
+      "check": "2026-06-30: sex recorded for every elector",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "Map",
+      "check": "Every 2022 polling division has a shape",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "All elections",
+      "check": "No negative vote counts",
+      "status": "pass",
+      "detail": ""
+    },
+    {
+      "area": "All elections",
+      "check": "Every contested seat has votes",
+      "status": "pass",
+      "detail": ""
+    }
+  ]
+}

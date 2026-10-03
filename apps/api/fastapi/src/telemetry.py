@@ -1,11 +1,22 @@
 """Content-minimising Sentry policy shared by HTTP and CAP workers."""
 
+import os
 from typing import Any
+
+# Tags without customer content or identity; must match the web scrubber in
+# packages/ui/src/lib/sentry-privacy.ts.
+SAFE_TAGS = frozenset({"area", "digest"})
 
 
 def scrub_sentry_event(event: dict[str, Any], _hint: dict[str, Any]) -> dict[str, Any]:
     """Retain error types/stacks, never request payloads, locals or draft content."""
     had_logentry = bool(event.get("logentry"))
+    tags = event.get("tags")
+    safe_tags = (
+        {k: v for k, v in tags.items() if k in SAFE_TAGS and isinstance(v, str)}
+        if isinstance(tags, dict)
+        else {}
+    )
     for key in (
         "user",
         "request",
@@ -17,6 +28,8 @@ def scrub_sentry_event(event: dict[str, Any], _hint: dict[str, Any]) -> dict[str
         "transaction",
     ):
         event.pop(key, None)
+    if safe_tags:
+        event["tags"] = safe_tags
     if event.get("message"):
         event["message"] = "[redacted]"
     elif had_logentry:
@@ -36,4 +49,6 @@ def sentry_options() -> dict[str, Any]:
         "max_request_body_size": "never",
         "traces_sample_rate": 0.0,
         "before_send": scrub_sentry_event,
+        "before_send_transaction": lambda _event, _hint: None,
+        "release": os.environ.get("SENTRY_RELEASE"),
     }

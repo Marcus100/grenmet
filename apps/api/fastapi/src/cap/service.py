@@ -1,7 +1,7 @@
 import hashlib
 import logging
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 from urllib.parse import urlparse
 
@@ -9,9 +9,9 @@ import feedparser  # type: ignore[import-untyped]
 import httpx
 import sqlalchemy as sa
 from fastapi.concurrency import run_in_threadpool
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from sqlmodel import col, select
 
 from src.auth.models import User
 from src.auth.policy import require_permission
@@ -24,6 +24,7 @@ from src.cap.exceptions import (
     CapStateError,
     CapValidationFailedError,
 )
+from src.cap.levels import read_level
 from src.cap.models import (
     CapAlert,
     CapArea,
@@ -75,6 +76,7 @@ from src.cap.schemas import (
     CapSettingsUpdate,
     CapSnapshotPublic,
     CapValidationResult,
+    PublicWarnings,
 )
 from src.cap.sign import is_signing_enabled, sign_xml, signing_key_ref
 from src.cap.tasks import enqueue_publish_side_effects
@@ -182,10 +184,10 @@ def _to_public_from_loaded(alert: CapAlert) -> CapAlertPublic:
 def _alert_selectinload_options() -> list[Any]:
     """Standard selectinload options for eager-loading all alert children."""
     return [
-        selectinload(CapAlert.info_blocks).selectinload(CapInfo.resources),  # type: ignore[arg-type]
-        selectinload(CapAlert.info_blocks).selectinload(CapInfo.areas),  # type: ignore[arg-type]
-        selectinload(CapAlert.cap_references),  # type: ignore[arg-type]
-        selectinload(CapAlert.incidents),  # type: ignore[arg-type]
+        selectinload(CapAlert.info_blocks).selectinload(CapInfo.resources),
+        selectinload(CapAlert.info_blocks).selectinload(CapInfo.areas),
+        selectinload(CapAlert.cap_references),
+        selectinload(CapAlert.incidents),
     ]
 
 
@@ -203,7 +205,7 @@ async def list_alerts(
         base = base.where(CapAlert.lifecycle_state == lifecycle_state)
     total = await session.scalar(select(sa.func.count()).select_from(base.subquery()))
     stmt = (
-        base.order_by(col(CapAlert.sent).desc())
+        base.order_by(CapAlert.sent.desc())
         .offset(skip)
         .limit(limit)
         .options(*_alert_selectinload_options())
@@ -268,7 +270,7 @@ async def import_alert(
     payload = xml_to_alert_data(raw_xml)  # raises CapImportError on bad XML
     if payload.identifier:
         existing = await session.execute(
-            select(CapAlert).where(col(CapAlert.identifier) == payload.identifier)
+            select(CapAlert).where(CapAlert.identifier == payload.identifier)
         )
         if existing.scalars().first() is not None:
             raise CapImportError(f"alert {payload.identifier} already exists")
@@ -372,6 +374,9 @@ async def duplicate_alert(
     require_permission(current_user=current_user, permission_key="cap.alert.create")
     original = await get_alert_or_404(session=session, alert_id=alert_id)
     public = await _to_public(session=session, alert=original)
+    # Database timestamps are naive UTC; use the public UTC representation when
+    # constructing a new input, whose timestamps must carry explicit offsets.
+    public = CapAlertPublic.model_validate(public.model_dump(mode="json"))
     payload = CapAlertCreate(
         sender=public.sender,
         status=CapStatus.DRAFT,
@@ -521,28 +526,60 @@ async def publish_alert(
 ) -> tuple[CapAlertPublic, CapSnapshotPublic]:
     require_permission(current_user=current_user, permission_key="cap.alert.publish")
     alert = await get_alert_or_404(session=session, alert_id=alert_id)
-    if alert.lifecycle_state != CapLifecycleState.APPROVED:
-        raise CapStateError("Only approved CAP alerts can be published.")
+    # Submit/approve remain available as an optional, non-blocking review step
+    # (ADR-0013) rather than a required gate: publish is allowed straight from
+    # Draft, or from Submitted/Approved for whoever chose to route through them.
+    if alert.lifecycle_state not in {
+        CapLifecycleState.DRAFT,
+        CapLifecycleState.SUBMITTED,
+        CapLifecycleState.APPROVED,
+    }:
+        raise CapStateError(
+            "Only a draft, submitted or approved alert can be published."
+        )
     public = await _to_public(session=session, alert=alert)
     validation = validate_cap_alert(public)
     if not validation.is_valid:
         raise CapValidationFailedError(validation.errors)
+    replaced = await _published_references_for_update(
+        session=session, alert=alert, public=public
+    )
     xml = alert_to_cap_xml(public)
     snapshot = _snapshot_from_xml(alert=alert, xml=xml)
     session.add(snapshot)
     previous_state = alert.lifecycle_state.value
-    alert.lifecycle_state = (
-        CapLifecycleState.CANCELLED
-        if alert.msg_type == CapMessageType.CANCEL
-        else CapLifecycleState.PUBLISHED
-    )
-    alert.published_at = utc_now()
+    now = utc_now()
+    alert.lifecycle_state = CapLifecycleState.PUBLISHED
+    alert.published_at = now
     alert.updated_by_user_id = current_user.id
-    alert.updated_at = utc_now()
+    alert.updated_at = now
     session.add(alert)
+    for predecessor in replaced:
+        previous = predecessor.lifecycle_state.value
+        predecessor.lifecycle_state = (
+            CapLifecycleState.CANCELLED
+            if alert.msg_type == CapMessageType.CANCEL
+            else CapLifecycleState.EXPIRED
+        )
+        predecessor.expired_at = now
+        predecessor.updated_by_user_id = current_user.id
+        predecessor.updated_at = now
+        _record_audit(
+            session=session,
+            alert_id=predecessor.id,
+            actor=current_user,
+            action="cancel" if alert.msg_type == CapMessageType.CANCEL else "supersede",
+            previous_state=previous,
+            next_state=predecessor.lifecycle_state.value,
+            note=f"Replaced by {alert.identifier}",
+        )
     await session.flush()
     await enqueue_publish_side_effects(
-        session=session, alert_id=alert.id, snapshot_id=snapshot.id
+        session=session,
+        alert_id=alert.id,
+        snapshot_id=snapshot.id,
+        status=alert.status,
+        scope=alert.scope,
     )
     _record_audit(
         session=session,
@@ -566,7 +603,11 @@ async def publish_alert(
             "user_id": str(current_user.id),
         },
     )
-    await invalidate(*PUBLIC_FEED_KEYS, public_xml_key(alert.identifier))
+    await invalidate(
+        *PUBLIC_FEED_KEYS,
+        public_xml_key(alert.identifier),
+        *(public_xml_key(item.identifier) for item in replaced),
+    )
     return await _to_public(
         session=session, alert=alert
     ), CapSnapshotPublic.model_validate(snapshot, from_attributes=True)
@@ -580,33 +621,76 @@ async def cancel_alert(
     payload: CapAlertAction,
 ) -> CapAlertPublic:
     require_permission(current_user=current_user, permission_key="cap.alert.publish")
-    alert = await get_alert_or_404(session=session, alert_id=alert_id)
-    if alert.lifecycle_state != CapLifecycleState.PUBLISHED:
-        raise CapStateError("Only published CAP alerts can be cancelled.")
-    previous_state = alert.lifecycle_state.value
-    if alert.msg_type != CapMessageType.CANCEL:
-        session.add(
-            CapReference(
-                alert_id=alert.id,
-                sequence=0,
-                sender=alert.sender,
-                identifier=alert.identifier,
-                sent=alert.sent,
+    alert = (
+        (
+            await session.execute(
+                select(CapAlert).where(CapAlert.id == alert_id).with_for_update()
             )
         )
-    alert.msg_type = CapMessageType.CANCEL
+        .scalars()
+        .first()
+    )
+    if alert is None:
+        raise CapAlertNotFoundError()
+    if alert.lifecycle_state != CapLifecycleState.PUBLISHED:
+        raise CapStateError("Only published CAP alerts can be cancelled.")
+    if alert.msg_type not in {CapMessageType.ALERT, CapMessageType.UPDATE}:
+        raise CapStateError("Only an Alert or Update can be cancelled.")
+    reason = (payload.note or "").strip()
+    if not reason:
+        raise CapValidationFailedError(["A cancellation reason is required."])
+    now = utc_now()
+    settings = await get_or_create_settings(session=session)
+    cancellation = CapAlert(
+        identifier=_new_identifier(settings=settings),
+        sender=alert.sender,
+        sent=now,
+        status=alert.status,
+        msg_type=CapMessageType.CANCEL,
+        source=alert.source,
+        scope=alert.scope,
+        restriction=alert.restriction,
+        addresses=alert.addresses,
+        codes=alert.codes,
+        note=reason,
+        lifecycle_state=CapLifecycleState.PUBLISHED,
+        created_by_user_id=current_user.id,
+        updated_by_user_id=current_user.id,
+        published_at=now,
+    )
+    session.add(cancellation)
+    await session.flush()
+    session.add(
+        CapReference(
+            alert_id=cancellation.id,
+            sequence=0,
+            sender=alert.sender,
+            identifier=alert.identifier,
+            sent=alert.sent,
+        )
+    )
+    await session.flush()
+    public_cancel = await _to_public(session=session, alert=cancellation)
+    validation = validate_cap_alert(public_cancel)
+    if not validation.is_valid:
+        raise CapValidationFailedError(validation.errors)
+    snapshot = _snapshot_from_xml(
+        alert=cancellation, xml=alert_to_cap_xml(public_cancel)
+    )
+    session.add(snapshot)
+    previous_state = alert.lifecycle_state.value
     alert.lifecycle_state = CapLifecycleState.CANCELLED
+    alert.expired_at = now
     alert.updated_by_user_id = current_user.id
-    alert.updated_at = utc_now()
+    alert.updated_at = now
     session.add(alert)
     await session.flush()
-    public = await _to_public(session=session, alert=alert)
-    xml = alert_to_cap_xml(public)
-    snapshot = _snapshot_from_xml(alert=alert, xml=xml)
-    session.add(snapshot)
-    await session.flush()
     await enqueue_publish_side_effects(
-        session=session, alert_id=alert.id, snapshot_id=snapshot.id
+        session=session,
+        alert_id=cancellation.id,
+        snapshot_id=snapshot.id,
+        status=cancellation.status,
+        scope=cancellation.scope,
     )
     _record_audit(
         session=session,
@@ -615,13 +699,70 @@ async def cancel_alert(
         action="cancel",
         previous_state=previous_state,
         next_state=alert.lifecycle_state.value,
-        note=payload.note,
-        payload={"snapshot_id": str(snapshot.id)},
+        note=reason,
+        payload={
+            "snapshot_id": str(snapshot.id),
+            "cancellation_identifier": cancellation.identifier,
+        },
     )
     await session.commit()
     await session.refresh(alert)
-    await invalidate(*PUBLIC_FEED_KEYS, public_xml_key(alert.identifier))
+    await invalidate(
+        *PUBLIC_FEED_KEYS,
+        public_xml_key(alert.identifier),
+        public_xml_key(cancellation.identifier),
+    )
     return await _to_public(session=session, alert=alert)
+
+
+async def _published_references_for_update(
+    *, session: AsyncSession, alert: CapAlert, public: CapAlertPublic
+) -> list[CapAlert]:
+    if alert.msg_type not in {CapMessageType.UPDATE, CapMessageType.CANCEL}:
+        return []
+    if alert.msg_type == CapMessageType.CANCEL and not (public.note or "").strip():
+        raise CapValidationFailedError(["A cancellation reason is required."])
+    if not public.references:
+        raise CapValidationFailedError(["Update and Cancel require a reference."])
+    predecessors: list[CapAlert] = []
+    identifiers: set[str] = set()
+    for reference in public.references:
+        if (
+            reference.identifier == alert.identifier
+            or reference.identifier in identifiers
+        ):
+            raise CapValidationFailedError(
+                ["References must be distinct earlier messages."]
+            )
+        identifiers.add(reference.identifier)
+        target = (
+            (
+                await session.execute(
+                    select(CapAlert)
+                    .where(CapAlert.identifier == reference.identifier)
+                    .with_for_update()
+                )
+            )
+            .scalars()
+            .first()
+        )
+        if (
+            target is None
+            or target.sender != reference.sender
+            or target.sent != _as_naive(reference.sent)
+            or target.sender != alert.sender
+            or target.scope != alert.scope
+            or target.status != alert.status
+            or target.msg_type not in {CapMessageType.ALERT, CapMessageType.UPDATE}
+            or target.lifecycle_state != CapLifecycleState.PUBLISHED
+        ):
+            raise CapValidationFailedError(
+                [
+                    f"Reference {reference.identifier} is not a current message from this sender."
+                ]
+            )
+        predecessors.append(target)
+    return predecessors
 
 
 async def expire_alert(
@@ -651,9 +792,7 @@ async def expire_alert(
 
 
 async def get_or_create_settings(*, session: AsyncSession) -> CapSettings:
-    result = await session.execute(
-        select(CapSettings).order_by(col(CapSettings.created_at))
-    )
+    result = await session.execute(select(CapSettings).order_by(CapSettings.created_at))
     settings = result.scalars().first()
     if settings:
         return settings
@@ -754,7 +893,7 @@ async def list_audit_events(
         base = base.where(CapAuditEvent.alert_id == alert_id)
     total = await session.scalar(select(sa.func.count()).select_from(base.subquery()))
     result = await session.execute(
-        base.order_by(col(CapAuditEvent.created_at).desc()).offset(skip).limit(limit)
+        base.order_by(CapAuditEvent.created_at.desc()).offset(skip).limit(limit)
     )
     events = [
         CapAuditEventPublic.model_validate(event, from_attributes=True)
@@ -779,7 +918,7 @@ async def list_integrations(
     ).scalars()
     jobs = (
         await session.execute(
-            select(CapJobEvent).order_by(col(CapJobEvent.created_at).desc()).limit(100)
+            select(CapJobEvent).order_by(CapJobEvent.created_at.desc()).limit(100)
         )
     ).scalars()
     return {
@@ -818,18 +957,89 @@ async def list_integrations(
 
 
 async def public_latest_active(*, session: AsyncSession) -> CapAlertListPublic:
-    alerts = await _public_alerts_by_state(
-        session=session, states={CapLifecycleState.PUBLISHED}
+    now = utc_now()
+    active_info = (
+        select(CapInfo.id)
+        .where(
+            CapInfo.alert_id == CapAlert.id,
+            sa.or_(CapInfo.expires.is_(None), CapInfo.expires > now),
+        )
+        .exists()
     )
-    active = [alert for alert in alerts if _is_active(alert)]
+    result = await session.execute(
+        select(CapAlert)
+        .where(
+            CapAlert.lifecycle_state == CapLifecycleState.PUBLISHED,
+            CapAlert.scope == CapScope.PUBLIC,
+            CapAlert.msg_type.in_({CapMessageType.ALERT, CapMessageType.UPDATE}),
+            CapAlert.sent <= now,
+            active_info,
+        )
+        .order_by(CapAlert.sent.desc())
+        .limit(100)
+        .options(*_alert_selectinload_options())
+    )
+    active = [_to_public_from_loaded(alert) for alert in result.scalars()]
+    await _attach_public_replacements(session=session, alerts=active)
     return CapAlertListPublic(data=active, count=len(active))
 
 
-async def public_past_alerts(*, session: AsyncSession) -> CapAlertListPublic:
-    alerts = await _public_alerts_by_state(
-        session=session, states={CapLifecycleState.EXPIRED, CapLifecycleState.CANCELLED}
+async def public_recent_cancels(*, session: AsyncSession) -> list[CapAlertPublic]:
+    """Public, actual Cancel messages retained for RSS polling for 24 hours."""
+    now = utc_now()
+    result = await session.execute(
+        select(CapAlert)
+        .where(
+            CapAlert.lifecycle_state == CapLifecycleState.PUBLISHED,
+            CapAlert.scope == CapScope.PUBLIC,
+            CapAlert.status == CapStatus.ACTUAL,
+            CapAlert.msg_type == CapMessageType.CANCEL,
+            CapAlert.sent <= now,
+            CapAlert.published_at >= now - timedelta(hours=24),
+        )
+        .order_by(CapAlert.published_at.desc())
+        .limit(100)
+        .options(*_alert_selectinload_options())
     )
-    return CapAlertListPublic(data=alerts, count=len(alerts))
+    return [_to_public_from_loaded(alert) for alert in result.scalars()]
+
+
+async def public_past_alerts(*, session: AsyncSession) -> CapAlertListPublic:
+    now = utc_now()
+    any_info = select(CapInfo.id).where(CapInfo.alert_id == CapAlert.id).exists()
+    unexpired_info = (
+        select(CapInfo.id)
+        .where(
+            CapInfo.alert_id == CapAlert.id,
+            sa.or_(CapInfo.expires.is_(None), CapInfo.expires > now),
+        )
+        .exists()
+    )
+    result = await session.execute(
+        select(CapAlert)
+        .where(
+            CapAlert.scope == CapScope.PUBLIC,
+            sa.or_(
+                CapAlert.lifecycle_state.in_(
+                    {CapLifecycleState.EXPIRED, CapLifecycleState.CANCELLED}
+                ),
+                sa.and_(
+                    CapAlert.lifecycle_state == CapLifecycleState.PUBLISHED,
+                    CapAlert.msg_type.in_(
+                        {CapMessageType.ALERT, CapMessageType.UPDATE}
+                    ),
+                    any_info,
+                    ~unexpired_info,
+                ),
+            ),
+        )
+        .order_by(CapAlert.sent.desc())
+        .limit(100)
+        .options(*_alert_selectinload_options())
+    )
+    past = [_to_public_from_loaded(alert) for alert in result.scalars()]
+    await _attach_public_replacements(session=session, alerts=past)
+    return CapAlertListPublic(data=past, count=len(past))
 
 
 async def public_all_alerts(*, session: AsyncSession) -> CapAlertListPublic:
@@ -851,7 +1061,7 @@ async def public_alert_by_identifier(
         select(CapAlert)
         .where(CapAlert.identifier == identifier)
         .where(
-            col(CapAlert.lifecycle_state).in_(
+            CapAlert.lifecycle_state.in_(
                 {
                     CapLifecycleState.PUBLISHED,
                     CapLifecycleState.EXPIRED,
@@ -860,12 +1070,14 @@ async def public_alert_by_identifier(
             )
         )
         # Public-scope only — Restricted/Private alerts are not anonymously readable.
-        .where(col(CapAlert.scope) == CapScope.PUBLIC)
+        .where(CapAlert.scope == CapScope.PUBLIC)
     )
     alert = result.scalars().first()
     if not alert:
         raise CapAlertNotFoundError()
-    return await _to_public(session=session, alert=alert)
+    public = await _to_public(session=session, alert=alert)
+    await _attach_public_replacements(session=session, alerts=[public])
+    return public
 
 
 async def latest_snapshot_for_identifier(
@@ -875,10 +1087,10 @@ async def latest_snapshot_for_identifier(
         select(CapSnapshot)
         # Gate the raw signed-XML snapshot on the parent alert's scope so
         # Restricted/Private alerts are not served on the anonymous endpoint.
-        .join(CapAlert, col(CapSnapshot.alert_id) == col(CapAlert.id))
+        .join(CapAlert, CapSnapshot.alert_id == CapAlert.id)
         .where(CapSnapshot.identifier == identifier)
-        .where(col(CapAlert.scope) == CapScope.PUBLIC)
-        .order_by(col(CapSnapshot.generated_at).desc())
+        .where(CapAlert.scope == CapScope.PUBLIC)
+        .order_by(CapSnapshot.generated_at.desc())
     )
     snapshot = result.scalars().first()
     if not snapshot:
@@ -947,27 +1159,62 @@ async def _public_alerts_by_state(
 ) -> list[CapAlertPublic]:
     stmt = (
         select(CapAlert)
-        .where(col(CapAlert.lifecycle_state).in_(states))
+        .where(CapAlert.lifecycle_state.in_(states))
         # Only Public-scope alerts are distributable on the anonymous feeds.
         # Restricted/Private alerts must never surface here (they carry
         # restriction/addresses targeting fields).
-        .where(col(CapAlert.scope) == CapScope.PUBLIC)
-        .order_by(col(CapAlert.sent).desc())
+        .where(CapAlert.scope == CapScope.PUBLIC)
+        .order_by(CapAlert.sent.desc())
         .limit(100)
         .options(*_alert_selectinload_options())
     )
     result = await session.execute(stmt)
-    return [_to_public_from_loaded(alert) for alert in result.scalars()]
+    alerts = [_to_public_from_loaded(alert) for alert in result.scalars()]
+    await _attach_public_replacements(session=session, alerts=alerts)
+    return alerts
 
 
-def _is_active(alert: CapAlertPublic) -> bool:
-    if alert.lifecycle_state != CapLifecycleState.PUBLISHED:
-        return False
-    now = utc_now()
-    expires_values = [info.expires for info in alert.info if info.expires is not None]
-    return not expires_values or any(
-        _as_naive(expires) > now for expires in expires_values
+async def _attach_public_replacements(
+    *, session: AsyncSession, alerts: list[CapAlertPublic]
+) -> None:
+    if not alerts:
+        return
+    result = await session.execute(
+        select(
+            CapReference.sender,
+            CapReference.identifier,
+            CapReference.sent,
+            CapAlert.identifier,
+            CapAlert.msg_type,
+            CapAlert.note,
+        )
+        .join(CapAlert, CapReference.alert_id == CapAlert.id)
+        .where(
+            CapReference.identifier.in_([alert.identifier for alert in alerts]),
+            CapAlert.msg_type.in_({CapMessageType.UPDATE, CapMessageType.CANCEL}),
+            CapAlert.lifecycle_state.in_(
+                {
+                    CapLifecycleState.PUBLISHED,
+                    CapLifecycleState.EXPIRED,
+                    CapLifecycleState.CANCELLED,
+                }
+            ),
+            CapAlert.scope == CapScope.PUBLIC,
+        )
+        .order_by(CapAlert.sent.desc())
     )
+    replacements: dict[tuple[str, str, datetime], str] = {}
+    cancellations: dict[tuple[str, str, datetime], str] = {}
+    for sender, identifier, sent, successor_identifier, msg_type, note in result.all():
+        key = (sender, identifier, sent)
+        if msg_type == CapMessageType.UPDATE:
+            replacements.setdefault(key, successor_identifier)
+        elif note:
+            cancellations.setdefault(key, note)
+    for alert in alerts:
+        key = (alert.sender, alert.identifier, _as_naive(alert.sent))
+        alert.replaced_by_identifier = replacements.get(key)
+        alert.cancellation_reason = cancellations.get(key)
 
 
 async def _to_public(*, session: AsyncSession, alert: CapAlert) -> CapAlertPublic:
@@ -1045,7 +1292,7 @@ async def _replace_children(
 ) -> None:
     if references is not None:
         await session.execute(
-            sa.delete(CapReference).where(col(CapReference.alert_id) == alert_id)
+            sa.delete(CapReference).where(CapReference.alert_id == alert_id)
         )
         for index, reference in enumerate(references):
             session.add(
@@ -1055,7 +1302,7 @@ async def _replace_children(
             )
     if incidents is not None:
         await session.execute(
-            sa.delete(CapIncident).where(col(CapIncident.alert_id) == alert_id)
+            sa.delete(CapIncident).where(CapIncident.alert_id == alert_id)
         )
         for index, incident in enumerate(incidents):
             session.add(CapIncident(alert_id=alert_id, sequence=index, value=incident))
@@ -1064,14 +1311,12 @@ async def _replace_children(
         info_ids = [row.id for row in info_rows]
         if info_ids:
             await session.execute(
-                sa.delete(CapArea).where(col(CapArea.info_id).in_(info_ids))
+                sa.delete(CapArea).where(CapArea.info_id.in_(info_ids))
             )
             await session.execute(
-                sa.delete(CapResource).where(col(CapResource.info_id).in_(info_ids))
+                sa.delete(CapResource).where(CapResource.info_id.in_(info_ids))
             )
-        await session.execute(
-            sa.delete(CapInfo).where(col(CapInfo.alert_id) == alert_id)
-        )
+        await session.execute(sa.delete(CapInfo).where(CapInfo.alert_id == alert_id))
         for index, info_payload in enumerate(info):
             await _create_info(
                 session=session, alert_id=alert_id, sequence=index, payload=info_payload
@@ -1162,9 +1407,7 @@ def _area_from_payload(
 
 async def _info_rows(*, session: AsyncSession, alert_id: uuid.UUID) -> list[CapInfo]:
     result = await session.execute(
-        select(CapInfo)
-        .where(CapInfo.alert_id == alert_id)
-        .order_by(col(CapInfo.sequence))
+        select(CapInfo).where(CapInfo.alert_id == alert_id).order_by(CapInfo.sequence)
     )
     return list(result.scalars())
 
@@ -1236,7 +1479,7 @@ async def list_feeds(
 ) -> list[CapFeedImport]:
     require_permission(current_user=current_user, permission_key="cap.feed.manage")
     result = await session.execute(
-        select(CapFeedImport).order_by(col(CapFeedImport.created_at).desc()).limit(100)
+        select(CapFeedImport).order_by(CapFeedImport.created_at.desc()).limit(100)
     )
     return list(result.scalars().all())
 
@@ -1287,8 +1530,8 @@ async def _system_user(*, session: AsyncSession) -> User | None:
     """The actor for automated ingestion (first superuser; bypasses permissions)."""
     result = await session.execute(
         select(User)
-        .where(col(User.email) == app_config.FIRST_SUPERUSER)
-        .options(selectinload(User.roles))  # type: ignore[arg-type]
+        .where(User.email == app_config.FIRST_SUPERUSER)
+        .options(selectinload(User.roles))
     )
     return result.scalars().first()
 
@@ -1345,9 +1588,7 @@ async def ingest_all_active_feeds(
         logger.warning("CAP feed ingestion skipped: no superuser seeded")
         return 0
     result = await session.execute(
-        select(CapFeedImport).where(
-            col(CapFeedImport.status) == CapIntegrationStatus.ACTIVE
-        )
+        select(CapFeedImport).where(CapFeedImport.status == CapIntegrationStatus.ACTIVE)
     )
     feeds = list(result.scalars().all())
     owns_client = http_client is None
@@ -1373,3 +1614,111 @@ async def ingest_all_active_feeds(
         if owns_client:
             await client.aclose()
     return len(feeds)
+
+
+# Existing public-site display groups, not authoritative CAP event codes.
+PUBLIC_HAZARD_GROUPS = (
+    ("Tropical Cyclone", r"cyclone|hurricane|tropical storm|depression"),
+    ("Marine / Small Craft", r"marine|small craft|sea|swell|surf|wave"),
+    ("Flood / Heavy Rain", r"flood|rain|flash"),
+    ("Thunderstorm", r"thunder|lightning|storm(?! surge)"),
+    ("Wind", r"wind|gale|gust"),
+    ("Heat", r"heat|high temperature"),
+    ("Dust / Haze", r"dust|haze|saharan|smoke"),
+    ("Coastal Hazard", r"coastal|storm surge|rip current|inundation"),
+    ("Tsunami", r"tsunami|seismic sea wave"),
+)
+
+
+def select_public_warnings(
+    alerts: list[CapAlertPublic], now: datetime
+) -> PublicWarnings:
+    import re
+
+    from src.cap.schemas import PublicWarning, PublicWarningGroup
+
+    if now.tzinfo is None:
+        raise ValueError("An aware selection clock is required")
+    instant = _as_naive(now)
+    groups = [
+        PublicWarningGroup(name=name, alerts=[]) for name, _ in PUBLIC_HAZARD_GROUPS
+    ]
+    other = PublicWarningGroup(name="Other warnings", alerts=[])
+    order = {"Extreme": 0, "Severe": 1, "Moderate": 2, "Minor": 3, "Unknown": 4}
+    for alert in alerts:
+        if (
+            alert.scope != CapScope.PUBLIC
+            or alert.lifecycle_state != CapLifecycleState.PUBLISHED
+            or alert.msg_type not in {CapMessageType.ALERT, CapMessageType.UPDATE}
+            or _as_naive(alert.sent) > instant
+        ):
+            continue
+        candidates = [
+            info
+            for info in alert.info
+            if (info.effective is None or _as_naive(info.effective) <= instant)
+            and (info.expires is None or _as_naive(info.expires) > instant)
+        ]
+        if not candidates:
+            continue
+        info = min(
+            candidates,
+            key=lambda item: (
+                not item.language.lower().startswith("en"),
+                item.sequence,
+                str(item.id),
+            ),
+        )
+        product, colour = read_level(info.parameters)
+        warning = PublicWarning(
+            identifier=alert.identifier,
+            event=info.event,
+            headline=info.headline,
+            areas=[area.area_desc for area in info.areas],
+            expires=info.expires,
+            severity=info.severity,
+            status=alert.status,
+            product=product.value if product else None,
+            colour=colour.value if colour else None,
+        )
+        group = next(
+            (
+                groups[index]
+                for index, (_, pattern) in enumerate(PUBLIC_HAZARD_GROUPS)
+                if re.search(pattern, info.event, re.IGNORECASE)
+            ),
+            other,
+        )
+        group.alerts.append(warning)
+    if other.alerts:
+        groups.append(other)
+    for group in groups:
+        group.alerts.sort(
+            key=lambda item: (order[item.severity.value], item.identifier)
+        )
+    return PublicWarnings(
+        as_of=now,
+        groups=groups,
+        activeCount=sum(
+            alert.status == CapStatus.ACTUAL
+            for group in groups
+            for alert in group.alerts
+        ),
+    )
+
+
+async def public_warnings(*, session: AsyncSession) -> PublicWarnings:
+    from datetime import UTC
+
+    statement = (
+        select(CapAlert)
+        .where(
+            CapAlert.lifecycle_state == CapLifecycleState.PUBLISHED,
+            CapAlert.scope == CapScope.PUBLIC,
+        )
+        .options(*_alert_selectinload_options())
+    )
+    rows = (await session.execute(statement)).scalars().all()
+    return select_public_warnings(
+        [_to_public_from_loaded(row) for row in rows], datetime.now(UTC)
+    )

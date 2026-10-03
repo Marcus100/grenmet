@@ -1,0 +1,13 @@
+# Shared dependencies, builds, test reports, Python caches, environment files
+# and temporary-file rules are inherited from the repository .gitignore.
+/next-env.d.ts
+
+# Optional local research downloads and historical-pipeline scratch work.
+/.source/
+/scripts/history/.scratch/
+
+# Keep these versioned: source JSON, generated imports/reports/manifest,
+# and public CSV exports. Production builds verify and consume them.
+#   src/data/source/
+#   src/data/derived/
+#   public/data/master_*.csv

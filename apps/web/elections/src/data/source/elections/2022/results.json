@@ -1,0 +1,224 @@
+{
+  "A": {
+    "reg": 5448,
+    "cast": 3780,
+    "rej": 18,
+    "c": [
+      ["Tevin Camilloh Andrews", "NDC", 1956, "official"],
+      ["Kindra Mathurine-Stewart", "NNP", 1806, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 18,
+    "page": 17,
+    "stationsComplete": true,
+    "official": true
+  },
+  "B": {
+    "reg": 4928,
+    "cast": 3573,
+    "rej": 20,
+    "c": [
+      ["Emmalin Pierre", "NNP", 1893, "official"],
+      ["David Andrew", "NDC", 1660, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 20,
+    "page": 22,
+    "stationsComplete": true,
+    "official": true
+  },
+  "C": {
+    "reg": 5404,
+    "cast": 3855,
+    "rej": 22,
+    "c": [
+      ["Lennox John Andrews", "NDC", 2129, "official"],
+      ["Yolande Bain-Horsford", "NNP", 1704, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 22,
+    "page": 27,
+    "stationsComplete": true,
+    "official": true
+  },
+  "D": {
+    "reg": 5464,
+    "cast": 4071,
+    "rej": 7,
+    "c": [
+      ["Kate Lewis-Peters", "NNP", 2190, "official"],
+      ["Tessa St.Cyr", "NDC", 1864, "official"],
+      ["Jennel Karla Ramsee", "IFP", 10, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 7,
+    "page": 33,
+    "stationsComplete": true,
+    "official": true
+  },
+  "E": {
+    "reg": 4877,
+    "cast": 3680,
+    "rej": 15,
+    "c": [
+      ["Delma Thomas", "NNP", 1898, "official"],
+      ["Gloria Ann Thomas", "NDC", 1767, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 15,
+    "page": 38,
+    "stationsComplete": true,
+    "official": true
+  },
+  "F": {
+    "reg": 9984,
+    "cast": 7189,
+    "rej": 15,
+    "c": [
+      ["Dickon Amiss Thomas Mitchell", "NDC", 4414, "official"],
+      ["Oliver Thomas Joseph", "NNP", 2742, "official"],
+      ["Junior Francis", "IFP", 18, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 15,
+    "page": 43,
+    "stationsComplete": true,
+    "official": true
+  },
+  "G": {
+    "reg": 3810,
+    "cast": 2462,
+    "rej": 15,
+    "c": [
+      ["Peter David", "NNP", 1329, "official"],
+      ["Claudette Joseph", "NDC", 1118, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 15,
+    "page": 51,
+    "stationsComplete": true,
+    "official": true
+  },
+  "H": {
+    "reg": 7804,
+    "cast": 5390,
+    "rej": 18,
+    "c": [
+      ["Ron Livingston Redhead", "NDC", 3222, "official"],
+      ["Nimrod Oliver Ollivierre", "NNP", 2135, "official"],
+      ["Martin Washington Edwards", "GRP", 15, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 18,
+    "page": 55,
+    "stationsComplete": true,
+    "official": true
+  },
+  "J": {
+    "reg": 4573,
+    "cast": 2995,
+    "rej": 11,
+    "c": [
+      ["Keith Claudius Mitchell", "NNP", 2211, "official"],
+      ["Gayton Jonathan La Crette", "NDC", 773, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 11,
+    "page": 62,
+    "stationsComplete": true,
+    "official": true
+  },
+  "K": {
+    "reg": 5450,
+    "cast": 3800,
+    "rej": 8,
+    "c": [
+      ["Philip Alfred Telesford", "NDC", 2122, "official"],
+      ["Clarence Gregory Bowen", "NNP", 1634, "official"],
+      ["Nicholas Bassanio", "IFP", 32, "official"],
+      ["Dennyka Checkley", "GRP", 4, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 8,
+    "page": 67,
+    "stationsComplete": true,
+    "official": true
+  },
+  "L": {
+    "reg": 10983,
+    "cast": 7018,
+    "rej": 17,
+    "c": [
+      ["Andy Joseph Williams", "NDC", 4029, "official"],
+      ["Norland Sebastian Cox", "NNP", 2960, "official"],
+      ["Glenon Mendell Samuel", "GRP", 12, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 17,
+    "page": 73,
+    "stationsComplete": true,
+    "official": true
+  },
+  "M": {
+    "reg": 6466,
+    "cast": 4463,
+    "rej": 20,
+    "c": [
+      ["Kerryne Zennelle James", "NDC", 2214, "official"],
+      ["Alvin Martin Da Breo", "NNP", 2208, "official"],
+      ["Geoffrey Urias Preudhomme", "GULP", 21, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 20,
+    "page": 82,
+    "stationsComplete": true,
+    "official": true
+  },
+  "N": {
+    "reg": 3735,
+    "cast": 2498,
+    "rej": 15,
+    "c": [
+      ["Clarice Modeste-Curwen", "NNP", 1470, "official"],
+      ["Quinc Sudon Britton", "NDC", 995, "official"],
+      ["David Matthew Francis", "GULP", 18, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 15,
+    "page": 88,
+    "stationsComplete": true,
+    "official": true
+  },
+  "P": {
+    "reg": 3967,
+    "cast": 2791,
+    "rej": 8,
+    "c": [
+      ["Dennis Sylvester Cornwall", "NDC", 1443, "official"],
+      ["Pamela Moses", "NNP", 1322, "official"],
+      ["Nigel Martin John", "GULP", 18, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 7,
+    "page": 92,
+    "stationsComplete": false,
+    "derived": true,
+    "official": true
+  },
+  "R": {
+    "reg": 4673,
+    "cast": 3288,
+    "rej": 9,
+    "c": [
+      ["Joseph Andall", "NDC", 1726, "official"],
+      ["Victor Dennis Phillip", "NNP", 1458, "official"],
+      ["Winston Earl Frederick", "IND", 86, "official"],
+      ["David Augustine", "GULP", 9, "official"]
+    ],
+    "src": "peo",
+    "stationRejected": 9,
+    "page": 96,
+    "stationsComplete": true,
+    "official": true
+  }
+}

@@ -6,6 +6,7 @@
 import type { PersonnelStatus } from "./PersonnelStatus.js";
 
 export type StatusReportEntryPublic = {
+  employee_name?: string | null;
   /**
    * @description
    * Format: `uuid`

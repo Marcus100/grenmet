@@ -1,5 +1,9 @@
 # Employee training records
 
+**Status:** Active reference  
+**Owner:** GAA (institutional content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-11
+
 Single-feature scope: record a course name and provider, training end date, result,
 optional certificate expiry and notes against an employee. HR adds records;
 employees read their own history. This does not certify operational competency.

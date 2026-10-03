@@ -1,5 +1,9 @@
 # FastAPI App Audit — health, best practices, and CAP migration
 
+**Status:** Historical record  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-07-25
+
 Read-only audit of `apps/api/fastapi`, focused on (1) overall up-to-date / best-practice
 health and (2) the Django **capcomposer → FastAPI `src/cap`** migration. No code was
 changed. Date: 2026-06-28.

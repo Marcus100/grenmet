@@ -60,9 +60,7 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.execute(
-        "DELETE FROM hr.shift_catalog WHERE code IN "
-        + "('"
-        + "', '".join(SEED_CODES)
-        + "')"
+        sa.text("DELETE FROM hr.shift_catalog WHERE code = ANY(:codes)"),
+        {"codes": list(SEED_CODES)},
     )
     op.drop_column("shift_catalog", "ends_next_day", schema="hr")

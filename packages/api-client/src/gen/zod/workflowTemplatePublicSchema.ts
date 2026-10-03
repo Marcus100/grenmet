@@ -12,6 +12,6 @@ export const workflowTemplatePublicSchema = z.object({
   workflow_type: workflowTypeSchema,
   name: z.string(),
   is_active: z.boolean(),
-  created_at: z.string(),
-  updated_at: z.string(),
+  created_at: z.iso.datetime(),
+  updated_at: z.iso.datetime(),
 });

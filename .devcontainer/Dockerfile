@@ -1,7 +1,10 @@
 # Dev container image for running coding agents (Claude Code, Codex) fully
 # inside Docker. Everything the agent edits or executes happens in here, not
 # on your Windows host.
-FROM node:24-bookworm
+FROM node:24-bookworm@sha256:6dac556d980b7f0e5498d08f08cee0ca67798b4ad6c23964a9214920e67758d0
+
+# Avoids apt-get prompting for input (e.g. tzdata) during unattended builds.
+ENV DEBIAN_FRONTEND=noninteractive
 
 # System tools the agents commonly shell out to (git, search, curl, etc.)
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -28,18 +31,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # uv — Python package manager used by apps/api/fastapi. Installed system-wide
 # so the agent can work on the FastAPI app too.
-COPY --from=ghcr.io/astral-sh/uv:0.11.26@sha256:3d868e555f8f1dbc324afa005066cd11e1053fc4743b9808ca8025283e65efa5 /uv /uvx /usr/local/bin/
+COPY --from=ghcr.io/astral-sh/uv:0.12.17@sha256:10787c682e4184e4f290de1171fd4703dc63de99221f10fe1c99002ce7fa9acc /uv /uvx /usr/local/bin/
 
 # Keep the Python interpreter in the image, outside mutable login/cache volumes.
 ENV UV_PYTHON_INSTALL_DIR=/opt/uv/python
-ENV UV_PYTHON=3.13
-RUN uv python install 3.13
+ENV UV_PYTHON=3.14.7
+RUN uv python install 3.14.7
 
 # pnpm v12 via corepack (matches the monorepo's package manager)
 RUN corepack enable && corepack prepare pnpm@12.3.4 --activate
 
-# The coding agents themselves
-RUN npm install -g @anthropic-ai/claude-code @openai/codex
+# The coding agents themselves. Pinned so a rebuild doesn't silently drift —
+# bump deliberately (check current versions with `npm view <pkg> version`).
+RUN npm install -g @anthropic-ai/claude-code@2.1.288 @openai/codex@0.160.0
 
 # GitHub CLI (gh) — used by the repo's issue/PR workflow. Official apt repo.
 RUN mkdir -p -m 755 /etc/apt/keyrings \
@@ -67,6 +71,18 @@ RUN chmod 755 /usr/local/bin/prepare-agent-dependencies \
     && echo 'node ALL=(root) NOPASSWD: /usr/local/bin/prepare-agent-dependencies' > /etc/sudoers.d/grenmet-dependencies \
     && chmod 440 /etc/sudoers.d/grenmet-dependencies \
     && visudo -cf /etc/sudoers.d/grenmet-dependencies
+
+# bubblewrap — unprivileged sandboxing (bwrap); libcap-dev provides the
+# capability headers it links against.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends bubblewrap libcap-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# System libraries for Playwright's Chromium, so agents can screenshot and
+# test pages headlessly. Pin matches the @playwright/test catalog version;
+# the browser binary itself is downloaded into the ~/.cache volume.
+RUN npx -y playwright@1.63.0 install-deps chromium \
+    && rm -rf /var/lib/apt/lists/*
 
 # Run as the unprivileged 'node' user, not root
 USER node

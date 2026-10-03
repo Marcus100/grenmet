@@ -66,6 +66,20 @@
       "Noto Sans",
       var(--brand-font-sans)
     );
+    /* Tabular/code role: raw observation codes (METAR/TAF/SYNOP), IDs, and other
+       fixed-width data. Resolves to JetBrains Mono where an app loads it (gaa-admin,
+       via its font-switcher registry's --font-jetbrains-mono, always present
+       regardless of the user's chosen UI font); everywhere else it falls through to
+       the system monospace stack. */
+    --brand-font-mono: var(
+      --font-jetbrains-mono,
+      ui-monospace,
+      "SFMono-Regular",
+      Menlo,
+      Consolas,
+      "Liberation Mono",
+      monospace
+    );
 
     --brand-shadow-card:
       0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
@@ -226,6 +240,7 @@
 @theme inline {
   --font-sans: var(--brand-font-sans);
   --font-document: var(--brand-font-document);
+  --font-mono: var(--brand-font-mono);
 
   /* shadcn semantic utilities */
   --color-background: var(--background);

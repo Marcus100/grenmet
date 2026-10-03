@@ -13,7 +13,7 @@ export interface ForecastDay {
   isToday: boolean;
   low: number | null;
   month: string;
-  /** `/forecasts/YYYY/MM/DD` — the dated forecast route for this day. */
+  /** `/weather/YYYY/MM/DD` — the dated forecast route for this day. */
   path: string;
   slug: string; // YYYY-MM-DD, the key used to look up the day's component
 }
@@ -36,7 +36,7 @@ export function getForecastDays(
       isToday: i === 0,
       low: forecast.low,
       month: d.toLocaleString("en-US", { month: "short" }),
-      path: `/forecasts/${slug.replace(/-/g, "/")}`,
+      path: `/weather/${slug.replace(/-/g, "/")}`,
       slug,
     };
   });

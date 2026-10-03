@@ -7,8 +7,8 @@ Create Date: 2026-03-06
 Drops first_name, middle_name, last_name, display_name from hr.user_profile.
 Auth User is the single source of truth for names; HR reads from it.
 """
+
 import sqlalchemy as sa
-import sqlmodel
 
 from alembic import op
 
@@ -30,7 +30,7 @@ def downgrade() -> None:
         "user_profile",
         sa.Column(
             "first_name",
-            sqlmodel.sql.sqltypes.AutoString(length=100),
+            sa.String(length=100),
             nullable=False,
             server_default="",
         ),
@@ -40,7 +40,7 @@ def downgrade() -> None:
         "user_profile",
         sa.Column(
             "middle_name",
-            sqlmodel.sql.sqltypes.AutoString(length=100),
+            sa.String(length=100),
             nullable=True,
         ),
         schema="hr",
@@ -49,7 +49,7 @@ def downgrade() -> None:
         "user_profile",
         sa.Column(
             "last_name",
-            sqlmodel.sql.sqltypes.AutoString(length=100),
+            sa.String(length=100),
             nullable=False,
             server_default="",
         ),
@@ -59,7 +59,7 @@ def downgrade() -> None:
         "user_profile",
         sa.Column(
             "display_name",
-            sqlmodel.sql.sqltypes.AutoString(length=150),
+            sa.String(length=150),
             nullable=True,
         ),
         schema="hr",

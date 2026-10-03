@@ -1,5 +1,7 @@
 "use client";
 
+import { cn } from "@barrelsgd/ui/lib/utils";
+
 interface SegmentOption {
   label: string;
   value: string;
@@ -25,12 +27,12 @@ export function SegmentedControl({
           const isSelected = option.value === value;
           return (
             <button
-              className={`min-h-12 touch-manipulation rounded-full px-5 py-3 font-semibold text-sm transition-colors ${
+              className={cn(
+                "min-h-12 touch-manipulation rounded-full px-5 py-3 font-semibold text-sm transition-colors",
                 isSelected
                   ? "bg-foreground text-background"
                   : "border border-border bg-transparent text-muted-foreground hover:border-border active:bg-muted"
-              }
-              `}
+              )}
               key={option.value}
               onClick={() => onChange(option.value)}
               type="button"
@@ -49,12 +51,12 @@ export function SegmentedControl({
         const isSelected = option.value === value;
         return (
           <button
-            className={`min-h-12 flex-1 touch-manipulation rounded-md px-4 py-3.5 font-semibold text-sm uppercase tracking-wide transition-colors ${
+            className={cn(
+              "min-h-12 flex-1 touch-manipulation rounded-md px-4 py-3.5 font-semibold text-sm uppercase tracking-wide transition-colors",
               isSelected
                 ? "bg-foreground text-background"
                 : "bg-transparent text-muted-foreground hover:text-foreground active:bg-muted"
-            }
-            `}
+            )}
             key={option.value}
             onClick={() => onChange(option.value)}
             type="button"

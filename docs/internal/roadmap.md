@@ -1,5 +1,9 @@
 # GMS Digital Services Programme — Roadmap
 
+**Status:** Historical record — May 2026 planning snapshot  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-20
+
 > **Historical planning snapshot (May 2026).** Current GMS priorities,
 > dependencies, and acceptance gates now live in the
 > [GAA/GMS Client Programme Plan](../portfolio/gaa-gms-client-programme-plan.md).
@@ -47,8 +51,8 @@ Everything built to establish the platform before domain-specific features.
 
 ### Infrastructure and CI/CD
 - ✅ pnpm v10 + Turborepo v2 monorepo with 8 Next.js applications (consolidated to 5 in 2026-06 — wxwatch/wxproducts/hr/salesbus/cap folded into gaa-admin)
-- ✅ FastAPI backend — authentication and HR domains, PostgreSQL via SQLModel/asyncpg
-- ✅ Drizzle ORM for wxwatch and wxproducts (separate DB per app)
+- ✅ FastAPI backend — authentication and HR domains, PostgreSQL via SQLAlchemy/asyncpg
+- ✅ FastAPI/Alembic ownership for wxwatch, wxproducts, eRegister, Janitorial, and Transport (separate DB per domain)
 - ✅ Docker + Docker Compose for FastAPI, PostgreSQL, and infrastructure services
 - ✅ 10 GitHub Actions workflows: web builds, API image builds, deploy to staging and production, database backup, code quality (Biome), type checking, security scanning (CodeQL), API client sync check
 - ✅ Automated database backup pipeline
@@ -320,7 +324,7 @@ These are strategic targets from the GMS Digital Service Architecture. They depe
 | DTO Terms of Reference | [`docs/internal/dto-terms-of-reference.md`](./dto-terms-of-reference.md) | Programme governance, KPIs, deliverables, risk register |
 | Design System Guide | [`docs/design-system.md`](../design-system.md) | Token system, Figma bridge, compliance guide |
 | Environment Variables | [`docs/env.md`](../env.md) | Per-app environment configuration |
-| Developer Reference | [`CLAUDE.md`](../../CLAUDE.md) | Monorepo commands, architecture, conventions |
+| Developer Reference | [`AGENTS.md`](../../AGENTS.md) | Monorepo commands, architecture, conventions |
 
 ---
 

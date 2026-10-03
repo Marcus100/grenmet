@@ -7,6 +7,7 @@ from src.models import BaseModel, UtcDateTime
 
 from .models import (
     ImportStatus,
+    RosterAvailability,
     RosterPeriodStatus,
     RosterRevisionAction,
     ShiftCategory,
@@ -123,6 +124,7 @@ class RosterAssignmentPublic(BaseModel):
     assignment_date: date
     shift_code: str
     remarks: str | None = None
+    availability: RosterAvailability = RosterAvailability.SCHEDULED
 
 
 class RosterPeriodDetails(BaseModel):
@@ -157,6 +159,7 @@ class RosterCalendarEntry(BaseModel):
     #: The period is still DRAFT — visible only to roster managers, and not yet
     #: the signed plan of record.
     is_draft: bool
+    availability: RosterAvailability = RosterAvailability.SCHEDULED
 
 
 class RosterCalendarPublic(BaseModel):

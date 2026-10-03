@@ -1,6 +1,6 @@
 import { productFields } from "@barrelsgd/gms/products";
 import { describe, expect, it } from "vitest";
-import { hiddenRequiredErrors, visibleProductFields } from "./visible-fields";
+import { visibleProductFields } from "./visible-fields";
 
 const KINDS = ["morning", "midday", "evening"] as const;
 
@@ -52,28 +52,8 @@ describe("visibleProductFields", () => {
   });
 });
 
-describe("hiddenRequiredErrors", () => {
-  it("covers the required Risk assessment fields so publish is not blocked", () => {
-    const errors = hiddenRequiredErrors("morning");
-
-    // These three are required in the shared schema but no longer shown.
-    expect(errors.has("Risk assessment: Overall likelihood is required")).toBe(
-      true
-    );
-    expect(errors.has("Risk assessment: Overall impact is required")).toBe(
-      true
-    );
-    expect(errors.has("Risk assessment: Overall response is required")).toBe(
-      true
-    );
-  });
-
-  it("does not mask errors for fields that are still visible", () => {
-    const errors = [...hiddenRequiredErrors("morning")];
-
-    expect(errors.some((e) => e.startsWith("Weather: Weather summary"))).toBe(
-      false
-    );
-    expect(errors.some((e) => e.includes("Minimum temperature"))).toBe(false);
-  });
+it("omits legacy per-day assessments from the evening display", () => {
+  const keys = visibleProductFields("evening").map((field) => field.key);
+  expect(keys).not.toContain("day1Alerts");
+  expect(keys).not.toContain("day4Impact");
 });

@@ -1,14 +1,17 @@
 """Organisation context shared by personnel and scoped access services."""
 
 import uuid
+from datetime import datetime
+from typing import Any
+from zoneinfo import ZoneInfo
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
 
 from src.auth.models import RoleAssignmentScope, User, UserRoleAssignment
 from src.exceptions import AppException
 from src.hr.exceptions import DepartmentNotFoundError
-from src.hr.models import Department, EmploymentRecord, Organisation
+from src.hr.models import Department, EmploymentRecord, EmploymentStatus, Organisation
 from src.utils.datetime import utc_now
 
 
@@ -19,9 +22,9 @@ async def active_assignments(
     result = await session.execute(
         select(UserRoleAssignment).where(
             UserRoleAssignment.user_id == user_id,
-            col(UserRoleAssignment.effective_from) <= now,
-            col(UserRoleAssignment.effective_to).is_(None)
-            | (col(UserRoleAssignment.effective_to) > now),
+            UserRoleAssignment.effective_from <= now,
+            UserRoleAssignment.effective_to.is_(None)
+            | (UserRoleAssignment.effective_to > now),
         )
     )
     return list(result.scalars().all())
@@ -64,7 +67,7 @@ async def organisation_choices(
             .scalars()
             .all()
         )
-        statement = statement.where(col(Organisation.id).in_(ids))
+        statement = statement.where(Organisation.id.in_(ids))
     return list(
         (await session.execute(statement.order_by(Organisation.name))).scalars().all()
     )
@@ -168,15 +171,70 @@ async def permitted_departments(
 
 
 async def validate_supervisor(
-    session: AsyncSession, supervisor_id: uuid.UUID | None, organisation_id: str
+    session: AsyncSession,
+    supervisor_id: uuid.UUID | None,
+    organisation_id: str,
+    target_user_id: uuid.UUID | None = None,
 ) -> None:
     if supervisor_id is None:
         return
     employment = await session.scalar(
-        select(EmploymentRecord).where(
+        select(EmploymentRecord)
+        .join(User, User.id == EmploymentRecord.user_id)
+        .where(
             EmploymentRecord.user_id == supervisor_id,
             EmploymentRecord.organisation_id == organisation_id,
+            EmploymentRecord.status == EmploymentStatus.ACTIVE,
+            User.is_active.is_(True),
         )
     )
     if employment is None:
-        raise AppException("Supervisor must be employed in the same organisation", 400)
+        raise AppException(
+            "Supervisor must be an active employee in the same organisation", 400
+        )
+    visited = {target_user_id} if target_user_id else set()
+    cursor: uuid.UUID | None = supervisor_id
+    while cursor:
+        if cursor in visited:
+            raise AppException(
+                "Supervisor assignment would create a reporting cycle", 400
+            )
+        visited.add(cursor)
+        record = await session.scalar(
+            select(EmploymentRecord).where(EmploymentRecord.user_id == cursor)
+        )
+        cursor = record.supervisor_id if record else None
+
+
+async def validate_service_facts(
+    updates: dict[str, Any], employment: EmploymentRecord | None
+) -> None:
+    """Validate recorded HR facts without deriving service or leave eligibility."""
+
+    def value(key: str) -> Any:
+        return updates.get(key, getattr(employment, key, None))
+
+    start = value("start_date")
+    end = value("probation_end_date")
+    completed = value("probation_completed_date")
+    if start and any(day and day < start for day in (end, completed)):
+        raise AppException(
+            "Probation dates must not precede employment commencement", 400
+        )
+    if completed and completed > datetime.now(ZoneInfo("America/Grenada")).date():
+        raise AppException(
+            "Probation completion must be a recorded past or current date", 400
+        )
+    recorded = any(
+        value(key) is not None
+        for key in (
+            "continuous_service_date",
+            "probation_end_date",
+            "probation_completed_date",
+        )
+    )
+    source = value("service_details_source")
+    if recorded and (not source or not source.strip()):
+        raise AppException(
+            "Provide the HR source for recorded service and probation facts", 400
+        )

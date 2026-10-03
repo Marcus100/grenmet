@@ -1,0 +1,13 @@
+{
+  "id": "E-19",
+  "area": "Secondary sources, 1951–1984",
+  "status": "open",
+  "impact": "source",
+  "what": "The secondary compilations disagree with each other on national party totals: PDBA and IFES (both from Emmanuel) vs ElectionPassport differ for 1951 (20,837 vs 20,622 total votes), 1961 (21,760 vs 21,754), 1967 (28,999 vs 29,037) and 1984 (IFES NNP 23,997 vs PEO 24,045). 1957 matches exactly, and 1954 and 1962 match once the Gazette corrections are applied.",
+  "action": "Pre-1972 figures stay ✱ until official returns are found.",
+  "sources": [
+    "PDBA Georgetown, 1951–1976",
+    "IFES R01622 (1989)",
+    "ElectionPassport GD.xlsx"
+  ]
+}

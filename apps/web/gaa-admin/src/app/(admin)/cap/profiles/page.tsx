@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ProfileEditor } from "@/components/cap/profile-editor";
 import { getAuthApiPrefix, getCapApiBaseUrl } from "@/lib/auth-config";
+import { reportError } from "@/lib/report-error";
 import {
   exchangeSessionForAccessToken,
   readSessionCookie,
@@ -16,7 +17,8 @@ export default async function HazardProfilesPage() {
   let token: string;
   try {
     token = (await exchangeSessionForAccessToken(session)).access_token;
-  } catch {
+  } catch (error) {
+    reportError(error, "session");
     redirect("/signin");
   }
   const response = await fetch(

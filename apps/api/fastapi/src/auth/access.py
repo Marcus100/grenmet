@@ -3,10 +3,10 @@
 import logging
 import uuid
 
-from sqlalchemy import delete, exists
+from fastapi.encoders import jsonable_encoder
+from sqlalchemy import delete, exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from sqlmodel import col, select
 
 from src.auth.models import Role, User, UserRoleAssignment, UserRoleLink
 from src.auth.policy import _active_assignments
@@ -26,11 +26,11 @@ async def effective_roles(session: AsyncSession, user: User) -> list[Role]:
     # Preserve legacy grants only where there has never been a scoped assignment.
     legacy = await session.execute(
         select(UserRoleLink.role_id).where(
-            col(UserRoleLink.user_id) == user.id,
+            UserRoleLink.user_id == user.id,
             ~exists(
                 select(UserRoleAssignment.id).where(
-                    col(UserRoleAssignment.user_id) == user.id,
-                    col(UserRoleAssignment.role_id) == UserRoleLink.role_id,
+                    UserRoleAssignment.user_id == user.id,
+                    UserRoleAssignment.role_id == UserRoleLink.role_id,
                 )
             ),
         )
@@ -42,8 +42,8 @@ async def effective_roles(session: AsyncSession, user: User) -> list[Role]:
         (
             await session.execute(
                 select(Role)
-                .where(col(Role.id).in_(ids))
-                .options(selectinload(Role.permissions))  # type: ignore[arg-type]
+                .where(Role.id.in_(ids))
+                .options(selectinload(Role.permissions))
             )
         )
         .scalars()
@@ -65,23 +65,23 @@ async def read_reviews(session: AsyncSession, actor: User) -> AccessReviewData:
     rows = (
         await session.execute(
             select(UserRoleAssignment, User, Role)
-            .join(User, col(User.id) == UserRoleAssignment.user_id)
-            .join(Role, col(Role.id) == UserRoleAssignment.role_id)
-            .options(selectinload(Role.permissions))  # type: ignore[arg-type]
+            .join(User, User.id == UserRoleAssignment.user_id)
+            .join(Role, Role.id == UserRoleAssignment.role_id)
+            .options(selectinload(Role.permissions))
             .order_by(User.last_name, Role.name)
         )
     ).all()
     reviews = (
         (
             await session.execute(
-                select(AccessReview).order_by(col(AccessReview.created_at).desc())
+                select(AccessReview).order_by(AccessReview.created_at.desc())
             )
         )
         .scalars()
         .all()
     )
     admins = (
-        (await session.execute(select(User).where(col(User.is_superuser).is_(True))))
+        (await session.execute(select(User).where(User.is_superuser.is_(True))))
         .scalars()
         .all()
     )
@@ -103,17 +103,17 @@ async def read_reviews(session: AsyncSession, actor: User) -> AccessReviewData:
     legacy_rows = (
         await session.execute(
             select(UserRoleLink, User, Role)
-            .join(User, col(User.id) == UserRoleLink.user_id)
-            .join(Role, col(Role.id) == UserRoleLink.role_id)
+            .join(User, User.id == UserRoleLink.user_id)
+            .join(Role, Role.id == UserRoleLink.role_id)
             .where(
                 ~exists(
                     select(UserRoleAssignment.id).where(
-                        col(UserRoleAssignment.user_id) == UserRoleLink.user_id,
-                        col(UserRoleAssignment.role_id) == UserRoleLink.role_id,
+                        UserRoleAssignment.user_id == UserRoleLink.user_id,
+                        UserRoleAssignment.role_id == UserRoleLink.role_id,
                     )
                 )
             )
-            .options(selectinload(Role.permissions))  # type: ignore[arg-type]
+            .options(selectinload(Role.permissions))
         )
     ).all()
     for link, user, role in legacy_rows:
@@ -167,23 +167,28 @@ async def review(
             await session.execute(
                 select(Role)
                 .where(Role.id == assignment.role_id)
-                .options(selectinload(Role.permissions))  # type: ignore[arg-type]
+                .options(selectinload(Role.permissions))
             )
         )
         .scalars()
         .first()
     )
+    assignment_snapshot = {
+        **{
+            key: value
+            for key, value in vars(assignment).items()
+            if not key.startswith("_")
+        },
+        "role_name": role.name if role else None,
+        "permission_keys": sorted(p.key for p in role.permissions) if role else [],
+    }
     record = AccessReview(
         assignment_id=assignment.id,
         subject_id=assignment.user_id,
         reviewer_id=actor.id,
         decision=body.decision,
         reason=reason,
-        snapshot={
-            **assignment.model_dump(mode="json"),
-            "role_name": role.name if role else None,
-            "permission_keys": sorted(p.key for p in role.permissions) if role else [],
-        },
+        snapshot=jsonable_encoder(assignment_snapshot),
     )
     session.add(record)
     if body.decision == "REVOKE":
@@ -192,16 +197,16 @@ async def review(
         remaining = (
             await session.execute(
                 select(UserRoleAssignment.id).where(
-                    col(UserRoleAssignment.user_id) == assignment.user_id,
-                    col(UserRoleAssignment.role_id) == assignment.role_id,
+                    UserRoleAssignment.user_id == assignment.user_id,
+                    UserRoleAssignment.role_id == assignment.role_id,
                 )
             )
         ).first()
         if remaining is None:
             await session.execute(
                 delete(UserRoleLink).where(
-                    col(UserRoleLink.user_id) == assignment.user_id,
-                    col(UserRoleLink.role_id) == assignment.role_id,
+                    UserRoleLink.user_id == assignment.user_id,
+                    UserRoleLink.role_id == assignment.role_id,
                 )
             )
     await session.commit()
@@ -221,8 +226,8 @@ async def review_legacy(
                 .where(
                     ~exists(
                         select(UserRoleAssignment.id).where(
-                            col(UserRoleAssignment.user_id) == UserRoleLink.user_id,
-                            col(UserRoleAssignment.role_id) == UserRoleLink.role_id,
+                            UserRoleAssignment.user_id == UserRoleLink.user_id,
+                            UserRoleAssignment.role_id == UserRoleLink.role_id,
                         )
                     )
                 )
@@ -254,7 +259,7 @@ async def review_legacy(
             await session.execute(
                 select(Role)
                 .where(Role.id == link.role_id)
-                .options(selectinload(Role.permissions))  # type: ignore[arg-type]
+                .options(selectinload(Role.permissions))
             )
         )
         .scalars()

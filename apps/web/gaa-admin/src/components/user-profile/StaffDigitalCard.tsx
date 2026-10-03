@@ -1,8 +1,5 @@
 "use client";
-import {
-  type StaffCard,
-  useReadStaffCardApiV1HrStaffCardMeGet,
-} from "@barrelsgd/api-client";
+import { type StaffCard, useHrGetStaffCard } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { BadgeCheck, Copy, ShieldCheck } from "lucide-react";
 import Image from "next/image";
@@ -127,7 +124,7 @@ export function DigitalStaffCard({ card }: { card: StaffCard }) {
 }
 
 export function StaffDigitalCard() {
-  const query = useReadStaffCardApiV1HrStaffCardMeGet({
+  const query = useHrGetStaffCard({
     query: { retry: false },
   });
   if (query.isLoading) return <p role="status">Loading staff card…</p>;

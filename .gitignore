@@ -22,8 +22,7 @@ __pycache__/
 .Python
 develop-eggs/
 downloads/
-!apps/web/gms/src/app/(pages)/resources/downloads/
-!apps/web/gms/src/app/(pages)/resources/downloads/page.tsx
+!apps/web/*/src/app/**/downloads/
 eggs/
 .eggs/
 lib64/
@@ -183,13 +182,28 @@ artifacts/
 # Agent local settings — per-machine overrides, never commit
 .claude/settings.local.json
 
+# Per-agent git worktrees (claude --worktree) — each is a separate checkout
+/.claude/worktrees/
+
+# Cross-tool session handoff log — local scratch, not project docs
+/SESSION_LOG.md
+
+# Bash command audit trail (defense-in-depth for the git-guardrail hook) — local scratch
+/.agents-bash-audit.log
+
 
 next-shadcn-admin-dashboard-baseui/
 
 # MBIA scraped WordPress source material (218MB, reference only)
 apps/web/mbia/.source/
 
-/temp-files
+# Local research downloads, original documents and reference screenshots.
+# Curated Elections Grenada JSON and public CSV exports live under the app
+# and must remain tracked; do not add blanket data/, *.json or *.csv ignores.
+/temp-files/
+
+# Local Signal design comparisons; selected designs live in app source.
+/design-previews/signal/
 
 .teaching/
 

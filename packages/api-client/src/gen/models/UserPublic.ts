@@ -9,26 +9,13 @@ export type UserPublic = {
   /**
    * @description
    * Format: `email`
-   * @maxLength 255
    * @type string
    */
   email: string;
-  /**
-   * @maxLength 255
-   * @type string
-   */
   username: string;
   title?: Title | null;
-  /**
-   * @maxLength 100
-   * @type string
-   */
   first_name: string;
   middle_name?: string | null;
-  /**
-   * @maxLength 100
-   * @type string
-   */
   last_name: string;
   /**
    * @default true
@@ -51,7 +38,17 @@ export type UserPublic = {
    * @type string
    */
   id: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   created_at: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   updated_at: string;
   last_login_at?: string | null;
   full_name: string;

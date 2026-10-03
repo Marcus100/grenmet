@@ -22,6 +22,20 @@ const config = {
 
 const TIMED_OUT = /did not respond within/i;
 const TIMED_OUT_5MS = /did not respond within 5ms/i;
+const pingParser = {
+  parse(value: unknown): { ok: boolean } {
+    if (
+      typeof value === "object" &&
+      value !== null &&
+      "ok" in value &&
+      typeof value.ok === "boolean"
+    ) {
+      return { ok: value.ok };
+    }
+    throw new Error("Invalid ping response");
+  },
+};
+const unknownParser = { parse: (value: unknown) => value };
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -38,7 +52,7 @@ describe("authApiFetch timeout", () => {
       .spyOn(globalThis, "fetch")
       .mockResolvedValue(jsonResponse({ ok: true }));
 
-    await authApiFetch(config, "/ping");
+    await authApiFetch(config, "/ping", pingParser);
 
     const init = fetchMock.mock.calls[0]?.[1];
     expect(init?.signal).toBeInstanceOf(AbortSignal);
@@ -49,7 +63,9 @@ describe("authApiFetch timeout", () => {
       new DOMException("The operation timed out.", "TimeoutError")
     );
 
-    const error = await authApiFetch(config, "/ping").catch((e: unknown) => e);
+    const error = await authApiFetch(config, "/ping", pingParser).catch(
+      (e: unknown) => e
+    );
 
     // Must NOT be an AuthApiError — callers treat those as expired sessions.
     expect(error).toBeInstanceOf(Error);
@@ -70,7 +86,7 @@ describe("authApiFetch timeout", () => {
     );
 
     await expect(
-      authApiFetch({ ...config, authApiTimeoutMs: 5 }, "/slow")
+      authApiFetch({ ...config, authApiTimeoutMs: 5 }, "/slow", pingParser)
     ).rejects.toThrow(TIMED_OUT_5MS);
   });
 
@@ -79,7 +95,9 @@ describe("authApiFetch timeout", () => {
       jsonResponse({ detail: "nope" }, 401)
     );
 
-    const error = await authApiFetch(config, "/ping").catch((e: unknown) => e);
+    const error = await authApiFetch(config, "/ping", pingParser).catch(
+      (e: unknown) => e
+    );
 
     expect(error).toBeInstanceOf(AuthApiError);
     expect((error as AuthApiError).status).toBe(401);
@@ -92,7 +110,7 @@ it("sends a live access token in the header without caching or leaking it into f
     .mockResolvedValue(
       jsonResponse({ role_names: [], permission_keys: [], is_superuser: false })
     );
-  await authApiFetch(config, "/auth/access/me", {
+  await authApiFetch(config, "/auth/access/me", unknownParser, {
     accessToken: "test-access-token",
   });
   const init = fetchMock.mock.calls[0]?.[1];

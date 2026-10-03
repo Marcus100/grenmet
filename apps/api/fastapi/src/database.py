@@ -1,11 +1,14 @@
 import sys
 from typing import Any
 
+from sqlalchemy import create_engine, select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import Session
 from sqlalchemy.pool import NullPool
-from sqlmodel import Session, SQLModel, create_engine, select
 
-# Import all models to ensure they're registered with SQLModel
+# Import all models so their SQLAlchemy tables are registered before startup.
+from src.audit import listener as _audit_listener  # noqa: F401 - flush hook
+from src.audit.models import AuditEntry  # noqa: F401
 from src.auth.models import User  # noqa: F401
 from src.auth.modern_models import AuthChallenge, ExternalIdentity  # noqa: F401
 from src.baseline.models import (  # noqa: F401
@@ -32,6 +35,8 @@ from src.cap.models import (  # noqa: F401
     CapWebhook,
 )
 from src.config import settings
+from src.hr import audit as _hr_audit
+from src.hr import notifications as _hr_notifications
 from src.hr.absentee.models import AbsenteeReport  # noqa: F401
 from src.hr.dailystatus.models import StatusReport, StatusReportEntry  # noqa: F401
 from src.hr.exchange.models import ShiftSwapRequest  # noqa: F401
@@ -73,20 +78,16 @@ from src.hr.workflow.models import (  # noqa: F401
     WorkflowStepTemplate,
     WorkflowTemplate,
 )
+from src.notifications.models import (  # noqa: F401
+    Notification,
+    NotificationDelivery,
+    NotificationPreference,
+    NotificationSetting,
+)
 
-# Database naming conventions
-# This ensures consistent, predictable names for indexes, constraints, etc.
-# Following PostgreSQL naming conventions as recommended by best practices
-POSTGRES_INDEXES_NAMING_CONVENTION = {
-    "ix": "%(column_0_label)s_idx",
-    "uq": "%(table_name)s_%(column_0_name)s_key",
-    "ck": "%(table_name)s_%(constraint_name)s_check",
-    "fk": "%(table_name)s_%(column_0_name)s_fkey",
-    "pk": "%(table_name)s_pkey",
-}
-
-# Apply naming convention to SQLModel metadata
-SQLModel.metadata.naming_convention = POSTGRES_INDEXES_NAMING_CONVENTION
+# Modules register what they audit and notify about before any session exists.
+_hr_audit.register()
+_hr_notifications.register()
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
@@ -113,11 +114,6 @@ async_session_factory = async_sessionmaker(
 )
 
 
-# make sure all SQLModel models are imported before initializing DB
-# otherwise, SQLModel might fail to initialize relationships properly
-# for more details: https://github.com/fastapi/full-stack-fastapi-template/issues/28
-
-
 def init_db(session: Session) -> None:
     from src.baseline.organisation_root import seed_organisation
 
@@ -125,17 +121,15 @@ def init_db(session: Session) -> None:
     # Tables should be created with Alembic migrations
     # But if you don't want to use migrations, create
     # the tables un-commenting the next lines
-    # from sqlmodel import SQLModel
 
     # This works because the models are already imported and registered from modules
-    # SQLModel.metadata.create_all(engine)
 
     from src.auth import service
     from src.auth.schemas import UserCreate
 
-    user = session.exec(
+    user = session.execute(
         select(User).where(User.email == settings.FIRST_SUPERUSER)
-    ).first()
+    ).scalar_one_or_none()
     if not user:
         user_in = UserCreate(
             email=settings.FIRST_SUPERUSER,

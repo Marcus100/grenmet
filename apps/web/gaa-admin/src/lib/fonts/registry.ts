@@ -8,7 +8,7 @@ import {
 } from "next/font/google";
 
 /**
- * Font switcher registry — trimmed to the GrenMet brand set.
+ * Font switcher registry — trimmed to the brand font set.
  *
  * Every font listed here is loaded in the root layout and its CSS variable
  * applied to `<html>` via `fontVars`, so each additional family is downloaded

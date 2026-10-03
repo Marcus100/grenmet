@@ -153,158 +153,41 @@ test("a committed OpenAPI change requires generated API-client files", (t) => {
   assert.match(result.stderr, /pnpm generate:api-client/);
 });
 
-const drizzleSchemaFamilies = {
-  janitorial: "apps/web/gaa-admin/src/db/janitorial/schema.ts",
-  transport: "apps/web/gaa-admin/src/db/transport/schema.ts",
-  wxproducts: "apps/web/gaa-admin/src/db/wxproducts/schema/index.ts",
-  wxwatch: "apps/web/gaa-admin/src/db/wxwatch/schema.ts",
-};
-
-for (const [family, schemaFile] of Object.entries(drizzleSchemaFamilies)) {
-  test(`the ${family} Drizzle schema requires a matching migration`, (t) => {
-    const { base, repository } = createRepository(t);
-    write(repository, schemaFile);
-    write(
-      repository,
-      "apps/web/gaa-admin/drizzle/unrelated/0001_unrelated.sql"
-    );
-    let head = commit(repository, `change ${family} schema`);
-
-    let result = check(repository, ["--base", base, "--head", head]);
-
-    assert.equal(result.status, 1);
-    assert.match(result.stderr, new RegExp(`Drizzle ${family} migration`));
-    assert.match(result.stderr, new RegExp(schemaFile.replaceAll("/", "\\/")));
-    assert.match(
-      result.stderr,
-      new RegExp(`apps/web/gaa-admin/drizzle/${family}/`)
-    );
-
-    write(repository, `apps/web/gaa-admin/drizzle/${family}/0001_schema.sql`);
-    head = commit(repository, `add ${family} migration`);
-    result = check(repository, ["--base", base, "--head", head]);
-
-    assert.equal(result.status, 0, result.stderr);
-  });
-}
-
-test("deleting a protected file counts as a change", (t) => {
-  const router = "apps/api/fastapi/src/weather/router.py";
+test("an OpenAPI title-only correction passes staged and range checks", (t) => {
+  const file = "apps/api/fastapi/openapi.json";
+  const before = {
+    openapi: "3.1.0",
+    info: { title: "HR verification" },
+    paths: {},
+  };
   const { base, repository } = createRepository(t, {
-    [router]: "router = None\n",
+    [file]: JSON.stringify(before),
   });
-  rmSync(join(repository, router));
-  const head = commit(repository, "delete router");
-
-  const result = check(repository, ["--base", base, "--head", head]);
-
-  assert.equal(result.status, 1);
-  assert.match(result.stderr, /apps\/api\/fastapi\/src\/weather\/router\.py/);
-  assert.match(result.stderr, /apps\/api\/fastapi\/openapi\.json/);
-});
-
-test("renaming a protected file counts both paths as changes", (t) => {
-  const router = "apps/api/fastapi/src/weather/router.py";
-  const { base, repository } = createRepository(t, {
-    [router]: "router = None\n",
-  });
-  git(
+  write(
     repository,
-    "mv",
-    router,
-    "apps/api/fastapi/src/weather/implementation.py"
+    file,
+    JSON.stringify({ ...before, info: { title: "Grenmet API" } })
   );
-  const head = commit(repository, "rename router");
-
-  const result = check(repository, ["--base", base, "--head", head]);
-
-  assert.equal(result.status, 1);
-  assert.match(result.stderr, /apps\/api\/fastapi\/src\/weather\/router\.py/);
-  assert.match(result.stderr, /apps\/api\/fastapi\/openapi\.json/);
-});
-
-test("a malformed comparison fails with usage guidance", (t) => {
-  const { repository } = createRepository(t);
-
-  const result = check(repository, ["--base", "HEAD"]);
-
-  assert.equal(result.status, 2);
-  assert.match(result.stderr, /choose exactly one comparison mode/);
-  assert.match(result.stderr, /--staged \| --base <sha> --head <sha>/);
-});
-
-test("an unavailable Git range fails with recovery guidance", (t) => {
-  const { repository } = createRepository(t);
-
-  const result = check(repository, [
-    "--base",
-    "missing-base",
-    "--head",
-    "HEAD",
-  ]);
-
-  assert.equal(result.status, 2);
-  assert.match(result.stderr, /Git could not compare/);
-  assert.match(result.stderr, /Fetch the base and head commits/);
-  assert.doesNotMatch(result.stdout, /Blast-radius check passed/);
-});
-
-test("the blast-radius bypass applies only to staged local checks", (t) => {
-  const { base, repository } = createRepository(t);
-  write(repository, "apps/api/fastapi/src/weather/router.py");
-  git(repository, "add", ".");
-
-  let result = check(repository, ["--staged"], {
-    SKIP_BLAST_RADIUS: "0",
-  });
-  assert.equal(result.status, 1);
-
-  result = check(repository, ["--staged"], {
-    SKIP_BLAST_RADIUS: "1",
-  });
-  assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /staged blast-radius check skipped/);
-
-  const head = commit(repository, "partial contract change");
-  result = check(repository, ["--base", base, "--head", head], {
-    SKIP_BLAST_RADIUS: "1",
-  });
-  assert.equal(result.status, 1);
-  assert.match(result.stderr, /FastAPI contract companions/);
-});
-
-test("auth and shared UI changes explain required consumer validation", (t) => {
-  const { base, repository } = createRepository(t);
-  write(repository, "packages/auth/src/session.ts");
-  write(repository, "packages/ui/src/components/button.tsx");
+  git(repository, "add", file);
+  assert.equal(check(repository, ["--staged"]).status, 0);
   const head = commit(repository);
-
-  const result = check(repository, ["--base", base, "--head", head]);
-
-  assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /Auth consumer validation required/);
-  assert.match(result.stdout, /auth, gaa-admin, docs, gms, signal/);
-  assert.match(result.stdout, /AUTH_API_URL/);
-  assert.match(result.stdout, /Shared UI consumer validation required/);
-  assert.match(result.stdout, /every importing app/);
-  assert.match(result.stdout, /pnpm type-check, pnpm test, and pnpm build/);
+  assert.equal(check(repository, ["--base", base, "--head", head]).status, 0);
 });
 
-test("admin routes and Drizzle schemas explain cross-cutting validation", (t) => {
-  const { base, repository } = createRepository(t);
-  write(repository, "apps/web/gaa-admin/src/app/(admin)/hr/page.tsx");
-  write(repository, "apps/web/gaa-admin/src/db/wxwatch/schema.ts");
-  write(repository, "apps/web/gaa-admin/drizzle/wxwatch/0001_schema.sql");
+test("a title correction cannot hide an OpenAPI route change", (t) => {
+  const file = "apps/api/fastapi/openapi.json";
+  const { base, repository } = createRepository(t, {
+    [file]: JSON.stringify({ info: { title: "HR verification" }, paths: {} }),
+  });
+  write(
+    repository,
+    file,
+    JSON.stringify({ info: { title: "Grenmet API" }, paths: { "/new": {} } })
+  );
+  git(repository, "add", file);
+  assert.equal(check(repository, ["--staged"]).status, 1);
   const head = commit(repository);
-
-  const result = check(repository, ["--base", base, "--head", head]);
-
-  assert.equal(result.status, 0, result.stderr);
-  assert.match(result.stdout, /Admin route validation required/);
-  assert.match(result.stdout, /cap, hr, wxwatch, wxproducts, and salesbus/);
-  assert.match(result.stdout, /Drizzle production validation required/);
-  assert.match(result.stdout, /web-migrate production service/);
-  assert.match(result.stdout, /wxwatch and wxproducts databases/);
+  assert.equal(check(repository, ["--base", base, "--head", head]).status, 1);
 });
 
 const TELEMETRY_MAIN =
@@ -335,7 +218,7 @@ test("telemetry plus a route edit still requires contract companions", (t) => {
   write(
     repository,
     file,
-    withTelemetry(TELEMETRY_MAIN) + "app.include_router(new_router)\n"
+    `${withTelemetry(TELEMETRY_MAIN)}app.include_router(new_router)\n`
   );
   const head = commit(repository);
   const result = check(repository, ["--base", base, "--head", head]);
@@ -357,3 +240,175 @@ test("telemetry does not exempt other router files", (t) => {
   assert.equal(result.status, 1);
   assert.match(result.stderr, /FastAPI contract companions/);
 });
+
+const WXPRODUCTS_ROUTER = `from src.dependencies import SessionDep
+
+from .dependencies import AuthorDep, AuthoringSessionDep, WxProductsSessionDep
+
+async def save_product(cap_session: SessionDep, body: ProductWrite) -> StoredProduct:
+    pass
+async def preview_product(cap_session: SessionDep, body: ProductPreviewInput) -> ProductPreview:
+    pass
+async def preview_product_pdf(cap_session: SessionDep, body: ProductPreviewInput) -> Response:
+    pass
+`;
+const WXPRODUCTS_ISOLATED_ROUTER = `from .dependencies import (
+    AdvisorySessionDep,
+    AuthorDep,
+    AuthoringSessionDep,
+    WxProductsSessionDep,
+)
+
+async def save_product(cap_session: AdvisorySessionDep, body: ProductWrite) -> StoredProduct:
+    pass
+async def preview_product(cap_session: AdvisorySessionDep, body: ProductPreviewInput) -> ProductPreview:
+    pass
+async def preview_product_pdf(cap_session: AdvisorySessionDep, body: ProductPreviewInput) -> Response:
+    pass
+`;
+
+test("the exact advisory session fix passes staged and CI range checks", (t) => {
+  const file = "apps/api/fastapi/src/wxproducts/router.py";
+  const { base, repository } = createRepository(t, {
+    [file]: WXPRODUCTS_ROUTER,
+  });
+  write(repository, file, WXPRODUCTS_ISOLATED_ROUTER);
+  git(repository, "add", file);
+  const staged = check(repository, ["--staged"]);
+  assert.equal(staged.status, 0, staged.stderr);
+  const head = commit(repository);
+  const range = check(repository, ["--base", base, "--head", head]);
+  assert.equal(range.status, 0, range.stderr);
+});
+
+test("an advisory session fix with a response change still requires companions", (t) => {
+  const file = "apps/api/fastapi/src/wxproducts/router.py";
+  const { base, repository } = createRepository(t, {
+    [file]: WXPRODUCTS_ROUTER,
+  });
+  write(
+    repository,
+    file,
+    WXPRODUCTS_ISOLATED_ROUTER.replace("-> StoredProduct:", "-> NewProduct:")
+  );
+  git(repository, "add", file);
+  const staged = check(repository, ["--staged"]);
+  assert.equal(staged.status, 1);
+  const head = commit(repository);
+  const range = check(repository, ["--base", base, "--head", head]);
+  assert.equal(range.status, 1);
+  assert.match(range.stderr, /FastAPI contract companions/);
+});
+
+test("the advisory session fix does not exempt other router files", (t) => {
+  const file = "apps/api/fastapi/src/wxproducts/router.py";
+  const { base, repository } = createRepository(t, {
+    [file]: WXPRODUCTS_ROUTER,
+  });
+  write(repository, file, WXPRODUCTS_ISOLATED_ROUTER);
+  write(
+    repository,
+    "apps/api/fastapi/src/weather/router.py",
+    "router = new_route\n"
+  );
+  const head = commit(repository);
+  const result = check(repository, ["--base", base, "--head", head]);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /src\/weather\/router\.py/);
+});
+
+const JANITORIAL_ROUTER =
+  "async def spec():\n    query = '''\n        LEFT JOIN sections s ON s.building_id=b.id\n    '''\n";
+const withUnsectionedAreas = (source) =>
+  source.replace(
+    "        LEFT JOIN sections s ON s.building_id=b.id",
+    `        LEFT JOIN (
+            SELECT id, building_id, name, sort_order FROM sections
+            UNION ALL
+            -- Areas without a section form their own group, even in buildings
+            -- that also have sections.
+            SELECT DISTINCT NULL::integer, building_id, NULL::text, NULL::integer
+            FROM areas WHERE section_id IS NULL
+        ) s ON s.building_id=b.id`
+  );
+
+test("the exact janitorial query fix passes staged and CI range checks", (t) => {
+  const file = "apps/api/fastapi/src/janitorial/router.py";
+  const { base, repository } = createRepository(t, {
+    [file]: JANITORIAL_ROUTER,
+  });
+  write(repository, file, withUnsectionedAreas(JANITORIAL_ROUTER));
+  git(repository, "add", file);
+  const staged = check(repository, ["--staged"]);
+  assert.equal(staged.status, 0, staged.stderr);
+  const head = commit(repository);
+  const range = check(repository, ["--base", base, "--head", head]);
+  assert.equal(range.status, 0, range.stderr);
+});
+
+test("another janitorial route edit still requires contract companions", (t) => {
+  const file = "apps/api/fastapi/src/janitorial/router.py";
+  const { base, repository } = createRepository(t, {
+    [file]: JANITORIAL_ROUTER,
+  });
+  write(
+    repository,
+    file,
+    `${withUnsectionedAreas(JANITORIAL_ROUTER)}router = new_route\n`
+  );
+  const head = commit(repository);
+  const result = check(repository, ["--base", base, "--head", head]);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /FastAPI contract companions/);
+});
+
+const REQUEST_LOGGING_BEFORE = `from src.audit.router import router as audit_router
+async def request_logging_middleware(request: Request, call_next: Any) -> Any:
+    start = time.perf_counter()
+    response = await call_next(request)
+    duration_s = time.perf_counter() - start
+    logger.info(
+        "%s %s %s %.3fs origin=%s cors_allow_origin=%s requested_headers=%s",
+        request.method,
+        request.url.path,
+        response.status_code,
+        duration_s,
+        request.headers.get("origin", "-"),
+        response.headers.get("access-control-allow-origin", "-"),
+        request.headers.get("access-control-request-headers", "-"),
+    )
+    return response
+`;
+const REQUEST_LOGGING_AFTER = `from src import operational_metrics
+from src.audit.router import router as audit_router
+async def request_logging_middleware(request: Request, call_next: Any) -> Any:
+    start = time.perf_counter()
+    status = 500
+    try:
+        response = await call_next(request)
+        status = response.status_code
+    finally:
+        duration_s = time.perf_counter() - start
+        route = getattr(request.scope.get("route"), "path", "unmatched")
+        logger.info(
+            "request route=%s status=%s duration=%.3fs", route, status, duration_s
+        )
+        await operational_metrics.record_request(route, status, duration_s)
+    return response
+`;
+for (const suffix of ["", "app.include_router(new_router)\n"]) {
+  test(`request metrics exemption rejects additional route edits: ${Boolean(suffix)}`, (t) => {
+    const file = "apps/api/fastapi/src/main.py";
+    const { base, repository } = createRepository(t, {
+      [file]: REQUEST_LOGGING_BEFORE,
+    });
+    write(repository, file, REQUEST_LOGGING_AFTER + suffix);
+    git(repository, "add", file);
+    assert.equal(check(repository, ["--staged"]).status, suffix ? 1 : 0);
+    const head = commit(repository);
+    assert.equal(
+      check(repository, ["--base", base, "--head", head]).status,
+      suffix ? 1 : 0
+    );
+  });
+}

@@ -1,0 +1,269 @@
+{
+  "A": {
+    "reg": 3758,
+    "cast": 2263,
+    "rej": null,
+    "c": [
+      ["Joan Purcell", "NDC", 765, "official"],
+      ["Elvin Nimrod", "IND", 743, "official"],
+      ["Michael Caesar", "TNP", 460, "official"],
+      ["Tobias Clement", "NNP", 147, "official"],
+      ["Winston Fleary", "GULP", 109, "official"],
+      ["Lyle Bullen", "MBPM", 39, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 9,
+    "official": true,
+    "gazette": "Government Gazette No. 36, 30 June 1995, p. 369: Parliamentary Elections Office, Results of the Grenada General Elections 1995 (James T. Andrews, Supervisor of Elections, 28 June 1995)"
+  },
+  "B": {
+    "reg": 3859,
+    "cast": 2336,
+    "rej": null,
+    "c": [
+      ["Clarence Rapier", "GULP", 830, "official"],
+      ["Wilton Rougier", "NNP", 676, "official"],
+      ["Norton Noel", "NDC", 574, "official"],
+      ["Winifred Strachan", "TNP", 256, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 9,
+    "official": true,
+    "gazette": "Government Gazette No. 36, 30 June 1995, p. 369: Parliamentary Elections Office, Results of the Grenada General Elections 1995 (James T. Andrews, Supervisor of Elections, 28 June 1995)"
+  },
+  "C": {
+    "reg": 5160,
+    "cast": 3063,
+    "rej": null,
+    "c": [
+      ["Michael Baptiste", "GULP", 935, "check"],
+      ["Lawrence Joseph", "NNP", 712, "official"],
+      ["Ann Peters", "NDC", 697, "official"],
+      ["Ben Jones", "TNP", 663, "official"],
+      ["George Radgman", "MBPM", 56, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 9,
+    "official": true,
+    "gazette": "Government Gazette No. 36, 30 June 1995, p. 369: Parliamentary Elections Office, Results of the Grenada General Elections 1995 (James T. Andrews, Supervisor of Elections, 28 June 1995)",
+    "note": "The Supervisor of Elections’ declaration in the Gazette gives Michael Baptiste 940 votes; the PEO’s later compilation, used here, gives 935."
+  },
+  "D": {
+    "reg": 4298,
+    "cast": 2582,
+    "rej": null,
+    "c": [
+      ["Oliver Archibald", "NNP", 828, "official"],
+      ["Joseph Mc Guire", "GULP", 804, "official"],
+      ["Livingston Nelson", "NDC", 643, "official"],
+      ["Alleyne Walker", "TNP", 258, "official"],
+      ["Oscar Andall", "MBPM", 40, "official"],
+      ["Dolton Charles", "URP", 7, "official"],
+      ["Kenrick Gooding", "GOD", 2, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 9,
+    "official": true,
+    "gazette": "Government Gazette No. 36, 30 June 1995, p. 369: Parliamentary Elections Office, Results of the Grenada General Elections 1995 (James T. Andrews, Supervisor of Elections, 28 June 1995)"
+  },
+  "E": {
+    "reg": 3970,
+    "cast": 2611,
+    "rej": null,
+    "c": [
+      ["Laurina Waldron", "NNP", 782, "official"],
+      ["Selwyn Humphrey", "GULP", 755, "official"],
+      ["Paul Francis", "NDC", 659, "official"],
+      ["Allan Mc Guire", "TNP", 379, "official"],
+      ["Jerome Pierre", "MBPM", 36, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 9,
+    "official": true,
+    "gazette": "Government Gazette No. 36, 30 June 1995, p. 369: Parliamentary Elections Office, Results of the Grenada General Elections 1995 (James T. Andrews, Supervisor of Elections, 28 June 1995)"
+  },
+  "F": {
+    "reg": 7939,
+    "cast": 5070,
+    "rej": null,
+    "c": [
+      ["Michael Andrew", "NDC", 1746, "official"],
+      ["Jerome Romain", "GULP", 1641, "official"],
+      ["Joslyn Whiteman", "NNP", 1503, "official"],
+      ["Marcia Williams", "TNP", 96, "official"],
+      ["Wilton Allard", "MBPM", 68, "official"],
+      ["Peter Thomas", "URP", 16, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 9,
+    "official": true,
+    "gazette": "Government Gazette No. 36, 30 June 1995, p. 369: Parliamentary Elections Office, Results of the Grenada General Elections 1995 (James T. Andrews, Supervisor of Elections, 28 June 1995)"
+  },
+  "G": {
+    "reg": 4358,
+    "cast": 2401,
+    "rej": null,
+    "c": [
+      ["Dr. Raphael Fletcher", "NNP", 791, "check"],
+      ["Kent Joseph", "NDC", 748, "official"],
+      ["Raymond Anthony", "GULP", 640, "official"],
+      ["Keith Patrick", "TNP", 165, "official"],
+      ["Peggy Nesfield", "MBPM", 54, "official"],
+      ["Carlyle Jones", "URP", 3, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 9,
+    "official": true,
+    "gazette": "Government Gazette No. 36, 30 June 1995, p. 369: Parliamentary Elections Office, Results of the Grenada General Elections 1995 (James T. Andrews, Supervisor of Elections, 28 June 1995)",
+    "note": "The Supervisor of Elections’ declaration in the Gazette gives Dr. Raphael Fletcher 855 votes; the PEO’s later compilation, used here, gives 791."
+  },
+  "H": {
+    "reg": 6283,
+    "cast": 3704,
+    "rej": null,
+    "c": [
+      ["George Brizan", "NDC", 1887, "official"],
+      ["Dr. Roger Radix", "NNP", 917, "official"],
+      ["Wilfred Lewis", "GULP", 757, "official"],
+      ["Denis Joseph", "IND", 78, "official"],
+      ["Valentine Joseph", "MBPM", 56, "official"],
+      ["Cleo Peters", "GOD", 9, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 9,
+    "official": true,
+    "gazette": "Government Gazette No. 36, 30 June 1995, p. 369: Parliamentary Elections Office, Results of the Grenada General Elections 1995 (James T. Andrews, Supervisor of Elections, 28 June 1995)"
+  },
+  "J": {
+    "reg": 4144,
+    "cast": 2659,
+    "rej": null,
+    "c": [
+      ["Dr. Keith Mitchell", "NNP", 1850, "official"],
+      ["Bauxton Francois", "GULP", 504, "official"],
+      ["Siddiqui Sylvester", "NDC", 292, "official"],
+      ["Antonio Langdon", "URP", 13, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 9,
+    "official": true,
+    "gazette": "Government Gazette No. 36, 30 June 1995, p. 369: Parliamentary Elections Office, Results of the Grenada General Elections 1995 (James T. Andrews, Supervisor of Elections, 28 June 1995)"
+  },
+  "K": {
+    "reg": 4440,
+    "cast": 2684,
+    "rej": null,
+    "c": [
+      ["Dr. Francis Alexis", "NDC", 1196, "official"],
+      ["Gregory Bowen", "NNP", 774, "official"],
+      ["Lincoln St. Louis", "GULP", 630, "official"],
+      ["Brian Lindsay", "MBPM", 48, "official"],
+      ["Gordon Williams", "TNP", 36, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 9,
+    "official": true,
+    "gazette": "Government Gazette No. 36, 30 June 1995, p. 369: Parliamentary Elections Office, Results of the Grenada General Elections 1995 (James T. Andrews, Supervisor of Elections, 28 June 1995)"
+  },
+  "L": {
+    "reg": 6401,
+    "cast": 3741,
+    "rej": null,
+    "c": [
+      ["Mark Isaac", "NNP", 1349, "check"],
+      ["Sir Eric Gairy", "GULP", 1195, "official"],
+      ["Phinsley St. Louis", "NDC", 1084, "official"],
+      ["Richard Peters", "MBPM", 58, "official"],
+      ["Dorset Charles", "TNP", 48, "official"],
+      ["Mertice Reece", "URP", 7, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 9,
+    "official": true,
+    "epDiff": ["Mark Isaac (NNP) EP=1329 PEO=1349 [Mark Isaac]"],
+    "gazette": "Government Gazette No. 36, 30 June 1995, p. 369: Parliamentary Elections Office, Results of the Grenada General Elections 1995 (James T. Andrews, Supervisor of Elections, 28 June 1995)",
+    "note": "The Supervisor of Elections’ declaration in the Gazette gives Mark Isaac 1,350 votes; the PEO’s later compilation, used here, gives 1,349."
+  },
+  "M": {
+    "reg": 6021,
+    "cast": 3865,
+    "rej": null,
+    "c": [
+      ["Grace Duncan", "NNP", 1720, "official"],
+      ["Herbert Preudhomme", "GULP", 1032, "official"],
+      ["Edzel Thomas", "NDC", 935, "official"],
+      ["Peter Small", "MBPM", 160, "official"],
+      ["Sam Kee", "URP", 18, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 9,
+    "official": true,
+    "gazette": "Government Gazette No. 36, 30 June 1995, p. 369: Parliamentary Elections Office, Results of the Grenada General Elections 1995 (James T. Andrews, Supervisor of Elections, 28 June 1995)"
+  },
+  "N": {
+    "reg": 3122,
+    "cast": 1987,
+    "rej": null,
+    "c": [
+      ["William Dewsbury", "NNP", 621, "official"],
+      ["Henry De Allie", "NDC", 479, "official"],
+      ["Reginald Francis", "GULP", 432, "official"],
+      ["Ronald Straker", "TNP", 235, "official"],
+      ["Albert Forsythe", "IND", 161, "official"],
+      ["Terence Marryshow", "MBPM", 54, "official"],
+      ["Justine Mc Burnie", "GOD", 5, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 9,
+    "official": true,
+    "epDiff": ["Albert O. Forsyth (IND) EP=167 PEO=161 [Albert Forsythe]"],
+    "gazette": "Government Gazette No. 36, 30 June 1995, p. 369: Parliamentary Elections Office, Results of the Grenada General Elections 1995 (James T. Andrews, Supervisor of Elections, 28 June 1995)"
+  },
+  "P": {
+    "reg": 3260,
+    "cast": 2037,
+    "rej": null,
+    "c": [
+      ["Adrian Mitchell", "NNP", 686, "official"],
+      ["Crawford Best", "GULP", 645, "official"],
+      ["Tillman Thomas", "NDC", 604, "official"],
+      ["Nathaniel Herry", "TNP", 74, "official"],
+      ["Desmond Thomas", "MBPM", 25, "official"],
+      ["Stolmeyer Thompson", "URP", 3, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 9,
+    "official": true,
+    "gazette": "Government Gazette No. 36, 30 June 1995, p. 369: Parliamentary Elections Office, Results of the Grenada General Elections 1995 (James T. Andrews, Supervisor of Elections, 28 June 1995)"
+  },
+  "R": {
+    "reg": 4400,
+    "cast": 2716,
+    "rej": null,
+    "c": [
+      ["Kenny Lalsingh", "NDC", 1063, "official"],
+      ["Lennox Jerome", "NNP", 798, "official"],
+      ["Donville Neckles", "GULP", 699, "official"],
+      ["Denis Canning", "TNP", 156, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 9,
+    "official": true,
+    "gazette": "Government Gazette No. 36, 30 June 1995, p. 369: Parliamentary Elections Office, Results of the Grenada General Elections 1995 (James T. Andrews, Supervisor of Elections, 28 June 1995)"
+  }
+}

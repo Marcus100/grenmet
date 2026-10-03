@@ -9,16 +9,25 @@ import { parkingActionSchema } from "./parkingActionSchema.js";
 export const parkingPermitCreateSchema = z.object({
   signature_version: z.union([z.uuid(), z.null()]).optional(),
   user_id: z.uuid(),
-  department_id: z.string(),
-  company_name: z.union([z.string(), z.null()]).optional(),
-  phone: z.union([z.string(), z.null()]).optional(),
-  vehicle_registration_no: z.string(),
+  department_id: z.string().min(1).max(100),
+  company_name: z.union([z.string().max(255), z.null()]).optional(),
+  phone: z.union([z.string().max(30), z.null()]).optional(),
+  vehicle_registration_no: z.string().min(1).max(50),
   vehicle_insurance_issue_date: z.union([z.iso.date(), z.null()]).optional(),
   vehicle_insurance_expiry_date: z.union([z.iso.date(), z.null()]).optional(),
   action_requested: parkingActionSchema.optional().default("NEW_PERMIT"),
-  action_other_detail: z.union([z.string(), z.null()]).optional(),
+  action_other_detail: z.union([z.string().max(255), z.null()]).optional(),
   fee_amount: z
-    .union([z.number(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/)])
+    .union([
+      z.number().min(0),
+      z
+        .string()
+        .regex(
+          /^(?!^[-+.]*$)[+-]?0*(?:\d{0,6}|(?=[\d.]{1,9}0*$)\d{0,6}\.\d{0,2}0*$)/
+        ),
+    ])
     .optional()
     .default("40.00"),
+  as_draft: z.boolean().optional().default(false),
+  co_approver_user_ids: z.array(z.uuid()).optional(),
 });

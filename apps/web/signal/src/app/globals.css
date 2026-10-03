@@ -55,8 +55,18 @@
   }
 }
 
-/* Signal-specific Tailwind utilities + font tokens */
+/* Signal-specific Tailwind utilities + font tokens.
+
+   --font-sans overrides the shared --brand-font-sans (Noto Sans first) back to
+   Inter: Signal is a separate brand from GMS with its own Source Serif/Inter
+   pairing, documented in this app's AGENTS.md. Commit 7dcfc9ff added a
+   repo-wide Noto Sans load that silently won here once --font-noto-sans
+   became defined; this restores the pre-existing, intended body face. */
 @theme inline {
+  --font-sans: var(
+    --font-inter,
+    var(--font-noto-sans, ui-sans-serif, system-ui, sans-serif)
+  );
   --font-serif: var(
     --font-source-serif,
     ui-serif,
@@ -81,6 +91,18 @@ body {
   background: var(--background);
 }
 
-a {
-  text-decoration: none;
+/* Keep the editorial column usable under text enlargement. */
+@layer base {
+  body {
+    overflow-wrap: anywhere;
+  }
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible {
+    outline: 2px solid var(--signal-green);
+    outline-offset: 4px;
+  }
+  .bg-signal-green a:focus-visible {
+    outline-color: var(--signal-gold);
+  }
 }

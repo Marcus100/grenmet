@@ -10,12 +10,7 @@ export const calendarEventCreateSchema = z.object({
   department_id: z.union([z.string(), z.null()]).optional(),
   title: z.string(),
   description: z.union([z.string(), z.null()]).optional(),
-  kind: calendarEventKindSchema
-    .optional()
-    .default("MEETING")
-    .describe(
-      "What a department puts on its calendar besides the duty roster."
-    ),
+  kind: calendarEventKindSchema.optional().default("MEETING"),
   starts_at: z.iso.datetime(),
   ends_at: z.iso.datetime(),
   all_day: z.boolean().optional().default(false),

@@ -40,11 +40,11 @@ The generator uses the OpenAPI adapter, TypeScript parser, Fetch, React Query, a
 Operations accept grouped request options. Call `unwrap()` when only the successful response body is needed:
 
 ```ts
-const users = await readUsersApiV1AuthUsersGet({
+const users = await authGetUsers({
   query: { page: 1, size: 20 },
 }).unwrap();
 
-const mutation = useUpdateUserApiV1AuthUsersUserIdPatch();
+const mutation = useAuthUpdateUser();
 await mutation.mutateAsync({
   path: { user_id: userId },
   body: { first_name: "Jane" },

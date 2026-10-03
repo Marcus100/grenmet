@@ -1,5 +1,9 @@
 # WIS 2.0 Implementation Roadmap (2026)
 
+**Status:** Working plan  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-10
+
 > Internal living plan. Reconciled on 2026-08-16 from the June 2026 workshop
 > report and implementation evidence recorded in this repository.
 

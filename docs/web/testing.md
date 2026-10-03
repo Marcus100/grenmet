@@ -1,5 +1,9 @@
 # Web App Testing
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-11
+
 Run all workspace tests with `pnpm test`, or one app with
 `pnpm exec turbo run test --filter=@barrelsgd/web-gaa-admin`.
 For a focused check, run `pnpm vitest run src/path/to/example.test.tsx`
@@ -23,8 +27,7 @@ large scenarios that combine unrelated behaviors.
 
 ## Test discovery and caching
 
-Hono runs source tests under `src/` only, so compiled copies in `dist/` do not run
-again. Turbo includes Vitest configuration in its test cache inputs; changing
+Turbo includes Vitest configuration in its test cache inputs; changing
 discovery rules invalidates cached results. Run `pnpm fix` and `pnpm type-check`
 after changing the suite, then run the affected tests.
 

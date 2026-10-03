@@ -1,57 +1,86 @@
-import { isAuthApiError } from "@barrelsgd/auth";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { loadAccess, loadSecurity } from "./actions";
-import { SecurityPanel } from "./security-panel";
+import {
+  AccountLayout,
+  SettingsRow,
+  SettingsSection,
+  StatusBadge,
+} from "@/components/account-layout";
+import { requireAccount } from "@/lib/account";
+import { loadSecurity } from "./actions";
+import { TwoStepSettings } from "./two-step-settings";
 
-function handleLoadError(error: unknown): null {
-  if (isAuthApiError(error) && error.status === 401)
-    redirect("/?session=expired");
-  return null;
-}
+export const metadata: Metadata = { title: "Security — Grenmet Auth" };
+export const dynamic = "force-dynamic";
+
+const outlineLink =
+  "rounded-lg border border-border px-3 py-1.5 font-medium text-foreground text-sm transition hover:bg-muted";
+
 export default async function SecurityPage() {
-  const [security, access] = await Promise.all([
-    loadSecurity().catch(handleLoadError),
-    loadAccess().catch(handleLoadError),
-  ]);
+  await requireAccount();
+  const security = await loadSecurity().catch(() => null);
+
   return (
-    <main className="mx-auto min-h-screen max-w-3xl space-y-6 px-6 py-10">
-      <Link className="underline" href="/">
-        Back to account
-      </Link>
-      <h1 className="font-semibold text-3xl">Account security</h1>
-      <p className="text-(--muted)">
-        Manage sign-in methods, authenticator protection and sessions.
-      </p>
-      <section aria-label="Your access" className="space-y-2">
-        <h2 className="font-semibold text-xl">Your access</h2>
-        {access ? (
-          <>
-            {access.is_superuser && (
-              <p>Administrator access: unrestricted system permissions.</p>
-            )}
-            <p>Roles: {access.role_names.join(", ") || "No roles assigned"}</p>
-            <details>
-              <summary>Permission details</summary>
-              <ul>
-                {access.permission_keys.map((key) => (
-                  <li key={key}>{key}</li>
-                ))}
-              </ul>
-            </details>
-            <p>Contact your administrator to request or review access.</p>
-          </>
-        ) : (
-          <p role="alert">Access details could not be loaded.</p>
-        )}
-      </section>
+    <AccountLayout
+      current="/security"
+      description="Two-step verification and the ways you can sign in."
+      title="Security"
+    >
       {security ? (
-        <SecurityPanel security={security} />
+        <div className="space-y-10">
+          <SettingsSection title="Two-step verification">
+            <TwoStepSettings
+              enabled={security.totp_enabled}
+              recoveryCodesRemaining={security.recovery_codes_remaining ?? 0}
+            />
+          </SettingsSection>
+
+          <SettingsSection title="Sign-in methods">
+            <SettingsRow
+              action={
+                security.email_verified ? null : (
+                  <Link className={outlineLink} href="/verify-email">
+                    Verify
+                  </Link>
+                )
+              }
+              description="Sign in with your email and password."
+              title="Email"
+            >
+              {security.email_verified ? (
+                <StatusBadge tone="on">Verified</StatusBadge>
+              ) : (
+                <StatusBadge tone="off">Not verified</StatusBadge>
+              )}
+            </SettingsRow>
+            <SettingsRow
+              action={
+                security.google_configured && !security.google_linked ? (
+                  <Link className={outlineLink} href="/google/start">
+                    Connect
+                  </Link>
+                ) : null
+              }
+              description={
+                security.google_configured
+                  ? "Sign in with the Google account that matches your email."
+                  : "Google sign-in isn't available yet."
+              }
+              title="Google"
+            >
+              {security.google_linked ? (
+                <StatusBadge tone="on">Connected</StatusBadge>
+              ) : (
+                <StatusBadge tone="off">Not connected</StatusBadge>
+              )}
+            </SettingsRow>
+          </SettingsSection>
+        </div>
       ) : (
-        <p role="alert">
-          Security details could not be loaded. Sign in, then retry this page.
+        <p className="text-destructive text-sm" role="alert">
+          Security details could not be loaded. Refresh to try again.
         </p>
       )}
-    </main>
+    </AccountLayout>
   );
 }

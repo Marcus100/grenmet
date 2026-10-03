@@ -1,0 +1,171 @@
+[
+  [
+    "G01",
+    null,
+    "Magistrate’s Court #1",
+    84,
+    71,
+    1,
+    {
+      "NNP": 39,
+      "NDC": 31,
+      "GOD": 0
+    }
+  ],
+  [
+    "G02",
+    null,
+    "Old Wesley Hall School, Lucas Street",
+    370,
+    324,
+    2,
+    {
+      "NNP": 197,
+      "NDC": 125,
+      "GOD": 0
+    }
+  ],
+  [
+    "G03",
+    "a",
+    "National Stadium, River Road End",
+    208,
+    177,
+    0,
+    {
+      "NNP": 117,
+      "NDC": 60,
+      "GOD": 0
+    }
+  ],
+  [
+    "G03",
+    "b",
+    "National Stadium, River Road End",
+    232,
+    208,
+    3,
+    {
+      "NNP": 146,
+      "NDC": 59,
+      "GOD": 0
+    }
+  ],
+  [
+    "G03",
+    "c",
+    "National Stadium, River Road End",
+    229,
+    197,
+    1,
+    {
+      "NNP": 117,
+      "NDC": 79,
+      "GOD": 0
+    }
+  ],
+  [
+    "G03",
+    "d",
+    "National Stadium, River Road End",
+    318,
+    278,
+    1,
+    {
+      "NNP": 186,
+      "NDC": 91,
+      "GOD": 0
+    }
+  ],
+  [
+    "G03",
+    "e",
+    "National Stadium, River Road End",
+    253,
+    221,
+    1,
+    {
+      "NNP": 150,
+      "NDC": 69,
+      "GOD": 1
+    }
+  ],
+  [
+    "G04",
+    null,
+    "Marryshow House",
+    132,
+    119,
+    0,
+    {
+      "NNP": 70,
+      "NDC": 49,
+      "GOD": 0
+    }
+  ],
+  [
+    "G05",
+    null,
+    "Parliamentary Elections Office, GUT Building",
+    204,
+    172,
+    2,
+    {
+      "NNP": 89,
+      "NDC": 81,
+      "GOD": 0
+    }
+  ],
+  [
+    "G06",
+    null,
+    "Berean Christian Academy, Lucas Street",
+    269,
+    231,
+    0,
+    {
+      "NNP": 115,
+      "NDC": 116,
+      "GOD": 0
+    }
+  ],
+  [
+    "G07",
+    null,
+    "St. George's Anglican Senior School",
+    25,
+    22,
+    0,
+    {
+      "NNP": 10,
+      "NDC": 12,
+      "GOD": 0
+    }
+  ],
+  [
+    "G08",
+    null,
+    "St. George's SDA School, Archibald Avenue",
+    285,
+    245,
+    0,
+    {
+      "NNP": 126,
+      "NDC": 118,
+      "GOD": 1
+    }
+  ],
+  [
+    "G09",
+    null,
+    "",
+    26,
+    21,
+    0,
+    {
+      "NNP": 15,
+      "NDC": 6,
+      "GOD": 0
+    }
+  ]
+]

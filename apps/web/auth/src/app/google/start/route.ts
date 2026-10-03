@@ -2,6 +2,7 @@ import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { googleStart, modernCookieOptions } from "@/lib/modern-auth";
+import { reportError } from "@/lib/report-error";
 
 export async function GET() {
   const binding = randomBytes(32).toString("hex");
@@ -11,7 +12,8 @@ export async function GET() {
     });
     (await cookies()).set("google_binding", binding, modernCookieOptions);
     return NextResponse.redirect(result.authorization_url);
-  } catch {
+  } catch (error) {
+    reportError(error, "auth-google");
     return new NextResponse(
       "Google sign-in is unavailable. Please use email login or contact your administrator.",
       { status: 503 }

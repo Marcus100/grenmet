@@ -1,5 +1,9 @@
 # Warning and Impact-Based Forecasting Framework
 
+**Status:** Draft  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-18
+
 | Field | Detail |
 |---|---|
 | **Version** | 1.0 |
@@ -107,7 +111,7 @@ Archive (all states, all content, full audit trail)
 Post-event review (within 5 working days of significant events)
 ```
 
-The implemented CAP system enforces: `DRAFT → SUBMITTED → APPROVED → PUBLISHED → EXPIRED / CANCELLED`.
+The implemented CAP system supports `DRAFT → SUBMITTED → APPROVED → PUBLISHED → EXPIRED / CANCELLED`, but per [ADR-0013](../adr/0013-cap-alert-self-publish-and-bulletin-linkage.md) Submit/Approve are an optional, non-blocking review step — Publish is allowed directly from Draft.
 
 No published warning is deleted. All lifecycle transitions are logged with actor, timestamp, and note.
 

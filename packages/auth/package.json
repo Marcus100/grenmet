@@ -36,6 +36,7 @@
     "vitest": "catalog:"
   },
   "dependencies": {
+    "@barrelsgd/api-client": "workspace:*",
     "server-only": "catalog:"
   }
 }

@@ -1,3 +1,4 @@
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { Paper } from "@/components/document/paper";
 import {
   SubmissionDate,
@@ -5,9 +6,13 @@ import {
 } from "@/components/hr/submission-date";
 
 export interface AbsenteeValues {
+  absenceEndTime: string;
+  absenceStartTime: string;
   date: string;
   department: string;
+  employeeId: string;
   employeeName: string;
+  expectedShiftCode: string;
   notes: string;
   reason: string;
 }
@@ -22,6 +27,10 @@ export const ABSENTEE_REASONS = [
 
 export const EMPTY_ABSENTEE: AbsenteeValues = {
   employeeName: "",
+  employeeId: "",
+  expectedShiftCode: "",
+  absenceStartTime: "",
+  absenceEndTime: "",
   department: "",
   date: "",
   reason: "Uncertified Sick",
@@ -82,11 +91,12 @@ export function AbsenteeDocument({
             return (
               <span className="flex items-center gap-2" key={r}>
                 <span
-                  className={`flex size-4 items-center justify-center border text-[10px] ${
+                  className={cn(
+                    "flex size-4 items-center justify-center border text-[10px]",
                     checked
                       ? "border-zinc-900 bg-zinc-900 text-white"
                       : "border-zinc-500"
-                  }`}
+                  )}
                 >
                   {checked ? "✓" : ""}
                 </span>

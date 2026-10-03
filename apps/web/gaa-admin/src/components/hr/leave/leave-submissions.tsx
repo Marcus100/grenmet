@@ -1,9 +1,9 @@
 "use client";
 
 import {
-  readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryKey,
-  useDeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete,
-  useReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet,
+  hrGetMyLeaveRequestsQueryKey,
+  useHrDeleteLeaveRequest,
+  useHrGetMyLeaveRequests,
 } from "@barrelsgd/api-client";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
@@ -12,6 +12,7 @@ import { Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
+import { RecordHistoryButton } from "@/components/audit/record-history";
 import { formatSubmissionDate } from "@/components/hr/submission-date";
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
@@ -23,10 +24,9 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
 };
 
 export function LeaveSubmissions() {
-  const query = useReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet({});
+  const query = useHrGetMyLeaveRequests({});
   const queryClient = useQueryClient();
-  const deleteMutation =
-    useDeleteLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdDelete();
+  const deleteMutation = useHrDeleteLeaveRequest();
   const [pendingId, setPendingId] = useState<string | null>(null);
   const requests = query.data?.data ?? [];
 
@@ -35,7 +35,7 @@ export function LeaveSubmissions() {
     try {
       await deleteMutation.mutateAsync({ path: { leave_request_id: id } });
       await queryClient.invalidateQueries({
-        queryKey: readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryKey({}),
+        queryKey: hrGetMyLeaveRequestsQueryKey({}),
       });
       toast.success("Draft deleted");
     } catch (error) {
@@ -113,7 +113,11 @@ export function LeaveSubmissions() {
                         </Button>
                       </div>
                     ) : (
-                      <span className="text-muted-foreground">—</span>
+                      <RecordHistoryButton
+                        entityId={request.id}
+                        entityType="leave_request"
+                        title="Leave request history"
+                      />
                     )}
                   </td>
                 </tr>

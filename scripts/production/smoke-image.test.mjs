@@ -65,7 +65,7 @@ test("web smoke cleans up its container on success and health failure", () => {
   }
 });
 test("API and migration checks propagate import failures without network access", () => {
-  for (const kind of ["api", "cms-migrate", "admin-migrate"]) {
+  for (const kind of ["api", "cms-migrate"]) {
     assert.equal(run(kind).status, 0);
     const failed = run(kind, false, true);
     assert.equal(failed.status, 1);
@@ -87,7 +87,7 @@ test("auth requires the server-rendered form after health succeeds and cleans up
 });
 
 test("Node image tooling failure blocks startup and migration execution", () => {
-  for (const kind of ["web", "auth", "cms-migrate", "admin-migrate"]) {
+  for (const kind of ["web", "auth", "cms-migrate"]) {
     const failed = run(kind, false, true);
     assert.equal(failed.status, 1);
     assert.ok(failed.calls.includes("Unexpected runtime package manager"));

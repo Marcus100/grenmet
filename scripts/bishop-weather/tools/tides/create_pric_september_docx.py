@@ -12,7 +12,6 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Inches, Pt, RGBColor
 
-
 ROOT = Path(__file__).resolve().parents[2]
 PACKAGE = ROOT / "exports/02-atmosphere-aviation/meteorology-and-climate/tides/pric/2026-august-september-v1.2-pric-primary"
 CSV_PATH = PACKAGE / "pric-tides-2026-08-01-to-2026-09-30.csv"

@@ -17,6 +17,8 @@ apps/api/fastapi/*
 !apps/api/fastapi/email-templates/**
 !apps/api/fastapi/scripts/
 !apps/api/fastapi/scripts/**
+!apps/api/fastapi/seed/
+!apps/api/fastapi/seed/**
 !scripts/
 scripts/*
 !scripts/scrapy-wxwatch/

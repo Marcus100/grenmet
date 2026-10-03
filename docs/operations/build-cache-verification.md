@@ -1,5 +1,9 @@
 # Core build inputs and cache verification
 
+**Status:** Historical record  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-09
+
 Each included Node image installs the same workspace manifest graph before
 copying its application source and transitive workspace dependencies. GMS-only
 source edits therefore leave unrelated application source layers unchanged.

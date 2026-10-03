@@ -97,8 +97,125 @@
 
     /* Borders and focus */
     --gm-border: #d0d5dd;
+    /* Input outline. --gm-border is 1.47:1 on white — fine for decorative
+       dividers, but a control identified by its outline needs >=3:1 (WCAG
+       1.4.11). This hue-matched grey is 3.56:1 on white and >=3.17:1 on every
+       --gm-surface tint. */
+    --gm-border-input: #85888d;
     --gm-shadow-focus: 0 0 0 3px
       color-mix(in srgb, var(--gm-blue) 24%, transparent);
+
+    /* Bold sky (public site, approved 28 Sep 2026). The hero is a sky
+       gradient; its last stop is only 3.97:1 against white, so small text on
+       the gradient sits on --gm-scrim (white on scrim-over-light-stop is
+       ~7.5:1). Large numerals and headings may sit on the gradient directly. */
+    --gm-sky-deep: #0a2c6b;
+    --gm-sky-mid: #1558b8;
+    --gm-sky-light: #2a82d8;
+    --gm-gradient-sky: linear-gradient(
+      170deg,
+      var(--gm-sky-deep) 0%,
+      var(--gm-sky-mid) 45%,
+      var(--gm-sky-light) 100%
+    );
+    --gm-scrim: rgb(11 19 43 / 0.42);
+    /* Raised navy surfaces for the dark masthead's menus and panels. */
+    --gm-navy-raised: #0f1a36;
+    --gm-navy-panel: #16244a;
+    /* Rounded cards. Off the shared radius scale (xl is 12px, 2xl 16px). */
+    --gm-radius-card: 14px;
+    /* Condensed display face for large numerals and section headings. Falls
+       back to the body sans where an app does not load Barlow Condensed. */
+    --gm-font-display: var(
+      --font-barlow-condensed,
+      "Barlow Condensed",
+      "Arial Narrow",
+      var(--brand-font-sans, sans-serif)
+    );
+    /* Numeral sizes above the shared type scale (which tops out at 34px). */
+    --gm-font-size-numeral-hero: clamp(84px, 16vw, 124px);
+    --gm-font-size-numeral: 46px;
+    --gm-font-size-display: 38px;
+
+    /* Heading ink. Navy on light; white in dark mode. Use this, not
+       text-gm-navy, for headings and emphasised text, so navy stays free to
+       be a fill (masthead, buttons) in both themes. */
+    --gm-heading: var(--gm-navy);
+  }
+
+  /* Dark mode (approved 29 Sep 2026), from the Bold sky mockup. Activated by
+     the `dark` class on <html> (theme boot). Every text token clears AA on
+     every dark surface; the input border clears 3:1. Kit hues, the navy
+     masthead, the sky gradient and the hazard fills do not change. Hazard
+     pairs whose foreground was --gm-text-primary are pinned to dark ink so a
+     yellow or amber pill never gets light text.
+
+     Scoped to `gm-site` (on <html> of the public site only) so the other
+     apps that import this foundation — gaa-admin, auth, docs — keep their
+     own dark themes until they opt in. */
+  .gm-site.dark {
+    --gm-surface-page: #0c1427;
+    --gm-surface: #111b32;
+    --gm-surface-panel: #15223e;
+    --gm-surface-secondary: #15223e;
+    --gm-surface-muted: #1a2846;
+
+    --gm-text-primary: #e6ecf5;
+    --gm-text-secondary: #b3bfd2;
+    --gm-text-muted: #8e9bb1;
+
+    --gm-border: #2a3858;
+    --gm-border-input: #6b7fa3;
+
+    --gm-blue-ink: #79b4ff;
+    --gm-sky-ink: #6fc3ff;
+    --gm-lime-ink: #b9ee63;
+
+    --gm-heading: #ffffff;
+
+    --gm-warning-yellow-fg: #111827;
+    --gm-warning-amber-fg: #111827;
+    --gm-warning-grey-fg: #111827;
+  }
+
+  /* Printable "papers" stay light in dark mode (repo rule): the light values
+     again, scoped to the paper. */
+  .gm-site.dark .gm-paper {
+    --gm-surface-page: #ffffff;
+    --gm-surface: #f3f8fc;
+    --gm-surface-panel: #eaf3fb;
+    --gm-surface-secondary: #eaf2fb;
+    --gm-surface-muted: #e4eef7;
+    --gm-text-primary: #111827;
+    --gm-text-secondary: #4b5563;
+    --gm-text-muted: #6b7280;
+    --gm-border: #d0d5dd;
+    --gm-border-input: #85888d;
+    --gm-blue-ink: #0b63ee;
+    --gm-sky-ink: #0f70b5;
+    --gm-lime-ink: #3f7a0f;
+    --gm-heading: var(--gm-navy);
+    --background: #ffffff;
+    --foreground: #111827;
+    color: var(--gm-text-primary);
+    color-scheme: light;
+    background: var(--gm-surface-page);
+  }
+}
+
+/* Logo ink for the inline vector marks (components/logo-marks.tsx), which fill
+   with currentColor. Plain CSS rather than utilities: apps do not scan this
+   package for Tailwind classes. Navy by default, blue for the bare icon, white
+   whenever the class-based dark theme is on. */
+@layer components {
+  .gm-logo {
+    color: var(--gm-logo-ink, var(--gm-navy));
+  }
+  .gm-logo-blue {
+    --gm-logo-ink: var(--gm-blue);
+  }
+  .dark .gm-logo {
+    color: var(--gm-text-inverse);
   }
 }
 
@@ -152,5 +269,26 @@
   --color-gm-warning-grey-fg: var(--gm-warning-grey-fg);
   --color-gm-warning-grey-border: var(--gm-warning-grey-border);
   --color-gm-border: var(--gm-border);
+  --color-gm-border-input: var(--gm-border-input);
   --shadow-gm-focus: var(--gm-shadow-focus);
+  --color-gm-sky-deep: var(--gm-sky-deep);
+  --color-gm-sky-mid: var(--gm-sky-mid);
+  --color-gm-sky-light: var(--gm-sky-light);
+  --color-gm-scrim: var(--gm-scrim);
+  --color-gm-navy-raised: var(--gm-navy-raised);
+  --color-gm-navy-panel: var(--gm-navy-panel);
+  --radius-gm-card: var(--gm-radius-card);
+  --font-gm-display: var(--gm-font-display);
+  --text-gm-numeral-hero: var(--gm-font-size-numeral-hero);
+  --text-gm-numeral-hero--line-height: 0.9;
+  --text-gm-numeral: var(--gm-font-size-numeral);
+  --text-gm-numeral--line-height: 1;
+  --text-gm-display: var(--gm-font-size-display);
+  --text-gm-display--line-height: 1;
+  --color-gm-heading: var(--gm-heading);
+}
+
+/* The sky gradient as a utility: `bg-gm-sky` is already the flat kit hue. */
+@utility bg-gm-gradient-sky {
+  background-image: var(--gm-gradient-sky);
 }

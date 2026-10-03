@@ -1,0 +1,234 @@
+{
+  "A": {
+    "reg": 4380,
+    "cast": 2860,
+    "rej": null,
+    "c": [
+      ["Elvin G. Nimrod", "NNP", 1431, "official"],
+      ["George W. Prime", "NDC", 1424, "official"],
+      ["Donald S. Charles", "GULP", 5, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 4,
+    "official": true
+  },
+  "B": {
+    "reg": 4435,
+    "cast": 2598,
+    "rej": null,
+    "c": [
+      ["Kenrick Fullerton", "NDC", 1313, "official"],
+      ["Cuthbert Mc Queen", "NNP", 1144, "official"],
+      ["Clarence Rapier", "GULP", 136, "official"],
+      ["Paul K. Mitchell", "PLM", 5, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 4,
+    "official": true
+  },
+  "C": {
+    "reg": 5841,
+    "cast": 3255,
+    "rej": null,
+    "c": [
+      ["Yolande Bain-Joseph", "NNP", 1251, "official"],
+      ["Osbert Charles", "NDC", 1203, "official"],
+      ["Michael Baptiste", "GULP", 792, "official"],
+      ["Denis Gilbert", "PLM", 9, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 4,
+    "official": true
+  },
+  "D": {
+    "reg": 5079,
+    "cast": 2766,
+    "rej": null,
+    "c": [
+      ["Roland Bhola", "NNP", 1370, "official"],
+      ["Ingrid Rush", "NDC", 1196, "official"],
+      ["Keith Braveboy", "GULP", 116, "official"],
+      ["Harford Flanders", "PLM", 60, "official"],
+      ["Joan Williams", "IND", 24, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 4,
+    "official": true
+  },
+  "E": {
+    "reg": 4546,
+    "cast": 2752,
+    "rej": null,
+    "c": [
+      ["Alleyne Walker", "NDC", 1599, "official"],
+      ["Laurina A. Waldron", "NNP", 1082, "official"],
+      ["Clifford Robertson", "GULP", 53, "official"],
+      ["Rodney Mark", "PLM", 18, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 4,
+    "official": true,
+    "note": "The winners’ summary on an earlier page of the same PEO document gives Alleyne Walker 1,600 votes; the candidate table, used here, gives 1,599."
+  },
+  "F": {
+    "reg": 8946,
+    "cast": 5397,
+    "rej": null,
+    "c": [
+      ["Michael Lett", "NDC", 2829, "official"],
+      ["Joslyn Whiteman", "NNP", 2345, "official"],
+      ["Jerome Romain", "GULP", 202, "official"],
+      ["Bernard Jones", "PLM", 21, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 4,
+    "official": true,
+    "note": "The winners’ summary on an earlier page of the same PEO document gives Michael Lett 2,892 votes; the candidate table, used here, gives 2,829."
+  },
+  "G": {
+    "reg": 4768,
+    "cast": 2492,
+    "rej": null,
+    "c": [
+      ["Peter David", "NDC", 1280, "official"],
+      ["Brenda Hood", "NNP", 1138, "official"],
+      ["Wilfred Hayes", "GULP", 44, "official"],
+      ["Raphael Fletcher", "PLM", 30, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 4,
+    "official": true
+  },
+  "H": {
+    "reg": 7207,
+    "cast": 3938,
+    "rej": null,
+    "c": [
+      ["V. Nazim Burke", "NDC", 2234, "official"],
+      ["Augustine John", "NNP", 1545, "official"],
+      ["Dennis Joseph", "GULP", 106, "official"],
+      ["Terence Marryshow", "PLM", 47, "official"],
+      ["Washington Edwards", "GRP", 6, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 4,
+    "official": true
+  },
+  "J": {
+    "reg": 4793,
+    "cast": 2777,
+    "rej": null,
+    "c": [
+      ["Keith C. Mitchell", "NNP", 2295, "official"],
+      ["Joan M. Purcell", "NDC", 434, "official"],
+      ["Cecil E. Harris", "GULP", 41, "official"],
+      ["Gillian B. Lewis", "PLM", 7, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 4,
+    "official": true
+  },
+  "K": {
+    "reg": 5251,
+    "cast": 3030,
+    "rej": null,
+    "c": [
+      ["Gregory Bowen", "NNP", 1459, "official"],
+      ["David Lambert", "NDC", 958, "official"],
+      ["Francis Alexis", "PLM", 543, "official"],
+      ["Norman De Souza", "GULP", 70, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 4,
+    "official": true
+  },
+  "L": {
+    "reg": 7966,
+    "cast": 3236,
+    "rej": null,
+    "c": [
+      ["Glynis Roberts", "NDC", 2093, "official"],
+      ["Ann-David Antoine", "NNP", 795, "official"],
+      ["Gloria Payne-Banfield", "GULP", 294, "official"],
+      ["Dorset Charles", "PLM", 37, "official"],
+      ["Frank Caesar", "IND", 12, "official"],
+      ["Eunice Belfon", "GOD", 5, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 4,
+    "official": true,
+    "epDiff": ["Ann David-Antoine (NNP) EP=1795 PEO=795 [Ann-David Antoine]"]
+  },
+  "M": {
+    "reg": 6513,
+    "cast": 3784,
+    "rej": null,
+    "c": [
+      ["Claris Charles", "NNP", 1855, "official"],
+      ["Michael Church", "NDC", 1796, "official"],
+      ["Herbert J. Preudhomme", "GULP", 119, "official"],
+      ["Osbert De Coteau", "PLM", 14, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 4,
+    "official": true
+  },
+  "N": {
+    "reg": 3558,
+    "cast": 2138,
+    "rej": null,
+    "c": [
+      ["Clarice Modeste-Curwen", "NNP", 1419, "official"],
+      ["Osborne James", "NDC", 659, "official"],
+      ["Gordon Bolah", "GULP", 39, "official"],
+      ["Wayne Francis", "PLM", 21, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 4,
+    "official": true
+  },
+  "P": {
+    "reg": 3896,
+    "cast": 2310,
+    "rej": null,
+    "c": [
+      ["Tillman Thomas", "NDC", 1113, "official"],
+      ["Adrian Mitchell", "NNP", 1068, "official"],
+      ["Reynold C. Benjamin", "GULP", 113, "official"],
+      ["Gordon John", "PLM", 16, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 4,
+    "official": true
+  },
+  "R": {
+    "reg": 5099,
+    "cast": 2906,
+    "rej": null,
+    "c": [
+      ["Anthony Boatswain", "NNP", 1369, "official"],
+      ["Joseph Gilbert", "NDC", 1314, "official"],
+      ["Lennox Mc Leish", "GULP", 118, "official"],
+      ["Kenny Lalsingh", "PLM", 100, "official"],
+      ["Justin Mc Burnie", "GOD", 5, "official"]
+    ],
+    "src": "peo-old",
+    "castIsValid": true,
+    "page": 4,
+    "official": true
+  }
+}

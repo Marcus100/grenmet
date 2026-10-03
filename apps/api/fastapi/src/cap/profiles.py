@@ -2,14 +2,20 @@
 
 import uuid
 
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
 
 from src.auth.models import User
 from src.auth.policy import require_permission
 from src.cap import service
 from src.cap.exceptions import CapStateError, CapValidationFailedError
+from src.cap.levels import (
+    GmsProduct,
+    level_parameters,
+    outlook_defaults,
+    severity_for,
+)
 from src.cap.models import CapCertainty, CapHazardProfile, CapSeverity, CapUrgency
 from src.cap.profile_schemas import (
     CapProfileDefinition,
@@ -74,9 +80,12 @@ def approval_errors(definition: CapProfileDefinition) -> list[str]:
 
 def public(row: CapHazardProfile) -> CapProfilePublic:
     definition = CapProfileDefinition.model_validate(row.definition)
+    row_data = {
+        key: value for key, value in vars(row).items() if not key.startswith("_")
+    }
     return CapProfilePublic.model_validate(
         {
-            **row.model_dump(),
+            **row_data,
             "definition": definition,
             "approval_errors": approval_errors(definition),
         }
@@ -89,7 +98,7 @@ async def list_versions(
     require_permission(current_user=current_user, permission_key="cap.alert.read")
     result = await session.execute(
         select(CapHazardProfile).order_by(
-            CapHazardProfile.key, col(CapHazardProfile.version).desc()
+            CapHazardProfile.key, CapHazardProfile.version.desc()
         )
     )
     return [public(row) for row in result.scalars()]
@@ -102,7 +111,7 @@ async def save_version(
     result = await session.execute(
         select(CapHazardProfile)
         .where(CapHazardProfile.key == key)
-        .order_by(col(CapHazardProfile.version).desc())
+        .order_by(CapHazardProfile.version.desc())
         .limit(1)
         .with_for_update()
     )
@@ -180,6 +189,15 @@ async def create_draft(
         raise CapValidationFailedError(
             ["Choose a subtype and template from this profile version."]
         )
+    product = GmsProduct(template.level)
+    # The colour sets CAP severity; urgency and certainty stay for the
+    # forecaster to assess, except an Outlook's CAP-conventional defaults.
+    severity = severity_for(payload.colour) if payload.colour else CapSeverity.UNKNOWN
+    urgency, certainty = (
+        outlook_defaults()
+        if product is GmsProduct.OUTLOOK
+        else (CapUrgency.UNKNOWN, CapCertainty.UNKNOWN)
+    )
     return await service.create_alert(
         session=session,
         current_user=current_user,
@@ -191,16 +209,17 @@ async def create_draft(
                     headline=template.headline,
                     description=template.description,
                     instruction=template.instruction,
-                    urgency=CapUrgency.UNKNOWN,
-                    severity=CapSeverity.UNKNOWN,
-                    certainty=CapCertainty.UNKNOWN,
+                    urgency=urgency,
+                    severity=severity,
+                    certainty=certainty,
                     sender_name=definition.issuing_authority,
                     contact=definition.contact,
                     parameters=[
                         CapNameValue(
                             value_name="GMS:hazard-profile",
                             value=f"{row.key}:v{row.version}",
-                        )
+                        ),
+                        *level_parameters(product, payload.colour),
                     ],
                 )
             ]

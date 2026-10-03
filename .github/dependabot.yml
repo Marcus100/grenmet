@@ -58,9 +58,9 @@ updates:
     commit-message:
       prefix: ⬆
     ignore:
-      # The interpreter is standardized on 3.13 across the uv workspace (root
+      # The interpreter is standardized on 3.14 across the uv workspace (root
       # pyproject.toml, .python-version, uv.lock). A bot bump here would silently
-      # desync the image from the lockfile. Lift when 3.14 is adopted deliberately,
+      # desync the image from the lockfile.
       # as one tested cycle across all three.
       - dependency-name: python
         update-types:
@@ -71,7 +71,6 @@ updates:
   - package-ecosystem: docker
     directories:
       - /apps/web/*
-      - /apps/api/honoapi
     target-branch: dev
     schedule:
       interval: weekly
@@ -104,7 +103,7 @@ updates:
     commit-message:
       prefix: ⬆
 
-  # pnpm (monorepo root — covers all workspace packages: apps/web/*, apps/api/honoapi, packages/*)
+  # pnpm (monorepo root — covers all workspace packages: apps/web/*, packages/*)
   # Dependabot uses the "npm" ecosystem for pnpm; it detects pnpm-lock.yaml automatically.
   - package-ecosystem: npm
     directory: /

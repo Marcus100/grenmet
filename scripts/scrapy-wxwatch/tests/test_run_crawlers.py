@@ -1,16 +1,13 @@
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 
 import pytest
-
+import run_crawlers
+from app.items import ImageItem
 from scrapy import signals
 from scrapy.settings import Settings
 from twisted.internet.defer import succeed
-
-from app.items import ImageItem
-
-import run_crawlers
 
 
 class FakeSignals:
@@ -56,7 +53,7 @@ class FakeCrawlerProcess:
             policy = run_crawlers.CRAWL_POLICIES[crawler.name]
             for index in range(policy.required_images):
                 item = ImageItem(
-                    observation_time=datetime.now(timezone.utc).isoformat(),
+                    observation_time=datetime.now(UTC).isoformat(),
                     images=[{"path": f"{crawler.name}/{index}.jpg"}],
                 )
                 crawler.signals.send(signals.item_scraped, item, None, spider)
@@ -120,7 +117,7 @@ def test_every_known_source_has_a_default_nonempty_run_policy():
 
 
 def test_stale_stored_image_does_not_satisfy_a_freshness_policy():
-    now = datetime(2026, 7, 18, 12, tzinfo=timezone.utc)
+    now = datetime(2026, 7, 18, 12, tzinfo=UTC)
     outcome = run_crawlers.CrawlOutcome(
         {
             "goes19": run_crawlers.CrawlPolicy(
@@ -143,7 +140,7 @@ def test_stale_stored_image_does_not_satisfy_a_freshness_policy():
 
 
 def test_default_goes_policy_rejects_a_complete_but_stale_product_set():
-    now = datetime(2026, 7, 18, 12, tzinfo=timezone.utc)
+    now = datetime(2026, 7, 18, 12, tzinfo=UTC)
     outcome = run_crawlers.CrawlOutcome(now=lambda: now)
     spider = SimpleNamespace(name="goes19", logger=logging.getLogger("test"))
     for index in range(8):
@@ -171,7 +168,7 @@ def test_source_selection_is_required(monkeypatch):
 
 
 def test_future_dated_image_does_not_satisfy_a_freshness_policy():
-    now = datetime(2026, 7, 18, 11, tzinfo=timezone.utc)
+    now = datetime(2026, 7, 18, 11, tzinfo=UTC)
     outcome = run_crawlers.CrawlOutcome(
         {
             "uwyo": run_crawlers.CrawlPolicy(
@@ -194,7 +191,7 @@ def test_future_dated_image_does_not_satisfy_a_freshness_policy():
 
 
 def test_dynamic_source_requires_every_product_discovered_on_the_live_page():
-    now = datetime(2026, 7, 18, 12, tzinfo=timezone.utc)
+    now = datetime(2026, 7, 18, 12, tzinfo=UTC)
     outcome = run_crawlers.CrawlOutcome(
         {
             "trackthetropics": run_crawlers.CrawlPolicy(

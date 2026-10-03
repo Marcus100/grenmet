@@ -12,6 +12,6 @@ export const permissionPublicSchema = z.object({
   access: z.string(),
   description: z.string().optional().default(""),
   id: z.uuid(),
-  created_at: z.string(),
-  updated_at: z.string(),
+  created_at: z.iso.datetime(),
+  updated_at: z.iso.datetime(),
 });

@@ -1,0 +1,1275 @@
+{
+  "schemaVersion": 1,
+  "policy": {
+    "detailedEventDays": 90,
+    "ga4AnalysisMonths": 14,
+    "operationalLogDays": 14,
+    "aggregateMonths": 24,
+    "performanceSampleRate": 0,
+    "spendingLimit": 0,
+    "quotaWarningPercent": 80
+  },
+  "services": [
+    {
+      "id": "barrels",
+      "owner": "barrels",
+      "operationalOwner": "Barrels Grenada engineering",
+      "repository": "Marcus100/grenmet",
+      "platform": "vercel",
+      "publicAnalytics": true,
+      "healthPath": "/",
+      "expectedStatus": 200,
+      "environments": {
+        "development": {
+          "origin": null,
+          "deployment": "pending",
+          "release": null,
+          "analytics": {
+            "status": "unconfigured",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "intentionally-disabled",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": []
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "staging": {
+          "origin": null,
+          "deployment": "pending",
+          "release": null,
+          "analytics": {
+            "status": "unconfigured",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "intentionally-disabled",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": []
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "production": {
+          "origin": "https://barrels.gd",
+          "deployment": "deployed",
+          "release": null,
+          "analytics": {
+            "status": "unconfigured",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "intentionally-disabled",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": []
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "direct",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        }
+      },
+      "expectedBody": null
+    },
+    {
+      "id": "elections",
+      "owner": "barrels",
+      "operationalOwner": "Barrels Grenada engineering",
+      "repository": "Marcus100/grenmet",
+      "platform": "vercel",
+      "publicAnalytics": true,
+      "healthPath": "/",
+      "expectedStatus": 200,
+      "environments": {
+        "development": {
+          "origin": "http://localhost:3007",
+          "deployment": "pending",
+          "release": null,
+          "analytics": {
+            "status": "unconfigured",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "unconfigured",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": []
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "staging": {
+          "origin": null,
+          "deployment": "pending",
+          "release": null,
+          "analytics": {
+            "status": "unconfigured",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "configured",
+            "project": "grenmet-staging",
+            "dsn": null,
+            "deliveryEvidence": [],
+            "secretRef": "SENTRY_DSN_STAGING",
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration."
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "production": {
+          "origin": "https://elections.barrels.gd",
+          "deployment": "deployed",
+          "release": null,
+          "analytics": {
+            "status": "unconfigured",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "configured",
+            "project": "grenmet-production",
+            "dsn": null,
+            "deliveryEvidence": [],
+            "secretRef": "SENTRY_DSN_PRODUCTION",
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration."
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "direct",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        }
+      },
+      "expectedBody": null
+    },
+    {
+      "id": "personal",
+      "owner": "personal",
+      "operationalOwner": "Barrels Grenada engineering",
+      "repository": null,
+      "platform": "vercel",
+      "publicAnalytics": true,
+      "healthPath": "/",
+      "expectedStatus": 200,
+      "environments": {
+        "development": {
+          "origin": null,
+          "deployment": "pending",
+          "release": null,
+          "analytics": {
+            "status": "unconfigured",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "intentionally-disabled",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": []
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "staging": {
+          "origin": null,
+          "deployment": "pending",
+          "release": null,
+          "analytics": {
+            "status": "unconfigured",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "intentionally-disabled",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": []
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "production": {
+          "origin": "https://www.eugine.me",
+          "deployment": "deployed",
+          "release": null,
+          "analytics": {
+            "status": "unconfigured",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "intentionally-disabled",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": []
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "direct",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        }
+      },
+      "expectedBody": null
+    },
+    {
+      "id": "api",
+      "owner": "gaa",
+      "operationalOwner": "Barrels Grenada engineering",
+      "repository": "Marcus100/grenmet",
+      "platform": "digitalocean",
+      "publicAnalytics": false,
+      "healthPath": "/api/v1/utils/ready/",
+      "expectedStatus": 200,
+      "environments": {
+        "development": {
+          "origin": "http://localhost:8000",
+          "deployment": "pending",
+          "release": null,
+          "analytics": {
+            "status": "intentionally-disabled",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "unconfigured",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": []
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "staging": {
+          "origin": "https://api.staging.barrels.gd",
+          "deployment": "deployed",
+          "release": null,
+          "analytics": {
+            "status": "intentionally-disabled",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "configured",
+            "project": "grenmet-staging",
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_STAGING"
+          },
+          "availability": {
+            "status": "configured",
+            "kind": "direct-pilot",
+            "monitorId": 5014248,
+            "deliveryEvidence": [],
+            "dashboard": "https://incidents.betterstack.com/team/t476349/monitors/5014248"
+          }
+        },
+        "production": {
+          "origin": "https://api.barrels.gd",
+          "deployment": "deployed",
+          "release": null,
+          "analytics": {
+            "status": "intentionally-disabled",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "configured",
+            "project": "grenmet-production",
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_PRODUCTION"
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "direct",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        }
+      },
+      "expectedBody": {
+        "status": "ready"
+      }
+    },
+    {
+      "id": "auth",
+      "owner": "gaa",
+      "operationalOwner": "Barrels Grenada engineering",
+      "repository": "Marcus100/grenmet",
+      "platform": "digitalocean",
+      "publicAnalytics": false,
+      "healthPath": "/api/health",
+      "expectedStatus": 200,
+      "environments": {
+        "development": {
+          "origin": "http://localhost:3000",
+          "deployment": "pending",
+          "release": null,
+          "analytics": {
+            "status": "intentionally-disabled",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "unconfigured",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": []
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "staging": {
+          "origin": "https://auth.staging.barrels.gd",
+          "deployment": "unverified",
+          "release": null,
+          "analytics": {
+            "status": "intentionally-disabled",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "configured",
+            "project": "grenmet-staging",
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_STAGING"
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "production": {
+          "origin": "https://auth.barrels.gd",
+          "deployment": "deployed",
+          "release": null,
+          "analytics": {
+            "status": "intentionally-disabled",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "configured",
+            "project": "grenmet-production",
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_PRODUCTION"
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "direct",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        }
+      },
+      "expectedBody": null
+    },
+    {
+      "id": "gaa-admin",
+      "owner": "gaa",
+      "operationalOwner": "Barrels Grenada engineering",
+      "repository": "Marcus100/grenmet",
+      "platform": "digitalocean",
+      "publicAnalytics": false,
+      "healthPath": "/api/health",
+      "expectedStatus": 200,
+      "environments": {
+        "development": {
+          "origin": "http://localhost:3001",
+          "deployment": "pending",
+          "release": null,
+          "analytics": {
+            "status": "intentionally-disabled",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "unconfigured",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": []
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "staging": {
+          "origin": "https://admin.staging.barrels.gd",
+          "deployment": "unverified",
+          "release": null,
+          "analytics": {
+            "status": "intentionally-disabled",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "configured",
+            "project": "grenmet-staging",
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_STAGING"
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "production": {
+          "origin": "https://admin.barrels.gd",
+          "deployment": "unverified",
+          "release": null,
+          "analytics": {
+            "status": "intentionally-disabled",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "configured",
+            "project": "grenmet-production",
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_PRODUCTION"
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "direct",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        }
+      },
+      "expectedBody": null
+    },
+    {
+      "id": "gms",
+      "owner": "gaa",
+      "operationalOwner": "Barrels Grenada engineering",
+      "repository": "Marcus100/grenmet",
+      "platform": "digitalocean",
+      "publicAnalytics": true,
+      "healthPath": "/",
+      "expectedStatus": 200,
+      "environments": {
+        "development": {
+          "origin": "http://localhost:3003",
+          "deployment": "pending",
+          "release": null,
+          "analytics": {
+            "status": "unconfigured",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "unconfigured",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": []
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "staging": {
+          "origin": "https://weather.staging.barrels.gd",
+          "deployment": "unverified",
+          "release": null,
+          "analytics": {
+            "status": "continuity-approved",
+            "ga4": "G-6PY9N83HCP",
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false,
+            "reason": "Owner requested restoration of existing staging Weather analytics on 2026-10-03. Existing public tag and staging variable match. Retention, access settings and event delivery remain unverified. Consent remains required."
+          },
+          "sentry": {
+            "status": "configured",
+            "project": "grenmet-staging",
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_STAGING"
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "production": {
+          "origin": "https://weather.barrels.gd",
+          "deployment": "unverified",
+          "release": null,
+          "analytics": {
+            "status": "unconfigured",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "configured",
+            "project": "grenmet-production",
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_PRODUCTION"
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "direct",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        }
+      },
+      "expectedBody": null
+    },
+    {
+      "id": "docs",
+      "owner": "gaa",
+      "operationalOwner": "Barrels Grenada engineering",
+      "repository": "Marcus100/grenmet",
+      "platform": "digitalocean",
+      "publicAnalytics": true,
+      "healthPath": "/",
+      "expectedStatus": 200,
+      "environments": {
+        "development": {
+          "origin": "http://localhost:3002",
+          "deployment": "pending",
+          "release": null,
+          "analytics": {
+            "status": "unconfigured",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "unconfigured",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": []
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "staging": {
+          "origin": "https://docs.staging.barrels.gd",
+          "deployment": "unverified",
+          "release": null,
+          "analytics": {
+            "status": "unconfigured",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "configured",
+            "project": "grenmet-staging",
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_STAGING"
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "production": {
+          "origin": "https://docs.barrels.gd",
+          "deployment": "unverified",
+          "release": null,
+          "analytics": {
+            "status": "unconfigured",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "configured",
+            "project": "grenmet-production",
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_PRODUCTION"
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "direct",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        }
+      },
+      "expectedBody": null
+    },
+    {
+      "id": "mbia",
+      "owner": "gaa",
+      "operationalOwner": "Barrels Grenada engineering",
+      "repository": "Marcus100/grenmet",
+      "platform": "digitalocean",
+      "publicAnalytics": true,
+      "healthPath": "/",
+      "expectedStatus": 200,
+      "environments": {
+        "development": {
+          "origin": "http://localhost:3005",
+          "deployment": "pending",
+          "release": null,
+          "analytics": {
+            "status": "unconfigured",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "unconfigured",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": []
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "staging": {
+          "origin": "https://mbia.staging.barrels.gd",
+          "deployment": "unverified",
+          "release": null,
+          "analytics": {
+            "status": "unconfigured",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "configured",
+            "project": "grenmet-staging",
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_STAGING"
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "production": {
+          "origin": "https://mbia.barrels.gd",
+          "deployment": "unverified",
+          "release": null,
+          "analytics": {
+            "status": "unconfigured",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "configured",
+            "project": "grenmet-production",
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_PRODUCTION"
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "direct",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        }
+      },
+      "expectedBody": null
+    },
+    {
+      "id": "signal",
+      "owner": "barrels",
+      "operationalOwner": "Barrels Grenada engineering",
+      "repository": "Marcus100/grenmet",
+      "platform": "digitalocean",
+      "publicAnalytics": true,
+      "healthPath": "/",
+      "expectedStatus": 200,
+      "environments": {
+        "development": {
+          "origin": "http://localhost:3004",
+          "deployment": "pending",
+          "release": null,
+          "analytics": {
+            "status": "unconfigured",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "unconfigured",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": []
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "staging": {
+          "origin": "https://signal.staging.barrels.gd",
+          "deployment": "unverified",
+          "release": null,
+          "analytics": {
+            "status": "unconfigured",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "configured",
+            "project": "grenmet-staging",
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_STAGING"
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "production": {
+          "origin": "https://signal.barrels.gd",
+          "deployment": "unverified",
+          "release": null,
+          "analytics": {
+            "status": "unconfigured",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "configured",
+            "project": "grenmet-production",
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_PRODUCTION"
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "direct",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        }
+      },
+      "expectedBody": null
+    },
+    {
+      "id": "events",
+      "owner": "barrels",
+      "operationalOwner": "Barrels Grenada engineering",
+      "repository": "Marcus100/grenmet",
+      "platform": "digitalocean",
+      "publicAnalytics": false,
+      "healthPath": "/",
+      "expectedStatus": 200,
+      "environments": {
+        "development": {
+          "origin": "http://localhost:3009",
+          "deployment": "pending",
+          "release": null,
+          "analytics": {
+            "status": "intentionally-disabled",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "unconfigured",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": []
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "staging": {
+          "origin": "https://events.staging.barrels.gd",
+          "deployment": "unverified",
+          "release": null,
+          "analytics": {
+            "status": "intentionally-disabled",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "configured",
+            "project": "grenmet-staging",
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_STAGING"
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "production": {
+          "origin": "https://events.barrels.gd",
+          "deployment": "unverified",
+          "release": null,
+          "analytics": {
+            "status": "intentionally-disabled",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "configured",
+            "project": "grenmet-production",
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_PRODUCTION"
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        }
+      },
+      "expectedBody": null
+    },
+    {
+      "id": "cms",
+      "owner": "gaa",
+      "operationalOwner": "Barrels Grenada engineering",
+      "repository": "Marcus100/grenmet",
+      "platform": "digitalocean",
+      "publicAnalytics": false,
+      "healthPath": "/api/health",
+      "expectedStatus": 200,
+      "environments": {
+        "development": {
+          "origin": "http://localhost:3006",
+          "deployment": "pending",
+          "release": null,
+          "analytics": {
+            "status": "intentionally-disabled",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "unconfigured",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": []
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "staging": {
+          "origin": "https://cms.staging.barrels.gd",
+          "deployment": "unverified",
+          "release": null,
+          "analytics": {
+            "status": "intentionally-disabled",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "configured",
+            "project": "grenmet-staging",
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_STAGING"
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "production": {
+          "origin": "https://cms.barrels.gd",
+          "deployment": "unverified",
+          "release": null,
+          "analytics": {
+            "status": "intentionally-disabled",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "configured",
+            "project": "grenmet-production",
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_PRODUCTION"
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        }
+      },
+      "expectedBody": null
+    },
+    {
+      "id": "nisa",
+      "owner": "unconfirmed",
+      "operationalOwner": "unconfirmed",
+      "repository": null,
+      "platform": "external",
+      "publicAnalytics": false,
+      "healthPath": "/",
+      "expectedStatus": 200,
+      "environments": {
+        "development": {
+          "origin": null,
+          "deployment": "pending",
+          "release": null,
+          "analytics": {
+            "status": "intentionally-disabled",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "intentionally-disabled",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": []
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "staging": {
+          "origin": null,
+          "deployment": "pending",
+          "release": null,
+          "analytics": {
+            "status": "intentionally-disabled",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "intentionally-disabled",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": []
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "production": {
+          "origin": null,
+          "deployment": "unverified",
+          "release": null,
+          "analytics": {
+            "status": "intentionally-disabled",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "intentionally-disabled",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": []
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "probe",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        }
+      },
+      "expectedBody": null
+    },
+    {
+      "id": "worker",
+      "owner": "gaa",
+      "operationalOwner": "Barrels Grenada engineering",
+      "repository": "Marcus100/grenmet",
+      "platform": "digitalocean",
+      "publicAnalytics": false,
+      "healthPath": null,
+      "expectedStatus": 200,
+      "environments": {
+        "development": {
+          "origin": null,
+          "deployment": "unverified",
+          "release": null,
+          "analytics": {
+            "status": "intentionally-disabled",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "unconfigured",
+            "project": null,
+            "dsn": null,
+            "deliveryEvidence": []
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "heartbeat",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "staging": {
+          "origin": null,
+          "deployment": "unverified",
+          "release": null,
+          "analytics": {
+            "status": "intentionally-disabled",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "configured",
+            "project": "grenmet-staging",
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_STAGING"
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "heartbeat",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        },
+        "production": {
+          "origin": null,
+          "deployment": "unverified",
+          "release": null,
+          "analytics": {
+            "status": "intentionally-disabled",
+            "ga4": null,
+            "posthog": null,
+            "retentionVerified": false,
+            "accessVerified": false
+          },
+          "sentry": {
+            "status": "configured",
+            "project": "grenmet-production",
+            "dsn": null,
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_PRODUCTION"
+          },
+          "availability": {
+            "status": "unconfigured",
+            "kind": "heartbeat",
+            "monitorId": null,
+            "deliveryEvidence": []
+          }
+        }
+      },
+      "expectedBody": null
+    }
+  ],
+  "operations": {
+    "staging": {
+      "probeRunner": {
+        "status": "delivery-verified",
+        "heartbeatId": 501599,
+        "dashboard": "https://incidents.betterstack.com/team/t476349/heartbeats/501599",
+        "deliveryEvidence": [
+          "2026-10-02: owner installed systemd timer; provider readback reported Up after successful nine-target run."
+        ],
+        "managedBy": "manual-install-awaiting-ci-adoption"
+      },
+      "backup": {
+        "status": "unconfigured",
+        "heartbeatId": 501600,
+        "paused": true
+      },
+      "worker": {
+        "status": "unconfigured",
+        "heartbeatId": 501601,
+        "paused": true
+      }
+    }
+  }
+}

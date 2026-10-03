@@ -50,6 +50,7 @@ export async function verifyManaged(mode, { run, inContainer, env, log }) {
       "test:guardrails",
       "test:delivery",
       "test:verification",
+      "verify:collectors",
     ]) {
       await run("pnpm", [check], env);
     }

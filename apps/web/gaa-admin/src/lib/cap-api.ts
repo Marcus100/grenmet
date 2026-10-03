@@ -4,6 +4,10 @@ import type {
   CapAreaPublic,
   CapInfoPublic,
 } from "@barrelsgd/api-client";
+import {
+  capAlertListPublicSchema,
+  capAlertPublicSchema,
+} from "@barrelsgd/api-client";
 import { notFound } from "next/navigation";
 import { getAuthApiPrefix, getCapApiBaseUrl } from "@/lib/auth-config";
 
@@ -30,6 +34,36 @@ export interface GeoJSONFeatureCollection {
   type: "FeatureCollection";
 }
 
+function parseGeoJSONFeatureCollection(
+  payload: unknown
+): GeoJSONFeatureCollection {
+  if (typeof payload !== "object" || payload === null) {
+    throw new Error("Invalid CAP active-map response");
+  }
+  if (!("type" in payload) || payload.type !== "FeatureCollection") {
+    throw new Error("Invalid CAP active-map response");
+  }
+  if (!("features" in payload && Array.isArray(payload.features))) {
+    throw new Error("Invalid CAP active-map response");
+  }
+  const features = payload.features.filter(
+    (feature): feature is GeoJSONFeatureCollection["features"][number] =>
+      typeof feature === "object" &&
+      feature !== null &&
+      "type" in feature &&
+      feature.type === "Feature" &&
+      "geometry" in feature &&
+      (feature.geometry === null || typeof feature.geometry === "object") &&
+      "properties" in feature &&
+      typeof feature.properties === "object" &&
+      feature.properties !== null
+  );
+  if (features.length !== payload.features.length) {
+    throw new Error("Invalid CAP active-map response");
+  }
+  return { type: "FeatureCollection", features };
+}
+
 const EMPTY_ALERT_LIST: CapAlertList = { data: [], count: 0 };
 const EMPTY_FEATURE_COLLECTION: GeoJSONFeatureCollection = {
   type: "FeatureCollection",
@@ -41,15 +75,21 @@ export function capPublicUrl(path: string): string {
 }
 
 export function getLatestActiveAlerts(): Promise<CapAlertList> {
-  return fetchCapJson("/api/cap/latest-active", EMPTY_ALERT_LIST);
+  return fetchCapJson("/api/cap/latest-active", EMPTY_ALERT_LIST, (payload) =>
+    capAlertListPublicSchema.parse(payload)
+  );
 }
 
 export function getPastAlerts(): Promise<CapAlertList> {
-  return fetchCapJson("/api/cap/past", EMPTY_ALERT_LIST);
+  return fetchCapJson("/api/cap/past", EMPTY_ALERT_LIST, (payload) =>
+    capAlertListPublicSchema.parse(payload)
+  );
 }
 
 export function getAllPublicAlerts(): Promise<CapAlertList> {
-  return fetchCapJson("/api/cap/alerts", EMPTY_ALERT_LIST);
+  return fetchCapJson("/api/cap/alerts", EMPTY_ALERT_LIST, (payload) =>
+    capAlertListPublicSchema.parse(payload)
+  );
 }
 
 export async function getAlertByIdentifier(
@@ -64,11 +104,19 @@ export async function getAlertByIdentifier(
   if (!response.ok) {
     notFound();
   }
-  return (await response.json()) as CapAlert;
+  const parsed = capAlertPublicSchema.safeParse(await response.json());
+  if (!parsed.success) {
+    notFound();
+  }
+  return parsed.data;
 }
 
 export function getActiveMap(): Promise<GeoJSONFeatureCollection> {
-  return fetchCapJson("/api/cap/active-map", EMPTY_FEATURE_COLLECTION);
+  return fetchCapJson(
+    "/api/cap/active-map",
+    EMPTY_FEATURE_COLLECTION,
+    parseGeoJSONFeatureCollection
+  );
 }
 
 /**
@@ -92,16 +140,20 @@ export async function fetchAdminAlerts(
   if (!response.ok) {
     throw new Error(`Failed to load CAP alerts (${response.status})`);
   }
-  return (await response.json()) as CapAlertList;
+  return capAlertListPublicSchema.parse(await response.json());
 }
 
-async function fetchCapJson<T>(path: string, fallback: T): Promise<T> {
+async function fetchCapJson<T>(
+  path: string,
+  fallback: T,
+  parse: (payload: unknown) => T
+): Promise<T> {
   try {
     const response = await fetch(capPublicUrl(path), { cache: "no-store" });
     if (!response.ok) {
       return fallback;
     }
-    return (await response.json()) as T;
+    return parse(await response.json());
   } catch {
     return fallback;
   }

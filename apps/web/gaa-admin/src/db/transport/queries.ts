@@ -1,102 +1,92 @@
 import "server-only";
 
-import { asc } from "drizzle-orm";
-import { transportDb as db } from "./index";
-import type { DayType, Direction } from "./parse-spec";
-import { routes, shifts, stops, tripStops, trips } from "./schema";
+import {
+  transportGetAccessResponseSchema,
+  transportGetCatalogueResponseSchema,
+  transportGetCurrentTimetableResponseSchema,
+  transportGetTimetableVersionResponseSchema,
+  transportListTimetableVersionsResponseSchema,
+} from "@barrelsgd/api-client";
+import type { z } from "zod";
+import {
+  getAuthApiBaseUrl,
+  getAuthApiPrefix,
+  getSessionCookieName,
+} from "@/lib/auth-config";
+import { readSessionCookie } from "@/lib/server-session";
 
-export interface StopView {
-  groupTime: string | null;
-  id: number;
-  name: string;
-}
+export type {
+  TimetableIssue,
+  TimetableTripView,
+  TimetableVersionDetail,
+  TimetableVersionSummary,
+  TransportAccess,
+  TransportCatalogue,
+  TransportRoute,
+  TransportStop,
+} from "@barrelsgd/api-client";
 
-export interface TripView {
-  arriveTime: string | null;
-  dayType: DayType;
-  departTime: string;
-  direction: Direction;
-  id: number;
-  stops: StopView[];
-}
+class TransportNotFound extends Error {}
 
-export interface ShiftGroupView {
-  endTime: string;
-  id: number;
-  name: string;
-  startTime: string;
-  trips: TripView[];
-}
-
-export interface RouteView {
-  id: number;
-  name: string;
-  number: number;
-  shifts: ShiftGroupView[];
-}
-
-/**
- * Fetch the full timetable as a nested route -> shift-group -> trip -> stop tree
- * for the read-only view. Within a route, only shifts that actually run appear,
- * in shift sort order; trips and stops preserve their DB sort order.
- */
-export async function getTransportSpec(): Promise<RouteView[]> {
-  const [routeRows, shiftRows, stopRows, tripRows, tripStopRows] =
-    await Promise.all([
-      db.select().from(routes).orderBy(asc(routes.sortOrder)),
-      db.select().from(shifts).orderBy(asc(shifts.sortOrder)),
-      db.select().from(stops),
-      db.select().from(trips).orderBy(asc(trips.sortOrder)),
-      db.select().from(tripStops).orderBy(asc(tripStops.sortOrder)),
-    ]);
-
-  const stopName = new Map(stopRows.map((s) => [s.id, s.name]));
-
-  const tripView = new Map<number, TripView>(
-    tripRows.map((t) => [
-      t.id,
-      {
-        id: t.id,
-        direction: t.direction,
-        dayType: t.dayType,
-        departTime: t.departTime,
-        arriveTime: t.arriveTime,
-        stops: [],
+async function transportGet<T extends z.ZodType>(
+  path: string,
+  schema: T
+): Promise<z.infer<T>> {
+  const secret = await readSessionCookie();
+  if (!secret) throw new Error("Sign in to view the bus portal");
+  const response = await fetch(
+    new URL(`${getAuthApiPrefix()}/transport${path}`, getAuthApiBaseUrl()),
+    {
+      headers: {
+        Cookie: `${getSessionCookieName()}=${encodeURIComponent(secret)}`,
       },
-    ])
-  );
-  for (const ts of tripStopRows) {
-    tripView.get(ts.tripId)?.stops.push({
-      id: ts.id,
-      name: stopName.get(ts.stopId) ?? "Unknown",
-      groupTime: ts.groupTime,
-    });
-  }
-
-  return routeRows.map((route) => {
-    const routeTrips = tripRows.filter((t) => t.routeId === route.id);
-
-    const groups: ShiftGroupView[] = [];
-    // Shifts in catalogue order, but only those that run on this route.
-    for (const shift of shiftRows) {
-      const shiftTrips = routeTrips.filter((t) => t.shiftId === shift.id);
-      if (shiftTrips.length === 0) {
-        continue;
-      }
-      groups.push({
-        id: shift.id,
-        name: shift.name,
-        startTime: shift.startTime,
-        endTime: shift.endTime,
-        trips: shiftTrips.map((t) => tripView.get(t.id) as TripView),
-      });
+      cache: "no-store",
+      redirect: "error",
+      signal: AbortSignal.timeout(10_000),
     }
+  );
+  if (response.status === 404) throw new TransportNotFound(path);
+  if (!response.ok) throw new Error("Bus portal data unavailable");
+  return schema.parse(await response.json());
+}
 
-    return {
-      id: route.id,
-      number: route.number,
-      name: route.name,
-      shifts: groups,
-    };
-  });
+export function getTransportAccess() {
+  return transportGet("/access", transportGetAccessResponseSchema);
+}
+
+export function getTransportCatalogue() {
+  return transportGet("/catalogue", transportGetCatalogueResponseSchema);
+}
+
+export function getTimetableVersions() {
+  return transportGet(
+    "/timetable/versions",
+    transportListTimetableVersionsResponseSchema
+  );
+}
+
+/** The timetable in force today, or null before any has been published. */
+export async function getCurrentTimetable() {
+  try {
+    return await transportGet(
+      "/timetable/current",
+      transportGetCurrentTimetableResponseSchema
+    );
+  } catch (error) {
+    if (error instanceof TransportNotFound) return null;
+    throw error;
+  }
+}
+
+/** A timetable version, or null when the id doesn't exist. */
+export async function getTimetableVersion(versionId: number) {
+  try {
+    return await transportGet(
+      `/timetable/versions/${versionId}`,
+      transportGetTimetableVersionResponseSchema
+    );
+  } catch (error) {
+    if (error instanceof TransportNotFound) return null;
+    throw error;
+  }
 }

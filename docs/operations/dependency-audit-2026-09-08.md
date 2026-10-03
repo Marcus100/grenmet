@@ -1,5 +1,9 @@
 # Dependency audit — September 8, 2026
 
+**Status:** Historical record  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-09
+
 Registry comparison of all 281 registry packages in the pre-framework-upgrade
 uv lockfile found 125 version differences. The installed environment alone had
 67 outdated packages and would miss notebook/geospatial dependencies. These are

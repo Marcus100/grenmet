@@ -4,17 +4,18 @@ from collections.abc import Sequence
 from typing import Protocol
 from uuid import UUID
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
 
 from src.hr.signatures.models import SignedDocument
-from src.hr.workflow.models import WorkflowInstance
+from src.hr.workflow.models import WorkflowInstance, WorkflowStatus
 from src.models import BaseModel, UtcDateTime
 
 
 class SubmittedFormPublic(BaseModel):
     signed_document_id: UUID | None = None
     submitted_at: UtcDateTime | None = None
+    workflow_status: WorkflowStatus | None = None
 
 
 class WorkflowForm(Protocol):
@@ -29,7 +30,7 @@ async def submission_list[T: SubmittedFormPublic](
     workflows = {}
     if ids:
         result = await session.execute(
-            select(WorkflowInstance).where(col(WorkflowInstance.id).in_(ids))
+            select(WorkflowInstance).where(WorkflowInstance.id.in_(ids))
         )
         workflows = {item.id: item for item in result.scalars()}
     signed = await signed_document_ids(session, [row.id for row in rows])
@@ -44,6 +45,7 @@ async def submission_list[T: SubmittedFormPublic](
         )
         if workflow is not None and workflow.entity_id == row.id:
             item.submitted_at = workflow.submitted_at
+            item.workflow_status = workflow.status
         output.append(item)
     return output
 
@@ -60,9 +62,9 @@ async def signed_document_ids(
     if not entity_ids:
         return {}
     result = await session.execute(
-        select(SignedDocument.entity_id, SignedDocument.id).where(
-            col(SignedDocument.entity_id).in_(entity_ids)
-        )
+        select(SignedDocument.entity_id, SignedDocument.id)
+        .where(SignedDocument.entity_id.in_(entity_ids))
+        .order_by(SignedDocument.revision, SignedDocument.signed_at, SignedDocument.id)
     )
     signed: dict[UUID, UUID] = {}
     for entity_id, document_id in result.all():

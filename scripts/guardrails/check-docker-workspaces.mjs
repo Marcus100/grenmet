@@ -3,11 +3,9 @@ import { dirname } from "node:path";
 
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
 const manifests = new Map(
-  globSync([
-    "packages/*/package.json",
-    "apps/web/*/package.json",
-    "apps/api/honoapi/package.json",
-  ]).map((path) => [readJson(path).name, { data: readJson(path), path }])
+  globSync(["packages/*/package.json", "apps/web/*/package.json"]).map(
+    (path) => [readJson(path).name, { data: readJson(path), path }]
+  )
 );
 
 // These Dockerfiles intentionally cache installation using explicit manifest
@@ -15,10 +13,7 @@ const manifests = new Map(
 const installPattern = /^RUN (?:HUSKY=0 )?pnpm install\b/m;
 const copyPattern = /^COPY (\S+\/package\.json)\s+/gm;
 let failures = 0;
-for (const dockerfile of globSync([
-  "apps/web/*/Dockerfile",
-  "apps/api/honoapi/Dockerfile",
-])) {
+for (const dockerfile of globSync(["apps/web/*/Dockerfile"])) {
   const source = readFileSync(dockerfile, "utf8");
   const install = source.search(installPattern);
   if (install < 0) {

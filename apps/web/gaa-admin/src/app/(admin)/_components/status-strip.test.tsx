@@ -51,7 +51,10 @@ describe("StatusStrip", () => {
     expect(screen.getByText("1 bulletin live")).toBeInTheDocument();
     expect(screen.getByText("4 open requests in total")).toBeInTheDocument();
     expect(screen.getByText("In effect")).toBeInTheDocument();
-    expect(screen.getByText("Pending")).toBeInTheDocument();
+    expect(
+      screen.getByText("Today's product types in the live feed")
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Pending")).not.toBeInTheDocument();
   });
 
   it("degrades each tile independently when its source is down", async () => {
@@ -70,5 +73,24 @@ describe("StatusStrip", () => {
     ).toBeInTheDocument();
     // The one healthy source still renders its real figure.
     expect(screen.getByText("1 open request in total")).toBeInTheDocument();
+  });
+
+  it("does not claim schedule completion from the current public feed", async () => {
+    vi.useFakeTimers();
+    loadAlerts.mockResolvedValue(ok({ count: 0, data: [] }));
+    loadProducts.mockResolvedValue(
+      ok(
+        ["morning", "midday", "evening", "outlook"].map((kind) => ({
+          id: kind,
+          kind,
+          values: { issuedAt: "2026-09-09T07:00" },
+        }))
+      )
+    );
+    loadImagery.mockResolvedValue(ok([]));
+    loadHr.mockResolvedValue(ok({ approvals: [], open_requests: 0 }));
+    await renderStrip();
+    expect(screen.getByText("4 / 4")).toBeInTheDocument();
+    expect(screen.queryByText("Complete")).not.toBeInTheDocument();
   });
 });

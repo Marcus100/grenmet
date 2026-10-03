@@ -4,12 +4,14 @@
  */
 
 import * as z from "zod";
+import { capProfileDraftRequestPropertiesLevelEnumSchema } from "./capProfileDraftRequestPropertiesLevelEnumSchema.js";
+import { capProfileRulePropertiesOperatorEnumSchema } from "./capProfileRulePropertiesOperatorEnumSchema.js";
 
 export const capProfileRuleSchema = z.object({
   id: z.uuid().optional(),
-  level: z.enum(["Advisory", "Watch", "Warning"]).optional().default("Warning"),
+  level: capProfileDraftRequestPropertiesLevelEnumSchema.optional(),
   metric: z.string().max(200).optional().default(""),
-  operator: z.enum([">=", ">", "<=", "<", "observed"]).optional().default(">="),
+  operator: capProfileRulePropertiesOperatorEnumSchema.optional().default(">="),
   threshold: z.union([z.number(), z.null()]).optional(),
   unit: z.string().max(50).optional().default(""),
   duration_minutes: z.union([z.int().min(1), z.null()]).optional(),

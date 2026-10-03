@@ -11,6 +11,7 @@ uniformly scale the back half by the pitch ratio (preserving its aspect
 ratio), then solve a fine vertical shift by cross-correlating the row-darkness
 profiles over the table body only (header/footer text excluded)."""
 import sys
+
 import numpy as np
 from PIL import Image
 

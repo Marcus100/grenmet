@@ -16,6 +16,16 @@ export type WorkflowTemplatePublic = {
   workflow_type: WorkflowType;
   name: string;
   is_active: boolean;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   created_at: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   updated_at: string;
 };

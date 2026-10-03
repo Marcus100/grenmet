@@ -1,0 +1,182 @@
+[
+  [
+    "D01",
+    "a",
+    "The Orchid Lodge",
+    320,
+    258,
+    2,
+    {
+      "NDC": 100,
+      "NNP": 156
+    }
+  ],
+  [
+    "D01",
+    "b",
+    "Paradise Pre-Primary School",
+    345,
+    278,
+    1,
+    {
+      "NDC": 85,
+      "NNP": 192
+    }
+  ],
+  [
+    "D01",
+    null,
+    "[c]",
+    331,
+    261,
+    1,
+    {
+      "NDC": 73,
+      "NNP": 187
+    }
+  ],
+  [
+    "D02",
+    "a",
+    "Belair Government School",
+    322,
+    250,
+    0,
+    {
+      "NDC": 113,
+      "NNP": 137
+    }
+  ],
+  [
+    "D02",
+    "b",
+    "Belair Government School",
+    327,
+    247,
+    0,
+    {
+      "NDC": 117,
+      "NNP": 130
+    }
+  ],
+  [
+    "D02",
+    "c",
+    "Belair Government School",
+    314,
+    254,
+    3,
+    {
+      "NDC": 129,
+      "NNP": 122
+    }
+  ],
+  [
+    "D03",
+    "a",
+    "Pearls Community Centre",
+    345,
+    278,
+    1,
+    {
+      "NDC": 116,
+      "NNP": 161
+    }
+  ],
+  [
+    "D03",
+    "b",
+    "Pearls Community Centre",
+    424,
+    362,
+    3,
+    {
+      "NDC": 110,
+      "NNP": 249
+    }
+  ],
+  [
+    "D04",
+    "a",
+    "Tivoli R.C. School",
+    368,
+    296,
+    1,
+    {
+      "NDC": 139,
+      "NNP": 156
+    }
+  ],
+  [
+    "D04",
+    "b",
+    "Tivoli R.C. School",
+    361,
+    279,
+    1,
+    {
+      "NDC": 146,
+      "NNP": 132
+    }
+  ],
+  [
+    "D04",
+    "c",
+    "Tivoli R.C. School",
+    357,
+    277,
+    0,
+    {
+      "NDC": 162,
+      "NNP": 115
+    }
+  ],
+  [
+    "D05",
+    "a",
+    "La Poterie Community Centre",
+    264,
+    222,
+    1,
+    {
+      "NDC": 58,
+      "NNP": 163
+    }
+  ],
+  [
+    "D05",
+    "b",
+    "La Poterie Community Centre",
+    263,
+    210,
+    0,
+    {
+      "NDC": 57,
+      "NNP": 153
+    }
+  ],
+  [
+    "D06",
+    null,
+    "Upper St. John Community Centre",
+    357,
+    303,
+    1,
+    {
+      "NDC": 147,
+      "NNP": 155
+    }
+  ],
+  [
+    "D07",
+    null,
+    "Paraclete Medical Station",
+    248,
+    216,
+    0,
+    {
+      "NDC": 123,
+      "NNP": 93
+    }
+  ]
+]

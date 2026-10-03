@@ -12,17 +12,19 @@
     "check": "biome check .",
     "check:fix": "biome check --write .",
     "check:ci": "biome ci .",
-    "type-check": "rm -f next-env.d.ts && tsc --noEmit",
+    "type-check": "rm -f next-env.d.ts && rm -rf .next/dev/types && next typegen && tsc --noEmit",
     "test": "vitest run"
   },
   "dependencies": {
     "@barrelsgd/gms": "workspace:*",
+    "@barrelsgd/theme": "workspace:*",
     "@barrelsgd/ui": "workspace:*",
     "@base-ui/react": "catalog:",
     "@sentry/nextjs": "catalog:",
     "@t3-oss/env-nextjs": "catalog:",
     "class-variance-authority": "catalog:",
     "lucide-react": "catalog:",
+    "motion": "catalog:",
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
@@ -34,7 +36,8 @@
     "@turf/helpers": "catalog:",
     "@turf/buffer": "catalog:",
     "@turf/distance": "catalog:",
-    "@turf/boolean-point-in-polygon": "catalog:"
+    "@turf/boolean-point-in-polygon": "catalog:",
+    "@barrelsgd/api-client": "workspace:*"
   },
   "devDependencies": {
     "@barrelsgd/tsconfig": "workspace:*",
@@ -48,6 +51,7 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "@vitest/coverage-v8": "catalog:",
+    "babel-plugin-react-compiler": "catalog:",
     "jsdom": "catalog:",
     "tailwindcss": "catalog:",
     "typescript": "catalog:",

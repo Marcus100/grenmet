@@ -1,5 +1,9 @@
 # GMS Digital Transformation Charter
 
+**Status:** Draft — pending formal GMS leadership approval  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-06-13
+
 | Field | Detail |
 |---|---|
 | **Programme** | GMS Digital Services Programme |

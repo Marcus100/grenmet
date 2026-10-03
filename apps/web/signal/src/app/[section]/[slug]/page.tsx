@@ -1,12 +1,12 @@
 import { ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArticleMeta } from "@/components/article-meta";
+import { ArchiveInvitation, DemoNote } from "@/components/editorial";
 import { Eyebrow } from "@/components/eyebrow";
 import { MdxContent } from "@/components/mdx-content";
-import { SubscribeBand } from "@/components/subscribe-band";
+import { StoryImage } from "@/components/story-image";
 import { getArticle, getPublishedArticles } from "@/lib/content";
 import { getSection } from "@/lib/nav";
 
@@ -42,7 +42,7 @@ export default async function ArticlePage({ params }: Props) {
     <>
       <article className="mx-auto w-full max-w-2xl px-4 py-8">
         <Link
-          className="inline-flex items-center gap-1.5 text-[0.7rem] text-signal-muted uppercase tracking-wider hover:text-signal-green"
+          className="inline-flex items-center gap-1.5 text-signal-muted text-sm uppercase tracking-wider hover:text-signal-green"
           href={`/${section}`}
         >
           <ArrowLeft className="size-3.5" /> {sectionLabel}
@@ -53,31 +53,23 @@ export default async function ArticlePage({ params }: Props) {
           <h1 className="font-bold font-serif text-3xl leading-tight tracking-tight sm:text-4xl">
             {article.title}
           </h1>
-          <p className="text-lg text-signal-muted">{article.dek}</p>
+          <p className="text-lg leading-relaxed">{article.dek}</p>
           <ArticleMeta
             author={article.author}
             publishedAt={article.publishedAt}
           />
         </header>
 
-        <div className="relative mt-6 aspect-[16/10] w-full overflow-hidden rounded-lg bg-signal-green/10">
-          <Image
-            alt={article.heroAlt}
-            className="object-cover"
-            fill
-            priority
-            sizes="(max-width: 768px) 100vw, 640px"
-            src={article.heroImage}
-          />
-        </div>
+        <DemoNote reviewStatus={article.reviewStatus} />
+        <StoryImage article={article} className="mt-6" priority />
 
-        <div className="prose prose-neutral mt-8 max-w-none prose-headings:font-serif prose-a:text-signal-green">
+        <div className="prose prose-lg prose-neutral mt-8 max-w-none prose-headings:font-serif prose-a:text-signal-green">
           <MdxContent code={article.body} />
         </div>
 
         {article.sources.length > 0 ? (
-          <aside className="mt-10 rounded-lg border border-signal-rule bg-secondary/40 p-5">
-            <h2 className="font-semibold font-serif text-[0.7rem] text-signal-green uppercase tracking-wider">
+          <aside className="mt-10 rounded-lg border border-signal-rule bg-background p-5">
+            <h2 className="font-semibold font-serif text-signal-green text-sm uppercase tracking-wider">
               Sources
             </h2>
             <ul className="mt-3 flex flex-col gap-2 text-sm">
@@ -98,7 +90,7 @@ export default async function ArticlePage({ params }: Props) {
         ) : null}
       </article>
 
-      <SubscribeBand />
+      <ArchiveInvitation />
     </>
   );
 }

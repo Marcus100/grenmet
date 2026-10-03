@@ -1,9 +1,9 @@
 "use client";
 
 import {
-  readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryKey,
-  useDeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete,
-  useReadAbsenteeReportsApiV1HrAbsenteeReportsGet,
+  hrGetAbsenteeReportsQueryKey,
+  useHrDeleteAbsenteeReport,
+  useHrGetAbsenteeReports,
 } from "@barrelsgd/api-client";
 import { useSessionUser } from "@barrelsgd/auth";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
@@ -24,11 +24,10 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
 };
 
 export function AbsenteeSubmissions() {
-  const query = useReadAbsenteeReportsApiV1HrAbsenteeReportsGet({});
+  const query = useHrGetAbsenteeReports({});
   const queryClient = useQueryClient();
   const sessionUser = useSessionUser();
-  const deleteMutation =
-    useDeleteAbsenteeReportApiV1HrAbsenteeReportsAbsenteeReportIdDelete();
+  const deleteMutation = useHrDeleteAbsenteeReport();
   const [pendingId, setPendingId] = useState<string | null>(null);
   const reports = query.data?.data ?? [];
 
@@ -37,7 +36,7 @@ export function AbsenteeSubmissions() {
     try {
       await deleteMutation.mutateAsync({ path: { absentee_report_id: id } });
       await queryClient.invalidateQueries({
-        queryKey: readAbsenteeReportsApiV1HrAbsenteeReportsGetQueryKey({}),
+        queryKey: hrGetAbsenteeReportsQueryKey({}),
       });
       toast.success("Draft deleted");
     } catch (error) {

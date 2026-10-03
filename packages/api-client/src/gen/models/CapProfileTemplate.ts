@@ -3,17 +3,10 @@
  * Do not edit manually.
  */
 
-export const capProfileTemplateLevelEnum = {
-  Advisory: "Advisory",
-  Watch: "Watch",
-  Warning: "Warning",
-} as const;
-
-export type CapProfileTemplateLevelEnum =
-  (typeof capProfileTemplateLevelEnum)[keyof typeof capProfileTemplateLevelEnum];
+import type { CapProfileDraftRequestPropertiesLevelEnum } from "./CapProfileDraftRequestPropertiesLevelEnum.js";
 
 export type CapProfileTemplate = {
-  level: CapProfileTemplateLevelEnum;
+  level: CapProfileDraftRequestPropertiesLevelEnum;
   /**
    * @maxLength 500
    * @default ''

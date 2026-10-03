@@ -1,13 +1,13 @@
-import { WeatherConditions } from "@/components/weather-conditions";
-import { getWeatherSnapshot } from "@/lib/weather-snapshot";
-export default async function NowPage() {
-  const snapshot = await getWeatherSnapshot();
+import { HomeSections } from "@/components/home/home-sections";
+import { WeatherSurface } from "@/components/home/weather-surface";
+import { defaultLocation } from "@/lib/locations";
+
+/** Home: the latest reading and today's forecast in the hero, then the sections. */
+export default function HomePage() {
   return (
     <>
-      <p className="border-b p-4 text-gm-text-secondary">
-        {snapshot.days[0].summary}
-      </p>
-      <WeatherConditions conditions={snapshot.days[0].conditions} />
+      <WeatherSurface location={defaultLocation()} />
+      <HomeSections />
     </>
   );
 }

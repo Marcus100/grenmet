@@ -1,9 +1,9 @@
 "use client";
 
 import {
-  readStatusReportsApiV1HrStatusReportsGetQueryKey,
-  useDeleteStatusReportApiV1HrStatusReportsReportIdDelete,
-  useReadStatusReportsApiV1HrStatusReportsGet,
+  hrGetStatusReportsQueryKey,
+  useHrDeleteStatusReport,
+  useHrGetStatusReports,
 } from "@barrelsgd/api-client";
 import { useSessionUser } from "@barrelsgd/auth";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
@@ -33,11 +33,10 @@ function yesNo(value: boolean | null | undefined) {
 /** Department status reports. The list endpoint needs the `status.report.read`
  *  permission, so it 403s for plain staff — render nothing in that case. */
 export function StatusSubmissions() {
-  const query = useReadStatusReportsApiV1HrStatusReportsGet({});
+  const query = useHrGetStatusReports({});
   const queryClient = useQueryClient();
   const sessionUser = useSessionUser();
-  const deleteMutation =
-    useDeleteStatusReportApiV1HrStatusReportsReportIdDelete();
+  const deleteMutation = useHrDeleteStatusReport();
   const [pendingId, setPendingId] = useState<string | null>(null);
   const reports = query.data?.data ?? [];
 
@@ -46,7 +45,7 @@ export function StatusSubmissions() {
     try {
       await deleteMutation.mutateAsync({ path: { report_id: id } });
       await queryClient.invalidateQueries({
-        queryKey: readStatusReportsApiV1HrStatusReportsGetQueryKey({}),
+        queryKey: hrGetStatusReportsQueryKey({}),
       });
       toast.success("Draft deleted");
     } catch (error) {

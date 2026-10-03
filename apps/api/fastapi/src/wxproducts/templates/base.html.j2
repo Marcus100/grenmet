@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ title }} · {{ issued }}</title>
+  <meta name="author" content="Grenada Meteorological Service">
+</head>
+<body>
+  <div class="runhead">{{ title }}{% if subtitle %} · {{ subtitle }}{% endif %} · Issued {{ issued }}</div>
+
+  <footer class="footer">
+    <div class="contact">
+      <div><span class="label">Product</span>{{ product_code }}</div>
+      <div class="c"><span class="label">Issuing desk</span>Forecast desk · {{ forecaster or "—" }}</div>
+      <div class="r"><span class="label">Next update</span>{{ next_update or "As required" }}</div>
+      <div><span class="label">Phone</span>{{ contact.Phone }}</div>
+      <div class="c"><span class="label">Email</span>{{ contact.Email }}</div>
+      <div class="r"><span class="label">Website</span>{{ contact.Website }}</div>
+    </div>
+    <div class="legal">
+      <span>© Grenada Meteorological Service · {{ revision }}</span>
+      <span class="pageno">Page </span>
+    </div>
+  </footer>
+
+  <header class="band">
+    <img class="logo" src="assets/logo-primary-white.png" alt="Grenada Meteorological Service">
+    <div class="band-text">
+      <h1>{{ title }}</h1>
+      {% if subtitle %}<p class="subtitle">{{ subtitle }}</p>{% endif %}
+      <p>Issued {{ issued }}</p>
+      <p>Valid {{ valid }}</p>
+    </div>
+    {% if status %}<span class="status">{{ status }}</span>{% endif %}
+  </header>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

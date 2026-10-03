@@ -12,5 +12,5 @@ export const reviewPublicSchema = z.object({
   reviewer_id: z.uuid(),
   decision: z.string(),
   reason: z.string(),
-  created_at: z.string(),
+  created_at: z.iso.datetime(),
 });

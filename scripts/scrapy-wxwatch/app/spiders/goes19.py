@@ -1,5 +1,5 @@
-from datetime import datetime, timezone
 import re
+from datetime import UTC, datetime
 
 from app.items import ImageItem
 from app.spiders.base import WeatherSpider
@@ -52,7 +52,7 @@ class Goes19Spider(WeatherSpider):
         try:
             dt = datetime.strptime(f"{year}{julian_day}", "%Y%j")
             return dt.replace(
-                hour=int(hour), minute=int(minute), tzinfo=timezone.utc
+                hour=int(hour), minute=int(minute), tzinfo=UTC
             ).isoformat()
         except ValueError:
             return None
@@ -94,7 +94,8 @@ class Goes19Spider(WeatherSpider):
         item["page_title"] = self._clean_text(response.xpath("//title/text()").get())
         item["source_modified"] = self._parse_datetime_iso(date_str)
         item["observation_time"] = observation_time
-        item["fetched_at"] = datetime.now(timezone.utc).isoformat()
+        item["time_basis"] = "filename"
+        item["fetched_at"] = datetime.now(UTC).isoformat()
         item["image_urls"] = [image_url]
         item["etag"] = None
         item["raw_metadata"] = {

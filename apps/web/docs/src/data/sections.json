@@ -17,122 +17,122 @@
     ]
   },
   "/attachments": {
-    "pageTitle": "Attachments",
+    "pageTitle": "Documents and forms",
     "sections": [
       {
-        "id": "title-attachments-description-on-this-page-we-ll-dive-into-the-different-attachment-endpoints-you-can-use-to-manage-attachments-programmatically",
-        "title": "title: 'Attachments'\r\ndescription: 'On this page, we’ll dive into the different attachment endpoints you can use to manage attachments programmatically.'"
+        "id": "title-documents-and-forms-description-find-a-form-keep-track-of-a-submission-and-use-the-right-operational-reference",
+        "title": "title: 'Documents and forms'\ndescription: 'Find a form, keep track of a submission and use the right operational reference.'"
       },
       {
-        "id": "the-attachment-model",
-        "title": "The attachment model"
+        "id": "staff-documents",
+        "title": "Staff documents"
       },
       {
-        "id": "list-all-attachments",
-        "title": "List all attachments"
+        "id": "forms-and-submitted-records",
+        "title": "Forms and submitted records"
       },
       {
-        "id": "create-an-attachment",
-        "title": "Create an attachment"
+        "id": "uploads-and-downloads",
+        "title": "Uploads and downloads"
       },
       {
-        "id": "retrieve-an-attachment",
-        "title": "Retrieve an attachment"
+        "id": "operational-references",
+        "title": "Operational references"
       },
       {
-        "id": "update-an-attachment",
-        "title": "Update an attachment"
-      },
-      {
-        "id": "delete-an-attachment",
-        "title": "Delete an attachment"
+        "id": "corrections-and-support",
+        "title": "Corrections and support"
       }
     ]
   },
   "/authentication": {
-    "pageTitle": "Authentication",
+    "pageTitle": "Signing in and account security",
     "sections": [
       {
-        "id": "title-authentication-description-in-this-guide-we-ll-look-at-how-authentication-works-protocol-offers-two-ways-to-authenticate-your-api-requests-basic-authentication-and-o-auth2-with-a-token",
-        "title": "title: 'Authentication'\r\ndescription: 'In this guide, we’ll look at how authentication works. Protocol offers two ways to authenticate your API requests: Basic authentication and OAuth2 with a token.'"
+        "id": "title-signing-in-and-account-security-description-use-your-staff-account-and-manage-its-sign-in-protection",
+        "title": "title: 'Signing in and account security'\ndescription: 'Use your staff account and manage its sign-in protection.'"
       },
       {
-        "id": "basic-authentication",
-        "title": "Basic authentication"
+        "id": "sign-in",
+        "title": "Sign in"
       },
       {
-        "id": "o-auth2-with-bearer-token",
-        "title": "OAuth2 with bearer token"
+        "id": "forgotten-password",
+        "title": "Forgotten password"
       },
       {
-        "id": "using-an-sdk",
-        "title": "Using an SDK"
+        "id": "authenticator-protection",
+        "title": "Authenticator protection"
+      },
+      {
+        "id": "access-denied",
+        "title": "Access denied"
+      },
+      {
+        "id": "shared-workstations",
+        "title": "Shared workstations"
       }
     ]
   },
   "/contacts": {
-    "pageTitle": "Contacts",
+    "pageTitle": "Staff directory and duty roster",
     "sections": [
       {
-        "id": "title-contacts-description-on-this-page-we-ll-dive-into-the-different-contact-endpoints-you-can-use-to-manage-contacts-programmatically",
-        "title": "title: 'Contacts'\r\ndescription: 'On this page, we’ll dive into the different contact endpoints you can use to manage contacts programmatically.'"
+        "id": "title-staff-directory-and-duty-roster-description-find-staff-information-and-check-the-correct-roster-period",
+        "title": "title: 'Staff directory and duty roster'\ndescription: 'Find staff information and check the correct roster period.'"
       },
       {
-        "id": "the-contact-model",
-        "title": "The contact model"
+        "id": "find-a-colleague",
+        "title": "Find a colleague"
       },
       {
-        "id": "list-all-contacts",
-        "title": "List all contacts"
+        "id": "check-your-duty-roster",
+        "title": "Check your duty roster"
       },
       {
-        "id": "create-a-contact",
-        "title": "Create a contact"
+        "id": "requests-and-approvals",
+        "title": "Requests and approvals"
       },
       {
-        "id": "retrieve-a-contact",
-        "title": "Retrieve a contact"
+        "id": "documents",
+        "title": "Documents"
       },
       {
-        "id": "update-a-contact",
-        "title": "Update a contact"
-      },
-      {
-        "id": "delete-a-contact",
-        "title": "Delete a contact"
+        "id": "hurricane-contacts",
+        "title": "Hurricane contacts"
       }
     ]
   },
   "/conversations": {
-    "pageTitle": "Conversations",
+    "pageTitle": "Preparing and reviewing CAP alerts",
     "sections": [
       {
-        "id": "title-conversations-description-on-this-page-we-ll-dive-into-the-different-conversation-endpoints-you-can-use-to-manage-conversations-programmatically",
-        "title": "title: 'Conversations'\r\ndescription: 'On this page, we’ll dive into the different conversation endpoints you can use to manage conversations programmatically.'"
+        "id": "title-preparing-and-reviewing-cap-alerts-description-follow-the-saved-alert-workflow-and-check-the-intended-publication-channels",
+        "title": "title: 'Preparing and reviewing CAP alerts'\ndescription: 'Follow the saved-alert workflow and check the intended publication channels.'"
       },
       {
-        "id": "the-conversation-model",
-        "title": "The conversation model"
+        "id": "compose",
+        "title": "Compose"
       },
       {
-        "id": "list-all-conversations",
-        "title": "List all conversations"
+        "id": "save-and-validate",
+        "title": "Save and validate"
       },
       {
-        "id": "create-a-conversation",
-        "title": "Create a conversation"
+        "id": "submit-review-and-publish",
+        "title": "Submit, review and publish"
       },
       {
-        "id": "retrieve-a-conversation",
-        "title": "Retrieve a conversation"
+        "id": "updates-and-cancellations",
+        "title": "Updates and cancellations"
       },
       {
-        "id": "update-a-conversation",
-        "title": "Update a conversation"
+        "id": "national-scope-and-weather-presentation",
+        "title": "National scope and weather presentation"
       },
       {
-        "id": "delete-a-conversation",
-        "title": "Delete a conversation"
+        "id": "administration",
+        "title": "Administration"
       }
     ]
   },
@@ -150,19 +150,35 @@
     ]
   },
   "/errors": {
-    "pageTitle": "Errors",
+    "pageTitle": "Troubleshooting and getting help",
     "sections": [
       {
-        "id": "title-errors-description-in-this-guide-we-will-talk-about-what-happens-when-something-goes-wrong-while-you-work-with-the-api",
-        "title": "title: 'Errors'\r\ndescription: 'In this guide, we will talk about what happens when something goes wrong while you work with the API.'"
+        "id": "title-troubleshooting-and-getting-help-description-recognise-common-problems-and-preserve-enough-information-for-support",
+        "title": "title: 'Troubleshooting and getting help'\ndescription: 'Recognise common problems and preserve enough information for support.'"
       },
       {
-        "id": "status-codes",
-        "title": "Status codes"
+        "id": "sign-in-or-permission-problems",
+        "title": "Sign-in or permission problems"
       },
       {
-        "id": "error-types",
-        "title": "Error types"
+        "id": "validation-problems",
+        "title": "Validation problems"
+      },
+      {
+        "id": "save-or-publication-problems",
+        "title": "Save or publication problems"
+      },
+      {
+        "id": "unavailable-or-stale-weather",
+        "title": "Unavailable or stale weather"
+      },
+      {
+        "id": "report-a-problem",
+        "title": "Report a problem"
+      },
+      {
+        "id": "continue-operations",
+        "title": "Continue operations"
       }
     ]
   },
@@ -192,44 +208,40 @@
     ]
   },
   "/groups": {
-    "pageTitle": "Groups",
+    "pageTitle": "Roles and permissions",
     "sections": [
       {
-        "id": "title-groups-description-on-this-page-we-ll-dive-into-the-different-group-endpoints-you-can-use-to-manage-groups-programmatically",
-        "title": "title: 'Groups'\r\ndescription: 'On this page, we’ll dive into the different group endpoints you can use to manage groups programmatically.'"
+        "id": "title-roles-and-permissions-description-understand-the-difference-between-seeing-a-tool-and-being-authorised-to-use-it",
+        "title": "title: 'Roles and permissions'\ndescription: 'Understand the difference between seeing a tool and being authorised to use it.'"
       },
       {
-        "id": "the-group-model",
-        "title": "The group model"
+        "id": "your-account-and-role",
+        "title": "Your account and role"
       },
       {
-        "id": "list-all-groups",
-        "title": "List all groups"
+        "id": "preparation-and-approval",
+        "title": "Preparation and approval"
       },
       {
-        "id": "create-a-group",
-        "title": "Create a group"
+        "id": "request-access",
+        "title": "Request access"
       },
       {
-        "id": "retrieve-a-group",
-        "title": "Retrieve a group"
+        "id": "access-denied",
+        "title": "Access denied"
       },
       {
-        "id": "update-a-group",
-        "title": "Update a group"
-      },
-      {
-        "id": "delete-a-group",
-        "title": "Delete a group"
+        "id": "public-documentation",
+        "title": "Public documentation"
       }
     ]
   },
-  "/": {
-    "pageTitle": "Introduction",
+  "/hurricane-plan": {
+    "pageTitle": "Tropical Cyclone Emergency Plan",
     "sections": [
       {
-        "id": "title-introduction-description-introduction-to-the-grenada-airports-authority-tropical-cyclone-emergency-plan-2024",
-        "title": "title: 'Introduction'\r\ndescription: 'Introduction to the Grenada Airports Authority Tropical Cyclone Emergency Plan (2024).'"
+        "id": "title-tropical-cyclone-emergency-plan-description-introduction-to-the-grenada-airports-authority-tropical-cyclone-emergency-plan-2024",
+        "title": "title: 'Tropical Cyclone Emergency Plan'\ndescription: 'Introduction to the Grenada Airports Authority Tropical Cyclone Emergency Plan (2024).'"
       },
       {
         "id": "coverage",
@@ -245,36 +257,53 @@
       }
     ]
   },
-  "/messages": {
-    "pageTitle": "Messages",
+  "/": {
+    "pageTitle": "Met Office documentation",
     "sections": [
       {
-        "id": "title-messages-description-on-this-page-we-ll-dive-into-the-different-message-endpoints-you-can-use-to-manage-messages-programmatically",
-        "title": "title: 'Messages'\r\ndescription: 'On this page, we’ll dive into the different message endpoints you can use to manage messages programmatically.'"
+        "id": "title-met-office-documentation-description-guides-plans-and-reference-documents-for-the-grenada-meteorological-service",
+        "title": "title: 'Met Office documentation'\ndescription: 'Guides, plans and reference documents for the Grenada Meteorological Service.'"
       },
       {
-        "id": "the-message-model",
-        "title": "The message model"
+        "id": "our-documents",
+        "title": "Our documents"
       },
       {
-        "id": "list-all-messages",
-        "title": "List all messages"
+        "id": "find-what-you-need",
+        "title": "Find what you need"
+      }
+    ]
+  },
+  "/messages": {
+    "pageTitle": "Preparing and publishing forecasts",
+    "sections": [
+      {
+        "id": "title-preparing-and-publishing-forecasts-description-save-drafts-review-previews-and-verify-the-published-issue",
+        "title": "title: 'Preparing and publishing forecasts'\ndescription: 'Save drafts, review previews and verify the published issue.'"
       },
       {
-        "id": "send-a-message",
-        "title": "Send a message"
+        "id": "prepare-the-product",
+        "title": "Prepare the product"
       },
       {
-        "id": "retrieve-a-message",
-        "title": "Retrieve a message"
+        "id": "save-and-preview",
+        "title": "Save and preview"
       },
       {
-        "id": "update-a-message",
-        "title": "Update a message"
+        "id": "publish-and-check",
+        "title": "Publish and check"
       },
       {
-        "id": "delete-a-message",
-        "title": "Delete a message"
+        "id": "correct-an-issue",
+        "title": "Correct an issue"
+      },
+      {
+        "id": "withdraw-and-retrieve",
+        "title": "Withdraw and retrieve"
+      },
+      {
+        "id": "aviation-is-a-separate-workflow",
+        "title": "Aviation is a separate workflow"
       }
     ]
   },
@@ -296,36 +325,64 @@
     ]
   },
   "/pagination": {
-    "pageTitle": "Pagination",
+    "pageTitle": "Using the public API",
     "sections": [
       {
-        "id": "title-pagination-description-in-this-guide-we-will-look-at-how-to-work-with-paginated-responses-when-querying-the-protocol-api",
-        "title": "title: 'Pagination'\r\ndescription: 'In this guide, we will look at how to work with paginated responses when querying the Protocol API'"
+        "id": "title-using-the-public-api-description-check-each-endpoints-parameters-and-distinguish-public-data-from-staff-records",
+        "title": "title: 'Using the public API'\ndescription: 'Check each endpoint's parameters and distinguish public data from staff records.'"
       },
       {
-        "id": "example-using-cursors",
-        "title": "Example using cursors"
+        "id": "choose-the-correct-endpoint",
+        "title": "Choose the correct endpoint"
+      },
+      {
+        "id": "parameters-differ-by-endpoint",
+        "title": "Parameters differ by endpoint"
+      },
+      {
+        "id": "dates-and-time-ranges",
+        "title": "Dates and time ranges"
+      },
+      {
+        "id": "handle-failures",
+        "title": "Handle failures"
+      },
+      {
+        "id": "confirm-the-contract",
+        "title": "Confirm the contract"
       }
     ]
   },
   "/quickstart": {
-    "pageTitle": "Quickstart",
+    "pageTitle": "GMS staff quick start",
     "sections": [
       {
-        "id": "title-quickstart-description-this-guide-will-get-you-all-set-up-and-ready-to-use-the-protocol-api-we-ll-cover-how-to-get-started-an-api-client-and-how-to-make-your-first-api-request",
-        "title": "title: 'Quickstart'\r\ndescription: 'This guide will get you all set up and ready to use the Protocol API. We’ll cover how to get started an API client and how to make your first API request.'"
+        "id": "title-gms-staff-quick-start-description-find-your-tools-save-your-work-and-check-the-published-result",
+        "title": "title: 'GMS staff quick start'\ndescription: 'Find your tools, save your work and check the published result.'"
       },
       {
-        "id": "choose-your-client",
-        "title": "Choose your client"
+        "id": "start-your-shift",
+        "title": "Start your shift"
       },
       {
-        "id": "making-your-first-api-request",
-        "title": "Making your first API request"
+        "id": "choose-your-task",
+        "title": "Choose your task"
       },
       {
-        "id": "whats-next",
-        "title": "What's next?"
+        "id": "complete-one-task",
+        "title": "Complete one task"
+      },
+      {
+        "id": "if-something-goes-wrong",
+        "title": "If something goes wrong"
+      },
+      {
+        "id": "before-you-leave",
+        "title": "Before you leave"
+      },
+      {
+        "id": "pilot-work",
+        "title": "Pilot work"
       }
     ]
   },
@@ -347,11 +404,31 @@
     ]
   },
   "/sdks": {
-    "pageTitle": "Protocol SDKs",
+    "pageTitle": "GMS tools overview",
     "sections": [
       {
-        "id": "title-protocol-sdks-description-protocol-offers-fine-tuned-java-script-ruby-php-python-and-go-libraries-to-make-your-life-easier-and-give-you-the-best-experience-when-consuming-the-api",
-        "title": "title: 'Protocol SDKs'\r\ndescription: 'Protocol offers fine-tuned JavaScript, Ruby, PHP, Python, and Go libraries to make your life easier and give you the best experience when consuming the API.'"
+        "id": "title-gms-tools-overview-description-choose-the-tool-for-your-observation-forecast-alert-or-staff-task",
+        "title": "title: 'GMS tools overview'\ndescription: 'Choose the tool for your observation, forecast, alert or staff task.'"
+      },
+      {
+        "id": "weather-and-staff-tools",
+        "title": "Weather and staff tools"
+      },
+      {
+        "id": "observations-and-aviation",
+        "title": "Observations and aviation"
+      },
+      {
+        "id": "public-website-and-cms",
+        "title": "Public website and CMS"
+      },
+      {
+        "id": "planned-modules",
+        "title": "Planned modules"
+      },
+      {
+        "id": "start-with-a-guide",
+        "title": "Start with a guide"
       }
     ]
   },
@@ -417,27 +494,27 @@
     ]
   },
   "/webhooks": {
-    "pageTitle": "Webhooks",
+    "pageTitle": "Public weather data feeds",
     "sections": [
       {
-        "id": "title-webhooks-description-in-this-guide-we-will-look-at-how-to-register-and-consume-webhooks-to-integrate-your-app-with-protocol",
-        "title": "title: 'Webhooks'\r\ndescription: 'In this guide, we will look at how to register and consume webhooks to integrate your app with Protocol.'"
+        "id": "title-public-weather-data-feeds-description-understand-the-public-weather-read-endpoints-and-their-limits",
+        "title": "title: 'Public weather data feeds'\ndescription: 'Understand the public weather read endpoints and their limits.'"
       },
       {
-        "id": "registering-webhooks",
-        "title": "Registering webhooks"
+        "id": "published-weather-products",
+        "title": "Published weather products"
       },
       {
-        "id": "consuming-webhooks",
-        "title": "Consuming webhooks"
+        "id": "cap-warnings",
+        "title": "CAP warnings"
       },
       {
-        "id": "event-types",
-        "title": "Event types"
+        "id": "read-access-versus-publishing",
+        "title": "Read access versus publishing"
       },
       {
-        "id": "security",
-        "title": "Security"
+        "id": "integration-planning",
+        "title": "Integration planning"
       }
     ]
   },

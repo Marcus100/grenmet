@@ -1,5 +1,9 @@
 # ICAO / WMO Compliance Traceability Matrix
 
+**Status:** Draft  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-18
+
 | Field | Detail |
 |---|---|
 | **Version** | 1.0 |
@@ -71,7 +75,7 @@
 
 | Requirement | GMS implication | Digital feature | Owner | Status | Evidence |
 |---|---|---|---|---|---|
-| Standard format for all-hazard alerts | Public warnings should be machine-readable CAP messages | CAP alert generator; lifecycle (draft → submit → approve → publish → cancel/expire) | Warning lead | Implemented | CAP XML feed, audit trail |
+| Standard format for all-hazard alerts | Public warnings should be machine-readable CAP messages | CAP alert generator; self-publish lifecycle (draft → publish → cancel/expire, with optional submit/approve review, per ADR-0013) | Warning lead | Implemented | CAP XML feed, audit trail |
 | Multi-channel dissemination | CAP enables consistent message across web, mobile, radio, SMS | CAP RSS feed; planned webhook/MQTT/WIS2 publication | DTO | Partial | Feed endpoints active; worker not yet deployed |
 | Alert area definition | Affected area defined as polygon, circle, or geocode | Area fields in CAP schema: polygon, multipolygon, circle, geocode | Warning lead | Implemented | CAP XML output |
 | Alert validity and expiry | Effective and expiry times required | `onset`, `expires` fields; automated expiry tracking | Warning lead | Implemented | CAP schema |
@@ -129,7 +133,7 @@
 | IWXXM (ICAO Weather Information Exchange Model) | XML/GML format for aviation MET products | IWXXM primitives in wxproducts; IWXXM output pipeline | Aviation MET lead | Gap | Schema foundations only |
 | GeoJSON | Geospatial product dissemination | CAP GeoJSON endpoint active | DTO | Implemented | `/api/cap/alerts.geojson` |
 | RSS 2.0 | Syndicated alert feed | CAP RSS feed active | DTO | Implemented | `/api/cap/rss.xml` |
-| JSON / REST API | Machine-readable data access | Hono API and FastAPI public endpoints | DTO | Partial | API contracts doc |
+| JSON / REST API | Machine-readable data access | FastAPI public endpoints | DTO | Partial | API contracts doc |
 
 ---
 

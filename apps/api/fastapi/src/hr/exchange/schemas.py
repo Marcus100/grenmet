@@ -16,12 +16,12 @@ class ShiftSwapRequestCreate(SignatureConsent):
     department_id: str
     swap_type: SwapType = SwapType.TEMPORARY
     source_date: date
-    source_shift_code: str
+    source_shift_code: str = Field(min_length=1, max_length=10)
     target_date: date
-    target_shift_code: str
+    target_shift_code: str = Field(min_length=1, max_length=10)
     effective_date: date | None = None
     restoration_date: date | None = None
-    reason: str | None = None
+    reason: str | None = Field(default=None, max_length=1000)
     # Named colleagues who must all approve before the request reaches the
     # supervisor/management tiers. Ignored when as_draft is true.
     co_approver_user_ids: list[uuid.UUID] = Field(default_factory=list)

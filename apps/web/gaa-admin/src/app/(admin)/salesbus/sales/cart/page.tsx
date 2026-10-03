@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { useRouter } from "next/navigation";
 import { CartItemCard } from "@/components/salesbus/sales/CartItem";
 import { Button, SegmentedControl } from "@/components/salesbus/ui";
@@ -26,7 +27,12 @@ export default function CartPage() {
 
   return (
     <div
-      className={`flex flex-col ${isTabletLandscape ? "min-h-[calc(100vh-5rem)]" : "min-h-[calc(100vh-8rem)]"}`}
+      className={cn(
+        "flex flex-col",
+        isTabletLandscape
+          ? "min-h-[calc(100vh-5rem)]"
+          : "min-h-[calc(100vh-8rem)]"
+      )}
     >
       <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 p-4 sm:gap-5 sm:p-5">
         <SegmentedControl
@@ -52,7 +58,10 @@ export default function CartPage() {
 
       {/* Fixed bottom bar */}
       <div
-        className={`sticky ${isTabletLandscape ? "bottom-4" : "bottom-20"} mx-auto w-full max-w-3xl p-4 sm:p-5`}
+        className={cn(
+          "sticky mx-auto w-full max-w-3xl p-4 sm:p-5",
+          isTabletLandscape ? "bottom-4" : "bottom-20"
+        )}
       >
         <Button
           className="flex w-full justify-between bg-gm-blue-ink hover:bg-gm-navy"

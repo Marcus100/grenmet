@@ -6,10 +6,12 @@
 import * as z from "zod";
 import { requestStatusSchema } from "./requestStatusSchema.js";
 import { shiftPeriodSchema } from "./shiftPeriodSchema.js";
+import { workflowStatusSchema } from "./workflowStatusSchema.js";
 
 export const statusReportPublicSchema = z.object({
   signed_document_id: z.union([z.uuid(), z.null()]).optional(),
-  submitted_at: z.union([z.string(), z.null()]).optional(),
+  submitted_at: z.union([z.iso.datetime(), z.null()]).optional(),
+  workflow_status: z.union([workflowStatusSchema, z.null()]).optional(),
   id: z.uuid(),
   department_id: z.string(),
   report_date: z.iso.date(),
@@ -34,6 +36,6 @@ export const statusReportPublicSchema = z.object({
   general_remarks: z.union([z.string(), z.null()]).optional(),
   status: requestStatusSchema,
   workflow_instance_id: z.union([z.uuid(), z.null()]).optional(),
-  created_at: z.string(),
-  updated_at: z.string(),
+  created_at: z.iso.datetime(),
+  updated_at: z.iso.datetime(),
 });

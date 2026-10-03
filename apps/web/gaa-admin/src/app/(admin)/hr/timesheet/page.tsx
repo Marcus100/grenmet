@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AttendanceTimesheet } from "@/components/hr/timesheet/attendance-timesheet";
 import { TimesheetEditor } from "@/components/hr/timesheet/timesheet-editor";
 import { TimesheetSubmissions } from "@/components/hr/timesheet/timesheet-submissions";
 
@@ -18,7 +19,13 @@ export default function TimesheetPage() {
           Add entries to preview the time sheet, then print or export.
         </p>
       </div>
-      <TimesheetEditor />
+      <AttendanceTimesheet />
+      <details className="rounded-lg border p-4">
+        <summary className="cursor-pointer font-medium text-sm">
+          Manual timesheet form
+        </summary>
+        <TimesheetEditor />
+      </details>
       <TimesheetSubmissions />
     </div>
   );

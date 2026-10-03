@@ -38,6 +38,16 @@ export type CapPredefinedAreaPublic = {
    * @type string
    */
   id: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   created_at: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   updated_at: string;
 };

@@ -14,13 +14,17 @@ class AbsenteeReportCreate(SignatureConsent):
     user_id: uuid.UUID
     department_id: str
     report_date: date
-    expected_shift_code: str | None = None
-    absence_start_time: str | None = None
-    absence_end_time: str | None = None
+    expected_shift_code: str | None = Field(default=None, max_length=10)
+    absence_start_time: str | None = Field(
+        default=None, pattern=r"^([01]\d|2[0-3]):[0-5]\d$"
+    )
+    absence_end_time: str | None = Field(
+        default=None, pattern=r"^([01]\d|2[0-3]):[0-5]\d$"
+    )
     reason: AbsenceReason
-    notes: str | None = None
+    notes: str | None = Field(default=None, max_length=1000)
     contact_attempted: bool = False
-    contact_method: str | None = None
+    contact_method: str | None = Field(default=None, max_length=50)
     replacement_arranged: bool = False
     replacement_user_id: uuid.UUID | None = None
     # Named colleagues who must all approve before the report reaches the

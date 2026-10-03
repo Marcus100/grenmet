@@ -25,7 +25,7 @@
     "dev:web:signal": "turbo run dev --filter=@barrelsgd/web-signal",
     "dev:web:mbia": "turbo run dev --filter=@barrelsgd/web-mbia",
     "dev:web:events": "turbo run dev --filter=@barrelsgd/web-events",
-    "dev:honoapi": "turbo run dev --filter=@barrelsgd/api-hono",
+    "dev:web:elections": "turbo run dev --filter=@barrelsgd/web-elections",
     "design-system:sync": "node scripts/design-system/design-system-sync.mjs --write",
     "design-system:check": "node scripts/design-system/design-system-sync.mjs --check",
     "design-system:contrast": "node scripts/design-system/design-system-contrast.mjs",
@@ -46,6 +46,7 @@
     "test": "turbo run test --concurrency=2",
     "validate": "turbo run type-check lint test",
     "fix": "ultracite fix",
+    "fix:changed": "node scripts/guardrails/fix-changed.mjs",
     "generate:api-client": "turbo run generate --filter=@barrelsgd/api-client",
     "check:drift": "node scripts/api/check-api-drift.mjs",
     "dev:web:cms": "turbo run dev --filter=@barrelsgd/web-cms",
@@ -54,15 +55,16 @@
     "test:delivery": "node --test scripts/production/*.test.mjs apps/web/gaa-admin/scripts/*.test.mjs apps/web/cms/scripts/adopt.test.mjs",
     "verify:quick": "pnpm check && pnpm type-check && pnpm test",
     "verify:backend": "node scripts/verification/run.mjs backend",
+    "verify:collectors": "bash scripts/verification/collectors.sh",
     "verify:storage": "node scripts/verification/run.mjs storage",
     "verify:release": "node scripts/verification/run.mjs release",
-    "test:verification": "node --test scripts/verification/*.test.mjs scripts/perf/*.test.mjs && uv run --frozen --package fast-back python -m unittest tests.test_database_target"
+    "test:verification": "node --test scripts/verification/*.test.mjs scripts/integrations/*.test.mjs scripts/perf/*.test.mjs && uv run --isolated --frozen --package fast-back python -m unittest tests.test_database_target"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.12",
+    "@biomejs/biome": "^2.5.14",
     "husky": "catalog:",
     "lint-staged": "catalog:",
-    "turbo": "^2.10.12",
-    "ultracite": "^7.11.0"
+    "turbo": "^2.11.2",
+    "ultracite": "^7.12.0"
   }
 }

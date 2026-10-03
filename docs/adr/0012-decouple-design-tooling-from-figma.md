@@ -54,7 +54,7 @@ a cross-app contract change requiring user approval.
 ## Consequences
 
 - Agents must ignore Figma MCP tools and never ask for a Figma frame URL. This is
-  stated in `CLAUDE.md` and `docs/design-workflow.md`.
+  stated in `AGENTS.md` and `docs/design-workflow.md`.
 - Token changes are cheaper: one approval, one file, one sync — no design-tool
   reconciliation step that could not be completed anyway.
 - Design fidelity is verified against a screenshot or canvas rather than extracted

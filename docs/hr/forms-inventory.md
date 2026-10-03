@@ -1,8 +1,15 @@
 # HR Forms → Model Inventory
 
+**Status:** Active reference  
+**Owner:** GAA (institutional content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-28
+
 Source-of-truth mapping from the Grenada Airports Authority (GAA) paper HR forms to the FastAPI
-`src/hr` data models. Raw forms live outside the repo at
-`OneDrive/bishop/raw/03-software-data/grenmet/hr`.
+`src/hr` data models. The supplied originals for this review are in
+`temp-files/gaaforms/`; the earlier external collection is
+`OneDrive/bishop/raw/03-software-data/grenmet/hr`. A modeled field alone does not
+prove the editor, stored snapshot or PDF preserves it; verify the complete
+journey using [the alignment plan](end-to-end-alignment.md).
 
 **Status legend**
 
@@ -57,7 +64,7 @@ Source-of-truth mapping from the Grenada Airports Authority (GAA) paper HR forms
 |---|---|---|
 | Department | `department_id` | covered |
 | Date | `report_date` | covered |
-| Shift AM/PM | `shift_period: ShiftPeriod` (+ existing `shift_code`) | covered (Workstream C) |
+| Reporting shift M/E/N | `shift_code`; legacy `shift_period` AM/PM retained | M/E/N editor, D coverage references retain D roster |
 | Absenteeism | `personnel_summary` + per-person `StatusReportEntry` | covered |
 | Personnel: all reported on time? + explain | `all_personnel_reported_on_time` + `personnel_explanation` | covered (Workstream C) |
 | Personnel: affected operations? + explain | `affected_operations` + `affected_operations_explanation` | covered (Workstream C) |
@@ -117,6 +124,21 @@ Applies to Maurice Bishop Int'l **and Lauriston** airports.
 | AIRPORT USE ONLY: Security Manager auth, processed by, dates | — | via-workflow |
 | Indemnity / rules clauses | — | prose, not data |
 
+The application editor prefills HR identity, department, company and phone and
+supports saved drafts, signed submission and renewal from prior vehicle details.
+FastAPI renders the original fields and all eight security conditions in the
+preview and immutable signed copy. Decal issuance requires scoped approval;
+recipient print name never implies a recipient signature. Employment and
+configured workflow resolve the employee and supervisor names in the PDF.
+
 ---
 
 _To add a new form module, follow `docs/hr/adding-a-form-module.md`._
+
+
+Daily status parity update (2026-09-28): original personnel answers, equipment
+operability/reason/remedy, incident-report answer/explanation and approval rows
+are retained in the Python preview/signed renderer. Structured staffing is an
+additional working aid; published schedules default to unconfirmed attendance.
+Reporter submission and supervisor workflow approval remain separate from each
+employee's own attendance approval.

@@ -1,10 +1,10 @@
 import {
-  getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey,
-  listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryKey,
-  listPeriodsApiV1HrRostersPeriodsGetQueryKey,
-  readHrEmploymentApiV1HrEmploymentUserIdGetQueryKey,
-  readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey,
-  readUsersApiV1AuthUsersGetQueryKey,
+  authGetRoleAssignmentsQueryKey,
+  authGetUsersQueryKey,
+  hrGetHrEmploymentQueryKey,
+  hrGetPeriodQueryKey,
+  hrListDepartmentMembersQueryKey,
+  hrListPeriodsQueryKey,
 } from "@barrelsgd/api-client";
 import type { QueryClient } from "@tanstack/react-query";
 
@@ -35,15 +35,13 @@ export function invalidateAfterEmploymentChange(
   const departmentKeys = Array.from(
     new Set(opts.departmentIds.filter((id): id is string => Boolean(id)))
   ).map((id) =>
-    listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryKey(
-      { path: { department_id: id } }
-    )
+    hrListDepartmentMembersQueryKey({ path: { department_id: id } })
   );
   return invalidateKeys(queryClient, [
-    readHrEmploymentApiV1HrEmploymentUserIdGetQueryKey({
+    hrGetHrEmploymentQueryKey({
       path: { user_id: opts.userId },
     }),
-    readUsersApiV1AuthUsersGetQueryKey({}),
+    authGetUsersQueryKey({}),
     ...departmentKeys,
   ]);
 }
@@ -55,14 +53,14 @@ export function invalidateAfterUserOnboard(
 ): Promise<void> {
   const departmentKeys = opts.departmentId
     ? [
-        listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryKey(
-          { path: { department_id: opts.departmentId } }
-        ),
+        hrListDepartmentMembersQueryKey({
+          path: { department_id: opts.departmentId },
+        }),
       ]
     : [];
   return invalidateKeys(queryClient, [
-    readUsersApiV1AuthUsersGetQueryKey({}),
-    readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey({}),
+    authGetUsersQueryKey({}),
+    authGetRoleAssignmentsQueryKey({}),
     ...departmentKeys,
   ]);
 }
@@ -73,18 +71,18 @@ export function invalidateAfterRosterImport(
   opts: { departmentId: string; periodId?: string }
 ): Promise<void> {
   const keys: (readonly unknown[])[] = [
-    listPeriodsApiV1HrRostersPeriodsGetQueryKey({
+    hrListPeriodsQueryKey({
       query: {
         department_id: opts.departmentId,
       },
     }),
-    listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryKey(
-      { path: { department_id: opts.departmentId } }
-    ),
+    hrListDepartmentMembersQueryKey({
+      path: { department_id: opts.departmentId },
+    }),
   ];
   if (opts.periodId) {
     keys.push(
-      getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey({
+      hrGetPeriodQueryKey({
         path: { period_id: opts.periodId },
       })
     );

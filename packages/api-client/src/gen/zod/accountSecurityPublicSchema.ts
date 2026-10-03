@@ -12,5 +12,6 @@ export const accountSecurityPublicSchema = z.object({
   google_configured: z.boolean(),
   google_linked: z.boolean(),
   totp_enabled: z.boolean(),
+  password_changed_at: z.union([z.iso.datetime(), z.null()]).optional(),
   sessions: z.array(securitySessionPublicSchema),
 });

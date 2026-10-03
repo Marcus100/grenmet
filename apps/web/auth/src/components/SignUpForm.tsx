@@ -4,11 +4,15 @@ import Link from "next/link";
 import { useActionState } from "react";
 import { signUpAction } from "@/app/actions";
 import { initialSignUpState } from "@/app/actions-types";
-
-const inputClass =
-  "w-full rounded-lg border border-(--line) bg-white/80 px-4 py-3 text-foreground text-body outline-none transition placeholder:text-(--muted) focus:border-(--auth-accent) focus:ring-(--auth-accent-soft) focus:ring-4";
-
-const labelClass = "block font-medium text-foreground text-body-sm";
+import {
+  errorBoxClass,
+  inputClass,
+  labelClass,
+  primaryButtonClass,
+  secondaryButtonClass,
+  textLinkClass,
+} from "@/components/form-styles";
+import { PasswordField } from "@/components/password-field";
 
 export function SignUpForm() {
   const [state, formAction, pending] = useActionState(
@@ -19,26 +23,38 @@ export function SignUpForm() {
   if (state.success) {
     return (
       <div className="space-y-5">
-        <div className="rounded-2xl border border-green-200 bg-green-50 px-5 py-4 text-green-800 text-sm leading-6">
-          <p className="font-medium">Account created</p>
-          <p className="mt-1 text-(--muted) text-body-sm">
-            Verify your email, then an administrator will link your employee
-            record and approve staff access.
+        <div
+          className="rounded-lg border border-border bg-muted px-5 py-4 text-sm leading-6"
+          role="status"
+        >
+          <p className="font-medium text-foreground">Check your email</p>
+          <p className="mt-1 text-muted-foreground">
+            We sent a verification link to {state.email || "your inbox"}. After
+            you verify, an administrator links your employee record and approves
+            staff access.
           </p>
         </div>
-        <Link
-          className="block w-full rounded-full bg-(--auth-accent) px-5 py-3 text-center font-medium text-sm text-white transition hover:bg-(--auth-accent-strong)"
-          href="/verify-email"
-        >
-          Verify email
+        <Link className={secondaryButtonClass} href="/">
+          Back to sign in
         </Link>
+        <p className="text-center text-body-sm text-muted-foreground">
+          No email?{" "}
+          <Link className={textLinkClass} href="/verify-email">
+            Send it again
+          </Link>
+        </p>
       </div>
     );
   }
 
   return (
-    <form action={formAction} className="space-y-4">
-      {/* Name row */}
+    <form action={formAction} className="space-y-5">
+      {state.error ? (
+        <div className={errorBoxClass} role="alert">
+          {state.error}
+        </div>
+      ) : null}
+
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <label className={labelClass} htmlFor="first_name">
@@ -50,7 +66,6 @@ export function SignUpForm() {
             id="first_name"
             maxLength={100}
             name="first_name"
-            placeholder="Jane"
             required
             type="text"
           />
@@ -65,36 +80,18 @@ export function SignUpForm() {
             id="last_name"
             maxLength={100}
             name="last_name"
-            placeholder="Smith"
             required
             type="text"
           />
         </div>
       </div>
 
-      {/* Middle name (optional) */}
-      <div className="space-y-2">
-        <label className={labelClass} htmlFor="middle_name">
-          Middle name{" "}
-          <span className="font-normal text-(--muted)">(optional)</span>
-        </label>
-        <input
-          autoComplete="additional-name"
-          className={inputClass}
-          id="middle_name"
-          maxLength={100}
-          name="middle_name"
-          placeholder="M."
-          type="text"
-        />
-      </div>
-
-      {/* Username */}
       <div className="space-y-2">
         <label className={labelClass} htmlFor="username">
           Username
         </label>
         <input
+          autoCapitalize="none"
           autoComplete="username"
           className={inputClass}
           id="username"
@@ -107,10 +104,9 @@ export function SignUpForm() {
         />
       </div>
 
-      {/* Email */}
       <div className="space-y-2">
         <label className={labelClass} htmlFor="email">
-          Email address
+          Work email
         </label>
         <input
           autoComplete="email"
@@ -124,63 +120,31 @@ export function SignUpForm() {
         />
       </div>
 
-      {/* Password */}
-      <div className="space-y-2">
-        <label className={labelClass} htmlFor="password">
-          Password
-        </label>
-        <input
-          autoComplete="new-password"
-          className={inputClass}
-          id="password"
-          maxLength={128}
-          minLength={12}
-          name="password"
-          placeholder="At least 12 characters"
-          required
-          type="password"
-        />
-      </div>
+      <PasswordField
+        autoComplete="new-password"
+        id="password"
+        label="Password"
+        name="password"
+        placeholder="At least 12 characters"
+        showStrength
+      />
 
-      {/* Confirm password */}
-      <div className="space-y-2">
-        <label className={labelClass} htmlFor="confirm_password">
-          Confirm password
-        </label>
-        <input
-          autoComplete="new-password"
-          className={inputClass}
-          id="confirm_password"
-          maxLength={128}
-          minLength={12}
-          name="confirm_password"
-          placeholder="Repeat your password"
-          required
-          type="password"
-        />
-      </div>
+      <PasswordField
+        autoComplete="new-password"
+        id="confirm_password"
+        label="Confirm password"
+        name="confirm_password"
+        placeholder="Repeat your password"
+      />
 
-      {state.error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-red-700 text-sm">
-          {state.error}
-        </div>
-      ) : null}
-
-      <button
-        className="w-full rounded-full bg-(--auth-accent) px-5 py-3 font-medium text-sm text-white transition hover:bg-(--auth-accent-strong) disabled:opacity-60"
-        disabled={pending}
-        type="submit"
-      >
+      <button className={primaryButtonClass} disabled={pending} type="submit">
         {pending ? "Creating account…" : "Create account"}
       </button>
 
-      <p className="text-center text-(--muted) text-body-sm">
+      <p className="text-center text-body-sm text-muted-foreground">
         Already have an account?{" "}
-        <Link
-          className="text-(--auth-accent) underline-offset-4 hover:underline"
-          href="/verify-email"
-        >
-          Verify email
+        <Link className={textLinkClass} href="/">
+          Sign in
         </Link>
       </p>
     </form>

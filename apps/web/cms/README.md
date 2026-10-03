@@ -1,6 +1,6 @@
 # GMS content trial
 
-Payload at http://localhost:3006/admin, using a dedicated `gms_cms` database and role inside the existing `grenmet-postgres` Docker service. One collection contains articles/blogs and general pages. Weather operations stay in gaa-admin.
+Payload at http://localhost:3006/admin, using a dedicated `gms_cms` database and role inside the existing `grenmet-postgres` Docker service. Each homepage section has its own collection. Weather operations stay in gaa-admin.
 
 ## Start on the host
 
@@ -28,14 +28,39 @@ These database credentials match the local Compose defaults. Use your configured
 
 ## Write and publish
 
-1. Create Content, choose Article / blog or General page, and enter a title and lowercase URL slug.
-2. Write Markdown in the text area; expand Preview to check headings, links, lists, and tables. Raw HTML is not rendered.
+Each GMS homepage section has its own collection under **Homepage sections**. All of them use the same review workflow, image, link and topic fields.
+
+| Collection | Homepage section | Who publishes |
+|---|---|---|
+| Desk updates | From the Desk | `cms.publish.desk-updates` |
+| Stories | Stories from our atmosphere and ocean | `cms.publish.stories` |
+| Questions | Questions about the weather | `cms.publish.questions` |
+| Sky, history and fun | On this day, quizzes, Did you know, sky notes | `cms.publish.discover` |
+| Report write-ups | Latest reports (each linked to one issued FastAPI report) | `cms.publish.report-notes` |
+| Live posts | Weather now feed (updates, YouTube/Facebook video, SoundCloud audio links) | `cms.publish.live-posts` |
+
+1. Create an item in the right collection. The URL is built from the title and date, and fixed once published.
+2. Optionally add related links (full HTTP/HTTPS URLs, 20 at most) and topics. Linking does not publish the destination.
 3. Save as Draft, then Ready for review.
-4. An editor checks the content and saves as Published.
+4. A staff member with that collection's publish permission checks and publishes it.
 
-Authors can edit their own unpublished content. Editors manage editorial roles and publication, and can correct or unpublish published content. To return a published item to an author, an editor must change its status to Draft; this removes it from the public API while it is edited. This trial intentionally has no separate live/draft revision workflow, uploads, scheduling, or page builder.
+Questions have an optional science check: a meteorologist ticks it and the site shows "Checked by a GMS meteorologist on <date>". The CMS records who checked it; the public sees only the date.
 
-Anonymous `GET /api/content` returns only published items. For example, `/api/content?where[slug][equals]=about-gms`. The existing GMS website is not switched over yet: this trial lets you evaluate the editor and publishing workflow first. A later GMS integration should fetch this public API from the server and render the Markdown safely.
+Tonight's sunrise, sunset and moon phase are calculated by the GMS site; a Sky note only adds an editor's line for a date range. On this day shows today's entry or the nearest within a week; Did you know rotates daily.
+
+Starter content (the first questions, On this day entries, a cloud quiz and five facts) is loaded with `pnpm --filter @barrelsgd/web-cms seed:editorial` as Ready for review, so GMS checks it before publishing. Run it after someone has signed in to the CMS once as an editor or superuser; reruns skip what exists.
+
+**Weather now** (settings page): duty forecasters with `cms.weather-now.note` post a short note that goes live on save, signed and timed automatically, and expires at the next forecast issue (07:00, 12:00 or 18:00) unless they set a time. After it expires the homepage shows the issued forecast summary again. Imagery (satellite, radar) is live data and comes from FastAPI, not the CMS.
+
+**Homepage** (settings page, `cms.homepage.manage`): pin the lead story and up to five questions; choose the Discover cards; hide a section for now (for example during a hurricane). Empty choices show the newest published items.
+
+A note or desk update that uses the words warning, watch or advisory must link to the CAP alert it refers to; otherwise saving is refused. Warnings are issued only in the warning system.
+
+Desk updates are notices about products and services. Forecasts and warnings are issued only in the forecast and warning systems, never here.
+
+Authors edit their own unpublished items. Editors (`cms.article.edit.all`) edit everything. Version history keeps earlier copies.
+
+GMS reads anonymous `GET /api/public/home` for the homepage and `GET /api/public/articles` for lists and article pages. Both return published items only, never staff fields. Rich text is converted to plain paragraphs.
 
 ## Verification and generated files
 
@@ -46,4 +71,4 @@ pnpm --filter @barrelsgd/web-cms generate:types
 pnpm --filter @barrelsgd/web-cms generate:importmap
 ```
 
-Database integration tests create and remove an isolated randomly named schema in the CMS database, and are skipped unless `CMS_TEST_DATABASE_URL` is set. Generated types and the admin import map are checked in. Development uses Payload's schema push; production deployment will need reviewed migrations, persistent credentials, and configured shared-cookie/return-host settings.
+Database integration tests create and remove an isolated randomly named schema in the CMS database, and are skipped unless `CMS_TEST_DATABASE_URL` is set. Generated types and the admin import map are checked in. Runtime schema push is disabled. Apply `20260929_210000_editorial_collections` before deploying this code. It replaces the old single Content collection and **deletes its posts** (cleared by decision on 29 Sep 2026), then creates the new collections. Back up first: destructive rollback is blocked to preserve editorial history. This agent has not applied migrations to operational databases.

@@ -8,5 +8,5 @@ import * as z from "zod";
 export const signaturePublicSchema = z.object({
   version: z.uuid(),
   image_data_url: z.string(),
-  updated_at: z.string(),
+  updated_at: z.iso.datetime(),
 });

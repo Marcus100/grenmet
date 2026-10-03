@@ -1,7 +1,7 @@
+import type { WeatherImage } from "@barrelsgd/api-client";
 import type { PublishedProduct } from "@barrelsgd/gms/products";
 import { describe, expect, it } from "vitest";
 import type { ImagesBySynoptic } from "@/db/wxwatch/queries";
-import type { WeatherImage } from "@/db/wxwatch/schema";
 import {
   grenadaToday,
   relativeTime,
@@ -24,7 +24,7 @@ function published(
 
 function image(overrides: Partial<WeatherImage> = {}): WeatherImage {
   return {
-    observationTime: new Date("2026-09-09T06:00:00Z"),
+    observationTime: "2026-09-09T06:00:00Z",
     ...overrides,
   } as WeatherImage;
 }
@@ -80,15 +80,15 @@ describe("summarizeImagery", () => {
         name: "goes19",
         synopticImages: {
           ...EMPTY_SLOTS,
-          "00": image({ observationTime: new Date("2026-09-09T00:00:00Z") }),
-          "06": image({ observationTime: new Date("2026-09-09T06:00:00Z") }),
+          "00": image({ observationTime: "2026-09-09T00:00:00Z" }),
+          "06": image({ observationTime: "2026-09-09T06:00:00Z" }),
         },
       },
       {
         name: "model",
         synopticImages: {
           ...EMPTY_SLOTS,
-          "12": image({ observationTime: new Date("2026-09-09T12:00:00Z") }),
+          "12": image({ observationTime: "2026-09-09T12:00:00Z" }),
         },
       },
     ];
@@ -98,9 +98,7 @@ describe("summarizeImagery", () => {
     expect(summary.captured).toBe(3);
     expect(summary.expected).toBe(16);
     expect(summary.sources).toBe(2);
-    expect(summary.latest?.observationTime).toEqual(
-      new Date("2026-09-09T12:00:00Z")
-    );
+    expect(summary.latest?.observationTime).toBe("2026-09-09T12:00:00Z");
   });
 
   it("reports an empty day without a latest frame", () => {

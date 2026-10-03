@@ -6,7 +6,7 @@ from fastapi import APIRouter, Query, Request, Response, status
 
 from src.cap import cache, service
 from src.cap.geo import alerts_to_feature_collection
-from src.cap.models import CapLifecycleState
+from src.cap.models import CapLifecycleState, CapMessageType, CapStatus
 from src.cap.profile_router import router as profile_router
 from src.cap.schemas import (
     CapAlertAction,
@@ -26,6 +26,7 @@ from src.cap.schemas import (
     CapSettingsPublic,
     CapSettingsUpdate,
     CapValidationResult,
+    PublicWarnings,
 )
 from src.dependencies import CurrentUser, SessionDep
 from src.pagination import PaginationDep
@@ -36,7 +37,12 @@ router.include_router(profile_router)
 public_router = APIRouter(prefix="/api/cap", tags=["cap-public"])
 
 
-@router.get("/alerts", response_model=CapAlertListPublic)
+@router.get(
+    "/alerts",
+    response_model=CapAlertListPublic,
+    summary="List CAP alerts",
+    description="Returns a paginated list of CAP alerts accessible to the current user, optionally filtered by lifecycle state.",
+)
 async def read_alerts(
     *,
     session: SessionDep,
@@ -60,6 +66,8 @@ async def read_alerts(
     "/alerts",
     response_model=CapAlertPublic,
     status_code=status.HTTP_201_CREATED,
+    summary="Create a CAP alert",
+    description="Creates a new CAP alert in the initial draft state for the current user's organisation.",
 )
 async def create_alert(
     *, session: SessionDep, current_user: CurrentUser, payload: CapAlertCreate
@@ -74,6 +82,7 @@ async def create_alert(
     response_model=CapAlertPublic,
     status_code=status.HTTP_201_CREATED,
     summary="Import a CAP alert from a URL or pasted XML",
+    description="Fetches or parses CAP XML from the supplied source and creates an alert draft. The endpoint is rate limited.",
 )
 @limiter.limit("10/minute")
 async def import_alert(
@@ -93,7 +102,12 @@ async def import_alert(
     )
 
 
-@router.get("/alerts/{alert_id}", response_model=CapAlertPublic)
+@router.get(
+    "/alerts/{alert_id}",
+    response_model=CapAlertPublic,
+    summary="Get a CAP alert",
+    description="Returns one CAP alert by its identifier when it is visible to the current user.",
+)
 async def read_alert(
     *, session: SessionDep, current_user: CurrentUser, alert_id: uuid.UUID
 ) -> CapAlertPublic:
@@ -102,7 +116,12 @@ async def read_alert(
     )
 
 
-@router.patch("/alerts/{alert_id}", response_model=CapAlertPublic)
+@router.patch(
+    "/alerts/{alert_id}",
+    response_model=CapAlertPublic,
+    summary="Update a CAP alert",
+    description="Updates editable fields on a CAP alert before it reaches a terminal publication state.",
+)
 async def update_alert(
     *,
     session: SessionDep,
@@ -118,7 +137,12 @@ async def update_alert(
     )
 
 
-@router.post("/alerts/{alert_id}/duplicate", response_model=CapAlertPublic)
+@router.post(
+    "/alerts/{alert_id}/duplicate",
+    response_model=CapAlertPublic,
+    summary="Duplicate a CAP alert",
+    description="Creates a new draft by copying the selected CAP alert and its editable information.",
+)
 async def duplicate_alert(
     *, session: SessionDep, current_user: CurrentUser, alert_id: uuid.UUID
 ) -> CapAlertPublic:
@@ -127,7 +151,12 @@ async def duplicate_alert(
     )
 
 
-@router.post("/alerts/{alert_id}/validate", response_model=CapValidationResult)
+@router.post(
+    "/alerts/{alert_id}/validate",
+    response_model=CapValidationResult,
+    summary="Validate a CAP alert",
+    description="Runs CAP and domain validation against the selected alert and returns field-level validation results.",
+)
 async def validate_alert(
     *, session: SessionDep, current_user: CurrentUser, alert_id: uuid.UUID
 ) -> CapValidationResult:
@@ -136,7 +165,12 @@ async def validate_alert(
     )
 
 
-@router.post("/alerts/{alert_id}/submit", response_model=CapAlertPublic)
+@router.post(
+    "/alerts/{alert_id}/submit",
+    response_model=CapAlertPublic,
+    summary="Submit a CAP alert",
+    description="Submits a validated CAP alert for the next workflow review step.",
+)
 async def submit_alert(
     *,
     session: SessionDep,
@@ -152,7 +186,12 @@ async def submit_alert(
     )
 
 
-@router.post("/alerts/{alert_id}/approve", response_model=CapAlertPublic)
+@router.post(
+    "/alerts/{alert_id}/approve",
+    response_model=CapAlertPublic,
+    summary="Approve a CAP alert",
+    description="Approves a submitted CAP alert and advances it toward publication.",
+)
 async def approve_alert(
     *,
     session: SessionDep,
@@ -168,7 +207,12 @@ async def approve_alert(
     )
 
 
-@router.post("/alerts/{alert_id}/publish", response_model=CapPublishPublic)
+@router.post(
+    "/alerts/{alert_id}/publish",
+    response_model=CapPublishPublic,
+    summary="Publish a CAP alert",
+    description="Publishes a CAP alert and returns the alert together with its generated publication snapshot.",
+)
 async def publish_alert(
     *,
     session: SessionDep,
@@ -185,7 +229,12 @@ async def publish_alert(
     return CapPublishPublic(alert=alert, snapshot=snapshot)
 
 
-@router.post("/alerts/{alert_id}/cancel", response_model=CapAlertPublic)
+@router.post(
+    "/alerts/{alert_id}/cancel",
+    response_model=CapAlertPublic,
+    summary="Cancel a CAP alert",
+    description="Cancels the selected CAP alert and records the supplied workflow reason.",
+)
 async def cancel_alert(
     *,
     session: SessionDep,
@@ -201,7 +250,12 @@ async def cancel_alert(
     )
 
 
-@router.post("/alerts/{alert_id}/expire", response_model=CapAlertPublic)
+@router.post(
+    "/alerts/{alert_id}/expire",
+    response_model=CapAlertPublic,
+    summary="Expire a CAP alert",
+    description="Marks the selected CAP alert as expired and records the supplied workflow reason.",
+)
 async def expire_alert(
     *,
     session: SessionDep,
@@ -217,14 +271,24 @@ async def expire_alert(
     )
 
 
-@router.get("/settings", response_model=CapSettingsPublic)
+@router.get(
+    "/settings",
+    response_model=CapSettingsPublic,
+    summary="Get CAP settings",
+    description="Returns CAP publication and workflow settings visible to the current user.",
+)
 async def read_cap_settings(
     *, session: SessionDep, current_user: CurrentUser
 ) -> CapSettingsPublic:
     return await service.read_settings(session=session, current_user=current_user)
 
 
-@router.patch("/settings", response_model=CapSettingsPublic)
+@router.patch(
+    "/settings",
+    response_model=CapSettingsPublic,
+    summary="Update CAP settings",
+    description="Updates CAP publication and workflow settings for the current user's organisation.",
+)
 async def update_cap_settings(
     *, session: SessionDep, current_user: CurrentUser, payload: CapSettingsUpdate
 ) -> CapSettingsPublic:
@@ -233,12 +297,22 @@ async def update_cap_settings(
     )
 
 
-@router.get("/catalogs", response_model=CapCatalogsPublic)
+@router.get(
+    "/catalogs",
+    response_model=CapCatalogsPublic,
+    summary="List CAP catalogues",
+    description="Returns the controlled CAP values available to the current user when composing or reviewing an alert.",
+)
 async def read_catalogs(*, current_user: CurrentUser) -> CapCatalogsPublic:
     return service.get_catalogs(current_user=current_user)
 
 
-@router.get("/areas/predefined", response_model=list[CapPredefinedAreaPublic])
+@router.get(
+    "/areas/predefined",
+    response_model=list[CapPredefinedAreaPublic],
+    summary="List predefined CAP areas",
+    description="Returns predefined geographic areas available for selection in CAP alerts.",
+)
 async def read_predefined_areas(
     *, session: SessionDep, current_user: CurrentUser
 ) -> list[CapPredefinedAreaPublic]:
@@ -251,6 +325,8 @@ async def read_predefined_areas(
     "/areas/predefined",
     response_model=CapPredefinedAreaPublic,
     status_code=status.HTTP_201_CREATED,
+    summary="Create a predefined CAP area",
+    description="Creates a reusable geographic area for future CAP alerts.",
 )
 async def create_predefined_area(
     *,
@@ -274,7 +350,12 @@ async def read_integrations(
     return await service.list_integrations(session=session, current_user=current_user)
 
 
-@router.get("/audit", response_model=CapAuditEventListPublic)
+@router.get(
+    "/audit",
+    response_model=CapAuditEventListPublic,
+    summary="List CAP audit events",
+    description="Returns a paginated audit trail for CAP activity, optionally filtered to one alert.",
+)
 async def read_audit(
     *,
     session: SessionDep,
@@ -294,7 +375,12 @@ async def read_audit(
     )
 
 
-@router.get("/feeds", response_model=list[CapFeedImportPublic])
+@router.get(
+    "/feeds",
+    response_model=list[CapFeedImportPublic],
+    summary="List CAP feed sources",
+    description="Returns configured external CAP feed sources available to the current user.",
+)
 async def read_feeds(
     *, session: SessionDep, current_user: CurrentUser
 ) -> list[CapFeedImportPublic]:
@@ -307,6 +393,7 @@ async def read_feeds(
     response_model=CapFeedImportPublic,
     status_code=status.HTTP_201_CREATED,
     summary="Register an external CAP feed source",
+    description="Registers an external CAP feed source for scheduled ingestion.",
 )
 async def create_feed(
     *, session: SessionDep, current_user: CurrentUser, payload: CapFeedImportCreate
@@ -317,7 +404,12 @@ async def create_feed(
     return CapFeedImportPublic.model_validate(feed, from_attributes=True)
 
 
-@router.patch("/feeds/{feed_id}", response_model=CapFeedImportPublic)
+@router.patch(
+    "/feeds/{feed_id}",
+    response_model=CapFeedImportPublic,
+    summary="Update a CAP feed source",
+    description="Updates the configuration of an existing external CAP feed source.",
+)
 async def update_feed(
     *,
     session: SessionDep,
@@ -335,6 +427,7 @@ async def update_feed(
     "/feeds/{feed_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete an external CAP feed source",
+    description="Deletes an external CAP feed source and stops its scheduled ingestion.",
 )
 async def delete_feed(
     *, session: SessionDep, current_user: CurrentUser, feed_id: uuid.UUID
@@ -344,7 +437,34 @@ async def delete_feed(
     )
 
 
-@public_router.get("/latest-active", response_model=CapAlertListPublic)
+@public_router.get(
+    "/warnings",
+    response_model=PublicWarnings,
+    responses={503: {"description": "Warning feed unavailable"}},
+    summary="List public CAP warnings",
+    description="Returns the public warning feed without requiring authentication.",
+)
+async def read_public_warnings(
+    *, session: SessionDep, response: Response
+) -> PublicWarnings:
+    from pydantic import ValidationError
+    from sqlalchemy.exc import SQLAlchemyError
+
+    from src.exceptions import AppException
+
+    response.headers["Cache-Control"] = "no-store"
+    try:
+        return await service.public_warnings(session=session)
+    except SQLAlchemyError, OSError, TimeoutError, ValidationError:
+        raise AppException("Warning information is unavailable", 503)
+
+
+@public_router.get(
+    "/latest-active",
+    response_model=CapAlertListPublic,
+    summary="List active public CAP alerts",
+    description="Returns currently active public CAP alerts. The response is briefly cached for public feed consumers.",
+)
 async def read_public_latest_active(*, session: SessionDep) -> Any:
     async def _produce() -> dict[str, Any]:
         result = await service.public_latest_active(session=session)
@@ -353,55 +473,102 @@ async def read_public_latest_active(*, session: SessionDep) -> Any:
     return await cache.cached_json(cache.PUBLIC_LATEST_ACTIVE, 30, _produce)
 
 
-@public_router.get("/alerts", response_model=CapAlertListPublic)
+@public_router.get(
+    "/alerts",
+    response_model=CapAlertListPublic,
+    summary="List public CAP alerts",
+    description="Returns all public CAP alerts available through the public feed.",
+)
 async def read_public_alerts(*, session: SessionDep) -> CapAlertListPublic:
     return await service.public_all_alerts(session=session)
 
 
-@public_router.get("/past", response_model=CapAlertListPublic)
+@public_router.get(
+    "/past",
+    response_model=CapAlertListPublic,
+    summary="List past public CAP alerts",
+    description="Returns previously published public CAP alerts from the public feed.",
+)
 async def read_public_past_alerts(*, session: SessionDep) -> CapAlertListPublic:
     return await service.public_past_alerts(session=session)
 
 
-@public_router.get("/alerts/{identifier}", response_model=CapAlertPublic)
+@public_router.get(
+    "/alerts/{identifier}",
+    response_model=CapAlertPublic,
+    summary="Get a public CAP alert",
+    description="Returns one published public CAP alert by its CAP identifier.",
+)
 async def read_public_alert(*, session: SessionDep, identifier: str) -> CapAlertPublic:
     return await service.public_alert_by_identifier(
         session=session, identifier=identifier
     )
 
 
-@public_router.get("/alerts.geojson")
+@public_router.get(
+    "/alerts.geojson",
+    summary="Get active CAP alerts as GeoJSON",
+    description="Returns active Actual public CAP alerts as a GeoJSON feature collection for map clients.",
+)
 async def read_alerts_geojson(*, session: SessionDep) -> Any:
     async def _produce() -> dict[str, Any]:
         alerts = await service.public_latest_active(session=session)
-        return alerts_to_feature_collection(alerts.data)
+        return alerts_to_feature_collection(
+            [alert for alert in alerts.data if alert.status == CapStatus.ACTUAL]
+        )
 
     return await cache.cached_json(cache.PUBLIC_GEOJSON, 30, _produce)
 
 
-@public_router.get("/active-map")
+@public_router.get(
+    "/active-map",
+    summary="Get the active CAP map",
+    description="Returns the cached GeoJSON feature collection of active Actual public CAP alerts.",
+)
 async def read_active_map(*, session: SessionDep) -> dict[str, Any]:
     # Same payload as /alerts.geojson — share its 30s cache instead of
     # recomputing the FeatureCollection on every hit.
     async def _produce() -> dict[str, Any]:
         alerts = await service.public_latest_active(session=session)
-        return alerts_to_feature_collection(alerts.data)
+        return alerts_to_feature_collection(
+            [alert for alert in alerts.data if alert.status == CapStatus.ACTUAL]
+        )
 
     result: dict[str, Any] = await cache.cached_json(cache.PUBLIC_GEOJSON, 30, _produce)
     return result
 
 
-@public_router.get("/rss.xml")
+@public_router.get(
+    "/rss.xml",
+    response_class=Response,
+    responses={
+        200: {"description": "RSS feed", "content": {"application/rss+xml": {}}}
+    },
+    summary="Get the public CAP RSS feed",
+    description="Returns active Actual public CAP alerts and Actual Cancel messages published in the last 24 hours as RSS 2.0.",
+)
 async def read_rss(*, session: SessionDep) -> Response:
     async def _produce() -> str:
         alerts = await service.public_latest_active(session=session)
-        return _rss_xml(alerts.data)
+        cancels = await service.public_recent_cancels(session=session)
+        entries = [alert for alert in alerts.data if alert.status == CapStatus.ACTUAL]
+        entries.extend(cancels)
+        entries.sort(key=lambda alert: alert.sent, reverse=True)
+        return _rss_xml(entries[:100])
 
     body = await cache.cached_text(cache.PUBLIC_RSS, 30, _produce)
     return Response(content=body, media_type="application/rss+xml; charset=utf-8")
 
 
-@public_router.get("/{identifier}.xml")
+@public_router.get(
+    "/{identifier}.xml",
+    response_class=Response,
+    responses={
+        200: {"description": "CAP XML document", "content": {"application/xml": {}}}
+    },
+    summary="Get a public CAP XML document",
+    description="Returns the latest published CAP XML document for the supplied alert identifier.",
+)
 async def read_cap_xml(*, session: SessionDep, identifier: str) -> Response:
     async def _produce() -> str:
         snapshot = await service.latest_snapshot_for_identifier(
@@ -418,14 +585,21 @@ def _rss_xml(alerts: list[CapAlertPublic]) -> str:
     channel = ET.SubElement(rss, "channel")
     ET.SubElement(channel, "title").text = "Grenada CAP Alerts"
     ET.SubElement(channel, "link").text = "/api/cap/latest-active"
-    ET.SubElement(channel, "description").text = "Active CAP alerts"
+    ET.SubElement(
+        channel, "description"
+    ).text = "Active CAP alerts and recent cancellation messages"
 
     for alert in alerts:
         first_info = alert.info[0] if alert.info else None
         item = ET.SubElement(channel, "item")
-        ET.SubElement(item, "title").text = (
-            first_info.headline if first_info else alert.identifier
-        )
+        if alert.msg_type == CapMessageType.CANCEL:
+            referenced = (
+                alert.references[0].identifier if alert.references else alert.identifier
+            )
+            title = f"Cancelled: {referenced}"
+        else:
+            title = first_info.headline if first_info else alert.identifier
+        ET.SubElement(item, "title").text = title
         ET.SubElement(item, "guid").text = alert.identifier
         ET.SubElement(item, "link").text = (
             alert.xml_url or f"/api/cap/{alert.identifier}.xml"

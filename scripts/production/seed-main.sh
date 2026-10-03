@@ -24,5 +24,4 @@ if [[ "$mode" == apply ]]; then args+=(--apply); fi
 "${compose[@]}" exec -T api python scripts/seed_gaa_organisation.py "${args[@]}" --actor "$BASELINE_ACTOR"
 seed_flag=--preview
 if [[ "$mode" == apply ]]; then seed_flag=--apply; fi
-"${compose[@]}" run --rm web-migrate node apps/web/gaa-admin/scripts/seed-transport.mjs "$seed_flag"
-"${compose[@]}" run --rm web-migrate node apps/web/gaa-admin/scripts/seed-janitorial.mjs "$seed_flag"
+"${compose[@]}" exec -T api python scripts/seed_catalogues.py "$seed_flag"

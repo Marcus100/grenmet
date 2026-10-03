@@ -12,10 +12,10 @@ docker compose exec api bash
 |---|---|
 | `seed_data.py` | Create custom users defined in `CUSTOM_USERS` |
 | `clear_seed_data.py` | Remove test users matching `testuser*@weather.gd` |
-| `quick_test.py` | HTTP-level smoke test — hits key endpoints and reports status |
 | `format.sh` | Run ruff check --fix + ruff format |
 | `lint.sh` | Run ruff check, ruff format --check, and mypy |
 | `dev.sh` | Convenience wrapper for common docker compose commands |
+| `leave_reconciliation.py` | Read-only CSV comparing the leave ledger with legacy balance and carry-over tables; `--require-reconciled` exits 1 on findings. Output contains staff emails: HR only |
 
 ## Seeding
 
@@ -35,11 +35,3 @@ Or via docker compose from `apps/api/fastapi`:
 ```bash
 docker compose exec api python scripts/seed_data.py --reset
 ```
-
-## Smoke test
-
-```bash
-docker compose exec api python scripts/quick_test.py
-```
-
-Hits the health check, OpenAPI schema, and login endpoints. Exits non-zero on failure.

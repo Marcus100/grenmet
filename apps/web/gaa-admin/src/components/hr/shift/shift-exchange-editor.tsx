@@ -1,14 +1,15 @@
 "use client";
 
 import {
-  listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey,
+  hrListMyShiftSwapsQueryKey,
   type ShiftSwapRequestPublic,
-  useCreateShiftSwapApiV1HrShiftSwapsPost,
-  useListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet,
-  useListMyShiftSwapsApiV1HrShiftSwapsMeGet,
-  useReadHrProfileMeApiV1HrProfileMeGet,
-  useSubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost,
-  useUpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch,
+  useHrCreateShiftSwap,
+  useHrGetHrProfileMe,
+  useHrListAssignments,
+  useHrListDepartmentMembers,
+  useHrListMyShiftSwaps,
+  useHrSubmitShiftSwap,
+  useHrUpdateShiftSwap,
 } from "@barrelsgd/api-client";
 import { useSessionUser } from "@barrelsgd/auth";
 import {
@@ -29,9 +30,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { DatePicker } from "@/components/document/date-picker";
-import { DocumentPreview } from "@/components/document/document-preview";
+import { hrApiErrorMessage } from "@/components/hr/api-error";
 import { CoApproverPicker } from "@/components/hr/co-approver-picker";
 import { FormActionBar } from "@/components/hr/form-action-bar";
+import { downloadHrPdf, HrPdfPreview } from "@/components/hr/hr-pdf-preview";
 import {
   signedDocumentsKey,
   useSigning,
@@ -40,7 +42,8 @@ import { SigningPanel } from "@/components/hr/signatures/signing-panel";
 import type { SubmissionMetadata } from "@/components/hr/submission-date";
 import { useEditorPrefill } from "@/components/hr/use-editor-prefill";
 import { displayName } from "@/lib/people";
-import { EMPTY_SHIFT, ShiftExchangeDocument } from "./shift-exchange-document";
+import { reportError } from "@/lib/report-error";
+import { EMPTY_SHIFT } from "./shift-exchange-document";
 
 /** Printable-paper fields plus the structured fields the HR API needs. */
 const EMPTY_FORM = {
@@ -51,10 +54,6 @@ const EMPTY_FORM = {
   targetDate: "",
   targetShiftCode: "",
 };
-
-function formatDateShift(date: string, shiftCode: string) {
-  return [date, shiftCode && `Shift ${shiftCode}`].filter(Boolean).join(" — ");
-}
 
 /** Map a saved swap request back onto the form fields when reopening a draft. */
 function draftToFormValues(swap: ShiftSwapRequestPublic): typeof EMPTY_FORM {
@@ -77,19 +76,17 @@ export function ShiftExchangeEditor() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const draftParam = searchParams.get("draft");
-  const profileQuery = useReadHrProfileMeApiV1HrProfileMeGet();
+  const profileQuery = useHrGetHrProfileMe();
   const departmentId = profileQuery.data?.employment?.department?.id;
-  const membersQuery =
-    useListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet(
-      { path: { department_id: departmentId ?? "" } },
-      { query: { enabled: Boolean(departmentId) } }
-    );
+  const membersQuery = useHrListDepartmentMembers(
+    { path: { department_id: departmentId ?? "" } },
+    { query: { enabled: Boolean(departmentId) } }
+  );
   const members = membersQuery.data?.data ?? [];
-  const myRequestsQuery = useListMyShiftSwapsApiV1HrShiftSwapsMeGet({});
-  const createMutation = useCreateShiftSwapApiV1HrShiftSwapsPost();
-  const updateMutation = useUpdateShiftSwapApiV1HrShiftSwapsShiftSwapIdPatch();
-  const submitMutation =
-    useSubmitShiftSwapApiV1HrShiftSwapsShiftSwapIdSubmitPost();
+  const myRequestsQuery = useHrListMyShiftSwaps({});
+  const createMutation = useHrCreateShiftSwap();
+  const updateMutation = useHrUpdateShiftSwap();
+  const submitMutation = useHrSubmitShiftSwap();
   const [submission, setSubmission] = useState<SubmissionMetadata | null>(null);
   const [coApprovers, setCoApprovers] = useState<string[]>([]);
   const [statusHint, setStatusHint] = useState<string | null>(null);
@@ -105,12 +102,23 @@ export function ShiftExchangeEditor() {
       return;
     }
     const rows = myRequestsQuery.data?.data;
-    if (!rows) {
+    if (!(rows && profileQuery.data && membersQuery.data)) {
       return;
     }
     const draft = rows.find((swap) => swap.id === draftParam);
     if (draft) {
-      form.reset(draftToFormValues(draft), { keepDefaultValues: true });
+      const counterpart = members.find(
+        (member) => member.user_id === draft.counterpart_user_id
+      );
+      form.reset(
+        {
+          ...draftToFormValues(draft),
+          requestingEmployee: sessionUser.full_name ?? "",
+          department: profileQuery.data.employment?.department?.name ?? "",
+          exchangeEmployee: counterpart ? displayName(counterpart) : "",
+        },
+        { keepDefaultValues: true }
+      );
       setDraftId(draftParam);
       setSubmission(draft.status === "DRAFT" ? null : draft);
       setStatusHint(
@@ -120,7 +128,15 @@ export function ShiftExchangeEditor() {
       );
       loadedDraftRef.current = draftParam;
     }
-  }, [draftParam, myRequestsQuery.data, form]);
+  }, [
+    draftParam,
+    myRequestsQuery.data,
+    profileQuery.data,
+    membersQuery.data,
+    members,
+    sessionUser.full_name,
+    form,
+  ]);
 
   // Prefill blank fields with the current user, their department, and today.
   useEditorPrefill(
@@ -140,7 +156,20 @@ export function ShiftExchangeEditor() {
 
   function handleReset() {
     setSubmission(null);
-    form.reset();
+    form.reset(
+      {
+        ...EMPTY_FORM,
+        requestingEmployee: sessionUser.full_name ?? "",
+        department: profileQuery.data?.employment?.department?.name ?? "",
+        sourceDate: new Intl.DateTimeFormat("en-CA", {
+          timeZone: "America/Grenada",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        }).format(new Date()),
+      },
+      { keepDefaultValues: true }
+    );
     setCoApprovers([]);
     setStatusHint(null);
     setDraftId(null);
@@ -150,19 +179,23 @@ export function ShiftExchangeEditor() {
     }
   }
 
-  function handleDownloadPdf() {
-    if (submission?.signed_document_id) {
-      window.location.assign(
-        `/api/v1/hr/signed-documents/${submission.signed_document_id}/pdf`
-      );
-      return;
+  async function handleDownloadPdf() {
+    try {
+      await downloadHrPdf({
+        payload: buildPayload(form.state.values, departmentId ?? ""),
+        previewPath: "/api/v1/hr/shift-swaps/preview-pdf",
+        signedDocumentId: submission?.signed_document_id,
+        filename: "shift-exchange.pdf",
+      });
+    } catch (error) {
+      reportError(error, "hr-exchange-pdf");
+      toast.error(hrApiErrorMessage(error));
     }
-    window.print();
   }
 
   async function refreshMyRequests() {
     await queryClient.invalidateQueries({
-      queryKey: listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey({}),
+      queryKey: hrListMyShiftSwapsQueryKey({}),
     });
   }
 
@@ -189,6 +222,10 @@ export function ShiftExchangeEditor() {
         toast.error("Select the department member to exchange with");
         return;
       }
+      if (values.counterpartUserId === sessionUser.id) {
+        toast.error("Select another employee for the exchange");
+        return;
+      }
       if (!(values.sourceDate && values.sourceShiftCode)) {
         toast.error("Date and shift requested for change are required");
         return;
@@ -208,7 +245,7 @@ export function ShiftExchangeEditor() {
         if (draftId) {
           await updateMutation.mutateAsync({
             path: { shift_swap_id: draftId },
-            body: buildPayload(values, departmentId),
+            body: { ...buildPayload(values, departmentId), as_draft: true },
           });
           setStatusHint("Draft updated");
           toast.success("Draft updated");
@@ -257,8 +294,8 @@ export function ShiftExchangeEditor() {
       }
       await refreshMyRequests();
     } catch (error) {
-      const detail =
-        error instanceof Error ? error.message : "Something went wrong";
+      reportError(error, "hr-exchange");
+      const detail = hrApiErrorMessage(error);
       toast.error(`${asDraft ? "Save" : "Submission"} failed: ${detail}`);
     } finally {
       setPendingAction(null);
@@ -272,6 +309,10 @@ export function ShiftExchangeEditor() {
           <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
             <div className="flex flex-col gap-3">
               <SigningPanel submission={submission} />
+              <p className="text-muted-foreground text-xs">
+                The other employee must agree first. Supervisor review follows.
+                The roster changes only after final approval.
+              </p>
               <FormActionBar
                 isSaving={pendingAction === "save"}
                 isSubmitting={pendingAction === "submit"}
@@ -307,6 +348,7 @@ export function ShiftExchangeEditor() {
                           id={field.name}
                           onBlur={field.handleBlur}
                           onChange={(e) => field.handleChange(e.target.value)}
+                          readOnly
                           value={field.state.value}
                         />
                       </Field>
@@ -323,6 +365,7 @@ export function ShiftExchangeEditor() {
                           id={field.name}
                           onBlur={field.handleBlur}
                           onChange={(e) => field.handleChange(e.target.value)}
+                          readOnly
                           value={field.state.value}
                         />
                       </Field>
@@ -357,14 +400,18 @@ export function ShiftExchangeEditor() {
                             <NativeSelectOption value="">
                               Select member…
                             </NativeSelectOption>
-                            {members.map((member) => (
-                              <NativeSelectOption
-                                key={member.user_id}
-                                value={member.user_id}
-                              >
-                                {displayName(member)}
-                              </NativeSelectOption>
-                            ))}
+                            {members
+                              .filter(
+                                (member) => member.user_id !== sessionUser.id
+                              )
+                              .map((member) => (
+                                <NativeSelectOption
+                                  key={member.user_id}
+                                  value={member.user_id}
+                                >
+                                  {displayName(member)}
+                                </NativeSelectOption>
+                              ))}
                           </NativeSelect>
                         </Field>
                       )}
@@ -380,6 +427,7 @@ export function ShiftExchangeEditor() {
                             id={field.name}
                             onBlur={field.handleBlur}
                             onChange={(e) => field.handleChange(e.target.value)}
+                            readOnly
                             value={field.state.value}
                           />
                         </Field>
@@ -396,7 +444,10 @@ export function ShiftExchangeEditor() {
                           </FieldLabel>
                           <DatePicker
                             id={field.name}
-                            onChange={field.handleChange}
+                            onChange={(date) => {
+                              field.handleChange(date);
+                              form.setFieldValue("sourceShiftCode", "");
+                            }}
                             value={field.state.value}
                           />
                         </Field>
@@ -461,6 +512,7 @@ export function ShiftExchangeEditor() {
                         </FieldLabel>
                         <Textarea
                           id={field.name}
+                          maxLength={1000}
                           onChange={(e) => field.handleChange(e.target.value)}
                           value={field.state.value}
                         />
@@ -470,7 +522,8 @@ export function ShiftExchangeEditor() {
 
                   <Field className="gap-1">
                     <FieldLabel className="text-xs">
-                      Co-approvers (all must approve before it reaches HR)
+                      Additional co-approvers (the exchange employee is always
+                      required)
                     </FieldLabel>
                     <CoApproverPicker
                       departmentId={departmentId}
@@ -484,27 +537,50 @@ export function ShiftExchangeEditor() {
             )}
           </div>
 
-          <DocumentPreview
-            showDownloadPdf={false}
+          <ExchangeShiftPrefill
+            date={values.sourceDate}
+            onPrefill={(code) => form.setFieldValue("sourceShiftCode", code)}
+            selected={values.sourceShiftCode}
+          />
+          <HrPdfPreview
+            payload={buildPayload(values, departmentId ?? "")}
+            previewPath="/api/v1/hr/shift-swaps/preview-pdf"
+            ready={Boolean(
+              departmentId &&
+                values.counterpartUserId &&
+                values.sourceDate &&
+                values.targetDate &&
+                values.sourceShiftCode &&
+                values.targetShiftCode
+            )}
+            signedDocumentId={submission?.signed_document_id}
             title="Shift Exchange Requisition"
-          >
-            <ShiftExchangeDocument
-              submission={submission}
-              values={{
-                ...values,
-                dateShiftRequested: formatDateShift(
-                  values.sourceDate,
-                  values.sourceShiftCode
-                ),
-                dateReturnShift: formatDateShift(
-                  values.targetDate,
-                  values.targetShiftCode
-                ),
-              }}
-            />
-          </DocumentPreview>
+          />
         </div>
       )}
     </form.Subscribe>
   );
+}
+
+function ExchangeShiftPrefill({
+  date,
+  selected,
+  onPrefill,
+}: {
+  date: string;
+  selected: string;
+  onPrefill: (code: string) => void;
+}) {
+  const query = useHrListAssignments(
+    { query: { scope: "me", start: date, end: date } },
+    { query: { enabled: Boolean(date) } }
+  );
+  useEffect(() => {
+    const entries =
+      query.data?.data.filter(
+        (entry) => entry.category === "WORK" && !entry.is_draft
+      ) ?? [];
+    if (!selected && entries.length === 1) onPrefill(entries[0].shift_code);
+  }, [query.data, selected, onPrefill]);
+  return null;
 }

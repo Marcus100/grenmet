@@ -16,6 +16,6 @@ export const capPredefinedAreaPublicSchema = z.object({
   geocodes: z.array(capNameValueSchema).optional(),
   is_active: z.boolean().optional().default(true),
   id: z.uuid(),
-  created_at: z.string(),
-  updated_at: z.string(),
+  created_at: z.iso.datetime(),
+  updated_at: z.iso.datetime(),
 });

@@ -45,6 +45,7 @@ function UtilityBar() {
         <div className="flex items-center gap-5">
           <Link
             className="transition-colors hover:text-white"
+            data-analytics-event="navigation_category_selected"
             href="/corporate/careers-opportunities"
           >
             Careers
@@ -126,6 +127,7 @@ function MobileNav() {
             <div key={group.label}>
               <Link
                 className="mb-2 block font-bold font-display text-gaa-navy text-sm uppercase tracking-wide"
+                data-analytics-event="navigation_category_selected"
                 href={group.href}
                 onClick={() => setOpen(false)}
               >
@@ -135,6 +137,7 @@ function MobileNav() {
                 {group.links.map((link) => (
                   <Link
                     className="px-3 py-1.5 text-gaa-muted text-sm hover:text-gaa-navy"
+                    data-analytics-event="navigation_category_selected"
                     href={link.href}
                     key={link.href}
                     onClick={() => setOpen(false)}
@@ -147,6 +150,7 @@ function MobileNav() {
           ))}
           <Link
             className="font-semibold text-gaa-navy text-sm"
+            data-analytics-event="navigation_category_selected"
             href="/contact"
             onClick={() => setOpen(false)}
           >

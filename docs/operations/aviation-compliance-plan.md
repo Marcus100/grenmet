@@ -1,5 +1,9 @@
 # Aviation MET Digital Compliance Plan
 
+**Status:** Draft  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-08-19
+
 | Field | Detail |
 |---|---|
 | **Version** | 1.0 |

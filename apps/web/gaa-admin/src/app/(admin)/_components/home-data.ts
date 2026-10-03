@@ -1,10 +1,10 @@
+import type { WeatherImage } from "@barrelsgd/api-client";
 import {
   type ProductKind,
   type PublishedProduct,
   productTitle,
 } from "@barrelsgd/gms/products";
 import type { ImagesBySynoptic } from "@/db/wxwatch/queries";
-import type { WeatherImage } from "@/db/wxwatch/schema";
 
 /** Synoptic slots WxWatch collects per image source in a UTC day. */
 export const SYNOPTIC_SLOTS = 8;

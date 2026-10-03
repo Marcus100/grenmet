@@ -2,10 +2,10 @@
 # Test the exact runtime image before allowing deployment. Never use live credentials.
 set -euo pipefail
 image=${1:?Expected image}
-kind=${2:?Expected web, auth, api, cms-migrate or admin-migrate}
+kind=${2:?Expected web, auth, api or cms-migrate}
 # Check the final filesystem, not just the Dockerfile: inherited tools are scan inputs.
 case "$kind" in
-  web|auth|cms-migrate|admin-migrate)
+  web|auth|cms-migrate)
     docker run --rm --network none --entrypoint sh "$image" -ec '
       for tool in npm npx corepack pnpm pnpx yarn yarnpkg; do
         if command -v "$tool" >/dev/null 2>&1; then
@@ -38,10 +38,6 @@ case "$kind" in
       -e DATABASE_URL=postgresql://unused:unused@127.0.0.1:1/gms_cms \
       -e RESEND_API_KEY=ci-placeholder -e EMAILS_FROM_EMAIL=ci@example.com \
       "$image" node_modules/payload/bin.js run scripts/check-migration-runtime.mjs
-    ;;
-  admin-migrate)
-    docker run --rm --network none --entrypoint node "$image" \
-      --test apps/web/gaa-admin/scripts/migration-runtime.test.mjs
     ;;
   web|auth)
     port=${3:?Expected port}

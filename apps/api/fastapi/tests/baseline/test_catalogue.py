@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 
 import pytest
-from sqlmodel import select
+from sqlalchemy import select
 
 from src.auth.models import Role, User
 from src.baseline import catalogue, product_access, service

@@ -1,11 +1,11 @@
 "use client";
 
 import {
-  listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey,
-  useDeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete,
-  useListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet,
-  useListMyShiftSwapsApiV1HrShiftSwapsMeGet,
-  useReadHrProfileMeApiV1HrProfileMeGet,
+  hrListMyShiftSwapsQueryKey,
+  useHrDeleteShiftSwap,
+  useHrGetHrProfileMe,
+  useHrListDepartmentMembers,
+  useHrListMyShiftSwaps,
 } from "@barrelsgd/api-client";
 import { useSessionUser } from "@barrelsgd/auth";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
@@ -27,18 +27,17 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
 };
 
 export function ShiftSwapSubmissions() {
-  const query = useListMyShiftSwapsApiV1HrShiftSwapsMeGet({});
+  const query = useHrListMyShiftSwaps({});
   const queryClient = useQueryClient();
   const sessionUser = useSessionUser();
-  const deleteMutation = useDeleteShiftSwapApiV1HrShiftSwapsShiftSwapIdDelete();
+  const deleteMutation = useHrDeleteShiftSwap();
   const [pendingId, setPendingId] = useState<string | null>(null);
-  const profileQuery = useReadHrProfileMeApiV1HrProfileMeGet();
+  const profileQuery = useHrGetHrProfileMe();
   const departmentId = profileQuery.data?.employment?.department?.id;
-  const membersQuery =
-    useListDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGet(
-      { path: { department_id: departmentId ?? "" } },
-      { query: { enabled: Boolean(departmentId) } }
-    );
+  const membersQuery = useHrListDepartmentMembers(
+    { path: { department_id: departmentId ?? "" } },
+    { query: { enabled: Boolean(departmentId) } }
+  );
   const swaps = query.data?.data ?? [];
   const memberNames = nameByUserId(membersQuery.data?.data ?? []);
 
@@ -47,7 +46,7 @@ export function ShiftSwapSubmissions() {
     try {
       await deleteMutation.mutateAsync({ path: { shift_swap_id: id } });
       await queryClient.invalidateQueries({
-        queryKey: listMyShiftSwapsApiV1HrShiftSwapsMeGetQueryKey({}),
+        queryKey: hrListMyShiftSwapsQueryKey({}),
       });
       toast.success("Draft deleted");
     } catch (error) {

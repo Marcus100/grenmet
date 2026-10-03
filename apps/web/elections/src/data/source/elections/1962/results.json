@@ -1,0 +1,132 @@
+[
+  {
+    "name": "St. George's Town",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Mitchell, E.A.", "GNP", 1500, "official"],
+      ["Mark, M.Z.", "GULP", 621, "unverified"]
+    ],
+    "src": "ep",
+    "official": false,
+    "gazette": "Government Gazette (Extraordinary) No. 56, 17 September 1962; No. 63, 11 October 1962 (Carriacou)"
+  },
+  {
+    "name": "St. George Parish North",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Purcell, L.A.", "GNP", 1566, "official"],
+      ["James, E.V.", "GULP", 1431, "unverified"]
+    ],
+    "src": "ep",
+    "official": false,
+    "gazette": "Government Gazette (Extraordinary) No. 56, 17 September 1962; No. 63, 11 October 1962 (Carriacou)"
+  },
+  {
+    "name": "St. George Parish South",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Gairy, E.M.", "GULP", 1269, "official"],
+      ["Cruickshank, A.M.", "GNP", 1015, "unverified"]
+    ],
+    "src": "ep",
+    "official": false,
+    "gazette": "Government Gazette (Extraordinary) No. 56, 17 September 1962; No. 63, 11 October 1962 (Carriacou)"
+  },
+  {
+    "name": "St. John",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Welsh, McD.", "GNP", 983, "official"],
+      ["Preudhomme, H.J.", "GULP", 942, "unverified"],
+      ["Ferguson, C.G.", "IND", 61, "unverified"]
+    ],
+    "src": "ep",
+    "official": false,
+    "gazette": "Government Gazette (Extraordinary) No. 56, 17 September 1962; No. 63, 11 October 1962 (Carriacou)"
+  },
+  {
+    "name": "St. Mark",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Forsyth, A.O.", "GULP", 622, "official"],
+      ["Duncan, W.L.", "GNP", 480, "unverified"]
+    ],
+    "src": "ep",
+    "official": false,
+    "gazette": "Government Gazette (Extraordinary) No. 56, 17 September 1962; No. 63, 11 October 1962 (Carriacou)"
+  },
+  {
+    "name": "St. Patrick",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Copland, W.E.", "GNP", 1795, "official"],
+      ["Moses, R.J.", "GULP", 1092, "unverified"]
+    ],
+    "src": "ep",
+    "official": false,
+    "gazette": "Government Gazette (Extraordinary) No. 56, 17 September 1962; No. 63, 11 October 1962 (Carriacou)"
+  },
+  {
+    "name": "St. Andrew North",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Williams, A.L.", "GULP", 1315, "official"],
+      ["Thomas, L.C.J.", "GNP", 1234, "unverified"]
+    ],
+    "src": "ep",
+    "official": false,
+    "gazette": "Government Gazette (Extraordinary) No. 56, 17 September 1962; No. 63, 11 October 1962 (Carriacou)"
+  },
+  {
+    "name": "St. Andrew South",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Bhola, R.M.", "GNP", 1609, "official"],
+      ["Sylvester, D.T.", "GULP", 1076, "unverified"]
+    ],
+    "src": "ep",
+    "official": false,
+    "gazette": "Government Gazette (Extraordinary) No. 56, 17 September 1962; No. 63, 11 October 1962 (Carriacou)",
+    "note": "Winner’s vote corrected from ElectionPassport’s 1,610 to the Gazette’s 1,609."
+  },
+  {
+    "name": "St. David",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [
+      ["Gairy, C.B.", "GULP", 1337, "official"],
+      ["Hypolite, C.", "GNP", 1158, "unverified"]
+    ],
+    "src": "ep",
+    "official": false,
+    "gazette": "Government Gazette (Extraordinary) No. 56, 17 September 1962; No. 63, 11 October 1962 (Carriacou)"
+  },
+  {
+    "name": "Carriacou",
+    "reg": null,
+    "cast": null,
+    "rej": null,
+    "c": [["Blaize, H.A.", "GNP", 0, "official"]],
+    "src": "gazette",
+    "unopposed": true,
+    "gazette": "Government Gazette (Extraordinary) No. 56, 17 September 1962; No. 63, 11 October 1962 (Carriacou)",
+    "note": "Herbert Augustus Blaize was returned unopposed on nomination day, 25 August 1962."
+  }
+]

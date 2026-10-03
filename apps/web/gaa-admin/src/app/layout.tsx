@@ -6,6 +6,7 @@ import { PREFERENCE_DEFAULTS } from "@barrelsgd/theme/lib/preferences-config";
 import { PostHogProvider } from "@barrelsgd/ui/components/posthog-provider";
 import type { Metadata } from "next";
 import { ApiProvider } from "@/components/providers/ApiProvider";
+import { MotionProvider } from "@/components/providers/motion-provider";
 import { env } from "@/lib/env";
 import { fontVars } from "@/lib/fonts/registry";
 import { QueryProvider } from "@/providers/QueryProvider";
@@ -69,9 +70,11 @@ export default function RootLayout({
             themeMode={theme_mode}
             themePreset={theme_preset}
           >
-            <QueryProvider>
-              <ApiProvider>{children}</ApiProvider>
-            </QueryProvider>
+            <MotionProvider>
+              <QueryProvider>
+                <ApiProvider>{children}</ApiProvider>
+              </QueryProvider>
+            </MotionProvider>
           </PreferencesStoreProvider>
         </PostHogProvider>
       </body>

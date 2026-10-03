@@ -1,16 +1,16 @@
 import "server-only";
 import {
+  authEmailConfirm,
+  authEmailRequest,
+  authGoogleComplete,
+  authGoogleFinish,
+  authGoogleStart,
   createClient,
   type EmailConfirm,
   type EmailRequest,
-  emailConfirmApiV1AuthModernEmailConfirmPost,
-  emailRequestApiV1AuthModernEmailRequestPost,
   type GoogleComplete,
   type GoogleFinish,
   type GoogleStart,
-  googleCompleteApiV1AuthModernGoogleCompletePost,
-  googleFinishApiV1AuthModernGoogleFinishPost,
-  googleStartApiV1AuthModernGoogleStartPost,
 } from "@barrelsgd/api-client";
 import { authApiFetchResponse } from "@barrelsgd/auth/server";
 import { getAuthConfig } from "./auth-config";
@@ -54,27 +54,27 @@ const transport = createClient({
   },
 });
 export const googleStart = (body: GoogleStart) =>
-  googleStartApiV1AuthModernGoogleStartPost({
+  authGoogleStart({
     body,
     client: transport,
   }).unwrap();
 export const googleComplete = (body: GoogleComplete) =>
-  googleCompleteApiV1AuthModernGoogleCompletePost({
+  authGoogleComplete({
     body,
     client: transport,
   }).unwrap();
 export const googleFinish = (body: GoogleFinish) =>
-  googleFinishApiV1AuthModernGoogleFinishPost({
+  authGoogleFinish({
     body,
     client: transport,
   }).unwrap();
 export const emailRequest = (body: EmailRequest) =>
-  emailRequestApiV1AuthModernEmailRequestPost({
+  authEmailRequest({
     body,
     client: transport,
   }).unwrap();
 export const emailConfirm = (body: EmailConfirm) =>
-  emailConfirmApiV1AuthModernEmailConfirmPost({
+  authEmailConfirm({
     body,
     client: transport,
   }).unwrap();

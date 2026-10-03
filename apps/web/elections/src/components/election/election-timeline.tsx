@@ -1,0 +1,187 @@
+import type { ElectionCalendar } from "@/data/election-2026";
+import { grenadaDate } from "@/data/election-2026";
+import { formatIsoDate } from "@/lib/format";
+
+const W = 320;
+const H = 196;
+const LEFT = 12;
+const RIGHT = W - 12;
+const AXIS = 110;
+const DAY = 86_400_000;
+
+const SHORT = new Intl.DateTimeFormat("en-GB", {
+  day: "numeric",
+  month: "short",
+  timeZone: "UTC",
+});
+
+/**
+ * The election calendar as a newspaper graphic: dissolution, nomination day,
+ * polling day and the legal deadline on one time axis, with today marked.
+ * Every date also appears as text in the accessible description.
+ */
+export function ElectionTimeline({
+  calendar,
+  now,
+}: {
+  calendar: ElectionCalendar;
+  now: Date;
+}) {
+  const start = calendar.dissolved ?? calendar.writs;
+  if (!(start && calendar.pollingDay)) return null;
+  const t0 = Date.parse(start);
+  const t1 = Date.parse(calendar.deadline);
+  const x = (iso: string) =>
+    LEFT + ((Date.parse(iso) - t0) / (t1 - t0)) * (RIGHT - LEFT);
+  const stops = [
+    { iso: start, label: "Dissolved", above: true, strong: false },
+    ...(calendar.nominationDay
+      ? [
+          {
+            iso: calendar.nominationDay,
+            label: "Nomination day",
+            above: false,
+            strong: false,
+          },
+        ]
+      : []),
+    {
+      iso: calendar.pollingDay,
+      label: "Polling day",
+      above: true,
+      strong: true,
+    },
+    {
+      iso: calendar.deadline,
+      label: "Legal deadline",
+      above: false,
+      strong: false,
+    },
+  ];
+  const today = grenadaDate(now);
+  const showToday = today >= start && today <= calendar.deadline;
+  const daysToPoll = Math.round(
+    (Date.parse(calendar.pollingDay) - Date.parse(today)) / DAY
+  );
+  const description = stops
+    .map((s) => `${s.label}: ${formatIsoDate(s.iso)}`)
+    .join("; ");
+
+  return (
+    <svg
+      aria-label={`Election calendar. ${description}.`}
+      className="block h-auto w-full"
+      role="img"
+      style={{ minWidth: `${W / 16}rem` }}
+      viewBox={`0 0 ${W} ${H}`}
+    >
+      <text
+        className="fill-(--el-ink-2) font-semibold text-[14px] uppercase tracking-[0.07em]"
+        x={LEFT}
+        y={24}
+      >
+        Road to polling day
+      </text>
+      {/* The campaign: nomination to polling day, in the flag's three colours. */}
+      {calendar.nominationDay && (
+        <g>
+          {[0, 1, 2].map((i) => {
+            const a = x(calendar.nominationDay as string);
+            const b = x(calendar.pollingDay as string);
+            const w = (b - a) / 3;
+            return (
+              <rect
+                fill={`var(--el-flag-${["red", "gold", "green"][i]})`}
+                height={8}
+                key={i}
+                width={w}
+                x={a + i * w}
+                y={AXIS - 4}
+              />
+            );
+          })}
+        </g>
+      )}
+      <line
+        stroke="var(--el-ink)"
+        strokeWidth={2}
+        x1={LEFT}
+        x2={RIGHT}
+        y1={AXIS}
+        y2={AXIS}
+      />
+      {stops.map((s) => {
+        const cx = x(s.iso);
+        const ty = s.above ? AXIS - 34 : AXIS + 42;
+        // Polling day reads to the right of its tick so it clears the
+        // dissolution label; the ends anchor inward.
+        let anchor: "start" | "middle" | "end" = "middle";
+        if (s.strong || cx < LEFT + 40) anchor = "start";
+        else if (cx > RIGHT - 40) anchor = "end";
+        const tx = s.strong ? cx - 8 : cx;
+        return (
+          <g key={s.label}>
+            <line
+              stroke="var(--el-ink)"
+              x1={cx}
+              x2={cx}
+              y1={s.above ? AXIS - 22 : AXIS}
+              y2={s.above ? AXIS : AXIS + 22}
+            />
+            <circle
+              cx={cx}
+              cy={AXIS}
+              fill={s.strong ? "var(--el-ink)" : "var(--el-paper)"}
+              r={s.strong ? 8 : 6}
+              stroke="var(--el-ink)"
+              strokeWidth={2}
+            />
+            <text
+              className={
+                s.strong
+                  ? "fill-(--el-ink) font-bold font-serif text-[20px]"
+                  : "fill-(--el-ink) font-semibold font-serif text-[16px]"
+              }
+              textAnchor={anchor}
+              x={tx}
+              y={ty}
+            >
+              {SHORT.format(new Date(s.iso))}
+            </text>
+            <text
+              className="fill-(--el-muted) text-[14px]"
+              textAnchor={anchor}
+              x={tx}
+              y={ty + 18}
+            >
+              {s.label}
+            </text>
+          </g>
+        );
+      })}
+      {showToday && (
+        <g>
+          <line
+            stroke="var(--el-flag-red)"
+            strokeDasharray="3 3"
+            strokeWidth={2}
+            x1={x(today)}
+            x2={x(today)}
+            y1={AXIS - 14}
+            y2={AXIS + 14}
+          />
+          {daysToPoll > 0 && (
+            <text
+              className="fill-(--el-ink) font-semibold text-[14px]"
+              textAnchor="end"
+              x={RIGHT}
+              y={24}
+            >
+              {daysToPoll === 1 ? "1 day to go" : `${daysToPoll} days to go`}
+            </text>
+          )}
+        </g>
+      )}
+    </svg>
+  );
+}

@@ -15,7 +15,12 @@ from src.dependencies import CurrentUser, SessionDep
 router = APIRouter(prefix="/2fa", tags=["2fa"])
 
 
-@router.get("/status", response_model=TwoFactorStatusPublic, summary="Get 2FA status")
+@router.get(
+    "/status",
+    response_model=TwoFactorStatusPublic,
+    summary="Get 2FA status",
+    description="Returns whether two-factor authentication is enabled for the current account.",
+)
 async def twofa_status(*, current_user: CurrentUser) -> TwoFactorStatusPublic:
     return TwoFactorStatusPublic(enabled=current_user.totp_enabled)
 
@@ -44,6 +49,7 @@ async def twofa_setup(
     response_model=TwoFactorStatusPublic,
     summary="Activate 2FA",
     responses={status.HTTP_400_BAD_REQUEST: {"description": "Invalid or expired code"}},
+    description="Confirms a TOTP code and enables two-factor authentication for the current account.",
 )
 async def twofa_activate(
     *, session: SessionDep, current_user: CurrentUser, payload: TwoFactorCodeRequest

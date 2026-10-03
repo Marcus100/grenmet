@@ -1,0 +1,17 @@
+{
+  "A": ["Carriacou & Petite Martinique", "Carriacou & PM"],
+  "B": ["St. Andrew South East", "St. Andrew SE"],
+  "C": ["St. Andrew South West", "St. Andrew SW"],
+  "D": ["St. Andrew North East", "St. Andrew NE"],
+  "E": ["St. Andrew North West", "St. Andrew NW"],
+  "F": ["St. David", "St. David"],
+  "G": ["Town of St. George", "Town of St. George"],
+  "H": ["St. George North East", "St. George NE"],
+  "J": ["St. George North West", "St. George NW"],
+  "K": ["St. George South East", "St. George SE"],
+  "L": ["St. George South", "St. George South"],
+  "M": ["St. John", "St. John"],
+  "N": ["St. Mark", "St. Mark"],
+  "P": ["St. Patrick East", "St. Patrick East"],
+  "R": ["St. Patrick West", "St. Patrick West"]
+}

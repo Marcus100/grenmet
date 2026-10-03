@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { ArchiveInvitation, DemoNote } from "@/components/editorial";
 import { Eyebrow } from "@/components/eyebrow";
 import { MdxContent } from "@/components/mdx-content";
 import { SectionBlock } from "@/components/section-block";
 import { StoryListItem } from "@/components/story-list-item";
-import { SubscribeBand } from "@/components/subscribe-band";
 import { getBrief, getBriefs, getPublishedArticles } from "@/lib/content";
 import { formatLongDate } from "@/lib/format";
 import { getSection } from "@/lib/nav";
@@ -35,22 +35,23 @@ export default async function BriefPage({ params }: Props) {
     <>
       <article className="mx-auto w-full max-w-2xl px-4 py-8">
         <header className="flex flex-col gap-3 border-signal-ink border-b-2 pb-6">
-          <Eyebrow>Morning Signal</Eyebrow>
+          <Eyebrow>Daily Signal</Eyebrow>
           <h1 className="font-bold font-serif text-3xl leading-tight tracking-tight sm:text-4xl">
             {brief.title}
           </h1>
-          <p className="text-signal-muted">{brief.dek}</p>
-          <p className="text-[0.7rem] text-signal-muted uppercase tracking-wide">
-            Presented by {brief.presenter} · {formatLongDate(brief.date)}
+          <p className="text-lg leading-relaxed">{brief.dek}</p>
+          <p className="text-signal-muted text-sm uppercase tracking-wide">
+            {brief.presenter} · {formatLongDate(brief.date)}
           </p>
         </header>
 
-        <div className="prose prose-neutral mt-8 prose-h2:mb-2 max-w-none prose-h2:border-signal-gold prose-h2:border-b-2 prose-h2:pb-1 prose-h2:font-semibold prose-headings:font-serif prose-a:text-signal-green prose-h2:text-base prose-h2:text-signal-green prose-h2:uppercase prose-h2:tracking-wider">
+        <DemoNote reviewStatus={brief.reviewStatus} />
+        <div className="prose prose-lg prose-neutral mt-8 prose-h2:mb-2 max-w-none prose-h2:border-signal-gold prose-h2:border-b-2 prose-h2:pb-1 prose-h2:font-semibold prose-headings:font-serif prose-a:text-signal-green prose-h2:text-2xl prose-h2:text-signal-green">
           <MdxContent code={brief.body} />
         </div>
       </article>
 
-      <SubscribeBand />
+      <ArchiveInvitation />
 
       {more.length > 0 ? (
         <SectionBlock title="Read more">

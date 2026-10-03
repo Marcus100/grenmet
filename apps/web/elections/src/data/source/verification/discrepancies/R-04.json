@@ -1,0 +1,9 @@
+{
+  "id": "R-04",
+  "area": "2018 referendum",
+  "status": "open",
+  "impact": "data",
+  "what": "The Gazette PDF at gazettes.gov.gd is damaged (a compression error; re-downloading gives the same file). Page 702 stops after A04 and page 710 is blank, so A04 (registered)–A11, B01–B06, H09, J01–J07 and K01–K07 are unreadable. Carriacou & PM, St. Andrew SE, St. George NE, St. George NW and St. George SE therefore have no constituency result. Together they hold 3,656 Yes and 3,985 No.",
+  "action": "Ask the Government Printery (govprintery@gov.gd) or the PEO for an undamaged copy of Gazette No. 52 of 2018 or the certified results sheets.",
+  "sources": ["Government Gazette No. 52 of 2018"]
+}

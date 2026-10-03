@@ -2,9 +2,9 @@
 
 import {
   type CalendarEventPublic,
-  useListAssignmentsApiV1HrRostersAssignmentsGet,
-  useListCalendarEventsApiV1HrCalendarEventsGet,
-  useListHolidaysApiV1HrRostersPublicHolidaysGet,
+  useHrListAssignments,
+  useHrListCalendarEvents,
+  useHrListHolidays,
 } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { ButtonGroup } from "@barrelsgd/ui/components/ui/button-group";
@@ -94,11 +94,11 @@ export function Calendar() {
   const windowStart = iso(subDays(range.start, 7));
   const windowEnd = iso(addDays(range.end, 7));
 
-  const eventsQuery = useListCalendarEventsApiV1HrCalendarEventsGet(
+  const eventsQuery = useHrListCalendarEvents(
     { query: { start: windowStart, end: windowEnd } },
     { query: { enabled: needsEvents(calendarView) } }
   );
-  const rosterQuery = useListAssignmentsApiV1HrRostersAssignmentsGet(
+  const rosterQuery = useHrListAssignments(
     {
       query: {
         start: windowStart,
@@ -108,7 +108,7 @@ export function Calendar() {
     },
     { query: { enabled: needsRoster(calendarView) } }
   );
-  const holidaysQuery = useListHolidaysApiV1HrRostersPublicHolidaysGet({});
+  const holidaysQuery = useHrListHolidays({});
 
   const departmentEvents = React.useMemo(
     () => eventsQuery.data?.data ?? [],

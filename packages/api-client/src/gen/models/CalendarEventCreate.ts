@@ -10,7 +10,6 @@ export type CalendarEventCreate = {
   title: string;
   description?: string | null;
   /**
-   * @description What a department puts on its calendar besides the duty roster.
    * @default 'MEETING'
    * @type string | undefined
    */

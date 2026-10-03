@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import PurePosixPath
 from urllib.parse import urlparse
 
@@ -153,7 +153,7 @@ class TrackTheTropicsSpider(WeatherSpider):
             item["page_title"] = self._clean_text(
                 response.xpath("//title/text()").get()
             )
-            item["fetched_at"] = datetime.now(timezone.utc).isoformat()
+            item["fetched_at"] = datetime.now(UTC).isoformat()
             item["image_urls"] = [image_url]
             item["etag"] = None
             item["raw_metadata"] = {}

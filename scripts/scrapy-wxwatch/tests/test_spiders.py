@@ -1,8 +1,7 @@
 from types import SimpleNamespace
 
-from scrapy.http import HtmlResponse, Request
-
 from app.spiders.trackthetropics import TrackTheTropicsSpider
+from scrapy.http import HtmlResponse, Request
 
 
 class InMemoryStats:

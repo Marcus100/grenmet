@@ -1,10 +1,10 @@
 "use client";
 import {
+  authGetUsers,
+  hrGetRoleConfiguration,
+  hrGetWorkflowConfiguration,
+  hrSaveWorkflowConfiguration,
   type RoleConfiguration,
-  readRoleConfigurationApiV1HrSetupRolesGet,
-  readUsersApiV1AuthUsersGet,
-  readWorkflowConfigurationApiV1HrSetupWorkflowsGet,
-  saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPut,
   type WorkflowConfigurationPublic,
   type WorkflowStepTemplateCreate,
 } from "@barrelsgd/api-client";
@@ -48,7 +48,7 @@ function WorkflowEditor({
   }
   const save = useMutation({
     mutationFn: () =>
-      saveWorkflowConfigurationApiV1HrSetupWorkflowsTemplateIdPut({
+      hrSaveWorkflowConfiguration({
         path: { template_id: configuration.template.id },
         body: {
           name,
@@ -256,22 +256,21 @@ function WorkflowEditor({
 export function WorkflowPanel() {
   const configurations = useQuery({
     queryKey: ["workflow-configuration"],
-    queryFn: () =>
-      readWorkflowConfigurationApiV1HrSetupWorkflowsGet({}).unwrap(),
+    queryFn: () => hrGetWorkflowConfiguration({}).unwrap(),
   });
   const roles = useQuery({
     queryKey: ["permission-bundles"],
-    queryFn: () => readRoleConfigurationApiV1HrSetupRolesGet({}).unwrap(),
+    queryFn: () => hrGetRoleConfiguration({}).unwrap(),
   });
   const people = useQuery({
     queryKey: ["workflow-people"],
     queryFn: async () => {
-      const first = await readUsersApiV1AuthUsersGet({
+      const first = await authGetUsers({
         query: { page: 1, size: 100 },
       }).unwrap();
       const all = [...first.data];
       for (let page = 2; all.length < first.count; page++) {
-        const next = await readUsersApiV1AuthUsersGet({
+        const next = await authGetUsers({
           query: { page, size: 100 },
         }).unwrap();
         if (!next.data.length) break;

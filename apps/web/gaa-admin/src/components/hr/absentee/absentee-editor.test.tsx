@@ -19,14 +19,25 @@ import { EMPTY_ABSENTEE } from "./absentee-document";
 import { AbsenteeEditor, buildAbsenteeReportPayload } from "./absentee-editor";
 import { AbsenteeSubmissions } from "./absentee-submissions";
 
+const navigation = vi.hoisted(() => ({ search: "" }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => new URLSearchParams(navigation.search),
 }));
 
 const BASE = "http://localhost";
 
 const server = setupServer(
+  http.post(
+    `${BASE}/api/v1/hr/absentee-reports/preview-pdf`,
+    () =>
+      new HttpResponse("%PDF-preview", {
+        headers: { "Content-Type": "application/pdf" },
+      })
+  ),
+  http.get(`${BASE}/api/v1/hr/rosters/assignments`, () =>
+    HttpResponse.json({ data: [], count: 0 })
+  ),
   http.get(`${BASE}/api/v1/hr/signature/me`, () =>
     HttpResponse.json({
       version: "11111111-1111-4111-8111-111111111111",
@@ -52,7 +63,10 @@ beforeAll(() => {
   configureApiClient({ baseURL: BASE });
   server.listen({ onUnhandledRequest: "error" });
 });
-afterEach(() => server.resetHandlers());
+afterEach(() => {
+  server.resetHandlers();
+  navigation.search = "";
+});
 afterAll(() => server.close());
 
 function wrap(children: React.ReactNode) {
@@ -128,6 +142,149 @@ describe("buildAbsenteeReportPayload", () => {
 });
 
 describe("AbsenteeEditor (wired)", () => {
+  it("blocks a sickness report without details and displays the reason", async () => {
+    const user = userEvent.setup();
+    wrap(<AbsenteeEditor />);
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Sign & submit" })
+      ).toBeEnabled()
+    );
+    await user.click(screen.getByRole("button", { name: "Sign & submit" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Provide details"
+    );
+  });
+
+  it("restores identity and times when a proxy draft is reopened", async () => {
+    navigation.search = "draft=ar-proxy";
+    server.use(
+      http.get(`${BASE}/api/v1/hr/departments/:departmentId/members`, () =>
+        HttpResponse.json({
+          data: [
+            {
+              user_id: "u-2",
+              full_name: "Colleague",
+              first_name: "Colleague",
+              last_name: "",
+              employment_status: "ACTIVE",
+            },
+          ],
+          count: 1,
+        })
+      ),
+      http.get(`${BASE}/api/v1/hr/absentee-reports`, () =>
+        HttpResponse.json({
+          data: [
+            {
+              id: "ar-proxy",
+              user_id: "u-2",
+              department_id: "dept_met",
+              report_date: "2026-09-26",
+              reason: "UNCERTIFIED_SICK",
+              notes: "Called in sick",
+              status: "DRAFT",
+              submitted_by_user_id: "u-1",
+              expected_shift_code: "N",
+              absence_start_time: "22:30",
+              absence_end_time: "06:00",
+            },
+          ],
+          count: 1,
+        })
+      )
+    );
+    wrap(<AbsenteeEditor />);
+    await screen.findByText("Editing saved draft");
+    expect(screen.getByLabelText("Employee Name")).toHaveValue("u-2");
+    expect(screen.getByLabelText("Department")).toHaveValue("Met");
+    expect(screen.getByLabelText("Absence from")).toHaveValue("22:30");
+    expect(screen.getByLabelText("Absence to")).toHaveValue("06:00");
+    expect(screen.getByLabelText("Reason(s) — details")).toHaveValue(
+      "Called in sick"
+    );
+  });
+
+  it("prefills the expected published shift without replacing entered absence times", async () => {
+    server.use(
+      http.get(`${BASE}/api/v1/hr/rosters/assignments`, () =>
+        HttpResponse.json({
+          data: [{ shift_code: "N", category: "WORK", is_draft: false }],
+          count: 1,
+        })
+      )
+    );
+    wrap(<AbsenteeEditor />);
+    await waitFor(() =>
+      expect(screen.getByLabelText("Expected shift")).toHaveValue("N")
+    );
+    expect(screen.getByLabelText("Absence from")).toHaveValue("");
+  });
+
+  it("keeps the reporter as signer while submitting another employee's absence", async () => {
+    let posted: Record<string, unknown> | undefined;
+    server.use(
+      http.get(`${BASE}/api/v1/hr/departments/:departmentId/members`, () =>
+        HttpResponse.json({
+          data: [
+            {
+              user_id: "u-2",
+              full_name: "Colleague",
+              first_name: "Colleague",
+              last_name: "",
+              employment_status: "ACTIVE",
+            },
+          ],
+          count: 1,
+        })
+      ),
+      http.post(`${BASE}/api/v1/hr/absentee-reports`, async ({ request }) => {
+        posted = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json({
+          id: "proxy-1",
+          status: "SUBMITTED",
+          ...posted,
+        });
+      })
+    );
+    const user = userEvent.setup();
+    wrap(<AbsenteeEditor />);
+    await screen.findByRole("option", { name: "Colleague" });
+    await user.selectOptions(screen.getByLabelText("Employee Name"), "u-2");
+    await user.type(
+      screen.getByLabelText("Reason(s) — details"),
+      "Called in sick"
+    );
+    await user.click(screen.getByRole("button", { name: "Sign & submit" }));
+    await waitFor(() => expect(posted?.user_id).toBe("u-2"));
+    expect(posted?.signature_version).toBe(
+      "11111111-1111-4111-8111-111111111111"
+    );
+  });
+
+  it("displays the server's expected validation detail", async () => {
+    server.use(
+      http.post(`${BASE}/api/v1/hr/absentee-reports`, () =>
+        HttpResponse.json(
+          { detail: "Supervisor review is not configured" },
+          { status: 400 }
+        )
+      )
+    );
+    const user = userEvent.setup();
+    wrap(<AbsenteeEditor />);
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Sign & submit" })
+      ).toBeEnabled()
+    );
+    await user.type(screen.getByLabelText("Reason(s) — details"), "Sick");
+    await user.click(screen.getByRole("button", { name: "Sign & submit" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Supervisor review is not configured"
+    );
+  });
+
   it("submits a filled report to HR with the mapped payload", async () => {
     const posted: unknown[] = [];
     server.use(

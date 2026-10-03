@@ -8,13 +8,13 @@ export const THEME_MODE_VALUES = THEME_MODE_OPTIONS.map((o) => o.value);
 export type ThemeMode = (typeof THEME_MODE_VALUES)[number];
 export type ResolvedThemeMode = "light" | "dark";
 
-// The "default" preset is the GrenMet brand palette (defined in :root by the
-// consuming app's globals.css). The swatch below is GrenMet navy / sky for the
+// The "default" preset is the consuming app's brand palette (defined in :root
+// by its globals.css). The swatch below is the brand navy / sky for the
 // preset picker dot. Other presets ship their own CSS in ./styles/presets.
 
 export const THEME_PRESET_OPTIONS = [
   {
-    label: "GrenMet",
+    label: "Default",
     value: "default",
     primary: {
       light: "oklch(0.26 0.15 285)",

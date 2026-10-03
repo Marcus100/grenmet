@@ -75,7 +75,7 @@ reward and must not be purchasable or transferable.
 
 ## 3. Operational loop
 
-Canonical loop, per [`apps/web/events/CLAUDE.md`](../../apps/web/events/CLAUDE.md):
+Canonical loop, per [`apps/web/events/AGENTS.md`](../../apps/web/events/AGENTS.md):
 **event setup → ticket sale → admission → settlement.**
 
 ### Setup

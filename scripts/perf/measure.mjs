@@ -10,7 +10,7 @@ const targets = [
   ["api", "/api/cap/alerts"],
   ["api", "/api/cap/active-map"],
   ["gms", "/"],
-  ["gms", "/news"],
+  ["gms", "/explore/news"],
   ["admin", "/"],
   ["admin", "/hr"],
 ];

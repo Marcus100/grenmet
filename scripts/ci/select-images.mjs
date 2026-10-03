@@ -26,6 +26,13 @@ function imagesForPath(path) {
   if (deferredPath.test(path)) return noImages;
   if (path.startsWith("packages/") || workspaceManifest.test(path))
     return { ...noImages, web: webImages };
+  // Elections deploys independently on Vercel. Its manifest still affects
+  // Docker installation layers above, but its source does not enter them.
+  if (
+    path.startsWith("apps/web/elections/") ||
+    path.startsWith("apps/web/barrels/")
+  )
+    return noImages;
   if (path.startsWith("apps/api/fastapi/")) return { ...noImages, api: true };
   const web = webImages.filter((image) => path.startsWith(`${image.path}/`));
   return web.length ? { ...noImages, web } : allImages;

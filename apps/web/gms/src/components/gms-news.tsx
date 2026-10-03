@@ -1,31 +1,31 @@
 import Link from "next/link";
 import { ProductUpdateFeed } from "@/components/product-update-feed";
-import { fetchPublishedContent } from "@/lib/cms";
+import { contentHref, fetchPublishedContent } from "@/lib/cms";
 import { contentToArticle } from "@/lib/editorial";
 
 export async function GmsNews() {
-  const result = await fetchPublishedContent("article", "latest");
+  const result = await fetchPublishedContent("desk-updates");
   const posts = result.articles.slice(0, 5).map((content) => ({
     id: content.id,
     title: content.title,
-    href: `/news/${content.slug}`,
+    href: contentHref(content),
     imageUrl: contentToArticle(content).imageUrl,
     summary: content.summary ?? content.body,
     issuedAt: new Intl.DateTimeFormat("sv-SE", {
       timeZone: "America/Grenada",
       dateStyle: "short",
       timeStyle: "short",
-    }).format(new Date(content.updatedAt)),
+    }).format(new Date(content.publishedAt ?? content.updatedAt)),
     paragraphs: [content.summary ?? content.body],
     source: "Grenada Meteorological Service",
   }));
   return (
     <section className="mb-8 space-y-5">
       <header className="flex items-center justify-between">
-        <h2 className="font-bold text-gm-navy text-heading-md">
-          Latest from us
+        <h2 className="font-bold text-gm-heading text-heading-md">
+          From the Desk
         </h2>
-        <Link className="text-gm-blue-ink underline" href="/updates">
+        <Link className="text-gm-blue-ink underline" href="/explore/updates">
           All updates
         </Link>
       </header>

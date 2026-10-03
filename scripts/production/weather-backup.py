@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
 """Quiesced weather backup: PostgreSQL dumps, Elasticsearch snapshots, S3 objects."""
 import argparse
-from contextlib import nullcontext
 import datetime
 import fcntl
-import json
 import hashlib
+import json
 import os
-from pathlib import Path
 import re
 import subprocess
 import sys
 import tempfile
+from contextlib import nullcontext
+from pathlib import Path
 from uuid import uuid4
 
 
@@ -39,7 +39,7 @@ def backup(config, lock_held=False):
     lifecycle = json.loads(run(["aws", "s3api", "get-bucket-lifecycle-configuration", "--bucket", bucket, "--endpoint-url", endpoint], capture_output=True, text=True).stdout)
     if not any(rule.get("Status") == "Enabled" and rule.get("Expiration", {}).get("Days") == 30 and set(rule.get("Filter", {})) <= {"Prefix"} and prefix.startswith(rule.get("Filter", {}).get("Prefix", rule.get("Prefix", ""))) for rule in lifecycle.get("Rules", [])):
         raise ValueError("Weather backup requires 30-day off-host retention")
-    batch = datetime.datetime.now(datetime.timezone.utc).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid4().hex[:8]
+    batch = datetime.datetime.now(datetime.UTC).strftime("%Y%m%dT%H%M%SZ") + "-" + uuid4().hex[:8]
     def container_for(project, service):
         identifiers = run(["docker", "ps", "-q", "--filter", f"label=com.docker.compose.project={project}", "--filter", f"label=com.docker.compose.service={service}"], capture_output=True, text=True).stdout.split()
         if len(identifiers) != 1:
@@ -132,7 +132,7 @@ def backup(config, lock_held=False):
                     if running:
                         run(["docker", "start"] + running)
             # Upload only after source services have been resumed successfully.
-            manifest = {"environment": environment, "stores": sorted(required | {"surface-postgres", "elasticsearch", "minio"}), "batch": batch, "completed_at": datetime.datetime.now(datetime.timezone.utc).isoformat()}
+            manifest = {"environment": environment, "stores": sorted(required | {"surface-postgres", "elasticsearch", "minio"}), "batch": batch, "completed_at": datetime.datetime.now(datetime.UTC).isoformat()}
             run(["aws", "s3", "sync", str(root), f"s3://{bucket}/{prefix}{batch}/", "--endpoint-url", endpoint, "--only-show-errors"])
             manifest["artifacts"] = []
             for artifact in root.rglob("*"):
@@ -144,7 +144,7 @@ def backup(config, lock_held=False):
                     with artifact.open("rb") as source:
                         digest = hashlib.file_digest(source, "sha256").hexdigest()
                     manifest["artifacts"].append({"key": key, "bytes": artifact.stat().st_size, "sha256": digest})
-            manifest["completed_at"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+            manifest["completed_at"] = datetime.datetime.now(datetime.UTC).isoformat()
             marker = root / "success.json"
             marker.write_text(json.dumps(manifest))
             for key in [f"{prefix}{batch}/success.json", f"{prefix}latest-success.json"]:

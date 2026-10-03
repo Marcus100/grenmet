@@ -1,5 +1,9 @@
 # GAA organisation, access and workflow launch
 
+**Status:** Active reference  
+**Owner:** GAA (institutional content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-10
+
 Target: GMS first on Monday 14 September 2026. Other departments receive organisational structure only until verified personnel and access decisions are available.
 
 ## Source and preservation

@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.auth import modern_service
+from src.auth import devices, modern_service
 from src.auth.routers import login, users
 
 
@@ -13,6 +13,6 @@ def auth_emails(monkeypatch: pytest.MonkeyPatch) -> list[dict[str, str]]:
     def capture(**kwargs: str) -> None:
         messages.append(kwargs)
 
-    for module in (modern_service, login, users):
+    for module in (devices, modern_service, login, users):
         monkeypatch.setattr(module, "send_email", capture)
     return messages

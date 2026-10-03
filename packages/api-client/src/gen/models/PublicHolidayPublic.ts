@@ -25,5 +25,10 @@ export type PublicHolidayPublic = {
    * @type string
    */
   created_by_user_id: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   created_at: string;
 };

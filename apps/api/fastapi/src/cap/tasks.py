@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.cap.models import CapJobEvent
+from src.cap.models import CapJobEvent, CapScope, CapStatus
 
 PUBLISH_JOB_KINDS = (
     "publish.webhooks",
@@ -13,13 +13,20 @@ PUBLISH_JOB_KINDS = (
 
 
 async def enqueue_publish_side_effects(
-    *, session: AsyncSession, alert_id: object, snapshot_id: object
+    *,
+    session: AsyncSession,
+    alert_id: object,
+    snapshot_id: object,
+    status: CapStatus,
+    scope: CapScope,
 ) -> list[CapJobEvent]:
     """Record publish side effects for a worker to process.
 
     The first CAP slice keeps task creation durable in Postgres. A Celery worker can
     consume these rows once Redis/Celery dependencies are enabled for deployment.
     """
+    if status != CapStatus.ACTUAL or scope != CapScope.PUBLIC:
+        return []
     events = [
         CapJobEvent(
             alert_id=alert_id,

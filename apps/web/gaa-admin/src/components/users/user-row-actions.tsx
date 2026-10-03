@@ -1,10 +1,10 @@
 "use client";
 
 import {
+  authGetUsersQueryKey,
   type SrcAuthSchemasRolePublic as RolePublic,
-  readUsersApiV1AuthUsersGetQueryKey,
   type UserPublic,
-  useUpdateUserApiV1AuthUsersUserIdPatch,
+  useAuthUpdateUser,
 } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import {
@@ -32,7 +32,7 @@ export function UserRowActions({
   const { user, name } = row;
   const queryClient = useQueryClient();
   const [manageOpen, setManageOpen] = useState(false);
-  const updateUserMutation = useUpdateUserApiV1AuthUsersUserIdPatch();
+  const updateUserMutation = useAuthUpdateUser();
 
   async function toggleActive() {
     await updateUserMutation.mutateAsync({
@@ -40,7 +40,7 @@ export function UserRowActions({
       body: { is_active: !user.is_active },
     });
     await queryClient.invalidateQueries({
-      queryKey: readUsersApiV1AuthUsersGetQueryKey({}),
+      queryKey: authGetUsersQueryKey({}),
     });
     toast.success(
       `${user.username} ${user.is_active ? "deactivated" : "reactivated"}`

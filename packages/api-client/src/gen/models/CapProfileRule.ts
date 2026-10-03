@@ -3,25 +3,8 @@
  * Do not edit manually.
  */
 
-export const capProfileRuleLevelEnum = {
-  Advisory: "Advisory",
-  Watch: "Watch",
-  Warning: "Warning",
-} as const;
-
-export type CapProfileRuleLevelEnum =
-  (typeof capProfileRuleLevelEnum)[keyof typeof capProfileRuleLevelEnum];
-
-export const capProfileRuleOperatorEnum = {
-  ">=": ">=",
-  ">": ">",
-  "<=": "<=",
-  "<": "<",
-  observed: "observed",
-} as const;
-
-export type CapProfileRuleOperatorEnum =
-  (typeof capProfileRuleOperatorEnum)[keyof typeof capProfileRuleOperatorEnum];
+import type { CapProfileDraftRequestPropertiesLevelEnum } from "./CapProfileDraftRequestPropertiesLevelEnum.js";
+import type { CapProfileRulePropertiesOperatorEnum } from "./CapProfileRulePropertiesOperatorEnum.js";
 
 export type CapProfileRule = {
   /**
@@ -30,11 +13,7 @@ export type CapProfileRule = {
    * @type string | undefined
    */
   id?: string;
-  /**
-   * @default 'Warning'
-   * @type string | undefined
-   */
-  level?: CapProfileRuleLevelEnum;
+  level?: CapProfileDraftRequestPropertiesLevelEnum;
   /**
    * @maxLength 200
    * @default ''
@@ -45,7 +24,7 @@ export type CapProfileRule = {
    * @default '>='
    * @type string | undefined
    */
-  operator?: CapProfileRuleOperatorEnum;
+  operator?: CapProfileRulePropertiesOperatorEnum;
   threshold?: number | null;
   /**
    * @maxLength 50

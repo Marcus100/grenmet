@@ -1,4 +1,4 @@
-import { clsx } from "cn";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import Link from "next/link";
 
 function ArrowIcon(props: React.ComponentPropsWithoutRef<"svg">) {
@@ -41,7 +41,7 @@ export function Button({
   arrow,
   ...props
 }: ButtonProps) {
-  className = clsx(
+  className = cn(
     "inline-flex justify-center gap-0.5 overflow-hidden font-medium text-sm transition",
     variantStyles[variant],
     className
@@ -49,7 +49,7 @@ export function Button({
 
   const arrowIcon = (
     <ArrowIcon
-      className={clsx(
+      className={cn(
         "mt-0.5 h-5 w-5",
         variant === "text" && "relative top-px",
         arrow === "left" && "-ml-1 rotate-180",

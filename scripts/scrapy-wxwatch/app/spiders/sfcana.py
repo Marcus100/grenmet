@@ -1,4 +1,4 @@
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
 
 from app.items import ImageItem
 from app.spiders.base import WeatherSpider
@@ -44,7 +44,8 @@ class SfcanaSpider(WeatherSpider):
         item["page_title"] = self._clean_text(response.xpath("//title/text()").get())
         item["source_modified"] = source_modified
         item["observation_time"] = self._round_to_synoptic(observation_time_approx)
-        item["fetched_at"] = datetime.now(timezone.utc).isoformat()
+        item["time_basis"] = "estimated_analysis"
+        item["fetched_at"] = datetime.now(UTC).isoformat()
         item["image_urls"] = [image_url]
         item["etag"] = None
         item["raw_metadata"] = {

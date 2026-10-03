@@ -14,53 +14,53 @@
  * via the `definition` "supportedTimezones".
  */
 export type SupportedTimezones =
-  | "Pacific/Midway"
-  | "Pacific/Niue"
-  | "Pacific/Honolulu"
-  | "Pacific/Rarotonga"
-  | "America/Anchorage"
-  | "Pacific/Gambier"
-  | "America/Los_Angeles"
-  | "America/Tijuana"
-  | "America/Denver"
-  | "America/Phoenix"
-  | "America/Chicago"
-  | "America/Guatemala"
-  | "America/New_York"
-  | "America/Bogota"
-  | "America/Caracas"
-  | "America/Santiago"
-  | "America/Buenos_Aires"
-  | "America/Sao_Paulo"
-  | "Atlantic/South_Georgia"
-  | "Atlantic/Azores"
-  | "Atlantic/Cape_Verde"
-  | "Europe/London"
-  | "Europe/Berlin"
-  | "Africa/Lagos"
-  | "Europe/Athens"
-  | "Africa/Cairo"
-  | "Europe/Moscow"
-  | "Asia/Riyadh"
-  | "Asia/Dubai"
-  | "Asia/Baku"
-  | "Asia/Karachi"
-  | "Asia/Tashkent"
-  | "Asia/Calcutta"
-  | "Asia/Dhaka"
-  | "Asia/Almaty"
-  | "Asia/Jakarta"
-  | "Asia/Bangkok"
-  | "Asia/Shanghai"
-  | "Asia/Singapore"
-  | "Asia/Tokyo"
-  | "Asia/Seoul"
-  | "Australia/Brisbane"
-  | "Australia/Sydney"
-  | "Pacific/Guam"
-  | "Pacific/Noumea"
-  | "Pacific/Auckland"
-  | "Pacific/Fiji";
+  | 'Pacific/Midway'
+  | 'Pacific/Niue'
+  | 'Pacific/Honolulu'
+  | 'Pacific/Rarotonga'
+  | 'America/Anchorage'
+  | 'Pacific/Gambier'
+  | 'America/Los_Angeles'
+  | 'America/Tijuana'
+  | 'America/Denver'
+  | 'America/Phoenix'
+  | 'America/Chicago'
+  | 'America/Guatemala'
+  | 'America/New_York'
+  | 'America/Bogota'
+  | 'America/Caracas'
+  | 'America/Santiago'
+  | 'America/Buenos_Aires'
+  | 'America/Sao_Paulo'
+  | 'Atlantic/South_Georgia'
+  | 'Atlantic/Azores'
+  | 'Atlantic/Cape_Verde'
+  | 'Europe/London'
+  | 'Europe/Berlin'
+  | 'Africa/Lagos'
+  | 'Europe/Athens'
+  | 'Africa/Cairo'
+  | 'Europe/Moscow'
+  | 'Asia/Riyadh'
+  | 'Asia/Dubai'
+  | 'Asia/Baku'
+  | 'Asia/Karachi'
+  | 'Asia/Tashkent'
+  | 'Asia/Calcutta'
+  | 'Asia/Dhaka'
+  | 'Asia/Almaty'
+  | 'Asia/Jakarta'
+  | 'Asia/Bangkok'
+  | 'Asia/Shanghai'
+  | 'Asia/Singapore'
+  | 'Asia/Tokyo'
+  | 'Asia/Seoul'
+  | 'Australia/Brisbane'
+  | 'Australia/Sydney'
+  | 'Pacific/Guam'
+  | 'Pacific/Noumea'
+  | 'Pacific/Auckland'
+  | 'Pacific/Fiji';
 
 export interface Config {
   auth: {
@@ -68,44 +68,54 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    users: User;
-    content: Content;
+    'desk-updates': DeskUpdate;
+    stories: Story;
+    questions: Question;
+    discover: Discover;
+    'report-notes': ReportNote;
+    'live-posts': LivePost;
     media: Media;
-    "payload-kv": PayloadKv;
-    "payload-locked-documents": PayloadLockedDocument;
-    "payload-preferences": PayloadPreference;
-    "payload-migrations": PayloadMigration;
+    users: User;
+    'payload-kv': PayloadKv;
+    'payload-locked-documents': PayloadLockedDocument;
+    'payload-preferences': PayloadPreference;
+    'payload-migrations': PayloadMigration;
   };
   collectionsJoins: {};
   collectionsSelect: {
-    users: UsersSelect<false> | UsersSelect<true>;
-    content: ContentSelect<false> | ContentSelect<true>;
+    'desk-updates': DeskUpdatesSelect<false> | DeskUpdatesSelect<true>;
+    stories: StoriesSelect<false> | StoriesSelect<true>;
+    questions: QuestionsSelect<false> | QuestionsSelect<true>;
+    discover: DiscoverSelect<false> | DiscoverSelect<true>;
+    'report-notes': ReportNotesSelect<false> | ReportNotesSelect<true>;
+    'live-posts': LivePostsSelect<false> | LivePostsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
-    "payload-kv": PayloadKvSelect<false> | PayloadKvSelect<true>;
-    "payload-locked-documents":
-      | PayloadLockedDocumentsSelect<false>
-      | PayloadLockedDocumentsSelect<true>;
-    "payload-preferences":
-      | PayloadPreferencesSelect<false>
-      | PayloadPreferencesSelect<true>;
-    "payload-migrations":
-      | PayloadMigrationsSelect<false>
-      | PayloadMigrationsSelect<true>;
+    users: UsersSelect<false> | UsersSelect<true>;
+    'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
+    'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
+    'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
+    'payload-migrations': PayloadMigrationsSelect<false> | PayloadMigrationsSelect<true>;
   };
   db: {
     defaultIDType: number;
   };
   fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    'weather-now': WeatherNow;
+    homepage: Homepage;
+  };
+  globalsSelect: {
+    'weather-now': WeatherNowSelect<false> | WeatherNowSelect<true>;
+    homepage: HomepageSelect<false> | HomepageSelect<true>;
+  };
+  locale: null;
+  widgets: {
+    collections: CollectionsWidget;
+  };
+  user: User;
   jobs: {
     tasks: unknown;
     workflows: unknown;
-  };
-  locale: null;
-  user: User;
-  widgets: {
-    collections: CollectionsWidget;
   };
 }
 export interface UserAuthOperations {
@@ -127,86 +137,557 @@ export interface UserAuthOperations {
   };
 }
 /**
+ * From the Desk: the forecast office writing about what it issues, plus service notices. Attach a product to show its live figures; never type forecast figures or warnings here.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "desk-updates".
+ */
+export interface DeskUpdate {
+  id: number;
+  title: string;
+  kind: 'product-update' | 'service-update' | 'announcement' | 'public-notice' | 'community-update';
+  /**
+   * The product this update is about, if any.
+   */
+  product?: ('tropical-outlook' | 'bulletins' | 'forecasts' | 'marine' | 'aviation' | 'cap') | null;
+  /**
+   * Optional. Shows this product's live figures with the post; they always come from the forecast system.
+   */
+  linkedProduct?: {
+    productId?: string | null;
+    kind?: string | null;
+  };
+  /**
+   * Shown on cards and in search. 200 characters at most.
+   */
+  summary: string;
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  /**
+   * Prepare platform-specific copy. Automatic delivery can be added later.
+   */
+  social?: {
+    caption?: string | null;
+    enabledPlatforms?: ('X' | 'Facebook' | 'Instagram' | 'YouTube' | 'LinkedIn' | 'WhatsApp Channel')[] | null;
+    /**
+     * Leave empty for manual or immediate sharing.
+     */
+    publishAt?: string | null;
+    xText?: string | null;
+    facebookText?: string | null;
+    instagramText?: string | null;
+    linkedinText?: string | null;
+    whatsappText?: string | null;
+  };
+  /**
+   * Link to an existing product, publication or news source. Linking does not publish the destination.
+   */
+  relatedLinks?:
+    | {
+        title: string;
+        category: 'forecast' | 'cap' | 'aviation' | 'bulletin' | 'publication' | 'article' | 'source';
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Built from the title. Fixed once published so links last.
+   */
+  slug: string;
+  /**
+   * Save as Ready for review. An editor with this section's permission publishes.
+   */
+  status: 'draft' | 'review' | 'published';
+  /**
+   * Set when first published; used for ordering and the URL.
+   */
+  publishedAt?: string | null;
+  author: number | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Identity comes from FastAPI. Only the CMS editorial role is managed here.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
-  collection: "users";
-  createdAt: string;
-  email: string;
-  fastapiUserId: string;
   id: number;
-  isSuperuser?: boolean | null;
-  role: "author" | "editor";
-  updatedAt: string;
+  fastapiUserId: string;
   username: string;
+  email: string;
+  permissionKeys?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  isSuperuser?: boolean | null;
+  role: 'author' | 'editor';
+  updatedAt: string;
+  createdAt: string;
+  collection: 'users';
 }
 /**
- * Articles and general pages for the GMS website.
+ * Stories from our atmosphere and ocean: features that explain the weather, the sea and the climate around us.
  *
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "content".
+ * via the `definition` "stories".
  */
-export interface Content {
-  author: number | User;
-  /**
-   * Write Markdown. Open Preview below to check formatting.
-   */
-  body: string;
-  createdAt: string;
+export interface Story {
   id: number;
+  title: string;
   /**
-   * Shown on news cards and the article header.
+   * Short label above the headline.
    */
-  image?: (number | null) | Media;
-  kind: "article" | "page";
+  kicker?: string | null;
+  kind: 'local-story' | 'weather-event' | 'climate' | 'ocean' | 'explainer' | 'community';
   /**
-   * Choose where this published article appears on the GMS website.
+   * Shown on cards and in search. 240 characters at most.
    */
-  placement?: ("latest" | "news" | "both") | null;
+  summary: string;
   /**
-   * A URL name such as hurricane-season-preparation.
+   * Shown on cards and at the top of the page.
+   */
+  image: number | Media;
+  imageCaption?: string | null;
+  body: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Used to link related questions, stories and reports.
+   */
+  topics?:
+    | ('tropical' | 'rain' | 'heat' | 'marine' | 'climate' | 'sky' | 'safety' | 'agriculture' | 'aviation' | 'gms')[]
+    | null;
+  /**
+   * Optional. Falls back to the title, summary and image.
+   */
+  seo?: {
+    title?: string | null;
+    description?: string | null;
+    image?: (number | null) | Media;
+  };
+  /**
+   * Prepare platform-specific copy. Automatic delivery can be added later.
+   */
+  social?: {
+    caption?: string | null;
+    enabledPlatforms?: ('X' | 'Facebook' | 'Instagram' | 'YouTube' | 'LinkedIn' | 'WhatsApp Channel')[] | null;
+    /**
+     * Leave empty for manual or immediate sharing.
+     */
+    publishAt?: string | null;
+    xText?: string | null;
+    facebookText?: string | null;
+    instagramText?: string | null;
+    linkedinText?: string | null;
+    whatsappText?: string | null;
+  };
+  /**
+   * Link to an existing product, publication or news source. Linking does not publish the destination.
+   */
+  relatedLinks?:
+    | {
+        title: string;
+        category: 'forecast' | 'cap' | 'aviation' | 'bulletin' | 'publication' | 'article' | 'source';
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Built from the title. Fixed once published so links last.
    */
   slug: string;
   /**
-   * Save as Ready for review. An editor checks it and publishes.
+   * Save as Ready for review. An editor with this section's permission publishes.
    */
-  status: "draft" | "review" | "published";
-  summary?: string | null;
-  title: string;
+  status: 'draft' | 'review' | 'published';
+  /**
+   * Set when first published; used for ordering and the URL.
+   */
+  publishedAt?: string | null;
+  author: number | User;
   updatedAt: string;
+  createdAt: string;
 }
 /**
- * Images for GMS website articles and pages.
+ * Images and documents for GMS website content.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
+  id: number;
   /**
    * Alt text shown to screen readers.
    */
   alt: string;
+  /**
+   * Who made or supplied it, e.g. "GMS / J. Pryce" or "NOAA".
+   */
+  credit?: string | null;
+  updatedAt: string;
   createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
   filename?: string | null;
+  mimeType?: string | null;
   filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
   focalX?: number | null;
   focalY?: number | null;
-  height?: number | null;
+}
+/**
+ * Questions about the weather: the questions people ask, each with a short answer and a full explainer.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "questions".
+ */
+export interface Question {
   id: number;
-  mimeType?: string | null;
-  thumbnailURL?: string | null;
+  /**
+   * Phrase it the way the public asks it.
+   */
+  question: string;
+  /**
+   * Two or three plain sentences. Shown on the homepage and in search.
+   */
+  shortAnswer: string;
+  body: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Other questions or stories to read next.
+   */
+  related?:
+    | (
+        | {
+            relationTo: 'questions';
+            value: number | Question;
+          }
+        | {
+            relationTo: 'stories';
+            value: number | Story;
+          }
+      )[]
+    | null;
+  /**
+   * Used to link related questions, stories and reports.
+   */
+  topics?:
+    | ('tropical' | 'rain' | 'heat' | 'marine' | 'climate' | 'sky' | 'safety' | 'agriculture' | 'aviation' | 'gms')[]
+    | null;
+  /**
+   * A meteorologist confirms the answer is correct.
+   */
+  scienceCheck?: {
+    checked?: boolean | null;
+    checkedAt?: string | null;
+    checkedBy?: (number | null) | User;
+  };
+  /**
+   * Optional. Falls back to the title, summary and image.
+   */
+  seo?: {
+    title?: string | null;
+    description?: string | null;
+    image?: (number | null) | Media;
+  };
+  /**
+   * Link to an existing product, publication or news source. Linking does not publish the destination.
+   */
+  relatedLinks?:
+    | {
+        title: string;
+        category: 'forecast' | 'cap' | 'aviation' | 'bulletin' | 'publication' | 'article' | 'source';
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Built from the title. Fixed once published so links last.
+   */
+  slug: string;
+  /**
+   * Save as Ready for review. An editor with this section's permission publishes.
+   */
+  status: 'draft' | 'review' | 'published';
+  /**
+   * Set when first published; used for ordering and the URL.
+   */
+  publishedAt?: string | null;
+  author: number | User;
   updatedAt: string;
-  url?: string | null;
-  width?: number | null;
+  createdAt: string;
+}
+/**
+ * Sky, history and a little fun: On this day, quizzes, Did you know facts and sky notes. Tonight's sun and moon times are calculated automatically.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "discover".
+ */
+export interface Discover {
+  id: number;
+  /**
+   * Choose first; the form shows that type's fields.
+   */
+  type: 'on-this-day' | 'quiz' | 'fact' | 'sky-note';
+  title: string;
+  day?: number | null;
+  month?: ('1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | '10' | '11' | '12') | null;
+  year?: number | null;
+  whatHappened?: string | null;
+  /**
+   * Optional: the story that tells it in full.
+   */
+  story?: (number | null) | Story;
+  intro?: string | null;
+  /**
+   * Three to eight questions.
+   */
+  questions?:
+    | {
+        prompt: string;
+        options?:
+          | {
+              text: string;
+              id?: string | null;
+            }[]
+          | null;
+        correct: number;
+        explanation: string;
+        id?: string | null;
+      }[]
+    | null;
+  fact?: string | null;
+  source?: string | null;
+  sourceUrl?: string | null;
+  /**
+   * For example "The Perseids peak tonight; look north-east after midnight."
+   */
+  note?: string | null;
+  startsOn?: string | null;
+  endsOn?: string | null;
+  /**
+   * Shown on cards and at the top of the page.
+   */
+  image?: (number | null) | Media;
+  imageCaption?: string | null;
+  /**
+   * Used to link related questions, stories and reports.
+   */
+  topics?:
+    | ('tropical' | 'rain' | 'heat' | 'marine' | 'climate' | 'sky' | 'safety' | 'agriculture' | 'aviation' | 'gms')[]
+    | null;
+  /**
+   * Built from the title. Fixed once published so links last.
+   */
+  slug: string;
+  /**
+   * Save as Ready for review. An editor with this section's permission publishes.
+   */
+  status: 'draft' | 'review' | 'published';
+  /**
+   * Set when first published; used for ordering and the URL.
+   */
+  publishedAt?: string | null;
+  author: number | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Latest reports: explain an issued report in plain language. Only reports with a published write-up appear on the homepage.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "report-notes".
+ */
+export interface ReportNote {
+  id: number;
+  title: string;
+  /**
+   * The issued report this write-up is about. Its figures come from the forecast system.
+   */
+  linkedProduct: {
+    productId: string;
+    kind?: string | null;
+  };
+  /**
+   * Shown on cards and in search. 240 characters at most.
+   */
+  summary: string;
+  /**
+   * Shown on cards and at the top of the page.
+   */
+  image?: (number | null) | Media;
+  imageCaption?: string | null;
+  body: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  };
+  /**
+   * Used to link related questions, stories and reports.
+   */
+  topics?:
+    | ('tropical' | 'rain' | 'heat' | 'marine' | 'climate' | 'sky' | 'safety' | 'agriculture' | 'aviation' | 'gms')[]
+    | null;
+  /**
+   * Optional. Falls back to the title, summary and image.
+   */
+  seo?: {
+    title?: string | null;
+    description?: string | null;
+    image?: (number | null) | Media;
+  };
+  /**
+   * Prepare platform-specific copy. Automatic delivery can be added later.
+   */
+  social?: {
+    caption?: string | null;
+    enabledPlatforms?: ('X' | 'Facebook' | 'Instagram' | 'YouTube' | 'LinkedIn' | 'WhatsApp Channel')[] | null;
+    /**
+     * Leave empty for manual or immediate sharing.
+     */
+    publishAt?: string | null;
+    xText?: string | null;
+    facebookText?: string | null;
+    instagramText?: string | null;
+    linkedinText?: string | null;
+    whatsappText?: string | null;
+  };
+  /**
+   * Link to an existing product, publication or news source. Linking does not publish the destination.
+   */
+  relatedLinks?:
+    | {
+        title: string;
+        category: 'forecast' | 'cap' | 'aviation' | 'bulletin' | 'publication' | 'article' | 'source';
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Built from the title. Fixed once published so links last.
+   */
+  slug: string;
+  /**
+   * Save as Ready for review. An editor with this section's permission publishes.
+   */
+  status: 'draft' | 'review' | 'published';
+  /**
+   * Set when first published; used for ordering and the URL.
+   */
+  publishedAt?: string | null;
+  author: number | User;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Weather now: videos and audio play under the Video and Audio tabs beside Satellite, Radar and Rainfall; quick updates appear under the duty forecaster's note (which stays on the Weather now page).
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "live-posts".
+ */
+export interface LivePost {
+  id: number;
+  title: string;
+  kind: 'update' | 'video' | 'audio';
+  text?: string | null;
+  /**
+   * Paste the share link. The site shows it only when a reader presses play.
+   */
+  mediaUrl?: string | null;
+  /**
+   * Optional. The post leaves the homepage at this time.
+   */
+  expiresAt?: string | null;
+  /**
+   * Link to an existing product, publication or news source. Linking does not publish the destination.
+   */
+  relatedLinks?:
+    | {
+        title: string;
+        category: 'forecast' | 'cap' | 'aviation' | 'bulletin' | 'publication' | 'article' | 'source';
+        url: string;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * Built from the title. Fixed once published so links last.
+   */
+  slug: string;
+  /**
+   * Save as Ready for review. An editor with this section's permission publishes.
+   */
+  status: 'draft' | 'review' | 'published';
+  /**
+   * Set when first published; used for ordering and the URL.
+   */
+  publishedAt?: string | null;
+  author: number | User;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
+  id: number;
+  key: string;
   data:
     | {
         [k: string]: unknown;
@@ -216,49 +697,65 @@ export interface PayloadKv {
     | number
     | boolean
     | null;
-  id: number;
-  key: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
-  createdAt: string;
+  id: number;
   document?:
     | ({
-        relationTo: "users";
-        value: number | User;
+        relationTo: 'desk-updates';
+        value: number | DeskUpdate;
       } | null)
     | ({
-        relationTo: "content";
-        value: number | Content;
+        relationTo: 'stories';
+        value: number | Story;
       } | null)
     | ({
-        relationTo: "media";
+        relationTo: 'questions';
+        value: number | Question;
+      } | null)
+    | ({
+        relationTo: 'discover';
+        value: number | Discover;
+      } | null)
+    | ({
+        relationTo: 'report-notes';
+        value: number | ReportNote;
+      } | null)
+    | ({
+        relationTo: 'live-posts';
+        value: number | LivePost;
+      } | null)
+    | ({
+        relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
       } | null);
   globalSlug?: string | null;
-  id: number;
-  updatedAt: string;
   user: {
-    relationTo: "users";
+    relationTo: 'users';
     value: number | User;
   };
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-preferences".
  */
 export interface PayloadPreference {
-  createdAt: string;
   id: number;
-  key?: string | null;
-  updatedAt: string;
   user: {
-    relationTo: "users";
+    relationTo: 'users';
     value: number | User;
   };
+  key?: string | null;
   value?:
     | {
         [k: string]: unknown;
@@ -268,47 +765,267 @@ export interface PayloadPreference {
     | number
     | boolean
     | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-migrations".
  */
 export interface PayloadMigration {
-  batch?: number | null;
-  createdAt: string;
   id: number;
   name?: string | null;
+  batch?: number | null;
   updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users_select".
+ * via the `definition` "desk-updates_select".
  */
-export interface UsersSelect<T extends boolean = true> {
-  createdAt?: T;
-  email?: T;
-  fastapiUserId?: T;
-  isSuperuser?: T;
-  role?: T;
-  updatedAt?: T;
-  username?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "content_select".
- */
-export interface ContentSelect<T extends boolean = true> {
-  author?: T;
-  body?: T;
-  createdAt?: T;
-  image?: T;
+export interface DeskUpdatesSelect<T extends boolean = true> {
+  title?: T;
   kind?: T;
-  placement?: T;
+  product?: T;
+  linkedProduct?:
+    | T
+    | {
+        productId?: T;
+        kind?: T;
+      };
+  summary?: T;
+  body?: T;
+  social?:
+    | T
+    | {
+        caption?: T;
+        enabledPlatforms?: T;
+        publishAt?: T;
+        xText?: T;
+        facebookText?: T;
+        instagramText?: T;
+        linkedinText?: T;
+        whatsappText?: T;
+      };
+  relatedLinks?:
+    | T
+    | {
+        title?: T;
+        category?: T;
+        url?: T;
+        id?: T;
+      };
   slug?: T;
   status?: T;
-  summary?: T;
-  title?: T;
+  publishedAt?: T;
+  author?: T;
   updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "stories_select".
+ */
+export interface StoriesSelect<T extends boolean = true> {
+  title?: T;
+  kicker?: T;
+  kind?: T;
+  summary?: T;
+  image?: T;
+  imageCaption?: T;
+  body?: T;
+  topics?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  social?:
+    | T
+    | {
+        caption?: T;
+        enabledPlatforms?: T;
+        publishAt?: T;
+        xText?: T;
+        facebookText?: T;
+        instagramText?: T;
+        linkedinText?: T;
+        whatsappText?: T;
+      };
+  relatedLinks?:
+    | T
+    | {
+        title?: T;
+        category?: T;
+        url?: T;
+        id?: T;
+      };
+  slug?: T;
+  status?: T;
+  publishedAt?: T;
+  author?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "questions_select".
+ */
+export interface QuestionsSelect<T extends boolean = true> {
+  question?: T;
+  shortAnswer?: T;
+  body?: T;
+  related?: T;
+  topics?: T;
+  scienceCheck?:
+    | T
+    | {
+        checked?: T;
+        checkedAt?: T;
+        checkedBy?: T;
+      };
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  relatedLinks?:
+    | T
+    | {
+        title?: T;
+        category?: T;
+        url?: T;
+        id?: T;
+      };
+  slug?: T;
+  status?: T;
+  publishedAt?: T;
+  author?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "discover_select".
+ */
+export interface DiscoverSelect<T extends boolean = true> {
+  type?: T;
+  title?: T;
+  day?: T;
+  month?: T;
+  year?: T;
+  whatHappened?: T;
+  story?: T;
+  intro?: T;
+  questions?:
+    | T
+    | {
+        prompt?: T;
+        options?:
+          | T
+          | {
+              text?: T;
+              id?: T;
+            };
+        correct?: T;
+        explanation?: T;
+        id?: T;
+      };
+  fact?: T;
+  source?: T;
+  sourceUrl?: T;
+  note?: T;
+  startsOn?: T;
+  endsOn?: T;
+  image?: T;
+  imageCaption?: T;
+  topics?: T;
+  slug?: T;
+  status?: T;
+  publishedAt?: T;
+  author?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "report-notes_select".
+ */
+export interface ReportNotesSelect<T extends boolean = true> {
+  title?: T;
+  linkedProduct?:
+    | T
+    | {
+        productId?: T;
+        kind?: T;
+      };
+  summary?: T;
+  image?: T;
+  imageCaption?: T;
+  body?: T;
+  topics?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
+  social?:
+    | T
+    | {
+        caption?: T;
+        enabledPlatforms?: T;
+        publishAt?: T;
+        xText?: T;
+        facebookText?: T;
+        instagramText?: T;
+        linkedinText?: T;
+        whatsappText?: T;
+      };
+  relatedLinks?:
+    | T
+    | {
+        title?: T;
+        category?: T;
+        url?: T;
+        id?: T;
+      };
+  slug?: T;
+  status?: T;
+  publishedAt?: T;
+  author?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "live-posts_select".
+ */
+export interface LivePostsSelect<T extends boolean = true> {
+  title?: T;
+  kind?: T;
+  text?: T;
+  mediaUrl?: T;
+  expiresAt?: T;
+  relatedLinks?:
+    | T
+    | {
+        title?: T;
+        category?: T;
+        url?: T;
+        id?: T;
+      };
+  slug?: T;
+  status?: T;
+  publishedAt?: T;
+  author?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -316,57 +1033,335 @@ export interface ContentSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
+  credit?: T;
+  updatedAt?: T;
   createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
   filename?: T;
+  mimeType?: T;
   filesize?: T;
+  width?: T;
+  height?: T;
   focalX?: T;
   focalY?: T;
-  height?: T;
-  mimeType?: T;
-  thumbnailURL?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users_select".
+ */
+export interface UsersSelect<T extends boolean = true> {
+  fastapiUserId?: T;
+  username?: T;
+  email?: T;
+  permissionKeys?: T;
+  isSuperuser?: T;
+  role?: T;
   updatedAt?: T;
-  url?: T;
-  width?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
-  data?: T;
   key?: T;
+  data?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents_select".
  */
 export interface PayloadLockedDocumentsSelect<T extends boolean = true> {
-  createdAt?: T;
   document?: T;
   globalSlug?: T;
-  updatedAt?: T;
   user?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-preferences_select".
  */
 export interface PayloadPreferencesSelect<T extends boolean = true> {
-  createdAt?: T;
-  key?: T;
-  updatedAt?: T;
   user?: T;
+  key?: T;
   value?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-migrations_select".
  */
 export interface PayloadMigrationsSelect<T extends boolean = true> {
-  batch?: T;
-  createdAt?: T;
   name?: T;
+  batch?: T;
   updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * The duty forecaster's short note on the homepage. The note is a plain-words aside, never a forecast or a warning.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "weather-now".
+ */
+export interface WeatherNow {
+  id: number;
+  note?: {
+    /**
+     * Two or three plain sentences, e.g. what to expect this afternoon. Published as soon as you save. Clear it to remove the note.
+     */
+    text?: string | null;
+    /**
+     * Required only if the note mentions a warning, watch or advisory.
+     */
+    alertUrl?: string | null;
+    /**
+     * Defaults to the next forecast issue (07:00, 12:00 or 18:00).
+     */
+    expiresAt?: string | null;
+    postedAt?: string | null;
+    postedBy?: (number | null) | User;
+  };
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * Choose what leads the editorial homepage sections, or hide a section (for example during a hurricane). Anything left empty shows the newest published items.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "homepage".
+ */
+export interface Homepage {
+  id: number;
+  /**
+   * The large story. Default: the newest.
+   */
+  leadStory?: (number | null) | Story;
+  /**
+   * Up to five, in order. Default: the newest.
+   */
+  featuredQuestions?: (number | Question)[] | null;
+  /**
+   * Which cards Sky, history and a little fun shows.
+   */
+  discoverCards?: ('sky' | 'on-this-day' | 'quiz' | 'fact')[] | null;
+  /**
+   * Optionally link a published story or explainer under an activity. Which activities show, and their ratings, come from the forecast system.
+   */
+  exploreReading?: {
+    beach?:
+      | ({
+          relationTo: 'stories';
+          value: number | Story;
+        } | null)
+      | ({
+          relationTo: 'questions';
+          value: number | Question;
+        } | null);
+    fishing?:
+      | ({
+          relationTo: 'stories';
+          value: number | Story;
+        } | null)
+      | ({
+          relationTo: 'questions';
+          value: number | Question;
+        } | null);
+    boating?:
+      | ({
+          relationTo: 'stories';
+          value: number | Story;
+        } | null)
+      | ({
+          relationTo: 'questions';
+          value: number | Question;
+        } | null);
+    growing?:
+      | ({
+          relationTo: 'stories';
+          value: number | Story;
+        } | null)
+      | ({
+          relationTo: 'questions';
+          value: number | Question;
+        } | null);
+    outdoors?:
+      | ({
+          relationTo: 'stories';
+          value: number | Story;
+        } | null)
+      | ({
+          relationTo: 'questions';
+          value: number | Question;
+        } | null);
+    night_sky?:
+      | ({
+          relationTo: 'stories';
+          value: number | Story;
+        } | null)
+      | ({
+          relationTo: 'questions';
+          value: number | Question;
+        } | null);
+  };
+  /**
+   * Words only: figures and statuses come from the forecast system. Leave a field empty to keep the standard wording.
+   */
+  sectionCopy?: {
+    weather_now?: {
+      kicker?: string | null;
+      title?: string | null;
+      intro?: string | null;
+    };
+    desk?: {
+      kicker?: string | null;
+      title?: string | null;
+      intro?: string | null;
+    };
+    stories?: {
+      kicker?: string | null;
+      title?: string | null;
+      intro?: string | null;
+    };
+    questions?: {
+      kicker?: string | null;
+      title?: string | null;
+      intro?: string | null;
+    };
+    discover?: {
+      kicker?: string | null;
+      title?: string | null;
+      intro?: string | null;
+    };
+    reports?: {
+      kicker?: string | null;
+      title?: string | null;
+      intro?: string | null;
+    };
+    explore_today?: {
+      kicker?: string | null;
+      title?: string | null;
+      intro?: string | null;
+    };
+    grenada_in_data?: {
+      kicker?: string | null;
+      title?: string | null;
+      intro?: string | null;
+    };
+  };
+  /**
+   * Sections to hide from the homepage for now.
+   */
+  hiddenSections?:
+    | (
+        'weather-now' | 'desk' | 'stories' | 'questions' | 'discover' | 'reports' | 'explore-today' | 'grenada-in-data'
+      )[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "weather-now_select".
+ */
+export interface WeatherNowSelect<T extends boolean = true> {
+  note?:
+    | T
+    | {
+        text?: T;
+        alertUrl?: T;
+        expiresAt?: T;
+        postedAt?: T;
+        postedBy?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "homepage_select".
+ */
+export interface HomepageSelect<T extends boolean = true> {
+  leadStory?: T;
+  featuredQuestions?: T;
+  discoverCards?: T;
+  exploreReading?:
+    | T
+    | {
+        beach?: T;
+        fishing?: T;
+        boating?: T;
+        growing?: T;
+        outdoors?: T;
+        night_sky?: T;
+      };
+  sectionCopy?:
+    | T
+    | {
+        weather_now?:
+          | T
+          | {
+              kicker?: T;
+              title?: T;
+              intro?: T;
+            };
+        desk?:
+          | T
+          | {
+              kicker?: T;
+              title?: T;
+              intro?: T;
+            };
+        stories?:
+          | T
+          | {
+              kicker?: T;
+              title?: T;
+              intro?: T;
+            };
+        questions?:
+          | T
+          | {
+              kicker?: T;
+              title?: T;
+              intro?: T;
+            };
+        discover?:
+          | T
+          | {
+              kicker?: T;
+              title?: T;
+              intro?: T;
+            };
+        reports?:
+          | T
+          | {
+              kicker?: T;
+              title?: T;
+              intro?: T;
+            };
+        explore_today?:
+          | T
+          | {
+              kicker?: T;
+              title?: T;
+              intro?: T;
+            };
+        grenada_in_data?:
+          | T
+          | {
+              kicker?: T;
+              title?: T;
+              intro?: T;
+            };
+      };
+  hiddenSections?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -376,7 +1371,7 @@ export interface CollectionsWidget {
   data?: {
     [k: string]: unknown;
   };
-  width: "full";
+  width: 'full';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -386,6 +1381,7 @@ export interface Auth {
   [k: string]: unknown;
 }
 
-declare module "payload" {
+
+declare module 'payload' {
   export interface GeneratedTypes extends Config {}
 }

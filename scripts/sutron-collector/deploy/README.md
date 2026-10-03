@@ -25,7 +25,7 @@ top of a legacy poll.
 
 ## Blocker to resolve first: Python version
 
-The collector requires Python 3.13. The edge PC runs Python 2 for the legacy
+The collector requires Python 3.14. The edge PC runs Python 2 for the legacy
 system and may have no suitable Python 3 at all.
 
 Check what is there (the harvest already captured this in
@@ -45,7 +45,7 @@ untouched:
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
-~/.local/bin/uv python install 3.13
+~/.local/bin/uv python install 3.14.7
 ```
 
 Outbound access was verified on 2026-08-15: `pypi.org` and `github.com` both
@@ -67,10 +67,10 @@ host that does not filter by user-agent.
 ## Install
 
 ```bash
-mkdir -p /home/data/sutron-ng/outgoing
+mkdir -p /home/data/sutron-ng/outgoing /home/data/sutron-ng/archive
 cd /home/data/sutron-ng
 
-uv venv --python 3.13 venv
+uv venv --python 3.14.7 venv
 ./venv/bin/pip install /path/to/sutron_collector-*.whl
 
 sudo cp sutron-collector.service sutron-collector.timer /etc/systemd/system/
@@ -92,6 +92,7 @@ appears:
 sudo systemctl start sutron-collector.service
 journalctl -u sutron-collector.service -n 20 --no-pager
 ls -l /home/data/sutron-ng/outgoing/
+ls -l /home/data/sutron-ng/archive/observations.db
 ```
 
 Then confirm the legacy system is unaffected — its own output should continue
@@ -122,8 +123,8 @@ The legacy system is untouched by this and keeps running either way.
 
 ## What the service is prevented from doing
 
-`ProtectSystem=strict` with `ReadWritePaths=/home/data/sutron-ng/outgoing`
-means the only writable location is the output directory. `ProtectHome=read-only`
+`ProtectSystem=strict` with `ReadWritePaths` for `outgoing/` and `archive/`
+limits writes to the handoff and durable SQLite archive. `ProtectHome=read-only`
 makes `/home/data/Sutron_Linux` readable but not writable, so a bug in the
 collector cannot damage the legacy system even by accident.
 

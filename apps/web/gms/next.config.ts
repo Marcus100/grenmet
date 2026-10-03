@@ -1,10 +1,13 @@
 import { fileURLToPath } from "node:url";
 import { withSentryConfig } from "@sentry/nextjs/config";
 import type { NextConfig } from "next";
+import { routeMoveRedirects } from "./src/lib/route-moves";
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
   output: "standalone",
+  // Bold sky IA: old section roots redirect to their new homes.
+  redirects: async () => routeMoveRedirects(),
   images: {
     remotePatterns: [{ hostname: "images.unsplash.com" }],
   },
@@ -15,8 +18,9 @@ const nextConfig: NextConfig = {
 
 export default withSentryConfig(nextConfig, {
   org: "grenmet",
-  project: process.env.SENTRY_PROJECT ?? "grenmet-staging",
-  silent: !process.env.CI,
+  project: process.env.SENTRY_PROJECT,
+  release: { name: process.env.NEXT_PUBLIC_RELEASE },
+  silent: false,
   widenClientFileUpload: true,
 
   webpack: {

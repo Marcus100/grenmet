@@ -13,6 +13,6 @@ export const rosterPeriodPublicSchema = z.object({
   period_end: z.iso.date(),
   status: rosterPeriodStatusSchema,
   created_by_user_id: z.uuid(),
-  created_at: z.string(),
-  updated_at: z.string(),
+  created_at: z.iso.datetime(),
+  updated_at: z.iso.datetime(),
 });

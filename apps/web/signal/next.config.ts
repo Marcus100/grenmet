@@ -5,6 +5,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  transpilePackages: ["@barrelsgd/ui"],
   ...(process.env.NODE_ENV === "production" && {
     outputFileTracingRoot: fileURLToPath(new URL("../../..", import.meta.url)),
     outputFileTracingIncludes: {
@@ -17,8 +18,9 @@ const nextConfig: NextConfig = {
 export default withContentCollections(nextConfig).then((config) =>
   withSentryConfig(config as NextConfig, {
     org: "grenmet",
-    project: process.env.SENTRY_PROJECT ?? "grenmet-staging",
-    silent: !process.env.CI,
+    project: process.env.SENTRY_PROJECT,
+    release: { name: process.env.NEXT_PUBLIC_RELEASE },
+    silent: false,
     widenClientFileUpload: true,
 
     webpack: {

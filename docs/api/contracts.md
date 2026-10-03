@@ -1,5 +1,9 @@
 # API Contracts
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-23
+
 This guide documents the current FastAPI contract conventions. It complements the generated OpenAPI schema at `apps/api/fastapi/openapi.json` and the generated TypeScript client in `packages/api-client`.
 
 ## When to update this document
@@ -22,6 +26,83 @@ This document must stay in sync with the code. Do not mark a gap as resolved unt
 | Production | `https://api.barrels.gd` |
 
 Versioned FastAPI routes use `/api/v1`. Public CAP feed routes use `/api/cap`.
+
+## Public weather products
+
+`GET /api/v1/wxproducts/public/products` is anonymous. Optional `kind` filters
+morning, midday, evening, outlook, cyclone, marine, flood, thunderstorm, wind,
+heat, dust, coastal, or tsunami products. An omitted or empty filter lists all kinds.
+
+Success is `{ "products": [...] }`, including an empty list when nothing is current.
+Each snapshot has `id`, `revision`, `publishedAt`, `kind`, and `values` (string values).
+Drafts, actor details and revision history are never selected. Products are ordered
+by descending stored `values.issuedAt`. Invalid kinds return 400;
+unconfigured/unavailable storage returns 503. Errors use `{ "error": "..." }`.
+Responses use `Cache-Control: no-store`.
+
+Publication must have occurred, issue/validity start must be reached, and validity
+end is exclusive. Form timestamps use Grenada UTC−04:00. Morning (07:00) and
+midday (12:00) forecasts expire the next day at 07:00; evening (18:00) forecasts
+expire at 07:00 five days after the issue date, covering tonight plus four days.
+Forecast boundaries are derived from the issue date, matching the existing editor.
+Other product kinds use their explicit issue and validity fields.
+
+`GET /api/v1/wxproducts/public/products/{id}` (added 30 Sep 2026) is the anonymous
+read behind editorial links (CMS desk posts and report write-ups). It returns
+the same snapshot fields plus `current` (boolean). Unlike the feed, it stays
+readable after the validity window ends; `current` is then false. A republished
+product returns its newest revision. Withdrawn, unpublished, future-dated or
+unknown IDs return 404, a malformed ID returns 422, and unavailable storage
+returns 503. Errors use `{ "error": "..." }`, with `Cache-Control: no-store`.
+
+GAA Admin's existing `/api/public/products` forwards anonymously to this FastAPI
+route using its configured `AUTH_API_URL` and `AUTH_API_V1_STR`. The GMS website's
+URL and response shape are unchanged. FastAPI needs `WXPRODUCTS_DATABASE_URL`
+pointing to the existing separate weather database before this forwarding route
+can serve products. FastAPI owns authored-product writes and migrations in the separate weather database.
+Weather models use isolated metadata and never enter the main database migration
+history. Weather editor requests now use browser HTTP calls through runtime same-origin rewrites (`/_backend/weather/*`). FastAPI accepts either the existing bearer token or the opaque session cookie on private weather endpoints. An explicitly supplied invalid Authorization header never falls back to cookies.
+
+`GET /api/v1/auth/browser/session` validates the session cookie and returns `{userId, csrfToken}` with `Cache-Control: no-store`. It never returns the session secret or a bearer token. Cookie-authenticated weather mutations require `X-CSRF-Token`, bound to that session; a supplied Origin must match FastAPI's configured CORS origins. Session expiry/revocation and live account restrictions are checked on every request. Other domains remain bearer-only. Login, session rotation, logout and cross-domain SSO are unchanged in this slice. Hono is deferred.
+
+## Weather authoring
+
+These endpoints require a bearer token and evaluate the existing live GMS product
+access policy on every request. Account activation alone grants no authoring access.
+
+| Endpoint | Contract |
+| --- | --- |
+| `GET /api/v1/wxproducts/products` | `{ products: StoredProduct[] }`; all authorized authored product kinds/dates, including drafts and historical products; newest update first with ID tie-break. Optional `kind` and `issue_date` filters (date includes undated drafts), `limit` (1–100, default 100), `offset` (default 0). |
+| `POST /api/v1/wxproducts/products` | Body: `id`, `expectedRevision`, `kind`, `values`, `action` (`draft`, `publish`, `withdraw`), `changeSummary`, `reviewed`; returns `StoredProduct` |
+| `GET /api/v1/wxproducts/products/{id}/history` | `{ history: [...] }`; up to 100 newest permitted revisions, exposing action, revision, actor name, note and timestamp, never revision content or actor IDs |
+
+`StoredProduct` preserves the editor shape: `id`, `kind`, `values`, `revision`,
+`publishedRevision` (nullable), and `updatedAt`. Errors use `detail`: a string for
+application errors, or an array for request-schema errors. Statuses include 401
+(authentication), 403 (access), 409 (stale revision/invalid withdrawal), 422
+(validation), and 503 (storage unavailable). Successful private responses are
+`no-store`. Inaccessible/missing history returns an empty list without exposing
+another product's content.
+
+Drafts can be incomplete. Publication requires valid visible fields, preview
+confirmation, non-expired validity, and a note after the first save. Withdrawal
+requires a reason and retains the saved draft. FastAPI derives scheduled forecast
+boundaries and actor identity; client-supplied actor fields are rejected. Saving a
+new draft preserves the previous published snapshot. Product changes and immutable
+revision history commit in one weather-database transaction. Concurrent first
+saves and updates produce a conflict instead of silently overwriting records.
+
+Kubb generates the request and response types from these Pydantic/OpenAPI schemas.
+The editor's field definitions are checked against FastAPI's `fields.json`; browser
+validation provides feedback, while FastAPI enforces the publication rules.
+
+During the typed-products rollout, the `outlook` kind uses a discriminated union
+with a typed `OutlookValuesDraft` payload for authoring and preview requests. Its
+published values require the fields marked `requiredOnPublish` in `fields.json`.
+The remaining kinds temporarily use the legacy string-value branch and will be
+migrated independently. The anonymous public feed intentionally retains its
+legacy-compatible `values: { [key: string]: string }` response until external
+consumers of that feed have been inventoried.
 
 ## Documentation Endpoints
 
@@ -67,6 +148,11 @@ The API supports two auth paths:
 | Web session | `POST /api/v1/login/session` then `POST /api/v1/login/session/access-token` | Browser apps using an opaque session cookie |
 
 Browser apps should store only the opaque session token in an `httpOnly` cookie. Server Components or route handlers exchange that session token for a short-lived bearer token before calling FastAPI.
+
+Session login, refresh, and session-token exchange responses return the deliberately
+reduced `SessionUserPublic` projection (`id`, `email`, `full_name`, `is_active`, and
+`is_superuser`), not the full `UserPublic` profile. `token_type` is the literal
+`"bearer"`; both shapes are generated into the shared client.
 
 ## Error Shape
 
@@ -142,13 +228,67 @@ Local Stripe test-mode flow:
 5. Open the returned URL and use Stripe's interactive test card
    `4242 4242 4242 4242`, any future expiry, and any three-digit CVC.
 
+## Change history and notifications (platform core)
+
+Shared services (ADR-0009) that any module can use; HR is the first. Both require an
+authenticated session.
+
+**Change history.** Registered models (`src/hr/audit.py`) are captured field by field on
+every flush into `public.audit_entry`, attributed to the signed-in user (or "System" for
+worker jobs). Bulk `update()`/`delete()` statements are not captured; call
+`src.audit.service.record_change` for those.
+
+| Endpoint | Access and purpose |
+| --- | --- |
+| `GET /api/v1/audit/{entity_type}/{entity_id}` | Paginated history, newest first. Readable by anyone who may read the record (module read check). Sensitive field values return `masked: true` with `old`/`new` null unless the reader holds `audit.view_sensitive`. Unknown `entity_type` → 404 |
+
+HR `entity_type` values: `employee` (user id; profile, address, employment, approval
+authority), `leave_request`, `absentee_report`, `shift_swap`, `status_report`,
+`timesheet` (incl. entries), `parking_permit`, `training_record`, `employee_document`,
+`department`, `grade`, `workflow_template` (incl. steps), `calendar_event`,
+`public_holiday`.
+
+**Notifications.** `notify()` writes in-app rows plus an email outbox inside the
+caller's transaction; the worker sends email every 30 s (React Email `notification`
+template via web-auth, Jinja fallback, delivered through Resend/SMTP) and runs the daily
+reminder sweep at 10:00 UTC. Emails carry only a summary and a portal link.
+
+| Endpoint | Access and purpose |
+| --- | --- |
+| `GET /api/v1/notifications?unread=` | Own notifications, paginated |
+| `GET /api/v1/notifications/unread-count` | `{count}` for the header badge |
+| `POST /api/v1/notifications/{id}/read` | Mark own notification read; another person's → 404 |
+| `POST /api/v1/notifications/read-all` | Mark all own notifications read |
+| `GET/PUT /api/v1/notifications/preferences` | Own email opt-outs per event; approval events (`email_mutable: false`) cannot be muted → 400 |
+| `GET /api/v1/notifications/settings?organisation_id=` | `notifications.manage` in the organisation: every event with effective settings, plus staff whose email domain is outside `NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS` |
+| `PUT /api/v1/notifications/settings/{event_key}?organisation_id=` | `notifications.manage`: on/off, email on/off, extra recipient roles, title/body Jinja templates (validated), timings (`remind_after_days`, `escalate_after_days`, `expiry_days_before`) |
+
 ## HR Contract
 
 All HR routes are under `/api/v1/hr`, require an authenticated session, and are gated
 by permission keys from `src/auth/permissions.py` (`tests/auth/test_permission_registry.py`
 fails if a key used in code is missing from the catalog). Routers:
-`profile`, `rosters`, `calendar`, `timesheets`, `leave-requests`, `shift-swaps`,
+`profile`, `rosters`, `calendar`, `timesheets`, `attendance`, `leave-requests`, `shift-swaps`,
 `absentee-reports`, `status-reports`, `parking-permits`, `documents`, `workflows`.
+
+### Manual shift attendance
+
+`PUT /attendance` saves actual arrival/departure against a published work roster
+assignment. `POST /attendance/{attendance_id}/submit` starts per-shift supervisor
+review through the department `TIMESHEET` workflow. Identical saves/submits are
+idempotent; changed saves require `expected_revision`, and submitted/approved time
+is locked. Existing timesheet self/proxy permissions and subject scope apply.
+
+`GET /attendance/week?day=YYYY-MM-DD` returns the Sunday–Saturday collection,
+scheduled context, actual times, break duration, elapsed/net recorded hours and
+review status. Overnight grouping uses the roster's local shift-start date.
+Approved totals exclude pending/rejected/returned/cancelled records; hours do not
+determine payroll. `GET /attendance/week/pdf` renders the same collection in Python
+with private/no-store headers. `GET /attendance/review?attendance_id=…` (or
+`correction_id=…`) lets the owner, scoped reader/approver or named approver inspect
+retained corrections. `POST /attendance/{attendance_id}/corrections` requires a
+reason and starts a separate supervisor workflow; original time stays in effect
+until approval atomically advances its revision. See [manual attendance](../hr/manual-attendance.md).
 
 ### Department calendar
 
@@ -215,6 +355,32 @@ on the strength of these document checks alone.
 Draft periods are returned only to callers holding `roster.manage`, flagged
 `is_draft: true`. For everyone else a roster is not real until it is published.
 
+Roster period/grid, calendar entries and roster-linked timesheet entries include
+`availability`: `SCHEDULED`, `ABSENT`, `PARTIAL_ABSENCE`, or `LEAVE`. This is a
+read projection of approved absentee/leave records; the stored shift code and
+timesheet hours remain unchanged. Linked workflows must still be approved;
+cancelled, returned, pending and rejected reports do not supply approved markers.
+Legacy approved records without a workflow remain supported. Absence matches
+employee, filing department, local shift-start date and optional expected shift;
+paired absence times distinguish partial absence. Full absence takes precedence
+over leave, then partial absence. The department roster/grid/calendar reads check
+the caller's scoped `roster.view` access. No reason or medical notes are exposed
+by this projection. Saturday night keeps its Saturday assignment date even when
+the scheduled end is Sunday. The grid keeps the shift code and marks an approved
+exception; the calendar's Leave & absence view also includes these exceptions.
+
+Bulk assignment saves retain existing IDs so repeated grid saves/imports do not
+break timesheet or attendance links. They reject duplicate employee/date cells,
+unknown shift codes, dates outside the selected period, closed periods, and
+overwriting a cell owned by a different period. Amend the original period instead
+of importing an overlapping period over its assignments.
+
+Once attendance exists, bulk saves may retain the shift and update remarks but
+cannot replace its shift code. Material catalogue timing/category changes are
+also blocked for shifts with linked attendance; use a new code for future
+schedules. Exchange approval and reversal apply the same recorded-attendance
+guard. These checks preserve historical scheduled and actual times together.
+
 ### Local wall-clock times
 
 `starts_at_local` / `ends_at_local` on both the calendar and roster feeds are ISO-8601
@@ -233,16 +399,43 @@ these anonymous endpoints:
 
 | Endpoint | Purpose |
 | --- | --- |
+| `GET /api/cap/warnings` | Active public messages grouped by hazard, with `activeCount` counting Actual messages only; each carries `status`, `product` (`Outlook`/`Watch`/`Warning`/legacy `Advisory`) and `colour` (`green`/`yellow`/`orange`/`red`), null when not set. Exercise messages remain in groups for labelled drill display but do not set the public status line. |
 | `GET /api/cap/latest-active` | Active published alerts |
 | `GET /api/cap/alerts` | Published, expired, and cancelled alerts |
-| `GET /api/cap/past` | Expired and cancelled alerts |
-| `GET /api/cap/alerts/{identifier}` | Public alert by CAP identifier |
-| `GET /api/cap/alerts.geojson` | Active alerts as GeoJSON |
-| `GET /api/cap/active-map` | Active alerts as GeoJSON for map consumers |
-| `GET /api/cap/rss.xml` | Active alerts RSS feed |
+| `GET /api/cap/past` | Expired and cancelled alerts, including naturally expired messages; a replaced message carries `replaced_by_identifier`, and a cancelled message carries `cancellation_reason` when its CAP Cancel includes a note |
+| `GET /api/cap/alerts/{identifier}` | Public alert by CAP identifier; `replaced_by_identifier` links an earlier message to its published Update, and `cancellation_reason` exposes the Cancel note |
+| `GET /api/cap/alerts.geojson` | Active Actual alerts as GeoJSON; exercises are excluded |
+| `GET /api/cap/active-map` | Active Actual alerts as GeoJSON for map consumers |
+| `GET /api/cap/rss.xml` | Active Actual alerts plus Actual Cancel messages published within 24 hours; exercises are excluded |
 | `GET /api/cap/{identifier}.xml` | Latest CAP XML snapshot for an identifier |
 
 CAP management routes are under `/api/v1/cap` and require authenticated users plus permission checks.
+
+Only Public alerts with `status=Actual` create CAP publish side-effect jobs. The
+worker also skips previously queued jobs for any other status or scope, so an
+Exercise/Test/System or Restricted/Private message cannot reach webhook or other
+publish handlers through the job outbox. Public
+JSON alert routes retain CAP status so the GMS site can label drills. XML remains
+retrievable by identifier for a public Exercise message; RSS and GeoJSON omit it.
+RSS cancellation retention is 24 hours, so consumers needing guaranteed complete
+message history must use a durable CAP delivery integration rather than treat RSS
+as an event log.
+
+An authored CAP alert may cite one exact published weather bulletin revision in
+each info block. The optional `GMS:source-bulletin-kind`,
+`GMS:source-bulletin-id` (canonical UUID), and
+`GMS:source-bulletin-revision` (positive integer) CAP parameters must appear
+together, once each. Validation checks the reference's shape but does not read
+the separate wxproducts database, so publication is independent of bulletin
+availability. The link does not publish, withdraw, or cancel either product.
+
+**GMS product and colour transition.** The current, unmerged implementation
+reads `GMS:product` (`Outlook` | `Watch` | `Warning` | legacy `Advisory`) and
+`awareness_level` from CAP `<parameter>`s. It binds colour to CAP severity and
+omits colour for Outlook. GMS has since chosen a 4 × 4 impact × likelihood
+matrix for every product, including Outlook; colour and CAP severity must be
+assessed independently. This contract must be revised before the level model
+is released. Alerts without `GMS:product` currently validate with a warning.
 
 ## Webhooks
 
@@ -273,9 +466,13 @@ Do not claim these exist in downstream docs until the code implements them.
 
 `GET /api/v1/hr/dashboard` requires an authenticated, active account. It returns the current user's recorded vacation balance (null when absent), recent personal HR records and open-request count, published roster entries for the active employment department, and permission-scoped actionable approvals. A superuser without employment sees organisation-wide roster and employment counts; an ordinary account without employment sees only its own records. Dates use America/Grenada. Roster entries describe scheduled work/time away, not observed attendance. No sample statistics or inferred leave entitlement are returned.
 
+### HR leave ledger (2026-09-25)
+
+Leave balances come only from the append-only `hr.leave_balance_event` ledger, written through `src/hr/leave/ledger.py`. Each entry has an `entry_kind` (`OPENING`, `ADJUSTMENT`, `APPROVAL_DEBIT`) and a per-employee, per-leave-type `sequence`; the latest sequence is the current balance. A leave request can be debited once, whether approved through a workflow or the legacy action route; a repeated or concurrent approval posts nothing further. `GET /api/v1/hr/profile/me` returns `leave.balances` as decimal day strings from the ledger, matching the dashboard's `vacation_balance`. `leave.unverified_carry_over` (formerly `carry_over`) shows legacy carry-over days that have not been reconciled and are not part of the balance (policy rule GAA-LV-VAC-CARRY-01). Apply Alembic migration `c9d0e1f2a3b4` before deploying; it stops, listing the request IDs, if any request already has more than one debit.
+
 ### Employee membership and account security
 
-Employment records may represent confirmed department/grade membership with a null employee number or employment type. `EmploymentPublic` includes `grade`, `supervisor_name` and `details_complete`; clients must display unknown fields explicitly rather than infer values. `GET /api/v1/auth/modern/security` returns current-account security status and active-session metadata, never bearer tokens, session secrets or TOTP secrets. Existing `/2fa/setup` and `/2fa/activate` endpoints provide enrollment; setup rejects an already-enabled authenticator.
+Employment records may represent confirmed department/grade membership with a null employee number or employment type. `EmploymentPublic` includes `grade`, `supervisor_name` and `details_complete`; clients must display unknown fields explicitly rather than infer values. `GET /api/v1/auth/modern/security` returns current-account security status and active-session metadata (app, client type, recorded `user_agent` and `ip_address`, last-used and expiry times), never bearer tokens, session secrets or TOTP secrets. The IP and user agent are shown only to the account owner so they can recognise their own devices. The response also carries `password_changed_at` (null until the password is next changed, reset or set up after the column shipped). Password and Google sign-in remember the browser/OS family of each device (`user.known_device_keys`, capped at 20); a sign-in from an unfamiliar family after the first ever device emails the account owner a "New sign-in" alert in the background, linking to `/sessions`. Alert failures are logged and never block sign-in. Existing `/2fa/setup` and `/2fa/activate` endpoints provide enrollment; setup rejects an already-enabled authenticator.
 
 Managed HR workflows must be created through their form submission endpoints. Public generic workflow creation cannot attach a new workflow to a managed HR record. Finalization validates the record's authoritative workflow and department before status or balance changes. The dashboard honours `roster.view` for department data and preserves personal roster access when that permission is absent.
 
@@ -304,7 +501,7 @@ Creating a leave request, absentee report, daily status report, shift swap, or t
 
 ### Private weather images
 
-`GET /api/v1/wxwatch/images/{storage_path}` requires an active authenticated user and returns a private, non-cacheable 307 redirect to a 60-second signed GET URL. Keys are restricted to raster images within the environment-specific bucket’s `wxwatch/` prefix. It never reads or writes another application’s tables. Invalid paths return 400; unconfigured object storage returns 503. The admin’s existing authenticated proxy exchanges the session cookie for a bearer token.
+`GET /api/v1/wxwatch/images/{storage_path}` accepts an active browser session or bearer identity. It returns private/no-store local image bytes when `WXWATCH_LOCAL_IMAGES_DIR` is configured, or a 60-second signed object-storage redirect otherwise. Raster paths are validated; local paths and symlinks must remain inside the configured root. Missing files return 404, invalid paths 400, and missing storage configuration 503. Gaa-admin uses a same-origin `/_backend/wxwatch/` rewrite and disables image optimization so browser credentials reach FastAPI.
 
 ### Authored product grade policies
 
@@ -415,5 +612,620 @@ committed with submission and remain unchanged when the saved signature changes.
 
 Signed PDFs are server-rendered submission records, including stored form fields
 and timesheet/status entries; they do not depend on browser print settings or
-editable display-only fields. Existing paper preview layouts remain available for
-unsigned drafts. Signing the submission does not apply signatures for approvers.
+editable display-only fields. `POST /api/v1/hr/leave-requests/preview-pdf`
+accepts `LeaveRequestCreate`, requires `leave.request.create.self` and an employment
+department matching the request, and returns an inline `application/pdf` with
+private, no-store caching. It saves neither a request nor a signature. The leave
+editor uses this Python renderer for its draft preview and retrieves the immutable
+signed PDF after submission. The rendered leave sheet resolves employee, supervisor
+and department names from HR records and shows dates in America/Grenada.
+
+`POST /api/v1/hr/absentee-reports/preview-pdf` similarly accepts
+`AbsenteeReportCreate`, checks `absentee.report.create` subject scope and the
+subject's employment department, and returns a private, no-store Python PDF
+without saving a report or signature. Both forms download the Python PDF rather
+than printing the editor. Absentee submission snapshots distinguish the absent
+employee from the reporter/signature owner. Drafts can save incomplete reason
+notes; creation as submitted and later submission enforce the required reasons.
+Times must be a valid paired local HH:MM interval within the expected shift, or
+both blank for a full shift; overnight times remain on the shift-start report date.
+The expected work shift is inferred from a unique published/closed roster
+assignment when omitted. Reporter-owned proxy drafts are included in the default
+list, alongside reports about the caller; department lists require scoped access.
+Other HR forms still use their existing unsigned paper previews. Signing a
+submission does not apply signatures for approvers; submission PDFs retain the
+approval state at submission, while later decisions live in the workflow.
+
+
+## WxWatch gallery reads
+
+`GET /api/v1/wxwatch/metadata?day=YYYY-MM-DD` accepts the existing bearer token or session cookie and returns `{groups: [{productKey, name, synopticImages}]}`. Each group contains all eight UTC three-hour slots, with null for missing images. Selection floors observations into their three-hour bucket; GOES-19 uses the closest observation to the bucket start, other sources use the latest fetch. Date bounds are inclusive midnight to exclusive next midnight. Responses are private/no-store; missing database configuration returns 503. Raw collector metadata is not exposed.
+
+`GET /api/v1/wxwatch/ready` is an anonymous availability check returning 204 or 503 without image data. FastAPI uses its own `WXWATCH_DATABASE_URL`. Gaa-admin no longer connects directly to this database. FastAPI owns archive writes and migrations through `src/wxwatch/alembic.ini`. Legacy Drizzle history is verified before adoption. The collector has no SQL writer. Existing three-hour selection is retained for compatibility; product identities are source-qualified and each image reports timestamp provenance. Legacy records are explicitly `legacy_unknown`.
+
+### WxWatch collector API
+
+`POST /api/v1/wxwatch/runs`, `POST /api/v1/wxwatch/ingest`, and `POST /api/v1/wxwatch/runs/{id}/finish` require a worker bearer secret matching `WXWATCH_INGEST_TOKEN` (minimum 32 characters). Browser sessions do not authorize ingestion. Run creation returns an expiring source lease; overlap returns 409. Ingestion requires an active lease, validates paths/source and metadata, serializes duplicate URL/checksum checks transactionally, and returns `{id, created}`. Run completion records finished/failed. No automatic deletion policy is enabled.
+
+### WxWatch image viewer evidence
+
+The authenticated WxWatch gallery metadata includes nullable catalogue evidence:
+`archiveObservedAt`, `archiveNominalTime`, `firstRetrievedAt`,
+`latestRetrievedAt`, `verificationStatus`, `verifiedSha256`, `verifiedByteSize`,
+and `replicaState`. Latest retrieval is computed for the exact edition, not the
+whole product. Legacy records without catalogue entries retain null evidence.
+SHA-256 and size describe the catalogued asset; they do not assert that a file
+has been rechecked during the metadata request. Replica state is the last
+recorded check of the local file at the gallery's path. The viewer labels
+estimated times separately and presents all timestamps explicitly in UTC.
+
+### WxWatch archive browsing
+
+Authenticated `GET /api/v1/wxwatch/archive` lists catalogue editions with
+`source` (exact collector key), `product` (literal case-insensitive title/key
+substring), inclusive UTC calendar dates `start`/`end`, `unknown_time`, `offset`
+(default 0, maximum 100000) and `limit` (default 30, maximum 100). Dates filter
+nominal product time, never receipt time. Unknown-time-only queries reject date
+bounds. Ordering is nominal time descending, unknown times last, UUID as tie
+breaker. Offset pagination may shift while new editions arrive; it is not a
+snapshot export. Responses contain `items`, `offset`, and `has_more`.
+
+Authenticated `GET /api/v1/wxwatch/archive/{edition_id}/retrievals` uses the same
+pagination bounds, orders by retrieval time then UUID descending, and returns
+404 for an absent edition. Empty history means no recorded retrieval events,
+not that the edition was never downloaded. Both endpoints are private/no-store.
+
+The staff page `/wxwatch/archive` presents these records and supports selecting
+two editions for visual comparison. Existing image delivery still authorizes
+requests; storage failures retain metadata and display an unavailable image.
+No numerical comparison, spatial co-registration, correction equivalence or
+historical retrieval reconstruction is implied. Legacy catalogue links remain
+the compatibility path to assets during this pilot.
+
+### NHC guidance in gaa-admin
+
+`/wxproducts/nhc` is the primary NHC guidance surface. The existing authoring
+workflow remains at `/wxproducts/nhc?view=editor`; unavailable archive data does
+not prevent opening that editor. Guidance always filters the catalogue to
+`source=nhc`. Shared archive navigation and comparisons also support NHC text.
+
+Archive edition metadata now includes optional `issued_at`, `storm_id`,
+`bulletin_code` and `has_bulletin`. Full bulletin bodies are excluded from lists.
+Authenticated `GET /api/v1/wxwatch/archive/{edition_id}/bulletin` returns
+`edition_id` and plain `text`, with private/no-store caching and 404 when no
+bulletin exists. The browser loads text on demand through the existing session
+proxy and renders it as escaped text, including in comparison panels.
+
+Edition retrieval history now combines image retrievals with edition-linked
+NHC import events. `event_kind` distinguishes downloaded and checked-unchanged;
+`checked_at` is separate from `retrieved_at`. `is_imported` distinguishes import
+time (in `recorded_at`) from an original API-recorded retrieval. Events are
+ordered by check time where present, otherwise retrieval time. Failed NHC
+attempts without an edition link remain in the database and are not attributed
+to a specific bulletin by this reader. Raw importer metadata is not exposed.
+No original file is served through the image route for NHC text editions.
+
+### WxWatch asset delivery and processing lineage
+
+`GET /api/v1/wxwatch/archive/{edition_id}/assets` lists the edition's asset IDs,
+roles, hashes, sizes and registered media types for authenticated staff.
+`GET /api/v1/wxwatch/assets/{asset_id}` delivers a registered asset independently
+of its storage filename. Both use the existing browser/session authentication.
+Unknown IDs return 404; assets without an available, verified local replica
+return 503. Locations and credentials are never returned.
+
+The API copies the selected local file into a temporary snapshot and checks its
+SHA-256 and size before responding. Validated PNG/JPEG/GIF/WebP images render
+inline; other bytes download as `application/octet-stream` with `nosniff` and a
+sandbox policy. This adds disk I/O and temporary storage proportional to the
+asset size, but prevents an altered file from being served under a verified ID.
+Responses are private and not cached. Existing image-path URLs remain supported.
+
+`WXWATCH_LOCAL_ASSET_ROOTS` is a server-only JSON object mapping registered
+backend keys to absolute directories visible inside the API runtime, for example
+`{"nhc-local":"/app/nhc-archive"}`. The directory must be visible inside the API container; local Compose supplies
+the `nhc-local` read-only mount described below. `WXWATCH_LOCAL_IMAGES_DIR` continues to
+supply `local-primary`. Unconfigured backends are skipped. Cloud replication and
+cloud delivery through asset IDs remain future work.
+
+`POST /api/v1/wxwatch/derivations` uses the existing collector bearer credential.
+It accepts `input_asset_ids` (1–100 unique UUIDs, unordered), `output_asset_id`,
+`processor`, `processor_version`, `options` (JSON object, at most 16 KiB), and an
+optional timezone-aware `generated_at`. Assets must already have verified
+replicas; this endpoint neither uploads nor processes bytes. Each output is
+identified by its registered content hash. Inputs cannot include the output,
+and registrations cannot introduce lineage cycles.
+
+Identical input/output IDs, processor/version and canonical options return the
+same derivation ID. Different versions/options create different records.
+Conflicting generation evidence returns 409; unknown/unverified assets return
+422. `recorded_at` is assigned by the database and never substituted for unknown
+`generated_at`. Registration does not create a meteorological edition. Existing
+NHC decoded outputs are not automatically backfilled into these records.
+
+### NHC raster imagery
+
+The manual NHC importer now accepts `kind=image` records alongside its existing
+text/bulletin/outlook records. It checks original SHA-256 and size, the decoded
+record's source hash and image reference, and the actual raster format before
+registering the original asset. Image dimensions, frame count and MIME type come
+from the bytes rather than the remote HTTP content type. The current per-file
+limit is 10 MiB; larger artifacts require a separate streaming-import extension.
+
+`ArchiveEdition.image_asset_id` is nullable and identifies an NHC original raster
+for authenticated delivery through `/api/v1/wxwatch/assets/{asset_id}`. It does
+not expose filesystem paths. GAA Admin's existing NHC Products archive renders
+these assets and offers a full-size link; legacy WxWatch image paths still work.
+No derived image is created by this import, so no derivation record is invented.
+
+Image issue time comes only from the manifest's explicit `issued_at`. If absent,
+issue and nominal time remain unknown. HTTP 304 records preserve the earlier
+retrieval time and record a separate check event. Reimporting the same manifest
+is idempotent. Failed image records create failed events without new editions.
+
+Local Docker Compose now mounts `data/gms-ingest/nhc` at `/app/nhc-archive`
+read-only and configures the `nhc-local` backend. Recreate the API container to
+apply the mount. This local setup does not configure production or cloud storage.
+
+From `apps/api/fastapi` on the host, apply the local runtime configuration:
+
+```bash
+docker compose -p grenmet-api --env-file .env.local up -d --no-deps api
+```
+
+Preview the existing run before applying it:
+
+```bash
+docker compose -p grenmet-api --env-file .env.local exec api \
+  uv run --frozen --package fast-back python scripts/import_nhc_archive.py \
+  --root /app/nhc-archive \
+  --manifest runs/20260905T123318776004Z-313e70ba/manifest.json
+```
+
+Repeat that import command with `--apply` to register the eligible records.
+No additional Alembic migration beyond `wxwatch_0006` is required for this slice.
+
+### Public forecast selection
+
+`GET /api/v1/wxproducts/public/forecast` is an anonymous, `no-store` endpoint.
+FastAPI selects five periods using one server-clock instant (`as_of`). It reads
+only published snapshots from the separate wxproducts database. An unavailable
+store returns 503; an available store without a current publication returns five
+periods with null sources and no invented forecast values. Each period also carries
+`conditions`: display-ready tiles (`icon` lucide name, `value`, `label`) built by
+`src/wxproducts/presentation.py`, the same text the PDF sheet prints (public units
+first, WMO units in brackets). weather.gd renders them; older products fall back
+to `details`.
+
+The forecast-day boundary is 07:00 America/Grenada. Morning, midday and evening
+issues become eligible at 07:00, 12:00 and 18:00 respectively, subject to their
+publication timestamps. A late replacement leaves the previous eligible issue
+in place until expiry. At 07:00 the following day, yesterday's current-period
+forecast is no longer selected. Evening outlook periods remain eligible for
+their corresponding future dates. Selection is ordered by issue time,
+publication time, revision, and product ID for deterministic ties.
+
+Each period includes its date, UTC `valid_from`/`valid_to`, numeric high/low,
+a limited dictionary of display details, and a nullable source containing product
+ID, revision, kind, issue time and publication time. Null source means awaiting
+publication; its times describe the expected forecast slot, not issued evidence.
+The separately selected midday temperature carries `time_basis=product_issue`:
+its source issue timestamp must not be represented as a measured observation time.
+
+`today_issues` lists every current issue for the base date (newest revision per
+kind, oldest issue first); its last entry is `periods[0]`. weather.gd offers the
+earlier issues as Morning / Midday / Evening tabs beside the newest.
+
+### Public current conditions
+
+`GET /api/v1/eregister/public/current` is anonymous and `no-store`. It returns the
+newest SYNOP for MBIA (station 78958) that is not rejected or superseded (by state
+or by a newer row's `supersedes_id`) and is not timed more than 15 minutes ahead,
+decoded into public units: temperature/dew point (°C), relative humidity (Magnus),
+wind (compass, kt, mph; `wind_calm`), MSL pressure (hPa) with 3-hour trend,
+precipitation with its period (trace flagged), 24-hour rainfall, plain-English
+present weather and cloud cover. `status` is `provisional` until the reading is
+`accepted`, following real-time practice; weather.gd labels it so. Staff fields
+(actor, QC notes, raw TAC, WIS2 data) never leave `src/eregister/public.py`. No
+reading returns `{"observation": null}`; an unavailable register returns 503.
+
+GMS now fetches this endpoint directly from the existing FastAPI origin
+`AUTH_API_URL` and prefix `AUTH_API_V1_STR`, without cookies. Its published-product
+pages use `/wxproducts/public/products` at the same origin and generated Kubb
+validators. GMS never calls GAA Admin; the old `WXPRODUCTS_API_URL` proxy
+origin has been removed. The GAA Admin public-products compatibility route remains
+available to other callers.
+
+The website formats labels, icons and units; it no longer selects forecast
+revisions or applies expiry rules. During an unreachable/malformed API response,
+its navigation uses empty calendar-day placeholders labelled unavailable, never
+sample forecast data. No database migration is required.
+
+The GAA forecast editor can append selected headline, description, or instruction
+text from `/api/cap/latest-active` to its summary or an evening day’s weather.
+The existing authenticated proxy forwards this request to the shared FastAPI
+origin. The picker displays CAP status, area, and validity; the active feed may
+include test/exercise bulletins. Staff must check applicability. It refreshes the
+feed before insertion (the backend feed has a 30-second cache), preserves source
+identifier/sender/sent in the copied text, and invalidates the forecast preview.
+This is an editable snapshot, not an automatically synchronized CAP reference.
+Normal draft saving and publication review still apply. No schema migration.
+
+### Aviation working drafts
+
+FastAPI owns aviation draft persistence in the separate wxproducts database.
+`GET /api/v1/wxproducts/aviation/drafts?kind=METAR&station=TGPY` returns up to 50
+latest drafts for the exact station/type; kinds are METAR, SPECI and TAF.
+`POST` to the same path saves `{id, expected_revision, kind, station, message,
+observed_at?, issued_at?, valid_from?, valid_to?}`. A new UUID starts at expected
+revision zero. Existing identity (station/type) cannot change. Competing saves
+return 409; draft and revision snapshot commit together.
+`GET /api/v1/wxproducts/aviation/drafts/{id}/history` returns up to 100 latest
+revision snapshots with author identity and recorded time.
+
+All three routes require the separate `aviation` product-access policy, using
+the existing configurable GMS-grade controls (manager, assistant manager and
+senior technician defaults). Browser mutations use the existing session/CSRF
+flow. Responses are no-store; no aviation draft is included in public products.
+
+Time fields require explicit offsets and normalize to UTC. Unknown times remain
+null; validity bounds must be paired and ordered. They are staff-supplied draft
+metadata, not decoded or independently verified times. `updated_at` and history
+`recorded_at` are backend save times. Exact message text is retained. This does
+not implement full WMO/ICAO message validation, issuance, or transmission.
+
+GAA's aviation page can import a browser draft as a new unsaved draft. It retains
+the local original and asks staff to check time metadata before saving. Apply
+wxproducts Alembic revision `wxproducts_0002` before using API draft storage:
+
+```bash
+docker compose -p grenmet-api \
+  --env-file apps/api/fastapi/.env.local \
+  -f apps/api/fastapi/docker-compose.yml exec api \
+  uv run --frozen --package fast-back alembic \
+  -c src/wxproducts/alembic.ini upgrade head
+```
+
+### Public CAP warning selection
+
+`GET /api/cap/warnings` returns `{as_of, activeCount, groups}` for GMS. FastAPI
+owns eligibility, selection of the information block, hazard grouping and
+severity ordering. It selects Public-scope, PUBLISHED Alert/Update records
+whose sent time is not in the future. Information blocks must be effective
+and not expired at the selection clock; an onset in the future does not hide
+an already-effective warning. An active English block is preferred, then
+sequence/ID order, with one displayed warning per alert. Existing display
+hazard groups are retained, with unmatched events under Other warnings.
+These event-name groups are presentation categories, not CAP event codes.
+
+CAP status is preserved, including exercise/test messages, which GMS labels
+using its existing banners. Missing/invalid response status is a contract
+failure, never an implicit Actual warning. Only display fields are exposed;
+private records, staff IDs and internal notes are omitted. `activeCount`
+counts displayed Actual alerts only; non-Actual alerts remain visible in groups
+with their CAP status for drill labelling. Lifecycle state remains
+owned by the existing CAP workflow; this endpoint does not change it.
+
+The endpoint and GMS request use no-store. Database/validation failures return
+503; malformed responses, HTTP errors and timeouts render Unavailable in GMS,
+not No active warnings. GMS validates the generated Kubb contract. Existing
+`/api/cap/latest-active` consumers are unchanged. Publishing an Update retires
+only the local messages it validly references. Cancelling publishes a distinct
+CAP Cancel message that references the original and requires a reason in its
+`note`; it preserves the original message identity and XML snapshot. The past endpoint also includes messages
+whose information blocks have naturally expired, while replacement links keep
+superseded messages out of GMS's Ended list. No database migration.
+
+
+### Weather product preview
+
+`POST /api/v1/wxproducts/products/preview` accepts `kind`, `values`,
+`expectedRevision`, and `changeSummary`. It uses the same browser session/CSRF
+and product-kind permissions as authoring. It returns normalized `values`,
+publication-readiness `errors`, and UTC `checked_at`, with `Cache-Control: no-store`.
+It does not save, issue, reserve a revision, or grant publication approval.
+Content errors return 200 with a nonempty errors list; malformed input returns
+422 and unauthorized requests return 401/403. The editor requires a successful
+preview before human acknowledgement. Publication rechecks content, expiry,
+acknowledgement, and optimistic revision in the existing write operation.
+Local form defaults remain editing conveniences; the API supplies the reviewed
+schedule. GAA uses the generated Kubb request/response contracts.
+
+### Saved weather revision PDFs (2026-09-17)
+
+FastAPI owns `GET /api/v1/wxproducts/products/{product_id}/revisions/{revision}/pdf`. Staff session and product-kind access are required. It renders the exact stored revision, includes draft/withdrawal/archive labels and preserves forecast text, copied CAP attribution, and validity fields. Downloads do not publish or mutate data. Responses are private/no-store; unknown and inaccessible revisions return 404.
+
+GAA Admin offers separate saved and published revision downloads. Unsaved edits must be saved before export; the published copy remains available independently. The legacy Node sample-page export command is retired. No database migration is needed.
+
+### Forecast and bulletin PDF sheets and draft preview (2026-09-24)
+
+Forecast (morning, midday, evening), hazard bulletin and tropical weather outlook revisions render as GMS sheets with WeasyPrint: Jinja2 templates in `src/wxproducts/templates/` (`base`, `forecast`, `bulletin`, `sheet.css`), prepared by `src/wxproducts/forecast_pdf.py`. Forecasts: navy header, headline, conditions, impact-based forecast matrix, alerts and advisories in force, evening four-day cards, contact footer. Bulletins: level banner, synopsis, conditions/details, the bulletin's own IBF assessment, impacts and response. Outlook: special-interest region, systems, formation outlook, source and next update. Colours are `--gm-*` custom properties generated from a token mirror (a test fails on drift). WeasyPrint needs Pango/HarfBuzz/fontconfig system libraries (installed in both API images and in CI).
+
+`POST /api/v1/wxproducts/products/preview/pdf` (operation `wxproductsPreviewProductPdf`) accepts the `/products/preview` body for every product kind and returns `application/pdf` rendered with the same layout, labelled "DRAFT PREVIEW — NOT FOR ISSUE". Same session/CSRF and product-kind access; no-store; nothing is saved. The editor shows this PDF as its live preview, so the reviewed document is the issued layout.
+
+Structured forecast parameters (flat string values, no contract change): `windDirFrom`/`windDirTo` (16-point compass or `Variable`), `windSpeedMin`/`windSpeedMax`/`windGust` in knots, `seaStateFrom`/`seaStateTo` (WMO code table 3700 terms), `waveHeightMin`/`waveHeightMax`/`swellHeight` in metres, `swellDir`, `swellPeriod` (s), `tide1..4Type/Time/Height`, `condition`, `rainChance`; evening days use the same names with a `dayN` prefix. Marine bulletins use the wind, sea and tide groups, wind bulletins the wind group, coastal bulletins `swellDir`/`swellPeriod`/`swellHeight`; marine and dust bulletins take `visibilityMin`/`visibilityMax` in km (composed `visibility` adds nautical miles and the marine term). The outlook adds optional `formationChance48h`/`formationChance7d` (percent), printed as NHC low/medium/high chips. Saved revisions are written as PDF/A-3b; live previews are plain PDF. FastAPI composes the legacy `wind`, `seaState`, `swell`, `visibility`, `highTides`, `lowTides` (and `dayN…`) text from them, only for keys the kind defines, so existing consumers are unchanged (a cyclone's `wind` stays free text). FastAPI stamps the signed-in `forecaster` on every product; for forecasts it also stamps `area` and `advisories`: a JSON summary of active public CAP alerts and current GMS bulletins (`{capturedAt, complete, items[]}`) that the PDF draws. CAP and bulletins remain the authoritative warnings.
+
+### Time-aligned observations
+
+`GET /api/v1/wxproducts/observations` is the staff read contract for SYNOP, METAR and SPECI while the SURFACE adapter is being introduced. It returns one canonical record shape with observation and issue times, the source payload, and provenance for TAC, BUFR, IWXXM and WIS2 publication. The endpoint is read-only; SURFACE remains authoritative for operational capture, quality control and WIS2box publication.
+
+### eRegister structured SYNOP workbook
+
+`POST /api/v1/eregister/observations/validate-synop` accepts the structured
+FM-12 workbook model used by GAA Admin. It validates the identification fields,
+Section 1 global groups, and Section 3 regional/national groups and returns
+`valid`, field-level `issues`, and the normalized workbook. Draft creation
+remains available through `POST /api/v1/eregister/observations`; validation is
+currently advisory while the full WMO code-table encoder is being added. The
+validation endpoint does not save, publish, or transmit an observation.
+
+### GAA operational catalogues
+
+`GET /api/v1/janitorial/spec` and `GET /api/v1/transport/spec` are authenticated
+read contracts for the GAA Admin Janitorial and Staff Transportation pages.
+FastAPI owns the database connections, Alembic histories, SQL reads, and
+response shapes; the web app only renders the generated Kubb contracts. Existing
+catalogue rows are adopted in place by the domain migrations, and no write or
+seed operation is exposed by these routes. `GET /api/v1/transport/spec` is
+deprecated: it reads the frozen v1 catalogue and does not follow published
+timetable versions.
+`GET /api/v1/janitorial/spec` keeps its v1 shape for any signed-in user but now
+omits inactive buildings, sections, areas and tasks; gaa-admin reads the scoped
+`/janitorial/catalogue` instead (below).
+
+### Staff transport timetable
+
+The versioned staff-bus timetable (`transport_0003`) backs the gaa-admin bus
+portal and will back the driver and staff apps. Routes, shifts, stops and
+service calendars are a registry edited in place; trips and stop times belong
+to a timetable version.
+
+| Route | Access | Contract |
+| --- | --- | --- |
+| `GET /transport/access` | signed in | Which portal actions the caller may take; UI hint only, the API still enforces each permission |
+| `GET /transport/timetable/current` | signed in | Timetable in force today (Grenada): the published version with the latest effective date on or before today, latest publication winning a same-day tie; 404 before any is in force |
+| `GET /transport/catalogue` | signed in | Routes, shifts, stops (with routes serving them today), service calendars — reference data the staff and driver apps also need |
+| `POST /transport/routes`, `PUT /transport/routes/{route_id}` | `transport.timetable.manage` | Route numbers unique (409) |
+| `POST /transport/stops`, `PUT /transport/stops/{stop_id}` | `transport.timetable.manage` | Stop codes unique (409); latitude and longitude given together or not at all (422) |
+| `GET /transport/timetable/versions[/{version_id}]` | `transport.view` | Versions newest first with `state` (`draft`, `scheduled`, `current`, `superseded`, `discarded`); detail adds trips and validation `issues` |
+| `POST /transport/timetable/versions` | `transport.timetable.manage` | Starts the single draft as a copy of the version in force; 409 if a draft exists |
+| `PUT …/{version_id}`, `POST …/{version_id}/discard` | `transport.timetable.manage` | Draft only (409 otherwise) |
+| `POST/PUT/DELETE …/{version_id}/trips[/{trip_id}]` | `transport.timetable.manage` | Draft only; references checked (422); a PUT replaces the whole ordered stop list |
+| `POST …/{version_id}/publish` | `transport.timetable.publish` | Effective date today or later (422); `error` issues block publishing (422), `warning` issues do not |
+
+Times are `HH:MM` after service-day midnight and may pass `24:00` (GTFS
+convention) for night trips. Stop `timepoint: false` marks an approximate time;
+the v1 group times are migrated as approximate. Route 6 trips are migrated as
+`awaiting_confirmation` pending GAA HR.
+
+## OpenAPI and generated-client rules
+
+FastAPI is the source of truth for the committed OpenAPI document. Regenerate it
+before running Kubb:
+
+```bash
+cd apps/api/fastapi
+uv run --frozen --package fast-back python -c "from src.main import app; import json; json.dump(app.openapi(), open('openapi.json', 'w'), indent=2)"
+cd ../..
+pnpm generate:api-client
+pnpm check:drift
+```
+
+Operation IDs use a stable domain-prefixed camel-case convention such as
+`capGetAlert`, `hrCreateLeaveRequest`, and `authLogin`. They are unique public
+contract identifiers because Kubb uses them for generated clients and hooks.
+
+Public request and response shapes use Pydantic schemas derived from
+`src.models.BaseModel`; SQLAlchemy models remain persistence-layer types.
+Datetime responses use `UtcDateTime` and retain OpenAPI `format: date-time`.
+Meaningful finite values use named enums, and intentionally opaque maps must be
+listed in the schema guard exemption registry.
+
+Every operation should declare a useful summary, description, response model or
+explicit raw-media response, success status, and realistic error responses.
+Validation failures use the typed `ValidationErrorResponse` envelope; application
+errors use the typed `ApiError` envelope.
+## eRegister persistence verification — 23 September 2026
+
+Observation creation now uses native datetime values and typed JSONB SQL
+bindings. The request/response contract is unchanged. Host-backed tests verify
+save/reopen of nested workbook data and optional artifact metadata, UTC response
+serialization, draft state and anonymous write denial. Caller-supplied artifact
+metadata is not proof of generated or validated BUFR/IWXXM. Lifecycle and
+domain-level author/reviewer permissions remain separate acceptance gaps.
+
+### Janitorial portal
+
+`janitorial_0002` adds sites (GND, CRU), area codes, space types, APPA target
+levels, contractor staff, building grants, shifts and a `change_events` history
+to the separate janitorial database. It backs the gaa-admin `/janitor` portal and
+will back the janitor PWA. Every edit sends `expectedRevision`; a stale revision
+or duplicate is 409, and each accepted write records history in the same
+transaction. Records are deactivated, never deleted. Staff and grant holders are
+Barrels Login users referenced by id; names come from the auth service.
+
+**Scope:** role permissions say what a user may do; active building grants say
+where. Superusers and `janitorial.scope.manage` holders act on every building;
+anyone else only on granted buildings (none by default).
+
+| Route | Access | Contract |
+| --- | --- | --- |
+| `GET /janitorial/access` | signed in | Portal flags plus `buildingIds` (null = every building); UI hint only |
+| `GET /janitorial/catalogue?site=` | `janitorial.view` | Sites, then buildings in scope with sections, areas (`code`, `spaceType`, `cleanlinessLevel`, `quantity`), tasks and bundles; inactive rows included |
+| `POST /janitorial/buildings` | `janitorial.catalogue.manage` + all-building scope | New building at a site |
+| `PATCH /janitorial/buildings/{id}`, `POST/PATCH /janitorial/sections[/{id}]` | `janitorial.catalogue.manage` + building in scope | |
+| `POST/PATCH /janitorial/areas[/{id}]` | `janitorial.catalogue.manage` + building in scope | Code assigned on create (`GND-A0010`); omitted space type and level inferred from the name |
+| `POST /janitorial/areas/{id}/tasks`, `PATCH /janitorial/tasks/{id}` | `janitorial.catalogue.manage` + building in scope | Activity names matched by slug, never duplicated |
+| `GET /janitorial/staff` | `janitorial.view` | Contractors and staff with Barrels Login name, email and account state |
+| `POST/PATCH /janitorial/contractors[/{id}]`, `POST/PATCH /janitorial/staff[/{id}]` | `janitorial.staff.manage` | Staff added by Barrels Login email (404 if no account; 409 if already staff or badge taken) |
+| `GET/POST /janitorial/grants`, `POST /janitorial/grants/{id}/revoke` | `janitorial.scope.manage` | Grants by email and building ids; held buildings skipped; revoke is 204 and kept in history |
+| `GET /janitorial/shifts?site&from&to` | `janitorial.view` | Shift patterns, zones whose areas are all in scope, and their assignments (range ≤ 62 days) |
+| `POST/PATCH /janitorial/shift-patterns[/{id}]` | `janitorial.shifts.manage` | `HH:MM`; a shift ending before it starts runs past midnight |
+| `POST/PATCH /janitorial/zones[/{id}]` | `janitorial.shifts.manage` + every area in scope | Areas must be at the zone's site (422) |
+| `POST/PATCH /janitorial/shift-assignments[/{id}]` | `janitorial.shifts.manage` + zone in scope | One scheduled assignment per person, shift and date (409); cancel via `status` |
+
+### Approved timestamp/input corrections
+
+CAP create/update and XML import require explicit timezone offsets for supplied
+sent/reference/info times. Invalid or mixed offset-free request timestamps return
+validation errors before time ordering; historical naive-UTC database output
+remains readable. Duplication converts stored timestamps through the UTC public
+representation before constructing a new draft.
+
+eRegister creation trims station IDs and rejects blank IDs, offset-free observed
+or issued times, and unknown top-level fields. The nested draft `body` remains
+an extensible map; read schemas retain historical compatibility. No lifecycle,
+permission or database migration is introduced by these validation changes.
+
+Public wxproducts `publishedAt` is a validated timezone-aware timestamp serialized
+as UTC with a Z suffix (second precision, matching the shared API serializer).
+Security-session `last_used_at` and `expires_at` use the same UTC response format,
+including naive-UTC database values. Generated TypeScript fields remain strings
+and generated validation schemas carry the date-time constraint.
+
+### CMS editorial feeds — September 29
+
+The single CMS `content` collection and `GET /api/public/content` are retired.
+Editorial content lives in bounded collections (`desk-updates`, `stories`,
+`questions`, `discover`) plus `weather-now` and `homepage` globals. Anonymous,
+published-only feeds: `GET /api/public/home` (every homepage part, each
+`{status: "ok", items}` or `{status: "unavailable"}`; `settings` also carries
+`sectionCopy` — editor kicker/title/intro by section key, blanks omitted — and
+`exploreReading` — published read-more links by Explore today activity;
+`reportNotes` and `livePosts` parts added 30 Sep 2026; articles carry
+`linkedProduct: {productId, kind} | null`, resolved by GMS through
+`/wxproducts/public/products/{id}`),
+`/api/public/articles`,
+`/api/public/questions` and `/api/public/quizzes`. Reports and imagery are
+FastAPI data; the homepage reads reports from `/wxproducts/public/products`.
+No FastAPI contract changes; the permission catalogue replaces
+`cms.article.publish.*` with `cms.publish.*`, `cms.weather-now.note` and
+`cms.homepage.manage`.
+
+### CMS editorial links — September 23 (superseded by the feeds above)
+
+CMS `GET /api/public/content` additionally returns nullable `category` selected
+from the post's editorial section and `relatedLinks` (empty for older posts).
+Each link exposes only `title`, `category` and `url`; internal Payload row IDs
+are omitted. Links use existing HTTP/HTTPS destinations, not product revision
+lookups. Staff must check the destination's audience access. Existing anonymous
+publication filtering remains unchanged; no FastAPI contract changes occur.
+
+### Daily status shift reporting
+
+Daily status uses `shift_code=M|E|N`; legacy `shift_period=AM|PM` remains readable
+for compatibility. `GET /api/v1/hr/status-reports/staffing` takes department,
+local report date and shift code, returning published/closed roster staff and
+approved absence/leave availability. D assignments remain D in both M/E coverage;
+M covers arrival and E covers departure/final verification. Schedules never
+prove attendance: unconfirmed staffing is `UNCONFIRMED`, and submission requires
+confirmation of all personnel entries and operational answers. This report does
+not create or approve the employee's attendance record.
+
+Staffing also returns the linked actual attendance ID, arrival/departure and
+workflow review status. M/E coverage references the same D attendance. These
+times prefill report observations in Grenada local time; the reporter still
+confirms personnel status. Report edits never change actual attendance. The
+staffing feed omits employee attendance notes and correction reasons.
+
+`POST /api/v1/hr/status-reports/preview-pdf` renders unsaved form values in Python
+without storing a report, workflow or signature. The same renderer serves signed
+output, including original equipment/remedy and incident-report fields, resolved
+employee names, reporter, supervisor and submission timestamp. Creation, editing,
+reading, listing and staffing require scoped department access; personnel rows
+must belong to that department. Draft details return persisted personnel rows
+with resolved names, arrival/departure observations and notes.
+
+Shift exchanges: `POST /api/v1/hr/shift-swaps/preview-pdf` renders an unsaved,
+authenticated PDF with resolved department, employee, counterpart and supervisor
+names, using the same Python renderer as the immutable signed submission. It does
+not persist a request or signature. Codes are limited to 10 characters; reasons
+to 1000. Both employees must belong to the request department. Submission always
+adds the counterpart as a required first-stage approver, before the department
+approval chain; duplicates are removed and the requester cannot co-approve.
+Final approval validates published, open roster assignments again, swaps the
+employees' shift codes on the stated local start dates, and records before/after
+values and the request reference in roster revisions in the same transaction.
+Different-date exchanges require each employee to be off on the date they take
+over; same-date exchanges swap their work shifts. Approved leave/absence blocks
+the exchange. Overlap checks include adjacent overnight shifts;
+recorded actual hours and submitted/approved timesheets require an HR correction
+before roster reassignment or reversal. Permanent roster-pattern changes are not handled by this dated
+temporary-exchange journey. Pending, rejected and returned exchanges leave the
+roster intact. Scoped managers can cancel an approved exchange through its action
+route or workflow action; reversal refuses closed rosters or later roster edits
+instead of overwriting corrections. The signed submission is not rewritten by
+approval or cancellation; agreement, recommendation, decisions and dates remain
+in the workflow. A returned signed form can be corrected as a draft and re-signed as a new
+immutable revision; prior approval cycles and submitted PDFs remain available.
+
+### Recorded HR service facts
+
+Authenticated employment create/read/update, HR profile, and administrator-only
+staff setup expose optional `continuous_service_date`, `probation_end_date`,
+`probation_completed_date` and `service_details_source`. Unknown facts remain
+null. Recorded dates require an HR source; expected probation end does not imply
+completion or determine leave/pay eligibility. PATCH validates merged facts and
+preserves omitted fields. Supervisors must have active employment and accounts;
+self-supervision and reporting cycles are rejected. See
+[recorded service facts](../hr/staff-service-facts.md).
+
+### Legacy manual timesheet integrity
+
+The authenticated legacy timesheet create API verifies active employment in the
+filing department and self/proxy authorization before any policy write. Policy,
+timesheet and entries commit together. Entry dates must be unique shift start
+dates within an ordered period; recorded hours are finite, nonnegative, at most
+24 per date with two decimal places. Break duration cannot exceed actual hours,
+and recorded hours worked must equal actual hours minus break duration.
+Catalogue shifts must exist and match any linked roster assignment. Roster links
+are restricted to the filing department's published or closed periods; draft and
+foreign-department schedules are not treated as approved work. Submitted legacy
+drafts revalidate dates, hours and roster employee/date/department/shift links;
+department lists enforce organisation and department
+scope. These checks do not derive overtime entitlement or pay. New shift
+attendance is the primary arrival/departure journey; historical manual periods
+retain their existing date range rather than being rewritten into weeks.
+Historical reads, summaries and approvals use the timesheet's filing department,
+so transferring an employee does not grant the new department access to old
+records. Employees retain access to their own records, and explicitly named
+reviewers retain access to the current workflow; approvals still require
+`timesheet.approve` and the workflow's stage rules.
+
+Returned leave, absentee, exchange, daily status and parking forms become editable
+drafts while their workflow remains `RETURNED`. Resubmission uses the form's
+validated submit route and creates a fresh approval cycle; prior workflow logs
+remain intact. `workflow_status` on form responses distinguishes a returned draft.
+Signed corrections require renewed consent and append an immutable document with
+`revision` and `supersedes_document_id`. `signed_document_id` resolves to the latest
+revision; every earlier document keeps its original ID, PDF, snapshot and access
+checks, and remains in the signed-document history. Same-submission replay cannot
+append a duplicate revision. Apply `signed20260928` after `reversal20260928`.
+
+Cancelling approved leave through the scoped workflow or legacy action route
+appends one `CANCELLATION_REVERSAL` for the exact recorded `APPROVAL_DEBIT`, rather
+than recalculating from mutable form values. Pending cancellation posts no credit;
+retry cannot duplicate the reversal. No opening balance, entitlement or pay rule
+is inferred. The reversal migration is `reversal20260928`, after `staff20260928`.
+
+### Parking applications
+
+Authenticated parking applications support `POST /hr/parking-permits/preview-pdf`,
+reporter-owned `PATCH /hr/parking-permits/{id}` draft edits and
+`POST /hr/parking-permits/{id}/submit` with fresh signature consent. Python renders
+the supplied Vehicle Pass fields and original security conditions for both draft
+previews and signed evidence. Previews save no rows and use `private, no-store`.
+The employee must belong to the filing department; proxy filing uses the existing
+employee scope. Other actions need an explanation on submission; registration,
+insurance date order and issuance validity are validated.
+
+Personal lists include the employee's applications and applications filed by the
+reporter; department lists and decal issuance require active organisation and
+department scope. `POST /hr/parking-permits/{id}/issue` requires an approved
+application and approved linked workflow. Identical issuance retries preserve
+the issuer and date; changed issuance is rejected, with renewal/replacement filed
+as a new application. Issuance does not rewrite the original signed evidence.
+
+Roster writes and CSV/grid imports enforce the filing department scope and employee membership. They preserve assignment IDs and protect actual attendance and legacy recorded/submitted/approved timesheets. Catalogue and assignment locks serialize timing edits with first punches. Attendance history reads use the recorded filing department after transfers; unchanged terminal reviews reopen as a fresh cycle, retaining prior steps. Generic workflow submission cannot bypass the attendance submit route.
+
+Signed document history also uses the original filing department after an employee transfer. Department read/manage grants do not expose the former department's documents to the new department; SELF-only and expired grants cannot read another employee's history. Existing owner and named counterpart access remains available.

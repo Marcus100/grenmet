@@ -2,10 +2,14 @@ import { emptyProduct, productFields } from "@barrelsgd/gms/products";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/lib/env", () => ({
-  env: { WXPRODUCTS_API_URL: "http://admin.example.test" },
+  env: { AUTH_API_URL: "http://api.example.test", AUTH_API_V1_STR: "/api/v1" },
 }));
 
-import { fetchPublishedProducts } from "@/lib/products";
+import {
+  fetchPublicForecast,
+  fetchPublishedProduct,
+  fetchPublishedProducts,
+} from "@/lib/products";
 
 function publication() {
   const values = emptyProduct("marine", "2026-09-08");
@@ -39,7 +43,9 @@ describe("public product feed", () => {
     expect(result.status).toBe("ok");
     expect(result.products).toHaveLength(1);
     expect(fetcher).toHaveBeenCalledWith(
-      new URL("http://admin.example.test/api/public/products?kind=marine"),
+      new URL(
+        "http://api.example.test/api/v1/wxproducts/public/products?kind=marine"
+      ),
       expect.objectContaining({ cache: "no-store" })
     );
     expect(fetcher.mock.calls[0][1]).not.toHaveProperty("headers");
@@ -61,7 +67,7 @@ describe("public product feed", () => {
       products: [],
     });
   });
-  it("rejects malformed products and filters expired snapshots", async () => {
+  it("rejects malformed products and leaves validity decisions to FastAPI", async () => {
     vi.stubGlobal(
       "fetch",
       vi
@@ -79,7 +85,59 @@ describe("public product feed", () => {
     );
     expect(await fetchPublishedProducts()).toEqual({
       status: "ok",
-      products: [],
+      products: [expired],
     });
+  });
+});
+
+it("treats invalid forecast responses and outages as unavailable", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue(Response.json({ periods: [] }))
+  );
+  expect(await fetchPublicForecast()).toBeNull();
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue(new Response(null, { status: 503 }))
+  );
+  expect(await fetchPublicForecast()).toBeNull();
+});
+
+describe("one published product", () => {
+  const id = "7d517fe0-a25b-4f12-a2b4-eaaed8116010";
+  it("reads it by id, including whether it is still current", async () => {
+    const fetcher = vi
+      .fn()
+      .mockResolvedValue(Response.json({ ...publication(), current: false }));
+    vi.stubGlobal("fetch", fetcher);
+    const result = await fetchPublishedProduct(id);
+    expect(result).toMatchObject({
+      status: "ok",
+      product: { id, current: false },
+    });
+    expect(String(fetcher.mock.calls[0][0])).toBe(
+      `http://api.example.test/api/v1/wxproducts/public/products/${id}`
+    );
+    expect(fetcher.mock.calls[0][1]).toMatchObject({ credentials: "omit" });
+  });
+  it("tells withdrawn apart from unavailable", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(Response.json({ error: "x" }, { status: 404 }))
+    );
+    expect(await fetchPublishedProduct(id)).toEqual({ status: "not-found" });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(Response.json({ error: "x" }, { status: 503 }))
+    );
+    expect(await fetchPublishedProduct(id)).toEqual({ status: "unavailable" });
+  });
+  it("never requests a malformed id", async () => {
+    const fetcher = vi.fn();
+    vi.stubGlobal("fetch", fetcher);
+    expect(await fetchPublishedProduct("../forecast")).toEqual({
+      status: "not-found",
+    });
+    expect(fetcher).not.toHaveBeenCalled();
   });
 });

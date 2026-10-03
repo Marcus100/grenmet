@@ -1,0 +1,170 @@
+[
+  [
+    "E01",
+    null,
+    "Paraclete Government School",
+    218,
+    173,
+    0,
+    {
+      "NDC": 47,
+      "NNP": 126
+    }
+  ],
+  [
+    "E02",
+    "a",
+    "La Fillette R.C. School",
+    317,
+    259,
+    1,
+    {
+      "NDC": 98,
+      "NNP": 160
+    }
+  ],
+  [
+    "E02",
+    "b",
+    "La Fillette R.C. School",
+    317,
+    260,
+    0,
+    {
+      "NDC": 100,
+      "NNP": 160
+    }
+  ],
+  [
+    "E02",
+    "c",
+    "La Fillette R.C. School",
+    322,
+    263,
+    1,
+    {
+      "NDC": 118,
+      "NNP": 144
+    }
+  ],
+  [
+    "E02",
+    "d",
+    "La Fillette R.C. School",
+    318,
+    262,
+    1,
+    {
+      "NDC": 98,
+      "NNP": 163
+    }
+  ],
+  [
+    "E03",
+    "a",
+    "Byelands R. C. School",
+    253,
+    202,
+    0,
+    {
+      "NDC": 93,
+      "NNP": 109
+    }
+  ],
+  [
+    "E03",
+    "b",
+    "Byelands R. C. School",
+    256,
+    203,
+    0,
+    {
+      "NDC": 90,
+      "NNP": 113
+    }
+  ],
+  [
+    "E04",
+    "a",
+    "Paradise Medical Station",
+    329,
+    253,
+    0,
+    {
+      "NDC": 113,
+      "NNP": 140
+    }
+  ],
+  [
+    "E04",
+    "b",
+    "Paradise Medical Station",
+    328,
+    254,
+    1,
+    {
+      "NDC": 129,
+      "NNP": 124
+    }
+  ],
+  [
+    "E05",
+    "a",
+    "Mirabeau Agricultural Station",
+    312,
+    236,
+    1,
+    {
+      "NDC": 88,
+      "NNP": 147
+    }
+  ],
+  [
+    "E05",
+    "b",
+    "Mirabeau Agricultural Station",
+    309,
+    240,
+    0,
+    {
+      "NDC": 109,
+      "NNP": 131
+    }
+  ],
+  [
+    "E05",
+    "c",
+    "Mirabeau Agricultural Station",
+    380,
+    297,
+    1,
+    {
+      "NDC": 120,
+      "NNP": 176
+    }
+  ],
+  [
+    "E06",
+    null,
+    "Sio's Bar, Birchgrove",
+    391,
+    315,
+    0,
+    {
+      "NDC": 148,
+      "NNP": 167
+    }
+  ],
+  [
+    "E07",
+    null,
+    "Paul\"s Bakery, Birchgrove",
+    387,
+    314,
+    3,
+    {
+      "NDC": 159,
+      "NNP": 152
+    }
+  ]
+]

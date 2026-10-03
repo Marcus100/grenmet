@@ -8,7 +8,7 @@ It's called by the prestart.sh script during container startup.
 
 import logging
 
-from sqlmodel import Session
+from sqlalchemy.orm import Session
 
 from src.auth.permissions import seed_permissions_and_roles
 from src.config import settings

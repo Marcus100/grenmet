@@ -1,0 +1,9 @@
+{
+  "id": "R-02",
+  "area": "2016 referendum",
+  "status": "open",
+  "impact": "source",
+  "what": "The certificates give Yes and No for all seven bills combined. Results for each bill exist only in secondary sources, and they disagree. For example, the CCJ bill is 9,639 Yes and 12,635 No on Wikipedia but 9,637 and 12,611 on NOW Grenada (an image credited to peogrenada.org, probably preliminary).",
+  "action": "Needs the PEO’s certified results for each bill, ideally by constituency.",
+  "sources": ["Wikipedia", "NOW Grenada, 25 Nov 2016"]
+}

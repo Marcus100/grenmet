@@ -44,6 +44,13 @@ def test_parses_core_fields() -> None:
     assert alert.codes == ["profile:CAP-GD:1.0"]
 
 
+def test_rejects_import_timestamp_without_offset() -> None:
+    with pytest.raises(CapImportError, match="timezone"):
+        xml_to_alert_data(
+            _SAMPLE.replace("2026-06-28T12:00:00+00:00", "2026-06-28T12:00:00")
+        )
+
+
 def test_parses_info_and_geometry() -> None:
     alert = xml_to_alert_data(_SAMPLE)
     assert len(alert.info) == 1

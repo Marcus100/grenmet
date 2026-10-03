@@ -28,9 +28,9 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import InvalidTokenError
 from pydantic import ValidationError
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from sqlmodel import select
 
 from src.auth.config import auth_settings
 from src.auth.constants import (
@@ -90,7 +90,7 @@ async def get_current_user(session: SessionDep, token: TokenDep) -> User:
     try:
         payload = jwt.decode(token, auth_settings.SECRET_KEY, algorithms=[ALGORITHM])
         token_data = TokenPayload(**payload)
-    except (InvalidTokenError, ValidationError):
+    except InvalidTokenError, ValidationError:
         raise _unauthorized(ERROR_INVALID_CREDENTIALS)
     if not token_data.sub:
         raise _unauthorized(ERROR_INVALID_CREDENTIALS)
@@ -98,6 +98,11 @@ async def get_current_user(session: SessionDep, token: TokenDep) -> User:
         user_id = uuid.UUID(token_data.sub)
     except ValueError:
         raise _unauthorized(ERROR_INVALID_CREDENTIALS)
+    return await get_authenticated_user(session, user_id)
+
+
+async def get_authenticated_user(session: AsyncSession, user_id: uuid.UUID) -> User:
+    """Apply the same live account and role checks for every credential type."""
     stmt = (
         select(User)
         .where(User.id == user_id)
@@ -128,6 +133,10 @@ async def get_current_user(session: SessionDep, token: TokenDep) -> User:
     from src.auth.access import effective_roles
 
     set_committed_value(user, "roles", await effective_roles(session, user))
+    # Attribute this request's audited changes to the signed-in person.
+    from src.audit.service import set_actor
+
+    set_actor(session, user.id)
     return user
 
 

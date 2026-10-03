@@ -10,8 +10,7 @@ import json
 import logging
 from pathlib import Path
 
-from sqlalchemy import text
-from sqlmodel import col, select
+from sqlalchemy import select, text
 
 from src.auth.models import User
 from src.baseline.department import GMS_DEPARTMENT_IDS
@@ -55,11 +54,7 @@ async def run(profile: dict, dry_run: bool = True) -> int:
         if matches:
             department_id = matches[0].id
         users = (
-            (
-                await session.execute(
-                    select(User).where(col(User.username).in_(usernames))
-                )
-            )
+            (await session.execute(select(User).where(User.username.in_(usernames))))
             .scalars()
             .all()
         )

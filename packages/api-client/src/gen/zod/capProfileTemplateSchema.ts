@@ -4,9 +4,10 @@
  */
 
 import * as z from "zod";
+import { capProfileDraftRequestPropertiesLevelEnumSchema } from "./capProfileDraftRequestPropertiesLevelEnumSchema.js";
 
 export const capProfileTemplateSchema = z.object({
-  level: z.enum(["Advisory", "Watch", "Warning"]),
+  level: capProfileDraftRequestPropertiesLevelEnumSchema,
   headline: z.string().max(500).optional().default(""),
   description: z.string().max(10000).optional().default(""),
   instruction: z.string().max(10000).optional().default(""),

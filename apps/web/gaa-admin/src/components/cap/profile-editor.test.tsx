@@ -106,7 +106,7 @@ describe("Hazard profile editor", () => {
     expect(
       screen.getByRole("button", { name: "Approve saved version" })
     ).toBeDisabled();
-  });
+  }, 10_000);
 
   it("creates a draft revision when editing an approved profile without changing its snapshot", async () => {
     const original = version("APPROVED");

@@ -3,8 +3,10 @@ from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
 
-from sqlmodel import Field, SQLModel
+from sqlalchemy import ForeignKey, Numeric, String
+from sqlalchemy.orm import Mapped, mapped_column
 
+from src.orm import Base
 from src.utils.datetime import utc_now
 
 
@@ -20,75 +22,83 @@ class SubmissionMode(str, Enum):
     PROXY = "PROXY"
 
 
-class DepartmentPolicy(SQLModel, table=True):
+class DepartmentPolicy(Base):
     __tablename__ = "department_policy"
     __table_args__ = {"schema": "hr"}
 
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    department_id: str = Field(foreign_key="hr.department.id", index=True, unique=True)
-    allow_employee_self_submit: bool = True
-    allow_supervisor_proxy_submit: bool = True
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now)
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    department_id: Mapped[str] = mapped_column(
+        ForeignKey("hr.department.id"), index=True, unique=True
+    )
+    allow_employee_self_submit: Mapped[bool] = mapped_column(default=True)
+    allow_supervisor_proxy_submit: Mapped[bool] = mapped_column(default=True)
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
-class Timesheet(SQLModel, table=True):
+class Timesheet(Base):
     __tablename__ = "timesheet"
     __table_args__ = {"schema": "hr"}
 
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
-    department_id: str = Field(foreign_key="hr.department.id", index=True)
-    period_start: date
-    period_end: date
-    status: TimesheetStatus = Field(default=TimesheetStatus.DRAFT)
-    submitted_by_user_id: uuid.UUID | None = Field(default=None, foreign_key="user.id")
-    approved_by_user_id: uuid.UUID | None = Field(default=None, foreign_key="user.id")
-    submitted_at: datetime | None = None
-    approved_at: datetime | None = None
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now)
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"), index=True)
+    department_id: Mapped[str] = mapped_column(
+        ForeignKey("hr.department.id"), index=True
+    )
+    period_start: Mapped[date]
+    period_end: Mapped[date]
+    status: Mapped[TimesheetStatus] = mapped_column(default=TimesheetStatus.DRAFT)
+    submitted_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id"), nullable=True
+    )
+    approved_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id"), nullable=True
+    )
+    submitted_at: Mapped[datetime | None]
+    approved_at: Mapped[datetime | None]
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
-class TimesheetEntry(SQLModel, table=True):
+class TimesheetEntry(Base):
     __tablename__ = "timesheet_entry"
     __table_args__ = {"schema": "hr"}
 
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    timesheet_id: uuid.UUID = Field(foreign_key="hr.timesheet.id", index=True)
-    entry_date: date
-    shift_code: str | None = Field(
-        default=None, foreign_key="hr.shift_catalog.code", max_length=10
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    timesheet_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("hr.timesheet.id"), index=True
     )
-    roster_assignment_id: uuid.UUID | None = Field(
-        default=None, foreign_key="hr.roster_assignment.id"
+    entry_date: Mapped[date]
+    shift_code: Mapped[str | None] = mapped_column(
+        String(10), ForeignKey("hr.shift_catalog.code"), nullable=True
     )
-    roster_hours: Decimal = Field(
-        default=Decimal("0.0"), decimal_places=2, max_digits=5
+    roster_assignment_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("hr.roster_assignment.id"), nullable=True
     )
-    actual_hours: Decimal = Field(
-        default=Decimal("0.0"), decimal_places=2, max_digits=5
+    roster_hours: Mapped[Decimal] = mapped_column(Numeric(5, 2), default=Decimal("0.0"))
+    actual_hours: Mapped[Decimal] = mapped_column(Numeric(5, 2), default=Decimal("0.0"))
+    total_hours: Mapped[Decimal] = mapped_column(Numeric(5, 2), default=Decimal("0.0"))
+    overtime_hours: Mapped[Decimal] = mapped_column(
+        Numeric(5, 2), default=Decimal("0.0")
     )
-    total_hours: Decimal = Field(default=Decimal("0.0"), decimal_places=2, max_digits=5)
-    overtime_hours: Decimal = Field(
-        default=Decimal("0.0"), decimal_places=2, max_digits=5
-    )
-    break_hours: Decimal = Field(default=Decimal("0.0"), decimal_places=2, max_digits=5)
-    hours_worked: Decimal = Field(
-        default=Decimal("0.0"), decimal_places=2, max_digits=5
-    )
-    medical_certificate_attached: bool = Field(default=False)
-    comments: str | None = Field(default=None, max_length=500)
-    created_at: datetime = Field(default_factory=utc_now)
-    updated_at: datetime = Field(default_factory=utc_now)
+    break_hours: Mapped[Decimal] = mapped_column(Numeric(5, 2), default=Decimal("0.0"))
+    hours_worked: Mapped[Decimal] = mapped_column(Numeric(5, 2), default=Decimal("0.0"))
+    medical_certificate_attached: Mapped[bool] = mapped_column(default=False)
+    comments: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
-class TimesheetSubmission(SQLModel, table=True):
+class TimesheetSubmission(Base):
     __tablename__ = "timesheet_submission"
     __table_args__ = {"schema": "hr"}
 
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    timesheet_id: uuid.UUID = Field(foreign_key="hr.timesheet.id", index=True)
-    submitted_by_user_id: uuid.UUID = Field(foreign_key="user.id", index=True)
-    submission_mode: SubmissionMode = Field(default=SubmissionMode.SELF)
-    submitted_at: datetime = Field(default_factory=utc_now)
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    timesheet_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("hr.timesheet.id"), index=True
+    )
+    submitted_by_user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("user.id"), index=True
+    )
+    submission_mode: Mapped[SubmissionMode] = mapped_column(default=SubmissionMode.SELF)
+    submitted_at: Mapped[datetime] = mapped_column(default=utc_now)

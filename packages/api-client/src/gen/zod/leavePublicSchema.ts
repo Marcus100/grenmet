@@ -6,6 +6,18 @@
 import * as z from "zod";
 
 export const leavePublicSchema = z.object({
-  balances: z.object({}).catchall(z.int()).optional(),
-  carry_over: z.object({}).catchall(z.int()).optional(),
+  balances: z
+    .object({})
+    .catchall(z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/))
+    .optional()
+    .describe(
+      "Current ledger balance in days for each leave type with a verified opening."
+    ),
+  unverified_carry_over: z
+    .object({})
+    .catchall(z.int())
+    .optional()
+    .describe(
+      "Legacy carry-over days not yet reconciled with the ledger. Carry-over needs written approval (rule GAA-LV-VAC-CARRY-01); these figures are not part of the balance."
+    ),
 });

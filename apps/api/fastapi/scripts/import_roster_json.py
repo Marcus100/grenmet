@@ -22,7 +22,7 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from sqlmodel import col, select
+from sqlalchemy import select
 
 from src.auth.models import User
 from src.database import async_session_factory
@@ -64,11 +64,7 @@ async def run(doc: dict, actor_name: str, dry_run: bool) -> int:
 
     async with async_session_factory() as session:
         actor = (
-            (
-                await session.execute(
-                    select(User).where(col(User.username) == actor_name)
-                )
-            )
+            (await session.execute(select(User).where(User.username == actor_name)))
             .scalars()
             .first()
         )
@@ -79,7 +75,7 @@ async def run(doc: dict, actor_name: str, dry_run: bool) -> int:
         catalog = (
             (
                 await session.execute(
-                    select(ShiftCatalog).where(col(ShiftCatalog.is_active).is_(True))
+                    select(ShiftCatalog).where(ShiftCatalog.is_active.is_(True))
                 )
             )
             .scalars()
@@ -89,11 +85,7 @@ async def run(doc: dict, actor_name: str, dry_run: bool) -> int:
 
         usernames = [p["username"] for p in doc["people"] if p.get("username")]
         users = (
-            (
-                await session.execute(
-                    select(User).where(col(User.username).in_(usernames))
-                )
-            )
+            (await session.execute(select(User).where(User.username.in_(usernames))))
             .scalars()
             .all()
         )
@@ -104,7 +96,7 @@ async def run(doc: dict, actor_name: str, dry_run: bool) -> int:
             for r in (
                 await session.execute(
                     select(EmploymentRecord).where(
-                        col(EmploymentRecord.department_id) == department_id
+                        EmploymentRecord.department_id == department_id
                     )
                 )
             )
@@ -163,8 +155,8 @@ async def run(doc: dict, actor_name: str, dry_run: bool) -> int:
             (
                 await session.execute(
                     select(RosterPeriod).where(
-                        col(RosterPeriod.department_id) == department_id,
-                        col(RosterPeriod.period_start) == period_start,
+                        RosterPeriod.department_id == department_id,
+                        RosterPeriod.period_start == period_start,
                     )
                 )
             )

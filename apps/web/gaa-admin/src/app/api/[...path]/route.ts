@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { getAuthApiBaseUrl } from "@/lib/auth-config";
+import { reportError } from "@/lib/report-error";
 import {
   clearSessionCookieOnResponse,
   exchangeSessionForAccessToken,
@@ -82,6 +83,7 @@ async function handleProxy(request: NextRequest): Promise<NextResponse> {
       clearSessionCookieOnResponse(response);
       return response;
     }
+    reportError(error, "api-proxy");
 
     return NextResponse.json(
       {

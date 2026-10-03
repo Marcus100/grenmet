@@ -3,9 +3,8 @@
 import logging
 import uuid
 
-from sqlalchemy import delete, text
+from sqlalchemy import delete, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
 
 from src.auth.models import Role, User
 from src.baseline.models import ApprovalPolicy, BaselineAudit
@@ -27,7 +26,7 @@ async def read(session: AsyncSession, actor: User) -> list[WorkflowConfiguration
         (
             await session.execute(
                 select(WorkflowTemplate)
-                .where(col(WorkflowTemplate.is_active).is_(True))
+                .where(WorkflowTemplate.is_active.is_(True))
                 .order_by(
                     WorkflowTemplate.department_id, WorkflowTemplate.workflow_type
                 )
@@ -42,10 +41,8 @@ async def read(session: AsyncSession, actor: User) -> list[WorkflowConfiguration
             (
                 await session.execute(
                     select(WorkflowStepTemplate)
-                    .where(
-                        col(WorkflowStepTemplate.workflow_template_id) == template.id
-                    )
-                    .order_by(col(WorkflowStepTemplate.step_order))
+                    .where(WorkflowStepTemplate.workflow_template_id == template.id)
+                    .order_by(WorkflowStepTemplate.step_order)
                 )
             )
             .scalars()
@@ -99,14 +96,17 @@ async def save(
     )
     await session.execute(
         delete(WorkflowStepTemplate).where(
-            col(WorkflowStepTemplate.workflow_template_id) == template_id
+            WorkflowStepTemplate.workflow_template_id == template_id
         )
     )
     for step in body.steps:
         session.add(
-            WorkflowStepTemplate.model_validate(
-                step.model_dump(),
-                update={"workflow_template_id": template_id, "scope_enforced": True},
+            WorkflowStepTemplate(
+                **{
+                    **step.model_dump(),
+                    "scope_enforced": True,
+                    "workflow_template_id": template_id,
+                }
             )
         )
     template.name = body.name

@@ -1,5 +1,9 @@
 # Issue tracker: GitHub
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-06-27
+
 Issues and PRDs for this repo live as GitHub issues in `Marcus100/grenmet`. Use the `gh` CLI for all operations.
 
 ## Conventions

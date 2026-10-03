@@ -11,13 +11,17 @@ export const absenteeReportCreateSchema = z.object({
   user_id: z.uuid(),
   department_id: z.string(),
   report_date: z.iso.date(),
-  expected_shift_code: z.union([z.string(), z.null()]).optional(),
-  absence_start_time: z.union([z.string(), z.null()]).optional(),
-  absence_end_time: z.union([z.string(), z.null()]).optional(),
+  expected_shift_code: z.union([z.string().max(10), z.null()]).optional(),
+  absence_start_time: z
+    .union([z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/), z.null()])
+    .optional(),
+  absence_end_time: z
+    .union([z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/), z.null()])
+    .optional(),
   reason: absenceReasonSchema,
-  notes: z.union([z.string(), z.null()]).optional(),
+  notes: z.union([z.string().max(1000), z.null()]).optional(),
   contact_attempted: z.boolean().optional().default(false),
-  contact_method: z.union([z.string(), z.null()]).optional(),
+  contact_method: z.union([z.string().max(50), z.null()]).optional(),
   replacement_arranged: z.boolean().optional().default(false),
   replacement_user_id: z.union([z.uuid(), z.null()]).optional(),
   co_approver_user_ids: z.array(z.uuid()).optional(),

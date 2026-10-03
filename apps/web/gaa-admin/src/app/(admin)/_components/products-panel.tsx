@@ -18,7 +18,7 @@ export async function ProductsPanel({ className }: { className?: string }) {
     return (
       <Panel
         className={className}
-        description="Today's forecast suite"
+        description="Today's products available in the live feed"
         title="Product desk"
       >
         <PanelUnavailable message={products.message} />
@@ -32,7 +32,7 @@ export async function ProductsPanel({ className }: { className?: string }) {
     <Panel
       action={{ href: "/wxproducts/fcsts", label: "Open desk" }}
       className={className}
-      description={`${summary.issued} of ${summary.expected} scheduled products issued`}
+      description={`${summary.issued} of ${summary.expected} tracked product types available today; this is not an issue-completion record`}
       title="Product desk"
     >
       <ul className="space-y-1.5">
@@ -63,7 +63,7 @@ export async function ProductsPanel({ className }: { className?: string }) {
                   {issueClock(item.issuedAt)}
                 </span>
               ) : (
-                <Badge variant="light-warning">Pending</Badge>
+                <Badge variant="light-warning">Not in feed</Badge>
               )}
             </Link>
           </li>

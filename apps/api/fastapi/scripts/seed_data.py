@@ -15,8 +15,9 @@ import argparse
 import logging
 import sys
 
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session, select
+from sqlalchemy.orm import Session
 
 from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
 from src.auth.schemas import UserCreate
@@ -257,7 +258,7 @@ def clear_seed_data(session: Session) -> int:
     logger.info("Clearing existing seed data...")
 
     # Find all test users
-    all_users = session.exec(select(User)).all()
+    all_users = session.scalars(select(User)).all()
     test_users = [
         u
         for u in all_users
@@ -282,7 +283,7 @@ def _ensure_staff_role(session: Session, user: User) -> None:
     Idempotent: skips the role link and the assignment if they already exist.
     Relies on the 'staff' role having been seeded by initial_data.py beforehand.
     """
-    role = session.exec(select(Role).where(Role.name == "staff")).first()
+    role = session.scalars(select(Role).where(Role.name == "staff")).first()
     if role is None:
         logger.warning(
             "'staff' role not found; skipping role assignment for %s", user.email
@@ -293,7 +294,7 @@ def _ensure_staff_role(session: Session, user: User) -> None:
         user.roles.append(role)
         session.add(user)
 
-    existing_assignment = session.exec(
+    existing_assignment = session.scalars(
         select(UserRoleAssignment).where(
             UserRoleAssignment.user_id == user.id,
             UserRoleAssignment.role_id == role.id,
@@ -332,7 +333,7 @@ def _create_user_from_data(
     )
 
     # Check if user already exists
-    existing_user = session.exec(
+    existing_user = session.scalars(
         select(User).where(User.email == user_in.email)
     ).first()
 
@@ -359,7 +360,7 @@ def _create_user_from_data(
         except IntegrityError as e:
             logger.warning("Failed to create user %s: %s", user_in.email, e)
             # Try to get the user that might have been created concurrently
-            resolved_user = session.exec(
+            resolved_user = session.scalars(
                 select(User).where(User.email == user_in.email)
             ).first()
             if resolved_user:

@@ -50,11 +50,14 @@ export async function checkCmsSignIn(domain, fetcher = fetch) {
 export async function checkDeployment(domain, fetcher = fetch) {
   if (!(domain && validDomain.test(domain)))
     throw new Error("A valid base domain is required");
-  // Public CMS data is a supported API. Empty published content is valid.
-  await check(`https://cms.${domain}/api/content?limit=1`, '"docs":', fetcher);
+  // The public homepage feed GMS reads. Empty published content is valid.
+  await check(
+    `https://cms.${domain}/api/public/home`,
+    '"deskUpdates":',
+    fetcher
+  );
   for (const [host, path, marker] of [
     ["api", "/api/v1/utils/ready/", '"ready"'],
-    ["hapi", "/health", '"status":"ok"'],
     ["api", "/api/cap/latest-active", '"data":'],
     ["admin", "/api/public/products", '"products":'],
     ["admin", "/api/ready", '"ready"'],

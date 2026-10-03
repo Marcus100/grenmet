@@ -7,7 +7,7 @@ export const Media: CollectionConfig = {
   labels: { singular: "Media", plural: "Media" },
   admin: {
     useAsTitle: "alt",
-    description: "Images for GMS website articles and pages.",
+    description: "Images and documents for GMS website content.",
   },
   access: {
     create: staffOnly,
@@ -17,7 +17,14 @@ export const Media: CollectionConfig = {
   },
   upload: {
     staticDir: mediaDirectory,
-    mimeTypes: ["image/*"],
+    mimeTypes: [
+      "image/*",
+      "application/pdf",
+      "text/plain",
+      "text/csv",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "video/mp4",
+    ],
   },
   fields: [
     {
@@ -25,6 +32,15 @@ export const Media: CollectionConfig = {
       type: "text",
       required: true,
       admin: { description: "Alt text shown to screen readers." },
+    },
+    {
+      name: "credit",
+      type: "text",
+      maxLength: 120,
+      admin: {
+        description:
+          'Who made or supplied it, e.g. "GMS / J. Pryce" or "NOAA".',
+      },
     },
   ],
 };

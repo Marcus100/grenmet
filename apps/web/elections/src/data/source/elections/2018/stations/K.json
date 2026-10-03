@@ -1,0 +1,227 @@
+[
+  [
+    "K01",
+    null,
+    "Anglican High School",
+    187,
+    129,
+    0,
+    {
+      "NDC": 40,
+      "NNP": 89,
+      "GRP": 0,
+      "TPP": 0,
+      "GEM": 0
+    }
+  ],
+  [
+    "K02",
+    null,
+    "Springs Open Bible Church",
+    362,
+    260,
+    0,
+    {
+      "NDC": 105,
+      "NNP": 155,
+      "GRP": 0,
+      "TPP": 0,
+      "GEM": 0
+    }
+  ],
+  [
+    "K03",
+    null,
+    "Calivigny Community Center",
+    336,
+    242,
+    1,
+    {
+      "NDC": 125,
+      "NNP": 114,
+      "GRP": 0,
+      "TPP": 2,
+      "GEM": 0
+    }
+  ],
+  [
+    "K04",
+    "a",
+    "St. Paul’s Anglican Pre-School",
+    382,
+    276,
+    0,
+    {
+      "NDC": 134,
+      "NNP": 142,
+      "GRP": 0,
+      "TPP": 0,
+      "GEM": 0
+    }
+  ],
+  [
+    "K04",
+    "b",
+    "St. Paul’s Anglican Church",
+    403,
+    291,
+    2,
+    {
+      "NDC": 121,
+      "NNP": 165,
+      "GRP": 0,
+      "TPP": 0,
+      "GEM": 3
+    }
+  ],
+  [
+    "K05",
+    null,
+    "Bethel Methodist Church Hall",
+    377,
+    269,
+    0,
+    {
+      "NDC": 114,
+      "NNP": 153,
+      "GRP": 0,
+      "TPP": 0,
+      "GEM": 2
+    }
+  ],
+  [
+    "K06",
+    null,
+    "Mr. Stephen Gellineau’s Shop, Hope Vale",
+    198,
+    149,
+    3,
+    {
+      "NDC": 66,
+      "NNP": 80,
+      "GRP": 0,
+      "TPP": 0,
+      "GEM": 0
+    }
+  ],
+  [
+    "K07",
+    "a",
+    "La Borie Community Centre",
+    306,
+    227,
+    1,
+    {
+      "NDC": 69,
+      "NNP": 157,
+      "GRP": 0,
+      "TPP": 0,
+      "GEM": 0
+    }
+  ],
+  [
+    "K07",
+    "b",
+    "La Borie Community Centre",
+    307,
+    240,
+    0,
+    {
+      "NDC": 67,
+      "NNP": 172,
+      "GRP": 0,
+      "TPP": 1,
+      "GEM": 0
+    }
+  ],
+  [
+    "K07",
+    "c",
+    "La Borie Community Centre",
+    304,
+    228,
+    2,
+    {
+      "NDC": 70,
+      "NNP": 153,
+      "GRP": 0,
+      "TPP": 1,
+      "GEM": 2
+    }
+  ],
+  [
+    "K08",
+    "a",
+    "Marian Multipurpose Centre",
+    381,
+    270,
+    3,
+    {
+      "NDC": 117,
+      "NNP": 149,
+      "GRP": 0,
+      "TPP": 0,
+      "GEM": 1
+    }
+  ],
+  [
+    "K08",
+    "b",
+    "Marian Multipurpose Centre",
+    374,
+    276,
+    0,
+    {
+      "NDC": 101,
+      "NNP": 174,
+      "GRP": 1,
+      "TPP": 0,
+      "GEM": 0
+    }
+  ],
+  [
+    "K09",
+    null,
+    "NADMA Building, Richmond Hill",
+    302,
+    203,
+    1,
+    {
+      "NDC": 100,
+      "NNP": 100,
+      "GRP": 0,
+      "TPP": 2,
+      "GEM": 0
+    }
+  ],
+  [
+    "K10",
+    "a",
+    "Morne Jaloux R.C. School",
+    367,
+    259,
+    3,
+    {
+      "NDC": 102,
+      "NNP": 152,
+      "GRP": 1,
+      "TPP": 1,
+      "GEM": 0
+    }
+  ],
+  [
+    "K10",
+    "b",
+    "Morne Jaloux R.C. School",
+    364,
+    247,
+    0,
+    {
+      "NDC": 99,
+      "NNP": 148,
+      "GRP": 0,
+      "TPP": 0,
+      "GEM": 0
+    }
+  ]
+]

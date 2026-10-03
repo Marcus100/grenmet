@@ -2,16 +2,29 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { postgresAdapter } from "@payloadcms/db-postgres";
 import { resendAdapter } from "@payloadcms/email-resend";
+import { lexicalEditor } from "@payloadcms/richtext-lexical";
 import { buildConfig } from "payload";
-import { Content } from "./collections/content";
+import { DeskUpdates } from "./collections/desk-updates";
+import { Discover } from "./collections/discover";
+import { LivePosts } from "./collections/live-posts";
 import { Media } from "./collections/media";
+import { Questions } from "./collections/questions";
+import { ReportNotes } from "./collections/report-notes";
+import { Stories } from "./collections/stories";
 import { Users } from "./collections/users";
 import { getEnv } from "./env";
+import { Homepage } from "./globals/homepage";
+import { WeatherNow } from "./globals/weather-now";
+import { linkedProductsEndpoint } from "./lib/linked-products";
+import { reportPayloadError } from "./lib/report-payload-error";
 
 const env = getEnv();
 const baseDir = path.dirname(fileURLToPath(import.meta.url));
 export default buildConfig({
   secret: env.PAYLOAD_SECRET,
+  // Public address; makes media URLs absolute so other sites (GMS) can load them.
+  serverURL: env.CMS_URL,
+  editor: lexicalEditor(),
   email:
     env.RESEND_API_KEY && env.EMAILS_FROM_EMAIL
       ? resendAdapter({
@@ -33,7 +46,25 @@ export default buildConfig({
     importMap: { baseDir },
     meta: { titleSuffix: " | GMS Content" },
   },
-  collections: [Users, Content, Media],
+  collections: [
+    DeskUpdates,
+    Stories,
+    Questions,
+    Discover,
+    ReportNotes,
+    LivePosts,
+    Media,
+    Users,
+  ],
+  globals: [WeatherNow, Homepage],
+  endpoints: [
+    {
+      path: "/linked-products",
+      method: "get",
+      handler: linkedProductsEndpoint,
+    },
+  ],
+  hooks: { afterError: [reportPayloadError] },
   graphQL: { disable: true },
   typescript: {
     postProcess: [

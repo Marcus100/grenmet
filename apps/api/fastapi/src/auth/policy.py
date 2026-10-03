@@ -1,8 +1,8 @@
 import logging
 import uuid
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
 
 from src.auth.models import RoleAssignmentScope, User, UserRoleAssignment
 from src.exceptions import AuthorizationError
@@ -20,9 +20,9 @@ async def _active_assignments(
     result = await session.execute(
         select(UserRoleAssignment).where(
             UserRoleAssignment.user_id == user_id,
-            col(UserRoleAssignment.effective_from) <= now,
-            col(UserRoleAssignment.effective_to).is_(None)
-            | (col(UserRoleAssignment.effective_to) > now),
+            UserRoleAssignment.effective_from <= now,
+            UserRoleAssignment.effective_to.is_(None)
+            | (UserRoleAssignment.effective_to > now),
         )
     )
     return list(result.scalars().all())

@@ -49,6 +49,7 @@ describe("FastAPI is the identity authority", () => {
     mockIdentity();
     expect(await readFastApiIdentity(requestHeaders, config, "GMS")).toEqual({
       fastapiUserId: "staff-id",
+      permissionKeys: [],
       username: "staff.name",
       email: "staff@example.test",
       isSuperuser: false,
@@ -67,7 +68,7 @@ describe("FastAPI is the identity authority", () => {
     expect(
       (await readFastApiIdentity(requestHeaders, config, "GMS"))?.isSuperuser
     ).toBe(true);
-    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
   it("rejects revoked sessions without falling back to a cached CMS identity", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(

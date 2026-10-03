@@ -5,20 +5,20 @@ import { useEffect } from "react";
 
 export default function GlobalError({
   error,
-  reset,
+  retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  retry: () => void;
 }) {
   useEffect(() => {
-    captureException(error);
+    captureException(error, { tags: { digest: error.digest } });
   }, [error]);
 
   return (
     <html lang="en">
       <body>
         <h2>Something went wrong</h2>
-        <button onClick={reset} type="button">
+        <button onClick={() => retry()} type="button">
           Try again
         </button>
       </body>

@@ -21,8 +21,14 @@ export function DocumentPreview({
   showDownloadPdf = true,
   printContent,
   continuous = false,
+  actions,
+  description,
 }: {
   title?: string;
+  /** Extra toolbar buttons, rendered after Print / Download PDF. */
+  actions?: ReactNode;
+  /** Short status line under the title (hints, errors). */
+  description?: ReactNode;
   continuous?: boolean;
   printContent?: ReactNode;
   onDownloadPdf?: () => void;
@@ -43,8 +49,13 @@ export function DocumentPreview({
     <>
       <PrintDocument>{printContent ?? children}</PrintDocument>
       <div className="flex flex-col rounded-xl border bg-card">
-        <div className="flex items-center justify-between px-4 py-4">
-          <h2 className="font-medium text-lg">{title}</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2 px-4 py-4">
+          <div className="min-w-0">
+            <h2 className="font-medium text-lg">{title}</h2>
+            {description ? (
+              <div className="text-muted-foreground text-xs">{description}</div>
+            ) : null}
+          </div>
           <ButtonGroup>
             <Button
               onClick={() => window.print()}
@@ -60,6 +71,7 @@ export function DocumentPreview({
                 Download PDF
               </Button>
             ) : null}
+            {actions}
           </ButtonGroup>
         </div>
 

@@ -1,0 +1,42 @@
+[
+  {
+    "div": "K08",
+    "sub": "b",
+    "place": "Marian Multipurpose Centre",
+    "yes": 57,
+    "no": 70,
+    "rej": 1,
+    "voted": 128,
+    "reg": 379
+  },
+  {
+    "div": "K09",
+    "sub": null,
+    "place": "NADMA Building, Richmond Hill",
+    "yes": 28,
+    "no": 72,
+    "rej": 0,
+    "voted": 100,
+    "reg": 304
+  },
+  {
+    "div": "K10",
+    "sub": "a",
+    "place": "MorneJaloux R.C. School",
+    "yes": 46,
+    "no": 73,
+    "rej": 0,
+    "voted": 119,
+    "reg": 364
+  },
+  {
+    "div": "K10",
+    "sub": "b",
+    "place": "MorneJaloux R.C School",
+    "yes": 36,
+    "no": 67,
+    "rej": 0,
+    "voted": 103,
+    "reg": 371
+  }
+]

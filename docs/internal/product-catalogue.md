@@ -1,5 +1,9 @@
 # GMS Product Catalogue
 
+**Status:** Draft — planning reference  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-10
+
 | Field | Detail |
 |---|---|
 | **Version** | 1.0 |
@@ -134,7 +138,7 @@ Products marked `Partial` exist in the codebase but are not fully operational. P
 |---|---|---|---|
 | `GMS-DATA-ARCHIVE` | Product Archive | Partial | All products stored in wxproducts DB |
 | `GMS-DATA-CAPFEED` | CAP Alert Feed | Partial | RSS, GeoJSON, XML endpoints active |
-| `GMS-DATA-API` | API-ready Structured Data | Partial | FastAPI and Hono endpoints |
+| `GMS-DATA-API` | API-ready Structured Data | Partial | FastAPI endpoints |
 | `GMS-DATA-OBS` | Observation Dashboard | Planned | AWS data; gaa-admin target |
 
 ---

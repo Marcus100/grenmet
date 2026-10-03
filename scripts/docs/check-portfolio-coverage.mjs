@@ -41,7 +41,7 @@ const ignoredFallbackDirectories = new Set([
 ]);
 const claimFiles = [
   "README.md",
-  "CLAUDE.md",
+  "AGENTS.md",
   "docs/technical-overview.md",
   "docs/quality-score.md",
   "docs/strategy/barrels-product-strategy.md",

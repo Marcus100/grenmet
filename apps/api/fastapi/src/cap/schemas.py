@@ -1,7 +1,7 @@
 import uuid
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import AwareDatetime, Field, field_validator, model_validator
 
 from src.cap.models import (
     CapAreaKind,
@@ -86,7 +86,7 @@ class CapInfoBase(BaseModel):
     parameters: list[CapNameValue] = Field(default_factory=list)
 
     @model_validator(mode="after")
-    def _validate_time_order(self) -> "CapInfoBase":
+    def _validate_time_order(self) -> CapInfoBase:
         if self.effective and self.onset and self.onset < self.effective:
             raise ValueError("onset must be on or after effective")
         if self.onset and self.expires and self.expires <= self.onset:
@@ -97,6 +97,9 @@ class CapInfoBase(BaseModel):
 
 
 class CapInfoCreate(CapInfoBase):
+    effective: Annotated[UtcDateTime, AwareDatetime()] | None = None
+    onset: Annotated[UtcDateTime, AwareDatetime()] | None = None
+    expires: Annotated[UtcDateTime, AwareDatetime()] | None = None
     resources: list[CapResourceCreate] = Field(default_factory=list)
     areas: list[CapAreaCreate] = Field(default_factory=list)
 
@@ -115,7 +118,7 @@ class CapReferenceBase(BaseModel):
 
 
 class CapReferenceCreate(CapReferenceBase):
-    pass
+    sent: Annotated[UtcDateTime, AwareDatetime()]
 
 
 class CapReferencePublic(CapReferenceBase):
@@ -145,7 +148,7 @@ class CapAlertBase(BaseModel):
         return [value.strip() for value in values if value.strip()]
 
     @model_validator(mode="after")
-    def _validate_scope_and_references(self) -> "CapAlertBase":
+    def _validate_scope_and_references(self) -> CapAlertBase:
         if self.scope == CapScope.RESTRICTED and not self.restriction:
             raise ValueError("restriction is required when scope is Restricted")
         if self.scope == CapScope.PRIVATE and not self.addresses:
@@ -158,7 +161,7 @@ class CapAlertBase(BaseModel):
 
 
 class CapAlertCreate(CapAlertBase):
-    pass
+    sent: Annotated[UtcDateTime, AwareDatetime()] | None = None
 
 
 class CapAlertImportRequest(BaseModel):
@@ -191,7 +194,7 @@ class CapFeedImportPublic(BaseModel):
 class CapAlertUpdate(BaseModel):
     identifier: str | None = Field(default=None, max_length=255)
     sender: str | None = Field(default=None, max_length=255)
-    sent: UtcDateTime | None = None
+    sent: Annotated[UtcDateTime, AwareDatetime()] | None = None
     status: CapStatus | None = None
     msg_type: CapMessageType | None = None
     source: str | None = Field(default=None, max_length=255)
@@ -231,6 +234,8 @@ class CapAlertPublic(BaseModel):
     incidents: list[str] = Field(default_factory=list)
     info: list[CapInfoPublic] = Field(default_factory=list)
     xml_url: str | None = None
+    replaced_by_identifier: str | None = None
+    cancellation_reason: str | None = None
 
 
 class CapAlertListPublic(BaseModel):
@@ -344,3 +349,28 @@ class CapAuditEventListPublic(BaseModel):
     count: int
     page: int = 1
     size: int = 100
+
+
+class PublicWarning(BaseModel):
+    identifier: str
+    event: str
+    headline: str
+    areas: list[str]
+    expires: UtcDateTime | None
+    severity: CapSeverity
+    status: CapStatus
+    # GMS product and impact colour (src/cap/levels.py); null for alerts that
+    # predate the model or came from an imported feed.
+    product: Literal["Outlook", "Watch", "Warning", "Advisory"] | None = None
+    colour: Literal["green", "yellow", "orange", "red"] | None = None
+
+
+class PublicWarningGroup(BaseModel):
+    name: str
+    alerts: list[PublicWarning]
+
+
+class PublicWarnings(BaseModel):
+    as_of: UtcDateTime
+    groups: list[PublicWarningGroup]
+    activeCount: int = Field(ge=0)

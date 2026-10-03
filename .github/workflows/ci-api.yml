@@ -36,7 +36,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  PYTHON_VERSION: "3.13"
+  PYTHON_VERSION: "3.14.7"
   UV_CACHE_DIR: ~/.cache/uv
 
 jobs:
@@ -181,6 +181,13 @@ jobs:
           enable-cache: true
           cache-local-path: ~/.cache/uv
 
+      - name: Install PDF system libraries
+        # WeasyPrint (forecast PDFs) needs Pango/HarfBuzz/fontconfig; mirrors the API images.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libfontconfig1
+
       - name: Install dependencies
         # Lockfile freshness is enforced by the lint job; --frozen keeps this
         # job on that exact resolution.
@@ -199,9 +206,8 @@ jobs:
 
       - name: Run tests with coverage
         # pytest-cov rather than `coverage run -m pytest`: it is xdist-aware and
-        # combines the per-worker data files. --dist loadfile keeps every test in
-        # a file on one worker, so module-scoped fixtures (client,
-        # superuser_token_headers) are still built once per module. Each worker
+        # combines the per-worker data files. The shared script uses --dist load
+        # to distribute tests across two workers by default. Each worker
         # gets its own database — see the bootstrap in tests/conftest.py.
         run: bash ../../../scripts/verification/backend.sh
 
@@ -224,6 +230,26 @@ jobs:
         with:
           file: apps/api/fastapi/coverage.xml
           fail_ci_if_error: false
+
+  collectors:
+    name: Operational Collector Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b
+        with:
+          enable-cache: true
+          cache-local-path: ~/.cache/uv
+      - name: Run collector fixture suites
+        # Frozen eccodeslib, pyproj and netcdf4 wheels supply decoder libraries.
+        # No geonetcast/GDAL installation or external service credentials needed.
+        run: bash scripts/verification/collectors.sh
 
   # Job 4: Docker Build Test
   docker:
@@ -393,7 +419,7 @@ jobs:
   # Final status check
   ci-success:
     name: CI Success
-    needs: [image-selection, quality, security, test, docker, docs]
+    needs: [image-selection, quality, security, test, collectors, docker, docs]
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -407,6 +433,7 @@ jobs:
           echo "Quality: ${{ needs.quality.result }}"
           echo "Security: ${{ needs.security.result }}"
           echo "Tests: ${{ needs.test.result }}"
+          echo "Collectors: ${{ needs.collectors.result }}"
           echo "Docker: ${{ needs.docker.result }}"
           echo "Docs: ${{ needs.docs.result }}"
 
@@ -414,6 +441,7 @@ jobs:
              [ "${{ needs.quality.result }}" != "success" ] || \
              [ "${{ needs.security.result }}" != "success" ] || \
              [ "${{ needs.test.result }}" != "success" ] || \
+             [ "${{ needs.collectors.result }}" != "success" ] || \
              { [ "${{ needs.docker.result }}" != "success" ] &&
                ! { [ "${{ needs.docker.result }}" = "skipped" ] && [ "${{ needs.image-selection.outputs.api }}" = "false" ]; }; } || \
              [ "${{ needs.docs.result }}" != "success" ]; then

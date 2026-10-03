@@ -14,7 +14,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import HTMLResponse
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlmodel import col, delete
+from sqlalchemy import delete
 from starlette.requests import Request
 
 from src.auth import modern_service, service
@@ -32,6 +32,7 @@ from src.auth.constants import (
     SUCCESS_PASSWORD_UPDATED,
 )
 from src.auth.dependencies import get_current_active_superuser
+from src.auth.devices import remember_device, schedule_new_sign_in_alert
 from src.auth.lockout import login_lockout
 from src.auth.models import User
 from src.auth.modern_models import AuthChallenge
@@ -42,6 +43,7 @@ from src.auth.schemas import (
     SessionLoginResponse,
     SessionPublic,
     SessionTokenRequest,
+    SessionUserPublic,
     UserPublic,
 )
 from src.dependencies import CurrentUser, SessionDep
@@ -101,7 +103,7 @@ def _session_auth_response(
         "access_token_expires_at": access_token_expires_at,
         "session_expires_at": db_session.expires_at,
         "session": SessionPublic.model_validate(db_session, from_attributes=True),
-        "user": UserPublic.model_validate(user, from_attributes=True),
+        "user": SessionUserPublic.model_validate(user, from_attributes=True),
     }
     if session_token is not None:
         return SessionLoginResponse(session_token=session_token, **payload)
@@ -228,6 +230,7 @@ async def login_session(
     await login_lockout.reset(body.email)
 
     user_agent, ip_address = _request_metadata(request)
+    new_device = remember_device(user, user_agent)
     db_session, session_token = await service.create_session(
         session=session,
         user=user,
@@ -236,6 +239,13 @@ async def login_session(
         user_agent=user_agent,
         ip_address=ip_address,
     )
+    if new_device:
+        schedule_new_sign_in_alert(
+            email_to=user.email,
+            device=new_device,
+            ip_address=ip_address,
+            signed_in_at=db_session.created_at,
+        )
     access_token, access_token_expires_at = service.issue_access_token_for_user(
         user=user,
         expires_delta=service.get_session_access_token_expires_delta(),
@@ -405,8 +415,8 @@ async def recover_password(
     if user and user.is_active:
         await session.execute(
             delete(AuthChallenge).where(
-                col(AuthChallenge.user_id) == user.id,
-                col(AuthChallenge.purpose) == "password-reset",
+                AuthChallenge.user_id == user.id,
+                AuthChallenge.purpose == "password-reset",
             )
         )
         password_reset_token = await modern_service.issue(

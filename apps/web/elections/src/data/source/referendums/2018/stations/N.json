@@ -1,0 +1,122 @@
+[
+  {
+    "div": "N01",
+    "sub": null,
+    "place": "Maran Community Centre",
+    "yes": 50,
+    "no": 15,
+    "rej": 1,
+    "voted": 66,
+    "reg": 274
+  },
+  {
+    "div": "N02",
+    "sub": "a",
+    "place": "Victoria Pre Primary School",
+    "yes": 44,
+    "no": 35,
+    "rej": 0,
+    "voted": 79,
+    "reg": 292
+  },
+  {
+    "div": "N02",
+    "sub": "b",
+    "place": "Victoria Pre Primary School",
+    "yes": 60,
+    "no": 27,
+    "rej": 0,
+    "voted": 87,
+    "reg": 286
+  },
+  {
+    "div": "N02",
+    "sub": "c",
+    "place": "Victoria Pre Primary School",
+    "yes": 46,
+    "no": 32,
+    "rej": 1,
+    "voted": 79,
+    "reg": 291
+  },
+  {
+    "div": "N03",
+    "sub": "a",
+    "place": "Victoria Hotel",
+    "yes": 73,
+    "no": 33,
+    "rej": 0,
+    "voted": 106,
+    "reg": 313
+  },
+  {
+    "div": "N03",
+    "sub": "b",
+    "place": "Victoria Hotel",
+    "yes": 41,
+    "no": 38,
+    "rej": 0,
+    "voted": 79,
+    "reg": 268
+  },
+  {
+    "div": "N04",
+    "sub": "a",
+    "place": "St. Mark’s Secondary School",
+    "yes": 34,
+    "no": 14,
+    "rej": 0,
+    "voted": 48,
+    "reg": 256
+  },
+  {
+    "div": "N04",
+    "sub": "b",
+    "place": "St. Mark’s Secondary School",
+    "yes": 39,
+    "no": 16,
+    "rej": 0,
+    "voted": 55,
+    "reg": 274
+  },
+  {
+    "div": "N04",
+    "sub": "c",
+    "place": "St. Mark’s Secondary School",
+    "yes": 32,
+    "no": 17,
+    "rej": 0,
+    "voted": 49,
+    "reg": 276
+  },
+  {
+    "div": "N05",
+    "sub": "a",
+    "place": "Mrs. De Allie’s Residence, Duquesne",
+    "yes": 46,
+    "no": 29,
+    "rej": 1,
+    "voted": 76,
+    "reg": 286
+  },
+  {
+    "div": "N05",
+    "sub": "b",
+    "place": "Mrs. De Allie’s Residence, Duquesne",
+    "yes": 40,
+    "no": 25,
+    "rej": 0,
+    "voted": 65,
+    "reg": 278
+  },
+  {
+    "div": "N06",
+    "sub": null,
+    "place": "Samaritan Presbyterian School",
+    "yes": 82,
+    "no": 61,
+    "rej": 1,
+    "voted": 144,
+    "reg": 343
+  }
+]

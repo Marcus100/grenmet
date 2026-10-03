@@ -4,7 +4,7 @@ import argparse
 import asyncio
 import json
 
-from sqlmodel import col, select
+from sqlalchemy import select
 
 from src.auth.models import User
 from src.baseline import catalogue
@@ -19,7 +19,7 @@ async def check() -> bool:
         departments = (
             (
                 await session.execute(
-                    select(Department).where(col(Department.id).in_(GMS_DEPARTMENT_IDS))
+                    select(Department).where(Department.id.in_(GMS_DEPARTMENT_IDS))
                 )
             )
             .scalars()
@@ -30,8 +30,8 @@ async def check() -> bool:
                 await session.execute(
                     select(User).where(
                         User.email == settings.FIRST_SUPERUSER,
-                        col(User.is_superuser).is_(True),
-                        col(User.is_active).is_(True),
+                        User.is_superuser.is_(True),
+                        User.is_active.is_(True),
                     )
                 )
             )

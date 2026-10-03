@@ -17,6 +17,16 @@ export type CapFeedImportPublic = {
   status: CapIntegrationStatus;
   last_checked_at?: string | null;
   last_error?: string | null;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   created_at: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   updated_at: string;
 };

@@ -133,7 +133,7 @@ export const sidebarItems: NavGroup[] = [
       { id: "wxwatch", title: "WxWatch", url: "/wxwatch", icon: Radar },
       {
         id: "forecasts",
-        title: "Impact-Based Forecasts",
+        title: "Forecasts",
         url: "/wxproducts/fcsts",
         icon: CloudSun,
       },
@@ -161,6 +161,23 @@ export const sidebarItems: NavGroup[] = [
         url: "/cap",
         icon: AlertTriangle,
       },
+      {
+        id: "cap-administration",
+        title: "CAP Administration",
+        icon: ShieldCheck,
+        subItems: [
+          { id: "cap-settings", title: "Settings", url: "/cap/settings" },
+          { id: "cap-feeds", title: "External feeds", url: "/cap/feeds" },
+          { id: "cap-areas", title: "Predefined areas", url: "/cap/areas" },
+          { id: "cap-audit", title: "Audit history", url: "/cap/audit" },
+          { id: "cap-import", title: "Import alert", url: "/cap/import" },
+          {
+            id: "cap-integrations",
+            title: "Integrations",
+            url: "/cap/integrations",
+          },
+        ],
+      },
     ],
   },
   {
@@ -182,8 +199,30 @@ export const sidebarItems: NavGroup[] = [
     // facility runs happen every shift/day), then as-needed supplies, then
     // event-driven tickets, with reference material last.
     items: [
-      { id: "bus", title: "Bus", url: "/bus", icon: Bus },
-      { id: "janitor", title: "Janitor", url: "/janitor", icon: SprayCan },
+      {
+        // Admin portal; drivers and staff use their own apps.
+        id: "bus",
+        title: "Bus",
+        icon: Bus,
+        subItems: [
+          { id: "bus-overview", title: "Overview", url: "/bus" },
+          { id: "bus-timetable", title: "Timetable", url: "/bus/timetable" },
+          { id: "bus-stops", title: "Stops", url: "/bus/stops" },
+        ],
+      },
+      {
+        // Admin/monitoring portal; field work happens in the janitor PWA.
+        id: "janitor",
+        title: "Janitor",
+        icon: SprayCan,
+        subItems: [
+          { id: "janitor-overview", title: "Overview", url: "/janitor" },
+          { id: "janitor-areas", title: "Areas", url: "/janitor/areas" },
+          { id: "janitor-shifts", title: "Shifts", url: "/janitor/shifts" },
+          { id: "janitor-staff", title: "Staff", url: "/janitor/staff" },
+          { id: "janitor-setup", title: "Setup", url: "/janitor/setup" },
+        ],
+      },
       {
         // Repurposed salesbus module: internal stores/supplies requisition.
         // Routes keep the /salesbus prefix until the pages are reworked.

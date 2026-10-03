@@ -2,7 +2,10 @@
 
 ## Status
 
-Accepted
+Superseded by [ADR-0013](0013-cap-alert-self-publish-and-bulletin-linkage.md),
+which drops the mandatory Submitted/Approved gate in favour of the same
+self-publish shape every other product uses. The CAP-XML snapshot, audit
+trail, and public-feed decisions below stand.
 
 ## Context
 

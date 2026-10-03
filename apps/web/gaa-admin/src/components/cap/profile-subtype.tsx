@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@barrelsgd/ui/components/ui/select";
 import { CAP_CATEGORY_LABELS } from "@/lib/cap-hazards";
+import { GMS_PRODUCTS, type GmsProduct } from "@/lib/cap-levels";
 import { emptyRule } from "@/lib/cap-profile-defaults";
 import { ProfileField } from "./profile-field";
 
@@ -83,7 +84,7 @@ export function ProfileSubtypeEditor({
             <Select
               onValueChange={(level) =>
                 updateRule(index, {
-                  level: level as "Advisory" | "Watch" | "Warning",
+                  level: level as GmsProduct,
                 })
               }
               value={rule.level ?? "Warning"}
@@ -92,7 +93,7 @@ export function ProfileSubtypeEditor({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {["Advisory", "Watch", "Warning"].map((level) => (
+                {GMS_PRODUCTS.map((level) => (
                   <SelectItem key={level} value={level}>
                     {level}
                   </SelectItem>

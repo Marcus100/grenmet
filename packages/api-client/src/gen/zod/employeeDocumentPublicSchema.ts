@@ -26,7 +26,7 @@ export const employeeDocumentPublicSchema = z.object({
   entity_type: z.union([z.string(), z.null()]).optional(),
   entity_id: z.union([z.uuid(), z.null()]).optional(),
   uploaded_by_user_id: z.union([z.uuid(), z.null()]).optional(),
-  archived_at: z.union([z.string(), z.null()]).optional(),
-  created_at: z.string(),
-  updated_at: z.string(),
+  archived_at: z.union([z.iso.datetime(), z.null()]).optional(),
+  created_at: z.iso.datetime(),
+  updated_at: z.iso.datetime(),
 });

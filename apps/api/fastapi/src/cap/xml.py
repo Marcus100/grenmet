@@ -26,7 +26,6 @@ from src.cap.schemas import (
 )
 
 CAP_NS = "urn:oasis:names:tc:emergency:cap:1.2"
-ET.register_namespace("", CAP_NS)
 
 
 def alert_to_cap_xml(alert: CapAlertPublic) -> str:
@@ -53,7 +52,11 @@ def alert_to_cap_xml(alert: CapAlertPublic) -> str:
         for info in sorted(alert.info, key=lambda item: item.sequence):
             root.append(_info_element(info))
 
-    return ET.tostring(root, encoding="unicode", xml_declaration=True)
+    # Pass the namespace here, not via ET.register_namespace: that registry is
+    # process-global and WeasyPrint overwrites the default ("") entry on import.
+    return ET.tostring(
+        root, encoding="unicode", xml_declaration=True, default_namespace=CAP_NS
+    )
 
 
 def _info_element(info: CapInfoPublic) -> ET.Element:

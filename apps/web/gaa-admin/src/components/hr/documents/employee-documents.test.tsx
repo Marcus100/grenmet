@@ -23,7 +23,7 @@ import { EmployeeDocuments } from "@/components/hr/documents/employee-documents"
 const uploadDocument = vi.hoisted(() => vi.fn());
 vi.mock("@barrelsgd/api-client", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@barrelsgd/api-client")>()),
-  uploadDocumentApiV1HrDocumentsPost: uploadDocument,
+  hrUploadDocument: uploadDocument,
 }));
 
 const DOWNLOAD = /Download Observer/;
