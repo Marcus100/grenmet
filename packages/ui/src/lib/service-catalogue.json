@@ -141,10 +141,11 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "unconfigured",
+            "status": "intentionally-disabled",
             "project": null,
             "dsn": null,
-            "deliveryEvidence": []
+            "deliveryEvidence": [],
+            "reason": "Staging pilot proceeds without Sentry: free-account access isolation is unverified and Open Team Membership cannot be changed. Do not reuse legacy shared projects."
           },
           "availability": {
             "status": "unconfigured",
@@ -311,10 +312,11 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "unconfigured",
+            "status": "intentionally-disabled",
             "project": null,
             "dsn": null,
-            "deliveryEvidence": []
+            "deliveryEvidence": [],
+            "reason": "Staging pilot proceeds without Sentry: free-account access isolation is unverified and Open Team Membership cannot be changed. Do not reuse legacy shared projects."
           },
           "availability": {
             "status": "configured",
@@ -399,10 +401,11 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "unconfigured",
+            "status": "intentionally-disabled",
             "project": null,
             "dsn": null,
-            "deliveryEvidence": []
+            "deliveryEvidence": [],
+            "reason": "Staging pilot proceeds without Sentry: free-account access isolation is unverified and Open Team Membership cannot be changed. Do not reuse legacy shared projects."
           },
           "availability": {
             "status": "unconfigured",
@@ -484,10 +487,11 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "unconfigured",
+            "status": "intentionally-disabled",
             "project": null,
             "dsn": null,
-            "deliveryEvidence": []
+            "deliveryEvidence": [],
+            "reason": "Staging pilot proceeds without Sentry: free-account access isolation is unverified and Open Team Membership cannot be changed. Do not reuse legacy shared projects."
           },
           "availability": {
             "status": "unconfigured",
@@ -569,10 +573,11 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "unconfigured",
+            "status": "intentionally-disabled",
             "project": null,
             "dsn": null,
-            "deliveryEvidence": []
+            "deliveryEvidence": [],
+            "reason": "Staging pilot proceeds without Sentry: free-account access isolation is unverified and Open Team Membership cannot be changed. Do not reuse legacy shared projects."
           },
           "availability": {
             "status": "unconfigured",
@@ -654,10 +659,11 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "unconfigured",
+            "status": "intentionally-disabled",
             "project": null,
             "dsn": null,
-            "deliveryEvidence": []
+            "deliveryEvidence": [],
+            "reason": "Staging pilot proceeds without Sentry: free-account access isolation is unverified and Open Team Membership cannot be changed. Do not reuse legacy shared projects."
           },
           "availability": {
             "status": "unconfigured",
@@ -739,10 +745,11 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "unconfigured",
+            "status": "intentionally-disabled",
             "project": null,
             "dsn": null,
-            "deliveryEvidence": []
+            "deliveryEvidence": [],
+            "reason": "Staging pilot proceeds without Sentry: free-account access isolation is unverified and Open Team Membership cannot be changed. Do not reuse legacy shared projects."
           },
           "availability": {
             "status": "unconfigured",
@@ -824,10 +831,11 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "unconfigured",
+            "status": "intentionally-disabled",
             "project": null,
             "dsn": null,
-            "deliveryEvidence": []
+            "deliveryEvidence": [],
+            "reason": "Staging pilot proceeds without Sentry: free-account access isolation is unverified and Open Team Membership cannot be changed. Do not reuse legacy shared projects."
           },
           "availability": {
             "status": "unconfigured",
@@ -909,10 +917,11 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "unconfigured",
+            "status": "intentionally-disabled",
             "project": null,
             "dsn": null,
-            "deliveryEvidence": []
+            "deliveryEvidence": [],
+            "reason": "Staging pilot proceeds without Sentry: free-account access isolation is unverified and Open Team Membership cannot be changed. Do not reuse legacy shared projects."
           },
           "availability": {
             "status": "unconfigured",
@@ -994,10 +1003,11 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "unconfigured",
+            "status": "intentionally-disabled",
             "project": null,
             "dsn": null,
-            "deliveryEvidence": []
+            "deliveryEvidence": [],
+            "reason": "Staging pilot proceeds without Sentry: free-account access isolation is unverified and Open Team Membership cannot be changed. Do not reuse legacy shared projects."
           },
           "availability": {
             "status": "unconfigured",
@@ -1164,10 +1174,11 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "unconfigured",
+            "status": "intentionally-disabled",
             "project": null,
             "dsn": null,
-            "deliveryEvidence": []
+            "deliveryEvidence": [],
+            "reason": "Staging pilot proceeds without Sentry: free-account access isolation is unverified and Open Team Membership cannot be changed. Do not reuse legacy shared projects."
           },
           "availability": {
             "status": "unconfigured",

@@ -27,8 +27,12 @@ shared keys into every row.
 
 Build and runtime Sentry routing use the same catalogue. The old environment-wide
 DSN and PostHog fallbacks no longer activate a new build. Existing deployed builds
-are unchanged. **Do not promote until intended error-reporting mappings have been
-reviewed**: otherwise unmapped integrations will be disabled by design. Source-map
+are unchanged until deployment. **The staging pilot intentionally disables Sentry**
+following the owner’s free-plan constraint and unavailable Open Team Membership
+control. This is an explicit error-reporting coverage gap: after staging deployment,
+previously shared Sentry reporting stops; external availability probes continue.
+Do not claim browser/server/worker error delivery or source-map acceptance.
+Production remains unapproved and requires a separate coverage decision. Source-map
 upload and browser/server releases use `NEXT_PUBLIC_RELEASE` (the build commit).
 Performance transactions are dropped and sampling remains zero until sanitation
 and free quota can be verified; replay/profiling/log ingestion remain disabled.
@@ -234,9 +238,10 @@ names and the existing Spaces secret names. Secret presence is verified; token
 validity remains unverified until the CI provider preview succeeds. Set `TELEMETRY_ENABLED=true` separately to enable
 bounded request/job counters. Provider-created resources do not prove SDK delivery.
 
-Remaining live gates: provider free-account limits, credential validation, approved commits
-and workflow publication, runner installation privileges, storage lifecycle/capacity,
-app-specific Sentry mappings/source maps, controlled incident recovery delivery,
+Remaining monitoring activation gates (distinct from the staging application deployment):
+provider free-account limits, credential validation, workflow publication on the default
+branch, runner installation privileges, storage lifecycle/capacity,
+controlled incident recovery delivery,
 live per-target incident/maintenance validation and 24-hour staging observation. No production application was deployed by this work.
 
 Host monitoring scripts support Python 3.11+ (staging currently has Python 3.12).
