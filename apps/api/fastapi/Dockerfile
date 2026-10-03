@@ -15,7 +15,8 @@ ENV UV_LINK_MODE=copy \
 # WeasyPrint (forecast PDFs) lays out text with Pango/HarfBuzz/fontconfig.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-       libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libfontconfig1 \
+       libpango-1.0-0 libpangoft2-1.0-0 libharfbuzz0b libfontconfig1 libexpat1 \
+    && dpkg --compare-versions "$(dpkg-query -W -f='${Version}' libexpat1)" ge '2.5.0-1+deb12u4' \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
