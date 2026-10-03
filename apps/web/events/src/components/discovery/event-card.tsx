@@ -7,6 +7,7 @@ import { PARISH_LABELS, priceLabel } from "@/domain/labels";
 import type { PublicEvent } from "@/domain/types";
 import { formatEventDate } from "@/lib/datetime";
 import { EventFlyer } from "./event-flyer";
+import { SaveButton } from "./save-button";
 
 export interface EventCardData
   extends Pick<
@@ -96,12 +97,24 @@ export function EventCard({
     return body;
   }
 
+  // The save button is a sibling of the link, not inside it: interactive
+  // elements must not nest inside an anchor.
   return (
-    <Link
-      className="block rounded-2xl focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-4"
-      href={href ?? `/events/${event.slug}`}
-    >
-      {body}
-    </Link>
+    <div className="relative h-full">
+      <Link
+        className="block h-full rounded-2xl focus-visible:outline-2 focus-visible:outline-ring focus-visible:outline-offset-4"
+        href={href ?? `/events/${event.slug}`}
+      >
+        {body}
+      </Link>
+      <SaveButton
+        className={cn(
+          "absolute top-3",
+          layout === "row" ? "left-20 sm:left-32" : "right-3"
+        )}
+        slug={event.slug}
+        title={event.title}
+      />
+    </div>
   );
 }

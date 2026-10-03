@@ -228,6 +228,8 @@ export interface PublicEvent {
   /** ISO 8601 with offset. */
   readonly startsAt: string;
   readonly summary: string;
+  /** Curated collections, e.g. "spicemas" for the season hub. */
+  readonly tags: readonly string[];
   readonly title: string;
   readonly venue: string;
 }
@@ -303,5 +305,6 @@ export interface EventFilters {
   readonly parish?: Parish;
   readonly price?: "free" | "paid";
   readonly query?: string;
+  readonly tag?: string;
   readonly when?: "tonight" | "weekend" | "week" | "month";
 }
