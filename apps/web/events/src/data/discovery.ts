@@ -80,6 +80,7 @@ export function filterEvents(
     .filter((event) => new Date(event.endsAt) > now)
     .filter((event) => !filters.category || event.category === filters.category)
     .filter((event) => !filters.parish || event.parish === filters.parish)
+    .filter((event) => !filters.tag || event.tags.includes(filters.tag))
     .filter((event) => {
       if (filters.price === "free") {
         return event.admission !== "ticketed";
@@ -268,6 +269,14 @@ export async function getEventBySlug(
 ): Promise<PublicEvent | null> {
   return await Promise.resolve(
     buildDemoEvents(now).find((event) => event.slug === slug) ?? null
+  );
+}
+
+export async function getOrganiserBySlug(
+  slug: string
+): Promise<Organiser | null> {
+  return await Promise.resolve(
+    demoOrganisers.find((organiser) => organiser.slug === slug) ?? null
   );
 }
 

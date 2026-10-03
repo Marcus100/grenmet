@@ -8,6 +8,7 @@ import { ToggleButton } from "@/components/community/toggle-button";
 import { EventCard } from "@/components/discovery/event-card";
 import { EventFlyer } from "@/components/discovery/event-flyer";
 import { RsvpButton } from "@/components/discovery/rsvp-button";
+import { SaveButton } from "@/components/discovery/save-button";
 import { ShareActions } from "@/components/discovery/share-actions";
 import { toCardData } from "@/components/discovery/to-card";
 import {
@@ -182,6 +183,12 @@ export default async function EventPage({ params }: { params: Params }) {
               admission={event.admission}
               initiallyGoing={event.goingIds.includes(viewer.id)}
             />
+            <SaveButton
+              className="w-full"
+              slug={event.slug}
+              title={event.title}
+              variant="inline"
+            />
             <ShareActions
               icsHref={`/events/${event.slug}/ics`}
               path={`/events/${event.slug}`}
@@ -198,7 +205,12 @@ export default async function EventPage({ params }: { params: Params }) {
                 <PersonAvatar name={organiser.name} size="lg" />
                 <div className="min-w-0">
                   <p className="flex items-center gap-1 font-medium text-body">
-                    <span className="truncate">{organiser.name}</span>
+                    <Link
+                      className="truncate hover:underline"
+                      href={`/o/${organiser.slug}`}
+                    >
+                      {organiser.name}
+                    </Link>
                     {organiser.verified ? (
                       <BadgeCheck
                         aria-label="Verified organiser"

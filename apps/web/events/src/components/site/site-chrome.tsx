@@ -36,11 +36,7 @@ export function SiteHeader({ viewer }: { viewer: Profile }) {
             <LayoutDashboard data-icon="inline-start" />
             For organisers
           </Link>
-          <Link
-            aria-label="Your profile"
-            className="rounded-full"
-            href={`/people/${viewer.handle}`}
-          >
+          <Link aria-label="My plans" className="rounded-full" href="/me">
             <PersonAvatar name={viewer.name} />
           </Link>
         </div>

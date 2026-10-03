@@ -345,6 +345,7 @@ export function buildDemoEvents(now: Date): readonly PublicEvent[] {
       featured: true,
       recurrence: null,
       goingIds: ["p_kayla", "p_jordan", "p_devon"],
+      tags: ["spicemas"],
       isDemo: true,
     },
     {
@@ -366,6 +367,7 @@ export function buildDemoEvents(now: Date): readonly PublicEvent[] {
       featured: true,
       recurrence: "First Thursday monthly",
       goingIds: [DEMO_VIEWER_ID, "p_dana", "p_devon", "p_jordan"],
+      tags: [],
       isDemo: true,
     },
     {
@@ -387,6 +389,7 @@ export function buildDemoEvents(now: Date): readonly PublicEvent[] {
       featured: false,
       recurrence: "Every Tuesday and Saturday",
       goingIds: [DEMO_VIEWER_ID, "p_marcus", "p_kayla"],
+      tags: [],
       isDemo: true,
     },
     {
@@ -407,6 +410,7 @@ export function buildDemoEvents(now: Date): readonly PublicEvent[] {
       featured: false,
       recurrence: "Every Tuesday and Saturday",
       goingIds: ["p_marcus"],
+      tags: [],
       isDemo: true,
     },
     {
@@ -428,6 +432,7 @@ export function buildDemoEvents(now: Date): readonly PublicEvent[] {
       featured: true,
       recurrence: "Monthly",
       goingIds: ["p_renee", "p_simone"],
+      tags: [],
       isDemo: true,
     },
     {
@@ -449,6 +454,7 @@ export function buildDemoEvents(now: Date): readonly PublicEvent[] {
       featured: false,
       recurrence: "Fortnightly Fridays",
       goingIds: ["p_renee", "p_kayla"],
+      tags: ["spicemas"],
       isDemo: true,
     },
     {
@@ -470,6 +476,7 @@ export function buildDemoEvents(now: Date): readonly PublicEvent[] {
       featured: false,
       recurrence: "Monthly",
       goingIds: ["p_simone"],
+      tags: [],
       isDemo: true,
     },
     {
@@ -491,6 +498,7 @@ export function buildDemoEvents(now: Date): readonly PublicEvent[] {
       featured: true,
       recurrence: null,
       goingIds: ["p_jordan"],
+      tags: ["heritage"],
       isDemo: true,
     },
     {
@@ -512,6 +520,7 @@ export function buildDemoEvents(now: Date): readonly PublicEvent[] {
       featured: false,
       recurrence: "Monthly",
       goingIds: ["p_jordan"],
+      tags: [],
       isDemo: true,
     },
     {
@@ -532,6 +541,7 @@ export function buildDemoEvents(now: Date): readonly PublicEvent[] {
       featured: false,
       recurrence: null,
       goingIds: [],
+      tags: [],
       isDemo: true,
     },
     {
@@ -553,6 +563,7 @@ export function buildDemoEvents(now: Date): readonly PublicEvent[] {
       featured: false,
       recurrence: null,
       goingIds: ["p_renee"],
+      tags: [],
       isDemo: true,
     },
     {
@@ -574,6 +585,7 @@ export function buildDemoEvents(now: Date): readonly PublicEvent[] {
       featured: false,
       recurrence: "Every Monday",
       goingIds: ["p_kayla"],
+      tags: [],
       isDemo: true,
     },
     {
@@ -594,6 +606,7 @@ export function buildDemoEvents(now: Date): readonly PublicEvent[] {
       featured: false,
       recurrence: null,
       goingIds: [],
+      tags: [],
       isDemo: true,
     },
     {
@@ -615,6 +628,7 @@ export function buildDemoEvents(now: Date): readonly PublicEvent[] {
       featured: true,
       recurrence: null,
       goingIds: ["p_kayla", "p_devon"],
+      tags: ["spicemas"],
       isDemo: true,
     },
   ];

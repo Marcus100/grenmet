@@ -87,6 +87,7 @@ export default async function HomePage() {
               ["This weekend", "/events?when=weekend"],
               ["Free", "/events?price=free"],
               ["Meetups", "/groups"],
+              ["Spicemas season", "/season/spicemas"],
             ].map(([label, href]) => (
               <Link
                 className="rounded-full border border-border bg-card px-3.5 py-1.5 font-medium text-caption hover:border-foreground"
