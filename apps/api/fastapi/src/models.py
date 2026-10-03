@@ -79,3 +79,5 @@ class Token(BaseModel):
 # Contents of JWT token
 class TokenPayload(BaseModel):
     sub: str | None = None
+    #: Set on app-scoped tokens (src/auth/apps.py); staff routes refuse them.
+    app: str | None = None

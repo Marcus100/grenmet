@@ -141,6 +141,16 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("cap.settings.manage", "Manage CAP settings"),
     PermissionDef("cap.feed.manage", "Manage external CAP feed sources"),
     # Transport — staff bus service (admin portal, driver app, staff app)
+    # Barrels Events — app access is a permission; module keys narrow it further
+    PermissionDef("app.events.access", "Sign in to Barrels Events"),
+    PermissionDef(
+        "events.member.write",
+        "RSVP, save, follow, join groups, connect and message on Barrels Events",
+    ),
+    PermissionDef(
+        "events.organiser.manage", "Create and manage events as an organiser"
+    ),
+    PermissionDef("events.moderate", "Review reports and resident event suggestions"),
     PermissionDef("transport.view", "View the bus admin portal"),
     PermissionDef("transport.ride", "Register for and ride the staff bus"),
     PermissionDef("transport.drive", "Operate runs in the bus driver app"),
@@ -325,6 +335,18 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "cap.settings.manage",
             "cap.feed.manage",
         ),
+    ),
+    "events-member": (
+        "Barrels Events member: self-service sign-up grants only this role",
+        ("app.events.access", "events.member.write"),
+    ),
+    "events-organiser": (
+        "Barrels Events organiser: publishes and manages events",
+        ("app.events.access", "events.member.write", "events.organiser.manage"),
+    ),
+    "events-moderator": (
+        "Barrels Events moderator: handles reports and suggestions",
+        ("app.events.access", "events.member.write", "events.moderate"),
     ),
     "transport-officer": (
         "Transport officer: runs the staff bus service end to end",

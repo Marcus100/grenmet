@@ -61,6 +61,11 @@ class User(Base):
     is_superuser: Mapped[bool] = mapped_column(default=False)
     hashed_password: Mapped[str]
     email_verified_at: Mapped[datetime | None]
+    # Optional sign-in factor for app-scoped apps (ADR-0016); E.164, unique.
+    phone_e164: Mapped[str | None] = mapped_column(
+        String(20), unique=True, index=True, nullable=True
+    )
+    phone_verified_at: Mapped[datetime | None]
     email_verification_required: Mapped[bool] = mapped_column(default=False)
     password_setup_pending: Mapped[bool] = mapped_column(default=False)
     registration_pending: Mapped[bool] = mapped_column(default=False)
@@ -193,7 +198,7 @@ class Session(Base):
     session_token: Mapped[str] = mapped_column(String(500), unique=True)
     expires_at: Mapped[datetime]
     client_type: Mapped[str] = mapped_column(String(50), default="web")
-    app_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    app_name: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)
     user_agent: Mapped[str | None] = mapped_column(String(500), nullable=True)
     ip_address: Mapped[str | None] = mapped_column(String(64), nullable=True)
     last_used_at: Mapped[datetime] = mapped_column(default=utc_now)
