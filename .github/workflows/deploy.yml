@@ -75,6 +75,8 @@ jobs:
           clean: false
       - name: Run serialized core delivery
         env:
+          SENTRY_DSN_STAGING: ${{ secrets.SENTRY_DSN_STAGING }}
+          SENTRY_DSN_PRODUCTION: ${{ secrets.SENTRY_DSN_PRODUCTION }}
           TELEMETRY_ENABLED: ${{ vars.TELEMETRY_ENABLED }}
           TELEMETRY_WORKER_HEARTBEAT_URL: ${{ secrets.WORKER_HEARTBEAT_URL }}
           CORE_REDIS_IMAGE: ${{ vars.CORE_REDIS_IMAGE }}

@@ -6,6 +6,19 @@ export const cataloguePath = new URL(
 export function readCatalogue() {
   return JSON.parse(readFileSync(cataloguePath, "utf8"));
 }
+const SHARED_SENTRY_APPS = new Set([
+  "elections",
+  "auth",
+  "gaa-admin",
+  "docs",
+  "gms",
+  "signal",
+  "mbia",
+  "events",
+  "cms",
+  "api",
+  "worker",
+]);
 const GA_ID = /^G-[A-Z0-9]+$/;
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: flat catalogue validation keeps all deployment invariants together.
 export function validateCatalogue(catalogue) {
@@ -21,6 +34,20 @@ export function validateCatalogue(catalogue) {
         failures.push(`Missing environment: ${service.id}/${environment}`);
         continue;
       }
+      if (
+        entry.sentry.secretRef &&
+        (!(
+          SHARED_SENTRY_APPS.has(service.id) &&
+          ["staging", "production"].includes(environment)
+        ) ||
+          entry.sentry.secretRef !==
+            `SENTRY_DSN_${environment.toUpperCase()}` ||
+          entry.sentry.project !== `grenmet-${environment}` ||
+          entry.sentry.dsn)
+      )
+        failures.push(
+          `Invalid shared Sentry routing: ${service.id}/${environment}`
+        );
       const analytics = entry.analytics;
       const label = `${service.id}/${environment}`;
       if (!service.publicAnalytics && (analytics.ga4 || analytics.posthog))
