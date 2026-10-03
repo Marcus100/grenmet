@@ -79,7 +79,7 @@ export default function Election2026Page() {
               },
             ].map((kpi) => (
               <div key={kpi.label} title={kpi.note}>
-                <dt className="font-semibold text-[11px] text-el-muted uppercase tracking-[0.07em]">
+                <dt className="font-semibold text-el-muted text-sm uppercase tracking-[0.07em]">
                   {kpi.label}
                 </dt>
                 <dd className="mt-0.5 font-semibold text-xl tabular-nums">
@@ -101,7 +101,7 @@ export default function Election2026Page() {
         title="Latest"
       >
         {COVERAGE.length === 0 ? (
-          <p className="border-el-rule border-y py-6 text-el-ink-2">
+          <p className="border-el-rule border-y py-6 text-el-ink-2 leading-relaxed">
             Live coverage starts when polling day is announced.
           </p>
         ) : (
@@ -131,7 +131,7 @@ export default function Election2026Page() {
             <b className="block font-bold font-serif text-xl">
               Make your map →
             </b>
-            <span className="text-el-ink-2 text-sm">
+            <span className="text-base text-el-ink-2">
               Rate all 15 constituencies, from Solid NDC to Solid NNP (and DPM
               where it stands), and share your prediction.
             </span>
@@ -156,11 +156,11 @@ export default function Election2026Page() {
         <ul className="divide-y divide-el-rule border-el-rule border-y">
           {polls.map((poll) => (
             <li className="py-4" key={poll.id}>
-              <p className="font-semibold">
+              <p className="font-semibold leading-relaxed">
                 {poll.pollster}
                 <Flag note={poll.note} status={poll.flag} />
               </p>
-              <p className="text-el-muted text-sm">
+              <p className="text-base text-el-muted leading-relaxed">
                 Fieldwork {poll.field}
                 {poll.n ? ` · ${fmt(poll.n)} people` : ""}
                 {poll.seats
@@ -169,7 +169,7 @@ export default function Election2026Page() {
                       .join(", ")}`
                   : ""}
               </p>
-              <p className="mt-1 text-el-muted text-xs">
+              <p className="mt-1 text-base text-el-muted leading-relaxed">
                 <SourceLink id={poll.src} sources={campaign.sources} />
               </p>
             </li>

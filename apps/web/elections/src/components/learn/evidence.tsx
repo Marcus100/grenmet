@@ -4,7 +4,7 @@ import { EVIDENCE, EVIDENCE_LABELS, type EvidenceId } from "@/data/evidence";
 export function EvidenceCitation({ id }: { id: EvidenceId }) {
   const source = EVIDENCE[id];
   return (
-    <details className="text-el-muted text-sm">
+    <details className="text-base text-el-muted">
       <summary className="cursor-pointer">
         {EVIDENCE_LABELS[source.kind]} · {source.title}
       </summary>
@@ -32,11 +32,11 @@ export function CalculationNote({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="my-4 border-el-rule border-l-2 pl-4 text-sm">
-      <p className="font-semibold">
+    <div className="my-4 border-el-rule border-l-2 pl-4 text-base">
+      <p className="font-semibold leading-relaxed">
         Our calculation, not an official published statistic
       </p>
-      <p className="mt-1 text-el-ink-2">{formula}</p>
+      <p className="mt-1 text-el-ink-2 leading-relaxed">{formula}</p>
       {children}
       <Link
         className="mt-2 inline-block underline underline-offset-4"

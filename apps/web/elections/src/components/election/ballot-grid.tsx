@@ -27,7 +27,7 @@ function Slot({
     return (
       <span className="text-el-ink-2">
         {seat.sitting.name}{" "}
-        <span className="text-el-muted text-xs">(MP, not confirmed)</span>
+        <span className="text-base text-el-muted">(MP, not confirmed)</span>
       </span>
     );
   if (party === "DPM") return null;
@@ -51,7 +51,7 @@ export function BallotGrid({ seats }: { seats: SeatOutlook[] }) {
           >
             {seat.name}
           </Link>
-          <ul className="mt-2 space-y-1 text-sm">
+          <ul className="mt-2 space-y-1 text-base">
             {SLATES.map((party) => {
               const slot = <Slot party={party} seat={seat} />;
               if (

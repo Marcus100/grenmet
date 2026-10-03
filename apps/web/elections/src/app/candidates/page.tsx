@@ -22,8 +22,7 @@ export const metadata: Metadata = {
     "Who is standing in Grenada’s 2026 election, and everyone who has stood for the House since 1951, with each person’s record and sources.",
 };
 
-const LABEL =
-  "font-semibold text-[11px] text-el-muted uppercase tracking-[0.07em]";
+const LABEL = "font-semibold text-sm text-el-muted uppercase tracking-[0.07em]";
 const SLATES = ["NNP", "DPM", "NDC"] as const;
 
 export default function CandidatesPage() {
@@ -91,7 +90,7 @@ export default function CandidatesPage() {
                   <PartyDot party={party} />
                   {partyInfo(party).name}
                 </h3>
-                <p className="text-el-muted text-xs">
+                <p className="text-base text-el-muted leading-relaxed">
                   {slate.length} named
                   {slateSources(campaign, party).length > 0 && (
                     <>
@@ -101,13 +100,13 @@ export default function CandidatesPage() {
                   )}
                 </p>
                 {slate.length === 0 ? (
-                  <p className="mt-3 text-el-ink-2 text-sm">
+                  <p className="mt-3 text-base text-el-ink-2 leading-relaxed">
                     {party === "NDC"
                       ? campaign.candidate_flags.NDC
                       : "No candidates named yet."}
                   </p>
                 ) : (
-                  <ul className="mt-3 space-y-1.5 text-sm">
+                  <ul className="mt-3 space-y-1.5 text-base">
                     {slate
                       .sort((a, b) =>
                         constituencyName(results, a[0]).localeCompare(
@@ -121,7 +120,7 @@ export default function CandidatesPage() {
                           <li key={code}>
                             <b className="font-semibold">{name}</b>
                             {note && <Flag note={note} status="unverified" />}
-                            <span className="block text-el-muted text-xs">
+                            <span className="block text-base text-el-muted">
                               <Link
                                 className="hover:underline"
                                 href={constituencyHref(results, code)}
@@ -175,7 +174,7 @@ export default function CandidatesPage() {
               <dd className="mt-0.5 font-semibold text-xl tabular-nums">
                 {value}
               </dd>
-              {note && <dd className="text-el-muted text-xs">{note}</dd>}
+              {note && <dd className="text-base text-el-muted">{note}</dd>}
             </div>
           ))}
         </dl>
@@ -187,7 +186,7 @@ export default function CandidatesPage() {
           parties={parties}
           rows={rows}
         />
-        <p className="mt-4 max-w-[70ch] text-el-muted text-xs">
+        <p className="mt-4 max-w-[70ch] text-base text-el-muted leading-relaxed">
           People are matched by surname and first initial across elections,
           split when full first names differ or races are more than 16 years
           apart. This can occasionally merge two people or split one;

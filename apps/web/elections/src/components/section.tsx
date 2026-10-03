@@ -23,21 +23,23 @@ export function Section({
     >
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 border-el-ink border-t-2 pt-3">
         <h2
-          className="scroll-mt-20 font-bold text-2xl sm:text-[26px]"
+          className="scroll-mt-20 font-bold text-2xl sm:text-[1.625rem]"
           id={`${id}-title`}
         >
           {title}
         </h2>
         {more && (
           <Link
-            className="font-semibold text-sm underline decoration-el-rule-2 underline-offset-4 hover:decoration-el-ink"
+            className="font-semibold text-base underline decoration-el-rule-2 underline-offset-4 hover:decoration-el-ink"
             href={more.href}
           >
             {more.label} →
           </Link>
         )}
         {intro && (
-          <p className="w-full max-w-[70ch] text-el-ink-2 text-sm">{intro}</p>
+          <p className="w-full max-w-prose text-el-ink-2 text-lg leading-relaxed">
+            {intro}
+          </p>
         )}
       </div>
       {children}
@@ -61,14 +63,14 @@ export function PageHead({
 }) {
   return (
     <header className="mx-auto max-w-[1240px] px-4 pt-8 sm:px-6">
-      <p className="font-semibold text-el-ink-2 text-xs uppercase tracking-[0.08em]">
+      <p className="font-semibold text-base text-el-ink-2 uppercase leading-relaxed tracking-[0.08em]">
         {eyebrow}
       </p>
-      <h1 className="mt-2.5 max-w-[24ch] font-bold text-[clamp(30px,4.2vw,48px)] leading-[1.08] tracking-[-0.022em]">
+      <h1 className="mt-2.5 max-w-[24ch] font-bold text-[clamp(1.875rem,4.2vw,3rem)] leading-[1.08] tracking-[-0.022em]">
         {title}
       </h1>
       {deck && (
-        <p className="mt-3.5 max-w-[62ch] font-serif text-el-ink-2 text-lg leading-normal sm:text-[19px]">
+        <p className="mt-3.5 max-w-[62ch] font-serif text-el-ink-2 text-lg leading-normal sm:text-[1.1875rem]">
           {deck}
         </p>
       )}

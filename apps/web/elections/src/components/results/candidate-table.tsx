@@ -19,7 +19,7 @@ export function CandidateTable({
   const valid = rows.reduce((a, r) => a + r[2], 0) || 1;
   const referendum = rows.some((r) => r[1] === "YES");
   return (
-    <table className="w-full text-sm">
+    <table className="w-full text-base">
       <caption className="sr-only">{caption}</caption>
       <tbody>
         {rows.map((row, i) => (
@@ -29,7 +29,7 @@ export function CandidateTable({
           >
             <th className="py-2 pr-3 text-left font-normal" scope="row">
               <span className={i === 0 ? "font-semibold" : ""}>{row[0]}</span>
-              <span className="block text-el-muted text-xs">
+              <span className="block text-base text-el-muted">
                 {referendum ? "" : partyInfo(row[1]).name}
                 {i === 0 && (referendum ? "Ahead" : ` · ${winnerLabel}`)}
               </span>
@@ -45,7 +45,7 @@ export function CandidateTable({
             </th>
             <td className="py-2 text-right tabular-nums">
               <b>{pct(row[2] / valid)}</b>
-              <span className="block text-el-muted text-xs">
+              <span className="block text-base text-el-muted">
                 {fmt(row[2])}
                 <Flag status={row[3]} />
               </span>

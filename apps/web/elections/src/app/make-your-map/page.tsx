@@ -84,7 +84,7 @@ export default function YourPredictionPage() {
           land={ringPath(geo.land)}
           seats={seats}
         />
-        <p className="mt-6 max-w-[70ch] text-el-muted text-xs">
+        <p className="mt-6 max-w-[70ch] text-base text-el-muted leading-relaxed">
           Starting from an election, a seat won by 15 points or more is Solid,
           by at least 5 but less than 15 Likely, and by less than 5 Lean; seats
           won by parties not standing in 2026 start as Toss-up. Nothing you

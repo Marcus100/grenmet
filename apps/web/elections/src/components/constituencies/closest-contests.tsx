@@ -23,7 +23,7 @@ export function ClosestContests({
           >
             <span className="min-w-0 flex-1">
               <b className="font-semibold font-serif">{seat.name}</b>
-              <span className="block text-el-muted text-xs">
+              <span className="block text-base text-el-muted">
                 <PartyDot party={seat.winner2022.party} />
                 {seat.winner2022.name}, {seat.winner2022.party}
                 {seat.sitting.party !== seat.winner2022.party &&

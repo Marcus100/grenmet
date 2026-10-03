@@ -13,8 +13,8 @@ const MARKS = [
 export function SiteFooter() {
   return (
     <footer className="mt-16 border-el-rule border-t">
-      <div className="mx-auto max-w-[1240px] space-y-4 px-4 py-8 text-el-muted text-sm leading-relaxed sm:px-6">
-        <p className="font-semibold text-el-ink">
+      <div className="mx-auto max-w-[1240px] space-y-4 px-4 py-8 text-base text-el-muted leading-relaxed sm:px-6">
+        <p className="font-semibold text-el-ink leading-relaxed">
           Understand the system. Explore the evidence. Explain it for yourself.
         </p>
         <nav

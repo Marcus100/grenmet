@@ -130,8 +130,7 @@ function detailText(line: string | Record<string, string | number>): string {
     .join(", ");
 }
 
-const LABEL =
-  "font-semibold text-[11px] text-el-muted uppercase tracking-[0.07em]";
+const LABEL = "font-semibold text-sm text-el-muted uppercase tracking-[0.07em]";
 const STATUS_STYLE = {
   pass: "text-el-nnp-ink",
   fail: "text-el-gulp-ink",
@@ -183,7 +182,7 @@ export default function SourcesPage() {
               <dd className="mt-0.5 font-semibold text-xl tabular-nums">
                 {value}
               </dd>
-              {note && <dd className="text-el-muted text-xs">{note}</dd>}
+              {note && <dd className="text-base text-el-muted">{note}</dd>}
             </div>
           ))}
         </dl>
@@ -195,12 +194,12 @@ export default function SourcesPage() {
         title="What our evidence labels mean"
       >
         <a
-          className="mb-4 inline-block text-sm underline underline-offset-4"
+          className="mb-4 inline-block text-base underline underline-offset-4"
           href="/evidence.json"
         >
           Download evidence and calculation metadata (JSON)
         </a>
-        <dl className="grid gap-5 text-sm md:grid-cols-2">
+        <dl className="grid gap-5 text-base md:grid-cols-2">
           {[
             [
               "Official record",
@@ -225,7 +224,7 @@ export default function SourcesPage() {
             </div>
           ))}
         </dl>
-        <p className="mt-5 max-w-prose text-sm leading-relaxed">
+        <p className="mt-5 max-w-prose text-base leading-relaxed">
           Vote share = candidate or party votes ÷ all valid votes. Turnout =
           ballots cast ÷ registered electors; where only valid votes exist we
           label the ratio as a proxy. A margin subtracts shares; a percentage
@@ -250,7 +249,7 @@ export default function SourcesPage() {
         intro="Missing from our archive does not mean the record does not exist. These gaps affect what we can responsibly teach or calculate."
         title="The most important gaps to close"
       >
-        <ol className="grid list-inside list-decimal gap-4 text-sm md:grid-cols-2">
+        <ol className="grid list-inside list-decimal gap-4 text-base md:grid-cols-2">
           {[
             "Official constituency and polling-division boundary files: reconstructed shapes cannot settle voting eligibility.",
             "Complete early election returns and the 1976 official result notice: secondary figures remain labelled.",
@@ -269,7 +268,7 @@ export default function SourcesPage() {
 
       <Section id="by-vote" title="By vote">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] text-sm">
+          <table className="w-full min-w-[640px] text-base">
             <thead>
               <tr className="border-el-ink border-b text-left">
                 {["Vote", "Source", "Level", "Status"].map((h) => (
@@ -311,7 +310,7 @@ export default function SourcesPage() {
       </Section>
 
       <Section id="checks" title="Checks run">
-        <ul className="divide-y divide-el-rule border-el-rule border-y text-sm">
+        <ul className="divide-y divide-el-rule border-el-rule border-y text-base">
           {CHECKS_RUN.map(([check, result]) => (
             <li
               className="grid gap-1 py-2.5 sm:grid-cols-2 sm:gap-6"
@@ -323,17 +322,17 @@ export default function SourcesPage() {
           ))}
         </ul>
         <h3 className={`${LABEL} mt-8`}>Automated checks</h3>
-        <p className="mt-1 max-w-[70ch] text-el-muted text-xs">
+        <p className="mt-1 max-w-[70ch] text-base text-el-muted leading-relaxed">
           These run every time the dataset is rebuilt from the source documents.
           “Known” means the problem is in a source document and is listed in the
           register below.
         </p>
         <details className="mt-2">
-          <summary className="cursor-pointer font-semibold text-sm">
+          <summary className="cursor-pointer font-semibold text-base">
             All {v.checks.length} checks
           </summary>
           <div className="mt-2 overflow-x-auto">
-            <table className="w-full min-w-[640px] text-sm">
+            <table className="w-full min-w-[640px] text-base">
               <tbody>
                 {v.checks.map((c) => (
                   <tr
@@ -346,7 +345,7 @@ export default function SourcesPage() {
                     <td className="py-1.5 pr-3">
                       {c.check}
                       {c.detail && c.status !== "pass" && (
-                        <span className="block text-el-muted text-xs">
+                        <span className="block text-base text-el-muted">
                           {c.detail}
                         </span>
                       )}
@@ -380,8 +379,10 @@ export default function SourcesPage() {
               >
                 {title} (CSV)
               </a>
-              <p className="mt-1 text-el-ink-2 text-sm">{about}</p>
-              <code className="text-el-muted text-xs">{file}</code>
+              <p className="mt-1 text-base text-el-ink-2 leading-relaxed">
+                {about}
+              </p>
+              <code className="text-base text-el-muted">{file}</code>
             </li>
           ))}
         </ul>
@@ -392,7 +393,7 @@ export default function SourcesPage() {
         intro="Every known conflict, gap or weak source, with what would close it. Open items are what to ask the Parliamentary Elections Office, the Government Printery or the archives for."
         title="Discrepancy register"
       >
-        <p className="mb-3 text-sm">
+        <p className="mb-3 text-base leading-relaxed">
           <b>{items.filter((d) => d.status === "open").length}</b> open ·{" "}
           <b>{items.filter((d) => d.status === "resolved").length}</b> resolved
           · <b>{items.filter((d) => d.impact === "data").length}</b> affect
@@ -401,21 +402,21 @@ export default function SourcesPage() {
         <ol className="divide-y divide-el-rule border-el-rule border-y">
           {items.map((d) => (
             <li
-              className="grid scroll-mt-20 gap-x-6 gap-y-1 py-3 text-sm lg:grid-cols-[5rem_12rem_minmax(0,1fr)_minmax(0,1fr)_6rem]"
+              className="grid scroll-mt-20 gap-x-6 gap-y-1 py-3 text-base lg:grid-cols-[5rem_12rem_minmax(0,1fr)_minmax(0,1fr)_6rem]"
               id={d.id}
               key={d.id}
             >
               <b className="font-semibold">{d.id}</b>
               <span>
                 {d.area}
-                <span className="block text-el-muted text-xs">
+                <span className="block text-base text-el-muted">
                   {IMPACT[d.impact]}
                 </span>
               </span>
               <span>
                 {d.what}
                 {d.detail && d.detail.length > 0 && (
-                  <details className="mt-1 text-xs">
+                  <details className="mt-1 text-base">
                     <summary className="cursor-pointer text-el-muted">
                       {d.detail.length} detail{d.detail.length === 1 ? "" : "s"}
                     </summary>
@@ -426,7 +427,7 @@ export default function SourcesPage() {
                     </ul>
                   </details>
                 )}
-                <span className="block text-el-muted text-xs">
+                <span className="block text-base text-el-muted">
                   Sources: {d.sources.join("; ")}
                 </span>
               </span>
@@ -442,7 +443,7 @@ export default function SourcesPage() {
       </Section>
 
       <Section id="other" title="Other sources">
-        <dl className="grid gap-4 text-sm md:grid-cols-2">
+        <dl className="grid gap-4 text-base md:grid-cols-2">
           <div>
             <dt className="font-semibold">Map boundaries</dt>
             <dd className="text-el-ink-2">

@@ -68,7 +68,7 @@ export function ElectionUpdates({
           key={`${u.date}${u.text}`}
         >
           <time
-            className="font-semibold text-el-muted text-xs tabular-nums sm:pt-1"
+            className="font-semibold text-base text-el-muted tabular-nums sm:pt-1"
             dateTime={u.date}
           >
             {formatIsoDate(u.date)}
@@ -79,12 +79,12 @@ export function ElectionUpdates({
                 {u.title}
               </h3>
             )}
-            <p className={u.title ? "text-el-ink-2 text-sm" : ""}>
+            <p className={u.title ? "text-base text-el-ink-2" : ""}>
               {u.text}
               <Flag note={u.note} status={u.flag ?? null} />
             </p>
             {u.sources.length > 0 && (
-              <p className="mt-0.5 text-el-muted text-xs">
+              <p className="mt-0.5 text-base text-el-muted leading-relaxed">
                 {u.sources.map((source, index) => (
                   <span key={"id" in source ? source.id : source.url}>
                     {index > 0 && "; "}

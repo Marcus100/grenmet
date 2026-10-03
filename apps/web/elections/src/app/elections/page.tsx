@@ -48,7 +48,7 @@ export default function ElectionsPage() {
                       <span
                         className={
                           e.kind === "ref"
-                            ? "block font-sans font-semibold text-el-muted text-xs uppercase tracking-[0.07em]"
+                            ? "block font-sans font-semibold text-base text-el-muted uppercase tracking-[0.07em]"
                             : ""
                         }
                       >
@@ -57,16 +57,16 @@ export default function ElectionsPage() {
                     )}
                   </span>
                   <span>
-                    <span className="block text-el-muted text-sm">
+                    <span className="block text-base text-el-muted">
                       {e.date}
                     </span>
                     <b className="font-semibold">{headline}</b>
                     {!isOfficial(e.id) && (
-                      <span className="ml-2 inline-block rounded-[2px] border border-el-rule-2 px-1 font-semibold text-[10px] text-el-ink-2 uppercase tracking-[0.06em]">
+                      <span className="ml-2 inline-block rounded-[2px] border border-el-rule-2 px-1 font-semibold text-el-ink-2 text-sm uppercase tracking-[0.06em]">
                         Secondary source
                       </span>
                     )}
-                    <span className="block text-el-muted text-xs">
+                    <span className="block text-base text-el-muted">
                       {e.kind === "general"
                         ? `${seatsTotal} seats${e.map ? "" : " on earlier boundaries"} · winner ${partyInfo(order[0]?.[0] ?? "").name}`
                         : `Turnout ${pct(n.turnout)}`}

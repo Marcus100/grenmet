@@ -27,7 +27,7 @@ export function HouseMap({
           title: `${seat.name}: ${seat.sitting.name}, ${partyInfo(seat.sitting.party).name}`,
         }))}
       />
-      <figcaption className="mt-2 text-sm">
+      <figcaption className="mt-2 text-base">
         <span className="flex flex-wrap gap-x-4 gap-y-1">
           {house.map(([party, count]) => (
             <span key={party}>
@@ -36,7 +36,7 @@ export function HouseMap({
             </span>
           ))}
         </span>
-        <span className="mt-1 block text-el-muted text-xs">
+        <span className="mt-1 block text-base text-el-muted">
           Boundaries are illustrative. Carriacou and Petite Martinique are drawn
           closer than they are.
         </span>

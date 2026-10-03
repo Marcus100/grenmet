@@ -25,15 +25,15 @@ export function CampaignTimeline({
                 : "border-background bg-el-ink"
             )}
           />
-          <p className="font-semibold text-el-muted text-xs tabular-nums">
+          <p className="font-semibold text-base text-el-muted tabular-nums leading-relaxed">
             <time dateTime={event.date}>{formatIsoDate(event.date)}</time>
             {event.future && " · to come"}
           </p>
-          <p className="mt-0.5">
+          <p className="mt-0.5 leading-relaxed">
             {event.text}
             <Flag note={event.note} status={event.flag} />
           </p>
-          <p className="mt-0.5 text-el-muted text-xs">
+          <p className="mt-0.5 text-base text-el-muted leading-relaxed">
             <SourceLink id={event.src} sources={sources} />
             {event.note && ` · ${event.note}`}
           </p>

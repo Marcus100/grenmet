@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CampaignTimeline } from "@/components/campaign/timeline";
+import { ChartViewport } from "@/components/chart-viewport";
 import { PartyDot } from "@/components/party-chip";
 import { PageHead, Section } from "@/components/section";
 import { personHref } from "@/data/candidates";
@@ -35,8 +36,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-const LABEL =
-  "font-semibold text-[11px] text-el-muted uppercase tracking-[0.07em]";
+const LABEL = "font-semibold text-sm text-el-muted uppercase tracking-[0.07em]";
 
 export default async function PartyPage({ params }: Props) {
   const record = find((await params).code);
@@ -71,7 +71,7 @@ export default async function PartyPage({ params }: Props) {
         learning="parties"
         title={info.name}
       >
-        <p className="mt-3 text-sm">
+        <p className="mt-3 text-base leading-relaxed">
           <Link className="underline underline-offset-4" href="/parties">
             ← All parties
           </Link>
@@ -80,63 +80,68 @@ export default async function PartyPage({ params }: Props) {
 
       {years.length > 1 && (
         <Section id="share" title="Share of the vote">
-          <svg
-            aria-label={`${info.name} share of the national vote at each election`}
-            className="h-auto w-full max-w-2xl"
-            role="img"
-            viewBox={`0 0 ${W} ${H}`}
-          >
-            {[0, 0.25, 0.5].map((v) => (
-              <g key={v}>
-                <line
-                  stroke="var(--el-rule)"
-                  x1={34}
-                  x2={W - 10}
-                  y1={y(v)}
-                  y2={y(v)}
-                />
-                <text
-                  className="fill-(--el-muted) text-[10px] max-sm:text-[16px]"
-                  x={0}
-                  y={y(v) + 3}
-                >
-                  {v * 100}%
-                </text>
-              </g>
-            ))}
-            <polyline
-              fill="none"
-              points={years.map((p) => `${x(p.year)},${y(p.share)}`).join(" ")}
-              stroke={partyColor(code)}
-              strokeWidth={2.5}
-            />
-            {years.map((p) => (
-              <g key={p.year}>
-                <circle
-                  cx={x(p.year)}
-                  cy={y(p.share)}
-                  fill={partyColor(code)}
-                  r={4.5}
-                >
-                  <title>{`${p.year}: ${pct(p.share)}, ${p.seats} seat${p.seats === 1 ? "" : "s"}`}</title>
-                </circle>
-                <text
-                  className="fill-(--el-muted) text-[10px] max-sm:text-[16px]"
-                  textAnchor="middle"
-                  x={x(p.year)}
-                  y={H - 6}
-                >
-                  {p.year}
-                </text>
-              </g>
-            ))}
-          </svg>
+          <ChartViewport>
+            <svg
+              aria-label={`${info.name} share of the national vote at each election`}
+              className="h-auto w-full max-w-2xl"
+              role="img"
+              style={{ minWidth: `${W / 16}rem` }}
+              viewBox={`0 0 ${W} ${H}`}
+            >
+              {[0, 0.25, 0.5].map((v) => (
+                <g key={v}>
+                  <line
+                    stroke="var(--el-rule)"
+                    x1={34}
+                    x2={W - 10}
+                    y1={y(v)}
+                    y2={y(v)}
+                  />
+                  <text
+                    className="fill-(--el-muted) text-[14px]"
+                    x={0}
+                    y={y(v) + 3}
+                  >
+                    {v * 100}%
+                  </text>
+                </g>
+              ))}
+              <polyline
+                fill="none"
+                points={years
+                  .map((p) => `${x(p.year)},${y(p.share)}`)
+                  .join(" ")}
+                stroke={partyColor(code)}
+                strokeWidth={2.5}
+              />
+              {years.map((p) => (
+                <g key={p.year}>
+                  <circle
+                    cx={x(p.year)}
+                    cy={y(p.share)}
+                    fill={partyColor(code)}
+                    r={4.5}
+                  >
+                    <title>{`${p.year}: ${pct(p.share)}, ${p.seats} seat${p.seats === 1 ? "" : "s"}`}</title>
+                  </circle>
+                  <text
+                    className="fill-(--el-muted) text-[14px]"
+                    textAnchor="middle"
+                    x={x(p.year)}
+                    y={H - 6}
+                  >
+                    {p.year}
+                  </text>
+                </g>
+              ))}
+            </svg>
+          </ChartViewport>
         </Section>
       )}
 
       <Section id="record" title="Every general election">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[560px] text-sm">
+          <table className="w-full min-w-[560px] text-base">
             <thead>
               <tr className="border-el-ink border-b text-left">
                 {["Election", "Candidates", "Seats won", "Votes", "Share"].map(
@@ -163,7 +168,7 @@ export default async function PartyPage({ params }: Props) {
                       {p.year}
                     </Link>
                     {!isOfficial(String(p.year)) && (
-                      <span className="ml-1 text-el-muted text-xs">
+                      <span className="ml-1 text-base text-el-muted">
                         (secondary source)
                       </span>
                     )}
@@ -189,7 +194,7 @@ export default async function PartyPage({ params }: Props) {
 
       {winners.length > 0 && (
         <Section id="members" title={`Elected for the ${code}`}>
-          <ul className="grid gap-x-6 gap-y-1 text-sm sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid gap-x-6 gap-y-1 text-base sm:grid-cols-2 lg:grid-cols-3">
             {winners.map((p) => {
               const wins = p.races.filter((r) => r.party === code && r.won);
               return (
@@ -219,7 +224,7 @@ export default async function PartyPage({ params }: Props) {
       )}
 
       <Section id="colour" title="On this site">
-        <p className="text-el-ink-2 text-sm">
+        <p className="text-base text-el-ink-2 leading-relaxed">
           <span className={LABEL}>Colour</span> <PartyDot party={code} />
           The {code} is drawn in its colour on every map and chart, always with
           its name.

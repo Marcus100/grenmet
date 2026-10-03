@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ChartViewport } from "@/components/chart-viewport";
 import { SeatBar } from "@/components/results/seat-bar";
 import { PageHead, Section } from "@/components/section";
 import { KeyFacts, ReadingNote } from "@/components/trends/reading-note";
@@ -39,8 +40,7 @@ export const metadata: Metadata = {
     "Understand Grenada’s elections: why votes and seats differ, what turnout measures, how winning margins work, and what constituency history can tell us. Seven questions, with charts and worked examples.",
 };
 
-const LABEL =
-  "font-semibold text-[11px] text-el-muted uppercase tracking-[0.07em]";
+const LABEL = "font-semibold text-sm text-el-muted uppercase tracking-[0.07em]";
 const GENERAL = EVENTS.filter((e) => e.kind === "general");
 /** Years labelled on phones, where every election year won't fit. */
 const PHONE_YEARS = new Set([1951, 1962, 1972, 1984, 1995, 2003, 2013, 2022]);
@@ -86,108 +86,111 @@ function ShareChart() {
   const x = (y: number) => m.l + ((y - 1951) / (2022 - 1951)) * (W - m.l - m.r);
   const yv = (v: number) => H - m.b - (v / 0.7) * (H - m.t - m.b);
   return (
-    <svg
-      aria-label="Share of the popular vote by party, 1951 to 2022"
-      className="h-auto w-full"
-      role="img"
-      viewBox={`0 0 ${W} ${H}`}
-    >
-      <defs>
-        <pattern
-          height="6"
-          id="hatch"
-          patternTransform="rotate(45)"
-          patternUnits="userSpaceOnUse"
-          width="6"
-        >
-          <line stroke="var(--el-rule-2)" x1="0" x2="0" y1="0" y2="6" />
-        </pattern>
-      </defs>
-      <rect
-        fill="url(#hatch)"
-        height={H - m.t - m.b}
-        width={x(1984) - x(1979)}
-        x={x(1979)}
-        y={m.t}
-      />
-      {[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7].map((v) => (
-        <g key={v}>
-          <line
-            stroke="var(--el-rule)"
-            x1={m.l}
-            x2={W - m.r}
-            y1={yv(v)}
-            y2={yv(v)}
-          />
-          <text
-            className="fill-(--el-muted) text-[12px] max-sm:text-[28px]"
-            textAnchor="end"
-            x={m.l - 6}
-            y={yv(v) + 4}
+    <ChartViewport>
+      <svg
+        aria-label="Share of the popular vote by party, 1951 to 2022"
+        className="h-auto w-full"
+        role="img"
+        style={{ minWidth: `${W / 16}rem` }}
+        viewBox={`0 0 ${W} ${H}`}
+      >
+        <defs>
+          <pattern
+            height="6"
+            id="hatch"
+            patternTransform="rotate(45)"
+            patternUnits="userSpaceOnUse"
+            width="6"
           >
-            {Math.round(v * 100)}%
-          </text>
-        </g>
-      ))}
-      {GENERAL.map((e) => (
-        <text
-          className={`fill-(--el-muted) text-[12px] max-sm:text-[28px] ${PHONE_YEARS.has(e.year) ? "" : "max-sm:hidden"}`}
-          key={e.id}
-          textAnchor="middle"
-          x={x(e.year)}
-          y={H - 8}
-        >
-          ’{String(e.year).slice(2)}
-        </text>
-      ))}
-      {SERIES.map((s) => {
-        const points = GENERAL.map((e, i) => ({
-          e,
-          i,
-          v: seriesShare(e.id, s.parties),
-        })).filter((p) => p.v > 0.004);
-        let d = "";
-        let prev: number | null = null;
-        for (const p of points) {
-          d += `${prev !== null && p.i === prev + 1 ? "L" : "M"}${x(p.e.year)},${yv(p.v)}`;
-          prev = p.i;
-        }
-        const last = points.at(-1);
-        return (
-          <g key={s.key}>
-            <path
-              d={d}
-              fill="none"
-              stroke={s.colour}
-              strokeLinejoin="round"
-              strokeWidth={2.2}
+            <line stroke="var(--el-rule-2)" x1="0" x2="0" y1="0" y2="6" />
+          </pattern>
+        </defs>
+        <rect
+          fill="url(#hatch)"
+          height={H - m.t - m.b}
+          width={x(1984) - x(1979)}
+          x={x(1979)}
+          y={m.t}
+        />
+        {[0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7].map((v) => (
+          <g key={v}>
+            <line
+              stroke="var(--el-rule)"
+              x1={m.l}
+              x2={W - m.r}
+              y1={yv(v)}
+              y2={yv(v)}
             />
-            {points.map((p) => (
-              <circle
-                cx={x(p.e.year)}
-                cy={yv(p.v)}
-                fill={isOfficial(p.e.id) ? s.colour : "var(--el-paper)"}
-                key={p.e.id}
-                r={3.6}
-                stroke={isOfficial(p.e.id) ? "var(--el-paper)" : s.colour}
-                strokeWidth={1.8}
-              >
-                <title>{`${p.e.year}, ${s.label}: ${pct(p.v)}${isOfficial(p.e.id) ? "" : " (secondary source)"}`}</title>
-              </circle>
-            ))}
-            {last && ["NDC", "NNP", "GULP"].includes(s.key) && (
-              <text
-                className="fill-(--el-ink) font-semibold text-[12px] max-sm:hidden"
-                x={x(last.e.year) + 8}
-                y={yv(last.v) + 4}
-              >
-                {s.key}
-              </text>
-            )}
+            <text
+              className="fill-(--el-muted) text-[14px]"
+              textAnchor="end"
+              x={m.l - 6}
+              y={yv(v) + 4}
+            >
+              {Math.round(v * 100)}%
+            </text>
           </g>
-        );
-      })}
-    </svg>
+        ))}
+        {GENERAL.map((e) => (
+          <text
+            className={`fill-(--el-muted) text-[14px] ${PHONE_YEARS.has(e.year) ? "" : "max-sm:hidden"}`}
+            key={e.id}
+            textAnchor="middle"
+            x={x(e.year)}
+            y={H - 8}
+          >
+            ’{String(e.year).slice(2)}
+          </text>
+        ))}
+        {SERIES.map((s) => {
+          const points = GENERAL.map((e, i) => ({
+            e,
+            i,
+            v: seriesShare(e.id, s.parties),
+          })).filter((p) => p.v > 0.004);
+          let d = "";
+          let prev: number | null = null;
+          for (const p of points) {
+            d += `${prev !== null && p.i === prev + 1 ? "L" : "M"}${x(p.e.year)},${yv(p.v)}`;
+            prev = p.i;
+          }
+          const last = points.at(-1);
+          return (
+            <g key={s.key}>
+              <path
+                d={d}
+                fill="none"
+                stroke={s.colour}
+                strokeLinejoin="round"
+                strokeWidth={2.2}
+              />
+              {points.map((p) => (
+                <circle
+                  cx={x(p.e.year)}
+                  cy={yv(p.v)}
+                  fill={isOfficial(p.e.id) ? s.colour : "var(--el-paper)"}
+                  key={p.e.id}
+                  r={3.6}
+                  stroke={isOfficial(p.e.id) ? "var(--el-paper)" : s.colour}
+                  strokeWidth={1.8}
+                >
+                  <title>{`${p.e.year}, ${s.label}: ${pct(p.v)}${isOfficial(p.e.id) ? "" : " (secondary source)"}`}</title>
+                </circle>
+              ))}
+              {last && ["NDC", "NNP", "GULP"].includes(s.key) && (
+                <text
+                  className="fill-(--el-ink) font-semibold text-[14px] max-sm:hidden"
+                  x={x(last.e.year) + 8}
+                  y={yv(last.v) + 4}
+                >
+                  {s.key}
+                </text>
+              )}
+            </g>
+          );
+        })}
+      </svg>
+    </ChartViewport>
   );
 }
 
@@ -208,75 +211,78 @@ function TurnoutChart() {
     t: eventNational(data, e.id).turnout ?? 0,
   }));
   return (
-    <svg
-      aria-label="Turnout at each election and referendum"
-      className="h-auto w-full"
-      role="img"
-      viewBox={`0 0 ${W} ${H}`}
-    >
-      {[0, 0.25, 0.5, 0.75, 1].map((v) => (
-        <g key={v}>
-          <line
-            stroke="var(--el-rule)"
-            x1={m.l}
-            x2={W - m.r}
-            y1={yv(v)}
-            y2={yv(v)}
-          />
-          <text
-            className="fill-(--el-muted) text-[12px] max-sm:text-[28px]"
-            textAnchor="end"
-            x={m.l - 6}
-            y={yv(v) + 4}
-          >
-            {v * 100}%
-          </text>
-        </g>
-      ))}
-      <polyline
-        fill="none"
-        points={elections.map((p) => `${x(p.e.year)},${yv(p.t)}`).join(" ")}
-        stroke="var(--el-seq-1)"
-        strokeWidth={2.2}
-      />
-      {elections.map((p) => (
-        <circle
-          cx={x(p.e.year)}
-          cy={yv(p.t)}
-          fill={isOfficial(p.e.id) ? "var(--el-seq-1)" : "var(--el-paper)"}
-          key={p.e.id}
-          r={3.8}
+    <ChartViewport>
+      <svg
+        aria-label="Turnout at each election and referendum"
+        className="h-auto w-full"
+        role="img"
+        style={{ minWidth: `${W / 16}rem` }}
+        viewBox={`0 0 ${W} ${H}`}
+      >
+        {[0, 0.25, 0.5, 0.75, 1].map((v) => (
+          <g key={v}>
+            <line
+              stroke="var(--el-rule)"
+              x1={m.l}
+              x2={W - m.r}
+              y1={yv(v)}
+              y2={yv(v)}
+            />
+            <text
+              className="fill-(--el-muted) text-[14px]"
+              textAnchor="end"
+              x={m.l - 6}
+              y={yv(v) + 4}
+            >
+              {v * 100}%
+            </text>
+          </g>
+        ))}
+        <polyline
+          fill="none"
+          points={elections.map((p) => `${x(p.e.year)},${yv(p.t)}`).join(" ")}
           stroke="var(--el-seq-1)"
-          strokeWidth={1.8}
-        >
-          <title>{`${p.e.year}: ${pct(p.t)}`}</title>
-        </circle>
-      ))}
-      {refs.map((p) => (
-        <rect
-          fill="var(--el-ink-2)"
-          height={8}
-          key={p.e.id}
-          transform={`rotate(45 ${x(p.e.year + (p.e.id === "2018r" ? 0.6 : 0))} ${yv(p.t)})`}
-          width={8}
-          x={x(p.e.year + (p.e.id === "2018r" ? 0.6 : 0)) - 4}
-          y={yv(p.t) - 4}
-        >
-          <title>{`${p.e.year} referendum: ${pct(p.t)}`}</title>
-        </rect>
-      ))}
-      {GENERAL.map((e) => (
-        <text
-          className={`fill-(--el-muted) text-[12px] max-sm:text-[28px] ${PHONE_YEARS.has(e.year) ? "" : "max-sm:hidden"}`}
-          key={e.id}
-          textAnchor="middle"
-          x={x(e.year)}
-          y={H - 8}
-        >
-          ’{String(e.year).slice(2)}
-        </text>
-      ))}
-    </svg>
+          strokeWidth={2.2}
+        />
+        {elections.map((p) => (
+          <circle
+            cx={x(p.e.year)}
+            cy={yv(p.t)}
+            fill={isOfficial(p.e.id) ? "var(--el-seq-1)" : "var(--el-paper)"}
+            key={p.e.id}
+            r={3.8}
+            stroke="var(--el-seq-1)"
+            strokeWidth={1.8}
+          >
+            <title>{`${p.e.year}: ${pct(p.t)}`}</title>
+          </circle>
+        ))}
+        {refs.map((p) => (
+          <rect
+            fill="var(--el-ink-2)"
+            height={8}
+            key={p.e.id}
+            transform={`rotate(45 ${x(p.e.year + (p.e.id === "2018r" ? 0.6 : 0))} ${yv(p.t)})`}
+            width={8}
+            x={x(p.e.year + (p.e.id === "2018r" ? 0.6 : 0)) - 4}
+            y={yv(p.t) - 4}
+          >
+            <title>{`${p.e.year} referendum: ${pct(p.t)}`}</title>
+          </rect>
+        ))}
+        {GENERAL.map((e) => (
+          <text
+            className={`fill-(--el-muted) text-[14px] ${PHONE_YEARS.has(e.year) ? "" : "max-sm:hidden"}`}
+            key={e.id}
+            textAnchor="middle"
+            x={x(e.year)}
+            y={H - 8}
+          >
+            ’{String(e.year).slice(2)}
+          </text>
+        ))}
+      </svg>
+    </ChartViewport>
   );
 }
 
@@ -412,12 +418,12 @@ export default function TrendsPage() {
         >
           {a.e.year} {constituencyName(results, a.code)}
         </Link>
-        <span className="block text-el-muted text-xs">
+        <span className="block text-base text-el-muted">
           {a.s.winner[0]}, {a.s.winner[1]}
           {a.s.runnerUp &&
             ` over ${a.s.runnerUp[0]}, ${a.s.runnerUp[1]} (${fmt(a.s.winner[2])} to ${fmt(a.s.runnerUp[2])})`}
         </span>
-        <span className="block text-[11px] text-el-muted">
+        <span className="block text-el-muted text-sm">
           {eventSource(data, a.e.id, a.code).text}
           {a.r.note && " · PEO discrepancy noted"}
           {a.r.derived && " · derived total"}
@@ -440,7 +446,7 @@ export default function TrendsPage() {
           className="mt-6 border-el-rule border-y py-4"
         >
           <p className={LABEL}>Start with a question</p>
-          <ol className="mt-3 grid list-inside list-decimal gap-3 text-sm sm:grid-cols-2">
+          <ol className="mt-3 grid list-inside list-decimal gap-3 text-base sm:grid-cols-2">
             {[
               ["share", "Who won voters’ support?"],
               ["seats", "Why don’t votes and seats match?"],
@@ -461,7 +467,7 @@ export default function TrendsPage() {
             ))}
           </ol>
         </nav>
-        <p className="mt-4 max-w-prose text-el-muted text-sm">
+        <p className="mt-4 max-w-prose text-base text-el-muted leading-relaxed">
           The charts describe recorded results through 2022, not a forecast for
           2026. Figures come from our{" "}
           <Link className="underline underline-offset-4" href="/sources">
@@ -478,7 +484,7 @@ export default function TrendsPage() {
         title="1. Who won voters’ support?"
       >
         <ShareChart />
-        <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm">
+        <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-base leading-relaxed">
           {SERIES.map((s) => (
             <span key={s.key}>
               <i
@@ -541,7 +547,7 @@ export default function TrendsPage() {
               <SeatBar seats={eventNational(data, e.id).seats} vertical />
               <Link
                 aria-label={`Election ${e.year}`}
-                className="font-semibold text-[11px] tabular-nums hover:underline sm:text-xs"
+                className="font-semibold text-sm tabular-nums hover:underline sm:text-base"
                 href={`/elections/${eventSlug(e.id)}`}
               >
                 <span className="sm:hidden">’{String(e.year).slice(2)}</span>
@@ -553,7 +559,7 @@ export default function TrendsPage() {
             </li>
           ))}
         </ol>
-        <p className="mt-2 text-el-muted text-xs">
+        <p className="mt-2 text-base text-el-muted leading-relaxed">
           † From a secondary source, not the official record.
         </p>
         <ReadingNote
@@ -654,10 +660,10 @@ export default function TrendsPage() {
         <div className="grid gap-8 lg:grid-cols-3">
           <div>
             <h3 className={LABEL}>Marginal, competitive and safe seats</h3>
-            <p className="text-el-muted text-xs">
+            <p className="text-base text-el-muted leading-relaxed">
               Winning margin under 5 points, 5–under 15, or 15 and above
             </p>
-            <ul className="mt-2 space-y-1 text-sm">
+            <ul className="mt-2 space-y-1 text-base">
               {featureYears.map((y) => {
                 const f = features[y];
                 if (!f) return null;
@@ -687,14 +693,14 @@ export default function TrendsPage() {
                         title={`Safe ${f.safe}`}
                       />
                     </span>
-                    <span className="w-16 text-right text-el-muted text-xs tabular-nums">
+                    <span className="w-16 text-right text-base text-el-muted tabular-nums">
                       {f.marginal}·{f.competitive}·{f.safe}
                     </span>
                   </li>
                 );
               })}
             </ul>
-            <p className="mt-2 flex flex-wrap gap-x-3 text-xs">
+            <p className="mt-2 flex flex-wrap gap-x-3 text-base leading-relaxed">
               <span>
                 <i
                   className="mr-1 inline-block size-2.5"
@@ -720,7 +726,7 @@ export default function TrendsPage() {
           </div>
           <div>
             <h3 className={LABEL}>Seats that changed hands</h3>
-            <ul className="mt-2 space-y-1 text-sm">
+            <ul className="mt-2 space-y-1 text-base">
               {featureYears
                 .filter((y) => features[y]?.flips != null)
                 .map((y) => (
@@ -743,10 +749,10 @@ export default function TrendsPage() {
           </div>
           <div>
             <h3 className={LABEL}>Typical winning margin</h3>
-            <p className="text-el-muted text-xs">
+            <p className="text-base text-el-muted leading-relaxed">
               Median margin between the top two, in points
             </p>
-            <ul className="mt-2 space-y-1 text-sm">
+            <ul className="mt-2 space-y-1 text-base">
               {featureYears.map((y) => (
                 <li className="flex items-center gap-2" key={y}>
                   <span className="w-10 tabular-nums">{y}</span>
@@ -822,7 +828,7 @@ export default function TrendsPage() {
         title="5. Which constituencies change sides?"
       >
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] border-separate border-spacing-[3px] text-xs">
+          <table className="w-full min-w-[640px] border-separate border-spacing-[3px] text-base">
             <thead>
               <tr>
                 <th className="text-left font-semibold" scope="col">
@@ -882,7 +888,7 @@ export default function TrendsPage() {
             </tbody>
           </table>
         </div>
-        <p className="mt-2 text-el-muted text-xs">
+        <p className="mt-2 text-base text-el-muted leading-relaxed">
           † 1976 votes are from The Grenada Newsletter’s report of the
           Supervisor of Elections’ figures, not the official record.
         </p>
@@ -949,7 +955,7 @@ export default function TrendsPage() {
             return (
               <li key={code}>
                 <Link
-                  className="font-semibold text-sm hover:underline"
+                  className="font-semibold text-base hover:underline"
                   href={constituencyHref(results, code)}
                 >
                   {constituencyName(results, code)}
@@ -1043,11 +1049,11 @@ export default function TrendsPage() {
           </div>
           <div>
             <h3 className={LABEL}>Bellwethers</h3>
-            <p className="text-el-muted text-xs">
+            <p className="text-base text-el-muted leading-relaxed">
               How often each constituency backed the party that won most seats,
               1984–2022 ({bellYears.length} elections)
             </p>
-            <ol className="mt-1 divide-y divide-el-rule text-sm">
+            <ol className="mt-1 divide-y divide-el-rule text-base">
               {bellwethers.map((b) => (
                 <li className="flex justify-between gap-3 py-1.5" key={b.code}>
                   <Link
@@ -1138,7 +1144,7 @@ export default function TrendsPage() {
                 {answer}
               </p>
               <a
-                className="mt-3 inline-block text-sm underline underline-offset-4"
+                className="mt-3 inline-block text-base underline underline-offset-4"
                 href={`#${lesson}-title`}
               >
                 Revisit the explanation
@@ -1152,7 +1158,7 @@ export default function TrendsPage() {
           where is the source? Those four questions help you judge the claim for
           yourself.
         </p>
-        <p className="mt-4 text-sm">
+        <p className="mt-4 text-base leading-relaxed">
           Put this into practice with{" "}
           <Link className="underline underline-offset-4" href="/results">
             full election results

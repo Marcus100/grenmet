@@ -21,7 +21,7 @@ export function HouseStrip({ seats }: { seats: SeatOutlook[] }) {
 
   return (
     <figure className="m-0">
-      <figcaption className="mb-1.5 flex items-baseline justify-between gap-3 font-semibold text-[11px] text-el-muted uppercase tracking-[0.07em]">
+      <figcaption className="mb-1.5 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 font-semibold text-el-muted text-sm uppercase tracking-[0.07em]">
         <span>The House at dissolution · {SEATS} seats</span>
         <span className="whitespace-nowrap">{MAJORITY} for a majority</span>
       </figcaption>
@@ -45,7 +45,7 @@ export function HouseStrip({ seats }: { seats: SeatOutlook[] }) {
           style={{ left: `calc(${(MAJORITY / SEATS) * 100}% - 2px)` }}
         />
       </div>
-      <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[13px]">
+      <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-base leading-relaxed">
         {order.map(([party, count]) => (
           <span key={party}>
             <PartyDot party={party} />
@@ -54,7 +54,7 @@ export function HouseStrip({ seats }: { seats: SeatOutlook[] }) {
           </span>
         ))}
       </p>
-      <details className="mt-2 text-[13px]">
+      <details className="mt-2 text-base">
         <summary className="cursor-pointer font-semibold text-el-ink-2 hover:text-el-ink">
           Which constituency is each letter?
         </summary>

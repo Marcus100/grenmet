@@ -48,11 +48,11 @@ export function SiteSearch() {
         type="search"
         value={query}
       />
-      <p className="mt-2 text-el-muted text-sm">
+      <p className="mt-2 text-base text-el-muted leading-relaxed">
         Search is performed on this device. Queries are not sent to a search
         service.
       </p>
-      <div aria-live="polite" className="mt-4 text-sm">
+      <div aria-live="polite" className="mt-4 text-base">
         {failed ? (
           <p>
             Search could not load.{" "}
@@ -79,14 +79,18 @@ export function SiteSearch() {
             className="py-4"
             key={`${entry.kind}:${entry.title}:${entry.href}`}
           >
-            <p className="text-el-muted text-xs">{entry.kind}</p>
+            <p className="text-base text-el-muted leading-relaxed">
+              {entry.kind}
+            </p>
             <Link
               className="font-semibold font-serif text-xl underline-offset-4 hover:underline"
               href={entry.href}
             >
               {entry.title}
             </Link>
-            <p className="mt-1 text-el-ink-2 text-sm">{entry.summary}</p>
+            <p className="mt-1 text-base text-el-ink-2 leading-relaxed">
+              {entry.summary}
+            </p>
           </li>
         ))}
       </ul>

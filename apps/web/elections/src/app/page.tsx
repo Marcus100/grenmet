@@ -44,8 +44,7 @@ const HISTORY = [
   },
 ] as const;
 
-const LABEL =
-  "font-semibold text-[11px] text-el-muted uppercase tracking-[0.07em]";
+const LABEL = "font-semibold text-sm text-el-muted uppercase tracking-[0.07em]";
 
 /**
  * The front page, laid out like an election hub before polling day: the
@@ -89,10 +88,10 @@ export default function FrontPage() {
     <>
       <section className="mx-auto grid max-w-[1240px] items-end gap-x-14 gap-y-6 px-4 pt-8 sm:px-6 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]">
         <div>
-          <p className="font-semibold text-el-ink-2 text-xs uppercase tracking-[0.08em]">
+          <p className="font-semibold text-base text-el-ink-2 uppercase leading-relaxed tracking-[0.08em]">
             Grenada general election 2026
           </p>
-          <h1 className="mt-2.5 font-bold text-[clamp(32px,4.6vw,52px)] leading-[1.05] tracking-[-0.022em]">
+          <h1 className="mt-2.5 font-bold text-[clamp(2rem,4.6vw,3.25rem)] leading-[1.05] tracking-[-0.022em]">
             {status}
           </h1>
           <p className="mt-3 max-w-[56ch] font-serif text-el-ink-2 text-lg leading-normal">
@@ -117,7 +116,7 @@ export default function FrontPage() {
         </div>
         <div className="space-y-4">
           <HouseStrip seats={seats} />
-          <dl className="grid grid-cols-3 gap-3 border-el-rule border-t pt-3">
+          <dl className="grid gap-4 border-el-rule border-t pt-3 sm:grid-cols-[repeat(auto-fit,minmax(10rem,1fr))]">
             {dates.map((d) => (
               <div key={d.label}>
                 <dt className={LABEL}>{d.label}</dt>
@@ -147,7 +146,7 @@ export default function FrontPage() {
                   {guide.question}
                 </Link>
               </h3>
-              <p className="mt-2 text-el-ink-2 text-sm leading-relaxed">
+              <p className="mt-2 text-base text-el-ink-2 leading-relaxed">
                 {guide.answer}
               </p>
             </article>
@@ -196,7 +195,7 @@ export default function FrontPage() {
             {crossed.length > 0 && (
               <div>
                 <h3 className={LABEL}>Changed hands since 2022</h3>
-                <ul className="mt-2 divide-y divide-el-rule border-el-rule border-y text-sm">
+                <ul className="mt-2 divide-y divide-el-rule border-el-rule border-y text-base">
                   {crossed.map((s) => (
                     <li className="py-2.5" key={s.code}>
                       <Link
@@ -205,7 +204,7 @@ export default function FrontPage() {
                       >
                         {s.name}
                       </Link>
-                      <span className="block text-el-muted text-xs">
+                      <span className="block text-base text-el-muted">
                         <PartyDot party={s.sitting.party} />
                         {s.sitting.name}: elected {s.sitting.was} in 2022, now{" "}
                         {s.sitting.party}
@@ -258,7 +257,7 @@ export default function FrontPage() {
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <div className="border border-el-rule bg-el-paper-2 p-4 sm:p-6">
             <h3 className="font-bold text-xl">Find your constituency</h3>
-            <p className="mt-1 text-el-ink-2 text-sm">
+            <p className="mt-1 text-base text-el-ink-2 leading-relaxed">
               Type your village, a polling station, your constituency or your
               MP’s name.
             </p>
@@ -287,7 +286,7 @@ export default function FrontPage() {
               <b className="block font-semibold font-serif text-lg">
                 {item.title}
               </b>
-              <span className="text-el-ink-2 text-sm">{item.body}</span>
+              <span className="text-base text-el-ink-2">{item.body}</span>
             </Link>
           ))}
         </nav>

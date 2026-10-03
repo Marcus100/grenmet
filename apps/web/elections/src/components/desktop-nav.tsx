@@ -13,15 +13,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { isCurrent, isGroup, NAV } from "@/lib/nav";
 
-const TRIGGER = "h-14 rounded-none px-2 font-medium text-el-ink-2 xl:px-3";
+const TRIGGER =
+  "h-16 rounded-none px-2 text-base font-medium text-el-ink-2 xl:px-2";
 const ACTIVE = "text-el-ink shadow-[inset_0_-2px_0_var(--el-ink)]";
 
-/** The bar from `lg` up; smaller screens get the hamburger instead. */
+/** The bar when the masthead has 80rem of room; smaller screens get the hamburger instead. */
 export function DesktopNav() {
   const pathname = usePathname();
 
   return (
-    <NavigationMenu aria-label="Main" className="hidden xl:flex">
+    <NavigationMenu aria-label="Main" className="@min-7xl/masthead:flex hidden">
       <NavigationMenuList>
         {NAV.map((item) => {
           if (!isGroup(item)) {
@@ -51,14 +52,14 @@ export function DesktopNav() {
                 {item.label}
               </NavigationMenuTrigger>
               <NavigationMenuContent>
-                <ul className="grid w-56 gap-0.5 p-1">
+                <ul className="grid w-64 gap-0.5 p-1">
                   {item.links.map((link) => (
                     <li key={link.href}>
                       <NavigationMenuLink
                         aria-current={
                           isCurrent(link.href, pathname) ? "page" : undefined
                         }
-                        className="aria-[current=page]:font-semibold"
+                        className="py-3 text-base aria-[current=page]:font-semibold"
                         render={<Link href={link.href} />}
                       >
                         {link.label}

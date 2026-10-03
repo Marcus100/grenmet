@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ChartViewport } from "@/components/chart-viewport";
 import { Flag } from "@/components/flag";
 import { PartyDot } from "@/components/party-chip";
 import { PageHead, Section } from "@/components/section";
@@ -70,12 +71,12 @@ export default async function PersonPage({ params }: Props) {
         title={person.name}
       >
         {person.names.length > 1 && (
-          <p className="mt-3 text-el-muted text-sm">
+          <p className="mt-3 text-base text-el-muted leading-relaxed">
             Also recorded as:{" "}
             {person.names.filter((n) => n !== person.name).join("; ")}.
           </p>
         )}
-        <p className="mt-3 text-sm">
+        <p className="mt-3 text-base leading-relaxed">
           <Link className="underline underline-offset-4" href="/candidates">
             ← All candidates
           </Link>
@@ -84,7 +85,7 @@ export default async function PersonPage({ params }: Props) {
 
       {next.length > 0 && (
         <Section id="2026" title="Standing in 2026">
-          <ul className="text-sm">
+          <ul className="text-base">
             {next.map((n) => (
               <li key={`${n.party}${n.code}`}>
                 <PartyDot party={n.party} />
@@ -123,64 +124,69 @@ export default async function PersonPage({ params }: Props) {
 
       {person.races.length > 1 && (
         <Section id="share" title="Share of the vote over time">
-          <svg
-            aria-label={`${person.name}'s share of the vote in each race`}
-            className="h-auto w-full max-w-2xl"
-            role="img"
-            viewBox={`0 0 ${W} ${H}`}
-          >
-            {[0, 0.25, 0.5, 0.75].map((v) => (
-              <g key={v}>
-                <line
-                  stroke="var(--el-rule)"
-                  x1={30}
-                  x2={W - 10}
-                  y1={y(v)}
-                  y2={y(v)}
-                />
-                <text
-                  className="fill-(--el-muted) text-[10px] max-sm:text-[16px]"
-                  x={0}
-                  y={y(v) + 3}
-                >
-                  {v * 100}%
-                </text>
-              </g>
-            ))}
-            {[...person.races]
-              .sort((a, b) => a.year - b.year)
-              .map((r) => (
-                <circle
-                  cx={x(r.year)}
-                  cy={y(r.share)}
-                  fill={r.won ? partyColor(r.party) : "var(--el-paper)"}
-                  key={`${r.eventId}${r.constituency}`}
-                  r={6}
-                  stroke={partyColor(r.party)}
-                  strokeWidth={2.5}
-                >
-                  <title>{`${r.year}, ${r.constituency}: ${pct(r.share)} (${r.party}${r.won ? ", won" : ""})`}</title>
-                </circle>
+          <ChartViewport>
+            <svg
+              aria-label={`${person.name}'s share of the vote in each race`}
+              className="h-auto w-full max-w-2xl"
+              role="img"
+              style={{ minWidth: `${W / 16}rem` }}
+              viewBox={`0 0 ${W} ${H}`}
+            >
+              {[0, 0.25, 0.5, 0.75].map((v) => (
+                <g key={v}>
+                  <line
+                    stroke="var(--el-rule)"
+                    x1={30}
+                    x2={W - 10}
+                    y1={y(v)}
+                    y2={y(v)}
+                  />
+                  <text
+                    className="fill-(--el-muted) text-[14px]"
+                    x={0}
+                    y={y(v) + 3}
+                  >
+                    {v * 100}%
+                  </text>
+                </g>
               ))}
-            {[...new Set(years)].map((yr) => (
-              <text
-                className="fill-(--el-muted) text-[10px] max-sm:text-[16px]"
-                key={yr}
-                textAnchor="middle"
-                x={x(yr)}
-                y={H - 6}
-              >
-                {yr}
-              </text>
-            ))}
-          </svg>
-          <p className="text-el-muted text-xs">Filled dots are wins.</p>
+              {[...person.races]
+                .sort((a, b) => a.year - b.year)
+                .map((r) => (
+                  <circle
+                    cx={x(r.year)}
+                    cy={y(r.share)}
+                    fill={r.won ? partyColor(r.party) : "var(--el-paper)"}
+                    key={`${r.eventId}${r.constituency}`}
+                    r={6}
+                    stroke={partyColor(r.party)}
+                    strokeWidth={2.5}
+                  >
+                    <title>{`${r.year}, ${r.constituency}: ${pct(r.share)} (${r.party}${r.won ? ", won" : ""})`}</title>
+                  </circle>
+                ))}
+              {[...new Set(years)].map((yr) => (
+                <text
+                  className="fill-(--el-muted) text-[14px]"
+                  key={yr}
+                  textAnchor="middle"
+                  x={x(yr)}
+                  y={H - 6}
+                >
+                  {yr}
+                </text>
+              ))}
+            </svg>
+          </ChartViewport>
+          <p className="text-base text-el-muted leading-relaxed">
+            Filled dots are wins.
+          </p>
         </Section>
       )}
 
       <Section id="races" title="Every race">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[600px] text-sm">
+          <table className="w-full min-w-[600px] text-base">
             <thead>
               <tr className="border-el-ink border-b text-left">
                 {[
@@ -228,7 +234,7 @@ export default async function PersonPage({ params }: Props) {
                       ) : (
                         r.constituency
                       )}
-                      <span className="block text-el-muted text-xs">
+                      <span className="block text-base text-el-muted">
                         {src.text}
                         {src.official ? "" : " (secondary)"}
                       </span>
@@ -253,7 +259,7 @@ export default async function PersonPage({ params }: Props) {
             </tbody>
           </table>
         </div>
-        <p className="mt-3 max-w-[70ch] text-el-muted text-xs">
+        <p className="mt-3 max-w-[70ch] text-base text-el-muted leading-relaxed">
           This record joins races by surname and first initial
           <Flag
             note="Not an official identifier: two people can share a name, and one person can be recorded differently."

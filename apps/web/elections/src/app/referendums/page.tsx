@@ -30,8 +30,7 @@ function yesShare(rows: CandidateRow[]): number {
   return yes + no ? yes / (yes + no) : 0;
 }
 
-const LABEL =
-  "font-semibold text-[11px] text-el-muted uppercase tracking-[0.07em]";
+const LABEL = "font-semibold text-sm text-el-muted uppercase tracking-[0.07em]";
 
 function ReferendumMap({
   id,
@@ -60,7 +59,7 @@ function ReferendumMap({
           };
         })}
       />
-      <figcaption className="mt-2 text-xs">
+      <figcaption className="mt-2 text-base">
         <span className="flex items-center gap-2">
           <span>No +40</span>
           <span
@@ -84,7 +83,7 @@ function ConstituencyTable({ id }: { id: "2016r" | "2018r" }) {
   const rows = CODES.map((code) => ({ code, r: eventResult(data, id, code) }));
   return (
     <div className="overflow-x-auto">
-      <table className="w-full min-w-[520px] text-sm">
+      <table className="w-full min-w-[520px] text-base">
         <thead>
           <tr className="border-el-ink border-b text-left">
             {["Constituency", "Yes", "No", "Yes share", "Turnout"].map(
@@ -186,7 +185,7 @@ export default function ReferendumsPage() {
                 <div>
                   <div
                     aria-label={`Yes ${pct(s)}, No ${pct(1 - s)}`}
-                    className="relative flex h-6 text-xs"
+                    className="relative flex h-6 text-base"
                     role="img"
                   >
                     <span
@@ -220,7 +219,7 @@ export default function ReferendumsPage() {
             );
           })}
         </ul>
-        <p className="mt-3 text-el-muted text-xs">
+        <p className="mt-3 text-base text-el-muted leading-relaxed">
           Results by bill: {r16.billsSource}
           <Flag
             note="The PEO certificates give the seven bills combined; per-bill figures are from a secondary source."
@@ -235,7 +234,9 @@ export default function ReferendumsPage() {
           />
           <div>
             <h3 className={LABEL}>By constituency, Yes share highest first</h3>
-            <p className="mt-1 text-el-muted text-xs">{r16.note}</p>
+            <p className="mt-1 text-base text-el-muted leading-relaxed">
+              {r16.note}
+            </p>
             <div className="mt-2">
               <ConstituencyTable id="2016r" />
             </div>
@@ -255,7 +256,7 @@ export default function ReferendumsPage() {
       >
         <div
           aria-label={`Yes ${pct(r18.yes / (r18.yes + r18.no))}, No ${pct(r18.no / (r18.yes + r18.no))}`}
-          className="flex h-10 max-w-2xl text-sm"
+          className="flex h-10 max-w-2xl text-base"
           role="img"
         >
           <span
@@ -274,11 +275,11 @@ export default function ReferendumsPage() {
             No {pct(r18.no / (r18.yes + r18.no))}
           </span>
         </div>
-        <p className="mt-2 text-el-ink-2 text-sm tabular-nums">
+        <p className="mt-2 text-base text-el-ink-2 tabular-nums leading-relaxed">
           Yes {fmt(r18.yes)} · No {fmt(r18.no)} · invalid {fmt(r18.invalid)} ·
           turnout {pct(n18.turnout)} of {fmt(r18.registered)} registered.
         </p>
-        <p className="mt-3 max-w-[70ch] border-el-rule border-l-2 pl-3 text-el-ink-2 text-sm">
+        <p className="mt-3 max-w-[70ch] border-el-rule border-l-2 pl-3 text-base text-el-ink-2 leading-relaxed">
           {r18.note}
         </p>
         <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -304,7 +305,7 @@ export default function ReferendumsPage() {
         <ul className="max-w-2xl space-y-2">
           {turnout.map((t) => (
             <li
-              className="grid grid-cols-[9rem_1fr_3.5rem] items-center gap-3 text-sm"
+              className="grid grid-cols-[9rem_1fr_3.5rem] items-center gap-3 text-base"
               key={t.id}
             >
               <span>{t.label}</span>

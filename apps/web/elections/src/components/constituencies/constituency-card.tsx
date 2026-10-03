@@ -21,14 +21,14 @@ export function ConstituencyCard({ seat }: { seat: SeatOutlook }) {
         <b className="block font-bold font-serif text-lg leading-tight group-hover:underline">
           {seat.name}
         </b>
-        <span className="mt-1 block text-el-ink-2 text-sm">
+        <span className="mt-1 block text-base text-el-ink-2">
           <PartyDot party={seat.sitting.party} />
           {seat.sitting.name}
           {seat.sitting.was && (
             <span className="text-el-muted"> (elected {seat.sitting.was})</span>
           )}
         </span>
-        <span className="mt-1 block text-el-muted text-xs tabular-nums">
+        <span className="mt-1 block text-base text-el-muted tabular-nums">
           2022: {seat.winner2022.party} by {(seat.margin2022 * 100).toFixed(1)}{" "}
           pts
           {seat.lean != null && ` · leans ${leanLabel(seat.lean)}`}

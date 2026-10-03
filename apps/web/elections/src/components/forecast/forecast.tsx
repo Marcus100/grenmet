@@ -2,6 +2,7 @@
 
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { useMemo, useState } from "react";
+import { ChartViewport } from "@/components/chart-viewport";
 import { Flag } from "@/components/flag";
 import { leanLabel } from "@/data/model";
 import {
@@ -35,8 +36,7 @@ interface Props {
   sN: number;
 }
 
-const LABEL =
-  "font-semibold text-[11px] text-el-muted uppercase tracking-[0.07em]";
+const LABEL = "font-semibold text-sm text-el-muted uppercase tracking-[0.07em]";
 
 function columnStyle(rating: Rating): React.CSSProperties {
   if (rating === "Toss-up")
@@ -81,7 +81,7 @@ function Slider({
 }) {
   return (
     <div>
-      <label className="block font-semibold text-sm" htmlFor={id}>
+      <label className="block font-semibold text-base" htmlFor={id}>
         {label}
       </label>
       <input
@@ -94,7 +94,7 @@ function Slider({
         type="range"
         value={value}
       />
-      <div className="flex justify-between text-el-muted text-xs">
+      <div className="flex justify-between text-base text-el-muted">
         <span>{ends[0]}</span>
         <span>{ends[1]}</span>
       </div>
@@ -224,7 +224,7 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
                 ] as const
               ).map(([label, value]) => (
                 <button
-                  className="rounded-md border border-el-rule-2 px-2.5 py-1 text-xs hover:bg-el-paper-2"
+                  className="rounded-md border border-el-rule-2 px-2.5 py-1 text-base hover:bg-el-paper-2"
                   key={label}
                   onClick={() => set({ national: value })}
                   type="button"
@@ -306,7 +306,7 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
             />
           </div>
         </div>
-        <div className="mt-4 flex flex-wrap items-center gap-3 text-el-muted text-xs">
+        <div className="mt-4 flex flex-wrap items-center gap-3 text-base text-el-muted">
           <button
             className="rounded-md border border-el-rule-2 px-2.5 py-1 text-el-ink hover:bg-el-paper-2"
             onClick={() => setSettings(defaults)}
@@ -329,7 +329,7 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
         </h3>
         <p
           aria-live="polite"
-          className="mt-1 max-w-[70ch] text-el-ink-2 text-sm"
+          className="mt-1 max-w-[70ch] text-base text-el-ink-2 leading-relaxed"
         >
           With these settings, <b>{count("NDC")}</b> seats lean or better to the
           NDC, <b>{count("NNP")}</b> to the NNP, and <b>{tossUps.length}</b>{" "}
@@ -357,7 +357,7 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
                     return (
                       <li key={s.code}>
                         <a
-                          className="block rounded-[2px] px-2 py-1.5 text-xs leading-tight"
+                          className="block rounded-[2px] px-2 py-1.5 text-base leading-tight"
                           href={s.href}
                           style={columnStyle(column)}
                           title={`${s.short}: ${chanceText(c)}${s.dpmCandidate ? `. DPM candidate: ${s.dpmCandidate}` : ""}`}
@@ -377,7 +377,7 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
             );
           })}
         </div>
-        <p className="mt-2 text-el-muted text-xs">
+        <p className="mt-2 text-base text-el-muted leading-relaxed">
           The percentage is the chance the seat goes to that column’s party,
           allowing a typical local deviation of ±{(sL * 100).toFixed(1)} points
           from the national swing, as in the three elections since 2008. Safe:
@@ -404,7 +404,7 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
             ).map(([v, label]) => (
               <button
                 aria-pressed={volatility === v}
-                className="rounded px-2.5 py-1 text-xs aria-pressed:bg-el-ink aria-pressed:text-el-paper"
+                className="rounded px-2.5 py-1 text-base aria-pressed:bg-el-ink aria-pressed:text-el-paper"
                 key={v}
                 onClick={() => setVolatility(v)}
                 type="button"
@@ -414,7 +414,7 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
             ))}
           </fieldset>
         </div>
-        <p className="mt-1 max-w-[70ch] text-el-ink-2 text-sm">
+        <p className="mt-1 max-w-[70ch] text-base text-el-ink-2 leading-relaxed">
           10,000 simulated elections. Each draws a national swing like those
           Grenada has seen (±{(sN * volatility * 100).toFixed(1)} points, with
           fat tails, since there have been only seven), then gives every seat
@@ -422,58 +422,61 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
         </p>
         <div className="mt-4 grid gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
           <figure>
-            <svg
-              aria-label="Distribution of NDC seats in simulated elections"
-              className="h-auto w-full"
-              role="img"
-              viewBox="0 0 560 250"
-            >
-              {sim.hist.map((v, k) => {
-                const bw = (560 - 46) / 16;
-                const x = 36 + k * bw;
-                const h = (v / maxBar) * 206;
-                return (
-                  // biome-ignore lint/suspicious/noArrayIndexKey: seat counts 0–15 are the index
-                  <g key={k}>
-                    <rect
-                      fill={partyColor(k >= 8 ? "NDC" : "NNP")}
-                      height={h}
-                      rx={1.5}
-                      width={bw - 4}
-                      x={x + 2}
-                      y={220 - h}
-                    >
-                      <title>{`NDC ${k} seats: ${v.toLocaleString("en-GB")} of 10,000 simulations`}</title>
-                    </rect>
-                    <text
-                      className="fill-(--el-muted) text-[11px] max-sm:text-[17px]"
-                      textAnchor="middle"
-                      x={x + bw / 2}
-                      y={238}
-                    >
-                      {k}
-                    </text>
-                  </g>
-                );
-              })}
-              <line
-                stroke="var(--el-ink)"
-                strokeDasharray="3 3"
-                strokeWidth={1.5}
-                x1={36 + 8 * ((560 - 46) / 16)}
-                x2={36 + 8 * ((560 - 46) / 16)}
-                y1={8}
-                y2={224}
-              />
-              <text
-                className="fill-(--el-ink) font-semibold text-[11px] max-sm:text-[17px]"
-                x={40 + 8 * ((560 - 46) / 16)}
-                y={16}
+            <ChartViewport>
+              <svg
+                aria-label="Distribution of NDC seats in simulated elections"
+                className="h-auto w-full"
+                role="img"
+                style={{ minWidth: `${560 / 16}rem` }}
+                viewBox="0 0 560 250"
               >
-                Majority →
-              </text>
-            </svg>
-            <figcaption className="text-el-muted text-xs">
+                {sim.hist.map((v, k) => {
+                  const bw = (560 - 46) / 16;
+                  const x = 36 + k * bw;
+                  const h = (v / maxBar) * 206;
+                  return (
+                    // biome-ignore lint/suspicious/noArrayIndexKey: seat counts 0–15 are the index
+                    <g key={k}>
+                      <rect
+                        fill={partyColor(k >= 8 ? "NDC" : "NNP")}
+                        height={h}
+                        rx={1.5}
+                        width={bw - 4}
+                        x={x + 2}
+                        y={220 - h}
+                      >
+                        <title>{`NDC ${k} seats: ${v.toLocaleString("en-GB")} of 10,000 simulations`}</title>
+                      </rect>
+                      <text
+                        className="fill-(--el-muted) text-[14px]"
+                        textAnchor="middle"
+                        x={x + bw / 2}
+                        y={238}
+                      >
+                        {k}
+                      </text>
+                    </g>
+                  );
+                })}
+                <line
+                  stroke="var(--el-ink)"
+                  strokeDasharray="3 3"
+                  strokeWidth={1.5}
+                  x1={36 + 8 * ((560 - 46) / 16)}
+                  x2={36 + 8 * ((560 - 46) / 16)}
+                  y1={8}
+                  y2={224}
+                />
+                <text
+                  className="fill-(--el-ink) font-semibold text-[14px]"
+                  x={40 + 8 * ((560 - 46) / 16)}
+                  y={16}
+                >
+                  Majority →
+                </text>
+              </svg>
+            </ChartViewport>
+            <figcaption className="text-base text-el-muted">
               NDC seats across 10,000 simulated elections. The NNP and DPM hold
               the rest. Eight seats is a majority.
             </figcaption>
@@ -493,10 +496,10 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
               <b>{per100(n - (sim.dpmSeats[0] ?? 0))}</b>.
             </p>
             <h4 className={cn(LABEL, "mt-5")}>Which seat decides it</h4>
-            <p className="text-el-muted text-xs">
+            <p className="text-base text-el-muted leading-relaxed">
               The tipping-point seat gives the winner its eighth seat.
             </p>
-            <ul className="mt-2 space-y-1.5 text-sm">
+            <ul className="mt-2 space-y-1.5 text-base">
               {tipping.map(([code, v]) => (
                 <li className="flex items-center gap-2" key={code}>
                   <span className="w-36 shrink-0 truncate">
@@ -511,7 +514,7 @@ export function Forecast({ seats, inputs, sN, sL, df }: Props) {
                       }}
                     />
                   </span>
-                  <span className="w-24 shrink-0 text-right text-xs tabular-nums">
+                  <span className="w-24 shrink-0 text-right text-base tabular-nums">
                     {Math.round((v / n) * 100)}% ·{" "}
                     {leanLabel(byCode[code]?.lean ?? 0)}
                   </span>

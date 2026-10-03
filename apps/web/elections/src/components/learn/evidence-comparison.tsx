@@ -22,10 +22,10 @@ export function EvidenceComparison({
   const id = useId();
   return (
     <details className="mt-4 border-el-rule border-t pt-4">
-      <summary className="cursor-pointer font-semibold text-sm">
+      <summary className="cursor-pointer font-semibold text-base">
         Compare national statistics and their evidence
       </summary>
-      <div className="mt-4 flex flex-wrap items-center gap-4 text-sm">
+      <div className="mt-4 flex flex-wrap items-center gap-4 text-base">
         <label htmlFor={`${id}-metric`}>
           Measure{" "}
           <select
@@ -50,7 +50,10 @@ export function EvidenceComparison({
           Official-data-only view
         </label>
       </div>
-      <p className="mt-3 max-w-prose text-el-muted text-sm" role="status">
+      <p
+        className="mt-3 max-w-prose text-base text-el-muted leading-relaxed"
+        role="status"
+      >
         {officialOnly
           ? "Unsupported observations are withheld, not replaced with zero. The source must support every input to this measure."
           : "Full history: mixed and secondary sources remain visible and labelled."}{" "}
@@ -58,7 +61,7 @@ export function EvidenceComparison({
         stated coverage.
       </p>
       <div className="mt-3 overflow-x-auto">
-        <table className="w-full text-left text-sm">
+        <table className="w-full text-left text-base">
           <caption className="sr-only">
             National statistics with calculation evidence
           </caption>
@@ -97,9 +100,11 @@ export function EvidenceComparison({
                       <summary className="cursor-pointer">
                         Calculation and source
                       </summary>
-                      <p className="mt-2">{evidence.formula}</p>
-                      <p className="mt-1">{evidence.source}</p>
-                      <p className="mt-1 text-el-muted">{evidence.note}</p>
+                      <p className="mt-2 leading-relaxed">{evidence.formula}</p>
+                      <p className="mt-1 leading-relaxed">{evidence.source}</p>
+                      <p className="mt-1 text-el-muted leading-relaxed">
+                        {evidence.note}
+                      </p>
                     </details>
                   </td>
                 </tr>

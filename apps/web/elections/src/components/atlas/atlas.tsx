@@ -62,8 +62,7 @@ const TILES: Record<ConstituencyCode, [number, number]> = {
   K: [1, 5],
 };
 const ALL = { x0: -15, x1: 27, y0: -15.5, y1: 25 };
-const LABEL =
-  "font-semibold text-[11px] text-el-muted uppercase tracking-[0.07em]";
+const LABEL = "font-semibold text-sm text-el-muted uppercase tracking-[0.07em]";
 const MARK: Partial<Record<Verification, string>> = {
   unverified: "✱",
   check: "✱✱",
@@ -173,7 +172,7 @@ function Segmented<T extends string>({
       {options.map(([v, text]) => (
         <button
           aria-pressed={value === v}
-          className="whitespace-nowrap rounded px-2.5 py-1 text-[13px] text-el-ink-2 disabled:text-el-rule-2 aria-pressed:bg-el-ink aria-pressed:text-el-paper"
+          className="whitespace-nowrap rounded px-2.5 py-1 text-base text-el-ink-2 disabled:text-el-rule-2 aria-pressed:bg-el-ink aria-pressed:text-el-paper"
           disabled={disabled?.(v)}
           key={v}
           onClick={() => onChange(v)}
@@ -198,26 +197,26 @@ function EventHeader({ event }: { event: AtlasEvent }) {
     <section aria-label="National result">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="font-bold text-2xl">{eventTitle(event.id)}</h2>
-        <p className="text-el-muted text-sm">
+        <p className="text-base text-el-muted leading-relaxed">
           {event.date} · Turnout {pct(national.turnout)}
         </p>
       </div>
       <dl className="mt-4 flex flex-wrap gap-x-10 gap-y-4">
         {totals.map(([party, count]) => (
           <div className="min-w-24 flex-1" key={party}>
-            <dt className="font-semibold text-sm">{sideLabel(party)}</dt>
+            <dt className="font-semibold text-base">{sideLabel(party)}</dt>
             <dd
               className="mt-1 font-bold text-5xl tabular-nums"
               style={{ color: partyColor(party, "ink") }}
             >
               {referendum ? pct(count / (total || 1)) : count}
               {!referendum && (
-                <span className="ml-2 font-normal text-el-muted text-sm">
+                <span className="ml-2 font-normal text-base text-el-muted">
                   seats
                 </span>
               )}
             </dd>
-            <dd className="mt-1 text-el-muted text-sm tabular-nums">
+            <dd className="mt-1 text-base text-el-muted tabular-nums">
               {fmt(national.votes[party] ?? 0)} votes
               {!referendum &&
                 ` · ${pct((national.votes[party] ?? 0) / (national.total || 1))}`}
@@ -255,12 +254,12 @@ function EventHeader({ event }: { event: AtlasEvent }) {
         )}
       </div>
       {!referendum && (
-        <p className="mt-2 text-el-muted text-xs">
+        <p className="mt-2 text-base text-el-muted leading-relaxed">
           {majority} seats needed for a majority · {national.races}{" "}
           constituencies
         </p>
       )}
-      <div className="mt-3 space-y-1 text-sm">
+      <div className="mt-3 space-y-1 text-base">
         {(["votes", "seats", "turnout"] as const)
           .filter((metric) => !referendum || metric !== "seats")
           .map((metric) => (
@@ -268,13 +267,13 @@ function EventHeader({ event }: { event: AtlasEvent }) {
               <summary className="cursor-pointer">
                 {metric}: {event.evidence[metric].label}
               </summary>
-              <p className="mt-1 text-el-muted">
+              <p className="mt-1 text-el-muted leading-relaxed">
                 {event.evidence[metric].formula} {event.evidence[metric].note}
               </p>
             </details>
           ))}
       </div>
-      <p className="mt-2 text-el-muted text-xs">
+      <p className="mt-2 text-base text-el-muted leading-relaxed">
         {!event.official && (
           <b className="mr-1 text-el-ink-2">
             Includes secondary-source figures.
@@ -294,7 +293,7 @@ function HistoricalResults({ event }: { event: AtlasEvent }) {
       className="mt-6 border-el-ink border-t-2 pt-4"
     >
       <h3 className="font-bold text-xl">Results by constituency</h3>
-      <p className="mt-2 max-w-prose text-el-ink-2 text-sm">
+      <p className="mt-2 max-w-prose text-base text-el-ink-2 leading-relaxed">
         This election used {event.national.races} constituencies with different
         boundaries from today’s 15. Results are listed under their historical
         names. ✱ marks unverified figures; ✱✱ marks a source conflict.
@@ -305,10 +304,12 @@ function HistoricalResults({ event }: { event: AtlasEvent }) {
             <h4 className="font-bold font-serif text-lg">{contest.name}</h4>
             <ContestRows contest={contest} referendum={false} />
             {contest.note && (
-              <p className="mt-3 text-el-ink-2 text-xs">{contest.note}</p>
+              <p className="mt-3 text-base text-el-ink-2 leading-relaxed">
+                {contest.note}
+              </p>
             )}
             {contest.gazette && (
-              <p className="mt-2 text-el-muted text-xs">
+              <p className="mt-2 text-base text-el-muted leading-relaxed">
                 Winner’s votes: {contest.gazette}.
               </p>
             )}
@@ -316,7 +317,7 @@ function HistoricalResults({ event }: { event: AtlasEvent }) {
         ))}
       </div>
       <Link
-        className="mt-4 inline-block text-sm underline underline-offset-2"
+        className="mt-4 inline-block text-base underline underline-offset-2"
         href={`/elections/${event.id}`}
       >
         Full election record and sources →
@@ -331,12 +332,12 @@ function Legend({ event, mode }: { event: AtlasEvent; mode: MapMode }) {
     (a, b) => b[1] - a[1]
   );
   return (
-    <div className="absolute top-3 left-3 max-w-64 rounded-md bg-background/90 p-2.5 text-xs shadow-sm">
+    <div className="absolute top-3 left-3 max-w-64 rounded-md bg-background/90 p-2.5 text-base shadow-sm">
       <p className={LABEL}>
         {legend.title} · {event.label}
       </p>
       {mode === "winner" ? (
-        <p className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1">
+        <p className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 leading-relaxed">
           {order.map(([p]) => (
             <span key={p}>
               <i
@@ -348,7 +349,7 @@ function Legend({ event, mode }: { event: AtlasEvent; mode: MapMode }) {
           ))}
         </p>
       ) : (
-        <p className="mt-1.5 flex justify-between text-el-muted">
+        <p className="mt-1.5 flex justify-between text-el-muted leading-relaxed">
           <span>{legend.ends[0]}</span>
           <span>{legend.ends[1]}</span>
         </p>
@@ -481,14 +482,14 @@ function ContestRows({
 }) {
   const valid = contest.c.reduce((a, r) => a + r[2], 0) || 1;
   return (
-    <ul className="mt-3 space-y-2 text-sm">
+    <ul className="mt-3 space-y-2 text-base">
       {contest.c.map((row, i) => (
         <li key={`${row[0]}${row[1]}`}>
           <span className="flex justify-between gap-2">
             <span className={i === 0 ? "font-semibold" : ""}>
               {row[0]}
               {!referendum && (
-                <span className="text-el-muted text-xs"> · {row[1]}</span>
+                <span className="text-base text-el-muted"> · {row[1]}</span>
               )}
               {row[3] && MARK[row[3]] && (
                 <sup
@@ -501,7 +502,7 @@ function ContestRows({
             </span>
             <span className="tabular-nums">
               <b>{pct(row[2] / valid)}</b>{" "}
-              <span className="text-el-muted text-xs">{fmt(row[2])}</span>
+              <span className="text-base text-el-muted">{fmt(row[2])}</span>
             </span>
           </span>
           <span className="mt-0.5 block h-1.5 bg-el-paper-2">
@@ -533,7 +534,7 @@ function DivisionList({
   return (
     <>
       <h4 className={`${LABEL} mt-5`}>{divisions.length} polling divisions</h4>
-      <ul className="mt-1 divide-y divide-el-rule text-sm">
+      <ul className="mt-1 divide-y divide-el-rule text-base">
         {divisions.map((d) => {
           const valid = d.c.reduce((a, r) => a + r[2], 0) || 1;
           const [w, r] = d.c;
@@ -558,7 +559,7 @@ function DivisionList({
                 </span>
               </button>
               {selected === d.division && (
-                <p className="pb-2 text-el-muted text-xs tabular-nums">
+                <p className="pb-2 text-base text-el-muted tabular-nums leading-relaxed">
                   {d.c
                     .map(
                       (x) =>
@@ -598,7 +599,7 @@ function ConstituencyPanel({
   return (
     <div>
       <button
-        className="mb-2 text-sm underline underline-offset-2"
+        className="mb-2 text-base underline underline-offset-2"
         onClick={onBack}
         type="button"
       >
@@ -618,7 +619,7 @@ function ConstituencyPanel({
       {contest ? (
         <>
           <ContestRows contest={contest} referendum={ref} />
-          <p className="mt-2 text-el-muted text-xs tabular-nums">
+          <p className="mt-2 text-base text-el-muted tabular-nums leading-relaxed">
             Turnout{" "}
             {contest.reg && contest.cast
               ? pct(contest.cast / contest.reg)
@@ -626,13 +627,13 @@ function ConstituencyPanel({
             · Registered {fmt(contest.reg)}
           </p>
           {contest.note && (
-            <p className="mt-2 text-el-ink-2 text-xs">
+            <p className="mt-2 text-base text-el-ink-2 leading-relaxed">
               <b>Note:</b> {contest.note}
             </p>
           )}
         </>
       ) : (
-        <p className="mt-2 text-el-ink-2 text-sm">
+        <p className="mt-2 text-base text-el-ink-2 leading-relaxed">
           No readable result for this constituency: the official copy is
           damaged.
         </p>
@@ -667,14 +668,14 @@ function NationalPanel({
     <div>
       <p className={LABEL}>{event.label} · All of Grenada</p>
       <h3 className="font-bold text-xl">Results by constituency</h3>
-      <p className="mt-1 text-el-ink-2 text-sm">
+      <p className="mt-1 text-base text-el-ink-2 leading-relaxed">
         Select a constituency on the map or below.
         {event.divisions.length
           ? " You can go down to each polling division."
           : " Polling-division results exist from 2013."}
       </p>
       {event.missing.length > 0 && (
-        <p className="mt-2 text-el-ink-2 text-xs">
+        <p className="mt-2 text-base text-el-ink-2 leading-relaxed">
           No readable result for{" "}
           {event.missing.map((c) => names[c][0]).join(", ")}.
         </p>
@@ -688,7 +689,7 @@ function NationalPanel({
               type="button"
             >
               <span
-                className="grid size-7 shrink-0 place-items-center rounded-[2px] font-bold text-xs"
+                className="grid size-7 shrink-0 place-items-center rounded-[2px] font-bold text-base"
                 style={{
                   background: partyColor(s.winner[1]),
                   color: partyFillIsDark(s.winner[1]) ? "#fff" : "#121314",
@@ -697,16 +698,16 @@ function NationalPanel({
                 {c}
               </span>
               <span className="min-w-0 flex-1">
-                <span className="block truncate font-semibold text-sm">
+                <span className="block font-semibold text-base">
                   {names[c][0]}
                 </span>
-                <span className="block truncate text-el-muted text-xs">
+                <span className="block text-base text-el-muted">
                   {ref
                     ? `${sideLabel(s.winner[1])} ahead`
                     : `${s.winner[0]}, ${partyInfo(s.winner[1]).name}`}
                 </span>
               </span>
-              <span className="shrink-0 text-sm tabular-nums">
+              <span className="shrink-0 text-base tabular-nums">
                 +{(s.margin * 100).toFixed(1)}
               </span>
             </button>
@@ -751,7 +752,7 @@ function Timeline({
         <div className="flex gap-2">
           <button
             aria-label="Previous election or referendum"
-            className="min-h-11 rounded-md border border-el-rule-2 px-3 text-sm hover:bg-el-paper-2 disabled:opacity-40"
+            className="min-h-11 rounded-md border border-el-rule-2 px-3 text-base hover:bg-el-paper-2 disabled:opacity-40"
             disabled={!previous}
             onClick={() => previous && onChange(previous.id)}
             type="button"
@@ -760,7 +761,7 @@ function Timeline({
           </button>
           <button
             aria-label="Next election or referendum"
-            className="min-h-11 rounded-md border border-el-rule-2 px-3 text-sm hover:bg-el-paper-2 disabled:opacity-40"
+            className="min-h-11 rounded-md border border-el-rule-2 px-3 text-base hover:bg-el-paper-2 disabled:opacity-40"
             disabled={!next}
             onClick={() => next && onChange(next.id)}
             type="button"
@@ -781,7 +782,7 @@ function Timeline({
                 e.kind === "ref" ? `${e.year} referendum` : String(e.year)
               }
               aria-pressed={e.id === current}
-              className="flex min-h-14 min-w-14 shrink-0 flex-col items-center rounded-md px-2 py-1.5 text-sm hover:bg-el-paper-2 focus-visible:outline-2 focus-visible:outline-el-focus aria-pressed:bg-el-ink aria-pressed:text-el-paper"
+              className="flex min-h-14 min-w-14 shrink-0 flex-col items-center rounded-md px-2 py-1.5 text-base hover:bg-el-paper-2 focus-visible:outline-2 focus-visible:outline-el-focus aria-pressed:bg-el-ink aria-pressed:text-el-paper"
               data-event={e.id}
               key={e.id}
               onClick={() => onChange(e.id)}
@@ -793,7 +794,7 @@ function Timeline({
                 {e.year}
               </span>
               {e.kind === "ref" && (
-                <small className="font-semibold text-[9px] uppercase tracking-[0.04em] opacity-80">
+                <small className="font-semibold text-sm uppercase tracking-[0.04em] opacity-80">
                   Ref.
                 </small>
               )}
@@ -931,13 +932,13 @@ export function Atlas() {
 
   if (failed)
     return (
-      <p className="border-el-rule border-y py-6 text-el-ink-2">
+      <p className="border-el-rule border-y py-6 text-el-ink-2 leading-relaxed">
         The map data couldn’t be loaded. Reload the page to try again.
       </p>
     );
   if (!(data && event && palette))
     return (
-      <p className="border-el-rule border-y py-6 text-el-muted">
+      <p className="border-el-rule border-y py-6 text-el-muted leading-relaxed">
         Loading the atlas…
       </p>
     );
@@ -1022,7 +1023,7 @@ export function Atlas() {
           />
           {seat && (
             <button
-              className="ml-auto rounded-md border border-el-rule-2 px-2.5 py-1 text-[13px] hover:bg-el-paper-2"
+              className="ml-auto rounded-md border border-el-rule-2 px-2.5 py-1 text-base hover:bg-el-paper-2"
               onClick={() => set({ seat: null, division: null })}
               type="button"
             >
@@ -1056,7 +1057,7 @@ export function Atlas() {
               />
             )}
             <Legend event={event} mode={mode} />
-            <p className="absolute bottom-2 left-3 max-w-[calc(100%-24px)] rounded-[3px] bg-el-sea/80 px-1.5 text-[11px] text-el-muted">
+            <p className="absolute bottom-2 left-3 max-w-[calc(100%-24px)] rounded-[3px] bg-el-sea/80 px-1.5 text-el-muted text-sm leading-relaxed">
               Boundaries are illustrative. Carriacou and Petite Martinique are
               drawn closer than they are.
             </p>
