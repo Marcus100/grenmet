@@ -57,14 +57,14 @@ export function KeyDates({ calendar }: { calendar: ElectionCalendar }) {
     >
       {dates.map((d) => (
         <div className="bg-background p-4" key={d.label}>
-          <dt className="font-semibold text-[11px] text-el-muted uppercase tracking-[0.07em]">
+          <dt className="font-semibold text-el-muted text-sm uppercase tracking-[0.07em]">
             {d.label}
           </dt>
           <dd className="mt-1 font-bold font-serif text-xl">
             {d.value}
             {d.unverified && <Flag note={d.unverified} status="unverified" />}
           </dd>
-          {d.note && <dd className="mt-1 text-el-muted text-sm">{d.note}</dd>}
+          {d.note && <dd className="mt-1 text-base text-el-muted">{d.note}</dd>}
         </div>
       ))}
     </dl>

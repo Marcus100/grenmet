@@ -39,16 +39,16 @@ export function PageLearning({ topic }: { topic: PageLearningTopic }) {
           <h2 className="font-semibold font-serif text-lg">
             {lesson.question}
           </h2>
-          <p className="mt-2 max-w-prose text-el-ink-2 text-sm leading-relaxed">
+          <p className="mt-2 max-w-prose text-el-ink-2 text-lg leading-relaxed">
             {lesson.answer}
           </p>
         </div>
         <div>
-          <p className="text-el-muted text-sm leading-relaxed">
+          <p className="text-el-muted text-lg leading-relaxed">
             {lesson.caution}
           </p>
           <Link
-            className="mt-3 inline-block font-semibold text-sm underline underline-offset-4"
+            className="mt-3 inline-block font-semibold text-lg underline underline-offset-4"
             href={`/learn/${lesson.guide}`}
           >
             {lesson.action} →

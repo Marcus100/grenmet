@@ -30,11 +30,11 @@ export default function Since2022Page() {
             sources={campaign.sources}
           />
           <div>
-            <h3 className="mb-2 font-semibold text-[11px] text-el-muted uppercase tracking-[0.07em]">
+            <h3 className="mb-2 font-semibold text-el-muted text-sm uppercase tracking-[0.07em]">
               The House today
             </h3>
             <HouseMap geo={geo} seats={seats} />
-            <p className="mt-2 text-el-muted text-xs">
+            <p className="mt-2 text-base text-el-muted leading-relaxed">
               Seats changed hands by floor crossing and resignation from the
               party, not by by-election. 2022 result: NDC 9, NNP 6.
             </p>

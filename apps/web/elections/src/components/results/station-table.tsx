@@ -15,11 +15,11 @@ export function StationTable({
   const stations = divisions.flatMap((d) => d.stations.map((s) => ({ d, s })));
   return (
     <details className="mt-3 border-el-rule border-t pt-2">
-      <summary className="cursor-pointer font-semibold text-sm">
+      <summary className="cursor-pointer font-semibold text-base">
         {divisions.length} polling divisions · {stations.length} stations
       </summary>
       <div className="mt-2 overflow-x-auto">
-        <table className="w-full min-w-[560px] text-xs">
+        <table className="w-full min-w-[560px] text-base">
           <thead>
             <tr className="border-el-ink border-b text-left">
               <th className="py-1.5 pr-2 font-semibold" scope="col">

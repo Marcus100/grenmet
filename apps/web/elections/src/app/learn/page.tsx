@@ -30,17 +30,19 @@ export default function LearnPage() {
         <ol className="grid gap-6 md:grid-cols-2">
           {GUIDES.map((guide, i) => (
             <li className="border-el-rule border-t pt-4" key={guide.slug}>
-              <p className="text-el-muted text-xs">Guide {i + 1}</p>
+              <p className="text-el-muted text-lg leading-relaxed">
+                Guide {i + 1}
+              </p>
               <h3 className="mt-1 font-bold font-serif text-xl">
                 <Link className="hover:underline" href={`/learn/${guide.slug}`}>
                   {guide.question}
                 </Link>
               </h3>
-              <p className="mt-2 text-el-ink-2 text-sm leading-relaxed">
+              <p className="mt-2 text-el-ink-2 text-lg leading-relaxed">
                 {guide.answer}
               </p>
               <Link
-                className="mt-3 inline-block text-sm underline underline-offset-4"
+                className="mt-3 inline-block text-lg underline underline-offset-4"
                 href={`/learn/${guide.slug}`}
               >
                 {guide.title} →

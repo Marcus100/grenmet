@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ChartViewport } from "@/components/chart-viewport";
 import {
   SwingCalculator,
   type SwingYear,
@@ -30,8 +31,7 @@ export const metadata: Metadata = {
     "A swing calculator for every Grenada election since 1990, where the votes moved in each polling division, votes against seats, and how far each result can be trusted.",
 };
 
-const LABEL =
-  "font-semibold text-[11px] text-el-muted uppercase tracking-[0.07em]";
+const LABEL = "font-semibold text-sm text-el-muted uppercase tracking-[0.07em]";
 
 function ndcShare(d: {
   c: [string, string, number, unknown?][];
@@ -67,7 +67,7 @@ function DivisionSwing({ from, to }: { from: string; to: string }) {
     20 + ((Math.max(-30, Math.min(30, v)) + 30) / 60) * (W - 40);
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+    <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
       <figure>
         <FlatMap
           geo={geo}
@@ -85,7 +85,7 @@ function DivisionSwing({ from, to }: { from: string; to: string }) {
             };
           })}
         />
-        <figcaption className="mt-2 text-el-muted text-xs">
+        <figcaption className="mt-2 text-base text-el-muted">
           Gold: toward the NDC. Green: toward the NNP. Grey: no comparable
           result. Boundaries are illustrative.
         </figcaption>
@@ -101,7 +101,7 @@ function DivisionSwing({ from, to }: { from: string; to: string }) {
           <div>
             <dt className={LABEL}>Toward the NDC</dt>
             <dd className="font-semibold text-xl tabular-nums">{toNdc}</dd>
-            <dd className="text-el-muted text-xs">
+            <dd className="text-base text-el-muted">
               {rows.length - toNdc} toward the NNP
             </dd>
           </div>
@@ -111,51 +111,54 @@ function DivisionSwing({ from, to }: { from: string; to: string }) {
               {median >= 0 ? "+" : ""}
               {median.toFixed(1)}
             </dd>
-            <dd className="text-el-muted text-xs">
+            <dd className="text-base text-el-muted">
               points toward the {median >= 0 ? "NDC" : "NNP"}
             </dd>
           </div>
         </dl>
-        <svg
-          aria-label={`Swing in each polling division, ${from} to ${to}, one dot per division`}
-          className="mt-4 h-auto w-full"
-          role="img"
-          viewBox={`0 0 ${W} 90`}
-        >
-          <line
-            stroke="var(--el-ink)"
-            strokeDasharray="3 3"
-            x1={x(0)}
-            x2={x(0)}
-            y1={4}
-            y2={70}
-          />
-          {sorted.map((r, i) => (
-            <circle
-              cx={x(r.swing)}
-              cy={14 + (i % 7) * 8}
-              fill={swingFill(r.swing)}
-              key={r.d.division}
-              r={3.5}
-              stroke="var(--el-paper)"
-              strokeWidth={0.8}
-            >
-              <title>{`${r.d.division}${r.d.places[0] ? ` · ${r.d.places[0]}` : ""}: ${r.swing >= 0 ? "+" : ""}${r.swing.toFixed(1)}`}</title>
-            </circle>
-          ))}
-          {[-30, -15, 0, 15, 30].map((v) => (
-            <text
-              className="fill-(--el-muted) text-[10px] max-sm:text-[16px]"
-              key={v}
-              textAnchor="middle"
-              x={x(v)}
-              y={86}
-            >
-              {v > 0 ? `+${v}` : v}
-            </text>
-          ))}
-        </svg>
-        <p className="text-el-muted text-xs">
+        <ChartViewport>
+          <svg
+            aria-label={`Swing in each polling division, ${from} to ${to}, one dot per division`}
+            className="mt-4 h-auto w-full"
+            role="img"
+            style={{ minWidth: `${W / 16}rem` }}
+            viewBox={`0 0 ${W} 90`}
+          >
+            <line
+              stroke="var(--el-ink)"
+              strokeDasharray="3 3"
+              x1={x(0)}
+              x2={x(0)}
+              y1={4}
+              y2={70}
+            />
+            {sorted.map((r, i) => (
+              <circle
+                cx={x(r.swing)}
+                cy={14 + (i % 7) * 8}
+                fill={swingFill(r.swing)}
+                key={r.d.division}
+                r={3.5}
+                stroke="var(--el-paper)"
+                strokeWidth={0.8}
+              >
+                <title>{`${r.d.division}${r.d.places[0] ? ` · ${r.d.places[0]}` : ""}: ${r.swing >= 0 ? "+" : ""}${r.swing.toFixed(1)}`}</title>
+              </circle>
+            ))}
+            {[-30, -15, 0, 15, 30].map((v) => (
+              <text
+                className="fill-(--el-muted) text-[14px]"
+                key={v}
+                textAnchor="middle"
+                x={x(v)}
+                y={86}
+              >
+                {v > 0 ? `+${v}` : v}
+              </text>
+            ))}
+          </svg>
+        </ChartViewport>
+        <p className="text-base text-el-muted leading-relaxed">
           Change in the NDC’s share of the two-party vote, in points. Values
           beyond ±30 sit at the edge.
         </p>
@@ -328,11 +331,11 @@ export default function HowClosePage() {
         <h3 className="mt-10 mb-3 font-bold text-lg">2013 → 2018</h3>
         <DivisionSwing from="2013" to="2018" />
         <h3 className={`${LABEL} mt-10`}>Knife-edge divisions</h3>
-        <p className="text-el-muted text-xs">
+        <p className="text-base text-el-muted leading-relaxed">
           The closest NDC–NNP contests in any polling division, 2013–2022
         </p>
         <div className="mt-2 overflow-x-auto">
-          <table className="w-full min-w-[480px] text-sm">
+          <table className="w-full min-w-[480px] text-base">
             <thead>
               <tr className="border-el-ink border-b text-left">
                 {["Election", "Division", "NDC", "NNP", "Gap"].map((h, i) => (
@@ -362,7 +365,7 @@ export default function HowClosePage() {
                   </td>
                   <td className="py-1.5 pr-3">
                     <b>{r.d.division}</b> {r.d.places[0]}
-                    <span className="block text-el-muted text-xs">
+                    <span className="block text-base text-el-muted">
                       {constituencyName(results, r.d.code)}
                     </span>
                   </td>
@@ -387,96 +390,99 @@ export default function HowClosePage() {
         intro="Under first past the post, the winning party’s share of seats usually runs far ahead of its share of votes. Three times since 1999 one party has won every seat."
         title="3 · Votes versus seats"
       >
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
           <figure>
-            <svg
-              aria-label="Vote share and seat share of the winning party at each election"
-              className="h-auto w-full"
-              role="img"
-              viewBox={`0 0 560 ${votesSeats.length * 28 + 40}`}
-            >
-              {[0, 0.25, 0.5, 0.75, 1].map((v) => {
-                const x = 54 + v * 488;
-                return (
-                  <g key={v}>
-                    <line
-                      stroke="var(--el-rule)"
-                      x1={x}
-                      x2={x}
-                      y1={16}
-                      y2={votesSeats.length * 28 + 28}
-                    />
-                    <text
-                      className="fill-(--el-muted) text-[11px] max-sm:text-[17px]"
-                      textAnchor="middle"
-                      x={x}
-                      y={12}
-                    >
-                      {v * 100}%
-                    </text>
-                  </g>
-                );
-              })}
-              {votesSeats.map((r, i) => {
-                const cy = 34 + i * 28;
-                const x = (v: number) => 54 + v * 488;
-                return (
-                  <g key={r.id}>
-                    <text
-                      className="fill-(--el-ink) text-[12px] max-sm:text-[18px]"
-                      textAnchor="end"
-                      x={44}
-                      y={cy + 4}
-                    >
-                      {r.year}
-                    </text>
-                    <line
-                      stroke={partyColor(r.party)}
-                      strokeWidth={3}
-                      x1={x(r.vote)}
-                      x2={x(r.seat)}
-                      y1={cy}
-                      y2={cy}
-                    />
-                    <circle
-                      cx={x(r.vote)}
-                      cy={cy}
-                      fill="var(--el-paper)"
-                      r={6}
-                      stroke={partyColor(r.party)}
-                      strokeWidth={2.5}
-                    />
-                    <circle
-                      cx={x(r.seat)}
-                      cy={cy}
-                      fill={partyColor(r.party)}
-                      r={6.5}
-                    />
-                    <text
-                      className="fill-(--el-ink-2) text-[11px] max-sm:text-[17px]"
-                      x={Math.min(x(Math.max(r.vote, r.seat)) + 12, 480)}
-                      y={cy + 4}
-                    >
-                      {r.party}
-                      {r.sweep ? " · clean sweep" : ""}
-                    </text>
-                    <title>{`${r.year}, ${partyInfo(r.party).name}: ${pct(r.vote)} of the vote, ${pct(r.seat, 0)} of the seats`}</title>
-                  </g>
-                );
-              })}
-            </svg>
-            <figcaption className="text-el-muted text-xs">
+            <ChartViewport>
+              <svg
+                aria-label="Vote share and seat share of the winning party at each election"
+                className="h-auto w-full"
+                role="img"
+                style={{ minWidth: `${560 / 16}rem` }}
+                viewBox={`0 0 560 ${votesSeats.length * 28 + 40}`}
+              >
+                {[0, 0.25, 0.5, 0.75, 1].map((v) => {
+                  const x = 54 + v * 488;
+                  return (
+                    <g key={v}>
+                      <line
+                        stroke="var(--el-rule)"
+                        x1={x}
+                        x2={x}
+                        y1={16}
+                        y2={votesSeats.length * 28 + 28}
+                      />
+                      <text
+                        className="fill-(--el-muted) text-[14px]"
+                        textAnchor="middle"
+                        x={x}
+                        y={12}
+                      >
+                        {v * 100}%
+                      </text>
+                    </g>
+                  );
+                })}
+                {votesSeats.map((r, i) => {
+                  const cy = 34 + i * 28;
+                  const x = (v: number) => 54 + v * 488;
+                  return (
+                    <g key={r.id}>
+                      <text
+                        className="fill-(--el-ink) text-[14px]"
+                        textAnchor="end"
+                        x={44}
+                        y={cy + 4}
+                      >
+                        {r.year}
+                      </text>
+                      <line
+                        stroke={partyColor(r.party)}
+                        strokeWidth={3}
+                        x1={x(r.vote)}
+                        x2={x(r.seat)}
+                        y1={cy}
+                        y2={cy}
+                      />
+                      <circle
+                        cx={x(r.vote)}
+                        cy={cy}
+                        fill="var(--el-paper)"
+                        r={6}
+                        stroke={partyColor(r.party)}
+                        strokeWidth={2.5}
+                      />
+                      <circle
+                        cx={x(r.seat)}
+                        cy={cy}
+                        fill={partyColor(r.party)}
+                        r={6.5}
+                      />
+                      <text
+                        className="fill-(--el-ink-2) text-[14px]"
+                        x={Math.min(x(Math.max(r.vote, r.seat)) + 12, 480)}
+                        y={cy + 4}
+                      >
+                        {r.party}
+                        {r.sweep ? " · clean sweep" : ""}
+                      </text>
+                      <title>{`${r.year}, ${partyInfo(r.party).name}: ${pct(r.vote)} of the vote, ${pct(r.seat, 0)} of the seats`}</title>
+                    </g>
+                  );
+                })}
+              </svg>
+            </ChartViewport>
+            <figcaption className="text-base text-el-muted">
               Hollow dot: vote share. Filled dot: seat share. 1976 votes are
               from a secondary source.
             </figcaption>
           </figure>
           <div>
             <h3 className={LABEL}>How unequal the result was</h3>
-            <p className="text-el-muted text-xs">
+            <p className="text-base text-el-muted leading-relaxed">
               Gallagher disproportionality index (0 means seats exactly match
               votes). Above about 15 is very high internationally.
             </p>
-            <ul className="mt-2 space-y-1 text-sm">
+            <ul className="mt-2 space-y-1 text-base">
               {votesSeats.map((r) => (
                 <li className="flex items-center gap-2" key={r.id}>
                   <span className="w-10 tabular-nums">{r.year}</span>
@@ -513,52 +519,57 @@ export default function HowClosePage() {
               H - 24 - Math.max(0, Math.min(1, (t - 0.4) / 0.6)) * (H - 40);
             return (
               <figure key={id}>
-                <figcaption className="font-semibold text-sm">{id}</figcaption>
-                <svg
-                  aria-label={`Turnout against winning margin by polling division, ${id}`}
-                  className="h-auto w-full"
-                  role="img"
-                  viewBox={`0 0 ${W} ${H}`}
-                >
-                  {[0.4, 0.6, 0.8, 1].map((t) => (
-                    <text
-                      className="fill-(--el-muted) text-[9px]"
-                      key={t}
-                      x={0}
-                      y={y(t) + 3}
-                    >
-                      {t * 100}%
-                    </text>
-                  ))}
-                  {[0, 0.4, 0.8].map((m) => (
-                    <text
-                      className="fill-(--el-muted) text-[9px]"
-                      key={m}
-                      textAnchor="middle"
-                      x={x(m)}
-                      y={H - 6}
-                    >
-                      {m * 100}
-                    </text>
-                  ))}
-                  {pts.map((p) => (
-                    <circle
-                      cx={x(p.margin)}
-                      cy={y(p.turnout)}
-                      fill={partyColor(p.party)}
-                      fillOpacity={0.75}
-                      key={p.d.division}
-                      r={3}
-                    >
-                      <title>{`${p.d.division}: turnout ${pct(p.turnout)}, margin ${(p.margin * 100).toFixed(0)} pts (${p.party})`}</title>
-                    </circle>
-                  ))}
-                </svg>
+                <figcaption className="font-semibold text-base">
+                  {id}
+                </figcaption>
+                <ChartViewport>
+                  <svg
+                    aria-label={`Turnout against winning margin by polling division, ${id}`}
+                    className="h-auto w-full"
+                    role="img"
+                    style={{ minWidth: `${W / 16}rem` }}
+                    viewBox={`0 0 ${W} ${H}`}
+                  >
+                    {[0.4, 0.6, 0.8, 1].map((t) => (
+                      <text
+                        className="fill-(--el-muted) text-[14px]"
+                        key={t}
+                        x={0}
+                        y={y(t) + 3}
+                      >
+                        {t * 100}%
+                      </text>
+                    ))}
+                    {[0, 0.4, 0.8].map((m) => (
+                      <text
+                        className="fill-(--el-muted) text-[14px]"
+                        key={m}
+                        textAnchor="middle"
+                        x={x(m)}
+                        y={H - 6}
+                      >
+                        {m * 100}
+                      </text>
+                    ))}
+                    {pts.map((p) => (
+                      <circle
+                        cx={x(p.margin)}
+                        cy={y(p.turnout)}
+                        fill={partyColor(p.party)}
+                        fillOpacity={0.75}
+                        key={p.d.division}
+                        r={3}
+                      >
+                        <title>{`${p.d.division}: turnout ${pct(p.turnout)}, margin ${(p.margin * 100).toFixed(0)} pts (${p.party})`}</title>
+                      </circle>
+                    ))}
+                  </svg>
+                </ChartViewport>
               </figure>
             );
           })}
         </div>
-        <p className="mt-1 text-el-muted text-xs">
+        <p className="mt-1 text-base text-el-muted leading-relaxed">
           Across: winning margin in points. Up: turnout. Colour: the division’s
           winner.
         </p>
@@ -577,58 +588,65 @@ export default function HowClosePage() {
             const y = (v: number) => H - 24 - v * (H - 40);
             return (
               <figure key={p.ref}>
-                <figcaption className="font-semibold text-sm">
+                <figcaption className="font-semibold text-base">
                   {p.label}
                 </figcaption>
-                <svg
-                  aria-label={p.label}
-                  className="h-auto w-full"
-                  role="img"
-                  viewBox={`0 0 ${W} ${H}`}
-                >
-                  <line
-                    stroke="var(--el-rule)"
-                    x1={x(0.5)}
-                    x2={x(0.5)}
-                    y1={y(0)}
-                    y2={y(1)}
-                  />
-                  <line
-                    stroke="var(--el-rule)"
-                    x1={x(0)}
-                    x2={x(1)}
-                    y1={y(0.5)}
-                    y2={y(0.5)}
-                  />
-                  {p.points.map((q) => (
-                    <circle
-                      cx={x(q.ndc)}
-                      cy={y(q.yes)}
-                      fill={partyColor(q.yes > 0.5 ? "YES" : "NO")}
-                      fillOpacity={0.75}
-                      key={q.d.division}
-                      r={3}
-                    >
-                      <title>{`${q.d.division}: Yes ${pct(q.yes)}, NDC ${pct(q.ndc)} of the two-party vote`}</title>
-                    </circle>
-                  ))}
-                  <text
-                    className="fill-(--el-muted) text-[9px]"
-                    textAnchor="middle"
-                    x={x(0.5)}
-                    y={H - 6}
+                <ChartViewport>
+                  <svg
+                    aria-label={p.label}
+                    className="h-auto w-full"
+                    role="img"
+                    style={{ minWidth: `${W / 16}rem` }}
+                    viewBox={`0 0 ${W} ${H}`}
                   >
-                    NDC two-party share →
-                  </text>
-                  <text className="fill-(--el-muted) text-[9px]" x={2} y={12}>
-                    Yes ↑
-                  </text>
-                </svg>
+                    <line
+                      stroke="var(--el-rule)"
+                      x1={x(0.5)}
+                      x2={x(0.5)}
+                      y1={y(0)}
+                      y2={y(1)}
+                    />
+                    <line
+                      stroke="var(--el-rule)"
+                      x1={x(0)}
+                      x2={x(1)}
+                      y1={y(0.5)}
+                      y2={y(0.5)}
+                    />
+                    {p.points.map((q) => (
+                      <circle
+                        cx={x(q.ndc)}
+                        cy={y(q.yes)}
+                        fill={partyColor(q.yes > 0.5 ? "YES" : "NO")}
+                        fillOpacity={0.75}
+                        key={q.d.division}
+                        r={3}
+                      >
+                        <title>{`${q.d.division}: Yes ${pct(q.yes)}, NDC ${pct(q.ndc)} of the two-party vote`}</title>
+                      </circle>
+                    ))}
+                    <text
+                      className="fill-(--el-muted) text-[14px]"
+                      textAnchor="middle"
+                      x={x(0.5)}
+                      y={H - 6}
+                    >
+                      NDC two-party share →
+                    </text>
+                    <text
+                      className="fill-(--el-muted) text-[14px]"
+                      x={2}
+                      y={12}
+                    >
+                      Yes ↑
+                    </text>
+                  </svg>
+                </ChartViewport>
               </figure>
             );
           })}
         </div>
-        <p className="mt-1 text-el-muted text-xs">
+        <p className="mt-1 text-base text-el-muted leading-relaxed">
           The 2018 referendum has divisions only for the 10 constituencies
           readable in the Gazette.
         </p>
@@ -649,7 +667,7 @@ export default function HowClosePage() {
         title="6 · How far each result can be trusted"
       >
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] border-separate border-spacing-[2px] text-[11px]">
+          <table className="w-full min-w-[720px] border-separate border-spacing-[2px] text-sm">
             <thead>
               <tr>
                 <th className="text-left font-semibold" scope="col">
@@ -724,7 +742,7 @@ export default function HowClosePage() {
             </tbody>
           </table>
         </div>
-        <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs">
+        <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-base">
           {(Object.keys(QUALITY) as ResultQuality[]).map((q) => (
             <li className="flex items-center gap-1.5" key={q}>
               <i

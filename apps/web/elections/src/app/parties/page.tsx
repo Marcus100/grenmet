@@ -35,7 +35,7 @@ export default function PartiesPage() {
       />
       <Section id="all" title="By seats won">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[620px] text-sm">
+          <table className="w-full min-w-[620px] text-base">
             <thead>
               <tr className="border-el-ink border-b text-left">
                 {[
@@ -66,7 +66,9 @@ export default function PartiesPage() {
                       <PartyDot party={r.code} />
                       {partyInfo(r.code).name}
                     </Link>
-                    <span className="ml-1 text-el-muted text-xs">{r.code}</span>
+                    <span className="ml-1 text-base text-el-muted">
+                      {r.code}
+                    </span>
                   </td>
                   <td className="py-2 pr-3 tabular-nums">{r.years.length}</td>
                   <td className="py-2 pr-3 tabular-nums">
@@ -83,7 +85,7 @@ export default function PartiesPage() {
             </tbody>
           </table>
         </div>
-        <p className="mt-3 text-el-muted text-xs">
+        <p className="mt-3 text-base text-el-muted leading-relaxed">
           Votes before 1984 are partly from secondary sources; see each
           election’s page for its source.
         </p>

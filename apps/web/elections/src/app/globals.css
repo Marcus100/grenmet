@@ -187,3 +187,17 @@ h3 {
   outline: 2px solid var(--el-focus);
   outline-offset: 2px;
 }
+
+@layer base {
+  small {
+    @apply text-base;
+  }
+
+  sup {
+    @apply text-sm;
+  }
+
+  figure {
+    min-width: 0;
+  }
+}

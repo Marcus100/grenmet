@@ -42,7 +42,8 @@ Elections and the separate Barrels holding page use Vercel; the operational apps
 
 - Default to Server Components. Use the `--el-*` tokens and `@barrelsgd/ui` primitives.
   Party colours are data only: never chrome, links or brand.
-- Design at 375px first. Below `xl` the navigation is the hamburger
+- Design at 375px first. Below an `80rem` masthead container width the navigation is the hamburger
   (`mobile-menu.tsx`). Keep it working when adding pages, and add new pages to
   `src/lib/nav.ts`.
+- Readability: 18px reading text, 16px supporting prose/controls/tables, 14px minimum short labels; never shrink source notes to establish hierarchy. Keep chart labels legible in a local scroll viewport and check 375px plus enlarged text.
 - Tests: `pnpm vitest run` from this directory.

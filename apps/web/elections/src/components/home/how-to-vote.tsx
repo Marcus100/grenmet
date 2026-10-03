@@ -1,7 +1,7 @@
 import Link from "next/link";
 export function HowToVote() {
   return (
-    <div className="space-y-3 text-sm leading-relaxed">
+    <div className="space-y-3 text-base leading-relaxed">
       <p>
         Check your entry on the relevant voters’ list, your assigned polling
         location and the current identification requirements with the

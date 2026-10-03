@@ -107,7 +107,7 @@ export function ConstituencySearch({
         autoFocus={autoFocus}
         className={cn(
           "w-full rounded-md border border-el-rule-2 bg-background text-el-ink placeholder:text-el-muted",
-          large ? "h-12 pr-4 pl-11 text-base" : "h-9 pr-3 pl-8 text-sm"
+          large ? "h-12 pr-4 pl-11 text-base" : "min-h-11 pr-3 pl-8 text-base"
         )}
         onBlur={() => setTimeout(() => setOpen(false), 120)}
         onChange={(event) => {
@@ -139,10 +139,12 @@ export function ConstituencySearch({
           role="listbox"
         >
           {index === null && (
-            <p className="px-3 py-2 text-el-muted text-sm">Loading…</p>
+            <p className="px-3 py-2 text-base text-el-muted leading-relaxed">
+              Loading…
+            </p>
           )}
           {index !== null && matches.length === 0 && (
-            <p className="px-3 py-2 text-el-muted text-sm">
+            <p className="px-3 py-2 text-base text-el-muted leading-relaxed">
               No constituency matches “{query.trim()}”.
             </p>
           )}
@@ -163,13 +165,13 @@ export function ConstituencySearch({
               role="option"
               tabIndex={-1}
             >
-              <span className="text-el-ink text-sm">
+              <span className="text-base text-el-ink">
                 {entry.label}
-                <span className="ml-2 font-semibold text-[10px] text-el-muted uppercase tracking-[0.07em]">
+                <span className="ml-2 font-semibold text-el-muted text-sm uppercase tracking-[0.07em]">
                   {KIND_LABEL[entry.kind]}
                 </span>
               </span>
-              <span className="text-el-muted text-xs">{entry.note}</span>
+              <span className="text-base text-el-muted">{entry.note}</span>
             </div>
           ))}
         </div>

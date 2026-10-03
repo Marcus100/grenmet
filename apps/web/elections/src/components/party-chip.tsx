@@ -28,7 +28,7 @@ export function SeatSquare({
     <span
       aria-label={label}
       className={cn(
-        "grid aspect-square place-items-center rounded-[2px] font-bold text-xs",
+        "grid aspect-square place-items-center rounded-[2px] font-bold text-base",
         partyFillIsDark(party) ? "text-white" : "text-[#121314]",
         className
       )}

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ChartViewport } from "@/components/chart-viewport";
 import { CalculationNote, EvidenceCitation } from "@/components/learn/evidence";
 import { FlatMap } from "@/components/map/flat-map";
 import { PageHead, Section } from "@/components/section";
@@ -19,8 +20,7 @@ export const metadata: Metadata = {
     "How Grenada’s electoral roll has changed since 2019, counted from the Parliamentary Elections Office’s published lists. Totals only, no personal details.",
 };
 
-const LABEL =
-  "font-semibold text-[11px] text-el-muted uppercase tracking-[0.07em]";
+const LABEL = "font-semibold text-sm text-el-muted uppercase tracking-[0.07em]";
 
 /** Growth fill: none or negative is pale, +20% or more is the full sequential colour. */
 function growthFill(change: number): string {
@@ -43,7 +43,7 @@ export default function RegisterPage() {
   const maxE = Math.max(...lists.map((l) => l.electors)) * 1.01;
   const t0 = Date.parse(first.date);
   const t1 = Date.parse(last.date);
-  const x = (d: string) => 44 + ((Date.parse(d) - t0) / (t1 - t0)) * (W - 60);
+  const x = (d: string) => 68 + ((Date.parse(d) - t0) / (t1 - t0)) * (W - 84);
   const y = (v: number) => H - 26 - ((v - minE) / (maxE - minE)) * (H - 44);
   const maxAdd = Math.max(...adds.map((a) => a.added));
 
@@ -96,7 +96,7 @@ export default function RegisterPage() {
               <dd className="mt-0.5 font-semibold text-xl tabular-nums">
                 {value}
               </dd>
-              <dd className="text-el-muted text-xs">{note}</dd>
+              <dd className="text-base text-el-muted">{note}</dd>
             </div>
           ))}
         </dl>
@@ -108,75 +108,80 @@ export default function RegisterPage() {
         title="Registered electors"
       >
         <CalculationNote formula="Snapshot total = sum of included non-police list entries. Relative change = (later − earlier) ÷ earlier. The chart’s vertical axis does not start at zero.">
-          <p className="mt-2">
+          <p className="mt-2 leading-relaxed">
             A rise or fall is not an explanation: transfers, removals and
             changes in coverage need separate evidence.
           </p>
         </CalculationNote>
-        <svg
-          aria-label="Electors on each consolidated list"
-          className="h-auto w-full max-w-3xl"
-          role="img"
-          viewBox={`0 0 ${W} ${H}`}
-        >
-          {[0, 0.5, 1].map((f) => {
-            const v = minE + f * (maxE - minE);
-            return (
-              <g key={f}>
-                <line
-                  stroke="var(--el-rule)"
-                  x1={44}
-                  x2={W - 10}
-                  y1={y(v)}
-                  y2={y(v)}
-                />
-                <text
-                  className="fill-(--el-muted) text-[10px] max-sm:text-[16px]"
-                  x={0}
-                  y={y(v) + 3}
-                >
-                  {fmt(v)}
-                </text>
-              </g>
-            );
-          })}
-          <line
-            stroke="var(--el-ink)"
-            strokeDasharray="3 3"
-            x1={x("2022-06-10")}
-            x2={x("2022-06-10")}
-            y1={10}
-            y2={H - 26}
-          />
-          <polyline
-            fill="none"
-            points={lists.map((l) => `${x(l.date)},${y(l.electors)}`).join(" ")}
-            stroke="var(--el-seq-1)"
-            strokeWidth={2.5}
-          />
-          {lists.map((l) => (
-            <circle
-              cx={x(l.date)}
-              cy={y(l.electors)}
-              fill="var(--el-seq-1)"
-              key={l.date}
-              r={3.5}
-            >
-              <title>{`${formatIsoDate(l.date)}: ${fmt(l.electors)} electors`}</title>
-            </circle>
-          ))}
-          {[...new Set(lists.map((l) => l.date.slice(0, 4)))].map((yr) => (
-            <text
-              className="fill-(--el-muted) text-[10px] max-sm:text-[16px]"
-              key={yr}
-              textAnchor="middle"
-              x={x(`${yr}-07-01`)}
-              y={H - 8}
-            >
-              {yr}
-            </text>
-          ))}
-        </svg>
+        <ChartViewport>
+          <svg
+            aria-label="Electors on each consolidated list"
+            className="h-auto w-full max-w-3xl"
+            role="img"
+            style={{ minWidth: `${W / 16}rem` }}
+            viewBox={`0 0 ${W} ${H}`}
+          >
+            {[0, 0.5, 1].map((f) => {
+              const v = minE + f * (maxE - minE);
+              return (
+                <g key={f}>
+                  <line
+                    stroke="var(--el-rule)"
+                    x1={68}
+                    x2={W - 10}
+                    y1={y(v)}
+                    y2={y(v)}
+                  />
+                  <text
+                    className="fill-(--el-muted) text-[14px]"
+                    x={0}
+                    y={y(v) + 3}
+                  >
+                    {fmt(v)}
+                  </text>
+                </g>
+              );
+            })}
+            <line
+              stroke="var(--el-ink)"
+              strokeDasharray="3 3"
+              x1={x("2022-06-10")}
+              x2={x("2022-06-10")}
+              y1={10}
+              y2={H - 26}
+            />
+            <polyline
+              fill="none"
+              points={lists
+                .map((l) => `${x(l.date)},${y(l.electors)}`)
+                .join(" ")}
+              stroke="var(--el-seq-1)"
+              strokeWidth={2.5}
+            />
+            {lists.map((l) => (
+              <circle
+                cx={x(l.date)}
+                cy={y(l.electors)}
+                fill="var(--el-seq-1)"
+                key={l.date}
+                r={3.5}
+              >
+                <title>{`${formatIsoDate(l.date)}: ${fmt(l.electors)} electors`}</title>
+              </circle>
+            ))}
+            {[...new Set(lists.map((l) => l.date.slice(0, 4)))].map((yr) => (
+              <text
+                className="fill-(--el-muted) text-[14px]"
+                key={yr}
+                textAnchor="middle"
+                x={x(`${yr}-07-01`)}
+                y={H - 8}
+              >
+                {yr}
+              </text>
+            ))}
+          </svg>
+        </ChartViewport>
       </Section>
 
       <Section
@@ -184,7 +189,7 @@ export default function RegisterPage() {
         intro="Electors listed in each PEO constituency addendum."
         title="New registrations each quarter"
       >
-        <ul className="max-w-3xl space-y-1.5 text-sm">
+        <ul className="max-w-3xl space-y-1.5 text-base">
           {adds.map((a) => (
             <li
               className="grid grid-cols-[8rem_1fr_4rem] items-center gap-3"
@@ -221,7 +226,7 @@ export default function RegisterPage() {
         title="Does the roll add up?"
       >
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[560px] text-sm">
+          <table className="w-full min-w-[560px] text-base">
             <thead>
               <tr className="border-el-ink border-b text-left">
                 {[
@@ -289,7 +294,7 @@ export default function RegisterPage() {
                 title: `${g.division}: ${fmt(g.first)} → ${fmt(g.last)}${g.first ? ` (${pct((g.last - g.first) / g.first)})` : ""}`,
               }))}
             />
-            <figcaption className="mt-2 text-xs">
+            <figcaption className="mt-2 text-base">
               <span className="flex items-center gap-2">
                 <span>No growth or fewer</span>
                 <span
@@ -307,7 +312,7 @@ export default function RegisterPage() {
           </figure>
           <div className="overflow-x-auto">
             <h3 className={LABEL}>By constituency, fastest growth first</h3>
-            <table className="mt-2 w-full text-sm">
+            <table className="mt-2 w-full text-base">
               <thead>
                 <tr className="border-el-ink border-b text-left">
                   {[
@@ -359,7 +364,7 @@ export default function RegisterPage() {
         intro="The most common job titles as written on the lists. Titles are free text, so similar jobs are spelled different ways; treat these as rough."
         title="Most common job titles"
       >
-        <ol className="grid max-w-4xl gap-x-8 gap-y-1 text-sm sm:grid-cols-2 lg:grid-cols-3">
+        <ol className="grid max-w-4xl gap-x-8 gap-y-1 text-base sm:grid-cols-2 lg:grid-cols-3">
           {register.topOccupations.slice(0, 24).map(([title, n], i) => (
             <li
               className="flex justify-between gap-3 border-el-rule border-b py-1"
@@ -373,7 +378,7 @@ export default function RegisterPage() {
             </li>
           ))}
         </ol>
-        <p className="mt-3 max-w-[70ch] text-el-muted text-xs">
+        <p className="mt-3 max-w-[70ch] text-base text-el-muted leading-relaxed">
           {register.note}
         </p>
       </Section>
@@ -382,7 +387,7 @@ export default function RegisterPage() {
         intro="Official demographic tables provide context, not a way to infer individual voting choices."
         title="The register is not the population"
       >
-        <p className="max-w-prose text-sm leading-relaxed">
+        <p className="max-w-prose text-base leading-relaxed">
           The Central Statistical Office publishes population estimates and
           census tables by age, sex and geography. We have not joined those
           figures to constituencies: the dates, resident-population definitions

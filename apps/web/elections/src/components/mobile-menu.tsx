@@ -15,7 +15,7 @@ const SUB_ROW =
   "flex min-h-11 items-center px-4 text-base text-el-ink-2 hover:bg-el-paper-2 aria-[current=page]:font-semibold aria-[current=page]:text-el-ink";
 
 /**
- * Below `lg`: a hamburger whose bars fold into an X and opens one panel
+ * Below the masthead’s 80rem threshold: a hamburger whose bars fold into an X and opens one panel
  * under the masthead: the election status, the main pages as large rows,
  * then the More pages.
  */
@@ -61,7 +61,7 @@ export function MobileMenu({ status }: { status?: string }) {
         aria-controls={MENU_ID}
         aria-expanded={open}
         aria-label={open ? "Close menu" : "Open menu"}
-        className="-mr-2 flex size-11 items-center justify-center rounded-md xl:hidden"
+        className="-mr-2 flex @min-7xl/masthead:hidden size-11 items-center justify-center rounded-md"
         onClick={toggle}
         ref={button}
         type="button"
@@ -87,7 +87,7 @@ export function MobileMenu({ status }: { status?: string }) {
           <motion.div
             animate={{ opacity: 1 }}
             aria-label="Site menu"
-            className="fixed inset-x-0 bottom-0 z-30 flex flex-col overflow-y-auto border-el-ink border-t bg-background xl:hidden"
+            className="fixed inset-x-0 bottom-0 z-30 flex @min-7xl/masthead:hidden flex-col overflow-y-auto border-el-ink border-t bg-background"
             exit={{ opacity: 0 }}
             id={MENU_ID}
             initial={{ opacity: 0 }}
@@ -96,7 +96,7 @@ export function MobileMenu({ status }: { status?: string }) {
             transition={{ duration: 0.15 }}
           >
             {status && (
-              <p className="border-el-rule border-b px-4 py-3 font-semibold text-el-ink-2 text-xs uppercase tracking-[0.08em]">
+              <p className="border-el-rule border-b px-4 py-3 font-semibold text-base text-el-ink-2 uppercase leading-relaxed tracking-[0.08em]">
                 {status}
               </p>
             )}
@@ -107,7 +107,7 @@ export function MobileMenu({ status }: { status?: string }) {
               {NAV.map((item) =>
                 isGroup(item) ? (
                   <section aria-label={item.label} key={item.label}>
-                    <h2 className="px-4 pt-5 pb-1 font-sans font-semibold text-el-muted text-xs uppercase tracking-[0.07em]">
+                    <h2 className="px-4 pt-5 pb-1 font-sans font-semibold text-base text-el-muted uppercase tracking-[0.07em]">
                       {item.label}
                     </h2>
                     <ul>

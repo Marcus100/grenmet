@@ -56,9 +56,9 @@ typography:
     lineHeight: 30px
   body:
     fontFamily: Inter
-    fontSize: 16px
+    fontSize: 18px
     fontWeight: 400
-    lineHeight: 26px
+    lineHeight: 29.25px
   figure:
     fontFamily: Inter
     fontSize: 20px
@@ -66,9 +66,9 @@ typography:
     lineHeight: 24px
   label:
     fontFamily: Inter
-    fontSize: 11px
+    fontSize: 14px
     fontWeight: 600
-    lineHeight: 16px
+    lineHeight: 20px
     letterSpacing: 0.07em
 rounded:
   sm: 2px
@@ -177,17 +177,20 @@ for body, UI and every figure. Numbers use `tabular-nums`.
 
 | Role | Utilities |
 |---|---|
-| Display (page lead) | `font-bold text-[clamp(30px,4.2vw,48px)] leading-[1.08] tracking-[-0.022em]` |
-| Deck | `font-serif text-lg sm:text-[19px] text-el-ink-2` |
-| Section heading | `font-bold text-2xl sm:text-[26px]` under a `border-t-2 border-el-ink` rule |
-| Body | Inter 16px |
+| Display (page lead) | `font-bold text-[clamp(1.875rem,4.2vw,3rem)] leading-[1.08] tracking-[-0.022em]` |
+| Deck | `font-serif text-lg sm:text-[1.1875rem] text-el-ink-2` |
+| Section heading | `font-bold text-2xl sm:text-[1.625rem]` under a `border-t-2 border-el-ink` rule |
+| Reading text | `text-lg leading-relaxed` (18px); keep paragraphs within `max-w-prose`. |
+| Supporting text, controls and tables | `text-base` (16px); prose uses `leading-relaxed`. |
 | Figure | `font-semibold text-xl tabular-nums` |
-| Label / eyebrow | `font-semibold text-[11px] uppercase tracking-[0.07em] text-el-muted` |
+| Label / eyebrow | `font-semibold text-sm uppercase tracking-[0.07em] text-el-muted` (14px minimum) |
+
+Short labels may use 14px; explanations, source notes and controls must not fall below 16px. Use weight, colour and spacing for hierarchy instead of tiny text. Source superscripts remain 14px. Chart SVGs retain at least their viewBox width inside a keyboard-scrollable viewport so labels do not shrink on phones; maps retain responsive geometry and accompanying readable lists.
 
 ## Layout
 
 - The page is `mx-auto max-w-[1240px] px-4 sm:px-6`. Design at 375px first, with no sideways page scroll.
-- The masthead is sticky at `h-14` with an ink bottom rule and the wordmark "Elections *Grenada*". From `xl` up it shows Election 2026, Learn, Results & history, Your constituency, and People & parties. Below `xl`, a **hamburger** (bars fold into an X) opens one panel under the masthead: the election status, the main pages as large serif rows, then the More pages. The header links to site-wide Search; there is no theme toggle. Find your constituency remains on the front page and Constituencies.
+- The masthead is sticky with a `min-h-16` inner row with an ink bottom rule and the wordmark "Elections *Grenada*". When the masthead has at least `80rem` of room it shows Election 2026, Learn, Results & history, Your constituency, and People & parties. Below that container width, a **hamburger** (bars fold into an X) opens one panel under the masthead: the election status, the main pages as large serif rows, then the More pages. The container threshold follows enlarged text. Search uses a labelled icon on narrow phones and a text link from `sm`; there is no theme toggle. Find your constituency remains on the front page and Constituencies.
 - The site is light only for now (owner decision). The `.dark` palette stays in the CSS for later.
 - Homepage party cards omit the long results/candidate/timeline source paragraphs (owner decision); individual candidate sources and uncertainty notes remain on the detailed pages.
 - The `/2026` “Who is standing” section has no introductory source paragraph (owner decision); candidate-level uncertainty marks remain.

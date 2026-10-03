@@ -27,7 +27,7 @@ export default async function GuidePage({ params }: Props) {
         title={guide.question}
       >
         <Link
-          className="mt-4 inline-block text-sm underline underline-offset-4"
+          className="mt-4 inline-block text-lg underline underline-offset-4"
           href="/learn"
         >
           All learning guides
@@ -50,7 +50,7 @@ export default async function GuidePage({ params }: Props) {
       <Section id="worked-example" title={guide.example.title}>
         <div className="max-w-prose bg-el-paper-2 p-6 leading-relaxed">
           <p>{guide.example.text}</p>
-          <p className="mt-3 text-el-muted text-sm">
+          <p className="mt-3 text-el-muted text-lg leading-relaxed">
             Illustrative arithmetic and reasoning, not an observed election
             result.
           </p>
@@ -71,7 +71,7 @@ export default async function GuidePage({ params }: Props) {
           </summary>
           <p className="mt-3 leading-relaxed">{guide.exercise.answer}</p>
         </details>
-        <p className="mt-2 text-el-muted text-sm">
+        <p className="mt-2 text-el-muted text-lg leading-relaxed">
           Think it through, then open the explanation. No answers are saved.
         </p>
       </Section>
@@ -89,7 +89,7 @@ export default async function GuidePage({ params }: Props) {
           ))}
         </ul>
         <Link
-          className="mt-6 inline-block text-sm underline underline-offset-4"
+          className="mt-6 inline-block text-lg underline underline-offset-4"
           href="/sources"
         >
           Evidence, methods and unresolved gaps

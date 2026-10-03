@@ -45,10 +45,10 @@ export function SwingCalculator({ years, shapes, land, inset }: Props) {
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-end gap-4">
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="flex flex-col gap-1 text-base">
           Election
           <select
-            className="h-9 rounded-md border border-el-rule-2 bg-background px-2"
+            className="min-h-11 rounded-md border border-el-rule-2 bg-background px-2"
             onChange={(e) => {
               setYear(e.target.value);
               setSwing(0);
@@ -62,7 +62,7 @@ export function SwingCalculator({ years, shapes, land, inset }: Props) {
             ))}
           </select>
         </label>
-        <label className="flex min-w-64 flex-1 flex-col gap-1 text-sm">
+        <label className="flex min-w-64 flex-1 flex-col gap-1 text-base">
           {swing === 0
             ? "Swing: none (actual result)"
             : `Swing: ${Math.abs(swing).toFixed(1)} points toward the ${swing > 0 ? "NDC" : "NNP"}`}
@@ -75,13 +75,13 @@ export function SwingCalculator({ years, shapes, land, inset }: Props) {
             type="range"
             value={swing}
           />
-          <span className="flex justify-between text-el-muted text-xs">
+          <span className="flex justify-between text-base text-el-muted">
             <span>← Toward NNP 20 pts</span>
             <span>Toward NDC 20 pts →</span>
           </span>
         </label>
         <button
-          className="rounded-md border border-el-rule-2 px-3 py-1.5 text-sm hover:bg-el-paper-2"
+          className="rounded-md border border-el-rule-2 px-3 py-1.5 text-base hover:bg-el-paper-2"
           onClick={() => setSwing(0)}
           type="button"
         >
@@ -89,7 +89,7 @@ export function SwingCalculator({ years, shapes, land, inset }: Props) {
         </button>
         {tp && (
           <button
-            className="rounded-md border border-el-rule-2 px-3 py-1.5 text-sm hover:bg-el-paper-2"
+            className="rounded-md border border-el-rule-2 px-3 py-1.5 text-base hover:bg-el-paper-2"
             onClick={() => setSwing(tp.s)}
             type="button"
           >
@@ -99,20 +99,20 @@ export function SwingCalculator({ years, shapes, land, inset }: Props) {
       </div>
 
       <div aria-live="polite">
-        <p className="font-bold font-serif text-2xl">
+        <p className="font-bold font-serif text-2xl leading-relaxed">
           {tally.map(([p, n], i) => (
             <span key={p} style={{ color: partyColor(p, "ink") }}>
               {i > 0 && <span className="text-el-muted"> · </span>}
               {p} {n}
             </span>
           ))}
-          <span className="ml-3 font-normal font-sans text-el-ink-2 text-sm">
+          <span className="ml-3 font-normal font-sans text-base text-el-ink-2">
             {lead && lead[1] >= 8
               ? `${lead[0]} majority`
               : "No party has a majority (8 needed)"}
           </span>
         </p>
-        <p className="mt-1 max-w-[70ch] text-el-ink-2 text-sm">
+        <p className="mt-1 max-w-[70ch] text-base text-el-ink-2 leading-relaxed">
           {tp
             ? `In ${year}, a uniform swing of ${Math.abs(tp.s).toFixed(1)} points toward the ${tp.s > 0 ? "NDC" : "NNP"} would have changed the outcome from ${describe(tp.from)} to ${describe(tp.to)}.`
             : `In ${year}, no swing of up to 30 points changes who governs.`}
@@ -155,15 +155,15 @@ export function SwingCalculator({ years, shapes, land, inset }: Props) {
               y={-inset.y1}
             />
           </svg>
-          <figcaption className="text-el-muted text-xs">
+          <figcaption className="text-base text-el-muted">
             Seats that change hands are outlined. Boundaries are illustrative.
           </figcaption>
         </figure>
         <div>
-          <h3 className="font-semibold text-[11px] text-el-muted uppercase tracking-[0.07em]">
+          <h3 className="font-semibold text-el-muted text-sm uppercase tracking-[0.07em]">
             Tipping-point ladder
           </h3>
-          <p className="text-el-muted text-xs">
+          <p className="text-base text-el-muted leading-relaxed">
             The swing each seat needs to change hands between the NDC and the
             NNP, from most secure NNP to most secure NDC. The rule under the
             eighth seat is where a majority is decided.
@@ -174,11 +174,11 @@ export function SwingCalculator({ years, shapes, land, inset }: Props) {
               const w = winnerAt(s, swing);
               return (
                 <li
-                  className={`flex items-center gap-2 py-1 text-sm ${i === 7 ? "border-el-ink border-b-2" : ""}`}
+                  className={`flex items-center gap-2 py-1 text-base ${i === 7 ? "border-el-ink border-b-2" : ""}`}
                   key={s.code}
                 >
                   <span
-                    className="grid size-6 shrink-0 place-items-center rounded-[2px] font-bold text-[11px]"
+                    className="grid size-6 shrink-0 place-items-center rounded-[2px] font-bold text-sm"
                     style={{
                       background: partyColor(w),
                       color: partyFillIsDark(w) ? "#fff" : "#121314",
@@ -198,7 +198,7 @@ export function SwingCalculator({ years, shapes, land, inset }: Props) {
               );
             })}
           </ol>
-          <p className="mt-2 text-el-muted text-xs">
+          <p className="mt-2 text-base text-el-muted leading-relaxed">
             At this swing: {describe(governmentAt(seats, swing))}.
           </p>
         </div>

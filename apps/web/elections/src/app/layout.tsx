@@ -43,7 +43,7 @@ export default function RootLayout({
 
   return (
     <html className={`${inter.variable} ${sourceSerif.variable}`} lang="en-GB">
-      <body className="flex min-h-screen flex-col bg-background font-sans text-foreground">
+      <body className="flex min-h-screen flex-col bg-background font-sans text-foreground text-lg leading-relaxed">
         <PostHogProvider app="elections">
           <SkipLink />
 

@@ -1,5 +1,4 @@
-const LABEL =
-  "font-semibold text-[11px] text-el-muted uppercase tracking-[0.07em]";
+const LABEL = "font-semibold text-sm text-el-muted uppercase tracking-[0.07em]";
 
 interface Term {
   meaning: React.ReactNode;
@@ -25,7 +24,7 @@ export function ReadingNote({
   terms: Term[];
 }) {
   return (
-    <div className="mt-6 grid gap-x-10 gap-y-6 border-el-rule border-t pt-5 text-sm lg:grid-cols-2">
+    <div className="mt-6 grid gap-x-10 gap-y-6 border-el-rule border-t pt-5 text-lg lg:grid-cols-2">
       <div className="space-y-6">
         <div className="bg-el-paper-2 p-5">
           <h3 className={LABEL}>A worked example</h3>
@@ -33,7 +32,7 @@ export function ReadingNote({
         </div>
         <div>
           <h3 className={LABEL}>How to read it</h3>
-          <p className="mt-2 text-el-ink-2">{read}</p>
+          <p className="mt-2 text-el-ink-2 leading-relaxed">{read}</p>
         </div>
         {caveats.length > 0 && (
           <div>
@@ -90,10 +89,10 @@ export function KeyFacts({
     <ul className="grid gap-px border border-el-rule bg-el-rule sm:grid-cols-2 lg:grid-cols-3">
       {facts.map((f) => (
         <li className="bg-background p-4" key={f.figure}>
-          <p className="font-bold font-serif text-[28px] tabular-nums leading-none">
+          <p className="font-bold font-serif text-[1.75rem] tabular-nums leading-none">
             {f.figure}
           </p>
-          <p className="mt-2 text-el-ink-2 text-sm">{f.text}</p>
+          <p className="mt-2 text-el-ink-2 text-lg leading-relaxed">{f.text}</p>
         </li>
       ))}
     </ul>

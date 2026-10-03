@@ -9,14 +9,14 @@ export function DenominatorLab() {
   const valid = cast - rejected;
   return (
     <div className="max-w-prose space-y-5 bg-el-paper-2 p-6">
-      <p className="font-semibold">
+      <p className="font-semibold leading-relaxed">
         Try it: the same votes, different denominators
       </p>
-      <p className="text-sm">
+      <p className="text-base leading-relaxed">
         Illustrative constituency with 1,000 registered electors. Move one value
         and watch the percentages change.
       </p>
-      <label className="block text-sm" htmlFor="lab-cast">
+      <label className="block text-base" htmlFor="lab-cast">
         Ballots cast: {cast}
         <input
           className="mt-2 block w-full"
@@ -35,7 +35,7 @@ export function DenominatorLab() {
           value={cast}
         />
       </label>
-      <label className="block text-sm" htmlFor="lab-rejected">
+      <label className="block text-base" htmlFor="lab-rejected">
         Rejected ballots: {rejected}
         <input
           className="mt-2 block w-full"
@@ -51,7 +51,7 @@ export function DenominatorLab() {
           value={rejected}
         />
       </label>
-      <label className="block text-sm" htmlFor="lab-votes">
+      <label className="block text-base" htmlFor="lab-votes">
         Votes for one candidate: {votes}
         <input
           className="mt-2 block w-full"
@@ -65,31 +65,31 @@ export function DenominatorLab() {
       </label>
       <dl aria-live="polite" className="grid gap-4 sm:grid-cols-3">
         <div>
-          <dt className="text-sm">Turnout</dt>
+          <dt className="text-base">Turnout</dt>
           <dd className="font-bold text-xl">{pct(cast / 1000)}</dd>
-          <dd className="text-xs">{cast} ÷ 1,000 registered</dd>
+          <dd className="text-base">{cast} ÷ 1,000 registered</dd>
         </div>
         <div>
-          <dt className="text-sm">Candidate’s valid-vote share</dt>
+          <dt className="text-base">Candidate’s valid-vote share</dt>
           <dd className="font-bold text-xl">
             {valid ? pct(votes / valid) : "Undefined"}
           </dd>
-          <dd className="text-xs">
+          <dd className="text-base">
             {votes} ÷ {valid} valid votes
           </dd>
         </div>
         <div>
-          <dt className="text-sm">Share of registered electors</dt>
+          <dt className="text-base">Share of registered electors</dt>
           <dd className="font-bold text-xl">{pct(votes / 1000)}</dd>
-          <dd className="text-xs">{votes} ÷ 1,000 registered</dd>
+          <dd className="text-base">{votes} ÷ 1,000 registered</dd>
         </div>
       </dl>
-      <p className="text-sm">
+      <p className="text-base leading-relaxed">
         When there are no valid votes, valid-vote share is undefined—not zero.
         Changing the denominator changes what a percentage means.
       </p>
       <button
-        className="rounded-md border border-el-ink px-4 py-2 text-sm"
+        className="rounded-md border border-el-ink px-4 py-2 text-base"
         onClick={() => {
           setCast(800);
           setRejected(20);
