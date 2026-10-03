@@ -5,7 +5,9 @@
 **Last updated:** 2026-10-03
 
 Roll out **development → staging → production**. A successful `dev` push is not
-production delivery. No subscriptions, overages, infrastructure, automatic AI
+production delivery. The owner confirmed on 2026-10-03 that all providers use free
+plans. This does not verify individual account allowances; keep quota-dependent
+creation disabled until the actual included limits are checked. No subscriptions, overages, infrastructure, automatic AI
 remediation, Discord integration or application deployment was added in this pass.
 
 ## Source of truth
@@ -189,9 +191,11 @@ require at least 24 hours of staging evidence before production promotion.
   resources from a trusted staging branch or production release tag. It adopts
   existing IDs, preserves unrelated resources, never deletes or changes billing,
   and refuses creation until account limits are verified. New resources start paused.
-  Its manually dispatched `test-alert` operation opens and resolves a clearly labelled
-  synthetic incident; it records provider acceptance, never claims email/recovery
-  receipt without owner confirmation. A failed resolution requires checking the
+  Its manually dispatched `test-alert` operation opens a clearly labelled synthetic
+  incident and leaves it open for email verification. After confirming the alert
+  email, dispatch `resolve-test-alert` with the incident ID from the opening run.
+  Resolution verifies the test name and environment before closing it. Confirm the
+  recovery email separately; neither API action proves email receipt. A failed resolution requires checking the
   linked TEST ONLY incident in Better Stack.
 - Deployment installs versioned probe code after application smoke checks when
   `MONITORING_DEPLOY_ENABLED=true`. It requires existing administrator privileges;

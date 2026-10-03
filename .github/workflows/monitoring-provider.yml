@@ -9,9 +9,13 @@ on:
         required: true
       operation:
         type: choice
-        options: [preview, apply, test-alert]
+        options: [preview, apply, test-alert, resolve-test-alert]
         default: preview
         required: true
+      incident_id:
+        description: Test incident ID from the opening run (resolve-test-alert only)
+        type: string
+        default: ""
 permissions:
   contents: read
 jobs:
@@ -34,7 +38,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: bash scripts/production/validate-ref.sh
       - name: Preview or apply declared resources
-        if: inputs.operation != 'test-alert'
+        if: inputs.operation == 'preview' || inputs.operation == 'apply'
         env:
           BETTERSTACK_API_TOKEN: ${{ secrets.BETTERSTACK_API_TOKEN }}
           TARGET: ${{ inputs.environment }}
@@ -45,8 +49,10 @@ jobs:
           if [[ "$APPLY" == true ]]; then args+=(--apply); fi
           python3 scripts/monitoring/betterstack.py "${args[@]}" | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Controlled synthetic email and recovery test
-        if: inputs.operation == 'test-alert'
+        if: inputs.operation == 'test-alert' || inputs.operation == 'resolve-test-alert'
         env:
           BETTERSTACK_API_TOKEN: ${{ secrets.BETTERSTACK_API_TOKEN }}
           TARGET: ${{ inputs.environment }}
-        run: python3 scripts/monitoring/alert_test.py --environment "$TARGET"
+          TEST_OPERATION: ${{ inputs.operation == 'test-alert' && 'open' || 'resolve' }}
+          INCIDENT_ID: ${{ inputs.incident_id }}
+        run: python3 scripts/monitoring/alert_test.py --environment "$TARGET" --operation "$TEST_OPERATION" --incident-id "$INCIDENT_ID"

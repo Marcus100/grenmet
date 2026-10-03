@@ -26,13 +26,43 @@ class MonitoringTests(unittest.TestCase):
         service = json.loads(CATALOGUE.read_text())["services"][-2]
         self.assertEqual(check(service, "production")["status"], "pending")
 
-    def test_synthetic_alert_resolves_without_claiming_email_receipt(self):
+    def test_synthetic_alert_stays_open_until_manual_recovery(self):
         api = Mock(return_value={"data": {"id": "123"}})
         report = exercise("staging", api)
-        self.assertEqual(report["status"], "provider-accepted")
+        self.assertEqual(report["status"], "opened-awaiting-email-confirmation")
         self.assertTrue(report["emailReceipt"].startswith("unknown"))
-        self.assertEqual(api.call_count, 2)
+        self.assertEqual(api.call_count, 1)
+        self.assertEqual(api.call_args.args[:2], ("POST", "incidents"))
+
+    def test_synthetic_recovery_checks_identity_and_environment(self):
+        for name in [
+            "Real outage",
+            "TEST ONLY · production · CI monitoring acceptance",
+        ]:
+            api = Mock(
+                return_value={"data": {"id": "123", "attributes": {"name": name}}}
+            )
+            with self.assertRaises(ValueError):
+                exercise("staging", api, "resolve", "123")
+            self.assertEqual(api.call_count, 1)
+        api = Mock(
+            return_value={
+                "data": {
+                    "id": "123",
+                    "attributes": {
+                        "name": "TEST ONLY · staging · CI monitoring acceptance"
+                    },
+                }
+            }
+        )
+        report = exercise("staging", api, "resolve", "123")
         self.assertEqual(api.call_args.args[1], "incidents/123/resolve")
+        self.assertTrue(report["recoveryReceipt"].startswith("unknown"))
+        for identity in ["", "../1", "１２３"]:
+            api.reset_mock()
+            with self.assertRaises(ValueError):
+                exercise("staging", api, "resolve", identity)
+            api.assert_not_called()
 
     def test_monthly_compaction_is_idempotent_and_expires(self):
         now = datetime.now(timezone.utc)

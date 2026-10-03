@@ -14,7 +14,7 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 
 def request(method, path, body=None):
     if not re.fullmatch(
-        r"incidents(?:\?page=[0-9]+&per_page=100|/[0-9]+/resolve)?", path
+        r"incidents(?:\?page=[0-9]+&per_page=100|/[0-9]+(?:/resolve)?)?", path
     ):
         raise ValueError("Invalid incident endpoint")
     req = urllib.request.Request(
