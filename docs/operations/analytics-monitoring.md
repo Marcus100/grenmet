@@ -222,7 +222,7 @@ require at least 24 hours of staging evidence before production promotion.
   pass, the existing Spaces lifecycle/capacity/cost are verified, and the backup
   heartbeat is ready. Production remains disabled until staging acceptance.
 - Backup, restore and deploy share environment concurrency and the existing host
-  maintenance lock. Existing production backup remains unchanged during the pilot;
+  maintenance lock. The existing production backup schedule stays in place during the pilot;
   disable its old schedule before enabling the replacement production schedule.
   Scheduled runs currently select staging only; production is manual-dispatch only
   and still requires the approved installed revision and protected secrets. Add production to the scheduled matrix in its reviewed promotion.
@@ -232,6 +232,12 @@ require at least 24 hours of staging evidence before production promotion.
   application host; increasing this bound requires a capacity review. It requires 2 GiB available host RAM
   and free disk of at least max(5 GiB, ten times compressed dump bytes). Capacity
   shortfalls fail the drill; never resize infrastructure automatically.
+- Core backups and restore manifests require all seven databases: main, WxWatch,
+  WxProducts, janitorial, transport, eRegister and CMS. Older six-database manifests
+  fail restore acceptance; run a fresh complete backup before the drill. Only the
+  existing first-provisioning CMS exception is allowed, and it never sends success.
+  The legacy production workflow also includes eRegister; its CMS opt-in remains
+  a deployment verification item until CMS provisioning is confirmed.
 - Every required database is restored with errors fatal and application-table presence
   checked. Domain-specific representative-record checks are still pending; restoration
   evidence must not yet be called complete recovery acceptance.

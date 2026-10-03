@@ -41,9 +41,20 @@ class MaintenanceTests(unittest.TestCase):
                     manifest, "staging", datetime.now(timezone.utc)
                 )
             ),
-            6,
+            7,
+        )
+        self.assertIn(
+            "eregister_staging", [row["database"] for row in manifest["databases"]]
         )
         for field, value in [
+            (
+                "databases",
+                [
+                    row
+                    for row in manifest["databases"]
+                    if row["database"] != "eregister_staging"
+                ],
+            ),
             ("environment", "production"),
             ("completed_at", "2020-01-01T00:00:00+00:00"),
             ("absent_before_provisioning", ["cms"]),
@@ -142,6 +153,12 @@ class MaintenanceTests(unittest.TestCase):
                 self.assertIn("head-object", command.call_args.args[0])
 
     def test_failed_marker_never_sends_heartbeat(self):
+        self.assert_backup_failure_stops_heartbeat("latest-success.json")
+
+    def test_failed_eregister_upload_never_sends_heartbeat(self):
+        self.assert_backup_failure_stops_heartbeat("eregister_staging.dump")
+
+    def assert_backup_failure_stops_heartbeat(self, failed_object):
         names = maintenance.inventory("staging")
 
         def command(args, **kwargs):
@@ -186,7 +203,7 @@ class MaintenanceTests(unittest.TestCase):
         ):
 
             def upload(path, bucket, key, endpoint):
-                if key.endswith("latest-success.json"):
+                if key.endswith(failed_object):
                     raise ValueError("Marker verification failed")
 
             with (

@@ -86,6 +86,7 @@ def backup(environment, project, config_path, before_provisioning=False):
             "WXPRODUCTS_DB_NAME",
             "JANITORIAL_DB_NAME",
             "TRANSPORT_DB_NAME",
+            "EREGISTER_DB_NAME",
             "CMS_DB_NAME",
         ]
     ]
@@ -237,8 +238,8 @@ def backup(environment, project, config_path, before_provisioning=False):
     marker = directory / "success.json"
     marker.write_text(json.dumps(manifest, indent=2) + "\n")
     upload_verified(marker, bucket, f"{prefix}/success.json", endpoint)
-    # A bootstrap backup is valid for the existing five stores, but cannot
-    # replace the daily six-store success marker used by freshness monitoring.
+    # A bootstrap backup is valid for the existing six stores, but cannot
+    # replace the daily seven-store success marker used by freshness monitoring.
     if not missing:
         upload_verified(
             marker, bucket, f"{environment}/core/latest-success.json", endpoint
