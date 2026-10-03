@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FlagStripe } from "@/components/flag-stripe";
 import { EvidenceComparison } from "@/components/learn/evidence-comparison";
 import { eventNational, eventSlug } from "@/data/events";
 import { metricEvidence } from "@/data/evidence";
@@ -32,9 +33,10 @@ export function PageLearning({ topic }: { topic: PageLearningTopic }) {
   return (
     <aside
       aria-label="Understand this page"
-      className="mt-6 border-el-rule border-y py-5"
+      className="mt-6 bg-el-flag-gold-tint"
     >
-      <div className="grid gap-4 lg:grid-cols-2">
+      <FlagStripe />
+      <div className="grid gap-4 px-5 py-5 lg:grid-cols-2">
         <div>
           <h2 className="font-semibold font-serif text-lg">
             {lesson.question}
@@ -55,7 +57,11 @@ export function PageLearning({ topic }: { topic: PageLearningTopic }) {
           </Link>
         </div>
       </div>
-      {compare && <EvidenceComparison rows={rows} />}
+      {compare && (
+        <div className="px-5 pb-5">
+          <EvidenceComparison rows={rows} />
+        </div>
+      )}
     </aside>
   );
 }

@@ -23,6 +23,8 @@ export const PALETTE_KEYS = [
   "ndc-tint",
   "nnp",
   "nnp-tint",
+  "dpm",
+  "dpm-tint",
   "gulp",
   "gulp-tint",
   "hist",

@@ -1,6 +1,7 @@
 import { Search } from "lucide-react";
 import Link from "next/link";
 import { DesktopNav } from "@/components/desktop-nav";
+import { FlagStripe } from "@/components/flag-stripe";
 import { MobileMenu } from "@/components/mobile-menu";
 
 /**
@@ -10,6 +11,7 @@ import { MobileMenu } from "@/components/mobile-menu";
 export function SiteHeader({ status }: { status: string }) {
   return (
     <header className="@container/masthead sticky top-0 z-40 border-el-ink border-b bg-background pt-[env(safe-area-inset-top)]">
+      <FlagStripe />
       <div className="mx-auto flex min-h-16 max-w-[1240px] flex-wrap items-center gap-1 px-4 sm:gap-4 sm:px-6 xl:gap-6">
         <Link
           aria-label="Elections Grenada home"

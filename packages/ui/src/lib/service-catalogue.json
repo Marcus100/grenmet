@@ -578,11 +578,12 @@
           "deployment": "unverified",
           "release": null,
           "analytics": {
-            "status": "unconfigured",
-            "ga4": null,
+            "status": "continuity-approved",
+            "ga4": "G-6PY9N83HCP",
             "posthog": null,
             "retentionVerified": false,
-            "accessVerified": false
+            "accessVerified": false,
+            "reason": "Owner requested restoration of existing staging Weather analytics on 2026-10-03. Existing public tag and staging variable match. Retention, access settings and event delivery remain unverified. Consent remains required."
           },
           "sentry": {
             "status": "configured",

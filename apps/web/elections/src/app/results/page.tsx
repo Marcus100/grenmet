@@ -14,6 +14,8 @@ export default function ResultsPage() {
       <PageHead
         eyebrow="Results · 1951 to 2022"
         learning="results"
+        photo="carenage1906"
+        tint="red"
         title="The results atlas"
       />
       <div className="mx-auto w-full px-4 pt-6 sm:px-6">

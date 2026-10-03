@@ -35,13 +35,17 @@ Elections and the separate Barrels holding page use Vercel; the operational apps
 - Map constituency codes to names from `source/reference/constituencies.json`, never from memory
   (J = St. George North West, G = Town of St. George).
 - Coverage posts are editorial. They live in `src/data/coverage.ts` until they move to
-  Payload CMS. Every post lists its sources.
+  Payload CMS. Each post has its own page at `/updates/<slug>`, which lists its sources; the
+  homepage feed shows no source lines at all (owner decision); campaign events keep theirs on `/since-2022`.
+- Official documents we host (e.g. Gazette notices) go in `public/documents/official/`; cite them as a campaign source with that path.
+- Photos: openly licensed only, in `public/images/` + `CREDITS.md` + `src/data/photos.ts`; always credited, square-edged, newspaper style (owner decision). Constituency photos only where the place is certainly in that constituency.
 - Keep the next-election model's parameters visible and backtested on the page.
 
 ## UI rules
 
 - Default to Server Components. Use the `--el-*` tokens and `@barrelsgd/ui` primitives.
-  Party colours are data only: never chrome, links or brand.
+  Party colours are data only: never chrome, links or brand. Grenada's flag colours appear
+  only together as `FlagStripe` (owner decision). DPM is its own orange (`--el-dpm`), not GULP's.
 - Design at 375px first. Below an `80rem` masthead container width the navigation is the hamburger
   (`mobile-menu.tsx`). Keep it working when adding pages, and add new pages to
   `src/lib/nav.ts`.

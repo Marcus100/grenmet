@@ -11,13 +11,17 @@ const MENU_ID = "site-menu";
 
 const ROW =
   "flex min-h-13 items-center border-el-rule border-b px-4 font-semibold font-serif text-el-ink text-xl aria-[current=page]:underline aria-[current=page]:decoration-2 aria-[current=page]:underline-offset-6";
+// Sub-pages read as a level below: indented on a grey band behind a left
+// rule, in the sans face, so they never look like the serif top-level rows.
+const GROUP =
+  "flex min-h-13 items-center px-4 font-bold font-serif text-el-ink text-xl";
 const SUB_ROW =
-  "flex min-h-11 items-center px-4 text-base text-el-ink-2 hover:bg-el-paper-2 aria-[current=page]:font-semibold aria-[current=page]:text-el-ink";
+  "ml-4 flex min-h-11 items-center border-el-rule-2 border-l-2 pl-4 text-base text-el-ink-2 hover:border-el-ink hover:text-el-ink aria-[current=page]:border-el-ink aria-[current=page]:font-semibold aria-[current=page]:text-el-ink";
 
 /**
  * Below the masthead’s 80rem threshold: a hamburger whose bars fold into an X and opens one panel
- * under the masthead: the election status, the main pages as large rows,
- * then the More pages.
+ * under the masthead: the election status, then the main pages and section
+ * headings as large serif rows, with each section's pages indented beneath.
  */
 export function MobileMenu({ status }: { status?: string }) {
   const [open, setOpen] = useState(false);
@@ -106,11 +110,13 @@ export function MobileMenu({ status }: { status?: string }) {
               </Link>
               {NAV.map((item) =>
                 isGroup(item) ? (
-                  <section aria-label={item.label} key={item.label}>
-                    <h2 className="px-4 pt-5 pb-1 font-sans font-semibold text-base text-el-muted uppercase tracking-[0.07em]">
-                      {item.label}
-                    </h2>
-                    <ul>
+                  <section
+                    aria-label={item.label}
+                    className="border-el-rule border-b"
+                    key={item.label}
+                  >
+                    <h2 className={GROUP}>{item.label}</h2>
+                    <ul className="bg-el-paper-2 py-2">
                       {item.links.map((link) => (
                         <li key={link.href}>
                           <Link

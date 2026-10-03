@@ -33,12 +33,17 @@
       >
     </main>
     <footer>Barrels Grenada<span>Coming soon</span></footer>
-    <details>
+    <details id="analytics-settings">
       <summary>Privacy settings</summary>
-      <p>
+      <p id="analytics-description">
         Optional analytics is currently disabled. This page sets no analytics
         identifiers. Minimal availability checks continue independently.
       </p>
+      <div hidden id="analytics-choices">
+        <button id="analytics-accept" type="button">Accept analytics</button>
+        <button id="analytics-decline" type="button">Decline analytics</button>
+      </div>
     </details>
+    <script src="/analytics.mjs" type="module"></script>
   </body>
 </html>
