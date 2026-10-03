@@ -15,7 +15,7 @@ sutron-collector = "sutron_collector.cli:main"
 dev = [
     "mypy>=1.17.0",
     "pytest>=8.4.0",
-    "ruff>=0.12.0",
+    "ruff>=0.16.9",
 ]
 
 [build-system]
