@@ -248,7 +248,7 @@ Other:
 
 ## Design
 
-- Loop: `docs/design-workflow.md`. Token contract: `docs/design-system.md`. Before building UI, read the lane spec `docs/design/<gms|gaa-admin|mbia|signal|elections>.md` (DESIGN.md format; drift-tested by `pnpm test:docs`).
+- Loop: `docs/design-workflow.md`. Token contract: `docs/design-system.md`. Before building UI, read the lane spec `docs/design/<gms|gaa-admin|mbia|signal|elections|events>.md` (DESIGN.md format; drift-tested by `pnpm test:docs`).
 - **Figma is not linked to this repo.** Ignore Figma tools and node URLs; design intent arrives via Claude Design or a supplied screenshot. Never ask for a Figma frame URL.
 - Style only with `--gm-*` tokens / Tailwind aliases / shadcn semantics — never hardcode color/spacing/radius or add design values to Tailwind config. New or changed `--gm-*` tokens need approval and land in `packages/gms/src/styles/foundation.css`, **not** `packages/ui`. Run `pnpm design-system:sync` after editing the canonical block in `packages/ui/src/styles/globals.css`.
 - Brand: navy `#0b132b`, blue `#2878f5`, sky `#37a3ef`, lime `#b9ee63`. Kit hues fail AA as small text — use `--gm-*-ink` for text under 24px regular / 18.66px bold, icons under ~24px, and fills behind small white text.
