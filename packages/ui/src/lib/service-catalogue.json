@@ -141,11 +141,12 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "intentionally-disabled",
-            "project": null,
+            "status": "configured",
+            "project": "grenmet-staging",
             "dsn": null,
             "deliveryEvidence": [],
-            "reason": "Staging pilot proceeds without Sentry: free-account access isolation is unverified and Open Team Membership cannot be changed. Do not reuse legacy shared projects."
+            "secretRef": "SENTRY_DSN_STAGING",
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration."
           },
           "availability": {
             "status": "unconfigured",
@@ -166,10 +167,12 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "unconfigured",
-            "project": null,
+            "status": "configured",
+            "project": "grenmet-production",
             "dsn": null,
-            "deliveryEvidence": []
+            "deliveryEvidence": [],
+            "secretRef": "SENTRY_DSN_PRODUCTION",
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration."
           },
           "availability": {
             "status": "unconfigured",
@@ -312,11 +315,12 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "intentionally-disabled",
-            "project": null,
+            "status": "configured",
+            "project": "grenmet-staging",
             "dsn": null,
             "deliveryEvidence": [],
-            "reason": "Staging pilot proceeds without Sentry: free-account access isolation is unverified and Open Team Membership cannot be changed. Do not reuse legacy shared projects."
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_STAGING"
           },
           "availability": {
             "status": "configured",
@@ -338,10 +342,12 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "unconfigured",
-            "project": null,
+            "status": "configured",
+            "project": "grenmet-production",
             "dsn": null,
-            "deliveryEvidence": []
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_PRODUCTION"
           },
           "availability": {
             "status": "unconfigured",
@@ -401,11 +407,12 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "intentionally-disabled",
-            "project": null,
+            "status": "configured",
+            "project": "grenmet-staging",
             "dsn": null,
             "deliveryEvidence": [],
-            "reason": "Staging pilot proceeds without Sentry: free-account access isolation is unverified and Open Team Membership cannot be changed. Do not reuse legacy shared projects."
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_STAGING"
           },
           "availability": {
             "status": "unconfigured",
@@ -426,10 +433,12 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "unconfigured",
-            "project": null,
+            "status": "configured",
+            "project": "grenmet-production",
             "dsn": null,
-            "deliveryEvidence": []
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_PRODUCTION"
           },
           "availability": {
             "status": "unconfigured",
@@ -487,11 +496,12 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "intentionally-disabled",
-            "project": null,
+            "status": "configured",
+            "project": "grenmet-staging",
             "dsn": null,
             "deliveryEvidence": [],
-            "reason": "Staging pilot proceeds without Sentry: free-account access isolation is unverified and Open Team Membership cannot be changed. Do not reuse legacy shared projects."
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_STAGING"
           },
           "availability": {
             "status": "unconfigured",
@@ -512,10 +522,12 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "unconfigured",
-            "project": null,
+            "status": "configured",
+            "project": "grenmet-production",
             "dsn": null,
-            "deliveryEvidence": []
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_PRODUCTION"
           },
           "availability": {
             "status": "unconfigured",
@@ -573,11 +585,12 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "intentionally-disabled",
-            "project": null,
+            "status": "configured",
+            "project": "grenmet-staging",
             "dsn": null,
             "deliveryEvidence": [],
-            "reason": "Staging pilot proceeds without Sentry: free-account access isolation is unverified and Open Team Membership cannot be changed. Do not reuse legacy shared projects."
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_STAGING"
           },
           "availability": {
             "status": "unconfigured",
@@ -598,10 +611,12 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "unconfigured",
-            "project": null,
+            "status": "configured",
+            "project": "grenmet-production",
             "dsn": null,
-            "deliveryEvidence": []
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_PRODUCTION"
           },
           "availability": {
             "status": "unconfigured",
@@ -659,11 +674,12 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "intentionally-disabled",
-            "project": null,
+            "status": "configured",
+            "project": "grenmet-staging",
             "dsn": null,
             "deliveryEvidence": [],
-            "reason": "Staging pilot proceeds without Sentry: free-account access isolation is unverified and Open Team Membership cannot be changed. Do not reuse legacy shared projects."
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_STAGING"
           },
           "availability": {
             "status": "unconfigured",
@@ -684,10 +700,12 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "unconfigured",
-            "project": null,
+            "status": "configured",
+            "project": "grenmet-production",
             "dsn": null,
-            "deliveryEvidence": []
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_PRODUCTION"
           },
           "availability": {
             "status": "unconfigured",
@@ -745,11 +763,12 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "intentionally-disabled",
-            "project": null,
+            "status": "configured",
+            "project": "grenmet-staging",
             "dsn": null,
             "deliveryEvidence": [],
-            "reason": "Staging pilot proceeds without Sentry: free-account access isolation is unverified and Open Team Membership cannot be changed. Do not reuse legacy shared projects."
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_STAGING"
           },
           "availability": {
             "status": "unconfigured",
@@ -770,10 +789,12 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "unconfigured",
-            "project": null,
+            "status": "configured",
+            "project": "grenmet-production",
             "dsn": null,
-            "deliveryEvidence": []
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_PRODUCTION"
           },
           "availability": {
             "status": "unconfigured",
@@ -831,11 +852,12 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "intentionally-disabled",
-            "project": null,
+            "status": "configured",
+            "project": "grenmet-staging",
             "dsn": null,
             "deliveryEvidence": [],
-            "reason": "Staging pilot proceeds without Sentry: free-account access isolation is unverified and Open Team Membership cannot be changed. Do not reuse legacy shared projects."
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_STAGING"
           },
           "availability": {
             "status": "unconfigured",
@@ -856,10 +878,12 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "unconfigured",
-            "project": null,
+            "status": "configured",
+            "project": "grenmet-production",
             "dsn": null,
-            "deliveryEvidence": []
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_PRODUCTION"
           },
           "availability": {
             "status": "unconfigured",
@@ -917,11 +941,12 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "intentionally-disabled",
-            "project": null,
+            "status": "configured",
+            "project": "grenmet-staging",
             "dsn": null,
             "deliveryEvidence": [],
-            "reason": "Staging pilot proceeds without Sentry: free-account access isolation is unverified and Open Team Membership cannot be changed. Do not reuse legacy shared projects."
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_STAGING"
           },
           "availability": {
             "status": "unconfigured",
@@ -942,10 +967,12 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "unconfigured",
-            "project": null,
+            "status": "configured",
+            "project": "grenmet-production",
             "dsn": null,
-            "deliveryEvidence": []
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_PRODUCTION"
           },
           "availability": {
             "status": "unconfigured",
@@ -1003,11 +1030,12 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "intentionally-disabled",
-            "project": null,
+            "status": "configured",
+            "project": "grenmet-staging",
             "dsn": null,
             "deliveryEvidence": [],
-            "reason": "Staging pilot proceeds without Sentry: free-account access isolation is unverified and Open Team Membership cannot be changed. Do not reuse legacy shared projects."
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_STAGING"
           },
           "availability": {
             "status": "unconfigured",
@@ -1028,10 +1056,12 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "unconfigured",
-            "project": null,
+            "status": "configured",
+            "project": "grenmet-production",
             "dsn": null,
-            "deliveryEvidence": []
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_PRODUCTION"
           },
           "availability": {
             "status": "unconfigured",
@@ -1174,11 +1204,12 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "intentionally-disabled",
-            "project": null,
+            "status": "configured",
+            "project": "grenmet-staging",
             "dsn": null,
             "deliveryEvidence": [],
-            "reason": "Staging pilot proceeds without Sentry: free-account access isolation is unverified and Open Team Membership cannot be changed. Do not reuse legacy shared projects."
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_STAGING"
           },
           "availability": {
             "status": "unconfigured",
@@ -1199,10 +1230,12 @@
             "accessVerified": false
           },
           "sentry": {
-            "status": "unconfigured",
-            "project": null,
+            "status": "configured",
+            "project": "grenmet-production",
             "dsn": null,
-            "deliveryEvidence": []
+            "deliveryEvidence": [],
+            "reason": "Owner explicitly accepts shared Barrels/GAA access for this repository. Environments remain isolated; live per-app delivery is unverified. External hosting requires its environment configuration.",
+            "secretRef": "SENTRY_DSN_PRODUCTION"
           },
           "availability": {
             "status": "unconfigured",

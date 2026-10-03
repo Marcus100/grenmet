@@ -102,6 +102,8 @@ jobs:
         env:
           APP_PATH: ${{ matrix.path }}
           TELEMETRY_ENVIRONMENT: ${{ steps.ctx.outputs.environment }}
+          SENTRY_DSN_STAGING: ${{ secrets.SENTRY_DSN_STAGING }}
+          SENTRY_DSN_PRODUCTION: ${{ secrets.SENTRY_DSN_PRODUCTION }}
         run: node scripts/integrations/build-config.mjs "${APP_PATH##*/}" "$TELEMETRY_ENVIRONMENT"
 
       - name: Docker metadata

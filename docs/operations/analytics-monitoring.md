@@ -25,15 +25,22 @@ reused destinations across apps/environments, staff GA4, malformed hosts and
 unsupported delivery claims. Empty mappings are deliberate; do not copy legacy
 shared keys into every row.
 
-Build and runtime Sentry routing use the same catalogue. The old environment-wide
-DSN and PostHog fallbacks no longer activate a new build. Existing deployed builds
-are unchanged until deployment. **The staging pilot intentionally disables Sentry**
-following the owner’s free-plan constraint and unavailable Open Team Membership
-control. This is an explicit error-reporting coverage gap: after staging deployment,
-previously shared Sentry reporting stops; external availability probes continue.
-Do not claim browser/server/worker error delivery or source-map acceptance.
-Production remains unapproved and requires a separate coverage decision. Source-map
-upload and browser/server releases use `NEXT_PUBLIC_RELEASE` (the build commit).
+Build and runtime Sentry routing use the same catalogue. **Preserve existing Sentry
+reporting and include all nine Next.js apps, API and worker.** The owner explicitly
+accepted shared Barrels/GAA project access for this repository on 2026-10-03.
+Each staging entry references `SENTRY_DSN_STAGING` / `grenmet-staging`; production
+references `SENTRY_DSN_PRODUCTION` / `grenmet-production`. This supersedes the
+previous separation requirement for this repo and the temporary disable decision.
+Missing staging credentials never select production credentials. Personal/NISA
+repositories do not inherit these secrets. Development remains opt-in through local
+SDK configuration. The static homepage has no JavaScript runtime; it retains build
+checks and external uptime rather than adding an error SDK solely for static text.
+Elections is hosted separately on Vercel and requires the existing SDK's public DSN,
+environment, project and source-map token in its Vercel project settings; GitHub
+secrets do not automatically reach Vercel. Catalogue configuration does not prove
+live delivery. Browser/server/worker and source-map acceptance remain pending.
+Optional GA4/PostHog mappings stay empty and disabled. Source-map upload and
+browser/server releases use `NEXT_PUBLIC_RELEASE` (the build commit).
 Performance transactions are dropped and sampling remains zero until sanitation
 and free quota can be verified; replay/profiling/log ingestion remain disabled.
 
@@ -167,10 +174,10 @@ backup hooks are not yet live.
    properties. Set retention/access boundaries and disable Enhanced Measurement,
    advertising and automatic capture before adding mappings. Verify one synthetic
    event per app/environment/release in each enabled dashboard.
-3. Review Sentry plan/access boundaries, provision separate destinations as the
-   free allowance permits, enter their public DSNs/projects in the catalogue, and
-   verify browser/server/worker delivery and exact-release source maps. Do not
-   reuse the legacy shared project to work around an access boundary.
+3. Use the owner-approved shared Sentry projects with matching environment secrets.
+   Verify browser/server/worker delivery and exact-release source maps; configure
+   Elections in Vercel separately. Stay within the free error quota; no upgrade
+   or replay/performance collection is authorized.
 4. Provide an existing SSH session/agent for the staging host, or have the host
    operator install the runner/settings above. Confirm a real complete backup and
    worker heartbeat, then verify a missed heartbeat and recovery email.
