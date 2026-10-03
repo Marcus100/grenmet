@@ -20,6 +20,7 @@ import {
   slugify,
 } from "@/data/model";
 import { partyColor, partyInfo } from "@/data/parties";
+import { CONSTITUENCY_PHOTOS } from "@/data/photos";
 import { fmt, formatIsoDate, pct } from "@/lib/format";
 
 interface Props {
@@ -67,6 +68,7 @@ export default async function ConstituencyPage({ params }: Props) {
         deck={`Held at the October 2026 dissolution by ${seat.sitting.name} (${partyInfo(seat.sitting.party).name})${seat.sitting.was ? `, elected for the ${seat.sitting.was} in 2022` : ""}. ${seat.winner2022.party} won it by ${(seat.margin2022 * 100).toFixed(1)} points in 2022.`}
         eyebrow={`Constituency ${code}${seat.lean == null ? "" : ` · leans ${leanLabel(seat.lean)}`}`}
         learning="constituency"
+        photo={CONSTITUENCY_PHOTOS[code]}
         title={seat.name}
       >
         <p className="mt-4 text-base leading-relaxed">

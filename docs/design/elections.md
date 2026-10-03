@@ -13,6 +13,12 @@ colors:
   sea: "#e8edf1"
   land: "#d5d9dd"
   focus: "#2b59c3"
+  flag-red: "#ce1126"
+  flag-gold: "#fcd116"
+  flag-green: "#007a5e"
+  flag-red-tint: "#fcebed"
+  flag-gold-tint: "#fff7d6"
+  flag-green-tint: "#e3f2ee"
   ndc: "#e0a300"
   ndc-ink: "#7f5a00"
   ndc-tint: "#f6e6b6"
@@ -22,6 +28,9 @@ colors:
   gulp: "#e0623e"
   gulp-ink: "#a8401f"
   gulp-tint: "#f7d5c9"
+  dpm: "#f47321"
+  dpm-ink: "#9a4700"
+  dpm-tint: "#fde3cc"
   hist: "#4a6fd0"
   hist-ink: "#3556b0"
   hist-tint: "#d6def5"
@@ -130,7 +139,9 @@ source**, and uncertain figures are shown but marked.
 Principles:
 
 1. **Colour is data.** A party colour on the page always means that party. UI
-   chrome, links and brand are ink on paper.
+   chrome, links and brand are ink on paper. The one exception is the national
+   stripe: Grenada's red, gold and green, always together, on the masthead, footer,
+   section rules, page heads, learning panels and the lead update.
 2. **Never colour alone.** Party is also given in text: legend, label, tooltip or table.
 3. **Show the source.** A provenance line sits under every result. Derived, secondary
    and illustrative data is marked where it is shown, not only in a footnote.
@@ -152,6 +163,8 @@ chosen palette, not an inversion, for when dark mode returns.
 | Rule / Rule 2 | `#dfe1e4` / `#b9bec4` | `--el-rule`, `--el-rule-2` | Hairlines; control borders. |
 | Sea / Land | `#e8edf1` / `#d5d9dd` | `--el-sea`, `--el-land` | Map background; unselected or dimmed land. |
 | Focus | `#2b59c3` | `--el-focus` | Focus ring, `--ring`. |
+| Flag red / gold / green | `#ce1126` / `#fcd116` / `#007a5e` | `--el-flag-red`, `--el-flag-gold`, `--el-flag-green` | Grenada's flag, only as the three-colour `FlagStripe` (owner decision). Never one hue alone, never text, links or buttons: green or gold alone would read as NNP or NDC. |
+| Flag tints | `#fcebed` / `#fff7d6` / `#e3f2ee` | `--el-flag-red-tint`, `--el-flag-gold-tint`, `--el-flag-green-tint` | Pale panel grounds (owner decision): hero seat panel and learning panels gold, lead update green, Learn head green, Results head red. A tinted panel always carries the full `FlagStripe`; text on it stays ink. |
 
 **Parties.** Fills only. For text, use the `-ink` step. `-tint` is the close end of
 margin ramps. The order NDC, NNP, historical, GULP keeps red and green apart.
@@ -160,7 +173,8 @@ margin ramps. The order NDC, NNP, historical, GULP keeps red and green apart.
 |---|---|---|---|---|
 | NDC | `#e0a300` | `#7f5a00` (6.24:1) | 2.23:1, so **fill only** | Ink (8.33:1) |
 | NNP | `#0b7a4b` | `#0b6a41` (6.66:1) | 5.39:1 | White (5.39:1) |
-| GULP, DPM, MMWU | `#e0623e` | `#a8401f` (6.14:1) | 3.51:1 | Ink (5.30:1) |
+| DPM | `#f47321` (party logo orange) | `#9a4700` (6.41:1) | 2.87:1, so **fill only** | Ink (6.48:1) |
+| GULP, MMWU | `#e0623e` | `#a8401f` (6.14:1) | 3.51:1 | Ink (5.30:1) |
 | Historical (GNP, PA, TNP) | `#4a6fd0` | `#3556b0` | 4.69:1 | White (4.69:1) |
 | Others, independents | `#9aa0a8` | `#5d636b` | 2.64:1, so **fill only** | Ink (7.06:1) |
 
@@ -190,14 +204,14 @@ Short labels may use 14px; explanations, source notes and controls must not fall
 ## Layout
 
 - The page is `mx-auto max-w-[1240px] px-4 sm:px-6`. Design at 375px first, with no sideways page scroll.
-- The masthead is sticky with a `min-h-16` inner row with an ink bottom rule and the wordmark "Elections *Grenada*". When the masthead has at least `80rem` of room it shows Election 2026, Learn, Results & history, Your constituency, and People & parties. Below that container width, a **hamburger** (bars fold into an X) opens one panel under the masthead: the election status, the main pages as large serif rows, then the More pages. The container threshold follows enlarged text. Search uses a labelled icon on narrow phones and a text link from `sm`; there is no theme toggle. Find your constituency remains on the front page and Constituencies.
+- The masthead is sticky with a `min-h-16` inner row with an ink bottom rule and the wordmark "Elections *Grenada*". When the masthead has at least `80rem` of room it shows Election 2026, Learn, Results & history, Your constituency, and People & parties. Below that container width, a **hamburger** (bars fold into an X) opens one panel under the masthead: the election status, then the main pages and section headings as large serif rows, with each section's pages indented on a grey band behind a left rule in the sans face, so the two levels never look alike (owner request). The container threshold follows enlarged text. Search uses a labelled icon on narrow phones and a text link from `sm`; there is no theme toggle. Find your constituency remains on the front page and Constituencies.
 - The site is light only for now (owner decision). The `.dark` palette stays in the CSS for later.
 - Homepage party cards omit the long results/candidate/timeline source paragraphs (owner decision); individual candidate sources and uncertainty notes remain on the detailed pages.
 - The `/2026` “Who is standing” section has no introductory source paragraph (owner decision); candidate-level uncertainty marks remain.
 - Results uses a full-width atlas with the year selector above the summary and map, Previous/Next event controls, and a larger map stage. Map is the default, Seats uses equal-sized constituency tiles (labelled Constituencies for referendums), and selection zooms to polling divisions. 3D is retired. The introductory paragraph is omitted (owner decision).
 - The Results timeline includes 1951–1967. Those years show historical constituency result cards and source caveats, with eight- or ten-seat totals; geographic and equal-seat maps begin in 1972.
 - Make your map starts from 2022, offers historical presets from 1990, and shares encoded ratings in the URL. Historical margins set Solid at 15+ points, Likely at 5–<15, and Lean below 5.
-- Sections are spaced `pt-12` and each opens with a 2px ink rule.
+- Sections are spaced `pt-12` and each opens with a 2px ink rule with a short flag stripe at its left end.
 - Wide tables become one card per row on phones.
 
 ## Elevation & Depth
@@ -227,6 +241,10 @@ are square.
 - **HouseMap / ClosestContests / ConstituencyCard** (`constituencies/`) · Who holds each seat, the closest 2022 contests, and one card per constituency linking to `/constituencies/[name]`.
 - **HouseStrip** (`home/house-strip.tsx`) · 15 seat squares grouped by the party holding each seat now, with a majority tick after the 8th and a text legend.
 - **BallotGrid** (`election/ballot-grid.tsx`) · Who is standing in each seat, as small cards rather than a wide table.
+- **Photo** (`photo.tsx`) · Newspaper photo: square edges, caption with creator, source link and licence (14px). Openly licensed archive photos only, catalogued in `src/data/photos.ts` and `public/images/CREDITS.md`; captions never imply a photo documents the story. `PageHead` takes `photo` and `tint`.
+- **ElectionTimeline** (`election/election-timeline.tsx`) · SVG calendar from dissolution to the legal deadline with today marked; the lead graphic for the writs post.
+- **SeatHistory** (`home/seat-history.tsx`) · SVG columns of 15 squares per general election since 1972, majority line, legend and screen-reader table.
+- **FlagStripe** (`flag-stripe.tsx`) · Decorative red, gold and green stripe; `aria-hidden`.
 - **Flag** (`flag.tsx`) · ✱ unverified, ✱✱ conflicting, † corroborated. The reason is in the title and in screen-reader text.
 - **PartyDot / SeatSquare** (`party-chip.tsx`) · Party colour, always next to a name or code.
 - Ported from the prototype: Atlas (SVG Map/Seats), FlatMap (SVG), MapModeSwitch, YearScrubber, ResultsPanel (sidebar, or a bottom sheet on phones), StatusPill, ProvenanceLine, HistoryGrid, CandidateRecord.

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CampaignTimeline } from "@/components/campaign/timeline";
 import { BallotGrid } from "@/components/election/ballot-grid";
+import { ElectionTimeline } from "@/components/election/election-timeline";
 import { KeyDates } from "@/components/election/key-dates";
 import { Flag } from "@/components/flag";
 import { ElectionUpdates } from "@/components/home/election-updates";
@@ -50,7 +51,7 @@ export default function Election2026Page() {
     <>
       <div className="mx-auto grid max-w-[1240px] items-end gap-x-14 gap-y-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
         <PageHead
-          deck="Parliament was dissolved on 2 October, so the election must be held by early January. The Prime Minister is due to name polling day at an event in St. Mark. The NDC won 9 of 15 seats in 2022; since then one NNP member has crossed to the government and another has formed the DPM."
+          deck="Parliament was dissolved on 2 October, so the election must be held by early January. Writs issued the same day set nomination day for 15 October and polling day for 5 November. The NDC won 9 of 15 seats in 2022; since then Delma Thomas has crossed from the NNP to the government, and Peter David, also elected for the NNP, now leads a new party, the DPM."
           eyebrow={`General election 2026 · ${electionStatus(calendar, now)}`}
           learning="election"
           title={leadTitle(
@@ -108,8 +109,12 @@ export default function Election2026Page() {
           <ElectionUpdates
             coverage={COVERAGE}
             events={[]}
+            graphics={{
+              "election-timeline": (
+                <ElectionTimeline calendar={calendar} now={now} />
+              ),
+            }}
             limit={COVERAGE.length}
-            sources={campaign.sources}
           />
         )}
       </Section>

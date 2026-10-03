@@ -1,7 +1,14 @@
 export interface SiteSearchEntry {
   href: string;
   keywords: string[];
-  kind: "Guide" | "Person" | "Party" | "Election" | "Constituency" | "Tool";
+  kind:
+    | "News"
+    | "Guide"
+    | "Person"
+    | "Party"
+    | "Election"
+    | "Constituency"
+    | "Tool";
   summary: string;
   title: string;
 }

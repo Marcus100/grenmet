@@ -116,6 +116,10 @@ export interface CampaignFile {
   /** When Parliament was dissolved, once it has been. */
   dissolved?: string | null;
   events: CampaignEvent[];
+  /** Nomination day, once proclaimed in the Gazette. */
+  nomination_day?: string | null;
+  /** Polling day, once proclaimed in the Gazette. */
+  polling_day?: string | null;
   polls: Poll[];
   sitting: Partial<
     Record<
@@ -125,6 +129,8 @@ export interface CampaignFile {
   >;
   sources: Record<string, SourceRef>;
   updated: string;
+  /** When the Governor-General issued the writs, once gazetted. */
+  writs?: string | null;
 }
 
 /** A ring of [x, y] points in map units (y up). */
