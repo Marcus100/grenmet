@@ -49,4 +49,4 @@ The initial Python sync installs FastAPI tooling only. Sync other uv workspace m
 
 A rebuild preserves source, Git history, login volumes and database volumes. Do not run Docker volume pruning or delete host `node_modules` while old containers are still using that shared path. Rebuild all old containers before using package managers in them. This repository cannot inspect or override your Windows/WSL VS Code user settings; verify formatter, interpreter and extension placement in the rebuilt remote window.
 
-The Node base and globally installed agent CLIs currently track their configured release channels; rebuilds may update them. The Docker feature is locked and uv is pinned to the same version/digest as the repo's Python images. Dependency versions remain controlled by `pnpm-lock.yaml` and `uv.lock`.
+The Node base image and the agent CLIs (Claude Code, Codex) are pinned in the Dockerfile; bump them deliberately and rebuild. The Docker feature is locked and uv is pinned to the same version/digest as the repo's Python images. Dependency versions remain controlled by `pnpm-lock.yaml` and `uv.lock`.
