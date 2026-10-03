@@ -1,0 +1,52 @@
+name: Monitoring provider configuration
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        options: [staging, production]
+        default: staging
+        required: true
+      operation:
+        type: choice
+        options: [preview, apply, test-alert]
+        default: preview
+        required: true
+permissions:
+  contents: read
+jobs:
+  reconcile:
+    if: (inputs.environment == 'staging' && github.ref == 'refs/heads/staging') || (inputs.environment == 'production' && startsWith(github.ref, 'refs/tags/v'))
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    concurrency:
+      group: betterstack-provider
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Validate existing release gates
+        env:
+          DEPLOY_ENV: ${{ inputs.environment }}
+          INPUT_TAG: sha-${{ github.sha }}
+          GH_TOKEN: ${{ github.token }}
+        run: bash scripts/production/validate-ref.sh
+      - name: Preview or apply declared resources
+        if: inputs.operation != 'test-alert'
+        env:
+          BETTERSTACK_API_TOKEN: ${{ secrets.BETTERSTACK_API_TOKEN }}
+          TARGET: ${{ inputs.environment }}
+          APPLY: ${{ inputs.operation == 'apply' }}
+        run: |
+          set -euo pipefail
+          args=(--environment "$TARGET")
+          if [[ "$APPLY" == true ]]; then args+=(--apply); fi
+          python3 scripts/monitoring/betterstack.py "${args[@]}" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Controlled synthetic email and recovery test
+        if: inputs.operation == 'test-alert'
+        env:
+          BETTERSTACK_API_TOKEN: ${{ secrets.BETTERSTACK_API_TOKEN }}
+          TARGET: ${{ inputs.environment }}
+        run: python3 scripts/monitoring/alert_test.py --environment "$TARGET"

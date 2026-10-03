@@ -16,6 +16,7 @@ from typing import Any
 from arq import cron
 from arq.connections import RedisSettings
 
+from src import operational_metrics
 from src.logging_config import configure_logging
 from src.telemetry import sentry_options
 from src.worker.config import worker_settings
@@ -46,40 +47,93 @@ async def startup(ctx: dict[str, Any]) -> None:  # noqa: ARG001 - arq passes ctx
         )
 
 
-async def process_cap_jobs(ctx: dict[str, Any]) -> int:  # noqa: ARG001 - arq passes ctx
+async def process_cap_jobs(ctx: dict[str, Any]) -> int:
     from src.database import async_session_factory
     from src.worker import dispatch
 
     async with async_session_factory() as session:
-        return await dispatch.process_due_jobs(
-            session=session,
-            limit=worker_settings.CAP_JOB_BATCH_SIZE,
-            max_attempts=worker_settings.CAP_JOB_MAX_ATTEMPTS,
+        try:
+            result = await dispatch.process_due_jobs(
+                session=session,
+                limit=worker_settings.CAP_JOB_BATCH_SIZE,
+                max_attempts=worker_settings.CAP_JOB_MAX_ATTEMPTS,
+            )
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"), "process_cap_jobs", str(ctx.get("job_id", "")), False
+            )
+            raise
+        await operational_metrics.record_job(
+            ctx.get("redis"), "process_cap_jobs", str(ctx.get("job_id", "")), True
         )
+        await operational_metrics.worker_completed(ctx.get("redis"))
+        return result
 
 
-async def ingest_cap_feeds(ctx: dict[str, Any]) -> int:  # noqa: ARG001 - arq passes ctx
+async def ingest_cap_feeds(ctx: dict[str, Any]) -> int:
     from src.cap import service as cap_service
     from src.database import async_session_factory
 
     async with async_session_factory() as session:
-        return await cap_service.ingest_all_active_feeds(session=session)
+        try:
+            result = await cap_service.ingest_all_active_feeds(session=session)
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"), "ingest_cap_feeds", str(ctx.get("job_id", "")), False
+            )
+            raise
+        await operational_metrics.record_job(
+            ctx.get("redis"), "ingest_cap_feeds", str(ctx.get("job_id", "")), True
+        )
+        return result
 
 
-async def send_notification_emails(ctx: dict[str, Any]) -> int:  # noqa: ARG001 - arq passes ctx
+async def send_notification_emails(ctx: dict[str, Any]) -> int:
     from src.database import async_session_factory
     from src.notifications import dispatch as notification_dispatch
 
     async with async_session_factory() as session:
-        return await notification_dispatch.process_due_deliveries(session=session)
+        try:
+            result = await notification_dispatch.process_due_deliveries(session=session)
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "send_notification_emails",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+        await operational_metrics.record_job(
+            ctx.get("redis"),
+            "send_notification_emails",
+            str(ctx.get("job_id", "")),
+            True,
+        )
+        return result
 
 
-async def run_notification_sweeps(ctx: dict[str, Any]) -> int:  # noqa: ARG001 - arq passes ctx
+async def run_notification_sweeps(ctx: dict[str, Any]) -> int:
     from src.database import async_session_factory
     from src.notifications import scheduler
 
     async with async_session_factory() as session:
-        return await scheduler.run_sweeps(session)
+        try:
+            result = await scheduler.run_sweeps(session)
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "run_notification_sweeps",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+        await operational_metrics.record_job(
+            ctx.get("redis"),
+            "run_notification_sweeps",
+            str(ctx.get("job_id", "")),
+            True,
+        )
+        return result
 
 
 class WorkerSettings:

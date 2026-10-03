@@ -83,6 +83,7 @@ GMS or GAA.
 | `scripts/gms-ingest` | GMS weather product ingestion delivered by Barrels | Active development | Verify collection, decoding, storage, freshness, and recovery before operational acceptance |
 | `scripts/gms-roster` | GAA staff roster import tooling, piloted in GMS | Active | Review extracted assignments and month boundaries before publishing a roster |
 | `scripts/integrations` | Barrels engineering third-party integration readiness checks (Sentry, PostHog) | Active | Confirm provider credentials and host configuration per environment before relying on integration telemetry |
+| `scripts/monitoring` | Barrels engineering availability probes and sanitized monitoring reports | Active | CI/CD-managed environment configuration; verify provider delivery before declaring coverage |
 | `scripts/perf` | Barrels engineering HTTP performance measurement | Active | Compare first and repeated requests, reject failed responses, and keep credentials out of saved results |
 | `scripts/production` | Barrels engineering database provisioning | Active | Apply reviewed migrations and repeatable baseline seeds without overwriting recorded operational data |
 | `scripts/sutron-collector` | GMS observation operations delivered by Barrels | Active development | Prove hardware collection, durable spool, SURFACE export, monitoring, and recovery |

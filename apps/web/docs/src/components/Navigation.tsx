@@ -37,6 +37,7 @@ function TopLevelNavItem({
       <CloseButton
         as={Link}
         className="block py-1 text-sm text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+        data-analytics-event="navigation_category_selected"
         href={href}
       >
         {children}
@@ -69,6 +70,7 @@ function NavLink({
           ? "text-zinc-900 dark:text-white"
           : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
       )}
+      data-analytics-event="navigation_category_selected"
       href={href}
     >
       <span className="truncate">{children}</span>

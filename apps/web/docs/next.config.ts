@@ -18,7 +18,8 @@ const nextConfig: NextConfig = {
 export default withContentCollections(nextConfig).then((config) =>
   withSentryConfig(config as NextConfig, {
     org: "grenmet",
-    project: process.env.SENTRY_PROJECT ?? "grenmet-staging",
+    project: process.env.SENTRY_PROJECT,
+    release: { name: process.env.NEXT_PUBLIC_RELEASE },
     silent: false,
     widenClientFileUpload: true,
     webpack: {

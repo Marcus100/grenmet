@@ -1,3 +1,4 @@
+import { PostHogProvider } from "@barrelsgd/ui/components/posthog-provider";
 import type { Metadata } from "next";
 import { Inter, Noto_Sans, Source_Serif_4 } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
@@ -46,12 +47,14 @@ export default function RootLayout({
       style={{ colorScheme: "light" }}
     >
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
-        <SkipLink />
-        <SiteHeader />
-        <main className="outline-none" id={MAIN_CONTENT_ID} tabIndex={-1}>
-          {children}
-        </main>
-        <SiteFooter />
+        <PostHogProvider app="signal">
+          <SkipLink />
+          <SiteHeader />
+          <main className="outline-none" id={MAIN_CONTENT_ID} tabIndex={-1}>
+            {children}
+          </main>
+          <SiteFooter />
+        </PostHogProvider>
       </body>
     </html>
   );
