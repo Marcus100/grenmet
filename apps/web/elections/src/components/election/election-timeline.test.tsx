@@ -58,3 +58,12 @@ describe("SeatHistory", () => {
     }
   });
 });
+
+describe("SeatHistory layout", () => {
+  it("hides its table inside a wrapper, since tables ignore sr-only's width", () => {
+    render(<SeatHistory results={resultsJson as unknown as ResultsFile} />);
+    const table = screen.getByRole("table");
+    expect(table).not.toHaveClass("sr-only");
+    expect(table.parentElement).toHaveClass("sr-only");
+  });
+});

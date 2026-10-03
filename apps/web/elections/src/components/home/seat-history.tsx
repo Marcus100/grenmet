@@ -108,29 +108,33 @@ export function SeatHistory({ results }: { results: ResultsFile }) {
           {MAJORITY} seats for a majority
         </span>
       </figcaption>
-      <table className="sr-only">
-        <caption>Seats won at each general election since 1972</caption>
-        <thead>
-          <tr>
-            <th scope="col">Election</th>
-            <th scope="col">Seats won</th>
-          </tr>
-        </thead>
-        <tbody>
-          {elections.map((e) => (
-            <tr key={e.id}>
-              <th scope="row">
-                <Link href={`/elections/${eventSlug(e.id)}`}>{e.year}</Link>
-              </th>
-              <td>
-                {e.order
-                  .map(([p, n]) => `${partyInfo(p).name} ${n}`)
-                  .join(", ")}
-              </td>
+      {/* A table ignores sr-only's 1px width, so hide a wrapper instead or
+          the table widens the page on phones. */}
+      <div className="sr-only">
+        <table>
+          <caption>Seats won at each general election since 1972</caption>
+          <thead>
+            <tr>
+              <th scope="col">Election</th>
+              <th scope="col">Seats won</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {elections.map((e) => (
+              <tr key={e.id}>
+                <th scope="row">
+                  <Link href={`/elections/${eventSlug(e.id)}`}>{e.year}</Link>
+                </th>
+                <td>
+                  {e.order
+                    .map(([p, n]) => `${partyInfo(p).name} ${n}`)
+                    .join(", ")}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </figure>
   );
 }
