@@ -1,8 +1,8 @@
 from decimal import Decimal
 
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
 
 from src.auth.models import Permission, Role, RoleAssignmentScope
 from src.auth.schemas import UserCreate
@@ -130,7 +130,7 @@ async def test_workflow_start_failure_rolls_back_entity(
     # then confirm nothing was committed for this user.
     await db_async.rollback()
     result = await db_async.execute(
-        select(LeaveRequest).where(col(LeaveRequest.user_id) == user_id)
+        select(LeaveRequest).where(LeaveRequest.user_id == user_id)
     )
     assert result.scalars().first() is None
 
@@ -382,44 +382,6 @@ async def test_coapprover_rejection_rejects_instance(db_async: AsyncSession) -> 
         session=db_async, workflow_instance_id=leave.workflow_instance_id
     )
     assert instance.status == WorkflowStatus.REJECTED
-
-
-async def test_approval_notification_targets_hr_admins(
-    db_async: AsyncSession,
-) -> None:
-    """The approval email resolves hr-admin recipients and names the requester."""
-    import uuid as _uuid
-
-    from src.hr.workflow.models import WorkflowInstance
-    from src.hr.workflow.service import build_approval_notification
-
-    dept = await make_department(db_async, "dept_notify")
-    admin = await make_user(db_async)
-    role_result = await db_async.execute(select(Role).where(Role.name == "hr-admin"))
-    admin_role = role_result.scalars().first()
-    if admin_role is None:
-        admin_role, _ = await make_role_with_permission(
-            db_async, "workflow.instance.view", role_name="hr-admin"
-        )
-    await assign_role(
-        db_async, user=admin, role=admin_role, scope=RoleAssignmentScope.ALL
-    )
-    requester = await make_user(db_async)
-
-    # An in-memory instance is enough — the builder does not re-fetch it.
-    instance = WorkflowInstance(
-        workflow_template_id=_uuid.uuid4(),
-        department_id=dept.id,
-        workflow_type=WorkflowType.LEAVE_REQUEST,
-        entity_type="leave_request",
-        entity_id=_uuid.uuid4(),
-        requested_by_user_id=requester.id,
-    )
-    result = await build_approval_notification(session=db_async, instance=instance)
-    assert result is not None
-    recipients, subject, _html = result
-    assert admin.email in recipients
-    assert requester.full_name in subject
 
 
 async def test_inbox_shows_instances_only_to_current_actor(

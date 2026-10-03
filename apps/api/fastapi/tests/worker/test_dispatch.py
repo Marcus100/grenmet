@@ -3,16 +3,32 @@
 httpx.MockTransport stands in for webhook endpoints so no real HTTP is made.
 """
 
-import httpx
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import select
+import uuid
 
+import httpx
+import pytest
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.auth import service as auth_service
 from src.cap.models import (
+    CapAlert,
+    CapArea,
+    CapCertainty,
+    CapInfo,
     CapIntegrationStatus,
     CapJobEvent,
     CapJobStatus,
+    CapLifecycleState,
+    CapScope,
+    CapSeverity,
+    CapStatus,
+    CapUrgency,
     CapWebhook,
 )
+from src.cap.tasks import enqueue_publish_side_effects
+from src.config import settings
+from src.storage.service import storage_service
 from src.worker.dispatch import process_due_jobs
 
 
@@ -223,3 +239,115 @@ async def test_no_jobs_returns_zero(db_async: AsyncSession) -> None:
     assert result.scalars().all() == []
     handled = await process_due_jobs(session=db_async)
     assert handled == 0
+
+
+async def _add_published_alert(session: AsyncSession) -> CapAlert:
+    """A Public/Actual alert with one info block and a polygon area."""
+    user = await auth_service.get_user_by_email(
+        session=session, email=str(settings.FIRST_SUPERUSER)
+    )
+    assert user is not None
+    alert = CapAlert(
+        identifier=f"urn:oid:test.{uuid.uuid4()}",
+        sender="test@example.test",
+        status=CapStatus.ACTUAL,
+        scope=CapScope.PUBLIC,
+        lifecycle_state=CapLifecycleState.PUBLISHED,
+        created_by_user_id=user.id,
+    )
+    session.add(alert)
+    await session.flush()
+    info = CapInfo(
+        alert_id=alert.id,
+        event="Heavy rain",
+        urgency=CapUrgency.EXPECTED,
+        severity=CapSeverity.MODERATE,
+        certainty=CapCertainty.LIKELY,
+        headline="Yellow heavy rain warning",
+        description="Heavy showers expected.",
+    )
+    session.add(info)
+    await session.flush()
+    session.add(
+        CapArea(
+            info_id=info.id,
+            area_desc="Grenada",
+            polygons=[[[-61.8, 12.0], [-61.6, 12.0], [-61.6, 12.2], [-61.8, 12.0]]],
+        )
+    )
+    await session.commit()
+    await session.refresh(alert)
+    return alert
+
+
+@pytest.mark.parametrize(
+    "kind", ["publish.pdf", "publish.social_image", "publish.static_map"]
+)
+async def test_render_jobs_store_artifact_for_published_alert(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch, kind: str
+) -> None:
+    stored: dict[str, bytes] = {}
+
+    def put_object(key: str, data: bytes, *, content_type: str) -> None:
+        _ = content_type
+        stored[key] = data
+
+    monkeypatch.setattr(storage_service, "put_object", put_object)
+    monkeypatch.setattr(
+        storage_service, "public_url", lambda key: f"https://cdn.test/{key}"
+    )
+    alert = await _add_published_alert(db_async)
+    job = CapJobEvent(alert_id=alert.id, kind=kind, payload={"alert_id": str(alert.id)})
+    db_async.add(job)
+    await db_async.commit()
+
+    def handler(_request: httpx.Request) -> httpx.Response:  # pragma: no cover
+        return httpx.Response(200)
+
+    async with _client(handler) as client:
+        await process_due_jobs(session=db_async, http_client=client)
+
+    await db_async.refresh(job)
+    assert job.status == CapJobStatus.SUCCEEDED, job.result
+    assert len(stored) == 1
+
+
+async def test_publish_batch_runs_every_side_effect_for_an_alert(
+    db_async: AsyncSession, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The publish flow queues all side effects together; one worker poll must
+    complete every one of them in a single session."""
+    stored: dict[str, bytes] = {}
+
+    def put_object(key: str, data: bytes, *, content_type: str) -> None:
+        _ = content_type
+        stored[key] = data
+
+    monkeypatch.setattr(storage_service, "put_object", put_object)
+    monkeypatch.setattr(
+        storage_service, "public_url", lambda key: f"https://cdn.test/{key}"
+    )
+    alert = await _add_published_alert(db_async)
+    jobs = await enqueue_publish_side_effects(
+        session=db_async,
+        alert_id=alert.id,
+        snapshot_id=None,
+        status=alert.status,
+        scope=alert.scope,
+    )
+    await db_async.commit()
+
+    def handler(_request: httpx.Request) -> httpx.Response:  # pragma: no cover
+        return httpx.Response(200)
+
+    async with _client(handler) as client:
+        await process_due_jobs(session=db_async, http_client=client)
+
+    outcomes = {}
+    for job in jobs:
+        await db_async.refresh(job)
+        outcomes[job.kind] = (job.status, job.result)
+    assert all(status == CapJobStatus.SUCCEEDED for status, _ in outcomes.values()), (
+        outcomes
+    )
+    assert len(stored) == 3

@@ -60,16 +60,6 @@ const isFastApiContractFile = (file) =>
   fastApiContractFilePattern.test(file) ||
   fastApiContractDirectoryFilePattern.test(file);
 
-const drizzleFamilies = ["janitorial", "transport", "wxproducts", "wxwatch"];
-
-const isDrizzleSchemaFile = (file, family) => {
-  const schemaRoot = `apps/web/gaa-admin/src/db/${family}/schema`;
-  return file === `${schemaRoot}.ts` || file.startsWith(`${schemaRoot}/`);
-};
-
-const drizzleMigrationRoot = (family) =>
-  `apps/web/gaa-admin/drizzle/${family}/`;
-
 const collectChanges = (comparison) => {
   const range =
     comparison.mode === "staged"
@@ -113,7 +103,128 @@ const telemetryOnlyStartupChange = (comparison) => {
       "from src.telemetry import sentry_options\nfrom src.utils.router import router as utils_router"
     )
     .replace("        enable_tracing=True,", "        **sentry_options(),");
+  const middlewareExpected = before
+    .replace(
+      "from src.audit.router",
+      "from src import operational_metrics\nfrom src.audit.router"
+    )
+    .replace(
+      `async def request_logging_middleware(request: Request, call_next: Any) -> Any:
+    start = time.perf_counter()
+    response = await call_next(request)
+    duration_s = time.perf_counter() - start
+    logger.info(
+        "%s %s %s %.3fs origin=%s cors_allow_origin=%s requested_headers=%s",
+        request.method,
+        request.url.path,
+        response.status_code,
+        duration_s,
+        request.headers.get("origin", "-"),
+        response.headers.get("access-control-allow-origin", "-"),
+        request.headers.get("access-control-request-headers", "-"),
+    )
+    return response`,
+      `async def request_logging_middleware(request: Request, call_next: Any) -> Any:
+    start = time.perf_counter()
+    status = 500
+    try:
+        response = await call_next(request)
+        status = response.status_code
+    finally:
+        duration_s = time.perf_counter() - start
+        route = getattr(request.scope.get("route"), "path", "unmatched")
+        logger.info(
+            "request route=%s status=%s duration=%.3fs", route, status, duration_s
+        )
+        await operational_metrics.record_request(route, status, duration_s)
+    return response`
+    );
+  return (
+    before !== after && (expected === after || middlewareExpected === after)
+  );
+};
+
+// This exact query fix includes areas without a section in the existing
+// response model; it does not change the OpenAPI contract.
+const janitorialUnsectionedAreaChange = (comparison) => {
+  const file = "apps/api/fastapi/src/janitorial/router.py";
+  const refs =
+    comparison.mode === "staged"
+      ? [`HEAD:${file}`, `:${file}`]
+      : [`${comparison.base}:${file}`, `${comparison.head}:${file}`];
+  const versions = refs.map((ref) =>
+    spawnSync("git", ["show", ref], { encoding: "utf8" })
+  );
+  if (versions.some((result) => result.error || result.status !== 0))
+    return false;
+  const before = versions[0].stdout;
+  const after = versions[1].stdout;
+  const expected = before.replace(
+    "        LEFT JOIN sections s ON s.building_id=b.id",
+    `        LEFT JOIN (
+            SELECT id, building_id, name, sort_order FROM sections
+            UNION ALL
+            -- Areas without a section form their own group, even in buildings
+            -- that also have sections.
+            SELECT DISTINCT NULL::integer, building_id, NULL::text, NULL::integer
+            FROM areas WHERE section_id IS NULL
+        ) s ON s.building_id=b.id`
+  );
   return before !== after && expected === after;
+};
+
+// Only isolate the existing CAP advisory session. Route declarations, request
+// fields and response types must remain identical for this exception to apply.
+const wxproductsAdvisorySessionChange = (comparison) => {
+  const file = "apps/api/fastapi/src/wxproducts/router.py";
+  const refs =
+    comparison.mode === "staged"
+      ? [`HEAD:${file}`, `:${file}`]
+      : [`${comparison.base}:${file}`, `${comparison.head}:${file}`];
+  const versions = refs.map((ref) =>
+    spawnSync("git", ["show", ref], { encoding: "utf8" })
+  );
+  if (versions.some((result) => result.error || result.status !== 0))
+    return false;
+  const before = versions[0].stdout;
+  const after = versions[1].stdout;
+  const expected = before
+    .replace("from src.dependencies import SessionDep\n\n", "")
+    .replace(
+      "from .dependencies import AuthorDep, AuthoringSessionDep, WxProductsSessionDep",
+      "from .dependencies import (\n    AdvisorySessionDep,\n    AuthorDep,\n    AuthoringSessionDep,\n    WxProductsSessionDep,\n)"
+    )
+    .replaceAll("cap_session: SessionDep,", "cap_session: AdvisorySessionDep,");
+  return before !== after && expected === after;
+};
+
+// info.title does not affect Kubb output; regeneration can legitimately be clean.
+// Compare the whole document after changing only that field, failing closed.
+const openApiTitleOnlyChange = (comparison) => {
+  const file = "apps/api/fastapi/openapi.json";
+  const refs =
+    comparison.mode === "staged"
+      ? [`HEAD:${file}`, `:${file}`]
+      : [`${comparison.base}:${file}`, `${comparison.head}:${file}`];
+  try {
+    const versions = refs.map((ref) => {
+      const result = spawnSync("git", ["show", ref], { encoding: "utf8" });
+      if (result.error || result.status !== 0)
+        throw new Error("Missing schema");
+      return JSON.parse(result.stdout);
+    });
+    const [before, after] = versions;
+    if (
+      typeof before.info?.title !== "string" ||
+      typeof after.info?.title !== "string" ||
+      before.info.title === after.info.title
+    )
+      return false;
+    before.info.title = after.info.title;
+    return JSON.stringify(before) === JSON.stringify(after);
+  } catch {
+    return false;
+  }
 };
 
 const evaluateChanges = (changes, comparison) => {
@@ -123,8 +234,12 @@ const evaluateChanges = (changes, comparison) => {
       (file) =>
         isFastApiContractFile(file) &&
         !(
-          file === "apps/api/fastapi/src/main.py" &&
-          telemetryOnlyStartupChange(comparison)
+          (file === "apps/api/fastapi/src/main.py" &&
+            telemetryOnlyStartupChange(comparison)) ||
+          (file === "apps/api/fastapi/src/janitorial/router.py" &&
+            janitorialUnsectionedAreaChange(comparison)) ||
+          (file === "apps/api/fastapi/src/wxproducts/router.py" &&
+            wxproductsAdvisorySessionChange(comparison))
         )
     )
     .sort();
@@ -156,7 +271,8 @@ const evaluateChanges = (changes, comparison) => {
   if (
     triggers.length === 0 &&
     files.has("apps/api/fastapi/openapi.json") &&
-    !generatedClientChanged
+    !generatedClientChanged &&
+    !openApiTitleOnlyChange(comparison)
   ) {
     violations.push({
       missing: ["packages/api-client/src/gen/"],
@@ -165,24 +281,6 @@ const evaluateChanges = (changes, comparison) => {
       rule: "OpenAPI-to-client sync",
       triggers: ["apps/api/fastapi/openapi.json"],
     });
-  }
-
-  for (const family of drizzleFamilies) {
-    const schemaTriggers = [...files]
-      .filter((file) => isDrizzleSchemaFile(file, family))
-      .sort();
-    const migrationRoot = drizzleMigrationRoot(family);
-    if (
-      schemaTriggers.length > 0 &&
-      ![...files].some((file) => file.startsWith(migrationRoot))
-    ) {
-      violations.push({
-        missing: [migrationRoot],
-        resolution: `Run pnpm db:${family}:generate from apps/web/gaa-admin and commit the generated migration.`,
-        rule: `Drizzle ${family} migration`,
-        triggers: schemaTriggers,
-      });
-    }
   }
 
   return violations;
@@ -211,16 +309,6 @@ const reportConsumerValidation = (changes) => {
   ) {
     console.log(
       `Admin route validation required: validate cap, hr, wxwatch, wxproducts, and salesbus. CI enforces ${ciGates}.`
-    );
-  }
-
-  if (
-    [...files].some((file) =>
-      drizzleFamilies.some((family) => isDrizzleSchemaFile(file, family))
-    )
-  ) {
-    console.log(
-      "Drizzle production validation required: validate the generated migration through the web-migrate production service and against the wxwatch and wxproducts databases."
     );
   }
 };

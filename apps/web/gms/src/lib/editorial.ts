@@ -1,5 +1,5 @@
 import { type PublishedProduct, productTitle } from "@barrelsgd/gms/products";
-import type { PublishedContent } from "@/lib/cms";
+import { contentHref, type PublishedContent } from "@/lib/cms";
 export interface ProductPost {
   href: string;
   id: string;
@@ -22,7 +22,7 @@ export const REFERENCE_POSTS: ProductPost[] = [
     issuedAt: "2026-09-08T18:00",
     source: "Evening Forecast · Johnathan Pryce",
     reference: true,
-    href: "/updates/evening-2026-09-08",
+    href: "/explore/updates/evening-2026-09-08",
     paragraphs: [
       "Good evening, Grenada, Carriacou and Petite Martinique. Our September 8 report points to a cloudy night with showers, heavy at times, and isolated thunder. Tonight's minimum is 24.5°C.",
       "Winds are ENE to ESE at 12–22 mph, with higher gusts in showers. Seas are moderate, with waves of 5–7 feet in open water. The report includes a low chance of flash flooding and a Small Craft Advisory.",
@@ -39,7 +39,7 @@ export const REFERENCE_POSTS: ProductPost[] = [
     issuedAt: "2026-09-08T14:00",
     source: "Tropical Weather Outlook · Johnathan Pryce · courtesy NHC",
     reference: true,
-    href: "/updates/outlook-2026-09-08-14",
+    href: "/explore/updates/outlook-2026-09-08-14",
     paragraphs: [
       "Here is our 2 p.m. tropical update for September 8. We are following two waves: one near 58°W, moving west at 10–15 knots, and another near 47°W, moving west at 15–20 knots.",
       "The wave nearer the islands is expected to bring more cloud, showers and possible isolated thunderstorms tonight into tomorrow. In this issue, tropical cyclone formation is not expected during the next 48 hours.",
@@ -56,7 +56,7 @@ export const REFERENCE_POSTS: ProductPost[] = [
     issuedAt: "2026-09-08T12:00",
     source: "Midday Forecast · Vondi Cyrus",
     reference: true,
-    href: "/updates/midday-2026-09-08",
+    href: "/explore/updates/midday-2026-09-08",
     paragraphs: [
       "It was 31.9°C at MBIA at midday on September 8. Our updated forecast gives a maximum of 32.5°C and a minimum of 24.5°C tonight.",
       "Fair conditions give way to increasing evening cloud. Showers become more frequent overnight, with possible nighttime thunder. Winds are ENE to ESE at 12–22 mph, gusting higher with showers.",
@@ -73,7 +73,7 @@ export const REFERENCE_POSTS: ProductPost[] = [
     issuedAt: "2026-09-08T07:00",
     source: "Morning Forecast · Vondi Cyrus",
     reference: true,
-    href: "/updates/morning-2026-09-08",
+    href: "/explore/updates/morning-2026-09-08",
     paragraphs: [
       "Good morning. Our September 8 forecast starts fair to partly cloudy and slightly hazy, with cloud and more frequent showers expected overnight.",
       "The morning issue forecasts 32.0°C for the daytime maximum and 24.5°C for tonight's minimum. Winds are ENE to ESE at 12–22 mph. A Small Craft Advisory accompanies moderate seas with waves up to 7 feet.",
@@ -90,7 +90,7 @@ export const REFERENCE_POSTS: ProductPost[] = [
     issuedAt: "2026-09-08T05:00",
     source: "Marine Bulletin · Nicole Jones",
     reference: true,
-    href: "/updates/marine-2026-09-08",
+    href: "/explore/updates/marine-2026-09-08",
     paragraphs: [
       "Our 5 a.m. marine bulletin for September 8 describes moderate seas, with waves of 5–7 feet in open water, and ENE to ESE winds at 13–23 knots.",
       "Visibility is generally greater than 5 nautical miles, but showers can reduce it temporarily. A surge of low-level moisture is the main weather feature in this issue.",
@@ -117,7 +117,7 @@ export function productPost(product: PublishedProduct): ProductPost {
     title: productTitle(product.kind),
     issuedAt: v.issuedAt,
     source: `${productTitle(product.kind)} · ${v.forecaster}`,
-    href: `/products/issued/${product.id}`,
+    href: `/weather/issued/${product.id}`,
     paragraphs: [
       `Here is our ${productTitle(product.kind).toLowerCase()} for ${v.area}.`,
       v.summary || v.synopsis || v.systems || "",
@@ -149,7 +149,7 @@ export const WEATHER_ARTICLES: WeatherArticle[] = [
     imageUrl:
       "https://images.unsplash.com/photo-1561553543-e4c7b608b98d?auto=format&fit=crop&w=800&q=80",
     published: "8 September 2026",
-    href: "/news/tropical-waves-and-local-weather",
+    href: "/explore/news/tropical-waves-and-local-weather",
     sections: [
       {
         heading: "Two reports, two questions",
@@ -183,7 +183,7 @@ export const WEATHER_ARTICLES: WeatherArticle[] = [
     imageUrl:
       "https://images.unsplash.com/photo-1505118380757-91f5f5632de0?auto=format&fit=crop&w=800&q=80",
     published: "8 September 2026",
-    href: "/news/reading-sea-state",
+    href: "/explore/news/reading-sea-state",
     sections: [
       {
         heading: "Read the conditions together",
@@ -223,7 +223,7 @@ export const WEATHER_ARTICLES: WeatherArticle[] = [
     imageUrl:
       "https://images.unsplash.com/photo-1504370805625-d32c54b16100?auto=format&fit=crop&w=800&q=80",
     published: "8 September 2026",
-    href: "/news/inside-the-daily-forecast",
+    href: "/explore/news/inside-the-daily-forecast",
     sections: [
       {
         heading: "The morning starting point",
@@ -249,7 +249,7 @@ export const WEATHER_ARTICLES: WeatherArticle[] = [
       {
         heading: "A short update or the full report",
         paragraphs: [
-          "Latest from us turns an issued report into a short, conversational update that can be read or shared easily. The full product remains available for its detailed fields. Weather news, like this article, gives us room to explain the reasoning and terminology behind those short updates.",
+          "Latest from us turns an issued report into a short, conversational update that can be read or shared easily. The full product remains available for its detailed fields. Latest publications, like this article, gives us room to explain the reasoning and terminology behind those short updates.",
         ],
       },
     ],
@@ -263,12 +263,14 @@ export function contentToArticle(content: PublishedContent): WeatherArticle {
     title: content.title,
     summary: content.summary ?? "",
     imageUrl: content.imageUrl ?? PLACEHOLDER_ARTICLE_IMAGE,
-    published: new Date(content.updatedAt).toLocaleDateString("en-GB", {
+    published: new Date(
+      content.publishedAt ?? content.updatedAt
+    ).toLocaleDateString("en-GB", {
       day: "numeric",
       month: "long",
       year: "numeric",
     }),
-    href: `/news/${content.slug}`,
+    href: contentHref(content),
     body: content.body,
   };
 }

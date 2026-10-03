@@ -1,5 +1,9 @@
 # GMS Digital Service Architecture
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-11
+
 > **This is a strategic planning document**, not a codebase architecture guide. It describes the GMS service strategy, product catalogue, and design system framing. For how the code fits together — monorepo structure, auth flow, shared packages, database architecture — see [Technical Overview](./technical-overview.md).
 
 This document holds the strategic service-design framing for Grenada Meteorological Service digital work. It is deliberately broader than the design-to-code implementation guides.

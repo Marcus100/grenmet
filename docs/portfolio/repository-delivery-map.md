@@ -22,15 +22,16 @@ acceptance.
 | Repository surface | Primary classification and owner | Lifecycle | Planning destination |
 | --- | --- | --- | --- |
 | `apps/web/auth` | Barrels platform identity | Active | Product-aware shared sign-in with application-scoped access |
+| `apps/web/barrels` | Barrels Grenada company holding page | Active | Independent static Vercel site at barrels.gd |
 | `apps/web/gaa-admin` | GAA staff portal with GMS and GAA modules | Active; renamed at transition boundary 7 | `apps/web/gaa-admin`; GMS pilot followed by GAA department rollout |
 | `apps/web/gms` | GMS public weather service | Active foundation; renamed at transition boundary 6 | `apps/web/gms`; forecasts, observations, warnings, and public products |
 | `apps/web/cms` | GMS editorial content service delivered by Barrels | Active development | Dedicated CMS database, shared FastAPI identity, reviewed migrations and publishing |
 | `apps/web/docs` | GMS public documentation and preparedness content | Active content application; renamed at transition boundary 8 | `apps/web/docs` on the dedicated GMS documentation host |
 | `apps/web/events` | Barrels Events product | Prototype | Approved Events discovery/ticketing pilot after transition gates |
-| `apps/web/signal` | Barrels Signal media product | Active | Maintain separately; deepen according to product evidence |
+| `apps/web/elections` | Barrels Elections Grenada product (Grenada election coverage and history) | Prototype; 2026 coverage first | Election coverage and results history from static checked data; a FastAPI domain for results night later |
+| `apps/web/signal` | Barrels Signal media product | Active | Editorial reader redesign and discovery preview; dedicated Signal CMS deferred until frontend review |
 | `apps/web/mbia` | GAA/MBIA passenger public service | Active | Keep distinct from GAA corporate and staff applications |
-| `apps/api/fastapi` | Barrels-operated shared API serving client and product domains | Active | Preserve domain boundaries; make authorization product/organisation aware |
-| `apps/api/honoapi` | Reserved Barrels weather-data proxy | Prototype health stub | Explore only after a real consumer and contract exist |
+| `apps/api/fastapi` | Barrels-operated shared API serving client and product domains | Active | Preserve domain boundaries; own migrations, catalogue seeds, authorization, and generated contracts |
 
 The current `gaa-admin` module ownership is intentionally mixed during the
 transition:
@@ -48,30 +49,31 @@ transition:
 | Repository surface | Primary classification and owner | Lifecycle | Dependency rule |
 | --- | --- | --- | --- |
 | `packages/cms-migrations` | Barrels delivery tooling for GMS content | Active | Dependency-only package for the canonical CMS migration config; excludes web UI dependencies |
-| `packages/admin-migrations` | Barrels delivery tooling for GAA | Active | Dependency-only package for admin migrations and baselines; no web runtime dependencies |
 | `packages/auth` | Barrels platform | Active | May serve products and clients; grants no application access by default |
 | `packages/ui` | Barrels platform, brand-neutral primitives | Active; separation complete at boundaries 3-5 | Carries no brand prefix; must not depend on a brand package or select GMS branding by default |
 | `packages/theme` | Barrels platform display infrastructure | Active | Brand-neutral; product packages supply mappings |
 | `packages/gms` | GMS client presentation package | Active; extracted at boundaries 4-5b | Owns the GMS logo, palette and components; may depend on shared UI/theme, never the reverse |
 | `packages/api-client` | Barrels platform generated client | Generated | Regenerate from FastAPI OpenAPI; never edit generated output manually |
 | `packages/email-templates` | Barrels platform messaging | Active | Product/client branding supplied by caller |
-| `packages/mdx` | Barrels platform content processing | Active | Shared processing without owning content policy |
 | `packages/tsconfig` | Barrels engineering configuration | Active | Shared compile policy only |
 
 ## FastAPI domains and data responsibility
 
 | Domain | Classification | Primary consumer or owner | Direction |
 | --- | --- | --- | --- |
-| Auth and permissions | Barrels platform | All authorized applications | Add organisation/application-aware grants through a separately approved migration |
+| Auth and permissions | Barrels platform | All authorized applications | Add organisation/application-aware grants through a separately approved migration; organizations, memberships, and workspaces follow [ADR-0014](../adr/0014-barrels-platform-core-direction.md) |
 | CAP | GMS operational service | GMS forecasters and public feeds | Complete controlled warning lifecycle and dissemination evidence |
 | HR, roster, leave, timesheet, exchanges, status, parking | GAA staff platform | GAA, piloted in GMS | Harden shared core and remove department assumptions |
 | Billing | Barrels platform/product capability | Approved transactional products | Keep isolated until an approved product consumes it |
 | Storage | Barrels platform | Multiple domains | Preserve domain ownership, access controls, retention, and audit |
 | Worker and webhooks | Barrels platform runtime | Async product/client operations | Add consumers only with retry, idempotency, monitoring, and ownership |
+| Organizations, AI, Knowledge (planned, not present) | Barrels Core platform | Future Barrels products and approved client needs | Direction only per [ADR-0014](../adr/0014-barrels-platform-core-direction.md); each domain needs its own approval, migration, and contract update |
 
-Drizzle-owned WxWatch/WxProducts data currently lives with the staff portal;
-this is an implementation location, not a transfer of operational ownership
-away from GMS.
+WxWatch, WxProducts, eRegister, Janitorial, and Transport data remain in
+separate domain databases, but FastAPI now owns their schemas, migrations,
+seeding, and runtime access. The staff portal is a generated-contract client;
+this implementation location does not transfer operational ownership away from
+GMS or GAA.
 
 ## Operational pipelines, tools, and automation
 
@@ -81,6 +83,7 @@ away from GMS.
 | `scripts/gms-ingest` | GMS weather product ingestion delivered by Barrels | Active development | Verify collection, decoding, storage, freshness, and recovery before operational acceptance |
 | `scripts/gms-roster` | GAA staff roster import tooling, piloted in GMS | Active | Review extracted assignments and month boundaries before publishing a roster |
 | `scripts/integrations` | Barrels engineering third-party integration readiness checks (Sentry, PostHog) | Active | Confirm provider credentials and host configuration per environment before relying on integration telemetry |
+| `scripts/monitoring` | Barrels engineering availability probes and sanitized monitoring reports | Active | CI/CD-managed environment configuration; verify provider delivery before declaring coverage |
 | `scripts/perf` | Barrels engineering HTTP performance measurement | Active | Compare first and repeated requests, reject failed responses, and keep credentials out of saved results |
 | `scripts/production` | Barrels engineering database provisioning | Active | Apply reviewed migrations and repeatable baseline seeds without overwriting recorded operational data |
 | `scripts/sutron-collector` | GMS observation operations delivered by Barrels | Active development | Prove hardware collection, durable spool, SURFACE export, monitoring, and recovery |
@@ -93,6 +96,7 @@ away from GMS.
 | `scripts/guardrails` | Barrels engineering change-safety automation | Active | Preserve blast-radius checks across all products and programmes |
 | `scripts/verification` | Barrels engineering verification tooling | Implemented; host integration acceptance pending | Share local and CI checks, isolate disposable databases by run and worker, and clean up only the current test project |
 | `scripts/api` | Barrels engineering API generation/drift automation | Active | Keep OpenAPI and generated clients synchronized |
+| `scripts/audit` | Barrels engineering API/UI reference inventory | Active | Reproduce route-reference candidates for the launch ledger; static references do not establish connected journey coverage |
 
 ## Infrastructure and operations
 
@@ -112,13 +116,15 @@ away from GMS.
 | `docs/internal` | GMS programme, catalogue, evidence, and reporting documents | Mixed draft/active/historical | Subordinate to the client programme view; retain specialist authority |
 | `docs/strategy` | Barrels company/product strategy | Active | Governs product direction, not client operational acceptance |
 | `docs/exec-plans` | Repository transition/migration execution | Active plus superseded material | Governs approved implementation boundaries and records historical sequencing |
+| `docs/playbooks` | Engineering and agent playbooks | Active | End-to-end implementation recipes linked from `AGENTS.md`; follow the governing AGENTS.md rules |
 | `docs/portfolio` | Authoritative portfolio planning system | Active | Reconcile company priorities, client outcomes, and repository coverage |
 | `docs/agents` | Agent-facing engineering guidance | Active reference | Keep consistent with root guardrails and executable checks |
 | `docs/hr` | GAA staff-platform design evidence | Active/reference | Subordinate to the GAA client programme and productization gate |
 | `docs/architecture.md`, `docs/data-architecture.md`, and `docs/technical-overview.md` | Architecture system of record | Active | Describe current boundaries and approved direction |
 | `docs/deployment.md`, `docs/infrastructure.md`, `docs/staging-prep.md`, and `docs/weather-gd-golive.md` | Delivery and cutover references | Active | Require environment owner and release authorization |
-| `docs/design-system.md`, `docs/design-workflow.md`, and `docs/env.md` | Cross-cutting engineering references | Active | Preserve brand and configuration boundaries |
+| `docs/design`, `docs/design-system.md`, `docs/design-workflow.md`, and `docs/env.md` | Cross-cutting engineering references | Active | Preserve brand and configuration boundaries |
 | `docs/audit-2026-06.md`, `docs/audit-2026-09-documentation.md`, `docs/fastapi-cap-audit.md`, `docs/quality-score.md`, and `docs/security.md` | Audit and quality evidence | Snapshot/active by document | Refresh claims explicitly; never treat a score as acceptance |
+| `docs/testing.md` | Barrels engineering repository testing strategy | Active reference | Assign verification by runtime and delivery stage; distinguish passing checks from operational acceptance |
 | `docs/grenada-streaming-events-brief.md`, `docs/ports.md`, and `docs/troubleshooting.md` | Product option and engineering references | Mixed Explore/active reference | Follow the authority and lifecycle stated in each document |
 
 The fourteen current workflow files under `.github/workflows` are one delivery
@@ -130,10 +136,11 @@ references rather than duplicated here.
 
 | Repository surface | Classification and owner | Lifecycle | Boundary |
 | --- | --- | --- | --- |
-| `AGENTS.md`, `CLAUDE.md`, and `CONTRIBUTING.md` | Repository governance | Active | Commands, safety rules, conventions, and review gates |
+| `AGENTS.md` and `CONTRIBUTING.md` | Repository governance | Active | Commands, safety rules, conventions, and review gates |
 | `README.md` | Repository entry point | Active | Orientation only; links to authoritative specialist documents |
 | `VENDORED.md` | Third-party provenance policy | Active | Defines upgrade and local-change boundaries for vendored stacks |
 | `.agents/skills`, `.claude/skills`, and `.claude/commands` | Agent workflow playbooks | Active tooling | Support engineering work; they do not set portfolio priority |
+| `.codex` | Codex agent configuration and hooks | Active tooling | Preserve the same repository guardrails used by supported agent tools |
 | `.claude/hooks`, `.claude/settings.json`, `.agents/commands`, `.agents/rules`, and `.agents/hooks.json` | Agent/editor configuration | Active tooling | Must preserve repository guardrails across supported tools |
 | `.devcontainer` and `.vscode` | Developer environment | Active tooling | Reproducible local setup; not a deployment environment |
 | `.husky`, `.lintstagedrc.mjs`, and `.turbo` | Local quality and task orchestration | Active tooling | Fast feedback supplements, but does not replace, CI |
@@ -141,11 +148,11 @@ references rather than duplicated here.
 
 | Root configuration | Classification | Lifecycle rule |
 | --- | --- | --- |
+| `CONTEXT.md` | Domain vocabulary and decisions | Active reference; update when the project's ubiquitous language or domain decisions change |
 | `package.json`, `pnpm-workspace.yaml`, `turbo.json`, and `biome.jsonc` | JavaScript workspace and quality policy | Change with affected workspaces and CI |
 | `pyproject.toml`, `.python-version`, and `uv.lock` | Python workspace and dependency lock | Keep all Python members synchronized |
 | `pnpm-lock.yaml`, `.node-version`, and `.npmrc` | JavaScript runtime/dependency lock | Regenerate only through approved package-manager work |
 | `.dockerignore`, `.editorconfig`, `.gitattributes`, and `.gitignore` | Repository hygiene and build context | Review broad pattern changes for hidden artifacts |
-| `figma.config.json` | Design/code integration | Active configuration tied to the design-system boundary |
 | `skills-lock.json` | Agent skill dependency lock | Update through the skill-management workflow |
 | `July 2026.pdf` | Historical programme source report at repository root | Reference; migrate into `docs/internal/reports` when provenance is preserved |
 
@@ -220,3 +227,14 @@ retired, an ADR changes the boundary, or institutional acceptance is recorded.
 Do not infer production status from a package manifest, passing tests, or a
 completed interface.
 
+
+### Planned PWA surfaces
+
+Separate Janitor, Bus and GMS PWAs are planned; paths/deployments are not yet selected. Janitor and Bus belong to GAA departmental operations; the GMS PWA belongs to GMS public services. They call FastAPI business capabilities directly (the Hono stub was retired, ADR-0015), with Payload retaining CMS ownership. See the [implementation guide](../exec-plans/gaa-modular-monolith-implementation.md).
+
+### Local architecture review artifacts
+
+| Surface | Ownership | Maturity / treatment |
+| --- | --- | --- |
+| `architecture-review-gaa-admin-20260914.html` | Barrels engineering research for GAA Admin | Existing local review artifact; not an accepted architecture decision or deployed application |
+| `architecture-review-gaa-admin-detailed.html` | Barrels engineering research for GAA Admin | Existing local review artifact; recommendations require reconciliation with approved scope |

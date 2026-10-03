@@ -1,0 +1,317 @@
+[
+  [
+    "H01",
+    null,
+    "Vendome Community Centre",
+    419,
+    329,
+    1,
+    {
+      "NDC": 160,
+      "NNP": 164,
+      "GRP": 2,
+      "GEM": 0,
+      "TPP": 2
+    }
+  ],
+  [
+    "H02",
+    "a",
+    "New Hampshire Medical Station",
+    398,
+    294,
+    2,
+    {
+      "NDC": 125,
+      "NNP": 164,
+      "GRP": 0,
+      "GEM": 0,
+      "TPP": 3
+    }
+  ],
+  [
+    "H02",
+    "b",
+    "New Hampshire Medical Station",
+    388,
+    291,
+    1,
+    {
+      "NDC": 125,
+      "NNP": 159,
+      "GRP": 0,
+      "GEM": 0,
+      "TPP": 6
+    }
+  ],
+  [
+    "H03",
+    null,
+    "Constantine Methodist School",
+    158,
+    134,
+    0,
+    {
+      "NDC": 46,
+      "NNP": 87,
+      "GRP": 0,
+      "GEM": 0,
+      "TPP": 1
+    }
+  ],
+  [
+    "H04",
+    "a",
+    "Boca Secondary School",
+    328,
+    259,
+    1,
+    {
+      "NDC": 159,
+      "NNP": 96,
+      "GRP": 2,
+      "GEM": 0,
+      "TPP": 1
+    }
+  ],
+  [
+    "H04",
+    "b",
+    "Boca Secondary School",
+    304,
+    226,
+    2,
+    {
+      "NDC": 115,
+      "NNP": 109,
+      "GRP": 0,
+      "GEM": 0,
+      "TPP": 0
+    }
+  ],
+  [
+    "H05",
+    "a",
+    "Beaulieu R.C. School",
+    358,
+    259,
+    1,
+    {
+      "NDC": 117,
+      "NNP": 135,
+      "GRP": 4,
+      "GEM": 0,
+      "TPP": 2
+    }
+  ],
+  [
+    "H05",
+    "b",
+    "Beaulieu R.C. School",
+    350,
+    276,
+    0,
+    {
+      "NDC": 111,
+      "NNP": 163,
+      "GRP": 1,
+      "GEM": 0,
+      "TPP": 1
+    }
+  ],
+  [
+    "H05",
+    "c",
+    "Beaulieu R.C. School, Pre School Department",
+    374,
+    300,
+    0,
+    {
+      "NDC": 129,
+      "NNP": 170,
+      "GRP": 0,
+      "GEM": 1,
+      "TPP": 0
+    }
+  ],
+  [
+    "H06",
+    "a",
+    "L.A. Purcell's Building, La Mode",
+    317,
+    237,
+    0,
+    {
+      "NDC": 102,
+      "NNP": 135,
+      "GRP": 0,
+      "GEM": 0,
+      "TPP": 0
+    }
+  ],
+  [
+    "H06",
+    "b",
+    "L.A. Purcell's Building, La Mode",
+    293,
+    208,
+    2,
+    {
+      "NDC": 127,
+      "NNP": 77,
+      "GRP": 1,
+      "GEM": 0,
+      "TPP": 1
+    }
+  ],
+  [
+    "H07",
+    "a",
+    "St. Mary’s R. C. School, Tempe",
+    385,
+    260,
+    1,
+    {
+      "NDC": 121,
+      "NNP": 135,
+      "GRP": 0,
+      "GEM": 3,
+      "TPP": 0
+    }
+  ],
+  [
+    "H07",
+    "b",
+    "St. Mary’s R. C. School, Tempe",
+    374,
+    264,
+    3,
+    {
+      "NDC": 116,
+      "NNP": 143,
+      "GRP": 0,
+      "GEM": 2,
+      "TPP": 0
+    }
+  ],
+  [
+    "H07",
+    "c",
+    "St. Mary’s R. C. School, Tempe",
+    390,
+    266,
+    0,
+    {
+      "NDC": 129,
+      "NNP": 135,
+      "GRP": 0,
+      "GEM": 2,
+      "TPP": 0
+    }
+  ],
+  [
+    "H07",
+    "d",
+    "St. Mary’s R. C. School, Tempe",
+    457,
+    342,
+    1,
+    {
+      "NDC": 176,
+      "NNP": 163,
+      "GRP": 0,
+      "GEM": 1,
+      "TPP": 1
+    }
+  ],
+  [
+    "H08",
+    "a",
+    "Alpha Junior School, Mt. Parnassus",
+    293,
+    205,
+    0,
+    {
+      "NDC": 121,
+      "NNP": 84,
+      "GRP": 0,
+      "GEM": 0,
+      "TPP": 0
+    }
+  ],
+  [
+    "H08",
+    "b",
+    "Alpha Junior School, Mt. Parnassus",
+    298,
+    217,
+    0,
+    {
+      "NDC": 120,
+      "NNP": 97,
+      "GRP": 0,
+      "GEM": 0,
+      "TPP": 0
+    }
+  ],
+  [
+    "H08",
+    "c",
+    "Alpha Junior School, Mt. Parnassus",
+    295,
+    216,
+    0,
+    {
+      "NDC": 115,
+      "NNP": 101,
+      "GRP": 0,
+      "GEM": 0,
+      "TPP": 0
+    }
+  ],
+  [
+    "H09",
+    "a",
+    "St. Paul’s Government School",
+    276,
+    196,
+    0,
+    {
+      "NDC": 93,
+      "NNP": 100,
+      "GRP": 0,
+      "GEM": 3,
+      "TPP": 0
+    }
+  ],
+  [
+    "H09",
+    "b",
+    "St. Paul’s Government School",
+    291,
+    206,
+    5,
+    {
+      "NDC": 92,
+      "NNP": 102,
+      "GRP": 1,
+      "GEM": 5,
+      "TPP": 1
+    }
+  ],
+  [
+    "H09",
+    "c",
+    "St. Paul’s Government School",
+    283,
+    198,
+    0,
+    {
+      "NDC": 95,
+      "NNP": 102,
+      "GRP": 1,
+      "GEM": 0,
+      "TPP": 0
+    }
+  ]
+]

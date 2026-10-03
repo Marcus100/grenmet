@@ -1,6 +1,7 @@
+from datetime import date
 from typing import Any
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, Response, status
 
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import StatusReportDep
@@ -15,9 +16,71 @@ from .schemas import (
     StatusReportListPublic,
     StatusReportPublic,
     StatusReportSubmit,
+    StatusStaffingPublic,
 )
 
 router = APIRouter(prefix="/hr", tags=["hr-dailystatus"])
+
+
+@router.get(
+    "/status-reports/staffing",
+    response_model=StatusStaffingPublic,
+    status_code=status.HTTP_200_OK,
+    operation_id="hrGetStatusStaffing",
+    summary="Get planned shift staffing",
+    description="Published or closed roster staff and approved exceptions for the local M/E/N shift start date. Scheduled staffing does not establish actual attendance. Requires scoped status.report.create permission.",
+    responses={
+        400: {"description": "Invalid reporting shift"},
+        403: {"description": "Department access denied"},
+        404: {"description": "Department not found"},
+    },
+)
+async def get_status_staffing(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    department_id: str,
+    report_date: date,
+    shift_code: str,
+) -> Any:
+    return await service.staffing_for_shift(
+        session=session,
+        actor=current_user,
+        department_id=department_id,
+        report_date=report_date,
+        shift_code=shift_code,
+    )
+
+
+@router.post(
+    "/status-reports/preview-pdf",
+    response_class=Response,
+    status_code=status.HTTP_200_OK,
+    operation_id="hrPreviewStatusReportPdf",
+    summary="Preview a daily status report PDF",
+    description="Render unsaved status values using the signed-document Python renderer. No report, workflow or signature is saved. Requires scoped status.report.create permission.",
+    responses={
+        200: {"content": {"application/pdf": {}}},
+        400: {"description": "Invalid report values"},
+        403: {"description": "Department access denied"},
+        404: {"description": "Department not found"},
+    },
+)
+async def preview_status_report_pdf(
+    *, session: SessionDep, current_user: CurrentUser, payload: StatusReportCreate
+) -> Response:
+    pdf = await service.preview_status_report_pdf(
+        session=session, actor=current_user, payload=payload
+    )
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={
+            "Cache-Control": "private, no-store",
+            "X-Content-Type-Options": "nosniff",
+            "Content-Disposition": 'inline; filename="daily-status-preview.pdf"',
+        },
+    )
 
 
 @router.post(
@@ -25,9 +88,12 @@ router = APIRouter(prefix="/hr", tags=["hr-dailystatus"])
     response_model=StatusReportDetails,
     status_code=status.HTTP_201_CREATED,
     summary="Create status report",
-    description="Create a status report with optional personnel entries. Requires status.report.create permission.",
+    description="Create a scoped shift status report with persisted personnel entries. M/E/N submission requires confirmed operational answers and personnel status. Requires status.report.create permission.",
     responses={
         status.HTTP_201_CREATED: {"description": "Status report created"},
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "Invalid personnel or operational answers"
+        },
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
     },
 )
@@ -53,7 +119,9 @@ async def create_status_report(
     description="Submit a previously-saved DRAFT status report, attaching named co-approvers. Requires status.report.create permission and ownership of the report.",
     responses={
         status.HTTP_200_OK: {"description": "Status report submitted"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Status report is not a draft"},
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "Status report is not a draft or contains invalid personnel or operational answers"
+        },
         status.HTTP_403_FORBIDDEN: {
             "description": "Not allowed to submit this status report"
         },
@@ -83,7 +151,9 @@ async def submit_status_report(
     description="Update a still-DRAFT status report (and its personnel entries) in place. Requires status.report.create permission and ownership.",
     responses={
         status.HTTP_200_OK: {"description": "Status report updated"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Status report is not a draft"},
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "Status report is not a draft or contains invalid personnel or operational answers"
+        },
         status.HTTP_403_FORBIDDEN: {
             "description": "Not allowed to edit this status report"
         },
@@ -113,7 +183,9 @@ async def update_status_report(
     description="Delete an own DRAFT status report. Requires status.report.create permission and ownership.",
     responses={
         status.HTTP_204_NO_CONTENT: {"description": "Status report deleted"},
-        status.HTTP_400_BAD_REQUEST: {"description": "Status report is not a draft"},
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "Status report is not a draft or contains invalid personnel or operational answers"
+        },
         status.HTTP_403_FORBIDDEN: {
             "description": "Not allowed to delete this status report"
         },

@@ -1,18 +1,26 @@
 import uuid
 from typing import Any, cast
 
+from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from sqlmodel import col, delete, select
 
-from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
+from src.auth.models import (
+    Role,
+    RoleAssignmentScope,
+    User,
+    UserImage,
+    UserRoleAssignment,
+)
 from src.auth.policy import can_act_on_user, require_permission
+from src.hr.leave import ledger
 from src.hr.organisations import (
     department_for,
     permitted_departments,
     require_organisation_permission,
     resolve_organisation,
+    validate_service_facts,
     validate_supervisor,
 )
 from src.utils.datetime import utc_now
@@ -31,7 +39,6 @@ from .models import (
     EmploymentRecord,
     EmploymentStatus,
     Grade,
-    LeaveBalance,
     LeaveCarryOver,
     RosterPreference,
     RosterPreferredShift,
@@ -140,9 +147,12 @@ async def create_employment_for_user(
     department = await session.get(Department, payload.department_id)
     if not department:
         raise DepartmentNotFoundError()
+    if payload.supervisor_id == target_user_id:
+        raise HRValidationError("An employee cannot supervise themselves")
     await validate_supervisor(
-        session, payload.supervisor_id, department.organisation_id
+        session, payload.supervisor_id, department.organisation_id, target_user_id
     )
+    await validate_service_facts(payload.model_dump(), None)
     record = EmploymentRecord(
         user_id=target_user_id,
         organisation_id=department.organisation_id,
@@ -193,8 +203,8 @@ async def list_departments(
     )
     result = await session.execute(
         select(Department)
-        .where(col(Department.id).in_(allowed))
-        .order_by(col(Department.name))
+        .where(Department.id.in_(allowed))
+        .order_by(Department.name)
         .limit(200)
     )
     return list(result.scalars().all())
@@ -220,16 +230,16 @@ async def list_department_members(
         raise HRPermissionDeniedError("Department access denied")
     result = await session.execute(
         select(EmploymentRecord, User, Grade)
-        .join(User, col(EmploymentRecord.user_id) == col(User.id))
-        .outerjoin(Grade, col(EmploymentRecord.grade_id) == col(Grade.id))
+        .join(User, EmploymentRecord.user_id == User.id)
+        .outerjoin(Grade, EmploymentRecord.grade_id == Grade.id)
         .where(
-            col(EmploymentRecord.department_id) == department_id,
-            col(EmploymentRecord.status) == EmploymentStatus.ACTIVE,
+            EmploymentRecord.department_id == department_id,
+            EmploymentRecord.status == EmploymentStatus.ACTIVE,
         )
         .order_by(
-            col(Grade.rank).nulls_last(),
-            col(User.last_name),
-            col(User.first_name),
+            Grade.rank.nulls_last(),
+            User.last_name,
+            User.first_name,
         )
     )
     return [(employment, user, grade) for employment, user, grade in result.all()]
@@ -407,10 +417,7 @@ async def _build_profile_response(
         select(RosterRestrictedShift).where(RosterRestrictedShift.user_id == user.id)
     )
     restricted_shifts = list(restr_result.scalars().all())
-    leave_result = await session.execute(
-        select(LeaveBalance).where(LeaveBalance.user_id == user.id)
-    )
-    leave_balances = list(leave_result.scalars().all())
+    leave_balances = await ledger.balances(session, user.id)
     carry_result = await session.execute(
         select(LeaveCarryOver).where(LeaveCarryOver.user_id == user.id)
     )
@@ -427,7 +434,9 @@ async def _build_profile_response(
         for role in user.roles
     ]
 
-    avatar_url = user.user_image.object_key if user.user_image else None
+    avatar_url = await session.scalar(
+        select(UserImage.object_key).where(UserImage.user_id == user.id)
+    )
 
     from src.baseline.service import employment_complete
 
@@ -465,6 +474,18 @@ async def _build_profile_response(
             employment_record.employment_type if employment_record else None
         ),
         start_date=employment_record.start_date if employment_record else None,
+        continuous_service_date=employment_record.continuous_service_date
+        if employment_record
+        else None,
+        probation_end_date=employment_record.probation_end_date
+        if employment_record
+        else None,
+        probation_completed_date=employment_record.probation_completed_date
+        if employment_record
+        else None,
+        service_details_source=employment_record.service_details_source
+        if employment_record
+        else None,
         supervisor_id=employment_record.supervisor_id if employment_record else None,
         work_location=employment_record.work_location if employment_record else None,
         status=employment_record.status if employment_record else None,
@@ -512,8 +533,8 @@ async def _build_profile_response(
             max_night_shifts_per_month=roster_preference.max_night_shifts_per_month,
         ),
         leave=LeavePublic(
-            balances={row.leave_type: row.balance for row in leave_balances},
-            carry_over={row.leave_type: row.days for row in carry_over},
+            balances=leave_balances,
+            unverified_carry_over={row.leave_type: row.days for row in carry_over},
         ),
         approval_authority=ApprovalAuthorityPublic(
             can_approve_leave=approval_authority.can_approve_leave,
@@ -563,7 +584,8 @@ async def update_profile_details(
         if key
         not in {"title", "first_name", "middle_name", "last_name", "display_name"}
     }
-    profile.sqlmodel_update(safe_profile_data)
+    for key, value in safe_profile_data.items():
+        setattr(profile, key, value)
     profile.updated_at = utc_now()
     session.add(profile)
     return profile
@@ -586,7 +608,8 @@ async def update_emergency_contact(
         for key, value in emergency_data.items()
         if key in field_map
     }
-    profile.sqlmodel_update(mapped)
+    for key, value in mapped.items():
+        setattr(profile, key, value)
     profile.updated_at = utc_now()
     session.add(profile)
     return profile
@@ -599,7 +622,8 @@ async def update_address(
     address_data: dict[str, object],
 ) -> UserAddress:
     address = await _get_or_create_address(session=session, user_id=user_id)
-    address.sqlmodel_update(address_data)
+    for key, value in address_data.items():
+        setattr(address, key, value)
     address.updated_at = utc_now()
     session.add(address)
     return address
@@ -616,15 +640,14 @@ async def update_roster_preferences(
     )
     preferred_shifts = roster_data.pop("preferred_shifts", None)
     restricted_shifts = roster_data.pop("restricted_shifts", None)
-    roster_preference.sqlmodel_update(roster_data)
+    for key, value in roster_data.items():
+        setattr(roster_preference, key, value)
     roster_preference.updated_at = utc_now()
     session.add(roster_preference)
 
     if isinstance(preferred_shifts, list):
         await session.execute(
-            delete(RosterPreferredShift).where(
-                col(RosterPreferredShift.user_id) == user_id
-            )
+            delete(RosterPreferredShift).where(RosterPreferredShift.user_id == user_id)
         )
         for shift_code in _normalize_shift_codes(preferred_shifts):
             session.add(RosterPreferredShift(user_id=user_id, shift_code=shift_code))
@@ -632,7 +655,7 @@ async def update_roster_preferences(
     if isinstance(restricted_shifts, list):
         await session.execute(
             delete(RosterRestrictedShift).where(
-                col(RosterRestrictedShift.user_id) == user_id
+                RosterRestrictedShift.user_id == user_id
             )
         )
         for shift_code in _normalize_shift_codes(restricted_shifts):
@@ -685,7 +708,8 @@ async def update_profile_for_current_user(
             if key in {"title", "first_name", "middle_name", "last_name"}
         }
         if auth_updates:
-            current_user.sqlmodel_update(auth_updates)
+            for key, value in auth_updates.items():
+                setattr(current_user, key, value)
             session.add(current_user)
 
     await session.commit()
@@ -709,7 +733,8 @@ def _apply_employment_update(
 ) -> EmploymentRecord:
     employment_data = updates.model_dump(exclude_unset=True)
     if employment_data:
-        employment.sqlmodel_update(employment_data)
+        for key, value in employment_data.items():
+            setattr(employment, key, value)
         employment.updated_at = utc_now()
     return employment
 
@@ -719,7 +744,8 @@ def _apply_approval_update(
 ) -> ApprovalAuthority:
     approval_data = updates.model_dump(exclude_unset=True)
     if approval_data:
-        authority.sqlmodel_update(approval_data)
+        for key, value in approval_data.items():
+            setattr(authority, key, value)
         authority.updated_at = utc_now()
     return authority
 
@@ -758,8 +784,16 @@ async def update_employment_for_user(
         raise EmploymentNotFoundError()
 
     if employment_update:
+        await validate_service_facts(
+            employment_update.model_dump(exclude_unset=True), employment
+        )
+        if employment_update.supervisor_id == target_user_id:
+            raise HRValidationError("An employee cannot supervise themselves")
         await validate_supervisor(
-            session, employment_update.supervisor_id, employment.organisation_id
+            session,
+            employment_update.supervisor_id,
+            employment.organisation_id,
+            target_user_id,
         )
         if employment_update.department_id:
             destination = await department_for(session, employment_update.department_id)

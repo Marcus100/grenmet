@@ -8,8 +8,8 @@ is insufficient. Full personnel access uses the existing document-manage grant.
 import uuid
 from dataclasses import dataclass
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
 
 from src.auth.models import RoleAssignmentScope, User, UserRoleAssignment
 from src.hr.models import EmploymentRecord
@@ -108,11 +108,11 @@ async def resolve_access(
         (
             await session.execute(
                 select(UserRoleAssignment).where(
-                    col(UserRoleAssignment.user_id) == actor.id,
+                    UserRoleAssignment.user_id == actor.id,
                     UserRoleAssignment.organisation_id == organisation_id,
-                    col(UserRoleAssignment.effective_from) <= now,
-                    col(UserRoleAssignment.effective_to).is_(None)
-                    | (col(UserRoleAssignment.effective_to) > now),
+                    UserRoleAssignment.effective_from <= now,
+                    UserRoleAssignment.effective_to.is_(None)
+                    | (UserRoleAssignment.effective_to > now),
                 )
             )
         )

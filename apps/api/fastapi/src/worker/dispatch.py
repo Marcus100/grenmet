@@ -12,11 +12,10 @@ from datetime import timedelta
 from typing import Any
 
 import httpx
-from sqlalchemy import or_
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
 
-from src.cap.models import CapJobEvent, CapJobStatus
+from src.cap.models import CapAlert, CapJobEvent, CapJobStatus, CapScope, CapStatus
 from src.utils.datetime import utc_now
 from src.worker import publishers
 from src.worker.publishers import PublishError
@@ -60,7 +59,15 @@ async def dispatch_job(
     try:
         if handler is None:
             raise PublishError({"error": f"no handler for kind '{job.kind}'"})
-        result = await handler(session=session, job=job, http_client=http_client)
+        alert = await session.get(CapAlert, job.alert_id) if job.alert_id else None
+        if job.alert_id is not None and alert is None:
+            raise PublishError({"error": "publish job alert not found"})
+        if alert is not None and (
+            alert.status != CapStatus.ACTUAL or alert.scope != CapScope.PUBLIC
+        ):
+            result = {"skipped": True, "reason": "CAP message is not Public Actual"}
+        else:
+            result = await handler(session=session, job=job, http_client=http_client)
         job.status = CapJobStatus.SUCCEEDED
         job.result = result
         job.next_retry_at = None
@@ -103,17 +110,17 @@ async def process_due_jobs(
             select(CapJobEvent)
             .where(
                 or_(
-                    col(CapJobEvent.status) == CapJobStatus.QUEUED,
-                    (col(CapJobEvent.status) == CapJobStatus.FAILED)
-                    & (col(CapJobEvent.attempts) < max_attempts)
+                    CapJobEvent.status == CapJobStatus.QUEUED,
+                    (CapJobEvent.status == CapJobStatus.FAILED)
+                    & (CapJobEvent.attempts < max_attempts)
                     # Only retry once the backoff window has elapsed.
                     & (
-                        col(CapJobEvent.next_retry_at).is_(None)
-                        | (col(CapJobEvent.next_retry_at) <= now)
+                        CapJobEvent.next_retry_at.is_(None)
+                        | (CapJobEvent.next_retry_at <= now)
                     ),
                 )
             )
-            .order_by(col(CapJobEvent.created_at))
+            .order_by(CapJobEvent.created_at)
             .limit(limit)
         )
         jobs = list(result.scalars().all())

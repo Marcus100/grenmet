@@ -7,6 +7,7 @@ import {
   formatDateTime,
   primaryInfo,
 } from "@/lib/cap-api";
+import { SEVERITY_RISK_VAR } from "@/lib/cap-severity";
 import { SeverityBadge } from "./severity-badge";
 
 export function AlertList({
@@ -30,10 +31,16 @@ export function AlertList({
         const info = primaryInfo(alert);
         return (
           <article
-            className="border border-gm-border bg-card p-4 shadow-card"
+            className="flex border border-gm-border bg-card shadow-card"
             key={alert.id}
           >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <span
+              className="w-1 flex-shrink-0"
+              style={{
+                background: SEVERITY_RISK_VAR[info?.severity ?? "Unknown"],
+              }}
+            />
+            <div className="flex flex-1 flex-col gap-4 p-4 sm:flex-row sm:items-start sm:justify-between">
               <div className="min-w-0 space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
                   {info ? <SeverityBadge severity={info.severity} /> : null}

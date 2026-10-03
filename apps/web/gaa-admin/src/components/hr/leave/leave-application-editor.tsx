@@ -1,16 +1,18 @@
 "use client";
 
 import {
+  hrGetMyLeaveRequestsQueryKey,
   type LeaveRequestPublic,
   type LeaveType,
-  readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryKey,
-  useCreateLeaveRequestApiV1HrLeaveRequestsPost,
-  useReadHrProfileMeApiV1HrProfileMeGet,
-  useReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet,
-  useSubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost,
-  useUpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch,
+  type ProfAppointmentType,
+  useHrCreateLeaveRequest,
+  useHrGetHrProfileMe,
+  useHrGetMyLeaveRequests,
+  useHrSubmitLeaveRequest,
+  useHrUpdateLeaveRequest,
 } from "@barrelsgd/api-client";
 import { useSessionUser } from "@barrelsgd/auth";
+import { Checkbox } from "@barrelsgd/ui/components/ui/checkbox";
 import {
   Field,
   FieldGroup,
@@ -31,17 +33,22 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { DatePicker } from "@/components/document/date-picker";
-import { DocumentPreview } from "@/components/document/document-preview";
+import { hrApiErrorMessage } from "@/components/hr/api-error";
 import { CoApproverPicker } from "@/components/hr/co-approver-picker";
 import { FormActionBar } from "@/components/hr/form-action-bar";
+import { downloadHrPdf, HrPdfPreview } from "@/components/hr/hr-pdf-preview";
 import {
   signedDocumentsKey,
   useSigning,
 } from "@/components/hr/signatures/signature-api";
 import { SigningPanel } from "@/components/hr/signatures/signing-panel";
-import type { SubmissionMetadata } from "@/components/hr/submission-date";
+import {
+  SubmissionDate,
+  type SubmissionMetadata,
+} from "@/components/hr/submission-date";
 import { useEditorPrefill } from "@/components/hr/use-editor-prefill";
-import { EMPTY_LEAVE, LEAVE_TYPES, LeaveDocument } from "./leave-document";
+import { reportError } from "@/lib/report-error";
+import { EMPTY_LEAVE, LEAVE_TYPES } from "./leave-document";
 
 /** Paper-form labels → API LeaveType values. */
 const LEAVE_TYPE_MAP: Record<string, LeaveType> = {
@@ -50,9 +57,15 @@ const LEAVE_TYPE_MAP: Record<string, LeaveType> = {
   "Professional Appointment": "PROFESSIONAL_APPOINTMENT",
   "Family Bereavement": "BEREAVEMENT",
   "Paternity Leave": "PATERNITY",
-  "Bank | Medical | Legal Dental": "PROFESSIONAL_APPOINTMENT",
   Other: "OTHER",
 };
+
+const APPOINTMENT_SUBTYPES: ProfAppointmentType[] = [
+  "BANK",
+  "MEDICAL",
+  "LEGAL",
+  "DENTAL",
+];
 
 /** API LeaveType → a representative paper-form label (for reopening a draft). */
 const REVERSE_LEAVE_TYPE: Partial<Record<LeaveType, string>> = {
@@ -68,14 +81,70 @@ export function buildLeaveRequestPayload(
   values: typeof EMPTY_LEAVE,
   departmentId: string
 ) {
+  const subtype = APPOINTMENT_SUBTYPES.find(
+    (item) => item === values.professionalAppointmentSubtype
+  );
   return {
     department_id: departmentId,
     leave_type: LEAVE_TYPE_MAP[values.leaveType] ?? ("OTHER" as LeaveType),
     start_date: values.startDate,
     end_date: values.endDate,
     days_requested: values.daysRequested || undefined,
-    reason: values.otherReason || undefined,
+    reason:
+      values.leaveType === "Other"
+        ? values.otherReason.trim() || undefined
+        : undefined,
+    professional_appointment_subtype:
+      values.leaveType === "Professional Appointment" ? subtype : undefined,
+    salary_in_advance: values.salaryInAdvance,
+    leave_address: values.leaveAddress.trim() || undefined,
+    travel_from_date: values.travelFromDate || undefined,
+    travel_to_date: values.travelToDate || undefined,
+    requires_acting_appointment: values.requiresActingAppointment,
   };
+}
+
+export function validateLeaveValues(
+  values: typeof EMPTY_LEAVE,
+  asDraft: boolean
+): string | null {
+  if (!(values.startDate && values.endDate)) {
+    return "Start and end dates are required";
+  }
+  if (!values.leaveType) {
+    return "Choose a type of leave";
+  }
+  if (values.endDate < values.startDate) {
+    return "End date must be on or after start date";
+  }
+  if (
+    (values.daysRequested || !asDraft) &&
+    (!Number.isFinite(Number(values.daysRequested)) ||
+      Number(values.daysRequested) <= 0)
+  ) {
+    return "Enter a positive number of days requested";
+  }
+  if (!asDraft && values.leaveType === "Other" && !values.otherReason.trim()) {
+    return "State the reason for other leave";
+  }
+  if (
+    !asDraft &&
+    values.leaveType === "Professional Appointment" &&
+    !values.professionalAppointmentSubtype
+  ) {
+    return "Choose the professional appointment type";
+  }
+  if (Boolean(values.travelFromDate) !== Boolean(values.travelToDate)) {
+    return "Enter both travel dates or leave both blank";
+  }
+  if (
+    values.travelFromDate &&
+    values.travelToDate &&
+    values.travelToDate < values.travelFromDate
+  ) {
+    return "Travel to date must be on or after travel from date";
+  }
+  return null;
 }
 
 /** Map a saved request back onto the paper-form fields when reopening a draft. */
@@ -88,6 +157,13 @@ function draftToFormValues(request: LeaveRequestPublic): typeof EMPTY_LEAVE {
     startDate: request.start_date ?? "",
     endDate: request.end_date ?? "",
     otherReason: request.reason ?? "",
+    professionalAppointmentSubtype:
+      request.professional_appointment_subtype ?? "",
+    salaryInAdvance: request.salary_in_advance ?? false,
+    leaveAddress: request.leave_address ?? "",
+    travelFromDate: request.travel_from_date ?? "",
+    travelToDate: request.travel_to_date ?? "",
+    requiresActingAppointment: request.requires_acting_appointment ?? false,
   };
 }
 
@@ -99,14 +175,12 @@ export function LeaveApplicationEditor() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const draftParam = searchParams.get("draft");
-  const profileQuery = useReadHrProfileMeApiV1HrProfileMeGet();
+  const profileQuery = useHrGetHrProfileMe();
   const departmentId = profileQuery.data?.employment?.department?.id;
-  const myRequestsQuery = useReadMyLeaveRequestsApiV1HrLeaveRequestsMeGet({});
-  const createMutation = useCreateLeaveRequestApiV1HrLeaveRequestsPost();
-  const updateMutation =
-    useUpdateLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdPatch();
-  const submitMutation =
-    useSubmitLeaveRequestApiV1HrLeaveRequestsLeaveRequestIdSubmitPost();
+  const myRequestsQuery = useHrGetMyLeaveRequests({});
+  const createMutation = useHrCreateLeaveRequest();
+  const updateMutation = useHrUpdateLeaveRequest();
+  const submitMutation = useHrSubmitLeaveRequest();
   const [submission, setSubmission] = useState<SubmissionMetadata | null>(null);
   const [coApprovers, setCoApprovers] = useState<string[]>([]);
   const [statusHint, setStatusHint] = useState<string | null>(null);
@@ -114,6 +188,7 @@ export function LeaveApplicationEditor() {
   const [pendingAction, setPendingAction] = useState<"save" | "submit" | null>(
     null
   );
+  const [validationError, setValidationError] = useState<string | null>(null);
   const loadedDraftRef = useRef<string | null>(null);
 
   // When arriving via ?draft=<id>, load that draft into the form once.
@@ -122,12 +197,21 @@ export function LeaveApplicationEditor() {
       return;
     }
     const rows = myRequestsQuery.data?.data;
-    if (!rows) {
+    if (!rows || profileQuery.isFetching) {
       return;
     }
     const draft = rows.find((request) => request.id === draftParam);
     if (draft) {
-      form.reset(draftToFormValues(draft), { keepDefaultValues: true });
+      form.reset(
+        {
+          ...draftToFormValues(draft),
+          employeeName: sessionUser.full_name ?? "",
+          department:
+            profileQuery.data?.employment?.department?.name ??
+            draft.department_id,
+        },
+        { keepDefaultValues: true }
+      );
       setDraftId(draftParam);
       setSubmission(draft.status === "DRAFT" ? null : draft);
       setStatusHint(
@@ -137,7 +221,14 @@ export function LeaveApplicationEditor() {
       );
       loadedDraftRef.current = draftParam;
     }
-  }, [draftParam, myRequestsQuery.data, form]);
+  }, [
+    draftParam,
+    myRequestsQuery.data,
+    profileQuery.isFetching,
+    profileQuery.data,
+    sessionUser.full_name,
+    form,
+  ]);
 
   // Prefill blank fields with the current user, their department, and today.
   useEditorPrefill(
@@ -160,6 +251,7 @@ export function LeaveApplicationEditor() {
     form.reset();
     setCoApprovers([]);
     setStatusHint(null);
+    setValidationError(null);
     setDraftId(null);
     loadedDraftRef.current = null;
     if (searchParams.get("draft")) {
@@ -167,33 +259,47 @@ export function LeaveApplicationEditor() {
     }
   }
 
-  function handleDownloadPdf() {
-    if (submission?.signed_document_id) {
-      window.location.assign(
-        `/api/v1/hr/signed-documents/${submission.signed_document_id}/pdf`
-      );
-      return;
+  async function handleDownloadPdf() {
+    try {
+      await downloadHrPdf({
+        payload: buildLeaveRequestPayload(
+          form.state.values,
+          departmentId ?? ""
+        ),
+        previewPath: "/api/v1/hr/leave-requests/preview-pdf",
+        signedDocumentId: submission?.signed_document_id,
+        filename: "leave-application.pdf",
+      });
+    } catch (error) {
+      reportError(error, "hr-leave-pdf-download");
+      toast.error(hrApiErrorMessage(error));
     }
-    window.print();
   }
 
   async function refreshMyRequests() {
     await queryClient.invalidateQueries({
-      queryKey: readMyLeaveRequestsApiV1HrLeaveRequestsMeGetQueryKey({}),
+      queryKey: hrGetMyLeaveRequestsQueryKey({}),
     });
   }
 
   async function persist(values: typeof EMPTY_LEAVE, asDraft: boolean) {
+    setValidationError(null);
     if (!(asDraft || signature.data)) {
-      toast.error("Save your signature in your profile before signing");
+      const message = "Save your signature in your profile before signing";
+      setValidationError(message);
+      toast.error(message);
       return;
     }
-    if (!(values.startDate && values.endDate)) {
-      toast.error("Start and end dates are required");
+    const invalid = validateLeaveValues(values, asDraft);
+    if (invalid) {
+      setValidationError(invalid);
+      toast.error(invalid);
       return;
     }
     if (!departmentId) {
-      toast.error("Your employment record has no department — contact HR");
+      const message = "Your employment record has no department — contact HR";
+      setValidationError(message);
+      toast.error(message);
       return;
     }
     setPendingAction(asDraft ? "save" : "submit");
@@ -251,8 +357,8 @@ export function LeaveApplicationEditor() {
       }
       await refreshMyRequests();
     } catch (error) {
-      const detail =
-        error instanceof Error ? error.message : "Something went wrong";
+      const detail = hrApiErrorMessage(error);
+      setValidationError(detail);
       toast.error(`${asDraft ? "Save" : "Submission"} failed: ${detail}`);
     } finally {
       setPendingAction(null);
@@ -276,6 +382,7 @@ export function LeaveApplicationEditor() {
             )}
             <div className="flex flex-col gap-3">
               <SigningPanel submission={submission} />
+              <SubmissionDate submission={submission} />
               <FormActionBar
                 isSaving={pendingAction === "save"}
                 isSubmitting={pendingAction === "submit"}
@@ -287,6 +394,11 @@ export function LeaveApplicationEditor() {
                 submitDisabled={!(departmentId && signature.data)}
                 submitLabel="Sign & submit"
               />
+              {validationError ? (
+                <p className="text-destructive text-sm" role="alert">
+                  {validationError}
+                </p>
+              ) : null}
             </div>
 
             <Separator />
@@ -342,7 +454,10 @@ export function LeaveApplicationEditor() {
                           </FieldLabel>
                           <Input
                             id={field.name}
+                            min="0"
                             onChange={(e) => field.handleChange(e.target.value)}
+                            step="any"
+                            type="number"
                             value={field.state.value}
                           />
                         </Field>
@@ -424,6 +539,126 @@ export function LeaveApplicationEditor() {
                     </form.Field>
                   ) : null}
 
+                  {values.leaveType === "Professional Appointment" ? (
+                    <form.Field name="professionalAppointmentSubtype">
+                      {(field) => (
+                        <Field className="gap-1">
+                          <FieldLabel className="text-xs" htmlFor={field.name}>
+                            Appointment type
+                          </FieldLabel>
+                          <Select
+                            onValueChange={(value) =>
+                              field.handleChange(value ?? "")
+                            }
+                            value={field.state.value}
+                          >
+                            <SelectTrigger id={field.name}>
+                              <SelectValue placeholder="Choose an appointment type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {APPOINTMENT_SUBTYPES.map((subtype) => (
+                                <SelectItem key={subtype} value={subtype}>
+                                  {subtype[0] + subtype.slice(1).toLowerCase()}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </Field>
+                      )}
+                    </form.Field>
+                  ) : null}
+
+                  <form.Field name="salaryInAdvance">
+                    {(field) => (
+                      <label
+                        className="flex items-center gap-2 text-sm"
+                        htmlFor={field.name}
+                      >
+                        <Checkbox
+                          checked={field.state.value}
+                          id={field.name}
+                          onCheckedChange={(checked) =>
+                            field.handleChange(Boolean(checked))
+                          }
+                        />
+                        Request salary in advance
+                      </label>
+                    )}
+                  </form.Field>
+
+                  <form.Field name="leaveAddress">
+                    {(field) => (
+                      <Field className="gap-1">
+                        <FieldLabel className="text-xs" htmlFor={field.name}>
+                          Where the leave will be spent
+                        </FieldLabel>
+                        <Input
+                          id={field.name}
+                          maxLength={500}
+                          onChange={(event) =>
+                            field.handleChange(event.target.value)
+                          }
+                          value={field.state.value}
+                        />
+                      </Field>
+                    )}
+                  </form.Field>
+
+                  <div className="grid gap-5 md:grid-cols-2">
+                    <form.Field name="travelFromDate">
+                      {(field) => (
+                        <Field className="gap-1">
+                          <FieldLabel className="text-xs" htmlFor={field.name}>
+                            Travel from (optional)
+                          </FieldLabel>
+                          <Input
+                            id={field.name}
+                            onChange={(event) =>
+                              field.handleChange(event.target.value)
+                            }
+                            type="date"
+                            value={field.state.value}
+                          />
+                        </Field>
+                      )}
+                    </form.Field>
+                    <form.Field name="travelToDate">
+                      {(field) => (
+                        <Field className="gap-1">
+                          <FieldLabel className="text-xs" htmlFor={field.name}>
+                            Travel to (optional)
+                          </FieldLabel>
+                          <Input
+                            id={field.name}
+                            onChange={(event) =>
+                              field.handleChange(event.target.value)
+                            }
+                            type="date"
+                            value={field.state.value}
+                          />
+                        </Field>
+                      )}
+                    </form.Field>
+                  </div>
+
+                  <form.Field name="requiresActingAppointment">
+                    {(field) => (
+                      <label
+                        className="flex items-center gap-2 text-sm"
+                        htmlFor={field.name}
+                      >
+                        <Checkbox
+                          checked={field.state.value}
+                          id={field.name}
+                          onCheckedChange={(checked) =>
+                            field.handleChange(Boolean(checked))
+                          }
+                        />
+                        An acting appointment will be required
+                      </label>
+                    )}
+                  </form.Field>
+
                   <Field className="gap-1">
                     <FieldLabel className="text-xs">
                       Co-approvers (all must approve before it reaches HR)
@@ -440,9 +675,18 @@ export function LeaveApplicationEditor() {
             )}
           </div>
 
-          <DocumentPreview showDownloadPdf={false} title="Leave Application">
-            <LeaveDocument submission={submission} values={values} />
-          </DocumentPreview>
+          <HrPdfPreview
+            payload={buildLeaveRequestPayload(values, departmentId ?? "")}
+            previewPath="/api/v1/hr/leave-requests/preview-pdf"
+            ready={Boolean(
+              departmentId &&
+                values.leaveType &&
+                values.startDate &&
+                values.endDate
+            )}
+            signedDocumentId={submission?.signed_document_id}
+            title="Leave Application"
+          />
         </div>
       )}
     </form.Subscribe>

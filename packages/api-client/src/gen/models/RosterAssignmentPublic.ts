@@ -3,6 +3,8 @@
  * Do not edit manually.
  */
 
+import type { RosterAvailability } from "./RosterAvailability.js";
+
 export type RosterAssignmentPublic = {
   /**
    * @description
@@ -30,4 +32,9 @@ export type RosterAssignmentPublic = {
   assignment_date: string;
   shift_code: string;
   remarks?: string | null;
+  /**
+   * @default 'SCHEDULED'
+   * @type string | undefined
+   */
+  availability?: RosterAvailability;
 };

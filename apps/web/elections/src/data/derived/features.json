@@ -1,0 +1,101 @@
+{
+  "1972": {
+    "flips": null,
+    "marginal": 2,
+    "competitive": 3,
+    "safe": 10,
+    "medianMargin": 26.72,
+    "meanENP": 1.845,
+    "verified": 15
+  },
+  "1976": {
+    "flips": 6,
+    "marginal": 2,
+    "competitive": 7,
+    "safe": 6,
+    "medianMargin": 11.91,
+    "meanENP": 1.922,
+    "verified": 0
+  },
+  "1984": {
+    "flips": 14,
+    "marginal": 2,
+    "competitive": 4,
+    "safe": 9,
+    "medianMargin": 21.18,
+    "meanENP": 2.041,
+    "verified": 14
+  },
+  "1990": {
+    "flips": 12,
+    "marginal": 2,
+    "competitive": 8,
+    "safe": 5,
+    "medianMargin": 8.96,
+    "meanENP": 3.313,
+    "verified": 0
+  },
+  "1995": {
+    "flips": 7,
+    "marginal": 7,
+    "competitive": 4,
+    "safe": 4,
+    "medianMargin": 6.59,
+    "meanENP": 3.359,
+    "verified": 12
+  },
+  "1999": {
+    "flips": 7,
+    "marginal": 1,
+    "competitive": 2,
+    "safe": 12,
+    "medianMargin": 24.45,
+    "meanENP": 1.939,
+    "verified": 15
+  },
+  "2003": {
+    "flips": 7,
+    "marginal": 5,
+    "competitive": 4,
+    "safe": 6,
+    "medianMargin": 6.51,
+    "meanENP": 2.174,
+    "verified": 15
+  },
+  "2008": {
+    "flips": 4,
+    "marginal": 3,
+    "competitive": 9,
+    "safe": 3,
+    "medianMargin": 8.74,
+    "meanENP": 1.966,
+    "verified": 15
+  },
+  "2013": {
+    "flips": 11,
+    "marginal": 2,
+    "competitive": 6,
+    "safe": 7,
+    "medianMargin": 13.03,
+    "meanENP": 1.913,
+    "verified": 15
+  },
+  "2018": {
+    "flips": 0,
+    "marginal": 2,
+    "competitive": 6,
+    "safe": 7,
+    "medianMargin": 14.25,
+    "meanENP": 1.9,
+    "verified": 15
+  },
+  "2022": {
+    "flips": 9,
+    "marginal": 4,
+    "competitive": 6,
+    "safe": 5,
+    "medianMargin": 8.62,
+    "meanENP": 1.965,
+    "verified": 15
+  }
+}

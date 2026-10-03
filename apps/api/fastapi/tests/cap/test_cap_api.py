@@ -10,6 +10,39 @@ from src.baseline.models import ApprovalPolicy
 pytestmark = pytest.mark.asyncio
 
 
+async def test_duplicate_preserves_stored_utc_times(
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    created = await async_client.post(
+        "/api/v1/cap/alerts",
+        headers=superuser_token_headers_async,
+        json=_alert_payload(),
+    )
+    assert created.status_code == 201, created.text
+    original = created.json()
+    duplicate = await async_client.post(
+        f"/api/v1/cap/alerts/{original['id']}/duplicate",
+        headers=superuser_token_headers_async,
+    )
+    assert duplicate.status_code == 200, duplicate.text
+    for key in ("effective", "onset", "expires"):
+        assert duplicate.json()["info"][0][key] == original["info"][0][key]
+
+
+async def test_cap_mixed_offsets_return_validation_error(
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    payload = _alert_payload()
+    payload["info"][0]["effective"] = "2026-09-23T12:00:00"
+    payload["info"][0]["expires"] = "2026-09-23T14:00:00Z"
+    response = await async_client.post(
+        "/api/v1/cap/alerts", headers=superuser_token_headers_async, json=payload
+    )
+    assert response.status_code == 422, response.text
+
+
 async def test_cap_workflow_publish_public_outputs_and_jobs(
     async_client: httpx.AsyncClient,
     db_async: AsyncSession,

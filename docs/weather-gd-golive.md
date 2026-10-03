@@ -1,5 +1,9 @@
 # weather.gd go-live runbook
 
+**Status:** Superseded (2026-07-25)  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-08-19
+
 > **Superseded on 2026-07-25** by the
 > [Barrels Grenada Migration Plan](exec-plans/barrelsgd-migration-plan.md).
 > Two assignments below are no longer correct: `api.barrels.gd` is the canonical

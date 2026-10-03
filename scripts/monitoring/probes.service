@@ -1,0 +1,18 @@
+[Unit]
+Description=Barrels environment availability probes
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=deploy
+WorkingDirectory=/opt/grenmet
+EnvironmentFile=/etc/grenmet/monitoring.conf
+ExecStart=/usr/bin/python3 /opt/grenmet/scripts/monitoring/probe.py --environment ${MONITORING_ENVIRONMENT} --output /var/lib/grenmet-monitoring/probes.jsonl --state /var/lib/grenmet-monitoring/state.json
+StateDirectory=grenmet-monitoring
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+TimeoutStartSec=120

@@ -9,7 +9,7 @@ export const staffCardSchema = z.object({
   email_verified: z.boolean().optional().default(false),
   account_approved: z.boolean().optional().default(true),
   employment_ready: z.boolean().optional().default(false),
-  issued_at: z.union([z.string(), z.null()]).optional(),
+  issued_at: z.union([z.iso.datetime(), z.null()]).optional(),
   user_id: z.uuid(),
   number: z.string(),
   name: z.string(),

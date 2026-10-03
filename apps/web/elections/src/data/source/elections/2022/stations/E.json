@@ -1,0 +1,194 @@
+[
+  [
+    "E01",
+    null,
+    "Paraclete Government School",
+    230,
+    170,
+    1,
+    {
+      "NNP": 112,
+      "NDC": 57
+    }
+  ],
+  [
+    "E02",
+    "a",
+    "La Fillette R.C. School",
+    357,
+    287,
+    2,
+    {
+      "NNP": 161,
+      "NDC": 124
+    }
+  ],
+  [
+    "E02",
+    "b",
+    "La Fillette R.C. School",
+    354,
+    287,
+    0,
+    {
+      "NNP": 174,
+      "NDC": 113
+    }
+  ],
+  [
+    "E02",
+    "c",
+    "La Fillette R.C. School",
+    345,
+    264,
+    1,
+    {
+      "NNP": 139,
+      "NDC": 124
+    }
+  ],
+  [
+    "E02",
+    "d",
+    "La Fillette R.C. School",
+    377,
+    284,
+    2,
+    {
+      "NNP": 150,
+      "NDC": 132
+    }
+  ],
+  [
+    "E03",
+    "a",
+    "Byelands R. C. School",
+    288,
+    214,
+    0,
+    {
+      "NNP": 108,
+      "NDC": 106
+    }
+  ],
+  [
+    "E03",
+    "b",
+    "Byelands R. C. School",
+    278,
+    206,
+    0,
+    {
+      "NNP": 100,
+      "NDC": 106
+    }
+  ],
+  [
+    "E04",
+    "a",
+    "Paradise Medical Station",
+    359,
+    273,
+    2,
+    {
+      "NNP": 118,
+      "NDC": 153
+    }
+  ],
+  [
+    "E04",
+    "b",
+    "Paradise Medical Station",
+    360,
+    276,
+    1,
+    {
+      "NNP": 119,
+      "NDC": 156
+    }
+  ],
+  [
+    "E05",
+    "a",
+    "Mirabeau Agricultural Station",
+    348,
+    245,
+    0,
+    {
+      "NNP": 129,
+      "NDC": 116
+    }
+  ],
+  [
+    "E05",
+    "b",
+    "Mirabeau Agricultural Station",
+    354,
+    265,
+    1,
+    {
+      "NNP": 143,
+      "NDC": 121
+    }
+  ],
+  [
+    "E05",
+    "c",
+    "Mirabeau Agricultural Station",
+    412,
+    298,
+    3,
+    {
+      "NNP": 146,
+      "NDC": 149
+    }
+  ],
+  [
+    "E06",
+    "a",
+    "Sio's Bar, Birchgrove",
+    206,
+    137,
+    1,
+    {
+      "NNP": 70,
+      "NDC": 66
+    }
+  ],
+  [
+    "E06",
+    "b",
+    "Sio's Bar,",
+    204,
+    163,
+    1,
+    {
+      "NNP": 86,
+      "NDC": 76
+    }
+  ],
+  [
+    "E07",
+    "a",
+    "Paul’s Bakery, Birchgrove Bamboo Bar, Birchgrove",
+    215,
+    166,
+    0,
+    {
+      "NNP": 75,
+      "NDC": 91
+    }
+  ],
+  [
+    "E07",
+    "b",
+    "Paul’s Bakery, Birchgrove Bamboo Bar, Birchgrove",
+    190,
+    145,
+    0,
+    {
+      "NNP": 68,
+      "NDC": 77
+    }
+  ]
+]

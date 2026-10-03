@@ -11,9 +11,9 @@ Usage:
 
 import uuid
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
-from sqlmodel import select
 
 from src.auth.models import (
     Permission,
@@ -230,7 +230,7 @@ async def make_ready_staff(
     from decimal import Decimal
 
     from src.baseline.models import ApprovalPolicy, StaffCredential
-    from src.hr.leave.models import LeaveBalanceEvent, LeaveType
+    from src.hr.leave.models import LeaveBalanceEvent, LeaveEntryKind, LeaveType
     from src.hr.models import EmploymentType, Grade
     from src.hr.workflow.models import WorkflowType
 
@@ -294,6 +294,8 @@ async def make_ready_staff(
                 LeaveBalanceEvent(
                     user_id=user.id,
                     leave_type=kind.value,
+                    entry_kind=LeaveEntryKind.OPENING,
+                    sequence=1,
                     delta_days=Decimal("30"),
                     balance_after_days=Decimal("30"),
                     reason="Verified test opening balance",

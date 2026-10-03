@@ -1,10 +1,10 @@
 import {
-  getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey,
-  listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryKey,
-  listPeriodsApiV1HrRostersPeriodsGetQueryKey,
-  readHrEmploymentApiV1HrEmploymentUserIdGetQueryKey,
-  readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey,
-  readUsersApiV1AuthUsersGetQueryKey,
+  authGetRoleAssignmentsQueryKey,
+  authGetUsersQueryKey,
+  hrGetHrEmploymentQueryKey,
+  hrGetPeriodQueryKey,
+  hrListDepartmentMembersQueryKey,
+  hrListPeriodsQueryKey,
 } from "@barrelsgd/api-client";
 import type { QueryClient } from "@tanstack/react-query";
 import { describe, expect, it, vi } from "vitest";
@@ -36,7 +36,7 @@ describe("invalidateAfterRosterImport", () => {
     const keys = invalidatedKeys(invalidateQueries);
     expect(keys).toContain(
       JSON.stringify(
-        listPeriodsApiV1HrRostersPeriodsGetQueryKey({
+        hrListPeriodsQueryKey({
           query: {
             department_id: "dept_met",
           },
@@ -45,14 +45,12 @@ describe("invalidateAfterRosterImport", () => {
     );
     expect(keys).toContain(
       JSON.stringify(
-        listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryKey(
-          { path: { department_id: "dept_met" } }
-        )
+        hrListDepartmentMembersQueryKey({ path: { department_id: "dept_met" } })
       )
     );
     expect(keys).toContain(
       JSON.stringify(
-        getPeriodApiV1HrRostersPeriodsPeriodIdGetQueryKey({
+        hrGetPeriodQueryKey({
           path: { period_id: "p-1" },
         })
       )
@@ -80,26 +78,20 @@ describe("invalidateAfterEmploymentChange", () => {
     const keys = invalidatedKeys(invalidateQueries);
     expect(keys).toContain(
       JSON.stringify(
-        readHrEmploymentApiV1HrEmploymentUserIdGetQueryKey({
+        hrGetHrEmploymentQueryKey({
           path: { user_id: "u-1" },
         })
       )
     );
-    expect(keys).toContain(
-      JSON.stringify(readUsersApiV1AuthUsersGetQueryKey({}))
-    );
+    expect(keys).toContain(JSON.stringify(authGetUsersQueryKey({})));
     expect(keys).toContain(
       JSON.stringify(
-        listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryKey(
-          { path: { department_id: "dept_old" } }
-        )
+        hrListDepartmentMembersQueryKey({ path: { department_id: "dept_old" } })
       )
     );
     expect(keys).toContain(
       JSON.stringify(
-        listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryKey(
-          { path: { department_id: "dept_new" } }
-        )
+        hrListDepartmentMembersQueryKey({ path: { department_id: "dept_new" } })
       )
     );
     // employment + users + 2 unique departments = 4 (duplicate/undefined dropped).
@@ -112,17 +104,11 @@ describe("invalidateAfterUserOnboard", () => {
     const { client, invalidateQueries } = fakeClient();
     await invalidateAfterUserOnboard(client, { departmentId: "dept_met" });
     const keys = invalidatedKeys(invalidateQueries);
-    expect(keys).toContain(
-      JSON.stringify(readUsersApiV1AuthUsersGetQueryKey({}))
-    );
-    expect(keys).toContain(
-      JSON.stringify(readRoleAssignmentsApiV1AuthRoleAssignmentsGetQueryKey({}))
-    );
+    expect(keys).toContain(JSON.stringify(authGetUsersQueryKey({})));
+    expect(keys).toContain(JSON.stringify(authGetRoleAssignmentsQueryKey({})));
     expect(keys).toContain(
       JSON.stringify(
-        listDepartmentMembersEndpointApiV1HrDepartmentsDepartmentIdMembersGetQueryKey(
-          { path: { department_id: "dept_met" } }
-        )
+        hrListDepartmentMembersQueryKey({ path: { department_id: "dept_met" } })
       )
     );
     expect(invalidateQueries).toHaveBeenCalledTimes(3);

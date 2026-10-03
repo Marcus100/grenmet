@@ -1,12 +1,12 @@
 import logging
 import uuid
 
-from sqlalchemy import or_
+from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
 
-from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
+from src.auth.models import User
 from src.auth.policy import can_act_on_user_for_role, require_permission
+from src.hr import notifications as hr_notifications
 from src.hr.constants import (
     ERROR_WORKFLOW_CANNOT_BE_SUBMITTED,
     ERROR_WORKFLOW_NOT_PENDING,
@@ -47,11 +47,8 @@ async def create_workflow_template(
     require_permission(
         current_user=current_user, permission_key="workflow.template.manage"
     )
-    db_template = WorkflowTemplate.model_validate(
-        template_in,
-        update={
-            "created_by": current_user.id,
-        },
+    db_template = WorkflowTemplate(
+        **template_in.model_dump(), created_by=current_user.id
     )
     session.add(db_template)
     await session.commit()
@@ -72,9 +69,11 @@ async def create_workflow_step_template(
     workflow_template = await session.get(WorkflowTemplate, workflow_template_id)
     if not workflow_template:
         raise WorkflowTemplateNotFoundError()
-    db_step = WorkflowStepTemplate.model_validate(
-        step_in,
-        update={"workflow_template_id": workflow_template_id, "scope_enforced": True},
+    step_values = step_in.model_dump()
+    step_values["scope_enforced"] = True
+    db_step = WorkflowStepTemplate(
+        **step_values,
+        workflow_template_id=workflow_template_id,
     )
     session.add(db_step)
     await session.commit()
@@ -90,9 +89,7 @@ async def read_workflow_templates(
     )
     statement = select(WorkflowTemplate)
     if department_id:
-        statement = statement.where(
-            col(WorkflowTemplate.department_id) == department_id
-        )
+        statement = statement.where(WorkflowTemplate.department_id == department_id)
     result = await session.execute(statement.limit(100))
     return list(result.scalars().all())
 
@@ -127,8 +124,8 @@ async def _create_step_instances_for_workflow(
 
     result = await session.execute(
         select(WorkflowStepTemplate)
-        .where(col(WorkflowStepTemplate.workflow_template_id) == workflow_template_id)
-        .order_by(col(WorkflowStepTemplate.step_order))
+        .where(WorkflowStepTemplate.workflow_template_id == workflow_template_id)
+        .order_by(WorkflowStepTemplate.step_order)
     )
     steps = list(result.scalars().all())
     orders = sorted({step.step_order for step in steps})
@@ -178,6 +175,8 @@ async def create_workflow_instance(
         "status_report",
         "parking_permit",
         "timesheet",
+        "attendance",
+        "attendance_correction",
     }:
         raise HRValidationError(
             "Submit the HR form to create its authoritative approval workflow"
@@ -249,8 +248,8 @@ async def read_workflow_instance_details(
         raise WorkflowInstanceNotFoundError()
     result = await session.execute(
         select(WorkflowStepInstance)
-        .where(col(WorkflowStepInstance.workflow_instance_id) == workflow_instance_id)
-        .order_by(col(WorkflowStepInstance.step_order))
+        .where(WorkflowStepInstance.workflow_instance_id == workflow_instance_id)
+        .order_by(WorkflowStepInstance.step_order)
     )
     steps = list(result.scalars().all())
     return workflow_instance, steps
@@ -276,7 +275,7 @@ async def _is_actor_allowed_for_step(
             select(WorkflowStepInstance).where(
                 WorkflowStepInstance.workflow_instance_id == workflow_instance.id,
                 WorkflowStepInstance.approver_user_id == current_user.id,
-                col(WorkflowStepInstance.action) == WorkflowAction.APPROVE,
+                WorkflowStepInstance.action == WorkflowAction.APPROVE,
                 WorkflowStepInstance.purpose != "RECORDING",
             )
         )
@@ -346,12 +345,124 @@ async def apply_workflow_action(
         current_user=current_user if require_actor_permission else None,
     )
 
+    if (
+        workflow_instance.entity_type == "shift_swap"
+        and workflow_instance.status == WorkflowStatus.APPROVED
+        and action_in.action == WorkflowAction.CANCEL
+    ):
+        from src.auth.policy import can_act_on_user
+        from src.hr.exchange import roster_effects
+        from src.hr.exchange.models import ShiftSwapRequest
+        from src.hr.models import RequestStatus
+
+        require_permission(
+            current_user=current_user, permission_key="shift_swap.request.action"
+        )
+        request = await session.get(ShiftSwapRequest, workflow_instance.entity_id)
+        if (
+            request is None
+            or request.workflow_instance_id != workflow_instance.id
+            or not await can_act_on_user(
+                session=session,
+                current_user=current_user,
+                target_user_id=workflow_instance.requested_by_user_id,
+                permission_key="shift_swap.request.action",
+            )
+        ):
+            raise HRPermissionDeniedError(ERROR_WORKFLOW_PERMISSION_DENIED)
+        await roster_effects.reverse_exchange(session, request, current_user.id)
+        request.status = RequestStatus.CANCELLED
+        request.updated_at = utc_now()
+        workflow_instance.status = WorkflowStatus.CANCELLED
+        workflow_instance.resolved_at = workflow_instance.updated_at = utc_now()
+        session.add(
+            ApprovalActionLog(
+                workflow_instance_id=workflow_instance.id,
+                action=WorkflowAction.CANCEL,
+                actor_user_id=current_user.id,
+                comments=action_in.comments,
+            )
+        )
+        await session.flush()
+        await hr_notifications.workflow_transitioned(
+            session,
+            instance=workflow_instance,
+            action=WorkflowAction.CANCEL,
+            actor_id=current_user.id,
+            previous_status=WorkflowStatus.APPROVED,
+            previous_order=workflow_instance.current_step_order,
+        )
+        if commit:
+            await session.commit()
+            await session.refresh(workflow_instance)
+        return workflow_instance
+
+    if (
+        workflow_instance.entity_type == "leave_request"
+        and workflow_instance.status == WorkflowStatus.APPROVED
+        and action_in.action == WorkflowAction.CANCEL
+    ):
+        from src.auth.policy import can_act_on_user
+        from src.hr.workflow.finalize import finalize_entity
+
+        require_permission(
+            current_user=current_user, permission_key="leave.request.action"
+        )
+        if not await can_act_on_user(
+            session=session,
+            current_user=current_user,
+            target_user_id=workflow_instance.requested_by_user_id,
+            permission_key="leave.request.action",
+        ):
+            raise HRPermissionDeniedError(ERROR_WORKFLOW_PERMISSION_DENIED)
+        workflow_instance.status = WorkflowStatus.CANCELLED
+        workflow_instance.resolved_at = workflow_instance.updated_at = utc_now()
+        await finalize_entity(session, workflow_instance, current_user.id)
+        session.add(
+            ApprovalActionLog(
+                workflow_instance_id=workflow_instance.id,
+                action=WorkflowAction.CANCEL,
+                actor_user_id=current_user.id,
+                comments=action_in.comments,
+            )
+        )
+        await session.flush()
+        await hr_notifications.workflow_transitioned(
+            session,
+            instance=workflow_instance,
+            action=WorkflowAction.CANCEL,
+            actor_id=current_user.id,
+            previous_status=WorkflowStatus.APPROVED,
+            previous_order=workflow_instance.current_step_order,
+        )
+        if commit:
+            await session.commit()
+            await session.refresh(workflow_instance)
+        return workflow_instance
+
     if action_in.action == WorkflowAction.SUBMIT:
         if workflow_instance.status not in {
             WorkflowStatus.DRAFT,
             WorkflowStatus.RETURNED,
         }:
             raise HRValidationError(ERROR_WORKFLOW_CANNOT_BE_SUBMITTED)
+        if (
+            require_actor_permission
+            and workflow_instance.status == WorkflowStatus.RETURNED
+            and workflow_instance.entity_type
+            in {
+                "leave_request",
+                "shift_swap",
+                "absentee_report",
+                "status_report",
+                "parking_permit",
+                "attendance",
+                "attendance_correction",
+            }
+        ):
+            raise HRValidationError(
+                "Submit through the form so its validation and signature are checked"
+            )
         from src.baseline.models import ApprovalPolicy
         from src.baseline.service import require_leave_ready, require_ready
 
@@ -372,6 +483,29 @@ async def apply_workflow_action(
                 await require_leave_ready(
                     session, leave.user_id, leave.department_id, leave.leave_type.value
                 )
+        if workflow_instance.entity_type == "shift_swap":
+            from src.hr.exchange import service as exchange_service
+            from src.hr.exchange.models import ShiftSwapRequest
+
+            request = await session.get(ShiftSwapRequest, workflow_instance.entity_id)
+            if (
+                request is None
+                or request.workflow_instance_id not in {None, workflow_instance.id}
+                or request.department_id != workflow_instance.department_id
+            ):
+                raise HRValidationError("Workflow does not match this exchange")
+            await exchange_service.validate_request(session, request, submitting=True)
+            if not any(
+                step.required_user_id == request.counterpart_user_id
+                and step.is_required
+                and step.step_order == 1
+                for step in steps
+            ):
+                raise HRValidationError(
+                    "The other employee must be a required first-stage approver"
+                )
+            request.counterpart_agreed = False
+            request.counterpart_agreed_at = None
         if workflow_instance.status == WorkflowStatus.DRAFT:
             policy = await session.get(
                 ApprovalPolicy,
@@ -387,6 +521,7 @@ async def apply_workflow_action(
             workflow_instance.require_distinct_approvers = (
                 policy.require_distinct_approvers
             )
+        submitted_from = workflow_instance.status
         if workflow_instance.status == WorkflowStatus.RETURNED:
             for step in steps:
                 step.action = None
@@ -407,6 +542,15 @@ async def apply_workflow_action(
             )
         )
         session.add(workflow_instance)
+        await session.flush()
+        await hr_notifications.workflow_transitioned(
+            session,
+            instance=workflow_instance,
+            action=WorkflowAction.SUBMIT,
+            actor_id=current_user.id,
+            previous_status=submitted_from,
+            previous_order=0,
+        )
         if commit:
             await session.commit()
             await session.refresh(workflow_instance)
@@ -480,6 +624,28 @@ async def apply_workflow_action(
     }:
         raise HRValidationError("Invalid stage action")
     previous_status = workflow_instance.status
+    if workflow_instance.entity_type == "shift_swap":
+        from src.hr.exchange.models import ShiftSwapRequest
+        from src.hr.models import RequestStatus
+
+        request = await session.get(ShiftSwapRequest, workflow_instance.entity_id)
+        if request is None or request.workflow_instance_id != workflow_instance.id:
+            raise HRValidationError("Workflow does not match this exchange")
+        if target_step.required_user_id == request.counterpart_user_id:
+            request.counterpart_agreed = action_in.action == WorkflowAction.APPROVE
+            request.counterpart_agreed_at = (
+                utc_now() if request.counterpart_agreed else None
+            )
+        if action_in.action in {
+            WorkflowAction.RETURN,
+            WorkflowAction.CANCEL,
+            WorkflowAction.REJECT,
+        }:
+            request.counterpart_agreed = False
+            request.counterpart_agreed_at = None
+        if action_in.action == WorkflowAction.CANCEL:
+            request.status = RequestStatus.CANCELLED
+        request.updated_at = utc_now()
     target_step.approver_user_id = current_user.id
     target_step.action = action_in.action
     target_step.comments = action_in.comments
@@ -525,15 +691,35 @@ async def apply_workflow_action(
                 workflow_instance.status = WorkflowStatus.APPROVED
                 workflow_instance.resolved_at = utc_now()
 
-    if workflow_instance.status != previous_status and workflow_instance.status in {
-        WorkflowStatus.APPROVED,
-        WorkflowStatus.REJECTED,
-    }:
+    if workflow_instance.status != previous_status and (
+        workflow_instance.status in {WorkflowStatus.APPROVED, WorkflowStatus.REJECTED}
+        or (
+            workflow_instance.status
+            in {WorkflowStatus.RETURNED, WorkflowStatus.CANCELLED}
+            and workflow_instance.entity_type
+            in {
+                "leave_request",
+                "shift_swap",
+                "absentee_report",
+                "status_report",
+                "parking_permit",
+            }
+        )
+    ):
         from src.hr.workflow.finalize import finalize_entity
 
         await finalize_entity(session, workflow_instance, current_user.id)
     workflow_instance.updated_at = utc_now()
     session.add(workflow_instance)
+    await session.flush()
+    await hr_notifications.workflow_transitioned(
+        session,
+        instance=workflow_instance,
+        action=action_in.action,
+        actor_id=current_user.id,
+        previous_status=previous_status,
+        previous_order=current_order,
+    )
     if commit:
         await session.commit()
         await session.refresh(workflow_instance)
@@ -549,77 +735,6 @@ async def apply_workflow_action(
         },
     )
     return workflow_instance
-
-
-WORKFLOW_TYPE_LABELS: dict[WorkflowType, str] = {
-    WorkflowType.LEAVE_REQUEST: "Leave request",
-    WorkflowType.SHIFT_SWAP: "Shift exchange",
-    WorkflowType.ABSENTEE_REPORT: "Absentee report",
-    WorkflowType.STATUS_REPORT: "Daily status report",
-    WorkflowType.TIMESHEET: "Timesheet",
-    WorkflowType.PARKING_PERMIT: "Parking permit",
-}
-
-
-async def _hr_admin_emails(*, session: AsyncSession, department_id: str) -> list[str]:
-    """Email addresses of everyone holding the hr-admin role."""
-    from src.hr.organisations import department_for
-
-    department = await department_for(session, department_id)
-    now = utc_now()
-    role_result = await session.execute(select(Role).where(Role.name == "hr-admin"))
-    role = role_result.scalars().first()
-    if not role:
-        return []
-    user_result = await session.execute(
-        select(User)
-        .join(UserRoleAssignment, col(UserRoleAssignment.user_id) == col(User.id))
-        .where(
-            col(UserRoleAssignment.role_id) == role.id,
-            UserRoleAssignment.organisation_id == department.organisation_id,
-            col(UserRoleAssignment.effective_from) <= now,
-            col(UserRoleAssignment.effective_to).is_(None)
-            | (col(UserRoleAssignment.effective_to) > now),
-            (UserRoleAssignment.scope == RoleAssignmentScope.ALL)
-            | (
-                (UserRoleAssignment.scope == RoleAssignmentScope.DEPARTMENT)
-                & (UserRoleAssignment.department_id == department_id)
-            ),
-            col(User.is_active).is_(True),
-        )
-    )
-    return [user.email for user in user_result.scalars().unique().all() if user.email]
-
-
-async def build_approval_notification(
-    *, session: AsyncSession, instance: WorkflowInstance
-) -> tuple[list[str], str, str] | None:
-    """Recipients + subject + HTML for the "approved" email to HR admins.
-
-    Returns None when there is nobody to notify (no hr-admin users).
-    """
-    recipients = await _hr_admin_emails(
-        session=session, department_id=instance.department_id
-    )
-    if not recipients:
-        return None
-    requester = await session.get(User, instance.requested_by_user_id)
-    requester_name = requester.full_name if requester else "A staff member"
-    type_label = WORKFLOW_TYPE_LABELS.get(
-        instance.workflow_type, instance.workflow_type.value
-    )
-    subject = f"Approved: {type_label} — {requester_name}"
-    html = (
-        f"<p>A <strong>{type_label.lower()}</strong> has completed the approval "
-        f"chain and is now approved.</p>"
-        f"<ul>"
-        f"<li><strong>Requested by:</strong> {requester_name}</li>"
-        f"<li><strong>Department:</strong> {instance.department_id}</li>"
-        f"<li><strong>Reference:</strong> {instance.entity_type} {instance.entity_id}</li>"
-        f"</ul>"
-        f"<p>No action is required — this is a record notification for HR.</p>"
-    )
-    return recipients, subject, html
 
 
 async def list_actionable_instances(
@@ -640,28 +755,26 @@ async def list_actionable_instances(
     my_role_ids = (
         set() if current_user.is_superuser else {role.id for role in current_user.roles}
     )
-    match_conditions = [col(WorkflowStepInstance.required_user_id) == current_user.id]
+    match_conditions = [WorkflowStepInstance.required_user_id == current_user.id]
     if current_user.is_superuser:
-        match_conditions.append(col(WorkflowStepInstance.required_role_id).is_not(None))
+        match_conditions.append(WorkflowStepInstance.required_role_id.is_not(None))
     if my_role_ids:
-        match_conditions.append(
-            col(WorkflowStepInstance.required_role_id).in_(my_role_ids)
-        )
+        match_conditions.append(WorkflowStepInstance.required_role_id.in_(my_role_ids))
 
     result = await session.execute(
         select(WorkflowInstance, WorkflowStepInstance)
         .join(
             WorkflowStepInstance,
-            col(WorkflowStepInstance.workflow_instance_id) == col(WorkflowInstance.id),
+            WorkflowStepInstance.workflow_instance_id == WorkflowInstance.id,
         )
         .where(
-            col(WorkflowInstance.status).in_(
+            WorkflowInstance.status.in_(
                 [WorkflowStatus.PENDING, WorkflowStatus.APPROVED]
             ),
-            col(WorkflowStepInstance.action).is_(None),
+            WorkflowStepInstance.action.is_(None),
             or_(*match_conditions),
         )
-        .order_by(col(WorkflowInstance.submitted_at))
+        .order_by(WorkflowInstance.submitted_at)
     )
 
     actionable: list[tuple[WorkflowInstance, WorkflowStepInstance]] = []
@@ -678,11 +791,11 @@ async def list_actionable_instances(
                 await session.execute(
                     select(WorkflowStepInstance.id).where(
                         WorkflowStepInstance.workflow_instance_id == instance.id,
-                        col(WorkflowStepInstance.is_required).is_(True),
+                        WorkflowStepInstance.is_required.is_(True),
                         WorkflowStepInstance.step_order < step.step_order,
                         or_(
-                            col(WorkflowStepInstance.action).is_(None),
-                            col(WorkflowStepInstance.action) != WorkflowAction.APPROVE,
+                            WorkflowStepInstance.action.is_(None),
+                            WorkflowStepInstance.action != WorkflowAction.APPROVE,
                         ),
                     )
                 )
@@ -701,7 +814,7 @@ async def list_actionable_instances(
     requesters: dict[uuid.UUID, User] = {}
     if requester_ids:
         requester_result = await session.execute(
-            select(User).where(col(User.id).in_(requester_ids))
+            select(User).where(User.id.in_(requester_ids))
         )
         requesters = {user.id: user for user in requester_result.scalars().all()}
 
@@ -732,9 +845,9 @@ async def start_workflow_for_entity(
     """
     result = await session.execute(
         select(WorkflowTemplate).where(
-            col(WorkflowTemplate.department_id) == department_id,
-            col(WorkflowTemplate.workflow_type) == workflow_type,
-            col(WorkflowTemplate.is_active) == True,  # noqa: E712
+            WorkflowTemplate.department_id == department_id,
+            WorkflowTemplate.workflow_type == workflow_type,
+            WorkflowTemplate.is_active == True,  # noqa: E712
         )
     )
     template = result.scalars().first()
@@ -788,9 +901,73 @@ async def submit_draft_workflow(
     Steps are built at submit time (not draft-create) so the co-approvers chosen
     at submission are the ones that take effect.
     """
-    instance = await session.get(WorkflowInstance, workflow_instance_id)
+    instance = await session.scalar(
+        select(WorkflowInstance)
+        .where(WorkflowInstance.id == workflow_instance_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
     if not instance:
         raise WorkflowInstanceNotFoundError()
+    if instance.status == WorkflowStatus.RETURNED:
+        from src.hr.absentee.models import AbsenteeReport
+        from src.hr.dailystatus.models import StatusReport
+        from src.hr.exchange.models import ShiftSwapRequest
+        from src.hr.leave.models import LeaveRequest
+        from src.hr.parking.models import ParkingPermit
+
+        models = {
+            "leave_request": LeaveRequest,
+            "shift_swap": ShiftSwapRequest,
+            "absentee_report": AbsenteeReport,
+            "status_report": StatusReport,
+            "parking_permit": ParkingPermit,
+        }
+        model = models.get(instance.entity_type)
+        entity = (
+            await session.get(model, instance.entity_id, populate_existing=True)
+            if model
+            else None
+        )
+        if (
+            not isinstance(
+                entity,
+                (
+                    LeaveRequest,
+                    ShiftSwapRequest,
+                    AbsenteeReport,
+                    StatusReport,
+                    ParkingPermit,
+                ),
+            )
+            or entity.workflow_instance_id != instance.id
+            or entity.department_id != instance.department_id
+            or instance.requested_by_user_id != current_user.id
+        ):
+            raise HRValidationError("Returned workflow does not match this form")
+        new_id = await start_workflow_for_entity(
+            session=session,
+            current_user=current_user,
+            department_id=instance.department_id,
+            workflow_type=instance.workflow_type,
+            entity_type=instance.entity_type,
+            entity_id=instance.entity_id,
+            submit=False,
+        )
+        if new_id is None:
+            raise HRValidationError(
+                "Configure an active approval workflow before resubmitting"
+            )
+        entity.workflow_instance_id = new_id
+        session.add(entity)
+        await session.flush()
+        return await submit_draft_workflow(
+            session=session,
+            current_user=current_user,
+            workflow_instance_id=new_id,
+            co_approver_user_ids=co_approver_user_ids,
+            commit=commit,
+        )
     if instance.status != WorkflowStatus.DRAFT:
         raise HRValidationError(ERROR_WORKFLOW_CANNOT_BE_SUBMITTED)
     await _create_step_instances_for_workflow(

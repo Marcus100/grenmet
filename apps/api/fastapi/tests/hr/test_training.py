@@ -226,7 +226,7 @@ def test_invalid_training_details(changes):
 
 @pytest.mark.asyncio
 async def test_department_transfer_retains_discoverable_filing_history(db_async):
-    from sqlmodel import select
+    from sqlalchemy import select
 
     from src.hr.models import EmploymentRecord
 
@@ -264,7 +264,7 @@ async def test_department_transfer_retains_discoverable_filing_history(db_async)
 
 @pytest.mark.asyncio
 async def test_historical_organisation_remains_available_to_subject(db_async):
-    from sqlmodel import select
+    from sqlalchemy import select
 
     from src.hr import organisations
     from src.hr.models import EmploymentRecord

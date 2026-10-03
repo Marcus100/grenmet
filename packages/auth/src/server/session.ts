@@ -1,3 +1,11 @@
+import {
+  effectiveAccessSchema,
+  messageSchema,
+  sessionAccessTokenResponseSchema,
+  sessionLoginResponseSchema,
+  tokenSchema,
+  userPublicSchema,
+} from "@barrelsgd/api-client";
 import type {
   AuthConfig,
   EffectiveAccess,
@@ -16,6 +24,7 @@ export function exchangeSessionForAccessToken(
   return authApiFetch<SessionAccessTokenResponse>(
     config,
     "/login/session/access-token",
+    sessionAccessTokenResponseSchema,
     {
       body: { session_token: sessionToken },
       method: "POST",
@@ -27,7 +36,7 @@ export async function logoutSession(
   config: AuthConfig,
   sessionToken: string
 ): Promise<void> {
-  await authApiFetch<{ message: string }>(config, "/login/session/logout", {
+  await authApiFetch(config, "/login/session/logout", messageSchema, {
     body: { session_token: sessionToken },
     method: "POST",
   });
@@ -37,7 +46,7 @@ export async function logoutAllSessions(
   config: AuthConfig,
   sessionToken: string
 ): Promise<void> {
-  await authApiFetch<{ message: string }>(config, "/login/session/logout-all", {
+  await authApiFetch(config, "/login/session/logout-all", messageSchema, {
     body: { session_token: sessionToken },
     method: "POST",
   });
@@ -53,7 +62,7 @@ export function createSession(
     clientType?: string;
   }
 ): Promise<SessionLoginResponse> {
-  return authApiFetch<SessionLoginResponse>(config, "/login/session", {
+  return authApiFetch(config, "/login/session", sessionLoginResponseSchema, {
     body: {
       email: input.email,
       password: input.password,
@@ -69,10 +78,15 @@ export function refreshSession(
   config: AuthConfig,
   sessionToken: string
 ): Promise<SessionLoginResponse> {
-  return authApiFetch<SessionLoginResponse>(config, "/login/session/refresh", {
-    body: { session_token: sessionToken },
-    method: "POST",
-  });
+  return authApiFetch(
+    config,
+    "/login/session/refresh",
+    sessionLoginResponseSchema,
+    {
+      body: { session_token: sessionToken },
+      method: "POST",
+    }
+  );
 }
 
 /**
@@ -83,9 +97,10 @@ export function requestPasswordRecovery(
   config: AuthConfig,
   email: string
 ): Promise<MessageResponse> {
-  return authApiFetch<MessageResponse>(
+  return authApiFetch(
     config,
     `/password-recovery/${encodeURIComponent(email)}`,
+    messageSchema,
     { method: "POST" }
   );
 }
@@ -98,7 +113,7 @@ export function resetPassword(
   config: AuthConfig,
   input: { token: string; newPassword: string }
 ): Promise<MessageResponse> {
-  return authApiFetch<MessageResponse>(config, "/reset-password/", {
+  return authApiFetch(config, "/reset-password/", messageSchema, {
     body: { token: input.token, new_password: input.newPassword },
     method: "POST",
   });
@@ -120,7 +135,7 @@ export function signUp(
     middleName?: string | null;
   }
 ): Promise<UserPublic> {
-  return authApiFetch<UserPublic>(config, "/auth/users/signup", {
+  return authApiFetch(config, "/auth/users/signup", userPublicSchema, {
     body: {
       email: input.email,
       username: input.username,
@@ -143,18 +158,23 @@ export function loginWithPassword(
   config: AuthConfig,
   input: { username: string; password: string }
 ): Promise<Token> {
-  return authApiFormFetch<Token>(config, "/login/access-token", {
-    grant_type: "password",
-    username: input.username,
-    password: input.password,
-  });
+  return authApiFormFetch(
+    config,
+    "/login/access-token",
+    {
+      grant_type: "password",
+      username: input.username,
+      password: input.password,
+    },
+    tokenSchema
+  );
 }
 
 export function getEffectiveAccess(
   config: AuthConfig,
   accessToken: string
 ): Promise<EffectiveAccess> {
-  return authApiFetch<EffectiveAccess>(config, "/auth/access/me", {
+  return authApiFetch(config, "/auth/access/me", effectiveAccessSchema, {
     accessToken,
   });
 }

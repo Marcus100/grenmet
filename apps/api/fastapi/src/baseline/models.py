@@ -2,98 +2,101 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import JSON, Column
-from sqlmodel import Field, SQLModel
+from sqlalchemy import JSON, ForeignKey, String
+from sqlalchemy.orm import Mapped, mapped_column
 
+from src.orm import Base
 from src.utils.datetime import utc_now
 
 
-class BaselineStep(SQLModel, table=True):
+class BaselineStep(Base):
     __tablename__ = "baseline_step"
 
-    key: str = Field(primary_key=True, max_length=150)
-    completed_at: datetime = Field(default_factory=utc_now)
+    key: Mapped[str] = mapped_column(String(150), primary_key=True)
+    completed_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
-class StaffCredential(SQLModel, table=True):
+class StaffCredential(Base):
     __tablename__ = "staff_credential"
 
-    user_id: uuid.UUID = Field(primary_key=True, foreign_key="user.id")
-    number: str = Field(
-        default_factory=lambda: f"GAA-{uuid.uuid4().hex.upper()}",
-        unique=True,
-        max_length=36,
+    user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"), primary_key=True)
+    number: Mapped[str] = mapped_column(
+        String(36), unique=True, default=lambda: f"GAA-{uuid.uuid4().hex.upper()}"
     )
-    department_id: str = Field(foreign_key="hr.department.id")
-    grade_id: str = Field(foreign_key="hr.grade.id")
-    revoked_at: datetime | None = None
-    created_at: datetime = Field(default_factory=utc_now)
+    department_id: Mapped[str] = mapped_column(ForeignKey("hr.department.id"))
+    grade_id: Mapped[str] = mapped_column(ForeignKey("hr.grade.id"))
+    revoked_at: Mapped[datetime | None]
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
-class BaselineAudit(SQLModel, table=True):
+class BaselineAudit(Base):
     __tablename__ = "baseline_audit"
 
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    actor_id: uuid.UUID = Field(foreign_key="user.id")
-    subject_id: uuid.UUID | None = Field(default=None, foreign_key="user.id")
-    action: str = Field(max_length=100)
-    details: dict[str, Any] = Field(
-        default_factory=dict[str, Any], sa_column=Column(JSON, nullable=False)
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    actor_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
+    subject_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id"), nullable=True
     )
-    created_at: datetime = Field(default_factory=utc_now)
+    action: Mapped[str] = mapped_column(String(100))
+    details: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False, default=dict)
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
 
 
-class ApprovalPolicy(SQLModel, table=True):
+class ApprovalPolicy(Base):
     __tablename__ = "approval_policy"
 
-    key: str = Field(primary_key=True, max_length=150)
-    allow_self_approval: bool = False
-    require_distinct_approvers: bool = True
+    key: Mapped[str] = mapped_column(String(150), primary_key=True)
+    allow_self_approval: Mapped[bool] = mapped_column(default=False)
+    require_distinct_approvers: Mapped[bool] = mapped_column(default=True)
 
 
-class ProductAccessPolicy(SQLModel, table=True):
+class ProductAccessPolicy(Base):
     __tablename__ = "product_access_policy"
 
-    kind: str = Field(primary_key=True, max_length=50)
-    grade_ids: list[str] = Field(
-        default_factory=list, sa_column=Column(JSON, nullable=False)
-    )
+    kind: Mapped[str] = mapped_column(String(50), primary_key=True)
+    grade_ids: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
 
 
-class OrganisationUnit(SQLModel, table=True):
+class OrganisationUnit(Base):
     __tablename__ = "organisation_unit"
-    id: str = Field(primary_key=True, max_length=100)
-    department_id: str = Field(foreign_key="hr.department.id", unique=True)
-    parent_id: str | None = Field(default=None, foreign_key="organisation_unit.id")
-    source_slide: int
+
+    id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    department_id: Mapped[str] = mapped_column(
+        ForeignKey("hr.department.id"), unique=True
+    )
+    parent_id: Mapped[str | None] = mapped_column(
+        ForeignKey("organisation_unit.id"), nullable=True
+    )
+    source_slide: Mapped[int]
 
 
-class OrganisationPosition(SQLModel, table=True):
+class OrganisationPosition(Base):
     __tablename__ = "organisation_position"
-    id: str = Field(primary_key=True, max_length=120)
-    unit_id: str = Field(foreign_key="organisation_unit.id", index=True)
-    reports_to_position_id: str | None = Field(
-        default=None, foreign_key="organisation_position.id", max_length=120
+
+    id: Mapped[str] = mapped_column(String(120), primary_key=True)
+    unit_id: Mapped[str] = mapped_column(ForeignKey("organisation_unit.id"), index=True)
+    reports_to_position_id: Mapped[str | None] = mapped_column(
+        String(120), ForeignKey("organisation_position.id"), nullable=True
     )
-    additional_connection_id: str | None = Field(
-        default=None, foreign_key="organisation_position.id", max_length=120
+    additional_connection_id: Mapped[str | None] = mapped_column(
+        String(120), ForeignKey("organisation_position.id"), nullable=True
     )
-    grade_code: str = Field(max_length=50)
-    title: str = Field(max_length=255)
-    authorised_posts: int | None = Field(default=None, ge=0)
-    reported_vacancies: int | None = Field(default=None, ge=0)
-    source_slide: int
-    notes: str = Field(default="", max_length=2000)
+    grade_code: Mapped[str] = mapped_column(String(50))
+    title: Mapped[str] = mapped_column(String(255))
+    authorised_posts: Mapped[int | None]
+    reported_vacancies: Mapped[int | None]
+    source_slide: Mapped[int]
+    notes: Mapped[str] = mapped_column(String(2000), default="")
 
 
-class AccessReview(SQLModel, table=True):
+class AccessReview(Base):
     __tablename__ = "access_review"
-    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    # No assignment FK: the snapshot survives revocation.
-    assignment_id: uuid.UUID = Field(index=True)
-    subject_id: uuid.UUID = Field(foreign_key="user.id")
-    reviewer_id: uuid.UUID = Field(foreign_key="user.id")
-    decision: str = Field(max_length=20)
-    reason: str = Field(max_length=1000)
-    snapshot: dict[str, Any] = Field(sa_column=Column(JSON, nullable=False))
-    created_at: datetime = Field(default_factory=utc_now)
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    assignment_id: Mapped[uuid.UUID] = mapped_column(index=True)
+    subject_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
+    reviewer_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
+    decision: Mapped[str] = mapped_column(String(20))
+    reason: Mapped[str] = mapped_column(String(1000))
+    snapshot: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)

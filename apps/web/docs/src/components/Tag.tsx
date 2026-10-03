@@ -1,4 +1,4 @@
-import { clsx } from "cn";
+import { cn } from "@barrelsgd/ui/lib/utils";
 
 const variantStyles = {
   small: "",
@@ -51,7 +51,7 @@ export function Tag({
 }) {
   return (
     <span
-      className={clsx(
+      className={cn(
         "font-mono font-semibold text-[0.625rem]/6",
         variantStyles[variant],
         colorStyles[color][variant]

@@ -4,16 +4,22 @@
 // so carry the reference here: any app that imports Logo pulls it in too.
 import { cn } from "@barrelsgd/ui/lib/utils";
 import Image, { type StaticImageData } from "next/image";
-import iconColor from "../assets/logo/logo-icon-color.png";
-import iconWhite from "../assets/logo/logo-icon-white.png";
 import primaryNavy from "../assets/logo/logo-primary-navy.png";
 import primaryWhite from "../assets/logo/logo-primary-white.png";
 import submarkBlue from "../assets/logo/logo-submark-blue.png";
 import submarkNavy from "../assets/logo/logo-submark-navy.png";
 import wordmarkNavy from "../assets/logo/logo-wordmark-navy.png";
 import wordmarkWhite from "../assets/logo/logo-wordmark-white.png";
+import { IconMark, MonogramMark } from "./logo-marks";
 
-export type LogoVariant = "primary" | "submark" | "wordmark" | "icon";
+export type LogoVariant =
+  | "primary"
+  | "submark"
+  | "wordmark"
+  | "monogram"
+  | "icon";
+
+type RasterVariant = Exclude<LogoVariant, "monogram" | "icon">;
 
 interface LogoAsset {
   readonly dark: StaticImageData;
@@ -26,23 +32,22 @@ interface LogoAsset {
 // `primary` and `wordmark` are one geometry in two inks, so switching on theme
 // never shifts layout. `submark` is the badge, which carries its own field: the
 // navy badge reads on light surfaces, the blue badge on dark ones (the navy
-// badge's outer ring would disappear against --gm-navy). `icon` is the bare
-// mark — full colour on light, white on dark, because the mark's navy interior
-// vanishes against a dark surface.
+// badge's outer ring would disappear against --gm-navy).
 //
-// A `monogram` variant (the mark plus "GMS", between the full lockup and the
-// bare mark) is wanted and the artwork exists, but it ships only as SVG and this
-// package cannot import SVG — see ../assets/images.d.ts. Blocked on that.
+// `icon` (the bare mark) and `monogram` (the mark plus "GMS") are inline vector
+// paths from ./logo-marks: one element, ink chosen by the `.gm-logo` CSS in
+// ../styles/foundation.css — blue (icon) or navy (monogram) on light, white on
+// dark. The raster lockups move to vector once the kit ships them with the
+// wordmark outlined (its SVGs set the text in Corbel, a Windows-only font).
 //
 // Three further lockups ship in ../assets/logo for design use and are
 // deliberately not exposed here: logo-primary-color (the kit's full-colour
 // white-background lockup), logo-stacked-white (the kit's stacked hero lockup)
 // and logo-icon-navy.
-const LOGO_ASSETS: Record<LogoVariant, LogoAsset> = {
+const LOGO_ASSETS: Record<RasterVariant, LogoAsset> = {
   primary: { light: primaryNavy, dark: primaryWhite },
   submark: { light: submarkNavy, dark: submarkBlue },
   wordmark: { light: wordmarkNavy, dark: wordmarkWhite },
-  icon: { light: iconColor, dark: iconWhite },
 };
 
 interface LogoProps {
@@ -70,6 +75,15 @@ export function Logo({
   priority,
   sizes,
 }: LogoProps) {
+  if (variant === "icon") {
+    return (
+      <IconMark alt={alt} className={cn("gm-logo gm-logo-blue", className)} />
+    );
+  }
+  if (variant === "monogram") {
+    return <MonogramMark alt={alt} className={cn("gm-logo", className)} />;
+  }
+
   const { light, dark } = LOGO_ASSETS[variant];
 
   if (light === dark) {

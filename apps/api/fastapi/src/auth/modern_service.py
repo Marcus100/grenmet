@@ -11,13 +11,14 @@ from urllib.parse import urlencode
 import httpx
 import jwt
 from fastapi.concurrency import run_in_threadpool
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, delete, select
 from starlette.requests import Request
 
 from src.auth import service
 from src.auth.account_security import verify_factor
 from src.auth.config import auth_settings
+from src.auth.devices import remember_device, schedule_new_sign_in_alert
 from src.auth.models import User
 from src.auth.modern_models import AuthChallenge, ExternalIdentity
 from src.auth.modern_schemas import (
@@ -31,7 +32,7 @@ from src.auth.modern_schemas import (
     GoogleStartPublic,
     SecuritySessionPublic,
 )
-from src.auth.schemas import SessionLoginResponse, SessionPublic, UserPublic
+from src.auth.schemas import SessionLoginResponse, SessionPublic, SessionUserPublic
 from src.auth.utils import get_password_hash_async
 from src.dependencies import SessionDep
 from src.email import send_email
@@ -71,7 +72,7 @@ async def consume(session: AsyncSession, token: str, purpose: str) -> AuthChalle
         select(AuthChallenge)
         .where(
             AuthChallenge.token_hash == digest(token),
-            col(AuthChallenge.purpose) == purpose,
+            AuthChallenge.purpose == purpose,
         )
         .with_for_update()
     )
@@ -95,8 +96,8 @@ async def email_request(
     if user and user.is_active:
         await session.execute(
             delete(AuthChallenge).where(
-                col(AuthChallenge.user_id) == user.id,
-                col(AuthChallenge.purpose) == "email",
+                AuthChallenge.user_id == user.id,
+                AuthChallenge.purpose == "email",
             )
         )
         token = await issue(
@@ -129,17 +130,14 @@ async def email_confirm(
     if not user or not user.is_active or user.email != challenge.data.get("email"):
         raise AppException("Account is not available for verification", 400)
     user.hashed_password = await get_password_hash_async(body.new_password)
+    user.password_changed_at = utc_now()
     user.email_verified_at = utc_now()
     user.password_setup_pending = False
-    await session.execute(
-        delete(AuthChallenge).where(col(AuthChallenge.user_id) == user.id)
-    )
+    await session.execute(delete(AuthChallenge).where(AuthChallenge.user_id == user.id))
     session.add(user)
     from src.auth.models import Session as LoginSession
 
-    await session.execute(
-        delete(LoginSession).where(col(LoginSession.user_id) == user.id)
-    )
+    await session.execute(delete(LoginSession).where(LoginSession.user_id == user.id))
     await session.commit()
     return Message(
         message="Email verified. Your registration is awaiting administrator approval."
@@ -299,6 +297,9 @@ async def google_finish(
             )
         )
     user.email_verified_at = utc_now()
+    user_agent = request.headers.get("user-agent")
+    ip_address = request.client.host if request.client else None
+    new_device = remember_device(user, user_agent)
     session.add(user)
     await session.commit()
     db_session, session_token = await service.create_session(
@@ -306,9 +307,16 @@ async def google_finish(
         user=user,
         client_type="web",
         app_name="auth",
-        user_agent=request.headers.get("user-agent"),
-        ip_address=request.client.host if request.client else None,
+        user_agent=user_agent,
+        ip_address=ip_address,
     )
+    if new_device:
+        schedule_new_sign_in_alert(
+            email_to=user.email,
+            device=new_device,
+            ip_address=ip_address,
+            signed_in_at=db_session.created_at,
+        )
     access_token, expires = service.issue_access_token_for_user(
         user=user, expires_delta=service.get_session_access_token_expires_delta()
     )
@@ -318,14 +326,13 @@ async def google_finish(
         session_token=session_token,
         session_expires_at=db_session.expires_at,
         session=SessionPublic.model_validate(db_session, from_attributes=True),
-        user=UserPublic.model_validate(user, from_attributes=True),
+        user=SessionUserPublic.model_validate(user, from_attributes=True),
     )
 
 
 async def account_security(
     *, session: AsyncSession, user: User
 ) -> AccountSecurityPublic:
-    from sqlmodel import col
 
     from src.auth.models import Session as LoginSession
 
@@ -347,10 +354,10 @@ async def account_security(
                 select(LoginSession)
                 .where(
                     LoginSession.user_id == user.id,
-                    col(LoginSession.revoked_at).is_(None),
+                    LoginSession.revoked_at.is_(None),
                     LoginSession.expires_at > utc_now(),
                 )
-                .order_by(col(LoginSession.last_used_at).desc())
+                .order_by(LoginSession.last_used_at.desc())
             )
         )
         .scalars()
@@ -365,14 +372,17 @@ async def account_security(
             and auth_settings.GOOGLE_REDIRECT_URI
         ),
         google_linked=bool(identities),
+        password_changed_at=user.password_changed_at,
         totp_enabled=user.totp_enabled,
         sessions=[
             SecuritySessionPublic(
                 id=str(row.id),
                 app_name=row.app_name,
                 client_type=row.client_type,
-                last_used_at=row.last_used_at.isoformat(),
-                expires_at=row.expires_at.isoformat(),
+                user_agent=row.user_agent,
+                ip_address=row.ip_address,
+                last_used_at=row.last_used_at,
+                expires_at=row.expires_at,
             )
             for row in sessions
         ],

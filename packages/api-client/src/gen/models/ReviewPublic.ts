@@ -30,5 +30,10 @@ export type ReviewPublic = {
   reviewer_id: string;
   decision: string;
   reason: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   created_at: string;
 };

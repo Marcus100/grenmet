@@ -9,9 +9,19 @@
 import {
   PREFERENCE_DEFAULTS,
   PREFERENCE_PERSISTENCE,
+  type PreferenceValueMap,
 } from "../lib/preferences-config";
 
-export function ThemeBootScript() {
+/**
+ * `defaults` overrides the shared first-load values for one app — e.g. the
+ * public GMS site starts in "system" mode while gaa-admin keeps "light".
+ */
+export function ThemeBootScript({
+  defaults: overrides,
+}: {
+  defaults?: Partial<PreferenceValueMap>;
+} = {}) {
+  const base = { ...PREFERENCE_DEFAULTS, ...overrides };
   const persistence = JSON.stringify({
     theme_mode: PREFERENCE_PERSISTENCE.theme_mode,
     theme_preset: PREFERENCE_PERSISTENCE.theme_preset,
@@ -23,13 +33,13 @@ export function ThemeBootScript() {
   });
 
   const defaults = JSON.stringify({
-    theme_mode: PREFERENCE_DEFAULTS.theme_mode,
-    theme_preset: PREFERENCE_DEFAULTS.theme_preset,
-    content_layout: PREFERENCE_DEFAULTS.content_layout,
-    font: PREFERENCE_DEFAULTS.font,
-    navbar_style: PREFERENCE_DEFAULTS.navbar_style,
-    sidebar_variant: PREFERENCE_DEFAULTS.sidebar_variant,
-    sidebar_collapsible: PREFERENCE_DEFAULTS.sidebar_collapsible,
+    theme_mode: base.theme_mode,
+    theme_preset: base.theme_preset,
+    content_layout: base.content_layout,
+    font: base.font,
+    navbar_style: base.navbar_style,
+    sidebar_variant: base.sidebar_variant,
+    sidebar_collapsible: base.sidebar_collapsible,
   });
 
   const code = `

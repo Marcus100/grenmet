@@ -1,6 +1,7 @@
 import { SessionUserProvider } from "@barrelsgd/auth";
 import { redirect } from "next/navigation";
 import { AppShell } from "@/components/layout/app-shell";
+import { reportError } from "@/lib/report-error";
 import {
   exchangeSessionForAccessToken,
   readSessionCookie,
@@ -23,7 +24,9 @@ export default async function AdminLayout({
   try {
     const response = await exchangeSessionForAccessToken(sessionToken);
     user = response.user;
-  } catch {
+  } catch (error) {
+    // An expired session (401) is normal; an unreachable auth API is not.
+    reportError(error, "session");
     redirect("/signin");
   }
 

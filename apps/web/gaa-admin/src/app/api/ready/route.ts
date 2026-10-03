@@ -1,24 +1,23 @@
-import { checkDatabase } from "@/db/readiness";
-import { env } from "@/env";
+import { listPublishedProducts } from "@/db/wxproducts/authored-queries";
+import { checkImageryReady } from "@/db/wxwatch/queries";
+import { getAuthApiBaseUrl, getAuthApiPrefix } from "@/lib/auth-config";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   const results = await Promise.all([
-    checkDatabase(env.WXWATCH_DATABASE_URL, ["public.weather_images"]),
-    checkDatabase(env.WXPRODUCTS_DATABASE_URL, [
-      "public.products",
-      "public.product_suites",
-    ]),
-    checkDatabase(
-      env.TRANSPORT_DATABASE_URL,
-      ["public.routes", "public.trips", "public.trip_stops"],
-      "transport-v1"
+    checkImageryReady(),
+    listPublishedProducts().then(
+      () => true,
+      () => false
     ),
-    checkDatabase(
-      env.JANITORIAL_DATABASE_URL,
-      ["public.buildings", "public.areas", "public.area_tasks"],
-      "janitorial-v1"
+    fetch(new URL(`${getAuthApiPrefix()}/utils/ready/`, getAuthApiBaseUrl()), {
+      cache: "no-store",
+      redirect: "error",
+      signal: AbortSignal.timeout(5000),
+    }).then(
+      (response) => response.ok,
+      () => false
     ),
   ]);
   const ready = results.every(Boolean);

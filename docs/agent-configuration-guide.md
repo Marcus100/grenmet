@@ -1,5 +1,9 @@
 # Learn to Design AI-Agent Workspaces
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-24
+
 > This is a tutorial, not just a reference list. Read it in order, inspect the linked files in this repository, and complete the exercises before changing the configuration.
 
 ## Your learning mission
@@ -7,7 +11,7 @@
 You want to understand this system well enough to improve it confidently. By the end, you should be able to:
 
 - explain how an agent discovers and loads repository instructions;
-- distinguish AGENTS.md, CLAUDE.md, skills, commands, hooks, settings, MCP, subagents, and plugins;
+- distinguish AGENTS.md, Claude Code settings, skills, commands, hooks, MCP, subagents, and plugins;
 - diagnose why an instruction was ignored;
 - turn a repeated procedure into a well-designed skill;
 - choose when a rule needs deterministic enforcement;
@@ -29,7 +33,7 @@ Do not redesign everything after the first reading. Learn the vocabulary, map th
 ## The core model
 
 ~~~text
-Persistent knowledge      -> AGENTS.md / CLAUDE.md
+Persistent knowledge      -> AGENTS.md
 Reusable procedure        -> SKILL.md
 Automatic enforcement     -> hook
 Permission boundary       -> settings
@@ -46,7 +50,7 @@ When confused, ask:
 ## Course sequence
 
 1. **Instruction layers** — learn what the agent can see.
-2. **Permanent context** — decide what belongs in AGENTS.md and CLAUDE.md.
+2. **Permanent context** — decide what belongs in AGENTS.md.
 3. **Skills** — turn repeatable work into procedures.
 4. **Commands** — understand the older slash-command form.
 5. **Hooks** — enforce deterministic behavior.
@@ -65,7 +69,7 @@ At the end, use the 30-day plan and frontier study path. Ask follow-up questions
 ---
 
 
-This note records the conversation about understanding and improving the repository's AI-agent configuration, especially `.agents/`, `.claude/`, `AGENTS.md`, `CLAUDE.md`, skills, hooks, permissions, and MCP.
+This note records the conversation about understanding and improving the repository's AI-agent configuration, especially `.agents/`, `.claude/`, `AGENTS.md`, skills, hooks, permissions, and MCP.
 
 ## Core mental model
 ## Reference guide
@@ -75,10 +79,10 @@ The following sections preserve the detailed concepts, resources, and repository
 | Surface | Purpose | Local example |
 | --- | --- | --- |
 | `AGENTS.md` | Persistent repository instructions for coding agents | [`AGENTS.md`](../AGENTS.md) |
-| `CLAUDE.md` | Persistent Claude Code instructions | [`CLAUDE.md`](../CLAUDE.md) |
+| Claude Code AGENTS.md support | Reads the shared project instruction files natively in supported versions | [Claude Code memory docs](https://code.claude.com/docs/en/memory#agentsmd) |
 | Skill | Reusable knowledge or workflow | [`.claude/skills/implement/SKILL.md`](../.claude/skills/implement/SKILL.md) |
 | Command | Older Claude slash-command format | [`.claude/commands/pre-merge.md`](../.claude/commands/pre-merge.md) |
-| Hook | Automatic lifecycle action | [`.agents/hooks.json`](../.agents/hooks.json) |
+| Hook | Automatic lifecycle action | [`.agents/hooks.json`](../.codex/config.toml) |
 | Settings | Tool permissions and configuration | [`.claude/settings.json`](../.claude/settings.json) |
 | MCP | Connection to external tools and data | No MCP servers are permitted in `settings.json` |
 | Subagent | Isolated worker for a focused task | Claude Code agent feature |
@@ -87,7 +91,7 @@ The following sections preserve the detailed concepts, resources, and repository
 Use this rule of thumb:
 
 ```text
-Always-needed project knowledge -> AGENTS.md / CLAUDE.md
+Always-needed project knowledge -> AGENTS.md
 Reusable workflow              -> SKILL.md
 Automatic enforcement          -> hook
 Permission to act              -> settings
@@ -97,31 +101,58 @@ Isolated parallel work         -> subagent
 
 ## What exists in this repository
 
-The repository has two overlapping agent configuration trees:
+> **2026-09-24 layout:** `AGENTS.md` is the only project instruction filename.
+> Codex reads the instruction chain from the repository root to its working
+> directory. Claude Code v2.1.277 and later reads `AGENTS.md` natively by
+> default when no `CLAUDE.md` or `CLAUDE.local.md` exists in the working
+> directory or any parent. This repository has no `CLAUDE.md` overrides, so
+> both tools use the shared instruction tree. The guardrail checks that this
+> remains true and that the root instruction map and Codex byte budget stay
+> valid. See [Anthropic's AGENTS.md guidance](https://code.claude.com/docs/en/memory#agentsmd).
 
 ```text
 /workspace
-├── AGENTS.md
-├── CLAUDE.md
+├── AGENTS.md            # canonical rules + instruction map (Codex and Claude)
+├── apps/**/AGENTS.md    # per app / FastAPI domain
+├── packages/*/AGENTS.md # per shared package
+├── docs/playbooks/      # end-to-end recipes linked from AGENTS.md
 ├── .agents/
-│   ├── skills/
-│   ├── rules/
-│   └── hooks.json
-└── .claude/
-    ├── skills/
-    ├── commands/
-    └── settings.json
+│   ├── skills/          # symlink -> ../.claude/skills (canonical)
+│   ├── rules/           # project.md (pointer) + ultracite.mdc (TS style)
+│   └── commands/
+├── .claude/
+│   ├── skills/          # canonical playbooks — edit here
+│   ├── hooks/           # shared .mjs scripts, invoked by both tools
+│   ├── commands/
+│   └── settings.json    # Claude Code hooks + permissions
+└── .codex/
+    └── config.toml      # project_doc_max_bytes + Codex hooks (same scripts)
 ```
 
-The `.agents/skills/` and `.claude/skills/` directories contain substantial overlap, including skills for implementation, TDD, triage, debugging, prototyping, domain modeling, grilling, and handoff. This may be intentional, but it creates synchronization and ownership questions.
+How each tool loads instructions:
 
-The current hook in [`.agents/hooks.json`](../.agents/hooks.json) runs `pnpm dlx ultracite fix` after a file edit. The Claude settings file permits selected `pnpm`, `turbo`, and `gh` operations. The Figma MCP permissions were removed under [ADR-0012](adr/0012-decouple-design-tooling-from-figma.md).
+| | Codex | Claude Code |
+| --- | --- | --- |
+| Root and nested files | Concatenates `AGENTS.md` from the git root down to its working directory, up to `project_doc_max_bytes` (65 536 here) | Reads root and ancestor `AGENTS.md` files at session start, then nested `AGENTS.md` as it works in those directories (v2.1.277+) |
+| Not loaded automatically | Nested files outside the start path — hence the root instruction map | `.agents/` contents; nested files are loaded as Claude reads in those directories |
+
+`.claude/hooks/` mechanically enforces the Never tier for both tools: a
+`PreToolUse` hook permits ordinary commits/pushes and blocks destructive Git operations and `gh pr merge`.
+(`block-dangerous-git.mjs`) and edits to `.env*`/generated-client files
+(`protect-files.mjs`); a `PostToolUse`/`Stop` hook auto-formats
+(`format-changed-file.mjs` for Claude Code, scoped to the touched file;
+`pnpm fix` for Codex, once per turn). A `scripts/guardrails/*.test.mjs` suite
+(picked up automatically by `pnpm test:guardrails` and CI) self-checks that
+these hooks stay wired correctly — see `check-agent-config.test.mjs` and
+`agent-hook-behavior.test.mjs`. The Claude settings file permits selected
+`pnpm`, `turbo`, and `gh` read-only operations. The Figma MCP permissions
+were removed under [ADR-0012](adr/0012-decouple-design-tooling-from-figma.md).
 
 ## Repository instructions
 
 ### `AGENTS.md`
 
-`AGENTS.md` is the main Codex instruction file. An `AGENTS.md` applies to the directory containing it and its descendants. More deeply nested instruction files are more specific for files below them. Direct system and user instructions take precedence over repository files.
+`AGENTS.md` is the shared project instruction file for all supported agents. An `AGENTS.md` applies to the directory containing it and its descendants. More deeply nested instruction files are more specific for files below them. Direct system and user instructions take precedence over repository files.
 
 Good content for `AGENTS.md` includes:
 
@@ -134,17 +165,16 @@ Good content for `AGENTS.md` includes:
 
 Long procedures should generally be moved into skills or scripts.
 
-### `CLAUDE.md`
+### Claude Code instruction loading
 
-`CLAUDE.md` serves a similar role for Claude Code. It should contain short, stable context that Claude needs in most sessions:
-
-- architecture;
-- commands;
-- testing conventions;
-- project rules;
-- important file locations.
-
-Detailed release, debugging, migration, or review procedures belong in skills.
+Claude Code v2.1.277 and later supports `AGENTS.md` as a project instruction
+file. The default Project instructions mode (`claude-md-or-agents-md`) reads
+`AGENTS.md` when no `CLAUDE.md` or `CLAUDE.local.md` exists in the working
+directory or an ancestor. A `CLAUDE.md` in that chain takes precedence and
+causes the default mode to ignore `AGENTS.md`; the `claude-md-and-agents-md`
+mode loads both. This repo deliberately keeps only `AGENTS.md`, so check the
+Claude Code version and `/config` Project instructions mode if the shared
+instructions do not appear. See [Anthropic's current guidance](https://code.claude.com/docs/en/memory#agentsmd).
 
 ## Skills and `SKILL.md`
 
@@ -264,6 +294,9 @@ MCP should be evaluated using least privilege, explicit consent, secure credenti
 
 ### 1. Choose a canonical skill source
 
+**Resolved (2026-09):** `.claude/skills/` is canonical; `.agents/skills` is a
+symlink to it. Kept below as an example of the decision process.
+
 There is currently significant duplication between `.agents/skills/` and `.claude/skills/`. Decide whether shared skills should be:
 
 - maintained independently;
@@ -272,9 +305,13 @@ There is currently significant duplication between `.agents/skills/` and `.claud
 - packaged separately;
 - intentionally different for Codex and Claude.
 
-Document the decision in `AGENTS.md` and `CLAUDE.md`.
+Document the decision in `AGENTS.md`.
 
 ### 2. Resolve contradictory instructions
+
+**Resolved (2026-09):** `/implement` no longer instructs a commit; the Never
+tier is now also enforced by a `PreToolUse` hook, not prose alone. Kept below
+as an example of the failure mode.
 
 Known example:
 
@@ -289,7 +326,7 @@ Search for similar conflicts with:
 
 ```bash
 rg -n "commit|push|merge|deploy|delete|reset|force|\.env" \
-  AGENTS.md CLAUDE.md .agents .claude
+  AGENTS.md .agents .claude
 ```
 
 ### 3. Separate policy from procedure
@@ -323,7 +360,7 @@ The most relevant risks are:
 - sensitive information disclosure through files, environment variables, logs, or tool output;
 - supply-chain risk from third-party skills, plugins, hooks, and MCP servers.
 
-Treat skills, hooks, and MCP servers like code dependencies. Review their scripts and permissions. Do not place secrets in `AGENTS.md`, `CLAUDE.md`, skills, hooks, or logs.
+Treat skills, hooks, and MCP servers like code dependencies. Review their scripts and permissions. Do not place secrets in `AGENTS.md`, skills, hooks, or logs.
 
 ## Recommended learning path
 
@@ -338,7 +375,7 @@ Read:
 Inspect:
 
 - [`AGENTS.md`](../AGENTS.md)
-- [`CLAUDE.md`](../CLAUDE.md)
+- [`AGENTS.md`](../AGENTS.md)
 
 ### Stage 2: skills
 
@@ -365,7 +402,7 @@ Read:
 Inspect:
 
 - [`settings.json`](../.claude/settings.json)
-- [`hooks.json`](../.agents/hooks.json)
+- [`hooks.json`](../.codex/config.toml)
 
 ### Stage 4: hooks and MCP
 
@@ -408,4 +445,3 @@ If the full guide is too much, start with these five resources:
 The central lesson is:
 
 > Agent configuration is software. It has interfaces, loading rules, dependencies, permissions, tests, security boundaries, and maintenance costs.
-

@@ -1,8 +1,9 @@
 import logging
 import uuid
 
+from fastapi.concurrency import run_in_threadpool
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, func, select
 
 from src.auth.models import User
 from src.auth.policy import can_act_on_user, require_permission
@@ -17,14 +18,88 @@ from src.hr.exceptions import (
 )
 from src.hr.models import RequestStatus
 from src.hr.signatures import service as signature_service
-from src.hr.workflow.models import WorkflowInstance, WorkflowType
+from src.hr.workflow.models import WorkflowInstance, WorkflowStatus, WorkflowType
 from src.hr.workflow.service import start_workflow_for_entity, submit_draft_workflow
 from src.utils.datetime import utc_now
 
+from . import roster_effects
 from .models import ShiftSwapRequest
 from .schemas import ShiftSwapAction, ShiftSwapRequestCreate, ShiftSwapSubmit
 
 logger = logging.getLogger(__name__)
+
+
+async def validate_request(
+    session: AsyncSession, request: ShiftSwapRequest, *, submitting: bool
+) -> None:
+    await roster_effects.validate_participants(session, request)
+    if submitting:
+        await roster_effects.exchange_rows(session, request)
+
+
+def agreement_gate(
+    request: ShiftSwapRequest, colleagues: list[uuid.UUID]
+) -> list[uuid.UUID]:
+    if request.requesting_user_id in colleagues:
+        raise HRValidationError(
+            "The requesting employee cannot approve their own exchange"
+        )
+    return list(dict.fromkeys([request.counterpart_user_id, *colleagues]))
+
+
+async def validate_coapprovers(
+    session: AsyncSession, request: ShiftSwapRequest, colleagues: list[uuid.UUID]
+) -> list[uuid.UUID]:
+    from src.hr.models import EmploymentRecord, EmploymentStatus
+
+    required = agreement_gate(request, colleagues)
+    found = set(
+        (
+            await session.execute(
+                select(EmploymentRecord.user_id).where(
+                    EmploymentRecord.user_id.in_(required),
+                    EmploymentRecord.department_id == request.department_id,
+                    EmploymentRecord.status == EmploymentStatus.ACTIVE,
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    if found != set(required):
+        raise HRValidationError(
+            "Co-approvers must be active members of the request department"
+        )
+    return required
+
+
+async def preview_shift_swap_pdf(
+    *, session: AsyncSession, current_user: User, payload: ShiftSwapRequestCreate
+) -> bytes:
+    require_permission(
+        current_user=current_user, permission_key="shift_swap.request.create.self"
+    )
+    request = ShiftSwapRequest(
+        requesting_user_id=current_user.id,
+        **payload.model_dump(
+            exclude={"as_draft", "co_approver_user_ids", "signature_version"}
+        ),
+    )
+    await validate_request(session, request, submitting=False)
+    values: dict[str, object] = payload.model_dump(
+        exclude={"as_draft", "co_approver_user_ids", "signature_version"}
+    )
+    values["requesting_user_id"] = current_user.id
+    snapshot = await signature_service.build_document_snapshot(
+        session=session,
+        actor=current_user,
+        entity_type="shift_swap",
+        entity_id="Draft preview",
+        department_id=payload.department_id,
+        values=values,
+        signed_at=None,
+    )
+    return await run_in_threadpool(signature_service.render_pdf, snapshot, None)
 
 
 async def list_my_shift_swap_requests(
@@ -32,12 +107,12 @@ async def list_my_shift_swap_requests(
 ) -> tuple[list[ShiftSwapRequest], int]:
     """Shift swaps the current user filed or is the counterpart of."""
     base = select(ShiftSwapRequest).where(
-        (col(ShiftSwapRequest.requesting_user_id) == current_user.id)
-        | (col(ShiftSwapRequest.counterpart_user_id) == current_user.id)
+        (ShiftSwapRequest.requesting_user_id == current_user.id)
+        | (ShiftSwapRequest.counterpart_user_id == current_user.id)
     )
     total = await session.scalar(select(func.count()).select_from(base.subquery()))
     result = await session.execute(
-        base.order_by(col(ShiftSwapRequest.created_at).desc()).offset(skip).limit(limit)
+        base.order_by(ShiftSwapRequest.created_at.desc()).offset(skip).limit(limit)
     )
     return list(result.scalars().all()), total or 0
 
@@ -62,6 +137,12 @@ async def create_shift_swap_request(
         reason=payload.reason,
         status=RequestStatus.DRAFT if payload.as_draft else RequestStatus.SUBMITTED,
     )
+    await validate_request(session, request, submitting=not payload.as_draft)
+    required_approvers = (
+        []
+        if payload.as_draft
+        else await validate_coapprovers(session, request, payload.co_approver_user_ids)
+    )
     # Flush to obtain the id, then start the workflow and commit once so the
     # request and its workflow instance are persisted atomically.
     session.add(request)
@@ -73,7 +154,7 @@ async def create_shift_swap_request(
         workflow_type=WorkflowType.SHIFT_SWAP,
         entity_type="shift_swap",
         entity_id=request.id,
-        co_approver_user_ids=payload.co_approver_user_ids,
+        co_approver_user_ids=required_approvers,
         submit=not payload.as_draft,
     )
     session.add(request)
@@ -109,12 +190,17 @@ async def submit_shift_swap_request(
     if request.status != RequestStatus.DRAFT:
         raise HRValidationError(ERROR_SHIFT_SWAP_NOT_DRAFT)
 
+    await validate_request(session, request, submitting=True)
+    required_approvers = await validate_coapprovers(
+        session, request, payload.co_approver_user_ids
+    )
+
     if request.workflow_instance_id:
         await submit_draft_workflow(
             session=session,
             current_user=current_user,
             workflow_instance_id=request.workflow_instance_id,
-            co_approver_user_ids=payload.co_approver_user_ids,
+            co_approver_user_ids=required_approvers,
             commit=False,
         )
     else:
@@ -126,7 +212,7 @@ async def submit_shift_swap_request(
             workflow_type=WorkflowType.SHIFT_SWAP,
             entity_type="shift_swap",
             entity_id=request.id,
-            co_approver_user_ids=payload.co_approver_user_ids,
+            co_approver_user_ids=required_approvers,
             submit=True,
         )
         if workflow_id:
@@ -173,8 +259,16 @@ async def update_shift_swap_request(
     if request.status != RequestStatus.DRAFT:
         raise HRValidationError(ERROR_SHIFT_SWAP_NOT_DRAFT)
 
+    if request.department_id != payload.department_id:
+        raise HRValidationError("Create a new draft to change departments")
+    candidate = ShiftSwapRequest(
+        requesting_user_id=current_user.id,
+        **payload.model_dump(
+            exclude={"as_draft", "co_approver_user_ids", "signature_version"}
+        ),
+    )
+    await validate_request(session, candidate, submitting=False)
     request.counterpart_user_id = payload.counterpart_user_id
-    request.department_id = payload.department_id
     request.swap_type = payload.swap_type
     request.source_date = payload.source_date
     request.source_shift_code = payload.source_shift_code
@@ -206,6 +300,12 @@ async def delete_shift_swap_request(
         raise HRValidationError(ERROR_SHIFT_SWAP_NOT_DRAFT)
 
     workflow_instance_id = request.workflow_instance_id
+    if workflow_instance_id:
+        instance = await session.get(WorkflowInstance, workflow_instance_id)
+        if instance is not None and instance.status != WorkflowStatus.DRAFT:
+            raise HRValidationError(
+                "Previously submitted forms and approval history must be retained"
+            )
     # Delete the request first (it holds the FK to the instance), then the
     # DRAFT instance itself (a draft has no step rows to clean up).
     await session.delete(request)
@@ -254,23 +354,10 @@ async def action_shift_swap_request(
             session=session,
             current_user=current_user,
             workflow_instance_id=request.workflow_instance_id,
-            action_in=WorkflowActionRequest(action=action),
+            action_in=WorkflowActionRequest(action=action, comments=payload.comments),
         )
         await session.refresh(request)
         return request
-    if request.status in {RequestStatus.APPROVED, RequestStatus.REJECTED}:
-        raise HRValidationError("Request already resolved")
-    request.status = payload.status
-    request.updated_at = utc_now()
-    session.add(request)
-    await session.commit()
-    await session.refresh(request)
-    logger.info(
-        "Shift swap actioned",
-        extra={
-            "shift_swap_id": str(request.id),
-            "status": payload.status.value,
-            "actor_id": str(current_user.id),
-        },
+    raise HRValidationError(
+        "This legacy exchange has no approval workflow; create a new request"
     )
-    return request

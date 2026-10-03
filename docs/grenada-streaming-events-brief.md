@@ -1,5 +1,9 @@
 # Grenada Streaming & Events — Product Brief
 
+**Status:** Brainstorm / early product definition  
+**Owner:** Barrels Grenada  
+**Last updated:** 2026-07-26
+
 > Status: **brainstorm / early product definition** (2026-06-30). This is a living document;
 > decisions captured here are the result of a working session and several are still open
 > (see [Open Questions](#open-questions)). Nothing here is built yet.

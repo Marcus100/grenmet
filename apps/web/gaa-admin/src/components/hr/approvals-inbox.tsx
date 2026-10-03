@@ -1,12 +1,13 @@
 "use client";
 
 import {
-  readInboxApiV1HrWorkflowsInstancesInboxGetQueryKey,
-  useReadInboxApiV1HrWorkflowsInstancesInboxGet,
-  useTakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost,
+  hrGetInboxQueryKey,
+  useHrGetInbox,
+  useHrTakeAction,
   type WorkflowAction,
   type WorkflowType,
 } from "@barrelsgd/api-client";
+
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Spinner } from "@barrelsgd/ui/components/ui/spinner";
@@ -22,6 +23,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Check, CornerUpLeft, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { AttendanceReview } from "./timesheet/attendance-review";
+
+function approvalActionLabel(purpose: string | undefined): string {
+  if (purpose === "RECORDING") return "Mark recorded";
+  if (purpose === "REVIEW") return "Complete review";
+  return "Approve";
+}
 
 const WORKFLOW_TYPE_LABELS: Record<WorkflowType, string> = {
   LEAVE_REQUEST: "Leave request",
@@ -48,9 +56,8 @@ function formatDate(value: string | null | undefined): string {
 
 export function ApprovalsInbox() {
   const queryClient = useQueryClient();
-  const inboxQuery = useReadInboxApiV1HrWorkflowsInstancesInboxGet();
-  const actionMutation =
-    useTakeActionApiV1HrWorkflowsInstancesInstanceIdActionsPost();
+  const inboxQuery = useHrGetInbox();
+  const actionMutation = useHrTakeAction();
   const [pendingId, setPendingId] = useState<string | null>(null);
 
   const items = inboxQuery.data?.data ?? [];
@@ -67,7 +74,7 @@ export function ApprovalsInbox() {
         body: { action, step_id: stepId },
       });
       await queryClient.invalidateQueries({
-        queryKey: readInboxApiV1HrWorkflowsInstancesInboxGetQueryKey(),
+        queryKey: hrGetInboxQueryKey(),
       });
       const doneLabel: Record<string, string> = {
         APPROVE: "Approved",
@@ -125,6 +132,13 @@ export function ApprovalsInbox() {
                 <TableCell className="font-medium">
                   {WORKFLOW_TYPE_LABELS[item.workflow_type] ??
                     item.workflow_type}
+                  {(item.entity_type === "attendance" ||
+                    item.entity_type === "attendance_correction") && (
+                    <AttendanceReview
+                      correction={item.entity_type === "attendance_correction"}
+                      entityId={item.entity_id}
+                    />
+                  )}
                 </TableCell>
                 <TableCell>{item.requester_name ?? "—"}</TableCell>
                 <TableCell>{formatDate(item.submitted_at)}</TableCell>
@@ -180,11 +194,7 @@ export function ApprovalsInbox() {
                       ) : (
                         <Check data-icon="inline-start" />
                       )}
-                      {item.purpose === "RECORDING"
-                        ? "Mark recorded"
-                        : item.purpose === "REVIEW"
-                          ? "Complete review"
-                          : "Approve"}
+                      {approvalActionLabel(item.purpose)}
                     </Button>
                   </div>
                 </TableCell>

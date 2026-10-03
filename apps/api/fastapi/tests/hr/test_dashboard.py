@@ -6,7 +6,12 @@ import pytest
 
 from src.auth.models import User
 from src.hr.dashboard.service import read_dashboard
-from src.hr.leave.models import LeaveBalanceEvent, LeaveRequest, LeaveType
+from src.hr.leave.models import (
+    LeaveBalanceEvent,
+    LeaveEntryKind,
+    LeaveRequest,
+    LeaveType,
+)
 from src.hr.models import Department, EmploymentRecord, RequestStatus
 from src.hr.roster.models import (
     RosterAssignment,
@@ -65,6 +70,8 @@ async def test_dashboard_uses_ledger_and_own_requests_with_department_published_
         LeaveBalanceEvent(
             user_id=people[0].id,
             leave_type="VACATION",
+            entry_kind=LeaveEntryKind.OPENING,
+            sequence=1,
             delta_days=Decimal("9.5"),
             balance_after_days=Decimal("9.5"),
             reason="Verified opening balance",

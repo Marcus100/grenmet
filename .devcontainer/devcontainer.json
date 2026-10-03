@@ -42,19 +42,13 @@
   "workspaceFolder": "/workspace",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
 
-  // Docker CLI + compose inside the container, talking to the HOST daemon
-  // (docker-outside-of-docker). Lets the agent drive the vendored ops stacks
-  // (surface/, wis2box/) and the pnpm-start infra. Containers still run on
-  // the host — nothing is nested.
-  "features": {
-    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
-  },
+  // No Docker access: the host socket is root on WSL (and /mnt/c), and agents
+  // only need to reach host services over the network (host.docker.internal).
+  // Run `pnpm start` and the surface/ and wis2box/ stacks from the host.
 
   // Named volumes so Claude/Codex logins persist across rebuilds — log in once.
-  // The second repo mount mirrors the HOST path: compose files use relative
-  // bind mounts (e.g. surface/docker-compose.yml -> ./data), and the host
-  // daemon needs paths that exist on the host. Run all `docker compose`
-  // commands from ${localWorkspaceFolder}/<app>, never /workspace/<app>.
+  // The second repo mount mirrors the HOST path so tools that record absolute
+  // host paths resolve inside the container too.
   "mounts": [
     // Container-only Python environment; never reuse the host interpreter or native wheels.
     "source=grenmet-${devcontainerId}-venv,target=/workspace/.venv,type=volume,volume-nocopy",
@@ -63,15 +57,15 @@
     // Keep dependency-volumes.txt and the guardrail test in sync when adding apps.
     "source=grenmet-${devcontainerId}-node_modules,target=/workspace/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-node_modules,target=${localWorkspaceFolder}/node_modules,type=volume,volume-nocopy",
-    "source=grenmet-${devcontainerId}-apps-api-honoapi-node_modules,target=/workspace/apps/api/honoapi/node_modules,type=volume,volume-nocopy",
-    "source=grenmet-${devcontainerId}-apps-api-honoapi-node_modules,target=${localWorkspaceFolder}/apps/api/honoapi/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-apps-web-auth-node_modules,target=/workspace/apps/web/auth/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-apps-web-auth-node_modules,target=${localWorkspaceFolder}/apps/web/auth/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-apps-web-cms-node_modules,target=/workspace/apps/web/cms/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-apps-web-cms-node_modules,target=${localWorkspaceFolder}/apps/web/cms/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-apps-web-docs-node_modules,target=/workspace/apps/web/docs/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-apps-web-docs-node_modules,target=${localWorkspaceFolder}/apps/web/docs/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-elections-node_modules,target=/workspace/apps/web/elections/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-apps-web-events-node_modules,target=/workspace/apps/web/events/node_modules,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-elections-node_modules,target=${localWorkspaceFolder}/apps/web/elections/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-apps-web-events-node_modules,target=${localWorkspaceFolder}/apps/web/events/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-apps-web-gaa-admin-node_modules,target=/workspace/apps/web/gaa-admin/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-apps-web-gaa-admin-node_modules,target=${localWorkspaceFolder}/apps/web/gaa-admin/node_modules,type=volume,volume-nocopy",
@@ -81,8 +75,6 @@
     "source=grenmet-${devcontainerId}-apps-web-mbia-node_modules,target=${localWorkspaceFolder}/apps/web/mbia/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-apps-web-signal-node_modules,target=/workspace/apps/web/signal/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-apps-web-signal-node_modules,target=${localWorkspaceFolder}/apps/web/signal/node_modules,type=volume,volume-nocopy",
-    "source=grenmet-${devcontainerId}-packages-admin-migrations-node_modules,target=/workspace/packages/admin-migrations/node_modules,type=volume,volume-nocopy",
-    "source=grenmet-${devcontainerId}-packages-admin-migrations-node_modules,target=${localWorkspaceFolder}/packages/admin-migrations/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-packages-cms-migrations-node_modules,target=/workspace/packages/cms-migrations/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-packages-cms-migrations-node_modules,target=${localWorkspaceFolder}/packages/cms-migrations/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-packages-api-client-node_modules,target=/workspace/packages/api-client/node_modules,type=volume,volume-nocopy",
@@ -93,8 +85,6 @@
     "source=grenmet-${devcontainerId}-packages-email-templates-node_modules,target=${localWorkspaceFolder}/packages/email-templates/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-packages-gms-node_modules,target=/workspace/packages/gms/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-packages-gms-node_modules,target=${localWorkspaceFolder}/packages/gms/node_modules,type=volume,volume-nocopy",
-    "source=grenmet-${devcontainerId}-packages-mdx-node_modules,target=/workspace/packages/mdx/node_modules,type=volume,volume-nocopy",
-    "source=grenmet-${devcontainerId}-packages-mdx-node_modules,target=${localWorkspaceFolder}/packages/mdx/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-packages-theme-node_modules,target=/workspace/packages/theme/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-packages-theme-node_modules,target=${localWorkspaceFolder}/packages/theme/node_modules,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-packages-tsconfig-node_modules,target=/workspace/packages/tsconfig/node_modules,type=volume,volume-nocopy",
@@ -109,7 +99,9 @@
     "source=grenmet-${devcontainerId}-apps-web-cms-next,target=${localWorkspaceFolder}/apps/web/cms/.next,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-apps-web-docs-next,target=/workspace/apps/web/docs/.next,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-apps-web-docs-next,target=${localWorkspaceFolder}/apps/web/docs/.next,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-elections-next,target=/workspace/apps/web/elections/.next,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-apps-web-events-next,target=/workspace/apps/web/events/.next,type=volume,volume-nocopy",
+    "source=grenmet-${devcontainerId}-apps-web-elections-next,target=${localWorkspaceFolder}/apps/web/elections/.next,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-apps-web-events-next,target=${localWorkspaceFolder}/apps/web/events/.next,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-apps-web-gaa-admin-next,target=/workspace/apps/web/gaa-admin/.next,type=volume,volume-nocopy",
     "source=grenmet-${devcontainerId}-apps-web-gaa-admin-next,target=${localWorkspaceFolder}/apps/web/gaa-admin/.next,type=volume,volume-nocopy",
@@ -133,7 +125,7 @@
   // Lets in-container health checks reach host-published ports (SURFACE :8081,
   // wis2box :80, grenmet infra) as host.docker.internal on any Docker engine,
   // not just Docker Desktop.
-  "runArgs": ["--add-host=host.docker.internal:host-gateway"],
+  "runArgs": ["--add-host=host.docker.internal:host-gateway", "--privileged"],
 
   // No appPort: the app stack (Docker infra via `pnpm start` and the web dev
   // servers via `pnpm dev:web:*`) runs on the HOST, which owns ports 3000-3004,
@@ -148,12 +140,23 @@
   // in the home root (outside any volume) and is wiped on every rebuild, forcing
   // re-login. Pointing CLAUDE_CONFIG_DIR at the persisted .claude volume keeps
   // .claude.json next to .credentials.json inside that volume, so logins stick.
+  // DISABLE_AUTOUPDATER: Claude Code is pinned in the Dockerfile and the npm
+  // prefix is root-owned, so self-update can only fail; bump the pin instead.
   "containerEnv": {
     "CLAUDE_CONFIG_DIR": "/home/node/.claude",
+    "DISABLE_AUTOUPDATER": "1",
     "GRENMET_HOST_WORKSPACE": "${localWorkspaceFolder}"
   },
 
-  // On create: install workspace deps, then print every tool's version.
-  "postCreateCommand": "sudo /usr/local/bin/prepare-agent-dependencies && node .devcontainer/check-dependency-isolation.mjs && pnpm install --frozen-lockfile && uv sync --frozen --package fast-back && pnpm exec turbo --version && node -v && pnpm -v && uv --version && claude --version && codex --version",
-  "postStartCommand": "node /workspace/.devcontainer/check-dependency-isolation.mjs"
+  // ~/.local/bin holds the sentry link and any agent CLI self-update. A fresh
+  // container's login shell starts before that folder exists, so it is never
+  // added to PATH automatically. It must come FIRST: appending it lets the
+  // image's older pinned `claude` win over a newer self-updated one.
+  "remoteEnv": {
+    "PATH": "/home/node/.local/bin:${containerEnv:PATH}"
+  },
+
+  // On create: install workspace deps and the Sentry CLI in the persisted config volume.
+  "postCreateCommand": "sudo /usr/local/bin/prepare-agent-dependencies && node .devcontainer/check-dependency-isolation.mjs && pnpm install --frozen-lockfile && uv sync --frozen --package fast-back --python 3.14.7 && (test -x /home/node/.config/sentry/bin/sentry || (curl -fsS https://cli.sentry.dev/install | SENTRY_VERSION=0.45.0 SENTRY_INSTALL_DIR=/home/node/.config/sentry/bin bash -s -- --no-modify-path --no-completions --no-agent-skills)) && mkdir -p /home/node/.local/bin && ln -sf /home/node/.config/sentry/bin/sentry /home/node/.local/bin/sentry && pnpm exec turbo --version && node -v && pnpm -v && uv --version && claude --version && codex --version && sentry --version",
+  "postStartCommand": "node /workspace/.devcontainer/check-dependency-isolation.mjs && mkdir -p /home/node/.local/bin && ln -sf /home/node/.config/sentry/bin/sentry /home/node/.local/bin/sentry"
 }

@@ -42,7 +42,7 @@ RAW_VALUES = {
     61: 1011.6, # MSL pressure hPa
 }
 
-now_hour = dt.datetime.now(dt.timezone.utc).replace(minute=0, second=0, microsecond=0)
+now_hour = dt.datetime.now(dt.UTC).replace(minute=0, second=0, microsecond=0)
 
 conn = psycopg.connect(host=HOST, port=5433, dbname=database, user="dba",
                        password=os.environ["DBPW"], autocommit=True)
@@ -58,7 +58,7 @@ for var_id, measured in RAW_VALUES.items():
     )
 
 # precipitation: current hour + 3 prior hours so 1h/3h totals resolve
-for hours_back in range(0, 4):
+for hours_back in range(4):
     ts = now_hour - dt.timedelta(hours=hours_back)
     cur.execute(
         """INSERT INTO hourly_summary

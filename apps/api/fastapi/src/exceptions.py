@@ -3,10 +3,11 @@ Global exception handlers and custom exceptions.
 """
 
 from fastapi import Request, status
-from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError as PydanticValidationError
 from sqlalchemy.exc import IntegrityError
+
+from src.models import ApiError, ValidationErrorItem, ValidationErrorResponse
 
 
 class AppException(Exception):
@@ -51,7 +52,9 @@ async def app_exception_handler(
     exc: AppException,
 ) -> JSONResponse:
     """Handle application exceptions."""
-    return JSONResponse(status_code=exc.status_code, content={"detail": exc.message})
+    return JSONResponse(
+        status_code=exc.status_code, content=ApiError(detail=exc.message).model_dump()
+    )
 
 
 async def validation_exception_handler(
@@ -61,10 +64,19 @@ async def validation_exception_handler(
     """Handle Pydantic validation errors."""
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content={
-            "detail": "Validation error",
-            "errors": jsonable_encoder(exc.errors()),
-        },
+        content=ValidationErrorResponse(
+            errors=[
+                ValidationErrorItem(
+                    type=str(error.get("type", "value_error")),
+                    loc=[
+                        str(part) if not isinstance(part, int) else part
+                        for part in error.get("loc", ())
+                    ],
+                    msg=str(error.get("msg", "Validation error")),
+                )
+                for error in exc.errors()
+            ]
+        ).model_dump(),
     )
 
 

@@ -1,5 +1,9 @@
 # Environment Configuration
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-23
+
 This document is the human-readable reference for supported environment variables
 in the Grenmet monorepo: what each variable does, where it is supplied, and which
 service reads it. Typed settings modules, Compose files, and deployment workflows
@@ -27,10 +31,7 @@ cp apps/web/docs/.env.local.example apps/web/docs/.env.local
 cp apps/web/gms/.env.local.example      apps/web/gms/.env.local
 cp apps/web/signal/.env.local.example       apps/web/signal/.env.local
 
-# 4. Hono API (optional)
-cp apps/api/honoapi/.env.local.example      apps/api/honoapi/.env.local
-
-# 5. Scrapy script (optional — only if using the Scrapy pipeline)
+# 4. Scrapy script (optional — only if using the Scrapy pipeline)
 cp scripts/scrapy-wxwatch/.env.local.example  scripts/scrapy-wxwatch/.env.local
 ```
 
@@ -46,7 +47,6 @@ not require an env file unless those defaults need to be overridden.
 |---|---|---|
 | `infra/docker/.env.local` | `infra/docker/docker-compose.yml` (Postgres, Adminer, tools) | `--env-file infra/docker/.env.local` |
 | `apps/api/fastapi/.env.local` | `apps/api/fastapi/docker-compose.yml` (FastAPI container) | `--env-file apps/api/fastapi/.env.local` |
-| `apps/api/honoapi/.env.local` | Hono development server | N/A |
 | `apps/web/<app>/.env.local` | Next.js development server (`pnpm dev`) | N/A |
 | `scripts/scrapy-wxwatch/.env.local` | wxwatch crawler and database pipeline | N/A |
 | `infra/docker/staging.env` | Staging non-secret deploy configuration | First `--env-file` in deploy workflow |
@@ -90,6 +90,16 @@ in `infra/docker/.env.local.example`.
 
 ### FastAPI backend (`apps/api/fastapi/.env.local`)
 
+Weather database migrations run with
+`uv run --frozen --package fast-back alembic -c src/wxproducts/alembic.ini upgrade head`
+from `apps/api/fastapi`. Set `WXPRODUCTS_DB_NAME` when the database name differs
+from `wxproducts` (local/production) or `wxproducts_staging` (staging). The runner
+rejects the main application database and mismatched target names. Local prestart
+migrates weather when its URL is configured; staging/production require it.
+The separate migration configuration is packaged under `src/wxproducts`, so both
+the API image and the local source mount contain the same migration assets.
+
+
 | Variable | Purpose |
 |---|---|
 | `ENVIRONMENT` | One of `local`, `staging`, `production` |
@@ -115,6 +125,7 @@ in `infra/docker/.env.local.example`.
 | `POSTGRES_DB` | FastAPI database name (matches `APP_DB_NAME` in infra file) |
 | `POSTGRES_USER` | FastAPI DB user (matches `APP_DB_USER` in infra file) |
 | `POSTGRES_PASSWORD` | FastAPI DB password (matches `APP_DB_PASSWORD` in infra file) |
+| `WXPRODUCTS_DATABASE_URL` | PostgreSQL URL for the separate existing weather-products database; required to serve the public product feed. Use a hostname reachable from FastAPI (`grenmet-postgres` in local Compose, `host.docker.internal` from the devcontainer). The API role needs read/write access to authored products, revisions and their identity sequence; the migration runner needs schema ownership. Weather migrations are owned by FastAPI. Missing configuration returns 503, not an empty feed. |
 | `RESEND_API_KEY` | Email provider key — takes priority over SMTP when set |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_TLS`, `SMTP_SSL` | Fallback email via SMTP (MailCatcher in local dev) |
 | `EMAILS_FROM_EMAIL` | Sender address for outgoing emails |
@@ -124,6 +135,9 @@ in `infra/docker/.env.local.example`.
 | `EMAIL_RESET_TOKEN_EXPIRE_HOURS` | Password reset link lifetime |
 | `EMAIL_TEST_USER` | Recipient used by email tests and diagnostics |
 | `RESEND_WEBHOOK_SECRET` | Optional Svix signing secret for Resend webhook verification |
+| `NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS` | Comma-separated domains notification email may go to. Deployment reads the GitHub environment variable of this name; missing/blank staging values default to `barrels.gd`, while missing/blank production values allow all domains. Explicit values must be domain names (no wildcards, URLs or email addresses). Local development must configure its own restriction. |
+| `NOTIFICATIONS_WEB_BASE_URL` | Staff portal base URL used for links in notification emails (local default `http://localhost:3001`). Deployment sets `https://admin.${BASE_DOMAIN}` for both API and worker. |
+| `NOTIFICATIONS_BATCH_SIZE`, `NOTIFICATIONS_MAX_ATTEMPTS` | Worker email outbox batch size (50) and retry limit (5) |
 | `BILLING_STRIPE_SECRET_KEY` | Stripe secret API key; use an `sk_test_...` key locally |
 | `BILLING_STRIPE_WEBHOOK_SECRET` | Stripe endpoint signing secret; locally use the `whsec_...` value printed by `stripe listen` |
 | `BILLING_STRIPE_PRICE_ID` | Recurring Stripe Price used by subscription Checkout Sessions |
@@ -149,23 +163,11 @@ in `infra/docker/.env.local.example`.
 `STACK_NAME` and `DOMAIN` are Compose/deployment metadata. They may live beside
 FastAPI settings but are not application settings themselves.
 
-### Hono API (`apps/api/honoapi/.env.local`)
-
-The Hono API is an optional service and is not started by the root `pnpm start`.
-
-| Variable | Purpose |
-|---|---|
-| `PORT` | HTTP port (default: `4000`) |
-| `HOST` | Bind address (default: `0.0.0.0`) |
-| `NODE_ENV` | Node runtime mode: `development`, `production`, or `test` |
-| `ENVIRONMENT` | Deployment environment: `local`, `staging`, `production`, or `test` |
-| `API_PREFIX` | Reserved prefix for future versioned routes (default: `/api/v1`); the current health route is `/health` |
-| `CORS_ORIGINS` | Comma-separated allowlist of browser origins |
-
 ### Auth app (`apps/web/auth/.env.local`)
 
 | Variable | Purpose |
 |---|---|
+| `AUTH_APP_URL` | Public URL of the auth app (e.g. `http://localhost:3000`); used for OAuth callback redirects |
 | `AUTH_API_URL` | FastAPI base URL (e.g. `http://localhost:8000`) |
 | `AUTH_API_V1_STR` | API version prefix (e.g. `/api/v1`) |
 | `SESSION_COOKIE_NAME` | Cookie name shared across all apps (e.g. `grenmet_session`) |
@@ -176,6 +178,14 @@ The Hono API is an optional service and is not started by the root `pnpm start`.
 | `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Sentry environment label (default: `development`) |
 | `NEXT_PUBLIC_POSTHOG_KEY` | Optional PostHog project key |
 | `NEXT_PUBLIC_POSTHOG_HOST` | PostHog ingest host |
+| `ADMIN_APP_URL` | Optional GAA Admin URL for the account-page app links and the "Edit in GAA Admin" profile button |
+| `MBIA_APP_URL` | Optional airport website URL for the account-page app links |
+| `GMS_APP_URL` | Optional GMS weather site URL for the account-page app links |
+| `DOCS_APP_URL` | Optional docs site URL for the account-page app links |
+| `SIGNAL_APP_URL` | Optional Signal URL for the account-page app links |
+| `EVENTS_APP_URL` | Optional Events URL for the account-page app links |
+
+The `*_APP_URL` links fall back to the local ports in `docs/ports.md` in development. In staging and production an unset URL leaves that app listed but not clickable.
 
 ### `AUTH_ALLOWED_RETURN_HOSTS` — how it works
 
@@ -224,7 +234,7 @@ These apps redirect to `web-auth` for sign-in. They do not manage sessions direc
 
 ### gaa-admin (`apps/web/gaa-admin/.env.local`)
 
-gaa-admin hosts the consolidated CAP/HR/wxwatch/wxproducts/salesbus modules (2026-06), so it owns their env vars — including the two Drizzle database URLs and the CAP API base.
+gaa-admin hosts the consolidated CAP/HR/wxwatch/wxproducts/eRegister/janitorial/transport/salesbus modules (2026-06), but FastAPI owns their database connections. The web app only needs API and auth settings.
 
 | Variable | Purpose |
 |---|---|
@@ -236,10 +246,7 @@ gaa-admin hosts the consolidated CAP/HR/wxwatch/wxproducts/salesbus modules (202
 | `NEXT_PUBLIC_API_URL` | FastAPI public URL for client-side requests |
 | `RESEND_API_KEY` | Email sending (server-side only) |
 | `CAP_API_URL` | FastAPI base URL for the consolidated CAP module |
-| `WXWATCH_DATABASE_URL` | Postgres connection string for the wxwatch database (Drizzle) |
-| `WXPRODUCTS_DATABASE_URL` | Postgres connection string for the wxproducts database (Drizzle) |
-| `JANITORIAL_DATABASE_URL` | Postgres connection string for the janitorial database (Drizzle) |
-| `TRANSPORT_DATABASE_URL` | Postgres connection string for the transport database (Drizzle) |
+| `JANITOR_APP_URL` | Optional janitor PWA origin. Area QR labels encode `<origin>/a/<area code>`; unset, they encode the bare code |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Optional browser error reporting |
 | `NEXT_PUBLIC_POSTHOG_KEY` / `NEXT_PUBLIC_POSTHOG_HOST` | Optional browser analytics |
 
@@ -268,11 +275,10 @@ Its typed defaults allow it to run without an env file.
 
 | Variable | Purpose |
 |---|---|
-| `DB_HOST` | Postgres host for Scrapy pipeline (default: `127.0.0.1`) |
-| `DB_PORT` | Postgres port |
-| `DB_NAME` | Target database name |
-| `DB_USER` | Database user |
-| `DB_PASSWORD` | Database password |
+| `WXWATCH_API_URL` | Archive endpoint base; default `http://127.0.0.1:8000/api/v1/wxwatch` |
+| `WXWATCH_INGEST_TOKEN` | Random secret of at least 32 characters, also configured in FastAPI |
+
+Collector `DB_*` variables are retired. Only FastAPI uses `WXWATCH_DATABASE_URL`.
 
 ---
 
@@ -405,17 +411,19 @@ these through GitHub environment settings before claiming those integrations
 are connected. Datadog logging hooks alone do not establish an APM connection;
 a collector/agent is not configured by this release.
 
-GMS local authored-product rendering requires `WXPRODUCTS_API_URL` in its typed
-server environment. Publication authorization is configured through the
+GMS reads forecasts, observations and published products from FastAPI via
+`AUTH_API_URL`; it never calls gaa-admin. Publication authorization is configured through the
 superuser-only grade policy API, not environment user-ID allowlists. Defaults
 permit active staff in ingested GMS senior technician, assistant manager and
 manager grades; each product can override its permitted grade IDs.
 
 GMS's news pages read published editorial content from the CMS via
 `CMS_API_URL` (optional; pointed at the `apps/web/cms` deployment's base URL).
-With it unset, GMS falls back to its static reference articles. The CMS itself
-exposes this feed unauthenticated at `/api/public/content`, filtered to
-`status: published` content by the `content` collection's own access control.
+With it unset, the editorial homepage sections say their content cannot be
+retrieved. The CMS exposes anonymous, published-only feeds at
+`/api/public/home`, `/api/public/articles`, `/api/public/questions` and
+`/api/public/quizzes` (see `apps/web/cms/AGENTS.md`). The deploy smoke check
+reads `/api/public/home`.
 
 ### GitHub environment secret names
 
@@ -435,6 +443,18 @@ credentials into staging.
 - Storage: `STORAGE_ACCESS_KEY_ID`, `STORAGE_SECRET_ACCESS_KEY`,
   `STORAGE_BUCKET`, `STORAGE_ENDPOINT_URL`, optionally `STORAGE_REGION`
   and `STORAGE_PUBLIC_BASE_URL`.
+
+The deploy workflow also accepts matching `DO_SPACES_ACCESS_KEY_ID`,
+`DO_SPACES_SECRET_ACCESS_KEY`, `DO_SPACES_BUCKET`, `DO_SPACES_ENDPOINT`, and
+`DO_SPACES_REGION` secrets when the corresponding `STORAGE_*` secret is absent.
+Keep the key ID and secret from the same Spaces key, and grant that key access
+to the configured bucket. A configured value only proves presence: a worker
+`head_bucket` response of HTTP 403 means storage access still needs correction.
+After changing staging secrets, deploy again so the API and worker receive the
+new values, then verify bucket access and a test object upload/download.
+The optional staging weather deploy also reads `DO_SPACES_*` for its off-host
+backup. Give that workflow separate backup credentials before enabling it;
+the assets-only key cannot satisfy its retention check.
 
 Stripe price/return URL and PostHog host inputs accept environment secrets first,
 with environment variables retained as a compatibility fallback.
@@ -471,3 +491,100 @@ Google OAuth uses separate web clients (or separately approved callbacks) for
 `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` together; the deployment supplies
 the callback URL. Client creation, consent-screen/test-user setup, and a real
 browser callback/MFA test remain required before declaring Google enabled.
+
+## Complete environment and integration inventory
+
+This document is the canonical inventory of variables currently referenced by
+the repository. The same variable can be consumed by more than one service;
+configure it once per environment and pass it only to the services that need
+it. The names below are grouped by responsibility rather than repeated for
+every application.
+
+### Environment-specific responsibilities
+
+| Environment | Required baseline | Optional integrations | Isolation requirements |
+|---|---|---|---|
+| Local development | Compose database users/passwords, FastAPI settings, shared session settings, local origins, Redis | Local Sentry, PostHog, Google OAuth, Stripe test mode, SMTP/Resend, test storage | Use `.env.local` files only; use test credentials and localhost callbacks |
+| Staging | Deployment topology, all database passwords, bootstrap credentials, session settings, Resend, CMS database password, Payload secret | Sentry, PostHog, Google OAuth, Stripe test mode, storage, email rendering, CAP signing | Separate domains, databases, buckets, OAuth callbacks, analytics projects, webhooks, and provider keys |
+| Production | Deployment topology, all database passwords, bootstrap credentials, session settings, Resend, CMS database password, Payload secret | Sentry, PostHog, Google OAuth, Stripe live mode, storage, email rendering, CAP signing | Never reuse staging credentials, callback URLs, buckets, analytics projects, or webhook secrets |
+
+The deployment workflow derives `DATABASE_URL`, the module-specific `*_DB_URL`
+values, image tags, and container service URLs. They are runtime inputs, but
+they should not be manually maintained as independent GitHub secrets.
+
+### Optional and future integrations
+
+The following are potential integrations represented by the code or roadmap,
+but they are not all deployment prerequisites:
+
+- Google OAuth: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
+- PostHog: `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST`.
+- Google Analytics: `NEXT_PUBLIC_GA_MEASUREMENT_ID`.
+- Stripe billing: the complete `BILLING_STRIPE_*` and checkout URL bundle.
+- Resend webhooks and email rendering: `RESEND_WEBHOOK_SECRET`,
+  `EMAIL_RENDER_SECRET`, `EMAIL_RENDER_URL`.
+- CAP XML signing: `CAP_SIGNING_CERT`, `CAP_SIGNING_KEY`,
+  `CAP_SIGNING_KEY_REF`.
+- Datadog: `DD_*` values, only after an agent or collector is provisioned.
+- CAP MQTT, outbound webhooks, WIS2Box, static maps, and social-image
+  publication consumers; these are currently dormant and have no required
+  runtime credentials.
+- Republic ePay for Events payments; the provider contract, webhook protocol,
+  and environment variables have not yet been selected.
+- External uptime and paging; no provider has yet been selected.
+
+Do not invent credentials for dormant or unselected integrations. Add their
+variables only when the provider contract, callback/webhook endpoints, staging
+test path, and production ownership have been documented.
+
+### Operator-only provider audit credentials
+
+These credentials support the read-only integration checker and are separate
+from application runtime configuration:
+
+```text
+SENTRY_READ_TOKEN
+SENTRY_ORG
+SENTRY_PROJECT
+POSTHOG_PERSONAL_API_KEY
+POSTHOG_PROJECT_ID
+GOOGLE_ANALYTICS_ACCESS_TOKEN
+GOOGLE_ANALYTICS_PROPERTY_ID
+CLOUDFLARE_API_TOKEN
+CLOUDFLARE_ZONE_ID
+DIGITALOCEAN_ACCESS_TOKEN
+RESEND_READ_TOKEN
+```
+
+Keep them in the operator's secure environment or secret manager. They are not
+required for normal application startup or deployment unless a live provider
+audit is explicitly requested.
+
+For read-only Sentry investigation in the agent devcontainer, use the `sentry`
+CLI. The container installs it in the persisted `/home/node/.config/sentry`
+volume and links it into `PATH` on startup. Run `sentry auth login` once; its
+OAuth session persists across devcontainer rebuilds. Check access with
+`sentry auth status`, then list staging issues with
+`sentry issue list grenmet/grenmet-staging --period 14d --fresh`. This operator
+login is separate from the environment-scoped `SENTRY_AUTH_TOKEN` used by web
+image builds to upload source maps. Inspect the Sentry upload messages in the
+web image build logs and confirm artifact bundles appear in the staging project
+after the next build.
+
+### Completeness and verification checklist
+
+For each staging and production variable, record whether it is required or
+optional, secret or public, configured, and verified. A configured value is not
+proof of connectivity: verify OAuth callbacks, email delivery, storage upload
+and download, Stripe webhook signatures, analytics events, and Sentry events
+separately. Browser `NEXT_PUBLIC_*` values require a new web image build after
+they change.
+
+
+### WxWatch read migration
+
+Configure `WXWATCH_DATABASE_URL` in the FastAPI environment with access to the separate wxwatch database. In local Docker use the database hostname reachable by the API (`grenmet-postgres`); the devcontainer uses `host.docker.internal`. FastAPI owns migrations and writes as well as reads, so its database role needs schema ownership. Missing configuration returns 503. Neither gaa-admin nor Scrapy needs database credentials for WxWatch. Set `WXWATCH_INGEST_TOKEN` in both API and collector environments; set `WXWATCH_LOCAL_IMAGES_DIR` only for local/shared filesystem storage. Local Compose mounts the collector images read-only automatically. No env files are changed automatically.
+
+### eRegister database
+
+`EREGISTER_DATABASE_URL` is the PostgreSQL URL for the dedicated manual observation register. `EREGISTER_DB_NAME` is the expected database name used by its Alembic guard (default `eregister`). Provision `EREGISTER_DB_USER`, `EREGISTER_DB_PASSWORD` and `EREGISTER_DB_NAME` alongside the other domain databases. The register stores manual SYNOP, METAR and SPECI entries, revisions, QC decisions and WIS2box publication state; it does not replace SURFACE's automated observation store.

@@ -13,9 +13,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import selectinload
-from sqlmodel import Session, select
+from sqlalchemy.orm import Session, selectinload
 
 from src.auth.models import Permission, Role
 from src.baseline.models import BaselineStep
@@ -97,6 +97,38 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("workflow.template.view", "View workflow templates"),
     PermissionDef("workflow.instance.action", "Act on workflow instances"),
     PermissionDef("workflow.instance.view", "View workflow instances"),
+    # Platform — change history and notifications
+    PermissionDef(
+        "audit.view_sensitive",
+        "See the values of sensitive fields (medical, address, contact) in change history",
+    ),
+    PermissionDef(
+        "notifications.manage",
+        "Configure organisation notifications: on/off, recipients, wording, timings",
+    ),
+    # CMS editorial publishing
+    PermissionDef("cms.article.create", "Create CMS articles"),
+    PermissionDef("cms.article.edit.own", "Edit own CMS article drafts"),
+    PermissionDef("cms.article.edit.all", "Edit all CMS articles"),
+    PermissionDef("cms.article.submit", "Submit CMS articles for review"),
+    PermissionDef("cms.publish.desk-updates", "Publish From the Desk updates"),
+    PermissionDef("cms.publish.stories", "Publish Stories"),
+    PermissionDef("cms.publish.questions", "Publish Questions about the weather"),
+    PermissionDef(
+        "cms.publish.discover", "Publish Sky, history and a little fun entries"
+    ),
+    PermissionDef("cms.publish.report-notes", "Publish Latest reports write-ups"),
+    PermissionDef("cms.publish.live-posts", "Publish Weather now live posts"),
+    PermissionDef(
+        "cms.weather-now.note",
+        "Post the Weather now forecaster's note (published immediately)",
+    ),
+    PermissionDef(
+        "cms.homepage.manage", "Choose featured and hidden homepage sections"
+    ),
+    PermissionDef("cms.article.unpublish", "Unpublish CMS articles"),
+    PermissionDef("cms.article.social.manage", "Manage CMS social publishing"),
+    PermissionDef("cms.article.manage", "Manage CMS editorial settings"),
     # CAP — alert lifecycle
     PermissionDef("cap.alert.create", "Create CAP alerts"),
     PermissionDef("cap.alert.edit", "Edit CAP alerts"),
@@ -108,6 +140,48 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("cap.integrations.manage", "Manage CAP integrations"),
     PermissionDef("cap.settings.manage", "Manage CAP settings"),
     PermissionDef("cap.feed.manage", "Manage external CAP feed sources"),
+    # Transport — staff bus service (admin portal, driver app, staff app)
+    PermissionDef("transport.view", "View the bus admin portal"),
+    PermissionDef("transport.ride", "Register for and ride the staff bus"),
+    PermissionDef("transport.drive", "Operate runs in the bus driver app"),
+    PermissionDef(
+        "transport.timetable.manage",
+        "Edit routes, stops and timetable drafts",
+    ),
+    PermissionDef(
+        "transport.timetable.publish",
+        "Publish a timetable draft with an effective date",
+    ),
+    PermissionDef("transport.fleet.manage", "Manage buses, drivers and inspections"),
+    PermissionDef(
+        "transport.dispatch.manage", "Assign buses and drivers to runs; cancel runs"
+    ),
+    PermissionDef("transport.riders.approve", "Approve or suspend rider registrations"),
+    PermissionDef(
+        "transport.reports.manage", "Triage and resolve bus incident reports"
+    ),
+    PermissionDef("transport.alerts.post", "Post and end bus service alerts"),
+    PermissionDef(
+        "transport.analytics.view", "View bus analytics and the contractor scorecard"
+    ),
+    # Janitorial — cleaning programme (admin portal, janitor app). Where a user
+    # may act is further limited by building grants (src/janitorial/access.py).
+    PermissionDef("janitorial.view", "View the janitorial admin portal"),
+    PermissionDef(
+        "janitorial.catalogue.manage",
+        "Edit cleaning buildings, sections, areas and tasks",
+    ),
+    PermissionDef(
+        "janitorial.staff.manage", "Manage the cleaning contractor and staff list"
+    ),
+    PermissionDef(
+        "janitorial.shifts.manage", "Manage shift patterns, zones and staff rosters"
+    ),
+    PermissionDef(
+        "janitorial.scope.manage",
+        "Grant buildings to supervisors; act on every building",
+    ),
+    PermissionDef("janitorial.work", "Record cleaning work in the janitor app"),
 )
 
 ALL_PERMISSION_KEYS: frozenset[str] = frozenset(p.key for p in PERMISSIONS)
@@ -217,6 +291,8 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "workflow.template.view",
             "workflow.instance.action",
             "workflow.instance.view",
+            "audit.view_sensitive",
+            "notifications.manage",
         ),
     ),
     "cap-author": (
@@ -250,6 +326,72 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "cap.feed.manage",
         ),
     ),
+    "transport-officer": (
+        "Transport officer: runs the staff bus service end to end",
+        (
+            "transport.view",
+            "transport.timetable.manage",
+            "transport.timetable.publish",
+            "transport.fleet.manage",
+            "transport.dispatch.manage",
+            "transport.riders.approve",
+            "transport.reports.manage",
+            "transport.alerts.post",
+            "transport.analytics.view",
+        ),
+    ),
+    "transport-duty-manager": (
+        "Duty Manager: monitors today's runs, handles reports and posts alerts",
+        (
+            "transport.view",
+            "transport.dispatch.manage",
+            "transport.reports.manage",
+            "transport.alerts.post",
+            "transport.analytics.view",
+        ),
+    ),
+    "transport-contractor-supervisor": (
+        "Bus contractor supervisor: manages the contractor's buses, drivers and run assignments",
+        ("transport.view", "transport.fleet.manage", "transport.dispatch.manage"),
+    ),
+    "transport-viewer": (
+        "Read-only view of the bus portal and analytics",
+        ("transport.view", "transport.analytics.view"),
+    ),
+    "transport-driver": (
+        "Bus driver: operates assigned runs in the driver app",
+        ("transport.drive",),
+    ),
+    "transport-rider": (
+        "Staff bus rider: registers and checks in through the staff app",
+        ("transport.ride",),
+    ),
+    "janitorial-manager": (
+        "GAA janitorial manager: cleaning catalogue, contractor staff, rosters and building grants",
+        (
+            "janitorial.view",
+            "janitorial.catalogue.manage",
+            "janitorial.staff.manage",
+            "janitorial.shifts.manage",
+            "janitorial.scope.manage",
+        ),
+    ),
+    "janitorial-supervisor": (
+        "GAA janitorial supervisor: monitors granted buildings and manages their rosters",
+        ("janitorial.view", "janitorial.shifts.manage"),
+    ),
+    "janitorial-viewer": (
+        "Read-only view of the janitorial portal for granted buildings",
+        ("janitorial.view",),
+    ),
+    "janitorial-cleaner": (
+        "Contract cleaner: records work in the janitor app",
+        ("janitorial.work",),
+    ),
+    "janitorial-contractor-supervisor": (
+        "Cleaning contractor supervisor: works in the janitor app",
+        ("janitorial.work",),
+    ),
     "workflow-admin": (
         "Workflow administrator",
         (
@@ -281,7 +423,7 @@ def seed_permissions_and_roles(session: Session) -> None:
     long-lived, session-scoped fixture in tests — an uncommitted transaction here
     would block every table-truncating test).
     """
-    existing = {p.key: p for p in session.exec(select(Permission)).all()}
+    existing = {p.key: p for p in session.execute(select(Permission)).scalars().all()}
     key_to_perm: dict[str, Permission] = {}
     for pdef in PERMISSIONS:
         perm = existing.get(pdef.key)
@@ -305,7 +447,9 @@ def seed_permissions_and_roles(session: Session) -> None:
         marker = f"role:{role_name}"
         if session.get(BaselineStep, marker):
             continue
-        role = session.exec(select(Role).where(Role.name == role_name)).first()
+        role = session.execute(
+            select(Role).where(Role.name == role_name)
+        ).scalar_one_or_none()
         if role is not None:
             session.add(BaselineStep(key=marker))
             continue
@@ -352,7 +496,7 @@ async def seed_permissions_and_roles_async(session: AsyncSession) -> None:
         role_result = await session.execute(
             select(Role)
             .where(Role.name == role_name)
-            .options(selectinload(Role.permissions))  # type: ignore[arg-type]
+            .options(selectinload(Role.permissions))
         )
         role = role_result.scalars().first()
         if role is None:

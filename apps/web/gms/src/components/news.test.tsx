@@ -10,17 +10,23 @@ import { GmsNews } from "@/components/gms-news";
 import { News } from "@/components/news";
 import { fetchPublishedContent } from "@/lib/cms";
 
+const CANNOT_RETRIEVE = /cannot be retrieved/;
+const EMPTY =
+  /^No (published articles are available|stories are published yet)\.$/;
 const MARINE_TITLE = /Marine Bulletin/;
 
-vi.mock("@/lib/cms", () => ({ fetchPublishedContent: vi.fn() }));
+vi.mock("@/lib/cms", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/cms")>()),
+  fetchPublishedContent: vi.fn(),
+}));
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
 });
 
 for (const [name, component] of [
-  ["Weather news", News],
-  ["Latest from us", GmsNews],
+  ["Stories", News],
+  ["From the Desk", GmsNews],
 ] as const) {
   it(`${name} renders published CMS articles`, async () => {
     vi.mocked(fetchPublishedContent).mockResolvedValue({
@@ -28,9 +34,9 @@ for (const [name, component] of [
       articles: [
         {
           id: "1",
+          collection: "desk-updates",
           title: "Marine Bulletin",
-          slug: "marine-test",
-          kind: "article",
+          slug: "updates/2026/09/marine-test",
           summary: "Marine",
           body: "Bulletin",
           imageUrl: null,
@@ -40,12 +46,11 @@ for (const [name, component] of [
     });
     render(await component());
     expect(fetchPublishedContent).toHaveBeenCalledWith(
-      "article",
-      name === "Latest from us" ? "latest" : "news"
+      name === "From the Desk" ? "desk-updates" : "stories"
     );
     expect(
       screen.getAllByRole("link", { name: MARINE_TITLE })[0]
-    ).toHaveAttribute("href", "/news/marine-test");
+    ).toHaveAttribute("href", "/explore/updates/2026/09/marine-test");
   });
   it(`${name} distinguishes unavailable content from an empty feed`, async () => {
     vi.mocked(fetchPublishedContent).mockResolvedValue({
@@ -53,12 +58,8 @@ for (const [name, component] of [
       articles: [],
     });
     render(await component());
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "News cannot be retrieved"
-    );
-    expect(
-      screen.queryByText("No published articles are available.")
-    ).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(CANNOT_RETRIEVE);
+    expect(screen.queryByText(EMPTY)).not.toBeInTheDocument();
     expect(screen.queryAllByRole("img")).toHaveLength(0);
     cleanup();
     vi.mocked(fetchPublishedContent).mockResolvedValue({
@@ -66,9 +67,7 @@ for (const [name, component] of [
       articles: [],
     });
     render(await component());
-    expect(
-      screen.getByText("No published articles are available.")
-    ).toBeInTheDocument();
+    expect(screen.getByText(EMPTY)).toBeInTheDocument();
     expect(screen.queryAllByRole("img")).toHaveLength(0);
   });
 }
@@ -81,9 +80,9 @@ it("lets Latest visitors copy the article link when native sharing is unavailabl
     articles: [
       {
         id: "1",
+        collection: "desk-updates",
         title: "Marine Bulletin",
-        slug: "marine-test",
-        kind: "article",
+        slug: "updates/2026/09/marine-test",
         summary: "Marine",
         body: "Bulletin",
         imageUrl: null,
@@ -95,7 +94,7 @@ it("lets Latest visitors copy the article link when native sharing is unavailabl
   fireEvent.click(screen.getAllByRole("button", { name: "Share update" })[0]);
   await waitFor(() =>
     expect(writeText).toHaveBeenCalledWith(
-      expect.stringContaining("/news/marine-test")
+      expect.stringContaining("/explore/updates/2026/09/marine-test")
     )
   );
   expect(screen.getByRole("status")).toHaveTextContent("copied");

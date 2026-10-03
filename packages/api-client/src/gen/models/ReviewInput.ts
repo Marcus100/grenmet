@@ -3,16 +3,10 @@
  * Do not edit manually.
  */
 
-export const reviewInputDecisionEnum = {
-  RETAIN: "RETAIN",
-  REVOKE: "REVOKE",
-} as const;
-
-export type ReviewInputDecisionEnum =
-  (typeof reviewInputDecisionEnum)[keyof typeof reviewInputDecisionEnum];
+import type { ReviewInputPropertiesDecisionEnum } from "./ReviewInputPropertiesDecisionEnum.js";
 
 export type ReviewInput = {
-  decision: ReviewInputDecisionEnum;
+  decision: ReviewInputPropertiesDecisionEnum;
   /**
    * @minLength 5
    * @maxLength 1000

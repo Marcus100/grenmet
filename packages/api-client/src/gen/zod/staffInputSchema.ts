@@ -12,6 +12,10 @@ export const staffInputSchema = z.object({
   employee_number: z.union([z.string().min(1).max(50), z.null()]).optional(),
   employment_type: z.union([employmentTypeSchema, z.null()]).optional(),
   start_date: z.union([z.iso.date(), z.null()]).optional(),
+  continuous_service_date: z.union([z.iso.date(), z.null()]).optional(),
+  probation_end_date: z.union([z.iso.date(), z.null()]).optional(),
+  probation_completed_date: z.union([z.iso.date(), z.null()]).optional(),
+  service_details_source: z.union([z.string().max(500), z.null()]).optional(),
   supervisor_id: z.union([z.uuid(), z.null()]).optional(),
   mailbox_ready: z.boolean().optional().default(false),
 });

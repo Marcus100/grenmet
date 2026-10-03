@@ -46,3 +46,10 @@ class PrivacyTests(unittest.TestCase):
         self.assertEqual(result["message"], "Log event (details redacted)")
         self.assertNotIn("secret payload", json.dumps(result))
         self.assertEqual(result["logger"], "ddtrace.internal.writer.writer")
+
+    def test_keeps_only_safe_tags(self):
+        result = scrub_sentry_event(
+            {"tags": {"area": "cap", "digest": "d1", "email": "private"}}, {}
+        )
+        self.assertEqual(result["tags"], {"area": "cap", "digest": "d1"})
+        self.assertNotIn("tags", scrub_sentry_event({"tags": {"email": "x"}}, {}))

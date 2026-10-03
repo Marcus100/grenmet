@@ -1,5 +1,9 @@
 # Infrastructure Guide
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-18
+
 This guide documents the operational infrastructure implemented in this repo today. For first-time server setup see [deployment.md](deployment.md). For local development failures see [troubleshooting.md](troubleshooting.md).
 
 ## Runtime Topology
@@ -15,11 +19,9 @@ Each stack includes:
 
 - `db`: PostgreSQL 17. The same server hosts separate databases for FastAPI, `wxwatch`, `wxproducts`, `janitorial`, and `transport`.
 - `api`: FastAPI backend on internal port `8000`.
-- `prestart`: one-shot FastAPI migration/bootstrap container.
+- `prestart`: one-shot FastAPI migration/bootstrap container, including all domain Alembic histories and create-once catalogue seeds.
 - `redis` + `worker`: Redis and the arq background worker (CAP outbox).
-- `web-migrate`: one-shot Drizzle migration runner for the `wxwatch` + `wxproducts` databases, built from the gaa-admin `migrate` image stage; runs before `web-admin`.
 - `web-auth`, `web-admin`, `web-docs`, `web-gms`, `web-signal`, `web-mbia`, and `web-events`: seven configured web services. The former `wxwatch`/`wxproducts`/`hr`/`salesbus` apps remain path-prefixed routes inside `web-admin`.
-- `api-hono`: Node API on internal port `4000`, routed through `hapi`.
 - `proxy`: Traefik v3, terminating HTTPS and routing by host.
 - `adminer`: present in staging only in the current compose files.
 
@@ -27,7 +29,7 @@ Each stack includes:
 
 A push to `staging` runs `pipeline-staging.yml`: CI, applicable image builds, and
 deployment with the `staging` tag. Publishing a release runs `pipeline-prod.yml`,
-which builds all images and deploys the release tag for API, web, Hono, and
+which builds all images and deploys the release tag for API, web, and
 migration images. Merging to `main` does not build deployment images or deploy.
 
 The shared `deploy.yml` layers the committed environment file with temporary
@@ -60,7 +62,7 @@ Environment URLs:
 | Staging | `https://api.staging.barrels.gd/api/v1/utils/health-check/` | `https://api.staging.barrels.gd/api/v1/utils/ready/` |
 | Production | `https://api.barrels.gd/api/v1/utils/health-check/` | `https://api.barrels.gd/api/v1/utils/ready/` |
 
-Deployment requires FastAPI liveness and the health checks for all seven web containers (`/api/health`) plus Hono (`/health`). External web-root checks are logged but non-fatal. FastAPI readiness is a separate diagnostic check; the workflow does not currently gate deployment on it.
+Deployment requires FastAPI liveness and the health checks for all seven web containers (`/api/health`). External web-root checks are logged but non-fatal. FastAPI readiness is a separate diagnostic check; the workflow does not currently gate deployment on it.
 
 ## Incident Triage
 
@@ -89,11 +91,11 @@ arguments shown in the [manual procedure](deployment.md#manual-deploy-fallback--
 
 ## Backups and Restore
 
-`.github/workflows/backup-database.yml` runs daily at 02:00 UTC on the self-hosted production runner and can also be dispatched manually. Its credentials come from the `production-backup` GitHub environment. The existing Spaces bucket and `production/YYYY/MM/DD/` layout are retained. Set environment variable `CMS_BACKUP_ENABLED=true` there when production CMS is provisioned to include `gms_cms`; until then the original five databases remain covered. Staging is disposable and has no scheduled backup requirement.
+`.github/workflows/backup-database.yml` runs daily at 02:00 UTC on the self-hosted production runner and can also be dispatched manually. Its credentials come from the `production-backup` GitHub environment. The existing Spaces bucket and `production/YYYY/MM/DD/` layout are retained. Set environment variable `CMS_BACKUP_ENABLED=true` there when production CMS is provisioned to include `gms_cms`; until then the six other databases, including eRegister, are required. The staging monitoring pilot adds opt-in daily backups and weekly restore drills; see [activation gates](operations/analytics-monitoring.md#cicd-ownership-and-activation).
 
 Implemented backup behavior:
 
-- Dumps `app_prod`, `wxwatch`, `wxproducts`, `janitorial`, and `transport` with `pg_dump --format=custom --compress=9`.
+- Dumps `app_prod`, `wxwatch`, `wxproducts`, `janitorial`, `transport`, and `eregister` with `pg_dump --format=custom --compress=9`.
 - Restores each dump into a temporary database to verify integrity.
 - Uploads each dump to DigitalOcean Spaces under `production/YYYY/MM/DD/`.
 - Keeps local dump files for `BACKUP_RETENTION_DAYS=30`.

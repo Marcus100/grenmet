@@ -92,3 +92,14 @@ test("release stops on portfolio drift before provisioning databases", async () 
   assert.ok(h.calls.every((call) => !call.args.includes("up")));
   assert.ok(h.messages.every((message) => !message.startsWith("PASS:")));
 });
+
+test("release stops on collector failure before provisioning databases", async () => {
+  const h = harness(
+    (command, args) => command === "pnpm" && args[0] === "verify:collectors"
+  );
+  await assert.rejects(verifyManaged("release", h.options), {
+    message: "injected failure",
+  });
+  assert.ok(h.calls.every((call) => !call.args.includes("up")));
+  assert.ok(h.messages.every((message) => !message.startsWith("PASS:")));
+});

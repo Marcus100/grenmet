@@ -7,8 +7,8 @@ import {
   validateReleaseConfiguration,
 } from "../ci/release-scope.mjs";
 
-test("release includes twelve core images and rejects contradictory weather configuration", () => {
-  assert.equal(releaseScope.web.length, 11);
+test("release includes nine core images and rejects contradictory weather configuration", () => {
+  assert.equal(releaseScope.web.length, 9);
   assert.equal(releaseScope.api, true);
   assert.deepEqual(releaseScope.weather, []);
   validateReleaseConfiguration({});
@@ -85,20 +85,20 @@ test("build environment and Sentry selection keep staging isolated when its key 
     assert.equal(environment, expected);
     for (const expression of sentryExpressions) {
       const context = {
-        steps: { ctx: { outputs: { environment } } },
+        steps: {
+          ctx: { outputs: { environment } },
+          telemetry: { outputs: { sentry_dsn: "" } },
+        },
         secrets: {
           SENTRY_DSN_STAGING: "",
           SENTRY_DSN_PRODUCTION: "production-only",
         },
       };
+      assert.equal(runInNewContext(expression, context), "");
+      context.steps.telemetry.outputs.sentry_dsn = `${environment}-app-only`;
       assert.equal(
         runInNewContext(expression, context),
-        expected === "staging" ? "" : "production-only"
-      );
-      context.secrets.SENTRY_DSN_STAGING = "staging-only";
-      assert.equal(
-        runInNewContext(expression, context),
-        expected === "staging" ? "staging-only" : "production-only"
+        `${environment}-app-only`
       );
     }
   }

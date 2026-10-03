@@ -1,0 +1,146 @@
+[
+  [
+    "G01",
+    null,
+    "Magistrate’s Court #1",
+    130,
+    72,
+    0,
+    {
+      "NNP": 34,
+      "NDC": 38
+    }
+  ],
+  [
+    "G02",
+    "a",
+    "St. George's Anglican Senior School",
+    254,
+    155,
+    2,
+    {
+      "NNP": 82,
+      "NDC": 71
+    }
+  ],
+  [
+    "G02",
+    "b",
+    "St. George's Anglican Senior School",
+    249,
+    164,
+    1,
+    {
+      "NNP": 84,
+      "NDC": 79
+    }
+  ],
+  [
+    "G03",
+    "a",
+    "National Stadium, River Road End",
+    363,
+    241,
+    0,
+    {
+      "NNP": 150,
+      "NDC": 91
+    }
+  ],
+  [
+    "G03",
+    "b",
+    "National Stadium, River Road End",
+    384,
+    248,
+    1,
+    {
+      "NNP": 156,
+      "NDC": 91
+    }
+  ],
+  [
+    "G03",
+    "c",
+    "National Stadium, River Road End",
+    388,
+    268,
+    1,
+    {
+      "NNP": 158,
+      "NDC": 109
+    }
+  ],
+  [
+    "G03",
+    "d",
+    "National Stadium, River Road End",
+    389,
+    276,
+    1,
+    {
+      "NNP": 150,
+      "NDC": 125
+    }
+  ],
+  [
+    "G03",
+    "e",
+    "National Stadium, River Road End",
+    385,
+    262,
+    2,
+    {
+      "NNP": 155,
+      "NDC": 105
+    }
+  ],
+  [
+    "G04",
+    null,
+    "Marryshow House",
+    208,
+    139,
+    0,
+    {
+      "NNP": 83,
+      "NDC": 56
+    }
+  ],
+  [
+    "G05",
+    null,
+    "Norton's Hall, Church Street",
+    252,
+    167,
+    3,
+    {
+      "NNP": 71,
+      "NDC": 93
+    }
+  ],
+  [
+    "G06",
+    null,
+    "Berean Christian Academy, Lucas Street",
+    389,
+    216,
+    0,
+    {
+      "NNP": 79,
+      "NDC": 137
+    }
+  ],
+  [
+    "G07",
+    null,
+    "St. George's SDA School, Archibald Avenue",
+    419,
+    254,
+    4,
+    {
+      "NNP": 127,
+      "NDC": 123
+    }
+  ]
+]

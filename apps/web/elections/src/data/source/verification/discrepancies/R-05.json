@@ -1,0 +1,9 @@
+{
+  "id": "R-05",
+  "area": "Wikipedia cross-checks",
+  "status": "open",
+  "impact": "source",
+  "what": "Wikipedia disagrees with the PEO in several places: 2022 registered 86,658 vs PEO 87,566 (Wikipedia uses the list without police voters); 2022 GULP 64 vs PEO 66; 2016 registered 71,241 vs certificate 71,240; 2018 invalid 119 vs Gazette 116.",
+  "action": "Wikipedia is used only as a cross-check, never as the source, from 1984 onward.",
+  "sources": ["Wikipedia election and referendum articles"]
+}

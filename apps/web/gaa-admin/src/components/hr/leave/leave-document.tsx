@@ -1,3 +1,4 @@
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { Paper } from "@/components/document/paper";
 import {
   SubmissionDate,
@@ -9,9 +10,15 @@ export interface LeaveValues {
   department: string;
   employeeName: string;
   endDate: string;
+  leaveAddress: string;
   leaveType: string;
   otherReason: string;
+  professionalAppointmentSubtype: string;
+  requiresActingAppointment: boolean;
+  salaryInAdvance: boolean;
   startDate: string;
+  travelFromDate: string;
+  travelToDate: string;
 }
 
 export const LEAVE_TYPES = [
@@ -20,7 +27,6 @@ export const LEAVE_TYPES = [
   "Professional Appointment",
   "Family Bereavement",
   "Paternity Leave",
-  "Bank | Medical | Legal Dental",
   "Other",
 ];
 
@@ -30,8 +36,14 @@ export const EMPTY_LEAVE: LeaveValues = {
   daysRequested: "",
   startDate: "",
   endDate: "",
+  leaveAddress: "",
   leaveType: "Annual Vacation",
   otherReason: "",
+  professionalAppointmentSubtype: "",
+  requiresActingAppointment: false,
+  salaryInAdvance: false,
+  travelFromDate: "",
+  travelToDate: "",
 };
 
 function Row({ label, value }: { label: string; value: string }) {
@@ -101,11 +113,12 @@ export function LeaveDocument({
             return (
               <span className="flex items-center gap-2" key={t}>
                 <span
-                  className={`flex size-4 items-center justify-center border text-[10px] ${
+                  className={cn(
+                    "flex size-4 items-center justify-center border text-[10px]",
                     checked
                       ? "border-zinc-900 bg-zinc-900 text-white"
                       : "border-zinc-500"
-                  }`}
+                  )}
                 >
                   {checked ? "✓" : ""}
                 </span>

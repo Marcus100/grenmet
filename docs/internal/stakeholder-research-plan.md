@@ -1,5 +1,9 @@
 # Stakeholder and User Research Plan
 
+**Status:** Draft  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-06-13
+
 | Field | Detail |
 |---|---|
 | **Version** | 1.0 |

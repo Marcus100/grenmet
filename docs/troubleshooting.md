@@ -1,5 +1,9 @@
 # Troubleshooting
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-18
+
 Common development issues and how to fix them.
 
 ---
@@ -126,26 +130,43 @@ Check that all env vars used in `turbo.json` `env` arrays are declared. If you a
 
 ## Database
 
-### Drizzle migration fails (`wxwatch` or `wxproducts`)
+### FastAPI domain migration fails
 
-1. Make sure `DATABASE_URL` in `.env.local` points to the correct database (wxwatch and wxproducts use different DBs — check `infra/docker/docker-compose.yml` for the database names).
-2. Run migrations from inside the app directory:
+`wxwatch`, `wxproducts`, `eregister`, `janitorial`, and `transport` are owned by
+FastAPI via dedicated Alembic histories. The web portal consumes them through
+the generated API client. gaa-admin has no ORM or database access (Drizzle was
+removed on 2026-09-23); the adopted Drizzle history lives in FastAPI as
+`src/<domain>/migrations/drizzle-history.json`.
+
+1. Make sure `POSTGRES_SERVER`/`DATABASE_URL` points to the correct database
+   (wxwatch and wxproducts use different DBs — check
+   `apps/api/fastapi/docker-compose.yml` for the database names).
+2. Run the relevant migrations from `apps/api/fastapi`:
 
 ```bash
-cd apps/web/wxwatch    # or wxproducts
-pnpm db:migrate
+cd apps/api/fastapi
+uv run --frozen --package fast-back alembic -c src/wxwatch/alembic.ini upgrade head
+uv run --frozen --package fast-back alembic -c src/wxproducts/alembic.ini upgrade head
+uv run --frozen --package fast-back alembic -c src/eregister/alembic.ini upgrade head
+uv run --frozen --package fast-back alembic -c src/janitorial/alembic.ini upgrade head
+uv run --frozen --package fast-back alembic -c src/transport/alembic.ini upgrade head
 ```
 
-3. If the migration is conflicting with an existing schema, inspect `src/db/migrations/` — do not delete migration files; fix forward.
+3. If a migration conflicts with an existing schema, inspect
+   `apps/api/fastapi/src/wxwatch/migrations/versions/` (or
+   `src/wxproducts/migrations/versions/`) — do not delete migration files; fix
+   forward.
 
 ### Schema change isn't reflected after editing a schema file
 
-You must run `pnpm db:generate` after every schema change. Skipping this step means the migration file is not created and the change will not apply.
+You must generate a new Alembic revision after every schema change. Skipping
+this step means the migration file is not created and the change will not
+apply.
 
 ```bash
-cd apps/web/wxproducts    # or wxwatch
-pnpm db:generate
-pnpm db:migrate
+cd apps/api/fastapi
+uv run --frozen --package fast-back alembic -c src/wxwatch/alembic.ini revision -m "message"
+uv run --frozen --package fast-back alembic -c src/wxwatch/alembic.ini upgrade head
 ```
 
 Commit both the schema file and the generated migration.
@@ -154,8 +175,11 @@ Commit both the schema file and the generated migration.
 
 `pnpm reset` wipes volumes. You need to re-run seed scripts if you need test data:
 
-- FastAPI: `cd apps/api/fastapi && uv run --frozen --package fast-back python -m scripts.seed_data`
-- wxproducts: `cd apps/web/wxproducts && pnpm db:migrate` (seeds are in `src/db/seed.ts`)
+- FastAPI core domains: `cd apps/api/fastapi && uv run --frozen --package fast-back python -m scripts.seed_data`
+- wxwatch / wxproducts / eRegister: data comes from the normal ingestion or
+  observation-entry flow after migrating
+- janitorial / transport: FastAPI prestart runs the create-once catalogue seeder
+  from `scripts/seed_catalogues.py`; it preserves existing rows
 
 ---
 
@@ -203,4 +227,4 @@ pnpm install
 
 ---
 
-If your issue isn't covered here, check the [Technical Overview](./technical-overview.md) for how the system fits together, or inspect the relevant app's `CLAUDE.md` for app-specific context.
+If your issue isn't covered here, check the [Technical Overview](./technical-overview.md) for how the system fits together, or inspect the relevant app's `AGENTS.md` for app-specific context.

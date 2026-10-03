@@ -1,8 +1,12 @@
 # Release Promotion Runbook
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-18
+
 How a change ships from `dev` to production. Agents (Claude Code / Codex) may run
 the verification and PR-creation steps; **merging PRs and publishing the release
-are human actions** (see the Never tier in `CLAUDE.md`).
+are human actions** (see the Never tier in `AGENTS.md`).
 
 Branch flow: `dev → (PR) → staging → (PR) → main → (release vN.M) → prod`.
 Direct commits go to `dev`; promotion is always via PR. Rulesets enforce the
@@ -10,23 +14,27 @@ required checks on `staging` and `main` PRs.
 
 ## 1. Pre-flight on dev
 
-- `pnpm fix` then `pnpm type-check` — both clean.
+- `pnpm fix:changed` then `pnpm type-check` — both clean.
 - Run the `/pre-merge` check (types, lint, Docker names, env drift, API-client
   sync, Actions pinning). Fix findings before promoting.
 - `git status` clean, `dev` pushed.
 
 ## 2. Promote dev → staging
 
+- Promote on a cadence (daily, or per finished feature), not per `dev` push.
 - `gh pr create --base staging --head dev --title "chore: promote dev to staging"`
-- Wait for required checks: `gh pr checks <num> --watch`
-- **Human merges the PR.** The push to `staging` triggers `pipeline-staging.yml`,
+- **Human merges the PR**, normally by arming auto-merge:
+  `gh pr merge <num> --auto --merge`. The PR merges itself once the required
+  checks pass; a red check leaves it open, and a fix pushed to `dev` updates the
+  PR and re-runs checks. Watch with `gh pr checks <num> --watch` if needed.
+- The push to `staging` triggers `pipeline-staging.yml`,
   which builds and smoke-tests a complete core image set alongside CI, then deploys only after every gate succeeds.
 - Verify the staging deploy job succeeded: `gh run list --workflow=pipeline-staging.yml --limit 1`
 
 ## 3. Promote staging → main
 
 - `gh pr create --base main --head staging --title "chore: promote staging to main"`
-- Wait for required checks, then **human merges**. Merging to `main` does NOT
+- Arm auto-merge (`gh pr merge <num> --auto --merge`), which is the human merge decision. Merging to `main` does NOT
   deploy prod — prod is release-gated.
 
 ## 4. Publish the release (deploys prod)
@@ -73,7 +81,7 @@ together as end-to-end elapsed time:
 | Build | BuildKit compilation vertices, excluding image export; record cache hits per image |
 | Export | Docker load/export and registry push vertices in BuildKit records |
 | Queue | Workflow/job timestamps and runner/environment approval waiting time, separately from execution |
-| Migration | Timestamped log interval for each of `prestart`, `web-migrate`, and `cms-migrate` |
+| Migration | Timestamped log interval for `prestart` and `cms-migrate` |
 | Startup | Timestamped interval from application start to Compose readiness |
 | Functional verification | External readiness and page-content smoke interval |
 | Feedback and deployment | Commit-to-required-check completion and trigger-to-successful-deployment elapsed times |
@@ -133,8 +141,8 @@ rounded to the nearest tenth where useful. They are not CPU time.
 | Image resolution, pull and label validation | 4m26.4s | Resolve/pull marker to database provisioning marker |
 | Database provisioning | 2.2s | Provisioning marker to migration marker |
 | Migrations and catalogue initialization | 1m05.3s | Migration marker to runtime-permission marker |
-| API prestart | About 19.8s | Migration marker to web-migrate container creation; includes invocation overhead |
-| Admin migrations/baselines | About 22.0s | web-migrate creation to cms-migrate creation; includes invocation overhead |
+| API prestart | About 19.8s | Migration marker to CMS migration marker; includes invocation overhead |
+| Admin migrations/baselines | About 22.0s | Included in the FastAPI prestart interval; catalogue seeds run in the same container |
 | CMS migration | About 23.5s | cms-migrate creation to runtime-permission marker; includes invocation overhead |
 | Runtime permissions | 2.2s | Permission marker to application-start marker |
 | Application startup/readiness | 2m09.6s | Application-start marker to external smoke marker |
@@ -259,10 +267,7 @@ That establishes a lower observed median probe time, not sole causation for the
 pipeline improvement.
 
 Admin migrations previously deployed the full web application's production
-graph. The dependency-only `packages/admin-migrations` workspace now declares
-`pg` and `drizzle-orm` from the existing catalog. SQL, seeds, script paths,
-database checks and the non-root runtime user remain in the existing app image.
-The Docker dependency-packaging stage precedes application-source copying so
+The FastAPI service now owns GAA domain migrations and seeds. Web images no longer package or execute the deleted admin-migrations workspace; deployment migration steps run through the FastAPI migration service.
 source-only changes can reuse the packaged dependency layer.
 
 Local `pnpm deploy --legacy --prod` measurements for the original and minimal

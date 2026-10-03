@@ -1,11 +1,13 @@
+"use client";
+
+import {
+  eregisterCreateRegisterObservation,
+  eregisterListRegisterObservations,
+  eregisterValidateSynopObservation,
+  type RegisterObservationRead,
+} from "@barrelsgd/api-client";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@barrelsgd/ui/components/ui/card";
 import {
   Table,
   TableBody,
@@ -15,6 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@barrelsgd/ui/components/ui/table";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import {
   CloudSun,
   Droplets,
@@ -30,10 +33,20 @@ import {
   ThermometerSnowflake,
   Wind,
 } from "lucide-react";
+import { type FormEvent, useEffect, useState } from "react";
+import {
+  type CodedGroup,
+  CodedStrip,
+  GRID_CELL,
+  HEAD_ROW,
+  SectionCard,
+  SummaryHead,
+} from "./eregister-ui";
+import { ERegisterWorkbook } from "./eregister-workbook";
 
 // Modernised Meteorological Observations eRegister (station 78958, MBIA).
-// Static representative content — a design cut of the legacy Excel register;
-// data entry and wis2box/SYNOP transmission are wired in a later phase.
+// The register is backed by the dedicated FastAPI eRegister database; the
+// representative rows remain visible when that service is unavailable.
 
 const STATION = {
   name: "Maurice Bishop International Airport",
@@ -105,13 +118,6 @@ const CURRENT_READINGS: Reading[] = [
     icon: CloudSun,
   },
 ];
-
-interface CodedGroup {
-  code: string;
-  id: string;
-  label: string;
-  value: string;
-}
 
 const SECTION_1: CodedGroup[] = [
   { id: "mimi", code: "MiMiMjMj", label: "Report ind.", value: "AAXX" },
@@ -206,87 +212,221 @@ const OBS_LOG: ObsLogRow[] = [
   },
 ];
 
-// Shared spreadsheet-style cell chrome: vertical gridlines between columns.
-const GRID_CELL = "border-border border-r last:border-r-0";
-const HEAD_ROW = "bg-muted/50 hover:bg-muted/50";
+const REGISTER_GROUPS = [
+  {
+    title: "IDENTIFICATION",
+    fields: [
+      ["Report", "report_type", "MiMiMjMj"],
+      ["Day", "day", "YY"],
+      ["Hour", "time_utc", "GG"],
+      ["Station", "station_id", "IIiii"],
+      ["Wind ind.", "wind_indicator", "iw"],
+    ],
+  },
+  {
+    title: "SECTION 1 · GLOBAL DATA",
+    fields: [
+      ["Precip. ind.", "precip_indicator", "iR"],
+      ["Station/weather ind.", "station_wx_indicator", "ix"],
+      ["Cloud base", "cloud_base", "h"],
+      ["Visibility", "visibility", "VV"],
+      ["Total cloud", "total_cloud", "N"],
+      ["Wind dir.", "wind_dir", "dd"],
+      ["Wind speed", "wind_speed", "ff"],
+      ["Air temp.", "air_temp", "1snTTT"],
+      ["Dew point", "dew_point", "2snTdTdTd"],
+      ["Station pressure", "station_pressure", "3P0P0P0P0"],
+      ["MSL pressure", "msl_pressure", "4PPPP"],
+      ["Pressure tendency", "pressure_tendency", "5a"],
+      ["Pressure change", "pressure_change", "5ppp"],
+      ["Precip. amount", "precip_amount", "6RRR"],
+      ["Precip. period", "precip_period", "6tR"],
+      ["Present weather", "present_wx", "7ww"],
+      ["Past wx 1", "past_wx_1", "7W1"],
+      ["Past wx 2", "past_wx_2", "7W2"],
+      ["Low cloud amt.", "low_cloud_amount", "8Nh"],
+      ["Low cloud type", "low_cloud_type", "8CL"],
+      ["Mid cloud type", "mid_cloud_type", "8CM"],
+      ["High cloud type", "high_cloud_type", "8CH"],
+    ],
+  },
+  {
+    title: "SECTION 3 · REGIONAL / NATIONAL DATA",
+    fields: [
+      ["State of sky", "s3_state_of_sky", "0"],
+      ["Low cloud dir.", "s3_cloud_dir_low", "DL"],
+      ["Mid cloud dir.", "s3_cloud_dir_mid", "DM"],
+      ["High cloud dir.", "s3_cloud_dir_high", "DH"],
+      ["Max temp.", "s3_max_temp", "1snTxTxTx"],
+      ["Min temp.", "s3_min_temp", "2snTnTnTn"],
+      ["24h baro change", "s3_baro_change_24h", "5appp"],
+      ["24h rainfall", "s3_rainfall_24h", "7RRR"],
+      ["Layer 1 amt.", "s3_layer1_amount", "8Ns"],
+      ["Layer 1 form", "s3_layer1_form", "C"],
+      ["Layer 1 height", "s3_layer1_height", "hshs"],
+      ["Layer 2 amt.", "s3_layer2_amount", "8Ns"],
+      ["Layer 2 form", "s3_layer2_form", "C"],
+      ["Layer 2 height", "s3_layer2_height", "hshs"],
+      ["Layer 3 amt.", "s3_layer3_amount", "8Ns"],
+      ["Layer 3 form", "s3_layer3_form", "C"],
+      ["Layer 3 height", "s3_layer3_height", "hshs"],
+      ["Layer 4 amt.", "s3_layer4_amount", "8Ns"],
+      ["Layer 4 form", "s3_layer4_form", "C"],
+      ["Layer 4 height", "s3_layer4_height", "hshs"],
+      ["Special phenomena", "s3_special_phenomena", "95SpSpspsp"],
+      ["Remarks", "s3_remarks", "—"],
+      ["Notes", "notes", "—"],
+    ],
+  },
+] as const;
 
-function SectionCard({
-  action,
-  children,
-  title,
-}: {
-  action?: React.ReactNode;
-  children: React.ReactNode;
-  title: React.ReactNode;
-}) {
-  return (
-    <Card className="gap-0 py-0">
-      <CardHeader className="flex flex-row items-center justify-between gap-2 border-b py-3.5">
-        <CardTitle className="text-sm">{title}</CardTitle>
-        {action}
-      </CardHeader>
-      <CardContent className="overflow-hidden rounded-b-xl p-0">
-        {children}
-      </CardContent>
-    </Card>
-  );
-}
-
-// Horizontal coding strip like the legacy register sheet: SYNOP code letters
-// as column headers, the coded values in the row beneath.
-function CodedStrip({ groups }: { groups: CodedGroup[] }) {
-  return (
-    <Table>
-      <TableHeader>
-        <TableRow className={HEAD_ROW}>
-          {groups.map((group) => (
-            <TableHead
-              className={`${GRID_CELL} h-auto px-3 py-2 text-center`}
-              key={group.id}
-            >
-              <div className="text-xs">{group.label}</div>
-              <div className="font-mono font-normal text-[10px] text-muted-foreground">
-                {group.code}
-              </div>
-            </TableHead>
-          ))}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        <TableRow>
-          {groups.map((group) => (
-            <TableCell
-              className={`${GRID_CELL} px-3 py-2.5 text-center font-medium font-mono text-sm tabular-nums`}
-              key={group.id}
-            >
-              {group.value}
-            </TableCell>
-          ))}
-        </TableRow>
-      </TableBody>
-    </Table>
-  );
-}
-
-function SummaryHead({
-  icon: Icon,
-  label,
-  unit,
-}: {
-  icon: LucideIcon;
-  label: string;
-  unit: string;
-}) {
-  return (
-    <span className="inline-flex items-center gap-1.5">
-      <Icon className="size-3.5 text-muted-foreground" />
-      <span>{label}</span>
-      <span className="font-normal text-muted-foreground text-xs">{unit}</span>
-    </span>
-  );
-}
+const REGISTER_DEFAULTS: Record<string, string> = Object.fromEntries(
+  REGISTER_GROUPS.flatMap((group) => group.fields.map(([, key]) => [key, ""]))
+);
 
 export function ERegister() {
+  const [view, setView] = useState<"archive" | "new">("archive");
+  const [liveObservations, setLiveObservations] = useState<
+    RegisterObservationRead[]
+  >([]);
+  const [observedAt, setObservedAt] = useState("2026-07-07T23:00");
+  const [structuredValues, setStructuredValues] = useState<
+    Record<string, string>
+  >({
+    ...REGISTER_DEFAULTS,
+    report_type: "AAXX",
+    day: "07",
+    time_utc: "23",
+    station_id: STATION.number,
+    wind_indicator: "4",
+    wind_dir: "070",
+    wind_speed: "10",
+    visibility: "10",
+    total_cloud: "6",
+    air_temp: "25.4",
+    dew_point: "23.0",
+    msl_pressure: "1014.9",
+  });
+  const [validationIssues, setValidationIssues] = useState<
+    { field: string; message: string }[]
+  >([]);
+  const [validationState, setValidationState] = useState<
+    "idle" | "checking" | "valid" | "invalid" | "error"
+  >("idle");
+  const [saveState, setSaveState] = useState<
+    "idle" | "saving" | "saved" | "error"
+  >("idle");
+  const [liveState, setLiveState] = useState<
+    "loading" | "ready" | "unavailable"
+  >("loading");
+
+  useEffect(() => {
+    let active = true;
+    eregisterListRegisterObservations({
+      query: { kind: "SYNOP", station_id: STATION.number, limit: 6 },
+      throwOnError: false,
+    })
+      .then((result) => {
+        if (!active) return;
+        if (result.error || !result.data) {
+          setLiveState("unavailable");
+          return;
+        }
+        setLiveObservations(result.data.observations);
+        setLiveState("ready");
+      })
+      .catch(() => {
+        if (active) setLiveState("unavailable");
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  async function validateDraft() {
+    setValidationState("checking");
+    const result = await eregisterValidateSynopObservation({
+      body: { workbook: structuredValues },
+      throwOnError: false,
+    });
+    if (result.error || !result.data) {
+      setValidationState("error");
+      return;
+    }
+    setValidationIssues(result.data.issues ?? []);
+    setValidationState(result.data.valid ? "valid" : "invalid");
+  }
+
+  async function saveDraft(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSaveState("saving");
+    const result = await eregisterCreateRegisterObservation({
+      body: {
+        station_id: STATION.number,
+        station_name: STATION.name,
+        aerodrome_icao: STATION.icao,
+        kind: "SYNOP",
+        observed_at: new Date(observedAt).toISOString(),
+        body: {
+          ...structuredValues,
+          source: "eregister-workbook",
+          validation: "pending_wmo_encoder",
+        },
+        raw_tac: null,
+      },
+      throwOnError: false,
+    });
+    if (result.error || !result.data) {
+      setSaveState("error");
+      return;
+    }
+    setSaveState("saved");
+    setLiveObservations((current) => [result.data, ...current].slice(0, 6));
+    setLiveState("ready");
+  }
+
+  const displayedLog: ObsLogRow[] = liveObservations.length
+    ? liveObservations.map((observation) => ({
+        id: observation.id,
+        hour: observation.observed_at
+          ? new Date(observation.observed_at).toISOString().slice(11, 16)
+          : "Unknown",
+        synop: observation.raw_tac ?? "Structured SYNOP record",
+      }))
+    : OBS_LOG;
+
+  if (view === "new") {
+    const iso = new Date(observedAt).toISOString();
+    const metarPreview = `TGPY ${iso.slice(8, 10)}${iso.slice(11, 15)}Z ${structuredValues.wind_dir}${structuredValues.wind_speed.padStart(2, "0")}KT ${structuredValues.visibility === "10" ? "9999" : structuredValues.visibility} ${structuredValues.present_wx || "NSW"} ${structuredValues.total_cloud === "0" ? "NSC" : `BKN${structuredValues.total_cloud}00`} ${structuredValues.air_temp}/${structuredValues.dew_point} Q${structuredValues.msl_pressure.replace(".", "")}`;
+
+    return (
+      <ERegisterWorkbook
+        groups={REGISTER_GROUPS}
+        issues={validationIssues}
+        metarPreview={metarPreview}
+        observedAt={observedAt}
+        onBack={() => setView("archive")}
+        onObservedAtChange={setObservedAt}
+        onSubmit={saveDraft}
+        onValidate={validateDraft}
+        onValidationIssuesChange={setValidationIssues}
+        onValidationStateChange={setValidationState}
+        onValueChange={(key, value) =>
+          setStructuredValues((current) => ({ ...current, [key]: value }))
+        }
+        saveStatus={saveState}
+        station={STATION}
+        validationStatus={validationState}
+        values={structuredValues}
+      />
+    );
+  }
+
+  let liveLabel = "Sample register data";
+  if (liveState === "ready")
+    liveLabel = `${liveObservations.length} live SYNOP records`;
+  if (liveState === "loading") liveLabel = "Loading live SYNOP";
+
   return (
     <div className="flex flex-col gap-6">
       {/* Station header */}
@@ -304,6 +444,16 @@ export function ERegister() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <Button
+            onClick={() => setView("archive")}
+            size="lg"
+            variant={view === "archive" ? "default" : "outline"}
+          >
+            Observation archive
+          </Button>
+          <Button onClick={() => setView("new")} size="lg" variant="outline">
+            New observation
+          </Button>
           <Button size="lg" variant="outline">
             <Send />
             Send last obs
@@ -332,6 +482,9 @@ export function ERegister() {
           <span className="font-medium">{STATION.observer}</span>
         </span>
         <Badge variant="light-success">QC passed</Badge>
+        <Badge variant={liveState === "ready" ? "light-info" : "secondary"}>
+          {liveLabel}
+        </Badge>
         <Badge variant="light-info">CL backed up · {STATION.backedUp}</Badge>
         <a
           className="ml-auto inline-flex items-center gap-1.5 font-medium text-primary text-sm hover:underline"
@@ -353,13 +506,13 @@ export function ERegister() {
           <Table>
             <TableHeader>
               <TableRow className={HEAD_ROW}>
-                <TableHead className={`${GRID_CELL} px-3.5`}>
+                <TableHead className={cn(GRID_CELL, "px-3.5")}>
                   Parameter
                 </TableHead>
-                <TableHead className={`${GRID_CELL} px-3.5 text-right`}>
+                <TableHead className={cn(GRID_CELL, "px-3.5 text-right")}>
                   Value
                 </TableHead>
-                <TableHead className={`${GRID_CELL} px-3.5`}>Unit</TableHead>
+                <TableHead className={cn(GRID_CELL, "px-3.5")}>Unit</TableHead>
                 <TableHead className="px-3.5">Remarks</TableHead>
               </TableRow>
             </TableHeader>
@@ -368,19 +521,22 @@ export function ERegister() {
                 const Icon = reading.icon;
                 return (
                   <TableRow key={reading.id}>
-                    <TableCell className={`${GRID_CELL} px-3.5`}>
+                    <TableCell className={cn(GRID_CELL, "px-3.5")}>
                       <span className="flex items-center gap-2 font-medium">
                         <Icon className="size-3.5 text-muted-foreground" />
                         {reading.label}
                       </span>
                     </TableCell>
                     <TableCell
-                      className={`${GRID_CELL} px-3.5 text-right font-medium font-mono tabular-nums`}
+                      className={cn(
+                        GRID_CELL,
+                        "px-3.5 text-right font-medium font-mono tabular-nums"
+                      )}
                     >
                       {reading.value}
                     </TableCell>
                     <TableCell
-                      className={`${GRID_CELL} px-3.5 text-muted-foreground`}
+                      className={cn(GRID_CELL, "px-3.5 text-muted-foreground")}
                     >
                       {reading.unit ?? "—"}
                     </TableCell>
@@ -405,13 +561,13 @@ export function ERegister() {
           <Table>
             <TableHeader>
               <TableRow className={HEAD_ROW}>
-                <TableHead className={`${GRID_CELL} px-3.5`}>
+                <TableHead className={cn(GRID_CELL, "px-3.5")}>
                   Hour (UTC)
                 </TableHead>
-                <TableHead className={`${GRID_CELL} px-3.5 text-right`}>
+                <TableHead className={cn(GRID_CELL, "px-3.5 text-right")}>
                   <SummaryHead icon={Droplets} label="Rainfall" unit="mm" />
                 </TableHead>
-                <TableHead className={`${GRID_CELL} px-3.5 text-right`}>
+                <TableHead className={cn(GRID_CELL, "px-3.5 text-right")}>
                   <SummaryHead
                     icon={Thermometer}
                     label="Maximum temperature"
@@ -431,17 +587,23 @@ export function ERegister() {
               {DAILY_SUMMARY.map((row) => (
                 <TableRow key={row.id}>
                   <TableCell
-                    className={`${GRID_CELL} px-3.5 font-medium tabular-nums`}
+                    className={cn(GRID_CELL, "px-3.5 font-medium tabular-nums")}
                   >
                     {row.hour}
                   </TableCell>
                   <TableCell
-                    className={`${GRID_CELL} px-3.5 text-right font-mono tabular-nums`}
+                    className={cn(
+                      GRID_CELL,
+                      "px-3.5 text-right font-mono tabular-nums"
+                    )}
                   >
                     {row.rain}
                   </TableCell>
                   <TableCell
-                    className={`${GRID_CELL} px-3.5 text-right font-mono tabular-nums`}
+                    className={cn(
+                      GRID_CELL,
+                      "px-3.5 text-right font-mono tabular-nums"
+                    )}
                   >
                     {row.max}
                   </TableCell>
@@ -453,16 +615,22 @@ export function ERegister() {
             </TableBody>
             <TableFooter>
               <TableRow className="hover:bg-muted/50">
-                <TableCell className={`${GRID_CELL} px-3.5`}>
+                <TableCell className={cn(GRID_CELL, "px-3.5")}>
                   Daily 12–12
                 </TableCell>
                 <TableCell
-                  className={`${GRID_CELL} px-3.5 text-right font-mono tabular-nums`}
+                  className={cn(
+                    GRID_CELL,
+                    "px-3.5 text-right font-mono tabular-nums"
+                  )}
                 >
                   {DAILY_TOTALS.rain}
                 </TableCell>
                 <TableCell
-                  className={`${GRID_CELL} px-3.5 text-right font-mono tabular-nums`}
+                  className={cn(
+                    GRID_CELL,
+                    "px-3.5 text-right font-mono tabular-nums"
+                  )}
                 >
                   {DAILY_TOTALS.max}
                 </TableCell>
@@ -514,7 +682,7 @@ export function ERegister() {
       <SectionCard
         action={
           <span className="text-muted-foreground text-xs">
-            Last {OBS_LOG.length} hours
+            Last {displayedLog.length} records
           </span>
         }
         title="Transmitted observations"
@@ -522,30 +690,39 @@ export function ERegister() {
         <Table>
           <TableHeader>
             <TableRow className={HEAD_ROW}>
-              <TableHead className={`${GRID_CELL} px-3.5`}>
+              <TableHead className={cn(GRID_CELL, "px-3.5")}>
                 Hour (UTC)
               </TableHead>
-              <TableHead className={`${GRID_CELL} px-3.5`}>
+              <TableHead className={cn(GRID_CELL, "px-3.5")}>
                 SYNOP message
               </TableHead>
               <TableHead className="px-3.5">Status</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {OBS_LOG.map((row) => (
+            {displayedLog.map((row) => (
               <TableRow key={row.id}>
                 <TableCell
-                  className={`${GRID_CELL} px-3.5 font-medium tabular-nums`}
+                  className={cn(GRID_CELL, "px-3.5 font-medium tabular-nums")}
                 >
                   {row.hour}
                 </TableCell>
                 <TableCell
-                  className={`${GRID_CELL} px-3.5 font-mono text-muted-foreground text-xs tabular-nums`}
+                  className={cn(
+                    GRID_CELL,
+                    "px-3.5 font-mono text-muted-foreground text-xs tabular-nums"
+                  )}
                 >
                   {row.synop}
                 </TableCell>
                 <TableCell className="px-3.5">
-                  <Badge variant="light-success">Sent</Badge>
+                  <Badge
+                    variant={
+                      liveState === "ready" ? "secondary" : "light-success"
+                    }
+                  >
+                    {liveState === "ready" ? "Recorded" : "Sample"}
+                  </Badge>
                 </TableCell>
               </TableRow>
             ))}
@@ -554,8 +731,8 @@ export function ERegister() {
       </SectionCard>
 
       <p className="text-muted-foreground text-xs">
-        Static design preview — observation entry, QC and wis2box transmission
-        are wired in a later phase.
+        Live records are read from FastAPI. QC approval and WIS2box publication
+        remain explicit workflow steps.
       </p>
     </div>
   );

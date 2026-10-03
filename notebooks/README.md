@@ -1,6 +1,6 @@
 # Notebooks
 
-Data and exploration notebooks for Grenmet (e.g. cartopy, ECMWF Open Data). Requires Python 3.13+.
+Data and exploration notebooks for Grenmet (e.g. cartopy, ECMWF Open Data). Requires Python 3.14+.
 
 From this directory:
 

@@ -31,7 +31,7 @@ than listed per file so that substance stays readable.
 
 | # | Sev | Finding | Location | Fix |
 | --- | --- | --- | --- | --- |
-| 1 | **High** | Post-consolidation instructions never updated. Tells the reader to `cd apps/web/wxwatch` / `apps/web/wxproducts` — directories deleted in the June 2026 consolidation into `gaa-admin`. Compounded by two wrong script names: `pnpm db:generate` and `pnpm db:migrate` do not exist; the real ones are `db:wxwatch:generate` / `db:wxproducts:migrate` and siblings. Also cites `src/db/seed.ts`, which exists in neither `src/db/wxwatch/` nor `src/db/wxproducts/`. Troubleshooting is where someone lands when already stuck, so wrong instructions cost the most here. | `docs/troubleshooting.md:135`, `:146`, `:158` | Repoint to `apps/web/gaa-admin`, correct both script names, and either restore or drop the seed reference |
+| 1 | **Resolved** | Post-consolidation migration instructions were stale and referenced deleted web-owned scripts. The troubleshooting guide now points to FastAPI Alembic histories and the Python catalogue seeder. | `docs/troubleshooting.md` | Replaced by the FastAPI migration and catalogue workflow |
 | 2 | **High** | The Where-to-Look table routes "Service architecture" to `docs/architecture.md`, but that file's own first line states it is **not** a codebase architecture guide — it is GMS service strategy, and it redirects to `technical-overview.md`. An agent following the table lands on strategy when it wanted the monorepo's structure. This is in the file that is machine-read first, so it misroutes every session. | `CLAUDE.md:145` | Route "Service architecture" to `docs/technical-overview.md`; give `docs/architecture.md` a row naming it GMS service strategy |
 | 3 | **Medium** | Events-versus-Pay anchor contradiction. Portfolio policy #1 states Events and Tickets is the first transactional product and takes default discretionary capacity; Pay/Invoice appears nowhere in the portfolio register, while payment providers (Stripe, Republic ePay) are in active testing and a working position elsewhere treats Pay/Invoice as the anchor. | `docs/portfolio/barrels-portfolio-implementation-plan.md:24` vs current work | Record payments as a platform capability pulled by Events under policy #4; keep Pay/Invoice as a product in *Explore* until a settlement loop is proven |
 | 4 | **Medium** | `figma.config.json` is described as "Active configuration tied to the design-system boundary". ADR-0012 removed the `@figma/code-connect` dependency and the `button.figma.tsx` mapping, and root `CLAUDE.md` instructs agents to ignore all Figma tooling. The file configures a parser for a dependency that no longer exists. | `docs/portfolio/repository-delivery-map.md:145` | Reclassify as vestigial/pending removal, or delete the config and the row together |
@@ -75,4 +75,20 @@ findings for every true one.
 
 | # | State | Note |
 | --- | --- | --- |
-| 1–7 | Open | Awaiting approval; no document edited by this audit |
+| 1 | Resolved | See finding |
+| 2 | Resolved | `CLAUDE.md` routes structure to `technical-overview.md` and GMS strategy to `architecture.md` |
+| 3 | Open | Pay/Invoice positioning awaits a product decision |
+| 4 | Partly resolved (2026-09-23) | Delivery map reclassifies `figma.config.json` as vestigial; file deletion awaits approval |
+| 5 | Open | Loyalty register row awaits a product decision |
+| 6 | Open | Header adoption awaits approval of the header convention |
+| 7 | Open | Infrastructure rename tracked outside documentation; `apps/web/events/CLAUDE.md` token wording corrected 2026-09-23 |
+
+### 2026-09-23 follow-up
+
+Additional drift found and corrected: the portfolio plan still showed transition
+boundaries 1–2 complete (now 1–8, matching the transition plan); `CLAUDE.md`
+described a Drizzle schema rule and Drizzle guardrail check that no longer
+exist, and listed technical-overview twice; ADR-0003 said janitorial and
+transport still used Drizzle migrations; FastAPI docs referenced the deleted
+`scripts/quick_test.py`; the README layout and technical overview omitted
+`apps/web/cms`, `packages/cms-migrations`, and the audit/notifications domains.

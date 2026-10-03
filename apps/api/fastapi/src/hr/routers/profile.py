@@ -30,6 +30,7 @@ router = APIRouter(prefix="/hr", tags=["hr"])
     "/organisations",
     response_model=list[OrganisationPublic],
     summary="List accessible organisations",
+    description="Returns the organisations that the authenticated user can access.",
 )
 async def read_organisations(
     session: SessionDep, current_user: CurrentUser
@@ -254,9 +255,12 @@ async def update_hr_profile_me(
     "/employment/{user_id}",
     response_model=UserProfilePublic,
     summary="Update employment (admin)",
-    description="Update a user's employment record and approval authority. Supervisor or admin only.",
+    description="Update employment, approval authority and verified service/probation facts with their HR source. Scoped supervisor or admin only; no inferred eligibility.",
     responses={
         status.HTTP_200_OK: {"description": "Employment updated"},
+        status.HTTP_400_BAD_REQUEST: {
+            "description": "Invalid supervisor or recorded service facts"
+        },
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
         status.HTTP_404_NOT_FOUND: {
             "description": "User or employment record not found"

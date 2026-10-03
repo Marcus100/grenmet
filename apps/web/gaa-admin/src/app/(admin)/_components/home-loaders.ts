@@ -5,6 +5,7 @@ import { loadDashboard } from "@/components/hr/dashboard/load-dashboard";
 import { listPublishedProducts } from "@/db/wxproducts/authored-queries";
 import { getImagesByDateAndSynoptic } from "@/db/wxwatch/queries";
 import { getLatestActiveAlerts } from "@/lib/cap-api";
+import { reportError } from "@/lib/report-error";
 import { getTodayUTC } from "@/lib/wxwatch/utils";
 
 /** Every home panel loads independently: one dead source degrades to a notice
@@ -17,7 +18,8 @@ async function attempt<T>(
 ): Promise<Loaded<T>> {
   try {
     return { data: await load(), ok: true };
-  } catch {
+  } catch (error) {
+    reportError(error, "dashboard");
     return { message, ok: false };
   }
 }

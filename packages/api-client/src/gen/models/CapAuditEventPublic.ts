@@ -19,5 +19,10 @@ export type CapAuditEventPublic = {
   payload?: {
     [key: string]: unknown;
   };
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   created_at: string;
 };

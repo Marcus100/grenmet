@@ -15,6 +15,9 @@ Contents:
 - `dryrun-upload.sh` — uploads the test file into `wis2box-incoming` via S3,
   exactly as SURFACE will. Reads credentials from `wis2box/wis2box.env` at
   runtime; no secrets stored here.
+- `check_bufr.py` — independently decodes one resulting BUFR file using the
+  existing ecCodes dependency and compares its station, UTC time, template
+  version/descriptors, and selected observed values with the source CSV.
 
 Also here (CLI path — no webapp needed):
 
@@ -47,6 +50,20 @@ exit
 ~/grenmet/scripts/wis2-setup/dryrun-upload.sh
 docker logs wis2box-management --tail 30           # expect csv2bufr success
 ```
+
+After downloading the generated `.bufr4` from the sandbox, check its content:
+
+```bash
+uv run --frozen --package gms-ingest python scripts/wis2-setup/check_bufr.py \
+  --source-csv scripts/wis2-setup/test-data/wmo_data_0-20000-0-78958.csv \
+  --bufr /path/to/downloaded/WIGOS_0-20000-0-78958_20260708T210000.bufr4
+```
+
+Exit code 0 means the listed fields match within the encoded resolution; exit
+code 1 prints differences as JSON. Use the **actual source CSV for that BUFR**
+when checking a live SURFACE publication. This is a transfer check, not a full
+WMO-No. 306 compliance assessment. See
+[`docs/operations/code-conformance.md`](../../docs/operations/code-conformance.md).
 
 Webapp alternative: `http://localhost/wis2box-webapp` (dataset editor +
 station editor, token from step 2). Useful later for adding stations with

@@ -21,8 +21,8 @@ from typing import Any
 
 import httpx
 from fastapi.concurrency import run_in_threadpool
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlmodel import col, select
 
 from src.cap.images import render_area_map, render_social_image
 from src.cap.models import (
@@ -62,7 +62,7 @@ async def publish_webhooks(
 ) -> dict[str, Any]:
     """Deliver the job payload to every ACTIVE CAP webhook (HMAC-signed when a secret is set)."""
     result = await session.execute(
-        select(CapWebhook).where(col(CapWebhook.status) == CapIntegrationStatus.ACTIVE)
+        select(CapWebhook).where(CapWebhook.status == CapIntegrationStatus.ACTIVE)
     )
     hooks = list(result.scalars().all())
     body = json.dumps(job.payload, default=str).encode()
@@ -120,9 +120,9 @@ async def _resolve_alert(*, session: AsyncSession, job: CapJobEvent) -> CapAlert
 async def _alert_areas(*, session: AsyncSession, alert_id: uuid.UUID) -> list[CapArea]:
     result = await session.execute(
         select(CapArea)
-        .join(CapInfo, col(CapArea.info_id) == col(CapInfo.id))
-        .where(col(CapInfo.alert_id) == alert_id)
-        .order_by(col(CapArea.sequence))
+        .join(CapInfo, CapArea.info_id == CapInfo.id)
+        .where(CapInfo.alert_id == alert_id)
+        .order_by(CapArea.sequence)
     )
     return list(result.scalars().all())
 
@@ -136,9 +136,7 @@ async def publish_pdf(
     alert_id = alert.id
 
     info_result = await session.execute(
-        select(CapInfo)
-        .where(col(CapInfo.alert_id) == alert_id)
-        .order_by(col(CapInfo.sequence))
+        select(CapInfo).where(CapInfo.alert_id == alert_id).order_by(CapInfo.sequence)
     )
     info_blocks = [
         {
@@ -180,9 +178,7 @@ async def publish_social_image(
     _ = http_client
     alert = await _resolve_alert(session=session, job=job)
     info_result = await session.execute(
-        select(CapInfo)
-        .where(col(CapInfo.alert_id) == alert.id)
-        .order_by(col(CapInfo.sequence))
+        select(CapInfo).where(CapInfo.alert_id == alert.id).order_by(CapInfo.sequence)
     )
     info = info_result.scalars().first()
     if info is None:

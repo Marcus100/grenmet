@@ -17,22 +17,20 @@ FROM build-base AS builder
 WORKDIR /app
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml turbo.json ./
-COPY apps/api/honoapi/package.json apps/api/honoapi/
 COPY apps/web/auth/package.json apps/web/auth/
 COPY apps/web/cms/package.json apps/web/cms/
 COPY apps/web/docs/package.json apps/web/docs/
+COPY apps/web/elections/package.json apps/web/elections/
 COPY apps/web/events/package.json apps/web/events/
 COPY apps/web/gaa-admin/package.json apps/web/gaa-admin/
 COPY apps/web/gms/package.json apps/web/gms/
 COPY apps/web/mbia/package.json apps/web/mbia/
 COPY apps/web/signal/package.json apps/web/signal/
-COPY packages/admin-migrations/package.json packages/admin-migrations/
 COPY packages/api-client/package.json packages/api-client/
 COPY packages/auth/package.json packages/auth/
 COPY packages/cms-migrations/package.json packages/cms-migrations/
 COPY packages/email-templates/package.json packages/email-templates/
 COPY packages/gms/package.json packages/gms/
-COPY packages/mdx/package.json packages/mdx/
 COPY packages/theme/package.json packages/theme/
 COPY packages/tsconfig/package.json packages/tsconfig/
 COPY packages/ui/package.json packages/ui/
@@ -45,6 +43,8 @@ ARG NEXT_PUBLIC_ENVIRONMENT=""
 ARG SENTRY_PROJECT=""
 ARG NEXT_PUBLIC_POSTHOG_KEY=""
 ARG NEXT_PUBLIC_POSTHOG_HOST="https://us.i.posthog.com"
+ARG NEXT_PUBLIC_RELEASE=""
+ENV NEXT_PUBLIC_RELEASE=$NEXT_PUBLIC_RELEASE
 ARG NEXT_PUBLIC_SENTRY_DSN=""
 ARG NEXT_PUBLIC_SENTRY_ENVIRONMENT="production"
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL

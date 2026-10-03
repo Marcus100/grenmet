@@ -9,7 +9,8 @@ import argparse
 import logging
 import sys
 
-from sqlmodel import Session, select
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from src.auth.models import User
 from src.config import settings
@@ -40,7 +41,7 @@ def main():
     try:
         with Session(engine) as session:
             # Find all test users
-            test_users = session.exec(
+            test_users = session.scalars(
                 select(User).where(User.email.like("testuser%@weather.gd"))
             ).all()
 

@@ -1,157 +1,78 @@
 import "server-only";
 
-import { asc } from "drizzle-orm";
-import { janitorialDb as db } from "./index";
-import type { Frequency } from "./parse-spec";
 import {
-  activities,
-  areaBundleRefs,
-  areas,
-  areaTasks,
-  buildings,
-  sections,
-  taskBundleItems,
-  taskBundles,
-} from "./schema";
+  janitorialGetAccessResponseSchema,
+  janitorialGetCatalogueResponseSchema,
+  janitorialGetShiftBoardResponseSchema,
+  janitorialListGrantsResponseSchema,
+  janitorialListStaffResponseSchema,
+} from "@barrelsgd/api-client";
+import type { z } from "zod";
+import {
+  getAuthApiBaseUrl,
+  getAuthApiPrefix,
+  getSessionCookieName,
+} from "@/lib/auth-config";
+import { readSessionCookie } from "@/lib/server-session";
 
-export interface TaskView {
-  activity: string;
-  frequency: Frequency;
-  id: number;
-  mode: string | null;
-}
+export type {
+  JanitorialAccess,
+  JanitorialArea,
+  JanitorialBuilding,
+  JanitorialCatalogue,
+  JanitorialGrant,
+  JanitorialShiftBoard,
+  JanitorialStaffList,
+} from "@barrelsgd/api-client";
 
-export interface BundleView {
-  id: number;
-  items: { activity: string; frequency: Frequency }[];
-  name: string;
-}
-
-export interface AreaView {
-  bundles: BundleView[];
-  id: number;
-  name: string;
-  tasks: TaskView[];
-}
-
-export interface SectionView {
-  areas: AreaView[];
-  id: number | null;
-  name: string | null;
-}
-
-export interface BuildingView {
-  id: number;
-  name: string;
-  sections: SectionView[];
-}
-
-/**
- * Fetch the full janitorial spec as a nested building -> section -> area -> task
- * tree for the read-only view. Areas with no section are grouped under a leading
- * section-less group. Terrazzo bundle references are resolved to their items.
- */
-export async function getJanitorialSpec(): Promise<BuildingView[]> {
-  const [
-    buildingRows,
-    sectionRows,
-    areaRows,
-    activityRows,
-    taskRows,
-    bundleRows,
-    bundleItemRows,
-    bundleRefRows,
-  ] = await Promise.all([
-    db.select().from(buildings).orderBy(asc(buildings.sortOrder)),
-    db.select().from(sections).orderBy(asc(sections.sortOrder)),
-    db.select().from(areas).orderBy(asc(areas.sortOrder)),
-    db.select().from(activities),
-    db.select().from(areaTasks).orderBy(asc(areaTasks.sortOrder)),
-    db.select().from(taskBundles),
-    db.select().from(taskBundleItems).orderBy(asc(taskBundleItems.sortOrder)),
-    db.select().from(areaBundleRefs).orderBy(asc(areaBundleRefs.sortOrder)),
-  ]);
-
-  const activityName = new Map(activityRows.map((a) => [a.id, a.name]));
-
-  const bundleView = new Map<number, BundleView>(
-    bundleRows.map((b) => [b.id, { id: b.id, name: b.name, items: [] }])
-  );
-  for (const item of bundleItemRows) {
-    bundleView.get(item.bundleId)?.items.push({
-      activity: activityName.get(item.activityId) ?? "Unknown",
-      frequency: {
-        count: item.freqCount,
-        periodValue: item.freqPeriodValue,
-        periodUnit: item.freqPeriodUnit,
+async function janitorialGet<T extends z.ZodType>(
+  path: string,
+  schema: T
+): Promise<z.infer<T>> {
+  const secret = await readSessionCookie();
+  if (!secret) throw new Error("Sign in to view the janitorial portal");
+  const response = await fetch(
+    new URL(`${getAuthApiPrefix()}/janitorial${path}`, getAuthApiBaseUrl()),
+    {
+      headers: {
+        Cookie: `${getSessionCookieName()}=${encodeURIComponent(secret)}`,
       },
-    });
-  }
-
-  const areaView = new Map<number, AreaView>(
-    areaRows.map((a) => [
-      a.id,
-      { id: a.id, name: a.name, tasks: [], bundles: [] },
-    ])
+      cache: "no-store",
+      redirect: "error",
+      signal: AbortSignal.timeout(10_000),
+    }
   );
-  for (const task of taskRows) {
-    areaView.get(task.areaId)?.tasks.push({
-      id: task.id,
-      activity: activityName.get(task.activityId) ?? "Unknown",
-      mode: task.mode,
-      frequency: {
-        count: task.freqCount,
-        periodValue: task.freqPeriodValue,
-        periodUnit: task.freqPeriodUnit,
-      },
-    });
-  }
-  for (const ref of bundleRefRows) {
-    const bundle = bundleView.get(ref.bundleId);
-    if (bundle) {
-      areaView.get(ref.areaId)?.bundles.push(bundle);
-    }
-  }
+  if (!response.ok) throw new Error("Janitorial portal data unavailable");
+  return schema.parse(await response.json());
+}
 
-  // Group areas by (buildingId, sectionId), preserving DB sort order.
-  const sectionName = new Map(sectionRows.map((s) => [s.id, s.name]));
-  const sectionBuilding = new Map(sectionRows.map((s) => [s.id, s.buildingId]));
+export function getJanitorialAccess() {
+  return janitorialGet("/access", janitorialGetAccessResponseSchema);
+}
 
-  return buildingRows.map((building) => {
-    const buildingAreas = areaRows.filter((a) => a.buildingId === building.id);
+/** Catalogue for one site (e.g. "GND") or every site, limited to the user's buildings. */
+export function getJanitorialCatalogue(site?: string) {
+  return janitorialGet(
+    site ? `/catalogue?${new URLSearchParams({ site })}` : "/catalogue",
+    janitorialGetCatalogueResponseSchema
+  );
+}
 
-    const groups: SectionView[] = [];
-    const groupIndex = new Map<number | null, SectionView>();
-    const ensureGroup = (sectionId: number | null): SectionView => {
-      let group = groupIndex.get(sectionId);
-      if (!group) {
-        group = {
-          id: sectionId,
-          name:
-            sectionId === null ? null : (sectionName.get(sectionId) ?? null),
-          areas: [],
-        };
-        groupIndex.set(sectionId, group);
-        groups.push(group);
-      }
-      return group;
-    };
+export function getJanitorialStaff() {
+  return janitorialGet("/staff", janitorialListStaffResponseSchema);
+}
 
-    // Section-less areas first, then each real section in sort order.
-    for (const area of buildingAreas) {
-      if (area.sectionId === null) {
-        ensureGroup(null).areas.push(areaView.get(area.id) as AreaView);
-      }
-    }
-    for (const section of sectionRows) {
-      if (sectionBuilding.get(section.id) !== building.id) continue;
-      for (const area of buildingAreas) {
-        if (area.sectionId === section.id) {
-          ensureGroup(section.id).areas.push(areaView.get(area.id) as AreaView);
-        }
-      }
-    }
+export function getJanitorialGrants() {
+  return janitorialGet("/grants", janitorialListGrantsResponseSchema);
+}
 
-    return { id: building.id, name: building.name, sections: groups };
-  });
+export function getJanitorialShiftBoard(
+  site: string,
+  from: string,
+  to: string
+) {
+  return janitorialGet(
+    `/shifts?${new URLSearchParams({ site, from, to })}`,
+    janitorialGetShiftBoardResponseSchema
+  );
 }

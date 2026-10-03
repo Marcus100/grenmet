@@ -5,8 +5,8 @@ vi.mock("@/env", () => ({
   env: { NEXT_PUBLIC_WXWATCH_OBJECT_STORAGE: "false" },
 }));
 
+import type { WeatherImage } from "@barrelsgd/api-client";
 import type { ImagesBySynoptic } from "@/db/wxwatch/queries";
-import type { WeatherImage } from "@/db/wxwatch/schema";
 import { Gallery } from "./gallery";
 
 afterEach(cleanup);
@@ -30,13 +30,13 @@ function weatherImage(overrides: Partial<WeatherImage>): WeatherImage {
 }
 
 const image = weatherImage({
-  fetchedAt: new Date("2026-09-09T06:05:00Z"),
+  fetchedAt: "2026-09-09T06:05:00Z",
   fileFormat: "png",
   height: 600,
   id: 1,
   isAnimated: false,
   name: "GOES19 IR",
-  observationTime: new Date("2026-09-09T06:00:00Z"),
+  observationTime: "2026-09-09T06:00:00Z",
   spiderName: "goes19_ir",
   storagePath: "goes19/ir.png",
   width: 800,
@@ -67,4 +67,43 @@ describe("wxwatch gallery", () => {
     expect(dialog).toHaveTextContent("PNG");
     expect(dialog).toHaveTextContent("Still image");
   });
+});
+
+it("shows estimated time and verified asset details without claiming an observation", () => {
+  const estimated = weatherImage({
+    ...image,
+    timeBasis: "estimated_analysis",
+    archiveNominalTime: "2026-09-09T06:00:00Z",
+    firstRetrievedAt: "2026-09-09T06:05:00Z",
+    latestRetrievedAt: "2026-09-09T07:00:00Z",
+    verificationStatus: "verified",
+    replicaState: "verified",
+    verifiedByteSize: 71_157,
+    verifiedSha256: "a".repeat(64),
+  });
+  render(
+    <Gallery
+      imagesBySynoptic={[
+        { name: "GOES19", synopticImages: { ...EMPTY_SLOTS, "06": estimated } },
+      ]}
+    />
+  );
+  fireEvent.click(screen.getByRole("button", { name: FRAME_BUTTON }));
+  const dialog = screen.getByRole("dialog");
+  expect(dialog).toHaveTextContent("Estimated analysis time");
+  expect(dialog).toHaveTextContent("09 Sept 2026, 06:00:00 UTC");
+  expect(dialog).toHaveTextContent("09 Sept 2026, 07:00:00 UTC");
+  expect(dialog).toHaveTextContent("Verified local file");
+  expect(dialog).toHaveTextContent("71,157 bytes");
+  expect(dialog).toHaveTextContent("a".repeat(64));
+  expect(dialog).not.toHaveTextContent("Observation time");
+});
+
+it("does not infer verification or latest retrieval for legacy rows", () => {
+  render(<Gallery imagesBySynoptic={groups} />);
+  fireEvent.click(screen.getByRole("button", { name: FRAME_BUTTON }));
+  const dialog = screen.getByRole("dialog");
+  expect(dialog).toHaveTextContent("Nominal time (unverified)");
+  expect(dialog).toHaveTextContent("Latest recorded retrievalUnknown");
+  expect(dialog).toHaveTextContent("Not verified");
 });

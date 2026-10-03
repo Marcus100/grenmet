@@ -1,5 +1,6 @@
 "use client";
 
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { Search } from "lucide-react";
 import type { InputHTMLAttributes } from "react";
 
@@ -21,7 +22,7 @@ export function SearchBar({
   };
 
   return (
-    <div className={`relative ${className}`}>
+    <div className={cn("relative", className)}>
       <Search className="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
       <input
         className="min-h-12 w-full touch-manipulation rounded-lg border-none bg-card py-3.5 pr-4 pl-12 text-base text-foreground transition-shadow placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-gm-blue"

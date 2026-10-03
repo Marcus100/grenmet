@@ -1,5 +1,9 @@
 # Quality Management and Verification Framework
 
+**Status:** Draft  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-08-19
+
 | Field | Detail |
 |---|---|
 | **Version** | 1.0 |

@@ -9,8 +9,8 @@ const SESSION_SUCCESS = {
   access_token_expires_at: new Date(Date.now() + 3_600_000).toISOString(),
   token_type: "bearer" as const,
   session: {
-    id: "session_1",
-    user_id: "user_1",
+    id: "00000000-0000-4000-8000-000000000001",
+    user_id: "00000000-0000-4000-8000-000000000002",
     app_name: null,
     client_type: "web",
     created_at: new Date().toISOString(),
@@ -20,7 +20,7 @@ const SESSION_SUCCESS = {
     revoked_at: null,
   },
   user: {
-    id: "user_1",
+    id: "00000000-0000-4000-8000-000000000002",
     email: "jane@example.com",
     full_name: "Jane Smith",
     is_active: true,
@@ -32,8 +32,36 @@ export const signInSuccess = http.post(`${BASE}/login/session`, () =>
   HttpResponse.json(SESSION_SUCCESS)
 );
 
+export const signInMalformedResponse = http.post(`${BASE}/login/session`, () =>
+  HttpResponse.json({
+    ...SESSION_SUCCESS,
+    session_expires_at: "2026-09-20T19:13:54+0000",
+  })
+);
+
 export const signInBadCredentials = http.post(`${BASE}/login/session`, () =>
   HttpResponse.json({ detail: "Incorrect email or password" }, { status: 400 })
+);
+
+export const signInMfaRequired = http.post(`${BASE}/login/session`, () =>
+  HttpResponse.json(
+    { detail: "Two-factor authentication code required or invalid" },
+    { status: 400 }
+  )
+);
+
+export const signInVerifyRequired = http.post(`${BASE}/login/session`, () =>
+  HttpResponse.json(
+    { detail: "Verify your email and set your password before signing in" },
+    { status: 403 }
+  )
+);
+
+export const signInAwaitingApproval = http.post(`${BASE}/login/session`, () =>
+  HttpResponse.json(
+    { detail: "Your registration is awaiting administrator approval" },
+    { status: 403 }
+  )
 );
 
 export const signInServiceDown = http.post(`${BASE}/login/session`, () =>
@@ -46,7 +74,7 @@ export const signOutSuccess = http.post(`${BASE}/login/session/logout`, () =>
 
 export const signUpSuccess = http.post(`${BASE}/auth/users/signup`, () =>
   HttpResponse.json({
-    id: "user_2",
+    id: "00000000-0000-4000-8000-000000000003",
     email: "new@example.com",
     username: "newuser",
     first_name: "New",

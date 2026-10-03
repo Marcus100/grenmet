@@ -7,6 +7,11 @@ import type { TimesheetEntryInput } from "./TimesheetEntryInput.js";
 
 export type TimesheetCreate = {
   user_id?: string | null;
+  /**
+   * @minLength 1
+   * @maxLength 100
+   * @type string
+   */
   department_id: string;
   /**
    * @description

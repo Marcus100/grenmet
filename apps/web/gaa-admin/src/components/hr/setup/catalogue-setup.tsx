@@ -1,6 +1,6 @@
 "use client";
 import type { CataloguePreview } from "@barrelsgd/api-client";
-import { useListDepartmentsEndpointApiV1HrDepartmentsGet } from "@barrelsgd/api-client";
+import { useHrListDepartments } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { useMutation } from "@tanstack/react-query";
 import { useId, useState } from "react";
@@ -8,7 +8,7 @@ import { importCatalogue, previewCatalogue } from "./setup-api";
 
 export function CatalogueSetup({ onSaved }: { onSaved: () => void }) {
   const id = useId();
-  const departmentsQuery = useListDepartmentsEndpointApiV1HrDepartmentsGet();
+  const departmentsQuery = useHrListDepartments();
   const departments = departmentsQuery.data?.data ?? [];
   const previewMutation = useMutation({ mutationFn: previewCatalogue });
   const importMutation = useMutation({ mutationFn: importCatalogue });

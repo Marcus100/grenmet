@@ -1,0 +1,168 @@
+{
+  "G": [
+    3674,
+    2300,
+    [
+      ["Joan Purcell", "NDC", 772],
+      ["George McGuire", "TNP", 566],
+      ["Herbert Preudhomme", "GULP", 554],
+      ["Dennis Campbell", "NNP", 349],
+      ["Terrence Marryshow", "MBPM", 42],
+      ["Michael Donelan", "IND", 11],
+      ["Justin McBurnie", "GOD", 6]
+    ]
+  ],
+  "H": [
+    5029,
+    3248,
+    [
+      ["George Brizan", "NDC", 1853],
+      ["Gerald Arlin", "GULP", 607],
+      ["John Munro", "NNP", 543],
+      ["Fitzroy Alexander", "TNP", 207],
+      ["Valentine Joseph", "MBPM", 34],
+      ["Michael Radix", "IND", 4]
+    ]
+  ],
+  "J": [
+    3373,
+    2114,
+    [
+      ["Keith Mitchell", "NNP", 1148],
+      ["Jerry Seales", "GULP", 574],
+      ["Carl Hood", "NDC", 280],
+      ["Michael Stewart", "TNP", 74],
+      ["Carlton Briggs", "MBPM", 38]
+    ]
+  ],
+  "K": [
+    3587,
+    2399,
+    [
+      ["Francis Alexis", "NDC", 1214],
+      ["Norman DeSousa", "GULP", 585],
+      ["Joseph Robertson", "TNP", 292],
+      ["Robert Grant", "NNP", 265],
+      ["Joseph Charter", "MBPM", 43]
+    ]
+  ],
+  "L": [
+    4844,
+    3113,
+    [
+      ["Phinsley St. Louis", "NDC", 1278],
+      ["Eric Gairy", "GULP", 1088],
+      ["Winston Whyte", "NNP", 454],
+      ["Cephas Pilgrim", "TNP", 293]
+    ]
+  ],
+  "F": [
+    6379,
+    4491,
+    [
+      ["Michael Andrew", "NDC", 1745],
+      ["Vincent Clyne", "GULP", 1510],
+      ["Joslyn Whiteman", "NNP", 639],
+      ["Catherine Hagley", "TNP", 548],
+      ["Brian Lindsay", "MBPM", 49]
+    ]
+  ],
+  "B": [
+    3067,
+    2139,
+    [
+      ["Winifred Strachan", "GULP", 802],
+      ["Pauline Andrew", "TNP", 645],
+      ["Norton Noel", "NDC", 446],
+      ["Lawrence Joseph", "NNP", 246]
+    ]
+  ],
+  "C": [
+    4441,
+    2950,
+    [
+      ["Ben Jones", "TNP", 1430],
+      ["Joseph McGuire", "GULP", 690],
+      ["Dennis Noel", "NDC", 624],
+      ["Richard Lewis", "NNP", 143],
+      ["George Lewis", "MBPM", 63]
+    ]
+  ],
+  "D": [
+    3515,
+    2317,
+    [
+      ["Lawrence Gibbs", "GULP", 819],
+      ["Marcel Peters", "NDC", 574],
+      ["Clarence Renaud", "TNP", 496],
+      ["McDonald George", "NNP", 408],
+      ["Leslie Julien", "MBPM", 18]
+    ]
+  ],
+  "E": [
+    3189,
+    2272,
+    [
+      ["Alleyne Walker", "TNP", 730],
+      ["Herbert Fletcher", "GULP", 716],
+      ["Paul Francis", "NDC", 629],
+      ["Bert LaTouche", "NNP", 134],
+      ["Carlton Bernard", "MBPM", 63]
+    ]
+  ],
+  "P": [
+    2723,
+    1799,
+    [
+      ["Winston Frederick", "GULP", 607],
+      ["Tillman Thomas", "NDC", 510],
+      ["Prescott Swan", "NNP", 361],
+      ["Nathaniel Herry", "TNP", 287],
+      ["Glen St. Louis", "MBPM", 34]
+    ]
+  ],
+  "R": [
+    3708,
+    2340,
+    [
+      ["Kenny Lalsingh", "NDC", 885],
+      ["Wellington Friday", "GULP", 632],
+      ["Lennox Jerome", "NNP", 361],
+      ["Paul Richards", "TNP", 328],
+      ["Joseph Andall", "MBPM", 134]
+    ]
+  ],
+  "M": [
+    5142,
+    3550,
+    [
+      ["Edzel Thomas", "GULP", 1227],
+      ["Grace Duncan", "NNP", 1027],
+      ["Carlyle Glean", "NDC", 878],
+      ["Einstein Louison", "MBPM", 239],
+      ["Linda Charles", "TNP", 179]
+    ]
+  ],
+  "N": [
+    2630,
+    1861,
+    [
+      ["Malcolm Antoine", "NNP", 564],
+      ["Albert Forsythe", "GULP", 488],
+      ["Henry DeAllie", "NDC", 436],
+      ["Felix Alexander", "TNP", 243],
+      ["George Thomas", "MBPM", 130]
+    ]
+  ],
+  "A": [
+    2995,
+    2005,
+    [
+      ["Nicholas Brathwaite", "NDC", 1346],
+      ["Michael Caesar", "TNP", 455],
+      ["Bonfield Bristol", "GULP", 136],
+      ["Winston Fleary", "NNP", 35],
+      ["Lyle Bullen", "GULP", 33]
+    ]
+  ]
+}

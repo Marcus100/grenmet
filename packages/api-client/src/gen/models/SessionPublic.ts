@@ -4,9 +4,19 @@
  */
 
 export type SessionPublic = {
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   expires_at: string;
   client_type: string;
   app_name?: string | null;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   last_used_at: string;
   revoked_at?: string | null;
   /**
@@ -15,7 +25,17 @@ export type SessionPublic = {
    * @type string
    */
   id: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   created_at: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   updated_at: string;
   /**
    * @description

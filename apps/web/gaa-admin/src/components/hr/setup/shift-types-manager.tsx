@@ -1,11 +1,11 @@
 "use client";
 
 import {
-  listShiftCatalogApiV1HrRostersShiftsGetQueryKey,
+  hrListShiftCatalogQueryKey,
   type ShiftCatalogPublic,
-  useCreateShiftApiV1HrRostersShiftsPost,
-  useListShiftCatalogApiV1HrRostersShiftsGet,
-  useUpdateShiftApiV1HrRostersShiftsCodePatch,
+  useHrCreateShift,
+  useHrListShiftCatalog,
+  useHrUpdateShift,
 } from "@barrelsgd/api-client";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
@@ -117,8 +117,8 @@ function ShiftTypeDialog({
     existing ? formFromShift(existing) : emptyForm()
   );
 
-  const createMutation = useCreateShiftApiV1HrRostersShiftsPost();
-  const updateMutation = useUpdateShiftApiV1HrRostersShiftsCodePatch();
+  const createMutation = useHrCreateShift();
+  const updateMutation = useHrUpdateShift();
   const isPending = createMutation.isPending || updateMutation.isPending;
   const isEdit = Boolean(existing);
 
@@ -172,7 +172,7 @@ function ShiftTypeDialog({
         });
       }
       await queryClient.invalidateQueries({
-        queryKey: listShiftCatalogApiV1HrRostersShiftsGetQueryKey({}),
+        queryKey: hrListShiftCatalogQueryKey({}),
       });
       toast.success(
         isEdit ? `Updated shift "${form.code}"` : `Created shift "${form.code}"`
@@ -344,13 +344,13 @@ function ShiftTypeDialog({
 
 export function ShiftTypesManager() {
   const queryClient = useQueryClient();
-  const shiftsQuery = useListShiftCatalogApiV1HrRostersShiftsGet({
+  const shiftsQuery = useHrListShiftCatalog({
     query: {
       include_inactive: true,
     },
   });
   const shifts = shiftsQuery.data?.data ?? [];
-  const updateMutation = useUpdateShiftApiV1HrRostersShiftsCodePatch();
+  const updateMutation = useHrUpdateShift();
 
   async function toggleActive(shift: ShiftCatalogPublic) {
     try {
@@ -359,7 +359,7 @@ export function ShiftTypesManager() {
         body: { is_active: !shift.is_active },
       });
       await queryClient.invalidateQueries({
-        queryKey: listShiftCatalogApiV1HrRostersShiftsGetQueryKey({}),
+        queryKey: hrListShiftCatalogQueryKey({}),
       });
       toast.success(
         shift.is_active

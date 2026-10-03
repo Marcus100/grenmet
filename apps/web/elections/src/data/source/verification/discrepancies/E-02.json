@@ -1,0 +1,12 @@
+{
+  "id": "E-02",
+  "area": "1984 results",
+  "status": "resolved",
+  "impact": "data",
+  "what": "Fenderson J. Felix (GFLP, 10 votes, St. Andrew South East, 1984) is in ElectionPassport but not in the PEO table. Two independent sources confirm he stood: The Grenada Newsletter (24 March 1990) and the IFES/Emmanuel 1984 table.",
+  "action": "Restored and marked †. The PEO table omits him.",
+  "sources": [
+    "The Grenada Newsletter, 24 March 1990, p. 10",
+    "IFES R01622 (1989)"
+  ]
+}

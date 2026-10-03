@@ -1,0 +1,202 @@
+[
+  {
+    "div": "M01",
+    "sub": "a",
+    "place": "St. John’s Anglican School",
+    "yes": 44,
+    "no": 57,
+    "rej": 1,
+    "voted": 102,
+    "reg": 313
+  },
+  {
+    "div": "M01",
+    "sub": "b",
+    "place": "St. John’s Anglican School",
+    "yes": 25,
+    "no": 56,
+    "rej": 0,
+    "voted": 81,
+    "reg": 274
+  },
+  {
+    "div": "M02",
+    "sub": "a",
+    "place": "St. John’s R.C. School – Pre-School Department",
+    "yes": 27,
+    "no": 35,
+    "rej": 2,
+    "voted": 64,
+    "reg": 286
+  },
+  {
+    "div": "M02",
+    "sub": "b",
+    "place": "St. John’s R.C. School – Pre-School Department",
+    "yes": 26,
+    "no": 37,
+    "rej": 0,
+    "voted": 63,
+    "reg": 292
+  },
+  {
+    "div": "M02",
+    "sub": "c",
+    "place": "St. John’s R.C. School – Pre-School Department",
+    "yes": 28,
+    "no": 39,
+    "rej": 0,
+    "voted": 67,
+    "reg": 276
+  },
+  {
+    "div": "M03",
+    "sub": "a",
+    "place": "Gouyave Methodist Church",
+    "yes": 34,
+    "no": 38,
+    "rej": 0,
+    "voted": 72,
+    "reg": 324
+  },
+  {
+    "div": "M03",
+    "sub": "b",
+    "place": "Gouyave Methodist Church",
+    "yes": 31,
+    "no": 44,
+    "rej": 0,
+    "voted": 75,
+    "reg": 325
+  },
+  {
+    "div": "M04",
+    "sub": "a",
+    "place": "Grand Roy Government School",
+    "yes": 39,
+    "no": 38,
+    "rej": 0,
+    "voted": 77,
+    "reg": 352
+  },
+  {
+    "div": "M04",
+    "sub": "b",
+    "place": "Grand Roy Government School",
+    "yes": 33,
+    "no": 38,
+    "rej": 0,
+    "voted": 71,
+    "reg": 357
+  },
+  {
+    "div": "M04",
+    "sub": "c",
+    "place": "Grand Roy Government School",
+    "yes": 22,
+    "no": 29,
+    "rej": 1,
+    "voted": 52,
+    "reg": 335
+  },
+  {
+    "div": "M05",
+    "sub": "a",
+    "place": "Concord Government School",
+    "yes": 43,
+    "no": 26,
+    "rej": 1,
+    "voted": 70,
+    "reg": 303
+  },
+  {
+    "div": "M05",
+    "sub": "b",
+    "place": "Concord Government School",
+    "yes": 48,
+    "no": 27,
+    "rej": 2,
+    "voted": 77,
+    "reg": 298
+  },
+  {
+    "div": "M05",
+    "sub": "c",
+    "place": "Concord Government School",
+    "yes": 42,
+    "no": 20,
+    "rej": 0,
+    "voted": 62,
+    "reg": 300
+  },
+  {
+    "div": "M06",
+    "sub": null,
+    "place": "Florida Medical Station",
+    "yes": 49,
+    "no": 23,
+    "rej": 1,
+    "voted": 73,
+    "reg": 237
+  },
+  {
+    "div": "M07",
+    "sub": "a",
+    "place": "Cocoa Grove Community Centre",
+    "yes": 19,
+    "no": 33,
+    "rej": 0,
+    "voted": 52,
+    "reg": 281
+  },
+  {
+    "div": "M07",
+    "sub": "b",
+    "place": "Cocoa Grove Community Centre",
+    "yes": 24,
+    "no": 36,
+    "rej": 0,
+    "voted": 60,
+    "reg": 293
+  },
+  {
+    "div": "M07",
+    "sub": "c",
+    "place": "Cocoa Grove Community Centre",
+    "yes": 23,
+    "no": 42,
+    "rej": 0,
+    "voted": 65,
+    "reg": 287
+  },
+  {
+    "div": "M08",
+    "sub": "a",
+    "place": "Mt. Nesbit Community Centre",
+    "yes": 24,
+    "no": 35,
+    "rej": 0,
+    "voted": 59,
+    "reg": 302
+  },
+  {
+    "div": "M08",
+    "sub": "b",
+    "place": "Mt. Nesbit Community Centre",
+    "yes": 18,
+    "no": 55,
+    "rej": 0,
+    "voted": 73,
+    "reg": 300
+  },
+  {
+    "div": "M09",
+    "sub": null,
+    "place": "Clozier Community Centre",
+    "yes": 56,
+    "no": 28,
+    "rej": 1,
+    "voted": 85,
+    "reg": 262
+  }
+]

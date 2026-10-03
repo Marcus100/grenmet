@@ -19,6 +19,7 @@ function fixture(directory) {
     CORE_PRIVATE_IP: "10.10.0.2",
     DEPLOY_IMAGE_TAG: `sha-${"a".repeat(40)}`,
   };
+  env.NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS = undefined;
   for (const key of [
     "POSTGRES_USER",
     "POSTGRES_PASSWORD",
@@ -38,6 +39,7 @@ function fixture(directory) {
   for (const domain of [
     "WXWATCH",
     "WXPRODUCTS",
+    "EREGISTER",
     "TRANSPORT",
     "JANITORIAL",
     "CMS",
@@ -139,7 +141,9 @@ test("staging and production pass integrations to the intended services", () => 
         readFileSync(`infra/docker/${deploymentEnvironment}.env`, "utf8")
       );
       Object.assign(env, {
-        SENTRY_DSN: "https://public@example.test/1",
+        SENTRY_DSN: "https://unused@example.test/1",
+        SENTRY_DSN_STAGING: "https://stage@example.test/1",
+        SENTRY_DSN_PRODUCTION: "https://prod@example.test/2",
         NEXT_PUBLIC_POSTHOG_KEY: "phc_test",
         NEXT_PUBLIC_POSTHOG_HOST: "https://us.i.posthog.com",
         BILLING_STRIPE_SECRET_KEY:
@@ -204,12 +208,46 @@ test("staging and production pass integrations to the intended services", () => 
         api.BILLING_STRIPE_SECRET_KEY,
         env.BILLING_STRIPE_SECRET_KEY
       );
-      assert.equal(api.SENTRY_DSN, env.SENTRY_DSN);
+      assert.equal(
+        api.SENTRY_DSN,
+        env[`SENTRY_DSN_${deploymentEnvironment.toUpperCase()}`]
+      );
       assert.equal(api.REDIS_URL, "redis://redis:6379/0");
       assert.equal(api.EMAIL_RENDER_URL, "http://web-auth:3000");
+      const baseDomain =
+        deploymentEnvironment === "staging"
+          ? "staging.barrels.gd"
+          : "barrels.gd";
+      for (const service of [api, model.services.worker.environment]) {
+        assert.equal(service.RESEND_API_KEY, env.RESEND_API_KEY);
+        assert.equal(service.EMAILS_FROM_EMAIL, "noreply@barrels.gd");
+        assert.equal(service.EMAIL_RENDER_URL, "http://web-auth:3000");
+        assert.equal(service.EMAIL_RENDER_SECRET, env.EMAIL_RENDER_SECRET);
+        assert.equal(
+          service.NOTIFICATIONS_WEB_BASE_URL,
+          `https://admin.${baseDomain}`
+        );
+        assert.equal(
+          service.NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS,
+          deploymentEnvironment === "staging" ? "barrels.gd" : ""
+        );
+      }
+      for (const [key, subdomain] of Object.entries({
+        ADMIN_APP_URL: "admin",
+        DOCS_APP_URL: "docs",
+        GMS_APP_URL: "weather",
+        SIGNAL_APP_URL: "signal",
+        MBIA_APP_URL: "mbia",
+        EVENTS_APP_URL: "events",
+      })) {
+        assert.equal(
+          model.services["web-auth"].environment[key],
+          `https://${subdomain}.${baseDomain}`
+        );
+      }
       assert.equal(
         model.services.worker.environment.SENTRY_DSN,
-        env.SENTRY_DSN
+        api.SENTRY_DSN
       );
       assert.equal(
         model.services["web-gms"].environment.CAP_API_URL,
@@ -217,7 +255,7 @@ test("staging and production pass integrations to the intended services", () => 
       );
       assert.equal(
         model.services["web-gms"].environment.WXPRODUCTS_API_URL,
-        "http://web-admin:3001"
+        undefined
       );
       assert.equal(
         model.services["web-auth"].environment.EMAIL_RENDER_SECRET,
@@ -226,7 +264,7 @@ test("staging and production pass integrations to the intended services", () => 
       for (const service of ["web-auth", "web-admin", "web-docs", "web-gms"]) {
         assert.equal(
           model.services[service].environment.NEXT_PUBLIC_POSTHOG_KEY,
-          env.NEXT_PUBLIC_POSTHOG_KEY
+          undefined
         );
         assert.equal(
           model.services[service].environment.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
@@ -237,6 +275,77 @@ test("staging and production pass integrations to the intended services", () => 
           undefined
         );
       }
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  }
+});
+test("notification recipient policy defaults safely and accepts explicit domains", () => {
+  for (const [environment, configured, expected] of [
+    ["staging", undefined, "barrels.gd"],
+    ["staging", "  ", "barrels.gd"],
+    ["production", undefined, ""],
+    [
+      "staging",
+      "Example.test, STAFF.Example.test",
+      "example.test,staff.example.test",
+    ],
+    ["production", "example.test", "example.test"],
+  ]) {
+    const directory = mkdtempSync(join(tmpdir(), "notification-policy-"));
+    try {
+      const { env, config, destination } = fixture(directory);
+      writeFileSync(
+        config,
+        readFileSync(config, "utf8").replace(
+          "ENVIRONMENT=staging",
+          `ENVIRONMENT=${environment}`
+        )
+      );
+      if (configured !== undefined)
+        env.NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS = configured;
+      execFileSync(
+        "python3",
+        ["scripts/production/render-env.py", config, destination],
+        { env }
+      );
+      assert.ok(
+        readFileSync(destination, "utf8")
+          .split("\n")
+          .includes(
+            `NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS=${JSON.stringify(expected)}`
+          )
+      );
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  }
+});
+
+test("notification recipient policy rejects malformed domains without echoing them", () => {
+  for (const domains of [
+    "*",
+    "https://example.test",
+    "example.test,",
+    "example.test\nDO_NOT_ECHO",
+    "user@example.test",
+  ]) {
+    const directory = mkdtempSync(
+      join(tmpdir(), "notification-policy-rejected-")
+    );
+    try {
+      const { env, config, destination } = fixture(directory);
+      const result = spawnSync(
+        "python3",
+        ["scripts/production/render-env.py", config, destination],
+        {
+          env: { ...env, NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS: domains },
+          encoding: "utf8",
+        }
+      );
+      assert.notEqual(result.status, 0);
+      assert.ok(result.stderr.includes("NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS"));
+      assert.equal(result.stderr.includes(domains), false);
     } finally {
       rmSync(directory, { recursive: true, force: true });
     }
@@ -273,5 +382,25 @@ test("partial provider configuration and live Stripe keys in staging fail closed
     } finally {
       rmSync(directory, { recursive: true, force: true });
     }
+  }
+});
+
+test("runtime missing staging Sentry never selects production", () => {
+  const directory = mkdtempSync(join(tmpdir(), "sentry-isolation-"));
+  try {
+    const { env, config, destination } = fixture(directory);
+    env.SENTRY_DSN_STAGING = undefined;
+    env.SENTRY_DSN_PRODUCTION = "https://prod@example.test/2";
+    execFileSync(
+      "python3",
+      ["scripts/production/render-env.py", config, destination],
+      { env }
+    );
+    const rendered = readFileSync(destination, "utf8");
+    assert.ok(rendered.includes('SENTRY_DSN_API=""'));
+    assert.ok(rendered.includes('SENTRY_DSN_WORKER=""'));
+    assert.equal(rendered.includes("https://prod@example.test/2"), false);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
   }
 });

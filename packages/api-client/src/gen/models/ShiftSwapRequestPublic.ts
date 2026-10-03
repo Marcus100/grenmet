@@ -5,10 +5,12 @@
 
 import type { RequestStatus } from "./RequestStatus.js";
 import type { SwapType } from "./SwapType.js";
+import type { WorkflowStatus } from "./WorkflowStatus.js";
 
 export type ShiftSwapRequestPublic = {
   signed_document_id?: string | null;
   submitted_at?: string | null;
+  workflow_status?: WorkflowStatus | null;
   /**
    * @description
    * Format: `uuid`
@@ -50,6 +52,16 @@ export type ShiftSwapRequestPublic = {
   counterpart_agreed_at?: string | null;
   status: RequestStatus;
   workflow_instance_id?: string | null;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   created_at: string;
+  /**
+   * @description
+   * Format: `date-time`
+   * @type string
+   */
   updated_at: string;
 };

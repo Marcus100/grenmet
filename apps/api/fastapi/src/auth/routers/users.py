@@ -225,15 +225,13 @@ async def register_user(
 ) -> Any:
     if not auth_settings.ALLOW_PUBLIC_SIGNUP:
         raise HTTPException(status_code=403, detail="Registration is currently closed")
-    created_user = User.model_validate(
-        user_in,
-        update={
-            "hashed_password": await get_password_hash_async(user_in.password),
-            "registration_pending": True,
-            "email_verification_required": True,
-            "is_active": True,
-            "is_superuser": False,
-        },
+    created_user = User(
+        **user_in.model_dump(exclude={"password"}),
+        hashed_password=await get_password_hash_async(user_in.password),
+        registration_pending=True,
+        email_verification_required=True,
+        is_active=True,
+        is_superuser=False,
     )
     session.add(created_user)
     try:

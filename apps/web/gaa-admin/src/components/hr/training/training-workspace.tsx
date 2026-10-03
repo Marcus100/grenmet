@@ -1,8 +1,8 @@
 "use client";
 
 import {
-  readOrganisationsApiV1HrOrganisationsGet,
-  readTrainingEmployeesApiV1HrTrainingEmployeesGet,
+  hrGetOrganisations,
+  hrGetTrainingEmployees,
 } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
@@ -16,7 +16,7 @@ export function TrainingWorkspace() {
   const [selectedOrganisation, setSelectedOrganisation] = useState("");
   const organisations = useQuery({
     queryKey: ["hr-organisations"],
-    queryFn: () => readOrganisationsApiV1HrOrganisationsGet().unwrap(),
+    queryFn: () => hrGetOrganisations().unwrap(),
   });
   const organisationId =
     selectedOrganisation ||
@@ -31,7 +31,7 @@ export function TrainingWorkspace() {
     enabled: Boolean(organisationId),
     queryFn: () => {
       if (!organisationId) throw new Error("Select an organisation");
-      return readTrainingEmployeesApiV1HrTrainingEmployeesGet({
+      return hrGetTrainingEmployees({
         query: { search, page, size: 20, organisation_id: organisationId },
       }).unwrap();
     },

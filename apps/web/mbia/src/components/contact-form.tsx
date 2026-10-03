@@ -10,6 +10,7 @@ import {
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { useState } from "react";
 import { CONTACT_SUBJECTS, contactSchema } from "@/lib/contact";
+import { reportError } from "@/lib/report-error";
 
 type FormState =
   | { status: "idle" }
@@ -49,7 +50,8 @@ export function ContactForm() {
       }
       form.reset();
       setState({ status: "success" });
-    } catch {
+    } catch (error) {
+      reportError(error, "mbia-contact");
       setState({
         status: "error",
         message: "Could not reach the server — please try again.",

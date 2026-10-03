@@ -1,47 +1,22 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { configForOrigin } from "@barrelsgd/ui/lib/analytics-policy";
+import { render } from "@testing-library/react";
+import { expect, it } from "vitest";
 import { GoogleAnalytics } from "./google-analytics";
 
-const route = vi.hoisted(() => ({ pathname: "/news/private-customer" }));
-vi.mock("next/navigation", () => ({ usePathname: () => route.pathname }));
-vi.mock("next/script", () => ({
-  default: ({ onReady }: { onReady: () => void }) => (
-    <button onClick={onReady} type="button">
-      Load analytics
-    </button>
-  ),
-}));
-beforeEach(() => {
-  window.dataLayer = [];
-});
-afterEach(cleanup);
-
-it("loads nothing without a measurement ID", () => {
-  render(<GoogleAnalytics environment="development" measurementId="" />);
-  expect(screen.queryByText("Load analytics")).toBeNull();
-  expect(window.dataLayer).toEqual([]);
+it("restores existing staging Weather analytics without enabling other origins", () => {
+  expect(
+    configForOrigin("gms", "https://weather.staging.barrels.gd")?.ga4
+  ).toBe("G-6PY9N83HCP");
+  expect(configForOrigin("gms", "https://weather.barrels.gd")).toBeNull();
+  expect(
+    configForOrigin("signal", "https://weather.staging.barrels.gd")
+  ).toBeNull();
+  expect(configForOrigin("gms", "http://localhost:3003")).toBeNull();
 });
 
-it("disables automatic pageviews and publishes only a safe public section", () => {
-  render(<GoogleAnalytics environment="staging" measurementId="G-TEST123" />);
-  expect(window.dataLayer).toEqual([]);
-  fireEvent.click(screen.getByText("Load analytics"));
-  expect(window.dataLayer).toContainEqual([
-    "config",
-    "G-TEST123",
-    expect.objectContaining({
-      send_page_view: false,
-      allow_google_signals: false,
-    }),
-  ]);
-  expect(window.dataLayer).toContainEqual([
-    "event",
-    "page_view",
-    expect.objectContaining({
-      page_title: "news",
-      page_referrer: "",
-      debug_mode: true,
-    }),
-  ]);
-  expect(JSON.stringify(window.dataLayer)).not.toContain("private-customer");
+it("legacy environment-wide GA settings cannot enable collection", () => {
+  const { container } = render(
+    <GoogleAnalytics environment="staging" measurementId="G-6PY9N83HCP" />
+  );
+  expect(container.innerHTML).toBe("");
 });

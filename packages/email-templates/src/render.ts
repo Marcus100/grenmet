@@ -1,11 +1,12 @@
 import { render } from "react-email";
+import { NotificationEmail, type NotificationEmailProps } from "./notification";
 import {
   ResetPasswordEmail,
   type ResetPasswordEmailProps,
 } from "./reset-password";
 import { WelcomeEmail, type WelcomeEmailProps } from "./welcome";
 
-export type TemplateName = "reset-password" | "welcome";
+export type TemplateName = "notification" | "reset-password" | "welcome";
 
 export interface RenderResult {
   html: string;
@@ -17,6 +18,13 @@ export async function renderTemplate(
   props: Record<string, unknown>
 ): Promise<RenderResult> {
   switch (template) {
+    case "notification": {
+      const p = props as unknown as NotificationEmailProps;
+      return {
+        html: await render(NotificationEmail(p)),
+        subject: p.title,
+      };
+    }
     case "reset-password": {
       const p = props as unknown as ResetPasswordEmailProps;
       return {

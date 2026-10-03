@@ -12,7 +12,6 @@ which is intentionally NOT included here — it is unrelated to this change.
 """
 
 import sqlalchemy as sa
-import sqlmodel
 from sqlalchemy.dialects import postgresql
 
 from alembic import op
@@ -26,7 +25,9 @@ depends_on = None
 
 def upgrade() -> None:
     # leavetype enum already exists; add new values (autogenerate misses these).
-    op.execute("ALTER TYPE leavetype ADD VALUE IF NOT EXISTS 'PROFESSIONAL_APPOINTMENT'")
+    op.execute(
+        "ALTER TYPE leavetype ADD VALUE IF NOT EXISTS 'PROFESSIONAL_APPOINTMENT'"
+    )
     op.execute("ALTER TYPE leavetype ADD VALUE IF NOT EXISTS 'BEREAVEMENT'")
 
     bind = op.get_bind()
@@ -147,7 +148,7 @@ def upgrade() -> None:
         "status_report",
         sa.Column(
             "personnel_explanation",
-            sqlmodel.sql.sqltypes.AutoString(length=1000),
+            sa.String(length=1000),
             nullable=True,
         ),
         schema="hr",
@@ -161,7 +162,7 @@ def upgrade() -> None:
         "status_report",
         sa.Column(
             "affected_operations_explanation",
-            sqlmodel.sql.sqltypes.AutoString(length=1000),
+            sa.String(length=1000),
             nullable=True,
         ),
         schema="hr",
@@ -175,7 +176,7 @@ def upgrade() -> None:
         "status_report",
         sa.Column(
             "equipment_issue_reason",
-            sqlmodel.sql.sqltypes.AutoString(length=1000),
+            sa.String(length=1000),
             nullable=True,
         ),
         schema="hr",
@@ -184,7 +185,7 @@ def upgrade() -> None:
         "status_report",
         sa.Column(
             "equipment_remedy_action",
-            sqlmodel.sql.sqltypes.AutoString(length=1000),
+            sa.String(length=1000),
             nullable=True,
         ),
         schema="hr",
@@ -198,7 +199,7 @@ def upgrade() -> None:
         "status_report",
         sa.Column(
             "incident_explanation",
-            sqlmodel.sql.sqltypes.AutoString(length=1000),
+            sa.String(length=1000),
             nullable=True,
         ),
         schema="hr",

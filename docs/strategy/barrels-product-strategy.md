@@ -22,6 +22,8 @@ The
 is the authoritative execution view for priorities and dependencies. GAA and
 GMS client delivery is governed separately by the
 [GAA/GMS Client Programme Plan](../portfolio/gaa-gms-client-programme-plan.md).
+The [Barrels AI and Data Platform Strategy](barrels-ai-strategy.md) adds the
+AI and data capabilities that complement this strategy.
 
 This document does not authorize implementation, infrastructure changes,
 payment processing, regulated activity, or changes to the transition plan.
@@ -142,6 +144,8 @@ Reusable capabilities shared where product needs justify them:
 - Loyalty and rewards
 - Operational analytics
 - AI-assisted discovery, support, and operations
+- Knowledge retrieval, workflow automation, and data services (see the
+  [AI and data platform strategy](barrels-ai-strategy.md))
 
 Capabilities should be introduced to solve demonstrated product needs. A
 shared platform must not become an excuse to build speculative infrastructure
@@ -302,6 +306,11 @@ AI is an enabling capability, not the primary product. Recommendations should
 be explainable where practical, personalization should be controllable, and
 high-impact actions should remain under user or authorized organizational
 control.
+
+The [Barrels AI and Data Platform Strategy](barrels-ai-strategy.md) describes
+how shared AI, knowledge, automation, and data capabilities (Barrels Core) are
+introduced when products and clients need them, and how Barrels contributes to
+AI adoption in Grenada without owning national infrastructure.
 
 ## Trust, data, and resilience
 

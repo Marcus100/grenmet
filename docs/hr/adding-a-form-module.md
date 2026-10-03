@@ -1,11 +1,15 @@
 # Adding a New HR Form Module
 
+**Status:** Active reference  
+**Owner:** GAA (institutional content); maintained by Barrels Grenada  
+**Last updated:** 2026-09-20
+
 A repeatable recipe for turning a paper HR form into a FastAPI module, generalized
 from `src/hr/parking/` and `src/hr/absentee/`. Follow it whenever a new GAA/HR form
 needs to be captured. For the field-mapping of existing forms see
 [`forms-inventory.md`](forms-inventory.md).
 
-> Conventions referenced here come from `apps/api/fastapi/CLAUDE.md` (two-layer
+> Conventions referenced here come from `apps/api/fastapi/AGENTS.md` (two-layer
 > models, module-import style, route metadata). Read it first.
 
 Replace `<form>` with the snake_case module name (e.g. `parking`) and `<Form>` with
@@ -18,7 +22,7 @@ the PascalCase entity (e.g. `ParkingPermit`) throughout.
 | File | Contents |
 |---|---|
 | `__init__.py` | empty |
-| `models.py` | `SQLModel, table=True` DB model(s) + domain enums |
+| `models.py` | SQLAlchemy ORM DB model(s) + domain enums |
 | `schemas.py` | `<Form>Create` / `<Form>Public` / `<Form>ListPublic` (extend `src.models.BaseModel`) |
 | `service.py` | async business logic |
 | `router.py` | `APIRouter(prefix="/hr", tags=["hr-<form>"])` |
@@ -37,7 +41,7 @@ the PascalCase entity (e.g. `ParkingPermit`) throughout.
 
 Three classes extending `src.models.BaseModel`: `<Form>Create` (request body),
 `<Form>Public` (response — mirrors the DB fields you expose), `<Form>ListPublic`
-(`data: list[<Form>Public]` + `count: int`). Never expose the SQLModel directly.
+(`data: list[<Form>Public]` + `count: int`). Never expose the ORM model directly.
 
 ## 4. Service (`service.py`)
 

@@ -1,5 +1,9 @@
 # Data Architecture
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-20
+
 Barrels Grenada currently uses a modular-monolith data model: several applications share one deployed PostgreSQL server, but each domain owns its database or schema boundary.
 
 ## Database Ownership
@@ -7,22 +11,26 @@ Barrels Grenada currently uses a modular-monolith data model: several applicatio
 | Database | Owner | Main code | Migration tool | Notes |
 | --- | --- | --- | --- | --- |
 | FastAPI DB: local `app`, staging `app_staging`, production `app_prod` | FastAPI | `apps/api/fastapi/src` | Alembic | Auth, HR, and FastAPI CAP domain tables |
-| `wxwatch` | `@barrelsgd/web-gaa-admin` (gaa-admin) + Scrapy pipeline | `apps/web/gaa-admin/src/db/wxwatch/schema.ts` | Drizzle Kit | Weather image archive metadata |
-| `wxproducts` | `@barrelsgd/web-gaa-admin` (gaa-admin) | `apps/web/gaa-admin/src/db/wxproducts/schema/` | Drizzle Kit | Structured meteorological products and PDF/export foundations |
+| `wxwatch` | FastAPI + Scrapy pipeline | `apps/api/fastapi/src/wxwatch/` | Alembic | Weather image archive metadata |
+| `wxproducts` | FastAPI | `apps/api/fastapi/src/wxproducts/` | Dedicated Alembic configuration | Authored products, observations, revisions, and preserved legacy weather tables |
+| `eregister` | FastAPI | `apps/api/fastapi/src/eregister/` | Dedicated Alembic configuration | Observation register, QC, TAC, BUFR/IWXXM and WIS2 provenance |
+| `janitorial` | FastAPI | `apps/api/fastapi/src/janitorial/` | Dedicated Alembic configuration | Staff catalogue and task definitions |
+| `transport` | FastAPI | `apps/api/fastapi/src/transport/` | Dedicated Alembic configuration | Staff timetable and route catalogue |
 
-> Since the 2026-06 consolidation, the `wxwatch` and `wxproducts` databases (formerly owned by the standalone `wxwatch`/`wxproducts` web apps) are owned by **gaa-admin**. Their migrations run in production via the `web-migrate` service (built from gaa-admin's `migrate` Dockerfile stage). The databases and their backups are otherwise unchanged.
+> FastAPI owns weather, eRegister, janitorial, and transport databases. GAA Admin consumes generated API contracts; it does not connect directly to those databases. The databases and their backups remain separate.
 
 The databases are provisioned by `infra/postgres/init-databases.sh` on first PostgreSQL volume initialization.
 
 ## FastAPI Database
 
-FastAPI uses SQLModel and async SQLAlchemy for request handling. `apps/api/fastapi/src/database.py` imports all model modules so Alembic can see metadata.
+FastAPI uses SQLAlchemy 2.0 and async SQLAlchemy for request handling. `apps/api/fastapi/src/database.py` imports all model modules so Alembic can see the shared metadata.
 
 Current FastAPI domains:
 
 - Auth: users, sessions, roles, permissions, role assignments.
 - HR: profiles, employment, rosters, leave, timesheets, workflows, status reports, absentee reports, shift swaps.
 - CAP: alerts, info, areas, resources, references, incidents, snapshots, settings, hazards, predefined areas, integrations, job events, audit events.
+- WxWatch, WxProducts, eRegister, Janitorial, and Transport: dedicated database boundaries and API contracts.
 
 Rules:
 
@@ -33,20 +41,19 @@ Rules:
 
 ## WxWatch Database
 
-`wxwatch` owns a Drizzle table named `weather_images` with indexes for observation time, spider/fetch time, fetch time, and URL/checksum lookup.
+`wxwatch` owns the `weather_images` table through FastAPI Alembic with indexes for observation time, spider/fetch time, fetch time, and URL/checksum lookup.
 
 Rules:
 
-- Edit `apps/web/gaa-admin/src/db/wxwatch/schema.ts` for schema changes.
-- Run `pnpm db:wxwatch:generate` from `apps/web/gaa-admin`.
-- Run `pnpm db:wxwatch:migrate` from `apps/web/gaa-admin`.
-- Commit schema and generated migration output together.
+- Edit `apps/api/fastapi/src/wxwatch/` for schema and route changes.
+- Run `alembic -c src/wxwatch/alembic.ini upgrade head` from `apps/api/fastapi`.
+- Regenerate the API client after route or schema changes.
 
 The Scrapy pipeline writes weather image metadata into this database. Do not couple `wxwatch` data directly to FastAPI tables.
 
 ## WxProducts Database
 
-`wxproducts` owns the structured meteorological product model. The schema barrel is `apps/web/gaa-admin/src/db/wxproducts/schema/index.ts`.
+`wxproducts` owns the structured meteorological product model. FastAPI owns its database and Alembic migrations under `apps/api/fastapi/src/wxproducts/`. The former web schema barrel remains a transitional reference for legacy product types.
 
 Current schema families include:
 
@@ -59,18 +66,22 @@ Current schema families include:
 
 Rules:
 
-- Edit files under `apps/web/gaa-admin/src/db/wxproducts/schema/`.
-- Run `pnpm db:wxproducts:generate` from `apps/web/gaa-admin`.
-- Run `pnpm db:wxproducts:migrate` from `apps/web/gaa-admin`.
+- Edit models and migrations under `apps/api/fastapi/src/wxproducts/`.
+- From `apps/api/fastapi`, run `uv run --frozen --package fast-back alembic -c src/wxproducts/alembic.ini revision -m "description"` and implement the migration.
+- Apply with `uv run --frozen --package fast-back alembic -c src/wxproducts/alembic.ini upgrade head`.
+- Do not generate new Drizzle migrations for these domains.
 - Keep fixed-output PDF requirements in the document lane; do not force those dimensions into generic UI tokens.
 
 ## Backups
 
-Production backup automation covers all three production databases:
+Production backup automation covers all six core production databases:
 
 - `app_prod`
 - `wxwatch`
 - `wxproducts`
+- `eregister`
+- `janitorial`
+- `transport`
 
 The workflow uses custom-format `pg_dump`, verifies each dump by restoring into a temporary database, uploads to DigitalOcean Spaces, and keeps local files for 30 days. See [infrastructure.md](infrastructure.md#backups-and-restore).
 
@@ -228,3 +239,19 @@ The CAP domain audit model should be extended to all official product domains as
 | [Cybersecurity and Continuity Plan](./operations/cybersecurity-continuity.md) | Data access controls and backup |
 | [Warning Operations](./internal/warning-operations.md) | CAP audit trail implementation |
 | [Infrastructure](./infrastructure.md) | Backup commands and restore procedures |
+
+## WxWatch FastAPI ownership (September 2026)
+
+WxWatch retains its separate PostgreSQL database. FastAPI now owns reads, ingestion and Alembic migrations (`src/wxwatch/alembic.ini`); earlier Drizzle instructions above are historical. The baseline adopts verified legacy history without dropping data. The follow-on migration adds collection leases, source-qualified product keys and timestamp provenance. Scrapy downloads original image bytes and submits metadata through authenticated HTTP. Gaa-admin is a presentation client. New immutable file keys include a content hash; existing files remain readable. Archive database backups must be paired with backups of the local image directory or object storage. NHC bulletin ingestion, a normalized product/edition/asset catalogue and forecast verification remain subsequent work.
+
+### GMS-wide meteorological alignment requirement
+
+All meteorological systems must be comparable by time, space and meteorological meaning: WxWatch, authored forecasts, CAP, SYNOP/METAR/SPECI/TAF, NHC guidance, SURFACE, WIS2box, GeoNetCast and research notebooks. BUFR/IWXXM are representations of records, not separate observation identities. Preserve originals and schema/decoder versions; link equivalent representations without silently merging reports.
+
+The future comparison contract must distinguish observation/scan intervals, issue/run times, forecast validity, collection times and revisions; identify stations or geographic footprints with their coordinate systems; and preserve variables, units, vertical levels and quality/provenance. Unknown spatial or temporal precision stays unknown. Verification must choose a forecast issued before its evaluation cutoff and match the observation's spatial/temporal support. Separate domain databases and existing authoritative systems remain in place. Reuse `scripts/gms-ingest` for NHC collection and the accepted SURFACE-to-WIS2 publishing path (ADR-0010); do not introduce duplicate ingestion bridges. This requirement guides the WxWatch migration but does not claim those subsequent adapters are implemented.
+
+Hybrid archive direction: model an asset independently of its physical replicas. A future local/cloud replica catalogue must record location, availability, checksum verification, replication attempts and last verified time. The current implementation chooses local or object storage; it does not yet provide replication, automatic failover or coordinated restore verification. Keep metadata/file backups paired and never treat synchronization as a backup.
+
+### Observation compatibility API
+
+FastAPI exposes `GET /api/v1/wxproducts/observations` as the time-aligned staff read contract for SYNOP, METAR and SPECI. The response keeps observation time, issue time, station identity, source payload and representation/publication provenance together. During migration it reads the legacy wxproducts observation tables; the adapter boundary is intentionally separate so its source can move to SURFACE without changing GAA or verification consumers. SURFACE remains authoritative for operational capture, QC and WIS2box publication.

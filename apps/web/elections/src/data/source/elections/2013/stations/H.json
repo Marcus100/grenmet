@@ -1,0 +1,302 @@
+[
+  [
+    "H01",
+    null,
+    "Vendome Community Centre",
+    342,
+    312,
+    1,
+    {
+      "NDC": 148,
+      "NNP": 162,
+      "MIC": 0,
+      "GRP": 1,
+      "GUPM": 0
+    }
+  ],
+  [
+    "H02",
+    "a",
+    "Brownie’s Hideaway & Disco",
+    294,
+    262,
+    0,
+    {
+      "NDC": 113,
+      "NNP": 147,
+      "MIC": 2,
+      "GRP": 0,
+      "GUPM": 0
+    }
+  ],
+  [
+    "H02",
+    "b",
+    "Brownie’s Hideaway & Disco",
+    247,
+    209,
+    1,
+    {
+      "NDC": 92,
+      "NNP": 113,
+      "MIC": 1,
+      "GRP": 1,
+      "GUPM": 1
+    }
+  ],
+  [
+    "H03",
+    null,
+    "Constantine Methodist School",
+    120,
+    111,
+    1,
+    {
+      "NDC": 38,
+      "NNP": 72,
+      "MIC": 0,
+      "GRP": 0,
+      "GUPM": 0
+    }
+  ],
+  [
+    "H04",
+    "a",
+    "Boca Secondary School",
+    234,
+    220,
+    0,
+    {
+      "NDC": 126,
+      "NNP": 93,
+      "MIC": 0,
+      "GRP": 1,
+      "GUPM": 0
+    }
+  ],
+  [
+    "H04",
+    "b",
+    "Boca Secondary School",
+    216,
+    184,
+    0,
+    {
+      "NDC": 101,
+      "NNP": 82,
+      "MIC": 0,
+      "GRP": 1,
+      "GUPM": 0
+    }
+  ],
+  [
+    "H05",
+    "a",
+    "Beaulieu R.C. School",
+    274,
+    236,
+    1,
+    {
+      "NDC": 96,
+      "NNP": 138,
+      "MIC": 1,
+      "GRP": 0,
+      "GUPM": 0
+    }
+  ],
+  [
+    "H05",
+    "b",
+    "Beaulieu R.C. School",
+    274,
+    243,
+    2,
+    {
+      "NDC": 95,
+      "NNP": 146,
+      "MIC": 0,
+      "GRP": 0,
+      "GUPM": 0
+    }
+  ],
+  [
+    "H05",
+    "c",
+    "Beaulieu R.C. School, Pre School",
+    245,
+    216,
+    2,
+    {
+      "NDC": 106,
+      "NNP": 108,
+      "MIC": 0,
+      "GRP": 0,
+      "GUPM": 0
+    }
+  ],
+  [
+    "H06",
+    "a",
+    "L.A. Purcell's Building, La Mode",
+    246,
+    221,
+    1,
+    {
+      "NDC": 83,
+      "NNP": 137,
+      "MIC": 0,
+      "GRP": 0,
+      "GUPM": 0
+    }
+  ],
+  [
+    "H06",
+    "b",
+    "Purcell’s Premises, La Mode",
+    242,
+    204,
+    3,
+    {
+      "NDC": 112,
+      "NNP": 89,
+      "MIC": 0,
+      "GRP": 0,
+      "GUPM": 0
+    }
+  ],
+  [
+    "H07",
+    "a",
+    "St. Mary’s R. C. School, Tempe",
+    398,
+    337,
+    2,
+    {
+      "NDC": 161,
+      "NNP": 174,
+      "MIC": 0,
+      "GRP": 0,
+      "GUPM": 0
+    }
+  ],
+  [
+    "H07",
+    "b",
+    "St. Mary’s R. C. School, Tempe",
+    265,
+    229,
+    0,
+    {
+      "NDC": 106,
+      "NNP": 123,
+      "MIC": 0,
+      "GRP": 0,
+      "GUPM": 0
+    }
+  ],
+  [
+    "H07",
+    "c",
+    "St. Mary’s R. C. School, Tempe",
+    314,
+    275,
+    1,
+    {
+      "NDC": 126,
+      "NNP": 148,
+      "MIC": 0,
+      "GRP": 0,
+      "GUPM": 0
+    }
+  ],
+  [
+    "H07",
+    "d",
+    "St. Mary’s R. C. School, Tempe",
+    302,
+    261,
+    0,
+    {
+      "NDC": 123,
+      "NNP": 137,
+      "MIC": 0,
+      "GRP": 1,
+      "GUPM": 0
+    }
+  ],
+  [
+    "H08",
+    "a",
+    "Alpha Junior School, Mt. Parnassus",
+    241,
+    204,
+    1,
+    {
+      "NDC": 117,
+      "NNP": 85,
+      "MIC": 0,
+      "GRP": 0,
+      "GUPM": 1
+    }
+  ],
+  [
+    "H08",
+    "b",
+    "Alpha Junior School, Mt. Parnassus",
+    261,
+    226,
+    1,
+    {
+      "NDC": 111,
+      "NNP": 113,
+      "MIC": 0,
+      "GRP": 0,
+      "GUPM": 1
+    }
+  ],
+  [
+    "H08",
+    "c",
+    "Alpha Junior School, Mt. Parnassus",
+    203,
+    183,
+    1,
+    {
+      "NDC": 96,
+      "NNP": 86,
+      "MIC": 0,
+      "GRP": 0,
+      "GUPM": 0
+    }
+  ],
+  [
+    "H09",
+    "a",
+    "St. Paul’s Government School",
+    358,
+    318,
+    3,
+    {
+      "NDC": 171,
+      "NNP": 141,
+      "MIC": 2,
+      "GRP": 0,
+      "GUPM": 1
+    }
+  ],
+  [
+    "H09",
+    "b",
+    "St. Paul’s Government School",
+    310,
+    279,
+    1,
+    {
+      "NDC": 146,
+      "NNP": 129,
+      "MIC": 1,
+      "GRP": 2,
+      "GUPM": 0
+    }
+  ]
+]

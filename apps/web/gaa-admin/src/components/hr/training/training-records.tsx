@@ -1,15 +1,16 @@
 "use client";
 
 import {
-  archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePost,
-  createTrainingRecordApiV1HrTrainingRecordsPost,
-  readTrainingRecordsApiV1HrTrainingRecordsGet,
+  hrArchiveTrainingRecord,
+  hrCreateTrainingRecord,
+  hrGetTrainingRecords,
   type TrainingRecordPublic,
 } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useId, useState } from "react";
+import { RecordHistoryButton } from "@/components/audit/record-history";
 import { ExpiryBadge, grenadaToday } from "@/components/hr/expiry";
 
 export function TrainingRecords({
@@ -37,7 +38,7 @@ export function TrainingRecords({
       includeArchived,
     ],
     queryFn: () =>
-      readTrainingRecordsApiV1HrTrainingRecordsGet({
+      hrGetTrainingRecords({
         query: {
           organisation_id: organisationId,
           user_id: userId,
@@ -113,7 +114,7 @@ export function TrainingRecords({
             }
             setBusy(true);
             try {
-              await createTrainingRecordApiV1HrTrainingRecordsPost({
+              await hrCreateTrainingRecord({
                 body: {
                   organisation_id: organisationId,
                   user_id: userId,
@@ -241,18 +242,25 @@ export function TrainingRecords({
                     Archive reason: {record.archive_reason}
                   </p>
                 )}
-                {record.can_manage && !record.archived_at && (
-                  <Button
-                    disabled={busy}
-                    onClick={() => {
-                      setArchive(record);
-                      setError("");
-                    }}
-                    variant="outline"
-                  >
-                    Archive {record.course_name}
-                  </Button>
-                )}
+                <div className="flex flex-wrap items-center gap-2">
+                  {record.can_manage && !record.archived_at && (
+                    <Button
+                      disabled={busy}
+                      onClick={() => {
+                        setArchive(record);
+                        setError("");
+                      }}
+                      variant="outline"
+                    >
+                      Archive {record.course_name}
+                    </Button>
+                  )}
+                  <RecordHistoryButton
+                    entityId={record.id}
+                    entityType="training_record"
+                    title={`${record.course_name} history`}
+                  />
+                </div>
               </li>
             ))}
           </ul>
@@ -294,9 +302,10 @@ export function TrainingRecords({
             setBusy(true);
             setError("");
             try {
-              await archiveTrainingRecordApiV1HrTrainingRecordsRecordIdArchivePost(
-                { path: { record_id: archive.id }, body: { reason } }
-              ).unwrap();
+              await hrArchiveTrainingRecord({
+                path: { record_id: archive.id },
+                body: { reason },
+              }).unwrap();
               if (page > 1 && query.data?.data.length === 1) setPage(page - 1);
               await refresh();
             } catch {

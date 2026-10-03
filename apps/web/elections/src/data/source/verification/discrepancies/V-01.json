@@ -1,0 +1,126 @@
+{
+  "id": "V-01",
+  "area": "Voter register",
+  "status": "open",
+  "impact": "data",
+  "what": "Between consecutive consolidated lists, the change doesn’t match the new registrations in the addenda, implying large removals: 2019-12→2020-06: 7,274; 2020-06→2020-12: 8,143; 2020-12→2021-06: 2,427; 2021-06→2021-12: 5,209; 2021-12→2022-05: 9,993; 2022-05→2022-06: 315; 2022-06→2022-12: 469; 2022-12→2023-06: 201; 2023-06→2023-12: 1,311; 2023-12→2024-06: 1,163; 2024-06→2024-12: 656; 2024-12→2025-06: 1,521; 2025-06→2025-12: 969; 2025-12→2026-06: 1,334. The PEO doesn’t publish removal lists, and it isn’t clear whether addenda include transfers.",
+  "action": "Ask the PEO for removal and transfer counts, or for the addendum definition.",
+  "sources": [
+    "PEO consolidated lists Dec 2019 – Jun 2026",
+    "PEO constituency addenda Jun 2020 – Jun 2026"
+  ],
+  "detail": [
+    {
+      "from": "2019-12-31",
+      "to": "2020-06-30",
+      "before": 80683,
+      "after": 81072,
+      "added": 7663,
+      "impliedRemovals": 7274
+    },
+    {
+      "from": "2020-06-30",
+      "to": "2020-12-31",
+      "before": 81072,
+      "after": 79526,
+      "added": 6597,
+      "impliedRemovals": 8143
+    },
+    {
+      "from": "2020-12-31",
+      "to": "2021-06-30",
+      "before": 79526,
+      "after": 83074,
+      "added": 5975,
+      "impliedRemovals": 2427
+    },
+    {
+      "from": "2021-06-30",
+      "to": "2021-12-31",
+      "before": 83074,
+      "after": 83257,
+      "added": 5392,
+      "impliedRemovals": 5209
+    },
+    {
+      "from": "2021-12-31",
+      "to": "2022-05-27",
+      "before": 83257,
+      "after": 86907,
+      "added": 13643,
+      "impliedRemovals": 9993
+    },
+    {
+      "from": "2022-05-27",
+      "to": "2022-06-10",
+      "before": 86907,
+      "after": 86592,
+      "added": 0,
+      "impliedRemovals": 315
+    },
+    {
+      "from": "2022-06-10",
+      "to": "2022-12-31",
+      "before": 86592,
+      "after": 87302,
+      "added": 1179,
+      "impliedRemovals": 469
+    },
+    {
+      "from": "2022-12-31",
+      "to": "2023-06-30",
+      "before": 87302,
+      "after": 88241,
+      "added": 1140,
+      "impliedRemovals": 201
+    },
+    {
+      "from": "2023-06-30",
+      "to": "2023-12-31",
+      "before": 88241,
+      "after": 88945,
+      "added": 2015,
+      "impliedRemovals": 1311
+    },
+    {
+      "from": "2023-12-31",
+      "to": "2024-06-30",
+      "before": 88945,
+      "after": 89741,
+      "added": 1959,
+      "impliedRemovals": 1163
+    },
+    {
+      "from": "2024-06-30",
+      "to": "2024-12-31",
+      "before": 89741,
+      "after": 90587,
+      "added": 1502,
+      "impliedRemovals": 656
+    },
+    {
+      "from": "2024-12-31",
+      "to": "2025-06-30",
+      "before": 90587,
+      "after": 90738,
+      "added": 1672,
+      "impliedRemovals": 1521
+    },
+    {
+      "from": "2025-06-30",
+      "to": "2025-12-31",
+      "before": 90738,
+      "after": 91405,
+      "added": 1636,
+      "impliedRemovals": 969
+    },
+    {
+      "from": "2025-12-31",
+      "to": "2026-06-30",
+      "before": 91405,
+      "after": 92573,
+      "added": 2502,
+      "impliedRemovals": 1334
+    }
+  ]
+}

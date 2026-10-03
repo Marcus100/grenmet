@@ -1,0 +1,184 @@
+[
+  [
+    "J01",
+    "a",
+    "Fontenoy Community Center",
+    367,
+    254,
+    2,
+    {
+      "NDC": 39,
+      "NNP": 213,
+      "GUPM": 0
+    }
+  ],
+  [
+    "J01",
+    "b",
+    "Fontenoy Community Centre",
+    366,
+    268,
+    0,
+    {
+      "NDC": 38,
+      "NNP": 230,
+      "GUPM": 0
+    }
+  ],
+  [
+    "J02",
+    "a",
+    "La Qua Building",
+    340,
+    228,
+    0,
+    {
+      "NDC": 27,
+      "NNP": 199,
+      "GUPM": 2
+    }
+  ],
+  [
+    "J02",
+    "b",
+    "La Qua Building",
+    332,
+    244,
+    1,
+    {
+      "NDC": 15,
+      "NNP": 228,
+      "GUPM": 0
+    }
+  ],
+  [
+    "J02",
+    "c",
+    "La Qua Building",
+    337,
+    237,
+    0,
+    {
+      "NDC": 31,
+      "NNP": 205,
+      "GUPM": 1
+    }
+  ],
+  [
+    "J03",
+    "a",
+    "Mt. Moritz Anglican School",
+    225,
+    171,
+    2,
+    {
+      "NDC": 38,
+      "NNP": 130,
+      "GUPM": 1
+    }
+  ],
+  [
+    "J03",
+    "b",
+    "Mt. Moritz Anglican School",
+    228,
+    174,
+    1,
+    {
+      "NDC": 44,
+      "NNP": 129,
+      "GUPM": 0
+    }
+  ],
+  [
+    "J04",
+    "a",
+    "Happy Hill R.C. School",
+    361,
+    256,
+    2,
+    {
+      "NDC": 26,
+      "NNP": 228,
+      "GUPM": 0
+    }
+  ],
+  [
+    "J04",
+    "b",
+    "Happy Hill R.C. School",
+    337,
+    244,
+    1,
+    {
+      "NDC": 21,
+      "NNP": 221,
+      "GUPM": 1
+    }
+  ],
+  [
+    "J04",
+    "c",
+    "Happy Hill R.C. School",
+    326,
+    196,
+    0,
+    {
+      "NDC": 8,
+      "NNP": 187,
+      "GUPM": 1
+    }
+  ],
+  [
+    "J05",
+    "a",
+    "Brizan Community Centre",
+    269,
+    200,
+    1,
+    {
+      "NDC": 20,
+      "NNP": 176,
+      "GUPM": 3
+    }
+  ],
+  [
+    "J05",
+    "b",
+    "Brizan Community Centre",
+    291,
+    218,
+    2,
+    {
+      "NDC": 12,
+      "NNP": 204,
+      "GUPM": 0
+    }
+  ],
+  [
+    "J06",
+    null,
+    "St. Luke’s Anglican Church",
+    81,
+    64,
+    0,
+    {
+      "NDC": 18,
+      "NNP": 46,
+      "GUPM": 0
+    }
+  ],
+  [
+    "J07",
+    null,
+    "Willis Community Centre",
+    311,
+    232,
+    1,
+    {
+      "NDC": 75,
+      "NNP": 155,
+      "GUPM": 1
+    }
+  ]
+]

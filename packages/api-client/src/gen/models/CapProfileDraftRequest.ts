@@ -3,16 +3,11 @@
  * Do not edit manually.
  */
 
-export const capProfileDraftRequestLevelEnum = {
-  Advisory: "Advisory",
-  Watch: "Watch",
-  Warning: "Warning",
-} as const;
-
-export type CapProfileDraftRequestLevelEnum =
-  (typeof capProfileDraftRequestLevelEnum)[keyof typeof capProfileDraftRequestLevelEnum];
+import type { CapProfileDraftRequestPropertiesLevelEnum } from "./CapProfileDraftRequestPropertiesLevelEnum.js";
+import type { GmsColour } from "./GmsColour.js";
 
 export type CapProfileDraftRequest = {
   subtype: string;
-  level: CapProfileDraftRequestLevelEnum;
+  level: CapProfileDraftRequestPropertiesLevelEnum;
+  colour?: GmsColour | null;
 };

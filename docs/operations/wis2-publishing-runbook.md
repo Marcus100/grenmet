@@ -1,5 +1,9 @@
 # WIS2 Publishing Runbook (SURFACE → wis2box)
 
+**Status:** Active reference  
+**Owner:** GMS (operational content); maintained by Barrels Grenada  
+**Last updated:** 2026-07-08
+
 Operational runbook for the observation publishing pipeline decided in
 [ADR-0010](../adr/0010-wis2-publishing-via-surface-builtin.md). All commands run
 on the **host** (both stacks are host Docker; the devcontainer has no docker
@@ -47,6 +51,9 @@ Work down the list in order; the first failing point names the broken segment.
    (MinIO console `http://localhost:9001`).
 4. **Convert** — `.bufr4` in `wis2box-public`; no errors in
    `docker logs wis2box-management --since 10m`.
+   Download the BUFR and run `scripts/wis2-setup/check_bufr.py` against the
+   exact input CSV; compare station, time, table version, descriptors and
+   observed values. A conversion success log alone does not verify content.
 5. **Notify** — WIS2 notification on MQTT during a publish window
    (`properties.data_id` contains the station WIGOS id):
    ```bash
