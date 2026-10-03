@@ -147,6 +147,25 @@ The API supports two auth paths:
 | OAuth2 password grant | `POST /api/v1/login/access-token` | Direct API consumers and tests |
 | Web session | `POST /api/v1/login/session` then `POST /api/v1/login/session/access-token` | Browser apps using an opaque session cookie |
 
+### App-scoped sign-in (ADR-0016)
+
+Self-service apps (Barrels Events first) sign people in on their own pages and keep
+their own host-only cookie. All routes are public and rate-limited:
+
+| Endpoint | Use |
+| --- | --- |
+| `GET /api/v1/auth/apps/{app}` | Sign-in methods offered and whether sign-up is open |
+| `POST /api/v1/auth/apps/{app}/email-code/start` · `/verify` | Passwordless email code; account created on first verified code |
+| `POST /api/v1/auth/apps/{app}/login` | Email and password |
+| `POST /api/v1/auth/apps/{app}/google/start` · `/complete` · `/finish` | Google with the app's redirect URI |
+| `POST /api/v1/auth/apps/{app}/phone-code/start` · `/verify` | SMS/WhatsApp code for linked numbers (disabled until a provider is configured) |
+| `POST /api/v1/auth/apps/{app}/phone/link/start` · `/verify` | Signed-in member links a phone number |
+
+Responses are `SessionLoginResponse`. Access tokens from these sessions carry an
+`app` claim: staff routes return 401 for them, and app routes accept only their own
+app's tokens. `/login/session/access-token` and `/login/session/refresh` keep the
+claim for app sessions.
+
 Browser apps should store only the opaque session token in an `httpOnly` cookie. Server Components or route handlers exchange that session token for a short-lived bearer token before calling FastAPI.
 
 Session login, refresh, and session-token exchange responses return the deliberately
@@ -390,6 +409,22 @@ in Grenada. They are deliberately **not** `UtcDateTime` — stamping them UTC wo
 every shift four hours. Real timestamps (`created_at`) remain `UtcDateTime`. On write,
 an offset supplied by a client is dropped rather than converted, so one calendar never
 carries two time bases.
+
+## Barrels Events
+
+`/api/v1/events/*` (ADR-0016, separate `events` database; 503 while `EVENTS_DATABASE_URL` is unset).
+
+| Access | Endpoints |
+| --- | --- |
+| Public (an Events token personalises) | `GET /listings` (`when`, `category`, `parish`, `price`, `tag`, `q`, `organiser`, `limit`, `offset`), `GET /listings/{slug}`, `GET /organisers/{slug}`, `GET /groups`, `GET /groups/{slug}`, `GET /people/{handle}`, `POST /suggestions` |
+| Events member | `GET`/`PATCH /me/profile`, `GET /me/plans`, `GET /me/network`, `PUT`/`DELETE /listings/{slug}/rsvp` and `/save`, `PUT`/`DELETE /organisers/{slug}/follow`, `PUT`/`DELETE /groups/{slug}/membership`, `POST /connections`, `POST /connections/{id}/accept`, `DELETE /connections/{id}`, `PUT`/`DELETE /blocks/{handle}`, `POST /reports`, `GET`/`POST /threads`, `GET /threads/{id}`, `POST /threads/{id}/messages` |
+| `events.organiser.manage` + organiser membership | `GET /manage`, `POST /manage/listings`, `PUT /manage/listings/{id}` |
+| `events.moderate` | `GET`/`PATCH /moderation/reports`, `GET`/`PATCH /moderation/suggestions` |
+
+Prices are integer minor units (`price_from_minor`, tier `price_minor`); datetimes are UTC and
+clients render Grenada time. Direct threads open only between accepted connections or members
+of a shared group, and the rule is re-checked on every send; blocks hide both members from
+each other.
 
 ## Public CAP Feed Contract
 

@@ -20,7 +20,7 @@ directory. **Before editing under a path below, open its `AGENTS.md`.**
 | Path | Covers |
 | --- | --- |
 | `apps/api/fastapi/AGENTS.md` | FastAPI conventions, testing, OpenAPI contract |
-| `apps/api/fastapi/src/<domain>/AGENTS.md` | Per-domain ownership, invariants, tests (auth, hr, cap, wxproducts, wxwatch, audit, notifications, storage, billing, worker, eregister, janitorial, transport, baseline) |
+| `apps/api/fastapi/src/<domain>/AGENTS.md` | Per-domain ownership, invariants, tests (auth, hr, cap, wxproducts, wxwatch, audit, notifications, storage, billing, worker, eregister, janitorial, transport, events, baseline) |
 | `apps/web/<app>/AGENTS.md` | auth, cms, docs, elections, events, gaa-admin, gms, mbia, signal |
 | `apps/web/barrels/AGENTS.md` | Static Barrels Grenada company homepage |
 | `packages/<pkg>/AGENTS.md` | api-client, auth, email-templates, gms, theme, ui |
@@ -67,7 +67,7 @@ PROJECT_NAME='Grenmet API' uv run --frozen --package fast-back python -c "from s
 - Run `pnpm fix:changed` then `pnpm type-check` before marking any task done.
   Repo-wide `pnpm fix` reformats unrelated in-progress files and can bust
   turbo's cache, surfacing pre-existing issues as if new
-- Treat GAA as the client organisation and GMS as its meteorological department; never describe either as a Barrels product
+- Treat GAA as the client organisation and GMS as its meteorological department; never describe either as a Barrels product. Software is Barrels IP; client data, marks and `Owner: GAA/GMS` docs are GAA's. The repo is public: never commit GAA confidential material; keep it in gitignored `/private/`
 - Put backend logic in Python (FastAPI). The only TypeScript backend is the Payload CMS (`apps/web/cms`). Next.js route handlers may only validate, proxy to FastAPI, or render (e.g. email HTML); never add database access, business rules, or delivery there
 - Use Biome/Ultracite through `pnpm fix` for linting and formatting; never invoke Prettier or ESLint
 - Before marking a task done, grep every importer/callsite of changed symbols and confirm the change is complete across all affected layers — see Blast-Radius Gate
@@ -248,7 +248,7 @@ Other:
 
 ## Design
 
-- Loop: `docs/design-workflow.md`. Token contract: `docs/design-system.md`. Before building UI, read the lane spec `docs/design/<gms|gaa-admin|mbia|signal|elections>.md` (DESIGN.md format; drift-tested by `pnpm test:docs`).
+- Loop: `docs/design-workflow.md`. Token contract: `docs/design-system.md`. Before building UI, read the lane spec `docs/design/<gms|gaa-admin|mbia|signal|elections|events>.md` (DESIGN.md format; drift-tested by `pnpm test:docs`).
 - **Figma is not linked to this repo.** Ignore Figma tools and node URLs; design intent arrives via Claude Design or a supplied screenshot. Never ask for a Figma frame URL.
 - Style only with `--gm-*` tokens / Tailwind aliases / shadcn semantics — never hardcode color/spacing/radius or add design values to Tailwind config. New or changed `--gm-*` tokens need approval and land in `packages/gms/src/styles/foundation.css`, **not** `packages/ui`. Run `pnpm design-system:sync` after editing the canonical block in `packages/ui/src/styles/globals.css`.
 - Brand: navy `#0b132b`, blue `#2878f5`, sky `#37a3ef`, lime `#b9ee63`. Kit hues fail AA as small text — use `--gm-*-ink` for text under 24px regular / 18.66px bold, icons under ~24px, and fills behind small white text.

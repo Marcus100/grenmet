@@ -2,13 +2,14 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-09-18
+**Last updated:** 2026-10-03
 
 This document explains how the Barrels Grenada codebase fits together: the
 relationships among applications, shared packages, authentication, and data.
 The repository hosts Barrels products and client delivery. GAA is the client
 organisation and GMS is its meteorological department; neither is a Barrels
-product.
+product. Barrels Grenada owns the software and licenses it to GAA; GAA owns its
+data and client documents (see the [IP boundary](./strategy/barrels-ip-boundary.md)).
 
 For ownership and planning, see the [Portfolio Planning System](./portfolio/).
 For GMS service design, see [GMS Digital Service Architecture](./architecture.md).

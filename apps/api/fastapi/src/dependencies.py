@@ -94,6 +94,9 @@ async def get_current_user(session: SessionDep, token: TokenDep) -> User:
         raise _unauthorized(ERROR_INVALID_CREDENTIALS)
     if not token_data.sub:
         raise _unauthorized(ERROR_INVALID_CREDENTIALS)
+    if token_data.app is not None:
+        # App-scoped tokens (src/auth/apps.py) only work on their own app's routes.
+        raise _unauthorized("This sign-in is limited to another app")
     try:
         user_id = uuid.UUID(token_data.sub)
     except ValueError:

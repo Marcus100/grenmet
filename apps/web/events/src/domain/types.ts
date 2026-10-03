@@ -163,3 +163,148 @@ export interface EventDashboard {
   readonly settlement: SettlementPreview;
   readonly totals: SalesTotals;
 }
+
+/*
+ * Public discovery and community.
+ *
+ * The attendee-facing side: every event in Grenada, the groups that run
+ * recurring meetups, and the people who go. Shaped for a future FastAPI
+ * backend; fixtures stand in until then.
+ */
+
+export type EventCategory =
+  | "fete"
+  | "music"
+  | "food"
+  | "sport"
+  | "business"
+  | "tech"
+  | "culture"
+  | "faith"
+  | "family"
+  | "wellness";
+
+export type Parish =
+  | "st-george"
+  | "st-andrew"
+  | "st-david"
+  | "st-patrick"
+  | "st-mark"
+  | "st-john"
+  | "carriacou";
+
+/** Free walk-in, free with RSVP, or a paid ticket. */
+export type Admission = "free" | "rsvp" | "ticketed";
+
+export interface Organiser {
+  readonly bio: string;
+  readonly followerCount: number;
+  readonly id: string;
+  readonly name: string;
+  readonly slug: string;
+  /** Verification is earned, never bought or transferred. */
+  readonly verified: boolean;
+}
+
+export interface PublicEvent {
+  readonly admission: Admission;
+  readonly category: EventCategory;
+  readonly description: string;
+  /** ISO 8601 with offset. */
+  readonly endsAt: string;
+  readonly featured: boolean;
+  /** Profile ids of people going. */
+  readonly goingIds: readonly string[];
+  readonly groupId: string | null;
+  readonly id: string;
+  readonly isDemo: boolean;
+  readonly organiserId: string;
+  readonly parish: Parish;
+  /** Lowest ticket price. Null unless admission is "ticketed". */
+  readonly priceFrom: Money | null;
+  /** Human label for a series, e.g. "Every Tuesday". */
+  readonly recurrence: string | null;
+  readonly slug: string;
+  /** ISO 8601 with offset. */
+  readonly startsAt: string;
+  readonly summary: string;
+  /** Curated collections, e.g. "spicemas" for the season hub. */
+  readonly tags: readonly string[];
+  readonly title: string;
+  readonly venue: string;
+}
+
+export interface GroupAnnouncement {
+  readonly authorId: string;
+  readonly body: string;
+  readonly id: string;
+  readonly postedAt: string;
+}
+
+export interface Group {
+  readonly about: string;
+  readonly announcements: readonly GroupAnnouncement[];
+  readonly category: EventCategory;
+  readonly hostIds: readonly string[];
+  readonly id: string;
+  /** "approval" groups review join requests before membership. */
+  readonly joinPolicy: "open" | "approval";
+  readonly name: string;
+  readonly parish: Parish;
+  readonly slug: string;
+  readonly tagline: string;
+}
+
+/** What someone is open to — Brella-style intent, shown on their profile. */
+export type Intent =
+  | "making-friends"
+  | "hiring"
+  | "looking-for-work"
+  | "collaborating"
+  | "mentoring";
+
+export interface Profile {
+  readonly attendedEventIds: readonly string[];
+  readonly bio: string;
+  readonly groupIds: readonly string[];
+  readonly handle: string;
+  readonly headline: string;
+  readonly id: string;
+  readonly intents: readonly Intent[];
+  readonly interests: readonly EventCategory[];
+  readonly name: string;
+  readonly parish: Parish;
+  /** "connections" hides details from people outside the member's network. */
+  readonly visibility: "public" | "connections";
+}
+
+export interface Connection {
+  readonly id: string;
+  readonly profileIds: readonly [string, string];
+  readonly requestedBy: string;
+  readonly status: "pending" | "accepted";
+}
+
+export interface Message {
+  readonly authorId: string;
+  readonly body: string;
+  readonly id: string;
+  readonly sentAt: string;
+}
+
+export interface MessageThread {
+  readonly groupId: string | null;
+  readonly id: string;
+  readonly kind: "direct" | "group";
+  readonly messages: readonly Message[];
+  readonly participantIds: readonly string[];
+}
+
+export interface EventFilters {
+  readonly category?: EventCategory;
+  readonly parish?: Parish;
+  readonly price?: "free" | "paid";
+  readonly query?: string;
+  readonly tag?: string;
+  readonly when?: "tonight" | "weekend" | "week" | "month";
+}
