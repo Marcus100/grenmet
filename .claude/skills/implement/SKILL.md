@@ -12,5 +12,8 @@ Run typechecking regularly, single test files regularly, and the full test suite
 
 Once done, use /review to review the work.
 
-Do not commit, push, or open a PR — leave the working tree for the user to
-review and commit themselves (see the Never tier in `AGENTS.md`).
+After required checks pass and the final diff is reviewed, agents may stage,
+commit, push and open a PR for the authorized work without further confirmation.
+Preserve unrelated changes, follow the repository branch/promotion workflow and
+never bypass hooks or force-push. Merges and deployments still require explicit
+user authorization under `AGENTS.md`.
