@@ -42,19 +42,13 @@
   "workspaceFolder": "/workspace",
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
 
-  // Docker CLI + compose inside the container, talking to the HOST daemon
-  // (docker-outside-of-docker). Lets the agent drive the vendored ops stacks
-  // (surface/, wis2box/) and the pnpm-start infra. Containers still run on
-  // the host — nothing is nested.
-  "features": {
-    "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {}
-  },
+  // No Docker access: the host socket is root on WSL (and /mnt/c), and agents
+  // only need to reach host services over the network (host.docker.internal).
+  // Run `pnpm start` and the surface/ and wis2box/ stacks from the host.
 
   // Named volumes so Claude/Codex logins persist across rebuilds — log in once.
-  // The second repo mount mirrors the HOST path: compose files use relative
-  // bind mounts (e.g. surface/docker-compose.yml -> ./data), and the host
-  // daemon needs paths that exist on the host. Run all `docker compose`
-  // commands from ${localWorkspaceFolder}/<app>, never /workspace/<app>.
+  // The second repo mount mirrors the HOST path so tools that record absolute
+  // host paths resolve inside the container too.
   "mounts": [
     // Container-only Python environment; never reuse the host interpreter or native wheels.
     "source=grenmet-${devcontainerId}-venv,target=/workspace/.venv,type=volume,volume-nocopy",
