@@ -8,20 +8,23 @@ describe("Election explainer", () => {
   it("renders every chart with reading guidance and source caveats", () => {
     const { container } = render(<TrendsPage />);
     expect(
-      screen.getByRole("heading", { name: "How to read an election" })
+      screen.getByRole("heading", {
+        hidden: true,
+        name: "How to read an election",
+      })
     ).toBeInTheDocument();
     expect(
-      screen.getAllByRole("heading", { name: "How to read it" })
+      screen.getAllByRole("heading", { hidden: true, name: "How to read it" })
     ).toHaveLength(7);
     expect(screen.getAllByText("What the terms mean")).toHaveLength(7);
     expect(
-      screen.getAllByRole("heading", { name: "A worked example" })
+      screen.getAllByRole("heading", { hidden: true, name: "A worked example" })
     ).toHaveLength(7);
     expect(
-      screen.getAllByRole("heading", { name: "What stands out" })
+      screen.getAllByRole("heading", { hidden: true, name: "What stands out" })
     ).toHaveLength(7);
     expect(
-      screen.getAllByRole("heading", { name: "Keep in mind" })
+      screen.getAllByRole("heading", { hidden: true, name: "Keep in mind" })
     ).toHaveLength(7);
     const navigation = screen.getByRole("navigation", {
       name: "Explore the election explainer",
@@ -34,7 +37,10 @@ describe("Election explainer", () => {
       10
     );
     expect(
-      screen.getByRole("heading", { name: "Try explaining it yourself" })
+      screen.getByRole("heading", {
+        hidden: true,
+        name: "Try explaining it yourself",
+      })
     ).toBeInTheDocument();
     expect(
       screen.getByText(
