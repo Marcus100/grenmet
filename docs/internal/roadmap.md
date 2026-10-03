@@ -12,7 +12,7 @@
 
 This roadmap covers the implementation of the GMS Digital Services Programme, led by the Digital Transformation Officer (DTO). It tracks both the **technical build** (what is being developed in this monorepo) and the **programme phases** (the operational milestones from the DTO Terms of Reference).
 
-The broader GMS service strategy and product catalogue live in [GMS Digital Service Architecture](../architecture.md). Programme governance, KPIs, and reporting structure are in the [DTO Terms of Reference](./dto-terms-of-reference.md). Cross-system integration (SURFACE, wis2box, geonetcast, dashboards, SSO) is tracked separately in the [Systems Integration Roadmap](./integration-roadmap.md).
+The broader GMS service strategy and product catalogue live in [GMS Digital Service Architecture](../architecture.md). Programme governance, KPIs, and reporting structure are in the DTO Terms of Reference (private, held by the owner). Cross-system integration (SURFACE, wis2box, geonetcast, dashboards, SSO) is tracked separately in the [Systems Integration Roadmap](./integration-roadmap.md).
 
 **Current date:** May 2026 | **Next major milestone:** July 2026 end-of-period review
 
@@ -321,7 +321,7 @@ These are strategic targets from the GMS Digital Service Architecture. They depe
 | Document | Location | Purpose |
 |---|---|---|
 | GMS Digital Service Architecture | [`docs/architecture.md`](../architecture.md) | Service strategy, product catalogue, warning model |
-| DTO Terms of Reference | [`docs/internal/dto-terms-of-reference.md`](./dto-terms-of-reference.md) | Programme governance, KPIs, deliverables, risk register |
+| DTO Terms of Reference | Private, held by the owner | Programme governance, KPIs, deliverables, risk register |
 | Design System Guide | [`docs/design-system.md`](../design-system.md) | Token system, Figma bridge, compliance guide |
 | Environment Variables | [`docs/env.md`](../env.md) | Per-app environment configuration |
 | Developer Reference | [`AGENTS.md`](../../AGENTS.md) | Monorepo commands, architecture, conventions |

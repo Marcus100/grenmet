@@ -67,7 +67,7 @@ PROJECT_NAME='Grenmet API' uv run --frozen --package fast-back python -c "from s
 - Run `pnpm fix:changed` then `pnpm type-check` before marking any task done.
   Repo-wide `pnpm fix` reformats unrelated in-progress files and can bust
   turbo's cache, surfacing pre-existing issues as if new
-- Treat GAA as the client organisation and GMS as its meteorological department; never describe either as a Barrels product
+- Treat GAA as the client organisation and GMS as its meteorological department; never describe either as a Barrels product. Software is Barrels IP; client data, marks and `Owner: GAA/GMS` docs are GAA's. The repo is public: never commit GAA confidential material; keep it in gitignored `/private/`
 - Put backend logic in Python (FastAPI). The only TypeScript backend is the Payload CMS (`apps/web/cms`). Next.js route handlers may only validate, proxy to FastAPI, or render (e.g. email HTML); never add database access, business rules, or delivery there
 - Use Biome/Ultracite through `pnpm fix` for linting and formatting; never invoke Prettier or ESLint
 - Before marking a task done, grep every importer/callsite of changed symbols and confirm the change is complete across all affected layers — see Blast-Radius Gate

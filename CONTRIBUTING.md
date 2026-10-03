@@ -1,6 +1,6 @@
 # Contributing
 
-This guide covers everything you need to contribute to the Grenmet monorepo — branching, commits, what to run before you push, and the conventions the codebase enforces.
+This guide covers everything you need to contribute to the Barrels Grenada monorepo — branching, commits, what to run before you push, and the conventions the codebase enforces.
 
 ## Prerequisites
 
@@ -292,6 +292,21 @@ pnpm type-check
 ```
 
 ---
+
+## Ownership and confidentiality
+
+- All software contributed to this repository is owned by Barrels Grenada (see
+  the [licence section](README.md#license) and the
+  [IP boundary](docs/strategy/barrels-ip-boundary.md)). Contribute only after
+  agreeing this with Barrels Grenada in writing.
+- Commit only from your own accounts and equipment, never from client
+  (GAA/GMS) accounts or devices.
+- The repository is public. Never commit GAA/GMS confidential material:
+  personal or staff data, unpublished internal documents, credentials, or
+  infrastructure details beyond placeholders. Keep such material, plus
+  employment, negotiation and legal drafts, in the gitignored `/private/`
+  folder.
+- Client-owned documents carry `Owner: GAA` or `Owner: GMS` in their header.
 
 ## Getting help
 
