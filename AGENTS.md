@@ -63,6 +63,7 @@ PROJECT_NAME='Grenmet API' uv run --frozen --package fast-back python -c "from s
 ## Behavioral Tiers
 
 ### Always (no confirmation needed)
+- Stage, commit, push and open PRs for authorized work after required formatting, types, affected tests and blast-radius checks pass; review the diff, preserve unrelated changes and never bypass hooks or force-push.
 - Run `pnpm fix:changed` then `pnpm type-check` before marking any task done.
   Repo-wide `pnpm fix` reformats unrelated in-progress files and can bust
   turbo's cache, surfacing pre-existing issues as if new
@@ -233,6 +234,9 @@ Other:
 - Claude hooks live in `.claude/settings.json`; `format-changed-file.mjs` formats each edited file automatically.
 
 ## CI/CD Conventions
+
+- **Telemetry rollout:** verify dev → staging → production, with app/environment mappings in `packages/ui/src/lib/service-catalogue.json`; missing mappings disable collection, never fall back to another owner’s project.
+- **Monitoring ownership:** manage provider configuration, host probes and backup/restore jobs through reviewed CI/CD; activation and evidence gates are in `docs/operations/analytics-monitoring.md`.
 
 - Docker image names in GitHub workflows must be lowercase.
 - Pin all GitHub Actions to SHAs, not tags.
