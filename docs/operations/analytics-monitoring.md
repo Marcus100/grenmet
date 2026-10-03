@@ -44,9 +44,10 @@ is enabled until campaign codes and referrer hosts have a reviewed allowlist.
 
 The typed version-1 event catalogue and runtime validator reject unknown events
 and properties. Explicit interactions are marked at reviewed links or handlers;
-SDK DOM autocapture is disabled. Elections captures year/map changes, opening a
-constituency in the atlas, the forecast page, CSV clicks and successful clipboard
-sharing without map contents. GMS forecast tabs and public section navigation,
+SDK DOM autocapture is disabled. Elections has the shared consent wrapper and reviewed page/link events. Atlas
+year/map/constituency interactions and completed clipboard-share events remain
+deferred following the separate education-release commit; their schemas are
+defined but their interaction producers are not wired. GMS forecast tabs and public section navigation,
 Docs/Signal content sections, and selected MBIA/Signal navigation links are wired.
 Not every planned surface is instrumented yet: published warning/download actions,
 MBIA external links/filters, full staff/CMS business outcomes and the homepage link
