@@ -4,6 +4,7 @@ import { CampaignTimeline } from "@/components/campaign/timeline";
 import { BallotGrid } from "@/components/election/ballot-grid";
 import { KeyDates } from "@/components/election/key-dates";
 import { Flag } from "@/components/flag";
+import { ElectionUpdates } from "@/components/home/election-updates";
 import { HouseStrip } from "@/components/home/house-strip";
 import { PageHead, Section } from "@/components/section";
 import { SourceLink } from "@/components/source-link";
@@ -49,8 +50,9 @@ export default function Election2026Page() {
     <>
       <div className="mx-auto grid max-w-[1240px] items-end gap-x-14 gap-y-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
         <PageHead
-          deck="The Prime Minister is due to name polling day at an event in St. Mark. The NDC won 9 of 15 seats in 2022; since then one NNP member has crossed to the government and another has formed the DPM."
+          deck="Parliament was dissolved on 2 October, so the election must be held by early January. The Prime Minister is due to name polling day at an event in St. Mark. The NDC won 9 of 15 seats in 2022; since then one NNP member has crossed to the government and another has formed the DPM."
           eyebrow={`General election 2026 · ${electionStatus(calendar, now)}`}
+          learning="election"
           title={leadTitle(
             calendar.announcement,
             calendar.pollingDay,
@@ -103,17 +105,12 @@ export default function Election2026Page() {
             Live coverage starts when polling day is announced.
           </p>
         ) : (
-          <ol className="divide-y divide-el-rule border-el-rule border-y">
-            {COVERAGE.map((post) => (
-              <li className="py-4" key={post.at}>
-                <p className="text-el-muted text-xs">
-                  {formatIsoDate(post.at.slice(0, 10))}
-                </p>
-                <h3 className="mt-1 font-bold text-lg">{post.title}</h3>
-                <p className="mt-1 text-el-ink-2">{post.body}</p>
-              </li>
-            ))}
-          </ol>
+          <ElectionUpdates
+            coverage={COVERAGE}
+            events={[]}
+            limit={COVERAGE.length}
+            sources={campaign.sources}
+          />
         )}
       </Section>
 

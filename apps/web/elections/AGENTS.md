@@ -6,6 +6,7 @@ Elections and the separate Barrels holding page use Vercel; the operational apps
 
 ## Product boundary
 
+- **Public education first:** help people master Grenada’s elections and adjacent civic topics; explain how and why, use worked examples, address misconceptions, and distinguish evidence from inference—not just present results.
 - A Barrels Grenada product: coverage of Grenada's 2026 general election, and the
   history of every election and referendum since 1951. It is not a GAA or GMS
   service and makes no official claims for the Parliamentary Elections Office.
@@ -16,9 +17,8 @@ Elections and the separate Barrels holding page use Vercel; the operational apps
   each seat, history). `/2026` is the election coverage page. Election state (awaiting
   date → campaign → polling day → counting) comes from `src/data/election-2026.ts`.
   Set `pollingDay`/`nominationDay` there when they are announced.
-- Navigation uses task words (Election 2026, Candidates, Forecast, Make your map, Results, Constituencies, More ▾). No search box or theme toggle in
-  the header (owner decision); the site is light only. Find your constituency is
-  on the front page and `/constituencies`.
+- Navigation: Election 2026 · Learn · Results & history · Your constituency · People & parties, with site-wide Search (owner-approved). Light only; constituency lookup remains separate from site search.
+- Learning: guided exploration for everyday adults; eight practical civic guides, sourced examples, optional anonymous self-checks, and no stored learning progress.
 - Wording: **constituency** for the place (the official term);
   **seat** only for House counts ("9 of 15 seats"). Constituency pages are
   addressed by name (`/constituencies/st-mark`); PEO letters redirect.
@@ -28,8 +28,10 @@ Elections and the separate Barrels holding page use Vercel; the operational apps
 - Historical data stays in small JSON records by event, constituency or register date; see [the data guide](src/data/README.md). Pages read through `src/data/load.ts`; small reference catalogues may be shared, and tests may read assembled records.
 - Edit `src/data/source/`, then run `pnpm data:build` and `pnpm data:check`. Never hand-edit `src/data/derived/` or public CSV exports. Preserve independently reported totals and source discrepancies.
 - Client islands receive only the slice they need. A FastAPI domain comes later, for results night.
+- Evidence catalogue: `src/data/evidence.ts`; teaching content: `src/data/learning.ts`. Keep publisher authority separate from verification and label our calculations, illustrative scenarios and mixed-source statistics at the point of use.
 - Every figure needs a source. Show uncertain figures, but mark them: ✱ unverified,
   ✱✱ conflicting or unclear, † corroborated by a contemporaneous report (`Flag`).
+- Official-data-only comparisons require every input to be officially supported; withhold incomplete measures, never zero-fill or re-normalise partial votes. Retain full history with visible source labels by default.
 - Map constituency codes to names from `source/reference/constituencies.json`, never from memory
   (J = St. George North West, G = Town of St. George).
 - Coverage posts are editorial. They live in `src/data/coverage.ts` until they move to
@@ -40,7 +42,7 @@ Elections and the separate Barrels holding page use Vercel; the operational apps
 
 - Default to Server Components. Use the `--el-*` tokens and `@barrelsgd/ui` primitives.
   Party colours are data only: never chrome, links or brand.
-- Design at 375px first. Below `lg` the navigation is the hamburger
+- Design at 375px first. Below `xl` the navigation is the hamburger
   (`mobile-menu.tsx`). Keep it working when adding pages, and add new pages to
   `src/lib/nav.ts`.
 - Tests: `pnpm vitest run` from this directory.

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { EvidenceCitation } from "@/components/learn/evidence";
 import { PageHead, Section } from "@/components/section";
 import { eventSlug, eventSource } from "@/data/events";
+import { EVIDENCE, type EvidenceId } from "@/data/evidence";
 import {
   data,
   discrepancies as discrepanciesJson,
@@ -156,8 +158,9 @@ export default function SourcesPage() {
   return (
     <>
       <PageHead
-        deck="Results from 1984 onward, and 1972, come from Parliamentary Elections Office documents or the Government Gazette and are checked against their own totals. Other results come from secondary sources and are marked as not officially sourced wherever they appear."
+        deck="Our archive combines official records, contemporary reports and secondary compilations. In 1990, winners are officially declared but other inputs rely on a newspaper; early records are also mixed. Verification applies to the individual figure and calculation, not merely the election year."
         eyebrow="Sources and verification"
+        learning="evidence"
         title="Where every number comes from"
       >
         <dl className="mt-6 grid grid-cols-2 gap-4 border-el-rule border-t pt-4 lg:grid-cols-4">
@@ -185,6 +188,84 @@ export default function SourcesPage() {
           ))}
         </dl>
       </PageHead>
+
+      <Section
+        id="evidence-policy"
+        intro="A publisher’s authority and the certainty of a particular figure are separate questions."
+        title="What our evidence labels mean"
+      >
+        <a
+          className="mb-4 inline-block text-sm underline underline-offset-4"
+          href="/evidence.json"
+        >
+          Download evidence and calculation metadata (JSON)
+        </a>
+        <dl className="grid gap-5 text-sm md:grid-cols-2">
+          {[
+            [
+              "Official record",
+              "PEO returns, Gazette notices, Parliament records and official statistics. They can still contain errors or conflicting figures.",
+            ],
+            [
+              "Original publisher",
+              "A party establishes its announcement; a pollster establishes its published survey. Neither certifies the election result.",
+            ],
+            [
+              "Secondary or supplied",
+              "A report about another record, or information supplied without a public document. Retained visibly; not promoted to official evidence.",
+            ],
+            [
+              "Calculated or illustrative",
+              "Our arithmetic inherits its inputs’ limitations. A scenario or worked example demonstrates a mechanism, not an observed event.",
+            ],
+          ].map(([term, meaning]) => (
+            <div key={term}>
+              <dt className="font-semibold">{term}</dt>
+              <dd className="mt-1 text-el-ink-2">{meaning}</dd>
+            </div>
+          ))}
+        </dl>
+        <p className="mt-5 max-w-prose text-sm leading-relaxed">
+          Vote share = candidate or party votes ÷ all valid votes. Turnout =
+          ballots cast ÷ registered electors; where only valid votes exist we
+          label the ratio as a proxy. A margin subtracts shares; a percentage
+          change divides by the starting value. Missing inputs are never zeros.
+          Official-data-only comparisons withhold a measure unless every
+          required input is officially supported.
+        </p>
+      </Section>
+      <Section
+        id="source-library"
+        intro="These references support the learning guides. Document dates are shown only where established; directory links do not independently verify a statistic."
+        title="Read the primary publications"
+      >
+        <div className="space-y-4">
+          {(Object.keys(EVIDENCE) as EvidenceId[]).map((id) => (
+            <EvidenceCitation id={id} key={id} />
+          ))}
+        </div>
+      </Section>
+      <Section
+        id="priority-gaps"
+        intro="Missing from our archive does not mean the record does not exist. These gaps affect what we can responsibly teach or calculate."
+        title="The most important gaps to close"
+      >
+        <ol className="grid list-inside list-decimal gap-4 text-sm md:grid-cols-2">
+          {[
+            "Official constituency and polling-division boundary files: reconstructed shapes cannot settle voting eligibility.",
+            "Complete early election returns and the 1976 official result notice: secondary figures remain labelled.",
+            "Ballots cast and rejected in older elections: needed for comparable turnout, not just valid-vote proxies.",
+            "St. Patrick East P06(b) in 2022 and an undamaged 2018 referendum Gazette: incomplete local counts cannot be treated as totals.",
+            "Certified results for each 2016 referendum bill: combined responses are not unique participants.",
+            "Police lists, election-day additions and transfer/removal definitions: registration changes need consistent coverage.",
+            "Official nomination records and original poll reports: announcements, surveys and certified candidacies must remain distinct.",
+          ].map((gap) => (
+            <li className="leading-relaxed" key={gap}>
+              {gap}
+            </li>
+          ))}
+        </ol>
+      </Section>
 
       <Section id="by-vote" title="By vote">
         <div className="overflow-x-auto">
@@ -293,6 +374,7 @@ export default function SourcesPage() {
             <li className="bg-background p-4" key={file}>
               <a
                 className="font-bold font-serif text-lg underline-offset-4 hover:underline"
+                data-analytics-event="csv_download_clicked"
                 download
                 href={`/data/${file}`}
               >

@@ -2,11 +2,11 @@ import Link from "next/link";
 import { ClosestContests } from "@/components/constituencies/closest-contests";
 import { HouseMap } from "@/components/constituencies/house-map";
 import { ConstituencySearch } from "@/components/constituency-search";
-import { Flag } from "@/components/flag";
 import { ElectionUpdates } from "@/components/home/election-updates";
 import { HouseStrip } from "@/components/home/house-strip";
 import { HowToVote } from "@/components/home/how-to-vote";
 import { RaceInBrief } from "@/components/home/race-in-brief";
+import { PageLearning } from "@/components/learn/page-learning";
 import { PartyDot } from "@/components/party-chip";
 import { Section } from "@/components/section";
 import { SourceLink } from "@/components/source-link";
@@ -16,11 +16,9 @@ import {
   electionStatus,
   seatOutlook,
 } from "@/data/election-2026";
+import { GUIDES } from "@/data/learning";
 import { campaign, geo, results } from "@/data/load";
 import { nationalResult } from "@/data/model";
-import { leanTable, modelInputs, seatChances, spreads } from "@/data/outlook";
-import { partyColor } from "@/data/parties";
-import { ratingFromChances } from "@/data/ratings";
 import { formatIsoDate } from "@/lib/format";
 
 const HISTORY = [
@@ -37,7 +35,7 @@ const HISTORY = [
   {
     href: "/trends",
     title: "Trends",
-    body: "Party vote, seats and turnout over seventy years.",
+    body: "Learn why votes, seats and turnout tell different stories.",
   },
   {
     href: "/how-close",
@@ -61,32 +59,23 @@ export default function FrontPage() {
   const result2022 = nationalResult(results, "2022");
   const crossed = seats.filter((s) => s.sitting.was);
 
-  // The forecast at its default settings, as ratings.
-  const sp = spreads(results, null);
-  const dpb = campaign.polls.find((p) => p.id === "dpb26") as unknown as {
-    bases: { NDC: [number, number]; NNP: [number, number] };
-  };
-  const chances = seatChances(
-    leanTable(results, "2022"),
-    sp.sL,
-    modelInputs(results, dpb.bases).defaults,
-    campaign.candidates.DPM ?? {}
-  );
-  const ratings = Object.values(chances).map(ratingFromChances);
-  const favoured = (party: string) =>
-    ratings.filter((r) => r.endsWith(party)).length;
-  const tossUps = ratings.filter((r) => r === "Toss-up").length;
-
+  // Three slots: once Parliament is dissolved, that date replaces nomination
+  // day until nomination day is proclaimed.
   const dates = [
+    calendar.dissolved && !calendar.nominationDay
+      ? {
+          label: "Parliament dissolved",
+          value: formatIsoDate(calendar.dissolved),
+        }
+      : {
+          label: "Nomination day",
+          value: calendar.nominationDay
+            ? formatIsoDate(calendar.nominationDay)
+            : "To be proclaimed",
+        },
     {
       label: "Announcement expected",
       value: formatIsoDate(calendar.announcement),
-    },
-    {
-      label: "Nomination day",
-      value: calendar.nominationDay
-        ? formatIsoDate(calendar.nominationDay)
-        : "To be proclaimed",
     },
     {
       label: "Polling day",
@@ -107,22 +96,22 @@ export default function FrontPage() {
             {status}
           </h1>
           <p className="mt-3 max-w-[56ch] font-serif text-el-ink-2 text-lg leading-normal">
-            Fifteen seats, eight for a majority. The NDC won nine in 2022; one
-            member has since crossed to the government and another now leads a
-            new party, the DPM.
+            Parliament was dissolved on 2 October. Fifteen seats, eight for a
+            majority. The NDC won nine in 2022; one member has since crossed to
+            the government and another now leads a new party, the DPM.
           </p>
           <div className="mt-5 grid gap-3 sm:flex sm:flex-wrap">
             <Link
               className="inline-flex h-11 items-center justify-center rounded-md bg-el-ink px-5 font-semibold text-el-paper hover:opacity-90"
-              href="/2026"
+              href="/make-your-map"
             >
-              Follow the election →
+              Make your own map →
             </Link>
             <Link
               className="inline-flex h-11 items-center justify-center rounded-md border border-el-ink px-5 font-semibold hover:bg-el-paper-2"
-              href="/make-your-map"
+              href="/learn"
             >
-              Make your map
+              Understand the election
             </Link>
           </div>
         </div>
@@ -140,6 +129,31 @@ export default function FrontPage() {
           </dl>
         </div>
       </section>
+
+      <div className="mx-auto max-w-[1240px] px-4 sm:px-6">
+        <PageLearning topic="election" />
+      </div>
+      <Section
+        id="start-learning"
+        intro="Follow the election with the knowledge to interpret it. Start with one question."
+        more={{ href: "/learn", label: "All learning guides" }}
+        title="Understand what happens next"
+      >
+        <div className="grid gap-6 md:grid-cols-3">
+          {GUIDES.slice(0, 3).map((guide) => (
+            <article className="border-el-rule border-t pt-4" key={guide.slug}>
+              <h3 className="font-bold font-serif text-xl">
+                <Link className="hover:underline" href={`/learn/${guide.slug}`}>
+                  {guide.question}
+                </Link>
+              </h3>
+              <p className="mt-2 text-el-ink-2 text-sm leading-relaxed">
+                {guide.answer}
+              </p>
+            </article>
+          ))}
+        </div>
+      </Section>
 
       <Section
         id="updates"
@@ -215,43 +229,27 @@ export default function FrontPage() {
       </Section>
 
       <Section
-        id="forecast"
-        more={{ href: "/forecast", label: "The full forecast" }}
-        title="Our forecast at a glance"
+        id="experiments"
+        more={{
+          href: "/learn/polls-and-predictions",
+          label: "Learn about uncertainty",
+        }}
+        title="Test an idea, understand the uncertainty"
       >
-        <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-          <div>
-            <p className="font-serif text-el-ink-2 text-lg leading-normal">
-              If the national vote matched 2022, our model would favour the{" "}
-              <b style={{ color: partyColor("NDC", "ink") }}>
-                NDC in {favoured("NDC")}
-              </b>{" "}
-              seats and the{" "}
-              <b style={{ color: partyColor("NNP", "ink") }}>
-                NNP in {favoured("NNP")}
-              </b>
-              , with <b>{tossUps}</b> toss-up{tossUps === 1 ? "" : "s"}.
-            </p>
-            <p className="mt-2 text-el-muted text-xs">
-              Built only from official results since 1990; the DPM’s support is
-              an assumption
-              <Flag
-                note="No poll has measured DPM support yet."
-                status="unverified"
-              />{" "}
-              until a poll measures it. A range of possibilities, not a
-              prediction.
-            </p>
-          </div>
-          <Link
-            className="flex flex-col justify-center border border-el-rule bg-el-paper-2 p-5 hover:border-el-ink"
-            href="/make-your-map"
-          >
-            <b className="font-bold font-serif text-xl">Make your map →</b>
-            <span className="mt-1 text-el-ink-2 text-sm">
-              Disagree? Rate all 15 constituencies yourself and share your
-              prediction.
-            </span>
+        <p className="max-w-prose text-el-ink-2 leading-relaxed">
+          What changes when support moves between parties? Explore a scenario,
+          inspect the assumptions, and compare it with recorded results. A
+          model’s output is not an official prediction.
+        </p>
+        <div className="mt-4 flex flex-wrap gap-5">
+          <Link className="underline underline-offset-4" href="/how-close">
+            Try the swing calculator
+          </Link>
+          <Link className="underline underline-offset-4" href="/make-your-map">
+            Make your map
+          </Link>
+          <Link className="underline underline-offset-4" href="/forecast">
+            Inspect the model and its backtests
           </Link>
         </div>
       </Section>

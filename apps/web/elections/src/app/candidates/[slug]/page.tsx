@@ -66,6 +66,7 @@ export default async function PersonPage({ params }: Props) {
       <PageHead
         deck={`${person.races.length} race${person.races.length === 1 ? "" : "s"} for the House, ${person.first === person.last ? person.first : `${person.first}–${person.last}`}; ${person.wins} won. Parties: ${person.parties.map((p) => partyInfo(p).name).join(", ")}.`}
         eyebrow="Candidate record"
+        learning="people"
         title={person.name}
       >
         {person.names.length > 1 && (

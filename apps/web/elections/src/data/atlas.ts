@@ -8,9 +8,13 @@ import {
   eventNational,
   eventResult,
   eventSource,
-  isOfficial,
   turnoutNote,
 } from "@/data/events";
+import {
+  type EvidenceMetric,
+  type MetricEvidence,
+  metricEvidence,
+} from "@/data/evidence";
 import { CODES, EVENTS, getEvent, prevGeneral } from "@/data/model";
 import type {
   CandidateRow,
@@ -40,6 +44,7 @@ export interface AtlasDivision {
 export interface AtlasEvent {
   date: string;
   divisions: AtlasDivision[];
+  evidence: Record<EvidenceMetric, MetricEvidence>;
   /** Earlier constituencies retain their names; never assign modern letter codes. */
   historicalResults: (AtlasContest & { name: string; gazette?: string })[];
   id: string;
@@ -108,8 +113,13 @@ export function buildAtlas(
       label: e.sub ? `${e.year} ${e.sub.toLowerCase()}` : String(e.year),
       mapped: e.map,
       historicalResults: e.map ? [] : (data.results.early[e.id] ?? []),
-      official: isOfficial(e.id),
-      source: eventSource(data, e.id).text,
+      evidence: {
+        votes: metricEvidence(data, e.id, "votes"),
+        seats: metricEvidence(data, e.id, "seats"),
+        turnout: metricEvidence(data, e.id, "turnout"),
+      },
+      official: metricEvidence(data, e.id, "votes").official,
+      source: `${metricEvidence(data, e.id, "votes").label}. ${eventSource(data, e.id).text}`,
       prev: previous && getEvent(previous)?.map ? previous : null,
       national: {
         races: n.races,

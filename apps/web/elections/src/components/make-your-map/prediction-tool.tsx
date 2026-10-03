@@ -1,5 +1,7 @@
 "use client";
 
+import { captureEvent } from "@barrelsgd/ui/lib/analytics-runtime";
+
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { useEffect, useId, useMemo, useState } from "react";
 import { Flag } from "@/components/flag";
@@ -179,6 +181,9 @@ export function PredictionTool({ seats, land, inset }: Props) {
             update(map);
             try {
               await navigator.clipboard.writeText(url.href);
+              captureEvent("prediction_share_completed", {
+                method: "clipboard",
+              });
               setCopied("Link copied");
             } catch {
               setCopied("Copy the address bar");
@@ -332,7 +337,7 @@ export function PredictionTool({ seats, land, inset }: Props) {
               <dl className="mt-2 grid grid-cols-[7rem_1fr] gap-x-3 gap-y-1 text-sm">
                 <dt className="text-el-muted">2022</dt>
                 <dd>{seat.result2022}</dd>
-                <dt className="text-el-muted">Sitting member</dt>
+                <dt className="text-el-muted">Member at dissolution</dt>
                 <dd>{seat.sitting}</dd>
                 <dt className="text-el-muted">Lean</dt>
                 <dd>{seat.leanLabel}</dd>

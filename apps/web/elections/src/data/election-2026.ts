@@ -16,8 +16,10 @@ import { formatIsoDate } from "@/lib/format";
 export interface ElectionCalendar {
   /** When the Prime Minister is due to announce polling day. */
   announcement: string;
-  /** Latest lawful polling day (✱ until the 2022 first sitting is confirmed). */
+  /** Latest lawful polling day: within three months of dissolution (Constitution s. 53(1)). */
   deadline: string;
+  /** When Parliament was dissolved, once it has been. */
+  dissolved: string | null;
   /** Nomination day, once proclaimed. */
   nominationDay: string | null;
   /** Polling day, once announced. */
@@ -28,6 +30,7 @@ export function calendarFrom(campaign: CampaignFile): ElectionCalendar {
   return {
     announcement: campaign.announce,
     deadline: campaign.deadline,
+    dissolved: campaign.dissolved ?? null,
     nominationDay: null,
     pollingDay: null,
   };
@@ -87,7 +90,7 @@ export interface SeatOutlook {
 
 const SLATE_ORDER = ["NDC", "NNP", "DPM"];
 
-/** One row per constituency: 2022 result, who sits now, who is standing. */
+/** One row per constituency: 2022 result, who sat at dissolution, who is standing. */
 export function seatOutlook(
   results: ResultsFile,
   campaign: CampaignFile

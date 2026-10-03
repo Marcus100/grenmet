@@ -26,6 +26,7 @@ export default function ElectionsPage() {
       <PageHead
         deck="Seventeen general elections and two referendums. From 1951 to 2008 the record goes down to each constituency’s candidates; from 2013, and for both referendums, to every polling division and station."
         eyebrow="Archive · 1951 to 2022"
+        learning="results"
         title="Every general election and referendum"
       />
       <Section id="list" title="All votes, newest first">

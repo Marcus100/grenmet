@@ -1,6 +1,7 @@
 import { Flag } from "@/components/flag";
 import { SourceLink } from "@/components/source-link";
 import type { CoverageUpdate } from "@/data/coverage";
+import { EVIDENCE_LABELS, sourceKind } from "@/data/evidence";
 import type { CampaignEvent, SourceRef } from "@/data/types";
 import { formatIsoDate } from "@/lib/format";
 
@@ -14,7 +15,11 @@ interface Update {
   title?: string;
 }
 
-/** Coverage posts and campaign events in one feed, newest first. */
+/**
+ * Coverage posts and campaign events in one feed, newest first. An event is
+ * left out when a post on the same day cites its source, so the post (with
+ * its headline) stands for it.
+ */
 export function ElectionUpdates({
   coverage,
   events,
@@ -26,6 +31,13 @@ export function ElectionUpdates({
   sources: Record<string, SourceRef>;
   limit?: number;
 }) {
+  const covered = new Set(
+    coverage.flatMap((p) =>
+      p.sources.flatMap((s) =>
+        "id" in s ? [`${p.at.slice(0, 10)}|${s.id}`] : []
+      )
+    )
+  );
   const updates: Update[] = [
     ...coverage.map((p) => ({
       at: p.at,
@@ -35,7 +47,7 @@ export function ElectionUpdates({
       sources: p.sources,
     })),
     ...events
-      .filter((e) => !e.future)
+      .filter((e) => !(e.future || covered.has(`${e.date}|${e.src}`)))
       .map((e) => ({
         at: `${e.date}T00:00:00-04:00`,
         date: e.date,
@@ -79,14 +91,24 @@ export function ElectionUpdates({
                     {"id" in source ? (
                       <SourceLink id={source.id} sources={sources} />
                     ) : (
-                      <a
-                        className="underline underline-offset-2"
-                        href={source.url}
-                        rel="noopener"
-                        target="_blank"
-                      >
-                        {source.label}
-                      </a>
+                      <>
+                        <span>
+                          {
+                            EVIDENCE_LABELS[
+                              sourceKind([source.label, source.url])
+                            ]
+                          }
+                          :{" "}
+                        </span>
+                        <a
+                          className="underline underline-offset-2"
+                          href={source.url}
+                          rel="noopener"
+                          target="_blank"
+                        >
+                          {source.label}
+                        </a>
+                      </>
                     )}
                   </span>
                 ))}

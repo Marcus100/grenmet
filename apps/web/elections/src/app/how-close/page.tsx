@@ -301,6 +301,7 @@ export default function HowClosePage() {
       <PageHead
         deck="Grenada elects 15 members by first past the post, so small shifts in votes can change a government. These tools show how close each election was, where votes moved, and how far each result can be trusted."
         eyebrow="Analysis"
+        learning="statistics"
         title="How close was it?"
       />
 

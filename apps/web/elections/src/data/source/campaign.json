@@ -93,6 +93,14 @@
     "gbn-ndc2": [
       "GBN, 23 Sep 2026, “NDC new faces step up”",
       "https://gbn.gd/ndc-new-faces-step-up/"
+    ],
+    "constitution": [
+      "Constitution of Grenada, ss. 52–53 (Cap. 128A, Parliament of Grenada)",
+      "https://grenadaparliament.gd/wp-content/uploads/2021/08/Cap128A-GRENADA-CONSTITUTION-ACT.pdf"
+    ],
+    "dissolution": [
+      "Proclamation by the Governor-General and media release from the Clerk of Parliament, 2 Oct 2026 (copies supplied to us; no public link yet)",
+      ""
     ]
   },
   "events": [
@@ -181,6 +189,12 @@
       "note": "The linked report could not be independently checked; these two names remain provisional."
     },
     {
+      "date": "2026-10-02",
+      "text": "Governor-General Dame Cécile La Grenade dissolves Parliament on the Prime Minister’s advice, ending the fourth session of the Eleventh Parliament.",
+      "src": "dissolution",
+      "flag": null
+    },
+    {
       "date": "2026-10-04",
       "text": "The Prime Minister is due to announce the election date at an event in St. Mark.",
       "src": "conch",
@@ -188,12 +202,11 @@
       "future": true
     },
     {
-      "date": "2027-11-30",
-      "text": "The latest possible election date: Parliament dissolves five years after first sitting, then the election must follow within 90 days.",
-      "src": "wiki27",
-      "flag": "unverified",
-      "future": true,
-      "note": "Wikipedia’s date. It follows from the 31 August 2022 first sitting, which needs confirming."
+      "date": "2027-01-02",
+      "text": "The latest possible election date: the Constitution requires the general election within three months after a dissolution.",
+      "src": "constitution",
+      "flag": null,
+      "future": true
     }
   ],
   "candidates": {
@@ -367,7 +380,8 @@
       "note": "A candidate-preference poll for one seat. We haven’t found any results."
     }
   ],
-  "deadline": "2027-11-30",
+  "deadline": "2027-01-02",
+  "dissolved": "2026-10-02",
   "announce": "2026-10-04",
   "candidate_seat_sources": {
     "NNP": {

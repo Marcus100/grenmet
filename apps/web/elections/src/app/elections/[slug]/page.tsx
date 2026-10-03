@@ -21,6 +21,7 @@ import {
   sideLabel,
   turnoutNote,
 } from "@/data/events";
+import { metricEvidence } from "@/data/evidence";
 import { data, geo, results } from "@/data/load";
 import {
   CODES,
@@ -101,6 +102,7 @@ export default async function EventPage({ params }: Props) {
       <PageHead
         deck={eventHeadline(data, e.id)}
         eyebrow={`${e.kind === "ref" ? "Constitutional referendum" : "General election"} · ${e.date}`}
+        learning="results"
         title={eventTitle(e.id)}
       >
         {e.kind === "general" && (
@@ -131,6 +133,23 @@ export default async function EventPage({ params }: Props) {
             </dd>
           </div>
         </dl>
+        <div className="mt-4 space-y-2 text-sm">
+          {(["votes", "seats", "turnout"] as const)
+            .filter((metric) => e.kind === "general" || metric !== "seats")
+            .map((metric) => {
+              const evidence = metricEvidence(data, e.id, metric);
+              return (
+                <details key={metric}>
+                  <summary className="cursor-pointer">
+                    {metric}: {evidence.label}
+                  </summary>
+                  <p className="mt-2 text-el-ink-2">
+                    {evidence.formula} {evidence.note}
+                  </p>
+                </details>
+              );
+            })}
+        </div>
         <Provenance official={source.official} text={source.text}>
           {note && `${note}.`}
         </Provenance>

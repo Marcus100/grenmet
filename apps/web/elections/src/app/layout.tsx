@@ -28,11 +28,11 @@ export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: {
-    default: "Elections Grenada: the 2026 election and every result since 1951",
+    default: "Elections Grenada: understand the election",
     template: "%s · Elections Grenada",
   },
   description:
-    "Coverage of Grenada’s 2026 general election, and every result since 1951 down to the polling division, with a source for every figure.",
+    "Learn how Grenada’s elections work through sourced explanations, historical results, local records and guided statistical tools.",
 };
 
 export default function RootLayout({

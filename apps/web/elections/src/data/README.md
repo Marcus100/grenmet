@@ -90,3 +90,16 @@ The source records were split losslessly from the original checked Elections
 Grenada snapshot on 2 October 2026. Export and verification logic was brought into
 this repository from that snapshot's prototype pipeline. Rebuilding no longer
 requires anything under `temp-files/`.
+
+## Educational evidence
+
+`evidence.ts` classifies sources and evaluates complete inputs per measure;
+`learning.ts` contains the eight guide definitions. Official winner declarations
+do not make every vote or turnout figure official (notably 1990). The static
+`/evidence.json` endpoint accompanies the original CSVs without changing totals.
+National comparison tables retain full history by default and withhold unsupported
+measures in their official-data-only view. No partial-vote re-normalisation is used.
+
+Site-wide `/site-search.json` indexes learning guides, people, parties, elections,
+constituencies and tools at build time. `/search-index.json` remains the separate
+constituency lookup contract. Neither index contains individual voter records.

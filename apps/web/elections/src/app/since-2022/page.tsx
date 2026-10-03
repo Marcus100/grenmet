@@ -20,6 +20,7 @@ export default function Since2022Page() {
       <PageHead
         deck="Floor crossings, new leaders, a new party and the road to polling day. Every item links to its source; ✱ marks items that still need an official or primary source."
         eyebrow={`Updated ${formatIsoDate(campaign.updated)}`}
+        learning="election"
         title="Since the 2022 election"
       />
       <Section id="timeline" title="Timeline">

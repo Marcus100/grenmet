@@ -18,7 +18,14 @@ export function SiteHeader({ status }: { status: string }) {
           Elections <span className="font-normal italic">Grenada</span>
         </Link>
         <DesktopNav />
-        <div className="ml-auto flex items-center lg:hidden">
+        <Link
+          aria-label="Search Elections Grenada"
+          className="ml-auto text-sm underline underline-offset-4"
+          href="/search"
+        >
+          Search
+        </Link>
+        <div className="flex items-center xl:hidden">
           <MobileMenu status={status} />
         </div>
       </div>

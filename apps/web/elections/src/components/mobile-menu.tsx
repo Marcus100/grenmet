@@ -61,7 +61,7 @@ export function MobileMenu({ status }: { status?: string }) {
         aria-controls={MENU_ID}
         aria-expanded={open}
         aria-label={open ? "Close menu" : "Open menu"}
-        className="-mr-2 flex size-11 items-center justify-center rounded-md lg:hidden"
+        className="-mr-2 flex size-11 items-center justify-center rounded-md xl:hidden"
         onClick={toggle}
         ref={button}
         type="button"
@@ -87,7 +87,7 @@ export function MobileMenu({ status }: { status?: string }) {
           <motion.div
             animate={{ opacity: 1 }}
             aria-label="Site menu"
-            className="fixed inset-x-0 bottom-0 z-30 flex flex-col overflow-y-auto border-el-ink border-t bg-background lg:hidden"
+            className="fixed inset-x-0 bottom-0 z-30 flex flex-col overflow-y-auto border-el-ink border-t bg-background xl:hidden"
             exit={{ opacity: 0 }}
             id={MENU_ID}
             initial={{ opacity: 0 }}
@@ -101,6 +101,9 @@ export function MobileMenu({ status }: { status?: string }) {
               </p>
             )}
             <nav aria-label="Site sections" className="flex-1 pb-8">
+              <Link className={ROW} href="/search" onClick={close}>
+                Search
+              </Link>
               {NAV.map((item) =>
                 isGroup(item) ? (
                   <section aria-label={item.label} key={item.label}>
