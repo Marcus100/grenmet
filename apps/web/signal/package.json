@@ -14,9 +14,9 @@
     "check:fix": "biome check --write .",
     "check:ci": "biome ci .",
     "type-check": "rm -f next-env.d.ts && rm -rf .next/dev/types && next typegen && content-collections build && tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test": "content-collections build && vitest run",
+    "test:watch": "content-collections build && vitest",
+    "test:coverage": "content-collections build && vitest run --coverage"
   },
   "dependencies": {
     "@content-collections/cli": "catalog:",

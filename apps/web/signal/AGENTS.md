@@ -24,7 +24,7 @@ international audience. Light mode; no reader account or subscription.
 ## Temporary content pipeline
 - Content Collections compiles trusted repository MDX through `content-collections.ts`. `src/lib/content.ts` queries it; `content-utils.ts` supplies draft-filtering helpers.
 - Seven topic folders are supported. `getCurrentArticles` selects sourced editorial previews for discovery; `getPublishedArticles` retains both previews and legacy samples for archive/static paths. `draft: false` means preview-visible, not human publication approval.
-- Build before tests/types when `.content-collections/` is absent. Keep originals for the later CMS import; do not implement a second publishing system during the frontend phase.
+- Test commands generate content before Vitest so clean CI checkouts exercise the real MDX fixtures. Keep originals for the later CMS import; do not implement a second publishing system during the frontend phase.
 
 ## Verification
 `pnpm --filter @barrelsgd/web-signal build` and `test`; then root formatting,
