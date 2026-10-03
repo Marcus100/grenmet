@@ -10,7 +10,13 @@ from pathlib import Path
 from incidents import request
 
 
-def exercise(environment, api=request):
+def exercise(environment, api=request, operation="open", incident_id=""):
+    if environment not in {"staging", "production"} or operation not in {
+        "open",
+        "resolve",
+    }:
+        raise ValueError("Invalid synthetic test operation")
+    title = f"TEST ONLY · {environment} · CI monitoring acceptance"
     report = {
         "environment": environment,
         "release": os.environ.get("GITHUB_SHA", "unknown"),
@@ -20,34 +26,50 @@ def exercise(environment, api=request):
         "recoveryReceipt": "unknown-owner-confirmation-required",
         "status": "failed",
     }
-    response = api(
-        "POST",
-        "incidents",
-        {
-            "name": f"TEST ONLY · {environment} · CI monitoring acceptance",
-            "summary": "Controlled monitoring acceptance test. No application outage has occurred.",
-            "requester_email": "euginegnd@gmail.com",
-            "email": True,
-            "call": False,
-            "sms": False,
-            "push": False,
-            "critical_alert": False,
-        },
-    )
-    identity = str(response["data"]["id"])
-    if not identity.isdigit():
+    if operation == "open":
+        if incident_id:
+            raise ValueError("Opening a test cannot take an incident ID")
+        response = api(
+            "POST",
+            "incidents",
+            {
+                "name": title,
+                "summary": "Controlled monitoring acceptance test. No application outage has occurred.",
+                "requester_email": "euginegnd@gmail.com",
+                "email": True,
+                "call": False,
+                "sms": False,
+                "push": False,
+                "critical_alert": False,
+            },
+        )
+        identity = str(response["data"]["id"])
+    else:
+        identity = incident_id
+        if not identity.isascii() or not identity.isdigit():
+            raise ValueError("Invalid synthetic incident ID")
+        response = api("GET", f"incidents/{identity}")
+        if (
+            str(response["data"]["id"]) != identity
+            or response["data"]["attributes"].get("name") != title
+        ):
+            raise ValueError("Refusing to resolve a non-matching test incident")
+        api(
+            "POST",
+            f"incidents/{identity}/resolve",
+            {"resolved_by": "CI-controlled-acceptance-test"},
+        )
+    if not identity.isascii() or not identity.isdigit():
         raise ValueError("Invalid synthetic incident ID")
     report["incidentId"] = identity
     report["dashboard"] = (
         f"https://incidents.betterstack.com/team/t476349/incidents/{identity}"
     )
-    # Resolve immediately: this never represents an application outage.
-    api(
-        "POST",
-        f"incidents/{identity}/resolve",
-        {"resolved_by": "CI-controlled-acceptance-test"},
+    report["status"] = (
+        "opened-awaiting-email-confirmation"
+        if operation == "open"
+        else "resolved-awaiting-recovery-confirmation"
     )
-    report["status"] = "provider-accepted"
     report["completedAt"] = datetime.now(timezone.utc).isoformat()
     return report
 
@@ -57,8 +79,12 @@ def main():
     parser.add_argument(
         "--environment", choices=["staging", "production"], required=True
     )
+    parser.add_argument("--operation", choices=["open", "resolve"], required=True)
+    parser.add_argument("--incident-id", default="")
     args = parser.parse_args()
-    report = exercise(args.environment)
+    report = exercise(
+        args.environment, operation=args.operation, incident_id=args.incident_id
+    )
     text = json.dumps(report, indent=2) + "\n"
     print(text)
     if os.environ.get("GITHUB_STEP_SUMMARY"):
