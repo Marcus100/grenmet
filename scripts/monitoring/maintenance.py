@@ -33,6 +33,7 @@ def inventory(environment):
             "WXPRODUCTS_DB_NAME",
             "JANITORIAL_DB_NAME",
             "TRANSPORT_DB_NAME",
+            "EREGISTER_DB_NAME",
             "CMS_DB_NAME",
         )
     ]

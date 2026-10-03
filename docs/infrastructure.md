@@ -91,11 +91,11 @@ arguments shown in the [manual procedure](deployment.md#manual-deploy-fallback--
 
 ## Backups and Restore
 
-`.github/workflows/backup-database.yml` runs daily at 02:00 UTC on the self-hosted production runner and can also be dispatched manually. Its credentials come from the `production-backup` GitHub environment. The existing Spaces bucket and `production/YYYY/MM/DD/` layout are retained. Set environment variable `CMS_BACKUP_ENABLED=true` there when production CMS is provisioned to include `gms_cms`; until then the original five databases remain covered. Staging is disposable and has no scheduled backup requirement.
+`.github/workflows/backup-database.yml` runs daily at 02:00 UTC on the self-hosted production runner and can also be dispatched manually. Its credentials come from the `production-backup` GitHub environment. The existing Spaces bucket and `production/YYYY/MM/DD/` layout are retained. Set environment variable `CMS_BACKUP_ENABLED=true` there when production CMS is provisioned to include `gms_cms`; until then the six other databases, including eRegister, are required. The staging monitoring pilot adds opt-in daily backups and weekly restore drills; see [activation gates](operations/analytics-monitoring.md#cicd-ownership-and-activation).
 
 Implemented backup behavior:
 
-- Dumps `app_prod`, `wxwatch`, `wxproducts`, `janitorial`, and `transport` with `pg_dump --format=custom --compress=9`.
+- Dumps `app_prod`, `wxwatch`, `wxproducts`, `janitorial`, `transport`, and `eregister` with `pg_dump --format=custom --compress=9`.
 - Restores each dump into a temporary database to verify integrity.
 - Uploads each dump to DigitalOcean Spaces under `production/YYYY/MM/DD/`.
 - Keeps local dump files for `BACKUP_RETENTION_DAYS=30`.
