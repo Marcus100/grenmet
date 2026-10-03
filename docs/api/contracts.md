@@ -410,6 +410,22 @@ every shift four hours. Real timestamps (`created_at`) remain `UtcDateTime`. On 
 an offset supplied by a client is dropped rather than converted, so one calendar never
 carries two time bases.
 
+## Barrels Events
+
+`/api/v1/events/*` (ADR-0016, separate `events` database; 503 while `EVENTS_DATABASE_URL` is unset).
+
+| Access | Endpoints |
+| --- | --- |
+| Public (an Events token personalises) | `GET /listings` (`when`, `category`, `parish`, `price`, `tag`, `q`, `organiser`, `limit`, `offset`), `GET /listings/{slug}`, `GET /organisers/{slug}`, `GET /groups`, `GET /groups/{slug}`, `GET /people/{handle}`, `POST /suggestions` |
+| Events member | `GET`/`PATCH /me/profile`, `GET /me/plans`, `GET /me/network`, `PUT`/`DELETE /listings/{slug}/rsvp` and `/save`, `PUT`/`DELETE /organisers/{slug}/follow`, `PUT`/`DELETE /groups/{slug}/membership`, `POST /connections`, `POST /connections/{id}/accept`, `DELETE /connections/{id}`, `PUT`/`DELETE /blocks/{handle}`, `POST /reports`, `GET`/`POST /threads`, `GET /threads/{id}`, `POST /threads/{id}/messages` |
+| `events.organiser.manage` + organiser membership | `GET /manage`, `POST /manage/listings`, `PUT /manage/listings/{id}` |
+| `events.moderate` | `GET`/`PATCH /moderation/reports`, `GET`/`PATCH /moderation/suggestions` |
+
+Prices are integer minor units (`price_from_minor`, tier `price_minor`); datetimes are UTC and
+clients render Grenada time. Direct threads open only between accepted connections or members
+of a shared group, and the rule is re-checked on every send; blocks hide both members from
+each other.
+
 ## Public CAP Feed Contract
 
 Public CAP routes are mounted outside `/api/v1`. They expose **only `scope == Public`
