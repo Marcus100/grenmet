@@ -84,11 +84,13 @@ Keep the subject line under 72 characters. Add a body when the why isn't obvious
 Always run these two commands before pushing:
 
 ```bash
-pnpm fix          # auto-fix lint and formatting (Biome via Ultracite)
+pnpm fix:changed  # format changed files only (Biome via Ultracite)
 pnpm type-check   # TypeScript across all packages
 ```
 
-To scope to just the package you changed (faster):
+Use repo-wide `pnpm fix` only for deliberate broad formatting. Package-scoped
+checks are useful during development; they do not replace the final workspace
+type-check and affected tests:
 
 ```bash
 turbo run check:fix type-check --filter=@barrelsgd/web-gaa-admin
@@ -130,14 +132,15 @@ SKIP_BLAST_RADIUS=1 git commit -m "wip: partial change"
 
 This does not bypass Biome or Ruff. It has no effect on CI range checks.
 
-The pre-push hook runs the complete TypeScript validation:
+The pre-push hook runs lint/format checks, types, and tests:
 
 ```bash
+pnpm check:ci
 pnpm type-check
 pnpm test
 ```
 
-If either command fails, the push stops. Fix the failure and rerun the failing
+If any command fails, the push stops. Fix the failure and rerun the failing
 command before pushing again.
 
 ### Blast-radius checker

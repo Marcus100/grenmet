@@ -6,22 +6,27 @@ meteorological department, not a Barrels product. See the
 [Portfolio Planning System](docs/portfolio/) for ownership, priorities, and
 repository coverage.
 
+Start with the [Technical Overview](docs/technical-overview.md) for the app
+inventory, backend boundaries, and a source-linked HR dashboard walkthrough.
+
 ## Workspace Layout
 
 ```
 barrelsgd/
 ├── apps/                       # Application code
 │   ├── api/
-│   │   └── fastapi/            # FastAPI backend (Python) — auth, HR, CAP, weather, audit, notifications, webhooks
+│   │   └── fastapi/            # FastAPI backend — auth, HR, CAP, weather, events, audit, notifications
 │   └── web/
 │       ├── gaa-admin/          # Current GAA staff portal; GMS pilot plus GAA-wide modules
-│       ├── auth/               # Shared sign-in/sign-up gateway for all apps
+│       ├── auth/               # Shared staff sign-in/sign-up interface
+│       ├── barrels/            # Static Barrels Grenada company homepage
 │       ├── cms/                # GMS editorial content service (Payload CMS)
-│       ├── events/             # Barrels Events organiser-console prototype
-│       ├── docs/      # Public hurricane preparedness content site (MDX)
+│       ├── elections/          # Elections Grenada coverage and civic education
+│       ├── events/             # Events discovery/community + organiser UI; API wiring pending
+│       ├── docs/               # Public hurricane preparedness content site (MDX)
 │       ├── mbia/               # Maurice Bishop International Airport public site
-│       ├── signal/             # Grenada Signal — civic-media reader (static MDX)
-│       └── gms/            # Public GMS weather website (design system reference app)
+│       ├── signal/             # Grenada Signal news and entertainment (MDX)
+│       └── gms/                # Public GMS weather website (design system reference app)
 ├── packages/
 │   ├── api-client/             # TypeScript API client (Kubb-generated from OpenAPI)
 │   ├── auth/                   # Shared auth/session package (@barrelsgd/auth)
@@ -57,6 +62,10 @@ barrelsgd/
 ## Quick Start
 
 ### Recommended (from repo root)
+
+Run `pnpm start` and web dev servers on the **host**. Use the
+[agent devcontainer](.devcontainer/README.md) for editing, formatting, types,
+and tests; it does not have Docker access.
 
 ```bash
 # Install JS dependencies
@@ -108,10 +117,16 @@ From repo root:
 - [gaa-admin](apps/web/gaa-admin/README.md) – `pnpm dev:web:gaa-admin`
 - [auth](apps/web/auth/README.md) – `pnpm dev:web:auth`
 - [events](apps/web/events) – `pnpm dev:web:events`
+- [elections](apps/web/elections) – `pnpm dev:web:elections`
+- [cms](apps/web/cms/README.md) – `pnpm dev:web:cms`
 - [docs](apps/web/docs/README.md) – `pnpm dev:web:docs`
 - [mbia](apps/web/mbia) – `pnpm dev:web:mbia`
 - [signal](apps/web/signal/README.md) – `pnpm dev:web:signal`
 - [gms](apps/web/gms/README.md) – `pnpm dev:web:gms`
+
+The [Barrels homepage](apps/web/barrels/README.md) is a separate static site:
+`node apps/web/barrels/build.mjs`. It has no `pnpm dev:web:barrels` command.
+Ports are listed in [docs/ports.md](docs/ports.md).
 
 ### Python workspace
 
@@ -161,6 +176,9 @@ All commands are run from the monorepo root.
 | `pnpm dev:web:mbia`       | [mbia](apps/web/mbia)                   |
 | `pnpm dev:web:signal`     | [signal](apps/web/signal)               |
 | `pnpm dev:web:gms`    | [gms](apps/web/gms)             |
+| `pnpm dev:web:cms` | [cms](apps/web/cms/README.md) |
+| `pnpm dev:web:elections` | [elections](apps/web/elections) |
+| `pnpm dev:web:events` | [events](apps/web/events) |
 
 API (FastAPI): use `pnpm start` for infra + API, or follow the fully qualified
 Compose commands in [docs/api/development.md](docs/api/development.md) for an
@@ -174,7 +192,8 @@ API-only workflow.
 | `pnpm lint`                             | Lint all                                                           |
 | `pnpm check` / `check:fix` / `check:ci` | Check / fix / CI                                                   |
 | `pnpm type-check`                       | Type-check all                                                     |
-| `pnpm fix`                              | Run ultracite fix                                                  |
+| `pnpm fix:changed`                      | Format changed files with Ultracite (normal task workflow)          |
+| `pnpm fix`                              | Repo-wide Ultracite fix (deliberate broad changes only)              |
 | `pnpm generate:api-client`              | Generate API client (uses current `apps/api/fastapi/openapi.json`) |
 | `pnpm check:drift`                      | Verify generated API client is not older than `openapi.json`       |
 | `pnpm clean`                            | Remove node_modules (git clean)                                    |
@@ -212,12 +231,16 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 | [API Deployment](docs/api/deployment.md) | FastAPI deployment steps |
 | [Programme docs](docs/internal/) | Roadmap, DTO Terms of Reference, end-of-period report template |
 
-### App READMEs
+### App guides
 
-| App | README |
+| App | Guide |
 | --- | --- |
 | gaa-admin | [apps/web/gaa-admin/README.md](apps/web/gaa-admin/README.md) |
 | auth | [apps/web/auth/README.md](apps/web/auth/README.md) |
+| barrels | [apps/web/barrels/README.md](apps/web/barrels/README.md) |
+| cms | [apps/web/cms/README.md](apps/web/cms/README.md) |
+| elections | [apps/web/elections/AGENTS.md](apps/web/elections/AGENTS.md) |
+| events | [apps/web/events/AGENTS.md](apps/web/events/AGENTS.md) |
 | docs | [apps/web/docs/README.md](apps/web/docs/README.md) |
 | mbia | [apps/web/mbia](apps/web/mbia) |
 | signal | [apps/web/signal/README.md](apps/web/signal/README.md) |
@@ -229,9 +252,9 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 ### Prerequisites
 
 - Docker & Docker Compose
-- Python 3.14+ (FastAPI and Python workspace tools)
-- Node.js 24 (for Web)
-- pnpm 10+ (for Web)
+- Python 3.14 (FastAPI and Python workspace tools; see root `pyproject.toml`)
+- Node.js 24 or newer (see root `package.json` engines)
+- pnpm 12.3.4 (the pinned `packageManager` in root `package.json`)
 
 ### Packages
 
@@ -240,7 +263,9 @@ Tests: run per app (API: see [docs/api/testing.md](docs/api/testing.md); web: se
 - **@barrelsgd/email-templates** - Shared React Email templates.
 - **@barrelsgd/theme** - Shared theme, layout, and preference utilities.
 - **@barrelsgd/tsconfig** - Shared TypeScript config.
-- **@barrelsgd/ui** - Shared UI component library and design-system primitives.
+- **@barrelsgd/ui** - Brand-neutral shared UI primitives.
+- **@barrelsgd/gms** - GMS logo, styles, and service presentation.
+- **@barrelsgd/cms-migrations** - Runtime dependencies for CMS migrations.
 
 ### Code quality
 
@@ -285,7 +310,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full guide: branching strategy, c
 Quick reference:
 
 1. Branch from `dev` → `feature/your-feature-name`
-2. Make changes; run `pnpm fix && pnpm type-check` before committing
+2. Make changes; run `pnpm fix:changed && pnpm type-check` and affected checks before committing
 3. Open a PR against `dev` with a [Conventional Commits](https://www.conventionalcommits.org/) title
 
 ## License
