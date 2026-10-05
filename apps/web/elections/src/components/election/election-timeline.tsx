@@ -33,7 +33,13 @@ export function ElectionTimeline({
   const t1 = Date.parse(calendar.deadline);
   const x = (iso: string) =>
     LEFT + ((Date.parse(iso) - t0) / (t1 - t0)) * (RIGHT - LEFT);
-  const stops = [
+  const stops: {
+    above: boolean;
+    anchor?: "start" | "middle" | "end";
+    iso: string;
+    label: string;
+    strong: boolean;
+  }[] = [
     { iso: start, label: "Dissolved", above: true, strong: false },
     ...(calendar.nominationDay
       ? [
@@ -41,6 +47,19 @@ export function ElectionTimeline({
             iso: calendar.nominationDay,
             label: "Nomination day",
             above: false,
+            strong: false,
+          },
+        ]
+      : []),
+    // Three days before polling day: its label starts left of the tick and
+    // sits below the axis so it clears "Polling day" above.
+    ...(calendar.policePollingDay
+      ? [
+          {
+            iso: calendar.policePollingDay,
+            label: "Police poll",
+            above: false,
+            anchor: "start" as const,
             strong: false,
           },
         ]
@@ -118,7 +137,8 @@ export function ElectionTimeline({
         let anchor: "start" | "middle" | "end" = "middle";
         if (s.strong || cx < LEFT + 40) anchor = "start";
         else if (cx > RIGHT - 40) anchor = "end";
-        const tx = s.strong ? cx - 8 : cx;
+        if (s.anchor) anchor = s.anchor;
+        const tx = s.strong || s.anchor === "start" ? cx - 8 : cx;
         return (
           <g key={s.label}>
             <line
