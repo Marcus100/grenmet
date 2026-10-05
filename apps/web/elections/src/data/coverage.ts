@@ -239,6 +239,24 @@ export const COVERAGE: CoverageUpdate[] = [
     seats: ["N"],
     sources: [{ id: "rgpf1oct" }, { id: "ct30sep" }],
   },
+  {
+    at: "2026-10-04T20:00:00-04:00",
+    slug: "mitchell-announces-5-november",
+    title: "Prime Minister Mitchell announces polling day at the NDC rally",
+    dek: "Prime Minister Dickon Mitchell announced at the NDC’s rally that Grenada votes on Thursday 5 November, the date the Gazette had already set.",
+    body: [
+      "Prime Minister Dickon Mitchell announced at the National Democratic Congress rally that polling day is Thursday 5 November 2026. The announcement had been expected since September, when the Prime Minister said the date would be given at an event in St. Mark on 4 October.",
+      "The date matches the Supervisor of Elections’ notice in Government Gazette No. 47, issued on 2 October, which set nomination day for 15 October and polling day for 5 November.",
+      "After the announcement the NDC’s official Facebook page posted a graphic reading “Election Day: Thursday 5th November” with the caption “The conch shell has sounded! The date is set.” We have not independently checked the post.",
+    ],
+    seats: ["N"],
+    sources: [
+      { id: "owner4oct" },
+      { id: "ndc4oct" },
+      { id: "gazette47" },
+      { id: "conch" },
+    ],
+  },
 ];
 
 /** A coverage post by its URL segment. */

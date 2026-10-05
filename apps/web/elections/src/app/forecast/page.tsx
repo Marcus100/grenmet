@@ -208,8 +208,9 @@ export default function ForecastPage() {
             ), so the next general election must be held by 2 January 2027,
             within three months as section 53(1) requires (
             <SourceLink id="constitution" sources={campaign.sources} />
-            ). The Prime Minister is due to announce the date on 4 October 2026
-            (<SourceLink id="conch" sources={campaign.sources} />
+            ). Writs issued on 2 October set nomination day for 15 October and
+            polling day for 5 November 2026 (
+            <SourceLink id="gazette47" sources={campaign.sources} />
             ). These tools combine recorded results and explicit assumptions.
             Some historical inputs, including parts of 1990, rely on secondary
             records. Treat the outputs as conditional scenarios, not official
