@@ -10,16 +10,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { GroupCard } from "@/components/community/group-card";
 import { PersonAvatar } from "@/components/community/person-avatar";
+import { SignOutButton } from "@/components/community/sign-out-button";
 import { EventCard } from "@/components/discovery/event-card";
 import { SavedEventsList } from "@/components/discovery/saved-events-list";
 import { toCardData } from "@/components/discovery/to-card";
 import {
-  getViewer,
   groupMembers,
   listEvents,
   listGroups,
   listProfiles,
 } from "@/data/discovery";
+import { requireViewer } from "@/data/viewer";
 import { formatEventDate } from "@/lib/datetime";
 
 export const metadata: Metadata = {
@@ -30,7 +31,7 @@ export const metadata: Metadata = {
 export default async function MyPlansPage() {
   const now = new Date();
   const [viewer, events, groups, profiles] = await Promise.all([
-    getViewer(),
+    requireViewer("/me"),
     listEvents({}, now),
     listGroups(),
     listProfiles(),
@@ -66,6 +67,7 @@ export default async function MyPlansPage() {
           >
             View profile
           </Link>
+          <SignOutButton />
         </div>
       </header>
 

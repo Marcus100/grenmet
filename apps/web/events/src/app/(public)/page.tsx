@@ -8,7 +8,6 @@ import { CATEGORY_STYLE } from "@/components/discovery/category-style";
 import { EventCard } from "@/components/discovery/event-card";
 import { toCardData } from "@/components/discovery/to-card";
 import {
-  getViewer,
   groupMembers,
   isThisWeekend,
   isTonight,
@@ -17,6 +16,7 @@ import {
   listProfiles,
   suggestGroups,
 } from "@/data/discovery";
+import { getViewer } from "@/data/viewer";
 import { CATEGORIES, CATEGORY_LABELS, PARISH_LABELS } from "@/domain/labels";
 
 export default async function HomePage() {

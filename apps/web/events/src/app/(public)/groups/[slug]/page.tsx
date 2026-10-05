@@ -16,12 +16,12 @@ import { EventCard } from "@/components/discovery/event-card";
 import { toCardData } from "@/components/discovery/to-card";
 import {
   getGroupBySlug,
-  getViewer,
   groupMembers,
   listEvents,
   listProfiles,
   listThreads,
 } from "@/data/discovery";
+import { getViewer } from "@/data/viewer";
 import { CATEGORY_LABELS, PARISH_LABELS } from "@/domain/labels";
 import { formatEventDate } from "@/lib/datetime";
 

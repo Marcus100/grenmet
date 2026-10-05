@@ -9,10 +9,10 @@ import { threadTitle } from "@/components/community/thread-list";
 import {
   canMessage,
   getThread,
-  getViewer,
   listConnections,
   listProfiles,
 } from "@/data/discovery";
+import { requireViewer } from "@/data/viewer";
 import { formatEventDate } from "@/lib/datetime";
 
 export const metadata: Metadata = {
@@ -27,7 +27,7 @@ export default async function ThreadPage({
 }) {
   const { threadId } = await params;
   const [viewer, profiles, connections] = await Promise.all([
-    getViewer(),
+    requireViewer("/messages"),
     listProfiles(),
     listConnections(),
   ]);

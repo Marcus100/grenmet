@@ -9,11 +9,11 @@ import {
   canMessage,
   connectionState,
   getProfileByHandle,
-  getViewer,
   listConnections,
   listGroups,
   listThreads,
 } from "@/data/discovery";
+import { getViewer } from "@/data/viewer";
 import { CATEGORY_LABELS, INTENT_LABELS, PARISH_LABELS } from "@/domain/labels";
 
 type Params = Promise<{ handle: string }>;

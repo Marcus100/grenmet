@@ -15,11 +15,11 @@ import {
   getEventBySlug,
   getGroupById,
   getOrganiser,
-  getViewer,
   listEvents,
   listProfiles,
   peopleYouMightMeet,
 } from "@/data/discovery";
+import { getViewer } from "@/data/viewer";
 import {
   CATEGORY_LABELS,
   INTENT_LABELS,

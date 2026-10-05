@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { GroupCard } from "@/components/community/group-card";
 import {
-  getViewer,
   groupMembers,
   listEvents,
   listGroups,
   listProfiles,
 } from "@/data/discovery";
+import { getViewer } from "@/data/viewer";
 import { formatEventDate } from "@/lib/datetime";
 
 export const metadata: Metadata = {
