@@ -1,12 +1,6 @@
 import type { Metadata } from "next";
 import { GroupCard } from "@/components/community/group-card";
-import {
-  groupMembers,
-  listEvents,
-  listGroups,
-  listProfiles,
-} from "@/data/discovery";
-import { getViewer } from "@/data/viewer";
+import { listGroups } from "@/data/events-api";
 import { formatEventDate } from "@/lib/datetime";
 
 export const metadata: Metadata = {
@@ -16,20 +10,9 @@ export const metadata: Metadata = {
 };
 
 export default async function GroupsPage() {
-  const now = new Date();
-  const [groups, profiles, events, viewer] = await Promise.all([
-    listGroups(),
-    listProfiles(),
-    listEvents({}, now),
-    getViewer(),
-  ]);
-
-  const nextFor = (groupId: string) => {
-    const next = events.find((event) => event.groupId === groupId);
-    return next ? formatEventDate(next.startsAt) : null;
-  };
-  const mine = groups.filter((group) => viewer.groupIds.includes(group.id));
-  const others = groups.filter((group) => !viewer.groupIds.includes(group.id));
+  const groups = await listGroups();
+  const mine = groups.filter((group) => group.viewerStatus);
+  const others = groups.filter((group) => !group.viewerStatus);
 
   return (
     <div className="space-y-10">
@@ -52,8 +35,11 @@ export default async function GroupsPage() {
               <GroupCard
                 group={group}
                 key={group.id}
-                memberCount={groupMembers(group, profiles).length}
-                nextMeetup={nextFor(group.id)}
+                nextMeetup={
+                  group.nextMeetupAt
+                    ? formatEventDate(group.nextMeetupAt)
+                    : null
+                }
               />
             ))}
           </div>
@@ -63,16 +49,25 @@ export default async function GroupsPage() {
         <h2 className="font-display font-semibold text-heading-sm">
           Discover groups
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {others.map((group) => (
-            <GroupCard
-              group={group}
-              key={group.id}
-              memberCount={groupMembers(group, profiles).length}
-              nextMeetup={nextFor(group.id)}
-            />
-          ))}
-        </div>
+        {others.length > 0 ? (
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {others.map((group) => (
+              <GroupCard
+                group={group}
+                key={group.id}
+                nextMeetup={
+                  group.nextMeetupAt
+                    ? formatEventDate(group.nextMeetupAt)
+                    : null
+                }
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="text-body text-muted-foreground">
+            No groups to discover yet.
+          </p>
+        )}
       </section>
     </div>
   );

@@ -1,5 +1,12 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("@/data/actions", () => ({ saveListing: vi.fn() }));
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/dash/events/new",
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
+}));
+
 import { emptyDraft } from "./event-draft";
 import { EventEditor } from "./event-editor";
 
@@ -8,6 +15,7 @@ describe("EventEditor", () => {
     render(
       <EventEditor
         initial={emptyDraft(new Date("2026-10-03T12:00:00-04:00"))}
+        listingId={null}
       />
     );
     const preview = screen.getByTestId("editor-preview");
@@ -25,6 +33,7 @@ describe("EventEditor", () => {
     render(
       <EventEditor
         initial={emptyDraft(new Date("2026-10-03T12:00:00-04:00"))}
+        listingId={null}
       />
     );
     const publish = screen.getByRole("button", { name: "Publish" });

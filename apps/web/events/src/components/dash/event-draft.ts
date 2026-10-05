@@ -1,12 +1,13 @@
+import type { ListingUpsert } from "@barrelsgd/api-client";
 import type { EventCardData } from "@/components/discovery/event-card";
 import { money } from "@/domain/money";
 import type {
   Admission,
   EventCategory,
+  EventDetail,
   Parish,
-  PublicEvent,
 } from "@/domain/types";
-import { grenadaDateKey, grenadaWallClock } from "@/lib/datetime";
+import { addDaysToKey, grenadaDateKey, grenadaWallClock } from "@/lib/datetime";
 
 export interface TierDraft {
   readonly allocation: number;
@@ -24,9 +25,13 @@ export interface EventDraft {
   readonly date: string;
   readonly description: string;
   readonly endTime: string;
+  /** Carried through edits so saving never drops them. */
+  readonly groupSlug: string | null;
   readonly parish: Parish;
+  readonly recurrence: string | null;
   readonly startTime: string;
   readonly summary: string;
+  readonly tags: readonly string[];
   readonly tiers: readonly TierDraft[];
   readonly title: string;
   readonly venue: string;
@@ -44,10 +49,9 @@ function timeOf(instant: string): string {
   }).format(new Date(instant));
 }
 
-export function draftFromEvent(event: PublicEvent): EventDraft {
-  const price = event.priceFrom
-    ? Math.trunc(event.priceFrom.amountMinor / 100)
-    : 0;
+export function draftFromEvent(
+  event: EventDetail & { readonly visibility?: "public" | "unlisted" }
+): EventDraft {
   return {
     title: event.title,
     summary: event.summary,
@@ -59,25 +63,17 @@ export function draftFromEvent(event: PublicEvent): EventDraft {
     startTime: timeOf(event.startsAt),
     endTime: timeOf(event.endsAt),
     admission: event.admission,
-    capacity: 1200,
-    visibility: "public",
-    tiers:
-      event.admission === "ticketed"
-        ? [
-            {
-              id: "tier_1",
-              name: "General",
-              priceMajor: price,
-              allocation: 900,
-            },
-            {
-              id: "tier_2",
-              name: "VIP",
-              priceMajor: price * 2,
-              allocation: 300,
-            },
-          ]
-        : [],
+    capacity: event.capacity,
+    visibility: event.visibility ?? "public",
+    recurrence: event.recurrence,
+    tags: event.tags,
+    groupSlug: event.group?.slug ?? null,
+    tiers: event.tiers.map((tier) => ({
+      id: tier.id,
+      name: tier.name,
+      priceMajor: Math.trunc(tier.price.amountMinor / 100),
+      allocation: tier.allocation,
+    })),
   };
 }
 
@@ -95,12 +91,64 @@ export function emptyDraft(now: Date): EventDraft {
     admission: "free",
     capacity: 200,
     visibility: "public",
+    recurrence: null,
+    tags: [],
+    groupSlug: null,
     tiers: [],
   };
 }
 
 export function draftStartsAt(draft: EventDraft): string {
   return `${draft.date}T${draft.startTime}:00${GRENADA_OFFSET}`;
+}
+
+/** End instant; an end time at or before the start means "after midnight". */
+export function draftEndsAt(draft: EventDraft): string {
+  const date =
+    draft.endTime > draft.startTime ? draft.date : addDaysToKey(draft.date, 1);
+  return `${date}T${draft.endTime}:00${GRENADA_OFFSET}`;
+}
+
+/** The API payload for saving this draft as a draft or a published listing. */
+export function draftToUpsert(
+  draft: EventDraft,
+  status: "draft" | "published"
+): ListingUpsert {
+  return {
+    title: draft.title.trim(),
+    summary: draft.summary.trim(),
+    description: draft.description,
+    category: draft.category,
+    parish: draft.parish,
+    venue: draft.venue.trim(),
+    starts_at: draftStartsAt(draft),
+    ends_at: draftEndsAt(draft),
+    admission: draft.admission,
+    capacity: draft.capacity,
+    recurrence: draft.recurrence,
+    tags: [...draft.tags],
+    visibility: draft.visibility,
+    status,
+    group_slug: draft.groupSlug,
+    tiers:
+      draft.admission === "ticketed"
+        ? draft.tiers.map((tier) => ({
+            name: tier.name.trim(),
+            price_minor: tier.priceMajor * 100,
+            currency: "XCD" as const,
+            allocation: tier.allocation,
+          }))
+        : [],
+  };
+}
+
+/** True when the API will accept this as a draft (publishing needs more). */
+export function canSaveDraft(draft: EventDraft): boolean {
+  return (
+    draft.title.trim().length >= 3 &&
+    draft.venue.trim().length >= 2 &&
+    draft.summary.trim().length >= 10
+  );
 }
 
 /** What the public card will show, so the preview cannot drift from the site. */
@@ -123,8 +171,9 @@ export function draftToCard(draft: EventDraft): EventCardData {
         : null,
     recurrence: null,
     slug: "preview",
+    goingCount: 0,
     goingNames: [],
-    goingTotal: 0,
+    viewerSaved: false,
   };
 }
 

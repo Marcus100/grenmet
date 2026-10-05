@@ -1,38 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PersonAvatar } from "@/components/community/person-avatar";
-import { ToggleButton } from "@/components/community/toggle-button";
 import {
-  connectionState,
-  listConnections,
-  listProfiles,
-} from "@/data/discovery";
+  ConnectButton,
+  ConnectionActions,
+} from "@/components/community/network-actions";
+import { PersonAvatar } from "@/components/community/person-avatar";
+import { getMyNetwork } from "@/data/events-api";
 import { requireViewer } from "@/data/viewer";
-import type { Profile } from "@/domain/types";
 
 export const metadata: Metadata = { title: "Your network" };
 
 export default async function NetworkPage() {
-  const [viewer, connections, profiles] = await Promise.all([
-    requireViewer("/network"),
-    listConnections(),
-    listProfiles(),
-  ]);
-  const others = profiles.filter((profile) => profile.id !== viewer.id);
-  const byState = (state: ReturnType<typeof connectionState>) =>
-    others.filter(
-      (profile) => connectionState(viewer.id, profile.id, connections) === state
-    );
-
-  const received = byState("received");
-  const connected = byState("connected");
-  const sent = byState("sent");
-  // Suggestions: share a group or an interest, not yet linked.
-  const suggestions = byState("none").filter(
-    (profile) =>
-      profile.groupIds.some((id) => viewer.groupIds.includes(id)) ||
-      profile.interests.some((interest) => viewer.interests.includes(interest))
-  );
+  await requireViewer("/network");
+  const { connections, suggestions } = await getMyNetwork();
+  const received = connections.filter((link) => link.state === "received");
+  const connected = connections.filter((link) => link.state === "connected");
+  const sent = connections.filter((link) => link.state === "sent");
 
   return (
     <div className="mx-auto max-w-3xl space-y-10">
@@ -46,72 +29,115 @@ export default async function NetworkPage() {
         </p>
       </div>
       {received.length > 0 ? (
-        <PeopleSection
-          people={received}
-          title={`Requests (${received.length})`}
-        >
-          {() => <ToggleButton activeLabel="Accepted" idleLabel="Accept" />}
-        </PeopleSection>
+        <Section title={`Requests (${received.length})`}>
+          {received.map((link) => (
+            <Row
+              action={
+                <ConnectionActions connectionId={link.id} state={link.state} />
+              }
+              handle={link.person.handle}
+              headline={link.headline}
+              key={link.id}
+              name={link.person.name}
+            />
+          ))}
+        </Section>
       ) : null}
-      <PeopleSection
-        people={connected}
-        title={`Connections (${connected.length})`}
-      />
+      <Section title={`Connections (${connected.length})`}>
+        {connected.length === 0 ? (
+          <Empty />
+        ) : (
+          connected.map((link) => (
+            <Row
+              action={
+                <ConnectionActions connectionId={link.id} state={link.state} />
+              }
+              handle={link.person.handle}
+              headline={link.headline}
+              key={link.id}
+              name={link.person.name}
+            />
+          ))
+        )}
+      </Section>
       {sent.length > 0 ? (
-        <PeopleSection people={sent} title="Pending">
-          {() => (
-            <span className="text-caption text-muted-foreground">
-              Request sent
-            </span>
-          )}
-        </PeopleSection>
+        <Section title="Pending">
+          {sent.map((link) => (
+            <Row
+              action={
+                <ConnectionActions connectionId={link.id} state={link.state} />
+              }
+              handle={link.person.handle}
+              headline={link.headline}
+              key={link.id}
+              name={link.person.name}
+            />
+          ))}
+        </Section>
       ) : null}
       {suggestions.length > 0 ? (
-        <PeopleSection people={suggestions} title="People you may know">
-          {() => <ToggleButton activeLabel="Requested" idleLabel="Connect" />}
-        </PeopleSection>
+        <Section title="People you may know">
+          {suggestions.map((person) => (
+            <Row
+              action={<ConnectButton handle={person.handle} />}
+              handle={person.handle}
+              headline={person.headline}
+              key={person.handle}
+              name={person.name}
+            />
+          ))}
+        </Section>
       ) : null}
     </div>
   );
 }
 
-function PeopleSection({
+function Empty() {
+  return (
+    <li className="p-3 text-body text-muted-foreground">
+      No one here yet. Go to an event and say hello.
+    </li>
+  );
+}
+
+function Section({
   children,
-  people,
   title,
 }: {
-  children?: (person: Profile) => React.ReactNode;
-  people: readonly Profile[];
+  children: React.ReactNode;
   title: string;
 }) {
   return (
     <section className="space-y-3">
       <h2 className="font-display font-semibold text-heading-sm">{title}</h2>
-      {people.length === 0 ? (
-        <p className="text-body text-muted-foreground">
-          No one here yet. Go to an event and say hello.
-        </p>
-      ) : (
-        <ul className="divide-y divide-border rounded-2xl border border-border bg-card">
-          {people.map((person) => (
-            <li className="flex items-center gap-3 p-3" key={person.id}>
-              <PersonAvatar name={person.name} size="lg" />
-              <Link
-                className="min-w-0 flex-1"
-                href={`/people/${person.handle}`}
-              >
-                <p className="truncate font-medium text-body hover:underline">
-                  {person.name}
-                </p>
-                <p className="truncate text-caption text-muted-foreground">
-                  {person.headline}
-                </p>
-              </Link>
-              {children?.(person)}
-            </li>
-          ))}
-        </ul>
-      )}
+      <ul className="divide-y divide-border rounded-2xl border border-border bg-card">
+        {children}
+      </ul>
     </section>
+  );
+}
+
+function Row({
+  action,
+  handle,
+  headline,
+  name,
+}: {
+  action: React.ReactNode;
+  handle: string;
+  headline: string;
+  name: string;
+}) {
+  return (
+    <li className="flex items-center gap-3 p-3">
+      <PersonAvatar name={name} size="lg" />
+      <Link className="min-w-0 flex-1" href={`/people/${handle}`}>
+        <p className="truncate font-medium text-body hover:underline">{name}</p>
+        <p className="truncate text-caption text-muted-foreground">
+          {headline}
+        </p>
+      </Link>
+      {action}
+    </li>
   );
 }

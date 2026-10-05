@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { buildDemoEvents } from "@/data/community-fixtures";
+import { makeEvent } from "@/test/factories";
 import { buildIcs } from "./ics";
 
 const now = new Date("2026-10-03T12:00:00-04:00");
 
 describe("buildIcs", () => {
-  const event = buildDemoEvents(now).find(
-    (candidate) => candidate.slug === "feel-free-sunset"
-  );
-  if (!event) {
-    throw new Error("fixture missing");
-  }
+  const event = makeEvent({
+    title: "Feel Free: Sunset",
+    venue: "Grenada National Stadium grounds",
+    summary: "Three DJs and a live band.",
+    startsAt: "2026-10-03T20:00:00Z",
+  });
   const ics = buildIcs(
     event,
     "https://example.test/events/feel-free-sunset",
@@ -25,7 +25,9 @@ describe("buildIcs", () => {
   it("uses CRLF line endings and escapes newlines", () => {
     expect(ics).toContain("\r\nEND:VCALENDAR\r\n");
     expect(ics).toContain("SUMMARY:Feel Free: Sunset");
-    expect(ics).toContain("three DJs and a live band.\\n");
+    expect(ics).toContain(
+      "DESCRIPTION:Three DJs and a live band.\\nhttps://example.test/events/feel-free-sunset"
+    );
     expect(ics).toContain("LOCATION:Grenada National Stadium grounds");
   });
 

@@ -5,13 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MessageComposer } from "@/components/community/message-composer";
 import { PersonAvatar } from "@/components/community/person-avatar";
-import { threadTitle } from "@/components/community/thread-list";
-import {
-  canMessage,
-  getThread,
-  listConnections,
-  listProfiles,
-} from "@/data/discovery";
+import { getThread } from "@/data/events-api";
 import { requireViewer } from "@/data/viewer";
 import { formatEventDate } from "@/lib/datetime";
 
@@ -26,26 +20,12 @@ export default async function ThreadPage({
   params: Promise<{ threadId: string }>;
 }) {
   const { threadId } = await params;
-  const [viewer, profiles, connections] = await Promise.all([
-    requireViewer("/messages"),
-    listProfiles(),
-    listConnections(),
-  ]);
-  const thread = await getThread(threadId, viewer.id);
+  await requireViewer(`/messages/${threadId}`);
+  const thread = await getThread(threadId);
   if (!thread) {
     notFound();
   }
-  const title = await threadTitle(thread, viewer, profiles);
-  const nameOf = (id: string) =>
-    profiles.find((profile) => profile.id === id)?.name ?? "Member";
-  const other = profiles.find(
-    (profile) =>
-      profile.id !== viewer.id && thread.participantIds.includes(profile.id)
-  );
-  // Direct threads re-check the safety rule; group chats rely on membership.
-  const allowed =
-    thread.kind === "group" ||
-    (other ? canMessage(viewer, other, connections) : false);
+  const { title } = thread;
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -64,7 +44,7 @@ export default async function ThreadPage({
           </h1>
           <p className="text-caption text-muted-foreground">
             {thread.kind === "group"
-              ? `${thread.participantIds.length} members`
+              ? `${thread.participants.length} members`
               : "Direct message"}
           </p>
         </div>
@@ -76,7 +56,7 @@ export default async function ThreadPage({
       </p>
       <ol className="space-y-3">
         {thread.messages.map((message) => {
-          const mine = message.authorId === viewer.id;
+          const { mine } = message;
           return (
             <li
               className={cn("flex", mine ? "justify-end" : "justify-start")}
@@ -92,7 +72,7 @@ export default async function ThreadPage({
               >
                 {thread.kind === "group" && !mine ? (
                   <p className="font-semibold text-caption text-events-sea">
-                    {nameOf(message.authorId)}
+                    {message.author?.name ?? "Member"}
                   </p>
                 ) : null}
                 <p className="text-body">{message.body}</p>
@@ -110,7 +90,7 @@ export default async function ThreadPage({
         })}
       </ol>
       <div className="space-y-3">
-        <MessageComposer disabled={!allowed} />
+        <MessageComposer disabled={!thread.canSend} threadId={thread.id} />
       </div>
     </div>
   );

@@ -5,15 +5,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ConnectActions } from "@/components/community/connect-actions";
 import { PersonAvatar } from "@/components/community/person-avatar";
-import {
-  canMessage,
-  connectionState,
-  getProfileByHandle,
-  listConnections,
-  listGroups,
-  listThreads,
-} from "@/data/discovery";
-import { getViewer } from "@/data/viewer";
+import { getPersonByHandle } from "@/data/events-api";
 import { CATEGORY_LABELS, INTENT_LABELS, PARISH_LABELS } from "@/domain/labels";
 
 type Params = Promise<{ handle: string }>;
@@ -23,34 +15,17 @@ export async function generateMetadata({
 }: {
   params: Params;
 }): Promise<Metadata> {
-  const profile = await getProfileByHandle((await params).handle);
+  const profile = await getPersonByHandle((await params).handle);
   return profile ? { title: profile.name, robots: { index: false } } : {};
 }
 
 export default async function ProfilePage({ params }: { params: Params }) {
-  const profile = await getProfileByHandle((await params).handle);
+  const profile = await getPersonByHandle((await params).handle);
   if (!profile) {
     notFound();
   }
-  const [viewer, connections, groups] = await Promise.all([
-    getViewer(),
-    listConnections(),
-    listGroups(),
-  ]);
-  const threads = await listThreads(viewer.id);
-  const state = connectionState(viewer.id, profile.id, connections);
-  const isSelf = state === "self";
-  // Private profiles show only name and headline to people outside the network.
-  const restricted =
-    profile.visibility === "connections" && !isSelf && state !== "connected";
-  const allowedToMessage = canMessage(viewer, profile, connections);
-  const directThread = threads.find(
-    (thread) =>
-      thread.kind === "direct" && thread.participantIds.includes(profile.id)
-  );
-  const theirGroups = groups.filter((group) =>
-    profile.groupIds.includes(group.id)
-  );
+  const isSelf = profile.connectionState === "self";
+  const { restricted } = profile;
 
   return (
     <div className="mx-auto max-w-3xl space-y-6">
@@ -73,11 +48,7 @@ export default async function ProfilePage({ params }: { params: Params }) {
             </p>
             {isSelf ? (
               <p className="text-caption text-muted-foreground">
-                This is your profile. Visibility:{" "}
-                {profile.visibility === "public"
-                  ? "public"
-                  : "connections only"}
-                .
+                This is your profile.
               </p>
             ) : null}
           </div>
@@ -85,9 +56,10 @@ export default async function ProfilePage({ params }: { params: Params }) {
         {isSelf ? null : (
           <div className="mt-6">
             <ConnectActions
-              canMessage={allowedToMessage}
-              initialState={state}
-              messageHref={directThread ? `/messages/${directThread.id}` : null}
+              canMessage={profile.canMessage}
+              directThreadId={profile.directThreadId}
+              handle={profile.handle}
+              initialState={profile.connectionState}
               name={profile.name}
             />
           </div>
@@ -122,7 +94,7 @@ export default async function ProfilePage({ params }: { params: Params }) {
           ) : null}
           <section className="space-y-2">
             <h2 className="font-display font-semibold text-body-base">About</h2>
-            <p className="text-body-base">{profile.bio}</p>
+            <p className="text-body-base">{profile.bio ?? ""}</p>
           </section>
           <section className="space-y-3">
             <h2 className="font-display font-semibold text-body-base">Into</h2>
@@ -138,13 +110,13 @@ export default async function ProfilePage({ params }: { params: Params }) {
               ))}
             </div>
           </section>
-          {theirGroups.length > 0 ? (
+          {profile.groups.length > 0 ? (
             <section className="space-y-3">
               <h2 className="font-display font-semibold text-body-base">
                 Groups
               </h2>
               <ul className="grid gap-2 sm:grid-cols-2">
-                {theirGroups.map((group) => (
+                {profile.groups.map((group) => (
                   <li key={group.id}>
                     <Link
                       className="block rounded-2xl border border-border bg-card p-3 hover:border-foreground"

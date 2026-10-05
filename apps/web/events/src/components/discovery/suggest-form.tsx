@@ -15,9 +15,13 @@ import {
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { CircleCheck } from "lucide-react";
 import { useState } from "react";
+import { useMemberAction } from "@/components/community/use-member-action";
+import { suggestEvent } from "@/data/actions";
 import {
   CATEGORIES,
   CATEGORY_LABELS,
+  isCategory,
+  isParish,
   PARISH_LABELS,
   PARISHES,
 } from "@/domain/labels";
@@ -25,6 +29,7 @@ import {
 /** Resident suggestions go to review before publication (product strategy). */
 export function SuggestForm() {
   const [submitted, setSubmitted] = useState(false);
+  const { error, pending, perform } = useMemberAction();
 
   if (submitted) {
     return (
@@ -34,12 +39,9 @@ export function SuggestForm() {
       >
         <CircleCheck className="size-6 shrink-0" />
         <div>
-          <p className="font-semibold text-body-base">
-            Thanks — this is a preview
-          </p>
+          <p className="font-semibold text-body-base">Thanks for the tip</p>
           <p className="text-body">
-            When suggestions go live, our team will review each one before it
-            appears on the calendar.
+            Our team reviews each suggestion before it appears on the calendar.
           </p>
         </div>
       </div>
@@ -49,9 +51,30 @@ export function SuggestForm() {
   return (
     <form
       className="rounded-2xl border border-border bg-card p-5"
-      onSubmit={(event) => {
+      onSubmit={async (event) => {
         event.preventDefault();
-        setSubmitted(true);
+        const form = new FormData(event.currentTarget);
+        const text = (name: string) => String(form.get(name) ?? "").trim();
+        const category = text("category");
+        const parish = text("parish");
+        if (!(isCategory(category) && isParish(parish))) {
+          return;
+        }
+        const result = await perform(() =>
+          suggestEvent({
+            title: text("title"),
+            event_date: text("date"),
+            start_time: text("time") || null,
+            venue: text("venue"),
+            category,
+            parish,
+            source: text("source"),
+            notes: text("notes"),
+          })
+        );
+        if (result.ok) {
+          setSubmitted(true);
+        }
       }}
     >
       <FieldGroup>
@@ -114,7 +137,12 @@ export function SuggestForm() {
           <FieldLabel htmlFor="suggest-notes">Anything else</FieldLabel>
           <Textarea id="suggest-notes" name="notes" rows={3} />
         </Field>
-        <Button className="h-11" size="lg" type="submit">
+        {error ? (
+          <p className="text-body text-destructive" role="alert">
+            {error}
+          </p>
+        ) : null}
+        <Button className="h-11" disabled={pending} size="lg" type="submit">
           Send for review
         </Button>
       </FieldGroup>

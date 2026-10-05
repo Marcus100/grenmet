@@ -17,8 +17,6 @@ const ANONYMOUS_VIEWER: Profile = {
   parish: "st-george",
   interests: [],
   intents: [],
-  groupIds: [],
-  attendedEventIds: [],
   visibility: "public",
 };
 

@@ -204,55 +204,101 @@ export interface Organiser {
   readonly slug: string;
   /** Verification is earned, never bought or transferred. */
   readonly verified: boolean;
+  /** Null for visitors who are not signed in. */
+  readonly viewerFollowing: boolean | null;
 }
 
 export interface PublicEvent {
   readonly admission: Admission;
   readonly category: EventCategory;
   readonly description: string;
-  /** ISO 8601 with offset. */
+  /** ISO 8601, UTC. */
   readonly endsAt: string;
   readonly featured: boolean;
-  /** Profile ids of people going. */
-  readonly goingIds: readonly string[];
-  readonly groupId: string | null;
+  /** Total RSVPs; `goingNames` is only a preview of them. */
+  readonly goingCount: number;
+  readonly goingNames: readonly string[];
   readonly id: string;
-  readonly isDemo: boolean;
-  readonly organiserId: string;
+  /** Slug of the hosting organiser. */
+  readonly organiserSlug: string;
   readonly parish: Parish;
   /** Lowest ticket price. Null unless admission is "ticketed". */
   readonly priceFrom: Money | null;
   /** Human label for a series, e.g. "Every Tuesday". */
   readonly recurrence: string | null;
   readonly slug: string;
-  /** ISO 8601 with offset. */
+  /** ISO 8601, UTC. */
   readonly startsAt: string;
   readonly summary: string;
   /** Curated collections, e.g. "spicemas" for the season hub. */
   readonly tags: readonly string[];
   readonly title: string;
   readonly venue: string;
+  /** Null for visitors who are not signed in. */
+  readonly viewerGoing: boolean | null;
+  readonly viewerSaved: boolean | null;
+}
+
+/** An event page: the listing plus its organiser, group and ticket tiers. */
+export interface EventDetail extends PublicEvent {
+  readonly capacity: number;
+  readonly group: Group | null;
+  readonly organiser: Organiser;
+  readonly tiers: readonly {
+    readonly allocation: number;
+    readonly id: string;
+    readonly name: string;
+    readonly price: Money;
+  }[];
+}
+
+/** What an organiser edits; adds publishing state to the public listing. */
+export interface ManagedEvent extends EventDetail {
+  readonly status: "draft" | "published" | "cancelled";
+  readonly visibility: "public" | "unlisted";
+}
+
+export type GroupViewerStatus = "host" | "member" | "pending";
+
+export interface Group {
+  readonly category: EventCategory;
+  readonly id: string;
+  /** "approval" groups review join requests before membership. */
+  readonly joinPolicy: "open" | "approval";
+  readonly memberCount: number;
+  readonly name: string;
+  readonly nextMeetupAt: string | null;
+  readonly parish: Parish;
+  readonly slug: string;
+  readonly tagline: string;
+  /** Null for visitors who are not signed in. */
+  readonly viewerStatus: GroupViewerStatus | null;
+}
+
+export interface PersonChip {
+  readonly handle: string;
+  readonly name: string;
 }
 
 export interface GroupAnnouncement {
-  readonly authorId: string;
+  readonly author: PersonChip | null;
   readonly body: string;
   readonly id: string;
   readonly postedAt: string;
 }
 
-export interface Group {
+export interface GroupMember extends PersonChip {
+  readonly headline: string;
+  readonly role: "host" | "member";
+}
+
+export interface GroupDetail extends Group {
   readonly about: string;
   readonly announcements: readonly GroupAnnouncement[];
-  readonly category: EventCategory;
-  readonly hostIds: readonly string[];
-  readonly id: string;
-  /** "approval" groups review join requests before membership. */
-  readonly joinPolicy: "open" | "approval";
-  readonly name: string;
-  readonly parish: Parish;
-  readonly slug: string;
-  readonly tagline: string;
+  /** Present only for members. */
+  readonly chatThreadId: string | null;
+  readonly members: readonly GroupMember[];
+  readonly upcoming: readonly PublicEvent[];
 }
 
 /** What someone is open to — Brella-style intent, shown on their profile. */
@@ -263,10 +309,9 @@ export type Intent =
   | "collaborating"
   | "mentoring";
 
+/** The signed-in member's own profile (also the guest stand-in). */
 export interface Profile {
-  readonly attendedEventIds: readonly string[];
   readonly bio: string;
-  readonly groupIds: readonly string[];
   readonly handle: string;
   readonly headline: string;
   readonly id: string;
@@ -278,26 +323,78 @@ export interface Profile {
   readonly visibility: "public" | "connections";
 }
 
+export type ConnectionState =
+  | "self"
+  | "none"
+  | "connected"
+  | "sent"
+  | "received"
+  | "blocked";
+
+/** Someone else's profile as the viewer is allowed to see it. */
+export interface PersonProfile extends PersonChip {
+  readonly bio: string | null;
+  readonly canMessage: boolean;
+  readonly connectionState: ConnectionState;
+  readonly directThreadId: string | null;
+  readonly groups: readonly Group[];
+  readonly headline: string;
+  readonly intents: readonly Intent[];
+  readonly interests: readonly EventCategory[];
+  readonly parish: Parish;
+  /** True when their visibility hides details from this viewer. */
+  readonly restricted: boolean;
+}
+
 export interface Connection {
+  readonly headline: string;
   readonly id: string;
-  readonly profileIds: readonly [string, string];
-  readonly requestedBy: string;
-  readonly status: "pending" | "accepted";
+  readonly person: PersonChip;
+  readonly state: "connected" | "sent" | "received";
+}
+
+export interface PersonSuggestion extends PersonChip {
+  readonly headline: string;
+  readonly intents: readonly Intent[];
+}
+
+export interface Network {
+  readonly connections: readonly Connection[];
+  readonly suggestions: readonly PersonSuggestion[];
+}
+
+export interface Plans {
+  readonly following: readonly Organiser[];
+  readonly going: readonly PublicEvent[];
+  readonly groups: readonly Group[];
+  readonly saved: readonly PublicEvent[];
 }
 
 export interface Message {
-  readonly authorId: string;
+  readonly author: PersonChip | null;
   readonly body: string;
   readonly id: string;
+  readonly mine: boolean;
   readonly sentAt: string;
 }
 
-export interface MessageThread {
-  readonly groupId: string | null;
+export interface ThreadSummary {
+  readonly groupSlug: string | null;
+  readonly id: string;
+  readonly kind: "direct" | "group";
+  readonly lastMessage: string | null;
+  readonly lastSentAt: string | null;
+  readonly title: string;
+}
+
+export interface ThreadDetail {
+  readonly canSend: boolean;
+  readonly groupSlug: string | null;
   readonly id: string;
   readonly kind: "direct" | "group";
   readonly messages: readonly Message[];
-  readonly participantIds: readonly string[];
+  readonly participants: readonly PersonChip[];
+  readonly title: string;
 }
 
 export interface EventFilters {

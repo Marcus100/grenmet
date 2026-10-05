@@ -4,12 +4,8 @@ import { notFound } from "next/navigation";
 import { PersonAvatar } from "@/components/community/person-avatar";
 import { ToggleButton } from "@/components/community/toggle-button";
 import { EventCard } from "@/components/discovery/event-card";
-import { toCardData } from "@/components/discovery/to-card";
-import {
-  getOrganiserBySlug,
-  listOrganiserEvents,
-  listProfiles,
-} from "@/data/discovery";
+import { setFollowing } from "@/data/actions";
+import { getOrganiserBySlug, listEvents } from "@/data/events-api";
 
 type Params = Promise<{ slug: string }>;
 
@@ -28,10 +24,10 @@ export default async function OrganiserPage({ params }: { params: Params }) {
     notFound();
   }
   const now = new Date();
-  const [events, profiles] = await Promise.all([
-    listOrganiserEvents(organiser.id, now),
-    listProfiles(),
-  ]);
+  const events = await listEvents(
+    {},
+    { includePast: true, organiserSlug: organiser.slug }
+  );
   const upcoming = events.filter((event) => new Date(event.endsAt) > now);
   const past = events
     .filter((event) => new Date(event.endsAt) <= now)
@@ -63,9 +59,11 @@ export default async function OrganiserPage({ params }: { params: Params }) {
           </p>
         </div>
         <ToggleButton
+          action={setFollowing.bind(null, organiser.slug)}
           activeLabel="Following"
           className="bg-events-lime text-events-ink hover:bg-events-lime/90"
           idleLabel="Follow"
+          initiallyActive={organiser.viewerFollowing ?? false}
         />
       </header>
 
@@ -74,7 +72,7 @@ export default async function OrganiserPage({ params }: { params: Params }) {
         {upcoming.length > 0 ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {upcoming.map((event) => (
-              <EventCard event={toCardData(event, profiles)} key={event.id} />
+              <EventCard event={event} key={event.id} />
             ))}
           </div>
         ) : (
@@ -91,7 +89,7 @@ export default async function OrganiserPage({ params }: { params: Params }) {
           </h2>
           <div className="grid gap-6 opacity-80 sm:grid-cols-2 lg:grid-cols-3">
             {past.map((event) => (
-              <EventCard event={toCardData(event, profiles)} key={event.id} />
+              <EventCard event={event} key={event.id} />
             ))}
           </div>
         </section>

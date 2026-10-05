@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import {
   Card,
@@ -22,8 +21,11 @@ import {
 } from "@barrelsgd/ui/components/ui/native-select";
 import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
 import { CircleCheck, Eye, Plus, Trash2, TriangleAlert } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useMemberAction } from "@/components/community/use-member-action";
 import { EventCard } from "@/components/discovery/event-card";
+import { saveListing } from "@/data/actions";
 import {
   ADMISSION_LABELS,
   CATEGORIES,
@@ -33,8 +35,10 @@ import {
 } from "@/domain/labels";
 import type { Admission } from "@/domain/types";
 import {
+  canSaveDraft,
   draftIssues,
   draftToCard,
+  draftToUpsert,
   type EventDraft,
   type TierDraft,
 } from "./event-draft";
@@ -42,12 +46,34 @@ import {
 /**
  * Organiser event editor with a live public-page preview. The preview uses
  * the same EventCard as the public site so what organisers see is what
- * attendees get. Saving is a demo until the Events API lands.
+ * attendees get. Saves through the organiser API.
  */
-export function EventEditor({ initial }: { initial: EventDraft }) {
+export function EventEditor({
+  initial,
+  listingId,
+}: {
+  initial: EventDraft;
+  /** Null when creating a new listing. */
+  listingId: string | null;
+}) {
+  const router = useRouter();
   const [draft, setDraft] = useState<EventDraft>(initial);
   const [saved, setSaved] = useState<"draft" | "published" | null>(null);
+  const { error, pending, perform } = useMemberAction();
   const issues = draftIssues(draft);
+
+  const save = async (status: "draft" | "published") => {
+    const result = await perform(() =>
+      saveListing(listingId, draftToUpsert(draft, status))
+    );
+    if (!result.ok) {
+      return;
+    }
+    setSaved(status);
+    if (listingId === null) {
+      router.replace(`/dash/events/${result.data}`);
+    }
+  };
 
   const update = <K extends keyof EventDraft>(key: K, value: EventDraft[K]) => {
     setSaved(null);
@@ -428,7 +454,8 @@ export function EventEditor({ initial }: { initial: EventDraft }) {
             <div className="flex gap-2">
               <Button
                 className="flex-1"
-                onClick={() => setSaved("draft")}
+                disabled={pending || !canSaveDraft(draft)}
+                onClick={() => save("draft")}
                 size="lg"
                 variant="outline"
               >
@@ -436,21 +463,23 @@ export function EventEditor({ initial }: { initial: EventDraft }) {
               </Button>
               <Button
                 className="flex-1"
-                disabled={issues.length > 0}
-                onClick={() => setSaved("published")}
+                disabled={pending || issues.length > 0}
+                onClick={() => save("published")}
                 size="lg"
               >
                 Publish
               </Button>
             </div>
+            {error ? (
+              <p className="text-caption text-destructive" role="alert">
+                {error}
+              </p>
+            ) : null}
             {saved ? (
               <p className="text-caption text-muted-foreground" role="status">
-                <Badge className="mr-2" variant="light-warning">
-                  Demo
-                </Badge>
                 {saved === "draft"
-                  ? "Draft saved in this tab only."
-                  : "Would publish now — nothing is sent in the preview."}
+                  ? "Draft saved."
+                  : "Published. It's live on the public site."}
               </p>
             ) : null}
           </CardContent>

@@ -10,22 +10,9 @@ import { EventFlyer } from "@/components/discovery/event-flyer";
 import { RsvpButton } from "@/components/discovery/rsvp-button";
 import { SaveButton } from "@/components/discovery/save-button";
 import { ShareActions } from "@/components/discovery/share-actions";
-import { toCardData } from "@/components/discovery/to-card";
-import {
-  getEventBySlug,
-  getGroupById,
-  getOrganiser,
-  listEvents,
-  listProfiles,
-  peopleYouMightMeet,
-} from "@/data/discovery";
-import { getViewer } from "@/data/viewer";
-import {
-  CATEGORY_LABELS,
-  INTENT_LABELS,
-  PARISH_LABELS,
-  priceLabel,
-} from "@/domain/labels";
+import { setFollowing } from "@/data/actions";
+import { getEventBySlug, listEvents } from "@/data/events-api";
+import { CATEGORY_LABELS, PARISH_LABELS, priceLabel } from "@/domain/labels";
 import { formatEventDate, formatTime } from "@/lib/datetime";
 
 type Params = Promise<{ slug: string }>;
@@ -41,20 +28,13 @@ export async function generateMetadata({
 
 export default async function EventPage({ params }: { params: Params }) {
   const { slug } = await params;
-  const now = new Date();
-  const event = await getEventBySlug(slug, now);
+  const event = await getEventBySlug(slug);
   if (!event) {
     notFound();
   }
 
-  const [organiser, group, profiles, viewer, upcoming] = await Promise.all([
-    getOrganiser(event.organiserId),
-    event.groupId ? getGroupById(event.groupId) : Promise.resolve(null),
-    listProfiles(),
-    getViewer(),
-    listEvents({ category: event.category }, now),
-  ]);
-  const people = peopleYouMightMeet(event, viewer, profiles);
+  const { group, organiser } = event;
+  const upcoming = await listEvents({ category: event.category });
   const more = upcoming
     .filter((candidate) => candidate.id !== event.id)
     .slice(0, 3);
@@ -128,44 +108,6 @@ export default async function EventPage({ params }: { params: Params }) {
               {event.description}
             </p>
           </section>
-
-          {people.length > 0 ? (
-            <section className="space-y-4">
-              <div>
-                <h2 className="font-display font-semibold text-heading-sm">
-                  People you might meet
-                </h2>
-                <p className="text-body text-muted-foreground">
-                  Going, with the most in common with you first.
-                </p>
-              </div>
-              <ul className="grid gap-3 sm:grid-cols-2">
-                {people.map((person) => (
-                  <li key={person.id}>
-                    <Link
-                      className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 hover:border-foreground"
-                      href={`/people/${person.handle}`}
-                    >
-                      <PersonAvatar name={person.name} size="lg" />
-                      <div className="min-w-0">
-                        <p className="truncate font-medium text-body">
-                          {person.name}
-                        </p>
-                        <p className="truncate text-caption text-muted-foreground">
-                          {person.headline}
-                        </p>
-                        {person.intents[0] ? (
-                          <p className="mt-1 text-caption text-events-sea">
-                            {INTENT_LABELS[person.intents[0]]}
-                          </p>
-                        ) : null}
-                      </div>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-20 lg:self-start">
@@ -176,15 +118,17 @@ export default async function EventPage({ params }: { params: Params }) {
               </p>
               <p className="flex items-center gap-1 text-caption text-muted-foreground">
                 <Users className="size-4" />
-                {event.goingIds.length} going
+                {event.goingCount} going
               </p>
             </div>
             <RsvpButton
               admission={event.admission}
-              initiallyGoing={event.goingIds.includes(viewer.id)}
+              initiallyGoing={event.viewerGoing ?? false}
+              slug={event.slug}
             />
             <SaveButton
               className="w-full"
+              initiallySaved={event.viewerSaved ?? false}
               slug={event.slug}
               title={event.title}
               variant="inline"
@@ -225,9 +169,11 @@ export default async function EventPage({ params }: { params: Params }) {
               </div>
               <p className="text-body text-muted-foreground">{organiser.bio}</p>
               <ToggleButton
+                action={setFollowing.bind(null, organiser.slug)}
                 activeLabel="Following"
                 className="w-full"
                 idleLabel="Follow for new events"
+                initiallyActive={organiser.viewerFollowing ?? false}
               />
             </div>
           ) : null}
@@ -254,10 +200,7 @@ export default async function EventPage({ params }: { params: Params }) {
           </h2>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {more.map((candidate) => (
-              <EventCard
-                event={toCardData(candidate, profiles)}
-                key={candidate.id}
-              />
+              <EventCard event={candidate} key={candidate.id} />
             ))}
           </div>
         </section>

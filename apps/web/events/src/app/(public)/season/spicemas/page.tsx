@@ -4,8 +4,7 @@ import { PartyPopper } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { EventCard } from "@/components/discovery/event-card";
-import { toCardData } from "@/components/discovery/to-card";
-import { listEvents, listProfiles } from "@/data/discovery";
+import { listEvents } from "@/data/events-api";
 
 export const metadata: Metadata = {
   title: "Spicemas season",
@@ -18,11 +17,7 @@ export const metadata: Metadata = {
  * dates or programme claims unless an organiser publishes them.
  */
 export default async function SpicemasPage() {
-  const now = new Date();
-  const [events, profiles] = await Promise.all([
-    listEvents({ tag: "spicemas" }, now),
-    listProfiles(),
-  ]);
+  const events = await listEvents({ tag: "spicemas" });
 
   return (
     <div className="space-y-10">
@@ -69,7 +64,7 @@ export default async function SpicemasPage() {
         {events.length > 0 ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {events.map((event) => (
-              <EventCard event={toCardData(event, profiles)} key={event.id} />
+              <EventCard event={event} key={event.id} />
             ))}
           </div>
         ) : (
