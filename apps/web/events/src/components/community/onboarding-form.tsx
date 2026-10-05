@@ -9,6 +9,7 @@ import { cn } from "@barrelsgd/ui/lib/utils";
 import { Check, CircleCheck } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { updateProfile } from "@/data/actions";
 import {
   CATEGORIES,
   CATEGORY_LABELS,
@@ -17,8 +18,8 @@ import {
   PARISHES,
 } from "@/domain/labels";
 import type { EventCategory, Intent, Parish } from "@/domain/types";
+import { useMemberAction } from "./use-member-action";
 
-export const PREFS_KEY = "barrels-events:prefs";
 const INTENTS = Object.keys(INTENT_LABELS) as Intent[];
 
 export function togglePick<T>(list: readonly T[], item: T): T[] {
@@ -28,8 +29,8 @@ export function togglePick<T>(list: readonly T[], item: T): T[] {
 }
 
 /**
- * First-run onboarding. Preferences stay in this browser until profiles are
- * saved server-side; they shape suggestions on Home and event pages.
+ * First-run onboarding. Saves interests, intents and parish to the member's
+ * profile; they show on the profile and shape group suggestions.
  */
 export function OnboardingForm({
   initialInterests,
@@ -46,6 +47,7 @@ export function OnboardingForm({
   const [intents, setIntents] = useState<Intent[]>([...initialIntents]);
   const [parish, setParish] = useState<Parish>(initialParish);
   const [done, setDone] = useState(false);
+  const { error, pending, perform } = useMemberAction();
 
   if (done) {
     return (
@@ -70,17 +72,14 @@ export function OnboardingForm({
   return (
     <form
       className="space-y-8"
-      onSubmit={(event) => {
+      onSubmit={async (event) => {
         event.preventDefault();
-        try {
-          window.localStorage.setItem(
-            PREFS_KEY,
-            JSON.stringify({ interests, intents, parish })
-          );
-        } catch {
-          // Storage unavailable; preferences apply for this visit only.
+        const result = await perform(() =>
+          updateProfile({ interests, intents, parish })
+        );
+        if (result.ok) {
+          setDone(true);
         }
-        setDone(true);
       }}
     >
       <fieldset className="space-y-3">
@@ -148,12 +147,17 @@ export function OnboardingForm({
 
       <Button
         className="h-11 w-full sm:w-auto"
-        disabled={interests.length === 0}
+        disabled={interests.length === 0 || pending}
         size="lg"
         type="submit"
       >
         Save and continue
       </Button>
+      {error ? (
+        <p className="text-body text-destructive" role="alert">
+          {error}
+        </p>
+      ) : null}
     </form>
   );
 }

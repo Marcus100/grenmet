@@ -12,14 +12,7 @@ import { GroupCard } from "@/components/community/group-card";
 import { PersonAvatar } from "@/components/community/person-avatar";
 import { SignOutButton } from "@/components/community/sign-out-button";
 import { EventCard } from "@/components/discovery/event-card";
-import { SavedEventsList } from "@/components/discovery/saved-events-list";
-import { toCardData } from "@/components/discovery/to-card";
-import {
-  groupMembers,
-  listEvents,
-  listGroups,
-  listProfiles,
-} from "@/data/discovery";
+import { getMyPlans } from "@/data/events-api";
 import { requireViewer } from "@/data/viewer";
 import { formatEventDate } from "@/lib/datetime";
 
@@ -29,16 +22,8 @@ export const metadata: Metadata = {
 };
 
 export default async function MyPlansPage() {
-  const now = new Date();
-  const [viewer, events, groups, profiles] = await Promise.all([
-    requireViewer("/me"),
-    listEvents({}, now),
-    listGroups(),
-    listProfiles(),
-  ]);
-  const going = events.filter((event) => event.goingIds.includes(viewer.id));
-  const myGroups = groups.filter((group) => viewer.groupIds.includes(group.id));
-  const cards = events.map((event) => toCardData(event, profiles));
+  const viewer = await requireViewer("/me");
+  const plans = await getMyPlans();
 
   return (
     <div className="space-y-8">
@@ -50,7 +35,7 @@ export default async function MyPlansPage() {
               My plans
             </h1>
             <p className="text-body text-muted-foreground">
-              {going.length} going · {myGroups.length} groups
+              {plans.going.length} going · {plans.groups.length} groups
             </p>
           </div>
         </div>
@@ -76,13 +61,14 @@ export default async function MyPlansPage() {
           <TabsTrigger value="going">Going</TabsTrigger>
           <TabsTrigger value="saved">Saved</TabsTrigger>
           <TabsTrigger value="groups">Groups</TabsTrigger>
+          <TabsTrigger value="following">Following</TabsTrigger>
           <TabsTrigger value="hosting">Hosting</TabsTrigger>
         </TabsList>
         <TabsContent className="pt-4" value="going">
-          {going.length > 0 ? (
+          {plans.going.length > 0 ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {going.map((event) => (
-                <EventCard event={toCardData(event, profiles)} key={event.id} />
+              {plans.going.map((event) => (
+                <EventCard event={event} key={event.id} />
               ))}
             </div>
           ) : (
@@ -90,22 +76,69 @@ export default async function MyPlansPage() {
           )}
         </TabsContent>
         <TabsContent className="pt-4" value="saved">
-          <SavedEventsList events={cards} />
+          {plans.saved.length > 0 ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {plans.saved.map((event) => (
+                <EventCard event={event} key={event.id} />
+              ))}
+            </div>
+          ) : (
+            <p className="rounded-2xl border border-border border-dashed p-6 text-center text-body text-muted-foreground">
+              Nothing saved yet. Tap the bookmark on any event —{" "}
+              <Link className="underline" href="/events">
+                browse the calendar
+              </Link>
+              .
+            </p>
+          )}
         </TabsContent>
         <TabsContent className="pt-4" value="groups">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {myGroups.map((group) => {
-              const next = events.find((event) => event.groupId === group.id);
-              return (
+          {plans.groups.length > 0 ? (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {plans.groups.map((group) => (
                 <GroupCard
                   group={group}
                   key={group.id}
-                  memberCount={groupMembers(group, profiles).length}
-                  nextMeetup={next ? formatEventDate(next.startsAt) : null}
+                  nextMeetup={
+                    group.nextMeetupAt
+                      ? formatEventDate(group.nextMeetupAt)
+                      : null
+                  }
                 />
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-body text-muted-foreground">
+              You haven't joined a group yet.{" "}
+              <Link className="underline" href="/groups">
+                Find one
+              </Link>
+              .
+            </p>
+          )}
+        </TabsContent>
+        <TabsContent className="pt-4" value="following">
+          {plans.following.length > 0 ? (
+            <ul className="grid gap-3 sm:grid-cols-2">
+              {plans.following.map((organiser) => (
+                <li key={organiser.id}>
+                  <Link
+                    className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 hover:border-foreground"
+                    href={`/o/${organiser.slug}`}
+                  >
+                    <PersonAvatar name={organiser.name} />
+                    <span className="truncate font-medium text-body">
+                      {organiser.name}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-body text-muted-foreground">
+              Follow an organiser to hear about their next event.
+            </p>
+          )}
         </TabsContent>
         <TabsContent className="pt-4" value="hosting">
           <div className="rounded-2xl border border-border border-dashed p-6 text-center">
@@ -118,9 +151,9 @@ export default async function MyPlansPage() {
             </p>
             <Link
               className={cn(buttonVariants({ size: "lg" }), "mt-4")}
-              href="/dash/events/new"
+              href="/dash/events"
             >
-              Create an event
+              Open the organiser dashboard
             </Link>
           </div>
         </TabsContent>

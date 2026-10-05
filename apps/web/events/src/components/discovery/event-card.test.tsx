@@ -1,8 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { buildDemoEvents, demoProfiles } from "@/data/community-fixtures";
+import { makeEvent } from "@/test/factories";
 import { EventCard } from "./event-card";
-import { toCardData } from "./to-card";
 
 vi.mock("next/link", () => ({
   default: ({
@@ -19,19 +18,17 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-const now = new Date("2026-10-03T12:00:00-04:00");
-const sunset = buildDemoEvents(now).find(
-  (event) => event.slug === "feel-free-sunset"
-);
-if (!sunset) {
-  throw new Error("fixture missing");
-}
+vi.mock("@/data/actions", () => ({ setSaved: vi.fn() }));
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/",
+  useRouter: () => ({ push: vi.fn() }),
+}));
+
+const sunset = makeEvent({ startsAt: "2026-10-03T20:00:00Z" });
 
 describe("EventCard", () => {
   it("shows Grenada local time, EC$ price and who is going", () => {
-    render(
-      <EventCard event={toCardData(sunset, demoProfiles)} highlight="Tonight" />
-    );
+    render(<EventCard event={sunset} highlight="Tonight" />);
 
     expect(
       screen.getByText("Saturday, 3 October · 4:00 PM")
@@ -46,7 +43,7 @@ describe("EventCard", () => {
   });
 
   it("renders without a link for previews", () => {
-    render(<EventCard event={toCardData(sunset, demoProfiles)} href={null} />);
+    render(<EventCard event={sunset} href={null} />);
     expect(screen.queryByRole("link")).not.toBeInTheDocument();
   });
 });

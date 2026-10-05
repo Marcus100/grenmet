@@ -14,6 +14,8 @@ export interface EventCardData
     PublicEvent,
     | "admission"
     | "category"
+    | "goingCount"
+    | "goingNames"
     | "parish"
     | "priceFrom"
     | "recurrence"
@@ -21,10 +23,8 @@ export interface EventCardData
     | "startsAt"
     | "title"
     | "venue"
-  > {
-  readonly goingNames: readonly string[];
-  readonly goingTotal: number;
-}
+    | "viewerSaved"
+  > {}
 
 export function EventCard({
   event,
@@ -84,7 +84,7 @@ export function EventCard({
           </p>
         ) : null}
         <div className="mt-auto flex items-center justify-between gap-2 pt-2">
-          <GoingAvatars names={event.goingNames} total={event.goingTotal} />
+          <GoingAvatars names={event.goingNames} total={event.goingCount} />
           <span className="shrink-0 font-semibold text-caption">
             {priceLabel(event)}
           </span>
@@ -112,6 +112,7 @@ export function EventCard({
           "absolute top-3",
           layout === "row" ? "left-20 sm:left-32" : "right-3"
         )}
+        initiallySaved={event.viewerSaved ?? false}
         slug={event.slug}
         title={event.title}
       />

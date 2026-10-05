@@ -7,11 +7,9 @@ import type { Group } from "@/domain/types";
 
 export function GroupCard({
   group,
-  memberCount,
   nextMeetup,
 }: {
   group: Group;
-  memberCount: number;
   nextMeetup: string | null;
 }) {
   const { icon: Icon, tone } = CATEGORY_STYLE[group.category];
@@ -35,7 +33,7 @@ export function GroupCard({
             {group.name}
           </h2>
           <p className="flex items-center gap-1 text-caption text-muted-foreground">
-            {memberCount} members · {PARISH_LABELS[group.parish]}
+            {group.memberCount} members · {PARISH_LABELS[group.parish]}
             {group.joinPolicy === "approval" ? (
               <Lock aria-label="Membership reviewed" className="size-3.5" />
             ) : null}

@@ -11,16 +11,14 @@ import Link from "next/link";
 import { EventCard } from "@/components/discovery/event-card";
 import { FilterBar } from "@/components/discovery/filter-bar";
 import { MonthGrid } from "@/components/discovery/month-grid";
-import { toCardData } from "@/components/discovery/to-card";
 import {
   type DayGroup,
   groupByDay,
   isTonight,
-  listEvents,
-  listProfiles,
   parseFilters,
 } from "@/data/discovery";
-import type { Profile, PublicEvent } from "@/domain/types";
+import { listEvents } from "@/data/events-api";
+import type { PublicEvent } from "@/domain/types";
 import { formatDayKey, grenadaDateKey } from "@/lib/datetime";
 
 export const metadata: Metadata = {
@@ -38,10 +36,7 @@ export default async function CalendarPage({
   const filters = parseFilters(params);
   const view = params.view === "month" ? "month" : "list";
   const now = new Date();
-  const [events, profiles] = await Promise.all([
-    listEvents(filters, now),
-    listProfiles(),
-  ]);
+  const events = await listEvents(filters);
   const days = groupByDay(events);
   const today = grenadaDateKey(now);
 
@@ -107,7 +102,6 @@ export default async function CalendarPage({
         days={days}
         events={events}
         now={now}
-        profiles={profiles}
         today={today}
         view={view}
       />
@@ -119,14 +113,12 @@ function Results({
   days,
   events,
   now,
-  profiles,
   today,
   view,
 }: {
   days: readonly DayGroup[];
   events: readonly PublicEvent[];
   now: Date;
-  profiles: readonly Profile[];
   today: string;
   view: "list" | "month";
 }) {
@@ -166,7 +158,7 @@ function Results({
           <div className="grid gap-6">
             {day.events.map((event) => (
               <EventCard
-                event={toCardData(event, profiles)}
+                event={event}
                 highlight={isTonight(event, now) ? "Tonight" : undefined}
                 key={event.id}
                 layout="row"

@@ -14,14 +14,28 @@ Port **3009**. Package: `@barrelsgd/web-events`. Design lane:
 - The canonical organiser loop is event setup → ticket sale → admission →
   settlement.
 
-## Data
+## Data and auth
 
-- Frontend-only for now: fixtures behind async functions in `src/data/`
-  (`events.ts` for the console, `discovery.ts` for public/community). Keep call
-  sites async so a FastAPI source can replace fixtures without UI changes.
-- Demo event dates are relative to "now"; tests pass a fixed `now`.
-- Interactive pieces (RSVP, follow, connect, messages, editor save) hold local
-  state only and must say so in the UI until a backend exists.
+- Public and community data comes from the Events API (`/api/v1/events/*`):
+  reads in `src/data/events-api.ts` (server-only), writes in `src/data/actions.ts`
+  (server actions), snake_case → domain mapping in `src/data/api-mappers.ts`.
+  Pure helpers (date windows, filter parsing) stay in `src/data/discovery.ts`.
+  Never hand-write API types; use `@barrelsgd/api-client` and `lib/api.ts`
+  (`apiOptions` gives a per-request client carrying the member's token).
+- Sign-in is app-scoped (ADR-0016): email code via `/auth/email-code/*` route
+  handlers, host-only `events_session` cookie, no shared domain or SSO with
+  other apps. `lib/session.ts` `getSession()` exchanges it for an Events token;
+  `data/viewer.ts` gives `getViewer()` (guest stand-in when signed out) and
+  `requireViewer(returnTo)` for member pages.
+- Client components run writes through `useMemberAction`; visitors are sent to
+  `/sign-in?returnTo=…`. Expected 4xx show the API's message; others go to Sentry.
+- A 404 from the API is `null`; any other read failure throws to `error.tsx`.
+- `/dash/events` uses the organiser API (`/manage`); members without organiser
+  access see `NoOrganiserAccess`. The `/dash` overview (sales, settlement,
+  readiness) is still demo fixtures in `src/data/fixtures.ts` — the API has no
+  ticketing or settlement yet; keep it labelled as demo.
+- Tests build events with `src/test/factories.ts`; never reintroduce runtime
+  fixtures for public data.
 
 ## Rules
 
@@ -30,8 +44,9 @@ Port **3009**. Package: `@barrelsgd/web-events`. Design lane:
 - Use `@barrelsgd/ui` primitives and the `--events-*` / semantic tokens in
   `src/app/globals.css`; no hardcoded colours in components.
 - Public prices show `EC$`; times are Grenada local (`src/lib/datetime.ts`).
-- Social safety: direct messages only between accepted connections or shared
-  group members (`canMessage`); every person surface offers report and block.
+- Social safety is enforced by the API (`can_message`, blocks, approval groups);
+  the UI only reflects it (`canMessage`, `canSend`). Every person surface offers
+  report and block.
 - Resident event suggestions are reviewed before publication.
 - Treat settlement, exceptions, offline readiness, and auditability as primary
   organiser information rather than secondary reports.

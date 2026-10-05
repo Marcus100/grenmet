@@ -32,7 +32,7 @@ export function SiteHeader({ viewer }: { viewer: Profile }) {
               buttonVariants({ variant: "ghost" }),
               "hidden sm:inline-flex"
             )}
-            href="/dash"
+            href="/dash/events"
           >
             <LayoutDashboard data-icon="inline-start" />
             For organisers
@@ -78,24 +78,12 @@ export function SiteFooter() {
           <Link className="hover:text-white" href="/events/suggest">
             Suggest an event
           </Link>
-          <Link className="hover:text-white" href="/dash">
+          <Link className="hover:text-white" href="/dash/events">
             Organiser dashboard
           </Link>
         </nav>
-        <p className="text-caption text-white/60">
-          A Barrels Grenada product. This preview uses sample events, people and
-          groups.
-        </p>
+        <p className="text-caption text-white/60">A Barrels Grenada product.</p>
       </div>
     </footer>
-  );
-}
-
-export function DemoBanner() {
-  return (
-    <p className="bg-events-lime px-4 py-2 text-center font-medium text-caption text-events-ink">
-      Preview — sample events and people. RSVPs, messages and follows aren't
-      saved yet.
-    </p>
   );
 }

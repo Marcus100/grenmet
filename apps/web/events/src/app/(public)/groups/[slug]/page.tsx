@@ -13,15 +13,8 @@ import { PersonAvatar } from "@/components/community/person-avatar";
 import { ToggleButton } from "@/components/community/toggle-button";
 import { CATEGORY_STYLE } from "@/components/discovery/category-style";
 import { EventCard } from "@/components/discovery/event-card";
-import { toCardData } from "@/components/discovery/to-card";
-import {
-  getGroupBySlug,
-  groupMembers,
-  listEvents,
-  listProfiles,
-  listThreads,
-} from "@/data/discovery";
-import { getViewer } from "@/data/viewer";
+import { setMembership } from "@/data/actions";
+import { getGroupBySlug } from "@/data/events-api";
 import { CATEGORY_LABELS, PARISH_LABELS } from "@/domain/labels";
 import { formatEventDate } from "@/lib/datetime";
 
@@ -41,19 +34,10 @@ export default async function GroupPage({ params }: { params: Params }) {
   if (!group) {
     notFound();
   }
-  const now = new Date();
-  const [profiles, events, viewer] = await Promise.all([
-    listProfiles(),
-    listEvents({}, now),
-    getViewer(),
-  ]);
-  const threads = await listThreads(viewer.id);
-  const members = groupMembers(group, profiles);
-  const meetups = events.filter((event) => event.groupId === group.id);
-  const isMember = viewer.groupIds.includes(group.id);
-  const chat = threads.find((thread) => thread.groupId === group.id);
-  const nameOf = (id: string) =>
-    profiles.find((profile) => profile.id === id)?.name ?? "Member";
+  const isMember =
+    group.viewerStatus === "member" || group.viewerStatus === "host";
+  const pending = group.viewerStatus === "pending";
+  const meetups = group.upcoming;
   const { icon: Icon, tone } = CATEGORY_STYLE[group.category];
 
   return (
@@ -80,6 +64,7 @@ export default async function GroupPage({ params }: { params: Params }) {
         </p>
         <div className="mt-6 flex flex-wrap items-center gap-4">
           <ToggleButton
+            action={setMembership.bind(null, group.slug)}
             activeLabel={
               group.joinPolicy === "approval" ? "Request sent" : "Member"
             }
@@ -87,10 +72,10 @@ export default async function GroupPage({ params }: { params: Params }) {
             idleLabel={
               group.joinPolicy === "approval" ? "Request to join" : "Join group"
             }
-            initiallyActive={isMember}
+            initiallyActive={isMember || pending}
           />
           <p className="flex items-center gap-1 text-body">
-            {members.length} members
+            {group.memberCount} members
             {group.joinPolicy === "approval" ? (
               <span className="flex items-center gap-1">
                 · <Lock className="size-4" /> membership reviewed
@@ -112,11 +97,7 @@ export default async function GroupPage({ params }: { params: Params }) {
             {meetups.length > 0 ? (
               <div className="grid gap-6">
                 {meetups.map((event) => (
-                  <EventCard
-                    event={toCardData(event, profiles)}
-                    key={event.id}
-                    layout="row"
-                  />
+                  <EventCard event={event} key={event.id} layout="row" />
                 ))}
               </div>
             ) : (
@@ -136,7 +117,7 @@ export default async function GroupPage({ params }: { params: Params }) {
                   <div>
                     <p className="text-body">{announcement.body}</p>
                     <p className="mt-1 text-caption text-muted-foreground">
-                      {nameOf(announcement.authorId)} ·{" "}
+                      {announcement.author?.name ?? "Member"} ·{" "}
                       {formatEventDate(announcement.postedAt)}
                     </p>
                   </div>
@@ -149,15 +130,12 @@ export default async function GroupPage({ params }: { params: Params }) {
             )}
           </TabsContent>
           <TabsContent className="pt-4" value="chat">
-            {isMember && chat ? (
+            {isMember && group.chatThreadId ? (
               <Link
                 className="block rounded-2xl border border-border bg-card p-4 hover:border-foreground"
-                href={`/messages/${chat.id}`}
+                href={`/messages/${group.chatThreadId}`}
               >
                 <p className="font-medium text-body">Open group chat</p>
-                <p className="mt-1 truncate text-caption text-muted-foreground">
-                  {chat.messages.at(-1)?.body}
-                </p>
               </Link>
             ) : (
               <p className="text-body text-muted-foreground">
@@ -169,8 +147,8 @@ export default async function GroupPage({ params }: { params: Params }) {
           </TabsContent>
           <TabsContent className="pt-4" value="members">
             <ul className="grid gap-3 sm:grid-cols-2">
-              {members.map((member) => (
-                <li key={member.id}>
+              {group.members.map((member) => (
+                <li key={member.handle}>
                   <Link
                     className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 hover:border-foreground"
                     href={`/people/${member.handle}`}
@@ -179,7 +157,7 @@ export default async function GroupPage({ params }: { params: Params }) {
                     <div className="min-w-0">
                       <p className="truncate font-medium text-body">
                         {member.name}
-                        {group.hostIds.includes(member.id) ? (
+                        {member.role === "host" ? (
                           <span className="ml-2 text-caption text-events-sea">
                             Host
                           </span>

@@ -14,9 +14,10 @@ and 5 below are decidable now. Section 4 is externally blocked and says so.
 The app now has two surfaces. The organiser console described below moved to
 `/dash`, where promoters build and customise events. The public root (`/`) is
 a discovery and community site: every event in Grenada, groups and recurring
-meetups, member profiles, connections and messaging. It is frontend-only on
-fixtures for now; RSVP, follow, connect and messaging persist nothing until an
-API exists. Direct messages are limited to accepted connections or shared group
+meetups, member profiles, connections and messaging. It reads and writes the
+Events API (own database, app-scoped sign-in per ADR-0016); the organiser sales,
+settlement and readiness overview at `/dash` is still demo data until ticketing
+exists. Direct messages are limited to accepted connections or shared group
 members, and resident suggestions stay review-before-publish. Design lane:
 [`docs/design/events.md`](../design/events.md).
 

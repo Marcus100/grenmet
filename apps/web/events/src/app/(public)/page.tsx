@@ -1,39 +1,26 @@
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { buttonVariants } from "@barrelsgd/ui/components/ui/button";
 import { cn } from "@barrelsgd/ui/lib/utils";
-import { ArrowRight, BellRing, Search } from "lucide-react";
+import { ArrowRight, Search } from "lucide-react";
 import Link from "next/link";
 import { ToggleButton } from "@/components/community/toggle-button";
 import { CATEGORY_STYLE } from "@/components/discovery/category-style";
 import { EventCard } from "@/components/discovery/event-card";
-import { toCardData } from "@/components/discovery/to-card";
-import {
-  groupMembers,
-  isThisWeekend,
-  isTonight,
-  listEvents,
-  listGroups,
-  listProfiles,
-  suggestGroups,
-} from "@/data/discovery";
-import { getViewer } from "@/data/viewer";
+import { setMembership } from "@/data/actions";
+import { isThisWeekend, isTonight } from "@/data/discovery";
+import { listEvents, listGroups } from "@/data/events-api";
 import { CATEGORIES, CATEGORY_LABELS, PARISH_LABELS } from "@/domain/labels";
 
 export default async function HomePage() {
   const now = new Date();
-  const [events, groups, profiles, viewer] = await Promise.all([
-    listEvents({}, now),
-    listGroups(),
-    listProfiles(),
-    getViewer(),
-  ]);
+  const [events, groups] = await Promise.all([listEvents(), listGroups()]);
 
   const tonight = events.filter((event) => isTonight(event, now));
   const weekend = events.filter(
     (event) => isThisWeekend(event, now) && !isTonight(event, now)
   );
   const featured = events.filter((event) => event.featured).slice(0, 3);
-  const suggested = suggestGroups(viewer, groups).slice(0, 3);
+  const suggested = groups.filter((group) => !group.viewerStatus).slice(0, 3);
   const [hero, ...restFeatured] = featured;
 
   return (
@@ -101,10 +88,7 @@ export default async function HomePage() {
         </div>
         {hero ? (
           <div className="relative">
-            <EventCard
-              event={toCardData(hero, profiles)}
-              highlight="Featured"
-            />
+            <EventCard event={hero} highlight="Featured" />
           </div>
         ) : null}
       </section>
@@ -113,11 +97,7 @@ export default async function HomePage() {
         <Section href="/events?when=tonight" title="Tonight">
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {tonight.map((event) => (
-              <EventCard
-                event={toCardData(event, profiles)}
-                highlight="Tonight"
-                key={event.id}
-              />
+              <EventCard event={event} highlight="Tonight" key={event.id} />
             ))}
           </div>
         </Section>
@@ -127,7 +107,7 @@ export default async function HomePage() {
         {weekend.length > 0 ? (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {weekend.map((event) => (
-              <EventCard event={toCardData(event, profiles)} key={event.id} />
+              <EventCard event={event} key={event.id} />
             ))}
           </div>
         ) : (
@@ -173,11 +153,7 @@ export default async function HomePage() {
         <Section href="/events" title="Don't miss">
           <div className="grid gap-6 sm:grid-cols-2">
             {restFeatured.map((event) => (
-              <EventCard
-                event={toCardData(event, profiles)}
-                key={event.id}
-                layout="row"
-              />
+              <EventCard event={event} key={event.id} layout="row" />
             ))}
           </div>
         </Section>
@@ -187,7 +163,6 @@ export default async function HomePage() {
         <div className="grid gap-4 md:grid-cols-3">
           {suggested.map((group) => {
             const { icon: Icon, tone } = CATEGORY_STYLE[group.category];
-            const members = groupMembers(group, profiles).length;
             return (
               <article
                 className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-5"
@@ -212,7 +187,8 @@ export default async function HomePage() {
                       </Link>
                     </h3>
                     <p className="text-caption text-muted-foreground">
-                      {members} members · {PARISH_LABELS[group.parish]}
+                      {group.memberCount} members ·{" "}
+                      {PARISH_LABELS[group.parish]}
                     </p>
                   </div>
                 </div>
@@ -220,6 +196,7 @@ export default async function HomePage() {
                   {group.tagline}
                 </p>
                 <ToggleButton
+                  action={setMembership.bind(null, group.slug)}
                   activeLabel={
                     group.joinPolicy === "approval" ? "Requested" : "Joined"
                   }
@@ -235,28 +212,6 @@ export default async function HomePage() {
           })}
         </div>
       </Section>
-
-      <section className="flex flex-col items-start gap-4 rounded-3xl bg-events-ink p-6 text-white sm:flex-row sm:items-center sm:justify-between sm:p-8">
-        <div className="flex items-start gap-4">
-          <span className="flex size-12 shrink-0 items-center justify-center rounded-2xl bg-events-lime text-events-ink">
-            <BellRing className="size-6" />
-          </span>
-          <div>
-            <h2 className="font-display font-semibold text-heading-sm">
-              Grenada this week
-            </h2>
-            <p className="mt-1 max-w-md text-body text-white/75">
-              A Sunday-evening round-up of the week ahead, sent to your inbox or
-              WhatsApp.
-            </p>
-          </div>
-        </div>
-        <ToggleButton
-          activeLabel="Subscribed"
-          className="bg-events-lime text-events-ink hover:bg-events-lime/90"
-          idleLabel="Subscribe"
-        />
-      </section>
     </div>
   );
 }

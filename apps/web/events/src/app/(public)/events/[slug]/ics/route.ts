@@ -1,4 +1,4 @@
-import { getEventBySlug } from "@/data/discovery";
+import { getEventBySlug } from "@/data/events-api";
 import { buildIcs } from "@/lib/ics";
 
 /** Renders an .ics download for one event. Render-only; no data writes. */

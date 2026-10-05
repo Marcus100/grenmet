@@ -1,19 +1,38 @@
 import { describe, expect, it } from "vitest";
-import { buildDemoEvents } from "@/data/community-fixtures";
+import type { EventDetail } from "@/domain/types";
+import { makeEvent, makeGroup, makeOrganiser } from "@/test/factories";
 import {
   draftFromEvent,
   draftIssues,
   draftToCard,
+  draftToUpsert,
   emptyDraft,
 } from "./event-draft";
 
 const now = new Date("2026-10-03T12:00:00-04:00");
-const sunset = buildDemoEvents(now).find(
-  (event) => event.slug === "feel-free-sunset"
-);
-if (!sunset) {
-  throw new Error("fixture missing");
-}
+const sunset: EventDetail = {
+  ...makeEvent({
+    startsAt: "2026-10-03T20:00:00Z",
+    endsAt: "2026-10-04T02:00:00Z",
+  }),
+  capacity: 1200,
+  organiser: makeOrganiser(),
+  group: makeGroup(),
+  tiers: [
+    {
+      id: "t1",
+      name: "General",
+      allocation: 900,
+      price: { amountMinor: 15_000, currency: "XCD" },
+    },
+    {
+      id: "t2",
+      name: "VIP",
+      allocation: 300,
+      price: { amountMinor: 30_000, currency: "XCD" },
+    },
+  ],
+};
 
 describe("draftFromEvent", () => {
   it("round-trips Grenada date and times", () => {
@@ -55,5 +74,36 @@ describe("draftIssues", () => {
     expect(draftIssues(draft)).toContain(
       "Tier allocations (1,200) exceed capacity (1,000)."
     );
+  });
+});
+
+describe("draftToUpsert", () => {
+  it("sends Grenada times with minor-unit prices and keeps carried fields", () => {
+    const body = draftToUpsert(draftFromEvent(sunset), "published");
+    expect(body.status).toBe("published");
+    expect(body.starts_at).toBe("2026-10-03T16:00:00-04:00");
+    expect(body.tiers?.[0]).toEqual({
+      name: "General",
+      price_minor: 15_000,
+      currency: "XCD",
+      allocation: 900,
+    });
+    expect(body.group_slug).toBe("anse-runners");
+  });
+
+  it("ends the next day when the end time is past midnight", () => {
+    const draft = {
+      ...draftFromEvent(sunset),
+      startTime: "22:00",
+      endTime: "02:00",
+    };
+    expect(draftToUpsert(draft, "draft").ends_at).toBe(
+      "2026-10-04T02:00:00-04:00"
+    );
+  });
+
+  it("sends no tiers for non-ticketed events", () => {
+    const draft = { ...draftFromEvent(sunset), admission: "free" as const };
+    expect(draftToUpsert(draft, "draft").tiers).toEqual([]);
   });
 });

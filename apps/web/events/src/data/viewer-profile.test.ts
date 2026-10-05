@@ -3,9 +3,7 @@ import type { Profile } from "@/domain/types";
 import { ANONYMOUS_VIEWER_ID, isSignedIn } from "./viewer-profile";
 
 const base: Profile = {
-  attendedEventIds: [],
   bio: "",
-  groupIds: [],
   handle: "",
   headline: "",
   id: "alex",

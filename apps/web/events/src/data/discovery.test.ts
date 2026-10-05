@@ -1,40 +1,15 @@
 import { describe, expect, it } from "vitest";
-import type { Profile, PublicEvent } from "@/domain/types";
+import { makeEvent } from "@/test/factories";
 import {
-  buildDemoEvents,
-  demoConnections,
-  demoProfiles,
-} from "./community-fixtures";
-import {
-  canMessage,
-  connectionState,
-  filterEvents,
   groupByDay,
+  isThisWeekend,
   isTonight,
   parseFilters,
-  peopleYouMightMeet,
   weekendWindow,
 } from "./discovery";
 
 // Saturday 3 October 2026, noon in Grenada.
 const saturdayNoon = new Date("2026-10-03T12:00:00-04:00");
-const events = buildDemoEvents(saturdayNoon);
-
-const profile = (id: string): Profile => {
-  const found = demoProfiles.find((candidate) => candidate.id === id);
-  if (!found) {
-    throw new Error(`missing profile ${id}`);
-  }
-  return found;
-};
-
-const bySlug = (slug: string): PublicEvent => {
-  const found = events.find((event) => event.slug === slug);
-  if (!found) {
-    throw new Error(`missing event ${slug}`);
-  }
-  return found;
-};
 
 describe("weekendWindow", () => {
   it("starts today on a Saturday", () => {
@@ -62,76 +37,45 @@ describe("weekendWindow", () => {
 
 describe("isTonight", () => {
   it("includes an event later today", () => {
-    expect(isTonight(bySlug("feel-free-sunset"), saturdayNoon)).toBe(true);
+    expect(isTonight(makeEvent(), saturdayNoon)).toBe(true);
   });
 
   it("excludes an event that has already ended today", () => {
-    expect(isTonight(bySlug("anse-runners-saturday-5k"), saturdayNoon)).toBe(
-      false
-    );
+    const morningRun = makeEvent({
+      startsAt: "2026-10-03T09:00:00Z",
+      endsAt: "2026-10-03T11:00:00Z",
+    });
+    expect(isTonight(morningRun, saturdayNoon)).toBe(false);
   });
 });
 
-describe("filterEvents", () => {
-  it("drops past events and sorts soonest first", () => {
-    const result = filterEvents(events, {}, saturdayNoon);
-    expect(result.map((event) => event.slug)).not.toContain(
-      "anse-runners-saturday-5k"
-    );
-    const starts = result.map((event) => event.startsAt);
-    expect(starts).toEqual(starts.toSorted());
-  });
-
-  it("combines category, parish and price filters", () => {
-    const result = filterEvents(
-      events,
-      { category: "food", parish: "st-george", price: "free" },
-      saturdayNoon
-    );
-    expect(result.map((event) => event.slug)).toEqual(["nutmeg-night-market"]);
-  });
-
-  it("treats RSVP events as free", () => {
-    const result = filterEvents(
-      events,
-      { price: "free", category: "tech" },
-      saturdayNoon
-    );
-    expect(result).toHaveLength(1);
-  });
-
-  it("limits the weekend to Saturday and Sunday on a Saturday", () => {
-    const keys = filterEvents(events, { when: "weekend" }, saturdayNoon).map(
-      (event) => event.slug
-    );
-    expect(keys).toEqual(
-      expect.arrayContaining([
-        "feel-free-sunset",
-        "sunday-jazz-brunch",
-        "spice-supper-club-october",
-      ])
-    );
-    expect(keys).not.toContain("spice-isle-tech-october");
-  });
-
-  it("matches free-text search on title and venue", () => {
-    expect(
-      filterEvents(events, { query: "carenage" }, saturdayNoon).map(
-        (event) => event.slug
-      )
-    ).toEqual(["nutmeg-night-market"]);
+describe("isThisWeekend", () => {
+  it("includes Sunday and excludes the following Monday", () => {
+    const sunday = makeEvent({
+      startsAt: "2026-10-04T18:00:00Z",
+      endsAt: "2026-10-04T22:00:00Z",
+    });
+    const monday = makeEvent({
+      startsAt: "2026-10-05T18:00:00Z",
+      endsAt: "2026-10-05T22:00:00Z",
+    });
+    expect(isThisWeekend(sunday, saturdayNoon)).toBe(true);
+    expect(isThisWeekend(monday, saturdayNoon)).toBe(false);
   });
 });
 
 describe("groupByDay", () => {
   it("groups by Grenada date in order", () => {
-    const groups = groupByDay(
-      filterEvents(events, { when: "weekend" }, saturdayNoon)
-    );
+    const groups = groupByDay([
+      makeEvent({ id: "a", startsAt: "2026-10-03T20:00:00Z" }),
+      makeEvent({ id: "b", startsAt: "2026-10-03T22:00:00Z" }),
+      makeEvent({ id: "c", startsAt: "2026-10-04T20:00:00Z" }),
+    ]);
     expect(groups.map((group) => group.key)).toEqual([
       "2026-10-03",
       "2026-10-04",
     ]);
+    expect(groups[0]?.events).toHaveLength(2);
   });
 });
 
@@ -145,45 +89,5 @@ describe("parseFilters", () => {
         price: "x",
       })
     ).toEqual({ category: "fete", when: "weekend" });
-  });
-});
-
-describe("social rules", () => {
-  const viewer = profile("p_viewer");
-
-  it("reports each side of a connection request", () => {
-    expect(connectionState("p_viewer", "p_dana", demoConnections)).toBe(
-      "connected"
-    );
-    expect(connectionState("p_viewer", "p_devon", demoConnections)).toBe(
-      "received"
-    );
-    expect(connectionState("p_viewer", "p_simone", demoConnections)).toBe(
-      "sent"
-    );
-    expect(connectionState("p_viewer", "p_renee", demoConnections)).toBe(
-      "none"
-    );
-  });
-
-  it("allows messages between connections or shared group members only", () => {
-    expect(canMessage(viewer, profile("p_dana"), demoConnections)).toBe(true);
-    // Not connected, but both in Anse Runners.
-    expect(canMessage(viewer, profile("p_kayla"), demoConnections)).toBe(true);
-    // Pending request and no shared group.
-    expect(canMessage(viewer, profile("p_simone"), demoConnections)).toBe(
-      false
-    );
-    expect(canMessage(viewer, viewer, demoConnections)).toBe(false);
-  });
-
-  it("ranks people going by shared groups and interests", () => {
-    const people = peopleYouMightMeet(
-      bySlug("spice-isle-tech-october"),
-      viewer,
-      demoProfiles
-    );
-    expect(people.map((person) => person.id)).not.toContain("p_viewer");
-    expect(people[0]?.id).toBe("p_dana");
   });
 });
