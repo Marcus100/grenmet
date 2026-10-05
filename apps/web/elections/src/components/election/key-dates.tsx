@@ -37,6 +37,15 @@ export function KeyDates({ calendar }: { calendar: ElectionCalendar }) {
         ? formatIsoDate(calendar.nominationDay)
         : "To be proclaimed",
     },
+    ...(calendar.policePollingDay
+      ? [
+          {
+            label: "Police special poll",
+            value: formatIsoDate(calendar.policePollingDay),
+            note: "Announced by the Prime Minister",
+          },
+        ]
+      : []),
     {
       label: "Polling day",
       value: calendar.pollingDay
@@ -58,7 +67,11 @@ export function KeyDates({ calendar }: { calendar: ElectionCalendar }) {
     <dl
       className={cn(
         "grid gap-px border border-el-rule bg-el-rule sm:grid-cols-2",
-        dates.length > 4 ? "lg:grid-cols-5" : "lg:grid-cols-4"
+        dates.length > 5
+          ? "lg:grid-cols-3"
+          : dates.length > 4
+            ? "lg:grid-cols-5"
+            : "lg:grid-cols-4"
       )}
     >
       {dates.map((d) => (

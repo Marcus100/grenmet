@@ -22,6 +22,7 @@ const calendar = calendarFrom(campaign);
 const awaiting: ElectionCalendar = {
   ...calendar,
   nominationDay: null,
+  policePollingDay: null,
   pollingDay: null,
   writs: null,
 };
@@ -57,6 +58,7 @@ describe("calendarFrom", () => {
       writs: "2026-10-02",
       nominationDay: "2026-10-15",
       pollingDay: "2026-11-05",
+      policePollingDay: "2026-11-02",
     });
     for (const date of [calendar.nominationDay, calendar.pollingDay]) {
       expect(campaign.events.find((e) => e.date === date)?.src).toBe(

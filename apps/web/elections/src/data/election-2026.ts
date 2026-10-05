@@ -22,6 +22,8 @@ export interface ElectionCalendar {
   dissolved: string | null;
   /** Nomination day, once proclaimed. */
   nominationDay: string | null;
+  /** Special polling day for police officers, if announced. */
+  policePollingDay: string | null;
   /** Polling day, once announced. */
   pollingDay: string | null;
   /** When the writs were issued, which proclaims both dates. */
@@ -35,6 +37,7 @@ export function calendarFrom(campaign: CampaignFile): ElectionCalendar {
     dissolved: campaign.dissolved ?? null,
     nominationDay: campaign.nomination_day ?? null,
     pollingDay: campaign.polling_day ?? null,
+    policePollingDay: campaign.police_polling_day ?? null,
     writs: campaign.writs ?? null,
   };
 }
