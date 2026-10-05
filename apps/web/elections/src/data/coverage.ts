@@ -59,7 +59,7 @@ export const COVERAGE: CoverageUpdate[] = [
       "Updated 3 October 2026: the writs issued on 2 October set nomination day for 15 October and polling day for 5 November.",
     body: [
       "Governor-General Dame Cécile La Grenade dissolved Parliament on 2 October 2026, acting on the Prime Minister’s advice. The proclamation ends the fourth session of the Eleventh Parliament, and the Clerk of Parliament announced it the same day.",
-      "When this was first published, polling day had not been named: the Prime Minister was due to announce it at an event in St. Mark on 4 October. Section 53(1) of the Constitution requires a general election “within three months after any dissolution of Parliament”, so polling day must fall by 2 January 2027.",
+      "When this was first published, polling day had not been named: the Prime Minister was due to announce it at an event in St. Mark on 4 October. Section 53(1) of the Constitution requires a general election “within three months after any dissolution of Parliament”. Polling day was later set for 5 November.",
       "After the election, the Governor-General appoints the new Senate (section 53(2)).",
     ],
     sources: [{ id: "dissolution" }, { id: "conch" }, { id: "constitution" }],
@@ -231,10 +231,8 @@ export const COVERAGE: CoverageUpdate[] = [
   {
     at: "2026-10-03T19:00:00-04:00",
     slug: "voter-registration-closed",
-    featured: true,
     title: "Voter registration is closed until after the election",
     dek: "Issuing the writ closed registration on 2 October, and it stays suspended until after the election. The Parliamentary Elections Office asks voters to check their entry before polling day.",
-    graphic: "election-timeline",
     body: [
       "The writ for the general election reached the Parliamentary Elections Office at 3:45 p.m. on 2 October 2026, the office said in a release published by NOW Grenada. “The issuance of the Writ officially closes voter registration,” the release said. “Registration will remain suspended until after the conclusion of the General Election.”",
       "That means the list of electors for 5 November is now fixed. The office asks every registered voter to check their entry before polling day, in either of two ways: online, through the electoral listing on peogrenada.org, or in person, on the printed lists displayed at courthouses, medical stations, revenue offices and other designated places in each constituency.",
@@ -258,6 +256,8 @@ export const COVERAGE: CoverageUpdate[] = [
   {
     at: "2026-10-04T22:00:00-04:00",
     slug: "mitchell-announces-5-november",
+    featured: true,
+    graphic: "election-timeline",
     title: "Prime Minister Mitchell announces polling day: 5 November",
     dek: "In an address to the nation, Prime Minister Dickon Mitchell said the general election will be held on 5 November 2026, with nomination day on 15 October and a special poll for police officers on 2 November.",
     body: [

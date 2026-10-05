@@ -254,13 +254,6 @@
       "src": "gazette47",
       "flag": null,
       "future": true
-    },
-    {
-      "date": "2027-01-02",
-      "text": "The latest possible election date: the Constitution requires the general election within three months after a dissolution.",
-      "src": "constitution",
-      "flag": null,
-      "future": true
     }
   ],
   "candidates": {

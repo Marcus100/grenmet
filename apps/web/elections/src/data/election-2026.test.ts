@@ -41,7 +41,7 @@ describe("grenadaDate", () => {
 });
 
 describe("calendarFrom", () => {
-  it("records the dissolution and the three-month deadline", () => {
+  it("records the dissolution and the three-month deadline field", () => {
     expect(calendar.dissolved).toBe("2026-10-02");
     expect(calendar.deadline).toBe("2027-01-02");
     expect(
@@ -50,9 +50,10 @@ describe("calendarFrom", () => {
       )
     ).toBe(true);
     expect(campaign.sources.dissolution).toBeDefined();
-    const deadline = campaign.events.find((e) => e.date === calendar.deadline);
-    expect(deadline?.src).toBe("constitution");
-    expect(deadline?.flag).toBeNull();
+    // Once polling day is set the three-month deadline is no longer an event.
+    expect(campaign.events.some((e) => e.date === calendar.deadline)).toBe(
+      false
+    );
   });
 
   it("takes nomination and polling day from the gazetted notice of writs", () => {
