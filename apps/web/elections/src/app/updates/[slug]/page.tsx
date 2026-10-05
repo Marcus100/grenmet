@@ -12,6 +12,8 @@ import { EVIDENCE_LABELS, sourceKind } from "@/data/evidence";
 import { campaign } from "@/data/load";
 import { formatIsoDate } from "@/lib/format";
 
+const DEFAULT_BYLINE = "Eugine Whint";
+
 const DATE_IN_TEXT =
   /(\d{1,2}(?:st|nd|rd|th) [A-Z][a-z]+,? \d{4}|[A-Z][a-z]+ \d{1,2}(?:st|nd|rd|th),? \d{4})/;
 
@@ -50,8 +52,11 @@ export default async function UpdatePage({ params }: Props) {
   return (
     <>
       <PageHead deck={post.dek} eyebrow="Election 2026" title={post.title}>
-        <p className="mt-4 text-base text-el-muted">
-          <time className="font-semibold tabular-nums" dateTime={post.at}>
+        <p className="mt-4 font-semibold text-base uppercase tracking-[0.07em]">
+          By {post.byline ?? DEFAULT_BYLINE}
+        </p>
+        <p className="mt-1 text-base text-el-muted">
+          <time className="tabular-nums" dateTime={post.at}>
             {formatIsoDate(date)}
           </time>
         </p>

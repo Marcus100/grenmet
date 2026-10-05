@@ -6,6 +6,11 @@ const nextConfig: NextConfig = {
   output: "standalone",
   outputFileTracingRoot: fileURLToPath(new URL("../../..", import.meta.url)),
   reactCompiler: true,
+  async redirects() {
+    return [
+      { source: "/since-2022", destination: "/updates", permanent: true },
+    ];
+  },
 };
 
 export default withSentryConfig(nextConfig, {

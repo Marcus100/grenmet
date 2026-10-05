@@ -94,4 +94,15 @@ describe("coverage posts", () => {
     expect(marked).toContain("November 5th, 2026");
     expect(marked).toContain("2nd November, 2026");
   });
+
+  it("puts the byline above the date", async () => {
+    const { default: UpdatePage } = await import("./page");
+    render(
+      await UpdatePage({
+        params: Promise.resolve({ slug: "mitchell-announces-5-november" }),
+      })
+    );
+    const byline = screen.getByText("By Eugine Whint");
+    expect(byline.nextElementSibling?.querySelector("time")).not.toBeNull();
+  });
 });

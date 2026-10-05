@@ -19,6 +19,7 @@ import {
   calendarFrom,
   electionStatus,
   seatOutlook,
+  updateEvents,
 } from "@/data/election-2026";
 import { GUIDES } from "@/data/learning";
 import { campaign, geo, results } from "@/data/load";
@@ -173,12 +174,12 @@ export default function FrontPage() {
 
       <Section
         id="updates"
-        more={{ href: "/since-2022", label: "All updates" }}
+        more={{ href: "/updates", label: "All updates" }}
         title="Election updates"
       >
         <ElectionUpdates
           coverage={COVERAGE}
-          events={campaign.events}
+          events={updateEvents(campaign)}
           graphics={{
             "election-timeline": (
               <ElectionTimeline calendar={calendar} now={new Date()} />

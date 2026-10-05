@@ -36,7 +36,7 @@ Elections and the separate Barrels holding page use Vercel; the operational apps
   (J = St. George North West, G = Town of St. George).
 - Coverage posts are editorial. They live in `src/data/coverage.ts` until they move to
   Payload CMS. Each post has its own page at `/updates/<slug>`, which lists its sources; the
-  homepage feed shows no source lines at all (owner decision); campaign events keep theirs on `/since-2022`.
+  homepage feed shows no source lines at all (owner decision); campaign events keep theirs on `/updates`.
 - Official documents we host (e.g. Gazette notices) go in `public/documents/official/`; cite them as a campaign source with that path.
 - Photos: openly licensed only, in `public/images/` + `CREDITS.md` + `src/data/photos.ts`; always credited, square-edged, newspaper style (owner decision). Constituency photos only where the place is certainly in that constituency.
 - Keep the next-election model's parameters visible and backtested on the page.
