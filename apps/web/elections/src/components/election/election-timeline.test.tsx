@@ -28,7 +28,7 @@ describe("ElectionTimeline", () => {
     );
     const graphic = screen.getByRole("img");
     expect(graphic).toHaveAccessibleName(
-      "Election calendar. Dissolved: 2 October 2026; Nomination day: 15 October 2026; Police poll: 2 November 2026; Polling day: 5 November 2026; Legal deadline: 2 January 2027."
+      "Election calendar. Dissolved · register closed: 2 October 2026; Nomination day: 15 October 2026; Police poll: 2 November 2026; Polling day: 5 November 2026."
     );
     expect(screen.getByText(DAYS_TO_GO)).toBeInTheDocument();
   });

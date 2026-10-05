@@ -205,9 +205,6 @@ export default function ForecastPage() {
           <>
             Parliament was dissolved on 2 October 2026 (
             <SourceLink id="dissolution" sources={campaign.sources} />
-            ), so the next general election must be held by 2 January 2027,
-            within three months as section 53(1) requires (
-            <SourceLink id="constitution" sources={campaign.sources} />
             ). Writs issued on 2 October set nomination day for 15 October and
             polling day for 5 November 2026 (
             <SourceLink id="gazette47" sources={campaign.sources} />

@@ -54,7 +54,7 @@ export default function Election2026Page() {
     <>
       <div className="mx-auto grid max-w-[1240px] items-end gap-x-14 gap-y-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
         <PageHead
-          deck="Parliament was dissolved on 2 October, so the election must be held by early January. Writs issued the same day set nomination day for 15 October and polling day for 5 November. The NDC won 9 of 15 seats in 2022; since then Delma Thomas has crossed from the NNP to the government, and Peter David, also elected for the NNP, now leads a new party, the DPM."
+          deck="Parliament was dissolved on 2 October. Writs issued the same day set nomination day for 15 October and polling day for 5 November; the Prime Minister confirmed the date in an address on 4 October. The NDC won 9 of 15 seats in 2022; since then Delma Thomas has crossed from the NNP to the government, and Peter David, also elected for the NNP, now leads a new party, the DPM."
           eyebrow={`General election 2026 · ${electionStatus(calendar, now)}`}
           learning="election"
           title={leadTitle(

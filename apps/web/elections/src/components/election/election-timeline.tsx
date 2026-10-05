@@ -17,7 +17,8 @@ const SHORT = new Intl.DateTimeFormat("en-GB", {
 
 /**
  * The election calendar as a newspaper graphic: dissolution, nomination day,
- * polling day and the legal deadline on one time axis, with today marked.
+ * the police poll and polling day on one time axis, with today marked. The
+ * axis ends at polling day; the three-month legal limit no longer matters.
  * Every date also appears as text in the accessible description.
  */
 export function ElectionTimeline({
@@ -30,7 +31,7 @@ export function ElectionTimeline({
   const start = calendar.dissolved ?? calendar.writs;
   if (!(start && calendar.pollingDay)) return null;
   const t0 = Date.parse(start);
-  const t1 = Date.parse(calendar.deadline);
+  const t1 = Date.parse(calendar.pollingDay);
   const x = (iso: string) =>
     LEFT + ((Date.parse(iso) - t0) / (t1 - t0)) * (RIGHT - LEFT);
   const stops: {
@@ -40,7 +41,12 @@ export function ElectionTimeline({
     label: string;
     strong: boolean;
   }[] = [
-    { iso: start, label: "Dissolved", above: true, strong: false },
+    {
+      iso: start,
+      label: "Dissolved · register closed",
+      above: true,
+      strong: false,
+    },
     ...(calendar.nominationDay
       ? [
           {
@@ -51,15 +57,15 @@ export function ElectionTimeline({
           },
         ]
       : []),
-    // Three days before polling day: its label starts left of the tick and
-    // sits below the axis so it clears "Polling day" above.
+    // Three days before polling day: its label ends at the tick and sits
+    // below the axis so it clears "Polling day" above.
     ...(calendar.policePollingDay
       ? [
           {
             iso: calendar.policePollingDay,
             label: "Police poll",
             above: false,
-            anchor: "start" as const,
+            anchor: "end" as const,
             strong: false,
           },
         ]
@@ -70,15 +76,9 @@ export function ElectionTimeline({
       above: true,
       strong: true,
     },
-    {
-      iso: calendar.deadline,
-      label: "Legal deadline",
-      above: false,
-      strong: false,
-    },
   ];
   const today = grenadaDate(now);
-  const showToday = today >= start && today <= calendar.deadline;
+  const showToday = today >= start && today <= calendar.pollingDay;
   const daysToPoll = Math.round(
     (Date.parse(calendar.pollingDay) - Date.parse(today)) / DAY
   );
@@ -132,13 +132,13 @@ export function ElectionTimeline({
       {stops.map((s) => {
         const cx = x(s.iso);
         const ty = s.above ? AXIS - 34 : AXIS + 42;
-        // Polling day reads to the right of its tick so it clears the
-        // dissolution label; the ends anchor inward.
+        // The ends anchor inward; polling day and the police poll end at
+        // the right edge so their labels stay on the page.
         let anchor: "start" | "middle" | "end" = "middle";
-        if (s.strong || cx < LEFT + 40) anchor = "start";
+        if (cx < LEFT + 40) anchor = "start";
         else if (cx > RIGHT - 40) anchor = "end";
         if (s.anchor) anchor = s.anchor;
-        const tx = s.strong || s.anchor === "start" ? cx - 8 : cx;
+        const tx = cx;
         return (
           <g key={s.label}>
             <line
