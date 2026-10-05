@@ -12,6 +12,8 @@ export interface CoverageUpdate {
   attachments?: { href: string; label: string; size: string }[];
   /** The article, one string per paragraph. */
   body: string[];
+  /** Author shown above the date; the page falls back to the editor. */
+  byline?: string;
   /** A one- or two-sentence summary for the feed and the page deck. */
   dek: string;
   /** A note added after publication, shown at the top of the article. */

@@ -71,6 +71,14 @@ export function daysUntil(iso: string, now: Date): number {
   return Math.round((Date.parse(iso) - today) / 86_400_000);
 }
 
+/** The updates page and feeds begin here, the day the first campaign item was reported. */
+export const UPDATES_START = "2026-09-18";
+
+/** Campaign events from the start of the updates record, oldest first. */
+export function updateEvents(campaign: CampaignFile): CampaignFile["events"] {
+  return campaign.events.filter((event) => event.date >= UPDATES_START);
+}
+
 export interface DeclaredCandidate {
   name: string;
   party: string;

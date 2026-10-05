@@ -15,6 +15,7 @@ import {
   daysUntil,
   electionStatus,
   seatOutlook,
+  updateEvents,
 } from "@/data/election-2026";
 import { campaign, latestRegister, results } from "@/data/load";
 import { nationalResult } from "@/data/model";
@@ -44,7 +45,9 @@ export default function Election2026Page() {
   const seats = seatOutlook(results, campaign);
   const last = nationalResult(results, "2022");
   const roll = latestRegister();
-  const recent = campaign.events.filter((e) => !e.future).slice(-3);
+  const recent = updateEvents(campaign)
+    .filter((e) => !e.future)
+    .slice(-3);
   const polls = campaign.polls.filter((p) => p.target === "next");
 
   return (
@@ -146,8 +149,8 @@ export default function Election2026Page() {
 
       <Section
         id="recent"
-        more={{ href: "/since-2022", label: "Everything since 2022" }}
-        title="Since the 2022 election"
+        more={{ href: "/updates", label: "All updates" }}
+        title="Latest updates"
       >
         <CampaignTimeline events={recent} sources={campaign.sources} />
       </Section>

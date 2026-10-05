@@ -2,31 +2,31 @@ import type { Metadata } from "next";
 import { CampaignTimeline } from "@/components/campaign/timeline";
 import { HouseMap } from "@/components/constituencies/house-map";
 import { PageHead, Section } from "@/components/section";
-import { seatOutlook } from "@/data/election-2026";
+import { seatOutlook, updateEvents } from "@/data/election-2026";
 import { campaign, geo, results } from "@/data/load";
 import { formatIsoDate } from "@/lib/format";
 
 export const metadata: Metadata = {
-  title: "Since the 2022 election",
+  title: "Updates",
   description:
-    "What has changed in Grenada’s politics since the June 2022 general election: floor crossings, new leaders, a new party and the road to 2026.",
+    "Every update on Grenada’s 2026 general election since 18 September: candidates, the dissolution, the writs and polling day, each with its source.",
 };
 
-export default function Since2022Page() {
+export default function UpdatesPage() {
   const seats = seatOutlook(results, campaign);
 
   return (
     <>
       <PageHead
-        deck="Floor crossings, new leaders, a new party and the road to polling day. Every item links to its source; ✱ marks items that still need an official or primary source."
+        deck="The road to polling day, from 18 September. Every item links to its source; ✱ marks items that still need an official or primary source."
         eyebrow={`Updated ${formatIsoDate(campaign.updated)}`}
         learning="election"
-        title="Since the 2022 election"
+        title="Updates"
       />
       <Section id="timeline" title="Timeline">
         <div className="grid gap-10 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
           <CampaignTimeline
-            events={campaign.events}
+            events={updateEvents(campaign)}
             sources={campaign.sources}
           />
           <div>

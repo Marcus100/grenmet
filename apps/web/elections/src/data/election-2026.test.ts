@@ -12,6 +12,8 @@ import {
   grenadaDate,
   seatOutlook,
   slateSources,
+  UPDATES_START,
+  updateEvents,
 } from "@/data/election-2026";
 import campaignJson from "@/data/source/campaign.json";
 import type { CampaignFile, ResultsFile } from "@/data/types";
@@ -203,4 +205,13 @@ it("lists one named NDC candidate in every constituency", () => {
     expect(
       seat.candidates.filter((candidate) => candidate.party === "NDC")
     ).toHaveLength(1);
+});
+
+describe("updateEvents", () => {
+  it("starts on 18 September and keeps the later events in order", () => {
+    const events = updateEvents(campaign);
+    expect(events[0]?.date).toBe("2026-09-18");
+    expect(events.every((e) => e.date >= UPDATES_START)).toBe(true);
+    expect(events.some((e) => e.date === "2026-11-02")).toBe(true);
+  });
 });

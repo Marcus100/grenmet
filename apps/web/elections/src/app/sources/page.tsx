@@ -475,8 +475,8 @@ export default function SourcesPage() {
             <dd className="text-el-ink-2">
               Candidates, events and polls are cited item by item to news
               reports and other public sources on the{" "}
-              <Link className="underline underline-offset-2" href="/since-2022">
-                Since the 2022 election
+              <Link className="underline underline-offset-2" href="/updates">
+                Updates
               </Link>{" "}
               and{" "}
               <Link
