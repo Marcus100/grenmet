@@ -96,6 +96,23 @@ export default async function UpdatePage({ params }: Props) {
           </ul>
         )}
       </article>
+      {post.transcript && (
+        <Section id="transcript" title={post.transcript.title}>
+          <div className="max-w-prose space-y-4 text-lg leading-relaxed">
+            {post.transcript.paragraphs.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
+          </div>
+          <a
+            className="mt-6 inline-block font-semibold text-base underline underline-offset-4"
+            href={post.transcript.sourceUrl}
+            rel="noopener"
+            target="_blank"
+          >
+            {post.transcript.sourceLabel} →
+          </a>
+        </Section>
+      )}
       {post.table && (
         <Section id="table" title="Returning offices">
           <div className="overflow-x-auto">

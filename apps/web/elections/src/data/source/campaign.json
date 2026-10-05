@@ -223,9 +223,28 @@
       "flag": null
     },
     {
+      "date": "2026-10-02",
+      "text": "Voter registration closes: the Prime Minister says 2 October was the last date on which eligible people could be registered as electors.",
+      "src": "pmaddress4oct",
+      "flag": null
+    },
+    {
+      "date": "2026-10-04",
+      "text": "The Prime Minister announces in an address that the general election will be held on 5 November, with nomination day on 15 October and a special poll for police officers on 2 November.",
+      "src": "pmaddress4oct",
+      "flag": null
+    },
+    {
       "date": "2026-10-15",
       "text": "Nomination day: returning officers receive nominations from 9:00 a.m. to 12 noon.",
       "src": "gazette47",
+      "flag": null,
+      "future": true
+    },
+    {
+      "date": "2026-11-02",
+      "text": "Special polling day for police officers.",
+      "src": "pmaddress4oct",
       "flag": null,
       "future": true
     },
@@ -467,5 +486,6 @@
   },
   "writs": "2026-10-02",
   "nomination_day": "2026-10-15",
-  "polling_day": "2026-11-05"
+  "polling_day": "2026-11-05",
+  "police_polling_day": "2026-11-02"
 }

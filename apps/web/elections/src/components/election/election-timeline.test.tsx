@@ -13,6 +13,7 @@ const calendar: ElectionCalendar = {
   deadline: "2027-01-02",
   dissolved: "2026-10-02",
   nominationDay: "2026-10-15",
+  policePollingDay: "2026-11-02",
   pollingDay: "2026-11-05",
   writs: "2026-10-02",
 };

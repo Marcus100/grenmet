@@ -6,6 +6,8 @@ import campaignJson from "@/data/source/campaign.json";
 import type { CampaignFile } from "@/data/types";
 
 const DOWNLOAD = /Download:/;
+const POLICE_POLL = /Special polling day for police officers/;
+const WATCH_LINK = /Watch the address on YouTube/;
 const GAZETTE_SOURCE = /Official record: Government Gazette/;
 
 vi.mock("server-only", () => ({}));
@@ -56,4 +58,21 @@ describe("coverage posts", () => {
     expect(screen.getAllByRole("row")).toHaveLength(20);
     // The first import of the page module is slow under a full parallel run.
   }, 20_000);
+
+  it("reproduces the Prime Minister's address with a link to the video", async () => {
+    const { default: UpdatePage } = await import("./page");
+    render(
+      await UpdatePage({
+        params: Promise.resolve({ slug: "mitchell-announces-5-november" }),
+      })
+    );
+    expect(
+      screen.getByRole("heading", { name: "Transcript of the address" })
+    ).toBeTruthy();
+    expect(screen.getByText(POLICE_POLL)).toBeTruthy();
+    expect(screen.getByRole("link", { name: WATCH_LINK })).toHaveProperty(
+      "href",
+      "https://www.youtube.com/watch?v=MhEecDI2qHk"
+    );
+  });
 });
