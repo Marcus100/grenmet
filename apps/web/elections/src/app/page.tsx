@@ -1,3 +1,4 @@
+import { cn } from "@barrelsgd/ui/lib/utils";
 import Link from "next/link";
 import { ClosestContests } from "@/components/constituencies/closest-contests";
 import { HouseMap } from "@/components/constituencies/house-map";
@@ -50,6 +51,16 @@ const HISTORY = [
   },
 ] as const;
 
+/** "Thursday 5 November" for an ISO date. */
+function weekdayDate(iso: string): string {
+  return new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "long",
+    timeZone: "UTC",
+    weekday: "long",
+  });
+}
+
 const LABEL = "font-semibold text-sm text-el-muted uppercase tracking-[0.07em]";
 
 /**
@@ -67,50 +78,63 @@ export default function FrontPage() {
   const result2022 = nationalResult(results, "2022");
   const crossed = seats.filter((s) => s.sitting.was);
 
-  // Three slots: once Parliament is dissolved, that date replaces nomination
+  // Three or four slots: once Parliament is dissolved, that date replaces nomination
   // day until nomination day is proclaimed; once polling day is set, the
   // dissolution replaces the expected announcement.
-  const dates = calendar.pollingDay
-    ? [
-        ...(calendar.dissolved
-          ? [
-              {
+  const dates: { label: string; strong?: boolean; value: string }[] =
+    calendar.pollingDay
+      ? [
+          ...(calendar.dissolved
+            ? [
+                {
+                  label: "Parliament dissolved",
+                  value: formatIsoDate(calendar.dissolved),
+                },
+              ]
+            : []),
+          {
+            label: "Nomination day",
+            value: calendar.nominationDay
+              ? formatIsoDate(calendar.nominationDay)
+              : "To be proclaimed",
+          },
+          ...(calendar.policePollingDay
+            ? [
+                {
+                  label: "Police special poll",
+                  value: formatIsoDate(calendar.policePollingDay),
+                },
+              ]
+            : []),
+          {
+            label: "Polling day",
+            strong: true,
+            value: formatIsoDate(calendar.pollingDay),
+          },
+        ]
+      : [
+          calendar.dissolved && !calendar.nominationDay
+            ? {
                 label: "Parliament dissolved",
                 value: formatIsoDate(calendar.dissolved),
+              }
+            : {
+                label: "Nomination day",
+                value: calendar.nominationDay
+                  ? formatIsoDate(calendar.nominationDay)
+                  : "To be proclaimed",
               },
-            ]
-          : []),
-        {
-          label: "Nomination day",
-          value: calendar.nominationDay
-            ? formatIsoDate(calendar.nominationDay)
-            : "To be proclaimed",
-        },
-        { label: "Polling day", value: formatIsoDate(calendar.pollingDay) },
-      ]
-    : [
-        calendar.dissolved && !calendar.nominationDay
-          ? {
-              label: "Parliament dissolved",
-              value: formatIsoDate(calendar.dissolved),
-            }
-          : {
-              label: "Nomination day",
-              value: calendar.nominationDay
-                ? formatIsoDate(calendar.nominationDay)
-                : "To be proclaimed",
-            },
-        {
-          label: "Announcement expected",
-          value: formatIsoDate(calendar.announcement),
-        },
-        {
-          label: "Polling day",
-          value: calendar.pollingDay
-            ? formatIsoDate(calendar.pollingDay)
-            : "To be announced",
-        },
-      ];
+          {
+            label: "Announcement expected",
+            value: formatIsoDate(calendar.announcement),
+          },
+          {
+            label: "Polling day",
+            value: calendar.pollingDay
+              ? formatIsoDate(calendar.pollingDay)
+              : "To be announced",
+          },
+        ];
 
   return (
     <>
@@ -119,12 +143,14 @@ export default function FrontPage() {
           <FlagStripe className="mb-4 h-1.5 w-16" />
           <p className="font-semibold text-base text-el-ink-2 uppercase leading-relaxed tracking-[0.08em]">
             Grenada general election 2026
+            {calendar.pollingDay && ` · ${weekdayDate(calendar.pollingDay)}`}
           </p>
           <h1 className="mt-2.5 font-bold text-[clamp(2rem,4.6vw,3.25rem)] leading-[1.05] tracking-[-0.022em]">
             {status}
           </h1>
           <p className="mt-3 max-w-[56ch] font-serif text-el-ink-2 text-lg leading-normal">
-            Parliament was dissolved on 2 October. Fifteen seats, eight for a
+            Prime Minister Dickon Mitchell has announced polling day: Thursday 5
+            November, with nominations on 15 October. Fifteen seats, eight for a
             majority. The NDC won nine in 2022; Delma Thomas has since crossed
             to the government, and Peter David now leads a new party, the DPM.
           </p>
@@ -145,7 +171,10 @@ export default function FrontPage() {
           <dl className="mt-8 max-w-md border-el-ink border-t-2">
             {dates.map((d) => (
               <div
-                className="flex flex-wrap items-baseline justify-between gap-x-6 border-el-rule border-b py-3"
+                className={cn(
+                  "flex flex-wrap items-baseline justify-between gap-x-6 border-el-rule border-b py-3",
+                  d.strong && "bg-el-flag-gold-tint px-3"
+                )}
                 key={d.label}
               >
                 <dt className={LABEL}>{d.label}</dt>
