@@ -41,12 +41,20 @@ export function ElectionTimeline({
     label: string;
     strong: boolean;
   }[] = [
-    {
-      iso: start,
-      label: "Dissolved · register closed",
-      above: true,
-      strong: false,
-    },
+    { iso: start, label: "Dissolved", above: false, strong: false },
+    // Two days after dissolution: its label sits above the axis, clear of
+    // "Dissolved" below.
+    ...(calendar.announcement > start &&
+    calendar.announcement < calendar.pollingDay
+      ? [
+          {
+            iso: calendar.announcement,
+            label: "Announced",
+            above: true,
+            strong: false,
+          },
+        ]
+      : []),
     ...(calendar.nominationDay
       ? [
           {
