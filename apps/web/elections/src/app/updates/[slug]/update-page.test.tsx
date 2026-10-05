@@ -75,4 +75,23 @@ describe("coverage posts", () => {
       "https://www.youtube.com/watch?v=MhEecDI2qHk"
     );
   });
+
+  it("highlights the important dates and sets the address out as a transcript", async () => {
+    const { default: UpdatePage } = await import("./page");
+    const { container } = render(
+      await UpdatePage({
+        params: Promise.resolve({ slug: "mitchell-announces-5-november" }),
+      })
+    );
+    expect(screen.getByRole("heading", { name: "Dates to know" })).toBeTruthy();
+    expect(
+      screen.getByRole("heading", { name: "Registration is closed" })
+    ).toBeTruthy();
+    expect(screen.getByText("Prime Minister Dickon Mitchell")).toBeTruthy();
+    const marked = [...container.querySelectorAll("mark")].map(
+      (m) => m.textContent
+    );
+    expect(marked).toContain("November 5th, 2026");
+    expect(marked).toContain("2nd November, 2026");
+  });
 });
