@@ -4,17 +4,17 @@ import { PersonAvatar } from "@/components/community/person-avatar";
 import { ToggleButton } from "@/components/community/toggle-button";
 import {
   connectionState,
-  getViewer,
   listConnections,
   listProfiles,
 } from "@/data/discovery";
+import { requireViewer } from "@/data/viewer";
 import type { Profile } from "@/domain/types";
 
 export const metadata: Metadata = { title: "Your network" };
 
 export default async function NetworkPage() {
   const [viewer, connections, profiles] = await Promise.all([
-    getViewer(),
+    requireViewer("/network"),
     listConnections(),
     listProfiles(),
   ]);

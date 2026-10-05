@@ -3,6 +3,7 @@ import { cn } from "@barrelsgd/ui/lib/utils";
 import { LayoutDashboard, Ticket } from "lucide-react";
 import Link from "next/link";
 import { PersonAvatar } from "@/components/community/person-avatar";
+import { isSignedIn } from "@/data/viewer-profile";
 import type { Profile } from "@/domain/types";
 import { BottomNav, HeaderNav } from "./nav-link";
 
@@ -36,9 +37,15 @@ export function SiteHeader({ viewer }: { viewer: Profile }) {
             <LayoutDashboard data-icon="inline-start" />
             For organisers
           </Link>
-          <Link aria-label="My plans" className="rounded-full" href="/me">
-            <PersonAvatar name={viewer.name} />
-          </Link>
+          {isSignedIn(viewer) ? (
+            <Link aria-label="My plans" className="rounded-full" href="/me">
+              <PersonAvatar name={viewer.name} />
+            </Link>
+          ) : (
+            <Link className={buttonVariants()} href="/sign-in">
+              Sign in
+            </Link>
+          )}
         </div>
       </div>
     </header>

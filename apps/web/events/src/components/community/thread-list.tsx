@@ -1,11 +1,7 @@
 import { cn } from "@barrelsgd/ui/lib/utils";
 import Link from "next/link";
-import {
-  getGroupById,
-  getViewer,
-  listProfiles,
-  listThreads,
-} from "@/data/discovery";
+import { getGroupById, listProfiles, listThreads } from "@/data/discovery";
+import { getViewer } from "@/data/viewer";
 import type { MessageThread, Profile } from "@/domain/types";
 import { formatTime } from "@/lib/datetime";
 import { PersonAvatar } from "./person-avatar";

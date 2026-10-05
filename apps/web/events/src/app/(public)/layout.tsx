@@ -4,13 +4,7 @@ import {
   SiteFooter,
   SiteHeader,
 } from "@/components/site/site-chrome";
-import { getViewer } from "@/data/discovery";
-
-/**
- * Listings depend on "now" (tonight, this weekend), so re-render at most
- * every five minutes rather than freezing them at build time.
- */
-export const revalidate = 300;
+import { getViewer } from "@/data/viewer";
 
 export default async function PublicLayout({
   children,

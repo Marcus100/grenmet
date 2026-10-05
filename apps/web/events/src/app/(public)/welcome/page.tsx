@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { OnboardingForm } from "@/components/community/onboarding-form";
-import { getViewer } from "@/data/discovery";
+import { requireViewer } from "@/data/viewer";
 
 export const metadata: Metadata = {
   title: "Welcome",
@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default async function WelcomePage() {
-  const viewer = await getViewer();
+  const viewer = await requireViewer("/welcome");
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
