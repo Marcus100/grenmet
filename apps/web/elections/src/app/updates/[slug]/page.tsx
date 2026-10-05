@@ -12,6 +12,25 @@ import { EVIDENCE_LABELS, sourceKind } from "@/data/evidence";
 import { campaign } from "@/data/load";
 import { formatIsoDate } from "@/lib/format";
 
+const DATE_IN_TEXT =
+  /(\d{1,2}(?:st|nd|rd|th) [A-Z][a-z]+,? \d{4}|[A-Z][a-z]+ \d{1,2}(?:st|nd|rd|th),? \d{4})/;
+
+/** Wraps each spoken date in a highlight so readers can find it. */
+function highlightDates(text: string) {
+  let offset = 0;
+  return text.split(DATE_IN_TEXT).map((part, i) => {
+    const key = `${offset}-${part.length}`;
+    offset += part.length;
+    return i % 2 === 1 ? (
+      <mark className="bg-el-flag-gold-tint px-0.5 font-semibold" key={key}>
+        {part}
+      </mark>
+    ) : (
+      <span key={key}>{part}</span>
+    );
+  });
+}
+
 interface Props {
   params: Promise<{ slug: string }>;
 }
@@ -71,6 +90,47 @@ export default async function UpdatePage({ params }: Props) {
             <p key={paragraph}>{paragraph}</p>
           ))}
         </div>
+        {post.keyDates && (
+          <aside
+            aria-labelledby="key-dates"
+            className="mt-8 max-w-prose border-el-ink border-y-2 bg-el-flag-gold-tint p-5"
+          >
+            <h2
+              className="font-semibold text-el-muted text-sm uppercase tracking-[0.07em]"
+              id="key-dates"
+            >
+              Dates to know
+            </h2>
+            <dl className="mt-3 divide-y divide-el-rule">
+              {post.keyDates.map((d) => (
+                <div
+                  className="grid gap-x-4 py-3 sm:grid-cols-[11rem_1fr]"
+                  key={d.date}
+                >
+                  <dt className="font-bold font-serif text-xl tabular-nums">
+                    <time dateTime={d.date}>{formatIsoDate(d.date)}</time>
+                  </dt>
+                  <dd className="text-base">
+                    <span className="font-semibold">{d.label}</span>
+                    {d.note && (
+                      <span className="block text-el-muted">{d.note}</span>
+                    )}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </aside>
+        )}
+        {post.sections?.map((section) => (
+          <section className="mt-8 max-w-prose" key={section.heading}>
+            <h2 className="font-bold font-serif text-2xl">{section.heading}</h2>
+            <div className="mt-3 space-y-4 text-lg leading-relaxed">
+              {section.paragraphs.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+            </div>
+          </section>
+        ))}
         {post.attachments && post.attachments.length > 0 && (
           <ul className="mt-6 max-w-prose space-y-3">
             {post.attachments.map((file) => (
@@ -98,10 +158,18 @@ export default async function UpdatePage({ params }: Props) {
       </article>
       {post.transcript && (
         <Section id="transcript" title={post.transcript.title}>
-          <div className="max-w-prose space-y-4 text-lg leading-relaxed">
-            {post.transcript.paragraphs.map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
-            ))}
+          <p className="max-w-prose text-base text-el-muted">
+            {post.transcript.note}
+          </p>
+          <div className="mt-5 max-w-prose border-el-ink border-t-2 border-b pt-4 pb-2">
+            <p className="font-semibold text-el-muted text-sm uppercase tracking-[0.07em]">
+              {post.transcript.speaker}
+            </p>
+            <div className="mt-3 space-y-4 border-el-rule-2 border-l-4 pl-4 font-serif text-lg leading-relaxed">
+              {post.transcript.paragraphs.map((paragraph) => (
+                <p key={paragraph}>{highlightDates(paragraph)}</p>
+              ))}
+            </div>
           </div>
           <a
             className="mt-6 inline-block font-semibold text-base underline underline-offset-4"
