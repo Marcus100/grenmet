@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-04
+**Last updated:** 2026-10-05
 
 This document explains how the Barrels Grenada codebase fits together: the
 relationships among applications, shared packages, authentication, and data.
@@ -64,7 +64,7 @@ Next.js apps follow `@barrelsgd/web-<app>`.
 | `mbia` | 3005 | Public airport information | Local content; public pages |
 | `cms` | 3006 | GMS editorial content management | Payload CMS, dedicated database, shared FastAPI identity |
 | `elections` | 3007 | Barrels election coverage and civic education | Checked source data, derived records, and local editorial content; public pages |
-| `events` | 3009 | Barrels event discovery, community, and organiser console | Web UI uses fixtures/local state; FastAPI domain and app-scoped auth exist, web integration pending |
+| `events` | 3009 | Barrels event discovery, community, and organiser console | FastAPI listings/community and app-scoped email-code sign-in; sales/settlement overview remains a labelled demo |
 | `barrels` | — | Barrels Grenada company homepage | Static HTML/CSS; separate build, no Next.js dev port |
 
 ### Consolidated staff portal
@@ -81,16 +81,18 @@ presence in the portal does not make it a GAA product. See the
 
 ### Events implementation status
 
-The public/community UI and `/dash` organiser console currently read async
-fixture providers in [the web data layer](../apps/web/events/src/data/).
-Interactive changes are local state, not evidence of persisted API writes.
+The public/community UI and `/dash/events` organiser editor read FastAPI through
+[the web data layer](../apps/web/events/src/data/events-api.ts). Server actions
+persist listings, RSVPs, saves, profiles, group membership, connections and messages.
+The `/dash` sales and settlement overview remains explicitly labelled demo data;
+ticket payments, admission and settlement are not implemented by this integration.
 
 The [FastAPI Events domain](../apps/api/fastapi/src/events/AGENTS.md) already
 contains listings, groups, connections, messaging, and access rules, with its
-own database and Alembic history. App-scoped authentication is implemented on
-the backend. Connecting the web UI to those services remains separate work.
-Events database configuration is optional; database-backed routes are
-unavailable while `EVENTS_DATABASE_URL` is unset. This inventory describes
+own database and Alembic history. The web UI uses app-scoped email-code sign-in
+and a host-only session cookie. Events database configuration remains optional
+for the wider stack, but is required for the Events website's data-backed pages;
+those routes are unavailable while `EVENTS_DATABASE_URL` is unset. This inventory describes
 source implementation, not deployment or operational acceptance.
 
 ## Auth architecture
@@ -138,8 +140,9 @@ Events uses the backend model introduced by
 [ADR-0016](./adr/0016-app-scoped-accounts-and-sessions.md): accounts are shared,
 but app sessions and permissions are separate. Authenticated Events requests
 require Events access tokens; staff routes reject app-scoped tokens, and Events
-routes reject supplied staff tokens. Public Events reads can be anonymous. The intended Events browser cookie is host-only `events_session`;
-its web integration is still pending as described above.
+routes reject supplied staff tokens. Public Events reads can be anonymous. The Events
+browser cookie is host-only `events_session`; server-side session exchange keeps
+access tokens out of browser code.
 
 ## Shared packages
 

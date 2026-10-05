@@ -13,7 +13,7 @@ export interface TierDraft {
   readonly allocation: number;
   readonly id: string;
   readonly name: string;
-  /** Whole EC dollars as typed; converted to minor units at the edge. */
+  /** Decimal dollars as typed; rounded to integer minor units at the edge. */
   readonly priceMajor: number;
 }
 
@@ -71,7 +71,7 @@ export function draftFromEvent(
     tiers: event.tiers.map((tier) => ({
       id: tier.id,
       name: tier.name,
-      priceMajor: Math.trunc(tier.price.amountMinor / 100),
+      priceMajor: tier.price.amountMinor / 100,
       allocation: tier.allocation,
     })),
   };
@@ -134,7 +134,7 @@ export function draftToUpsert(
       draft.admission === "ticketed"
         ? draft.tiers.map((tier) => ({
             name: tier.name.trim(),
-            price_minor: tier.priceMajor * 100,
+            price_minor: Math.round(tier.priceMajor * 100),
             currency: "XCD" as const,
             allocation: tier.allocation,
           }))
@@ -167,7 +167,7 @@ export function draftToCard(draft: EventDraft): EventCardData {
     admission: draft.admission,
     priceFrom:
       draft.admission === "ticketed" && lowest !== null
-        ? money(lowest * 100, "XCD")
+        ? money(Math.round(lowest * 100), "XCD")
         : null,
     recurrence: null,
     slug: "preview",
@@ -188,9 +188,6 @@ export function draftIssues(draft: EventDraft): string[] {
   }
   if (draft.summary.trim().length < 10) {
     issues.push("Write a one-line summary (at least 10 characters).");
-  }
-  if (draft.endTime <= draft.startTime && draft.endTime !== "00:00") {
-    issues.push("End time must be after the start time.");
   }
   if (draft.admission === "ticketed") {
     if (draft.tiers.length === 0) {

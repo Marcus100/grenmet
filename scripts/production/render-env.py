@@ -23,7 +23,7 @@ def read_config(path):
 
 def render(config, environment):
     required = ["POSTGRES_USER", "POSTGRES_PASSWORD", "FASTAPI_DB_PASSWORD", "SECRET_KEY", "FIRST_SUPERUSER", "FIRST_SUPERUSER_PASSWORD", "SESSION_COOKIE_NAME", "RESEND_API_KEY", "EMAIL", "USERNAME", "HASHED_PASSWORD", "PAYLOAD_SECRET"]
-    required += [f"{domain}_DB_PASSWORD" for domain in ["WXWATCH", "WXPRODUCTS", "EREGISTER", "TRANSPORT", "JANITORIAL", "CMS"]]
+    required += [f"{domain}_DB_PASSWORD" for domain in ["WXWATCH", "WXPRODUCTS", "EREGISTER", "TRANSPORT", "JANITORIAL", "EVENTS", "CMS"]]
     values = {}
     for key in required:
         if not environment.get(key):
@@ -45,7 +45,7 @@ def render(config, environment):
         if secret_ref and (service["id"] not in {"elections", "auth", "gaa-admin", "docs", "gms", "signal", "mbia", "events", "cms", "api", "worker"} or config.get("ENVIRONMENT") not in {"staging", "production"} or secret_ref != f"SENTRY_DSN_{config['ENVIRONMENT'].upper()}" or sentry.get("project") != f"grenmet-{config['ENVIRONMENT']}" or sentry.get("dsn")):
             raise ValueError("Invalid shared Sentry routing")
         values[f"SENTRY_DSN_{app}"] = environment.get(secret_ref, "") if secret_ref else sentry.get("dsn") or ""
-    for domain in ["WXWATCH", "WXPRODUCTS", "EREGISTER", "TRANSPORT", "JANITORIAL", "CMS"]:
+    for domain in ["WXWATCH", "WXPRODUCTS", "EREGISTER", "TRANSPORT", "JANITORIAL", "EVENTS", "CMS"]:
         user = quote(config[f"{domain}_DB_USER"], safe="")
         password = quote(values[f"{domain}_DB_PASSWORD"], safe="")
         name = quote(config[f"{domain}_DB_NAME"], safe="")

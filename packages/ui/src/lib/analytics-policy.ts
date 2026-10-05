@@ -6,6 +6,7 @@ export type PublicApp =
   | "gms"
   | "docs"
   | "signal"
+  | "events"
   | "mbia";
 export type Environment = "development" | "staging" | "production";
 export interface AnalyticsConfig {
@@ -25,6 +26,7 @@ const PUBLIC_APPS = new Set([
   "gms",
   "docs",
   "signal",
+  "events",
   "mbia",
 ]);
 export function configForOrigin(
@@ -88,6 +90,8 @@ export function readConsent(now = Date.now()): "accepted" | "declined" | null {
 }
 const SECTIONS = [
   "home",
+  "events",
+  "groups",
   "results",
   "2026",
   "constituencies",
@@ -183,6 +187,7 @@ export type EventProperties<E extends AnalyticsEvent> = {
     : never;
 };
 const APP_EVENTS: Record<PublicApp, readonly AnalyticsEvent[]> = {
+  events: ["page_viewed"],
   barrels: ["page_viewed", "personal_site_clicked"],
   elections: [
     "page_viewed",
@@ -218,6 +223,19 @@ const APP_EVENTS: Record<PublicApp, readonly AnalyticsEvent[]> = {
     "external_destination_clicked",
   ],
 };
+
+/** Events also hosts private member and organiser pages on the same origin. */
+export function analyticsAllowedOnPath(app: PublicApp, path: string): boolean {
+  if (app !== "events") return true;
+  const pathname = path.split(URL_SUFFIX)[0];
+  return (
+    pathname === "/" ||
+    pathname === "/events" ||
+    pathname.startsWith("/events/") ||
+    pathname === "/groups" ||
+    pathname.startsWith("/groups/")
+  );
+}
 /** Reject unknown properties, not merely suspicious-looking values. */
 export function sanitizeEvent(
   app: PublicApp,

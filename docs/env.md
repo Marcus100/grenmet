@@ -88,7 +88,7 @@ in `infra/docker/.env.local.example`.
 | `TRANSPORT_DB_PASSWORD` | Password for the transport DB user |
 | `EVENTS_DB_NAME` | Database name for Barrels Events (`events` locally) |
 | `EVENTS_DB_USER` | Database user for Barrels Events |
-| `EVENTS_DB_PASSWORD` | Password for the Barrels Events DB user |
+| `EVENTS_DB_PASSWORD` | Password for the Barrels Events DB user; required as an environment secret in staging and production before promoting the API-backed Events website |
 | `ADMINER_DESIGN` | Adminer UI theme (e.g. `pepa-linha-dark`) |
 
 ### FastAPI backend (`apps/api/fastapi/.env.local`)

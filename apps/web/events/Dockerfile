@@ -57,6 +57,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # Explicit application sources and workspace dependency closure.
 COPY packages/tsconfig/ packages/tsconfig/
 COPY packages/ui/ packages/ui/
+COPY packages/api-client/ packages/api-client/
+COPY packages/auth/ packages/auth/
 COPY apps/web/events/ apps/web/events/
 RUN --mount=type=secret,id=SENTRY_AUTH_TOKEN,env=SENTRY_AUTH_TOKEN pnpm exec turbo run build --filter=@barrelsgd/web-events
 RUN mkdir -p apps/web/events/public

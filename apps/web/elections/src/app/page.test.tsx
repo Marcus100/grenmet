@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import FrontPage from "./page";
 
 vi.mock("server-only", () => ({}));
 vi.mock("next/navigation", () => ({
@@ -11,8 +12,7 @@ const POLLING_DAY = /Thursday 5 November/;
 const POLICE_POLL = /Police special poll/;
 
 describe("front page", () => {
-  it("leads with the announced polling day and lists the police poll", async () => {
-    const { default: FrontPage } = await import("./page");
+  it("leads with the announced polling day and lists the police poll", () => {
     render(<FrontPage />);
     expect(screen.getAllByText(POLLING_DAY).length).toBeGreaterThan(0);
     expect(screen.getByText(POLICE_POLL)).toBeTruthy();

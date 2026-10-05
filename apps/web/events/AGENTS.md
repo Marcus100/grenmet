@@ -36,6 +36,7 @@ Port **3009**. Package: `@barrelsgd/web-events`. Design lane:
   ticketing or settlement yet; keep it labelled as demo.
 - Tests build events with `src/test/factories.ts`; never reintroduce runtime
   fixtures for public data.
+- Deployment requires `EVENTS_DB_PASSWORD`; the shared runtime renderer provisions the Events URL and backups include its database. Keep API/auth workspace sources in the web Docker build.
 
 ## Rules
 
