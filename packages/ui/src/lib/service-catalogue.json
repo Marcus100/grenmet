@@ -49,11 +49,12 @@
           "deployment": "pending",
           "release": null,
           "analytics": {
-            "status": "unconfigured",
+            "status": "intentionally-disabled",
             "ga4": null,
             "posthog": null,
             "retentionVerified": false,
-            "accessVerified": false
+            "accessVerified": false,
+            "reason": "Owner requested production-only browser analytics on 2026-10-05. All staging subdomains are excluded."
           },
           "sentry": {
             "status": "intentionally-disabled",
@@ -134,11 +135,12 @@
           "deployment": "pending",
           "release": null,
           "analytics": {
-            "status": "unconfigured",
+            "status": "intentionally-disabled",
             "ga4": null,
             "posthog": null,
             "retentionVerified": false,
-            "accessVerified": false
+            "accessVerified": false,
+            "reason": "Owner requested production-only browser analytics on 2026-10-05. All staging subdomains are excluded."
           },
           "sentry": {
             "status": "configured",
@@ -578,12 +580,12 @@
           "deployment": "unverified",
           "release": null,
           "analytics": {
-            "status": "configured",
-            "ga4": "G-6PY9N83HCP",
+            "status": "intentionally-disabled",
+            "ga4": null,
             "posthog": null,
-            "retentionVerified": true,
-            "accessVerified": true,
-            "reason": "Owner requested restoration of existing staging Weather analytics on 2026-10-03. Existing public tag and staging variable match. Retention, access settings and event delivery remain unverified. Consent remains required."
+            "retentionVerified": false,
+            "accessVerified": false,
+            "reason": "Owner requested production-only browser analytics on 2026-10-05. All staging subdomains are excluded."
           },
           "sentry": {
             "status": "configured",
@@ -668,11 +670,12 @@
           "deployment": "unverified",
           "release": null,
           "analytics": {
-            "status": "configured",
-            "ga4": "G-X3J6KJGZGK",
+            "status": "intentionally-disabled",
+            "ga4": null,
             "posthog": null,
-            "retentionVerified": true,
-            "accessVerified": true
+            "retentionVerified": false,
+            "accessVerified": false,
+            "reason": "Owner requested production-only browser analytics on 2026-10-05. All staging subdomains are excluded."
           },
           "sentry": {
             "status": "configured",
@@ -757,11 +760,12 @@
           "deployment": "unverified",
           "release": null,
           "analytics": {
-            "status": "configured",
-            "ga4": "G-YHWFZWWWJS",
+            "status": "intentionally-disabled",
+            "ga4": null,
             "posthog": null,
-            "retentionVerified": true,
-            "accessVerified": true
+            "retentionVerified": false,
+            "accessVerified": false,
+            "reason": "Owner requested production-only browser analytics on 2026-10-05. All staging subdomains are excluded."
           },
           "sentry": {
             "status": "configured",
@@ -846,11 +850,12 @@
           "deployment": "unverified",
           "release": null,
           "analytics": {
-            "status": "configured",
-            "ga4": "G-PY2W7M5TQ6",
+            "status": "intentionally-disabled",
+            "ga4": null,
             "posthog": null,
-            "retentionVerified": true,
-            "accessVerified": true
+            "retentionVerified": false,
+            "accessVerified": false,
+            "reason": "Owner requested production-only browser analytics on 2026-10-05. All staging subdomains are excluded."
           },
           "sentry": {
             "status": "configured",
@@ -935,11 +940,12 @@
           "deployment": "unverified",
           "release": null,
           "analytics": {
-            "status": "configured",
-            "ga4": "G-C9N57T67XJ",
+            "status": "intentionally-disabled",
+            "ga4": null,
             "posthog": null,
-            "retentionVerified": true,
-            "accessVerified": true
+            "retentionVerified": false,
+            "accessVerified": false,
+            "reason": "Owner requested production-only browser analytics on 2026-10-05. All staging subdomains are excluded."
           },
           "sentry": {
             "status": "configured",
