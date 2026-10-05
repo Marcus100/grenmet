@@ -67,7 +67,8 @@ export default async function UpdatePage({ params }: Props) {
             </div>
             <figcaption className="mt-2 text-el-muted text-sm leading-relaxed">
               Dates from the Notice of Issuance of Writs, Government Gazette No.
-              47, and the Constitution, s. 53(1).
+              47, the Prime Minister’s address of 4 October (the police poll),
+              and the Constitution, s. 53(1).
             </figcaption>
           </figure>
         )}
