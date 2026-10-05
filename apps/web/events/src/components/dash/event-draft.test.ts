@@ -35,6 +35,20 @@ const sunset: EventDetail = {
 };
 
 describe("draftFromEvent", () => {
+  it("keeps ticket cents when an existing listing is saved", () => {
+    const event = {
+      ...sunset,
+      tiers: sunset.tiers.map((tier) => ({
+        ...tier,
+        price: { ...tier.price, amountMinor: 2510 },
+      })),
+    };
+    const draft = draftFromEvent(event);
+    expect(draft.tiers[0]?.priceMajor).toBe(25.1);
+    expect(draftToUpsert(draft, "draft").tiers?.[0]?.price_minor).toBe(2510);
+    expect(draftToCard(draft).priceFrom?.amountMinor).toBe(2510);
+  });
+
   it("round-trips Grenada date and times", () => {
     const draft = draftFromEvent(sunset);
     expect(draft.date).toBe("2026-10-03");
@@ -100,6 +114,7 @@ describe("draftToUpsert", () => {
     expect(draftToUpsert(draft, "draft").ends_at).toBe(
       "2026-10-04T02:00:00-04:00"
     );
+    expect(draftIssues(draft)).toEqual([]);
   });
 
   it("sends no tiers for non-ticketed events", () => {

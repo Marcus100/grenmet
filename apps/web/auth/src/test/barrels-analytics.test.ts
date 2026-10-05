@@ -20,7 +20,7 @@ const read = (file: string) =>
 
 it("static Barrels uses the shared consent and Google protocol with no preview collection", () => {
   const policy = read("analytics-policy.js");
-  // Enable only a test fixture; the real catalogue remains unconfigured.
+  // Keep the fixture usable for destinations that have not yet been configured.
   const configured = policy
     .replaceAll('"ga4": null', '"ga4": "G-TEST123"')
     .replaceAll('"ga4":null', '"ga4":"G-TEST123"')

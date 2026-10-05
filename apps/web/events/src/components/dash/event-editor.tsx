@@ -344,6 +344,7 @@ export function EventEditor({
                               ),
                             })
                           }
+                          step="0.01"
                           type="number"
                           value={tier.priceMajor}
                         />

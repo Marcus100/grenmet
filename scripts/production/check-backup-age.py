@@ -57,12 +57,13 @@ def check_marker(marker, environment, kind, now):
                 "JANITORIAL_DB_NAME",
                 "TRANSPORT_DB_NAME",
                 "EREGISTER_DB_NAME",
+                "EVENTS_DB_NAME",
                 "CMS_DB_NAME",
             )
         ]
         if (
             sorted(names) != sorted(expected)
-            or len(set(names)) != 7
+            or len(set(names)) != len(expected)
             or "app_test" in names
             or marker.get("absent_before_provisioning")
         ):

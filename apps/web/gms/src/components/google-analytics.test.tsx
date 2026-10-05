@@ -3,11 +3,13 @@ import { render } from "@testing-library/react";
 import { expect, it } from "vitest";
 import { GoogleAnalytics } from "./google-analytics";
 
-it("restores existing staging Weather analytics without enabling other origins", () => {
+it("uses distinct configured Weather destinations without enabling unrelated origins", () => {
   expect(
     configForOrigin("gms", "https://weather.staging.barrels.gd")?.ga4
   ).toBe("G-6PY9N83HCP");
-  expect(configForOrigin("gms", "https://weather.barrels.gd")).toBeNull();
+  expect(configForOrigin("gms", "https://weather.barrels.gd")?.ga4).toBe(
+    "G-DV1WPSG2CF"
+  );
   expect(
     configForOrigin("signal", "https://weather.staging.barrels.gd")
   ).toBeNull();

@@ -3,18 +3,18 @@ import test from "node:test";
 
 const INVALID_SHARED_ROUTING = /Invalid shared Sentry routing/;
 
-test("preserves only the owner-approved existing staging Weather GA4 mapping", () => {
+test("preserves the staging Weather destination after verifying provider settings", () => {
   const data = readCatalogue();
   const service = data.services.find((entry) => entry.id === "gms");
   const mapping = service.environments.staging.analytics;
   assert.equal(mapping.ga4, "G-6PY9N83HCP");
-  assert.equal(mapping.retentionVerified, false);
-  assert.equal(mapping.accessVerified, false);
+  assert.equal(mapping.retentionVerified, true);
+  assert.equal(mapping.accessVerified, true);
   assert.deepEqual(validateCatalogue(data), []);
   service.environments.production.analytics = { ...mapping };
   assert.ok(
     validateCatalogue(data).some((failure) =>
-      failure.includes("Invalid analytics continuity")
+      failure.includes("Shared provider destination")
     )
   );
 });
