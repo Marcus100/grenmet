@@ -17,7 +17,7 @@ remediation, Discord integration or application deployment was added in this pas
 Run `node scripts/integrations/analytics-status.mjs` from the repository root.
 It reports each app/environment separately: no public analytics, missing ID,
 provider settings awaiting verification, configured, or delivery verified.
-Configured does not mean Google has received an event.
+Configured does not mean Google has received an event. Browser analytics is production-only: `barrels.gd` and its public subdomains. Staging, local development and previews never collect, even with old consent or provider IDs. Operational Sentry and availability checks remain environment-specific.
 
 Weather, Docs, MBIA, Signal, Elections and public Events discovery pages mount the shared consent provider.
 Barrels' static build emits the same consent policy and Google transport as
@@ -25,7 +25,7 @@ browser modules, with no framework dependency. Events collects only home, event 
 member pages and sign-in remain excluded alongside Auth, Admin and CMS.
 
 For each additional public site, create/select its own GA4 property and web
-stream, record its `G-…` ID and exact origin under the appropriate environment
+stream, record its `G-…` ID and exact origin under the production environment
 in `packages/ui/src/lib/service-catalogue.json`, and verify account access and
 retention settings before setting the corresponding verification flags and
 `status: configured`. Do not copy the Weather staging ID to other sites or to
@@ -44,15 +44,15 @@ The measurement ID is public configuration, not a password. Property creation
 and reporting verification require access to the owner's Google Analytics
 account; repository tests cannot establish either.
 
-### Existing analytics continuity
+### Production-only owner decision
 
-On 2026-10-03 the owner requested restoration of existing integrations. The
-staging Weather GA4 property `G-6PY9N83HCP` was confirmed in both the live tag
-and the staging variable. Its explicit `continuity-approved` mapping preserves
-that destination with consent controls. The retention/access flags were subsequently verified on 2026-10-05; this historical
-exception is no longer needed for activation and does not establish delivery.
-The exception is restricted to that app, origin, environment and GA4 ID, with
-no PostHog or production fallback. Other app mappings still need assignment.
+On 2026-10-05 the owner excluded all staging subdomains from browser analytics.
+This supersedes the earlier Weather staging continuity exception. All staging GA4
+and PostHog mappings are empty; runtime policy rejects non-production destinations
+and the catalogue validator rejects attempts to configure them. Previously created
+staging properties remain unused; historical provider data is not deleted.
+The currently deployed old Weather staging tag stops after the corrected release
+is deployed. Do not claim the live tag is disabled before that rollout.
 
 [Service catalogue](../../packages/ui/src/lib/service-catalogue.json) records every
 app, owner, environment, deployment target, provider mapping and coverage status.
@@ -81,7 +81,7 @@ Elections is hosted separately on Vercel and requires the existing SDK's public 
 environment, project and source-map token in its Vercel project settings; GitHub
 secrets do not automatically reach Vercel. Catalogue configuration does not prove
 live delivery. Browser/server/worker and source-map acceptance remain pending.
-GA4 mappings are configured for the 12 deployed public site/environment origins; PostHog mappings remain empty and disabled. Source-map upload and
+GA4 mappings are configured for the seven public production origins; PostHog mappings remain empty and disabled. Source-map upload and
 browser/server releases use `NEXT_PUBLIC_RELEASE` (the build commit).
 Performance transactions are dropped and sampling remains zero until sanitation
 and free quota can be verified; replay/profiling/log ingestion remain disabled.
@@ -108,10 +108,6 @@ Not every planned surface is instrumented yet: published warning/download action
 MBIA external links/filters, full staff/CMS business outcomes and the homepage link
 conversion remain rollout work. The static homepage uses the shared consent policy and Google transport emitted by its build.
 
-G-6PY9N83HCP remains the staging Weather destination. Its stream URL and sole
-administrator access were verified in Google Analytics on 2026-10-05. Historical
-provider data is not deleted.
-
 ### Verified GA4 configuration on 2026-10-05
 
 The owner signed into the existing Analytics account and approved consent-controlled
@@ -121,19 +117,19 @@ was retained. Every property has one administrator, two-month event retention,
 14-month user retention with activity resets off, Google signals off, and ads
 personalization disallowed in all regions. These are provider configuration checks,
 not proof that the new release has delivered events. Existing Weather staging shows
-recent traffic; fresh consent and Realtime acceptance still belongs to deployment.
+recent traffic; it is now excluded by policy. Fresh consent and Realtime acceptance for production still belongs to deployment.
 
 | Site | Staging measurement ID | Production measurement ID |
 | --- | --- | --- |
-| Barrels website | No staging origin configured | `G-0JBCYK5VWB` |
-| Elections | No staging origin configured | `G-7Q58MQM26M` |
-| GMS Weather | `G-6PY9N83HCP` | `G-DV1WPSG2CF` |
-| GMS Docs | `G-X3J6KJGZGK` | `G-0X655FY41Y` |
-| MBIA | `G-YHWFZWWWJS` | `G-21V6Z1ZG94` |
-| Signal | `G-PY2W7M5TQ6` | `G-9BPVBYLB8B` |
-| Events discovery | `G-C9N57T67XJ` | `G-EWCBDHLJ5G` |
+| Barrels website | Disabled by owner | `G-0JBCYK5VWB` |
+| Elections | Disabled by owner | `G-7Q58MQM26M` |
+| GMS Weather | Disabled by owner | `G-DV1WPSG2CF` |
+| GMS Docs | Disabled by owner | `G-0X655FY41Y` |
+| MBIA | Disabled by owner | `G-21V6Z1ZG94` |
+| Signal | Disabled by owner | `G-9BPVBYLB8B` |
+| Events discovery | Disabled by owner | `G-EWCBDHLJ5G` |
 
-Only exact catalogue origins collect. `www.barrels.gd` redirects to `barrels.gd`,
+Only exact production catalogue origins collect. Staging deployment verifies that analytics stays off; it is not a collection pilot. `www.barrels.gd` redirects to `barrels.gd`,
 so it uses the destination site's stream. Unassigned previews, API endpoints,
 Auth, GAA Admin and CMS have no browser GA4. Availability and Sentry cover those
 operational services. Personal and NISA sites remain outside this repository.

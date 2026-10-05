@@ -238,6 +238,7 @@ Other:
 - Sentry: owner-approved shared projects for this repo are `grenmet-staging` and `grenmet-production`; route only through the matching environment secret, never cross-environment fallback. Preserve existing reporting during migration.
 
 - **Telemetry rollout:** verify dev → staging → production, with app/environment mappings in `packages/ui/src/lib/service-catalogue.json`; missing mappings disable collection, never fall back to another owner’s project.
+- **Public browser analytics:** collect only on production `barrels.gd` and its public subdomains; staging and previews must stay disabled even if legacy provider IDs exist. See `docs/operations/analytics-monitoring.md`.
 - **Monitoring ownership:** manage provider configuration, host probes and backup/restore jobs through reviewed CI/CD; activation and evidence gates are in `docs/operations/analytics-monitoring.md`.
 
 - Docker image names in GitHub workflows must be lowercase.

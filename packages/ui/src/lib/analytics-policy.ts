@@ -36,19 +36,18 @@ export function configForOrigin(
   const service = catalogue.services.find((entry) => entry.id === app);
   if (!(service?.publicAnalytics && PUBLIC_APPS.has(app))) return null;
   for (const [environment, entry] of Object.entries(service.environments)) {
+    if (environment !== "production" || entry.origin !== origin) continue;
+    const hostname = new URL(origin).hostname;
+    if (
+      !(hostname === "barrels.gd" || hostname.endsWith(".barrels.gd")) ||
+      hostname.split(".").includes("staging")
+    )
+      continue;
     const mapping = entry.analytics;
-    const existingWeatherAnalytics =
-      mapping.status === "continuity-approved" &&
-      app === "gms" &&
-      environment === "staging" &&
-      entry.origin === "https://weather.staging.barrels.gd" &&
-      mapping.ga4 === "G-6PY9N83HCP" &&
-      mapping.posthog === null;
     const approved =
-      existingWeatherAnalytics ||
-      (mapping.retentionVerified &&
-        mapping.accessVerified &&
-        ["configured", "delivery-verified"].includes(mapping.status));
+      mapping.retentionVerified &&
+      mapping.accessVerified &&
+      ["configured", "delivery-verified"].includes(mapping.status);
     if (entry.origin !== origin || !approved) continue;
     return {
       app: app as PublicApp,

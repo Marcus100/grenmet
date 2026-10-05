@@ -11,12 +11,12 @@ export function analyticsStatus(catalogue = readCatalogue()) {
         const entry = service.environments[environment];
         const mapping = entry.analytics;
         const approved =
-          mapping.status === "continuity-approved" ||
-          (mapping.retentionVerified &&
-            mapping.accessVerified &&
-            ["configured", "delivery-verified"].includes(mapping.status));
+          mapping.retentionVerified &&
+          mapping.accessVerified &&
+          ["configured", "delivery-verified"].includes(mapping.status);
         let status = "configured; live delivery unverified";
         if (!service.publicAnalytics) status = "not a public analytics surface";
+        else if (environment !== "production") status = "disabled by policy";
         else if (!entry.origin)
           status = "exact origin and measurement ID needed";
         else if (!mapping.ga4) status = "measurement ID needed";

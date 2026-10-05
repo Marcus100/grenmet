@@ -28,7 +28,7 @@ test("accounts for every public Next.js reader and keeps operational consoles ex
   assert.equal(
     rows.find((row) => row.app === "gms" && row.environment === "staging")
       .status,
-    "configured; live delivery unverified"
+    "disabled by policy"
   );
   assert.equal(
     rows.find((row) => row.app === "signal" && row.environment === "production")
@@ -37,11 +37,14 @@ test("accounts for every public Next.js reader and keeps operational consoles ex
   );
 });
 
-test("every deployed public origin has its own configured GA4 destination", () => {
+test("every public production origin has its own configured GA4 destination", () => {
   const rows = analyticsStatus().filter(
-    (row) => row.origin && row.status !== "not a public analytics surface"
+    (row) =>
+      row.environment === "production" &&
+      row.origin &&
+      row.status !== "not a public analytics surface"
   );
-  assert.equal(rows.length, 12);
+  assert.equal(rows.length, 7);
   assert.equal(new Set(rows.map((row) => row.ga4)).size, rows.length);
   for (const row of rows) {
     assert.match(row.ga4, GA4_ID);
