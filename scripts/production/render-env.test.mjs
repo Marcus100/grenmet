@@ -116,6 +116,20 @@ test("rejects missing secrets, multiline values and mutable references without e
     { SECRET_KEY: "DO-NOT-ECHO\ninvalid" },
     { DEPLOY_IMAGE_TAG: "latest" },
     { CORE_REDIS_IMAGE: "redis:latest" },
+    { TELEMETRY_ENABLED: "TRUE" },
+    { TELEMETRY_WORKER_HEARTBEAT_URL: "https://example.test/DO-NOT-ECHO" },
+    {
+      TELEMETRY_WORKER_HEARTBEAT_URL:
+        "https://uptime.betterstack.com:DO-NOT-ECHO/api/v1/heartbeat/token",
+    },
+    {
+      TELEMETRY_WORKER_HEARTBEAT_URL:
+        "https://uptime.betterstack.com/api/v1/heartbeat/",
+    },
+    {
+      TELEMETRY_WORKER_HEARTBEAT_URL:
+        "https://uptime.betterstack.com/api/v1/heartbeat/DO-NOT-ECHO?token=private",
+    },
   ]) {
     const directory = mkdtempSync(join(tmpdir(), "delivery-env-"));
     try {
@@ -162,6 +176,9 @@ test("staging and production pass integrations to the intended services", () => 
         GOOGLE_CLIENT_SECRET: "fixture-only",
         EMAIL_RENDER_SECRET: "fixture-only",
         RESEND_WEBHOOK_SECRET: "whsec_fixture",
+        TELEMETRY_ENABLED: "true",
+        TELEMETRY_WORKER_HEARTBEAT_URL:
+          "https://uptime.betterstack.com/api/v1/heartbeat/test-only",
         CAP_SIGNING_CERT:
           "-----BEGIN CERTIFICATE-----\nfixture\n-----END CERTIFICATE-----",
         CAP_SIGNING_KEY:
@@ -270,6 +287,11 @@ test("staging and production pass integrations to the intended services", () => 
       assert.equal(
         model.services.worker.environment.SENTRY_DSN,
         api.SENTRY_DSN
+      );
+      assert.equal(model.services.worker.environment.TELEMETRY_ENABLED, "true");
+      assert.equal(
+        model.services.worker.environment.TELEMETRY_WORKER_HEARTBEAT_URL,
+        env.TELEMETRY_WORKER_HEARTBEAT_URL
       );
       assert.equal(
         model.services["web-gms"].environment.CAP_API_URL,

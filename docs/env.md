@@ -9,6 +9,9 @@ in the Grenmet monorepo: what each variable does, where it is supplied, and whic
 service reads it. Typed settings modules, Compose files, and deployment workflows
 remain the executable source of truth and must be updated together with this guide.
 
+For the current staging/production integration inventory, repeatable metadata audit
+and provider setup steps, see [Integration readiness](operations/integration-readiness.md).
+
 ---
 
 ## Local dev setup (one-time)
