@@ -100,6 +100,18 @@ elif [ "${ENVIRONMENT:-local}" != "local" ]; then
     exit 1
 fi
 
+# Barrels Events has its own database (ADR-0003, ADR-0016). Optional in every
+# environment until its deploy secrets exist; the API returns 503 for
+# /events routes while it is unset.
+if [ -n "${EVENTS_DATABASE_URL:-}" ]; then
+    alembic -c src/events/alembic.ini upgrade head
+    if [ "${ENVIRONMENT:-local}" = "local" ]; then
+        python scripts/seed_events_demo.py --apply
+    fi
+else
+    echo "EVENTS_DATABASE_URL not set; skipping Barrels Events migrations" >&2
+fi
+
 if [ -n "${JANITORIAL_DATABASE_URL:-}" ] && [ -n "${TRANSPORT_DATABASE_URL:-}" ]; then
     python scripts/seed_catalogues.py --apply
 fi

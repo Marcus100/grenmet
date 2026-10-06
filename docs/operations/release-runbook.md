@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-09-18
+**Last updated:** 2026-10-05
 
 How a change ships from `dev` to production. Agents (Claude Code / Codex) may run
 the verification and PR-creation steps; **merging PRs and publishing the release
@@ -18,6 +18,14 @@ required checks on `staging` and `main` PRs.
 - Run the `/pre-merge` check (types, lint, Docker names, env drift, API-client
   sync, Actions pinning). Fix findings before promoting.
 - `git status` clean, `dev` pushed.
+- For the API-backed Events release, provision `EVENTS_DB_PASSWORD` separately in
+  the staging and production GitHub environments before promotion (separate secrets were created and presence verified on 2026-10-05). Delivery
+  validates it before touching the running stack, provisions the dedicated
+  `events_staging` / `events` database, and runs its existing migrations. Verify
+  an Events sign-in and persisted save/RSVP on staging. Core backup and restore
+  acceptance now require eight databases including Events; retain a fresh complete
+  backup after provisioning. The production nightly backup will report a missing
+  Events database until this release has been deployed.
 
 ## 2. Promote dev → staging
 

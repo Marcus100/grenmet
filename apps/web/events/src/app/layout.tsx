@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Noto_Sans } from "next/font/google";
+import { Bricolage_Grotesque, Inter, Noto_Sans } from "next/font/google";
 
 const notoSans = Noto_Sans({
   subsets: ["latin"],
@@ -8,20 +8,35 @@ const notoSans = Noto_Sans({
   display: "swap",
 });
 
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const bricolage = Bricolage_Grotesque({
+  subsets: ["latin"],
+  variable: "--font-bricolage",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: {
-    default: "Barrels Events",
+    default: "Barrels Events — What's on in Grenada",
     template: "%s | Barrels Events",
   },
   description:
-    "A dependable organiser workspace from event setup through settlement.",
+    "Every event in Grenada, Carriacou and Petite Martinique — fetes, meetups, food, sport and culture — plus the groups and people behind them.",
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html className={notoSans.variable} lang="en">
+    <html
+      className={`${notoSans.variable} ${inter.variable} ${bricolage.variable}`}
+      lang="en"
+    >
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         {children}
       </body>

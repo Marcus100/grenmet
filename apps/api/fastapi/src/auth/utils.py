@@ -26,10 +26,14 @@ def hash_session_token(session_token: str) -> str:
     return hashlib.sha256(session_token.encode("utf-8")).hexdigest()
 
 
-def create_access_token(subject: str | Any, expires_delta: timedelta) -> str:
-    """Create JWT access token."""
+def create_access_token(
+    subject: str | Any, expires_delta: timedelta, app: str | None = None
+) -> str:
+    """Create JWT access token. ``app`` scopes it to one self-service app."""
     expire = datetime.now(UTC) + expires_delta
-    to_encode = {"exp": expire, "sub": str(subject)}
+    to_encode: dict[str, Any] = {"exp": expire, "sub": str(subject)}
+    if app is not None:
+        to_encode["app"] = app
     encoded_jwt = jwt.encode(to_encode, auth_settings.SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 

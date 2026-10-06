@@ -6,6 +6,8 @@ import campaignJson from "@/data/source/campaign.json";
 import type { CampaignFile } from "@/data/types";
 
 const DOWNLOAD = /Download:/;
+const POLICE_POLL = /Special polling day for police officers/;
+const WATCH_LINK = /Watch the address on YouTube/;
 const GAZETTE_SOURCE = /Official record: Government Gazette/;
 
 vi.mock("server-only", () => ({}));
@@ -56,4 +58,51 @@ describe("coverage posts", () => {
     expect(screen.getAllByRole("row")).toHaveLength(20);
     // The first import of the page module is slow under a full parallel run.
   }, 20_000);
+
+  it("reproduces the Prime Minister's address with a link to the video", async () => {
+    const { default: UpdatePage } = await import("./page");
+    render(
+      await UpdatePage({
+        params: Promise.resolve({ slug: "mitchell-announces-5-november" }),
+      })
+    );
+    expect(
+      screen.getByRole("heading", { name: "Transcript of the address" })
+    ).toBeTruthy();
+    expect(screen.getByText(POLICE_POLL)).toBeTruthy();
+    expect(screen.getByRole("link", { name: WATCH_LINK })).toHaveProperty(
+      "href",
+      "https://www.youtube.com/watch?v=MhEecDI2qHk"
+    );
+  });
+
+  it("highlights the important dates and sets the address out as a transcript", async () => {
+    const { default: UpdatePage } = await import("./page");
+    const { container } = render(
+      await UpdatePage({
+        params: Promise.resolve({ slug: "mitchell-announces-5-november" }),
+      })
+    );
+    expect(screen.getByRole("heading", { name: "Dates to know" })).toBeTruthy();
+    expect(
+      screen.getByRole("heading", { name: "Registration is closed" })
+    ).toBeTruthy();
+    expect(screen.getByText("Prime Minister Dickon Mitchell")).toBeTruthy();
+    const marked = [...container.querySelectorAll("mark")].map(
+      (m) => m.textContent
+    );
+    expect(marked).toContain("November 5th, 2026");
+    expect(marked).toContain("2nd November, 2026");
+  });
+
+  it("puts the byline above the date", async () => {
+    const { default: UpdatePage } = await import("./page");
+    render(
+      await UpdatePage({
+        params: Promise.resolve({ slug: "mitchell-announces-5-november" }),
+      })
+    );
+    const byline = screen.getByText("By Eugine Whint");
+    expect(byline.nextElementSibling?.querySelector("time")).not.toBeNull();
+  });
 });

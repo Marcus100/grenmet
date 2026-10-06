@@ -21,6 +21,13 @@ class AuthConfig(BaseSettings):
     GOOGLE_REDIRECT_URI: str = ""
     AUTH_FRONTEND_URL: str = "http://localhost:3000"
     ALLOW_PUBLIC_SIGNUP: bool = True
+    # App-scoped sign-in (src/auth/apps.py). Each self-service app has its own
+    # sign-in pages, session cookie and Google redirect; see ADR-0016.
+    EVENTS_APP_URL: str = "http://localhost:3009"
+    EVENTS_GOOGLE_REDIRECT_URI: str = ""
+    # One-time codes by SMS/WhatsApp. "disabled" until a provider is chosen
+    # (every message costs money); "console" logs codes for local development.
+    PHONE_OTP_PROVIDER: Literal["disabled", "console"] = "disabled"
 
     SECRET_KEY: str = secrets.token_urlsafe(32)
     # Legacy OAuth2 bearer token (login/access-token). Short-lived by default: the

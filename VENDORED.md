@@ -1,7 +1,7 @@
 # Vendored applications
 
-Third-party applications vendored into this monorepo as GMS-owned copies
-(fork-and-own). Upstream git history is not retained, so provenance is recorded
+Third-party applications vendored into this monorepo as maintained copies
+(fork-and-maintain). They keep their upstream licences. Upstream git history is not retained, so provenance is recorded
 here — future upgrades or upstream-fix ports are done by diffing against the
 recorded upstream release.
 

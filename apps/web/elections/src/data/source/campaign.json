@@ -1,5 +1,5 @@
 {
-  "updated": "2026-10-03",
+  "updated": "2026-10-04",
   "sources": {
     "conch": [
       "NOW Grenada, 26 Sep 2026",
@@ -85,6 +85,14 @@
     "ndcdegannes": [
       "NDC Facebook video presenting Caris DeGannes to St. Mark (undated)",
       "https://www.facebook.com/supportndc/videos/caris-degannes-a-humble-daughter-of-st-mark-is-seeking-your-help-to-make-history/1056241807254788/"
+    ],
+    "ndc4oct": [
+      "NDC official Facebook post after the rally announcement, 4 Oct 2026 (supplied to us; not independently checked)",
+      ""
+    ],
+    "pmaddress4oct": [
+      "Prime Minister Dickon Mitchell’s address announcing the general election, official video on YouTube, 4 Oct 2026 (transcript supplied to us)",
+      "https://www.youtube.com/watch?v=MhEecDI2qHk"
     ],
     "owner2oct": [
       "Confirmed to Elections Grenada by the site owner, 2 Oct 2026 (no public source linked yet)",
@@ -215,6 +223,18 @@
       "flag": null
     },
     {
+      "date": "2026-10-02",
+      "text": "Voter registration closes: the Prime Minister says 2 October was the last date on which eligible people could be registered as electors.",
+      "src": "pmaddress4oct",
+      "flag": null
+    },
+    {
+      "date": "2026-10-04",
+      "text": "The Prime Minister announces in an address that the general election will be held on 5 November, with nomination day on 15 October and a special poll for police officers on 2 November.",
+      "src": "pmaddress4oct",
+      "flag": null
+    },
+    {
       "date": "2026-10-15",
       "text": "Nomination day: returning officers receive nominations from 9:00 a.m. to 12 noon.",
       "src": "gazette47",
@@ -222,16 +242,16 @@
       "future": true
     },
     {
-      "date": "2026-11-05",
-      "text": "Polling day.",
-      "src": "gazette47",
+      "date": "2026-11-02",
+      "text": "Special polling day for police officers.",
+      "src": "pmaddress4oct",
       "flag": null,
       "future": true
     },
     {
-      "date": "2027-01-02",
-      "text": "The latest possible election date: the Constitution requires the general election within three months after a dissolution.",
-      "src": "constitution",
+      "date": "2026-11-05",
+      "text": "Polling day.",
+      "src": "gazette47",
       "flag": null,
       "future": true
     }
@@ -459,5 +479,6 @@
   },
   "writs": "2026-10-02",
   "nomination_day": "2026-10-15",
-  "polling_day": "2026-11-05"
+  "polling_day": "2026-11-05",
+  "police_polling_day": "2026-11-02"
 }

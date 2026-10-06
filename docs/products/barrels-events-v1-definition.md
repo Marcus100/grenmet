@@ -9,6 +9,18 @@ The gate requires an approved problem statement, actor model, operational loop,
 payment/payout feasibility decision, and pilot acceptance criteria. Sections 1-3
 and 5 below are decidable now. Section 4 is externally blocked and says so.
 
+## Scope update — discovery and community (2026-10-03)
+
+The app now has two surfaces. The organiser console described below moved to
+`/dash`, where promoters build and customise events. The public root (`/`) is
+a discovery and community site: every event in Grenada, groups and recurring
+meetups, member profiles, connections and messaging. It reads and writes the
+Events API (own database, app-scoped sign-in per ADR-0016); the organiser sales,
+settlement and readiness overview at `/dash` is still demo data until ticketing
+exists. Direct messages are limited to accepted connections or shared group
+members, and resident suggestions stay review-before-publish. Design lane:
+[`docs/design/events.md`](../design/events.md).
+
 ## Evidence base and its limits
 
 Written from a private research vault survey (2026-08-28): one organiser's

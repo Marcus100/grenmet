@@ -13,6 +13,7 @@ Events received (configure in Resend dashboard):
 """
 
 import base64
+import binascii
 import hashlib
 import hmac
 import json
@@ -56,25 +57,27 @@ def _verify_svix_signature(
         return False
 
     # 2. Build the signed content string.
-    to_sign = f"{svix_id}.{svix_timestamp}.{raw_body.decode()}"
+    to_sign = f"{svix_id}.{svix_timestamp}.".encode() + raw_body
 
     # 3. Decode the secret (strip "whsec_" prefix).
     raw_key_b64 = secret.removeprefix("whsec_")
     try:
-        raw_key = base64.b64decode(raw_key_b64)
-    except Exception:
+        raw_key = base64.b64decode(raw_key_b64, validate=True)
+    except binascii.Error, ValueError:
         logger.error("Resend webhook: RESEND_WEBHOOK_SECRET is not valid base64")
+        return False
+    if not raw_key:
         return False
 
     # 4. Compute HMAC-SHA256 and base64-encode.
-    computed = base64.b64encode(
-        hmac.new(raw_key, to_sign.encode(), hashlib.sha256).digest()
-    ).decode()
+    computed = base64.b64encode(hmac.new(raw_key, to_sign, hashlib.sha256).digest())
 
     # 5. Compare against each signature in the header (space-separated "v1,<sig>" pairs)
     #    using a constant-time comparison to avoid leaking the signature by timing.
     provided_sigs = [
-        part.split(",", 1)[1] for part in svix_signature.split(" ") if "," in part
+        part.removeprefix("v1,").encode()
+        for part in svix_signature.split()
+        if part.startswith("v1,")
     ]
     return any(hmac.compare_digest(computed, sig) for sig in provided_sigs)
 
@@ -133,13 +136,25 @@ async def resend_webhook(request: Request) -> JSONResponse:
     # ── Parse event ────────────────────────────────────────────────────────
     try:
         event: dict[str, Any] = json.loads(raw_body)
-    except json.JSONDecodeError:
+    except json.JSONDecodeError, UnicodeDecodeError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid JSON"
         )
 
-    event_type: str = event.get("type", "unknown")
-    data: dict[str, Any] = event.get("data", {})
+    if (
+        not isinstance(event, dict)
+        or not isinstance(event.get("type"), str)
+        or not isinstance(event.get("data"), dict)
+    ):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid event envelope"
+        )
+    event_type: str = event["type"]
+    data: dict[str, Any] = event["data"]
+    if "bounce" in data and not isinstance(data["bounce"], dict):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid bounce details"
+        )
     email_id: str = data.get("email_id", "")
     to_address: str | list[str] = data.get("to", "")
 

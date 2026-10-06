@@ -27,7 +27,6 @@ import {
   ArrowRight,
   Bell,
   CalendarDays,
-  CalendarPlus2,
   Check,
   ChevronDown,
   CircleCheckBig,
@@ -35,19 +34,13 @@ import {
   Clock3,
   ExternalLink,
   Landmark,
-  LayoutDashboard,
-  LifeBuoy,
   MapPin,
-  MoreHorizontal,
   ReceiptText,
-  ScanLine,
   Search,
-  Settings2,
   ShieldCheck,
   Ticket,
   TrendingUp,
   TriangleAlert,
-  Users,
   WifiOff,
 } from "lucide-react";
 import type { ComponentType } from "react";
@@ -64,27 +57,9 @@ import type {
   SettlementPreview,
 } from "@/domain/types";
 import { formatEventDate } from "@/lib/datetime";
+import { DashShell } from "./dash/dash-shell";
 
 type Icon = ComponentType<{ className?: string }>;
-
-interface NavigationItem {
-  active?: boolean;
-  badge?: string;
-  icon: Icon;
-  label: string;
-}
-
-const navigation: NavigationItem[] = [
-  { label: "Overview", icon: LayoutDashboard, active: true },
-  { label: "Build event", icon: CalendarPlus2 },
-  { label: "Tickets & capacity", icon: Ticket },
-  { label: "Orders", icon: ReceiptText },
-  { label: "Attendees", icon: Users },
-  { label: "Door & box office", icon: ScanLine, badge: "2" },
-  { label: "Finance", icon: Landmark },
-  { label: "Team", icon: ShieldCheck },
-  { label: "Settings", icon: Settings2 },
-];
 
 const EVENT_STATUS_LABELS: Record<EventStatus, string> = {
   draft: "Draft",
@@ -147,156 +122,6 @@ function buildMetrics(
       icon: Landmark,
     },
   ];
-}
-
-function NavigationLink({ item }: { item: NavigationItem }) {
-  const Icon = item.icon;
-
-  return (
-    <a
-      aria-current={item.active ? "page" : undefined}
-      aria-disabled={item.active ? undefined : true}
-      className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-body transition-colors ${
-        item.active
-          ? "bg-background text-foreground"
-          : "pointer-events-none text-primary-foreground/60"
-      }`}
-      href="/"
-      tabIndex={item.active ? undefined : -1}
-      title={item.active ? undefined : "Available in a later step"}
-    >
-      <Icon className="size-4" />
-      <span className="flex-1">{item.label}</span>
-      {item.badge ? (
-        <span
-          aria-hidden="true"
-          className="flex size-5 items-center justify-center rounded-full bg-warning text-caption text-warning-foreground"
-        >
-          {item.badge}
-        </span>
-      ) : null}
-    </a>
-  );
-}
-
-function Sidebar({ event }: { event: EventRecord }) {
-  return (
-    <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col bg-primary text-primary-foreground lg:flex">
-      <div className="flex h-20 items-center gap-3 px-5">
-        <div className="flex size-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-          <Ticket className="size-5" />
-        </div>
-        <div>
-          <p className="font-semibold text-body-base">Barrels</p>
-          <p className="text-caption text-primary-foreground/70">Events</p>
-        </div>
-      </div>
-
-      <div className="px-3">
-        <Button
-          aria-label="Select event"
-          className="h-auto w-full justify-start border-primary-foreground/15 bg-primary-foreground/5 px-3 py-3 text-left text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
-          disabled
-          size="lg"
-          title="Available in a later step"
-          type="button"
-          variant="outline"
-        >
-          <span className="flex size-9 items-center justify-center rounded-lg bg-primary-foreground/10">
-            <CalendarDays className="size-4" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-caption text-primary-foreground/65">
-              {event.isDemo ? "Demo event" : "Selected event"}
-            </span>
-            <span className="block truncate text-body">{event.name}</span>
-          </span>
-          <ChevronDown className="size-4 text-primary-foreground/65" />
-        </Button>
-      </div>
-
-      <nav aria-label="Event workspace" className="mt-5 flex-1 space-y-1 px-3">
-        {navigation.map((item) => (
-          <NavigationLink item={item} key={item.label} />
-        ))}
-      </nav>
-
-      <div className="space-y-1 border-primary-foreground/10 border-t p-3">
-        <a
-          aria-disabled="true"
-          className="pointer-events-none flex min-h-11 items-center gap-3 rounded-lg px-3 text-body text-primary-foreground/60"
-          href="/"
-          tabIndex={-1}
-          title="Available in a later step"
-        >
-          <LifeBuoy className="size-4" />
-          Support
-        </a>
-        <div className="flex items-center gap-3 px-3 py-3">
-          <div className="flex size-9 items-center justify-center rounded-full bg-primary-foreground/10 font-semibold text-caption">
-            EG
-          </div>
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-body">Eugine G.</p>
-            <p className="truncate text-caption text-primary-foreground/60">
-              Owner
-            </p>
-          </div>
-          <MoreHorizontal className="size-4 text-primary-foreground/60" />
-        </div>
-      </div>
-    </aside>
-  );
-}
-
-function MobileHeader({ event }: { event: EventRecord }) {
-  return (
-    <header className="border-border border-b bg-card px-4 py-3 lg:hidden">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <Ticket className="size-4" />
-          </div>
-          <div>
-            <p className="font-semibold text-body-base">Barrels Events</p>
-            <p className="text-caption text-muted-foreground">{event.name}</p>
-          </div>
-        </div>
-        <Button
-          aria-label="Open notifications"
-          disabled
-          size="icon"
-          title="Available in a later step"
-          variant="ghost"
-        >
-          <Bell />
-        </Button>
-      </div>
-      <nav
-        aria-label="Mobile event workspace"
-        className="-mx-4 mt-3 flex gap-2 overflow-x-auto border-border border-t px-4 pt-3"
-      >
-        {navigation.map((item) => (
-          <a
-            aria-current={item.active ? "page" : undefined}
-            aria-disabled={item.active ? undefined : true}
-            className={`flex min-h-11 shrink-0 items-center gap-2 rounded-full px-3 text-caption ${
-              item.active
-                ? "bg-primary text-primary-foreground"
-                : "pointer-events-none bg-muted text-muted-foreground opacity-60"
-            }`}
-            href="/"
-            key={item.label}
-            tabIndex={item.active ? undefined : -1}
-            title={item.active ? undefined : "Available in a later step"}
-          >
-            {item.label}
-            {item.badge ? <span aria-hidden="true">{item.badge}</span> : null}
-          </a>
-        ))}
-      </nav>
-    </header>
-  );
 }
 
 function MetricCard({ detail, icon: Icon, label, value }: Metric) {
@@ -651,124 +476,120 @@ export function EventOverview({ dashboard }: { dashboard: EventDashboard }) {
   const metrics = buildMetrics(event, totals, settlement, salesTrendLabel);
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      <Sidebar event={event} />
-      <div className="lg:pl-64">
-        <MobileHeader event={event} />
-        <OverviewHeader event={event} />
+    <DashShell active="overview" eventName={event.name} isDemo={event.isDemo}>
+      <OverviewHeader event={event} />
 
-        <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-          {event.isDemo && (
-            <p className="mb-6 rounded-xl border border-border bg-card p-4 text-body">
-              Demo workspace. All figures are sample data. Ticket sales, orders,
-              payments and event management are not available here.
-            </p>
-          )}
-          <section
-            aria-labelledby="event-status-heading"
-            className="mb-6 flex flex-col justify-between gap-4 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center"
-          >
-            <div className="flex items-start gap-3">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-success text-success-foreground">
-                <CircleCheckBig className="size-5" />
-              </span>
-              <div>
-                <h2
-                  className="font-semibold text-body-base"
-                  id="event-status-heading"
-                >
-                  Sales are healthy. Operations need attention.
-                </h2>
-                <p className="mt-1 text-body text-muted-foreground">
-                  {countdownLabel} Complete the door rehearsal and payout setup
-                  before expanding promotion.
-                </p>
-              </div>
+      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        {event.isDemo && (
+          <p className="mb-6 rounded-xl border border-border bg-card p-4 text-body">
+            Demo workspace. All figures are sample data. Ticket sales, orders,
+            payments and event management are not available here.
+          </p>
+        )}
+        <section
+          aria-labelledby="event-status-heading"
+          className="mb-6 flex flex-col justify-between gap-4 rounded-xl border border-border bg-card p-4 sm:flex-row sm:items-center"
+        >
+          <div className="flex items-start gap-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-success text-success-foreground">
+              <CircleCheckBig className="size-5" />
+            </span>
+            <div>
+              <h2
+                className="font-semibold text-body-base"
+                id="event-status-heading"
+              >
+                Sales are healthy. Operations need attention.
+              </h2>
+              <p className="mt-1 text-body text-muted-foreground">
+                {countdownLabel} Complete the door rehearsal and payout setup
+                before expanding promotion.
+              </p>
             </div>
-            <Button
-              className="shrink-0"
-              disabled
-              title="Available in a later step"
-              variant="outline"
-            >
-              Review actions
-              <ArrowRight data-icon="inline-end" />
-            </Button>
-          </section>
-
-          <section
-            aria-label="Event performance"
-            className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+          </div>
+          <Button
+            className="shrink-0"
+            disabled
+            title="Available in a later step"
+            variant="outline"
           >
-            {metrics.map((metric) => (
-              <MetricCard key={metric.label} {...metric} />
-            ))}
-          </section>
+            Review actions
+            <ArrowRight data-icon="inline-end" />
+          </Button>
+        </section>
 
-          <section
-            aria-label="Event preparation"
-            className="mt-6 grid gap-6 lg:grid-cols-12"
-          >
-            <EventReadiness
-              actionCount={actions.length}
-              checks={readinessChecks}
-              percent={readinessPercent}
-            />
-            <NextActions actions={actions} />
-          </section>
+        <section
+          aria-label="Event performance"
+          className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+        >
+          {metrics.map((metric) => (
+            <MetricCard key={metric.label} {...metric} />
+          ))}
+        </section>
 
-          <section
-            aria-label="Sales and settlement"
-            className="mt-6 grid gap-6 lg:grid-cols-12"
-          >
-            <SalesChannels channels={channels} />
-            <SettlementPreviewCard settlement={settlement} />
-          </section>
+        <section
+          aria-label="Event preparation"
+          className="mt-6 grid gap-6 lg:grid-cols-12"
+        >
+          <EventReadiness
+            actionCount={actions.length}
+            checks={readinessChecks}
+            percent={readinessPercent}
+          />
+          <NextActions actions={actions} />
+        </section>
 
-          <section
-            aria-label="Operational record"
-            className="mt-6 grid gap-4 sm:grid-cols-3"
-          >
-            <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
-              <span className="flex size-9 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
-                <Clock3 className="size-4" />
-              </span>
-              <div>
-                <p className="font-medium text-body">Last payment</p>
-                <p className="text-caption text-muted-foreground">
-                  {operational.lastPaymentLabel} ·{" "}
-                  {operational.lastPaymentChannel}
-                </p>
-              </div>
+        <section
+          aria-label="Sales and settlement"
+          className="mt-6 grid gap-6 lg:grid-cols-12"
+        >
+          <SalesChannels channels={channels} />
+          <SettlementPreviewCard settlement={settlement} />
+        </section>
+
+        <section
+          aria-label="Operational record"
+          className="mt-6 grid gap-4 sm:grid-cols-3"
+        >
+          <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
+            <span className="flex size-9 items-center justify-center rounded-lg bg-secondary text-secondary-foreground">
+              <Clock3 className="size-4" />
+            </span>
+            <div>
+              <p className="font-medium text-body">Last payment</p>
+              <p className="text-caption text-muted-foreground">
+                {operational.lastPaymentLabel} ·{" "}
+                {operational.lastPaymentChannel}
+              </p>
             </div>
-            <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
-              <span className="flex size-9 items-center justify-center rounded-lg bg-warning text-warning-foreground">
-                <TriangleAlert className="size-4" />
-              </span>
-              <div>
-                <p className="font-medium text-body">
-                  {operational.openExceptions} open exceptions
-                </p>
-                <p className="text-caption text-muted-foreground">
-                  {operational.openExceptionsDetail}
-                </p>
-              </div>
+          </div>
+          <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
+            <span className="flex size-9 items-center justify-center rounded-lg bg-warning text-warning-foreground">
+              <TriangleAlert className="size-4" />
+            </span>
+            <div>
+              <p className="font-medium text-body">
+                {operational.openExceptions} open exceptions
+              </p>
+              <p className="text-caption text-muted-foreground">
+                {operational.openExceptionsDetail}
+              </p>
             </div>
-            <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
-              <span className="flex size-9 items-center justify-center rounded-lg bg-success text-success-foreground">
-                <ShieldCheck className="size-4" />
-              </span>
-              <div>
-                <p className="font-medium text-body">Audit record current</p>
-                <p className="text-caption text-muted-foreground">
-                  {totals.orders.toLocaleString("en-US")} orders ·{" "}
-                  {totals.tickets.toLocaleString("en-US")} tickets
-                </p>
-              </div>
+          </div>
+          <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-4">
+            <span className="flex size-9 items-center justify-center rounded-lg bg-success text-success-foreground">
+              <ShieldCheck className="size-4" />
+            </span>
+            <div>
+              <p className="font-medium text-body">Audit record current</p>
+              <p className="text-caption text-muted-foreground">
+                {totals.orders.toLocaleString("en-US")} orders ·{" "}
+                {totals.tickets.toLocaleString("en-US")} tickets
+              </p>
             </div>
-          </section>
-        </main>
-      </div>
-    </div>
+          </div>
+        </section>
+      </main>
+    </DashShell>
   );
 }
