@@ -10238,6 +10238,53 @@
         }
       }
     },
+    "/api/cap/alerts/{identifier}/attachments/{kind}": {
+      "get": {
+        "tags": [
+          "cap-public"
+        ],
+        "summary": "Download a generated public CAP attachment",
+        "description": "Checks the public alert scope and publication lifecycle, then redirects to a private-storage URL valid for 60 seconds. Actual alerts only; PDF, social image and map only.",
+        "operationId": "capDownloadPublicAttachment",
+        "parameters": [
+          {
+            "name": "identifier",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Identifier"
+            }
+          },
+          {
+            "name": "kind",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/CapDownloadPublicAttachmentParametersSchemaEnum"
+            }
+          }
+        ],
+        "responses": {
+          "307": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Public attachment not available"
+          }
+        }
+      }
+    },
     "/api/cap/alerts.geojson": {
       "get": {
         "tags": [
@@ -45101,6 +45148,14 @@
         ],
         "type": "string",
         "default": "me"
+      },
+      "CapDownloadPublicAttachmentParametersSchemaEnum": {
+        "enum": [
+          "pdf",
+          "social",
+          "map"
+        ],
+        "type": "string"
       },
       "EventsListListingsParametersSchemaAnyOfEnum": {
         "enum": [
