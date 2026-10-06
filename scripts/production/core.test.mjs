@@ -19,6 +19,7 @@ for (const environment of ["staging", "production"]) {
     "backup",
     "revision",
     "environment",
+    "readiness",
     "none",
   ]) {
     test(`${environment} core delivery enforces gates: ${failure}`, () => {
@@ -60,6 +61,7 @@ case "$*" in
   *"image inspect"*)
     if [[ "$*" == *gd.barrels.environment* ]]; then if [[ "$TEST_FAILURE" == environment ]]; then echo wrong; else echo "$DEPLOY_ENV"; fi; elif [[ "$TEST_FAILURE" == revision ]]; then echo wrong; else echo "$GITHUB_SHA"; fi ;;
   *"run --rm --no-deps prestart"*) [[ "$TEST_FAILURE" != migration ]] || exit 1 ;;
+  *"up -d --no-deps --wait"*) [[ "$TEST_FAILURE" != readiness ]] || exit 1 ;;
 esac
 exit 0
 `,
@@ -97,7 +99,10 @@ exit 0
         assert.equal(result.status === 0, succeeds, result.stderr);
         assert.equal(calls.includes("backup-core.py"), false);
         assert.equal(calls.includes("backup-files.py"), false);
-        assert.equal(calls.includes("--wait-timeout 180 api worker"), succeeds);
+        assert.equal(
+          calls.includes("--wait-timeout 300 api worker"),
+          succeeds || failure === "readiness"
+        );
         assert.equal(calls.includes("smoke"), succeeds);
         assert.ok(calls.includes("logout"));
       } finally {
