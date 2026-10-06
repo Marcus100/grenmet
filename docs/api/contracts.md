@@ -27,6 +27,22 @@ This document must stay in sync with the code. Do not mark a gap as resolved unt
 
 Versioned FastAPI routes use `/api/v1`. Public CAP feed routes use `/api/cap`.
 
+## Email delivery webhook
+
+`POST /api/v1/webhooks/resend` is a provider callback excluded from OpenAPI and
+the generated browser client. Outside local development it requires a configured
+Resend signing secret and valid Svix headers. Verification accepts only `v1`
+HMAC signatures over the original bytes, supports multiple rotation signatures,
+and rejects timestamps outside the five-minute tolerance. Invalid credentials or
+signatures return 401; signed invalid JSON, invalid encoding or malformed event
+envelopes return 400. Valid events return `{"received": true}`. Delivery events
+are logged; suppression and unsubscribe automation remain unimplemented.
+
+See [integration readiness](../operations/integration-readiness.md) for matching
+environment endpoints and provider setup. Changes to this hidden callback's
+implementation do not alter generated client types; changing its registration,
+signature or schema exposure still invokes the contract companion gate.
+
 ## Public weather products
 
 `GET /api/v1/wxproducts/public/products` is anonymous. Optional `kind` filters

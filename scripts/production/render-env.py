@@ -33,8 +33,27 @@ def render(config, environment):
         raise ValueError("PAYLOAD_SECRET must contain at least 32 characters")
     for key in ["WXWATCH_INGEST_TOKEN", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "SENTRY_DSN", "STORAGE_ENDPOINT_URL", "STORAGE_REGION", "STORAGE_BUCKET", "STORAGE_ACCESS_KEY_ID", "STORAGE_SECRET_ACCESS_KEY", "STORAGE_PUBLIC_BASE_URL", 'BILLING_STRIPE_SECRET_KEY', 'BILLING_STRIPE_WEBHOOK_SECRET', 'BILLING_STRIPE_PRICE_ID', 'BILLING_CHECKOUT_SUCCESS_URL', 'BILLING_CHECKOUT_CANCEL_URL', 'RESEND_WEBHOOK_SECRET', 'EMAIL_RENDER_SECRET', 'NEXT_PUBLIC_POSTHOG_KEY', 'NEXT_PUBLIC_POSTHOG_HOST', 'CAP_SIGNING_CERT', 'CAP_SIGNING_KEY', 'CAP_SIGNING_KEY_REF']:
         values[key] = environment.get(key, "")
-    values["TELEMETRY_ENABLED"] = "true" if environment.get("TELEMETRY_ENABLED") == "true" else "false"
+    telemetry_enabled = environment.get("TELEMETRY_ENABLED", "")
+    if telemetry_enabled not in {"", "true", "false"}:
+        raise ValueError("TELEMETRY_ENABLED must be true or false")
+    values["TELEMETRY_ENABLED"] = "true" if telemetry_enabled == "true" else "false"
     values["TELEMETRY_WORKER_HEARTBEAT_URL"] = environment.get("TELEMETRY_WORKER_HEARTBEAT_URL", "")
+    heartbeat = values["TELEMETRY_WORKER_HEARTBEAT_URL"]
+    if heartbeat:
+        try:
+            url = urlparse(heartbeat)
+            port = url.port
+        except ValueError:
+            raise ValueError("TELEMETRY_WORKER_HEARTBEAT_URL must be a Better Stack heartbeat endpoint") from None
+        if (
+            url.scheme != "https"
+            or url.hostname not in {"uptime.betterstack.com", "incidents.betterstack.com"}
+            or not url.path.startswith("/api/v1/heartbeat/")
+            or not url.path.removeprefix("/api/v1/heartbeat/")
+            or url.username or url.password or url.query or url.fragment
+            or port not in {None, 443}
+        ):
+            raise ValueError("TELEMETRY_WORKER_HEARTBEAT_URL must be a Better Stack heartbeat endpoint")
     catalogue_path = Path(__file__).resolve().parents[2] / "packages/ui/src/lib/service-catalogue.json"
     catalogue = json.loads(catalogue_path.read_text())
     for service in catalogue["services"]:

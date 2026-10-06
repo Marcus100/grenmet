@@ -58,6 +58,7 @@
     "verify:collectors": "bash scripts/verification/collectors.sh",
     "verify:storage": "node scripts/verification/run.mjs storage",
     "verify:release": "node scripts/verification/run.mjs release",
+    "integrations:readiness": "node scripts/integrations/readiness.mjs",
     "test:verification": "node --test scripts/verification/*.test.mjs scripts/integrations/*.test.mjs scripts/perf/*.test.mjs && uv run --isolated --frozen --package fast-back python -m unittest tests.test_database_target"
   },
   "devDependencies": {
