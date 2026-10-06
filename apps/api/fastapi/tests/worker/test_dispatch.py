@@ -310,6 +310,14 @@ async def test_render_jobs_store_artifact_for_published_alert(
     await db_async.refresh(job)
     assert job.status == CapJobStatus.SUCCEEDED, job.result
     assert len(stored) == 1
+    attachment = {
+        "publish.pdf": "pdf",
+        "publish.social_image": "social",
+        "publish.static_map": "map",
+    }[kind]
+    result_key = "pdf_url" if attachment == "pdf" else "image_url"
+    assert "/api/cap/alerts/" in job.result[result_key]
+    assert job.result[result_key].endswith(f"/attachments/{attachment}")
 
 
 async def test_publish_batch_runs_every_side_effect_for_an_alert(

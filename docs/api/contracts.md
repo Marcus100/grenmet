@@ -455,6 +455,7 @@ these anonymous endpoints:
 | `GET /api/cap/alerts` | Published, expired, and cancelled alerts |
 | `GET /api/cap/past` | Expired and cancelled alerts, including naturally expired messages; a replaced message carries `replaced_by_identifier`, and a cancelled message carries `cancellation_reason` when its CAP Cancel includes a note |
 | `GET /api/cap/alerts/{identifier}` | Public alert by CAP identifier; `replaced_by_identifier` links an earlier message to its published Update, and `cancellation_reason` exposes the Cancel note |
+| `GET /api/cap/alerts/{identifier}/attachments/{kind}` | Actual public alerts in published, expired or cancelled state only. `kind` is `pdf`, `social` or `map`; redirects with `Cache-Control: no-store` to a private object URL valid for 60 seconds. Draft/private/restricted/exercise alerts are denied. Previously issued links can remain usable for up to 60 seconds after a visibility change. Missing objects return the storage provider's not-found response. Worker results now use this API path instead of direct bucket URLs; historical stored job URLs are not rewritten. |
 | `GET /api/cap/alerts.geojson` | Active Actual alerts as GeoJSON; exercises are excluded |
 | `GET /api/cap/active-map` | Active Actual alerts as GeoJSON for map consumers |
 | `GET /api/cap/rss.xml` | Active Actual alerts plus Actual Cancel messages published within 24 hours; exercises are excluded |

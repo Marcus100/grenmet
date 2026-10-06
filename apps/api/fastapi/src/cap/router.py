@@ -3,8 +3,9 @@ from typing import Any
 from xml.etree import ElementTree as ET
 
 from fastapi import APIRouter, Query, Request, Response, status
+from fastapi.responses import RedirectResponse
 
-from src.cap import cache, service
+from src.cap import attachments, cache, service
 from src.cap.geo import alerts_to_feature_collection
 from src.cap.models import CapLifecycleState, CapMessageType, CapStatus
 from src.cap.profile_router import router as profile_router
@@ -503,6 +504,22 @@ async def read_public_alert(*, session: SessionDep, identifier: str) -> CapAlert
     return await service.public_alert_by_identifier(
         session=session, identifier=identifier
     )
+
+
+@public_router.get(
+    "/alerts/{identifier}/attachments/{kind}",
+    operation_id="capDownloadPublicAttachment",
+    response_class=RedirectResponse,
+    status_code=307,
+    responses={404: {"description": "Public attachment not available"}},
+    summary="Download a generated public CAP attachment",
+    description="Checks the public alert scope and publication lifecycle, then redirects to a private-storage URL valid for 60 seconds. Actual alerts only; PDF, social image and map only.",
+)
+async def download_public_attachment(
+    *, session: SessionDep, identifier: str, kind: attachments.AttachmentKind
+) -> RedirectResponse:
+    url = await attachments.download_url(session, identifier, kind)
+    return RedirectResponse(url, headers={"Cache-Control": "no-store"})
 
 
 @public_router.get(

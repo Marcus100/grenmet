@@ -24,6 +24,7 @@ from fastapi.concurrency import run_in_threadpool
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.cap import attachments
 from src.cap.images import render_area_map, render_social_image
 from src.cap.models import (
     CapAlert,
@@ -168,7 +169,10 @@ async def publish_pdf(
         )
     except StorageNotConfiguredError:
         return {"skipped": True, "reason": "storage not configured", "kind": job.kind}
-    return {"pdf_url": storage_service.public_url(key), "bytes": len(pdf_bytes)}
+    return {
+        "pdf_url": attachments.public_url(alert.identifier, "pdf"),
+        "bytes": len(pdf_bytes),
+    }
 
 
 async def publish_social_image(
@@ -200,7 +204,10 @@ async def publish_social_image(
         )
     except StorageNotConfiguredError:
         return {"skipped": True, "reason": "storage not configured", "kind": job.kind}
-    return {"image_url": storage_service.public_url(key), "bytes": len(png)}
+    return {
+        "image_url": attachments.public_url(alert.identifier, "social"),
+        "bytes": len(png),
+    }
 
 
 async def publish_static_map(
@@ -228,7 +235,10 @@ async def publish_static_map(
         )
     except StorageNotConfiguredError:
         return {"skipped": True, "reason": "storage not configured", "kind": job.kind}
-    return {"image_url": storage_service.public_url(key), "bytes": len(png)}
+    return {
+        "image_url": attachments.public_url(alert.identifier, "map"),
+        "bytes": len(png),
+    }
 
 
 # MQTT / WIS2 are handled by the separate wis2box deployment — out of scope here.

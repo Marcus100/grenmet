@@ -67,6 +67,7 @@ export { capCreateAlert } from "./capCreateAlert.js";
 export { capCreateFeed } from "./capCreateFeed.js";
 export { capCreatePredefinedArea } from "./capCreatePredefinedArea.js";
 export { capDeleteFeed } from "./capDeleteFeed.js";
+export { capDownloadPublicAttachment } from "./capDownloadPublicAttachment.js";
 export { capDraftFromHazardProfile } from "./capDraftFromHazardProfile.js";
 export { capDuplicateAlert } from "./capDuplicateAlert.js";
 export { capExpireAlert } from "./capExpireAlert.js";

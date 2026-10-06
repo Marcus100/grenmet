@@ -344,6 +344,11 @@ export {
   useCapDeleteFeed,
 } from "./useCapDeleteFeed.js";
 export {
+  capDownloadPublicAttachmentQueryKey,
+  capDownloadPublicAttachmentQueryOptions,
+  useCapDownloadPublicAttachment,
+} from "./useCapDownloadPublicAttachment.js";
+export {
   capDraftFromHazardProfileMutationKey,
   capDraftFromHazardProfileMutationOptions,
   useCapDraftFromHazardProfile,
