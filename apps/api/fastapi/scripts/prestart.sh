@@ -116,6 +116,10 @@ if [ -n "${JANITORIAL_DATABASE_URL:-}" ] && [ -n "${TRANSPORT_DATABASE_URL:-}" ]
     python scripts/seed_catalogues.py --apply
 fi
 
+# Catalogue definitions are required by app sign-in in every environment.
+# This does not create accounts or assign roles to users.
+python scripts/seed_auth_catalogue.py
+
 # Required bootstrap errors must fail deployment. Development users are opt-in.
 if [ "${ENVIRONMENT:-local}" = "local" ]; then
     python scripts/initial_data.py

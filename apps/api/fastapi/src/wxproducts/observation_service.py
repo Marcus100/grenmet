@@ -32,6 +32,8 @@ async def list_observations(
     limit: int,
 ) -> list[ObservationRecord]:
     table, station_column, time_column, issued_column = _TABLES[kind]
+    # The adopted SYNOP table stores its report in body, not a raw_tac column.
+    raw_column = "NULL" if kind == "SYNOP" else "raw_tac"
     clauses = []
     params: dict[str, object] = {"limit": limit}
     if station:
@@ -50,7 +52,7 @@ async def list_observations(
     result = await session.execute(
         text(
             f"SELECT id, {station_column} AS station, {time_column} AS observed_at, "  # noqa: S608
-            f"{issued_column} AS issued_at, raw_tac, body "
+            f"{issued_column} AS issued_at, {raw_column} AS raw_tac, body "
             f"FROM {table} {where} ORDER BY {time_column} DESC LIMIT :limit"  # noqa: S608
         ),
         params,

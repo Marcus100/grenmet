@@ -212,6 +212,17 @@ test("staging and production pass integrations to the intended services", () => 
       );
       const cms = model.services["web-cms"];
       const events = model.services["web-events"].environment;
+      assert.equal(
+        model.services.api.environment.API_BASE_URL,
+        {
+          staging: "https://api.staging.barrels.gd",
+          production: "https://api.barrels.gd",
+        }[deploymentEnvironment]
+      );
+      assert.equal(
+        model.services.worker.environment.API_BASE_URL,
+        model.services.api.environment.API_BASE_URL
+      );
       assert.equal(events.AUTH_API_URL, "http://api:8000");
       assert.equal(events.AUTH_API_V1_STR, "/api/v1");
       const eventsDatabase = new URL(

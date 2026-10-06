@@ -679,6 +679,16 @@ export {
   capDeleteFeedStatus204Schema,
   capDeleteFeedStatus422Schema,
 } from "./capDeleteFeedSchema.js";
+export { capDownloadPublicAttachmentParametersSchemaEnumSchema } from "./capDownloadPublicAttachmentParametersSchemaEnumSchema.js";
+export {
+  capDownloadPublicAttachmentErrorSchema,
+  capDownloadPublicAttachmentPathIdentifierSchema,
+  capDownloadPublicAttachmentPathKindSchema,
+  capDownloadPublicAttachmentResponseSchema,
+  capDownloadPublicAttachmentStatus307Schema,
+  capDownloadPublicAttachmentStatus404Schema,
+  capDownloadPublicAttachmentStatus422Schema,
+} from "./capDownloadPublicAttachmentSchema.js";
 export {
   capDraftFromHazardProfileBodySchema,
   capDraftFromHazardProfileErrorSchema,

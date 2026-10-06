@@ -754,6 +754,17 @@ export type {
   CapDeleteFeedStatus422,
 } from "./CapDeleteFeed.js";
 export type {
+  CapDownloadPublicAttachmentOptions,
+  CapDownloadPublicAttachmentPath,
+  CapDownloadPublicAttachmentResponse,
+  CapDownloadPublicAttachmentResponses,
+  CapDownloadPublicAttachmentStatus307,
+  CapDownloadPublicAttachmentStatus404,
+  CapDownloadPublicAttachmentStatus422,
+} from "./CapDownloadPublicAttachment.js";
+export type { CapDownloadPublicAttachmentParametersSchemaEnum } from "./CapDownloadPublicAttachmentParametersSchemaEnum.js";
+export { capDownloadPublicAttachmentParametersSchemaEnum } from "./CapDownloadPublicAttachmentParametersSchemaEnum.js";
+export type {
   CapDraftFromHazardProfileBody,
   CapDraftFromHazardProfileOptions,
   CapDraftFromHazardProfilePath,

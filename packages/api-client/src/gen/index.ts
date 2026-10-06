@@ -70,6 +70,7 @@ export { capCreateAlert } from "./clients/capCreateAlert.js";
 export { capCreateFeed } from "./clients/capCreateFeed.js";
 export { capCreatePredefinedArea } from "./clients/capCreatePredefinedArea.js";
 export { capDeleteFeed } from "./clients/capDeleteFeed.js";
+export { capDownloadPublicAttachment } from "./clients/capDownloadPublicAttachment.js";
 export { capDraftFromHazardProfile } from "./clients/capDraftFromHazardProfile.js";
 export { capDuplicateAlert } from "./clients/capDuplicateAlert.js";
 export { capExpireAlert } from "./clients/capExpireAlert.js";
@@ -687,6 +688,11 @@ export {
   capDeleteFeedMutationOptions,
   useCapDeleteFeed,
 } from "./hooks/useCapDeleteFeed.js";
+export {
+  capDownloadPublicAttachmentQueryKey,
+  capDownloadPublicAttachmentQueryOptions,
+  useCapDownloadPublicAttachment,
+} from "./hooks/useCapDownloadPublicAttachment.js";
 export {
   capDraftFromHazardProfileMutationKey,
   capDraftFromHazardProfileMutationOptions,
@@ -2802,6 +2808,17 @@ export type {
   CapDeleteFeedStatus204,
   CapDeleteFeedStatus422,
 } from "./models/CapDeleteFeed.js";
+export type {
+  CapDownloadPublicAttachmentOptions,
+  CapDownloadPublicAttachmentPath,
+  CapDownloadPublicAttachmentResponse,
+  CapDownloadPublicAttachmentResponses,
+  CapDownloadPublicAttachmentStatus307,
+  CapDownloadPublicAttachmentStatus404,
+  CapDownloadPublicAttachmentStatus422,
+} from "./models/CapDownloadPublicAttachment.js";
+export type { CapDownloadPublicAttachmentParametersSchemaEnum } from "./models/CapDownloadPublicAttachmentParametersSchemaEnum.js";
+export { capDownloadPublicAttachmentParametersSchemaEnum } from "./models/CapDownloadPublicAttachmentParametersSchemaEnum.js";
 export type {
   CapDraftFromHazardProfileBody,
   CapDraftFromHazardProfileOptions,
@@ -6803,6 +6820,16 @@ export {
   capDeleteFeedStatus204Schema,
   capDeleteFeedStatus422Schema,
 } from "./zod/capDeleteFeedSchema.js";
+export { capDownloadPublicAttachmentParametersSchemaEnumSchema } from "./zod/capDownloadPublicAttachmentParametersSchemaEnumSchema.js";
+export {
+  capDownloadPublicAttachmentErrorSchema,
+  capDownloadPublicAttachmentPathIdentifierSchema,
+  capDownloadPublicAttachmentPathKindSchema,
+  capDownloadPublicAttachmentResponseSchema,
+  capDownloadPublicAttachmentStatus307Schema,
+  capDownloadPublicAttachmentStatus404Schema,
+  capDownloadPublicAttachmentStatus422Schema,
+} from "./zod/capDownloadPublicAttachmentSchema.js";
 export {
   capDraftFromHazardProfileBodySchema,
   capDraftFromHazardProfileErrorSchema,
