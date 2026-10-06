@@ -27,7 +27,8 @@ inside their narrower domains.
 - **Barrels platform:** reusable company capabilities that support products and
   client delivery without inheriting a client's identity.
 - **Client programme:** work commissioned for an institution and accepted by
-  that institution. A client programme is not a Barrels product.
+  that institution. A client programme is not a Barrels product, but its
+  software remains Barrels Grenada IP licensed to the client.
 - **Operational system:** software or infrastructure used to deliver a live
   institutional function, including systems with independent release cycles.
 - **Research/reference asset:** training, exploration, or source material that
@@ -39,12 +40,18 @@ Meteorological Service (GMS) is a department of GAA and the operational
 authority for meteorological services. Barrels Grenada is the software company
 and delivery partner. GAA and GMS are not Barrels products.
 
+Barrels Grenada owns the software in this repository, including software built
+for the GAA/GMS programme, and licenses it to GAA. GAA owns its data, official
+products, names and logos, and documents marked `Owner: GAA` or `Owner: GMS`.
+See the [IP boundary](../strategy/barrels-ip-boundary.md).
+
 ## Decision authority
 
 | Decision | Accountable authority |
 | --- | --- |
 | Barrels product strategy and investment | Barrels Grenada |
 | Software architecture and engineering quality | Barrels Grenada |
+| Software ownership and licensing | Barrels Grenada; GAA licence terms by written agreement |
 | GAA institutional priorities and department rollout | GAA |
 | Meteorological policy, warning thresholds, and official products | GMS/GAA |
 | Client operational acceptance | Relevant GAA/GMS owner |

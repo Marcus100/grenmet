@@ -22,6 +22,8 @@ export interface ElectionCalendar {
   dissolved: string | null;
   /** Nomination day, once proclaimed. */
   nominationDay: string | null;
+  /** Special polling day for police officers, if announced. */
+  policePollingDay: string | null;
   /** Polling day, once announced. */
   pollingDay: string | null;
   /** When the writs were issued, which proclaims both dates. */
@@ -35,6 +37,7 @@ export function calendarFrom(campaign: CampaignFile): ElectionCalendar {
     dissolved: campaign.dissolved ?? null,
     nominationDay: campaign.nomination_day ?? null,
     pollingDay: campaign.polling_day ?? null,
+    policePollingDay: campaign.police_polling_day ?? null,
     writs: campaign.writs ?? null,
   };
 }
@@ -66,6 +69,14 @@ export function electionPhase(
 export function daysUntil(iso: string, now: Date): number {
   const today = Date.parse(grenadaDate(now));
   return Math.round((Date.parse(iso) - today) / 86_400_000);
+}
+
+/** The updates page and feeds begin here, the day the first campaign item was reported. */
+export const UPDATES_START = "2026-09-18";
+
+/** Campaign events from the start of the updates record, oldest first. */
+export function updateEvents(campaign: CampaignFile): CampaignFile["events"] {
+  return campaign.events.filter((event) => event.date >= UPDATES_START);
 }
 
 export interface DeclaredCandidate {

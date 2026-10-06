@@ -50,24 +50,13 @@ export function validateCatalogue(catalogue) {
         );
       const analytics = entry.analytics;
       const label = `${service.id}/${environment}`;
-      const existingWeatherAnalytics =
-        analytics.status === "continuity-approved" &&
-        service.id === "gms" &&
-        environment === "staging" &&
-        entry.origin === "https://weather.staging.barrels.gd" &&
-        analytics.ga4 === "G-6PY9N83HCP" &&
-        analytics.posthog === null;
-      if (
-        analytics.status === "continuity-approved" &&
-        !existingWeatherAnalytics
-      )
-        failures.push(`Invalid analytics continuity: ${label}`);
+      if (environment !== "production" && (analytics.ga4 || analytics.posthog))
+        failures.push(`Non-production analytics: ${label}`);
       if (!service.publicAnalytics && (analytics.ga4 || analytics.posthog))
         failures.push(`Non-public analytics: ${label}`);
       if (
         (analytics.ga4 || analytics.posthog) &&
-        !(analytics.retentionVerified && analytics.accessVerified) &&
-        !existingWeatherAnalytics
+        !(analytics.retentionVerified && analytics.accessVerified)
       )
         failures.push(`Unverified governance: ${label}`);
       if (

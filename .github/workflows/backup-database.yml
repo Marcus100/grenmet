@@ -284,6 +284,46 @@ jobs:
           [ "$TABLE_COUNT" -gt 0 ] || { echo "Integrity check failed" && exit 1; }
           echo "eregister integrity OK ($TABLE_COUNT tables)"
 
+      # Events listings and community records are authoritative product data.
+      - name: Backup events
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        run: |
+          set -euo pipefail
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          FILENAME="events_${TIMESTAMP}.dump"
+          BACKUP_PATH="$BACKUP_DIR/$FILENAME"
+
+          docker exec -i grenmet-db-1 pg_dump \
+            -U "$POSTGRES_USER" -d events \
+            --format=custom --compress=9 --file="/tmp/backup.dump"
+
+          docker cp "grenmet-db-1:/tmp/backup.dump" "$BACKUP_PATH"
+          docker exec -i grenmet-db-1 rm -f /tmp/backup.dump
+          chmod 640 "$BACKUP_PATH"
+
+          [ -f "$BACKUP_PATH" ] && [ -s "$BACKUP_PATH" ] || { echo "Backup missing or empty" && exit 1; }
+          echo "events: $FILENAME ($(du -h "$BACKUP_PATH" | cut -f1))"
+          echo "EVENTS_BACKUP_PATH=$BACKUP_PATH" >> "$GITHUB_ENV"
+
+      - name: Verify events backup integrity
+        env:
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        run: |
+          set -euo pipefail
+          TEMP_DB="verify_$(date +%s)"
+          docker exec -i grenmet-db-1 createdb -U "$POSTGRES_USER" "$TEMP_DB"
+          docker cp "$EVENTS_BACKUP_PATH" "grenmet-db-1:/tmp/verify.dump"
+          docker exec -i grenmet-db-1 pg_restore \
+            -U "$POSTGRES_USER" -d "$TEMP_DB" --no-password /tmp/verify.dump
+          TABLE_COUNT=$(docker exec -i grenmet-db-1 psql \
+            -U "$POSTGRES_USER" -d "$TEMP_DB" -t \
+            -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';" | tr -d ' \n')
+          docker exec -i grenmet-db-1 dropdb -U "$POSTGRES_USER" "$TEMP_DB"
+          docker exec -i grenmet-db-1 rm -f /tmp/verify.dump
+          [ "$TABLE_COUNT" -gt 0 ] || { echo "Integrity check failed" && exit 1; }
+          echo "events integrity OK ($TABLE_COUNT tables)"
+
       # Enable CMS_BACKUP_ENABLED in production-backup when CMS is provisioned.
       - name: Backup gms_cms
         if: vars.CMS_BACKUP_ENABLED == 'true'
@@ -375,6 +415,7 @@ jobs:
           upload_backup "$JANITORIAL_BACKUP_PATH"
           upload_backup "$TRANSPORT_BACKUP_PATH"
           upload_backup "$EREGISTER_BACKUP_PATH"
+          upload_backup "$EVENTS_BACKUP_PATH"
           if [[ -n "${CMS_BACKUP_PATH:-}" ]]; then
             upload_backup "$CMS_BACKUP_PATH"
           fi
@@ -389,6 +430,7 @@ jobs:
           find "$BACKUP_DIR" -name "janitorial_*.dump" -type f -mtime +$BACKUP_RETENTION_DAYS -delete
           find "$BACKUP_DIR" -name "transport_*.dump" -type f -mtime +$BACKUP_RETENTION_DAYS -delete
           find "$BACKUP_DIR" -name "eregister_*.dump" -type f -mtime +$BACKUP_RETENTION_DAYS -delete
+          find "$BACKUP_DIR" -name "events_*.dump" -type f -mtime +$BACKUP_RETENTION_DAYS -delete
           find "$BACKUP_DIR" -name "gms_cms_*.dump" -type f -mtime +$BACKUP_RETENTION_DAYS -delete
           echo "Remaining backups:"
           ls -lah "$BACKUP_DIR"/*.dump 2>/dev/null || echo "(none)"

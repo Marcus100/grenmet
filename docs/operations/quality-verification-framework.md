@@ -245,4 +245,4 @@ Where automation is not yet possible, manual logging is the interim method. Manu
 | [Warning Operations](../internal/warning-operations.md) | Audit trail that feeds verification data |
 | [Quality Score](../quality-score.md) | Code and platform quality (separate from service quality) |
 | [GMS Charter](../internal/gms-charter.md) | Success criteria and KPI targets |
-| [DTO Terms of Reference](../internal/dto-terms-of-reference.md) | Programme KPIs |
+| DTO Terms of Reference (private, held by the owner) | Programme KPIs |

@@ -487,6 +487,8 @@ Retirement sequence, staging before production:
 5. Remove the verified stopped containers after acceptance. Preserve volumes
    and recovery records. Repeat the inventory to confirm no unintended changes.
 
+No redirects are needed for the retired `hurricane.` and `spice.` hosts (owner decision, 2026-10-03); after retirement they return 404.
+
 Do not use blanket `--remove-orphans` as the initial cleanup: it removes services
 absent from the supplied Compose definition, including ones not reviewed for
 retirement. Historical releases retain their own committed Compose definitions.

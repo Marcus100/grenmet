@@ -1,58 +1,80 @@
 # Barrels and Client IP Boundary
 
-**Status:** Draft, pending legal review  
+**Status:** Owner decision recorded 2026-10-03; licence text and GAA agreement pending legal review  
 **Recorded:** 2026-09-23  
 **Owner:** Barrels Grenada
 
 ## Purpose
 
-This draft proposes how repository assets divide between Barrels Grenada
-intellectual property and client (GAA/GMS) intellectual property and data. It
-exists to support the commercial and legal gate recorded in the
-[Barrels Portfolio Implementation Plan](../portfolio/barrels-portfolio-implementation-plan.md):
-GAA and GMS data ownership, software rights, residency, support, and exit terms
-remain unresolved until formally agreed.
+Records how repository assets divide between Barrels Grenada intellectual
+property and client (GAA/GMS) property, and what remains to be agreed with GAA.
+It supports the commercial and legal gate in the
+[Barrels Portfolio Implementation Plan](../portfolio/barrels-portfolio-implementation-plan.md).
 
-This draft has no legal effect. It does not change `README.md`, any licence
-notice, or any existing agreement.
+This page states Barrels' position. It has no legal effect on its own and does
+not replace any signed agreement.
 
-## The problem
+## Position
 
-`README.md` describes the repository as the primary software repository for
-Barrels Grenada products and related client delivery, but its licence line
-reads "Proprietary — Grenada Airports Authority (GAA) / Grenada Meteorological
-Service (GMS)". If that line reflects the actual rights position, Barrels may
-not be able to reuse or sell shared platform capabilities (see the
-[AI and data platform strategy](barrels-ai-strategy.md)) to other
-organizations.
+All software in this repository is Barrels Grenada IP. GAA is Barrels' first
+client; its right to use the software comes from a licence granted by Barrels,
+not from ownership. GAA keeps ownership of its own data, marks, and documents.
 
-## Proposed classification
+Until 2026-10-03 the `README.md` licence line read "Proprietary — Grenada
+Airports Authority (GAA) / Grenada Meteorological Service (GMS)", which would
+have prevented Barrels from reusing shared capabilities (see the
+[AI and data platform strategy](barrels-ai-strategy.md)) for other clients.
 
-| Class | Candidate assets | Proposed position |
+| Class | Assets | Position |
 | --- | --- | --- |
-| Barrels platform IP | `packages/ui`, `packages/theme`, `packages/auth`, `packages/email-templates`, `packages/tsconfig`, API-client generation tooling; FastAPI `auth`, `audit`, `notifications`, `storage`, `billing`, `worker`; deployment and engineering tooling | Owned by Barrels; licensed to clients for their use |
+| Barrels platform IP | `packages/ui`, `packages/theme`, `packages/auth`, `packages/email-templates`, `packages/tsconfig`, API-client generation tooling; FastAPI `auth`, `audit`, `notifications`, `storage`, `billing`, `worker`; deployment and engineering tooling | Owned by Barrels |
 | Barrels product IP | `apps/web/events`, `apps/web/signal`, `apps/web/auth`, future Barrels Core domains | Owned by Barrels |
-| Client IP and data | GAA/GMS operational data and records; official products, warnings, and content; `packages/gms` brand assets; CMS content; client configuration and confidential material | Owned by the client |
-| Client-commissioned software | GMS-specific domains (`cap`, `wxproducts`, `wxwatch`, `eregister`) and client applications (`apps/web/gms`, `apps/web/gaa-admin`, `apps/web/mbia`, `apps/web/docs`, `apps/web/cms`) | To be determined by agreement |
-| To be determined | GAA staff-platform core (`hr`, roster, workflow), `janitorial`, `transport`, `baseline` | Depends on the rights agreement and the reusable-workforce productization decision |
+| Software built for clients | GMS domains (`cap`, `wxproducts`, `wxwatch`, `eregister`), staff platform (`hr`, roster, workflow, `janitorial`, `transport`, `baseline`) and client apps (`apps/web/gms`, `apps/web/gaa-admin`, `apps/web/mbia`, `apps/web/docs`, `apps/web/cms`) | Owned by Barrels; licensed to the client by agreement |
+| Client data and documents | GAA/GMS operational data and records; official products and warnings; CMS content; documents marked `Owner: GAA` or `Owner: GMS` (for example `docs/internal/`) | Owned by the client |
+| Client names and marks | GAA/GMS names and logos (`packages/gms` brand assets) | Remain the marks of their owners; used under licence |
+| Third-party code | Vendored stacks (`surface/`, `wis2box/`, `geonetcast/`) and template code; see `VENDORED.md` | Keep upstream licences |
 
-Vendored stacks (`surface/`, `wis2box/`) keep their upstream licences; see
-`VENDORED.md`.
+## Open questions
 
-## Open questions for the commercial agreement
+GAA's licence scope, data residency, support, liability, and exit terms remain
+to be agreed in writing. Until then this page records Barrels' position only.
 
-1. Does Barrels retain ownership of generic capabilities developed during client
-   work, with a perpetual licence to the client?
-2. How are derived works handled when client-commissioned features are
-   generalized into Barrels products?
-3. What data-residency, confidentiality, and access terms apply to client data
-   in Barrels-operated infrastructure?
-4. What exit terms apply: data export format, source escrow, transition
-   support?
-5. Which licence notice should `README.md` carry once agreed, and does the
-   repository need per-directory notices?
+## Draft root `LICENSE`
+
+Not yet in force; bracketed items are placeholders to settle with counsel.
+
+```text
+Copyright (c) 2026 [Barrels Grenada legal entity name]. All rights reserved.
+
+This repository and its contents are proprietary to Barrels Grenada
+("Barrels"), including software built for Barrels clients, except as set out
+below. No licence is granted to copy, modify, distribute, sublicense or use any
+part of it except under a written agreement with Barrels.
+
+1. Client materials. Client data, and documents marked as owned by the Grenada
+   Airports Authority (GAA), the Grenada Meteorological Service (GMS) or
+   another client, belong to that client.
+
+2. Client trademarks. Names, logos and other marks of GAA, GMS and other
+   clients remain the marks of their owners and are used under licence.
+
+3. Client use. Clients, including GAA, may use the software only as granted
+   in their written agreement with Barrels [title and date of agreement].
+   Unless that agreement says otherwise, the software is provided "as is",
+   without warranty, and Barrels' liability is limited as set out there.
+
+4. Third-party software. Directories carrying their own licence file or listed
+   in VENDORED.md (including surface/, wis2box/, geonetcast/ and template code
+   in apps/web/gaa-admin) remain under their original licences, which prevail
+   for those files.
+
+Contact: [legal contact email]
+```
+
+The `README.md` licence section (adopted 2026-10-03) summarises this. Link it to
+`LICENSE` once the file is finalised.
 
 ## Next step
 
-Legal review of this classification, then a formal agreement. Only after that
-should `README.md` and any licence notices change.
+Agree the GAA licence in writing, then add the root `LICENSE` with the agreed
+entity name and terms.

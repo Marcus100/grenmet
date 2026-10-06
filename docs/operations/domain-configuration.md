@@ -1,6 +1,6 @@
 # Domain configuration handoff
 
-Checked and updated 2 October 2026. Cloudflare hosts DNS for `barrels.gd` and
+Initially checked 2 October 2026; HTTPS rechecked 5 October 2026. Cloudflare hosts DNS for `barrels.gd` and
 `eugine.me`. This document records live settings, not a request to redeploy the
 DigitalOcean applications.
 
@@ -61,14 +61,21 @@ both zones become Active after the registrar publishes their DS records.
   between applications or environments.
 - Review existing personal-site and NISA preview environment scopes against
   intended backend/email services before separating credentials.
-- Production `docs`, `weather`, `signal`, `mbia`, `events`, and `cms.barrels.gd`
-  failed TLS verification. Certificate inspection of docs/weather/cms confirmed
-  **TRAEFIK DEFAULT CERT**, not a Cloudflare certificate. Staging counterparts
-  passed HTTPS checks. Inspect the production containers, hostname routers and
-  ACME logs using the [release runbook](release-runbook.md) and
-  [deployment troubleshooting](../deployment.md). Repository Compose already
-  declares these hosts and the Let's Encrypt resolver. No SSH access was
-  available to inspect the running production stack; no release was published.
+- On 2026-10-05, all 20 configured repository app/environment HTTPS probes passed,
+  including production Docs, Weather, Signal, MBIA, Events and CMS. The former
+  default-certificate failures were no longer reproducible. Staging and production
+  FastAPI readiness, public Weather products/forecast and eRegister returned 200;
+  WxWatch readiness returned 204. Events listing/group API routes still returned
+  404 in both environments: the API-backed Events release has not been deployed.
+  This is point-in-time availability evidence, not authenticated workflow acceptance.
+- Protected auth, HR, notifications, janitorial and transport routes returned
+  401 without a session in both environments. Environment-secret inventories
+  confirm core database, Resend and matching Sentry inputs are present, including
+  newly provisioned Events passwords. Secret presence does not verify provider
+  delivery. Production Google OAuth and object storage inputs, and Stripe inputs
+  in both environments, remain unconfigured; activating those optional integrations
+  requires the intended provider accounts and credentials. Authenticated workflows,
+  email delivery, uploads and payments are not covered by the public probes.
 
 ## Rollback context
 

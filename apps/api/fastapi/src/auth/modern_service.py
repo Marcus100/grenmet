@@ -189,7 +189,10 @@ async def google_start(
     )
 
 
-async def google_claims(code: str, verifier: str) -> dict[str, Any]:
+async def google_claims(
+    code: str, verifier: str, redirect_uri: str | None = None
+) -> dict[str, Any]:
+    """Exchange the code; ``redirect_uri`` must match the one used to start."""
     async with httpx.AsyncClient(timeout=15) as client:
         response = await client.post(
             "https://oauth2.googleapis.com/token",
@@ -197,7 +200,7 @@ async def google_claims(code: str, verifier: str) -> dict[str, Any]:
                 "code": code,
                 "client_id": auth_settings.GOOGLE_CLIENT_ID,
                 "client_secret": auth_settings.GOOGLE_CLIENT_SECRET,
-                "redirect_uri": auth_settings.GOOGLE_REDIRECT_URI,
+                "redirect_uri": redirect_uri or auth_settings.GOOGLE_REDIRECT_URI,
                 "grant_type": "authorization_code",
                 "code_verifier": verifier,
             },

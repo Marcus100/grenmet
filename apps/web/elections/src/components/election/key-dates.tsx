@@ -3,7 +3,7 @@ import { Flag } from "@/components/flag";
 import type { ElectionCalendar } from "@/data/election-2026";
 import { formatIsoDate } from "@/lib/format";
 
-/** Dissolution, announcement, nomination day, polling day and the legal deadline. */
+/** Dissolution, announcement, nomination day and polling day (the legal deadline only until polling day is set). */
 export function KeyDates({ calendar }: { calendar: ElectionCalendar }) {
   const dates: {
     label: string;
@@ -37,28 +37,45 @@ export function KeyDates({ calendar }: { calendar: ElectionCalendar }) {
         ? formatIsoDate(calendar.nominationDay)
         : "To be proclaimed",
     },
+    ...(calendar.policePollingDay
+      ? [
+          {
+            label: "Police special poll",
+            value: formatIsoDate(calendar.policePollingDay),
+            note: "Announced by the Prime Minister",
+          },
+        ]
+      : []),
     {
       label: "Polling day",
       value: calendar.pollingDay
         ? formatIsoDate(calendar.pollingDay)
         : "To be announced",
     },
-    {
-      label: "Latest possible",
-      value: formatIsoDate(calendar.deadline),
-      note: calendar.dissolved
-        ? "Within three months of the dissolution (Constitution, s. 53(1))"
-        : "Five years from the first sitting, plus three months (Constitution, ss. 52–53)",
-      unverified: calendar.dissolved
-        ? undefined
-        : "Five years from the first sitting on 31 August 2022 (Wikipedia), plus three months. The first sitting needs confirming from the House Hansard.",
-    },
+    ...(calendar.pollingDay
+      ? []
+      : [
+          {
+            label: "Latest possible",
+            value: formatIsoDate(calendar.deadline),
+            note: calendar.dissolved
+              ? "Within three months of the dissolution (Constitution, s. 53(1))"
+              : "Five years from the first sitting, plus three months (Constitution, ss. 52–53)",
+            unverified: calendar.dissolved
+              ? undefined
+              : "Five years from the first sitting on 31 August 2022 (Wikipedia), plus three months. The first sitting needs confirming from the House Hansard.",
+          },
+        ]),
   ];
   return (
     <dl
       className={cn(
         "grid gap-px border border-el-rule bg-el-rule sm:grid-cols-2",
-        dates.length > 4 ? "lg:grid-cols-5" : "lg:grid-cols-4"
+        dates.length > 5
+          ? "lg:grid-cols-3"
+          : dates.length > 4
+            ? "lg:grid-cols-5"
+            : "lg:grid-cols-4"
       )}
     >
       {dates.map((d) => (

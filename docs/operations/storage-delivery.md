@@ -16,6 +16,7 @@ Local commands use each workspace's `.env.local`. No developer secret file is wr
 | wxproducts | `wxproducts` / `wxproducts_staging` / `wxproducts` | FastAPI `WXPRODUCTS_DATABASE_URL`, `WXPRODUCTS_DB_*` | FastAPI Alembic | core `pgdata` | API ready; pg_dump |
 | eRegister | `eregister` / `eregister_staging` / `eregister` | FastAPI `EREGISTER_DATABASE_URL`, `EREGISTER_DB_*` | FastAPI Alembic | core `pgdata` | API ready; pg_dump |
 | Transport | `transport` / `transport_staging` / `transport` | FastAPI `TRANSPORT_DATABASE_URL`, `TRANSPORT_DB_*` | FastAPI Alembic; create-once `transport-v1` seed | core `pgdata` | API ready; pg_dump |
+| Barrels Events | `events` / `events_staging` / `events` | FastAPI `EVENTS_DATABASE_URL`, `EVENTS_DB_*` | FastAPI Alembic (`events_NNNN`) | core `pgdata` | Optional until provisioned (`/events` returns 503); pg_dump once live |
 | Janitorial | `janitorial` / `janitorial_staging` / `janitorial` | FastAPI `JANITORIAL_DATABASE_URL`, `JANITORIAL_DB_*` | FastAPI Alembic; create-once `janitorial-v1` seed | core `pgdata` | API ready; pg_dump |
 | Payload CMS | `gms_cms` / `gms_cms_staging` / `gms_cms` | workspace `DATABASE_URL`; deploy `CMS_DATABASE_URL`, `CMS_DB_*`, stable `PAYLOAD_SECRET` | Payload committed migrations; explicit schema adoption | core `pgdata` | CMS ready + public content API; pg_dump |
 | Core Redis / CAP queue | per environment | `REDIS_URL` | no schema migrations | preserve `REDIS_VOLUME`; AOF every second | PING; reconcile queue work with authoritative CAP outbox |

@@ -15,6 +15,7 @@ import {
   daysUntil,
   electionStatus,
   seatOutlook,
+  updateEvents,
 } from "@/data/election-2026";
 import { campaign, latestRegister, results } from "@/data/load";
 import { nationalResult } from "@/data/model";
@@ -44,14 +45,16 @@ export default function Election2026Page() {
   const seats = seatOutlook(results, campaign);
   const last = nationalResult(results, "2022");
   const roll = latestRegister();
-  const recent = campaign.events.filter((e) => !e.future).slice(-3);
+  const recent = updateEvents(campaign)
+    .filter((e) => !e.future)
+    .slice(-3);
   const polls = campaign.polls.filter((p) => p.target === "next");
 
   return (
     <>
       <div className="mx-auto grid max-w-[1240px] items-end gap-x-14 gap-y-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
         <PageHead
-          deck="Parliament was dissolved on 2 October, so the election must be held by early January. Writs issued the same day set nomination day for 15 October and polling day for 5 November. The NDC won 9 of 15 seats in 2022; since then Delma Thomas has crossed from the NNP to the government, and Peter David, also elected for the NNP, now leads a new party, the DPM."
+          deck="Parliament was dissolved on 2 October. Writs issued the same day set nomination day for 15 October and polling day for 5 November; the Prime Minister confirmed the date in an address on 4 October. The NDC won 9 of 15 seats in 2022; since then Delma Thomas has crossed from the NNP to the government, and Peter David, also elected for the NNP, now leads a new party, the DPM."
           eyebrow={`General election 2026 · ${electionStatus(calendar, now)}`}
           learning="election"
           title={leadTitle(
@@ -146,8 +149,8 @@ export default function Election2026Page() {
 
       <Section
         id="recent"
-        more={{ href: "/since-2022", label: "Everything since 2022" }}
-        title="Since the 2022 election"
+        more={{ href: "/updates", label: "All updates" }}
+        title="Latest updates"
       >
         <CampaignTimeline events={recent} sources={campaign.sources} />
       </Section>
