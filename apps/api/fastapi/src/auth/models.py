@@ -6,7 +6,7 @@ from enum import Enum
 
 from pydantic import BaseModel as PydanticBaseModel
 from pydantic import EmailStr
-from sqlalchemy import JSON, ForeignKey, ForeignKeyConstraint, String
+from sqlalchemy import JSON, CheckConstraint, ForeignKey, ForeignKeyConstraint, String
 from sqlalchemy.dialects.postgresql import ENUM
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -47,6 +47,11 @@ class User(Base):
     """Canonical source for identity and name; other modules (e.g. HR) extend by user_id."""
 
     __tablename__ = "user"
+    __table_args__ = (
+        CheckConstraint(
+            "cms_access IN ('none', 'writer', 'publisher')", name="ck_user_cms_access"
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)

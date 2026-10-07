@@ -20,10 +20,12 @@ def upgrade() -> None:
         sa.Column("cms_access", sa.String(16), nullable=False, server_default="none"),
     )
     op.create_check_constraint(
-        "ck_user_cms_access", "user", "cms_access IN ('none', 'writer', 'publisher')"
+        op.f("user_ck_user_cms_access_check"),
+        "user",
+        "cms_access IN ('none', 'writer', 'publisher')",
     )
 
 
 def downgrade() -> None:
-    op.drop_constraint("ck_user_cms_access", "user", type_="check")
+    op.drop_constraint(op.f("user_ck_user_cms_access_check"), "user", type_="check")
     op.drop_column("user", "cms_access")
