@@ -25,7 +25,7 @@ export function janitorialUpdateArea<ThrowOnError extends boolean = true>(
       method: "PATCH",
       url: "/api/v1/janitorial/areas/{area_id}",
       security: [
-        { type: "apiKey", name: "grenmet_session", in: "cookie" },
+        { type: "apiKey", name: "admin_session", in: "cookie" },
         { type: "http", scheme: "bearer" },
       ],
       ...config,

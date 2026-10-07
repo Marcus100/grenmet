@@ -2,11 +2,15 @@ export * from "./.kubb/client.js";
 export * from "./.kubb/serializers.js";
 export * from "./.kubb/standardSchema.js";
 export { auditGetHistory } from "./clients/auditGetHistory.js";
+export { authAccountEmailCodeStart } from "./clients/authAccountEmailCodeStart.js";
+export { authAccountEmailCodeVerify } from "./clients/authAccountEmailCodeVerify.js";
 export { authAppEmailCodeStart } from "./clients/authAppEmailCodeStart.js";
 export { authAppEmailCodeVerify } from "./clients/authAppEmailCodeVerify.js";
 export { authAppGoogleComplete } from "./clients/authAppGoogleComplete.js";
 export { authAppGoogleFinish } from "./clients/authAppGoogleFinish.js";
 export { authAppGoogleStart } from "./clients/authAppGoogleStart.js";
+export { authAppHandoffRedeem } from "./clients/authAppHandoffRedeem.js";
+export { authAppHandoffStart } from "./clients/authAppHandoffStart.js";
 export { authAppPasswordLogin } from "./clients/authAppPasswordLogin.js";
 export { authAppPhoneCodeStart } from "./clients/authAppPhoneCodeStart.js";
 export { authAppPhoneCodeVerify } from "./clients/authAppPhoneCodeVerify.js";
@@ -50,6 +54,7 @@ export { authRecoverPasswordHtmlContent } from "./clients/authRecoverPasswordHtm
 export { authRefreshSession } from "./clients/authRefreshSession.js";
 export { authRegisterUser } from "./clients/authRegisterUser.js";
 export { authReplaceRecoveryCodes } from "./clients/authReplaceRecoveryCodes.js";
+export { authRequestStaffAccess } from "./clients/authRequestStaffAccess.js";
 export { authResetPassword } from "./clients/authResetPassword.js";
 export { authRevokeSecuritySession } from "./clients/authRevokeSecuritySession.js";
 export { authTestToken } from "./clients/authTestToken.js";
@@ -349,6 +354,16 @@ export {
   useAuditGetHistory,
 } from "./hooks/useAuditGetHistory.js";
 export {
+  authAccountEmailCodeStartMutationKey,
+  authAccountEmailCodeStartMutationOptions,
+  useAuthAccountEmailCodeStart,
+} from "./hooks/useAuthAccountEmailCodeStart.js";
+export {
+  authAccountEmailCodeVerifyMutationKey,
+  authAccountEmailCodeVerifyMutationOptions,
+  useAuthAccountEmailCodeVerify,
+} from "./hooks/useAuthAccountEmailCodeVerify.js";
+export {
   authAppEmailCodeStartMutationKey,
   authAppEmailCodeStartMutationOptions,
   useAuthAppEmailCodeStart,
@@ -373,6 +388,16 @@ export {
   authAppGoogleStartMutationOptions,
   useAuthAppGoogleStart,
 } from "./hooks/useAuthAppGoogleStart.js";
+export {
+  authAppHandoffRedeemMutationKey,
+  authAppHandoffRedeemMutationOptions,
+  useAuthAppHandoffRedeem,
+} from "./hooks/useAuthAppHandoffRedeem.js";
+export {
+  authAppHandoffStartMutationKey,
+  authAppHandoffStartMutationOptions,
+  useAuthAppHandoffStart,
+} from "./hooks/useAuthAppHandoffStart.js";
 export {
   authAppPasswordLoginMutationKey,
   authAppPasswordLoginMutationOptions,
@@ -588,6 +613,11 @@ export {
   authReplaceRecoveryCodesMutationOptions,
   useAuthReplaceRecoveryCodes,
 } from "./hooks/useAuthReplaceRecoveryCodes.js";
+export {
+  authRequestStaffAccessMutationKey,
+  authRequestStaffAccessMutationOptions,
+  useAuthRequestStaffAccess,
+} from "./hooks/useAuthRequestStaffAccess.js";
 export {
   authResetPasswordMutationKey,
   authResetPasswordMutationOptions,
@@ -2067,6 +2097,9 @@ export type { AnnouncementPublic } from "./models/AnnouncementPublic.js";
 export type { ApiError } from "./models/ApiError.js";
 export type { AppEmailCodeStart } from "./models/AppEmailCodeStart.js";
 export type { AppEmailCodeVerify } from "./models/AppEmailCodeVerify.js";
+export type { AppHandoffCode } from "./models/AppHandoffCode.js";
+export type { AppHandoffRedeem } from "./models/AppHandoffRedeem.js";
+export type { AppHandoffStart } from "./models/AppHandoffStart.js";
 export type { AppPasswordLogin } from "./models/AppPasswordLogin.js";
 export type { AppPhoneCodeStart } from "./models/AppPhoneCodeStart.js";
 export type { AppPhoneCodeStartPropertiesChannelEnum } from "./models/AppPhoneCodeStartPropertiesChannelEnum.js";
@@ -2105,6 +2138,27 @@ export type {
   AuditGetHistoryStatus404,
   AuditGetHistoryStatus422,
 } from "./models/AuditGetHistory.js";
+export type {
+  AuthAccountEmailCodeStartBody,
+  AuthAccountEmailCodeStartOptions,
+  AuthAccountEmailCodeStartResponse,
+  AuthAccountEmailCodeStartResponses,
+  AuthAccountEmailCodeStartStatus200,
+  AuthAccountEmailCodeStartStatus422,
+  AuthAccountEmailCodeStartStatus429,
+  AuthAccountEmailCodeStartStatus503,
+} from "./models/AuthAccountEmailCodeStart.js";
+export type {
+  AuthAccountEmailCodeVerifyBody,
+  AuthAccountEmailCodeVerifyOptions,
+  AuthAccountEmailCodeVerifyResponse,
+  AuthAccountEmailCodeVerifyResponses,
+  AuthAccountEmailCodeVerifyStatus200,
+  AuthAccountEmailCodeVerifyStatus400,
+  AuthAccountEmailCodeVerifyStatus403,
+  AuthAccountEmailCodeVerifyStatus422,
+  AuthAccountEmailCodeVerifyStatus429,
+} from "./models/AuthAccountEmailCodeVerify.js";
 export type {
   AuthAppEmailCodeStartBody,
   AuthAppEmailCodeStartOptions,
@@ -2175,6 +2229,34 @@ export type {
   AuthAppGoogleStartStatus429,
   AuthAppGoogleStartStatus503,
 } from "./models/AuthAppGoogleStart.js";
+export type {
+  AuthAppHandoffRedeemBody,
+  AuthAppHandoffRedeemOptions,
+  AuthAppHandoffRedeemPath,
+  AuthAppHandoffRedeemResponse,
+  AuthAppHandoffRedeemResponses,
+  AuthAppHandoffRedeemStatus200,
+  AuthAppHandoffRedeemStatus400,
+  AuthAppHandoffRedeemStatus401,
+  AuthAppHandoffRedeemStatus403,
+  AuthAppHandoffRedeemStatus404,
+  AuthAppHandoffRedeemStatus422,
+  AuthAppHandoffRedeemStatus429,
+} from "./models/AuthAppHandoffRedeem.js";
+export type {
+  AuthAppHandoffStartBody,
+  AuthAppHandoffStartOptions,
+  AuthAppHandoffStartPath,
+  AuthAppHandoffStartResponse,
+  AuthAppHandoffStartResponses,
+  AuthAppHandoffStartStatus200,
+  AuthAppHandoffStartStatus401,
+  AuthAppHandoffStartStatus403,
+  AuthAppHandoffStartStatus404,
+  AuthAppHandoffStartStatus409,
+  AuthAppHandoffStartStatus422,
+  AuthAppHandoffStartStatus429,
+} from "./models/AuthAppHandoffStart.js";
 export type {
   AuthAppPasswordLoginBody,
   AuthAppPasswordLoginOptions,
@@ -2590,6 +2672,15 @@ export type {
   AuthReplaceRecoveryCodesStatus400,
   AuthReplaceRecoveryCodesStatus422,
 } from "./models/AuthReplaceRecoveryCodes.js";
+export type {
+  AuthRequestStaffAccessOptions,
+  AuthRequestStaffAccessResponse,
+  AuthRequestStaffAccessResponses,
+  AuthRequestStaffAccessStatus200,
+  AuthRequestStaffAccessStatus401,
+  AuthRequestStaffAccessStatus403,
+  AuthRequestStaffAccessStatus422,
+} from "./models/AuthRequestStaffAccess.js";
 export type {
   AuthResetPasswordBody,
   AuthResetPasswordOptions,
@@ -6152,6 +6243,9 @@ export { announcementPublicSchema } from "./zod/announcementPublicSchema.js";
 export { apiErrorSchema } from "./zod/apiErrorSchema.js";
 export { appEmailCodeStartSchema } from "./zod/appEmailCodeStartSchema.js";
 export { appEmailCodeVerifySchema } from "./zod/appEmailCodeVerifySchema.js";
+export { appHandoffCodeSchema } from "./zod/appHandoffCodeSchema.js";
+export { appHandoffRedeemSchema } from "./zod/appHandoffRedeemSchema.js";
+export { appHandoffStartSchema } from "./zod/appHandoffStartSchema.js";
 export { appPasswordLoginSchema } from "./zod/appPasswordLoginSchema.js";
 export { appPhoneCodeStartPropertiesChannelEnumSchema } from "./zod/appPhoneCodeStartPropertiesChannelEnumSchema.js";
 export { appPhoneCodeStartSchema } from "./zod/appPhoneCodeStartSchema.js";
@@ -6189,6 +6283,25 @@ export {
   auditGetHistoryStatus404Schema,
   auditGetHistoryStatus422Schema,
 } from "./zod/auditGetHistorySchema.js";
+export {
+  authAccountEmailCodeStartBodySchema,
+  authAccountEmailCodeStartErrorSchema,
+  authAccountEmailCodeStartResponseSchema,
+  authAccountEmailCodeStartStatus200Schema,
+  authAccountEmailCodeStartStatus422Schema,
+  authAccountEmailCodeStartStatus429Schema,
+  authAccountEmailCodeStartStatus503Schema,
+} from "./zod/authAccountEmailCodeStartSchema.js";
+export {
+  authAccountEmailCodeVerifyBodySchema,
+  authAccountEmailCodeVerifyErrorSchema,
+  authAccountEmailCodeVerifyResponseSchema,
+  authAccountEmailCodeVerifyStatus200Schema,
+  authAccountEmailCodeVerifyStatus400Schema,
+  authAccountEmailCodeVerifyStatus403Schema,
+  authAccountEmailCodeVerifyStatus422Schema,
+  authAccountEmailCodeVerifyStatus429Schema,
+} from "./zod/authAccountEmailCodeVerifySchema.js";
 export {
   authAppEmailCodeStartBodySchema,
   authAppEmailCodeStartErrorSchema,
@@ -6254,6 +6367,32 @@ export {
   authAppGoogleStartStatus429Schema,
   authAppGoogleStartStatus503Schema,
 } from "./zod/authAppGoogleStartSchema.js";
+export {
+  authAppHandoffRedeemBodySchema,
+  authAppHandoffRedeemErrorSchema,
+  authAppHandoffRedeemPathAppSchema,
+  authAppHandoffRedeemResponseSchema,
+  authAppHandoffRedeemStatus200Schema,
+  authAppHandoffRedeemStatus400Schema,
+  authAppHandoffRedeemStatus401Schema,
+  authAppHandoffRedeemStatus403Schema,
+  authAppHandoffRedeemStatus404Schema,
+  authAppHandoffRedeemStatus422Schema,
+  authAppHandoffRedeemStatus429Schema,
+} from "./zod/authAppHandoffRedeemSchema.js";
+export {
+  authAppHandoffStartBodySchema,
+  authAppHandoffStartErrorSchema,
+  authAppHandoffStartPathAppSchema,
+  authAppHandoffStartResponseSchema,
+  authAppHandoffStartStatus200Schema,
+  authAppHandoffStartStatus401Schema,
+  authAppHandoffStartStatus403Schema,
+  authAppHandoffStartStatus404Schema,
+  authAppHandoffStartStatus409Schema,
+  authAppHandoffStartStatus422Schema,
+  authAppHandoffStartStatus429Schema,
+} from "./zod/authAppHandoffStartSchema.js";
 export {
   authAppPasswordLoginBodySchema,
   authAppPasswordLoginErrorSchema,
@@ -6629,6 +6768,14 @@ export {
   authReplaceRecoveryCodesStatus400Schema,
   authReplaceRecoveryCodesStatus422Schema,
 } from "./zod/authReplaceRecoveryCodesSchema.js";
+export {
+  authRequestStaffAccessErrorSchema,
+  authRequestStaffAccessResponseSchema,
+  authRequestStaffAccessStatus200Schema,
+  authRequestStaffAccessStatus401Schema,
+  authRequestStaffAccessStatus403Schema,
+  authRequestStaffAccessStatus422Schema,
+} from "./zod/authRequestStaffAccessSchema.js";
 export {
   authResetPasswordBodySchema,
   authResetPasswordErrorSchema,

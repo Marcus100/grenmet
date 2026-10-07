@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     reportError(error, "auth-google");
     return new NextResponse(
-      "Google sign-in failed. Your account must be activated by an administrator. Try email login or start again.",
+      "Google sign-in failed. If you don't have a Barrels account yet, create one first; otherwise start again or sign in with your email.",
       { status: 400 }
     );
   }

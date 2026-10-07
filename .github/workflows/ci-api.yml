@@ -393,7 +393,7 @@ jobs:
           # info.title comes from PROJECT_NAME; the committed openapi.json is
           # generated with the real project name, so pin it here or the drift
           # diff below would always trip on the title alone (not a real change).
-          PROJECT_NAME: "Grenmet API"
+          PROJECT_NAME: "Barrels Grenada"
         run: |
           uv run --frozen --package fast-back python -c "
           from src.main import app

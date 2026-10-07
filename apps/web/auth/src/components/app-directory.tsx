@@ -46,7 +46,7 @@ export const APP_GROUPS: readonly AppGroup[] = [
         name: "Weather",
         description: "Forecasts, warnings and news",
         monogram: "Wx",
-        aliases: ["gms", "weather", "gms-cms"],
+        aliases: ["gms", "weather", "gms-cms", "cms"],
       },
       {
         id: "docs",

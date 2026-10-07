@@ -45,3 +45,17 @@ export const initialSignUpState: SignUpState = {
   error: null,
   success: false,
 };
+
+export interface EmailCodeState {
+  email: string;
+  error: string | null;
+  // "email": ask for an address; "code": the 6-digit code was sent;
+  // "mfa": the account also needs its authenticator code.
+  step: "email" | "code" | "mfa";
+}
+
+export const initialEmailCodeState: EmailCodeState = {
+  email: "",
+  error: null,
+  step: "email",
+};

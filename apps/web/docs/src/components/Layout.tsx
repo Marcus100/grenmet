@@ -13,9 +13,12 @@ import { type Section, SectionProvider } from "@/components/SectionProvider";
 export function Layout({
   children,
   allSections,
+  accountLabel,
 }: {
   children: React.ReactNode;
   allSections: Record<string, Section[]>;
+  /** Shows "Sign in" with the Barrels account (ADR-0017) when configured. */
+  accountLabel?: string;
 }) {
   const pathname = usePathname();
   const catalogue = pathname === "/";
@@ -47,7 +50,7 @@ export function Layout({
                 <Logo className="h-6" />
               </Link>
             </div>
-            <Header catalogue={catalogue} />
+            <Header accountLabel={accountLabel} catalogue={catalogue} />
             {!catalogue && <Navigation className="hidden lg:mt-10 lg:block" />}
           </div>
         </motion.header>

@@ -22,7 +22,7 @@ export const authConfig: AuthConfig = {
   authApiBaseUrl: env.AUTH_API_URL,
   authApiPrefix: env.AUTH_API_V1_STR,
   authAppUrl: env.AUTH_APP_URL,
-  sessionCookieName: env.SESSION_COOKIE_NAME,
+  sessionCookieName: env.MY_APP_SESSION_COOKIE_NAME, // host-only, one per app
 };
 ```
 
@@ -36,6 +36,10 @@ const { user, access_token } = await exchangeSessionForAccessToken(authConfig, s
 ```
 
 Catch `AuthApiError` from `exchangeSessionForAccessToken` — a 401 means the session is expired or revoked. Clear the cookie and redirect to sign-in rather than letting it propagate.
+
+## Single sign-on (ADR-0017)
+
+Apps registered for single sign-on mount `startAppSignIn` at `GET /auth/start` and `completeAppSignIn` at `GET /auth/callback` (see README). Pass the app's client secret from its typed `env`; never expose it to the browser.
 
 ## Logout routes
 

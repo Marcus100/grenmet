@@ -69,6 +69,9 @@ class User(Base):
     email_verification_required: Mapped[bool] = mapped_column(default=False)
     password_setup_pending: Mapped[bool] = mapped_column(default=False)
     registration_pending: Mapped[bool] = mapped_column(default=False)
+    # Set when an account asks for staff access (ADR-0017); only these, and
+    # approved staff, appear in staff setup and the approval queue.
+    staff_access_requested_at: Mapped[datetime | None]
     mfa_recovery_hashes: Mapped[list[str]] = mapped_column(
         JSON, nullable=False, default=list
     )

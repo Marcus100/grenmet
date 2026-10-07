@@ -7,6 +7,7 @@ from fastapi import APIRouter
 from src.auth import access
 from src.baseline import organisation
 from src.dependencies import (
+    AccountUser,
     AdminUser,
     CurrentUser,
     SessionDep,
@@ -35,7 +36,7 @@ router = APIRouter(
     description="Read current role permissions. Superuser bypass is explicit; roles are evaluated using current assignment dates.",
 )
 async def read_effective_access(
-    *, session: SessionDep, current_user: CurrentUser
+    *, session: SessionDep, current_user: AccountUser
 ) -> access.EffectiveAccess:
     return await access.current(session, current_user)
 

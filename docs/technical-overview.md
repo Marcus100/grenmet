@@ -116,8 +116,10 @@ weather products.
 
 ### The session cookie
 
-The staff session cookie (`grenmet_session` by default) is **httpOnly,
-SameSite=Lax** and contains an opaque session token. Server code calls
+Each app keeps its own **host-only, httpOnly, SameSite=Lax** session cookie
+(`auth_session`, `admin_session`, `cms_session`, `events_session`) holding an
+opaque session token; apps sign in through auth.barrels.gd by single sign-on
+handoff (ADR-0017). Server code calls
 `exchangeSessionForAccessToken()` to obtain a short-lived access token and the
 user record, then sends the access token with authenticated FastAPI requests.
 

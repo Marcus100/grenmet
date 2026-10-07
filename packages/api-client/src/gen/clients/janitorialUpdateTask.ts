@@ -25,7 +25,7 @@ export function janitorialUpdateTask<ThrowOnError extends boolean = true>(
       method: "PATCH",
       url: "/api/v1/janitorial/tasks/{task_id}",
       security: [
-        { type: "apiKey", name: "grenmet_session", in: "cookie" },
+        { type: "apiKey", name: "admin_session", in: "cookie" },
         { type: "http", scheme: "bearer" },
       ],
       ...config,

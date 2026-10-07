@@ -12,11 +12,13 @@ from src.config import settings
 from src.dependencies import SessionDep, get_authenticated_user, get_current_user
 from src.models import BaseModel
 
-from . import service
+from . import apps, service
 from .config import auth_settings
 from .models import User
 
-cookie_scheme = APIKeyCookie(name=auth_settings.SESSION_COOKIE_NAME, auto_error=False)
+cookie_scheme = APIKeyCookie(
+    name=auth_settings.BROWSER_SESSION_COOKIE_NAME, auto_error=False
+)
 bearer_scheme = HTTPBearer(auto_error=False)
 CookieSecret = Annotated[str | None, Depends(cookie_scheme)]
 BearerCredential = Annotated[
@@ -41,7 +43,9 @@ async def get_cookie_user(
     stored = await service.get_active_session_by_secret(
         session=session, session_secret=secret
     )
-    if stored is None:
+    # App-scoped sessions (ADR-0016) only work on their own app's routes,
+    # mirroring get_current_user's refusal of app-claim tokens.
+    if stored is None or apps.is_app_scoped(stored.app_name):
         raise HTTPException(401, "Sign in again")
     if request.method not in {"GET", "HEAD", "OPTIONS"}:
         supplied = request.headers.get("x-csrf-token", "")

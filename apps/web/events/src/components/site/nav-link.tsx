@@ -1,16 +1,25 @@
 "use client";
 
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@barrelsgd/ui/components/ui/sheet";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import {
   CalendarDays,
   Compass,
   type LucideIcon,
+  Menu,
   MessageSquare,
   UserRound,
   Users,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 
 interface NavItem {
   readonly href: string;
@@ -59,13 +68,59 @@ export function HeaderNav() {
   );
 }
 
+/** Phone menu for the website; the installed app uses BottomNav instead. */
+export function MobileNav() {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Sheet onOpenChange={setOpen} open={open}>
+      <SheetTrigger
+        aria-label="Open menu"
+        className="inline-flex standalone:hidden size-9 items-center justify-center rounded-md hover:bg-muted md:hidden"
+      >
+        <Menu className="size-5" />
+      </SheetTrigger>
+      <SheetContent className="w-72" side="right">
+        <SheetHeader>
+          <SheetTitle className="text-left">Barrels Events</SheetTitle>
+        </SheetHeader>
+        <nav aria-label="Main" className="flex flex-col gap-1 px-4">
+          {NAV_ITEMS.map((item) => {
+            const active = isActive(pathname, item.href);
+            const Icon = item.icon;
+            return (
+              <Link
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 font-medium text-body",
+                  active
+                    ? "bg-events-ink text-white"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+                href={item.href}
+                key={item.href}
+                onClick={() => setOpen(false)}
+              >
+                <Icon className="size-5" />
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+/** Installed app (PWA) only, on phones: hidden on the website. */
 export function BottomNav() {
   const pathname = usePathname();
 
   return (
     <nav
       aria-label="Main"
-      className="fixed inset-x-0 bottom-0 z-40 border-border border-t bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 hidden border-border border-t bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur max-md:standalone:block"
     >
       <ul className="grid grid-cols-5">
         {NAV_ITEMS.map((item) => {

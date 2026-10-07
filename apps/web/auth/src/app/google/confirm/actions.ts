@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { googleFinish } from "@/lib/modern-auth";
 import { reportError } from "@/lib/report-error";
+import { getSafeReturnTo } from "@/lib/return-to";
 import { isAuthApiError, writeSessionCookie } from "@/lib/session";
 
 export async function completeGoogle(
@@ -11,6 +12,7 @@ export async function completeGoogle(
 ): Promise<string> {
   const jar = await cookies();
   const challenge = jar.get("google_challenge")?.value;
+  const returnTo = getSafeReturnTo(jar.get("google_return")?.value);
   if (!challenge) return "Sign-in expired. Start Google sign-in again.";
   try {
     const result = await googleFinish({
@@ -18,6 +20,7 @@ export async function completeGoogle(
       totp_code: String(form.get("totp_code") ?? ""),
     });
     jar.delete("google_challenge");
+    jar.delete("google_return");
     await writeSessionCookie(result.session_token, result.session_expires_at);
   } catch (error) {
     reportError(error, "auth-google");
@@ -25,5 +28,5 @@ export async function completeGoogle(
       ? error.detail
       : "Sign-in failed. Start again.";
   }
-  redirect("/");
+  redirect(returnTo ?? "/");
 }

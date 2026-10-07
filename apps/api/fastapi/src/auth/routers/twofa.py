@@ -10,7 +10,7 @@ from src.auth.schemas import (
     TwoFactorSetupResponse,
     TwoFactorStatusPublic,
 )
-from src.dependencies import CurrentUser, SessionDep
+from src.dependencies import AccountUser, SessionDep
 
 router = APIRouter(prefix="/2fa", tags=["2fa"])
 
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/2fa", tags=["2fa"])
     summary="Get 2FA status",
     description="Returns whether two-factor authentication is enabled for the current account.",
 )
-async def twofa_status(*, current_user: CurrentUser) -> TwoFactorStatusPublic:
+async def twofa_status(*, current_user: AccountUser) -> TwoFactorStatusPublic:
     return TwoFactorStatusPublic(enabled=current_user.totp_enabled)
 
 
@@ -33,7 +33,7 @@ async def twofa_status(*, current_user: CurrentUser) -> TwoFactorStatusPublic:
     "until a code is confirmed via /2fa/activate.",
 )
 async def twofa_setup(
-    *, session: SessionDep, current_user: CurrentUser
+    *, session: SessionDep, current_user: AccountUser
 ) -> TwoFactorSetupResponse:
     secret = await service.begin_totp_setup(session=session, user=current_user)
     return TwoFactorSetupResponse(
@@ -52,7 +52,7 @@ async def twofa_setup(
     description="Confirms a TOTP code and enables two-factor authentication for the current account.",
 )
 async def twofa_activate(
-    *, session: SessionDep, current_user: CurrentUser, payload: TwoFactorCodeRequest
+    *, session: SessionDep, current_user: AccountUser, payload: TwoFactorCodeRequest
 ) -> TwoFactorStatusPublic:
     ok = await service.activate_totp(
         session=session, user=current_user, code=payload.code
@@ -73,7 +73,7 @@ async def twofa_activate(
     responses={status.HTTP_400_BAD_REQUEST: {"description": "Incorrect password"}},
 )
 async def twofa_disable(
-    *, session: SessionDep, current_user: CurrentUser, payload: TwoFactorDisableRequest
+    *, session: SessionDep, current_user: AccountUser, payload: TwoFactorDisableRequest
 ) -> TwoFactorStatusPublic:
     verified = await service.authenticate(
         session=session, email=current_user.email, password=payload.password

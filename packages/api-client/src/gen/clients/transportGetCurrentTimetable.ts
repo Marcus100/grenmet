@@ -29,7 +29,7 @@ export function transportGetCurrentTimetable<
       method: "GET",
       url: "/api/v1/transport/timetable/current",
       security: [
-        { type: "apiKey", name: "grenmet_session", in: "cookie" },
+        { type: "apiKey", name: "admin_session", in: "cookie" },
         { type: "http", scheme: "bearer" },
       ],
       ...config,

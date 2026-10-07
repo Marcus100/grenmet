@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -125,7 +125,14 @@ async def list_staff(session: AsyncSession) -> list[StaffSetup]:
             select(StaffCredential, User)
             .select_from(User)
             .outerjoin(StaffCredential, StaffCredential.user_id == User.id)
-            .where(User.username != "admin")
+            .where(
+                User.username != "admin",
+                # Public accounts appear only once they ask for staff access.
+                or_(
+                    User.registration_pending.is_(False),
+                    User.staff_access_requested_at.is_not(None),
+                ),
+            )
         )
     ).all()
     result = []

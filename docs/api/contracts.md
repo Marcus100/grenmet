@@ -176,11 +176,43 @@ their own host-only cookie. All routes are public and rate-limited:
 | `POST /api/v1/auth/apps/{app}/google/start` · `/complete` · `/finish` | Google with the app's redirect URI |
 | `POST /api/v1/auth/apps/{app}/phone-code/start` · `/verify` | SMS/WhatsApp code for linked numbers (disabled until a provider is configured) |
 | `POST /api/v1/auth/apps/{app}/phone/link/start` · `/verify` | Signed-in member links a phone number |
+| `POST /api/v1/auth/apps/{app}/handoff` | Single sign-on (ADR-0017): auth's server swaps the account session plus a `state` for a one-use, 60-second code and the app's `callback_url`. 409 = join required (retry with `join: true`), 403 = no access |
+| `POST /api/v1/auth/apps/{app}/handoff/redeem` | The app's server swaps `code`, `state` and its `client_secret` for a new session in that app only |
 
 Responses are `SessionLoginResponse`. Access tokens from these sessions carry an
 `app` claim: staff routes return 401 for them, and app routes accept only their own
 app's tokens. `/login/session/access-token` and `/login/session/refresh` keep the
-claim for app sessions.
+claim for app sessions. The cookie-authenticated routes (`/auth/browser/session` and
+the `BrowserUser` routes) refuse app-scoped sessions, matching the token rule.
+Single sign-on is available only for apps with a configured client secret
+(`EVENTS_SSO_CLIENT_SECRET`, `GAA_ADMIN_SSO_CLIENT_SECRET`, `CMS_SSO_CLIENT_SECRET`).
+Only the account session from auth.barrels.gd (a session belonging to no registered
+app) can start a handoff. Staff apps (`gaa-admin`, `cms`) have no sign-in routes of
+their own: their handoff requires an approved staff account and their sessions mint
+ordinary staff tokens without an `app` claim. `POST /login/session` ignores an
+`app_name` that names any registered app. The cookie-authenticated routes read
+GAA Admin's host-only cookie, `admin_session` (`BROWSER_SESSION_COOKIE_NAME`).
+
+**Public accounts (ADR-0017 step 4).** Any active, verified account can sign in at
+auth.barrels.gd (`POST /login/session`, Google) and hold an *account session*:
+a session that belongs to no registered app. Its token has no `app` claim, but
+staff approval (`registration_pending=false`) is still required by every staff
+route. Only these self-service routes accept unapproved accounts (`AccountUser`):
+`GET /auth/users/me`, `PATCH /auth/users/me/password`, `/auth/2fa/*`,
+`GET /auth/modern/security`, `POST /auth/modern/security/recovery-codes`,
+`DELETE /auth/modern/security/sessions/{id}`, `GET /auth/access/me` and
+`POST /auth/users/me/staff-access-request`. The last one sets
+`UserPublic.staff_access_requested_at` (idempotent); staff setup
+(`GET /setup/staff`) lists approved staff plus accounts that asked.
+`POST /login/access-token` (machine clients) still requires staff approval.
+`POST /auth/modern/email-code/start` and `/verify` sign in to the account with a
+6-digit emailed code (the first verified code creates the account when sign-up is
+open); they open the same account session as password and Google sign-in.
+
+Public sites registered for single sign-on (`weather`, `mbia`, `signal`, `docs`,
+`elections`) have no sign-in routes of their own and `join_prompt=False`: the
+handoff grants their `<key>-member` role (`app.<key>.access`) on first visit
+instead of returning 409. Events keeps the "Join" prompt.
 
 Browser apps should store only the opaque session token in an `httpOnly` cookie. Server Components or route handlers exchange that session token for a short-lived bearer token before calling FastAPI.
 

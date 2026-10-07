@@ -4,6 +4,16 @@ export {
   useAuditGetHistory,
 } from "./useAuditGetHistory.js";
 export {
+  authAccountEmailCodeStartMutationKey,
+  authAccountEmailCodeStartMutationOptions,
+  useAuthAccountEmailCodeStart,
+} from "./useAuthAccountEmailCodeStart.js";
+export {
+  authAccountEmailCodeVerifyMutationKey,
+  authAccountEmailCodeVerifyMutationOptions,
+  useAuthAccountEmailCodeVerify,
+} from "./useAuthAccountEmailCodeVerify.js";
+export {
   authAppEmailCodeStartMutationKey,
   authAppEmailCodeStartMutationOptions,
   useAuthAppEmailCodeStart,
@@ -28,6 +38,16 @@ export {
   authAppGoogleStartMutationOptions,
   useAuthAppGoogleStart,
 } from "./useAuthAppGoogleStart.js";
+export {
+  authAppHandoffRedeemMutationKey,
+  authAppHandoffRedeemMutationOptions,
+  useAuthAppHandoffRedeem,
+} from "./useAuthAppHandoffRedeem.js";
+export {
+  authAppHandoffStartMutationKey,
+  authAppHandoffStartMutationOptions,
+  useAuthAppHandoffStart,
+} from "./useAuthAppHandoffStart.js";
 export {
   authAppPasswordLoginMutationKey,
   authAppPasswordLoginMutationOptions,
@@ -243,6 +263,11 @@ export {
   authReplaceRecoveryCodesMutationOptions,
   useAuthReplaceRecoveryCodes,
 } from "./useAuthReplaceRecoveryCodes.js";
+export {
+  authRequestStaffAccessMutationKey,
+  authRequestStaffAccessMutationOptions,
+  useAuthRequestStaffAccess,
+} from "./useAuthRequestStaffAccess.js";
 export {
   authResetPasswordMutationKey,
   authResetPasswordMutationOptions,

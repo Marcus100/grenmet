@@ -29,7 +29,7 @@ export function eregisterValidateSynopObservation<
       method: "POST",
       url: "/api/v1/eregister/observations/validate-synop",
       security: [
-        { type: "apiKey", name: "grenmet_session", in: "cookie" },
+        { type: "apiKey", name: "admin_session", in: "cookie" },
         { type: "http", scheme: "bearer" },
       ],
       ...config,

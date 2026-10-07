@@ -81,3 +81,62 @@ footer {
     display: none;
   }
 }
+.privacy-card,
+.privacy-open {
+  position: fixed;
+  bottom: var(--line-height-body-base);
+  left: var(--line-height-body-base);
+  color: var(--brand-text-primary);
+  background: var(--brand-surface);
+  box-shadow: var(--brand-shadow-card);
+}
+.privacy-card {
+  right: var(--line-height-body-base);
+  max-width: calc(var(--line-height-heading-lg) * 12);
+  padding: var(--line-height-body-base);
+  border-radius: var(--radius);
+}
+.privacy-card[hidden],
+.privacy-open[hidden] {
+  display: none;
+}
+.privacy-card h2 {
+  margin: 0;
+  font-size: var(--font-size-body-base);
+}
+.privacy-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--line-height-caption);
+}
+/* Equal weight: declining is as easy as accepting. */
+.privacy-actions button,
+.privacy-open {
+  font: inherit;
+  cursor: pointer;
+  border: 0;
+}
+.privacy-actions button {
+  padding-block: var(--line-height-caption);
+  color: var(--brand-text-inverse);
+  background: var(--brand-text-primary);
+  border-radius: var(--radius);
+}
+.privacy-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.privacy-open {
+  padding: var(--font-size-caption) var(--line-height-body-base);
+  font-size: var(--font-size-caption);
+  border-radius: var(--line-height-heading-lg);
+}
+.privacy-actions button:focus-visible,
+.privacy-open:focus-visible {
+  outline: medium solid var(--brand-accent);
+  outline-offset: var(--font-size-caption);
+}
+/* Keep the footer clear of the fixed privacy button. */
+body:has(.privacy-open:not([hidden])) {
+  padding-bottom: calc(var(--line-height-heading-lg) * 3);
+}

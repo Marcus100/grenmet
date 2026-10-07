@@ -32,6 +32,7 @@ export type UserPublic = {
    * @type boolean | undefined
    */
   registration_pending?: boolean;
+  staff_access_requested_at?: string | null;
   /**
    * @description
    * Format: `uuid`
