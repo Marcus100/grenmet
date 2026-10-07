@@ -160,7 +160,7 @@ catalog:
   "react-day-picker": "^10.0.2"
 
   # Error tracking
-  "@sentry/nextjs": ^10.75.0
+  "@sentry/nextjs": ^11.4.0
 
   # Analytics
   "posthog-js": ^1.435.8
