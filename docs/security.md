@@ -79,9 +79,9 @@ Security-sensitive deployment facts:
 The following are not globally implemented yet:
 
 - Content Security Policy and standard browser security headers for all Next.js apps.
-- Centralized audit logging for all domains. CAP has audit events; general auth/HR actions do not yet have a uniform audit log.
-- MFA or SSO for application users.
-- Redis-backed distributed rate limiting.
+- Complete audit coverage across all domains. Shared HR audit and account-activation history exist; coverage is opt-in.
+- Mandatory MFA for privileged accounts and encryption of stored TOTP secrets. TOTP, recovery codes and app-scoped SSO already exist.
+- Verification of deployed Redis-backed rate limiting configuration; the implementation already supports Redis.
 - WAF or bot-protection layer.
 - Request ID or correlation ID middleware.
 - Formal backup restore drill evidence.
@@ -268,3 +268,8 @@ Operator checks of the earlier image found Perl pointer size 8 and Archive::Tar
 unavailable on its configured module paths. These support excluding the 32-bit
 Perl condition and missing archive module from current applicability, without
 scanner exclusions. SQLite and the other Perl findings remain under review.
+
+
+## Account activation without email
+
+Superusers may approve identity in person and deliver a single-use activation link directly. This establishes a password without claiming ownership of a mailbox. See [staff onboarding](operations/staff-onboarding.md) and [modular access decision](adr/0018-modular-access-and-onboarding.md). Links are hashed in storage, expire after 30 minutes, bind to the current account credentials/email and issuing administrator, and are revocable. Redemption revokes existing sessions and retains MFA. Existing approved staff exempt from email verification may enter CMS with explicit access; public accounts retain the verified-email gate.

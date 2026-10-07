@@ -53,6 +53,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { CreateAccountDialog } from "./create-account-dialog";
 import { CreateUserDialog } from "./create-user-dialog";
 import { usersColumns } from "./users-columns";
 import {
@@ -210,6 +211,7 @@ export function UsersManager() {
           <Button size="sm" variant="outline">
             <Download /> Export
           </Button>
+          <CreateAccountDialog />
           <CreateUserDialog roles={roles} />
         </CardAction>
       </CardHeader>
