@@ -149,3 +149,70 @@ async def test_staff_access_requests_fill_the_approval_queue(
     )
     assert resident is not None
     assert resident.id not in queue
+
+
+@pytest.fixture
+def fixed_code(monkeypatch):
+    monkeypatch.setattr(app_service, "new_code", lambda: "123456")
+
+
+async def _code_sign_in(async_client, email, code="123456"):
+    await async_client.post(
+        "/api/v1/auth/modern/email-code/start",
+        json={"email": email, "first_name": "Kezia", "last_name": "Mitchell"},
+    )
+    return await async_client.post(
+        "/api/v1/auth/modern/email-code/verify", json={"email": email, "code": code}
+    )
+
+
+@pytest.mark.asyncio
+async def test_email_code_opens_an_account_session_and_creates_accounts(
+    async_client, db_async, seeded, fixed_code
+):
+    _ = (db_async, seeded, fixed_code)
+    response = await _code_sign_in(async_client, "new.person@example.com")
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["session"]["app_name"] == "auth"
+    headers = {"Authorization": f"Bearer {body['access_token']}"}
+    me = await async_client.get("/api/v1/auth/users/me", headers=headers)
+    assert me.status_code == 200
+    assert me.json()["registration_pending"] is True
+    assert (
+        await async_client.get("/api/v1/hr/profile/me", headers=headers)
+    ).status_code == 403
+
+    wrong = await _code_sign_in(async_client, "new.person@example.com", "000000")
+    assert wrong.status_code == 400
+
+
+@pytest.mark.asyncio
+async def test_email_code_respects_closed_sign_up(
+    async_client, db_async, seeded, fixed_code, monkeypatch
+):
+    _ = (seeded, fixed_code)
+    monkeypatch.setattr(auth_settings, "ALLOW_PUBLIC_SIGNUP", False)
+    assert (await _code_sign_in(async_client, "nobody@example.com")).status_code == 400
+    await _public_account(db_async, email="existing@example.com")
+    assert (
+        await _code_sign_in(async_client, "existing@example.com")
+    ).status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_information_sites_join_without_a_prompt(
+    async_client, db_async, seeded, monkeypatch
+):
+    _ = seeded
+    monkeypatch.setattr(auth_settings, "WEATHER_SSO_CLIENT_SECRET", SECRET)
+    user = await _public_account(db_async)
+    account = (await _sign_in(async_client))["session_token"]
+    started = await async_client.post(
+        "/api/v1/auth/apps/weather/handoff",
+        json={"session_token": account, "state": secrets.token_urlsafe(24)},
+    )
+    assert started.status_code == 200, started.text
+    assert await service.is_eligible_for_app(
+        session=db_async, user=user, app_key="weather"
+    )

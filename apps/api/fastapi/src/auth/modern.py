@@ -3,8 +3,10 @@ import uuid
 from fastapi import APIRouter
 from starlette.requests import Request
 
+from src.auth import app_service
 from src.auth import modern_service as service
 from src.auth.account_security import new_recovery_codes, revoke_owned_session
+from src.auth.app_schemas import AppEmailCodeStart, AppEmailCodeVerify
 from src.auth.modern_schemas import (
     AccountSecurityPublic,
     EmailConfirm,
@@ -167,3 +169,43 @@ async def revoke_security_session(
 ) -> Message:
     await revoke_owned_session(session, current_user, session_id)
     return Message(message="Session revoked")
+
+
+@router.post(
+    "/email-code/start",
+    response_model=Message,
+    status_code=200,
+    summary="Send a Barrels account sign-in code",
+    description="Email a 6-digit code for signing in at auth.barrels.gd. The reply never reveals whether the address has an account.",
+    responses={
+        429: {"description": "Rate limit exceeded"},
+        503: {"description": "Email delivery failed"},
+    },
+)
+@limiter.limit("5/minute")
+async def account_email_code_start(
+    *, request: Request, session: SessionDep, body: AppEmailCodeStart
+) -> Message:
+    _ = request
+    return await app_service.account_email_code_start(session=session, body=body)
+
+
+@router.post(
+    "/email-code/verify",
+    response_model=SessionLoginResponse,
+    status_code=200,
+    summary="Sign in to the Barrels account with an email code",
+    description="Verify the code and open an account session (ADR-0017); the first verified code creates the account when sign-up is open.",
+    responses={
+        400: {"description": "Wrong or expired code"},
+        403: {"description": "Registration closed"},
+        429: {"description": "Rate limit exceeded"},
+    },
+)
+@limiter.limit("10/minute")
+async def account_email_code_verify(
+    *, request: Request, session: SessionDep, body: AppEmailCodeVerify
+) -> SessionLoginResponse:
+    return await app_service.account_email_code_verify(
+        request=request, session=session, body=body
+    )

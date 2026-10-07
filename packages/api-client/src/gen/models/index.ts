@@ -54,6 +54,27 @@ export type {
   AuditGetHistoryStatus422,
 } from "./AuditGetHistory.js";
 export type {
+  AuthAccountEmailCodeStartBody,
+  AuthAccountEmailCodeStartOptions,
+  AuthAccountEmailCodeStartResponse,
+  AuthAccountEmailCodeStartResponses,
+  AuthAccountEmailCodeStartStatus200,
+  AuthAccountEmailCodeStartStatus422,
+  AuthAccountEmailCodeStartStatus429,
+  AuthAccountEmailCodeStartStatus503,
+} from "./AuthAccountEmailCodeStart.js";
+export type {
+  AuthAccountEmailCodeVerifyBody,
+  AuthAccountEmailCodeVerifyOptions,
+  AuthAccountEmailCodeVerifyResponse,
+  AuthAccountEmailCodeVerifyResponses,
+  AuthAccountEmailCodeVerifyStatus200,
+  AuthAccountEmailCodeVerifyStatus400,
+  AuthAccountEmailCodeVerifyStatus403,
+  AuthAccountEmailCodeVerifyStatus422,
+  AuthAccountEmailCodeVerifyStatus429,
+} from "./AuthAccountEmailCodeVerify.js";
+export type {
   AuthAppEmailCodeStartBody,
   AuthAppEmailCodeStartOptions,
   AuthAppEmailCodeStartPath,

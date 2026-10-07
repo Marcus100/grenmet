@@ -34,6 +34,17 @@ class AuthConfig(BaseSettings):
     GAA_ADMIN_SSO_CLIENT_SECRET: str = ""
     CMS_APP_URL: str = "http://localhost:3006"
     CMS_SSO_CLIENT_SECRET: str = ""
+    # Public sites with "Sign in" (ADR-0017 step 4); members join automatically.
+    WEATHER_APP_URL: str = "http://localhost:3003"
+    WEATHER_SSO_CLIENT_SECRET: str = ""
+    MBIA_APP_URL: str = "http://localhost:3005"
+    MBIA_SSO_CLIENT_SECRET: str = ""
+    SIGNAL_APP_URL: str = "http://localhost:3004"
+    SIGNAL_SSO_CLIENT_SECRET: str = ""
+    DOCS_APP_URL: str = "http://localhost:3002"
+    DOCS_SSO_CLIENT_SECRET: str = ""
+    ELECTIONS_APP_URL: str = "http://localhost:3007"
+    ELECTIONS_SSO_CLIENT_SECRET: str = ""
     # One-time codes by SMS/WhatsApp. "disabled" until a provider is chosen
     # (every message costs money); "console" logs codes for local development.
     PHONE_OTP_PROVIDER: Literal["disabled", "console"] = "disabled"

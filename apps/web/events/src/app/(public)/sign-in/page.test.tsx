@@ -9,12 +9,22 @@ vi.mock("@barrelsgd/auth/server", () => ({
   getSafeLocalReturnTo: (value?: string) =>
     value?.startsWith("/") ? value : null,
 }));
+vi.mock("next/navigation", () => ({
+  redirect: (url: string) => {
+    throw new Error(`redirect:${url}`);
+  },
+}));
 vi.mock("./sign-in-form", () => ({ SignInForm: () => <form /> }));
 
 import SignInPage from "./page";
 
 async function show(params: { returnTo?: string; sign_in?: string } = {}) {
-  render(await SignInPage({ searchParams: Promise.resolve(params) }));
+  try {
+    render(await SignInPage({ searchParams: Promise.resolve(params) }));
+  } catch (error) {
+    return (error as Error).message.replace("redirect:", "");
+  }
+  return null;
 }
 
 afterEach(() => {
@@ -22,22 +32,23 @@ afterEach(() => {
 });
 
 describe("Events sign-in page", () => {
-  it("offers the Barrels account when single sign-on is configured", async () => {
+  it("sends people to the Barrels account when single sign-on is on", async () => {
     env.EVENTS_SSO_CLIENT_SECRET = "x".repeat(32);
-    await show({ returnTo: "/events/launch" });
-    const link = screen.getByRole("link", {
-      name: "Continue with your Barrels account",
-    });
-    expect(link.getAttribute("href")).toBe(
+    expect(await show({ returnTo: "/events/launch" })).toBe(
       "/auth/start?returnTo=%2Fevents%2Flaunch"
     );
   });
 
-  it("hides it otherwise and explains an expired link", async () => {
-    await show({ sign_in: "expired" });
+  it("offers a retry instead of looping after a failed attempt", async () => {
+    env.EVENTS_SSO_CLIENT_SECRET = "x".repeat(32);
+    expect(await show({ sign_in: "expired" })).toBeNull();
     expect(
-      screen.queryByRole("link", { name: "Continue with your Barrels account" })
-    ).toBeNull();
-    expect(screen.getByRole("status").textContent).toContain("expired");
+      screen.getByRole("link", { name: "Try again" }).getAttribute("href")
+    ).toBe("/auth/start?returnTo=%2Fme");
+  });
+
+  it("keeps the local email-code form when single sign-on is off", async () => {
+    expect(await show()).toBeNull();
+    expect(screen.queryByRole("link", { name: "Try again" })).toBeNull();
   });
 });
