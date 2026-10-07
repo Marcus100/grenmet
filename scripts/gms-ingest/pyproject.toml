@@ -7,7 +7,7 @@ dependencies = [
     "pyshp>=2.3.1",
     "pyproj>=3.7.2",
     "cfgrib>=0.9.15.1",
-    "eccodes>=2.45.0",
+    "eccodes>=2.49.0",
     "eccodeslib>=2.48.0.26; platform_system != 'Windows'",
     "xarray>=2026.2.0",
     "netcdf4>=1.7.4",
