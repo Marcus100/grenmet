@@ -1,7 +1,7 @@
 # Exec plan: single sign-on handoff across `*.barrels.gd`
 
 Decision record: ADR-0017 (proposed), building on ADR-0016.
-Status: **phase 1 (backend) done; phases 2–6 not started.** Each phase ships and
+Status: **steps 1–2 done; steps 3–4 not started.** Each phase ships and
 is reviewed on its own.
 
 ## Goal
@@ -38,7 +38,7 @@ app /auth/callback: state == cookie?
 
 ## Phases
 
-**1. Backend (FastAPI, `src/auth/`) — done**
+**1. Backend handoff (FastAPI, `src/auth/`) — done**
 - `apps.py`: `client_secret` (an app takes part in SSO only when it is set),
   `callback_path`, `callback_url`. Events reads `EVENTS_SSO_CLIENT_SECRET`.
 - `POST /auth/apps/{app}/handoff`: account session + state → one-use 60-second
@@ -51,43 +51,50 @@ app /auth/callback: state == cookie?
 - `browser.get_cookie_user` now refuses app-scoped sessions.
 - Tests: `tests/auth/test_app_handoff.py`. Contract regenerated;
   `docs/api/contracts.md` and `docs/env.md` updated.
-- Moved to phase 4: the staff token scope (`gaa-admin`, `cms` mint unscoped
+- Moved to step 3: the staff token scope (`gaa-admin`, `cms` mint unscoped
   staff tokens) is added with the first staff app, so it is built and tested
   against a real consumer.
 - Known limit: rate limits key on the caller IP, which is the web server for
   these server-to-server calls, so all users share one bucket (affects every
   sign-in route today; fix separately).
 
-**2. `packages/auth`**
-- `startAppSignIn(config, request)` and `completeAppSignIn(config, request)`
-  route-handler helpers (state cookie, redeem, `writeSessionCookie`, safe local
-  `returnTo`, `Referrer-Policy: no-referrer`). Vitest coverage.
-- `buildSharedSignInUrl` keeps its signature and points at the app's own
-  `/auth/start`, so existing callers don't change.
+**2. Shared helpers, auth `/continue`, Events (staff SSO first) — done**
+- `packages/auth`: `startAppSignIn` / `completeAppSignIn` route-handler helpers
+  (state cookie, redeem with the app's client secret, `writeSessionCookie`, safe
+  local `returnTo`, `Referrer-Policy: no-referrer`), with Vitest coverage.
+- Auth app: `/continue?app&state&returnTo` (handoff, one-click "Join <app>?"
+  screen on 409, "no access" on 403); every post-sign-in path goes there when an
+  `app` is present.
+- Events: `/auth/start` and `/auth/callback`; "Continue with your Barrels
+  account" on its sign-in page; wire `EVENTS_SSO_CLIENT_SECRET`.
+- Google sign-in at auth now carries `returnTo` through the round trip
+  (`google_return` cookie), so it lands back on `/continue`.
+- Deployment: API gets `EVENTS_APP_URL` and `EVENTS_SSO_CLIENT_SECRET`; Events
+  gets `AUTH_APP_URL` and the secret; `render-env.py` requires 32+ characters.
+  To switch it on, add the GitHub environment secret `EVENTS_SSO_CLIENT_SECRET`.
+- Only approved staff can hold an auth.barrels.gd session at this point, so
+  this step gives staff single sign-on into Events; residents keep Events'
+  own sign-in until step 4.
 
-**3. Auth app**
-- `/continue` route; account cookie renamed to a host-only `auth_session`
-  (done in phase 6, so gaa-admin and cms keep working until then).
-- Every post-sign-in path (password action, Google confirm, email code) goes to
-  `/continue` when an `app` is present instead of `redirect(returnTo)`.
-- One-click "Join <app>?" screen for self-sign-up apps the user hasn't joined;
-  backend needs a `join` flag on the handoff call that runs `ensure_member`.
-- `/sessions` groups sessions by app, with per-app end and "sign out everywhere".
+**3. cms, then gaa-admin, onto their own cookies**
+- Staff token scope for handoff sessions (unscoped staff token, staff approval
+  required), `app.<key>.access` permissions and admin grants.
+- cms: `cms_session` host-only cookie, start and callback routes.
+- gaa-admin (run the `gaa-admin-change` skill first): `grenmet_session` but
+  host-only, so FastAPI cookie routes keep working; start and callback routes.
+- Remove `SESSION_COOKIE_DOMAIN` (compose, `env.ts`, `AuthConfig`, docs) and
+  switch auth to a host-only `auth_session`. Everyone signs in again once.
 
-**4. cms** (smallest, proves the pattern): own `cms_session` host-only cookie,
-`/auth/start` + `/auth/callback`, logout routes unchanged.
-
-**5. gaa-admin** (run the `gaa-admin-change` skill first): keeps the cookie name
-`grenmet_session` but host-only, so FastAPI cookie routes (janitorial, eregister,
-transport, wxwatch, wxproducts via `proxy.ts` and the `db/*/queries.ts`
-forwarders) keep working. Add start and callback routes.
-
-**6. Events and cleanup**
-- Events: add "Continue with your Barrels account" next to its own sign-in;
-  wire `EVENTS_SSO_CLIENT_SECRET` (GitHub secret → API and Events containers).
-- Remove `SESSION_COOKIE_DOMAIN` from `AuthConfig`, the three compose files,
-  every `env.ts`, and `docs/env.md`; switch auth to `auth_session`. Users sign
-  in again once.
+**4. Public accounts at auth.barrels.gd and Sign in everywhere**
+- Must follow step 3: while staff apps read the shared `.barrels.gd` cookie, a
+  public account session there would reach staff app shells.
+- Auth accepts public accounts (email code, password, Google; self sign-up).
+  Staff approval moves from sign-in to staff-app handoff and staff tokens.
+- Every app's "Sign in" goes to auth: Events' own sign-in page becomes a
+  redirect; add Sign in, account menu, start and callback routes to Weather
+  (gms), MBIA, Elections, Signal and Docs (each registered with a client
+  secret, `app.<key>.access` and a self-sign-up default role).
+- `/sessions` groups sessions by app; auth logout calls logout-all.
 - Update ADR-0002 (superseded in part), ADR-0016 (amended), `packages/auth`
   README and AGENTS, and `apps/web/auth/AGENTS.md`.
 
@@ -106,6 +113,10 @@ Confirmed by the owner (2026-10-06):
 4. **2FA:** a handoff trusts the 2FA already passed by the account session.
 5. **Local dev:** cookies ignore ports, so each app needs a distinct cookie name
    on `localhost` (`auth_session`, `cms_session`, `grenmet_session`, `events_session`).
+6. **Public accounts sign in at auth.barrels.gd** (step 4); staff approval is
+   checked when opening staff apps, not at sign-in.
+7. **Every app gets Sign in**, including Weather, MBIA, Elections, Signal and
+   Docs, before they have member features; features come later.
 
 ## Verification (per phase)
 

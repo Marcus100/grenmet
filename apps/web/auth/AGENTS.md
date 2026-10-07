@@ -19,6 +19,7 @@ src/app/
   signup/page.tsx
   forgot-password/page.tsx
   reset-password/page.tsx
+  continue/page.tsx               ← single sign-on into another app (ADR-0017): hand off, "Join <app>?", or "no access"
   api/email/render/route.ts       ← internal endpoint: FastAPI calls this to render email templates
   api/health/route.ts
 ```

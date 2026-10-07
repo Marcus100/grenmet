@@ -37,6 +37,10 @@ const { user, access_token } = await exchangeSessionForAccessToken(authConfig, s
 
 Catch `AuthApiError` from `exchangeSessionForAccessToken` — a 401 means the session is expired or revoked. Clear the cookie and redirect to sign-in rather than letting it propagate.
 
+## Single sign-on (ADR-0017)
+
+Apps registered for single sign-on mount `startAppSignIn` at `GET /auth/start` and `completeAppSignIn` at `GET /auth/callback` (see README). Pass the app's client secret from its typed `env`; never expose it to the browser.
+
 ## Logout routes
 
 Every app that uses auth must implement:

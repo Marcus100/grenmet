@@ -253,6 +253,33 @@ Derive the request origin from headers (`x-forwarded-host` → `host` fallback).
 
 Validate a `returnTo` value from a query parameter. Returns `null` if the value is not a safe local path (must start with `/`, must not be `//`).
 
+### Single sign-on helpers (ADR-0017)
+
+For apps registered for single sign-on in `apps/api/fastapi/src/auth/apps.py`
+(with a client secret). Mount both as route handlers:
+
+```ts
+// src/app/auth/start/route.ts — link "Continue with your Barrels account" here
+export function GET(request: NextRequest) {
+  return startAppSignIn(authConfig, request); // ?returnTo=/local/path
+}
+
+// src/app/auth/callback/route.ts — the app's registered callback
+export function GET(request: NextRequest) {
+  return completeAppSignIn(authConfig, request, {
+    clientSecret: env.MY_APP_SSO_CLIENT_SECRET,
+    failurePath: "/sign-in", // lands on /sign-in?sign_in=expired
+  });
+}
+```
+
+`startAppSignIn` stores a random state and the local return path in a
+short-lived `<sessionCookieName>_sso` cookie and redirects to
+`<authAppUrl>/continue`. `completeAppSignIn` checks the state, redeems the
+one-use code server-side with the client secret, sets the app's own session
+cookie and redirects back. `writeSessionCookieOnResponse` is the
+`NextResponse` variant of `writeSessionCookie`.
+
 ---
 
 ### `authApiFetch<T>(config, path, init?)`

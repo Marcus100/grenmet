@@ -1,3 +1,4 @@
+export { completeAppSignIn, startAppSignIn } from "./app-sign-in";
 export {
   authApiFetch,
   authApiFetchResponse,
@@ -6,6 +7,7 @@ export {
   clearSessionCookieOnResponse,
   readSessionCookie,
   writeSessionCookie,
+  writeSessionCookieOnResponse,
 } from "./auth-api-fetch";
 export {
   buildSharedSignInUrl,
