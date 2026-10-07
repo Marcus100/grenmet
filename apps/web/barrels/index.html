@@ -45,21 +45,28 @@
       Privacy
     </button>
     <section
-      aria-describedby="analytics-description"
       aria-labelledby="analytics-title"
       class="privacy-card"
       hidden
       id="analytics-settings"
       role="dialog"
     >
-      <h2 id="analytics-title">Your privacy</h2>
-      <p id="analytics-description">
-        May we use optional Google Analytics to understand visits? Nothing loads
-        unless you accept, and you can change your mind anytime.
-      </p>
+      <h2 id="analytics-title">We use cookies.</h2>
+      <details class="privacy-details">
+        <summary>Read more</summary>
+        <p>
+          Optional analytics helps us improve this site. It starts only if you
+          accept. You can change your choice using Privacy.
+        </p>
+        <p>
+          Google Analytics counts visits without advertising. Your choice is
+          saved on this site for six months.
+        </p>
+      </details>
+      <p hidden id="analytics-description"></p>
       <div class="privacy-actions">
-        <button id="analytics-decline" type="button">Decline</button>
         <button id="analytics-accept" type="button">Accept</button>
+        <button id="analytics-decline" type="button">Deny</button>
       </div>
     </section>
     <script src="/analytics.mjs" type="module"></script>

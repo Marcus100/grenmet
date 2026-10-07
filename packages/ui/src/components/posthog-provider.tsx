@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   analyticsAllowedOnPath,
   browserOptOut,
@@ -11,6 +12,7 @@ import {
   type PublicApp,
   pageSection,
   readConsent,
+  readSavedConsent,
 } from "../lib/analytics-policy";
 import {
   captureMarkedLink,
@@ -33,7 +35,10 @@ function PublicAnalytics({ app }: { app: PublicApp }) {
     const update = () => {
       const value = readConsent();
       setPreference(value);
-      setOpen(value === null && configForOrigin(app, location.origin) !== null);
+      setOpen(
+        readSavedConsent() === null &&
+          configForOrigin(app, location.origin) !== null
+      );
       if (value !== "accepted") stopAnalytics();
       setReady(true);
     };
@@ -91,7 +96,7 @@ function PublicAnalytics({ app }: { app: PublicApp }) {
   if (!config) return null;
   const optedOut = browserOptOut();
   if (!open) {
-    return (
+    return createPortal(
       <button
         aria-label="Privacy settings"
         className="fixed bottom-[calc(var(--privacy-bottom-offset,0px)_+_var(--spacing)_*_4)] left-4 z-50 rounded-full border border-border bg-background px-3 py-1.5 font-medium text-foreground text-xs shadow-card hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
@@ -99,57 +104,65 @@ function PublicAnalytics({ app }: { app: PublicApp }) {
         type="button"
       >
         Privacy
-      </button>
+      </button>,
+      document.body
     );
   }
-  return (
+  return createPortal(
     <section
-      aria-describedby="privacy-choice-summary"
       aria-labelledby="privacy-choice-title"
-      className="fixed inset-x-4 bottom-[calc(var(--privacy-bottom-offset,0px)_+_var(--spacing)_*_4)] z-50 space-y-3 rounded-lg border border-border bg-background p-4 text-foreground text-sm shadow-card sm:right-auto sm:left-4 sm:max-w-sm"
+      className="fixed inset-x-4 bottom-[calc(var(--privacy-bottom-offset,0px)_+_var(--spacing)_*_4)] z-50 space-y-4 rounded-3xl border border-border bg-foreground p-5 text-background text-sm shadow-card sm:inset-x-auto sm:top-1/2 sm:bottom-auto sm:left-1/2 sm:w-full sm:max-w-sm sm:-translate-x-1/2 sm:-translate-y-1/2"
       role="dialog"
     >
-      <h2 className="font-semibold text-base" id="privacy-choice-title">
-        Your privacy
+      <h2 className="sr-only" id="privacy-choice-title">
+        Cookie preferences
       </h2>
-      <p id="privacy-choice-summary">
-        {optedOut
-          ? "Your browser asks sites not to track you, so optional analytics stays off."
-          : "May we use optional analytics to see which pages help people? Nothing loads unless you accept, and you can change your mind anytime."}
-      </p>
-      <details className="text-muted-foreground">
-        <summary className="cursor-pointer text-foreground underline">
-          What this means
-        </summary>
-        <div className="space-y-2 pt-2">
-          <p>
-            Google Analytics and PostHog count page visits and a few actions. No
-            session replay, advertising or cross-site tracking.
-          </p>
-          <p>
-            Product events are kept for up to 90 days and Google Analytics data
-            for 14 months. Your choice is remembered on this site for six
-            months. Basic error and uptime checks run either way.
-          </p>
-        </div>
-      </details>
-      {/* Equal weight: declining is as easy as accepting. */}
-      <div className="grid grid-cols-2 gap-2">
-        <Button onClick={() => choose("declined")}>Decline</Button>
-        <Button disabled={optedOut} onClick={() => choose("accepted")}>
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+        <p>We use cookies.</p>
+        <details className="group contents">
+          <summary className="cursor-pointer list-none underline underline-offset-4">
+            Read more
+          </summary>
+          <div className="w-full space-y-2 pt-2">
+            <p>
+              Optional analytics helps us improve this site. It starts only if
+              you accept. You can change your choice using Privacy.
+            </p>
+            <p>
+              Google Analytics and PostHog count visits and a few actions,
+              without advertising or session replay. Your choice is saved on
+              this site for six months.
+            </p>
+          </div>
+        </details>
+      </div>
+      {optedOut ? <p>Your browser has turned optional analytics off.</p> : null}
+      <div className="grid grid-cols-2 gap-3">
+        <Button
+          className="min-h-11 rounded-full bg-background text-foreground hover:bg-background/90"
+          disabled={optedOut}
+          onClick={() => choose("accepted")}
+        >
           Accept
+        </Button>
+        <Button
+          className="min-h-11 rounded-full border border-background/40 bg-transparent text-background hover:bg-background/10"
+          onClick={() => choose("declined")}
+        >
+          Deny
         </Button>
       </div>
       {preference === null ? null : (
         <button
-          className="text-muted-foreground text-xs underline"
+          className="text-xs underline"
           onClick={() => setOpen(false)}
           type="button"
         >
-          Keep my current choice ({preference})
+          Close
         </button>
       )}
-    </section>
+    </section>,
+    document.body
   );
 }
 
