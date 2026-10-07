@@ -6,5 +6,5 @@
 import * as z from "zod";
 
 export const authoringErrorSchema = z.object({
-  detail: z.union([z.string(), z.array(z.object({}).catchall(z.unknown()))]),
+  detail: z.union([z.string(), z.array(z.looseObject({}))]),
 });

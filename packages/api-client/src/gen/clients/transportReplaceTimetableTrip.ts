@@ -33,6 +33,7 @@ export function transportReplaceTimetableTrip<
         { type: "http", scheme: "bearer" },
       ],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<TransportReplaceTimetableTripResponses, ThrowOnError>
     >

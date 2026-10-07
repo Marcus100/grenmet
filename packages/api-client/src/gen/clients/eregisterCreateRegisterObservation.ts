@@ -33,6 +33,7 @@ export function eregisterCreateRegisterObservation<
         { type: "http", scheme: "bearer" },
       ],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<EregisterCreateRegisterObservationResponses, ThrowOnError>
     >

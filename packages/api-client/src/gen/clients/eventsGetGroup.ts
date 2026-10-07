@@ -26,6 +26,7 @@ export function eventsGetGroup<ThrowOnError extends boolean = true>(
       url: "/api/v1/events/groups/{slug}",
       security: [{ type: "http", scheme: "bearer" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<EventsGetGroupResponses, ThrowOnError>>
   );
 }

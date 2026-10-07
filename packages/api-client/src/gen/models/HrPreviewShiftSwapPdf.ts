@@ -6,7 +6,7 @@
 import type { ShiftSwapRequestCreate } from "./ShiftSwapRequestCreate.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
-export type HrPreviewShiftSwapPdfStatus200 = unknown;
+export type HrPreviewShiftSwapPdfStatus200 = Blob;
 
 export type HrPreviewShiftSwapPdfStatus400 = unknown;
 

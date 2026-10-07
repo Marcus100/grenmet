@@ -26,6 +26,7 @@ export function authRequestStaffAccess<ThrowOnError extends boolean = true>(
       url: "/api/v1/auth/users/me/staff-access-request",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthRequestStaffAccessResponses, ThrowOnError>>
   );
 }

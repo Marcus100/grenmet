@@ -7,7 +7,7 @@ import * as z from "zod";
 import { legacyProductPreviewPropertiesKindEnumSchema } from "./legacyProductPreviewPropertiesKindEnumSchema.js";
 
 export const legacyProductPreviewSchema = z.object({
-  values: z.object({}).catchall(z.string()),
+  values: z.record(z.string(), z.string()),
   errors: z.array(z.string()),
   checked_at: z.iso.datetime(),
   kind: legacyProductPreviewPropertiesKindEnumSchema,

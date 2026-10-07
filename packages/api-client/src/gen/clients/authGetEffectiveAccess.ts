@@ -26,6 +26,7 @@ export function authGetEffectiveAccess<ThrowOnError extends boolean = true>(
       url: "/api/v1/auth/access/me",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthGetEffectiveAccessResponses, ThrowOnError>>
   );
 }

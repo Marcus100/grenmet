@@ -11,7 +11,7 @@ export const imageInputSchema = z.object({
   time_basis: imageInputPropertiesTimeBasisEnumSchema
     .optional()
     .default("legacy_unknown"),
-  raw_metadata: z.object({}).catchall(jsonValueSchema).optional(),
+  raw_metadata: z.record(z.string(), jsonValueSchema).optional(),
   run_id: z.uuid(),
   storage_path: z.string().min(1).max(1500),
   name: z.string().min(1).max(500),

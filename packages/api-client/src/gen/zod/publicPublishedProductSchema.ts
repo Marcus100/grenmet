@@ -12,6 +12,6 @@ export const publicPublishedProductSchema = z
     revision: z.int().gt(0),
     publishedAt: z.iso.datetime(),
     kind: forecastSourcePropertiesKindEnumSchema,
-    values: z.object({}).catchall(z.string()),
+    values: z.record(z.string(), z.string()),
   })
   .describe("Compatibility response shape for anonymous public consumers.");

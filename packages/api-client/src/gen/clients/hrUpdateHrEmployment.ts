@@ -26,6 +26,7 @@ export function hrUpdateHrEmployment<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/employment/{user_id}",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrUpdateHrEmploymentResponses, ThrowOnError>>
   );
 }

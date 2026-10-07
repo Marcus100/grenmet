@@ -30,6 +30,7 @@ export function hrProposeAttendanceCorrection<
       url: "/api/v1/hr/attendance/{attendance_id}/corrections",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<HrProposeAttendanceCorrectionResponses, ThrowOnError>
     >

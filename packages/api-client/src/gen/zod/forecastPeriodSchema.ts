@@ -15,6 +15,6 @@ export const forecastPeriodSchema = z.object({
   period_key: z.string().optional().default(""),
   high: z.union([z.number(), z.null()]).optional(),
   low: z.union([z.number(), z.null()]).optional(),
-  details: z.object({}).catchall(z.string()).optional(),
+  details: z.record(z.string(), z.string()).optional(),
   conditions: z.array(forecastConditionSchema).optional(),
 });

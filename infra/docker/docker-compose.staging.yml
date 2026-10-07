@@ -272,7 +272,7 @@ services:
 
   # ── Database UI ──────────────────────────────────────────────────────────────
   adminer:
-    image: adminer:5.5.0@sha256:494d4a9461105644222c938679fe58d5e3fd13fb228c76a426e81c16d4ffbaef
+    image: adminer:6.1.1@sha256:74f29c416e148b98305e84446a18db7cd2c1038264dec464359d36774ef080ce
     restart: always
     environment:
       ADMINER_DESIGN: pepa-linha-dark
@@ -291,7 +291,7 @@ services:
 
   # ── Reverse proxy ────────────────────────────────────────────────────────────
   proxy:
-    image: traefik:v3.7@sha256:652929a140a32d7cafafb13c6cdfab5376cfeff800f51397b87b524501ed02a8
+    image: traefik:v3.7@sha256:9c3b91d5fb7770853ca5c1124a23c34bf2d9b47ffaebeab2614cbaf410dcb2ac
     restart: always
     ports:
       - "80:80"

@@ -34,6 +34,7 @@ export function wxproductsProductRevisionPdf<
       ],
       responseType: "blob",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<WxproductsProductRevisionPdfResponses, ThrowOnError>
     >

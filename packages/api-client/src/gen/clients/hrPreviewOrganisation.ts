@@ -26,6 +26,7 @@ export function hrPreviewOrganisation<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/setup/organisation",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrPreviewOrganisationResponses, ThrowOnError>>
   );
 }

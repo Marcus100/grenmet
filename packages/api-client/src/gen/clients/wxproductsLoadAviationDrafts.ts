@@ -33,6 +33,7 @@ export function wxproductsLoadAviationDrafts<
         { type: "http", scheme: "bearer" },
       ],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<WxproductsLoadAviationDraftsResponses, ThrowOnError>
     >

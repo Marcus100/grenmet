@@ -26,6 +26,7 @@ export function hrSubmitAttendance<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/attendance/{attendance_id}/submit",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrSubmitAttendanceResponses, ThrowOnError>>
   );
 }

@@ -33,6 +33,7 @@ export function wxproductsLoadAviationHistory<
         { type: "http", scheme: "bearer" },
       ],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<WxproductsLoadAviationHistoryResponses, ThrowOnError>
     >

@@ -27,6 +27,7 @@ export function authAccountEmailCodeStart<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/auth/modern/email-code/start",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<AuthAccountEmailCodeStartResponses, ThrowOnError>
     >

@@ -26,6 +26,7 @@ export function hrGetInbox<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/workflows/instances/inbox",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrGetInboxResponses, ThrowOnError>>
   );
 }

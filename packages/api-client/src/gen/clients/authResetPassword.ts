@@ -25,6 +25,7 @@ export function authResetPassword<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/reset-password/",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthResetPasswordResponses, ThrowOnError>>
   );
 }

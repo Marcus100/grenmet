@@ -10,7 +10,7 @@ export const hrDownloadSignedDocumentPathDocumentIdSchema = z.uuid();
 
 export const hrDownloadSignedDocumentStatus200SchemaJson = z.unknown();
 
-export const hrDownloadSignedDocumentStatus200SchemaPdf = z.unknown();
+export const hrDownloadSignedDocumentStatus200SchemaPdf = z.instanceof(File);
 
 export const hrDownloadSignedDocumentStatus200Schema = z.union([
   hrDownloadSignedDocumentStatus200SchemaJson,

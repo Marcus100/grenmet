@@ -26,6 +26,7 @@ export function capDuplicateAlert<ThrowOnError extends boolean = true>(
       url: "/api/v1/cap/alerts/{alert_id}/duplicate",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<CapDuplicateAlertResponses, ThrowOnError>>
   );
 }
