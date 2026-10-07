@@ -70,6 +70,19 @@ function buildCookieOptions(config: AuthConfig, expires?: Date) {
   };
 }
 
+export function writeSessionCookieOnResponse(
+  config: AuthConfig,
+  response: NextResponse,
+  sessionToken: string,
+  sessionExpiresAt: string
+): void {
+  response.cookies.set(
+    config.sessionCookieName,
+    sessionToken,
+    buildCookieOptions(config, new Date(sessionExpiresAt))
+  );
+}
+
 export function clearSessionCookieOnResponse(
   config: AuthConfig,
   response: NextResponse
