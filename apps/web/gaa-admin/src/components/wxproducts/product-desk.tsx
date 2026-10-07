@@ -521,14 +521,6 @@ function ProductEditor({
                       </>
                     ) : null}
                   </dl>
-                  {message ? (
-                    <p
-                      className="whitespace-pre-wrap rounded-lg border p-4 text-sm"
-                      role="status"
-                    >
-                      {message}
-                    </p>
-                  ) : null}
                   <form
                     className="space-y-4"
                     onSubmit={(event) => {
@@ -668,12 +660,32 @@ function ProductEditor({
                           Issue / revision note
                         </FieldLabel>
                         <Textarea
+                          aria-describedby={
+                            revision ? "change-summary-hint" : undefined
+                          }
                           id="change-summary"
                           maxLength={1000}
                           onChange={(e) => setChangeSummary(e.target.value)}
                           value={changeSummary}
                         />
+                        {revision > 0 ? (
+                          <p
+                            className="text-muted-foreground text-sm"
+                            id="change-summary-hint"
+                          >
+                            Required to validate and publish a saved draft,
+                            including its first publication.
+                          </p>
+                        ) : null}
                       </Field>
+                      {message ? (
+                        <p
+                          className="whitespace-pre-wrap rounded-lg border p-4 text-sm"
+                          role="status"
+                        >
+                          {message}
+                        </p>
+                      ) : null}
                       <div className="flex flex-wrap gap-3">
                         <Button type="submit">Save draft</Button>
                         <Button
