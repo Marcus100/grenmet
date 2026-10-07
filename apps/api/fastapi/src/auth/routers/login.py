@@ -235,8 +235,8 @@ async def login_session(
         session=session,
         user=user,
         client_type=body.client_type,
-        # Registered app keys are reserved for /auth/apps/{app}/... sign-in.
-        app_name=None if apps.is_app_scoped(body.app_name) else body.app_name,
+        # Registered app keys are reserved for app sign-in and the handoff.
+        app_name=None if apps.is_registered(body.app_name) else body.app_name,
         user_agent=user_agent,
         ip_address=ip_address,
     )

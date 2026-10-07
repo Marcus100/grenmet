@@ -25,7 +25,7 @@ export function transportUpdateStop<ThrowOnError extends boolean = true>(
       method: "PUT",
       url: "/api/v1/transport/stops/{stop_id}",
       security: [
-        { type: "apiKey", name: "grenmet_session", in: "cookie" },
+        { type: "apiKey", name: "admin_session", in: "cookie" },
         { type: "http", scheme: "bearer" },
       ],
       ...config,

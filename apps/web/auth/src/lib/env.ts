@@ -9,8 +9,8 @@ export const env = createEnv({
     AUTH_API_URL: z.string().url().optional().default("http://localhost:8000"),
     AUTH_APP_URL: z.string().url().optional().default("http://localhost:3000"),
     AUTH_API_V1_STR: z.string().optional().default("/api/v1"),
-    SESSION_COOKIE_NAME: z.string().optional().default("grenmet_session"),
-    SESSION_COOKIE_DOMAIN: z.string().optional(),
+    // Host-only account session for auth.barrels.gd (ADR-0017): never a Domain.
+    AUTH_SESSION_COOKIE_NAME: z.string().optional().default("auth_session"),
     AUTH_ALLOWED_RETURN_HOSTS: z.string().optional().default(""),
     // Shared secret that FastAPI must present when calling the /api/email/render endpoint.
     EMAIL_RENDER_SECRET: z.string().optional(),
@@ -40,8 +40,7 @@ export const env = createEnv({
     AUTH_API_URL: process.env.AUTH_API_URL,
     AUTH_APP_URL: process.env.AUTH_APP_URL,
     AUTH_API_V1_STR: process.env.AUTH_API_V1_STR,
-    SESSION_COOKIE_NAME: process.env.SESSION_COOKIE_NAME,
-    SESSION_COOKIE_DOMAIN: process.env.SESSION_COOKIE_DOMAIN,
+    AUTH_SESSION_COOKIE_NAME: process.env.AUTH_SESSION_COOKIE_NAME,
     AUTH_ALLOWED_RETURN_HOSTS: process.env.AUTH_ALLOWED_RETURN_HOSTS,
     EMAIL_RENDER_SECRET: process.env.EMAIL_RENDER_SECRET,
     ADMIN_APP_URL: process.env.ADMIN_APP_URL,

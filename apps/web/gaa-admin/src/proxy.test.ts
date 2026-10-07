@@ -79,3 +79,16 @@ it("routes archive downloads to FastAPI without stripping their path", () => {
     "http://trusted-api:8000/api/v1/wxwatch/images/cimss/chart.gif"
   );
 });
+
+describe("single sign-on routes", () => {
+  it("lets the start and callback routes through without a session", () => {
+    for (const path of ["/auth/start", "/auth/callback"]) {
+      const response = proxy(new NextRequest(`https://admin.test${path}`));
+      expect(response.headers.get("location")).toBeNull();
+    }
+    const guarded = proxy(new NextRequest("https://admin.test/hr"));
+    expect(guarded.headers.get("location")).toBe(
+      "https://admin.test/signin?returnTo=%2Fhr"
+    );
+  });
+});

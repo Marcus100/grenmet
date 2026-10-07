@@ -16,7 +16,9 @@ from . import apps, service
 from .config import auth_settings
 from .models import User
 
-cookie_scheme = APIKeyCookie(name=auth_settings.SESSION_COOKIE_NAME, auto_error=False)
+cookie_scheme = APIKeyCookie(
+    name=auth_settings.BROWSER_SESSION_COOKIE_NAME, auto_error=False
+)
 bearer_scheme = HTTPBearer(auto_error=False)
 CookieSecret = Annotated[str | None, Depends(cookie_scheme)]
 BearerCredential = Annotated[

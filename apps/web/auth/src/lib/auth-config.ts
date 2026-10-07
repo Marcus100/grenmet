@@ -11,14 +11,11 @@ export function getAuthConfig(): AuthConfig {
   const rawPrefix = env.AUTH_API_V1_STR.trim();
   const authApiPrefix = rawPrefix.startsWith("/") ? rawPrefix : `/${rawPrefix}`;
 
-  const sessionCookieDomain = env.SESSION_COOKIE_DOMAIN?.trim() || undefined;
-
   return {
     appName: "auth",
     authApiBaseUrl,
     authApiPrefix,
     authAppUrl: "/",
-    sessionCookieDomain,
-    sessionCookieName: env.SESSION_COOKIE_NAME.trim(),
+    sessionCookieName: env.AUTH_SESSION_COOKIE_NAME.trim(),
   };
 }

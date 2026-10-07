@@ -25,6 +25,7 @@ async def seeded(monkeypatch, db_async):
 
     await seed_permissions_and_roles_async(db_async)
     monkeypatch.setattr(auth_settings, "EVENTS_SSO_CLIENT_SECRET", CLIENT_SECRET)
+    monkeypatch.setattr(auth_settings, "GAA_ADMIN_SSO_CLIENT_SECRET", CLIENT_SECRET)
     monkeypatch.setattr(app_service, "new_code", lambda: "123456")
     monkeypatch.setattr(app_service, "send_email", lambda **_: None)
 
@@ -207,7 +208,7 @@ async def test_apps_without_sso_refuse_handoff(
 @pytest.mark.asyncio
 async def test_staff_cookie_routes_refuse_app_sessions(async_client, db_async, seeded):
     _ = seeded
-    cookie = auth_settings.SESSION_COOKIE_NAME
+    cookie = auth_settings.BROWSER_SESSION_COOKIE_NAME
     staff_secret = await _account_session(db_async)
     state = _state()
     code = (await _start(async_client, staff_secret, state, join=True)).json()["code"]
@@ -219,3 +220,87 @@ async def test_staff_cookie_routes_refuse_app_sessions(async_client, db_async, s
     async_client.cookies.set(cookie, app_secret)
     scoped = await async_client.get("/api/v1/auth/browser/session")
     assert scoped.status_code == 401
+
+
+ADMIN = "/api/v1/auth/apps/gaa-admin"
+
+
+@pytest.mark.asyncio
+async def test_staff_apps_get_staff_tokens_and_cookie_access(
+    async_client, db_async, seeded
+):
+    _ = seeded
+    secret = await _account_session(db_async)
+    state = _state()
+    started = await _start(async_client, secret, state, base=ADMIN)
+    assert started.status_code == 200, started.text  # no join step for staff
+    redeemed = await _redeem(async_client, started.json()["code"], state, base=ADMIN)
+    assert redeemed.status_code == 200, redeemed.text
+    body = redeemed.json()
+    assert body["session"]["app_name"] == "gaa-admin"
+    claims = jwt.decode(
+        body["access_token"], auth_settings.SECRET_KEY, algorithms=[ALGORITHM]
+    )
+    assert "app" not in claims
+    me = await async_client.get(
+        "/api/v1/auth/users/me",
+        headers={"Authorization": f"Bearer {body['access_token']}"},
+    )
+    assert me.status_code == 200
+
+    # Exchange and refresh keep it an ordinary staff session.
+    exchanged = await async_client.post(
+        "/api/v1/login/session/access-token",
+        json={"session_token": body["session_token"]},
+    )
+    assert "app" not in jwt.decode(
+        exchanged.json()["access_token"],
+        auth_settings.SECRET_KEY,
+        algorithms=[ALGORITHM],
+    )
+    async_client.cookies.set(
+        auth_settings.BROWSER_SESSION_COOKIE_NAME, body["session_token"]
+    )
+    assert (await async_client.get("/api/v1/auth/browser/session")).status_code == 200
+
+    # A staff-app session is not the account session: it can't hand off.
+    onward = await _start(async_client, body["session_token"], _state())
+    assert onward.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_staff_apps_refuse_unapproved_accounts(async_client, db_async, seeded):
+    _ = seeded
+    secret = await _account_session(db_async, email="applicant@example.com")
+    user = await service.get_user_by_email(
+        session=db_async, email="applicant@example.com"
+    )
+    assert user is not None
+    user.registration_pending = True
+    db_async.add(user)
+    await db_async.commit()
+    response = await _start(async_client, secret, _state(), join=True, base=ADMIN)
+    assert response.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_legacy_login_cannot_claim_a_staff_app_session(async_client, db_async):
+    user = User(
+        email="staffer2@example.com",
+        username="staffer2",
+        first_name="Staff",
+        last_name="Member",
+        hashed_password=get_password_hash("Staff-password-123!"),
+    )
+    db_async.add(user)
+    await db_async.commit()
+    response = await async_client.post(
+        "/api/v1/login/session",
+        json={
+            "email": "staffer2@example.com",
+            "password": "Staff-password-123!",
+            "app_name": "gaa-admin",
+        },
+    )
+    assert response.status_code == 200
+    assert response.json()["session"]["app_name"] is None

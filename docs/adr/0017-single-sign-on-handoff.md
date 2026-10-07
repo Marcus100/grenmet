@@ -50,7 +50,8 @@ Today staff apps (gaa-admin, cms) still share one legacy cookie on
   with no password prompt when the account session is already live.
 - A stolen account session can mint app sessions; the account session therefore
   keeps 2FA, new-device alerts and "sign out everywhere".
-- `SESSION_COOKIE_DOMAIN` and the shared `.barrels.gd` cookie are removed once
-  gaa-admin and cms have migrated; users are signed out once at that point.
+- `SESSION_COOKIE_DOMAIN` and the shared `.barrels.gd` cookie are gone (step 3):
+  every app has its own cookie name, so leftover `grenmet_session` cookies are
+  ignored and everyone signs in again once.
 - Every participating app adds `/auth/start` and `/auth/callback` route
   handlers (helpers in `@barrelsgd/auth/server`).
