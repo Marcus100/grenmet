@@ -68,7 +68,12 @@ export function browserOptOut(): boolean {
   );
 }
 export function readConsent(now = Date.now()): "accepted" | "declined" | null {
-  if (browserOptOut()) return "declined";
+  return browserOptOut() ? "declined" : readSavedConsent(now);
+}
+/** An explicit choice, separate from the browser's automatic opt-out signal. */
+export function readSavedConsent(
+  now = Date.now()
+): "accepted" | "declined" | null {
   try {
     const stored = JSON.parse(localStorage.getItem(CONSENT_KEY) ?? "null");
     if (
