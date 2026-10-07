@@ -296,3 +296,27 @@ async def test_activation_revokes_sessions_but_preserves_mfa(
         "/api/v1/login/session", json={"email": user.email, "password": PASSWORD}
     )
     assert response.status_code == 400 and "Two-factor" in response.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_deleting_pending_account_removes_its_activation(
+    async_client, db_async, superuser_token_headers_async
+):
+    uid = await new_account(async_client, superuser_token_headers_async)
+    token = token_from(
+        await async_client.post(
+            f"{BASE}/{uid}/activation",
+            headers=superuser_token_headers_async,
+            json={"identity_confirmed": True},
+        )
+    )
+    response = await async_client.delete(
+        f"/api/v1/auth/users/{uid}", headers=superuser_token_headers_async
+    )
+    assert response.status_code == 200, response.text
+    assert await db_async.get(AuthChallenge, modern_service.digest(token)) is None
+    assert (
+        await async_client.post(
+            f"{BASE}/activate", json={"token": token, "new_password": PASSWORD}
+        )
+    ).status_code == 400
