@@ -1,15 +1,15 @@
 ---
-description: Drive the release promotion pipeline (dev→staging→main→release) with CI gating — pauses for the human at every merge and at release publish
+description: Drive the release promotion pipeline (dev→staging→main→release) with CI gating — automatically promote verified dev to staging; separately authorize production
 allowed-tools: Bash(pnpm *), Bash(turbo run *), Bash(gh *), Bash(git *), Bash(curl *)
 ---
 
 ## Release Promotion
 
-Follow `docs/operations/release-runbook.md` exactly. You drive verification,
-PR creation, and CI watching; **the user merges every PR and publishes the
-release** unless explicitly authorized otherwise. Agents may stage, commit, push
-and open PRs after the required checks pass; preserve unrelated work and never
-bypass hooks or force-push. Follow `AGENTS.md` for merge/deployment authorization.
+Follow `docs/operations/release-runbook.md`. Local dev integration, direct dev
+push, staging PR creation/update and merging after all applicable checks pass
+have standing user authorization. Monitor the resulting staging deployment.
+Main merges and production publication/deployment need separate authorization.
+Never bypass protection, hooks, or failing checks.
 
 **1. Pre-flight**
 Integrate completed task branches into local `dev` and validate the combined
@@ -21,17 +21,21 @@ if not, triage it first. Run `pnpm check:ci` and `pnpm type-check`, then the
 `/pre-merge` checklist. Report findings. Stop and ask if anything is red.
 
 **2. dev → staging**
-Create the promotion PR (`gh pr create --base staging --head dev`). Give the user
-the exact `gh pr merge <num> --auto --merge` command — running it is their merge
-decision; the PR then merges itself once the required checks pass. Watch checks
-with `gh pr checks <num> --watch` (fall back to polling `gh pr checks` every ~60s
-if watch is flaky). On a red check, triage it and fix on `dev`; the PR picks up
-the push and auto-merge stays armed. After it merges, confirm the staging pipeline run succeeded
-(`gh run list --workflow=pipeline-staging.yml --limit 1`, then
-`gh run watch <id>` if in progress).
+Create or reuse the promotion PR (`gh pr create --base staging --head dev`).
+Review its complete diff for authorized, finished work. Wait for every applicable
+check to complete successfully on its current head; expected skipped jobs are
+acceptable, pending or failed checks are not. Verify `dev` still matches that
+head, then run `gh pr merge <num> --merge --match-head-commit <sha>` without
+another confirmation. Do not arm auto-merge early: required checks may be a
+subset of all applicable checks. If dev advances, review and verify the new head.
+On failure, diagnose and fix locally within scope, validate and push dev again.
+Monitor `pipeline-staging.yml` and verify its deployed SHA still equals staging
+head. Report readiness for authenticated acceptance or actionable failure;
+do not claim acceptance from CI alone. Stay quiet while status is unchanged.
 
 **3. staging → main**
-Same pattern (including `--auto`) with `--base main --head staging`. Remind the user: merging to main
+After staging acceptance, create/update a PR with `--base main --head staging`.
+Obtain separate authorization before merging. Remind the user: merging to main
 builds nothing extra and does not deploy prod.
 
 **4. Release**
