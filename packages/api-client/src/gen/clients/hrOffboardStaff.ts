@@ -26,6 +26,7 @@ export function hrOffboardStaff<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/setup/staff/{user_id}/offboard",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrOffboardStaffResponses, ThrowOnError>>
   );
 }

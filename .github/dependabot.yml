@@ -112,6 +112,11 @@ updates:
       interval: weekly
     commit-message:
       prefix: ⬆
+    ignore:
+      # Payload declares graphql ^16.8.1. Lift when its peer range supports 17.
+      - dependency-name: graphql
+        update-types:
+          - version-update:semver-major
     groups:
       npm-minor-patch:
         patterns:

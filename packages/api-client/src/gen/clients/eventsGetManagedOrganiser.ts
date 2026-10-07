@@ -28,6 +28,7 @@ export function eventsGetManagedOrganiser<ThrowOnError extends boolean = true>(
       url: "/api/v1/events/manage",
       security: [{ type: "http", scheme: "bearer" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<EventsGetManagedOrganiserResponses, ThrowOnError>
     >

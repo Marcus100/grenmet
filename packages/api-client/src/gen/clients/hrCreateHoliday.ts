@@ -26,6 +26,7 @@ export function hrCreateHoliday<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/rosters/public-holidays",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrCreateHolidayResponses, ThrowOnError>>
   );
 }

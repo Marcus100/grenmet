@@ -26,6 +26,7 @@ export function authAppPhoneLinkVerify<ThrowOnError extends boolean = true>(
       url: "/api/v1/auth/apps/{app}/phone/link/verify",
       security: [{ type: "http", scheme: "bearer" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthAppPhoneLinkVerifyResponses, ThrowOnError>>
   );
 }

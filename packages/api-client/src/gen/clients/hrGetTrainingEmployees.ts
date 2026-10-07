@@ -26,6 +26,7 @@ export function hrGetTrainingEmployees<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/training-employees",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrGetTrainingEmployeesResponses, ThrowOnError>>
   );
 }

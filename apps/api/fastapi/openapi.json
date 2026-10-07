@@ -891,7 +891,7 @@
           "users"
         ],
         "summary": "Update user by ID",
-        "description": "Update a user by ID (superuser or user.manage). Superuser accounts and the is_superuser flag are superuser-only.",
+        "description": "Update a user by ID (superuser or user.manage). Superuser accounts, the is_superuser flag and CMS access are superuser-only.",
         "operationId": "authUpdateUser",
         "security": [
           {
@@ -20001,6 +20001,58 @@
         }
       }
     },
+    "/api/v1/auth/apps/{app}/me": {
+      "get": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Read app-scoped identity",
+        "description": "Read live identity and CMS editorial permissions using this app's bearer token.",
+        "operationId": "authGetAppIdentity",
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,30}$",
+              "title": "App"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppIdentityPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Invalid token or app access revoked"
+          }
+        }
+      }
+    },
     "/api/v1/hr/staff-card/me": {
       "get": {
         "tags": [
@@ -22253,6 +22305,42 @@
           "state"
         ],
         "title": "AppHandoffStart"
+      },
+      "AppIdentityPublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "email": {
+            "type": "string",
+            "title": "Email"
+          },
+          "is_superuser": {
+            "type": "boolean",
+            "title": "Is Superuser"
+          },
+          "permission_keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Permission Keys"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "username",
+          "email",
+          "is_superuser",
+          "permission_keys"
+        ],
+        "title": "AppIdentityPublic"
       },
       "AppPasswordLogin": {
         "properties": {
@@ -43299,6 +43387,9 @@
             "title": "Is Superuser",
             "default": false
           },
+          "cms_access": {
+            "$ref": "#/components/schemas/UserPublicPropertiesCmsAccessEnum"
+          },
           "registration_pending": {
             "type": "boolean",
             "title": "Registration Pending",
@@ -43618,6 +43709,9 @@
       },
       "UserUpdate": {
         "properties": {
+          "cms_access": {
+            "$ref": "#/components/schemas/UserPublicPropertiesCmsAccessEnum"
+          },
           "email": {
             "anyOf": [
               {
@@ -45497,6 +45591,15 @@
           "attended",
           "failed"
         ]
+      },
+      "UserPublicPropertiesCmsAccessEnum": {
+        "type": "string",
+        "enum": [
+          "none",
+          "writer",
+          "publisher"
+        ],
+        "default": "none"
       },
       "WorkflowStepInstancePublicPropertiesPurposeEnum": {
         "type": "string",

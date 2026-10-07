@@ -25,6 +25,7 @@ export function wxproductsPublicForecast<ThrowOnError extends boolean = true>(
       method: "GET",
       url: "/api/v1/wxproducts/public/forecast",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<WxproductsPublicForecastResponses, ThrowOnError>
     >

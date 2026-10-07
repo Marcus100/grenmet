@@ -26,6 +26,7 @@ export function eventsJoinGroup<ThrowOnError extends boolean = true>(
       url: "/api/v1/events/groups/{slug}/membership",
       security: [{ type: "http", scheme: "bearer" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<EventsJoinGroupResponses, ThrowOnError>>
   );
 }

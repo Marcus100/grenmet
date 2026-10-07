@@ -29,6 +29,7 @@ export function hrPreviewParkingPermitPdf<ThrowOnError extends boolean = true>(
       security: [{ type: "oauth2" }],
       responseType: "blob",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<HrPreviewParkingPermitPdfResponses, ThrowOnError>
     >

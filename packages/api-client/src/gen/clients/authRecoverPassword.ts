@@ -25,6 +25,7 @@ export function authRecoverPassword<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/password-recovery/{email}",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthRecoverPasswordResponses, ThrowOnError>>
   );
 }

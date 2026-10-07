@@ -25,6 +25,7 @@ export function authGetAppSignInOptions<ThrowOnError extends boolean = true>(
       method: "GET",
       url: "/api/v1/auth/apps/{app}",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthGetAppSignInOptionsResponses, ThrowOnError>>
   );
 }

@@ -6,7 +6,7 @@
 import * as z from "zod";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
-export const capGetRssStatus200Schema = z.unknown();
+export const capGetRssStatus200Schema = z.instanceof(File);
 
 export const capGetRssStatus422Schema = validationErrorResponseSchema.describe(
   "Validation error envelope returned for malformed requests."

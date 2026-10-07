@@ -26,6 +26,7 @@ export function authCreateUser<ThrowOnError extends boolean = true>(
       url: "/api/v1/auth/users",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthCreateUserResponses, ThrowOnError>>
   );
 }

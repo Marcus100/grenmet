@@ -21,8 +21,11 @@ export function capGetPublicAlerts<ThrowOnError extends boolean = true>(
   const { client: request = client, ...config } = options;
 
   return withUnwrap(
-    request({ method: "GET", url: "/api/cap/alerts", ...config }) as Promise<
-      RequestResult<CapGetPublicAlertsResponses, ThrowOnError>
-    >
+    request({
+      method: "GET",
+      url: "/api/cap/alerts",
+      ...config,
+      throwOnError: config.throwOnError ?? true,
+    }) as Promise<RequestResult<CapGetPublicAlertsResponses, ThrowOnError>>
   );
 }

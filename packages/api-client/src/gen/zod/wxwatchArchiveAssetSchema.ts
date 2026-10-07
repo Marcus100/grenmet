@@ -8,13 +8,13 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 
 export const wxwatchArchiveAssetPathAssetIdSchema = z.uuid();
 
-export const wxwatchArchiveAssetStatus200SchemaPng = z.unknown();
+export const wxwatchArchiveAssetStatus200SchemaPng = z.instanceof(File);
 
-export const wxwatchArchiveAssetStatus200SchemaJpeg = z.unknown();
+export const wxwatchArchiveAssetStatus200SchemaJpeg = z.instanceof(File);
 
-export const wxwatchArchiveAssetStatus200SchemaGif = z.unknown();
+export const wxwatchArchiveAssetStatus200SchemaGif = z.instanceof(File);
 
-export const wxwatchArchiveAssetStatus200SchemaWebp = z.unknown();
+export const wxwatchArchiveAssetStatus200SchemaWebp = z.instanceof(File);
 
 export const wxwatchArchiveAssetStatus200SchemaOctetStream = z.instanceof(File);
 

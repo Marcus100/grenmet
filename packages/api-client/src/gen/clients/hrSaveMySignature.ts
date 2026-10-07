@@ -26,6 +26,7 @@ export function hrSaveMySignature<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/signature/me",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrSaveMySignatureResponses, ThrowOnError>>
   );
 }

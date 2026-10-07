@@ -26,6 +26,7 @@ export function eventsGetMyPlans<ThrowOnError extends boolean = true>(
       url: "/api/v1/events/me/plans",
       security: [{ type: "http", scheme: "bearer" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<EventsGetMyPlansResponses, ThrowOnError>>
   );
 }

@@ -6,7 +6,7 @@
 import type { StatusReportCreate } from "./StatusReportCreate.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
-export type HrPreviewStatusReportPdfStatus200 = unknown;
+export type HrPreviewStatusReportPdfStatus200 = Blob;
 
 export type HrPreviewStatusReportPdfStatus400 = unknown;
 

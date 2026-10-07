@@ -26,6 +26,7 @@ export function authLoginAccessToken<ThrowOnError extends boolean = true>(
       url: "/api/v1/login/access-token",
       contentType: { request: "application/x-www-form-urlencoded" },
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthLoginAccessTokenResponses, ThrowOnError>>
   );
 }

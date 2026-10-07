@@ -63,6 +63,7 @@ PROJECT_NAME='Barrels Grenada' uv run --frozen --package fast-back python -c "fr
 ## Behavioral Tiers
 
 ### Always (no confirmation needed)
+- Work locally first: implement, inspect the diff, and run formatting, types, affected tests and integration checks before pushing; use GitHub Actions as additional verification, not the first test run.
 - Stage, commit, push and open PRs for authorized work after required formatting, types, affected tests and blast-radius checks pass; review the diff, preserve unrelated changes and never bypass hooks or force-push.
 - Run `pnpm fix:changed` then `pnpm type-check` before marking any task done.
   Repo-wide `pnpm fix` reformats unrelated in-progress files and can bust
@@ -234,6 +235,8 @@ Other:
 - Claude hooks live in `.claude/settings.json`; `format-changed-file.mjs` formats each edited file automatically.
 
 ## CI/CD Conventions
+
+- **Promotion workflow:** after authorized work lands on `dev`, create or update one `dev` → `staging` PR and report its checks. Do not merge the promotion PR or deploy without explicit authorization.
 
 - Sentry: owner-approved shared projects for this repo are `grenmet-staging` and `grenmet-production`; route only through the matching environment secret, never cross-environment fallback. Preserve existing reporting during migration.
 

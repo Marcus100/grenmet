@@ -7,7 +7,7 @@ import type { LeaveRequestCreate } from "./LeaveRequestCreate.js";
 
 export type HrPreviewLeaveRequestPdfStatus200Json = unknown;
 
-export type HrPreviewLeaveRequestPdfStatus200Pdf = unknown;
+export type HrPreviewLeaveRequestPdfStatus200Pdf = Blob;
 
 export type HrPreviewLeaveRequestPdfStatus200 =
   | HrPreviewLeaveRequestPdfStatus200Json

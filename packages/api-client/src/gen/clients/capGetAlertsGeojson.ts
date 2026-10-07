@@ -25,6 +25,7 @@ export function capGetAlertsGeojson<ThrowOnError extends boolean = true>(
       method: "GET",
       url: "/api/cap/alerts.geojson",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<CapGetAlertsGeojsonResponses, ThrowOnError>>
   );
 }

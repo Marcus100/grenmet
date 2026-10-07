@@ -6,7 +6,7 @@ from enum import Enum
 
 from pydantic import BaseModel as PydanticBaseModel
 from pydantic import EmailStr
-from sqlalchemy import JSON, ForeignKey, ForeignKeyConstraint, String
+from sqlalchemy import JSON, CheckConstraint, ForeignKey, ForeignKeyConstraint, String
 from sqlalchemy.dialects.postgresql import ENUM
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -47,6 +47,11 @@ class User(Base):
     """Canonical source for identity and name; other modules (e.g. HR) extend by user_id."""
 
     __tablename__ = "user"
+    __table_args__ = (
+        CheckConstraint(
+            "cms_access IN ('none', 'writer', 'publisher')", name="ck_user_cms_access"
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
@@ -59,6 +64,9 @@ class User(Base):
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     is_active: Mapped[bool] = mapped_column(default=True)
     is_superuser: Mapped[bool] = mapped_column(default=False)
+    cms_access: Mapped[str] = mapped_column(
+        String(16), default="none", server_default="none"
+    )
     hashed_password: Mapped[str]
     email_verified_at: Mapped[datetime | None]
     # Optional sign-in factor for app-scoped apps (ADR-0016); E.164, unique.

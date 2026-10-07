@@ -7,7 +7,7 @@ import type { AbsenteeReportCreate } from "./AbsenteeReportCreate.js";
 
 export type HrPreviewAbsenteeReportPdfStatus200Json = unknown;
 
-export type HrPreviewAbsenteeReportPdfStatus200Pdf = unknown;
+export type HrPreviewAbsenteeReportPdfStatus200Pdf = Blob;
 
 export type HrPreviewAbsenteeReportPdfStatus200 =
   | HrPreviewAbsenteeReportPdfStatus200Json

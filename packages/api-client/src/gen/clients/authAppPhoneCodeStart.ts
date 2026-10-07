@@ -25,6 +25,7 @@ export function authAppPhoneCodeStart<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/auth/apps/{app}/phone-code/start",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthAppPhoneCodeStartResponses, ThrowOnError>>
   );
 }

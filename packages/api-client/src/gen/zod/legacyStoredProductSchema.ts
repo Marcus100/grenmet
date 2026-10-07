@@ -8,7 +8,7 @@ import { legacyProductPreviewPropertiesKindEnumSchema } from "./legacyProductPre
 
 export const legacyStoredProductSchema = z.object({
   id: z.uuid(),
-  values: z.object({}).catchall(z.string()),
+  values: z.record(z.string(), z.string()),
   revision: z.int(),
   publishedRevision: z.union([z.int(), z.null()]),
   updatedAt: z.iso.datetime(),

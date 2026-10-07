@@ -27,6 +27,7 @@ export function wxwatchRegisterDerivation<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/wxwatch/derivations",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<WxwatchRegisterDerivationResponses, ThrowOnError>
     >

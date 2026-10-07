@@ -94,20 +94,37 @@ footer {
   right: var(--line-height-body-base);
   max-width: calc(var(--line-height-heading-lg) * 12);
   padding: var(--line-height-body-base);
-  border-radius: var(--radius);
+  color: var(--brand-text-inverse);
+  background: var(--brand-text-primary);
+  border: thin solid var(--brand-border);
+  border-radius: calc(var(--radius) * 3);
 }
 .privacy-card[hidden],
 .privacy-open[hidden] {
   display: none;
 }
 .privacy-card h2 {
+  display: inline;
   margin: 0;
   font-size: var(--font-size-body-base);
+  font-weight: normal;
+}
+.privacy-details {
+  display: inline;
+}
+.privacy-details summary {
+  display: inline;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.privacy-details summary::-webkit-details-marker {
+  display: none;
 }
 .privacy-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--line-height-caption);
+  margin-top: var(--line-height-body-base);
 }
 /* Equal weight: declining is as easy as accepting. */
 .privacy-actions button,
@@ -118,9 +135,9 @@ footer {
 }
 .privacy-actions button {
   padding-block: var(--line-height-caption);
-  color: var(--brand-text-inverse);
-  background: var(--brand-text-primary);
-  border-radius: var(--radius);
+  color: var(--brand-text-primary);
+  background: var(--brand-text-inverse);
+  border-radius: var(--line-height-heading-lg);
 }
 .privacy-actions button:disabled {
   cursor: not-allowed;
@@ -139,4 +156,20 @@ footer {
 /* Keep the footer clear of the fixed privacy button. */
 body:has(.privacy-open:not([hidden])) {
   padding-bottom: calc(var(--line-height-heading-lg) * 3);
+}
+
+#analytics-decline {
+  color: inherit;
+  background: transparent;
+  border: thin solid currentColor;
+}
+@media (min-width: 640px) {
+  .privacy-card {
+    top: 50%;
+    right: auto;
+    bottom: auto;
+    left: 50%;
+    width: calc(100% - var(--line-height-heading-lg));
+    transform: translate(-50%, -50%);
+  }
 }

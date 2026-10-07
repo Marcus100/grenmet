@@ -26,6 +26,7 @@ export function hrCreateParkingPermit<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/parking-permits",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrCreateParkingPermitResponses, ThrowOnError>>
   );
 }

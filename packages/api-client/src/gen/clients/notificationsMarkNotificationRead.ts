@@ -30,6 +30,7 @@ export function notificationsMarkNotificationRead<
       url: "/api/v1/notifications/{notification_id}/read",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<NotificationsMarkNotificationReadResponses, ThrowOnError>
     >

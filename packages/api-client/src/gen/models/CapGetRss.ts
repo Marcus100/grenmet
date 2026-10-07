@@ -5,7 +5,7 @@
 
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
-export type CapGetRssStatus200 = unknown;
+export type CapGetRssStatus200 = Blob;
 
 /**
  * @description Validation error envelope returned for malformed requests.
