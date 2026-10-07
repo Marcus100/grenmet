@@ -18623,6 +18623,276 @@
         }
       }
     },
+    "/api/v1/auth/onboarding/accounts": {
+      "post": {
+        "tags": [
+          "onboarding"
+        ],
+        "summary": "Create an account for activation",
+        "description": "Superuser creates an account without choosing or sharing its password. Does not grant app roles.",
+        "operationId": "authCreateOnboardingAccount",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActivationAccountCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Superuser required"
+          },
+          "409": {
+            "description": "Account exists"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/onboarding/{user_id}": {
+      "get": {
+        "tags": [
+          "onboarding"
+        ],
+        "summary": "Explain account and app readiness",
+        "description": "Superuser view of account activation and staff/CMS access blockers. Domain workflow readiness remains domain-owned.",
+        "operationId": "authGetOnboardingStatus",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingStatus"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Superuser required"
+          },
+          "404": {
+            "description": "Account not found"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/onboarding/{user_id}/activation": {
+      "post": {
+        "tags": [
+          "onboarding"
+        ],
+        "summary": "Issue a one-use activation link",
+        "description": "Superuser confirms identity and delivers a 30-minute link directly. Replaces previous activation links. Never verifies email or grants roles.",
+        "operationId": "authIssueActivation",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActivationIssue"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivationLink"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Identity confirmation required"
+          },
+          "403": {
+            "description": "Superuser required"
+          },
+          "404": {
+            "description": "Account not found"
+          },
+          "409": {
+            "description": "Use account recovery instead"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "onboarding"
+        ],
+        "summary": "Revoke an activation link",
+        "description": "Superuser invalidates outstanding activation links for an account.",
+        "operationId": "authRevokeActivation",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Superuser required"
+          },
+          "404": {
+            "description": "Account not found"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/onboarding/activate": {
+      "post": {
+        "tags": [
+          "onboarding"
+        ],
+        "summary": "Activate an administrator-approved account",
+        "description": "Public endpoint requires a valid single-use activation secret and a new password. Does not establish a session or verify email.",
+        "operationId": "authConfirmActivation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActivationConfirm"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid, expired or used activation"
+          }
+        }
+      }
+    },
     "/api/v1/auth/modern/email/request": {
       "post": {
         "tags": [
@@ -21880,6 +22150,17 @@
         "type": "object",
         "title": "AbsenteeReportSubmit"
       },
+      "AccessBlocker": {
+        "type": "string",
+        "enum": [
+          "inactive",
+          "password_setup",
+          "email_verification",
+          "staff_approval",
+          "cms_grant"
+        ],
+        "title": "AccessBlocker"
+      },
       "AccessReviewData": {
         "properties": {
           "assignments": {
@@ -21964,6 +22245,95 @@
           "sessions"
         ],
         "title": "AccountSecurityPublic"
+      },
+      "ActivationAccountCreate": {
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "title": "Email"
+          },
+          "username": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 3,
+            "title": "Username"
+          },
+          "first_name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "First Name"
+          },
+          "last_name": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Last Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "email",
+          "username",
+          "first_name",
+          "last_name"
+        ],
+        "title": "ActivationAccountCreate"
+      },
+      "ActivationConfirm": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 32,
+            "title": "Token"
+          },
+          "new_password": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 12,
+            "title": "New Password"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token",
+          "new_password"
+        ],
+        "title": "ActivationConfirm"
+      },
+      "ActivationIssue": {
+        "properties": {
+          "identity_confirmed": {
+            "type": "boolean",
+            "title": "Identity Confirmed"
+          }
+        },
+        "type": "object",
+        "required": [
+          "identity_confirmed"
+        ],
+        "title": "ActivationIssue"
+      },
+      "ActivationLink": {
+        "properties": {
+          "activation_url": {
+            "type": "string",
+            "title": "Activation Url"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Expires At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "activation_url",
+          "expires_at"
+        ],
+        "title": "ActivationLink"
       },
       "AddressPublic": {
         "properties": {
@@ -22161,6 +22531,37 @@
         ],
         "title": "ApiError",
         "description": "Stable error envelope for documented API failures."
+      },
+      "AppAccessStatus": {
+        "properties": {
+          "app": {
+            "type": "string",
+            "title": "App"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "available": {
+            "type": "boolean",
+            "title": "Available"
+          },
+          "blockers": {
+            "items": {
+              "$ref": "#/components/schemas/AccessBlocker"
+            },
+            "type": "array",
+            "title": "Blockers"
+          }
+        },
+        "type": "object",
+        "required": [
+          "app",
+          "label",
+          "available",
+          "blockers"
+        ],
+        "title": "AppAccessStatus"
       },
       "AppEmailCodeStart": {
         "properties": {
@@ -32905,6 +33306,48 @@
           "provenance"
         ],
         "title": "ObservationRecord"
+      },
+      "OnboardingStatus": {
+        "properties": {
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "email_verified": {
+            "type": "boolean",
+            "title": "Email Verified"
+          },
+          "password_setup_pending": {
+            "type": "boolean",
+            "title": "Password Setup Pending"
+          },
+          "activation_pending": {
+            "type": "boolean",
+            "title": "Activation Pending"
+          },
+          "can_issue_activation": {
+            "type": "boolean",
+            "title": "Can Issue Activation"
+          },
+          "apps": {
+            "items": {
+              "$ref": "#/components/schemas/AppAccessStatus"
+            },
+            "type": "array",
+            "title": "Apps"
+          }
+        },
+        "type": "object",
+        "required": [
+          "user_id",
+          "email_verified",
+          "password_setup_pending",
+          "activation_pending",
+          "can_issue_activation",
+          "apps"
+        ],
+        "title": "OnboardingStatus"
       },
       "OrganisationCatalogue": {
         "properties": {

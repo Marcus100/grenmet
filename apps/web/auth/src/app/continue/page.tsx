@@ -67,6 +67,21 @@ export default async function ContinuePage({ searchParams }: PageProps) {
           there.
         </Notice>
       );
+    case "verify-email":
+      return (
+        <AuthShell
+          greeting="Barrels account"
+          subtitle="One account, every app."
+        >
+          <AuthHeading title="Verify your email address">
+            Verify your account email, then return to the app and choose Sign in
+            again. Administrators must verify their email too.
+          </AuthHeading>
+          <a className="text-foreground text-sm underline" href="/verify-email">
+            Verify email
+          </a>
+        </AuthShell>
+      );
     case "denied":
       return (
         <Notice title={`You don't have access to ${result.label}`}>
