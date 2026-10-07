@@ -213,7 +213,8 @@ async def login_session(
         raise HTTPException(status_code=400, detail=ERROR_INCORRECT_CREDENTIALS)
     if not user.is_active:
         raise HTTPException(status_code=400, detail=ERROR_INACTIVE_USER)
-    service.require_approved_account(user)
+    # Any account may hold an account session (ADR-0017); staff approval is
+    # checked by staff routes and the staff-app handoff, not at sign-in.
     if user.email_verification_required and (
         user.email_verified_at is None or user.password_setup_pending
     ):
@@ -239,6 +240,7 @@ async def login_session(
         app_name=None if apps.is_registered(body.app_name) else body.app_name,
         user_agent=user_agent,
         ip_address=ip_address,
+        enforce_approval=False,
     )
     if new_device:
         schedule_new_sign_in_alert(

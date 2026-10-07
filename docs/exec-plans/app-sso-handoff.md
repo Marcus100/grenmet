@@ -100,6 +100,10 @@ app /auth/callback: state == cookie?
   public account session there would reach staff app shells.
 - Auth accepts public accounts (email code, password, Google; self sign-up).
   Staff approval moves from sign-in to staff-app handoff and staff tokens.
+  *Done:* account sessions for unapproved accounts, `AccountUser` on the
+  self-service routes, "Request staff access" (`staff_access_requested_at`,
+  migration `staffreq20261007` backfills existing pending sign-ups except
+  Events members), staff setup lists only staff and requesters.
 - Every app's "Sign in" goes to auth: Events' own sign-in page becomes a
   redirect; add Sign in, account menu, start and callback routes to Weather
   (gms), MBIA, Elections, Signal and Docs (each registered with a client
@@ -124,7 +128,12 @@ Confirmed by the owner (2026-10-06):
 5. **Local dev:** cookies ignore ports, so each app needs a distinct cookie name
    on `localhost` (`auth_session`, `cms_session`, `grenmet_session`, `events_session`).
 6. **Public accounts sign in at auth.barrels.gd** (step 4); staff approval is
-   checked when opening staff apps, not at sign-in.
+   checked when opening staff apps, not at sign-in. Sign-up creates an ordinary
+   account; staff ask from their account page, and only those requests reach
+   the approval queue.
+8. **Joining:** Events asks "Join Barrels Events?" (it creates a visible member
+   profile). Information sites sign in silently, then show a one-time notice:
+   "You're signed in to <app> with your Barrels account (email). Not you?"
 7. **Every app gets Sign in**, including Weather, MBIA, Elections, Signal and
    Docs, before they have member features; features come later.
 

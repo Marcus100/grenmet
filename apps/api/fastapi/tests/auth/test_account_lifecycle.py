@@ -106,7 +106,8 @@ async def test_registration_requires_verification_and_staff_approval(
         db_async,
         EmailConfirm(token=token, new_password=password),
     )
-    assert "awaiting administrator" in result.message
+    # Verified accounts can sign in at once; staff access still needs approval.
+    assert "You can now sign in" in result.message
     await approve_registration(db_async, actor, user.id)
     card = await card_for(db_async, user)
     assert card.status == "active"
@@ -279,8 +280,16 @@ async def test_registration_profile_and_offboarding_api_journey(
         await async_client.post("/api/v1/auth/modern/email/confirm", json=verify_body)
     ).status_code == 400
     login_body = {"email": "api.journey@example.com", "password": password}
+    # Before approval: an account session (ADR-0017) that manages the account
+    # but is refused by every staff route.
+    pending = await async_client.post("/api/v1/login/session", json=login_body)
+    assert pending.status_code == 200
+    pending_headers = {"Authorization": "Bearer " + pending.json()["access_token"]}
     assert (
-        await async_client.post("/api/v1/login/session", json=login_body)
+        await async_client.get("/api/v1/auth/users/me", headers=pending_headers)
+    ).status_code == 200
+    assert (
+        await async_client.get("/api/v1/hr/profile/me", headers=pending_headers)
     ).status_code == 403
     assert (
         await async_client.post(approve_url, headers=admin_headers)

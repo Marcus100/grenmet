@@ -43,6 +43,10 @@ Today staff apps (gaa-admin, cms) still share one legacy cookie on
 7. **Joining is explicit, once.** The first handoff to a self-sign-up app (Events)
    shows a one-click "Join <app>?" screen on auth; accepting grants the app's
    default role. Later visits are silent.
+8. **Public accounts and staff requests (step 4).** Anyone can sign up and sign
+   in at auth.barrels.gd; staff approval moves from sign-in to staff routes and
+   staff-app handoffs. Accounts ask for staff access from their account page,
+   and only those requests (plus approved staff) appear in staff setup.
 
 ## Consequences
 

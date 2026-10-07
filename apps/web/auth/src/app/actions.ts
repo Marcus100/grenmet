@@ -1,12 +1,17 @@
 "use server";
 
+import { userPublicSchema } from "@barrelsgd/api-client";
+import { authApiFetch } from "@barrelsgd/auth/server";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { getAuthConfig } from "@/lib/auth-config";
 import { reportError } from "@/lib/report-error";
 import { getRequestedAppName, getSafeReturnTo } from "@/lib/return-to";
 import type { SessionLoginResponse } from "@/lib/session";
 import {
   clearSessionCookie,
   createSession,
+  exchangeSessionForAccessToken,
   isAuthApiError,
   logoutAllSessions,
   logoutSession,
@@ -252,4 +257,19 @@ export async function signUpAction(
       success: false,
     };
   }
+}
+
+/** "I work at GAA or GMS": put this account in the staff approval queue. */
+export async function requestStaffAccessAction(): Promise<void> {
+  const sessionToken = await readSessionCookie();
+  if (!sessionToken) redirect("/");
+  const { access_token: accessToken } =
+    await exchangeSessionForAccessToken(sessionToken);
+  await authApiFetch(
+    getAuthConfig(),
+    "/auth/users/me/staff-access-request",
+    userPublicSchema,
+    { accessToken, method: "POST" }
+  );
+  revalidatePath("/");
 }

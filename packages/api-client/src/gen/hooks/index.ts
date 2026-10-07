@@ -254,6 +254,11 @@ export {
   useAuthReplaceRecoveryCodes,
 } from "./useAuthReplaceRecoveryCodes.js";
 export {
+  authRequestStaffAccessMutationKey,
+  authRequestStaffAccessMutationOptions,
+  useAuthRequestStaffAccess,
+} from "./useAuthRequestStaffAccess.js";
+export {
   authResetPasswordMutationKey,
   authResetPasswordMutationOptions,
   useAuthResetPassword,

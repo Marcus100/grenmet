@@ -9,6 +9,7 @@ import {
 import { getAppDisplayName } from "@/components/app-directory";
 import { AuthHeading, AuthShell } from "@/components/auth-shell";
 import { SignInForm } from "@/components/SignInForm";
+import { StaffAccess } from "@/components/staff-access";
 import { getAppHrefs } from "@/lib/app-links";
 import { getAuthConfig } from "@/lib/auth-config";
 import { formatDate, getInitials } from "@/lib/profile";
@@ -100,14 +101,17 @@ function AccountProfile({
 }) {
   const { user } = sessionData;
   const displayName = profile?.full_name || user.full_name || user.email;
-  const editLink = adminHref ? (
-    <a
-      className="rounded-lg border border-border px-3 py-1.5 font-medium text-foreground text-sm transition hover:bg-muted"
-      href={`${adminHref}/profile`}
-    >
-      Edit in GAA Admin
-    </a>
-  ) : null;
+  // Accounts without staff approval are ordinary Barrels accounts (ADR-0017).
+  const isStaff = profile ? !profile.registration_pending : true;
+  const editLink =
+    adminHref && isStaff ? (
+      <a
+        className="rounded-lg border border-border px-3 py-1.5 font-medium text-foreground text-sm transition hover:bg-muted"
+        href={`${adminHref}/profile`}
+      >
+        Edit in GAA Admin
+      </a>
+    ) : null;
 
   return (
     <div className="space-y-8">
@@ -121,7 +125,10 @@ function AccountProfile({
           </p>
           <div className="flex flex-wrap gap-2">
             <StatusBadge tone="neutral">
-              {user.is_superuser ? "Administrator" : "Staff"}
+              {(() => {
+                if (user.is_superuser) return "Administrator";
+                return isStaff ? "Staff" : "Barrels account";
+              })()}
             </StatusBadge>
             {user.is_active ? null : (
               <StatusBadge tone="off">Inactive</StatusBadge>
@@ -144,10 +151,14 @@ function AccountProfile({
           />
         ) : null}
       </SettingsSection>
-      <p className="text-muted-foreground text-sm">
-        Your name and username are managed in GAA Admin so HR records stay in
-        step.
-      </p>
+      {isStaff ? (
+        <p className="text-muted-foreground text-sm">
+          Your name and username are managed in GAA Admin so HR records stay in
+          step.
+        </p>
+      ) : (
+        <StaffAccess requestedAt={profile?.staff_access_requested_at ?? null} />
+      )}
     </div>
   );
 }

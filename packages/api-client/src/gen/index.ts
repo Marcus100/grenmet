@@ -52,6 +52,7 @@ export { authRecoverPasswordHtmlContent } from "./clients/authRecoverPasswordHtm
 export { authRefreshSession } from "./clients/authRefreshSession.js";
 export { authRegisterUser } from "./clients/authRegisterUser.js";
 export { authReplaceRecoveryCodes } from "./clients/authReplaceRecoveryCodes.js";
+export { authRequestStaffAccess } from "./clients/authRequestStaffAccess.js";
 export { authResetPassword } from "./clients/authResetPassword.js";
 export { authRevokeSecuritySession } from "./clients/authRevokeSecuritySession.js";
 export { authTestToken } from "./clients/authTestToken.js";
@@ -600,6 +601,11 @@ export {
   authReplaceRecoveryCodesMutationOptions,
   useAuthReplaceRecoveryCodes,
 } from "./hooks/useAuthReplaceRecoveryCodes.js";
+export {
+  authRequestStaffAccessMutationKey,
+  authRequestStaffAccessMutationOptions,
+  useAuthRequestStaffAccess,
+} from "./hooks/useAuthRequestStaffAccess.js";
 export {
   authResetPasswordMutationKey,
   authResetPasswordMutationOptions,
@@ -2633,6 +2639,15 @@ export type {
   AuthReplaceRecoveryCodesStatus400,
   AuthReplaceRecoveryCodesStatus422,
 } from "./models/AuthReplaceRecoveryCodes.js";
+export type {
+  AuthRequestStaffAccessOptions,
+  AuthRequestStaffAccessResponse,
+  AuthRequestStaffAccessResponses,
+  AuthRequestStaffAccessStatus200,
+  AuthRequestStaffAccessStatus401,
+  AuthRequestStaffAccessStatus403,
+  AuthRequestStaffAccessStatus422,
+} from "./models/AuthRequestStaffAccess.js";
 export type {
   AuthResetPasswordBody,
   AuthResetPasswordOptions,
@@ -6701,6 +6716,14 @@ export {
   authReplaceRecoveryCodesStatus400Schema,
   authReplaceRecoveryCodesStatus422Schema,
 } from "./zod/authReplaceRecoveryCodesSchema.js";
+export {
+  authRequestStaffAccessErrorSchema,
+  authRequestStaffAccessResponseSchema,
+  authRequestStaffAccessStatus200Schema,
+  authRequestStaffAccessStatus401Schema,
+  authRequestStaffAccessStatus403Schema,
+  authRequestStaffAccessStatus422Schema,
+} from "./zod/authRequestStaffAccessSchema.js";
 export {
   authResetPasswordBodySchema,
   authResetPasswordErrorSchema,
