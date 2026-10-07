@@ -14,6 +14,7 @@ import type { ReactElement } from "react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { ProductDesk } from "./product-desk";
 
+const OPEN_MARINE = /^Open Marine/;
 const ISSUE_DATE_LABEL = /Issue date and time/;
 const FORECASTER_LABEL = /Forecaster on duty/;
 const AREA_LABEL = /Area covered/;
@@ -338,4 +339,82 @@ it("gives marine bulletins structured wind while cyclones keep free text", async
   );
   expect(await screen.findByLabelText(MAX_WINDS_LABEL)).toBeInTheDocument();
   view.unmount();
+});
+
+it("validates and publishes a bulletin after saving its draft", async () => {
+  actions.saveProductAction.mockImplementation(async (input) => ({
+    ok: true,
+    product: {
+      id: input.id,
+      kind: input.kind,
+      values: { ...input.values, synopsis: "Saved bulletin" },
+      revision: input.expectedRevision + 1,
+      publishedRevision:
+        input.action === "publish" ? input.expectedRevision + 1 : null,
+      updatedAt: "2026-10-07T12:00:00Z",
+    },
+  }));
+  actions.previewProductAction.mockImplementation(async ({ values }) => ({
+    ok: true,
+    preview: { values, errors: [], checked_at: "2026-10-07T12:00:00Z" },
+  }));
+  render(<ProductDesk kinds={["marine"]} title="Bulletins" />);
+  const save = screen.getByRole("button", { name: "Save draft" });
+  await waitFor(() => expect(save).toBeEnabled());
+  fireEvent.click(save);
+  await screen.findByText("Draft saved.");
+  const validate = screen.getByRole("button", { name: "Validate and preview" });
+  await waitFor(() => expect(validate).toBeEnabled());
+  fireEvent.change(screen.getByLabelText("Issue / revision note"), {
+    target: { value: "Initial issue" },
+  });
+  fireEvent.click(validate);
+  await screen.findByRole("region", { name: "Publication preview" });
+  fireEvent.click(screen.getByRole("checkbox"));
+  fireEvent.click(screen.getByRole("button", { name: "Publish to GMS" }));
+  await waitFor(() =>
+    expect(actions.saveProductAction).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        action: "publish",
+        expectedRevision: 1,
+        reviewed: true,
+      })
+    )
+  );
+});
+
+it("shows saved-draft validation errors beside the publication controls", async () => {
+  actions.loadProductsAction.mockResolvedValue({
+    ok: true,
+    products: [
+      {
+        id: "7d517fe0-a25b-4f12-a2b4-eaaed8116010",
+        kind: "marine",
+        values: emptyProduct("marine", grenadaDate()),
+        revision: 1,
+        publishedRevision: null,
+        updatedAt: "2026-10-07T12:00:00Z",
+      },
+    ],
+  });
+  actions.previewProductAction.mockResolvedValue({
+    ok: true,
+    preview: {
+      values: {},
+      errors: ["Describe this issue or revision"],
+      checked_at: "2026-10-07T12:00:00Z",
+    },
+  });
+  render(<ProductDesk kinds={["marine"]} title="Bulletins" />);
+  fireEvent.click(await screen.findByRole("button", { name: OPEN_MARINE }));
+  const validate = screen.getByRole("button", { name: "Validate and preview" });
+  fireEvent.click(validate);
+  const message = await screen.findByText("Describe this issue or revision");
+  expect(validate.closest("form")).toContainElement(message);
+  expect(
+    screen.getByLabelText("Issue / revision note")
+  ).toHaveAccessibleDescription(
+    "Required to validate and publish a saved draft, including its first publication."
+  );
+  expect(screen.queryByRole("button", { name: "Publish to GMS" })).toBeNull();
 });
