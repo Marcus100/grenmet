@@ -3,8 +3,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
-import { afterAll, afterEach, beforeAll, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { StaffSetupManager } from "./staff-setup";
+
+vi.mock("@barrelsgd/auth", () => ({
+  useSessionUser: () => ({ is_superuser: true }),
+}));
 
 const BASE = "http://localhost";
 const MISSING_GRADES = /No grades are configured/;
@@ -15,6 +19,8 @@ const user = {
   number: "",
   department_id: "meteorological_department",
   grade_id: "",
+  account_active: true,
+  staff_approval_ready: false,
   mailbox_ready: true,
   email_verified: false,
   employment_ready: false,
@@ -25,6 +31,16 @@ const user = {
   status: "draft",
 };
 const server = setupServer(
+  http.get(`${BASE}/api/v1/auth/onboarding/:id`, ({ params }) =>
+    HttpResponse.json({
+      user_id: params.id,
+      email_verified: false,
+      password_setup_pending: false,
+      activation_pending: false,
+      can_issue_activation: true,
+      apps: [],
+    })
+  ),
   http.get(`${BASE}/api/v1/hr/setup/staff`, () => HttpResponse.json([user])),
   http.get(`${BASE}/api/v1/hr/setup/grades`, () => HttpResponse.json([])),
   http.get(`${BASE}/api/v1/hr/setup/policies`, () => HttpResponse.json([])),
@@ -57,7 +73,7 @@ it("explains missing grades and blocks staff saving", async () => {
     screen.getByRole("button", { name: "Save staff setup" })
   ).toBeDisabled();
 });
-it("saves a grade with incomplete personnel details and preserves account enablement", async () => {
+it("saves incomplete personnel details and separate mailbox readiness", async () => {
   const saved: unknown[] = [];
   server.use(
     http.get(`${BASE}/api/v1/hr/setup/grades`, () =>
@@ -163,4 +179,55 @@ it("prefills and persists verified service facts and exposes server validation",
       "Provide the HR source for recorded service and probation facts"
     )
   ).toBeInTheDocument();
+});
+
+it("permits staff approval after administrator activation without a mailbox", async () => {
+  const approved: string[] = [];
+  server.use(
+    http.get(`${BASE}/api/v1/hr/setup/staff`, () =>
+      HttpResponse.json([
+        {
+          ...user,
+          registration_pending: true,
+          staff_approval_ready: true,
+          mailbox_ready: false,
+          grade_id: "GMS_SENIOR_TECH",
+        },
+      ])
+    ),
+    http.post(
+      `${BASE}/api/v1/hr/setup/staff/${user.user_id}/approve-registration`,
+      () => {
+        approved.push(user.user_id);
+        return HttpResponse.json({ message: "Staff registration approved" });
+      }
+    )
+  );
+  renderSetup();
+  fireEvent.click(await screen.findByText("Test Staff · draft"));
+  const button = screen.getByRole("button", { name: "Approve staff access" });
+  expect(button).toBeEnabled();
+  fireEvent.click(button);
+  await waitFor(() => expect(approved).toEqual([user.user_id]));
+  expect(
+    screen.getByLabelText("Work email inbox provisioned")
+  ).not.toBeChecked();
+});
+
+it("blocks staff approval while identity activation is incomplete", async () => {
+  server.use(
+    http.get(`${BASE}/api/v1/hr/setup/staff`, () =>
+      HttpResponse.json([
+        { ...user, registration_pending: true, grade_id: "GMS_SENIOR_TECH" },
+      ])
+    )
+  );
+  renderSetup();
+  fireEvent.click(await screen.findByText("Test Staff · draft"));
+  expect(
+    screen.getByRole("button", { name: "Approve staff access" })
+  ).toBeDisabled();
+  expect(
+    screen.getByRole("button", { name: "Refresh onboarding status" })
+  ).toBeEnabled();
 });

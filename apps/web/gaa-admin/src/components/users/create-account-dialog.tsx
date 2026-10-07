@@ -22,11 +22,15 @@ import { reportError } from "@/lib/report-error";
 import { AccountActivation } from "./account-activation";
 import { CmsAccessControl } from "./cms-access-control";
 
-export function CreateAccountDialog() {
+export function CreateAccountDialog({
+  onCreated,
+}: {
+  onCreated?: () => void;
+} = {}) {
   const actor = useSessionUser();
-  return actor?.is_superuser ? <CreateAccount /> : null;
+  return actor?.is_superuser ? <CreateAccount onCreated={onCreated} /> : null;
 }
-function CreateAccount() {
+function CreateAccount({ onCreated }: { onCreated?: () => void }) {
   const [open, setOpen] = useState(false);
   const [user, setUser] = useState<UserPublic | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +49,7 @@ function CreateAccount() {
       });
       setUser(created);
       await queries.invalidateQueries({ queryKey: authGetUsersQueryKey({}) });
+      onCreated?.();
     } catch (caught) {
       reportError(caught, "account-create");
       setError(

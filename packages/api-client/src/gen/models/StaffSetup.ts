@@ -10,6 +10,16 @@ export type StaffSetup = {
    * @default false
    * @type boolean | undefined
    */
+  account_active?: boolean;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  staff_approval_ready?: boolean;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
   registration_pending?: boolean;
   /**
    * @description

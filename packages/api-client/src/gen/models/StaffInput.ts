@@ -16,9 +16,5 @@ export type StaffInput = {
   probation_completed_date?: string | null;
   service_details_source?: string | null;
   supervisor_id?: string | null;
-  /**
-   * @default false
-   * @type boolean | undefined
-   */
-  mailbox_ready?: boolean;
+  mailbox_ready?: boolean | null;
 };
