@@ -5,7 +5,7 @@ description = ""
 requires-python = ">=3.14,<3.15"
 dependencies = [
     # Upgrade the HTTP layer together; frozen lockfile records the tested pair.
-    "fastapi[standard]>=0.141.1,<0.142.0",
+    "fastapi[standard]>=0.142.2,<0.143.0",
     "starlette>=1.7.0,<1.8.0",
     "pydantic>=2.7,<3.0.0",
     "pydantic-settings>=2.4,<3.0.0",
