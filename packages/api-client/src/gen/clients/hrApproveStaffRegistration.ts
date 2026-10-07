@@ -11,7 +11,7 @@ import type {
 } from "../models/HrApproveStaffRegistration.js";
 
 /**
- * @description Administrator approves an email-verified registration after staff membership has been linked. Grants only the staff role; elevated roles remain separately managed.
+ * @description Administrator approves a registration after email verification or completed administrator-mediated activation and staff membership linkage. Grants only the staff role; elevated roles remain separately managed.
  * @summary Approve a verified staff registration
  * {@link /api/v1/hr/setup/staff/:user_id/approve-registration}
  */

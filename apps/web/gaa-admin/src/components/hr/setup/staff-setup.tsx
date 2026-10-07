@@ -10,6 +10,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useId, useState } from "react";
 import { hrApiErrorMessage } from "@/components/hr/api-error";
 import { OrganisationChart } from "@/components/hr/setup/organisation-chart";
+import { AccountActivation } from "@/components/users/account-activation";
+import { CreateAccountDialog } from "@/components/users/create-account-dialog";
 import { CatalogueSetup } from "./catalogue-setup";
 import {
   approveRegistration,
@@ -35,6 +37,7 @@ function StaffEditor({
   onSaved: () => void;
 }) {
   const fieldId = useId();
+  const [expanded, setExpanded] = useState(false);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [confirmOffboard, setConfirmOffboard] = useState(false);
@@ -42,7 +45,10 @@ function StaffEditor({
     staff.department_id
   );
   return (
-    <details className="rounded-lg border border-border p-4">
+    <details
+      className="rounded-lg border border-border p-4"
+      onToggle={(event) => setExpanded(event.currentTarget.open)}
+    >
       <summary className="cursor-pointer font-medium">
         {staff.name} · {staff.status}
       </summary>
@@ -50,21 +56,31 @@ function StaffEditor({
         {staff.email} ·{" "}
         {staff.email_verified ? "Email verified" : "Email verification pending"}
       </p>
+      <p className="my-3 text-sm">
+        Account: {staff.account_active ? "enabled" : "disabled"} · Staff access:{" "}
+        {staff.registration_pending ? "approval needed" : "approved"} · HR
+        details: {staff.employment_ready ? "ready" : "incomplete"}
+      </p>
+      <AccountActivation open={expanded} user={{ id: staff.user_id }} />
+      <Button onClick={onSaved} type="button" variant="outline">
+        Refresh onboarding status
+      </Button>
       {staff.registration_pending && (
         <div className="my-4 space-y-3 rounded-lg border border-border bg-muted p-4">
           <p className="font-medium">Registration awaiting approval</p>
           <p className="text-sm">
             Verify the employee’s identity, save their department and grade,
-            then approve staff access. Email verification is required; personnel
-            details can be completed later.
+            then approve staff access. The person can verify email or complete
+            an administrator-issued activation link. Personnel details can be
+            completed later.
           </p>
           <Button
             disabled={
               busy ||
-              !staff.email_verified ||
+              !staff.staff_approval_ready ||
               !staff.department_id ||
               !staff.grade_id ||
-              !staff.mailbox_ready
+              !staff.account_active
             }
             onClick={async () => {
               setBusy(true);
@@ -188,7 +204,7 @@ function StaffEditor({
                   person.user_id !== staff.user_id &&
                   person.employment_ready &&
                   person.department_id === selectedDepartment &&
-                  person.mailbox_ready &&
+                  person.account_active &&
                   person.status !== "inactive"
               )
               .map((person) => (
@@ -258,12 +274,13 @@ function StaffEditor({
             name="mailbox_ready"
             type="checkbox"
           />
-          Account enabled — unchecking disables sign-in and ends sessions
+          Work email inbox provisioned
         </label>
         <p className="text-muted-foreground text-sm md:col-span-2">
-          Save the details you have verified. HR requests require an employee
-          number, employment type, and start date. Blank personnel fields
-          preserve existing values.
+          Mailbox readiness does not enable or disable sign-in, verify email, or
+          grant access. Use account setup above for activation. Save the details
+          you have verified. HR requests require an employee number, employment
+          type, and start date. Blank personnel fields preserve existing values.
         </p>
         <Button
           disabled={
@@ -555,6 +572,7 @@ export function StaffSetupManager() {
         </Link>
         .
       </p>
+      <CreateAccountDialog onCreated={load} />
       <OrganisationChart staff={staff} />
       <CatalogueSetup onSaved={load} />
       {grades.length === 0 && (

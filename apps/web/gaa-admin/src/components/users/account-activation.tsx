@@ -10,7 +10,7 @@ import {
 import { useSessionUser } from "@barrelsgd/auth";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { reportError } from "@/lib/report-error";
 
 const reasons: Record<AccessBlocker, string> = {
@@ -26,7 +26,7 @@ export function AccountActivation({
   user,
   open,
 }: {
-  user: UserPublic;
+  user: Pick<UserPublic, "id">;
   open: boolean;
 }) {
   const actor = useSessionUser();
@@ -35,7 +35,8 @@ export function AccountActivation({
   ) : null;
 }
 
-function ActivationDetails({ user }: { user: UserPublic }) {
+function ActivationDetails({ user }: { user: Pick<UserPublic, "id"> }) {
+  const fieldId = useId();
   const status = useAuthGetOnboardingStatus({ path: { user_id: user.id } });
   const issue = useAuthIssueActivation();
   const revoke = useAuthRevokeActivation();
@@ -143,12 +144,12 @@ function ActivationDetails({ user }: { user: UserPublic }) {
       ) : null}
       {link ? (
         <div className="space-y-2">
-          <label className="text-sm" htmlFor="activation-link">
+          <label className="text-sm" htmlFor={`${fieldId}-activation-link`}>
             Copy this private activation link
           </label>
           <Input
             autoComplete="off"
-            id="activation-link"
+            id={`${fieldId}-activation-link`}
             onFocus={(event) => event.target.select()}
             readOnly
             value={link.activation_url}

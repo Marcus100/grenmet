@@ -4,6 +4,8 @@ from sqlalchemy import delete, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.audit.models import AuditEntry
+from src.auth import service as auth_service
 from src.auth.models import Permission, Role, User, UserImage, UserRoleAssignment
 from src.auth.models import Session as LoginSession
 from src.baseline.models import ApprovalPolicy, BaselineAudit, StaffCredential
@@ -94,7 +96,7 @@ async def card_for(session: AsyncSession, user: User) -> StaffCard:
         status = "inactive"
     elif (
         user.is_active
-        and user.email_verified_at
+        and auth_service.is_staff_eligible(user)
         and not user.registration_pending
         and employment
         and employment.status == EmploymentStatus.ACTIVE
@@ -155,7 +157,9 @@ async def list_staff(session: AsyncSession) -> list[StaffSetup]:
                 else credential.grade_id
                 if credential
                 else "",
-                mailbox_ready=user.is_active,
+                mailbox_ready=credential.mailbox_ready if credential else False,
+                account_active=user.is_active,
+                staff_approval_ready=await identity_ready_for_approval(session, user),
                 email_verified=user.email_verified_at is not None,
                 employment_ready=employment_complete(employment),
                 employee_number=employment.employee_number if employment else None,
@@ -212,6 +216,8 @@ async def save_staff(
             user_id=user_id, department_id=body.department_id, grade_id=body.grade_id
         )
     credential.department_id, credential.grade_id = body.department_id, body.grade_id
+    if body.mailbox_ready is not None:
+        credential.mailbox_ready = body.mailbox_ready
     session.add(credential)
     employment = await employment_for(session, user_id)
     department = await department_for(session, body.department_id)
@@ -273,14 +279,6 @@ async def save_staff(
         if field in body.model_fields_set:
             setattr(employment, field, getattr(body, field))
     session.add(employment)
-    if body.mailbox_ready and not user.is_active:
-        user.email_verification_required = True
-    user.is_active = body.mailbox_ready
-    session.add(user)
-    if not user.is_active:
-        await session.execute(
-            delete(LoginSession).where(LoginSession.user_id == user_id)
-        )
     session.add(
         BaselineAudit(
             actor_id=actor.id,
@@ -529,6 +527,30 @@ async def update_role_configuration(
     )
 
 
+async def identity_ready_for_approval(session: AsyncSession, user: User) -> bool:
+    if not user.is_active or (
+        user.password_setup_pending and user.email_verified_at is None
+    ):
+        return False
+    if user.email_verified_at is not None:
+        return True
+    if user.email_verification_required or user.password_setup_pending:
+        return False
+    # An exemption alone is not proof that a pending public account was activated.
+    return bool(
+        await session.scalar(
+            select(AuditEntry.id)
+            .where(
+                AuditEntry.entity_type == "account",
+                AuditEntry.entity_id == str(user.id),
+                AuditEntry.record_type == "account_activation",
+                AuditEntry.action == "activated",
+            )
+            .limit(1)
+        )
+    )
+
+
 async def approve_registration(
     session: AsyncSession, actor: User, user_id: uuid.UUID
 ) -> None:
@@ -550,9 +572,10 @@ async def approve_registration(
         raise AppException("This registration has already been resolved", 409)
     employment = await employment_for(session, user_id)
     credential = await session.get(StaffCredential, user_id)
-    if not user.is_active or not user.email_verified_at:
+    if not await identity_ready_for_approval(session, user):
         raise AppException(
-            "The account must be active and its email verified before approval", 409
+            "The account must be active with verified email or completed administrator-approved activation before approval",
+            409,
         )
     grade = (
         await session.get(Grade, employment.grade_id)
