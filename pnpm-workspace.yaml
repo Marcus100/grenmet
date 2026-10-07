@@ -110,7 +110,7 @@ catalog:
   "@types/geojson": "^7946.0.16"
 
   # Tables — admin-gms (data tables + virtualised lists)
-  "@tanstack/react-table": "^9.2.5"
+  "@tanstack/react-table": "^9.2.6"
   "@tanstack/react-virtual": "^3.13.17"
 
   # Animation — motion (successor to framer-motion); import from "motion/react"
