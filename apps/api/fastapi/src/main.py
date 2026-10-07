@@ -238,10 +238,10 @@ app_configs: dict[str, Any] = {
     "version": "1.0.0",
     "generate_unique_id_function": custom_generate_unique_id,
     "description": (
-        "Grenmet API for authenticated administration, human resources, "
+        "The Barrels Grenada API for authenticated administration, human resources, "
         "weather products, CAP alerts, and observation registration."
     ),
-    "contact": {"name": "Grenmet API maintainers"},
+    "contact": {"name": "Barrels Grenada maintainers"},
     "license_info": {"name": "Proprietary"},
     "openapi_tags": OPENAPI_TAGS,
 }

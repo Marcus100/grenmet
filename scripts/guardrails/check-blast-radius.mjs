@@ -200,9 +200,11 @@ const wxproductsAdvisorySessionChange = (comparison) => {
 
 const OPENAPI_MAX_BYTES = 64 * 1024 * 1024;
 
-// info.title does not affect Kubb output; regeneration can legitimately be clean.
-// Compare the whole document after changing only that field, failing closed.
-const openApiTitleOnlyChange = (comparison) => {
+// Descriptive info text does not affect Kubb output; regeneration can
+// legitimately be clean. Compare the whole document after copying only these
+// fields across, failing closed.
+const OPENAPI_INFO_TEXT = ["title", "description", "contact"];
+const openApiInfoTextOnlyChange = (comparison) => {
   const file = "apps/api/fastapi/openapi.json";
   const refs =
     comparison.mode === "staged"
@@ -221,16 +223,71 @@ const openApiTitleOnlyChange = (comparison) => {
     });
     const [before, after] = versions;
     if (
-      typeof before.info?.title !== "string" ||
-      typeof after.info?.title !== "string" ||
-      before.info.title === after.info.title
+      typeof before.info !== "object" ||
+      before.info === null ||
+      typeof after.info !== "object" ||
+      after.info === null
     )
       return false;
-    before.info.title = after.info.title;
+    const changed = OPENAPI_INFO_TEXT.some(
+      (key) =>
+        JSON.stringify(before.info[key]) !== JSON.stringify(after.info[key])
+    );
+    if (!changed) return false;
+    for (const key of OPENAPI_INFO_TEXT) {
+      if (key in after.info) before.info[key] = after.info[key];
+      else delete before.info[key];
+    }
     return JSON.stringify(before) === JSON.stringify(after);
   } catch {
     return false;
   }
+};
+
+// The API's descriptive metadata in main.py's module-level `app_configs`
+// (`description`, `contact`) only feeds OpenAPI info text. Permit edits to
+// those two values when both stay plain literals; anything else in main.py,
+// including other keys, remains subject to the companion gate.
+const apiDescriptionOnlyStartupChange = (comparison) => {
+  const file = "apps/api/fastapi/src/main.py";
+  const refs =
+    comparison.mode === "staged"
+      ? [`HEAD:${file}`, `:${file}`]
+      : [`${comparison.base}:${file}`, `${comparison.head}:${file}`];
+  const versions = refs.map((ref) =>
+    spawnSync("git", ["show", ref], { encoding: "utf8" })
+  );
+  if (versions.some((result) => result.error || result.status !== 0))
+    return false;
+  const result = spawnSync(
+    "python3",
+    [
+      "-c",
+      `
+import ast, json, sys
+def contract(source):
+    tree = ast.parse(source)
+    found = 0
+    for node in tree.body:
+        target = node.targets[0] if isinstance(node, ast.Assign) and len(node.targets) == 1 else getattr(node, "target", None)
+        if isinstance(target, ast.Name) and target.id == "app_configs" and isinstance(node.value, ast.Dict):
+            for index, key in enumerate(node.value.keys):
+                if isinstance(key, ast.Constant) and key.value in ("description", "contact"):
+                    ast.literal_eval(node.value.values[index])
+                    node.value.values[index] = ast.Constant(None)
+                    found += 1
+    assert found == 2
+    return ast.dump(tree)
+before, after = json.load(sys.stdin)
+sys.exit(0 if before != after and contract(before) == contract(after) else 1)
+`,
+    ],
+    {
+      input: JSON.stringify(versions.map((version) => version.stdout)),
+      encoding: "utf8",
+    }
+  );
+  return !result.error && result.status === 0;
 };
 
 // This provider callback is deliberately excluded from OpenAPI. Permit changes
@@ -288,7 +345,8 @@ const evaluateChanges = (changes, comparison) => {
         isFastApiContractFile(file) &&
         !(
           (file === "apps/api/fastapi/src/main.py" &&
-            telemetryOnlyStartupChange(comparison)) ||
+            (telemetryOnlyStartupChange(comparison) ||
+              apiDescriptionOnlyStartupChange(comparison))) ||
           (file === "apps/api/fastapi/src/janitorial/router.py" &&
             janitorialUnsectionedAreaChange(comparison)) ||
           (file === "apps/api/fastapi/src/wxproducts/router.py" &&
@@ -327,7 +385,7 @@ const evaluateChanges = (changes, comparison) => {
     triggers.length === 0 &&
     files.has("apps/api/fastapi/openapi.json") &&
     !generatedClientChanged &&
-    !openApiTitleOnlyChange(comparison)
+    !openApiInfoTextOnlyChange(comparison)
   ) {
     violations.push({
       missing: ["packages/api-client/src/gen/"],

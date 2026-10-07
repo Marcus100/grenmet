@@ -2,9 +2,9 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Barrels Grenada",
-    "description": "Grenmet API for authenticated administration, human resources, weather products, CAP alerts, and observation registration.",
+    "description": "The Barrels Grenada API for authenticated administration, human resources, weather products, CAP alerts, and observation registration.",
     "contact": {
-      "name": "Grenmet API maintainers"
+      "name": "Barrels Grenada maintainers"
     },
     "license": {
       "name": "Proprietary"
