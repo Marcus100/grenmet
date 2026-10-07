@@ -9,10 +9,10 @@ import { capNameValueSchema } from "./capNameValueSchema.js";
 export const capPredefinedAreaCreateSchema = z.object({
   name: z.string().min(1).max(255),
   area_desc: z.string().min(1).max(1000),
-  geometry: z.union([z.object({}).catchall(z.unknown()), z.null()]).optional(),
+  geometry: z.union([z.looseObject({}), z.null()]).optional(),
   polygons: z.array(z.array(z.array(z.number()))).optional(),
   multipolygons: z.array(z.array(z.array(z.array(z.number())))).optional(),
-  circles: z.array(z.object({}).catchall(z.number())).optional(),
+  circles: z.array(z.record(z.string(), z.number())).optional(),
   geocodes: z.array(capNameValueSchema).optional(),
   is_active: z.boolean().optional().default(true),
 });

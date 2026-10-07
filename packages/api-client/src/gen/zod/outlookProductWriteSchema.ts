@@ -7,14 +7,12 @@ import * as z from "zod";
 import { legacyProductWritePropertiesActionEnumSchema } from "./legacyProductWritePropertiesActionEnumSchema.js";
 import { outlookValuesDraftSchema } from "./outlookValuesDraftSchema.js";
 
-export const outlookProductWriteSchema = z
-  .object({
-    id: z.uuid(),
-    expectedRevision: z.int().min(0),
-    values: outlookValuesDraftSchema,
-    action: legacyProductWritePropertiesActionEnumSchema,
-    changeSummary: z.string().max(1000),
-    reviewed: z.boolean(),
-    kind: z.enum(["outlook"]),
-  })
-  .strict();
+export const outlookProductWriteSchema = z.strictObject({
+  id: z.uuid(),
+  expectedRevision: z.int().min(0),
+  values: outlookValuesDraftSchema,
+  action: legacyProductWritePropertiesActionEnumSchema,
+  changeSummary: z.string().max(1000),
+  reviewed: z.boolean(),
+  kind: z.enum(["outlook"]),
+});

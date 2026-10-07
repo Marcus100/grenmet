@@ -26,6 +26,7 @@ export function authTwofaSetup<ThrowOnError extends boolean = true>(
       url: "/api/v1/2fa/setup",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthTwofaSetupResponses, ThrowOnError>>
   );
 }

@@ -12,6 +12,6 @@ export const organisationPreviewSchema = z.object({
   missing_units: z.array(z.string()).optional(),
   missing_positions: z.array(z.string()).optional(),
   conflicts: z.array(z.string()).optional(),
-  gms_staff_by_grade: z.object({}).catchall(z.int()).optional(),
+  gms_staff_by_grade: z.record(z.string(), z.int()).optional(),
   gms_differences: z.array(z.string()).optional(),
 });

@@ -29,6 +29,7 @@ export function transportCreateStop<ThrowOnError extends boolean = true>(
         { type: "http", scheme: "bearer" },
       ],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<TransportCreateStopResponses, ThrowOnError>>
   );
 }

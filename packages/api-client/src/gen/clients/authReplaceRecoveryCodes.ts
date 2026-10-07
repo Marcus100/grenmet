@@ -26,6 +26,7 @@ export function authReplaceRecoveryCodes<ThrowOnError extends boolean = true>(
       url: "/api/v1/auth/modern/security/recovery-codes",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<AuthReplaceRecoveryCodesResponses, ThrowOnError>
     >

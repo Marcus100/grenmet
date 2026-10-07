@@ -26,6 +26,7 @@ export function hrPreviewLeaveRequestPdf<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/leave-requests/preview-pdf",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<HrPreviewLeaveRequestPdfResponses, ThrowOnError>
     >

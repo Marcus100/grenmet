@@ -26,6 +26,7 @@ export function capImportAlert<ThrowOnError extends boolean = true>(
       url: "/api/v1/cap/alerts/import",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<CapImportAlertResponses, ThrowOnError>>
   );
 }

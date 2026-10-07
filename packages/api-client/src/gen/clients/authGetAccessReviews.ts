@@ -26,6 +26,7 @@ export function authGetAccessReviews<ThrowOnError extends boolean = true>(
       url: "/api/v1/auth/access-reviews",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthGetAccessReviewsResponses, ThrowOnError>>
   );
 }

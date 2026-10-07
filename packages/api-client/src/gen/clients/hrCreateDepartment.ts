@@ -26,6 +26,7 @@ export function hrCreateDepartment<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/departments",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrCreateDepartmentResponses, ThrowOnError>>
   );
 }

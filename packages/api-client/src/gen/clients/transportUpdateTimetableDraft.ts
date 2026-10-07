@@ -33,6 +33,7 @@ export function transportUpdateTimetableDraft<
         { type: "http", scheme: "bearer" },
       ],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<TransportUpdateTimetableDraftResponses, ThrowOnError>
     >

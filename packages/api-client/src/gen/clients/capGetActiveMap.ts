@@ -25,6 +25,7 @@ export function capGetActiveMap<ThrowOnError extends boolean = true>(
       method: "GET",
       url: "/api/cap/active-map",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<CapGetActiveMapResponses, ThrowOnError>>
   );
 }

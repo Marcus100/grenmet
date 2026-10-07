@@ -7,7 +7,7 @@ import * as z from "zod";
 import { statusReportCreateSchema } from "./statusReportCreateSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
-export const hrPreviewStatusReportPdfStatus200Schema = z.unknown();
+export const hrPreviewStatusReportPdfStatus200Schema = z.instanceof(File);
 
 export const hrPreviewStatusReportPdfStatus400Schema = z.unknown();
 

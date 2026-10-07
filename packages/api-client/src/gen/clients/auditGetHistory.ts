@@ -26,6 +26,7 @@ export function auditGetHistory<ThrowOnError extends boolean = true>(
       url: "/api/v1/audit/{entity_type}/{entity_id}",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuditGetHistoryResponses, ThrowOnError>>
   );
 }

@@ -6,16 +6,14 @@
 import * as z from "zod";
 import { aviationDraftReadPropertiesKindEnumSchema } from "./aviationDraftReadPropertiesKindEnumSchema.js";
 
-export const aviationDraftWriteSchema = z
-  .object({
-    kind: aviationDraftReadPropertiesKindEnumSchema,
-    station: z.string().regex(/^[A-Z]{4}$/),
-    message: z.string().min(1).max(6000),
-    observed_at: z.union([z.iso.datetime(), z.null()]).optional(),
-    issued_at: z.union([z.iso.datetime(), z.null()]).optional(),
-    valid_from: z.union([z.iso.datetime(), z.null()]).optional(),
-    valid_to: z.union([z.iso.datetime(), z.null()]).optional(),
-    id: z.uuid(),
-    expected_revision: z.int().min(0),
-  })
-  .strict();
+export const aviationDraftWriteSchema = z.strictObject({
+  kind: aviationDraftReadPropertiesKindEnumSchema,
+  station: z.string().regex(/^[A-Z]{4}$/),
+  message: z.string().min(1).max(6000),
+  observed_at: z.union([z.iso.datetime(), z.null()]).optional(),
+  issued_at: z.union([z.iso.datetime(), z.null()]).optional(),
+  valid_from: z.union([z.iso.datetime(), z.null()]).optional(),
+  valid_to: z.union([z.iso.datetime(), z.null()]).optional(),
+  id: z.uuid(),
+  expected_revision: z.int().min(0),
+});

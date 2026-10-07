@@ -26,6 +26,7 @@ export function authGetRoles<ThrowOnError extends boolean = true>(
       url: "/api/v1/auth/roles",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthGetRolesResponses, ThrowOnError>>
   );
 }

@@ -26,6 +26,7 @@ export function hrValidateGrid<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/rosters/import-grid/validate",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrValidateGridResponses, ThrowOnError>>
   );
 }

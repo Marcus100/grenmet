@@ -26,6 +26,7 @@ export function authDeleteUser<ThrowOnError extends boolean = true>(
       url: "/api/v1/auth/users/{user_id}",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthDeleteUserResponses, ThrowOnError>>
   );
 }

@@ -26,6 +26,7 @@ export function hrGetHrDashboard<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/dashboard",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrGetHrDashboardResponses, ThrowOnError>>
   );
 }

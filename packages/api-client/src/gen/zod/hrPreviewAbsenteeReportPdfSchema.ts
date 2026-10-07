@@ -8,7 +8,7 @@ import { absenteeReportCreateSchema } from "./absenteeReportCreateSchema.js";
 
 export const hrPreviewAbsenteeReportPdfStatus200SchemaJson = z.unknown();
 
-export const hrPreviewAbsenteeReportPdfStatus200SchemaPdf = z.unknown();
+export const hrPreviewAbsenteeReportPdfStatus200SchemaPdf = z.instanceof(File);
 
 export const hrPreviewAbsenteeReportPdfStatus200Schema = z.union([
   hrPreviewAbsenteeReportPdfStatus200SchemaJson,

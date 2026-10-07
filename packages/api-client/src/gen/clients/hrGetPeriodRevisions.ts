@@ -26,6 +26,7 @@ export function hrGetPeriodRevisions<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/rosters/periods/{period_id}/revisions",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrGetPeriodRevisionsResponses, ThrowOnError>>
   );
 }

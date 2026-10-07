@@ -26,6 +26,7 @@ export function eventsCreateSuggestion<ThrowOnError extends boolean = true>(
       url: "/api/v1/events/suggestions",
       security: [{ type: "http", scheme: "bearer" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<EventsCreateSuggestionResponses, ThrowOnError>>
   );
 }

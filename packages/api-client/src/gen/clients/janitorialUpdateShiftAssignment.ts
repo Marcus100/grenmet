@@ -33,6 +33,7 @@ export function janitorialUpdateShiftAssignment<
         { type: "http", scheme: "bearer" },
       ],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<JanitorialUpdateShiftAssignmentResponses, ThrowOnError>
     >

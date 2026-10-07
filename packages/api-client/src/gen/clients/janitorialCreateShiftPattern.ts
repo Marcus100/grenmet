@@ -33,6 +33,7 @@ export function janitorialCreateShiftPattern<
         { type: "http", scheme: "bearer" },
       ],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<JanitorialCreateShiftPatternResponses, ThrowOnError>
     >

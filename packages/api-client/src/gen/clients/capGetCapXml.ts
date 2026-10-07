@@ -25,6 +25,7 @@ export function capGetCapXml<ThrowOnError extends boolean = true>(
       method: "GET",
       url: "/api/cap/{identifier}.xml",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<CapGetCapXmlResponses, ThrowOnError>>
   );
 }

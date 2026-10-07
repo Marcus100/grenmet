@@ -8,7 +8,7 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 
 export const capGetCapXmlPathIdentifierSchema = z.string();
 
-export const capGetCapXmlStatus200Schema = z.unknown();
+export const capGetCapXmlStatus200Schema = z.instanceof(File);
 
 export const capGetCapXmlStatus422Schema =
   validationErrorResponseSchema.describe(

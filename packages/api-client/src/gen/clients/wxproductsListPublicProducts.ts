@@ -29,6 +29,7 @@ export function wxproductsListPublicProducts<
       method: "GET",
       url: "/api/v1/wxproducts/public/products",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<WxproductsListPublicProductsResponses, ThrowOnError>
     >

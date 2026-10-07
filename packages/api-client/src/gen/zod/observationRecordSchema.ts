@@ -13,6 +13,6 @@ export const observationRecordSchema = z.object({
   station: z.string(),
   observed_at: z.union([z.iso.datetime(), z.null()]).optional(),
   issued_at: z.union([z.iso.datetime(), z.null()]).optional(),
-  payload: z.object({}).catchall(z.unknown()),
+  payload: z.looseObject({}),
   provenance: observationProvenanceSchema,
 });
