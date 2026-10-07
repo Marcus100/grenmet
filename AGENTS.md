@@ -111,12 +111,16 @@ type-checking, and tests.
 Several agents often run at once: give each its own git worktree and branch
 (Claude: `claude --worktree <topic>`, which creates `.claude/worktrees/<topic>`
 from the current `dev` HEAD; Codex: its worktree mode). Run `pnpm install` in a
-new worktree. Commit in the worktree, then land on `dev` with
-`git fetch && git rebase origin/dev`, `pnpm fix:changed`, `git push origin HEAD:dev`;
-if the push is rejected, rebase and retry — never force-push. Never hand-merge
+new worktree. Commit there, then merge completed branches into local `dev` in a
+clean integration checkout; follow the Git and GitHub Workflow below. Never hand-merge
 `openapi.json` or `packages/api-client/src/gen/`: take either side, regenerate
 (openapi command above → `pnpm generate:api-client` → `pnpm check:drift`).
 Dev servers stay on the host in the main checkout.
+
+### Git and GitHub Workflow
+- Merge completed task branches into local `dev`, validate the combined result, then push `dev` directly; do not push feature branches or create feature-to-dev PRs unless the user requests them.
+- Fetch first and integrate current `origin/dev`; run `pnpm fix:changed`, `pnpm type-check`, affected tests, staged guardrails and blast-radius review before pushing. If remote dev advances, integrate it locally and revalidate before retrying; never force-push or bypass hooks.
+- Promote through PRs: `dev → staging → main`. Reuse an open promotion PR; wait for applicable CI and staging deployment/acceptance gates. PR merges and production publication/deployment require explicit authorization; existing session authorization counts.
 
 ### Communication
 Lead with the answer or the next step in plain language; keep responses short

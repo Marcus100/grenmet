@@ -9,7 +9,11 @@ the verification and PR-creation steps; **merging PRs and publishing the release
 are human actions** (see the Never tier in `AGENTS.md`).
 
 Branch flow: `dev → (PR) → staging → (PR) → main → (release vN.M) → prod`.
-Direct commits go to `dev`; promotion is always via PR. Rulesets enforce the
+Merge completed task branches into local `dev`, check the combined result locally,
+then push `dev` directly. Do not push feature branches or open feature-to-dev PRs
+unless explicitly requested. Fetch and integrate current `origin/dev` before
+validation; if it advances, integrate and revalidate before retrying. Never
+force-push or bypass hooks. Promotion is always via PR; reuse an open promotion PR. Rulesets enforce the
 required checks on `staging` and `main` PRs.
 
 ## 1. Pre-flight on dev

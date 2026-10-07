@@ -12,6 +12,10 @@ and open PRs after the required checks pass; preserve unrelated work and never
 bypass hooks or force-push. Follow `AGENTS.md` for merge/deployment authorization.
 
 **1. Pre-flight**
+Integrate completed task branches into local `dev` and validate the combined
+result before pushing `dev` directly. Do not push feature branches or open
+feature-to-dev PRs unless requested. See `AGENTS.md` → Git and GitHub Workflow.
+
 Confirm the latest `dev` CI run is green (`gh run list --branch dev --limit 3`);
 if not, triage it first. Run `pnpm check:ci` and `pnpm type-check`, then the
 `/pre-merge` checklist. Report findings. Stop and ask if anything is red.
