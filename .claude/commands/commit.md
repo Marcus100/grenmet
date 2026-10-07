@@ -1,5 +1,5 @@
 ---
-description: Review, validate and commit authorized changes; push and open a PR when appropriate to the task
+description: Review, validate and commit authorized changes; integrate into local dev, validate, then push dev
 allowed-tools: Bash(git *), Bash(pnpm *), Bash(gh *)
 ---
 
@@ -23,7 +23,12 @@ allowed-tools: Bash(git *), Bash(pnpm *), Bash(gh *)
 3. Stage only authorized changes, preserving unrelated staged and unstaged work.
    Commit with the reviewed message. Do not bypass hooks or force-push.
 
-4. Push and open a PR when appropriate to the authorized task, following the
-   repository branch and promotion workflow. No additional confirmation is needed
-   for staging, committing, pushing or opening PRs. Merges and deployments still
-   require explicit user authorization under `AGENTS.md`.
+4. Merge completed task branches into local `dev` in a clean integration checkout,
+   incorporating current `origin/dev` first. Validate the combined result with the
+   checks above, then push `dev` directly. Do not push feature branches or create
+   feature-to-dev PRs unless explicitly requested. If remote dev advances,
+   integrate and revalidate locally before retrying; never force-push.
+
+5. Use PRs for `dev → staging → main` promotion, reusing an existing promotion PR.
+   CI still verifies pushed changes. PR merges and deployments require explicit
+   user authorization; existing session authorization counts.
