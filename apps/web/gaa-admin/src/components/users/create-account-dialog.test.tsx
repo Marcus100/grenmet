@@ -51,9 +51,10 @@ afterEach(() => {
 });
 afterAll(() => server.close());
 it("creates a work identity without an administrator choosing a password, then offers access and activation", async () => {
+  const onCreated = vi.fn();
   render(
     <QueryClientProvider client={new QueryClient()}>
-      <CreateAccountDialog />
+      <CreateAccountDialog onCreated={onCreated} />
     </QueryClientProvider>
   );
   fireEvent.click(
@@ -69,6 +70,7 @@ it("creates a work identity without an administrator choosing a password, then o
   fireEvent.click(screen.getByRole("button", { name: "Create account" }));
   expect(await screen.findByText("Activation controls")).toBeInTheDocument();
   expect(screen.getByText("CMS controls")).toBeInTheDocument();
+  expect(onCreated).toHaveBeenCalledOnce();
   expect(submitted).toEqual({
     first_name: "New",
     last_name: "Staff",

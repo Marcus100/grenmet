@@ -1343,3 +1343,8 @@ system administrators retain full CMS access.
 - `POST /api/v1/auth/onboarding/activate` (`authConfirmActivation`): public, rate-limited; takes the one-use token and a 12–128 character password. Requires an active eligible target and an active superuser issuer, unchanged email and credentials. Atomically consumes proof, sets password, clears password setup/email requirement, revokes sessions and outstanding challenges. Does not verify email, approve pending staff, grant roles, change CMS access or reset MFA.
 
 Activation is limited to incomplete or unverified non-superuser accounts. Established verified accounts use the existing recovery process. Issuance, revocation and completion are audited under `account`; links and passwords are excluded from history. No new database migration is required: challenges, account flags and audit storage already exist.
+
+
+### HR onboarding readiness
+
+`StaffSetup` adds `account_active` and `staff_approval_ready`. `mailbox_ready` is persisted on the staff credential and defaults to unconfirmed for existing records; it is never inferred from account activity. `StaffInput.mailbox_ready` may be omitted or null to preserve the recorded value. HR setup saves never modify account activity, password/email requirements or sessions. Staff approval accepts verified email or completed, audited administrator-issued activation while retaining active membership/grade requirements and ordinary staff-only grants.

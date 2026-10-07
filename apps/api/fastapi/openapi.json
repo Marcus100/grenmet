@@ -20974,7 +20974,7 @@
           "staff-setup"
         ],
         "summary": "Approve a verified staff registration",
-        "description": "Administrator approves an email-verified registration after staff membership has been linked. Grants only the staff role; elevated roles remain separately managed.",
+        "description": "Administrator approves a registration after email verification or completed administrator-mediated activation and staff membership linkage. Grants only the staff role; elevated roles remain separately managed.",
         "operationId": "hrApproveStaffRegistration",
         "security": [
           {
@@ -39245,9 +39245,15 @@
             "title": "Supervisor Id"
           },
           "mailbox_ready": {
-            "type": "boolean",
-            "title": "Mailbox Ready",
-            "default": false
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mailbox Ready"
           }
         },
         "type": "object",
@@ -39259,6 +39265,16 @@
       },
       "StaffSetup": {
         "properties": {
+          "account_active": {
+            "type": "boolean",
+            "title": "Account Active",
+            "default": false
+          },
+          "staff_approval_ready": {
+            "type": "boolean",
+            "title": "Staff Approval Ready",
+            "default": false
+          },
           "registration_pending": {
             "type": "boolean",
             "title": "Registration Pending",

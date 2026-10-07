@@ -214,7 +214,7 @@ async def update_role_configuration(
     response_model=Message,
     summary="Approve a verified staff registration",
     status_code=200,
-    description="Administrator approves an email-verified registration after staff membership has been linked. Grants only the staff role; elevated roles remain separately managed.",
+    description="Administrator approves a registration after email verification or completed administrator-mediated activation and staff membership linkage. Grants only the staff role; elevated roles remain separately managed.",
 )
 async def approve_staff_registration(
     *, session: SessionDep, current_user: AdminUser, user_id: uuid.UUID

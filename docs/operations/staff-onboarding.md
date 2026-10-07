@@ -17,7 +17,9 @@ Closing the panel hides the link. **Replace activation link** invalidates the ol
 
 ## Staff workflows and current limits
 
-CMS access does not require employment details. For HR workflows, department, employment, staff credentials, approval and relevant balances may still be needed. The access panel explains GAA Admin admission, not every workflow's readiness. Do not use the existing HR Setup mailbox checkbox as a substitute for activation: HR setup still couples it to account activation, pending the next milestone.
+CMS access does not require employment details. For HR workflows, department, employment, staff credentials, approval and relevant balances may still be needed. The access panel explains GAA Admin admission, not every workflow's readiness. HR Setup also offers **New account without email** and refreshes its staff list when the work identity is created. HR Setup brings account activation, staff approval and personnel details into each staff panel. Expand the person, use Account setup to issue an activation link, then refresh onboarding status after they complete it. Save the department and grade, and approve staff access when needed. Approval accepts verified email or completed, audited administrator-issued activation; it grants only the ordinary staff role.
+
+Record **Work email inbox provisioned** only when the inbox actually works. This operational fact is independent of account activity, email verification, passwords, sessions and permissions. Existing records default to unconfirmed mailbox readiness; account activity is not evidence of an inbox. HR saves preserve account security. Use Users for enabling/disabling accounts, roles and CMS grants. Offboarding a staff account does not affect a separate personal account.
 
 The new activation controls are superuser-only. Department manager delegation and mandatory privileged MFA are subsequent milestones in [ADR-0018](../adr/0018-modular-access-and-onboarding.md). Existing role grants remain authoritative. No shared temporary passwords, fake mailbox verification, automatic manager privileges, or production SQL edits are needed for this new flow.
 
