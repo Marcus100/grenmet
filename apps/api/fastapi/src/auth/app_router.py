@@ -12,7 +12,7 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, Path, status
 from starlette.requests import Request
 
-from src.auth import app_service
+from src.auth import app_service, cms_access
 from src.auth.app_dependencies import OptionalBearer, unauthorized, user_for_app
 from src.auth.app_schemas import (
     AppEmailCodeStart,
@@ -20,6 +20,7 @@ from src.auth.app_schemas import (
     AppHandoffCode,
     AppHandoffRedeem,
     AppHandoffStart,
+    AppIdentityPublic,
     AppPasswordLogin,
     AppPhoneCodeStart,
     AppPhoneCodeVerify,
@@ -315,4 +316,22 @@ async def app_handoff_redeem(
 ) -> SessionLoginResponse:
     return await app_service.handoff_redeem(
         request=request, session=session, app=app, body=body
+    )
+
+
+@router.get(
+    "/me",
+    response_model=AppIdentityPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Read app-scoped identity",
+    description="Read live identity and CMS editorial permissions using this app's bearer token.",
+    responses={401: {"description": "Invalid token or app access revoked"}},
+)
+async def get_app_identity(*, app: AppDep, user: AppMember) -> AppIdentityPublic:
+    return AppIdentityPublic(
+        id=str(user.id),
+        username=user.username,
+        email=user.email,
+        is_superuser=user.is_superuser,
+        permission_keys=cms_access.permission_keys(user) if app.key == "cms" else [],
     )

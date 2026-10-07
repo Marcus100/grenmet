@@ -10,6 +10,7 @@
 - Authorization: `policy.py` (`has_permission`, `require_permission`, `can_act_on_user…`) and `access.py` (effective roles, access reviews).
 
 ## Invariants
+- **CMS access:** `User.cms_access` is superuser-managed and independent of employment. CMS issues app-scoped tokens; live identity and session exchange recheck grants, and changes revoke CMS sessions.
 - `permissions.py` is the single catalogue. Every key passed to `require_permission(..., permission_key=...)` must exist in `PERMISSIONS`; `tests/auth/test_permission_registry.py` fails otherwise. Seeders are idempotent and run at prestart.
 - Authorization matches on `Permission.key` only; `action`/`entity`/`access` columns are derived metadata.
 - JWT via PyJWT (`import jwt`) only. Never `python-jose`.

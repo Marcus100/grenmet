@@ -4,6 +4,7 @@
  */
 
 import type { Title } from "./Title.js";
+import type { UserPublicPropertiesCmsAccessEnum } from "./UserPublicPropertiesCmsAccessEnum.js";
 
 export type UserPublic = {
   /**
@@ -27,6 +28,11 @@ export type UserPublic = {
    * @type boolean | undefined
    */
   is_superuser?: boolean;
+  /**
+   * @default 'none'
+   * @type string | undefined
+   */
+  cms_access?: UserPublicPropertiesCmsAccessEnum;
   /**
    * @default false
    * @type boolean | undefined

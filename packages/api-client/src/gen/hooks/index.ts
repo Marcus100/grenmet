@@ -144,6 +144,11 @@ export {
   useAuthGetAccountSecurity,
 } from "./useAuthGetAccountSecurity.js";
 export {
+  authGetAppIdentityQueryKey,
+  authGetAppIdentityQueryOptions,
+  useAuthGetAppIdentity,
+} from "./useAuthGetAppIdentity.js";
+export {
   authGetAppSignInOptionsQueryKey,
   authGetAppSignInOptionsQueryOptions,
   useAuthGetAppSignInOptions,
