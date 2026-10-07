@@ -10,6 +10,7 @@ export type HandoffResult =
   | { kind: "redirect"; url: string }
   | { kind: "join"; label: string }
   | { kind: "denied"; label: string; detail: string }
+  | { kind: "verify-email" }
   | { kind: "sign-in" }
   | { kind: "unavailable" };
 
@@ -72,6 +73,12 @@ export async function startHandoff(
       case 401:
         return { kind: "sign-in" };
       case 403:
+        if (
+          error.detail ===
+          "Verify your email address before signing in to this app."
+        ) {
+          return { kind: "verify-email" };
+        }
         return {
           kind: "denied",
           label: await appLabel(request.app),

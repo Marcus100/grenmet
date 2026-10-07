@@ -1,5 +1,6 @@
 "use client";
 import {
+  authGetOnboardingStatusQueryKey,
   authGetUsersQueryKey,
   type UserPublic,
   useAuthUpdateUser,
@@ -43,6 +44,11 @@ export function CmsAccessControl({
       });
       await queryClient.invalidateQueries({
         queryKey: authGetUsersQueryKey({}),
+      });
+      await queryClient.invalidateQueries({
+        queryKey: authGetOnboardingStatusQueryKey({
+          path: { user_id: user.id },
+        }),
       });
       toast.success("CMS access updated. The user must sign in to CMS again.");
     } catch (error) {

@@ -23,6 +23,7 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0015](0015-retire-hono-python-backend.md) | Retire the Hono API; backend logic is Python (CMS excepted) |
 | [0016](0016-app-scoped-accounts-and-sessions.md) | App-scoped accounts and sessions: shared accounts, per-app sign-in, cookie and access |
 | [0017](0017-single-sign-on-handoff.md) | Proposed: single sign-on handoff between app-scoped sessions |
+| [0018](0018-modular-access-and-onboarding.md) | Modular access and administrator-mediated staff onboarding |
 
 ## Template
 

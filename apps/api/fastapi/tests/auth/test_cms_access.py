@@ -140,3 +140,58 @@ async def test_user_manager_cannot_grant_cms(
         json={"cms_access": "publisher"},
     )
     assert result.status_code == 403
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "is_admin, grant, permission",
+    [
+        (True, "none", "cms.article.manage"),
+        (False, "publisher", "cms.article.manage"),
+        (False, "writer", "cms.article.create"),
+    ],
+)
+async def test_approved_legacy_staff_can_use_explicit_cms_access_without_email(
+    async_client, db_async, monkeypatch, is_admin, grant, permission
+):
+    monkeypatch.setattr(auth_settings, "CMS_SSO_CLIENT_SECRET", "cms-test-secret")
+    user = User(
+        email="legacy-admin@example.com",
+        username="legacy-admin",
+        first_name="Legacy",
+        last_name="Admin",
+        hashed_password=get_password_hash("Password-123!"),
+        is_superuser=is_admin,
+        is_active=True,
+        registration_pending=False,
+        email_verification_required=False,
+        email_verified_at=None,
+        cms_access=grant,
+    )
+    db_async.add(user)
+    await db_async.commit()
+    assert service.is_staff_eligible(user)
+    _, account = await service.create_session(
+        session=db_async, user=user, app_name="auth", enforce_approval=False
+    )
+    state = secrets.token_urlsafe(24)
+    started = await async_client.post(
+        f"{BASE}/handoff", json={"session_token": account, "state": state}
+    )
+    assert started.status_code == 200, started.text
+    redeemed = await async_client.post(
+        f"{BASE}/handoff/redeem",
+        json={
+            "code": started.json()["code"],
+            "state": state,
+            "client_secret": "cms-test-secret",
+        },
+    )
+    assert redeemed.status_code == 200, redeemed.text
+    identity = await async_client.get(
+        f"{BASE}/me",
+        headers={"Authorization": f"Bearer {redeemed.json()['access_token']}"},
+    )
+    assert identity.status_code == 200
+    assert identity.json()["is_superuser"] is is_admin
+    assert permission in identity.json()["permission_keys"]
