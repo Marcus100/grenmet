@@ -37,6 +37,8 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { invalidateAfterEmploymentChange } from "@/lib/hr-invalidation";
 
+import { CmsAccessControl } from "./cms-access-control";
+
 interface ManageUserDialogProps {
   onOpenChange?: (open: boolean) => void;
   /** Controlled open state. When provided, the built-in trigger is hidden. */
@@ -252,6 +254,7 @@ export function ManageUserDialog({
           </DialogDescription>
         </DialogHeader>
 
+        <CmsAccessControl open={open} user={user} />
         <div className="flex flex-col gap-3">
           <span className="font-medium text-sm">Roles</span>
           {assignments.length === 0 && !assignmentsQuery.isLoading ? (

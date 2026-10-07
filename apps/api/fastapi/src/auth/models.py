@@ -59,6 +59,9 @@ class User(Base):
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     is_active: Mapped[bool] = mapped_column(default=True)
     is_superuser: Mapped[bool] = mapped_column(default=False)
+    cms_access: Mapped[str] = mapped_column(
+        String(16), default="none", server_default="none"
+    )
     hashed_password: Mapped[str]
     email_verified_at: Mapped[datetime | None]
     # Optional sign-in factor for app-scoped apps (ADR-0016); E.164, unique.

@@ -14,6 +14,7 @@ export { appEmailCodeVerifySchema } from "./appEmailCodeVerifySchema.js";
 export { appHandoffCodeSchema } from "./appHandoffCodeSchema.js";
 export { appHandoffRedeemSchema } from "./appHandoffRedeemSchema.js";
 export { appHandoffStartSchema } from "./appHandoffStartSchema.js";
+export { appIdentityPublicSchema } from "./appIdentityPublicSchema.js";
 export { appPasswordLoginSchema } from "./appPasswordLoginSchema.js";
 export { appPhoneCodeStartPropertiesChannelEnumSchema } from "./appPhoneCodeStartPropertiesChannelEnumSchema.js";
 export { appPhoneCodeStartSchema } from "./appPhoneCodeStartSchema.js";
@@ -340,6 +341,14 @@ export {
   authGetAccountSecurityStatus403Schema,
   authGetAccountSecurityStatus422Schema,
 } from "./authGetAccountSecuritySchema.js";
+export {
+  authGetAppIdentityErrorSchema,
+  authGetAppIdentityPathAppSchema,
+  authGetAppIdentityResponseSchema,
+  authGetAppIdentityStatus200Schema,
+  authGetAppIdentityStatus401Schema,
+  authGetAppIdentityStatus422Schema,
+} from "./authGetAppIdentitySchema.js";
 export {
   authGetAppSignInOptionsErrorSchema,
   authGetAppSignInOptionsPathAppSchema,
@@ -3498,6 +3507,7 @@ export { updatePasswordSchema } from "./updatePasswordSchema.js";
 export { userCreateSchema } from "./userCreateSchema.js";
 export { userProfilePublicSchema } from "./userProfilePublicSchema.js";
 export { userProfileUpdateMeSchema } from "./userProfileUpdateMeSchema.js";
+export { userPublicPropertiesCmsAccessEnumSchema } from "./userPublicPropertiesCmsAccessEnumSchema.js";
 export { userPublicSchema } from "./userPublicSchema.js";
 export { userRegisterSchema } from "./userRegisterSchema.js";
 export { userRoleAssignmentCreateSchema } from "./userRoleAssignmentCreateSchema.js";

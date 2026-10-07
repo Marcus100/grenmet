@@ -25,6 +25,7 @@ class UserRegister(BaseModel):
 
 # Properties to receive via API on update, all are optional
 class UserUpdate(BaseModel):
+    cms_access: Literal["none", "writer", "publisher"] = "none"
     email: EmailStr | None = None
     username: str | None = Field(default=None, min_length=3, max_length=255)
     title: Title | None = None
@@ -51,6 +52,7 @@ class UpdatePassword(BaseModel):
 
 # Properties to return via API, id is always required
 class UserPublic(UserBase):
+    cms_access: Literal["none", "writer", "publisher"] = "none"
     registration_pending: bool = False
     #: When this account asked for staff access (ADR-0017); null if never.
     staff_access_requested_at: UtcDateTime | None = None

@@ -133,6 +133,16 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
     const renamed = await payload.auth({ headers });
     expect(renamed.user?.id).toBe(first.user?.id);
     expect(renamed.user?.username).toBe("renamed.staff");
+    upstream.mockResolvedValue({
+      ...identity,
+      permissionKeys: ["cms.article.manage"],
+    });
+    expect((await payload.auth({ headers })).user?.role).toBe("editor");
+    upstream.mockResolvedValue({
+      ...identity,
+      permissionKeys: ["cms.article.create"],
+    });
+    expect((await payload.auth({ headers })).user?.role).toBe("author");
     upstream.mockResolvedValue(null);
     expect((await payload.auth({ headers })).user).toBeNull();
     upstream.mockResolvedValue(identity);
@@ -174,15 +184,21 @@ describe.skipIf(!testDatabaseUrl)("CMS editorial workflow in Postgres", () => {
         data: { role: "editor" },
       })
     ).rejects.toThrow();
-    const unchanged = await payload.update({
-      collection: "users",
-      id: author.id,
-      overrideAccess: false,
-      user: editor,
-      data: { fastapiUserId: "forged", username: "forged" },
-    });
-    expect(unchanged.fastapiUserId).toBe("fastapi-author");
-    expect(unchanged.username).toBe("author");
+    for (const data of [
+      { fastapiUserId: "forged", username: "forged" },
+      { role: "editor" as const },
+      { permissionKeys: ["cms.article.manage"], isSuperuser: true },
+    ]) {
+      await expect(
+        payload.update({
+          collection: "users",
+          id: author.id,
+          overrideAccess: false,
+          user: editor,
+          data,
+        })
+      ).rejects.toThrow();
+    }
   });
   it("keeps rich text private until a permitted editor publishes a reviewed article", async () => {
     const article = await payload.create({

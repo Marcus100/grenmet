@@ -5,6 +5,7 @@
 
 import * as z from "zod";
 import { titleSchema } from "./titleSchema.js";
+import { userPublicPropertiesCmsAccessEnumSchema } from "./userPublicPropertiesCmsAccessEnumSchema.js";
 
 export const userPublicSchema = z.object({
   email: z.email(),
@@ -15,6 +16,9 @@ export const userPublicSchema = z.object({
   last_name: z.string(),
   is_active: z.boolean().optional().default(true),
   is_superuser: z.boolean().optional().default(false),
+  cms_access: userPublicPropertiesCmsAccessEnumSchema
+    .optional()
+    .default("none"),
   registration_pending: z.boolean().optional().default(false),
   staff_access_requested_at: z.union([z.iso.datetime(), z.null()]).optional(),
   id: z.uuid(),

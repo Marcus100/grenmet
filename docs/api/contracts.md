@@ -1313,3 +1313,20 @@ as a new application. Issuance does not rewrite the original signed evidence.
 Roster writes and CSV/grid imports enforce the filing department scope and employee membership. They preserve assignment IDs and protect actual attendance and legacy recorded/submitted/approved timesheets. Catalogue and assignment locks serialize timing edits with first punches. Attendance history reads use the recorded filing department after transfers; unchanged terminal reviews reopen as a fresh cycle, retaining prior steps. Generic workflow submission cannot bypass the attendance submit route.
 
 Signed document history also uses the original filing department after an employee transfer. Department read/manage grants do not expose the former department's documents to the new department; SELF-only and expired grants cannot read another employee's history. Existing owner and named counterpart access remains available.
+
+
+### Explicit CMS access
+
+`PATCH /api/v1/auth/users/{user_id}` accepts `cms_access` (`none`, `writer`,
+`publisher`); only superusers may set it, including when the caller otherwise
+has `user.manage`. User responses expose the stored level. Public registration
+and self-service profile updates cannot grant CMS access.
+
+`GET /api/v1/auth/apps/{app}/me` returns live app-scoped identity and, for CMS,
+editorial permission keys. It requires a bearer token for the named app and
+rechecks admission. CMS handoff and session exchange require an active,
+email-verified account with an explicit grant (or a system administrator),
+independently of staff approval. CMS tokens cannot access staff APIs.
+Access changes revoke CMS sessions; already-issued tokens read current grants.
+The additive `cmsaccess20261007` migration defaults existing users to `none`;
+system administrators retain full CMS access.
