@@ -12,12 +12,13 @@ export const fastApiStrategy: AuthStrategy = {
       headers.get("sec-fetch-site") === "cross-site"
     )
       return { user: null };
-    const identity = await readFastApiIdentity(
-      headers,
-      getAuthConfig(),
-      env.CMS_DEPARTMENT_ID
-    );
+    const identity = await readFastApiIdentity(headers, getAuthConfig());
     if (!identity) return { user: null };
+    const role =
+      identity.isSuperuser ||
+      identity.permissionKeys?.includes("cms.article.manage")
+        ? "editor"
+        : "author";
     const existing = await payload.find({
       collection: "users",
       where: { fastapiUserId: { equals: identity.fastapiUserId } },
@@ -31,7 +32,7 @@ export const fastApiStrategy: AuthStrategy = {
         user = await payload.create({
           draft: true,
           collection: "users",
-          data: { ...identity, role: "author" },
+          data: { ...identity, role },
           overrideAccess: true,
         });
       } catch (error) {
@@ -46,6 +47,7 @@ export const fastApiStrategy: AuthStrategy = {
       }
     }
     if (
+      user.role !== role ||
       user.email !== identity.email ||
       user.username !== identity.username ||
       user.isSuperuser !== identity.isSuperuser ||
@@ -55,7 +57,7 @@ export const fastApiStrategy: AuthStrategy = {
       user = await payload.update({
         collection: "users",
         id: user.id,
-        data: identity,
+        data: { ...identity, role },
         overrideAccess: true,
       });
     }

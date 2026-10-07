@@ -100,6 +100,12 @@ async def update_user(
         await session.execute(
             delete(AuthSession).where(AuthSession.user_id == db_user.id)
         )
+    if "cms_access" in user_data:
+        await session.execute(
+            delete(AuthSession).where(
+                AuthSession.user_id == db_user.id, AuthSession.app_name == "cms"
+            )
+        )
     session.add(db_user)
     await session.commit()
     await session.refresh(db_user)
@@ -428,7 +434,7 @@ async def exchange_session_for_access_token(
             session=session, user=user, app_key=scoped_app
         )
     elif is_registered(db_session.app_name):
-        # Staff-app session (GAA Admin, CMS): keep the staff gate.
+        # Staff-app session (GAA Admin): keep the staff gate.
         eligible = user is not None and is_staff_eligible(user)
     else:
         # Account session from auth.barrels.gd: any active account. Its
@@ -513,7 +519,7 @@ def is_staff_eligible(user: User) -> bool:
 async def is_eligible_for_app(
     *, session: AsyncSession, user: User, app_key: str
 ) -> bool:
-    """Active, verified, and holding ``app.<key>.access``.
+    """Active, verified, with explicit CMS access or ``app.<key>.access``.
 
     ``registration_pending`` means "staff approval pending" and does not
     affect app-scoped access.
@@ -522,6 +528,8 @@ async def is_eligible_for_app(
         return False
     if user.is_superuser:
         return True
+    if app_key == "cms":
+        return user.cms_access in {"writer", "publisher"}
     from src.auth.access import effective_roles
 
     roles = await effective_roles(session, user)
