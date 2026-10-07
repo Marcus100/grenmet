@@ -25,6 +25,7 @@ export function authAppGoogleStart<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/auth/apps/{app}/google/start",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthAppGoogleStartResponses, ThrowOnError>>
   );
 }

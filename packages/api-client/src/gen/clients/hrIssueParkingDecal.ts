@@ -26,6 +26,7 @@ export function hrIssueParkingDecal<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/parking-permits/{permit_id}/issue",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrIssueParkingDecalResponses, ThrowOnError>>
   );
 }

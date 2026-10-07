@@ -6,11 +6,9 @@
 import * as z from "zod";
 import { outlookValuesDraftSchema } from "./outlookValuesDraftSchema.js";
 
-export const outlookProductPreviewInputSchema = z
-  .object({
-    values: outlookValuesDraftSchema,
-    expectedRevision: z.int().min(0),
-    changeSummary: z.string().max(1000),
-    kind: z.enum(["outlook"]),
-  })
-  .strict();
+export const outlookProductPreviewInputSchema = z.strictObject({
+  values: outlookValuesDraftSchema,
+  expectedRevision: z.int().min(0),
+  changeSummary: z.string().max(1000),
+  kind: z.enum(["outlook"]),
+});

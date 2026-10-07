@@ -25,6 +25,7 @@ export function authRefreshSession<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/login/session/refresh",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthRefreshSessionResponses, ThrowOnError>>
   );
 }

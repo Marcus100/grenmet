@@ -27,6 +27,7 @@ export function hrUploadDocument<ThrowOnError extends boolean = true>(
       security: [{ type: "oauth2" }],
       contentType: { request: "multipart/form-data" },
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrUploadDocumentResponses, ThrowOnError>>
   );
 }

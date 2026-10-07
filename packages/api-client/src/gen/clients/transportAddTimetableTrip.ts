@@ -31,6 +31,7 @@ export function transportAddTimetableTrip<ThrowOnError extends boolean = true>(
         { type: "http", scheme: "bearer" },
       ],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<TransportAddTimetableTripResponses, ThrowOnError>
     >

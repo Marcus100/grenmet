@@ -26,6 +26,7 @@ export function eventsUpdateReport<ThrowOnError extends boolean = true>(
       url: "/api/v1/events/moderation/reports/{report_id}",
       security: [{ type: "http", scheme: "bearer" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<EventsUpdateReportResponses, ThrowOnError>>
   );
 }

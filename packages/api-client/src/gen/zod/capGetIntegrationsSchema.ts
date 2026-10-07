@@ -6,9 +6,10 @@
 import * as z from "zod";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
-export const capGetIntegrationsStatus200Schema = z
-  .object({})
-  .catchall(z.array(z.object({}).catchall(z.unknown())));
+export const capGetIntegrationsStatus200Schema = z.record(
+  z.string(),
+  z.array(z.looseObject({}))
+);
 
 export const capGetIntegrationsStatus422Schema =
   validationErrorResponseSchema.describe(

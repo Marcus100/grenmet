@@ -26,6 +26,7 @@ export function eventsUpdateSuggestion<ThrowOnError extends boolean = true>(
       url: "/api/v1/events/moderation/suggestions/{suggestion_id}",
       security: [{ type: "http", scheme: "bearer" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<EventsUpdateSuggestionResponses, ThrowOnError>>
   );
 }

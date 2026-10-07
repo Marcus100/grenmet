@@ -26,6 +26,7 @@ export function hrGetDocument<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/documents/{document_id}",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrGetDocumentResponses, ThrowOnError>>
   );
 }

@@ -30,6 +30,7 @@ export function hrSaveWorkflowConfiguration<
       url: "/api/v1/hr/setup/workflows/{template_id}",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<HrSaveWorkflowConfigurationResponses, ThrowOnError>
     >

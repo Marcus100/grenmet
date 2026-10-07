@@ -26,6 +26,7 @@ export function hrCreateCalendarEvent<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/calendar/events",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrCreateCalendarEventResponses, ThrowOnError>>
   );
 }

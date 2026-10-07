@@ -28,6 +28,7 @@ export function authRevokeSecuritySession<ThrowOnError extends boolean = true>(
       url: "/api/v1/auth/modern/security/sessions/{session_id}",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<AuthRevokeSecuritySessionResponses, ThrowOnError>
     >

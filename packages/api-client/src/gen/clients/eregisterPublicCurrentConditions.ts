@@ -29,6 +29,7 @@ export function eregisterPublicCurrentConditions<
       method: "GET",
       url: "/api/v1/eregister/public/current",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<EregisterPublicCurrentConditionsResponses, ThrowOnError>
     >

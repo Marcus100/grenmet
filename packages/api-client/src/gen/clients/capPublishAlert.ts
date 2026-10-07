@@ -26,6 +26,7 @@ export function capPublishAlert<ThrowOnError extends boolean = true>(
       url: "/api/v1/cap/alerts/{alert_id}/publish",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<CapPublishAlertResponses, ThrowOnError>>
   );
 }

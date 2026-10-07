@@ -26,6 +26,7 @@ export function hrCreateLeaveRequest<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/leave-requests",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrCreateLeaveRequestResponses, ThrowOnError>>
   );
 }

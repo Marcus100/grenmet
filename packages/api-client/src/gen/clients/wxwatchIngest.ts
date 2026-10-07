@@ -25,6 +25,7 @@ export function wxwatchIngest<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/wxwatch/ingest",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<WxwatchIngestResponses, ThrowOnError>>
   );
 }

@@ -25,6 +25,7 @@ export function authLogoutSession<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/login/session/logout",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthLogoutSessionResponses, ThrowOnError>>
   );
 }

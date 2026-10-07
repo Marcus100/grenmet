@@ -25,6 +25,7 @@ export function capGetPublicLatestActive<ThrowOnError extends boolean = true>(
       method: "GET",
       url: "/api/cap/latest-active",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<CapGetPublicLatestActiveResponses, ThrowOnError>
     >

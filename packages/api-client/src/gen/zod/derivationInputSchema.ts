@@ -11,6 +11,6 @@ export const derivationInputSchema = z.object({
   output_asset_id: z.uuid(),
   processor: z.string().min(1).max(200),
   processor_version: z.string().min(1).max(200),
-  options: z.object({}).catchall(jsonValueSchema).optional(),
+  options: z.record(z.string(), jsonValueSchema).optional(),
   generated_at: z.union([z.iso.datetime(), z.null()]).optional(),
 });

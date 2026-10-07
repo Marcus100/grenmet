@@ -28,6 +28,7 @@ export function eventsUpdateManagedListing<ThrowOnError extends boolean = true>(
       url: "/api/v1/events/manage/listings/{listing_id}",
       security: [{ type: "http", scheme: "bearer" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<EventsUpdateManagedListingResponses, ThrowOnError>
     >
