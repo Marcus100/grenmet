@@ -25,7 +25,7 @@ export function janitorialCreateSection<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/janitorial/sections",
       security: [
-        { type: "apiKey", name: "grenmet_session", in: "cookie" },
+        { type: "apiKey", name: "admin_session", in: "cookie" },
         { type: "http", scheme: "bearer" },
       ],
       ...config,

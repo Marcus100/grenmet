@@ -33,17 +33,35 @@
       >
     </main>
     <footer>Barrels Grenada<span>Coming soon</span></footer>
-    <details id="analytics-settings">
-      <summary>Privacy settings</summary>
+    <!-- Shown only where optional analytics is configured: a popup on the
+         first visit, then a small button to change the choice. -->
+    <button
+      aria-label="Privacy settings"
+      class="privacy-open"
+      hidden
+      id="analytics-open"
+      type="button"
+    >
+      Privacy
+    </button>
+    <section
+      aria-describedby="analytics-description"
+      aria-labelledby="analytics-title"
+      class="privacy-card"
+      hidden
+      id="analytics-settings"
+      role="dialog"
+    >
+      <h2 id="analytics-title">Your privacy</h2>
       <p id="analytics-description">
-        Optional analytics is currently disabled. This page sets no analytics
-        identifiers. Minimal availability checks continue independently.
+        May we use optional Google Analytics to understand visits? Nothing loads
+        unless you accept, and you can change your mind anytime.
       </p>
-      <div hidden id="analytics-choices">
-        <button id="analytics-accept" type="button">Accept analytics</button>
-        <button id="analytics-decline" type="button">Decline analytics</button>
+      <div class="privacy-actions">
+        <button id="analytics-decline" type="button">Decline</button>
+        <button id="analytics-accept" type="button">Accept</button>
       </div>
-    </details>
+    </section>
     <script src="/analytics.mjs" type="module"></script>
   </body>
 </html>

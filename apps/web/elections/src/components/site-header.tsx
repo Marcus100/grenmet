@@ -1,3 +1,4 @@
+import { AccountButton } from "@barrelsgd/ui/components/account-button";
 import { Search } from "lucide-react";
 import Link from "next/link";
 import { DesktopNav } from "@/components/desktop-nav";
@@ -8,7 +9,14 @@ import { MobileMenu } from "@/components/mobile-menu";
  * Newspaper masthead: wordmark and the task-named bar when the masthead has 80rem of room, the
  * hamburger below it. `status` is the one-line state of the 2026 election.
  */
-export function SiteHeader({ status }: { status: string }) {
+export function SiteHeader({
+  status,
+  accountLabel,
+}: {
+  status: string;
+  /** Shows "Sign in" with the Barrels account (ADR-0017) when configured. */
+  accountLabel?: string;
+}) {
   return (
     <header className="@container/masthead sticky top-0 z-40 border-el-ink border-b bg-background pt-[env(safe-area-inset-top)]">
       <FlagStripe />
@@ -29,6 +37,7 @@ export function SiteHeader({ status }: { status: string }) {
           <Search aria-hidden="true" className="size-5 sm:hidden" />
           <span className="sr-only sm:not-sr-only">Search</span>
         </Link>
+        {accountLabel ? <AccountButton appLabel={accountLabel} /> : null}
         <div className="flex @min-7xl/masthead:hidden items-center">
           <MobileMenu status={status} />
         </div>

@@ -42,6 +42,7 @@ from src.auth.schemas import (
 )
 from src.auth.utils import get_password_hash_async
 from src.dependencies import (
+    AccountUser,
     CurrentUser,
     SessionDep,
     get_current_user_manager,
@@ -135,7 +136,7 @@ async def create_user(
     description="Return the currently authenticated user.",
     responses={status.HTTP_200_OK: {"description": "Current user returned"}},
 )
-async def read_user_me(current_user: CurrentUser) -> Any:
+async def read_user_me(current_user: AccountUser) -> Any:
     """
     Get current user.
     """
@@ -173,7 +174,7 @@ async def update_user_me(
     },
 )
 async def update_password_me(
-    *, session: SessionDep, body: UpdatePassword, current_user: CurrentUser
+    *, session: SessionDep, body: UpdatePassword, current_user: AccountUser
 ) -> Any:
     await service.update_password(
         session=session,
@@ -182,6 +183,26 @@ async def update_password_me(
         new_password=body.new_password,
     )
     return Message(message=SUCCESS_PASSWORD_UPDATED)
+
+
+@router.post(
+    "/me/staff-access-request",
+    response_model=UserPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Request staff access",
+    description=(
+        "Ask administrators for GAA/GMS staff access. Adds the account to staff "
+        "setup and the approval queue; repeating the request keeps the first date."
+    ),
+    responses={
+        status.HTTP_401_UNAUTHORIZED: {"description": "Not signed in"},
+        status.HTTP_403_FORBIDDEN: {"description": "Verify your email first"},
+    },
+)
+async def request_staff_access(
+    *, session: SessionDep, current_user: AccountUser
+) -> Any:
+    return await service.request_staff_access(session=session, user=current_user)
 
 
 @router.delete(

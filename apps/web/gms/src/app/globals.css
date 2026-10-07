@@ -12,6 +12,9 @@
    outside this app too, so scan it as well or those classes never exist. */
 @source "../../node_modules/@barrelsgd/gms/src";
 
+/* Installed-app (PWA) only, e.g. the bottom tab bar; the website never shows it. */
+@custom-variant standalone (@media (display-mode: standalone));
+
 /* BEGIN BARRELS DESIGN SYSTEM V1 */
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -396,4 +399,15 @@
 body {
   color: var(--foreground);
   background: var(--background);
+}
+
+/* Lift the shared privacy popup above the installed app's tab bar. */
+@media (width < 64rem) and (display-mode: standalone) {
+  :root {
+    --privacy-bottom-offset: calc(
+      var(--spacing) *
+      14 +
+      env(safe-area-inset-bottom)
+    );
+  }
 }

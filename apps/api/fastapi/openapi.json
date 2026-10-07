@@ -1,10 +1,10 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "Grenmet API",
-    "description": "Grenmet API for authenticated administration, human resources, weather products, CAP alerts, and observation registration.",
+    "title": "Barrels Grenada",
+    "description": "The Barrels Grenada API for authenticated administration, human resources, weather products, CAP alerts, and observation registration.",
     "contact": {
-      "name": "Grenmet API maintainers"
+      "name": "Barrels Grenada maintainers"
     },
     "license": {
       "name": "Proprietary"
@@ -738,6 +738,49 @@
           },
           "400": {
             "description": "Current password incorrect or new password unchanged"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/auth/users/me/staff-access-request": {
+      "post": {
+        "tags": [
+          "users"
+        ],
+        "summary": "Request staff access",
+        "description": "Ask administrators for GAA/GMS staff access. Adds the account to staff setup and the approval queue; repeating the request keeps the first date.",
+        "operationId": "authRequestStaffAccess",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in"
+          },
+          "403": {
+            "description": "Verify your email first"
           }
         },
         "security": [
@@ -18965,6 +19008,105 @@
         }
       }
     },
+    "/api/v1/auth/modern/email-code/start": {
+      "post": {
+        "tags": [
+          "modern-auth"
+        ],
+        "summary": "Send a Barrels account sign-in code",
+        "description": "Email a 6-digit code for signing in at auth.barrels.gd. The reply never reveals whether the address has an account.",
+        "operationId": "authAccountEmailCodeStart",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppEmailCodeStart"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Message"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "503": {
+            "description": "Email delivery failed"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/modern/email-code/verify": {
+      "post": {
+        "tags": [
+          "modern-auth"
+        ],
+        "summary": "Sign in to the Barrels account with an email code",
+        "description": "Verify the code and open an account session (ADR-0017); the first verified code creates the account when sign-up is open.",
+        "operationId": "authAccountEmailCodeVerify",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppEmailCodeVerify"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionLoginResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Wrong or expired code"
+          },
+          "403": {
+            "description": "Registration closed"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          }
+        }
+      }
+    },
     "/api/v1/auth/apps/{app}": {
       "get": {
         "tags": [
@@ -19717,6 +19859,144 @@
           },
           "409": {
             "description": "Number linked elsewhere"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/apps/{app}/handoff": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Start single sign-on into an app",
+        "description": "Exchange the auth.barrels.gd account session for a one-use, 60-second code bound to this app and the caller's state (ADR-0017).",
+        "operationId": "authAppHandoffStart",
+        "parameters": [
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,30}$",
+              "title": "App"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppHandoffStart"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppHandoffCode"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Unknown app"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "401": {
+            "description": "Account session missing, expired or app-scoped"
+          },
+          "403": {
+            "description": "Account cannot use this app"
+          },
+          "409": {
+            "description": "Join required: retry with join=true after the user agrees"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/apps/{app}/handoff/redeem": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Redeem a single sign-on code",
+        "description": "Exchange a handoff code and its state for a new session in this app only.",
+        "operationId": "authAppHandoffRedeem",
+        "parameters": [
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,30}$",
+              "title": "App"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppHandoffRedeem"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionLoginResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Unknown app"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "400": {
+            "description": "Code expired, already used, or for another app or state"
+          },
+          "401": {
+            "description": "Wrong app client secret"
+          },
+          "403": {
+            "description": "Account cannot use this app"
           }
         }
       }
@@ -21899,6 +22179,80 @@
           "code"
         ],
         "title": "AppEmailCodeVerify"
+      },
+      "AppHandoffCode": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "callback_url": {
+            "type": "string",
+            "title": "Callback Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "callback_url"
+        ],
+        "title": "AppHandoffCode"
+      },
+      "AppHandoffRedeem": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 16,
+            "title": "Code"
+          },
+          "state": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 16,
+            "title": "State"
+          },
+          "client_secret": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Client Secret"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "state",
+          "client_secret"
+        ],
+        "title": "AppHandoffRedeem"
+      },
+      "AppHandoffStart": {
+        "properties": {
+          "session_token": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Session Token"
+          },
+          "state": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 16,
+            "title": "State"
+          },
+          "join": {
+            "type": "boolean",
+            "title": "Join",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_token",
+          "state"
+        ],
+        "title": "AppHandoffStart"
       },
       "AppPasswordLogin": {
         "properties": {
@@ -42950,6 +43304,18 @@
             "title": "Registration Pending",
             "default": false
           },
+          "staff_access_requested_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Staff Access Requested At"
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -45187,7 +45553,7 @@
       "APIKeyCookie": {
         "type": "apiKey",
         "in": "cookie",
-        "name": "grenmet_session"
+        "name": "admin_session"
       },
       "HTTPBearer": {
         "type": "http",

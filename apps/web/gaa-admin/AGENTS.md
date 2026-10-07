@@ -27,7 +27,7 @@ Uses `@barrelsgd/auth/server` directly — not a redirect-delegating app.
 - Auth helpers: `src/lib/auth.ts`, `src/lib/auth-config.ts`, `src/lib/auth-redirect.ts`
 - API proxy: `src/app/api/[...path]/route.ts` + `src/proxy.ts`
 - Logout routes: `src/app/auth/logout/route.ts`, `src/app/auth/logout-all/route.ts`
-- Auth-related env vars: `AUTH_APP_URL`, `AUTH_API_URL`, `AUTH_API_V1_STR`, `SESSION_COOKIE_NAME`, `NEXT_PUBLIC_API_URL`, `RESEND_API_KEY`
+- Auth-related env vars: `AUTH_APP_URL`, `AUTH_API_URL`, `AUTH_API_V1_STR`, `ADMIN_SESSION_COOKIE_NAME`, `GAA_ADMIN_SSO_CLIENT_SECRET`, `NEXT_PUBLIC_API_URL`, `RESEND_API_KEY`. Sign-in is single sign-on through auth.barrels.gd (`/signin` → `/auth/start` → `/auth/callback`, ADR-0017)
 
 ## API consumption
 

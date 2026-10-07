@@ -85,53 +85,71 @@ function PublicAnalytics({ app }: { app: PublicApp }) {
     setPreference(readConsent());
     setOpen(false);
   }
-  return (
-    <div className="border-border border-t bg-background p-4 text-foreground text-sm">
+  const config = ready ? configForOrigin(app, location.origin) : null;
+  // Apps with a fixed mobile tab bar set --privacy-bottom-offset to sit above it.
+  // Nothing optional can run here, so there is nothing to ask about.
+  if (!config) return null;
+  const optedOut = browserOptOut();
+  if (!open) {
+    return (
       <button
-        className="underline"
-        onClick={() => setOpen(!open)}
+        aria-label="Privacy settings"
+        className="fixed bottom-[calc(var(--privacy-bottom-offset,0px)_+_var(--spacing)_*_4)] left-4 z-50 rounded-full border border-border bg-background px-3 py-1.5 font-medium text-foreground text-xs shadow-card hover:bg-muted focus-visible:outline-2 focus-visible:outline-ring"
+        onClick={() => setOpen(true)}
         type="button"
       >
-        Privacy settings
+        Privacy
       </button>
-      {ready && open ? (
-        <section aria-label="Privacy settings" className="space-y-3 py-3">
+    );
+  }
+  return (
+    <section
+      aria-describedby="privacy-choice-summary"
+      aria-labelledby="privacy-choice-title"
+      className="fixed inset-x-4 bottom-[calc(var(--privacy-bottom-offset,0px)_+_var(--spacing)_*_4)] z-50 space-y-3 rounded-lg border border-border bg-background p-4 text-foreground text-sm shadow-card sm:right-auto sm:left-4 sm:max-w-sm"
+      role="dialog"
+    >
+      <h2 className="font-semibold text-base" id="privacy-choice-title">
+        Your privacy
+      </h2>
+      <p id="privacy-choice-summary">
+        {optedOut
+          ? "Your browser asks sites not to track you, so optional analytics stays off."
+          : "May we use optional analytics to see which pages help people? Nothing loads unless you accept, and you can change your mind anytime."}
+      </p>
+      <details className="text-muted-foreground">
+        <summary className="cursor-pointer text-foreground underline">
+          What this means
+        </summary>
+        <div className="space-y-2 pt-2">
           <p>
-            Optional Google Analytics and PostHog help us understand page use
-            and selected actions. They load only if you accept. No replay,
-            advertising or cross-site identity is used. Your choice stays on
-            this site for six months; you can withdraw here anytime.
+            Google Analytics and PostHog count page visits and a few actions. No
+            session replay, advertising or cross-site tracking.
           </p>
           <p>
-            Detailed product events are retained for up to 90 days and Google
-            Analytics analysis data for 14 months. Minimal operational errors
-            and availability checks continue independently.
+            Product events are kept for up to 90 days and Google Analytics data
+            for 14 months. Your choice is remembered on this site for six
+            months. Basic error and uptime checks run either way.
           </p>
-          {browserOptOut() ? (
-            <p>
-              Your browser’s opt-out signal keeps optional analytics disabled.
-            </p>
-          ) : null}
-          {configForOrigin(app, location.origin) ? null : (
-            <p>Optional analytics is currently disabled for this site.</p>
-          )}
-          <div className="flex flex-wrap gap-3">
-            <Button
-              disabled={
-                browserOptOut() || !configForOrigin(app, location.origin)
-              }
-              onClick={() => choose("accepted")}
-              variant="outline"
-            >
-              Accept
-            </Button>
-            <Button onClick={() => choose("declined")} variant="outline">
-              Decline
-            </Button>
-          </div>
-        </section>
-      ) : null}
-    </div>
+        </div>
+      </details>
+      {/* Equal weight: declining is as easy as accepting. */}
+      <div className="grid grid-cols-2 gap-2">
+        <Button onClick={() => choose("declined")}>Decline</Button>
+        <Button disabled={optedOut} onClick={() => choose("accepted")}>
+          Accept
+        </Button>
+      </div>
+      {preference === null ? null : (
+        <button
+          className="text-muted-foreground text-xs underline"
+          onClick={() => setOpen(false)}
+          type="button"
+        >
+          Keep my current choice ({preference})
+        </button>
+      )}
+    </section>
   );
 }
 

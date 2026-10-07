@@ -5,7 +5,7 @@ import Link from "next/link";
 import { PersonAvatar } from "@/components/community/person-avatar";
 import { isSignedIn } from "@/data/viewer-profile";
 import type { Profile } from "@/domain/types";
-import { BottomNav, HeaderNav } from "./nav-link";
+import { BottomNav, HeaderNav, MobileNav } from "./nav-link";
 
 export function Wordmark() {
   return (
@@ -46,6 +46,7 @@ export function SiteHeader({ viewer }: { viewer: Profile }) {
               Sign in
             </Link>
           )}
+          <MobileNav />
         </div>
       </div>
     </header>
@@ -58,7 +59,7 @@ export function SiteBottomNav() {
 
 export function SiteFooter() {
   return (
-    <footer className="mt-16 border-border border-t bg-events-ink pb-24 text-white md:pb-0">
+    <footer className="mt-16 border-border border-t bg-events-ink text-white max-md:standalone:pb-24">
       <div className="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:grid-cols-3 sm:px-6">
         <div className="space-y-2">
           <p className="font-bold font-display text-body-base">

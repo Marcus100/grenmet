@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted
+Accepted; the shared cookie part is superseded by ADR-0017 (each app keeps a
+host-only cookie and signs in through an auth.barrels.gd handoff).
 
 ## Context
 

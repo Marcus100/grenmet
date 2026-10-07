@@ -6,7 +6,10 @@ Port **3003**. Public weather dashboard for Spice Island (Grenada) — daily for
 
 ## Auth pattern
 
-Delegates to `web-auth` (`:3000`) via redirect — does not handle sign-in itself.
+"Sign in" with the Barrels account (ADR-0017): `AccountButton` in the main bar,
+routes `src/app/auth/{start,callback,me,logout}`, config `src/lib/auth-config.ts`
+(registry key `weather`). Off until `WEATHER_SSO_CLIENT_SECRET` is set. The
+button loads the account in the browser (`/auth/me`), so pages stay static.
 
 ## Data sources — no database
 

@@ -27,7 +27,7 @@ export function janitorialUpdateContractor<ThrowOnError extends boolean = true>(
       method: "PATCH",
       url: "/api/v1/janitorial/contractors/{contractor_id}",
       security: [
-        { type: "apiKey", name: "grenmet_session", in: "cookie" },
+        { type: "apiKey", name: "admin_session", in: "cookie" },
         { type: "http", scheme: "bearer" },
       ],
       ...config,

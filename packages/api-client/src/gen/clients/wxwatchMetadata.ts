@@ -25,7 +25,7 @@ export function wxwatchMetadata<ThrowOnError extends boolean = true>(
       method: "GET",
       url: "/api/v1/wxwatch/metadata",
       security: [
-        { type: "apiKey", name: "grenmet_session", in: "cookie" },
+        { type: "apiKey", name: "admin_session", in: "cookie" },
         { type: "http", scheme: "bearer" },
       ],
       ...config,

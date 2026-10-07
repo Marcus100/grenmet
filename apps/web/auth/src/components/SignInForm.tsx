@@ -35,8 +35,25 @@ export function SignInForm({ appName, returnTo }: SignInFormProps) {
     <div className="space-y-6">
       {needsCode ? null : (
         <>
-          <Link className={secondaryButtonClass} href="/google/start">
+          <Link
+            className={secondaryButtonClass}
+            href={
+              returnTo
+                ? `/google/start?returnTo=${encodeURIComponent(returnTo)}`
+                : "/google/start"
+            }
+          >
             Continue with Google
+          </Link>
+          <Link
+            className={secondaryButtonClass}
+            href={
+              returnTo
+                ? `/code?returnTo=${encodeURIComponent(returnTo)}`
+                : "/code"
+            }
+          >
+            Email me a sign-in code
           </Link>
           <OrDivider />
         </>

@@ -14,7 +14,7 @@ export default async function PublicLayout({
   return (
     <PostHogProvider app="events">
       <SiteHeader viewer={viewer} />
-      <main className="mx-auto max-w-6xl px-4 pt-6 pb-24 sm:px-6 md:pb-10">
+      <main className="mx-auto max-w-6xl px-4 pt-6 pb-10 max-md:standalone:pb-24 sm:px-6">
         {children}
       </main>
       <SiteFooter />

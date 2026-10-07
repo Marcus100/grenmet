@@ -25,7 +25,7 @@ export function wxproductsPreviewProduct<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/wxproducts/products/preview",
       security: [
-        { type: "apiKey", name: "grenmet_session", in: "cookie" },
+        { type: "apiKey", name: "admin_session", in: "cookie" },
         { type: "http", scheme: "bearer" },
       ],
       ...config,
