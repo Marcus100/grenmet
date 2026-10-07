@@ -24,7 +24,7 @@ export function authBrowserSession<ThrowOnError extends boolean = true>(
     request({
       method: "GET",
       url: "/api/v1/auth/browser/session",
-      security: [{ type: "apiKey", name: "grenmet_session", in: "cookie" }],
+      security: [{ type: "apiKey", name: "admin_session", in: "cookie" }],
       ...config,
     }) as Promise<RequestResult<AuthBrowserSessionResponses, ThrowOnError>>
   );

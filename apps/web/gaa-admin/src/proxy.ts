@@ -6,7 +6,14 @@ import {
   getSessionCookieName,
 } from "@/lib/auth-config";
 
-const PUBLIC_PATHS = ["/signin", "/api", "/auth/logout", "/auth/logout-all"];
+const PUBLIC_PATHS = [
+  "/signin",
+  "/api",
+  "/auth/start",
+  "/auth/callback",
+  "/auth/logout",
+  "/auth/logout-all",
+];
 
 function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATHS.some(

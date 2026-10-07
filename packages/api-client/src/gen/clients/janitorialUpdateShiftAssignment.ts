@@ -29,7 +29,7 @@ export function janitorialUpdateShiftAssignment<
       method: "PATCH",
       url: "/api/v1/janitorial/shift-assignments/{assignment_id}",
       security: [
-        { type: "apiKey", name: "grenmet_session", in: "cookie" },
+        { type: "apiKey", name: "admin_session", in: "cookie" },
         { type: "http", scheme: "bearer" },
       ],
       ...config,

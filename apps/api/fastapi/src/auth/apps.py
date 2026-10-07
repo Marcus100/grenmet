@@ -1,4 +1,11 @@
-"""Registry of self-service apps that sign users in with their own sessions.
+"""Registry of apps that keep their own sessions (ADR-0016, ADR-0017).
+
+Two scopes:
+
+- ``app`` (self-service, e.g. Events): described below.
+- ``staff`` (GAA Admin, CMS): sessions come only from the auth.barrels.gd
+  handoff, require an approved staff account, and mint ordinary staff tokens
+  so existing staff routes keep working.
 
 An app-scoped session belongs to one app: its access tokens carry an ``app``
 claim, only that app's routes accept them, and staff (legacy) routes refuse
@@ -13,6 +20,7 @@ from src.auth.config import auth_settings
 from src.exceptions import AppException
 
 SignInMethod = Literal["email_code", "password", "google", "phone"]
+Scope = Literal["app", "staff"]
 
 
 @dataclass(frozen=True)
@@ -31,6 +39,7 @@ class AppDefinition:
     client_secret: str = ""
     #: Path on ``url`` that redeems a handoff code.
     callback_path: str = "/auth/callback"
+    scope: Scope = "app"
 
     @property
     def access_permission(self) -> str:
@@ -61,12 +70,45 @@ def _apps() -> dict[str, AppDefinition]:
         methods=frozenset(methods),
         client_secret=auth_settings.EVENTS_SSO_CLIENT_SECRET,
     )
-    return {events.key: events}
+    # Staff apps: no sign-in methods of their own; access is staff approval.
+    gaa_admin = AppDefinition(
+        key="gaa-admin",
+        label="GAA Admin",
+        url=auth_settings.GAA_ADMIN_APP_URL.rstrip("/"),
+        self_signup=False,
+        default_role="",
+        google_redirect_uri="",
+        methods=frozenset(),
+        client_secret=auth_settings.GAA_ADMIN_SSO_CLIENT_SECRET,
+        scope="staff",
+    )
+    cms = AppDefinition(
+        key="cms",
+        label="GMS content",
+        url=auth_settings.CMS_APP_URL.rstrip("/"),
+        self_signup=False,
+        default_role="",
+        google_redirect_uri="",
+        methods=frozenset(),
+        client_secret=auth_settings.CMS_SSO_CLIENT_SECRET,
+        scope="staff",
+    )
+    return {app.key: app for app in (events, gaa_admin, cms)}
+
+
+def is_registered(app_name: str | None) -> bool:
+    """Whether a session belongs to a registered app rather than the account."""
+    return app_name is not None and app_name in _apps()
 
 
 def is_app_scoped(app_name: str | None) -> bool:
-    """Legacy sessions carry free-form app names; only registered keys are scoped."""
-    return app_name is not None and app_name in _apps()
+    """Sessions whose tokens carry an ``app`` claim (self-service apps only).
+
+    Legacy sessions carry free-form app names, and staff-app sessions mint
+    ordinary staff tokens, so neither is scoped.
+    """
+    app = _apps().get(app_name) if app_name is not None else None
+    return app is not None and app.scope == "app"
 
 
 def get_app(key: str) -> AppDefinition:

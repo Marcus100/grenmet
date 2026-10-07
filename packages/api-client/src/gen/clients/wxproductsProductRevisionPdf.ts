@@ -29,7 +29,7 @@ export function wxproductsProductRevisionPdf<
       method: "GET",
       url: "/api/v1/wxproducts/products/{product_id}/revisions/{revision}/pdf",
       security: [
-        { type: "apiKey", name: "grenmet_session", in: "cookie" },
+        { type: "apiKey", name: "admin_session", in: "cookie" },
         { type: "http", scheme: "bearer" },
       ],
       responseType: "blob",

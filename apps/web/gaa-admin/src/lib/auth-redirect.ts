@@ -1,8 +1,4 @@
-import { buildSharedSignInUrl as _buildSharedSignInUrl } from "@barrelsgd/auth/server";
-
 export { getRequestOrigin, getSafeLocalReturnTo } from "@barrelsgd/auth/server";
-
-import { getAuthConfig } from "@/lib/auth-config";
 
 function firstValue(value: string | string[] | undefined): string | null {
   if (typeof value === "string") return value;
@@ -15,11 +11,4 @@ export function readQueryParam(
 ): string | null {
   const first = firstValue(value);
   return first ? first.trim() : null;
-}
-
-export function buildSharedSignInUrl(input: {
-  origin: string;
-  returnTo?: string | null;
-}): string {
-  return _buildSharedSignInUrl(getAuthConfig(), input);
 }

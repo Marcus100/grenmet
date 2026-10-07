@@ -484,6 +484,15 @@ async def has_effective_permission(
     )
 
 
+def is_staff_eligible(user: User) -> bool:
+    """The staff gate ``get_authenticated_user`` applies, for staff-app handoffs."""
+    return (
+        user.is_active
+        and not user.registration_pending
+        and not (user.email_verification_required and user.email_verified_at is None)
+    )
+
+
 async def is_eligible_for_app(
     *, session: AsyncSession, user: User, app_key: str
 ) -> bool:

@@ -4,11 +4,14 @@ import { z } from "zod";
 export const env = createEnv({
   server: {
     RESEND_API_KEY: z.string().min(1),
-    AUTH_APP_URL: z.string().url().optional().default("http://localhost:3001"),
+    AUTH_APP_URL: z.string().url().optional().default("http://localhost:3000"),
     AUTH_API_URL: z.string().url().optional().default("http://localhost:8000"),
     AUTH_API_V1_STR: z.string().optional().default("/api/v1"),
-    SESSION_COOKIE_NAME: z.string().optional().default("grenmet_session"),
-    SESSION_COOKIE_DOMAIN: z.string().optional(),
+    // Host-only session (ADR-0017). FastAPI's cookie routes read the same
+    // name (BROWSER_SESSION_COOKIE_NAME), so change both together.
+    ADMIN_SESSION_COOKIE_NAME: z.string().optional().default("admin_session"),
+    // Redeems single sign-on codes from auth.barrels.gd.
+    GAA_ADMIN_SSO_CLIENT_SECRET: z.string().min(32).optional(),
     // CAP alert API base URL (falls back to AUTH_API_URL when unset).
     CAP_API_URL: z.string().url().optional(),
     // Janitor PWA origin; area QR labels link to `${JANITOR_APP_URL}/a/<code>`.
@@ -36,8 +39,8 @@ export const env = createEnv({
     AUTH_APP_URL: process.env.AUTH_APP_URL,
     AUTH_API_URL: process.env.AUTH_API_URL,
     AUTH_API_V1_STR: process.env.AUTH_API_V1_STR,
-    SESSION_COOKIE_NAME: process.env.SESSION_COOKIE_NAME,
-    SESSION_COOKIE_DOMAIN: process.env.SESSION_COOKIE_DOMAIN,
+    ADMIN_SESSION_COOKIE_NAME: process.env.ADMIN_SESSION_COOKIE_NAME,
+    GAA_ADMIN_SSO_CLIENT_SECRET: process.env.GAA_ADMIN_SSO_CLIENT_SECRET,
     CAP_API_URL: process.env.CAP_API_URL,
     JANITOR_APP_URL: process.env.JANITOR_APP_URL,
     NEXT_PUBLIC_WXWATCH_OBJECT_STORAGE:

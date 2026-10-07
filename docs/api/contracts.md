@@ -185,8 +185,13 @@ app's tokens. `/login/session/access-token` and `/login/session/refresh` keep th
 claim for app sessions. The cookie-authenticated routes (`/auth/browser/session` and
 the `BrowserUser` routes) refuse app-scoped sessions, matching the token rule.
 Single sign-on is available only for apps with a configured client secret
-(`EVENTS_SSO_CLIENT_SECRET` for Events); only a non-app-scoped account session can
-start a handoff.
+(`EVENTS_SSO_CLIENT_SECRET`, `GAA_ADMIN_SSO_CLIENT_SECRET`, `CMS_SSO_CLIENT_SECRET`).
+Only the account session from auth.barrels.gd (a session belonging to no registered
+app) can start a handoff. Staff apps (`gaa-admin`, `cms`) have no sign-in routes of
+their own: their handoff requires an approved staff account and their sessions mint
+ordinary staff tokens without an `app` claim. `POST /login/session` ignores an
+`app_name` that names any registered app. The cookie-authenticated routes read
+GAA Admin's host-only cookie, `admin_session` (`BROWSER_SESSION_COOKIE_NAME`).
 
 Browser apps should store only the opaque session token in an `httpOnly` cookie. Server Components or route handlers exchange that session token for a short-lived bearer token before calling FastAPI.
 

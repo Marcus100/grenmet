@@ -134,8 +134,9 @@ async function endSession({
   redirect(returnTo ?? "/");
 }
 
+/** Signing out of the Barrels account signs out of every app (ADR-0017). */
 export async function signOutAction(formData: FormData): Promise<never> {
-  return await endSession({ allSessions: false, formData });
+  return await endSession({ allSessions: true, formData });
 }
 
 export async function signOutEverywhereAction(

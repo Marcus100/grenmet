@@ -25,7 +25,7 @@ export function janitorialRevokeGrant<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/janitorial/grants/{grant_id}/revoke",
       security: [
-        { type: "apiKey", name: "grenmet_session", in: "cookie" },
+        { type: "apiKey", name: "admin_session", in: "cookie" },
         { type: "http", scheme: "bearer" },
       ],
       ...config,

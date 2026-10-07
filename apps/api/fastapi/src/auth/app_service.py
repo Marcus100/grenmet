@@ -31,7 +31,7 @@ from src.auth.app_schemas import (
     AppPhoneCodeStart,
     AppPhoneCodeVerify,
 )
-from src.auth.apps import AppDefinition, is_app_scoped, require_method
+from src.auth.apps import AppDefinition, is_registered, require_method
 from src.auth.config import auth_settings
 from src.auth.devices import remember_device, schedule_new_sign_in_alert
 from src.auth.lockout import login_lockout
@@ -185,9 +185,16 @@ async def ensure_member(session: AsyncSession, user: User, app: AppDefinition) -
 async def _session_response(
     request: Request, session: AsyncSession, user: User, app: AppDefinition
 ) -> SessionLoginResponse:
-    if not await service.is_eligible_for_app(
-        session=session, user=user, app_key=app.key
-    ):
+    # Staff apps (ADR-0017) keep the staff gate and mint ordinary staff tokens.
+    staff = app.scope == "staff"
+    eligible = (
+        service.is_staff_eligible(user)
+        if staff
+        else await service.is_eligible_for_app(
+            session=session, user=user, app_key=app.key
+        )
+    )
+    if not eligible:
         raise AppException("This account can't sign in to this app.", 403)
     user_agent = request.headers.get("user-agent")
     ip_address = request.client.host if request.client else None
@@ -199,7 +206,7 @@ async def _session_response(
         app_name=app.key,
         user_agent=user_agent,
         ip_address=ip_address,
-        enforce_approval=False,
+        enforce_approval=staff,
     )
     if new_device:
         schedule_new_sign_in_alert(
@@ -211,7 +218,7 @@ async def _session_response(
     access_token, expires = service.issue_access_token_for_user(
         user=user,
         expires_delta=service.get_session_access_token_expires_delta(),
-        app=app.key,
+        app=None if staff else app.key,
     )
     return SessionLoginResponse(
         access_token=access_token,
@@ -550,19 +557,25 @@ async def handoff_start(
 ) -> AppHandoffCode:
     """Turn a live account session into a one-use code for one app.
 
-    Only the account session (a non-app-scoped session from auth.barrels.gd)
-    may start a handoff, so an app session can never mint access to another app.
+    Only the account session (from auth.barrels.gd, not a registered app's
+    session) may start a handoff, so no app session can mint access to another.
     """
     _require_sso(app)
     account = await service.get_active_session_by_secret(
         session=session, session_secret=body.session_token
     )
-    if account is None or is_app_scoped(account.app_name):
+    if account is None or is_registered(account.app_name):
         raise AppException("Sign in again", 401)
     user = await service.get_user_by_id(session=session, user_id=account.user_id)
     if user is None or not user.is_active:
         raise AppException("Sign in again", 401)
-    if not await service.is_eligible_for_app(
+    if app.scope == "staff":
+        if not service.is_staff_eligible(user):
+            raise AppException(
+                "Ask an administrator to approve your account for staff tools.",
+                403,
+            )
+    elif not await service.is_eligible_for_app(
         session=session, user=user, app_key=app.key
     ):
         if not app.self_signup:

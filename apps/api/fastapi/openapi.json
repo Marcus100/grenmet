@@ -45399,7 +45399,7 @@
       "APIKeyCookie": {
         "type": "apiKey",
         "in": "cookie",
-        "name": "grenmet_session"
+        "name": "admin_session"
       },
       "HTTPBearer": {
         "type": "http",

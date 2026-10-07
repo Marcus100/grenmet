@@ -98,11 +98,12 @@ jobs:
           TRANSPORT_DB_PASSWORD: ${{ secrets.TRANSPORT_DB_PASSWORD }}
           CMS_DB_PASSWORD: ${{ secrets.CMS_DB_PASSWORD }}
           PAYLOAD_SECRET: ${{ secrets.PAYLOAD_SECRET }}
-          SESSION_COOKIE_NAME: ${{ secrets.SESSION_COOKIE_NAME }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           EVENTS_SSO_CLIENT_SECRET: ${{ secrets.EVENTS_SSO_CLIENT_SECRET }}
+          GAA_ADMIN_SSO_CLIENT_SECRET: ${{ secrets.GAA_ADMIN_SSO_CLIENT_SECRET }}
+          CMS_SSO_CLIENT_SECRET: ${{ secrets.CMS_SSO_CLIENT_SECRET }}
           EMAIL: ${{ secrets.EMAIL }}
           USERNAME: ${{ secrets.USERNAME }}
           HASHED_PASSWORD: ${{ secrets.HASHED_PASSWORD }}

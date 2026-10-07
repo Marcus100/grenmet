@@ -22,7 +22,7 @@ export const authConfig: AuthConfig = {
   authApiBaseUrl: env.AUTH_API_URL,
   authApiPrefix: env.AUTH_API_V1_STR,
   authAppUrl: env.AUTH_APP_URL,
-  sessionCookieName: env.SESSION_COOKIE_NAME,
+  sessionCookieName: env.MY_APP_SESSION_COOKIE_NAME, // host-only, one per app
 };
 ```
 

@@ -25,16 +25,12 @@ export function getAuthApiPrefix(): string {
 }
 
 export function getSessionCookieName(): string {
-  return env.SESSION_COOKIE_NAME.trim() || "grenmet_session";
+  return env.ADMIN_SESSION_COOKIE_NAME.trim() || "admin_session";
 }
 
-export function getSessionCookieDomain(): string | undefined {
-  const domain = env.SESSION_COOKIE_DOMAIN?.trim();
-  return domain ? domain : undefined;
-}
-
+/** Registry key in apps/api/fastapi/src/auth/apps.py (ADR-0017). */
 export function getAppName(): string {
-  return "admin-gms";
+  return "gaa-admin";
 }
 
 export function getAuthConfig(): AuthConfig {
@@ -44,6 +40,5 @@ export function getAuthConfig(): AuthConfig {
     authAppUrl: getAuthAppUrl(),
     appName: getAppName(),
     sessionCookieName: getSessionCookieName(),
-    sessionCookieDomain: getSessionCookieDomain(),
   };
 }

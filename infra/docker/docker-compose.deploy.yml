@@ -157,11 +157,14 @@ services:
       CAP_SIGNING_KEY_REF: ${CAP_SIGNING_KEY_REF:-}
       PROJECT_NAME: ${PROJECT_NAME}
       BACKEND_CORS_ORIGINS: ${BACKEND_CORS_ORIGINS}
-      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
-      # Single sign-on into Events (ADR-0017); empty keeps it off.
+      # Single sign-on (ADR-0017): each app's URL and the secret its server
+      # presents to redeem codes. Events is optional; staff apps are required.
       EVENTS_APP_URL: https://events.${BASE_DOMAIN}
       EVENTS_SSO_CLIENT_SECRET: ${EVENTS_SSO_CLIENT_SECRET:-}
-      SESSION_COOKIE_DOMAIN: ${SESSION_COOKIE_DOMAIN}
+      GAA_ADMIN_APP_URL: https://admin.${BASE_DOMAIN}
+      GAA_ADMIN_SSO_CLIENT_SECRET: ${GAA_ADMIN_SSO_CLIENT_SECRET:?GAA_ADMIN_SSO_CLIENT_SECRET required}
+      CMS_APP_URL: https://cms.${BASE_DOMAIN}
+      CMS_SSO_CLIENT_SECRET: ${CMS_SSO_CLIENT_SECRET:?CMS_SSO_CLIENT_SECRET required}
       RESEND_API_KEY: ${RESEND_API_KEY}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
@@ -277,8 +280,7 @@ services:
       CMS_URL: https://cms.${BASE_DOMAIN}
       AUTH_API_URL: https://api.${BASE_DOMAIN}
       AUTH_APP_URL: https://auth.${BASE_DOMAIN}
-      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
-      SESSION_COOKIE_DOMAIN: .${BASE_DOMAIN}
+      CMS_SSO_CLIENT_SECRET: ${CMS_SSO_CLIENT_SECRET:?CMS_SSO_CLIENT_SECRET required}
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_CMS:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
     depends_on:
@@ -336,8 +338,6 @@ services:
       MBIA_APP_URL: https://mbia.${BASE_DOMAIN}
       EVENTS_APP_URL: https://events.${BASE_DOMAIN}
       AUTH_API_V1_STR: /api/v1
-      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
-      SESSION_COOKIE_DOMAIN: .${BASE_DOMAIN}
       AUTH_ALLOWED_RETURN_HOSTS: .${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}
     labels:
       - "traefik.enable=true"
@@ -367,8 +367,7 @@ services:
       # Server-side readiness and API calls use the internal FastAPI service.
       AUTH_API_URL: http://api:8000
       AUTH_API_V1_STR: /api/v1
-      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
-      SESSION_COOKIE_DOMAIN: .${BASE_DOMAIN}
+      GAA_ADMIN_SSO_CLIENT_SECRET: ${GAA_ADMIN_SSO_CLIENT_SECRET:?GAA_ADMIN_SSO_CLIENT_SECRET required}
       RESEND_API_KEY: ${RESEND_API_KEY}
       # Browser calls still use the public API hostname.
       NEXT_PUBLIC_API_URL: https://api.${BASE_DOMAIN}
@@ -401,8 +400,6 @@ services:
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
       AUTH_API_URL: https://api.${BASE_DOMAIN}
       AUTH_API_V1_STR: /api/v1
-      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
-      SESSION_COOKIE_DOMAIN: .${BASE_DOMAIN}
       AUTH_ALLOWED_RETURN_HOSTS: .${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}
     labels:
       - "traefik.enable=true"
@@ -430,8 +427,6 @@ services:
       CAP_API_URL: http://api:8000
       AUTH_API_URL: https://api.${BASE_DOMAIN}
       AUTH_API_V1_STR: /api/v1
-      SESSION_COOKIE_NAME: ${SESSION_COOKIE_NAME}
-      SESSION_COOKIE_DOMAIN: .${BASE_DOMAIN}
       AUTH_ALLOWED_RETURN_HOSTS: .${BASE_DOMAIN}${EXTRA_RETURN_HOSTS:-}
     labels:
       - "traefik.enable=true"

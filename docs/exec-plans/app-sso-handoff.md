@@ -1,7 +1,7 @@
 # Exec plan: single sign-on handoff across `*.barrels.gd`
 
 Decision record: ADR-0017 (proposed), building on ADR-0016.
-Status: **steps 1–2 done; steps 3–4 not started.** Each phase ships and
+Status: **steps 1–3 done; step 4 not started.** Each phase ships and
 is reviewed on its own.
 
 ## Goal
@@ -76,7 +76,7 @@ app /auth/callback: state == cookie?
   this step gives staff single sign-on into Events; residents keep Events'
   own sign-in until step 4.
 
-**3. cms, then gaa-admin, onto their own cookies**
+**3. cms, then gaa-admin, onto their own cookies — done**
 - Staff token scope for handoff sessions (unscoped staff token, staff approval
   required), `app.<key>.access` permissions and admin grants.
 - cms: `cms_session` host-only cookie, start and callback routes.
@@ -84,6 +84,16 @@ app /auth/callback: state == cookie?
   host-only, so FastAPI cookie routes keep working; start and callback routes.
 - Remove `SESSION_COOKIE_DOMAIN` (compose, `env.ts`, `AuthConfig`, docs) and
   switch auth to a host-only `auth_session`. Everyone signs in again once.
+- As built: staff apps are registry entries with `scope="staff"` (no sign-in
+  methods of their own); access is staff approval (`is_staff_eligible`), not a
+  new permission key, so no existing staff lose access. Only a session that
+  doesn't belong to a registered app can start a handoff.
+- New cookie names (`auth_session`, `admin_session`, `cms_session`) rather than
+  host-only `grenmet_session`, so leftover shared-domain cookies can't shadow
+  the new ones. The API's `BROWSER_SESSION_COOKIE_NAME` matches gaa-admin's.
+- `GAA_ADMIN_SSO_CLIENT_SECRET` and `CMS_SSO_CLIENT_SECRET` are required
+  deployment secrets; the `SESSION_COOKIE_NAME` secret is no longer used.
+- Signing out at auth.barrels.gd now calls logout-all.
 
 **4. Public accounts at auth.barrels.gd and Sign in everywhere**
 - Must follow step 3: while staff apps read the shared `.barrels.gd` cookie, a
