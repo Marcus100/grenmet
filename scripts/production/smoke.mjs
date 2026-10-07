@@ -1,4 +1,5 @@
 const anchorHref = /<a\b[^>]*\bhref=["']([^"']+)["']/g;
+const validState = /^[A-Za-z0-9_-]{32}$/;
 const validDomain = /^[a-z0-9.-]+$/;
 const renderError =
   /NEXT_HTTP_ERROR_FALLBACK|Application error:|An error occurred in the Server Components render|"digest"\s*:|\\"digest\\"\s*:/;
@@ -25,17 +26,16 @@ export async function checkCmsSignIn(domain, fetcher = fetch) {
     signal: AbortSignal.timeout(20_000),
   });
   const body = await response.text();
-  const expected = new URL(`https://auth.${domain}/`);
-  expected.searchParams.set("app", "gms-cms");
-  expected.searchParams.set("returnTo", `https://cms.${domain}/admin`);
+  const expected = new URL(
+    `https://cms.${domain}/auth/start?returnTo=%2Fadmin`
+  );
   const links = [...body.matchAll(anchorHref)];
   const hasDestination = links.some((match) => {
     try {
-      const url = new URL(match[1].replaceAll("&amp;", "&"));
+      const url = new URL(match[1].replaceAll("&amp;", "&"), expected.origin);
       return (
         url.origin === expected.origin &&
-        url.pathname === "/" &&
-        url.searchParams.get("app") === "gms-cms" &&
+        url.pathname === expected.pathname &&
         url.searchParams.get("returnTo") ===
           expected.searchParams.get("returnTo")
       );
@@ -45,6 +45,25 @@ export async function checkCmsSignIn(domain, fetcher = fetch) {
   });
   if (!(validPage(response, body, "<a") && hasDestination))
     throw new Error(`CMS sign-in destination failed for cms.${domain}`);
+
+  // ADR-0017: the CMS start route creates state before handing off to auth.
+  // Inspect the redirect before following it so build defaults or a wrong
+  // environment cannot pass merely because their sign-in page renders.
+  const handoff = await fetcher(expected.href, {
+    redirect: "manual",
+    signal: AbortSignal.timeout(20_000),
+  });
+  const location = handoff.headers.get("location");
+  const target = location && URL.canParse(location) ? new URL(location) : null;
+  if (
+    !([302, 303, 307, 308].includes(handoff.status) && target) ||
+    target.origin !== `https://auth.${domain}` ||
+    target.pathname !== "/continue" ||
+    target.searchParams.get("app") !== "cms" ||
+    !validState.test(target.searchParams.get("state") ?? "")
+  )
+    throw new Error(`CMS sign-in destination failed for cms.${domain}`);
+  await check(target.href, "<form", fetcher);
 }
 
 export async function checkDeployment(domain, fetcher = fetch) {

@@ -19,6 +19,8 @@ src/app/
   signup/page.tsx
   forgot-password/page.tsx
   reset-password/page.tsx
+  code/page.tsx                   ← sign in with an emailed one-time code (account session)
+  continue/page.tsx               ← single sign-on into another app (ADR-0017): hand off, "Join <app>?", or "no access"
   api/email/render/route.ts       ← internal endpoint: FastAPI calls this to render email templates
   api/health/route.ts
 ```
@@ -31,7 +33,7 @@ src/app/
 
 - `AUTH_ALLOWED_RETURN_HOSTS` controls which hosts are valid redirect targets after sign-in. Never redirect to an unvalidated host — always go through `getSafeLocalReturnTo()`.
 - `buildSharedSignInUrl()` from `@barrelsgd/auth/server` is what other apps use to redirect here. Do not construct the URL manually.
-- Session cookies use `SESSION_COOKIE_NAME` and are shared across apps via `SESSION_COOKIE_DOMAIN`.
+- The account session lives in a host-only `AUTH_SESSION_COOKIE_NAME` cookie (`auth_session`). Other apps never read it; they get their own session through `/continue` (ADR-0017). Signing out here signs out of every app.
 
 ## Key dependencies
 

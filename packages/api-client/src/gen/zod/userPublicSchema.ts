@@ -16,6 +16,7 @@ export const userPublicSchema = z.object({
   is_active: z.boolean().optional().default(true),
   is_superuser: z.boolean().optional().default(false),
   registration_pending: z.boolean().optional().default(false),
+  staff_access_requested_at: z.union([z.iso.datetime(), z.null()]).optional(),
   id: z.uuid(),
   created_at: z.iso.datetime(),
   updated_at: z.iso.datetime(),

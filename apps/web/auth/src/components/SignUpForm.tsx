@@ -29,9 +29,9 @@ export function SignUpForm() {
         >
           <p className="font-medium text-foreground">Check your email</p>
           <p className="mt-1 text-muted-foreground">
-            We sent a verification link to {state.email || "your inbox"}. After
-            you verify, an administrator links your employee record and approves
-            staff access.
+            We sent a verification link to {state.email || "your inbox"}. Once
+            you verify, you can sign in to every Barrels app. Work at GAA or
+            GMS? Ask for staff access from your account page.
           </p>
         </div>
         <Link className={secondaryButtonClass} href="/">

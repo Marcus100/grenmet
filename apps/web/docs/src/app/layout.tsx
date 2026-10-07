@@ -6,6 +6,7 @@ import { Noto_Sans } from "next/font/google";
 import { Providers } from "@/app/providers";
 import { Layout } from "@/components/Layout";
 import type { Section } from "@/components/SectionProvider";
+import { APP_LABEL, signInEnabled } from "@/lib/auth-config";
 
 import "@/styles/tailwind.css";
 
@@ -53,7 +54,12 @@ export default function RootLayout({
         <PostHogProvider app="docs">
           <Providers>
             <div className="w-full">
-              <Layout allSections={allSections}>{children}</Layout>
+              <Layout
+                accountLabel={signInEnabled() ? APP_LABEL : undefined}
+                allSections={allSections}
+              >
+                {children}
+              </Layout>
             </div>
           </Providers>
         </PostHogProvider>

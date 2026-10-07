@@ -36,7 +36,7 @@ async def test_cookie_journey_and_bearer_compatibility(
     assert weather_sessions is not None
     user, stored, secret = browser_identity
     monkeypatch.setattr(settings, "BACKEND_CORS_ORIGINS", ["http://browser.test"])
-    cookie = {"cookie": f"{auth_settings.SESSION_COOKIE_NAME}={secret}"}
+    cookie = {"cookie": f"{auth_settings.BROWSER_SESSION_COOKIE_NAME}={secret}"}
     session_response = await async_client.get(
         "/api/v1/auth/browser/session", headers=cookie
     )
@@ -104,6 +104,6 @@ async def test_cookie_rechecks_account_and_expiry(
     await db_async.commit()
     result = await async_client.get(
         "/api/v1/auth/browser/session",
-        headers={"cookie": f"{auth_settings.SESSION_COOKIE_NAME}={secret}"},
+        headers={"cookie": f"{auth_settings.BROWSER_SESSION_COOKIE_NAME}={secret}"},
     )
     assert result.status_code == expected

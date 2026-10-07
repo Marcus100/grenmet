@@ -29,7 +29,7 @@ export function janitorialCreateShiftAssignment<
       method: "POST",
       url: "/api/v1/janitorial/shift-assignments",
       security: [
-        { type: "apiKey", name: "grenmet_session", in: "cookie" },
+        { type: "apiKey", name: "admin_session", in: "cookie" },
         { type: "http", scheme: "bearer" },
       ],
       ...config,

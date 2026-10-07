@@ -3,6 +3,9 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import "./build.mjs";
 
+const HIDDEN_PRIVACY_CARD = /<section[^>]*hidden[^>]*id="analytics-settings"/s;
+const PRIVACY_DIALOG = /<section[^>]*role="dialog"/s;
+
 test("holding page ships accessible content and only local analytics wiring", () => {
   const html = readFileSync(
     new URL("./dist/index.html", import.meta.url),
@@ -14,8 +17,11 @@ test("holding page ships accessible content and only local analytics wiring", ()
   assert.ok(html.includes("Built by Eugine Whint"));
   assert.ok(html.includes('src="/analytics.mjs"'));
   assert.ok(!html.includes("googletagmanager.com"));
-  assert.ok(html.includes("Privacy settings"));
-  assert.ok(html.includes("Optional analytics is currently disabled"));
+  // Privacy popup starts hidden; analytics.mjs reveals it only where
+  // optional analytics is configured.
+  assert.ok(html.includes('aria-label="Privacy settings"'));
+  assert.match(html, HIDDEN_PRIVACY_CARD);
+  assert.match(html, PRIVACY_DIALOG);
 });
 
 test("all stylesheet tokens resolve from the shared foundation", () => {

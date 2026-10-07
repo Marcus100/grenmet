@@ -218,12 +218,32 @@ test("an OpenAPI title-only correction passes staged and range checks", (t) => {
   write(
     repository,
     file,
-    JSON.stringify({ ...before, info: { title: "Grenmet API" } })
+    JSON.stringify({ ...before, info: { title: "Barrels Grenada" } })
   );
   git(repository, "add", file);
   assert.equal(check(repository, ["--staged"]).status, 0);
   const head = commit(repository);
   assert.equal(check(repository, ["--base", base, "--head", head]).status, 0);
+});
+
+test("a title-only correction passes for an OpenAPI document over 1 MB", (t) => {
+  // The real openapi.json outgrew spawnSync's default 1 MB output buffer.
+  const file = "apps/api/fastapi/openapi.json";
+  const before = {
+    openapi: "3.1.0",
+    info: { title: "HR verification" },
+    paths: { "/large": { description: "x".repeat(2 * 1024 * 1024) } },
+  };
+  const { repository } = createRepository(t, {
+    [file]: JSON.stringify(before),
+  });
+  write(
+    repository,
+    file,
+    JSON.stringify({ ...before, info: { title: "Barrels Grenada" } })
+  );
+  git(repository, "add", file);
+  assert.equal(check(repository, ["--staged"]).status, 0);
 });
 
 test("a title correction cannot hide an OpenAPI route change", (t) => {
@@ -234,10 +254,96 @@ test("a title correction cannot hide an OpenAPI route change", (t) => {
   write(
     repository,
     file,
-    JSON.stringify({ info: { title: "Grenmet API" }, paths: { "/new": {} } })
+    JSON.stringify({
+      info: { title: "Barrels Grenada" },
+      paths: { "/new": {} },
+    })
   );
   git(repository, "add", file);
   assert.equal(check(repository, ["--staged"]).status, 1);
+  const head = commit(repository);
+  assert.equal(check(repository, ["--base", base, "--head", head]).status, 1);
+});
+
+const DESCRIBED_MAIN = `app_configs: dict[str, Any] = {
+    "title": settings.PROJECT_NAME,
+    "description": (
+        "Grenmet API for authenticated administration."
+    ),
+    "contact": {"name": "Grenmet API maintainers"},
+}
+app.include_router(api_router)
+`;
+const OPENAPI_INFO = {
+  openapi: "3.1.0",
+  info: {
+    title: "Barrels Grenada",
+    description: "Grenmet API for authenticated administration.",
+    contact: { name: "Grenmet API maintainers" },
+  },
+  paths: { "/users": {} },
+};
+const redescribed = (source) =>
+  source
+    .replace(
+      "Grenmet API for authenticated administration.",
+      "The Barrels Grenada API for authenticated administration."
+    )
+    .replace("Grenmet API maintainers", "Barrels Grenada maintainers");
+
+test("an API description and contact edit needs no client regeneration", (t) => {
+  const main = "apps/api/fastapi/src/main.py";
+  const schema = "apps/api/fastapi/openapi.json";
+  const { base, repository } = createRepository(t, {
+    [main]: DESCRIBED_MAIN,
+    [schema]: JSON.stringify(OPENAPI_INFO),
+  });
+  write(repository, main, redescribed(DESCRIBED_MAIN));
+  write(repository, schema, redescribed(JSON.stringify(OPENAPI_INFO)));
+  git(repository, "add", main, schema);
+  const staged = check(repository, ["--staged"]);
+  assert.equal(staged.status, 0, staged.stderr);
+  const head = commit(repository);
+  const range = check(repository, ["--base", base, "--head", head]);
+  assert.equal(range.status, 0, range.stderr);
+});
+
+test("a description edit cannot hide a router or schema change", (t) => {
+  const main = "apps/api/fastapi/src/main.py";
+  const schema = "apps/api/fastapi/openapi.json";
+  const { base, repository } = createRepository(t, {
+    [main]: DESCRIBED_MAIN,
+    [schema]: JSON.stringify(OPENAPI_INFO),
+  });
+  write(
+    repository,
+    main,
+    `${redescribed(DESCRIBED_MAIN)}app.include_router(new_router)\n`
+  );
+  write(
+    repository,
+    schema,
+    redescribed(
+      JSON.stringify({ ...OPENAPI_INFO, paths: { "/users": {}, "/new": {} } })
+    )
+  );
+  const head = commit(repository);
+  const result = check(repository, ["--base", base, "--head", head]);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /FastAPI contract companions/);
+});
+
+test("description metadata must stay a plain literal", (t) => {
+  const main = "apps/api/fastapi/src/main.py";
+  const { base, repository } = createRepository(t, { [main]: DESCRIBED_MAIN });
+  write(
+    repository,
+    main,
+    DESCRIBED_MAIN.replace(
+      '{"name": "Grenmet API maintainers"}',
+      "load_contact()"
+    )
+  );
   const head = commit(repository);
   assert.equal(check(repository, ["--base", base, "--head", head]).status, 1);
 });

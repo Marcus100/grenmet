@@ -98,7 +98,9 @@ Go into each environment and add the following secrets. Staging and production u
 | `WXPRODUCTS_DB_PASSWORD`   | wxproducts DB user password           | Generate with the command above                                |
 | `JANITORIAL_DB_PASSWORD` | Janitorial database password | Generate a separate random value |
 | `TRANSPORT_DB_PASSWORD` | Transport database password | Generate a separate random value |
-| `SESSION_COOKIE_NAME`      | Session cookie name                   | `grenmet_session` (same in both)                               |
+| `GAA_ADMIN_SSO_CLIENT_SECRET` | GAA Admin single sign-on secret    | `openssl rand -base64 32` (different per environment)          |
+| `CMS_SSO_CLIENT_SECRET`    | CMS single sign-on secret             | `openssl rand -base64 32` (different per environment)          |
+| `EVENTS_SSO_CLIENT_SECRET` | Events single sign-on secret (optional) | `openssl rand -base64 32` (different per environment)        |
 | `RESEND_API_KEY`           | Email sending via Resend              | From your resend.com dashboard                                 |
 | `EMAIL`                    | Let's Encrypt registration email      | Your real email address                                        |
 | `USERNAME`                 | Traefik + Adminer dashboard login     | e.g. `admin`                                                   |

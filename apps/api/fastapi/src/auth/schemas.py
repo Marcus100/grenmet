@@ -52,6 +52,8 @@ class UpdatePassword(BaseModel):
 # Properties to return via API, id is always required
 class UserPublic(UserBase):
     registration_pending: bool = False
+    #: When this account asked for staff access (ADR-0017); null if never.
+    staff_access_requested_at: UtcDateTime | None = None
     id: uuid.UUID
     created_at: UtcDateTime
     updated_at: UtcDateTime

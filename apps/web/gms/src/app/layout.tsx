@@ -7,6 +7,7 @@ import { Barlow_Condensed, Noto_Sans } from "next/font/google";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
 import { MotionProvider } from "@/components/motion-provider";
+import { APP_LABEL, signInEnabled } from "@/lib/auth-config";
 import { fetchActiveAlerts } from "@/lib/cap";
 import "./globals.css";
 import {
@@ -73,7 +74,10 @@ export default async function RootLayout({
             themePreset={PREFERENCE_DEFAULTS.theme_preset}
           >
             <MotionProvider>
-              <Header alerts={alerts} />
+              <Header
+                accountLabel={signInEnabled() ? APP_LABEL : undefined}
+                alerts={alerts}
+              />
               <main
                 className="flex-1 outline-none"
                 id={MAIN_CONTENT_ID}

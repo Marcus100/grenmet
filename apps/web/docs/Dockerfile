@@ -55,6 +55,8 @@ ENV NEXT_PUBLIC_SENTRY_ENVIRONMENT=$NEXT_PUBLIC_SENTRY_ENVIRONMENT
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Explicit application sources and workspace dependency closure.
+COPY packages/api-client/ packages/api-client/
+COPY packages/auth/ packages/auth/
 COPY packages/gms/ packages/gms/
 COPY packages/tsconfig/ packages/tsconfig/
 COPY packages/ui/ packages/ui/

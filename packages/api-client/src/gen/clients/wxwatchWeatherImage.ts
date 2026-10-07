@@ -25,7 +25,7 @@ export function wxwatchWeatherImage<ThrowOnError extends boolean = true>(
       method: "GET",
       url: "/api/v1/wxwatch/images/{storage_path}",
       security: [
-        { type: "apiKey", name: "grenmet_session", in: "cookie" },
+        { type: "apiKey", name: "admin_session", in: "cookie" },
         { type: "http", scheme: "bearer" },
       ],
       ...config,

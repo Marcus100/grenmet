@@ -13,20 +13,26 @@ import {
 
 const config = configForOrigin("barrels", location.origin);
 const settings = document.getElementById("analytics-settings");
+const open = document.getElementById("analytics-open");
 const description = document.getElementById("analytics-description");
-const choices = document.getElementById("analytics-choices");
 const accept = document.getElementById("analytics-accept");
 let active = false;
 
+function show(card) {
+  settings.hidden = !card;
+  open.hidden = card;
+}
+
 function sync() {
+  // Nothing optional runs here, so there is nothing to ask about.
   if (!config?.ga4) return;
-  choices.hidden = false;
   accept.disabled = browserOptOut();
   const consent = readConsent();
-  description.textContent = browserOptOut()
-    ? "Your browser’s opt-out signal keeps optional analytics disabled."
-    : "Optional Google Analytics helps us understand visits. It loads only if you accept. You can change your choice here.";
-  if (consent === null) settings.open = true;
+  if (browserOptOut())
+    description.textContent =
+      "Your browser asks sites not to track you, so optional analytics stays off.";
+  if (consent === null) show(true);
+  else if (settings.hidden) show(false);
   if (consent === "accepted" && !active) {
     startGoogleAnalytics(config);
     captureGoogleEvent(config, "page_viewed", { section: "home" });
@@ -53,8 +59,9 @@ function choose(value) {
     /* Without persistent consent collection remains disabled. */
   }
   sync();
-  settings.open = false;
+  show(false);
 }
+open.addEventListener("click", () => show(true));
 accept.addEventListener("click", () =>
   choose(browserOptOut() ? "declined" : "accepted")
 );

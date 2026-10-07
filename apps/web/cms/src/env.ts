@@ -17,8 +17,10 @@ export function getEnv() {
       AUTH_APP_URL: z.url().default("http://localhost:3000"),
       CMS_URL: z.url().default("http://localhost:3006"),
       CMS_DEPARTMENT_ID: z.string().default("GMS"),
-      SESSION_COOKIE_NAME: z.string().default("grenmet_session"),
-      SESSION_COOKIE_DOMAIN: z.string().optional(),
+      // Host-only session (ADR-0017): never a Domain.
+      CMS_SESSION_COOKIE_NAME: z.string().default("cms_session"),
+      // Redeems single sign-on codes from auth.barrels.gd.
+      CMS_SSO_CLIENT_SECRET: z.string().min(32).optional(),
     },
     runtimeEnv: {
       PAYLOAD_SECRET: process.env.PAYLOAD_SECRET,
@@ -30,8 +32,8 @@ export function getEnv() {
       AUTH_APP_URL: process.env.AUTH_APP_URL,
       CMS_URL: process.env.CMS_URL,
       CMS_DEPARTMENT_ID: process.env.CMS_DEPARTMENT_ID,
-      SESSION_COOKIE_NAME: process.env.SESSION_COOKIE_NAME,
-      SESSION_COOKIE_DOMAIN: process.env.SESSION_COOKIE_DOMAIN,
+      CMS_SESSION_COOKIE_NAME: process.env.CMS_SESSION_COOKIE_NAME,
+      CMS_SSO_CLIENT_SECRET: process.env.CMS_SSO_CLIENT_SECRET,
     },
     emptyStringAsUndefined: true,
   });

@@ -24,11 +24,14 @@ from src.auth.account_security import verify_factor
 from src.auth.app_schemas import (
     AppEmailCodeStart,
     AppEmailCodeVerify,
+    AppHandoffCode,
+    AppHandoffRedeem,
+    AppHandoffStart,
     AppPasswordLogin,
     AppPhoneCodeStart,
     AppPhoneCodeVerify,
 )
-from src.auth.apps import AppDefinition, require_method
+from src.auth.apps import AppDefinition, is_registered, require_method
 from src.auth.config import auth_settings
 from src.auth.devices import remember_device, schedule_new_sign_in_alert
 from src.auth.lockout import login_lockout
@@ -182,9 +185,16 @@ async def ensure_member(session: AsyncSession, user: User, app: AppDefinition) -
 async def _session_response(
     request: Request, session: AsyncSession, user: User, app: AppDefinition
 ) -> SessionLoginResponse:
-    if not await service.is_eligible_for_app(
-        session=session, user=user, app_key=app.key
-    ):
+    # Staff apps (ADR-0017) keep the staff gate and mint ordinary staff tokens.
+    staff = app.scope == "staff"
+    eligible = (
+        service.is_staff_eligible(user)
+        if staff
+        else await service.is_eligible_for_app(
+            session=session, user=user, app_key=app.key
+        )
+    )
+    if not eligible:
         raise AppException("This account can't sign in to this app.", 403)
     user_agent = request.headers.get("user-agent")
     ip_address = request.client.host if request.client else None
@@ -196,7 +206,7 @@ async def _session_response(
         app_name=app.key,
         user_agent=user_agent,
         ip_address=ip_address,
-        enforce_approval=False,
+        enforce_approval=staff,
     )
     if new_device:
         schedule_new_sign_in_alert(
@@ -208,7 +218,7 @@ async def _session_response(
     access_token, expires = service.issue_access_token_for_user(
         user=user,
         expires_delta=service.get_session_access_token_expires_delta(),
-        app=app.key,
+        app=None if staff else app.key,
     )
     return SessionLoginResponse(
         access_token=access_token,
@@ -528,3 +538,173 @@ async def phone_link_verify(
     session.add(user)
     await session.commit()
     return Message(message="Phone number linked. You can now sign in with a code.")
+
+
+# --- Single sign-on handoff from auth.barrels.gd (ADR-0017) -------------------
+
+HANDOFF_PURPOSE = "app_handoff"
+HANDOFF_TTL_MINUTES = 1
+HANDOFF_EXPIRED = "That sign-in link expired or was already used. Try again."
+
+
+def _require_sso(app: AppDefinition) -> None:
+    if not app.sso:
+        raise AppException("This app doesn't accept single sign-on", 404)
+
+
+async def handoff_start(
+    *, session: AsyncSession, app: AppDefinition, body: AppHandoffStart
+) -> AppHandoffCode:
+    """Turn a live account session into a one-use code for one app.
+
+    Only the account session (from auth.barrels.gd, not a registered app's
+    session) may start a handoff, so no app session can mint access to another.
+    """
+    _require_sso(app)
+    account = await service.get_active_session_by_secret(
+        session=session, session_secret=body.session_token
+    )
+    if account is None or is_registered(account.app_name):
+        raise AppException("Sign in again", 401)
+    user = await service.get_user_by_id(session=session, user_id=account.user_id)
+    if user is None or not user.is_active:
+        raise AppException("Sign in again", 401)
+    if app.scope == "staff":
+        if not service.is_staff_eligible(user):
+            raise AppException(
+                "Ask an administrator to approve your account for staff tools.",
+                403,
+            )
+    elif not await service.is_eligible_for_app(
+        session=session, user=user, app_key=app.key
+    ):
+        if not app.self_signup:
+            raise AppException("Ask the team to give you access to this app.", 403)
+        if app.join_prompt and not body.join:
+            raise AppException(f"Join {app.label} to continue.", 409)
+        await ensure_member(session, user, app)
+        if not await service.is_eligible_for_app(
+            session=session, user=user, app_key=app.key
+        ):
+            raise AppException("This account can't sign in to this app.", 403)
+    code = await modern_service.issue(
+        session,
+        HANDOFF_PURPOSE,
+        user_id=user.id,
+        data={"app": app.key, "state": modern_service.digest(body.state)},
+        minutes=HANDOFF_TTL_MINUTES,
+    )
+    await session.commit()
+    return AppHandoffCode(code=code, callback_url=app.callback_url)
+
+
+async def handoff_redeem(
+    *,
+    request: Request,
+    session: AsyncSession,
+    app: AppDefinition,
+    body: AppHandoffRedeem,
+) -> SessionLoginResponse:
+    """Exchange a handoff code for a new session in this app only."""
+    _require_sso(app)
+    if not secrets.compare_digest(
+        body.client_secret.encode(), app.client_secret.encode()
+    ):
+        raise AppException("Unknown app credentials", 401)
+    try:
+        challenge = await modern_service.consume(session, body.code, HANDOFF_PURPOSE)
+    except AppException:
+        raise AppException(HANDOFF_EXPIRED, 400) from None
+    data, user_id = challenge.data, challenge.user_id
+    # The code is spent even when it doesn't match, so it can't be retried.
+    await session.commit()
+    matches = data.get("app") == app.key and secrets.compare_digest(
+        str(data.get("state", "")), modern_service.digest(body.state)
+    )
+    if not matches or user_id is None:
+        raise AppException(HANDOFF_EXPIRED, 400)
+    user = await service.get_user_by_id(session=session, user_id=user_id)
+    if user is None or not user.is_active:
+        raise AppException(HANDOFF_EXPIRED, 400)
+    return await _session_response(request, session, user, app)
+
+
+# --- Barrels account: email-code sign-in at auth.barrels.gd (ADR-0017) --------
+
+
+def _account() -> AppDefinition:
+    """The account itself, for the shared code helpers (not a registered app)."""
+    return AppDefinition(
+        key="account",
+        label="Barrels account",
+        url=auth_settings.AUTH_FRONTEND_URL.rstrip("/"),
+        self_signup=auth_settings.ALLOW_PUBLIC_SIGNUP,
+        default_role="",
+        google_redirect_uri="",
+        methods=frozenset({"email_code"}),
+    )
+
+
+async def account_email_code_start(
+    *, session: AsyncSession, body: AppEmailCodeStart
+) -> Message:
+    return await email_code_start(session=session, app=_account(), body=body)
+
+
+async def account_email_code_verify(
+    *, request: Request, session: AsyncSession, body: AppEmailCodeVerify
+) -> SessionLoginResponse:
+    """Verify the code and open an account session; first use creates the account."""
+    account = _account()
+    email = str(body.email).lower()
+    challenge = await _verify_code(
+        session, purpose=f"code:{account.key}", target=email, code=body.code
+    )
+    user = await service.get_user_by_email(session=session, email=email)
+    if user is None:
+        if not account.self_signup:
+            raise AppException("Registration is currently closed", 403)
+        user = await _create_member(
+            session,
+            email=email,
+            first_name=challenge.data.get("first_name") or None,
+            last_name=challenge.data.get("last_name") or None,
+        )
+    if not user.is_active:
+        raise AppException("That code is wrong or has expired. Request a new one.", 400)
+    await _require_totp(session, user, body.totp_code)
+    if user.email_verified_at is None:
+        user.email_verified_at = utc_now()
+        session.add(user)
+    await session.commit()
+
+    user_agent = request.headers.get("user-agent")
+    ip_address = request.client.host if request.client else None
+    new_device = remember_device(user, user_agent)
+    db_session, session_token = await service.create_session(
+        session=session,
+        user=user,
+        client_type="web",
+        app_name="auth",
+        user_agent=user_agent,
+        ip_address=ip_address,
+        enforce_approval=False,
+    )
+    if new_device:
+        schedule_new_sign_in_alert(
+            email_to=user.email,
+            device=new_device,
+            ip_address=ip_address,
+            signed_in_at=db_session.created_at,
+        )
+    access_token, expires = service.issue_access_token_for_user(
+        user=user, expires_delta=service.get_session_access_token_expires_delta()
+    )
+    return SessionLoginResponse(
+        access_token=access_token,
+        access_token_expires_at=expires,
+        session_token=session_token,
+        session_expires_at=db_session.expires_at,
+        session=SessionPublic.model_validate(db_session, from_attributes=True),
+        user=SessionUserPublic.model_validate(user, from_attributes=True),
+    )

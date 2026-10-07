@@ -119,8 +119,9 @@ the API image and the local source mount contain the same migration assets.
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | Legacy bearer-token lifetime in minutes (default: `60`) |
 | `SESSION_ACCESS_TOKEN_EXPIRE_MINUTES` | Cookie-session access-token lifetime (default: `15`) |
 | `SESSION_EXPIRE_DAYS` | Rotating session lifetime (default: `30`) |
-| `SESSION_COOKIE_NAME` | Cookie name shared by FastAPI and authenticated web apps |
-| `SESSION_COOKIE_DOMAIN` | Optional shared parent domain; empty for localhost |
+| `BROWSER_SESSION_COOKIE_NAME` | GAA Admin's session cookie, read by the cookie-authenticated routes (default `admin_session`); must match gaa-admin's `ADMIN_SESSION_COOKIE_NAME` |
+| `GAA_ADMIN_APP_URL` / `CMS_APP_URL` | Public URLs of the staff apps for single sign-on callbacks (ADR-0017). Defaults `http://localhost:3001` / `http://localhost:3006` |
+| `GAA_ADMIN_SSO_CLIENT_SECRET` / `CMS_SSO_CLIENT_SECRET` | Secrets the staff apps present to redeem single sign-on codes; at least 32 characters (`openssl rand -base64 32`). Required GitHub environment secrets in staging and production, set to the same value in the matching web app. Empty locally switches single sign-on off for that app |
 | `LOGIN_MAX_FAILED_ATTEMPTS` | Failed attempts allowed before lockout (default: `10`) |
 | `LOGIN_LOCKOUT_SECONDS` | Account lockout duration (default: `900`) |
 | `LOGIN_FAILURE_WINDOW_SECONDS` | Window used to count failed logins (default: `900`) |
@@ -134,6 +135,7 @@ the API image and the local source mount contain the same migration assets.
 | `WXPRODUCTS_DATABASE_URL` | PostgreSQL URL for the separate existing weather-products database; required to serve the public product feed. Use a hostname reachable from FastAPI (`grenmet-postgres` in local Compose, `host.docker.internal` from the devcontainer). The API role needs read/write access to authored products, revisions and their identity sequence; the migration runner needs schema ownership. Weather migrations are owned by FastAPI. Missing configuration returns 503, not an empty feed. |
 | `EVENTS_DATABASE_URL` | PostgreSQL URL for the Barrels Events database (e.g. `postgresql://events:changethis@grenmet-postgres:5432/events` locally). Optional: unset means `/api/v1/events/*` returns 503 and prestart skips its migrations. |
 | `EVENTS_APP_URL` | Public URL of the Barrels Events web app (app-scoped sign-in, ADR-0016). Default `http://localhost:3009`. |
+| `EVENTS_SSO_CLIENT_SECRET` | Secret the Events web server presents to redeem single sign-on codes (ADR-0017); at least 32 characters (`openssl rand -base64 32`). Set the same value for the API and the Events web app (which also needs `AUTH_APP_URL`); deployment reads the GitHub environment secret of this name. Empty disables single sign-on into Events and hides "Continue with your Barrels account". |
 | `EVENTS_GOOGLE_REDIRECT_URI` | Google OAuth redirect for Events sign-in (e.g. `https://events.barrels.gd/auth/google/callback`); Google sign-in for Events is offered only when this and `GOOGLE_CLIENT_ID` are set. |
 | `PHONE_OTP_PROVIDER` | `disabled` (default) or `console` (local only, logs codes). Phone/WhatsApp codes stay off until a paid provider is approved. |
 | `RESEND_API_KEY` | Email provider key — takes priority over SMTP when set |
@@ -180,8 +182,7 @@ FastAPI settings but are not application settings themselves.
 | `AUTH_APP_URL` | Public URL of the auth app (e.g. `http://localhost:3000`); used for OAuth callback redirects |
 | `AUTH_API_URL` | FastAPI base URL (e.g. `http://localhost:8000`) |
 | `AUTH_API_V1_STR` | API version prefix (e.g. `/api/v1`) |
-| `SESSION_COOKIE_NAME` | Cookie name shared across all apps (e.g. `grenmet_session`) |
-| `SESSION_COOKIE_DOMAIN` | Optional shared parent domain; empty for localhost |
+| `AUTH_SESSION_COOKIE_NAME` | Host-only account session cookie (default `auth_session`). Every app keeps its own cookie (ADR-0017); none sets a `Domain` |
 | `AUTH_ALLOWED_RETURN_HOSTS` | See section below |
 | `EMAIL_RENDER_SECRET` | Optional shared secret required on FastAPI email-render requests |
 | `NEXT_PUBLIC_SENTRY_DSN` | Optional browser Sentry DSN |
@@ -227,16 +228,29 @@ listed in `infra/docker/production.env`; staging uses their staging equivalents.
 A leading-dot entry accepts the apex and its subdomains. The superseded
 weather.gd go-live plan is historical context, not an active allowlist recipe.
 
-### Apps that delegate auth (docs, gms)
+### Public sites with "Sign in" (gms, docs, signal, mbia, elections)
 
-These apps redirect to `web-auth` for sign-in. They do not manage sessions directly.
+Each site signs in with the Barrels account through auth.barrels.gd (ADR-0017)
+and keeps its own host-only session cookie. "Sign in" appears only when the
+site's secret is set; the same value must be set for the API.
+
+| Site | Registry key | Secret | Cookie (default) |
+|---|---|---|---|
+| gms (weather) | `weather` | `WEATHER_SSO_CLIENT_SECRET` | `weather_session` |
+| docs | `docs` | `DOCS_SSO_CLIENT_SECRET` | `docs_session` |
+| signal | `signal` | `SIGNAL_SSO_CLIENT_SECRET` | `signal_session` |
+| mbia | `mbia` | `MBIA_SSO_CLIENT_SECRET` | `mbia_session` |
+| elections (Vercel) | `elections` | `ELECTIONS_SSO_CLIENT_SECRET` | `elections_session` |
+
+Each also needs `AUTH_API_URL`, `AUTH_API_V1_STR` and `AUTH_APP_URL`. The API
+needs `<SITE>_APP_URL` (defaults to the local port) and the matching secret.
+Secrets are optional GitHub environment secrets (32+ characters); Elections'
+are set in Vercel and in GitHub (for the API).
 
 | Variable | Purpose |
 |---|---|
 | `AUTH_API_URL` | FastAPI base URL |
 | `AUTH_API_V1_STR` | API version prefix |
-| `SESSION_COOKIE_NAME` | Must match the value in the auth app |
-| `SESSION_COOKIE_DOMAIN` | Must match the shared deployment cookie domain |
 | `AUTH_ALLOWED_RETURN_HOSTS` | Safe redirect hosts used by shared auth helpers |
 | `CAP_API_URL` | **gms only.** FastAPI base URL for the unauthenticated public CAP endpoints (`/api/cap/*`) that render the current-warnings panel. Separate from `AUTH_API_URL` because these endpoints need no session |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Optional browser error reporting |
@@ -251,8 +265,8 @@ gaa-admin hosts the consolidated CAP/HR/wxwatch/wxproducts/eRegister/janitorial/
 | `AUTH_APP_URL` | URL of the auth app (e.g. `http://localhost:3000`) |
 | `AUTH_API_URL` | FastAPI base URL |
 | `AUTH_API_V1_STR` | API version prefix |
-| `SESSION_COOKIE_NAME` | Session cookie name |
-| `SESSION_COOKIE_DOMAIN` | Optional shared parent domain; empty for localhost |
+| `ADMIN_SESSION_COOKIE_NAME` | Host-only session cookie (default `admin_session`); must match the API's `BROWSER_SESSION_COOKIE_NAME` |
+| `GAA_ADMIN_SSO_CLIENT_SECRET` | Same value as the API's; without it `/auth/callback` returns 503 and nobody can sign in |
 | `NEXT_PUBLIC_API_URL` | FastAPI public URL for client-side requests |
 | `RESEND_API_KEY` | Email sending (server-side only) |
 | `CAP_API_URL` | FastAPI base URL for the consolidated CAP module |
@@ -307,7 +321,7 @@ The active deployment uses three layers:
 | Layer | Representative variables |
 |---|---|
 | Committed non-secret configuration | `ENVIRONMENT`, `BASE_DOMAIN`, `DOMAIN`, `ROUTER_SUFFIX`, `EXTRA_RETURN_HOSTS`, database names/users, `REGISTRY`, `IMAGE_NAME`, `GHCR_OWNER`, `PROJECT_NAME`, CORS origins, volume names |
-| Required runtime inputs from GitHub environments | `SECRET_KEY`, Postgres and module database passwords, `FIRST_SUPERUSER`, `FIRST_SUPERUSER_PASSWORD`, `SESSION_COOKIE_NAME`, `RESEND_API_KEY` |
+| Required runtime inputs from GitHub environments | `SECRET_KEY`, Postgres and module database passwords, `FIRST_SUPERUSER`, `FIRST_SUPERUSER_PASSWORD`, `RESEND_API_KEY`, `GAA_ADMIN_SSO_CLIENT_SECRET`, `CMS_SSO_CLIENT_SECRET` |
 | Proxy and TLS inputs | `EMAIL`, `USERNAME`, `HASHED_PASSWORD` |
 | Optional deployment integrations | `SENTRY_DSN` and `STORAGE_*` |
 | Derived at deployment time | `TAG`, `WEB_TAG`, `WXWATCH_DB_URL`, `WXPRODUCTS_DB_URL`, `JANITORIAL_DB_URL`, `TRANSPORT_DB_URL` |
@@ -329,7 +343,7 @@ Current `turbo.json` declares only global env values:
 ```
 
 Server-side env vars such as `AUTH_API_URL`, `AUTH_APP_URL`,
-`SESSION_COOKIE_NAME`, `SESSION_COOKIE_DOMAIN`, `AUTH_ALLOWED_RETURN_HOSTS`,
+the per-app session cookie names, `AUTH_ALLOWED_RETURN_HOSTS`,
 `RESEND_API_KEY`, and the module-specific database URLs are validated by each
 app's typed env module, but they are not currently listed as Turbo task env
 inputs. If a build-time server variable starts affecting a Next.js build
@@ -361,7 +375,7 @@ secrets, not in either file.
 
 Local migration commands explicitly load `.env.local` and use the same migration runners as deployment. Generic `DB_URL` fallbacks are unsupported. `python3 scripts/production/check-local-env.py` reports missing variable names and ignore coverage without displaying values.
 
-CMS needs `DATABASE_URL` pointing only to its dedicated database and a stable `PAYLOAD_SECRET` of at least 32 characters in `apps/web/cms/.env.local`. `CMS_DB_NAME` defaults to `gms_cms`; deployment passes the environment-specific name. Optional shared-auth settings are `AUTH_API_URL`, `AUTH_APP_URL`, `CMS_URL`, `CMS_DEPARTMENT_ID`, `SESSION_COOKIE_NAME` and `SESSION_COOKIE_DOMAIN`. `CMS_BASELINE_REFERENCE_URL` is only for explicit adoption of a matching existing schema, never routine startup.
+CMS needs `DATABASE_URL` pointing only to its dedicated database and a stable `PAYLOAD_SECRET` of at least 32 characters in `apps/web/cms/.env.local`. `CMS_DB_NAME` defaults to `gms_cms`; deployment passes the environment-specific name. Optional shared-auth settings are `AUTH_API_URL`, `AUTH_APP_URL`, `CMS_URL`, `CMS_DEPARTMENT_ID`, `CMS_SESSION_COOKIE_NAME` (default `cms_session`) and `CMS_SSO_CLIENT_SECRET` (same value as the API's; required to sign in). `CMS_BASELINE_REFERENCE_URL` is only for explicit adoption of a matching existing schema, never routine startup.
 
 The online environment additionally supplies `CMS_DB_PASSWORD`, `PAYLOAD_SECRET` and environment-scoped `DO_SPACES_*` backup secrets. Its temporary runtime `.env.local` is owner-readable and excluded from both Git and image build contexts. See [storage and delivery acceptance](operations/storage-delivery.md) for inventory, initialization, Traefik routing and restore requirements.
 
@@ -446,6 +460,10 @@ credentials into staging.
   `BILLING_STRIPE_PRICE_ID`, `BILLING_CHECKOUT_SUCCESS_URL`,
   `BILLING_CHECKOUT_CANCEL_URL`. Supply the complete bundle together.
 - Google: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
+- Single sign-on (ADR-0017): `GAA_ADMIN_SSO_CLIENT_SECRET`, `CMS_SSO_CLIENT_SECRET`
+  (required); `EVENTS_SSO_CLIENT_SECRET`, `WEATHER_SSO_CLIENT_SECRET`,
+  `DOCS_SSO_CLIENT_SECRET`, `SIGNAL_SSO_CLIENT_SECRET`, `MBIA_SSO_CLIENT_SECRET`,
+  `ELECTIONS_SSO_CLIENT_SECRET` (optional; each switches on "Sign in" there).
 - CAP signing: `CAP_SIGNING_CERT`, `CAP_SIGNING_KEY` (PEM contents).
 - Email: `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, `EMAIL_RENDER_SECRET`.
 - Sentry: `SENTRY_DSN_STAGING` in staging, `SENTRY_DSN_PRODUCTION` in production,

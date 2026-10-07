@@ -1,14 +1,19 @@
+import { AccountButton } from "@barrelsgd/ui/components/account-button";
 import Link from "next/link";
 import { NAV_LINKS } from "@/lib/nav";
 
-export function SiteHeader() {
+/** `accountLabel` shows "Sign in" with the Barrels account (ADR-0017). */
+export function SiteHeader({ accountLabel }: { accountLabel?: string }) {
   return (
     <header className="mx-auto max-w-7xl px-4 sm:px-8">
       <div className="flex flex-wrap justify-between gap-x-6 gap-y-2 border-signal-rule border-b py-3 text-sm">
         <p>Grenada, Carriacou & Petite Martinique</p>
-        <Link className="text-signal-green hover:underline" href="/about">
-          At home. Away. Connected.
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link className="text-signal-green hover:underline" href="/about">
+            At home. Away. Connected.
+          </Link>
+          {accountLabel ? <AccountButton appLabel={accountLabel} /> : null}
+        </div>
       </div>
       <div className="py-8 text-center sm:py-10">
         <Link

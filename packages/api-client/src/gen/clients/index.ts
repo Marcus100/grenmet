@@ -1,9 +1,13 @@
 export { auditGetHistory } from "./auditGetHistory.js";
+export { authAccountEmailCodeStart } from "./authAccountEmailCodeStart.js";
+export { authAccountEmailCodeVerify } from "./authAccountEmailCodeVerify.js";
 export { authAppEmailCodeStart } from "./authAppEmailCodeStart.js";
 export { authAppEmailCodeVerify } from "./authAppEmailCodeVerify.js";
 export { authAppGoogleComplete } from "./authAppGoogleComplete.js";
 export { authAppGoogleFinish } from "./authAppGoogleFinish.js";
 export { authAppGoogleStart } from "./authAppGoogleStart.js";
+export { authAppHandoffRedeem } from "./authAppHandoffRedeem.js";
+export { authAppHandoffStart } from "./authAppHandoffStart.js";
 export { authAppPasswordLogin } from "./authAppPasswordLogin.js";
 export { authAppPhoneCodeStart } from "./authAppPhoneCodeStart.js";
 export { authAppPhoneCodeVerify } from "./authAppPhoneCodeVerify.js";
@@ -47,6 +51,7 @@ export { authRecoverPasswordHtmlContent } from "./authRecoverPasswordHtmlContent
 export { authRefreshSession } from "./authRefreshSession.js";
 export { authRegisterUser } from "./authRegisterUser.js";
 export { authReplaceRecoveryCodes } from "./authReplaceRecoveryCodes.js";
+export { authRequestStaffAccess } from "./authRequestStaffAccess.js";
 export { authResetPassword } from "./authResetPassword.js";
 export { authRevokeSecuritySession } from "./authRevokeSecuritySession.js";
 export { authTestToken } from "./authTestToken.js";

@@ -55,10 +55,10 @@ Symptom: browser bounces between the app and `web-auth` indefinitely.
 
 Causes and fixes:
 
-1. **Cookie domain mismatch** — `SESSION_COOKIE_DOMAIN` in `.env.local` must be blank (or match the actual domain). For local dev, leave it unset.
+1. **Single sign-on not configured** — the app's `*_SSO_CLIENT_SECRET` must be set to the same value for the API and the web app (ADR-0017); a 503 from `/auth/callback` means it is missing.
 2. **`AUTH_APP_URL` wrong** — must point to where `web-auth` is running, e.g. `http://localhost:3000`.
 3. **`AUTH_ALLOWED_RETURN_HOSTS` missing or wrong** — in `web-auth`'s `.env.local`, this must include the host of the app you're redirecting back to, e.g. `localhost:3002`.
-4. **Session cookie not set** — open browser DevTools → Application → Cookies and check `grenmet_session` is present after sign-in.
+4. **Session cookie not set** — open browser DevTools → Application → Cookies and check the app's own cookie (`admin_session`, `cms_session`, `events_session`; `auth_session` on auth) is present after sign-in.
 
 ### `exchangeSessionForAccessToken` throws 401
 
