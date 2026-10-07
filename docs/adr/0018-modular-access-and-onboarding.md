@@ -22,7 +22,7 @@ Use administrator-mediated activation when email is unavailable. Confirm identit
 
 1. Implemented in this change: superuser-created accounts without shared passwords; one-use activation links; GAA Admin/CMS readiness explanations; narrow CMS compatibility for approved staff exempt from email verification; lifecycle audit; generated API contracts and UI tests.
 2. Next weekly outcome: department-scoped management and assistant-management templates, safe delegated role grants, scoped user listing/mutations, and cross-department denial tests. Existing delegation is not expanded by milestone 1.
-3. Next: separate mailbox readiness from account activation throughout HR setup; coordinate staff approval, employment and workflow readiness on the same onboarding screen. Existing HR setup still couples mailbox readiness to activation and must not be presented as email-independent.
+3. Implemented locally: mailbox readiness recorded independently; HR setup reuses activation controls and distinguishes account activity, staff approval and employment readiness. Approval accepts completed, audited activation without claiming email verification. Wider workflow readiness remains module-owned.
 4. Next: privileged MFA enrolment, recovery and enforced access checks with a tested break-glass process; protect TOTP secrets at rest.
 5. Extend module-owned readiness to Transport, Janitor, eRegister and weather workflows; model SURFACE and wis2box as explicit external provisioning/offboarding steps until integrations exist.
 
