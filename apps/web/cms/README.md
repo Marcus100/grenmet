@@ -20,11 +20,19 @@ The auth app must allow `localhost:3006` for the post-login redirect. Restart th
 AUTH_ALLOWED_RETURN_HOSTS=localhost:3001,localhost:3002,localhost:3003,localhost:3004,localhost:3006 pnpm dev:web:auth
 ```
 
-Preserve any additional custom hosts in your own list. In deployment, the CMS and auth app must share the configured session-cookie domain.
+Preserve any additional custom hosts in your own list. CMS uses its own host-only cookie and the ADR-0017 single sign-on handoff; it must have a matching CMS SSO client secret.
 
 These database credentials match the local Compose defaults. Use your configured CMS credentials if overridden. Keep the same secret across restarts to retain sessions. From the devcontainer, use `host.docker.internal` instead of `localhost` for database checks; run the development server on the host.
 
-`cms:setup-db` is idempotent and works with an existing volume. Fresh volumes initialize this database automatically. It never resets existing databases or changes existing role passwords. Sign in through the existing auth app using your FastAPI account. Payload has no local passwords or signup. Active staff in the GMS department become authors automatically; FastAPI superusers can open Staff and designate editors after their first sign-in. The username, email, active status, and staff membership are checked with FastAPI on every authenticated request. The CMS stores only a staff reference and its editorial role.
+`cms:setup-db` is idempotent and works with an existing volume. Fresh volumes initialize this database automatically. It never resets existing databases or changes existing role passwords. Sign in through the existing auth app using your FastAPI account. Payload has no local passwords or signup. CMS access is explicitly granted by system administrators in **GAA Admin → Users → Manage → CMS access**. Select an existing Barrels account and save No access, Writer, or Publisher. Employment and department do not determine access.
+
+- **Writer:** create and edit own unpublished content and submit it for review.
+- **Publisher:** manage and publish all editorial collections, media, homepage settings and Weather now notes. Publishing still requires the review step.
+- **System administrator:** full CMS access, and the only role allowed to grant or remove access. Publishers cannot grant access.
+
+The account must be active with a verified email. CMS permissions are checked with FastAPI on each authenticated request using a CMS-scoped token; that token cannot access GAA staff APIs. Saving a CMS access change revokes the user's CMS sessions, so they must sign in again. Existing JWTs use the live grant and cannot retain revoked or downgraded rights. Other app sessions are preserved.
+
+Apply the additive main-database migration `cmsaccess20261007` before deploying. All non-administrator accounts start with No access; no employment or legacy role is automatically converted into a grant. The legacy Payload role field is retained for storage compatibility but is hidden/read-only and does not grant permissions. `CMS_DEPARTMENT_ID` is retained as a legacy configuration variable and no longer controls admission.
 
 ## Write and publish
 

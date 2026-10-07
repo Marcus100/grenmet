@@ -315,7 +315,7 @@ async def read_user_by_id(
     "/{user_id}",
     response_model=UserPublic,
     summary="Update user by ID",
-    description="Update a user by ID (superuser or user.manage). Superuser accounts and the is_superuser flag are superuser-only.",
+    description="Update a user by ID (superuser or user.manage). Superuser accounts, the is_superuser flag and CMS access are superuser-only.",
     responses={
         status.HTTP_200_OK: {"description": "User updated"},
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient privileges"},
@@ -338,7 +338,9 @@ async def update_user(
     if not db_user:
         raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
     if not current_user.is_superuser and (
-        db_user.is_superuser or "is_superuser" in user_in.model_fields_set
+        db_user.is_superuser
+        or "is_superuser" in user_in.model_fields_set
+        or "cms_access" in user_in.model_fields_set
     ):
         raise HTTPException(status_code=403, detail=ERROR_INSUFFICIENT_PRIVILEGES)
     if user_in.email:

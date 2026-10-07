@@ -3,7 +3,7 @@
 Two scopes:
 
 - ``app`` (self-service, e.g. Events): described below.
-- ``staff`` (GAA Admin, CMS): sessions come only from the auth.barrels.gd
+- ``staff`` (GAA Admin): sessions come only from the auth.barrels.gd
   handoff, require an approved staff account, and mint ordinary staff tokens
   so existing staff routes keep working.
 
@@ -94,7 +94,7 @@ def _apps() -> dict[str, AppDefinition]:
         google_redirect_uri="",
         methods=frozenset(),
         client_secret=auth_settings.CMS_SSO_CLIENT_SECRET,
-        scope="staff",
+        scope="app",
     )
     sites = [
         AppDefinition(

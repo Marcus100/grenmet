@@ -15,6 +15,7 @@ export type { AppEmailCodeVerify } from "./AppEmailCodeVerify.js";
 export type { AppHandoffCode } from "./AppHandoffCode.js";
 export type { AppHandoffRedeem } from "./AppHandoffRedeem.js";
 export type { AppHandoffStart } from "./AppHandoffStart.js";
+export type { AppIdentityPublic } from "./AppIdentityPublic.js";
 export type { AppPasswordLogin } from "./AppPasswordLogin.js";
 export type { AppPhoneCodeStart } from "./AppPhoneCodeStart.js";
 export type { AppPhoneCodeStartPropertiesChannelEnum } from "./AppPhoneCodeStartPropertiesChannelEnum.js";
@@ -370,6 +371,15 @@ export type {
   AuthGetAccountSecurityStatus403,
   AuthGetAccountSecurityStatus422,
 } from "./AuthGetAccountSecurity.js";
+export type {
+  AuthGetAppIdentityOptions,
+  AuthGetAppIdentityPath,
+  AuthGetAppIdentityResponse,
+  AuthGetAppIdentityResponses,
+  AuthGetAppIdentityStatus200,
+  AuthGetAppIdentityStatus401,
+  AuthGetAppIdentityStatus422,
+} from "./AuthGetAppIdentity.js";
 export type {
   AuthGetAppSignInOptionsOptions,
   AuthGetAppSignInOptionsPath,
@@ -3843,6 +3853,8 @@ export type { UserCreate } from "./UserCreate.js";
 export type { UserProfilePublic } from "./UserProfilePublic.js";
 export type { UserProfileUpdateMe } from "./UserProfileUpdateMe.js";
 export type { UserPublic } from "./UserPublic.js";
+export type { UserPublicPropertiesCmsAccessEnum } from "./UserPublicPropertiesCmsAccessEnum.js";
+export { userPublicPropertiesCmsAccessEnum } from "./UserPublicPropertiesCmsAccessEnum.js";
 export type { UserRegister } from "./UserRegister.js";
 export type { UserRoleAssignmentCreate } from "./UserRoleAssignmentCreate.js";
 export type { UserRoleAssignmentPublic } from "./UserRoleAssignmentPublic.js";
