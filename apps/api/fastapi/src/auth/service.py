@@ -158,6 +158,10 @@ async def update_password(
 
 async def delete_user(*, session: AsyncSession, user: User) -> None:
     user_id = str(user.id)
+    from src.auth.modern_models import AuthChallenge
+
+    # Outstanding activation/sign-in challenges must not block account deletion.
+    await session.execute(delete(AuthChallenge).where(AuthChallenge.user_id == user.id))
     await session.delete(user)
     await session.commit()
     logger.info("User deleted", extra={"user_id": user_id})
