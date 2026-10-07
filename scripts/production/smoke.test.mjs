@@ -1,3 +1,4 @@
+const functionalFailure = /Functional smoke failed/;
 const cmsFailure = /CMS sign-in destination failed/;
 const authFailure = /auth.staging.example.test/;
 
@@ -10,12 +11,14 @@ test("deployment probes the real sign-in route and requires its form", async () 
   const fetcher = (url) => {
     urls.push(url);
     const { hostname, pathname } = new URL(url);
+    if (pathname === "/auth/start")
+      return Promise.resolve(cmsHandoff("staging.example.test"));
     if (pathname === "/signin")
       return Promise.resolve(new Response(cmsLink("staging.example.test")));
     if (hostname.startsWith("auth.")) {
       return Promise.resolve(
         new Response("<form>Sign in</form>", {
-          status: pathname === "/" ? 200 : 404,
+          status: ["/", "/continue"].includes(pathname) ? 200 : 404,
         })
       );
     }
@@ -91,6 +94,8 @@ test("deployment smoke no longer probes the retired Hono API", async () => {
   const urls = [];
   await checkDeployment("example.test", (url) => {
     urls.push(url);
+    if (new URL(url).pathname === "/auth/start")
+      return Promise.resolve(cmsHandoff("example.test"));
     if (new URL(url).pathname === "/signin")
       return Promise.resolve(new Response(cmsLink("example.test")));
     return Promise.resolve(
@@ -105,33 +110,115 @@ test("deployment smoke no longer probes the retired Hono API", async () => {
   assert.ok(!urls.some((url) => new URL(url).pathname === "/api/content"));
 });
 
-function cmsLink(domain) {
-  return `<a href="https://auth.${domain}/?app=gms-cms&amp;returnTo=${encodeURIComponent(`https://cms.${domain}/admin`)}">Sign in with GMS</a>`;
+function cmsLink() {
+  return '<a href="/auth/start?returnTo=%2Fadmin">Sign in with GMS</a>';
 }
 
-test("CMS sign-in rejects build defaults and cross-environment destinations", async () => {
+function cmsHandoff(domain, overrides = {}) {
+  return new Response(null, {
+    status: 307,
+    headers: {
+      location: `https://auth.${domain}/continue?app=cms&state=${"a".repeat(32)}`,
+    },
+    ...overrides,
+  });
+}
+
+function cmsFetcher(domain, body = cmsLink(), handoff = cmsHandoff(domain)) {
+  return (url) => {
+    const path = new URL(url).pathname;
+    if (path === "/signin") return Promise.resolve(new Response(body));
+    if (path === "/auth/start") return Promise.resolve(handoff);
+    return Promise.resolve(new Response("<form>Sign in</form>"));
+  };
+}
+
+test("CMS sign-in follows the local SSO start route to the matching auth environment", async () => {
   const domain = "staging.example.test";
-  await checkCmsSignIn(domain, async () => new Response(cmsLink(domain)));
+  const requests = [];
+  const fetcher = cmsFetcher(domain);
+  await checkCmsSignIn(domain, (url, options) => {
+    requests.push({ url, redirect: options.redirect });
+    return fetcher(url, options);
+  });
+  assert.deepEqual(
+    requests.map(({ redirect }) => redirect),
+    ["follow", "manual", "follow"]
+  );
+  assert.equal(
+    requests[1].url,
+    `https://cms.${domain}/auth/start?returnTo=%2Fadmin`
+  );
+});
+
+test("CMS sign-in rejects obsolete links, unsafe return paths and render failures", async () => {
+  const domain = "staging.example.test";
   for (const body of [
-    '<a href="http://localhost:3000/?app=gms-cms&amp;returnTo=http%3A%2F%2Flocalhost%3A3006%2Fadmin">Sign in</a>',
-    cmsLink("example.test"),
-    cmsLink(domain).replace(
-      encodeURIComponent(`https://cms.${domain}/admin`),
-      encodeURIComponent("https://other.example.test/admin")
-    ),
-    `<script>${cmsLink(domain)}</script>Application error:`,
+    '<a href="http://localhost:3000/?app=gms-cms">Sign in</a>',
+    '<a href="https://auth.staging.example.test/?app=gms-cms">Sign in</a>',
+    '<a href="https://cms.example.test/auth/start?returnTo=%2Fadmin">Sign in</a>',
+    '<a href="/auth/start?returnTo=https%3A%2F%2Fother.example.test">Sign in</a>',
+    '<a href="/auth/start?returnTo=%2F">Sign in</a>',
+    `<script>${cmsLink()}</script>Application error:`,
     "<main>Sign in</main>",
   ]) {
     await assert.rejects(
-      checkCmsSignIn(domain, async () => new Response(body)),
+      checkCmsSignIn(domain, cmsFetcher(domain, body)),
       cmsFailure
     );
   }
   await assert.rejects(
     checkCmsSignIn(
       domain,
-      async () => new Response(cmsLink(domain), { status: 500 })
+      async () => new Response(cmsLink(), { status: 500 })
     ),
     cmsFailure
+  );
+});
+
+test("CMS handoff rejects wrong origin, app, path, missing state and non-redirects", async () => {
+  const domain = "staging.example.test";
+  const correct = cmsHandoff(domain).headers.get("location");
+  for (const location of [
+    correct.replace("staging.example.test", "example.test"),
+    correct.replace("https:", "http:"),
+    correct.replace("/continue?", "/?"),
+    correct.replace("app=cms", "app=events"),
+    correct.split("&state=")[0],
+    "not-a-url",
+  ]) {
+    await assert.rejects(
+      checkCmsSignIn(
+        domain,
+        cmsFetcher(
+          domain,
+          cmsLink(),
+          cmsHandoff(domain, { headers: { location } })
+        )
+      ),
+      cmsFailure
+    );
+  }
+  for (const status of [200, 404, 500]) {
+    await assert.rejects(
+      checkCmsSignIn(
+        domain,
+        cmsFetcher(domain, cmsLink(), cmsHandoff(domain, { status }))
+      ),
+      cmsFailure
+    );
+  }
+});
+
+test("CMS handoff requires a working auth sign-in form", async () => {
+  const domain = "staging.example.test";
+  const fetcher = cmsFetcher(domain);
+  await assert.rejects(
+    checkCmsSignIn(domain, (url, options) =>
+      new URL(url).pathname === "/continue"
+        ? Promise.resolve(new Response("<main>Unavailable</main>"))
+        : fetcher(url, options)
+    ),
+    functionalFailure
   );
 });
