@@ -52,6 +52,25 @@ export {
   auditGetHistoryStatus422Schema,
 } from "./auditGetHistorySchema.js";
 export {
+  authAccountEmailCodeStartBodySchema,
+  authAccountEmailCodeStartErrorSchema,
+  authAccountEmailCodeStartResponseSchema,
+  authAccountEmailCodeStartStatus200Schema,
+  authAccountEmailCodeStartStatus422Schema,
+  authAccountEmailCodeStartStatus429Schema,
+  authAccountEmailCodeStartStatus503Schema,
+} from "./authAccountEmailCodeStartSchema.js";
+export {
+  authAccountEmailCodeVerifyBodySchema,
+  authAccountEmailCodeVerifyErrorSchema,
+  authAccountEmailCodeVerifyResponseSchema,
+  authAccountEmailCodeVerifyStatus200Schema,
+  authAccountEmailCodeVerifyStatus400Schema,
+  authAccountEmailCodeVerifyStatus403Schema,
+  authAccountEmailCodeVerifyStatus422Schema,
+  authAccountEmailCodeVerifyStatus429Schema,
+} from "./authAccountEmailCodeVerifySchema.js";
+export {
   authAppEmailCodeStartBodySchema,
   authAppEmailCodeStartErrorSchema,
   authAppEmailCodeStartPathAppSchema,

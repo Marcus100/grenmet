@@ -580,7 +580,7 @@ async def handoff_start(
     ):
         if not app.self_signup:
             raise AppException("Ask the team to give you access to this app.", 403)
-        if not body.join:
+        if app.join_prompt and not body.join:
             raise AppException(f"Join {app.label} to continue.", 409)
         await ensure_member(session, user, app)
         if not await service.is_eligible_for_app(
@@ -627,3 +627,84 @@ async def handoff_redeem(
     if user is None or not user.is_active:
         raise AppException(HANDOFF_EXPIRED, 400)
     return await _session_response(request, session, user, app)
+
+
+# --- Barrels account: email-code sign-in at auth.barrels.gd (ADR-0017) --------
+
+
+def _account() -> AppDefinition:
+    """The account itself, for the shared code helpers (not a registered app)."""
+    return AppDefinition(
+        key="account",
+        label="Barrels account",
+        url=auth_settings.AUTH_FRONTEND_URL.rstrip("/"),
+        self_signup=auth_settings.ALLOW_PUBLIC_SIGNUP,
+        default_role="",
+        google_redirect_uri="",
+        methods=frozenset({"email_code"}),
+    )
+
+
+async def account_email_code_start(
+    *, session: AsyncSession, body: AppEmailCodeStart
+) -> Message:
+    return await email_code_start(session=session, app=_account(), body=body)
+
+
+async def account_email_code_verify(
+    *, request: Request, session: AsyncSession, body: AppEmailCodeVerify
+) -> SessionLoginResponse:
+    """Verify the code and open an account session; first use creates the account."""
+    account = _account()
+    email = str(body.email).lower()
+    challenge = await _verify_code(
+        session, purpose=f"code:{account.key}", target=email, code=body.code
+    )
+    user = await service.get_user_by_email(session=session, email=email)
+    if user is None:
+        if not account.self_signup:
+            raise AppException("Registration is currently closed", 403)
+        user = await _create_member(
+            session,
+            email=email,
+            first_name=challenge.data.get("first_name") or None,
+            last_name=challenge.data.get("last_name") or None,
+        )
+    if not user.is_active:
+        raise AppException("That code is wrong or has expired. Request a new one.", 400)
+    await _require_totp(session, user, body.totp_code)
+    if user.email_verified_at is None:
+        user.email_verified_at = utc_now()
+        session.add(user)
+    await session.commit()
+
+    user_agent = request.headers.get("user-agent")
+    ip_address = request.client.host if request.client else None
+    new_device = remember_device(user, user_agent)
+    db_session, session_token = await service.create_session(
+        session=session,
+        user=user,
+        client_type="web",
+        app_name="auth",
+        user_agent=user_agent,
+        ip_address=ip_address,
+        enforce_approval=False,
+    )
+    if new_device:
+        schedule_new_sign_in_alert(
+            email_to=user.email,
+            device=new_device,
+            ip_address=ip_address,
+            signed_in_at=db_session.created_at,
+        )
+    access_token, expires = service.issue_access_token_for_user(
+        user=user, expires_delta=service.get_session_access_token_expires_delta()
+    )
+    return SessionLoginResponse(
+        access_token=access_token,
+        access_token_expires_at=expires,
+        session_token=session_token,
+        session_expires_at=db_session.expires_at,
+        session=SessionPublic.model_validate(db_session, from_attributes=True),
+        user=SessionUserPublic.model_validate(user, from_attributes=True),
+    )

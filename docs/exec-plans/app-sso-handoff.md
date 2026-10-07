@@ -104,6 +104,11 @@ app /auth/callback: state == cookie?
   self-service routes, "Request staff access" (`staff_access_requested_at`,
   migration `staffreq20261007` backfills existing pending sign-ups except
   Events members), staff setup lists only staff and requesters.
+- *Done (slice 3):* auth offers password, Google and email code
+  (`/code`, `POST /auth/modern/email-code/*`); Events' sign-in page redirects
+  to auth when SSO is configured (its email-code form stays for local dev).
+  Registry entries, `app.<key>.access` and `<key>-member` roles exist for
+  weather, mbia, signal, docs and elections (inactive until their secrets).
 - Every app's "Sign in" goes to auth: Events' own sign-in page becomes a
   redirect; add Sign in, account menu, start and callback routes to Weather
   (gms), MBIA, Elections, Signal and Docs (each registered with a client

@@ -2,6 +2,8 @@ export * from "./.kubb/client.js";
 export * from "./.kubb/serializers.js";
 export * from "./.kubb/standardSchema.js";
 export { auditGetHistory } from "./clients/auditGetHistory.js";
+export { authAccountEmailCodeStart } from "./clients/authAccountEmailCodeStart.js";
+export { authAccountEmailCodeVerify } from "./clients/authAccountEmailCodeVerify.js";
 export { authAppEmailCodeStart } from "./clients/authAppEmailCodeStart.js";
 export { authAppEmailCodeVerify } from "./clients/authAppEmailCodeVerify.js";
 export { authAppGoogleComplete } from "./clients/authAppGoogleComplete.js";
@@ -351,6 +353,16 @@ export {
   auditGetHistoryQueryOptions,
   useAuditGetHistory,
 } from "./hooks/useAuditGetHistory.js";
+export {
+  authAccountEmailCodeStartMutationKey,
+  authAccountEmailCodeStartMutationOptions,
+  useAuthAccountEmailCodeStart,
+} from "./hooks/useAuthAccountEmailCodeStart.js";
+export {
+  authAccountEmailCodeVerifyMutationKey,
+  authAccountEmailCodeVerifyMutationOptions,
+  useAuthAccountEmailCodeVerify,
+} from "./hooks/useAuthAccountEmailCodeVerify.js";
 export {
   authAppEmailCodeStartMutationKey,
   authAppEmailCodeStartMutationOptions,
@@ -2126,6 +2138,27 @@ export type {
   AuditGetHistoryStatus404,
   AuditGetHistoryStatus422,
 } from "./models/AuditGetHistory.js";
+export type {
+  AuthAccountEmailCodeStartBody,
+  AuthAccountEmailCodeStartOptions,
+  AuthAccountEmailCodeStartResponse,
+  AuthAccountEmailCodeStartResponses,
+  AuthAccountEmailCodeStartStatus200,
+  AuthAccountEmailCodeStartStatus422,
+  AuthAccountEmailCodeStartStatus429,
+  AuthAccountEmailCodeStartStatus503,
+} from "./models/AuthAccountEmailCodeStart.js";
+export type {
+  AuthAccountEmailCodeVerifyBody,
+  AuthAccountEmailCodeVerifyOptions,
+  AuthAccountEmailCodeVerifyResponse,
+  AuthAccountEmailCodeVerifyResponses,
+  AuthAccountEmailCodeVerifyStatus200,
+  AuthAccountEmailCodeVerifyStatus400,
+  AuthAccountEmailCodeVerifyStatus403,
+  AuthAccountEmailCodeVerifyStatus422,
+  AuthAccountEmailCodeVerifyStatus429,
+} from "./models/AuthAccountEmailCodeVerify.js";
 export type {
   AuthAppEmailCodeStartBody,
   AuthAppEmailCodeStartOptions,
@@ -6250,6 +6283,25 @@ export {
   auditGetHistoryStatus404Schema,
   auditGetHistoryStatus422Schema,
 } from "./zod/auditGetHistorySchema.js";
+export {
+  authAccountEmailCodeStartBodySchema,
+  authAccountEmailCodeStartErrorSchema,
+  authAccountEmailCodeStartResponseSchema,
+  authAccountEmailCodeStartStatus200Schema,
+  authAccountEmailCodeStartStatus422Schema,
+  authAccountEmailCodeStartStatus429Schema,
+  authAccountEmailCodeStartStatus503Schema,
+} from "./zod/authAccountEmailCodeStartSchema.js";
+export {
+  authAccountEmailCodeVerifyBodySchema,
+  authAccountEmailCodeVerifyErrorSchema,
+  authAccountEmailCodeVerifyResponseSchema,
+  authAccountEmailCodeVerifyStatus200Schema,
+  authAccountEmailCodeVerifyStatus400Schema,
+  authAccountEmailCodeVerifyStatus403Schema,
+  authAccountEmailCodeVerifyStatus422Schema,
+  authAccountEmailCodeVerifyStatus429Schema,
+} from "./zod/authAccountEmailCodeVerifySchema.js";
 export {
   authAppEmailCodeStartBodySchema,
   authAppEmailCodeStartErrorSchema,

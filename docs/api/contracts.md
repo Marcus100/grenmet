@@ -205,6 +205,14 @@ route. Only these self-service routes accept unapproved accounts (`AccountUser`)
 `UserPublic.staff_access_requested_at` (idempotent); staff setup
 (`GET /setup/staff`) lists approved staff plus accounts that asked.
 `POST /login/access-token` (machine clients) still requires staff approval.
+`POST /auth/modern/email-code/start` and `/verify` sign in to the account with a
+6-digit emailed code (the first verified code creates the account when sign-up is
+open); they open the same account session as password and Google sign-in.
+
+Public sites registered for single sign-on (`weather`, `mbia`, `signal`, `docs`,
+`elections`) have no sign-in routes of their own and `join_prompt=False`: the
+handoff grants their `<key>-member` role (`app.<key>.access`) on first visit
+instead of returning 409. Events keeps the "Join" prompt.
 
 Browser apps should store only the opaque session token in an `httpOnly` cookie. Server Components or route handlers exchange that session token for a short-lived bearer token before calling FastAPI.
 

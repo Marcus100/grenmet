@@ -45,6 +45,16 @@ export function SignInForm({ appName, returnTo }: SignInFormProps) {
           >
             Continue with Google
           </Link>
+          <Link
+            className={secondaryButtonClass}
+            href={
+              returnTo
+                ? `/code?returnTo=${encodeURIComponent(returnTo)}`
+                : "/code"
+            }
+          >
+            Email me a sign-in code
+          </Link>
           <OrDivider />
         </>
       )}

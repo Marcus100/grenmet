@@ -40,6 +40,9 @@ class AppDefinition:
     #: Path on ``url`` that redeems a handoff code.
     callback_path: str = "/auth/callback"
     scope: Scope = "app"
+    #: Ask "Join <app>?" before granting the default role. Information sites
+    #: join silently and show a "signed in with your Barrels account" notice.
+    join_prompt: bool = True
 
     @property
     def access_permission(self) -> str:
@@ -93,7 +96,52 @@ def _apps() -> dict[str, AppDefinition]:
         client_secret=auth_settings.CMS_SSO_CLIENT_SECRET,
         scope="staff",
     )
-    return {app.key: app for app in (events, gaa_admin, cms)}
+    sites = [
+        AppDefinition(
+            key=key,
+            label=label,
+            url=url.rstrip("/"),
+            self_signup=True,
+            default_role=f"{key}-member",
+            google_redirect_uri="",
+            methods=frozenset(),
+            client_secret=secret,
+            join_prompt=False,
+        )
+        for key, label, url, secret in (
+            (
+                "weather",
+                "Grenada Meteorological Service",
+                auth_settings.WEATHER_APP_URL,
+                auth_settings.WEATHER_SSO_CLIENT_SECRET,
+            ),
+            (
+                "mbia",
+                "Grenada Airports Authority",
+                auth_settings.MBIA_APP_URL,
+                auth_settings.MBIA_SSO_CLIENT_SECRET,
+            ),
+            (
+                "signal",
+                "Grenada Signal",
+                auth_settings.SIGNAL_APP_URL,
+                auth_settings.SIGNAL_SSO_CLIENT_SECRET,
+            ),
+            (
+                "docs",
+                "GMS Documentation",
+                auth_settings.DOCS_APP_URL,
+                auth_settings.DOCS_SSO_CLIENT_SECRET,
+            ),
+            (
+                "elections",
+                "Elections Grenada",
+                auth_settings.ELECTIONS_APP_URL,
+                auth_settings.ELECTIONS_SSO_CLIENT_SECRET,
+            ),
+        )
+    ]
+    return {app.key: app for app in (events, gaa_admin, cms, *sites)}
 
 
 def is_registered(app_name: str | None) -> bool:

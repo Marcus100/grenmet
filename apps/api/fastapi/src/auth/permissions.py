@@ -151,6 +151,16 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "events.organiser.manage", "Create and manage events as an organiser"
     ),
     PermissionDef("events.moderate", "Review reports and resident event suggestions"),
+    # Public sites with "Sign in" (ADR-0017); joined automatically on first visit
+    PermissionDef(
+        "app.weather.access", "Sign in to the Grenada Meteorological Service website"
+    ),
+    PermissionDef(
+        "app.mbia.access", "Sign in to the Grenada Airports Authority website"
+    ),
+    PermissionDef("app.signal.access", "Sign in to Grenada Signal"),
+    PermissionDef("app.docs.access", "Sign in to GMS Documentation"),
+    PermissionDef("app.elections.access", "Sign in to Elections Grenada"),
     PermissionDef("transport.view", "View the bus admin portal"),
     PermissionDef("transport.ride", "Register for and ride the staff bus"),
     PermissionDef("transport.drive", "Operate runs in the bus driver app"),
@@ -347,6 +357,26 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "events-moderator": (
         "Barrels Events moderator: handles reports and suggestions",
         ("app.events.access", "events.member.write", "events.moderate"),
+    ),
+    "weather-member": (
+        "Weather website member: granted on first sign-in",
+        ("app.weather.access",),
+    ),
+    "mbia-member": (
+        "MBIA website member: granted on first sign-in",
+        ("app.mbia.access",),
+    ),
+    "signal-member": (
+        "Signal member: granted on first sign-in",
+        ("app.signal.access",),
+    ),
+    "docs-member": (
+        "Docs member: granted on first sign-in",
+        ("app.docs.access",),
+    ),
+    "elections-member": (
+        "Elections Grenada member: granted on first sign-in",
+        ("app.elections.access",),
     ),
     "transport-officer": (
         "Transport officer: runs the staff bus service end to end",
