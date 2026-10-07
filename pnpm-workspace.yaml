@@ -114,7 +114,7 @@ catalog:
   "@tanstack/react-virtual": "^3.13.17"
 
   # Animation — motion (successor to framer-motion); import from "motion/react"
-  motion: ^13.4.0
+  motion: ^14.0.0
 
   # Types
   "@types/node": ^26.6.4
