@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import {
+  analyticsAllowedOnPath,
   browserOptOut,
   CONSENT_KEY,
   CONSENT_MS,
@@ -41,6 +42,7 @@ function PublicAnalytics({ app }: { app: PublicApp }) {
     window.addEventListener("focus", update);
     const timer = window.setInterval(update, 60_000);
     return () => {
+      stopAnalytics();
       window.removeEventListener("storage", update);
       window.removeEventListener("focus", update);
       window.clearInterval(timer);
@@ -132,6 +134,13 @@ function PublicAnalytics({ app }: { app: PublicApp }) {
     </div>
   );
 }
+
+function AnalyticsForRoute({ app }: { app: PublicApp }) {
+  const pathname = usePathname();
+  return pathname && analyticsAllowedOnPath(app, pathname) ? (
+    <PublicAnalytics app={app} />
+  ) : null;
+}
 /** Legacy keys are deliberately ignored; staff mounts never collect browser analytics. */
 export function PostHogProvider({
   children,
@@ -147,7 +156,7 @@ export function PostHogProvider({
       {children}
       {app ? (
         <Suspense fallback={null}>
-          <PublicAnalytics app={app} />
+          <AnalyticsForRoute app={app} />
         </Suspense>
       ) : null}
     </>

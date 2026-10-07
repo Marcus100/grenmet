@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { PostHogProvider } from "@barrelsgd/ui/components/posthog-provider";
 import {
+  analyticsAllowedOnPath,
   CONSENT_KEY,
   CONSENT_MS,
   readConsent,
@@ -88,6 +89,42 @@ beforeEach(() => {
   });
 });
 afterEach(cleanup);
+it("collects Events discovery pages without exposing member or organiser routes", async () => {
+  for (const path of [
+    "/",
+    "/events",
+    "/events/public-slug",
+    "/groups/public-slug",
+  ]) {
+    expect(analyticsAllowedOnPath("events", path)).toBe(true);
+  }
+  for (const path of [
+    "/messages/private",
+    "/network",
+    "/people/member",
+    "/saved",
+    "/sign-in",
+    "/dash/events/private",
+  ]) {
+    expect(analyticsAllowedOnPath("events", path)).toBe(false);
+  }
+  accept();
+  state.pathname = "/events/public-slug";
+  const view = render(
+    <PostHogProvider app="events">Discovery</PostHogProvider>
+  );
+  await waitFor(() =>
+    expect(document.getElementById("optional-google-analytics")).not.toBeNull()
+  );
+  state.pathname = "/messages/private";
+  view.rerender(
+    <PostHogProvider app="events">Private messages</PostHogProvider>
+  );
+  expect(screen.getByText("Private messages")).toBeTruthy();
+  expect(screen.queryByText("Privacy settings")).toBeNull();
+  expect(document.getElementById("optional-google-analytics")).toBeNull();
+  expect(window.dataLayer).toHaveLength(0);
+});
 it("sends Google commands in the documented Arguments format and retains the queue on withdrawal", async () => {
   accept();
   await startAnalytics({ ...config, posthog: null });

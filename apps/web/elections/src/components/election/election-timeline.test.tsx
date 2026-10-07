@@ -13,6 +13,7 @@ const calendar: ElectionCalendar = {
   deadline: "2027-01-02",
   dissolved: "2026-10-02",
   nominationDay: "2026-10-15",
+  policePollingDay: "2026-11-02",
   pollingDay: "2026-11-05",
   writs: "2026-10-02",
 };
@@ -27,7 +28,7 @@ describe("ElectionTimeline", () => {
     );
     const graphic = screen.getByRole("img");
     expect(graphic).toHaveAccessibleName(
-      "Election calendar. Dissolved: 2 October 2026; Nomination day: 15 October 2026; Polling day: 5 November 2026; Legal deadline: 2 January 2027."
+      "Election calendar. Dissolved: 2 October 2026; Announced: 4 October 2026; Nomination day: 15 October 2026; Police poll: 2 November 2026; Polling day: 5 November 2026."
     );
     expect(screen.getByText(DAYS_TO_GO)).toBeInTheDocument();
   });
@@ -56,5 +57,14 @@ describe("SeatHistory", () => {
       );
       expect(total).toBe(15);
     }
+  });
+});
+
+describe("SeatHistory layout", () => {
+  it("hides its table inside a wrapper, since tables ignore sr-only's width", () => {
+    render(<SeatHistory results={resultsJson as unknown as ResultsFile} />);
+    const table = screen.getByRole("table");
+    expect(table).not.toHaveClass("sr-only");
+    expect(table.parentElement).toHaveClass("sr-only");
   });
 });

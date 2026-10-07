@@ -12,6 +12,8 @@ import {
   grenadaDate,
   seatOutlook,
   slateSources,
+  UPDATES_START,
+  updateEvents,
 } from "@/data/election-2026";
 import campaignJson from "@/data/source/campaign.json";
 import type { CampaignFile, ResultsFile } from "@/data/types";
@@ -22,6 +24,7 @@ const calendar = calendarFrom(campaign);
 const awaiting: ElectionCalendar = {
   ...calendar,
   nominationDay: null,
+  policePollingDay: null,
   pollingDay: null,
   writs: null,
 };
@@ -38,7 +41,7 @@ describe("grenadaDate", () => {
 });
 
 describe("calendarFrom", () => {
-  it("records the dissolution and the three-month deadline", () => {
+  it("records the dissolution and the three-month deadline field", () => {
     expect(calendar.dissolved).toBe("2026-10-02");
     expect(calendar.deadline).toBe("2027-01-02");
     expect(
@@ -47,9 +50,10 @@ describe("calendarFrom", () => {
       )
     ).toBe(true);
     expect(campaign.sources.dissolution).toBeDefined();
-    const deadline = campaign.events.find((e) => e.date === calendar.deadline);
-    expect(deadline?.src).toBe("constitution");
-    expect(deadline?.flag).toBeNull();
+    // Once polling day is set the three-month deadline is no longer an event.
+    expect(campaign.events.some((e) => e.date === calendar.deadline)).toBe(
+      false
+    );
   });
 
   it("takes nomination and polling day from the gazetted notice of writs", () => {
@@ -57,6 +61,7 @@ describe("calendarFrom", () => {
       writs: "2026-10-02",
       nominationDay: "2026-10-15",
       pollingDay: "2026-11-05",
+      policePollingDay: "2026-11-02",
     });
     for (const date of [calendar.nominationDay, calendar.pollingDay]) {
       expect(campaign.events.find((e) => e.date === date)?.src).toBe(
@@ -201,4 +206,13 @@ it("lists one named NDC candidate in every constituency", () => {
     expect(
       seat.candidates.filter((candidate) => candidate.party === "NDC")
     ).toHaveLength(1);
+});
+
+describe("updateEvents", () => {
+  it("starts on 18 September and keeps the later events in order", () => {
+    const events = updateEvents(campaign);
+    expect(events[0]?.date).toBe("2026-09-18");
+    expect(events.every((e) => e.date >= UPDATES_START)).toBe(true);
+    expect(events.some((e) => e.date === "2026-11-02")).toBe(true);
+  });
 });

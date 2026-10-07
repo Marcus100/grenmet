@@ -227,6 +227,53 @@ const openApiTitleOnlyChange = (comparison) => {
   }
 };
 
+// This provider callback is deliberately excluded from OpenAPI. Permit changes
+// inside its two existing functions only; imports, route metadata, signatures,
+// additional functions and registration remain subject to the companion gate.
+const hiddenWebhookImplementationChange = (comparison) => {
+  const file = "apps/api/fastapi/src/webhooks/router.py";
+  const refs =
+    comparison.mode === "staged"
+      ? [`HEAD:${file}`, `:${file}`]
+      : [`${comparison.base}:${file}`, `${comparison.head}:${file}`];
+  const versions = refs.map((ref) =>
+    spawnSync("git", ["show", ref], { encoding: "utf8" })
+  );
+  if (versions.some((result) => result.error || result.status !== 0))
+    return false;
+  const result = spawnSync(
+    "python3",
+    [
+      "-c",
+      `
+import ast, json, sys
+def contract(source):
+    # The API formatter targets 3.14; guardrail hosts may run Python 3.11.
+    for exceptions in ("binascii.Error, ValueError", "json.JSONDecodeError, UnicodeDecodeError"):
+        source = source.replace("except " + exceptions + ":", "except (" + exceptions + "):")
+    tree = ast.parse(source)
+    found = set()
+    for node in tree.body:
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and node.name in {"_verify_svix_signature", "resend_webhook"}:
+            if node.name == "resend_webhook":
+                assert any(isinstance(d, ast.Call) and any(k.arg == "include_in_schema" and isinstance(k.value, ast.Constant) and k.value.value is False for k in d.keywords) for d in node.decorator_list)
+            found.add(node.name)
+            node.body = [ast.Pass()]
+    assert len(found) == 2
+    tree.body = [node for node in tree.body if not (isinstance(node, ast.Import) and len(node.names) == 1 and node.names[0].name == "binascii" and node.names[0].asname is None)]
+    return ast.dump(tree)
+before, after = json.load(sys.stdin)
+sys.exit(0 if before != after and contract(before) == contract(after) else 1)
+`,
+    ],
+    {
+      input: JSON.stringify(versions.map((version) => version.stdout)),
+      encoding: "utf8",
+    }
+  );
+  return !result.error && result.status === 0;
+};
+
 const evaluateChanges = (changes, comparison) => {
   const files = new Set(changes.flatMap((change) => change.paths));
   const triggers = [...files]
@@ -239,7 +286,9 @@ const evaluateChanges = (changes, comparison) => {
           (file === "apps/api/fastapi/src/janitorial/router.py" &&
             janitorialUnsectionedAreaChange(comparison)) ||
           (file === "apps/api/fastapi/src/wxproducts/router.py" &&
-            wxproductsAdvisorySessionChange(comparison))
+            wxproductsAdvisorySessionChange(comparison)) ||
+          (file === "apps/api/fastapi/src/webhooks/router.py" &&
+            hiddenWebhookImplementationChange(comparison))
         )
     )
     .sort();

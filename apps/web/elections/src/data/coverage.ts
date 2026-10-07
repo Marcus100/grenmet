@@ -12,6 +12,8 @@ export interface CoverageUpdate {
   attachments?: { href: string; label: string; size: string }[];
   /** The article, one string per paragraph. */
   body: string[];
+  /** Author shown above the date; the page falls back to the editor. */
+  byline?: string;
   /** A one- or two-sentence summary for the feed and the page deck. */
   dek: string;
   /** A note added after publication, shown at the top of the article. */
@@ -20,10 +22,14 @@ export interface CoverageUpdate {
   featured?: boolean;
   /** A drawn graphic used instead of a photo: the election calendar. */
   graphic?: "election-timeline";
+  /** Dates readers should not miss, shown in a highlighted panel under the lead. */
+  keyDates?: { date: string; label: string; note?: string }[];
   /** Lead photo, shown under the headline and on the feed's lead story. */
   photo?: PhotoId;
   /** Constituency codes this update is about, if any. */
   seats?: string[];
+  /** Subheaded sections that follow the lead paragraphs. */
+  sections?: { heading: string; paragraphs: string[] }[];
   /** URL segment: the article lives at `/updates/<slug>`. */
   slug: string;
   /** A campaign source id, or a label and link for a source used only here. */
@@ -31,6 +37,16 @@ export interface CoverageUpdate {
   /** A table reproduced from a source, such as the returning officers. */
   table?: { caption: string; columns: string[]; rows: string[][] };
   title: string;
+  /** A full text we reproduce, such as an address, with where it was published. */
+  transcript?: {
+    /** One line before the text: who spoke, and how we came by the words. */
+    note: string;
+    paragraphs: string[];
+    speaker: string;
+    sourceLabel: string;
+    sourceUrl: string;
+    title: string;
+  };
 }
 
 export const COVERAGE: CoverageUpdate[] = [
@@ -43,7 +59,7 @@ export const COVERAGE: CoverageUpdate[] = [
       "Updated 3 October 2026: the writs issued on 2 October set nomination day for 15 October and polling day for 5 November.",
     body: [
       "Governor-General Dame Cécile La Grenade dissolved Parliament on 2 October 2026, acting on the Prime Minister’s advice. The proclamation ends the fourth session of the Eleventh Parliament, and the Clerk of Parliament announced it the same day.",
-      "When this was first published, polling day had not been named: the Prime Minister was due to announce it at an event in St. Mark on 4 October. Section 53(1) of the Constitution requires a general election “within three months after any dissolution of Parliament”, so polling day must fall by 2 January 2027.",
+      "When this was first published, polling day had not been named: the Prime Minister was due to announce it at an event in St. Mark on 4 October. Section 53(1) of the Constitution requires a general election “within three months after any dissolution of Parliament”. Polling day was later set for 5 November.",
       "After the election, the Governor-General appoints the new Senate (section 53(2)).",
     ],
     sources: [{ id: "dissolution" }, { id: "conch" }, { id: "constitution" }],
@@ -215,10 +231,8 @@ export const COVERAGE: CoverageUpdate[] = [
   {
     at: "2026-10-03T19:00:00-04:00",
     slug: "voter-registration-closed",
-    featured: true,
     title: "Voter registration is closed until after the election",
     dek: "Issuing the writ closed registration on 2 October, and it stays suspended until after the election. The Parliamentary Elections Office asks voters to check their entry before polling day.",
-    graphic: "election-timeline",
     body: [
       "The writ for the general election reached the Parliamentary Elections Office at 3:45 p.m. on 2 October 2026, the office said in a release published by NOW Grenada. “The issuance of the Writ officially closes voter registration,” the release said. “Registration will remain suspended until after the conclusion of the General Election.”",
       "That means the list of electors for 5 November is now fixed. The office asks every registered voter to check their entry before polling day, in either of two ways: online, through the electoral listing on peogrenada.org, or in person, on the printed lists displayed at courthouses, medical stations, revenue offices and other designated places in each constituency.",
@@ -238,6 +252,93 @@ export const COVERAGE: CoverageUpdate[] = [
     ],
     seats: ["N"],
     sources: [{ id: "rgpf1oct" }, { id: "ct30sep" }],
+  },
+  {
+    at: "2026-10-04T22:00:00-04:00",
+    slug: "mitchell-announces-5-november",
+    featured: true,
+    graphic: "election-timeline",
+    title: "Prime Minister Mitchell announces polling day: 5 November",
+    dek: "In an address to the nation, Prime Minister Dickon Mitchell said the general election will be held on 5 November 2026, with nomination day on 15 October and a special poll for police officers on 2 November.",
+    body: [
+      "Prime Minister Dickon Mitchell announced on Sunday that Grenada will hold its general election on Thursday 5 November 2026, confirming the date the Supervisor of Elections gazetted on Friday.",
+      "In an address to the nation he gave two further dates: nomination day for candidates on 15 October, and a special polling day for police officers on 2 November. The special poll is new; it does not appear in the Gazette notice.",
+    ],
+    keyDates: [
+      {
+        date: "2026-10-02",
+        label: "Parliament dissolved; voter registration closed",
+        note: "The last day on which eligible people could be registered as electors.",
+      },
+      {
+        date: "2026-10-15",
+        label: "Nomination day",
+        note: "Candidates hand in nominations from 9 a.m. to noon.",
+      },
+      {
+        date: "2026-11-02",
+        label: "Special poll for police officers",
+        note: "Announced in the address.",
+      },
+      {
+        date: "2026-11-05",
+        label: "Polling day",
+        note: "Thursday, for all 15 constituencies.",
+      },
+    ],
+    sections: [
+      {
+        heading: "What the Prime Minister said",
+        paragraphs: [
+          "Mr Mitchell said he had advised the Governor-General, Dame Cécile La Grenade, to dissolve Parliament on 2 October, “thus beginning the process for the holding of general elections”, and that the Governor-General issued the writ for the election the same day. The writ, he said, contains the date of the election.",
+          "He framed the vote as a constitutional duty, saying the “purest form” of the right and obligation to take part in government is to elect members of the House of Representatives on average every five years. He thanked voters for the National Democratic Congress’s victory on 23 June 2022 and said the party’s work “is far from finished”.",
+        ],
+      },
+      {
+        heading: "Registration is closed",
+        paragraphs: [
+          "Mr Mitchell said 2 October was the last date by which eligible people could be registered as electors, marking the official close of voter registration. Anyone who is not already on the list cannot be added for this election. The Parliamentary Elections Office, not Elections Grenada, confirms registration.",
+        ],
+      },
+      {
+        heading: "How it matches the Gazette",
+        paragraphs: [
+          "The 15 October nomination day and the 5 November polling day match the Supervisor of Elections’ Notice of Issuance of Writs in Government Gazette No. 47, dated 2 October, which we host on this site. The notice describes polling day as not less than 15 and not more than 21 days after nomination day.",
+        ],
+      },
+      {
+        heading: "What happens next",
+        paragraphs: [
+          "The Prime Minister said the Supervisor of Elections and the Parliamentary Elections Office will give further details on polling locations, election guidelines and voting procedures in the coming weeks. He urged every eligible citizen to “engage thoughtfully”, ask critical questions and vote.",
+        ],
+      },
+      {
+        heading: "The NDC’s post",
+        paragraphs: [
+          "After the address the NDC’s official Facebook page posted a graphic reading “Election Day: Thursday 5th November”, captioned “The conch shell has sounded!” We have not independently checked that post.",
+        ],
+      },
+    ],
+    transcript: {
+      title: "Transcript of the address",
+      speaker: "Prime Minister Dickon Mitchell",
+      note: "Transcript of the Prime Minister’s address as supplied to us. The video is the authoritative record; dates are highlighted by Elections Grenada.",
+      sourceLabel: "Watch the address on YouTube",
+      sourceUrl: "https://www.youtube.com/watch?v=MhEecDI2qHk",
+      paragraphs: [
+        "My fellow Grenadians, on 23rd June 2022, the State of Grenada, Carriacou and Petite Martinique held a general election to elect members of the House of Representatives. The outcome of that election was that you placed your trust in the National Democratic Congress, a team with a bold vision to lead our beloved nation on a new path. You entrusted us not simply with the responsibility of governing, but with the task of transforming Grenada, creating a society in which every citizen has a fair opportunity to succeed. Today, as I reflect on this journey, my first words to you are simply to say thank you. Thank you for your trust. Thank you for your partnership. And thank you for believing as we did that Grenada could aspire to more.",
+        "Four plus years ago, we ask you to believe that another Grenada was possible. Today, we can look back with deep gratitude while looking forward with complete confidence to the road ahead. We have accomplished much together, but our work is far from finished. History has repeatedly shown us that no challenge is too daunting for a united people. As the old proverb reminds us, even the smallest ax can cut down the tallest tree. When we stand united with one purpose, there is no obstacle we cannot overcome.",
+        "Part of the work that we must do together is to continue the strengthening of our democracy. Our system of governance requires that our citizens actively participate in the governance of the country. The purest form of the exercise of that right and obligation is to elect on average every 5 years members of the House of Representatives by the holding of a general election. In keeping with this constitutional obligation, I advise the Governor General, Her Excellency Dame Cécile La Grenade, to dissolve the Houses of Parliament on 2nd October 2026, thus beginning the process for the holding of general elections.",
+        "2nd October 2026 was the last date by which eligible persons could be registered to become an elector, marking the official close of voter registration. In accordance with my advice to the governor general, the writ for the holding of general elections was also issued by the governor general on 2nd October 2026. The writ issued by the governor general contains the date for the holding of general elections, which shall be held on November 5th, 2026. Other important dates are nomination date for candidates 15th October 2026. Special polling day for police officers, 2nd November, 2026. During the coming weeks, the supervisor of elections and the parliamentary elections office will provide further details regarding polling locations, election guidelines, and voting procedures.",
+        "In concluding, I encourage every eligible citizen to engage thoughtfully in the discussions ahead, ask critical questions, and exercise your fundamental right to vote. May God continue to bless you and may God continue to bless our beautiful nation of Grenada, Carriacou and Petite Martinique.",
+      ],
+    },
+    sources: [
+      { id: "pmaddress4oct" },
+      { id: "ndc4oct" },
+      { id: "gazette47" },
+      { id: "conch" },
+    ],
   },
 ];
 

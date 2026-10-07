@@ -15,6 +15,7 @@ import pytest
 
 from src.config import settings
 from src.email_config import email_settings
+from src.webhooks.router import _verify_svix_signature
 
 _URL = "/api/v1/webhooks/resend"
 _SECRET = "whsec_" + base64.b64encode(b"test-signing-secret-0123456789").decode()
@@ -104,3 +105,65 @@ async def test_unset_secret_allowed_in_local(
         _URL, content=_BODY, headers={"content-type": "application/json"}
     )
     assert resp.status_code == 200
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        "null",
+        "[]",
+        '"text"',
+        "{}",
+        '{"type": [], "data": {}}',
+        '{"type": "email.delivered", "data": null}',
+        '{"type": "email.bounced", "data": {"bounce": null}}',
+    ],
+)
+async def test_signed_malformed_envelopes_return_bad_request(
+    async_client: httpx.AsyncClient, monkeypatch: pytest.MonkeyPatch, body: str
+) -> None:
+    monkeypatch.setattr(email_settings, "RESEND_WEBHOOK_SECRET", _SECRET)
+    ts = str(int(time.time()))
+    response = await async_client.post(
+        _URL, content=body, headers=_headers(_sign(body, "msg_1", ts, _SECRET), ts)
+    )
+    assert response.status_code == 400
+
+
+@pytest.mark.parametrize("secret", ["whsec_", "whsec_%%%%", "whsec_é"])
+def test_invalid_signing_secret_is_rejected(secret: str) -> None:
+    ts = str(int(time.time()))
+    assert not _verify_svix_signature(
+        _BODY.encode(), "msg_1", ts, _sign(_BODY, "msg_1", ts, _SECRET), secret
+    )
+
+
+def test_only_v1_signatures_are_accepted_and_rotation_is_supported() -> None:
+    ts = str(int(time.time()))
+    signature = _sign(_BODY, "msg_1", ts, _SECRET)
+    assert not _verify_svix_signature(
+        _BODY.encode(), "msg_1", ts, signature.replace("v1,", "v2,"), _SECRET
+    )
+    assert not _verify_svix_signature(_BODY.encode(), "msg_1", ts, "v1,é", _SECRET)
+    assert _verify_svix_signature(
+        _BODY.encode(), "msg_1", ts, "v1,invalid " + signature, _SECRET
+    )
+
+
+async def test_signed_non_utf8_body_returns_bad_request(
+    async_client: httpx.AsyncClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(email_settings, "RESEND_WEBHOOK_SECRET", _SECRET)
+    ts = str(int(time.time()))
+    body = b"\xff"
+    key = base64.b64decode(_SECRET.removeprefix("whsec_"))
+    signature = (
+        "v1,"
+        + base64.b64encode(
+            hmac.new(key, f"msg_1.{ts}.".encode() + body, hashlib.sha256).digest()
+        ).decode()
+    )
+    response = await async_client.post(
+        _URL, content=body, headers=_headers(signature, ts)
+    )
+    assert response.status_code == 400

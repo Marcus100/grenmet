@@ -118,6 +118,7 @@ export interface CampaignFile {
   events: CampaignEvent[];
   /** Nomination day, once proclaimed in the Gazette. */
   nomination_day?: string | null;
+  police_polling_day?: string | null;
   /** Polling day, once proclaimed in the Gazette. */
   polling_day?: string | null;
   polls: Poll[];

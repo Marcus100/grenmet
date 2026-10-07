@@ -15,7 +15,7 @@ from src.auth.browser import get_browser_or_token_user
 from src.auth.models import User
 from src.baseline import product_access
 from src.main import app
-from src.wxproducts import advisories, service, validation
+from src.wxproducts import advisories, observation_service, service, validation
 from src.wxproducts.dependencies import get_session
 from src.wxproducts.exceptions import RevisionConflict
 from src.wxproducts.schemas import ProductWrite
@@ -56,6 +56,32 @@ def actor() -> User:
         registration_pending=False,
         is_superuser=True,
     )
+
+
+@pytest.mark.asyncio
+async def test_synop_observations_use_adopted_schema(weather_sessions):
+    async with weather_sessions() as session:
+        await session.execute(
+            text("""
+            INSERT INTO synop_observations (station_id, obs_datetime_utc, body)
+            VALUES ('78954', '2026-10-06T12:00:00Z', '{"temperature": 28}')
+        """)
+        )
+        rows = await observation_service.list_observations(
+            session, kind="SYNOP", station="78954", start=None, end=None, limit=10
+        )
+        assert len(rows) == 1
+        assert rows[0].station == "78954"
+        assert rows[0].payload == {"temperature": 28}
+        assert rows[0].provenance.raw_tac is None
+
+        for kind in ("METAR", "SPECI"):
+            assert (
+                await observation_service.list_observations(
+                    session, kind=kind, station=None, start=None, end=None, limit=10
+                )
+                == []
+            )
 
 
 def current_input(**changes) -> ProductWrite:

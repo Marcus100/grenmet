@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-09-06
+**Last updated:** 2026-10-04
 
 Canonical port map for the monorepo. **This file is the single source of truth** —
 when a port changes, update it here first, then propagate to the locations listed
@@ -22,19 +22,24 @@ uses **one port across local dev and its container** (no dev/prod skew).
 
 ## Web apps (`30xx`)
 
-| App | Package | Port | Deployed |
-|---|---|---|---|
-| auth | `@barrelsgd/web-auth` | 3000 | yes |
-| gaa-admin | `@barrelsgd/web-gaa-admin` | 3001 | yes |
-| docs | `@barrelsgd/web-docs` | 3002 | yes |
-| gms | `@barrelsgd/web-gms` | 3003 | yes |
-| signal | `@barrelsgd/web-signal` | 3004 | deployment configured |
-| mbia | `@barrelsgd/web-mbia` | 3005 | deployment configured |
-| cms | `@barrelsgd/web-cms` | 3006 | local trial |
-| elections | `@barrelsgd/web-elections` | 3007 | not yet deployed |
-| events | `@barrelsgd/web-events` | 3009 | deployment configured (prototype) |
+| App | Package | Port |
+| --- | --- | --- |
+| auth | `@barrelsgd/web-auth` | 3000 |
+| gaa-admin | `@barrelsgd/web-gaa-admin` | 3001 |
+| docs | `@barrelsgd/web-docs` | 3002 |
+| gms | `@barrelsgd/web-gms` | 3003 |
+| signal | `@barrelsgd/web-signal` | 3004 |
+| mbia | `@barrelsgd/web-mbia` | 3005 |
+| cms | `@barrelsgd/web-cms` | 3006 |
+| elections | `@barrelsgd/web-elections` | 3007 |
+| events | `@barrelsgd/web-events` | 3009 |
 
-Run a single app with `pnpm dev:web:<name>`; run all in parallel with `pnpm dev`.
+The static `apps/web/barrels` homepage has no assigned Next.js port. Port
+allocation does not indicate deployment status; see the
+[deployment guide](./deployment.md) and environment-specific release evidence.
+
+Run a single app on the host with `pnpm dev:web:<name>`; run all in parallel
+with `pnpm dev`.
 
 ## APIs
 
