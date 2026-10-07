@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  authGetOnboardingStatusQueryKey,
   authGetRoleAssignmentsQueryKey,
   authGetUsersQueryKey,
   type EmploymentStatus,
@@ -37,6 +38,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { invalidateAfterEmploymentChange } from "@/lib/hr-invalidation";
 
+import { AccountActivation } from "./account-activation";
 import { CmsAccessControl } from "./cms-access-control";
 
 interface ManageUserDialogProps {
@@ -188,6 +190,9 @@ export function ManageUserDialog({
     await queryClient.invalidateQueries({
       queryKey: authGetUsersQueryKey({}),
     });
+    await queryClient.invalidateQueries({
+      queryKey: authGetOnboardingStatusQueryKey({ path: { user_id: user.id } }),
+    });
     toast.success(
       `${user.username} ${user.is_active ? "deactivated" : "reactivated"}`
     );
@@ -244,7 +249,7 @@ export function ManageUserDialog({
           Manage
         </DialogTrigger>
       )}
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-h-[85dvh] max-w-md overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {user.first_name} {user.last_name}
@@ -254,6 +259,7 @@ export function ManageUserDialog({
           </DialogDescription>
         </DialogHeader>
 
+        <AccountActivation open={open} user={user} />
         <CmsAccessControl open={open} user={user} />
         <div className="flex flex-col gap-3">
           <span className="font-medium text-sm">Roles</span>

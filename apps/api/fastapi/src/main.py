@@ -24,6 +24,7 @@ from src.audit.router import router as audit_router
 from src.auth.app_router import router as app_auth_router
 from src.auth.browser import router as browser_auth_router
 from src.auth.modern import router as modern_auth_router
+from src.auth.onboarding_router import router as onboarding_router
 from src.auth.routers.login import router as login_router
 from src.auth.routers.permissions import router as permissions_router
 from src.auth.routers.role_assignments import router as role_assignments_router
@@ -384,6 +385,7 @@ def get_scalar_docs() -> Any:
     )
 
 
+app.include_router(onboarding_router, prefix=settings.API_V1_STR)
 app.include_router(modern_auth_router, prefix=settings.API_V1_STR)
 app.include_router(app_auth_router, prefix=settings.API_V1_STR)
 

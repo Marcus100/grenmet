@@ -91,6 +91,23 @@ describe("/continue", () => {
     ).toBeTruthy();
   });
 
+  it("directs unverified administrators to email verification", async () => {
+    readSessionCookie.mockResolvedValue("account-session");
+    startHandoff.mockResolvedValue({ kind: "verify-email" });
+    render(await page({ app: "cms", state: STATE }));
+    expect(
+      screen.getByRole("heading", { name: "Verify your email address" })
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("link", { name: "Verify email" }).getAttribute("href")
+    ).toBe("/verify-email");
+    expect(
+      screen.queryByText(
+        "Ask an administrator to give your account access, then try again."
+      )
+    ).toBeNull();
+  });
+
   it("explains a missing grant and a broken link", async () => {
     readSessionCookie.mockResolvedValue("account-session");
     startHandoff.mockResolvedValue({

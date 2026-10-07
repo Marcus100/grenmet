@@ -3,12 +3,18 @@ export { absenteeReportCreateSchema } from "./absenteeReportCreateSchema.js";
 export { absenteeReportListPublicSchema } from "./absenteeReportListPublicSchema.js";
 export { absenteeReportPublicSchema } from "./absenteeReportPublicSchema.js";
 export { absenteeReportSubmitSchema } from "./absenteeReportSubmitSchema.js";
+export { accessBlockerSchema } from "./accessBlockerSchema.js";
 export { accessReviewDataSchema } from "./accessReviewDataSchema.js";
 export { accountSecurityPublicSchema } from "./accountSecurityPublicSchema.js";
+export { activationAccountCreateSchema } from "./activationAccountCreateSchema.js";
+export { activationConfirmSchema } from "./activationConfirmSchema.js";
+export { activationIssueSchema } from "./activationIssueSchema.js";
+export { activationLinkSchema } from "./activationLinkSchema.js";
 export { addressPublicSchema } from "./addressPublicSchema.js";
 export { addressUpdateSchema } from "./addressUpdateSchema.js";
 export { announcementPublicSchema } from "./announcementPublicSchema.js";
 export { apiErrorSchema } from "./apiErrorSchema.js";
+export { appAccessStatusSchema } from "./appAccessStatusSchema.js";
 export { appEmailCodeStartSchema } from "./appEmailCodeStartSchema.js";
 export { appEmailCodeVerifySchema } from "./appEmailCodeVerifySchema.js";
 export { appHandoffCodeSchema } from "./appHandoffCodeSchema.js";
@@ -237,6 +243,23 @@ export {
   authBrowserSessionStatus422Schema,
 } from "./authBrowserSessionSchema.js";
 export {
+  authConfirmActivationBodySchema,
+  authConfirmActivationErrorSchema,
+  authConfirmActivationResponseSchema,
+  authConfirmActivationStatus200Schema,
+  authConfirmActivationStatus400Schema,
+  authConfirmActivationStatus422Schema,
+} from "./authConfirmActivationSchema.js";
+export {
+  authCreateOnboardingAccountBodySchema,
+  authCreateOnboardingAccountErrorSchema,
+  authCreateOnboardingAccountResponseSchema,
+  authCreateOnboardingAccountStatus201Schema,
+  authCreateOnboardingAccountStatus403Schema,
+  authCreateOnboardingAccountStatus409Schema,
+  authCreateOnboardingAccountStatus422Schema,
+} from "./authCreateOnboardingAccountSchema.js";
+export {
   authCreatePermissionBodySchema,
   authCreatePermissionErrorSchema,
   authCreatePermissionResponseSchema,
@@ -367,6 +390,15 @@ export {
   authGetEffectiveAccessStatus422Schema,
 } from "./authGetEffectiveAccessSchema.js";
 export {
+  authGetOnboardingStatusErrorSchema,
+  authGetOnboardingStatusPathUserIdSchema,
+  authGetOnboardingStatusResponseSchema,
+  authGetOnboardingStatusStatus200Schema,
+  authGetOnboardingStatusStatus403Schema,
+  authGetOnboardingStatusStatus404Schema,
+  authGetOnboardingStatusStatus422Schema,
+} from "./authGetOnboardingStatusSchema.js";
+export {
   authGetPermissionErrorSchema,
   authGetPermissionPathPermissionIdSchema,
   authGetPermissionResponseSchema,
@@ -462,6 +494,18 @@ export {
   authGoogleStartStatus403Schema,
   authGoogleStartStatus422Schema,
 } from "./authGoogleStartSchema.js";
+export {
+  authIssueActivationBodySchema,
+  authIssueActivationErrorSchema,
+  authIssueActivationPathUserIdSchema,
+  authIssueActivationResponseSchema,
+  authIssueActivationStatus201Schema,
+  authIssueActivationStatus400Schema,
+  authIssueActivationStatus403Schema,
+  authIssueActivationStatus404Schema,
+  authIssueActivationStatus409Schema,
+  authIssueActivationStatus422Schema,
+} from "./authIssueActivationSchema.js";
 export {
   authLoginAccessTokenBodySchema,
   authLoginAccessTokenErrorSchema,
@@ -561,6 +605,15 @@ export {
   authResetPasswordStatus422Schema,
   authResetPasswordStatus429Schema,
 } from "./authResetPasswordSchema.js";
+export {
+  authRevokeActivationErrorSchema,
+  authRevokeActivationPathUserIdSchema,
+  authRevokeActivationResponseSchema,
+  authRevokeActivationStatus204Schema,
+  authRevokeActivationStatus403Schema,
+  authRevokeActivationStatus404Schema,
+  authRevokeActivationStatus422Schema,
+} from "./authRevokeActivationSchema.js";
 export {
   authRevokeSecuritySessionErrorSchema,
   authRevokeSecuritySessionPathSessionIdSchema,
@@ -3099,6 +3152,7 @@ export { observationProvenancePropertiesTimeBasisEnumSchema } from "./observatio
 export { observationProvenanceSchema } from "./observationProvenanceSchema.js";
 export { observationRecordPropertiesKindEnumSchema } from "./observationRecordPropertiesKindEnumSchema.js";
 export { observationRecordSchema } from "./observationRecordSchema.js";
+export { onboardingStatusSchema } from "./onboardingStatusSchema.js";
 export { organisationCatalogueSchema } from "./organisationCatalogueSchema.js";
 export { organisationPreviewSchema } from "./organisationPreviewSchema.js";
 export { organisationPublicSchema } from "./organisationPublicSchema.js";

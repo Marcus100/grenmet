@@ -79,6 +79,16 @@ export {
   useAuthBrowserSession,
 } from "./useAuthBrowserSession.js";
 export {
+  authConfirmActivationMutationKey,
+  authConfirmActivationMutationOptions,
+  useAuthConfirmActivation,
+} from "./useAuthConfirmActivation.js";
+export {
+  authCreateOnboardingAccountMutationKey,
+  authCreateOnboardingAccountMutationOptions,
+  useAuthCreateOnboardingAccount,
+} from "./useAuthCreateOnboardingAccount.js";
+export {
   authCreatePermissionMutationKey,
   authCreatePermissionMutationOptions,
   useAuthCreatePermission,
@@ -159,6 +169,11 @@ export {
   useAuthGetEffectiveAccess,
 } from "./useAuthGetEffectiveAccess.js";
 export {
+  authGetOnboardingStatusQueryKey,
+  authGetOnboardingStatusQueryOptions,
+  useAuthGetOnboardingStatus,
+} from "./useAuthGetOnboardingStatus.js";
+export {
   authGetPermissionQueryKey,
   authGetPermissionQueryOptions,
   useAuthGetPermission,
@@ -219,6 +234,11 @@ export {
   useAuthGoogleStart,
 } from "./useAuthGoogleStart.js";
 export {
+  authIssueActivationMutationKey,
+  authIssueActivationMutationOptions,
+  useAuthIssueActivation,
+} from "./useAuthIssueActivation.js";
+export {
   authLoginAccessTokenMutationKey,
   authLoginAccessTokenMutationOptions,
   useAuthLoginAccessToken,
@@ -278,6 +298,11 @@ export {
   authResetPasswordMutationOptions,
   useAuthResetPassword,
 } from "./useAuthResetPassword.js";
+export {
+  authRevokeActivationMutationKey,
+  authRevokeActivationMutationOptions,
+  useAuthRevokeActivation,
+} from "./useAuthRevokeActivation.js";
 export {
   authRevokeSecuritySessionMutationKey,
   authRevokeSecuritySessionMutationOptions,
