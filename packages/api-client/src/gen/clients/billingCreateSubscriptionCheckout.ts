@@ -30,6 +30,7 @@ export function billingCreateSubscriptionCheckout<
       url: "/api/v1/billing/checkout-sessions",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<BillingCreateSubscriptionCheckoutResponses, ThrowOnError>
     >

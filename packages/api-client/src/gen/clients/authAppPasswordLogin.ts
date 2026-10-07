@@ -25,6 +25,7 @@ export function authAppPasswordLogin<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/auth/apps/{app}/login",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthAppPasswordLoginResponses, ThrowOnError>>
   );
 }

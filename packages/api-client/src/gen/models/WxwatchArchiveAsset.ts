@@ -14,13 +14,13 @@ export type WxwatchArchiveAssetPath = {
   asset_id: string;
 };
 
-export type WxwatchArchiveAssetStatus200Png = unknown;
+export type WxwatchArchiveAssetStatus200Png = Blob;
 
-export type WxwatchArchiveAssetStatus200Jpeg = unknown;
+export type WxwatchArchiveAssetStatus200Jpeg = Blob;
 
-export type WxwatchArchiveAssetStatus200Gif = unknown;
+export type WxwatchArchiveAssetStatus200Gif = Blob;
 
-export type WxwatchArchiveAssetStatus200Webp = unknown;
+export type WxwatchArchiveAssetStatus200Webp = Blob;
 
 export type WxwatchArchiveAssetStatus200OctetStream = Blob;
 

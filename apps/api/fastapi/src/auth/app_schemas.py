@@ -10,6 +10,14 @@ PHONE_PATTERN = r"^\+[1-9]\d{7,14}$"
 CODE_PATTERN = r"^\d{6}$"
 
 
+class AppIdentityPublic(BaseModel):
+    id: str
+    username: str
+    email: str
+    is_superuser: bool
+    permission_keys: list[str]
+
+
 class AppPublic(BaseModel):
     key: str
     label: str

@@ -30,6 +30,7 @@ export function notificationsGetNotifications<
       url: "/api/v1/notifications",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<NotificationsGetNotificationsResponses, ThrowOnError>
     >

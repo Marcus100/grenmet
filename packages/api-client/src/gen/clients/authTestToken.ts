@@ -26,6 +26,7 @@ export function authTestToken<ThrowOnError extends boolean = true>(
       url: "/api/v1/login/test-token",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthTestTokenResponses, ThrowOnError>>
   );
 }

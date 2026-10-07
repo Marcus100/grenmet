@@ -26,6 +26,7 @@ export function hrGetMyTimesheets<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/timesheets/me",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrGetMyTimesheetsResponses, ThrowOnError>>
   );
 }

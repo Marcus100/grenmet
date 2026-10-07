@@ -7,7 +7,7 @@ import * as z from "zod";
 import { shiftSwapRequestCreateSchema } from "./shiftSwapRequestCreateSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
-export const hrPreviewShiftSwapPdfStatus200Schema = z.unknown();
+export const hrPreviewShiftSwapPdfStatus200Schema = z.instanceof(File);
 
 export const hrPreviewShiftSwapPdfStatus400Schema = z.unknown();
 

@@ -59,3 +59,12 @@ Today staff apps (gaa-admin, cms) still share one legacy cookie on
   ignored and everyone signs in again once.
 - Every participating app adds `/auth/start` and `/auth/callback` route
   handlers (helpers in `@barrelsgd/auth/server`).
+
+
+## CMS access amendment — 7 October 2026
+
+Owner-approved: system administrators may explicitly grant any existing Barrels
+account Writer or Publisher access to CMS, independent of GMS employment.
+Publishers manage all CMS content but cannot grant access. No grant is the default.
+CMS therefore uses app-scoped tokens, replacing its initial staff-token path;
+GAA Admin retains the staff gate. See the [CMS access guide](../../apps/web/cms/README.md).

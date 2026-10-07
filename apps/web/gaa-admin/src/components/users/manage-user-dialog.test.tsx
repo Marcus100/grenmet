@@ -7,8 +7,19 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { ManageUserDialog } from "./manage-user-dialog";
+
+const actor = vi.hoisted(() => ({ is_superuser: true }));
+vi.mock("@barrelsgd/auth", () => ({ useSessionUser: () => actor }));
 
 const BASE = "http://localhost";
 
@@ -56,7 +67,10 @@ beforeAll(() => {
   configureApiClient({ baseURL: BASE });
   server.listen({ onUnhandledRequest: "error" });
 });
-afterEach(() => server.resetHandlers());
+afterEach(() => {
+  server.resetHandlers();
+  actor.is_superuser = true;
+});
 afterAll(() => server.close());
 
 function renderDialog() {
@@ -163,4 +177,48 @@ describe("ManageUserDialog — department & employment", () => {
       },
     });
   }, 20_000);
+});
+
+describe("CMS access", () => {
+  it("grants, changes and removes explicit access", async () => {
+    const updates: unknown[] = [];
+    server.use(
+      http.get(
+        `${BASE}/api/v1/hr/employment/u-1`,
+        () => new HttpResponse(null, { status: 404 })
+      ),
+      http.patch(`${BASE}/api/v1/auth/users/u-1`, async ({ request }) => {
+        updates.push(await request.json());
+        return HttpResponse.json(USER);
+      })
+    );
+    renderDialog();
+    for (const value of ["writer", "publisher", "none"]) {
+      fireEvent.change(screen.getByRole("combobox", { name: "CMS access" }), {
+        target: { value },
+      });
+      fireEvent.click(screen.getByRole("button", { name: "Save CMS access" }));
+      await waitFor(() =>
+        expect(updates).toContainEqual({ cms_access: value })
+      );
+      await waitFor(() =>
+        expect(
+          screen.getByRole("button", { name: "Save CMS access" })
+        ).not.toBeDisabled()
+      );
+    }
+  });
+  it("hides access controls from non-administrators", () => {
+    actor.is_superuser = false;
+    server.use(
+      http.get(
+        `${BASE}/api/v1/hr/employment/u-1`,
+        () => new HttpResponse(null, { status: 404 })
+      )
+    );
+    renderDialog();
+    expect(
+      screen.queryByRole("button", { name: "Save CMS access" })
+    ).toBeNull();
+  });
 });

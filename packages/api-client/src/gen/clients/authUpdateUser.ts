@@ -11,7 +11,7 @@ import type {
 } from "../models/AuthUpdateUser.js";
 
 /**
- * @description Update a user by ID (superuser or user.manage). Superuser accounts and the is_superuser flag are superuser-only.
+ * @description Update a user by ID (superuser or user.manage). Superuser accounts, the is_superuser flag and CMS access are superuser-only.
  * @summary Update user by ID
  * {@link /api/v1/auth/users/:user_id}
  */
@@ -26,6 +26,7 @@ export function authUpdateUser<ThrowOnError extends boolean = true>(
       url: "/api/v1/auth/users/{user_id}",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthUpdateUserResponses, ThrowOnError>>
   );
 }

@@ -26,6 +26,7 @@ export function eventsUnfollowOrganiser<ThrowOnError extends boolean = true>(
       url: "/api/v1/events/organisers/{slug}/follow",
       security: [{ type: "http", scheme: "bearer" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<EventsUnfollowOrganiserResponses, ThrowOnError>>
   );
 }

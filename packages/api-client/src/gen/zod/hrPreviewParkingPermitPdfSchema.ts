@@ -6,7 +6,7 @@
 import * as z from "zod";
 import { parkingPermitCreateSchema } from "./parkingPermitCreateSchema.js";
 
-export const hrPreviewParkingPermitPdfStatus200Schema = z.unknown();
+export const hrPreviewParkingPermitPdfStatus200Schema = z.instanceof(File);
 
 export const hrPreviewParkingPermitPdfStatus400Schema = z.unknown();
 

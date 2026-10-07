@@ -7,14 +7,12 @@ import * as z from "zod";
 import { legacyProductPreviewPropertiesKindEnumSchema } from "./legacyProductPreviewPropertiesKindEnumSchema.js";
 import { legacyProductWritePropertiesActionEnumSchema } from "./legacyProductWritePropertiesActionEnumSchema.js";
 
-export const legacyProductWriteSchema = z
-  .object({
-    id: z.uuid(),
-    expectedRevision: z.int().min(0),
-    values: z.object({}).catchall(z.string().max(12000)),
-    action: legacyProductWritePropertiesActionEnumSchema,
-    changeSummary: z.string().max(1000),
-    reviewed: z.boolean(),
-    kind: legacyProductPreviewPropertiesKindEnumSchema,
-  })
-  .strict();
+export const legacyProductWriteSchema = z.strictObject({
+  id: z.uuid(),
+  expectedRevision: z.int().min(0),
+  values: z.record(z.string(), z.string().max(12000)),
+  action: legacyProductWritePropertiesActionEnumSchema,
+  changeSummary: z.string().max(1000),
+  reviewed: z.boolean(),
+  kind: legacyProductPreviewPropertiesKindEnumSchema,
+});

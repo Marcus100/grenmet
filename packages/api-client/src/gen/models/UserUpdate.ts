@@ -4,8 +4,14 @@
  */
 
 import type { Title } from "./Title.js";
+import type { UserPublicPropertiesCmsAccessEnum } from "./UserPublicPropertiesCmsAccessEnum.js";
 
 export type UserUpdate = {
+  /**
+   * @default 'none'
+   * @type string | undefined
+   */
+  cms_access?: UserPublicPropertiesCmsAccessEnum;
   email?: string | null;
   username?: string | null;
   title?: Title | null;

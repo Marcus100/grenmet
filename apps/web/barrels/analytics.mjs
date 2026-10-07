@@ -4,6 +4,7 @@ import {
   CONSENT_MS,
   configForOrigin,
   readConsent,
+  readSavedConsent,
 } from "./analytics-policy.js";
 import {
   captureGoogleEvent,
@@ -28,10 +29,9 @@ function sync() {
   if (!config?.ga4) return;
   accept.disabled = browserOptOut();
   const consent = readConsent();
-  if (browserOptOut())
-    description.textContent =
-      "Your browser asks sites not to track you, so optional analytics stays off.";
-  if (consent === null) show(true);
+  description.hidden = !browserOptOut();
+  description.textContent = "Your browser has turned optional analytics off.";
+  if (readSavedConsent() === null) show(true);
   else if (settings.hidden) show(false);
   if (consent === "accepted" && !active) {
     startGoogleAnalytics(config);

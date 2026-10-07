@@ -26,6 +26,7 @@ export function hrGetRoleConfiguration<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/setup/roles",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrGetRoleConfigurationResponses, ThrowOnError>>
   );
 }

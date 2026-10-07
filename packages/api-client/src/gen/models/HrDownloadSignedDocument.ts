@@ -16,7 +16,7 @@ export type HrDownloadSignedDocumentPath = {
 
 export type HrDownloadSignedDocumentStatus200Json = unknown;
 
-export type HrDownloadSignedDocumentStatus200Pdf = unknown;
+export type HrDownloadSignedDocumentStatus200Pdf = Blob;
 
 export type HrDownloadSignedDocumentStatus200 =
   | HrDownloadSignedDocumentStatus200Json

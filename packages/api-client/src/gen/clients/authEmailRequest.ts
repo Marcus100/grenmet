@@ -25,6 +25,7 @@ export function authEmailRequest<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/auth/modern/email/request",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthEmailRequestResponses, ThrowOnError>>
   );
 }

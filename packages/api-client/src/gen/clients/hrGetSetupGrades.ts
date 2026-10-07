@@ -26,6 +26,7 @@ export function hrGetSetupGrades<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/setup/grades",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrGetSetupGradesResponses, ThrowOnError>>
   );
 }

@@ -30,6 +30,7 @@ export { authEmailRequest } from "./clients/authEmailRequest.js";
 export { authExchangeSessionForAccessToken } from "./clients/authExchangeSessionForAccessToken.js";
 export { authGetAccessReviews } from "./clients/authGetAccessReviews.js";
 export { authGetAccountSecurity } from "./clients/authGetAccountSecurity.js";
+export { authGetAppIdentity } from "./clients/authGetAppIdentity.js";
 export { authGetAppSignInOptions } from "./clients/authGetAppSignInOptions.js";
 export { authGetEffectiveAccess } from "./clients/authGetEffectiveAccess.js";
 export { authGetPermission } from "./clients/authGetPermission.js";
@@ -493,6 +494,11 @@ export {
   authGetAccountSecurityQueryOptions,
   useAuthGetAccountSecurity,
 } from "./hooks/useAuthGetAccountSecurity.js";
+export {
+  authGetAppIdentityQueryKey,
+  authGetAppIdentityQueryOptions,
+  useAuthGetAppIdentity,
+} from "./hooks/useAuthGetAppIdentity.js";
 export {
   authGetAppSignInOptionsQueryKey,
   authGetAppSignInOptionsQueryOptions,
@@ -2100,6 +2106,7 @@ export type { AppEmailCodeVerify } from "./models/AppEmailCodeVerify.js";
 export type { AppHandoffCode } from "./models/AppHandoffCode.js";
 export type { AppHandoffRedeem } from "./models/AppHandoffRedeem.js";
 export type { AppHandoffStart } from "./models/AppHandoffStart.js";
+export type { AppIdentityPublic } from "./models/AppIdentityPublic.js";
 export type { AppPasswordLogin } from "./models/AppPasswordLogin.js";
 export type { AppPhoneCodeStart } from "./models/AppPhoneCodeStart.js";
 export type { AppPhoneCodeStartPropertiesChannelEnum } from "./models/AppPhoneCodeStartPropertiesChannelEnum.js";
@@ -2455,6 +2462,15 @@ export type {
   AuthGetAccountSecurityStatus403,
   AuthGetAccountSecurityStatus422,
 } from "./models/AuthGetAccountSecurity.js";
+export type {
+  AuthGetAppIdentityOptions,
+  AuthGetAppIdentityPath,
+  AuthGetAppIdentityResponse,
+  AuthGetAppIdentityResponses,
+  AuthGetAppIdentityStatus200,
+  AuthGetAppIdentityStatus401,
+  AuthGetAppIdentityStatus422,
+} from "./models/AuthGetAppIdentity.js";
 export type {
   AuthGetAppSignInOptionsOptions,
   AuthGetAppSignInOptionsPath,
@@ -5928,6 +5944,8 @@ export type { UserCreate } from "./models/UserCreate.js";
 export type { UserProfilePublic } from "./models/UserProfilePublic.js";
 export type { UserProfileUpdateMe } from "./models/UserProfileUpdateMe.js";
 export type { UserPublic } from "./models/UserPublic.js";
+export type { UserPublicPropertiesCmsAccessEnum } from "./models/UserPublicPropertiesCmsAccessEnum.js";
+export { userPublicPropertiesCmsAccessEnum } from "./models/UserPublicPropertiesCmsAccessEnum.js";
 export type { UserRegister } from "./models/UserRegister.js";
 export type { UserRoleAssignmentCreate } from "./models/UserRoleAssignmentCreate.js";
 export type { UserRoleAssignmentPublic } from "./models/UserRoleAssignmentPublic.js";
@@ -6246,6 +6264,7 @@ export { appEmailCodeVerifySchema } from "./zod/appEmailCodeVerifySchema.js";
 export { appHandoffCodeSchema } from "./zod/appHandoffCodeSchema.js";
 export { appHandoffRedeemSchema } from "./zod/appHandoffRedeemSchema.js";
 export { appHandoffStartSchema } from "./zod/appHandoffStartSchema.js";
+export { appIdentityPublicSchema } from "./zod/appIdentityPublicSchema.js";
 export { appPasswordLoginSchema } from "./zod/appPasswordLoginSchema.js";
 export { appPhoneCodeStartPropertiesChannelEnumSchema } from "./zod/appPhoneCodeStartPropertiesChannelEnumSchema.js";
 export { appPhoneCodeStartSchema } from "./zod/appPhoneCodeStartSchema.js";
@@ -6572,6 +6591,14 @@ export {
   authGetAccountSecurityStatus403Schema,
   authGetAccountSecurityStatus422Schema,
 } from "./zod/authGetAccountSecuritySchema.js";
+export {
+  authGetAppIdentityErrorSchema,
+  authGetAppIdentityPathAppSchema,
+  authGetAppIdentityResponseSchema,
+  authGetAppIdentityStatus200Schema,
+  authGetAppIdentityStatus401Schema,
+  authGetAppIdentityStatus422Schema,
+} from "./zod/authGetAppIdentitySchema.js";
 export {
   authGetAppSignInOptionsErrorSchema,
   authGetAppSignInOptionsPathAppSchema,
@@ -9730,6 +9757,7 @@ export { updatePasswordSchema } from "./zod/updatePasswordSchema.js";
 export { userCreateSchema } from "./zod/userCreateSchema.js";
 export { userProfilePublicSchema } from "./zod/userProfilePublicSchema.js";
 export { userProfileUpdateMeSchema } from "./zod/userProfileUpdateMeSchema.js";
+export { userPublicPropertiesCmsAccessEnumSchema } from "./zod/userPublicPropertiesCmsAccessEnumSchema.js";
 export { userPublicSchema } from "./zod/userPublicSchema.js";
 export { userRegisterSchema } from "./zod/userRegisterSchema.js";
 export { userRoleAssignmentCreateSchema } from "./zod/userRoleAssignmentCreateSchema.js";

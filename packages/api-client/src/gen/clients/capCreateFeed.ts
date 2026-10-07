@@ -26,6 +26,7 @@ export function capCreateFeed<ThrowOnError extends boolean = true>(
       url: "/api/v1/cap/feeds",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<CapCreateFeedResponses, ThrowOnError>>
   );
 }

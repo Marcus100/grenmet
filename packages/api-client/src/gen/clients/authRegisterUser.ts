@@ -25,6 +25,7 @@ export function authRegisterUser<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/auth/users/signup",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthRegisterUserResponses, ThrowOnError>>
   );
 }

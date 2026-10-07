@@ -26,6 +26,7 @@ export function authBrowserSession<ThrowOnError extends boolean = true>(
       url: "/api/v1/auth/browser/session",
       security: [{ type: "apiKey", name: "admin_session", in: "cookie" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthBrowserSessionResponses, ThrowOnError>>
   );
 }

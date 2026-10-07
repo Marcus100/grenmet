@@ -10,7 +10,10 @@ export default async function SignIn({
   return (
     <main>
       <h1>GMS content</h1>
-      <p>Use your existing GMS staff account to write and review articles.</p>
+      <p>
+        Use your Barrels account to write and review content. A system
+        administrator must grant you CMS access first.
+      </p>
       {signIn === "expired" ? (
         <p role="status">That sign-in link expired. Try again.</p>
       ) : null}

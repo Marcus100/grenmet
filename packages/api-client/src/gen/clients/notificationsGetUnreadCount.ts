@@ -30,6 +30,7 @@ export function notificationsGetUnreadCount<
       url: "/api/v1/notifications/unread-count",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<NotificationsGetUnreadCountResponses, ThrowOnError>
     >

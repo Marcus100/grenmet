@@ -29,6 +29,7 @@ export function capDownloadPublicAttachment<
       method: "GET",
       url: "/api/cap/alerts/{identifier}/attachments/{kind}",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<CapDownloadPublicAttachmentResponses, ThrowOnError>
     >

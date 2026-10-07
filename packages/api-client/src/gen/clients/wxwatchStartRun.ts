@@ -25,6 +25,7 @@ export function wxwatchStartRun<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/wxwatch/runs",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<WxwatchStartRunResponses, ThrowOnError>>
   );
 }

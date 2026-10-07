@@ -25,6 +25,7 @@ export function authAppHandoffStart<ThrowOnError extends boolean = true>(
       method: "POST",
       url: "/api/v1/auth/apps/{app}/handoff",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthAppHandoffStartResponses, ThrowOnError>>
   );
 }

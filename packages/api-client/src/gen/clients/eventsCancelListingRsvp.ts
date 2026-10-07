@@ -26,6 +26,7 @@ export function eventsCancelListingRsvp<ThrowOnError extends boolean = true>(
       url: "/api/v1/events/listings/{slug}/rsvp",
       security: [{ type: "http", scheme: "bearer" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<EventsCancelListingRsvpResponses, ThrowOnError>>
   );
 }
