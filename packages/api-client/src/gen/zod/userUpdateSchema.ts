@@ -5,8 +5,12 @@
 
 import * as z from "zod";
 import { titleSchema } from "./titleSchema.js";
+import { userPublicPropertiesCmsAccessEnumSchema } from "./userPublicPropertiesCmsAccessEnumSchema.js";
 
 export const userUpdateSchema = z.object({
+  cms_access: userPublicPropertiesCmsAccessEnumSchema
+    .optional()
+    .default("none"),
   email: z.union([z.email(), z.null()]).optional(),
   username: z.union([z.string().min(3).max(255), z.null()]).optional(),
   title: z.union([titleSchema, z.null()]).optional(),

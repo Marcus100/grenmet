@@ -220,7 +220,7 @@ export interface DeskUpdate {
   createdAt: string;
 }
 /**
- * Identity comes from FastAPI. Only the CMS editorial role is managed here.
+ * CMS access is managed by system administrators in GAA Admin → Users.
  *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".

@@ -1,9 +1,7 @@
 import {
   authExchangeSessionForAccessToken,
-  authGetEffectiveAccess,
-  authGetUserMe,
+  authGetAppIdentity,
   createClient,
-  hrGetHrProfileMe,
   ResponseError,
 } from "@barrelsgd/api-client";
 import type { AuthConfig } from "@barrelsgd/auth";
@@ -17,8 +15,7 @@ export interface StaffIdentity {
 }
 export async function readFastApiIdentity(
   headers: Headers,
-  config: AuthConfig,
-  departmentId: string
+  config: AuthConfig
 ): Promise<StaffIdentity | null> {
   const cookie = headers
     .get("cookie")
@@ -51,35 +48,18 @@ export async function readFastApiIdentity(
       baseURL: config.authApiBaseUrl,
       headers: { Authorization: `Bearer ${session.access_token}` },
     });
-    const user = await authGetUserMe({
+    const user = await authGetAppIdentity({
       client,
+      path: { app: "cms" },
       signal: AbortSignal.timeout(10_000),
     }).unwrap();
-    if (!user.is_active || user.id !== session.user.id) return null;
-    if (!user.is_superuser) {
-      const profile = await hrGetHrProfileMe({
-        client,
-        signal: AbortSignal.timeout(10_000),
-      }).unwrap();
-      if (
-        profile.id !== user.id ||
-        profile.identity.status !== "ACTIVE" ||
-        profile.employment.status !== "ACTIVE" ||
-        profile.employment.department?.id.toUpperCase() !==
-          departmentId.toUpperCase()
-      )
-        return null;
-    }
-    const access = await authGetEffectiveAccess({
-      client,
-      signal: AbortSignal.timeout(10_000),
-    }).unwrap();
+    if (user.id !== session.user.id) return null;
     return {
       fastapiUserId: user.id,
       username: user.username,
       email: user.email,
       isSuperuser: Boolean(user.is_superuser),
-      permissionKeys: access?.permission_keys ?? [],
+      permissionKeys: user.permission_keys,
     };
   } catch (error) {
     if (

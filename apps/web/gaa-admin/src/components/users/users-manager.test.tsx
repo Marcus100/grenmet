@@ -3,13 +3,25 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { UsersManager } from "./users-manager";
 import {
   roleFilterOptions,
   statusFilterOptions,
   toUserRows,
 } from "./users-row";
+
+vi.mock("@barrelsgd/auth", () => ({
+  useSessionUser: () => ({ is_superuser: true }),
+}));
 
 const BASE = "http://localhost";
 const NEW_USER_LABEL = /New user/;
