@@ -26,6 +26,7 @@ export function hrGetOrganisations<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/organisations",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrGetOrganisationsResponses, ThrowOnError>>
   );
 }

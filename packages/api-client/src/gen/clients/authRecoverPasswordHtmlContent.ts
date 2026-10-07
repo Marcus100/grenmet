@@ -31,6 +31,7 @@ export function authRecoverPasswordHtmlContent<
       security: [{ type: "oauth2" }],
       responseType: "text",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<AuthRecoverPasswordHtmlContentResponses, ThrowOnError>
     >

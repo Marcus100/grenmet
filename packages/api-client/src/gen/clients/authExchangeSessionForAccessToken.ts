@@ -29,6 +29,7 @@ export function authExchangeSessionForAccessToken<
       method: "POST",
       url: "/api/v1/login/session/access-token",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<AuthExchangeSessionForAccessTokenResponses, ThrowOnError>
     >

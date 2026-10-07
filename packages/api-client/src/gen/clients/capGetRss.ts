@@ -21,8 +21,11 @@ export function capGetRss<ThrowOnError extends boolean = true>(
   const { client: request = client, ...config } = options;
 
   return withUnwrap(
-    request({ method: "GET", url: "/api/cap/rss.xml", ...config }) as Promise<
-      RequestResult<CapGetRssResponses, ThrowOnError>
-    >
+    request({
+      method: "GET",
+      url: "/api/cap/rss.xml",
+      ...config,
+      throwOnError: config.throwOnError ?? true,
+    }) as Promise<RequestResult<CapGetRssResponses, ThrowOnError>>
   );
 }

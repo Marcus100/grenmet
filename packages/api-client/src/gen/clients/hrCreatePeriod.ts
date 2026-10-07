@@ -26,6 +26,7 @@ export function hrCreatePeriod<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/rosters/periods",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrCreatePeriodResponses, ThrowOnError>>
   );
 }

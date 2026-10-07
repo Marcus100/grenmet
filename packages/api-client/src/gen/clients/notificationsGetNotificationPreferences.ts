@@ -33,6 +33,7 @@ export function notificationsGetNotificationPreferences<
       url: "/api/v1/notifications/preferences",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<
         NotificationsGetNotificationPreferencesResponses,

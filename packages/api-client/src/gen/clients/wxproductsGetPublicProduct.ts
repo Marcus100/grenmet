@@ -27,6 +27,7 @@ export function wxproductsGetPublicProduct<ThrowOnError extends boolean = true>(
       method: "GET",
       url: "/api/v1/wxproducts/public/products/{product_id}",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<WxproductsGetPublicProductResponses, ThrowOnError>
     >

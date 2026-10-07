@@ -26,6 +26,7 @@ export function hrDownloadSignedDocument<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/signed-documents/{document_id}/pdf",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<HrDownloadSignedDocumentResponses, ThrowOnError>
     >

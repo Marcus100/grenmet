@@ -26,6 +26,7 @@ export function hrDeleteAbsenteeReport<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/absentee-reports/{absentee_report_id}",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrDeleteAbsenteeReportResponses, ThrowOnError>>
   );
 }

@@ -26,6 +26,7 @@ export function hrActionShiftSwap<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/shift-swaps/{shift_swap_id}/action",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrActionShiftSwapResponses, ThrowOnError>>
   );
 }

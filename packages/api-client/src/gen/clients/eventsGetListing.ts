@@ -26,6 +26,7 @@ export function eventsGetListing<ThrowOnError extends boolean = true>(
       url: "/api/v1/events/listings/{slug}",
       security: [{ type: "http", scheme: "bearer" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<EventsGetListingResponses, ThrowOnError>>
   );
 }

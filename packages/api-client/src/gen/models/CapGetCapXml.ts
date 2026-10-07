@@ -9,7 +9,7 @@ export type CapGetCapXmlPath = {
   identifier: string;
 };
 
-export type CapGetCapXmlStatus200 = unknown;
+export type CapGetCapXmlStatus200 = Blob;
 
 /**
  * @description Validation error envelope returned for malformed requests.

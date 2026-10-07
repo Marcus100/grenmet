@@ -6,9 +6,7 @@
 import * as z from "zod";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
-export const capGetActiveMapStatus200Schema = z
-  .object({})
-  .catchall(z.unknown());
+export const capGetActiveMapStatus200Schema = z.looseObject({});
 
 export const capGetActiveMapStatus422Schema =
   validationErrorResponseSchema.describe(

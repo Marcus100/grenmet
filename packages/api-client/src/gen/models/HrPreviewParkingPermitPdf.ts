@@ -5,7 +5,7 @@
 
 import type { ParkingPermitCreate } from "./ParkingPermitCreate.js";
 
-export type HrPreviewParkingPermitPdfStatus200 = unknown;
+export type HrPreviewParkingPermitPdfStatus200 = Blob;
 
 export type HrPreviewParkingPermitPdfStatus400 = unknown;
 

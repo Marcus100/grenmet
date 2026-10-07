@@ -25,6 +25,7 @@ export function capGetPublicAlert<ThrowOnError extends boolean = true>(
       method: "GET",
       url: "/api/cap/alerts/{identifier}",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<CapGetPublicAlertResponses, ThrowOnError>>
   );
 }

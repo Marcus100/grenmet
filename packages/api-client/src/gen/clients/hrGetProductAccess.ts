@@ -26,6 +26,7 @@ export function hrGetProductAccess<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/product-access/me",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrGetProductAccessResponses, ThrowOnError>>
   );
 }

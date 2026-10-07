@@ -33,6 +33,7 @@ export function transportDeleteTimetableTrip<
         { type: "http", scheme: "bearer" },
       ],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<TransportDeleteTimetableTripResponses, ThrowOnError>
     >

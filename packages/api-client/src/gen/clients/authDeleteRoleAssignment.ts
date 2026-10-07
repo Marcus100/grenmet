@@ -26,6 +26,7 @@ export function authDeleteRoleAssignment<ThrowOnError extends boolean = true>(
       url: "/api/v1/auth/role-assignments/{assignment_id}",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<AuthDeleteRoleAssignmentResponses, ThrowOnError>
     >

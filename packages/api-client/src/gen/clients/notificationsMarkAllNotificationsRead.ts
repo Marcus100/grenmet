@@ -33,6 +33,7 @@ export function notificationsMarkAllNotificationsRead<
       url: "/api/v1/notifications/read-all",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<
         NotificationsMarkAllNotificationsReadResponses,

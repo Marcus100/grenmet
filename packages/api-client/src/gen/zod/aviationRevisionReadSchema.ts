@@ -6,18 +6,16 @@
 import * as z from "zod";
 import { aviationDraftReadPropertiesKindEnumSchema } from "./aviationDraftReadPropertiesKindEnumSchema.js";
 
-export const aviationRevisionReadSchema = z
-  .object({
-    kind: aviationDraftReadPropertiesKindEnumSchema,
-    station: z.string().regex(/^[A-Z]{4}$/),
-    message: z.string().min(1).max(6000),
-    observed_at: z.union([z.iso.datetime(), z.null()]).optional(),
-    issued_at: z.union([z.iso.datetime(), z.null()]).optional(),
-    valid_from: z.union([z.iso.datetime(), z.null()]).optional(),
-    valid_to: z.union([z.iso.datetime(), z.null()]).optional(),
-    revision: z.int(),
-    actor_id: z.string(),
-    actor_name: z.string(),
-    recorded_at: z.iso.datetime(),
-  })
-  .strict();
+export const aviationRevisionReadSchema = z.strictObject({
+  kind: aviationDraftReadPropertiesKindEnumSchema,
+  station: z.string().regex(/^[A-Z]{4}$/),
+  message: z.string().min(1).max(6000),
+  observed_at: z.union([z.iso.datetime(), z.null()]).optional(),
+  issued_at: z.union([z.iso.datetime(), z.null()]).optional(),
+  valid_from: z.union([z.iso.datetime(), z.null()]).optional(),
+  valid_to: z.union([z.iso.datetime(), z.null()]).optional(),
+  revision: z.int(),
+  actor_id: z.string(),
+  actor_name: z.string(),
+  recorded_at: z.iso.datetime(),
+});

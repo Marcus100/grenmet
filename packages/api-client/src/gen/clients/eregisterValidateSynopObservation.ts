@@ -33,6 +33,7 @@ export function eregisterValidateSynopObservation<
         { type: "http", scheme: "bearer" },
       ],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<EregisterValidateSynopObservationResponses, ThrowOnError>
     >

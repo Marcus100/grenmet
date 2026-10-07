@@ -30,6 +30,7 @@ export function notificationsUpdateNotificationSetting<
       url: "/api/v1/notifications/settings/{event_key}",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<
       RequestResult<
         NotificationsUpdateNotificationSettingResponses,

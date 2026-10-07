@@ -25,6 +25,7 @@ export function utilsHealthCheck<ThrowOnError extends boolean = true>(
       method: "GET",
       url: "/api/v1/utils/health-check/",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<UtilsHealthCheckResponses, ThrowOnError>>
   );
 }

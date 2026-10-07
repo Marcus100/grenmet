@@ -26,6 +26,7 @@ export function capApproveHazardProfile<ThrowOnError extends boolean = true>(
       url: "/api/v1/cap/hazard-profiles/{profile_id}/approve",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<CapApproveHazardProfileResponses, ThrowOnError>>
   );
 }

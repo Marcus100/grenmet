@@ -26,6 +26,7 @@ export function hrClosePeriod<ThrowOnError extends boolean = true>(
       url: "/api/v1/hr/rosters/periods/{period_id}/close",
       security: [{ type: "oauth2" }],
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<HrClosePeriodResponses, ThrowOnError>>
   );
 }

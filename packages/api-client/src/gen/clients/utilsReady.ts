@@ -25,6 +25,7 @@ export function utilsReady<ThrowOnError extends boolean = true>(
       method: "GET",
       url: "/api/v1/utils/ready/",
       ...config,
+      throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<UtilsReadyResponses, ThrowOnError>>
   );
 }

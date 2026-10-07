@@ -13,6 +13,6 @@ export const rosterRevisionPublicSchema = z.object({
   action: rosterRevisionActionSchema,
   changed_by_user_id: z.uuid(),
   summary: z.union([z.string(), z.null()]).optional(),
-  snapshot: z.object({}).catchall(z.unknown()),
+  snapshot: z.looseObject({}),
   created_at: z.iso.datetime(),
 });
