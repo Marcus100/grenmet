@@ -575,6 +575,12 @@ async def handoff_start(
                 "Ask an administrator to approve your account for staff tools.",
                 403,
             )
+    elif user.email_verified_at is None and not (
+        app.key == "cms" and service.cms_identity_ready(user)
+    ):
+        raise AppException(
+            "Verify your email address before signing in to this app.", 403
+        )
     elif not await service.is_eligible_for_app(
         session=session, user=user, app_key=app.key
     ):

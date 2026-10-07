@@ -1325,8 +1325,21 @@ and self-service profile updates cannot grant CMS access.
 `GET /api/v1/auth/apps/{app}/me` returns live app-scoped identity and, for CMS,
 editorial permission keys. It requires a bearer token for the named app and
 rechecks admission. CMS handoff and session exchange require an active,
-email-verified account with an explicit grant (or a system administrator),
-independently of staff approval. CMS tokens cannot access staff APIs.
+account with a usable sign-in method and an explicit grant (or a system
+administrator). The identity gate accepts either a verified email or approved
+staff whose email verification is not required. Public accounts still need
+verified email. CMS tokens cannot access staff APIs.
 Access changes revoke CMS sessions; already-issued tokens read current grants.
 The additive `cmsaccess20261007` migration defaults existing users to `none`;
 system administrators retain full CMS access.
+
+
+### Administrator-mediated account activation
+
+- `POST /api/v1/auth/onboarding/accounts` (`authCreateOnboardingAccount`): superuser creates an active, staff-approved account with an unusable random password and password setup pending; no roles or CMS grants are assigned. Existing email/username conflicts return 409.
+- `GET /api/v1/auth/onboarding/{user_id}` (`authGetOnboardingStatus`): superuser receives email/activation state and typed GAA Admin/CMS blockers. This is app admission, not HR workflow readiness.
+- `POST /api/v1/auth/onboarding/{user_id}/activation` (`authIssueActivation`): requires explicit `identity_confirmed: true`; returns a private URL and expiry once with `Cache-Control: no-store`. The URL uses a fragment so its secret is not sent in page requests. Valid for 30 minutes; replacement invalidates earlier links.
+- `DELETE /api/v1/auth/onboarding/{user_id}/activation` (`authRevokeActivation`): superuser revokes outstanding links.
+- `POST /api/v1/auth/onboarding/activate` (`authConfirmActivation`): public, rate-limited; takes the one-use token and a 12–128 character password. Requires an active eligible target and an active superuser issuer, unchanged email and credentials. Atomically consumes proof, sets password, clears password setup/email requirement, revokes sessions and outstanding challenges. Does not verify email, approve pending staff, grant roles, change CMS access or reset MFA.
+
+Activation is limited to incomplete or unverified non-superuser accounts. Established verified accounts use the existing recovery process. Issuance, revocation and completion are audited under `account`; links and passwords are excluded from history. No new database migration is required: challenges, account flags and audit storage already exist.

@@ -17,6 +17,8 @@ export { authAppPhoneCodeVerify } from "./clients/authAppPhoneCodeVerify.js";
 export { authAppPhoneLinkStart } from "./clients/authAppPhoneLinkStart.js";
 export { authAppPhoneLinkVerify } from "./clients/authAppPhoneLinkVerify.js";
 export { authBrowserSession } from "./clients/authBrowserSession.js";
+export { authConfirmActivation } from "./clients/authConfirmActivation.js";
+export { authCreateOnboardingAccount } from "./clients/authCreateOnboardingAccount.js";
 export { authCreatePermission } from "./clients/authCreatePermission.js";
 export { authCreateRole } from "./clients/authCreateRole.js";
 export { authCreateRoleAssignment } from "./clients/authCreateRoleAssignment.js";
@@ -33,6 +35,7 @@ export { authGetAccountSecurity } from "./clients/authGetAccountSecurity.js";
 export { authGetAppIdentity } from "./clients/authGetAppIdentity.js";
 export { authGetAppSignInOptions } from "./clients/authGetAppSignInOptions.js";
 export { authGetEffectiveAccess } from "./clients/authGetEffectiveAccess.js";
+export { authGetOnboardingStatus } from "./clients/authGetOnboardingStatus.js";
 export { authGetPermission } from "./clients/authGetPermission.js";
 export { authGetPermissions } from "./clients/authGetPermissions.js";
 export { authGetRole } from "./clients/authGetRole.js";
@@ -45,6 +48,7 @@ export { authGetUsers } from "./clients/authGetUsers.js";
 export { authGoogleComplete } from "./clients/authGoogleComplete.js";
 export { authGoogleFinish } from "./clients/authGoogleFinish.js";
 export { authGoogleStart } from "./clients/authGoogleStart.js";
+export { authIssueActivation } from "./clients/authIssueActivation.js";
 export { authLoginAccessToken } from "./clients/authLoginAccessToken.js";
 export { authLoginSession } from "./clients/authLoginSession.js";
 export { authLogoutAllSessions } from "./clients/authLogoutAllSessions.js";
@@ -57,6 +61,7 @@ export { authRegisterUser } from "./clients/authRegisterUser.js";
 export { authReplaceRecoveryCodes } from "./clients/authReplaceRecoveryCodes.js";
 export { authRequestStaffAccess } from "./clients/authRequestStaffAccess.js";
 export { authResetPassword } from "./clients/authResetPassword.js";
+export { authRevokeActivation } from "./clients/authRevokeActivation.js";
 export { authRevokeSecuritySession } from "./clients/authRevokeSecuritySession.js";
 export { authTestToken } from "./clients/authTestToken.js";
 export { authTwofaActivate } from "./clients/authTwofaActivate.js";
@@ -430,6 +435,16 @@ export {
   useAuthBrowserSession,
 } from "./hooks/useAuthBrowserSession.js";
 export {
+  authConfirmActivationMutationKey,
+  authConfirmActivationMutationOptions,
+  useAuthConfirmActivation,
+} from "./hooks/useAuthConfirmActivation.js";
+export {
+  authCreateOnboardingAccountMutationKey,
+  authCreateOnboardingAccountMutationOptions,
+  useAuthCreateOnboardingAccount,
+} from "./hooks/useAuthCreateOnboardingAccount.js";
+export {
   authCreatePermissionMutationKey,
   authCreatePermissionMutationOptions,
   useAuthCreatePermission,
@@ -510,6 +525,11 @@ export {
   useAuthGetEffectiveAccess,
 } from "./hooks/useAuthGetEffectiveAccess.js";
 export {
+  authGetOnboardingStatusQueryKey,
+  authGetOnboardingStatusQueryOptions,
+  useAuthGetOnboardingStatus,
+} from "./hooks/useAuthGetOnboardingStatus.js";
+export {
   authGetPermissionQueryKey,
   authGetPermissionQueryOptions,
   useAuthGetPermission,
@@ -570,6 +590,11 @@ export {
   useAuthGoogleStart,
 } from "./hooks/useAuthGoogleStart.js";
 export {
+  authIssueActivationMutationKey,
+  authIssueActivationMutationOptions,
+  useAuthIssueActivation,
+} from "./hooks/useAuthIssueActivation.js";
+export {
   authLoginAccessTokenMutationKey,
   authLoginAccessTokenMutationOptions,
   useAuthLoginAccessToken,
@@ -629,6 +654,11 @@ export {
   authResetPasswordMutationOptions,
   useAuthResetPassword,
 } from "./hooks/useAuthResetPassword.js";
+export {
+  authRevokeActivationMutationKey,
+  authRevokeActivationMutationOptions,
+  useAuthRevokeActivation,
+} from "./hooks/useAuthRevokeActivation.js";
 export {
   authRevokeSecuritySessionMutationKey,
   authRevokeSecuritySessionMutationOptions,
@@ -2095,12 +2125,19 @@ export type { AbsenteeReportCreate } from "./models/AbsenteeReportCreate.js";
 export type { AbsenteeReportListPublic } from "./models/AbsenteeReportListPublic.js";
 export type { AbsenteeReportPublic } from "./models/AbsenteeReportPublic.js";
 export type { AbsenteeReportSubmit } from "./models/AbsenteeReportSubmit.js";
+export type { AccessBlocker } from "./models/AccessBlocker.js";
+export { accessBlocker } from "./models/AccessBlocker.js";
 export type { AccessReviewData } from "./models/AccessReviewData.js";
 export type { AccountSecurityPublic } from "./models/AccountSecurityPublic.js";
+export type { ActivationAccountCreate } from "./models/ActivationAccountCreate.js";
+export type { ActivationConfirm } from "./models/ActivationConfirm.js";
+export type { ActivationIssue } from "./models/ActivationIssue.js";
+export type { ActivationLink } from "./models/ActivationLink.js";
 export type { AddressPublic } from "./models/AddressPublic.js";
 export type { AddressUpdate } from "./models/AddressUpdate.js";
 export type { AnnouncementPublic } from "./models/AnnouncementPublic.js";
 export type { ApiError } from "./models/ApiError.js";
+export type { AppAccessStatus } from "./models/AppAccessStatus.js";
 export type { AppEmailCodeStart } from "./models/AppEmailCodeStart.js";
 export type { AppEmailCodeVerify } from "./models/AppEmailCodeVerify.js";
 export type { AppHandoffCode } from "./models/AppHandoffCode.js";
@@ -2345,6 +2382,25 @@ export type {
   AuthBrowserSessionStatus422,
 } from "./models/AuthBrowserSession.js";
 export type {
+  AuthConfirmActivationBody,
+  AuthConfirmActivationOptions,
+  AuthConfirmActivationResponse,
+  AuthConfirmActivationResponses,
+  AuthConfirmActivationStatus200,
+  AuthConfirmActivationStatus400,
+  AuthConfirmActivationStatus422,
+} from "./models/AuthConfirmActivation.js";
+export type {
+  AuthCreateOnboardingAccountBody,
+  AuthCreateOnboardingAccountOptions,
+  AuthCreateOnboardingAccountResponse,
+  AuthCreateOnboardingAccountResponses,
+  AuthCreateOnboardingAccountStatus201,
+  AuthCreateOnboardingAccountStatus403,
+  AuthCreateOnboardingAccountStatus409,
+  AuthCreateOnboardingAccountStatus422,
+} from "./models/AuthCreateOnboardingAccount.js";
+export type {
   AuthCreatePermissionBody,
   AuthCreatePermissionOptions,
   AuthCreatePermissionResponse,
@@ -2491,6 +2547,16 @@ export type {
   AuthGetEffectiveAccessStatus422,
 } from "./models/AuthGetEffectiveAccess.js";
 export type {
+  AuthGetOnboardingStatusOptions,
+  AuthGetOnboardingStatusPath,
+  AuthGetOnboardingStatusResponse,
+  AuthGetOnboardingStatusResponses,
+  AuthGetOnboardingStatusStatus200,
+  AuthGetOnboardingStatusStatus403,
+  AuthGetOnboardingStatusStatus404,
+  AuthGetOnboardingStatusStatus422,
+} from "./models/AuthGetOnboardingStatus.js";
+export type {
   AuthGetPermissionOptions,
   AuthGetPermissionPath,
   AuthGetPermissionResponse,
@@ -2595,6 +2661,19 @@ export type {
   AuthGoogleStartStatus403,
   AuthGoogleStartStatus422,
 } from "./models/AuthGoogleStart.js";
+export type {
+  AuthIssueActivationBody,
+  AuthIssueActivationOptions,
+  AuthIssueActivationPath,
+  AuthIssueActivationResponse,
+  AuthIssueActivationResponses,
+  AuthIssueActivationStatus201,
+  AuthIssueActivationStatus400,
+  AuthIssueActivationStatus403,
+  AuthIssueActivationStatus404,
+  AuthIssueActivationStatus409,
+  AuthIssueActivationStatus422,
+} from "./models/AuthIssueActivation.js";
 export type {
   AuthLoginAccessTokenBody,
   AuthLoginAccessTokenOptions,
@@ -2706,6 +2785,16 @@ export type {
   AuthResetPasswordStatus422,
   AuthResetPasswordStatus429,
 } from "./models/AuthResetPassword.js";
+export type {
+  AuthRevokeActivationOptions,
+  AuthRevokeActivationPath,
+  AuthRevokeActivationResponse,
+  AuthRevokeActivationResponses,
+  AuthRevokeActivationStatus204,
+  AuthRevokeActivationStatus403,
+  AuthRevokeActivationStatus404,
+  AuthRevokeActivationStatus422,
+} from "./models/AuthRevokeActivation.js";
 export type {
   AuthRevokeSecuritySessionOptions,
   AuthRevokeSecuritySessionPath,
@@ -5483,6 +5572,7 @@ export { observationProvenancePropertiesTimeBasisEnum } from "./models/Observati
 export type { ObservationRecord } from "./models/ObservationRecord.js";
 export type { ObservationRecordPropertiesKindEnum } from "./models/ObservationRecordPropertiesKindEnum.js";
 export { observationRecordPropertiesKindEnum } from "./models/ObservationRecordPropertiesKindEnum.js";
+export type { OnboardingStatus } from "./models/OnboardingStatus.js";
 export type { OrganisationCatalogue } from "./models/OrganisationCatalogue.js";
 export type { OrganisationPreview } from "./models/OrganisationPreview.js";
 export type { OrganisationPublic } from "./models/OrganisationPublic.js";
@@ -6253,12 +6343,18 @@ export { absenteeReportCreateSchema } from "./zod/absenteeReportCreateSchema.js"
 export { absenteeReportListPublicSchema } from "./zod/absenteeReportListPublicSchema.js";
 export { absenteeReportPublicSchema } from "./zod/absenteeReportPublicSchema.js";
 export { absenteeReportSubmitSchema } from "./zod/absenteeReportSubmitSchema.js";
+export { accessBlockerSchema } from "./zod/accessBlockerSchema.js";
 export { accessReviewDataSchema } from "./zod/accessReviewDataSchema.js";
 export { accountSecurityPublicSchema } from "./zod/accountSecurityPublicSchema.js";
+export { activationAccountCreateSchema } from "./zod/activationAccountCreateSchema.js";
+export { activationConfirmSchema } from "./zod/activationConfirmSchema.js";
+export { activationIssueSchema } from "./zod/activationIssueSchema.js";
+export { activationLinkSchema } from "./zod/activationLinkSchema.js";
 export { addressPublicSchema } from "./zod/addressPublicSchema.js";
 export { addressUpdateSchema } from "./zod/addressUpdateSchema.js";
 export { announcementPublicSchema } from "./zod/announcementPublicSchema.js";
 export { apiErrorSchema } from "./zod/apiErrorSchema.js";
+export { appAccessStatusSchema } from "./zod/appAccessStatusSchema.js";
 export { appEmailCodeStartSchema } from "./zod/appEmailCodeStartSchema.js";
 export { appEmailCodeVerifySchema } from "./zod/appEmailCodeVerifySchema.js";
 export { appHandoffCodeSchema } from "./zod/appHandoffCodeSchema.js";
@@ -6487,6 +6583,23 @@ export {
   authBrowserSessionStatus422Schema,
 } from "./zod/authBrowserSessionSchema.js";
 export {
+  authConfirmActivationBodySchema,
+  authConfirmActivationErrorSchema,
+  authConfirmActivationResponseSchema,
+  authConfirmActivationStatus200Schema,
+  authConfirmActivationStatus400Schema,
+  authConfirmActivationStatus422Schema,
+} from "./zod/authConfirmActivationSchema.js";
+export {
+  authCreateOnboardingAccountBodySchema,
+  authCreateOnboardingAccountErrorSchema,
+  authCreateOnboardingAccountResponseSchema,
+  authCreateOnboardingAccountStatus201Schema,
+  authCreateOnboardingAccountStatus403Schema,
+  authCreateOnboardingAccountStatus409Schema,
+  authCreateOnboardingAccountStatus422Schema,
+} from "./zod/authCreateOnboardingAccountSchema.js";
+export {
   authCreatePermissionBodySchema,
   authCreatePermissionErrorSchema,
   authCreatePermissionResponseSchema,
@@ -6617,6 +6730,15 @@ export {
   authGetEffectiveAccessStatus422Schema,
 } from "./zod/authGetEffectiveAccessSchema.js";
 export {
+  authGetOnboardingStatusErrorSchema,
+  authGetOnboardingStatusPathUserIdSchema,
+  authGetOnboardingStatusResponseSchema,
+  authGetOnboardingStatusStatus200Schema,
+  authGetOnboardingStatusStatus403Schema,
+  authGetOnboardingStatusStatus404Schema,
+  authGetOnboardingStatusStatus422Schema,
+} from "./zod/authGetOnboardingStatusSchema.js";
+export {
   authGetPermissionErrorSchema,
   authGetPermissionPathPermissionIdSchema,
   authGetPermissionResponseSchema,
@@ -6712,6 +6834,18 @@ export {
   authGoogleStartStatus403Schema,
   authGoogleStartStatus422Schema,
 } from "./zod/authGoogleStartSchema.js";
+export {
+  authIssueActivationBodySchema,
+  authIssueActivationErrorSchema,
+  authIssueActivationPathUserIdSchema,
+  authIssueActivationResponseSchema,
+  authIssueActivationStatus201Schema,
+  authIssueActivationStatus400Schema,
+  authIssueActivationStatus403Schema,
+  authIssueActivationStatus404Schema,
+  authIssueActivationStatus409Schema,
+  authIssueActivationStatus422Schema,
+} from "./zod/authIssueActivationSchema.js";
 export {
   authLoginAccessTokenBodySchema,
   authLoginAccessTokenErrorSchema,
@@ -6811,6 +6945,15 @@ export {
   authResetPasswordStatus422Schema,
   authResetPasswordStatus429Schema,
 } from "./zod/authResetPasswordSchema.js";
+export {
+  authRevokeActivationErrorSchema,
+  authRevokeActivationPathUserIdSchema,
+  authRevokeActivationResponseSchema,
+  authRevokeActivationStatus204Schema,
+  authRevokeActivationStatus403Schema,
+  authRevokeActivationStatus404Schema,
+  authRevokeActivationStatus422Schema,
+} from "./zod/authRevokeActivationSchema.js";
 export {
   authRevokeSecuritySessionErrorSchema,
   authRevokeSecuritySessionPathSessionIdSchema,
@@ -9349,6 +9492,7 @@ export { observationProvenancePropertiesTimeBasisEnumSchema } from "./zod/observ
 export { observationProvenanceSchema } from "./zod/observationProvenanceSchema.js";
 export { observationRecordPropertiesKindEnumSchema } from "./zod/observationRecordPropertiesKindEnumSchema.js";
 export { observationRecordSchema } from "./zod/observationRecordSchema.js";
+export { onboardingStatusSchema } from "./zod/onboardingStatusSchema.js";
 export { organisationCatalogueSchema } from "./zod/organisationCatalogueSchema.js";
 export { organisationPreviewSchema } from "./zod/organisationPreviewSchema.js";
 export { organisationPublicSchema } from "./zod/organisationPublicSchema.js";

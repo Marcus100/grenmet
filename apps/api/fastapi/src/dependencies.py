@@ -145,6 +145,10 @@ async def get_authenticated_user(
             status_code=403,
             detail="Your registration is awaiting administrator approval",
         )
+    if user.password_setup_pending and user.email_verified_at is None:
+        raise HTTPException(
+            status_code=403, detail="Finish account activation before continuing"
+        )
     if user.email_verification_required and user.email_verified_at is None:
         raise HTTPException(
             status_code=403,
