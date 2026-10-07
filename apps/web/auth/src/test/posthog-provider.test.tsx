@@ -268,3 +268,34 @@ it("rejects unknown events and sensitive properties and scrubs provider-added fi
     filterAnalyticsEvent({ uuid: "x", event: "$autocapture", properties: {} })
   ).toBeNull();
 });
+it("asks once in a popup, then leaves a small button to change the choice", async () => {
+  show();
+  const dialog = await screen.findByRole("dialog", { name: "Your privacy" });
+  expect(dialog.className).toContain("fixed");
+  fireEvent.click(screen.getByRole("button", { name: "Decline" }));
+  expect(screen.queryByRole("dialog")).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Privacy settings" }));
+  expect(screen.getByRole("dialog", { name: "Your privacy" })).toBeTruthy();
+  fireEvent.click(
+    screen.getByRole("button", { name: "Keep my current choice (declined)" })
+  );
+  expect(screen.queryByRole("dialog")).toBeNull();
+  cleanup();
+
+  // A returning visitor with a saved choice sees only the button.
+  accept();
+  show();
+  expect(
+    await screen.findByRole("button", { name: "Privacy settings" })
+  ).toBeTruthy();
+  expect(screen.queryByRole("dialog")).toBeNull();
+  cleanup();
+
+  // No optional analytics on this site: nothing to ask, nothing shown.
+  state.configured = false;
+  localStorage.clear();
+  show();
+  await waitFor(() => expect(screen.getByText("Content")).toBeTruthy());
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(screen.queryByRole("button", { name: "Privacy settings" })).toBeNull();
+});
