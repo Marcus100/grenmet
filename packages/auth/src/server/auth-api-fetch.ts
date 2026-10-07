@@ -56,11 +56,9 @@ async function fetchAuthApi(
   }
 }
 
-function buildCookieOptions(config: AuthConfig, expires?: Date) {
+function buildCookieOptions(expires?: Date) {
+  // Host-only: every app keeps its own session cookie (ADR-0017).
   return {
-    ...(config.sessionCookieDomain
-      ? { domain: config.sessionCookieDomain }
-      : {}),
     ...(expires ? { expires } : {}),
     httpOnly: true,
     path: "/",
@@ -70,12 +68,25 @@ function buildCookieOptions(config: AuthConfig, expires?: Date) {
   };
 }
 
+export function writeSessionCookieOnResponse(
+  config: AuthConfig,
+  response: NextResponse,
+  sessionToken: string,
+  sessionExpiresAt: string
+): void {
+  response.cookies.set(
+    config.sessionCookieName,
+    sessionToken,
+    buildCookieOptions(new Date(sessionExpiresAt))
+  );
+}
+
 export function clearSessionCookieOnResponse(
   config: AuthConfig,
   response: NextResponse
 ): void {
   response.cookies.set(config.sessionCookieName, "", {
-    ...buildCookieOptions(config, new Date(0)),
+    ...buildCookieOptions(new Date(0)),
     maxAge: 0,
   });
 }
@@ -96,14 +107,14 @@ export async function writeSessionCookie(
   cookieStore.set(
     config.sessionCookieName,
     sessionToken,
-    buildCookieOptions(config, new Date(sessionExpiresAt))
+    buildCookieOptions(new Date(sessionExpiresAt))
   );
 }
 
 export async function clearSessionCookie(config: AuthConfig): Promise<void> {
   const cookieStore = await cookies();
   cookieStore.set(config.sessionCookieName, "", {
-    ...buildCookieOptions(config, new Date(0)),
+    ...buildCookieOptions(new Date(0)),
     maxAge: 0,
   });
 }

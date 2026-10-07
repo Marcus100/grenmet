@@ -27,7 +27,8 @@ function fixture(directory) {
     "SECRET_KEY",
     "FIRST_SUPERUSER",
     "FIRST_SUPERUSER_PASSWORD",
-    "SESSION_COOKIE_NAME",
+    "GAA_ADMIN_SSO_CLIENT_SECRET",
+    "CMS_SSO_CLIENT_SECRET",
     "RESEND_API_KEY",
     "EMAIL",
     "USERNAME",
@@ -413,6 +414,7 @@ test("partial provider configuration and live Stripe keys in staging fail closed
     { NEXT_PUBLIC_POSTHOG_HOST: "http://localhost:8000" },
     { SENTRY_DSN: "http://localhost:9000/1" },
     { CAP_SIGNING_KEY: "private-fixture" },
+    { EVENTS_SSO_CLIENT_SECRET: "short-DO_NOT_ECHO" },
     {
       BILLING_STRIPE_SECRET_KEY: "sk_live_DO_NOT_ECHO",
       BILLING_STRIPE_WEBHOOK_SECRET: "whsec_fixture",

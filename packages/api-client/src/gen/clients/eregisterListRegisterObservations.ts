@@ -29,7 +29,7 @@ export function eregisterListRegisterObservations<
       method: "GET",
       url: "/api/v1/eregister/observations",
       security: [
-        { type: "apiKey", name: "grenmet_session", in: "cookie" },
+        { type: "apiKey", name: "admin_session", in: "cookie" },
         { type: "http", scheme: "bearer" },
       ],
       ...config,

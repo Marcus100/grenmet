@@ -32,7 +32,7 @@ export function AccountLayout({
               className="shrink-0 rounded-lg border border-border px-3 py-1.5 font-medium text-foreground text-sm transition hover:bg-muted"
               type="submit"
             >
-              Sign out
+              Sign out of all apps
             </button>
           </form>
         </div>

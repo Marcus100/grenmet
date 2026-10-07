@@ -13,7 +13,9 @@ pnpm build  # runs: node scripts/generate-sections.mjs && next build --turbopack
 
 ## Auth pattern
 
-Delegates to `web-auth` (`:3000`) via redirect — does not handle sign-in itself.
+"Sign in" with the Barrels account (ADR-0017): `AccountButton` in the header,
+routes `src/app/auth/{start,callback,me,logout}`, config `src/lib/auth-config.ts`
+(registry key `docs`). Off until `DOCS_SSO_CLIENT_SECRET` is set.
 
 ## MDX pipeline — Content Collections
 

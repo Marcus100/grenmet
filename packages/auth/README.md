@@ -134,8 +134,7 @@ export const authConfig: AuthConfig = {
   authApiBaseUrl: env.AUTH_API_URL,
   authApiPrefix: env.AUTH_API_V1_STR,
   authAppUrl: env.AUTH_APP_URL,
-  sessionCookieName: env.SESSION_COOKIE_NAME,
-  // sessionCookieDomain: env.SESSION_COOKIE_DOMAIN, // only if needed for cross-subdomain cookies
+  sessionCookieName: env.MY_APP_SESSION_COOKIE_NAME, // host-only, one per app
 };
 ```
 
@@ -252,6 +251,40 @@ Derive the request origin from headers (`x-forwarded-host` → `host` fallback).
 #### `getSafeLocalReturnTo(value)`
 
 Validate a `returnTo` value from a query parameter. Returns `null` if the value is not a safe local path (must start with `/`, must not be `//`).
+
+### Single sign-on helpers (ADR-0017)
+
+For apps registered for single sign-on in `apps/api/fastapi/src/auth/apps.py`
+(with a client secret). Mount both as route handlers:
+
+```ts
+// src/app/auth/start/route.ts — link "Continue with your Barrels account" here
+export function GET(request: NextRequest) {
+  return startAppSignIn(authConfig, request); // ?returnTo=/local/path
+}
+
+// src/app/auth/callback/route.ts — the app's registered callback
+export function GET(request: NextRequest) {
+  return completeAppSignIn(authConfig, request, {
+    clientSecret: env.MY_APP_SSO_CLIENT_SECRET,
+    failurePath: "/sign-in", // lands on /sign-in?sign_in=expired
+  });
+}
+```
+
+`startAppSignIn` stores a random state and the local return path in a
+short-lived `<sessionCookieName>_sso` cookie and redirects to
+`<authAppUrl>/continue`. `completeAppSignIn` checks the state, redeems the
+one-use code server-side with the client secret, sets the app's own session
+cookie and redirects back. `writeSessionCookieOnResponse` is the
+`NextResponse` variant of `writeSessionCookie`.
+
+Public sites also mount `GET /auth/me` → `accountStatusResponse(config, request)`
+and `POST /auth/logout` → `signOutResponse(config, request)`, and render
+`AccountButton` from `@barrelsgd/ui/components/account-button` in the header.
+The button reads `/auth/me` in the browser (pages stay static) and shows "Sign
+in", the account menu, and — after `completeAppSignIn(..., { notice: true })` —
+a one-time "signed in with your Barrels account" notice. Pattern: `apps/web/gms`.
 
 ---
 

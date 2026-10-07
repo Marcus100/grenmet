@@ -1,8 +1,10 @@
 import { PostHogProvider } from "@barrelsgd/ui/components/posthog-provider";
 import type { Metadata } from "next";
-import { Inter, Noto_Sans, Source_Serif_4 } from "next/font/google";
+import { Inter, Noto_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { APP_LABEL, signInEnabled } from "@/lib/auth-config";
 import "./globals.css";
 import {
   MAIN_CONTENT_ID,
@@ -21,11 +23,13 @@ const inter = Inter({
   display: "swap",
 });
 
-const sourceSerif = Source_Serif_4({
-  subsets: ["latin"],
+const sourceSerif = localFont({
+  src: "./fonts/source-serif-4-latin.woff2",
   variable: "--font-source-serif",
   display: "swap",
-  weight: ["400", "600", "700"],
+  weight: "200 900",
+  style: "normal",
+  adjustFontFallback: "Times New Roman",
 });
 
 export const metadata: Metadata = {
@@ -50,7 +54,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <PostHogProvider app="signal">
           <SkipLink />
-          <SiteHeader />
+          <SiteHeader accountLabel={signInEnabled() ? APP_LABEL : undefined} />
           <main className="outline-none" id={MAIN_CONTENT_ID} tabIndex={-1}>
             {children}
           </main>

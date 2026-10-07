@@ -1,19 +1,20 @@
-import { buildSharedSignInUrl } from "@barrelsgd/auth/server";
-import { getEnv } from "../../../env";
-import { getAuthConfig } from "../../../lib/auth-config";
-// Authentication destinations come from the deployed runtime environment.
+// Single sign-on (ADR-0017): /auth/start hands off to auth.barrels.gd.
 export const dynamic = "force-dynamic";
 
-export default function SignIn() {
-  const url = buildSharedSignInUrl(getAuthConfig(), {
-    origin: getEnv().CMS_URL,
-    returnTo: "/admin",
-  });
+export default async function SignIn({
+  searchParams,
+}: {
+  searchParams: Promise<{ sign_in?: string }>;
+}) {
+  const { sign_in: signIn } = await searchParams;
   return (
     <main>
       <h1>GMS content</h1>
       <p>Use your existing GMS staff account to write and review articles.</p>
-      <a href={url}>Sign in with GMS</a>
+      {signIn === "expired" ? (
+        <p role="status">That sign-in link expired. Try again.</p>
+      ) : null}
+      <a href="/auth/start?returnTo=%2Fadmin">Sign in with GMS</a>
       <p>
         Access requires active GMS employment or a FastAPI administrator
         account.

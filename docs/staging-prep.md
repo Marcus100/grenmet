@@ -31,7 +31,7 @@ POSTGRES_PASSWORD / FIRST_SUPERUSER_PASSWORD  # strength-validated outside local
 REDIS_URL=redis://<host>:6379/0             # enables worker, shared rate-limit, lockout
 STORAGE_ENDPOINT_URL / STORAGE_BUCKET / STORAGE_ACCESS_KEY_ID / STORAGE_SECRET_ACCESS_KEY
 STORAGE_PUBLIC_BASE_URL=<cdn base>          # optional
-SESSION_COOKIE_DOMAIN=.barrels.gd           # for subdomain SSO (when ready)
+GAA_ADMIN_SSO_CLIENT_SECRET / CMS_SSO_CLIENT_SECRET  # single sign-on (ADR-0017), 32+ chars
 ```
 
 ## Remaining for you

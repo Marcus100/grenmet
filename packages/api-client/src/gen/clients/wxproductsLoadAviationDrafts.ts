@@ -29,7 +29,7 @@ export function wxproductsLoadAviationDrafts<
       method: "GET",
       url: "/api/v1/wxproducts/aviation/drafts",
       security: [
-        { type: "apiKey", name: "grenmet_session", in: "cookie" },
+        { type: "apiKey", name: "admin_session", in: "cookie" },
         { type: "http", scheme: "bearer" },
       ],
       ...config,

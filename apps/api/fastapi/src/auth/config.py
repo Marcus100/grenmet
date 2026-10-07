@@ -25,6 +25,26 @@ class AuthConfig(BaseSettings):
     # sign-in pages, session cookie and Google redirect; see ADR-0016.
     EVENTS_APP_URL: str = "http://localhost:3009"
     EVENTS_GOOGLE_REDIRECT_URI: str = ""
+    # Shared with the Events web server; it must present this to redeem a
+    # single sign-on code (ADR-0017). Empty disables single sign-on for Events.
+    EVENTS_SSO_CLIENT_SECRET: str = ""
+    # Staff apps that sign in through auth.barrels.gd (ADR-0017). An empty
+    # secret switches single sign-on off for that app.
+    GAA_ADMIN_APP_URL: str = "http://localhost:3001"
+    GAA_ADMIN_SSO_CLIENT_SECRET: str = ""
+    CMS_APP_URL: str = "http://localhost:3006"
+    CMS_SSO_CLIENT_SECRET: str = ""
+    # Public sites with "Sign in" (ADR-0017 step 4); members join automatically.
+    WEATHER_APP_URL: str = "http://localhost:3003"
+    WEATHER_SSO_CLIENT_SECRET: str = ""
+    MBIA_APP_URL: str = "http://localhost:3005"
+    MBIA_SSO_CLIENT_SECRET: str = ""
+    SIGNAL_APP_URL: str = "http://localhost:3004"
+    SIGNAL_SSO_CLIENT_SECRET: str = ""
+    DOCS_APP_URL: str = "http://localhost:3002"
+    DOCS_SSO_CLIENT_SECRET: str = ""
+    ELECTIONS_APP_URL: str = "http://localhost:3007"
+    ELECTIONS_SSO_CLIENT_SECRET: str = ""
     # One-time codes by SMS/WhatsApp. "disabled" until a provider is chosen
     # (every message costs money); "console" logs codes for local development.
     PHONE_OTP_PROVIDER: Literal["disabled", "console"] = "disabled"
@@ -37,8 +57,9 @@ class AuthConfig(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     SESSION_ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     SESSION_EXPIRE_DAYS: int = 30
-    SESSION_COOKIE_NAME: str = "grenmet_session"
-    SESSION_COOKIE_DOMAIN: str | None = None
+    # GAA Admin's host-only session cookie (ADR-0017). Its same-origin proxy
+    # forwards it to the cookie-authenticated routes (src/auth/browser.py).
+    BROWSER_SESSION_COOKIE_NAME: str = "admin_session"
     # Account lockout (Redis-backed; disabled when REDIS_URL is unset — fail-open).
     LOGIN_MAX_FAILED_ATTEMPTS: int = 10
     LOGIN_LOCKOUT_SECONDS: int = 900

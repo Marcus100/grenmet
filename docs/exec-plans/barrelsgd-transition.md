@@ -417,7 +417,9 @@ control-plane routes remain local.
   display name, email branding, sign-in presentation, roles, and access policy.
   Use Barrels branding only for Barrels company surfaces.
 - Replace `grenmet_session` with the company-owned technical cookie
-  `barrelsgd_session` and intentionally reset all sessions.
+  `barrelsgd_session` and intentionally reset all sessions. *Superseded by
+  ADR-0017: each app now has its own host-only cookie (`auth_session`,
+  `admin_session`, `cms_session`, `events_session`).*
 - Regenerate `openapi.json` before regenerating the TypeScript API client.
   Never edit generated client files manually.
 - Rename the repository in place to `Marcus100/barrelsgd` and update local

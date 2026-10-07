@@ -3,8 +3,10 @@ import uuid
 from fastapi import APIRouter
 from starlette.requests import Request
 
+from src.auth import app_service
 from src.auth import modern_service as service
 from src.auth.account_security import new_recovery_codes, revoke_owned_session
+from src.auth.app_schemas import AppEmailCodeStart, AppEmailCodeVerify
 from src.auth.modern_schemas import (
     AccountSecurityPublic,
     EmailConfirm,
@@ -18,7 +20,7 @@ from src.auth.modern_schemas import (
     SecurityProof,
 )
 from src.auth.schemas import SessionLoginResponse
-from src.dependencies import CurrentUser, SessionDep
+from src.dependencies import AccountUser, SessionDep
 from src.models import Message
 from src.rate_limit import limiter
 
@@ -127,7 +129,7 @@ async def google_finish(
     },
 )
 async def read_account_security(
-    *, session: SessionDep, current_user: CurrentUser
+    *, session: SessionDep, current_user: AccountUser
 ) -> AccountSecurityPublic:
     return await service.account_security(session=session, user=current_user)
 
@@ -145,7 +147,7 @@ async def replace_recovery_codes(
     *,
     request: Request,
     session: SessionDep,
-    current_user: CurrentUser,
+    current_user: AccountUser,
     body: SecurityProof,
 ) -> RecoveryCodesPublic:
     _ = request
@@ -163,7 +165,47 @@ async def replace_recovery_codes(
     responses={404: {"description": "Session not found"}},
 )
 async def revoke_security_session(
-    *, session: SessionDep, current_user: CurrentUser, session_id: uuid.UUID
+    *, session: SessionDep, current_user: AccountUser, session_id: uuid.UUID
 ) -> Message:
     await revoke_owned_session(session, current_user, session_id)
     return Message(message="Session revoked")
+
+
+@router.post(
+    "/email-code/start",
+    response_model=Message,
+    status_code=200,
+    summary="Send a Barrels account sign-in code",
+    description="Email a 6-digit code for signing in at auth.barrels.gd. The reply never reveals whether the address has an account.",
+    responses={
+        429: {"description": "Rate limit exceeded"},
+        503: {"description": "Email delivery failed"},
+    },
+)
+@limiter.limit("5/minute")
+async def account_email_code_start(
+    *, request: Request, session: SessionDep, body: AppEmailCodeStart
+) -> Message:
+    _ = request
+    return await app_service.account_email_code_start(session=session, body=body)
+
+
+@router.post(
+    "/email-code/verify",
+    response_model=SessionLoginResponse,
+    status_code=200,
+    summary="Sign in to the Barrels account with an email code",
+    description="Verify the code and open an account session (ADR-0017); the first verified code creates the account when sign-up is open.",
+    responses={
+        400: {"description": "Wrong or expired code"},
+        403: {"description": "Registration closed"},
+        429: {"description": "Rate limit exceeded"},
+    },
+)
+@limiter.limit("10/minute")
+async def account_email_code_verify(
+    *, request: Request, session: SessionDep, body: AppEmailCodeVerify
+) -> SessionLoginResponse:
+    return await app_service.account_email_code_verify(
+        request=request, session=session, body=body
+    )

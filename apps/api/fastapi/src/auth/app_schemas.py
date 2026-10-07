@@ -44,3 +44,25 @@ class AppPhoneCodeStart(BaseModel):
 class AppPhoneCodeVerify(BaseModel):
     phone: str = Field(pattern=PHONE_PATTERN)
     code: str = Field(pattern=CODE_PATTERN)
+
+
+class AppHandoffStart(BaseModel):
+    #: The auth.barrels.gd account session secret (never an app session).
+    session_token: str = Field(min_length=1, max_length=500)
+    #: Random value the app stored in its own cookie; redeem must present it.
+    state: str = Field(min_length=16, max_length=200)
+    #: Grant a self-sign-up app's default role ("Join <app>").
+    join: bool = False
+
+
+class AppHandoffCode(BaseModel):
+    code: str
+    #: The app's registered callback; auth redirects the browser here.
+    callback_url: str
+
+
+class AppHandoffRedeem(BaseModel):
+    code: str = Field(min_length=16, max_length=200)
+    state: str = Field(min_length=16, max_length=200)
+    #: The app's own secret, so only its web server can redeem codes.
+    client_secret: str = Field(min_length=1, max_length=200)

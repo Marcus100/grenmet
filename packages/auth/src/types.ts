@@ -21,7 +21,6 @@ export interface AuthConfig {
    */
   authApiTimeoutMs?: number;
   authAppUrl: string;
-  sessionCookieDomain?: string;
   sessionCookieName: string;
 }
 

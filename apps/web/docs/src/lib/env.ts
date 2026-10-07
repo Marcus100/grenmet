@@ -3,11 +3,18 @@ import { z } from "zod";
 
 export const env = createEnv({
   server: {
+    // Sign in with the Barrels account (ADR-0017): host-only cookie, and the
+    // secret that redeems single sign-on codes (unset hides "Sign in").
+    AUTH_APP_URL: z.string().url().optional().default("http://localhost:3000"),
+    DOCS_SESSION_COOKIE_NAME: z.string().optional().default("docs_session"),
+    // Deployment passes "" when the secret isn't set: treat that as off.
+    DOCS_SSO_CLIENT_SECRET: z.preprocess(
+      (value) => value || undefined,
+      z.string().min(32).optional()
+    ),
     // Auth-delegating — redirects to web-auth for login
     AUTH_API_URL: z.string().url().optional().default("http://localhost:8000"),
     AUTH_API_V1_STR: z.string().optional().default("/api/v1"),
-    SESSION_COOKIE_NAME: z.string().optional().default("grenmet_session"),
-    SESSION_COOKIE_DOMAIN: z.string().optional(),
     AUTH_ALLOWED_RETURN_HOSTS: z.string().optional().default(""),
   },
   client: {
@@ -23,10 +30,11 @@ export const env = createEnv({
       .default("https://us.i.posthog.com"),
   },
   runtimeEnv: {
+    AUTH_APP_URL: process.env.AUTH_APP_URL,
+    DOCS_SESSION_COOKIE_NAME: process.env.DOCS_SESSION_COOKIE_NAME,
+    DOCS_SSO_CLIENT_SECRET: process.env.DOCS_SSO_CLIENT_SECRET,
     AUTH_API_URL: process.env.AUTH_API_URL,
     AUTH_API_V1_STR: process.env.AUTH_API_V1_STR,
-    SESSION_COOKIE_NAME: process.env.SESSION_COOKIE_NAME,
-    SESSION_COOKIE_DOMAIN: process.env.SESSION_COOKIE_DOMAIN,
     AUTH_ALLOWED_RETURN_HOSTS: process.env.AUTH_ALLOWED_RETURN_HOSTS,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,
     NEXT_PUBLIC_SENTRY_ENVIRONMENT: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT,
