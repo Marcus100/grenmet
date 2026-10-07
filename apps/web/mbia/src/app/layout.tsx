@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter, Manrope, Noto_Sans } from "next/font/google";
 import { SiteFooter } from "@/components/site-footer";
 import { SiteHeader } from "@/components/site-header";
+import { APP_LABEL, signInEnabled } from "@/lib/auth-config";
 import "./globals.css";
 import {
   MAIN_CONTENT_ID,
@@ -50,7 +51,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-background font-sans text-foreground antialiased">
         <PostHogProvider app="mbia">
           <SkipLink />
-          <SiteHeader />
+          <SiteHeader accountLabel={signInEnabled() ? APP_LABEL : undefined} />
           <main className="outline-none" id={MAIN_CONTENT_ID} tabIndex={-1}>
             {children}
           </main>

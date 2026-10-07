@@ -30,3 +30,4 @@ international audience. Light mode; no reader account or subscription.
 `pnpm --filter @barrelsgd/web-signal build` and `test`; then root formatting,
 workspace types, design and documentation gates. Test desktop at 1280px and 1440px, mobile at 320px, keyboard
 navigation and 200% text. Host-only dev: `pnpm dev:web:signal`.
+- **Sign in:** Barrels account via auth.barrels.gd (ADR-0017): `AccountButton` in the masthead strip, `src/app/auth/*` routes (key `signal`), off until `SIGNAL_SSO_CLIENT_SECRET` is set.

@@ -1,6 +1,7 @@
 "use client";
 
 import { Logo } from "@barrelsgd/gms/components/logo";
+import { AccountButton } from "@barrelsgd/ui/components/account-button";
 import { AnchorIcon, BellIcon, PlaneIcon } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
@@ -14,6 +15,8 @@ import type { AlertsResult } from "@/lib/cap";
 import { cn } from "@/lib/utils";
 
 interface HeaderProps {
+  /** Shows "Sign in" with the Barrels account (ADR-0017) when configured. */
+  accountLabel?: string;
   alerts: AlertsResult;
 }
 
@@ -27,7 +30,7 @@ const UTILITY_LINKS = [
  * Bold sky masthead: warning ribbon (only when there is something to say),
  * a navy utility bar and main bar, the mega menu, and on mobile the drawer.
  */
-export function Header({ alerts }: HeaderProps) {
+export function Header({ alerts, accountLabel }: HeaderProps) {
   const [navOpen, setNavOpen] = useState(false);
   const [menuTop, setMenuTop] = useState(0);
   const headerRef = useRef<HTMLElement>(null);
@@ -85,6 +88,12 @@ export function Header({ alerts }: HeaderProps) {
 
           <div className="flex shrink-0 items-center gap-1">
             <SiteSearch />
+            {accountLabel ? (
+              // The `dark` scope gives the outline button navy-safe tokens.
+              <div className="dark">
+                <AccountButton appLabel={accountLabel} />
+              </div>
+            ) : null}
             <WarningStatusPill
               alerts={alerts}
               className="flex lg:hidden xl:flex"

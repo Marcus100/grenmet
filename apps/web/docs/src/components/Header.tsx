@@ -1,3 +1,4 @@
+import { AccountButton } from "@barrelsgd/ui/components/account-button";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { CloseButton } from "@headlessui/react";
 import { motion, useScroll, useTransform } from "motion/react";
@@ -35,9 +36,13 @@ function TopLevelNavItem({
 export function Header({
   className,
   catalogue = false,
+  accountLabel,
   ref,
   ...props
-}: React.ComponentPropsWithRef<typeof motion.div> & { catalogue?: boolean }) {
+}: React.ComponentPropsWithRef<typeof motion.div> & {
+  catalogue?: boolean;
+  accountLabel?: string;
+}) {
   const { isOpen: mobileNavIsOpen } = useMobileNavigationStore();
   const isInsideMobileNavigation = useIsInsideMobileNavigation();
   const showEmergencyContacts =
@@ -89,6 +94,7 @@ export function Header({
         </nav>
         <div className="hidden md:block md:h-5 md:w-px md:bg-zinc-900/10 md:dark:bg-white/15" />
         <MobileSearch />
+        {accountLabel ? <AccountButton appLabel={accountLabel} /> : null}
         {showEmergencyContacts && (
           <div className="hidden min-[416px]:contents">
             <Button href="/appendix/emergency-personnel">

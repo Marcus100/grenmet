@@ -1,5 +1,6 @@
 "use client";
 
+import { AccountButton } from "@barrelsgd/ui/components/account-button";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import {
   NavigationMenu,
@@ -162,7 +163,8 @@ function MobileNav() {
   );
 }
 
-export function SiteHeader() {
+/** `accountLabel` shows "Sign in" with the Barrels account (ADR-0017). */
+export function SiteHeader({ accountLabel }: { accountLabel?: string }) {
   return (
     <header className="sticky top-0 z-50 border-gaa-rule border-b bg-white/95 backdrop-blur">
       <UtilityBar />
@@ -180,6 +182,7 @@ export function SiteHeader() {
         </Link>
         <DesktopNav />
         <div className="flex items-center gap-2">
+          {accountLabel ? <AccountButton appLabel={accountLabel} /> : null}
           <Button
             asChild
             className="hidden bg-gaa-gold font-semibold text-gaa-navy-ink hover:bg-gaa-gold-deep sm:inline-flex"
