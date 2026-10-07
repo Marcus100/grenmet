@@ -49,7 +49,7 @@ export function MobileTabBar({
   return (
     <nav
       aria-label="Quick links"
-      className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 bg-gm-navy pb-[env(safe-area-inset-bottom)] text-gm-text-inverse/80 lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 hidden grid-cols-5 bg-gm-navy pb-[env(safe-area-inset-bottom)] text-gm-text-inverse/80 max-lg:standalone:grid"
     >
       {TABS.map(({ href, label, Icon }) => {
         const current = isCurrent(pathname, href);
