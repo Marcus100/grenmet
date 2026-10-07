@@ -512,7 +512,16 @@ def is_staff_eligible(user: User) -> bool:
     return (
         user.is_active
         and not user.registration_pending
+        and not (user.password_setup_pending and user.email_verified_at is None)
         and not (user.email_verification_required and user.email_verified_at is None)
+    )
+
+
+def cms_identity_ready(user: User) -> bool:
+    """Verified inbox or administrator-approved staff; no implicit CMS grant."""
+    return bool(
+        user.email_verified_at is not None
+        or (not user.email_verification_required and not user.registration_pending)
     )
 
 
@@ -524,7 +533,14 @@ async def is_eligible_for_app(
     ``registration_pending`` means "staff approval pending" and does not
     affect app-scoped access.
     """
-    if not user.is_active or user.email_verified_at is None:
+    if not user.is_active or (
+        user.password_setup_pending and user.email_verified_at is None
+    ):
+        return False
+    if app_key == "cms":
+        if not cms_identity_ready(user):
+            return False
+    elif user.email_verified_at is None:
         return False
     if user.is_superuser:
         return True

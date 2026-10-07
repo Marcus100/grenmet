@@ -80,3 +80,7 @@ pnpm --filter @barrelsgd/web-cms generate:importmap
 ```
 
 Database integration tests create and remove an isolated randomly named schema in the CMS database, and are skipped unless `CMS_TEST_DATABASE_URL` is set. Generated types and the admin import map are checked in. Runtime schema push is disabled. Apply `20260929_210000_editorial_collections` before deploying this code. It replaces the old single Content collection and **deletes its posts** (cleared by decision on 29 Sep 2026), then creates the new collections. Back up first: destructive rollback is blocked to preserve editorial history. This agent has not applied migrations to operational databases.
+
+### CMS sign-in says access is missing
+
+CMS requires an active account with a usable sign-in method and an explicit Writer/Publisher grant (or superuser status). A verified email satisfies the identity gate. Administrator-approved staff whose email verification is not required may also enter without an operational inbox; this does not mark their email verified. Public accounts still require email verification. In GAA Admin, open Users → Manage roles & access to see the actual blockers or issue an activation link. Never mark an email verified directly in the database.

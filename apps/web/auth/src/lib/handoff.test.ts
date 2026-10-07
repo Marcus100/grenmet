@@ -53,6 +53,19 @@ describe("startHandoff", () => {
     expect(await startHandoff(request, "account-session")).toEqual(expected);
   });
 
+  it("distinguishes email verification from missing CMS permission", async () => {
+    authApiFetch.mockRejectedValueOnce(
+      new AuthApiError(
+        403,
+        "Verify your email address before signing in to this app."
+      )
+    );
+    expect(
+      await startHandoff({ app: "cms", state: STATE }, "account-session")
+    ).toEqual({ kind: "verify-email" });
+    expect(authApiFetch).toHaveBeenCalledTimes(1);
+  });
+
   it("lets outages surface", async () => {
     authApiFetch.mockRejectedValueOnce(new AuthApiError(503, "down"));
     await expect(startHandoff(request, "account-session")).rejects.toThrow();

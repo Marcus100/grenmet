@@ -21,6 +21,8 @@ import { ManageUserDialog } from "./manage-user-dialog";
 const actor = vi.hoisted(() => ({ is_superuser: true }));
 vi.mock("@barrelsgd/auth", () => ({ useSessionUser: () => actor }));
 
+vi.mock("./account-activation", () => ({ AccountActivation: () => null }));
+
 const BASE = "http://localhost";
 
 const ROLES: RolePublic[] = [
