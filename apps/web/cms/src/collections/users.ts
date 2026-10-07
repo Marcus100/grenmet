@@ -1,21 +1,21 @@
 import type { CollectionConfig } from "payload";
-import { editorField, editorsOnly, isEditor } from "../access";
+import { isEditor } from "../access";
 import { fastApiStrategy } from "../lib/fastapi-strategy";
 
 const identityAccess = { create: () => false, update: () => false };
 export const Users: CollectionConfig = {
   slug: "users",
-  labels: { singular: "Staff member", plural: "Staff" },
+  labels: { singular: "CMS user", plural: "CMS users" },
   auth: { disableLocalStrategy: true, strategies: [fastApiStrategy] },
   admin: {
     useAsTitle: "username",
     description:
-      "Identity comes from FastAPI. Only the CMS editorial role is managed here.",
+      "CMS access is managed by system administrators in GAA Admin → Users.",
   },
   access: {
     create: () => false,
     delete: () => false,
-    update: editorsOnly,
+    update: () => false,
     read: ({ req }) => {
       if (isEditor(req.user)) return true;
       return req.user ? { id: { equals: req.user.id } } : false;
@@ -69,7 +69,8 @@ export const Users: CollectionConfig = {
         { label: "Author", value: "author" },
         { label: "Editor", value: "editor" },
       ],
-      access: { create: editorField, update: editorField },
+      access: identityAccess,
+      admin: { readOnly: true, hidden: true },
     },
   ],
 };

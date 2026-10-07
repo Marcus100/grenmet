@@ -27,6 +27,7 @@ export { authEmailRequest } from "./authEmailRequest.js";
 export { authExchangeSessionForAccessToken } from "./authExchangeSessionForAccessToken.js";
 export { authGetAccessReviews } from "./authGetAccessReviews.js";
 export { authGetAccountSecurity } from "./authGetAccountSecurity.js";
+export { authGetAppIdentity } from "./authGetAppIdentity.js";
 export { authGetAppSignInOptions } from "./authGetAppSignInOptions.js";
 export { authGetEffectiveAccess } from "./authGetEffectiveAccess.js";
 export { authGetPermission } from "./authGetPermission.js";
