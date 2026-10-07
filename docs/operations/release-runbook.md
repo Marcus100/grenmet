@@ -2,11 +2,12 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-05
+**Last updated:** 2026-10-07
 
 How a change ships from `dev` to production. Agents (Claude Code / Codex) may run
-the verification and PR-creation steps; **merging PRs and publishing the release
-are human actions** (see the Never tier in `AGENTS.md`).
+local verification, direct dev pushes, and automatic staging PR creation and
+merge under standing authorization. Main merges and production publication or
+deployment require separate explicit authorization (see `AGENTS.md`).
 
 Branch flow: `dev → (PR) → staging → (PR) → main → (release vN.M) → prod`.
 Merge completed task branches into local `dev`, check the combined result locally,
@@ -33,12 +34,17 @@ required checks on `staging` and `main` PRs.
 
 ## 2. Promote dev → staging
 
-- Promote on a cadence (daily, or per finished feature), not per `dev` push.
-- `gh pr create --base staging --head dev --title "chore: promote dev to staging"`
-- **Human merges the PR**, normally by arming auto-merge:
-  `gh pr merge <num> --auto --merge`. The PR merges itself once the required
-  checks pass; a red check leaves it open, and a fix pushed to `dev` updates the
-  PR and re-runs checks. Watch with `gh pr checks <num> --watch` if needed.
+- After completing and locally validating an authorized batch, push dev and
+  automatically create or update its staging promotion PR. Reuse an open PR.
+- Review the entire promotion diff; exclude unrelated or unfinished work.
+- Wait for all applicable CI checks on the current PR head to pass. Expected
+  skipped jobs are acceptable; pending or failed checks block merging.
+- Verify dev still matches that head, then merge without another confirmation:
+  `gh pr merge <num> --merge --match-head-commit <sha>`.
+  Do not arm auto-merge before all applicable checks pass: repository-required
+  checks may cover only a subset. Never use an admin bypass.
+- If dev advances, review and verify the new head. Fix failures locally and
+  revalidate before pushing; do not blindly retry CI.
 - The push to `staging` triggers `pipeline-staging.yml`,
   which builds and smoke-tests a complete core image set alongside CI, then deploys only after every gate succeeds.
 - Verify the staging deploy job succeeded: `gh run list --workflow=pipeline-staging.yml --limit 1`

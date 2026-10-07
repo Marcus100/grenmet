@@ -30,5 +30,7 @@ allowed-tools: Bash(git *), Bash(pnpm *), Bash(gh *)
    integrate and revalidate locally before retrying; never force-push.
 
 5. Use PRs for `dev → staging → main` promotion, reusing an existing promotion PR.
-   CI still verifies pushed changes. PR merges and deployments require explicit
-   user authorization; existing session authorization counts.
+   After a verified dev push, automatically create/update and merge the staging
+   PR when all applicable checks pass for the current head, following `/release`.
+   This has standing authorization. Main merges and production publication or
+   deployment still require separate authorization.
