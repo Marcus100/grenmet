@@ -49,6 +49,7 @@ export { authRecoverPasswordHtmlContent } from "./authRecoverPasswordHtmlContent
 export { authRefreshSession } from "./authRefreshSession.js";
 export { authRegisterUser } from "./authRegisterUser.js";
 export { authReplaceRecoveryCodes } from "./authReplaceRecoveryCodes.js";
+export { authRequestStaffAccess } from "./authRequestStaffAccess.js";
 export { authResetPassword } from "./authResetPassword.js";
 export { authRevokeSecuritySession } from "./authRevokeSecuritySession.js";
 export { authTestToken } from "./authTestToken.js";

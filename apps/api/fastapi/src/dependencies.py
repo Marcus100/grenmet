@@ -74,6 +74,24 @@ SessionDep = Annotated[AsyncSession, Depends(get_db)]
 TokenDep = Annotated[str, Depends(reusable_oauth2)]
 
 
+def _token_user_id(token: str) -> uuid.UUID:
+    """Validate a staff or account bearer token (never an app-scoped one)."""
+    try:
+        payload = jwt.decode(token, auth_settings.SECRET_KEY, algorithms=[ALGORITHM])
+        token_data = TokenPayload(**payload)
+    except InvalidTokenError, ValidationError:
+        raise _unauthorized(ERROR_INVALID_CREDENTIALS)
+    if not token_data.sub:
+        raise _unauthorized(ERROR_INVALID_CREDENTIALS)
+    if token_data.app is not None:
+        # App-scoped tokens (src/auth/apps.py) only work on their own app's routes.
+        raise _unauthorized("This sign-in is limited to another app")
+    try:
+        return uuid.UUID(token_data.sub)
+    except ValueError:
+        raise _unauthorized(ERROR_INVALID_CREDENTIALS)
+
+
 async def get_current_user(session: SessionDep, token: TokenDep) -> User:
     """
     Get current authenticated user dependency.
@@ -87,24 +105,24 @@ async def get_current_user(session: SessionDep, token: TokenDep) -> User:
 
     This dependency is cached, so you can use it multiple times in
     chained dependencies without additional database queries."""
-    try:
-        payload = jwt.decode(token, auth_settings.SECRET_KEY, algorithms=[ALGORITHM])
-        token_data = TokenPayload(**payload)
-    except InvalidTokenError, ValidationError:
-        raise _unauthorized(ERROR_INVALID_CREDENTIALS)
-    if not token_data.sub:
-        raise _unauthorized(ERROR_INVALID_CREDENTIALS)
-    if token_data.app is not None:
-        # App-scoped tokens (src/auth/apps.py) only work on their own app's routes.
-        raise _unauthorized("This sign-in is limited to another app")
-    try:
-        user_id = uuid.UUID(token_data.sub)
-    except ValueError:
-        raise _unauthorized(ERROR_INVALID_CREDENTIALS)
-    return await get_authenticated_user(session, user_id)
+    return await get_authenticated_user(session, _token_user_id(token))
 
 
-async def get_authenticated_user(session: AsyncSession, user_id: uuid.UUID) -> User:
+async def get_account_user(session: SessionDep, token: TokenDep) -> User:
+    """Any active, verified Barrels account, staff-approved or not (ADR-0017).
+
+    Only for self-service routes about the caller's own account (profile,
+    password, two-factor, sessions, access). Everything else uses CurrentUser,
+    which keeps refusing accounts without staff approval.
+    """
+    return await get_authenticated_user(
+        session, _token_user_id(token), allow_unapproved=True
+    )
+
+
+async def get_authenticated_user(
+    session: AsyncSession, user_id: uuid.UUID, *, allow_unapproved: bool = False
+) -> User:
     """Apply the same live account and role checks for every credential type."""
     stmt = (
         select(User)
@@ -122,14 +140,17 @@ async def get_authenticated_user(session: AsyncSession, user_id: uuid.UUID) -> U
         raise _unauthorized(ERROR_INVALID_CREDENTIALS)
     if not user.is_active:
         raise _unauthorized(ERROR_INACTIVE_USER)
-    if user.registration_pending:
+    if user.registration_pending and not allow_unapproved:
         raise HTTPException(
             status_code=403,
             detail="Your registration is awaiting administrator approval",
         )
     if user.email_verification_required and user.email_verified_at is None:
         raise HTTPException(
-            status_code=403, detail="Verify your email before using the staff portal"
+            status_code=403,
+            detail="Verify your email before using the staff portal"
+            if not allow_unapproved
+            else "Verify your email to manage your account",
         )
     from sqlalchemy.orm.attributes import set_committed_value
 
@@ -146,6 +167,7 @@ async def get_authenticated_user(session: AsyncSession, user_id: uuid.UUID) -> U
 # Convenience type annotations for common dependencies
 # Use these in route parameters for clean, readable code
 CurrentUser = Annotated[User, Depends(get_current_user)]
+AccountUser = Annotated[User, Depends(get_account_user)]
 SettingsDep = Annotated[Settings, Depends(get_settings)]
 
 

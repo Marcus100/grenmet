@@ -567,6 +567,15 @@ export type {
   AuthReplaceRecoveryCodesStatus422,
 } from "./AuthReplaceRecoveryCodes.js";
 export type {
+  AuthRequestStaffAccessOptions,
+  AuthRequestStaffAccessResponse,
+  AuthRequestStaffAccessResponses,
+  AuthRequestStaffAccessStatus200,
+  AuthRequestStaffAccessStatus401,
+  AuthRequestStaffAccessStatus403,
+  AuthRequestStaffAccessStatus422,
+} from "./AuthRequestStaffAccess.js";
+export type {
   AuthResetPasswordBody,
   AuthResetPasswordOptions,
   AuthResetPasswordResponse,

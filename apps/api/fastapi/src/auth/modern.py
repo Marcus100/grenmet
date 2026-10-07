@@ -18,7 +18,7 @@ from src.auth.modern_schemas import (
     SecurityProof,
 )
 from src.auth.schemas import SessionLoginResponse
-from src.dependencies import CurrentUser, SessionDep
+from src.dependencies import AccountUser, SessionDep
 from src.models import Message
 from src.rate_limit import limiter
 
@@ -127,7 +127,7 @@ async def google_finish(
     },
 )
 async def read_account_security(
-    *, session: SessionDep, current_user: CurrentUser
+    *, session: SessionDep, current_user: AccountUser
 ) -> AccountSecurityPublic:
     return await service.account_security(session=session, user=current_user)
 
@@ -145,7 +145,7 @@ async def replace_recovery_codes(
     *,
     request: Request,
     session: SessionDep,
-    current_user: CurrentUser,
+    current_user: AccountUser,
     body: SecurityProof,
 ) -> RecoveryCodesPublic:
     _ = request
@@ -163,7 +163,7 @@ async def replace_recovery_codes(
     responses={404: {"description": "Session not found"}},
 )
 async def revoke_security_session(
-    *, session: SessionDep, current_user: CurrentUser, session_id: uuid.UUID
+    *, session: SessionDep, current_user: AccountUser, session_id: uuid.UUID
 ) -> Message:
     await revoke_owned_session(session, current_user, session_id)
     return Message(message="Session revoked")

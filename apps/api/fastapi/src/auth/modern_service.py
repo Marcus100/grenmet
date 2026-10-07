@@ -139,11 +139,7 @@ async def email_confirm(
 
     await session.execute(delete(LoginSession).where(LoginSession.user_id == user.id))
     await session.commit()
-    return Message(
-        message="Email verified. Your registration is awaiting administrator approval."
-        if user.registration_pending
-        else "Email verified. You can now sign in."
-    )
+    return Message(message="Email verified. You can now sign in.")
 
 
 def google_ready() -> None:
@@ -280,7 +276,6 @@ async def google_finish(
     user = await session.get(User, challenge.user_id)
     if not user or not user.is_active or user.email != challenge.data["email"]:
         raise AppException("Account unavailable", 403)
-    service.require_approved_account(user)
     if user.totp_enabled and (
         not await verify_factor(session, user, body.totp_code or "")
     ):
@@ -312,6 +307,7 @@ async def google_finish(
         app_name="auth",
         user_agent=user_agent,
         ip_address=ip_address,
+        enforce_approval=False,
     )
     if new_device:
         schedule_new_sign_in_alert(

@@ -518,6 +518,14 @@ export {
   authReplaceRecoveryCodesStatus422Schema,
 } from "./authReplaceRecoveryCodesSchema.js";
 export {
+  authRequestStaffAccessErrorSchema,
+  authRequestStaffAccessResponseSchema,
+  authRequestStaffAccessStatus200Schema,
+  authRequestStaffAccessStatus401Schema,
+  authRequestStaffAccessStatus403Schema,
+  authRequestStaffAccessStatus422Schema,
+} from "./authRequestStaffAccessSchema.js";
+export {
   authResetPasswordBodySchema,
   authResetPasswordErrorSchema,
   authResetPasswordResponseSchema,

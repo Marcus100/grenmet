@@ -193,6 +193,19 @@ ordinary staff tokens without an `app` claim. `POST /login/session` ignores an
 `app_name` that names any registered app. The cookie-authenticated routes read
 GAA Admin's host-only cookie, `admin_session` (`BROWSER_SESSION_COOKIE_NAME`).
 
+**Public accounts (ADR-0017 step 4).** Any active, verified account can sign in at
+auth.barrels.gd (`POST /login/session`, Google) and hold an *account session*:
+a session that belongs to no registered app. Its token has no `app` claim, but
+staff approval (`registration_pending=false`) is still required by every staff
+route. Only these self-service routes accept unapproved accounts (`AccountUser`):
+`GET /auth/users/me`, `PATCH /auth/users/me/password`, `/auth/2fa/*`,
+`GET /auth/modern/security`, `POST /auth/modern/security/recovery-codes`,
+`DELETE /auth/modern/security/sessions/{id}`, `GET /auth/access/me` and
+`POST /auth/users/me/staff-access-request`. The last one sets
+`UserPublic.staff_access_requested_at` (idempotent); staff setup
+(`GET /setup/staff`) lists approved staff plus accounts that asked.
+`POST /login/access-token` (machine clients) still requires staff approval.
+
 Browser apps should store only the opaque session token in an `httpOnly` cookie. Server Components or route handlers exchange that session token for a short-lived bearer token before calling FastAPI.
 
 Session login, refresh, and session-token exchange responses return the deliberately
