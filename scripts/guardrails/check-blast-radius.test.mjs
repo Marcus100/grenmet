@@ -265,6 +265,89 @@ test("a title correction cannot hide an OpenAPI route change", (t) => {
   assert.equal(check(repository, ["--base", base, "--head", head]).status, 1);
 });
 
+const DESCRIBED_MAIN = `app_configs: dict[str, Any] = {
+    "title": settings.PROJECT_NAME,
+    "description": (
+        "Grenmet API for authenticated administration."
+    ),
+    "contact": {"name": "Grenmet API maintainers"},
+}
+app.include_router(api_router)
+`;
+const OPENAPI_INFO = {
+  openapi: "3.1.0",
+  info: {
+    title: "Barrels Grenada",
+    description: "Grenmet API for authenticated administration.",
+    contact: { name: "Grenmet API maintainers" },
+  },
+  paths: { "/users": {} },
+};
+const redescribed = (source) =>
+  source
+    .replace(
+      "Grenmet API for authenticated administration.",
+      "The Barrels Grenada API for authenticated administration."
+    )
+    .replace("Grenmet API maintainers", "Barrels Grenada maintainers");
+
+test("an API description and contact edit needs no client regeneration", (t) => {
+  const main = "apps/api/fastapi/src/main.py";
+  const schema = "apps/api/fastapi/openapi.json";
+  const { base, repository } = createRepository(t, {
+    [main]: DESCRIBED_MAIN,
+    [schema]: JSON.stringify(OPENAPI_INFO),
+  });
+  write(repository, main, redescribed(DESCRIBED_MAIN));
+  write(repository, schema, redescribed(JSON.stringify(OPENAPI_INFO)));
+  git(repository, "add", main, schema);
+  const staged = check(repository, ["--staged"]);
+  assert.equal(staged.status, 0, staged.stderr);
+  const head = commit(repository);
+  const range = check(repository, ["--base", base, "--head", head]);
+  assert.equal(range.status, 0, range.stderr);
+});
+
+test("a description edit cannot hide a router or schema change", (t) => {
+  const main = "apps/api/fastapi/src/main.py";
+  const schema = "apps/api/fastapi/openapi.json";
+  const { base, repository } = createRepository(t, {
+    [main]: DESCRIBED_MAIN,
+    [schema]: JSON.stringify(OPENAPI_INFO),
+  });
+  write(
+    repository,
+    main,
+    `${redescribed(DESCRIBED_MAIN)}app.include_router(new_router)\n`
+  );
+  write(
+    repository,
+    schema,
+    redescribed(
+      JSON.stringify({ ...OPENAPI_INFO, paths: { "/users": {}, "/new": {} } })
+    )
+  );
+  const head = commit(repository);
+  const result = check(repository, ["--base", base, "--head", head]);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /FastAPI contract companions/);
+});
+
+test("description metadata must stay a plain literal", (t) => {
+  const main = "apps/api/fastapi/src/main.py";
+  const { base, repository } = createRepository(t, { [main]: DESCRIBED_MAIN });
+  write(
+    repository,
+    main,
+    DESCRIBED_MAIN.replace(
+      '{"name": "Grenmet API maintainers"}',
+      "load_contact()"
+    )
+  );
+  const head = commit(repository);
+  assert.equal(check(repository, ["--base", base, "--head", head]).status, 1);
+});
+
 const TELEMETRY_MAIN =
   "from src.utils.router import router as utils_router\nif settings.SENTRY_DSN:\n    sentry_sdk.init(\n        enable_tracing=True,\n    )\n";
 const withTelemetry = (source) =>
