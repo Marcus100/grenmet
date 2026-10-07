@@ -4,6 +4,8 @@ export { authAppEmailCodeVerify } from "./authAppEmailCodeVerify.js";
 export { authAppGoogleComplete } from "./authAppGoogleComplete.js";
 export { authAppGoogleFinish } from "./authAppGoogleFinish.js";
 export { authAppGoogleStart } from "./authAppGoogleStart.js";
+export { authAppHandoffRedeem } from "./authAppHandoffRedeem.js";
+export { authAppHandoffStart } from "./authAppHandoffStart.js";
 export { authAppPasswordLogin } from "./authAppPasswordLogin.js";
 export { authAppPhoneCodeStart } from "./authAppPhoneCodeStart.js";
 export { authAppPhoneCodeVerify } from "./authAppPhoneCodeVerify.js";

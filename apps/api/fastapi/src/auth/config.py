@@ -25,6 +25,9 @@ class AuthConfig(BaseSettings):
     # sign-in pages, session cookie and Google redirect; see ADR-0016.
     EVENTS_APP_URL: str = "http://localhost:3009"
     EVENTS_GOOGLE_REDIRECT_URI: str = ""
+    # Shared with the Events web server; it must present this to redeem a
+    # single sign-on code (ADR-0017). Empty disables single sign-on for Events.
+    EVENTS_SSO_CLIENT_SECRET: str = ""
     # One-time codes by SMS/WhatsApp. "disabled" until a provider is chosen
     # (every message costs money); "console" logs codes for local development.
     PHONE_OTP_PROVIDER: Literal["disabled", "console"] = "disabled"

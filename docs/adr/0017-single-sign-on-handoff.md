@@ -27,13 +27,15 @@ Today staff apps (gaa-admin, cms) still share one legacy cookie on
    The app redeems the code server-side and gets its own new session.
 3. **Codes are single-use, hashed, valid for 60 seconds** and bound to the app
    and the `state` value (stored in `AuthChallenge`). The redirect target comes
-   from the app registry (`src/auth/apps.py`), never from the request.
-4. **The registry says which apps take part** (`sso: bool`) and what token an app
+   from the app registry (`src/auth/apps.py`), never from the request. Only the
+   app's web server can redeem a code: it must present the app's client secret,
+   as an OAuth confidential client does. Apps without a secret don't take part.
+4. **The registry says which apps take part** (those with a client secret) and what token an app
    session mints: `scope="app"` (ADR-0016 app claim; Events) or `scope="staff"`
    (unscoped staff token with the staff approval gate; gaa-admin, cms), so
    existing staff routes keep working.
-5. **Sign-out:** an app's logout ends only that app's session; auth's logout
-   ends only the account session; "sign out everywhere" ends all of them.
+5. **Sign-out:** an app's logout ends only that app's session; signing out at
+   `auth.barrels.gd` ends the account session and every app session.
    The sessions page lists sessions per app, each with its own end action.
 6. **Eligibility is unchanged:** the handoff checks `app.<key>.access` exactly
    as a direct sign-in does, so a resident's account never reaches staff tools.

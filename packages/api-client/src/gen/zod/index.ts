@@ -11,6 +11,9 @@ export { announcementPublicSchema } from "./announcementPublicSchema.js";
 export { apiErrorSchema } from "./apiErrorSchema.js";
 export { appEmailCodeStartSchema } from "./appEmailCodeStartSchema.js";
 export { appEmailCodeVerifySchema } from "./appEmailCodeVerifySchema.js";
+export { appHandoffCodeSchema } from "./appHandoffCodeSchema.js";
+export { appHandoffRedeemSchema } from "./appHandoffRedeemSchema.js";
+export { appHandoffStartSchema } from "./appHandoffStartSchema.js";
 export { appPasswordLoginSchema } from "./appPasswordLoginSchema.js";
 export { appPhoneCodeStartPropertiesChannelEnumSchema } from "./appPhoneCodeStartPropertiesChannelEnumSchema.js";
 export { appPhoneCodeStartSchema } from "./appPhoneCodeStartSchema.js";
@@ -113,6 +116,32 @@ export {
   authAppGoogleStartStatus429Schema,
   authAppGoogleStartStatus503Schema,
 } from "./authAppGoogleStartSchema.js";
+export {
+  authAppHandoffRedeemBodySchema,
+  authAppHandoffRedeemErrorSchema,
+  authAppHandoffRedeemPathAppSchema,
+  authAppHandoffRedeemResponseSchema,
+  authAppHandoffRedeemStatus200Schema,
+  authAppHandoffRedeemStatus400Schema,
+  authAppHandoffRedeemStatus401Schema,
+  authAppHandoffRedeemStatus403Schema,
+  authAppHandoffRedeemStatus404Schema,
+  authAppHandoffRedeemStatus422Schema,
+  authAppHandoffRedeemStatus429Schema,
+} from "./authAppHandoffRedeemSchema.js";
+export {
+  authAppHandoffStartBodySchema,
+  authAppHandoffStartErrorSchema,
+  authAppHandoffStartPathAppSchema,
+  authAppHandoffStartResponseSchema,
+  authAppHandoffStartStatus200Schema,
+  authAppHandoffStartStatus401Schema,
+  authAppHandoffStartStatus403Schema,
+  authAppHandoffStartStatus404Schema,
+  authAppHandoffStartStatus409Schema,
+  authAppHandoffStartStatus422Schema,
+  authAppHandoffStartStatus429Schema,
+} from "./authAppHandoffStartSchema.js";
 export {
   authAppPasswordLoginBodySchema,
   authAppPasswordLoginErrorSchema,

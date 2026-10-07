@@ -12,6 +12,9 @@ export type { AnnouncementPublic } from "./AnnouncementPublic.js";
 export type { ApiError } from "./ApiError.js";
 export type { AppEmailCodeStart } from "./AppEmailCodeStart.js";
 export type { AppEmailCodeVerify } from "./AppEmailCodeVerify.js";
+export type { AppHandoffCode } from "./AppHandoffCode.js";
+export type { AppHandoffRedeem } from "./AppHandoffRedeem.js";
+export type { AppHandoffStart } from "./AppHandoffStart.js";
 export type { AppPasswordLogin } from "./AppPasswordLogin.js";
 export type { AppPhoneCodeStart } from "./AppPhoneCodeStart.js";
 export type { AppPhoneCodeStartPropertiesChannelEnum } from "./AppPhoneCodeStartPropertiesChannelEnum.js";
@@ -120,6 +123,34 @@ export type {
   AuthAppGoogleStartStatus429,
   AuthAppGoogleStartStatus503,
 } from "./AuthAppGoogleStart.js";
+export type {
+  AuthAppHandoffRedeemBody,
+  AuthAppHandoffRedeemOptions,
+  AuthAppHandoffRedeemPath,
+  AuthAppHandoffRedeemResponse,
+  AuthAppHandoffRedeemResponses,
+  AuthAppHandoffRedeemStatus200,
+  AuthAppHandoffRedeemStatus400,
+  AuthAppHandoffRedeemStatus401,
+  AuthAppHandoffRedeemStatus403,
+  AuthAppHandoffRedeemStatus404,
+  AuthAppHandoffRedeemStatus422,
+  AuthAppHandoffRedeemStatus429,
+} from "./AuthAppHandoffRedeem.js";
+export type {
+  AuthAppHandoffStartBody,
+  AuthAppHandoffStartOptions,
+  AuthAppHandoffStartPath,
+  AuthAppHandoffStartResponse,
+  AuthAppHandoffStartResponses,
+  AuthAppHandoffStartStatus200,
+  AuthAppHandoffStartStatus401,
+  AuthAppHandoffStartStatus403,
+  AuthAppHandoffStartStatus404,
+  AuthAppHandoffStartStatus409,
+  AuthAppHandoffStartStatus422,
+  AuthAppHandoffStartStatus429,
+} from "./AuthAppHandoffStart.js";
 export type {
   AuthAppPasswordLoginBody,
   AuthAppPasswordLoginOptions,

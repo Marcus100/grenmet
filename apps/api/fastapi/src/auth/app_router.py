@@ -2,7 +2,8 @@
 
 Each self-service app (Barrels Events first) signs people in on its own pages
 and keeps its own session cookie. Every route here is intentionally public
-and rate-limited; proof of ownership (a code or Google) is required to
+and rate-limited; proof of ownership (a code, Google, or a live
+auth.barrels.gd account session for the ADR-0017 handoff) is required to
 establish a session.
 """
 
@@ -16,6 +17,9 @@ from src.auth.app_dependencies import OptionalBearer, unauthorized, user_for_app
 from src.auth.app_schemas import (
     AppEmailCodeStart,
     AppEmailCodeVerify,
+    AppHandoffCode,
+    AppHandoffRedeem,
+    AppHandoffStart,
     AppPasswordLogin,
     AppPhoneCodeStart,
     AppPhoneCodeVerify,
@@ -264,4 +268,51 @@ async def app_phone_link_verify(
     _ = request
     return await app_service.phone_link_verify(
         session=session, app=app, user=user, body=body
+    )
+
+
+# Called server-to-server by the auth and app web servers, so the per-IP limit
+# is shared by every user of that server; keep it well above sign-in limits.
+@router.post(
+    "/handoff",
+    response_model=AppHandoffCode,
+    status_code=status.HTTP_200_OK,
+    summary="Start single sign-on into an app",
+    description="Exchange the auth.barrels.gd account session for a one-use, 60-second code bound to this app and the caller's state (ADR-0017).",
+    responses={
+        **_PUBLIC,
+        401: {"description": "Account session missing, expired or app-scoped"},
+        403: {"description": "Account cannot use this app"},
+        409: {
+            "description": "Join required: retry with join=true after the user agrees"
+        },
+    },
+)
+@limiter.limit("60/minute")
+async def app_handoff_start(
+    *, request: Request, session: SessionDep, app: AppDep, body: AppHandoffStart
+) -> AppHandoffCode:
+    _ = request
+    return await app_service.handoff_start(session=session, app=app, body=body)
+
+
+@router.post(
+    "/handoff/redeem",
+    response_model=SessionLoginResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Redeem a single sign-on code",
+    description="Exchange a handoff code and its state for a new session in this app only.",
+    responses={
+        **_PUBLIC,
+        400: {"description": "Code expired, already used, or for another app or state"},
+        401: {"description": "Wrong app client secret"},
+        403: {"description": "Account cannot use this app"},
+    },
+)
+@limiter.limit("60/minute")
+async def app_handoff_redeem(
+    *, request: Request, session: SessionDep, app: AppDep, body: AppHandoffRedeem
+) -> SessionLoginResponse:
+    return await app_service.handoff_redeem(
+        request=request, session=session, app=app, body=body
     )

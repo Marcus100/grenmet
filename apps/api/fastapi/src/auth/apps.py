@@ -26,10 +26,23 @@ class AppDefinition:
     default_role: str
     google_redirect_uri: str
     methods: frozenset[SignInMethod]
+    #: Secret the app's web server presents to redeem a single sign-on code
+    #: (ADR-0017). Empty means the app does not take part in single sign-on.
+    client_secret: str = ""
+    #: Path on ``url`` that redeems a handoff code.
+    callback_path: str = "/auth/callback"
 
     @property
     def access_permission(self) -> str:
         return f"app.{self.key}.access"
+
+    @property
+    def sso(self) -> bool:
+        return bool(self.client_secret)
+
+    @property
+    def callback_url(self) -> str:
+        return f"{self.url}{self.callback_path}"
 
 
 def _apps() -> dict[str, AppDefinition]:
@@ -46,6 +59,7 @@ def _apps() -> dict[str, AppDefinition]:
         default_role="events-member",
         google_redirect_uri=auth_settings.EVENTS_GOOGLE_REDIRECT_URI,
         methods=frozenset(methods),
+        client_secret=auth_settings.EVENTS_SSO_CLIENT_SECRET,
     )
     return {events.key: events}
 

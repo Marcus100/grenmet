@@ -24,11 +24,14 @@ from src.auth.account_security import verify_factor
 from src.auth.app_schemas import (
     AppEmailCodeStart,
     AppEmailCodeVerify,
+    AppHandoffCode,
+    AppHandoffRedeem,
+    AppHandoffStart,
     AppPasswordLogin,
     AppPhoneCodeStart,
     AppPhoneCodeVerify,
 )
-from src.auth.apps import AppDefinition, require_method
+from src.auth.apps import AppDefinition, is_app_scoped, require_method
 from src.auth.config import auth_settings
 from src.auth.devices import remember_device, schedule_new_sign_in_alert
 from src.auth.lockout import login_lockout
@@ -528,3 +531,86 @@ async def phone_link_verify(
     session.add(user)
     await session.commit()
     return Message(message="Phone number linked. You can now sign in with a code.")
+
+
+# --- Single sign-on handoff from auth.barrels.gd (ADR-0017) -------------------
+
+HANDOFF_PURPOSE = "app_handoff"
+HANDOFF_TTL_MINUTES = 1
+HANDOFF_EXPIRED = "That sign-in link expired or was already used. Try again."
+
+
+def _require_sso(app: AppDefinition) -> None:
+    if not app.sso:
+        raise AppException("This app doesn't accept single sign-on", 404)
+
+
+async def handoff_start(
+    *, session: AsyncSession, app: AppDefinition, body: AppHandoffStart
+) -> AppHandoffCode:
+    """Turn a live account session into a one-use code for one app.
+
+    Only the account session (a non-app-scoped session from auth.barrels.gd)
+    may start a handoff, so an app session can never mint access to another app.
+    """
+    _require_sso(app)
+    account = await service.get_active_session_by_secret(
+        session=session, session_secret=body.session_token
+    )
+    if account is None or is_app_scoped(account.app_name):
+        raise AppException("Sign in again", 401)
+    user = await service.get_user_by_id(session=session, user_id=account.user_id)
+    if user is None or not user.is_active:
+        raise AppException("Sign in again", 401)
+    if not await service.is_eligible_for_app(
+        session=session, user=user, app_key=app.key
+    ):
+        if not app.self_signup:
+            raise AppException("Ask the team to give you access to this app.", 403)
+        if not body.join:
+            raise AppException(f"Join {app.label} to continue.", 409)
+        await ensure_member(session, user, app)
+        if not await service.is_eligible_for_app(
+            session=session, user=user, app_key=app.key
+        ):
+            raise AppException("This account can't sign in to this app.", 403)
+    code = await modern_service.issue(
+        session,
+        HANDOFF_PURPOSE,
+        user_id=user.id,
+        data={"app": app.key, "state": modern_service.digest(body.state)},
+        minutes=HANDOFF_TTL_MINUTES,
+    )
+    await session.commit()
+    return AppHandoffCode(code=code, callback_url=app.callback_url)
+
+
+async def handoff_redeem(
+    *,
+    request: Request,
+    session: AsyncSession,
+    app: AppDefinition,
+    body: AppHandoffRedeem,
+) -> SessionLoginResponse:
+    """Exchange a handoff code for a new session in this app only."""
+    _require_sso(app)
+    if not secrets.compare_digest(
+        body.client_secret.encode(), app.client_secret.encode()
+    ):
+        raise AppException("Unknown app credentials", 401)
+    try:
+        challenge = await modern_service.consume(session, body.code, HANDOFF_PURPOSE)
+    except AppException:
+        raise AppException(HANDOFF_EXPIRED, 400) from None
+    data, user_id = challenge.data, challenge.user_id
+    # The code is spent even when it doesn't match, so it can't be retried.
+    await session.commit()
+    matches = data.get("app") == app.key and secrets.compare_digest(
+        str(data.get("state", "")), modern_service.digest(body.state)
+    )
+    if not matches or user_id is None:
+        raise AppException(HANDOFF_EXPIRED, 400)
+    user = await service.get_user_by_id(session=session, user_id=user_id)
+    if user is None or not user.is_active:
+        raise AppException(HANDOFF_EXPIRED, 400)
+    return await _session_response(request, session, user, app)
