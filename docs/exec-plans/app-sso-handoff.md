@@ -1,7 +1,7 @@
 # Exec plan: single sign-on handoff across `*.barrels.gd`
 
 Decision record: ADR-0017 (proposed), building on ADR-0016.
-Status: **steps 1–3 done; step 4 not started.** Each phase ships and
+Status: **steps 1–4 built; each site's "Sign in" switches on with its secret.** Each phase ships and
 is reviewed on its own.
 
 ## Goal
@@ -113,7 +113,11 @@ app /auth/callback: state == cookie?
   redirect; add Sign in, account menu, start and callback routes to Weather
   (gms), MBIA, Elections, Signal and Docs (each registered with a client
   secret, `app.<key>.access` and a self-sign-up default role).
-- `/sessions` groups sessions by app; auth logout calls logout-all.
+- *Done (slice 4):* shared `AccountButton` (`@barrelsgd/ui`) and route helpers
+  (`accountStatusResponse`, `signOutResponse`, `completeAppSignIn({ notice })`);
+  gms, mbia, signal, docs and elections mount `/auth/{start,callback,me,logout}`
+  and show "Sign in" when their `<SITE>_SSO_CLIENT_SECRET` is set.
+- Not yet: `/sessions` grouped by app (auth logout already calls logout-all).
 - Update ADR-0002 (superseded in part), ADR-0016 (amended), `packages/auth`
   README and AGENTS, and `apps/web/auth/AGENTS.md`.
 

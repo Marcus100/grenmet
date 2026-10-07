@@ -30,6 +30,20 @@ production deployment and other branches for previews. An explicitly authorized
 manual production deployment can publish a reviewed commit before its promotion.
 Vercel publishing is independent of the Docker release workflow.
 
+## Sign in with the Barrels account
+
+"Sign in" (ADR-0017) appears once these are set in the Vercel project for
+Production (and Preview only if a staging API is reachable from previews):
+
+| Variable | Value |
+|---|---|
+| `AUTH_API_URL` | `https://api.barrels.gd` |
+| `AUTH_API_V1_STR` | `/api/v1` |
+| `AUTH_APP_URL` | `https://auth.barrels.gd` |
+| `ELECTIONS_SSO_CLIENT_SECRET` | 32+ characters; the same value as the production GitHub secret of that name, which the API reads |
+
+The site keeps its own host-only `elections_session` cookie.
+
 ## Data and services
 
 The app reads checked-in JSON and generated files. Commit `src/data/source/`,

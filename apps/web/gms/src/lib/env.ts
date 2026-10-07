@@ -7,6 +7,18 @@ export const env = createEnv({
     // Auth-delegating — redirects to web-auth for login
     AUTH_API_URL: z.string().url().optional().default("http://localhost:8000"),
     AUTH_API_V1_STR: z.string().optional().default("/api/v1"),
+    // Sign in with the Barrels account (ADR-0017): host-only cookie, and the
+    // secret that redeems single sign-on codes (unset hides "Sign in").
+    AUTH_APP_URL: z.string().url().optional().default("http://localhost:3000"),
+    WEATHER_SESSION_COOKIE_NAME: z
+      .string()
+      .optional()
+      .default("weather_session"),
+    // Deployment passes "" when the secret isn't set: treat that as off.
+    WEATHER_SSO_CLIENT_SECRET: z.preprocess(
+      (value) => value || undefined,
+      z.string().min(32).optional()
+    ),
     AUTH_ALLOWED_RETURN_HOSTS: z.string().optional().default(""),
     // Base URL for the public CAP warning endpoints (/api/cap/*). These are
     // unauthenticated, so this is independent of the auth delegation above.
@@ -34,6 +46,9 @@ export const env = createEnv({
     CMS_API_URL: process.env.CMS_API_URL,
     AUTH_API_URL: process.env.AUTH_API_URL,
     AUTH_API_V1_STR: process.env.AUTH_API_V1_STR,
+    AUTH_APP_URL: process.env.AUTH_APP_URL,
+    WEATHER_SESSION_COOKIE_NAME: process.env.WEATHER_SESSION_COOKIE_NAME,
+    WEATHER_SSO_CLIENT_SECRET: process.env.WEATHER_SSO_CLIENT_SECRET,
     AUTH_ALLOWED_RETURN_HOSTS: process.env.AUTH_ALLOWED_RETURN_HOSTS,
     CAP_API_URL: process.env.CAP_API_URL,
     NEXT_PUBLIC_SENTRY_DSN: process.env.NEXT_PUBLIC_SENTRY_DSN,

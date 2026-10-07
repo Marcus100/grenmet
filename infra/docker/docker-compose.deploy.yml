@@ -165,6 +165,18 @@ services:
       GAA_ADMIN_SSO_CLIENT_SECRET: ${GAA_ADMIN_SSO_CLIENT_SECRET:?GAA_ADMIN_SSO_CLIENT_SECRET required}
       CMS_APP_URL: https://cms.${BASE_DOMAIN}
       CMS_SSO_CLIENT_SECRET: ${CMS_SSO_CLIENT_SECRET:?CMS_SSO_CLIENT_SECRET required}
+      # Public sites with "Sign in" (optional; empty keeps it off per site).
+      WEATHER_APP_URL: https://weather.${BASE_DOMAIN}
+      WEATHER_SSO_CLIENT_SECRET: ${WEATHER_SSO_CLIENT_SECRET:-}
+      MBIA_APP_URL: https://mbia.${BASE_DOMAIN}
+      MBIA_SSO_CLIENT_SECRET: ${MBIA_SSO_CLIENT_SECRET:-}
+      SIGNAL_APP_URL: https://signal.${BASE_DOMAIN}
+      SIGNAL_SSO_CLIENT_SECRET: ${SIGNAL_SSO_CLIENT_SECRET:-}
+      DOCS_APP_URL: https://docs.${BASE_DOMAIN}
+      DOCS_SSO_CLIENT_SECRET: ${DOCS_SSO_CLIENT_SECRET:-}
+      # Elections is hosted on Vercel; its secret is set there and here.
+      ELECTIONS_APP_URL: https://elections.${BASE_DOMAIN}
+      ELECTIONS_SSO_CLIENT_SECRET: ${ELECTIONS_SSO_CLIENT_SECRET:-}
       RESEND_API_KEY: ${RESEND_API_KEY}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
@@ -397,6 +409,8 @@ services:
       start_period: 20s
     environment:
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_DOCS:-}
+      AUTH_APP_URL: https://auth.${BASE_DOMAIN}
+      DOCS_SSO_CLIENT_SECRET: ${DOCS_SSO_CLIENT_SECRET:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
       AUTH_API_URL: https://api.${BASE_DOMAIN}
       AUTH_API_V1_STR: /api/v1
@@ -422,6 +436,8 @@ services:
       start_period: 20s
     environment:
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_GMS:-}
+      AUTH_APP_URL: https://auth.${BASE_DOMAIN}
+      WEATHER_SSO_CLIENT_SECRET: ${WEATHER_SSO_CLIENT_SECRET:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
       CMS_API_URL: http://web-cms:3006
       CAP_API_URL: http://api:8000
@@ -449,6 +465,10 @@ services:
       start_period: 20s
     environment:
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_SIGNAL:-}
+      AUTH_API_URL: http://api:8000
+      AUTH_API_V1_STR: /api/v1
+      AUTH_APP_URL: https://auth.${BASE_DOMAIN}
+      SIGNAL_SSO_CLIENT_SECRET: ${SIGNAL_SSO_CLIENT_SECRET:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
     labels:
       - "traefik.enable=true"
@@ -471,6 +491,10 @@ services:
       start_period: 20s
     environment:
       NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_MBIA:-}
+      AUTH_API_URL: http://api:8000
+      AUTH_API_V1_STR: /api/v1
+      AUTH_APP_URL: https://auth.${BASE_DOMAIN}
+      MBIA_SSO_CLIENT_SECRET: ${MBIA_SSO_CLIENT_SECRET:-}
       NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
     labels:
       - "traefik.enable=true"

@@ -51,3 +51,4 @@ Elections and the separate Barrels holding page use Vercel; the operational apps
   `src/lib/nav.ts`.
 - Readability: 18px reading text, 16px supporting prose/controls/tables, 14px minimum short labels; never shrink source notes to establish hierarchy. Keep chart labels legible in a local scroll viewport and check 375px plus enlarged text.
 - Tests: `pnpm vitest run` from this directory.
+- **Sign in:** Barrels account via auth.barrels.gd (ADR-0017): `AccountButton` in the masthead, `src/app/auth/*` routes, typed env in `src/lib/env.ts` (key `elections`). Vercel settings: `docs/web/elections-deployment.md`.

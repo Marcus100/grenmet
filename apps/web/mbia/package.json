@@ -20,11 +20,12 @@
     "content:convert": "python3 scripts/convert-scrape.py"
   },
   "dependencies": {
+    "@barrelsgd/auth": "workspace:*",
+    "@barrelsgd/ui": "workspace:*",
     "@content-collections/cli": "catalog:",
     "@content-collections/core": "catalog:",
     "@content-collections/mdx": "catalog:",
     "@content-collections/next": "catalog:",
-    "@barrelsgd/ui": "workspace:*",
     "@sentry/nextjs": "catalog:",
     "@t3-oss/env-nextjs": "catalog:",
     "@tailwindcss/typography": "catalog:",

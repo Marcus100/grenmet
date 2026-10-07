@@ -228,9 +228,24 @@ listed in `infra/docker/production.env`; staging uses their staging equivalents.
 A leading-dot entry accepts the apex and its subdomains. The superseded
 weather.gd go-live plan is historical context, not an active allowlist recipe.
 
-### Apps that delegate auth (docs, gms)
+### Public sites with "Sign in" (gms, docs, signal, mbia, elections)
 
-These apps redirect to `web-auth` for sign-in. They do not manage sessions directly.
+Each site signs in with the Barrels account through auth.barrels.gd (ADR-0017)
+and keeps its own host-only session cookie. "Sign in" appears only when the
+site's secret is set; the same value must be set for the API.
+
+| Site | Registry key | Secret | Cookie (default) |
+|---|---|---|---|
+| gms (weather) | `weather` | `WEATHER_SSO_CLIENT_SECRET` | `weather_session` |
+| docs | `docs` | `DOCS_SSO_CLIENT_SECRET` | `docs_session` |
+| signal | `signal` | `SIGNAL_SSO_CLIENT_SECRET` | `signal_session` |
+| mbia | `mbia` | `MBIA_SSO_CLIENT_SECRET` | `mbia_session` |
+| elections (Vercel) | `elections` | `ELECTIONS_SSO_CLIENT_SECRET` | `elections_session` |
+
+Each also needs `AUTH_API_URL`, `AUTH_API_V1_STR` and `AUTH_APP_URL`. The API
+needs `<SITE>_APP_URL` (defaults to the local port) and the matching secret.
+Secrets are optional GitHub environment secrets (32+ characters); Elections'
+are set in Vercel and in GitHub (for the API).
 
 | Variable | Purpose |
 |---|---|
@@ -445,6 +460,10 @@ credentials into staging.
   `BILLING_STRIPE_PRICE_ID`, `BILLING_CHECKOUT_SUCCESS_URL`,
   `BILLING_CHECKOUT_CANCEL_URL`. Supply the complete bundle together.
 - Google: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
+- Single sign-on (ADR-0017): `GAA_ADMIN_SSO_CLIENT_SECRET`, `CMS_SSO_CLIENT_SECRET`
+  (required); `EVENTS_SSO_CLIENT_SECRET`, `WEATHER_SSO_CLIENT_SECRET`,
+  `DOCS_SSO_CLIENT_SECRET`, `SIGNAL_SSO_CLIENT_SECRET`, `MBIA_SSO_CLIENT_SECRET`,
+  `ELECTIONS_SSO_CLIENT_SECRET` (optional; each switches on "Sign in" there).
 - CAP signing: `CAP_SIGNING_CERT`, `CAP_SIGNING_KEY` (PEM contents).
 - Email: `RESEND_API_KEY`, `RESEND_WEBHOOK_SECRET`, `EMAIL_RENDER_SECRET`.
 - Sentry: `SENTRY_DSN_STAGING` in staging, `SENTRY_DSN_PRODUCTION` in production,

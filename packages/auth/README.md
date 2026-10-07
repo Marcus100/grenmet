@@ -279,6 +279,13 @@ one-use code server-side with the client secret, sets the app's own session
 cookie and redirects back. `writeSessionCookieOnResponse` is the
 `NextResponse` variant of `writeSessionCookie`.
 
+Public sites also mount `GET /auth/me` → `accountStatusResponse(config, request)`
+and `POST /auth/logout` → `signOutResponse(config, request)`, and render
+`AccountButton` from `@barrelsgd/ui/components/account-button` in the header.
+The button reads `/auth/me` in the browser (pages stay static) and shows "Sign
+in", the account menu, and — after `completeAppSignIn(..., { notice: true })` —
+a one-time "signed in with your Barrels account" notice. Pattern: `apps/web/gms`.
+
 ---
 
 ### `authApiFetch<T>(config, path, init?)`

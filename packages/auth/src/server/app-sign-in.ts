@@ -7,6 +7,7 @@ import {
   isAuthApiError,
   type SessionLoginResponse,
 } from "../types";
+import { noticeCookieName } from "./account-routes";
 import { authApiFetch, writeSessionCookieOnResponse } from "./auth-api-fetch";
 import { getRequestOrigin, getSafeLocalReturnTo } from "./auth-redirect";
 
@@ -100,7 +101,12 @@ export function startAppSignIn(
 export async function completeAppSignIn(
   config: AuthConfig,
   request: NextRequest,
-  input: { clientSecret: string; failurePath?: string }
+  input: {
+    clientSecret: string;
+    failurePath?: string;
+    /** Show "signed in with your Barrels account" once (information sites). */
+    notice?: boolean;
+  }
 ): Promise<NextResponse> {
   const failure = `${input.failurePath ?? "/"}?sign_in=expired`;
   const code = request.nextUrl.searchParams.get("code");
@@ -136,5 +142,11 @@ export async function completeAppSignIn(
     session.session_token,
     session.session_expires_at
   );
+  if (input.notice) {
+    response.cookies.set(noticeCookieName(config), "1", {
+      ...stateCookieOptions(5 * 60),
+      path: "/",
+    });
+  }
   return response;
 }
