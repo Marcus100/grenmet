@@ -176,11 +176,17 @@ their own host-only cookie. All routes are public and rate-limited:
 | `POST /api/v1/auth/apps/{app}/google/start` · `/complete` · `/finish` | Google with the app's redirect URI |
 | `POST /api/v1/auth/apps/{app}/phone-code/start` · `/verify` | SMS/WhatsApp code for linked numbers (disabled until a provider is configured) |
 | `POST /api/v1/auth/apps/{app}/phone/link/start` · `/verify` | Signed-in member links a phone number |
+| `POST /api/v1/auth/apps/{app}/handoff` | Single sign-on (ADR-0017): auth's server swaps the account session plus a `state` for a one-use, 60-second code and the app's `callback_url`. 409 = join required (retry with `join: true`), 403 = no access |
+| `POST /api/v1/auth/apps/{app}/handoff/redeem` | The app's server swaps `code`, `state` and its `client_secret` for a new session in that app only |
 
 Responses are `SessionLoginResponse`. Access tokens from these sessions carry an
 `app` claim: staff routes return 401 for them, and app routes accept only their own
 app's tokens. `/login/session/access-token` and `/login/session/refresh` keep the
-claim for app sessions.
+claim for app sessions. The cookie-authenticated routes (`/auth/browser/session` and
+the `BrowserUser` routes) refuse app-scoped sessions, matching the token rule.
+Single sign-on is available only for apps with a configured client secret
+(`EVENTS_SSO_CLIENT_SECRET` for Events); only a non-app-scoped account session can
+start a handoff.
 
 Browser apps should store only the opaque session token in an `httpOnly` cookie. Server Components or route handlers exchange that session token for a short-lived bearer token before calling FastAPI.
 

@@ -19721,6 +19721,144 @@
         }
       }
     },
+    "/api/v1/auth/apps/{app}/handoff": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Start single sign-on into an app",
+        "description": "Exchange the auth.barrels.gd account session for a one-use, 60-second code bound to this app and the caller's state (ADR-0017).",
+        "operationId": "authAppHandoffStart",
+        "parameters": [
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,30}$",
+              "title": "App"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppHandoffStart"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppHandoffCode"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Unknown app"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "401": {
+            "description": "Account session missing, expired or app-scoped"
+          },
+          "403": {
+            "description": "Account cannot use this app"
+          },
+          "409": {
+            "description": "Join required: retry with join=true after the user agrees"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/apps/{app}/handoff/redeem": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Redeem a single sign-on code",
+        "description": "Exchange a handoff code and its state for a new session in this app only.",
+        "operationId": "authAppHandoffRedeem",
+        "parameters": [
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,30}$",
+              "title": "App"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppHandoffRedeem"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SessionLoginResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Unknown app"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "400": {
+            "description": "Code expired, already used, or for another app or state"
+          },
+          "401": {
+            "description": "Wrong app client secret"
+          },
+          "403": {
+            "description": "Account cannot use this app"
+          }
+        }
+      }
+    },
     "/api/v1/hr/staff-card/me": {
       "get": {
         "tags": [
@@ -21899,6 +22037,80 @@
           "code"
         ],
         "title": "AppEmailCodeVerify"
+      },
+      "AppHandoffCode": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "callback_url": {
+            "type": "string",
+            "title": "Callback Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "callback_url"
+        ],
+        "title": "AppHandoffCode"
+      },
+      "AppHandoffRedeem": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 16,
+            "title": "Code"
+          },
+          "state": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 16,
+            "title": "State"
+          },
+          "client_secret": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Client Secret"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "state",
+          "client_secret"
+        ],
+        "title": "AppHandoffRedeem"
+      },
+      "AppHandoffStart": {
+        "properties": {
+          "session_token": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Session Token"
+          },
+          "state": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 16,
+            "title": "State"
+          },
+          "join": {
+            "type": "boolean",
+            "title": "Join",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_token",
+          "state"
+        ],
+        "title": "AppHandoffStart"
       },
       "AppPasswordLogin": {
         "properties": {

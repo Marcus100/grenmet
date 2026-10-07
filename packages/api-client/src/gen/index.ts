@@ -7,6 +7,8 @@ export { authAppEmailCodeVerify } from "./clients/authAppEmailCodeVerify.js";
 export { authAppGoogleComplete } from "./clients/authAppGoogleComplete.js";
 export { authAppGoogleFinish } from "./clients/authAppGoogleFinish.js";
 export { authAppGoogleStart } from "./clients/authAppGoogleStart.js";
+export { authAppHandoffRedeem } from "./clients/authAppHandoffRedeem.js";
+export { authAppHandoffStart } from "./clients/authAppHandoffStart.js";
 export { authAppPasswordLogin } from "./clients/authAppPasswordLogin.js";
 export { authAppPhoneCodeStart } from "./clients/authAppPhoneCodeStart.js";
 export { authAppPhoneCodeVerify } from "./clients/authAppPhoneCodeVerify.js";
@@ -373,6 +375,16 @@ export {
   authAppGoogleStartMutationOptions,
   useAuthAppGoogleStart,
 } from "./hooks/useAuthAppGoogleStart.js";
+export {
+  authAppHandoffRedeemMutationKey,
+  authAppHandoffRedeemMutationOptions,
+  useAuthAppHandoffRedeem,
+} from "./hooks/useAuthAppHandoffRedeem.js";
+export {
+  authAppHandoffStartMutationKey,
+  authAppHandoffStartMutationOptions,
+  useAuthAppHandoffStart,
+} from "./hooks/useAuthAppHandoffStart.js";
 export {
   authAppPasswordLoginMutationKey,
   authAppPasswordLoginMutationOptions,
@@ -2067,6 +2079,9 @@ export type { AnnouncementPublic } from "./models/AnnouncementPublic.js";
 export type { ApiError } from "./models/ApiError.js";
 export type { AppEmailCodeStart } from "./models/AppEmailCodeStart.js";
 export type { AppEmailCodeVerify } from "./models/AppEmailCodeVerify.js";
+export type { AppHandoffCode } from "./models/AppHandoffCode.js";
+export type { AppHandoffRedeem } from "./models/AppHandoffRedeem.js";
+export type { AppHandoffStart } from "./models/AppHandoffStart.js";
 export type { AppPasswordLogin } from "./models/AppPasswordLogin.js";
 export type { AppPhoneCodeStart } from "./models/AppPhoneCodeStart.js";
 export type { AppPhoneCodeStartPropertiesChannelEnum } from "./models/AppPhoneCodeStartPropertiesChannelEnum.js";
@@ -2175,6 +2190,34 @@ export type {
   AuthAppGoogleStartStatus429,
   AuthAppGoogleStartStatus503,
 } from "./models/AuthAppGoogleStart.js";
+export type {
+  AuthAppHandoffRedeemBody,
+  AuthAppHandoffRedeemOptions,
+  AuthAppHandoffRedeemPath,
+  AuthAppHandoffRedeemResponse,
+  AuthAppHandoffRedeemResponses,
+  AuthAppHandoffRedeemStatus200,
+  AuthAppHandoffRedeemStatus400,
+  AuthAppHandoffRedeemStatus401,
+  AuthAppHandoffRedeemStatus403,
+  AuthAppHandoffRedeemStatus404,
+  AuthAppHandoffRedeemStatus422,
+  AuthAppHandoffRedeemStatus429,
+} from "./models/AuthAppHandoffRedeem.js";
+export type {
+  AuthAppHandoffStartBody,
+  AuthAppHandoffStartOptions,
+  AuthAppHandoffStartPath,
+  AuthAppHandoffStartResponse,
+  AuthAppHandoffStartResponses,
+  AuthAppHandoffStartStatus200,
+  AuthAppHandoffStartStatus401,
+  AuthAppHandoffStartStatus403,
+  AuthAppHandoffStartStatus404,
+  AuthAppHandoffStartStatus409,
+  AuthAppHandoffStartStatus422,
+  AuthAppHandoffStartStatus429,
+} from "./models/AuthAppHandoffStart.js";
 export type {
   AuthAppPasswordLoginBody,
   AuthAppPasswordLoginOptions,
@@ -6152,6 +6195,9 @@ export { announcementPublicSchema } from "./zod/announcementPublicSchema.js";
 export { apiErrorSchema } from "./zod/apiErrorSchema.js";
 export { appEmailCodeStartSchema } from "./zod/appEmailCodeStartSchema.js";
 export { appEmailCodeVerifySchema } from "./zod/appEmailCodeVerifySchema.js";
+export { appHandoffCodeSchema } from "./zod/appHandoffCodeSchema.js";
+export { appHandoffRedeemSchema } from "./zod/appHandoffRedeemSchema.js";
+export { appHandoffStartSchema } from "./zod/appHandoffStartSchema.js";
 export { appPasswordLoginSchema } from "./zod/appPasswordLoginSchema.js";
 export { appPhoneCodeStartPropertiesChannelEnumSchema } from "./zod/appPhoneCodeStartPropertiesChannelEnumSchema.js";
 export { appPhoneCodeStartSchema } from "./zod/appPhoneCodeStartSchema.js";
@@ -6254,6 +6300,32 @@ export {
   authAppGoogleStartStatus429Schema,
   authAppGoogleStartStatus503Schema,
 } from "./zod/authAppGoogleStartSchema.js";
+export {
+  authAppHandoffRedeemBodySchema,
+  authAppHandoffRedeemErrorSchema,
+  authAppHandoffRedeemPathAppSchema,
+  authAppHandoffRedeemResponseSchema,
+  authAppHandoffRedeemStatus200Schema,
+  authAppHandoffRedeemStatus400Schema,
+  authAppHandoffRedeemStatus401Schema,
+  authAppHandoffRedeemStatus403Schema,
+  authAppHandoffRedeemStatus404Schema,
+  authAppHandoffRedeemStatus422Schema,
+  authAppHandoffRedeemStatus429Schema,
+} from "./zod/authAppHandoffRedeemSchema.js";
+export {
+  authAppHandoffStartBodySchema,
+  authAppHandoffStartErrorSchema,
+  authAppHandoffStartPathAppSchema,
+  authAppHandoffStartResponseSchema,
+  authAppHandoffStartStatus200Schema,
+  authAppHandoffStartStatus401Schema,
+  authAppHandoffStartStatus403Schema,
+  authAppHandoffStartStatus404Schema,
+  authAppHandoffStartStatus409Schema,
+  authAppHandoffStartStatus422Schema,
+  authAppHandoffStartStatus429Schema,
+} from "./zod/authAppHandoffStartSchema.js";
 export {
   authAppPasswordLoginBodySchema,
   authAppPasswordLoginErrorSchema,

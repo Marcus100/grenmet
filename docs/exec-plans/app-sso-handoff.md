@@ -1,7 +1,8 @@
 # Exec plan: single sign-on handoff across `*.barrels.gd`
 
 Decision record: ADR-0017 (proposed), building on ADR-0016.
-Status: **plan only, not started.** Each phase ships and is reviewed on its own.
+Status: **phase 1 (backend) done; phases 2–6 not started.** Each phase ships and
+is reviewed on its own.
 
 ## Goal
 
@@ -37,22 +38,25 @@ app /auth/callback: state == cookie?
 
 ## Phases
 
-**1. Backend (FastAPI, `src/auth/`)**
-- `apps.py`: add `sso: bool`, `scope: "app" | "staff"`, `callback_path`; register
-  `gaa-admin` and `cms` as `scope="staff"` (plus `app.<key>.access` permissions and
-  default role grants in `permissions.py`).
-- `app_router.py` / `app_service.py`: `POST /auth/apps/{app}/handoff` (account
-  session token + state hash → code via `modern_service.issue`, purpose
-  `app_handoff`, 1 minute) and `POST /auth/apps/{app}/handoff/redeem` (code + state
-  → `SessionLoginResponse`, reusing `_session_response`; staff scope mints an
-  unscoped token and keeps `require_approved_account`). Rate-limit both.
-- Close a gap found while planning: `browser.get_cookie_user` accepts any active
-  session, including an app-scoped one; refuse app-scoped sessions there, as
-  `get_current_user` already does for tokens.
-- Tests in `tests/auth/`: single use, expiry, wrong app, wrong state, ineligible
-  user, revoked account session, staff vs app token scope, cookie-route refusal.
-- Regen `openapi.json` → `pnpm generate:api-client` → `pnpm check:drift`;
-  `docs/api/contracts.md`.
+**1. Backend (FastAPI, `src/auth/`) — done**
+- `apps.py`: `client_secret` (an app takes part in SSO only when it is set),
+  `callback_path`, `callback_url`. Events reads `EVENTS_SSO_CLIENT_SECRET`.
+- `POST /auth/apps/{app}/handoff`: account session + state → one-use 60-second
+  code (`AuthChallenge`, purpose `app_handoff`, state stored hashed) and the
+  registered `callback_url`. 409 means join required; `join: true` runs
+  `ensure_member`. App-scoped sessions can never start a handoff.
+- `POST /auth/apps/{app}/handoff/redeem`: code + state + the app's
+  `client_secret` → `SessionLoginResponse` via `_session_response`. A wrong
+  state spends the code; a wrong secret is refused before the code is touched.
+- `browser.get_cookie_user` now refuses app-scoped sessions.
+- Tests: `tests/auth/test_app_handoff.py`. Contract regenerated;
+  `docs/api/contracts.md` and `docs/env.md` updated.
+- Moved to phase 4: the staff token scope (`gaa-admin`, `cms` mint unscoped
+  staff tokens) is added with the first staff app, so it is built and tested
+  against a real consumer.
+- Known limit: rate limits key on the caller IP, which is the web server for
+  these server-to-server calls, so all users share one bucket (affects every
+  sign-in route today; fix separately).
 
 **2. `packages/auth`**
 - `startAppSignIn(config, request)` and `completeAppSignIn(config, request)`
@@ -79,7 +83,8 @@ transport, wxwatch, wxproducts via `proxy.ts` and the `db/*/queries.ts`
 forwarders) keep working. Add start and callback routes.
 
 **6. Events and cleanup**
-- Events: add "Continue with your Barrels account" next to its own sign-in.
+- Events: add "Continue with your Barrels account" next to its own sign-in;
+  wire `EVENTS_SSO_CLIENT_SECRET` (GitHub secret → API and Events containers).
 - Remove `SESSION_COOKIE_DOMAIN` from `AuthConfig`, the three compose files,
   every `env.ts`, and `docs/env.md`; switch auth to `auth_session`. Users sign
   in again once.
@@ -95,14 +100,12 @@ Confirmed by the owner (2026-10-06):
    screen. Accepting grants the app's default role; later visits are silent.
 2. **Staff apps:** an admin grants `app.<key>.access`; being registered is not
    enough. Ineligible users see "You don't have access to <app>".
-
-Still to confirm before phase 1 (recommendation in brackets):
-
-3. **Auth logout:** ends only the account session, and app sessions continue
-   ("sign out everywhere" is the explicit kill). [yes]
-4. **2FA:** a handoff trusts the 2FA already passed by the account session. [yes]
+3. **Auth logout signs out everywhere:** signing out at `auth.barrels.gd` ends
+   the account session and every app session (`/login/session/logout-all`).
+   Signing out inside one app ends only that app's session.
+4. **2FA:** a handoff trusts the 2FA already passed by the account session.
 5. **Local dev:** cookies ignore ports, so each app needs a distinct cookie name
-   on `localhost` (`auth_session`, `cms_session`, `grenmet_session`, `events_session`). [yes]
+   on `localhost` (`auth_session`, `cms_session`, `grenmet_session`, `events_session`).
 
 ## Verification (per phase)
 
