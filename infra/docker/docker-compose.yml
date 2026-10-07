@@ -53,7 +53,7 @@ services:
       - grenmet
 
   adminer:
-    image: adminer:5.5.0@sha256:494d4a9461105644222c938679fe58d5e3fd13fb228c76a426e81c16d4ffbaef
+    image: adminer:6.1.1@sha256:74f29c416e148b98305e84446a18db7cd2c1038264dec464359d36774ef080ce
     container_name: grenmet-adminer
     restart: "no"
     depends_on:
