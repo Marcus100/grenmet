@@ -176,7 +176,7 @@ it("does not load or persist optional identifiers before consent; decline stays 
   expect(posthog.init).not.toHaveBeenCalled();
   expect(document.querySelector("script")).toBeNull();
   expect(localStorage.length).toBe(0);
-  fireEvent.click(await screen.findByRole("button", { name: "Decline" }));
+  fireEvent.click(await screen.findByRole("button", { name: "Deny" }));
   expect(readConsent()).toBe("declined");
   expect(posthog.init).not.toHaveBeenCalled();
 });
@@ -199,7 +199,7 @@ it("accepts once, deduplicates strict effects, and stops capture on withdrawal",
   // biome-ignore lint/suspicious/noDocumentCookie: test browser cookie cleanup.
   document.cookie = "_ga=identifier";
   fireEvent.click(screen.getByRole("button", { name: "Privacy settings" }));
-  fireEvent.click(screen.getByRole("button", { name: "Decline" }));
+  fireEvent.click(screen.getByRole("button", { name: "Deny" }));
   captureEvent("csv_download_clicked", {});
   expect(posthog.capture).toHaveBeenCalledTimes(2);
   expect(localStorage.getItem("ph_test")).toBeNull();
@@ -270,15 +270,17 @@ it("rejects unknown events and sensitive properties and scrubs provider-added fi
 });
 it("asks once in a popup, then leaves a small button to change the choice", async () => {
   show();
-  const dialog = await screen.findByRole("dialog", { name: "Your privacy" });
+  const dialog = await screen.findByRole("dialog", {
+    name: "Cookie preferences",
+  });
   expect(dialog.className).toContain("fixed");
-  fireEvent.click(screen.getByRole("button", { name: "Decline" }));
+  fireEvent.click(screen.getByRole("button", { name: "Deny" }));
   expect(screen.queryByRole("dialog")).toBeNull();
   fireEvent.click(screen.getByRole("button", { name: "Privacy settings" }));
-  expect(screen.getByRole("dialog", { name: "Your privacy" })).toBeTruthy();
-  fireEvent.click(
-    screen.getByRole("button", { name: "Keep my current choice (declined)" })
-  );
+  expect(
+    screen.getByRole("dialog", { name: "Cookie preferences" })
+  ).toBeTruthy();
+  fireEvent.click(screen.getByRole("button", { name: "Close" }));
   expect(screen.queryByRole("dialog")).toBeNull();
   cleanup();
 
@@ -298,4 +300,38 @@ it("asks once in a popup, then leaves a small button to change the choice", asyn
   await waitFor(() => expect(screen.getByText("Content")).toBeTruthy());
   expect(screen.queryByRole("dialog")).toBeNull();
   expect(screen.queryByRole("button", { name: "Privacy settings" })).toBeNull();
+});
+
+it("opens on a first visit with browser opt-out while keeping analytics disabled", async () => {
+  Object.defineProperty(navigator, "globalPrivacyControl", {
+    value: true,
+    configurable: true,
+  });
+  show();
+  const dialog = await screen.findByRole("dialog", {
+    name: "Cookie preferences",
+  });
+  expect(dialog.parentElement).toBe(document.body);
+  expect(screen.getByRole("button", { name: "Accept" })).toBeDisabled();
+  expect(posthog.init).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Deny" }));
+  expect(screen.queryByRole("dialog")).toBeNull();
+  fireEvent(window, new Event("focus"));
+  expect(screen.queryByRole("dialog")).toBeNull();
+});
+
+it("portals the first-visit popup outside transformed mobile layouts", async () => {
+  render(
+    <div style={{ transform: "translateY(0)" }}>
+      <PostHogProvider app="elections">
+        <p>Mobile content</p>
+      </PostHogProvider>
+    </div>
+  );
+  const dialog = await screen.findByRole("dialog", {
+    name: "Cookie preferences",
+  });
+  expect(dialog.parentElement).toBe(document.body);
+  expect(screen.getByText("Read more").closest("details")?.open).toBe(false);
+  expect(screen.getByText("We use cookies.")).toBeVisible();
 });
