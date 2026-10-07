@@ -40,6 +40,9 @@ services:
       TRANSPORT_DB_NAME: ${TRANSPORT_DB_NAME:-transport}
       TRANSPORT_DB_USER: ${TRANSPORT_DB_USER:-transport}
       TRANSPORT_DB_PASSWORD: ${TRANSPORT_DB_PASSWORD:-changethis}
+      EVENTS_DB_NAME: ${EVENTS_DB_NAME:-events}
+      EVENTS_DB_USER: ${EVENTS_DB_USER:-events}
+      EVENTS_DB_PASSWORD: ${EVENTS_DB_PASSWORD:-changethis}
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-app} -d ${POSTGRES_DB:-app}"]
       interval: 10s

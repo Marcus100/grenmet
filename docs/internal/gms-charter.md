@@ -14,7 +14,7 @@
 | **Prepared** | Eugine Whint |
 | **Date** | June 2026 |
 
-> **Scope of this document:** Executive-level vision, objectives, governance, success criteria, and decision principles. For programme governance, KPIs, and DTO role detail see [dto-terms-of-reference.md](./dto-terms-of-reference.md). For the phase-by-phase build plan see [roadmap.md](./roadmap.md). For the service and product catalogue see [service-catalogue.md](./service-catalogue.md).
+> **Scope of this document:** Executive-level vision, objectives, governance, success criteria, and decision principles. For programme governance, KPIs, and DTO role detail see the DTO Terms of Reference (private, held by the owner). For the phase-by-phase build plan see [roadmap.md](./roadmap.md). For the service and product catalogue see [service-catalogue.md](./service-catalogue.md).
 
 ---
 
@@ -77,7 +77,7 @@ GMS digital products and services are:
 
 ## 4. Governance
 
-Reporting lines, role assignments, and decision authority are defined in full in [dto-terms-of-reference.md](./dto-terms-of-reference.md) (Sections 1 and 7). Charter-level accountability:
+Reporting lines, role assignments, and decision authority are defined in full in the DTO Terms of Reference (private, held by the owner) (Sections 1 and 7). Charter-level accountability:
 
 - **Programme Sponsor:** Manager, Meteorology Department (Gerard Tamar) — executive approval, resource decisions, inter-agency relationships.
 - **Digital Transformation Officer:** Eugine Whint — programme delivery, technical direction, documentation.
@@ -122,7 +122,7 @@ Domain leads for forecasting, aviation MET, warning, and observations are named 
 
 ## 6. Risks
 
-The full risk register — likelihood ratings, impact ratings, and mitigations — is maintained in [dto-terms-of-reference.md, Section 14](./dto-terms-of-reference.md). Decision-level risks for this charter:
+The full risk register — likelihood ratings, impact ratings, and mitigations — is maintained in the DTO Terms of Reference, Section 14 (private, held by the owner). Decision-level risks for this charter:
 
 | Risk | Response |
 |---|---|
@@ -153,7 +153,7 @@ The full risk register — likelihood ratings, impact ratings, and mitigations �
 
 | Document | Purpose |
 |---|---|
-| [DTO Terms of Reference](./dto-terms-of-reference.md) | Programme governance, KPIs, role detail, risk register |
+| DTO Terms of Reference (private, held by the owner) | Programme governance, KPIs, role detail, risk register |
 | [Roadmap](./roadmap.md) | Phase-by-phase build plan and current status |
 | [Service Catalogue](./service-catalogue.md) | Full service and product catalogue |
 | [Compliance Traceability Matrix](./compliance-traceability.md) | ICAO/WMO obligations mapped to digital features |

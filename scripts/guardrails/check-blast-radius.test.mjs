@@ -63,6 +63,58 @@ const commit = (repository, message = "change") => {
 const check = (repository, args, env) =>
   run(process.execPath, [cliPath, ...args], { cwd: repository, env });
 
+const hiddenWebhook = `from fastapi import APIRouter
+router = APIRouter(prefix="/webhooks")
+def _verify_svix_signature(body):
+    return False
+@router.post("/resend", include_in_schema=False)
+async def resend_webhook(request):
+    return {}
+`;
+
+test("hidden webhook implementation fixes have no generated client counterpart", (t) => {
+  const file = "apps/api/fastapi/src/webhooks/router.py";
+  const { repository, base } = createRepository(t, { [file]: hiddenWebhook });
+  write(
+    repository,
+    file,
+    `import binascii\n${hiddenWebhook.replace("return False", "return True")}`
+  );
+  git(repository, "add", file);
+  assert.equal(check(repository, ["--staged"]).status, 0);
+  const head = commit(repository);
+  assert.equal(check(repository, ["--base", base, "--head", head]).status, 0);
+});
+
+for (const [name, changed] of [
+  [
+    "schema exposure",
+    hiddenWebhook.replace("include_in_schema=False", "include_in_schema=True"),
+  ],
+  ["path", hiddenWebhook.replace('"/resend"', '"/other"')],
+  ["prefix", hiddenWebhook.replace('"/webhooks"', '"/changed"')],
+  [
+    "signature",
+    hiddenWebhook.replace(
+      "resend_webhook(request)",
+      "resend_webhook(request, data)"
+    ),
+  ],
+  [
+    "new route",
+    `${hiddenWebhook}\n@router.get("/public")\ndef extra():\n    return {}\n`,
+  ],
+  ["imports", `import unreviewed\n${hiddenWebhook}`],
+]) {
+  test(`hidden webhook ${name} changes still require contract companions`, (t) => {
+    const file = "apps/api/fastapi/src/webhooks/router.py";
+    const { repository } = createRepository(t, { [file]: hiddenWebhook });
+    write(repository, file, changed);
+    git(repository, "add", file);
+    assert.equal(check(repository, ["--staged"]).status, 1);
+  });
+}
+
 test("an unrelated Git range passes", (t) => {
   const { base, repository } = createRepository(t);
   write(repository, "README.md", "updated\n");

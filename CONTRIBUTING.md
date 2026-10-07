@@ -1,6 +1,6 @@
 # Contributing
 
-This guide covers everything you need to contribute to the Grenmet monorepo — branching, commits, what to run before you push, and the conventions the codebase enforces.
+This guide covers everything you need to contribute to the Barrels Grenada monorepo — branching, commits, what to run before you push, and the conventions the codebase enforces.
 
 ## Prerequisites
 
@@ -84,11 +84,13 @@ Keep the subject line under 72 characters. Add a body when the why isn't obvious
 Always run these two commands before pushing:
 
 ```bash
-pnpm fix          # auto-fix lint and formatting (Biome via Ultracite)
+pnpm fix:changed  # format changed files only (Biome via Ultracite)
 pnpm type-check   # TypeScript across all packages
 ```
 
-To scope to just the package you changed (faster):
+Use repo-wide `pnpm fix` only for deliberate broad formatting. Package-scoped
+checks are useful during development; they do not replace the final workspace
+type-check and affected tests:
 
 ```bash
 turbo run check:fix type-check --filter=@barrelsgd/web-gaa-admin
@@ -130,14 +132,15 @@ SKIP_BLAST_RADIUS=1 git commit -m "wip: partial change"
 
 This does not bypass Biome or Ruff. It has no effect on CI range checks.
 
-The pre-push hook runs the complete TypeScript validation:
+The pre-push hook runs lint/format checks, types, and tests:
 
 ```bash
+pnpm check:ci
 pnpm type-check
 pnpm test
 ```
 
-If either command fails, the push stops. Fix the failure and rerun the failing
+If any command fails, the push stops. Fix the failure and rerun the failing
 command before pushing again.
 
 ### Blast-radius checker
@@ -292,6 +295,21 @@ pnpm type-check
 ```
 
 ---
+
+## Ownership and confidentiality
+
+- All software contributed to this repository is owned by Barrels Grenada (see
+  the [licence section](README.md#license) and the
+  [IP boundary](docs/strategy/barrels-ip-boundary.md)). Contribute only after
+  agreeing this with Barrels Grenada in writing.
+- Commit only from your own accounts and equipment, never from client
+  (GAA/GMS) accounts or devices.
+- The repository is public. Never commit GAA/GMS confidential material:
+  personal or staff data, unpublished internal documents, credentials, or
+  infrastructure details beyond placeholders. Keep such material, plus
+  employment, negotiation and legal drafts, in the gitignored `/private/`
+  folder.
+- Client-owned documents carry `Owner: GAA` or `Owner: GMS` in their header.
 
 ## Getting help
 

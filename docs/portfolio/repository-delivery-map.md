@@ -13,6 +13,11 @@ GMS. The [portfolio plan](barrels-portfolio-implementation-plan.md) governs
 priority, and the [client programme plan](gaa-gms-client-programme-plan.md)
 governs GAA/GMS outcomes.
 
+"Owner" in this map means the operational or planning owner. It does not
+change software ownership: all first-party software here is Barrels Grenada IP,
+and vendored code keeps its upstream licence. See the
+[IP boundary](../strategy/barrels-ip-boundary.md).
+
 Lifecycle terms are **active**, **prototype**, **planned**, **independent**,
 **reference**, **generated**, and **historical**. They do not imply production
 acceptance.

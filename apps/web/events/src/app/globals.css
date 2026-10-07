@@ -3,8 +3,88 @@
 
 @source "../../node_modules/@barrelsgd/ui/src";
 
+/*
+  Barrels Events brand layer.
+
+  Consumes the @barrelsgd/ui foundation, then overrides the shadcn semantic
+  :root tokens so reused primitives reskin automatically (same pattern as
+  Signal). Modern event-site look: warm paper, near-black ink, hibiscus for
+  action, sea for secondary emphasis, Barrels lime reserved for "happening"
+  highlights (tonight, live, new) with ink text. Light mode only for v1.
+  Every text pairing below is AA; see docs/design/events.md.
+*/
+@layer base {
+  :root {
+    --events-ink: #16131f;
+    --events-paper: #fbfaf7;
+    --events-sand: #f2eee6;
+    --events-rule: #e4ded3;
+    --events-muted: #5d586a;
+    --events-hibiscus: #c2185b;
+    --events-hibiscus-deep: #9c1149;
+    --events-hibiscus-soft: #fce7ef;
+    --events-sea: #0b6e78;
+    --events-lime: #b9ee63;
+
+    --background: var(--events-paper);
+    --foreground: var(--events-ink);
+    --card: #ffffff;
+    --card-foreground: var(--events-ink);
+    --popover: #ffffff;
+    --popover-foreground: var(--events-ink);
+    --primary: var(--events-hibiscus);
+    --primary-foreground: #ffffff;
+    --secondary: var(--events-sand);
+    --secondary-foreground: var(--events-ink);
+    --muted: var(--events-sand);
+    --muted-foreground: var(--events-muted);
+    --accent: var(--events-lime);
+    --accent-foreground: var(--events-ink);
+    --border: var(--events-rule);
+    --input: var(--events-rule);
+    --ring: var(--events-hibiscus);
+    --primary-soft: var(--events-hibiscus-soft);
+    --primary-soft-foreground: var(--events-hibiscus-deep);
+    --info: var(--events-sea);
+    --info-foreground: #ffffff;
+    --radius: 0.75rem;
+
+    --sidebar: var(--events-ink);
+    --sidebar-foreground: var(--events-paper);
+    --sidebar-primary: var(--events-lime);
+    --sidebar-primary-foreground: var(--events-ink);
+    --sidebar-accent: #2a2536;
+    --sidebar-accent-foreground: var(--events-paper);
+    --sidebar-border: #2a2536;
+    --sidebar-ring: var(--events-lime);
+
+    color-scheme: light;
+  }
+}
+
+@theme inline {
+  --font-sans: var(
+    --font-inter,
+    var(--font-noto-sans, ui-sans-serif, system-ui, sans-serif)
+  );
+  --font-display: var(--font-bricolage, var(--font-sans));
+  /* Hero display size: event sites lead with big type. */
+  --text-display: clamp(2.25rem, 6vw, 3.75rem);
+  --text-display--line-height: 1.02;
+
+  --color-events-ink: var(--events-ink);
+  --color-events-paper: var(--events-paper);
+  --color-events-sand: var(--events-sand);
+  --color-events-muted: var(--events-muted);
+  --color-events-hibiscus: var(--events-hibiscus);
+  --color-events-hibiscus-deep: var(--events-hibiscus-deep);
+  --color-events-hibiscus-soft: var(--events-hibiscus-soft);
+  --color-events-sea: var(--events-sea);
+  --color-events-lime: var(--events-lime);
+}
+
 body {
-  font-family: var(--brand-font-sans);
+  font-family: var(--font-sans);
   color: var(--foreground);
   background: var(--background);
 }

@@ -9,6 +9,7 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session as SQLAlchemySession
 
+from src.auth.apps import is_app_scoped
 from src.auth.config import auth_settings
 from src.auth.models import (
     Permission,
@@ -263,12 +264,12 @@ def get_session_expires_delta() -> timedelta:
 
 
 def issue_access_token_for_user(
-    *, user: User, expires_delta: timedelta | None = None
+    *, user: User, expires_delta: timedelta | None = None, app: str | None = None
 ) -> tuple[str, Any]:
     """Issue an access token and return its expiry timestamp."""
     ttl = expires_delta or get_legacy_access_token_expires_delta()
     expires_at = utc_now() + ttl
-    return create_access_token(user.id, expires_delta=ttl), expires_at
+    return create_access_token(user.id, expires_delta=ttl, app=app), expires_at
 
 
 def is_session_active(db_session: AuthSession, now: Any | None = None) -> bool:
@@ -286,9 +287,15 @@ async def create_session(
     user_agent: str | None = None,
     ip_address: str | None = None,
     expires_delta: timedelta | None = None,
+    enforce_approval: bool = True,
 ) -> tuple[AuthSession, str]:
-    """Create and persist a new opaque session for a user."""
-    require_approved_account(user)
+    """Create and persist a new opaque session for a user.
+
+    App-scoped sessions (``enforce_approval=False``) skip the staff approval
+    gate; the caller has already checked app eligibility.
+    """
+    if enforce_approval:
+        require_approved_account(user)
     now = utc_now()
     session_secret = create_session_token()
     user.last_login_at = now
@@ -415,7 +422,14 @@ async def exchange_session_for_access_token(
         return None
 
     user = await get_user_by_id(session=session, user_id=db_session.user_id)
-    if not user or not user.is_active or user.registration_pending:
+    scoped_app = db_session.app_name if is_app_scoped(db_session.app_name) else None
+    if scoped_app is not None:
+        eligible = user is not None and await is_eligible_for_app(
+            session=session, user=user, app_key=scoped_app
+        )
+    else:
+        eligible = user is not None and user.is_active and not user.registration_pending
+    if not eligible or user is None:
         await revoke_session(session=session, db_session=db_session)
         return None
 
@@ -428,6 +442,7 @@ async def exchange_session_for_access_token(
     access_token, access_token_expires_at = issue_access_token_for_user(
         user=user,
         expires_delta=get_session_access_token_expires_delta(),
+        app=scoped_app,
     )
     return db_session, user, access_token, access_token_expires_at
 
@@ -449,6 +464,44 @@ async def rotate_session(
         app_name=db_session.app_name,
         user_agent=user_agent or db_session.user_agent,
         ip_address=ip_address or db_session.ip_address,
+        enforce_approval=not is_app_scoped(db_session.app_name),
+    )
+
+
+async def has_effective_permission(
+    *, session: AsyncSession, user: User, permission_key: str
+) -> bool:
+    """Permission check for app-scoped users, whose roles aren't preloaded."""
+    if user.is_superuser:
+        return True
+    from src.auth.access import effective_roles
+
+    roles = await effective_roles(session, user)
+    return any(
+        permission.key == permission_key
+        for role in roles
+        for permission in role.permissions
+    )
+
+
+async def is_eligible_for_app(
+    *, session: AsyncSession, user: User, app_key: str
+) -> bool:
+    """Active, verified, and holding ``app.<key>.access``.
+
+    ``registration_pending`` means "staff approval pending" and does not
+    affect app-scoped access.
+    """
+    if not user.is_active or user.email_verified_at is None:
+        return False
+    if user.is_superuser:
+        return True
+    from src.auth.access import effective_roles
+
+    roles = await effective_roles(session, user)
+    key = f"app.{app_key}.access"
+    return any(
+        permission.key == key for role in roles for permission in role.permissions
     )
 
 

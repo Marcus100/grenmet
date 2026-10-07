@@ -9,6 +9,9 @@ in the Grenmet monorepo: what each variable does, where it is supplied, and whic
 service reads it. Typed settings modules, Compose files, and deployment workflows
 remain the executable source of truth and must be updated together with this guide.
 
+For the current staging/production integration inventory, repeatable metadata audit
+and provider setup steps, see [Integration readiness](operations/integration-readiness.md).
+
 ---
 
 ## Local dev setup (one-time)
@@ -86,6 +89,9 @@ in `infra/docker/.env.local.example`.
 | `TRANSPORT_DB_NAME` | Database name for the staff transportation timetable |
 | `TRANSPORT_DB_USER` | Database user for transport |
 | `TRANSPORT_DB_PASSWORD` | Password for the transport DB user |
+| `EVENTS_DB_NAME` | Database name for Barrels Events (`events` locally) |
+| `EVENTS_DB_USER` | Database user for Barrels Events |
+| `EVENTS_DB_PASSWORD` | Password for the Barrels Events DB user; required as an environment secret in staging and production before promoting the API-backed Events website |
 | `ADMINER_DESIGN` | Adminer UI theme (e.g. `pepa-linha-dark`) |
 
 ### FastAPI backend (`apps/api/fastapi/.env.local`)
@@ -126,6 +132,10 @@ the API image and the local source mount contain the same migration assets.
 | `POSTGRES_USER` | FastAPI DB user (matches `APP_DB_USER` in infra file) |
 | `POSTGRES_PASSWORD` | FastAPI DB password (matches `APP_DB_PASSWORD` in infra file) |
 | `WXPRODUCTS_DATABASE_URL` | PostgreSQL URL for the separate existing weather-products database; required to serve the public product feed. Use a hostname reachable from FastAPI (`grenmet-postgres` in local Compose, `host.docker.internal` from the devcontainer). The API role needs read/write access to authored products, revisions and their identity sequence; the migration runner needs schema ownership. Weather migrations are owned by FastAPI. Missing configuration returns 503, not an empty feed. |
+| `EVENTS_DATABASE_URL` | PostgreSQL URL for the Barrels Events database (e.g. `postgresql://events:changethis@grenmet-postgres:5432/events` locally). Optional: unset means `/api/v1/events/*` returns 503 and prestart skips its migrations. |
+| `EVENTS_APP_URL` | Public URL of the Barrels Events web app (app-scoped sign-in, ADR-0016). Default `http://localhost:3009`. |
+| `EVENTS_GOOGLE_REDIRECT_URI` | Google OAuth redirect for Events sign-in (e.g. `https://events.barrels.gd/auth/google/callback`); Google sign-in for Events is offered only when this and `GOOGLE_CLIENT_ID` are set. |
+| `PHONE_OTP_PROVIDER` | `disabled` (default) or `console` (local only, logs codes). Phone/WhatsApp codes stay off until a paid provider is approved. |
 | `RESEND_API_KEY` | Email provider key — takes priority over SMTP when set |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_TLS`, `SMTP_SSL` | Fallback email via SMTP (MailCatcher in local dev) |
 | `EMAILS_FROM_EMAIL` | Sender address for outgoing emails |

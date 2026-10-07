@@ -223,7 +223,8 @@ After the GAA programme has proven reusable behavior, Barrels may separately
 evaluate a workforce product. Approval requires:
 
 - evidence that multiple organisations have the same problem;
-- clear software and data rights;
+- a signed GAA licence that confirms Barrels' software ownership, plus clear
+  data rights (see [IP boundary](../strategy/barrels-ip-boundary.md));
 - tenant-isolation and security requirements;
 - a support, onboarding, configuration, and pricing model;
 - proof that client-specific logic can be removed or configured; and

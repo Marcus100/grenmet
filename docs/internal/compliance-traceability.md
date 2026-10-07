@@ -159,5 +159,5 @@
 | [WIS 2.0 Implementation Roadmap](./wis2-implementation-roadmap-2026.md) | Reconciled publishing, consumption, station, metadata, and compliance gates |
 | [WIS2 Publishing Runbook](../operations/wis2-publishing-runbook.md) | Verified sandbox procedure and production cutover checks |
 | [GMS Charter](./gms-charter.md) | Compliance section of programme governance |
-| [DTO Terms of Reference](./dto-terms-of-reference.md) | Section 16 — Standards and Compliance |
+| DTO Terms of Reference (private, held by the owner) | Section 16 — Standards and Compliance |
 | [Warning Operations](./warning-operations.md) | Implemented CAP lifecycle in codebase |

@@ -18,8 +18,8 @@ The
 [Barrels Portfolio Implementation Plan](../portfolio/barrels-portfolio-implementation-plan.md)
 remains authoritative for priority and sequencing. The proposed platform
 architecture is recorded in
-[ADR-0014](../adr/0014-barrels-platform-core-direction.md). Ownership questions
-are drafted in the [IP boundary draft](barrels-ip-boundary.md).
+[ADR-0014](../adr/0014-barrels-platform-core-direction.md). Ownership is recorded
+in the [IP boundary](barrels-ip-boundary.md).
 
 This document does not authorize implementation, infrastructure purchases,
 schema changes, new dependencies, or client commitments.
@@ -69,8 +69,8 @@ replace it. Barrels does not seek to own:
 - Every digital service in Grenada
 
 Barrels does own its software, platform, intellectual property, domain models,
-training programmes, research, and commercial relationships, subject to the
-[IP boundary draft](barrels-ip-boundary.md).
+training programmes, research, and commercial relationships, as recorded in the
+[IP boundary](barrels-ip-boundary.md).
 
 ## Barrels Core
 

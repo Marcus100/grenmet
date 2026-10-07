@@ -234,3 +234,6 @@ notebooks/metpy/sources/
 
 # Local/CI verification reports
 /apps/api/fastapi/reports/
+
+# Private owner material (employment, negotiation, legal drafts) — never commit
+/private/

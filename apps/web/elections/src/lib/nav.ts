@@ -39,7 +39,7 @@ export const NAV: NavItem[] = [
       { href: "/results", label: "Results" },
       { href: "/elections", label: "Every election" },
       { href: "/referendums", label: "Referendums" },
-      { href: "/since-2022", label: "Since the 2022 election" },
+      { href: "/updates", label: "Updates" },
       { href: "/sources", label: "Sources" },
     ],
   },

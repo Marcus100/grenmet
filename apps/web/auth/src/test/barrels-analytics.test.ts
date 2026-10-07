@@ -20,11 +20,16 @@ const read = (file: string) =>
 
 it("static Barrels uses the shared consent and Google protocol with no preview collection", () => {
   const policy = read("analytics-policy.js");
-  // Enable only a test fixture; the real catalogue remains unconfigured.
+  // Keep the fixture usable for destinations that have not yet been configured.
   const configured = policy
+    .replace(
+      '"staging":{"origin":null',
+      '"staging":{"origin":"https://staging.barrels.gd"'
+    )
     .replaceAll('"ga4": null', '"ga4": "G-TEST123"')
     .replaceAll('"ga4":null', '"ga4":"G-TEST123"')
     .replaceAll('"status":"unconfigured"', '"status":"configured"')
+    .replaceAll('"status":"intentionally-disabled"', '"status":"configured"')
     .replaceAll('"retentionVerified":false', '"retentionVerified":true')
     .replaceAll('"accessVerified":false', '"accessVerified":true');
   const transport = read("google-analytics.js");
@@ -41,6 +46,12 @@ it("static Barrels uses the shared consent and Google protocol with no preview c
       dom.window.eval(
         [configured, transport, entry].join("\n").replace(/\bexport /g, "")
       );
+      // Even a stale verified staging ID must not activate collection.
+      expect(
+        dom.window.eval(
+          'configForOrigin("barrels", "https://staging.barrels.gd")'
+        )
+      ).toBeNull();
       const document = dom.window.document;
       expect(document.getElementById("optional-google-analytics")).toBeNull();
       document.getElementById("analytics-accept")?.click();

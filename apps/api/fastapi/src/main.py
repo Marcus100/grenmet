@@ -21,6 +21,7 @@ from starlette.requests import Request
 
 from src import operational_metrics
 from src.audit.router import router as audit_router
+from src.auth.app_router import router as app_auth_router
 from src.auth.browser import router as browser_auth_router
 from src.auth.modern import router as modern_auth_router
 from src.auth.routers.login import router as login_router
@@ -37,6 +38,8 @@ from src.cap.router import router as cap_router
 from src.config import settings
 from src.eregister import database as eregister_database
 from src.eregister.router import router as eregister_router
+from src.events import database as events_database
+from src.events.router import router as events_router
 from src.exceptions import (
     AppException,
     app_exception_handler,
@@ -103,6 +106,7 @@ def _operation_domain(route: APIRoute) -> str:
         "utils",
         "janitorial",
         "transport",
+        "events",
     ):
         if f"/{domain}" in path:
             return domain
@@ -188,6 +192,10 @@ OPENAPI_TAGS = [
     {"name": "roles", "description": "Role administration operations."},
     {"name": "staff-setup", "description": "Staff setup and configuration operations."},
     {"name": "transport", "description": "Transport timetable operations."},
+    {
+        "name": "events",
+        "description": "Barrels Events: listings, groups, members and messaging.",
+    },
     {"name": "users", "description": "User administration operations."},
     {"name": "utils", "description": "Health, readiness, and utility operations."},
     {"name": "weather-images", "description": "Weather image retrieval operations."},
@@ -214,6 +222,7 @@ async def lifespan(_app: FastAPI) -> AsyncGenerator[None]:
         await wxwatch_database.close_engine()
         await janitorial_database.close_engine()
         await transport_database.close_engine()
+        await events_database.close_engine()
 
 
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
@@ -347,6 +356,7 @@ app.include_router(wxwatch_ingestion_router, prefix=settings.API_V1_STR)
 app.include_router(browser_auth_router, prefix=settings.API_V1_STR)
 app.include_router(janitorial_router, prefix=settings.API_V1_STR)
 app.include_router(transport_router, prefix=settings.API_V1_STR)
+app.include_router(events_router, prefix=settings.API_V1_STR)
 
 # Register exception handlers
 app.add_exception_handler(AppException, app_exception_handler)  # type: ignore[arg-type]
@@ -375,6 +385,7 @@ def get_scalar_docs() -> Any:
 
 
 app.include_router(modern_auth_router, prefix=settings.API_V1_STR)
+app.include_router(app_auth_router, prefix=settings.API_V1_STR)
 
 app.include_router(staff_setup_router, prefix=settings.API_V1_STR)
 
