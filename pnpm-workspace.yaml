@@ -169,7 +169,7 @@ catalog:
   # Testing
   vitest: ^5.0.3
   "@vitest/coverage-v8": ^5.0.3
-  msw: "^2.15.0"
+  msw: "^3.0.2"
   "@testing-library/react": "^16.3.3"
   "@testing-library/user-event": "^14.6.7"
   "@testing-library/jest-dom": "^7.0.1"
