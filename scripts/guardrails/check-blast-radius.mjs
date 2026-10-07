@@ -198,6 +198,8 @@ const wxproductsAdvisorySessionChange = (comparison) => {
   return before !== after && expected === after;
 };
 
+const OPENAPI_MAX_BYTES = 64 * 1024 * 1024;
+
 // info.title does not affect Kubb output; regeneration can legitimately be clean.
 // Compare the whole document after changing only that field, failing closed.
 const openApiTitleOnlyChange = (comparison) => {
@@ -208,7 +210,11 @@ const openApiTitleOnlyChange = (comparison) => {
       : [`${comparison.base}:${file}`, `${comparison.head}:${file}`];
   try {
     const versions = refs.map((ref) => {
-      const result = spawnSync("git", ["show", ref], { encoding: "utf8" });
+      // The schema is over 1 MB, spawnSync's default output limit.
+      const result = spawnSync("git", ["show", ref], {
+        encoding: "utf8",
+        maxBuffer: OPENAPI_MAX_BYTES,
+      });
       if (result.error || result.status !== 0)
         throw new Error("Missing schema");
       return JSON.parse(result.stdout);

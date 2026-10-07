@@ -218,12 +218,32 @@ test("an OpenAPI title-only correction passes staged and range checks", (t) => {
   write(
     repository,
     file,
-    JSON.stringify({ ...before, info: { title: "Grenmet API" } })
+    JSON.stringify({ ...before, info: { title: "Barrels Grenada" } })
   );
   git(repository, "add", file);
   assert.equal(check(repository, ["--staged"]).status, 0);
   const head = commit(repository);
   assert.equal(check(repository, ["--base", base, "--head", head]).status, 0);
+});
+
+test("a title-only correction passes for an OpenAPI document over 1 MB", (t) => {
+  // The real openapi.json outgrew spawnSync's default 1 MB output buffer.
+  const file = "apps/api/fastapi/openapi.json";
+  const before = {
+    openapi: "3.1.0",
+    info: { title: "HR verification" },
+    paths: { "/large": { description: "x".repeat(2 * 1024 * 1024) } },
+  };
+  const { repository } = createRepository(t, {
+    [file]: JSON.stringify(before),
+  });
+  write(
+    repository,
+    file,
+    JSON.stringify({ ...before, info: { title: "Barrels Grenada" } })
+  );
+  git(repository, "add", file);
+  assert.equal(check(repository, ["--staged"]).status, 0);
 });
 
 test("a title correction cannot hide an OpenAPI route change", (t) => {
@@ -234,7 +254,10 @@ test("a title correction cannot hide an OpenAPI route change", (t) => {
   write(
     repository,
     file,
-    JSON.stringify({ info: { title: "Grenmet API" }, paths: { "/new": {} } })
+    JSON.stringify({
+      info: { title: "Barrels Grenada" },
+      paths: { "/new": {} },
+    })
   );
   git(repository, "add", file);
   assert.equal(check(repository, ["--staged"]).status, 1);
