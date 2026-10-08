@@ -620,14 +620,24 @@ async def approve_registration(
         .first()
     )
     if assignment is None:
-        session.add(
-            UserRoleAssignment(
-                user_id=user_id,
-                role_id=role.id,
-                scope=RoleAssignmentScope.SELF,
-                organisation_id=employment.organisation_id,
-            )
+        assignment = UserRoleAssignment(
+            user_id=user_id,
+            role_id=role.id,
+            scope=RoleAssignmentScope.SELF,
+            organisation_id=employment.organisation_id,
         )
+        session.add(assignment)
+        grant_action = "CREATE"
+    else:
+        grant_action = "UPDATE"
+    # Explicit approval is independent of expired/revoked departmental grants.
+    assignment.authority_assignment_id = None
+    assignment.effective_from = utc_now()
+    assignment.effective_to = None
+    from src.audit import service as audit_service
+
+    audit_service.set_actor(session, actor.id)
+    await auth_service.audit_assignment(session, assignment, grant_action)
     user.registration_pending = False
     session.add(user)
     session.add(

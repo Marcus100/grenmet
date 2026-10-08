@@ -6,6 +6,7 @@ import {
   useAuthGetRoles,
   useAuthGetUsers,
 } from "@barrelsgd/api-client";
+import { useSessionUser } from "@barrelsgd/auth";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import {
   Card,
@@ -64,6 +65,7 @@ import {
 import { UsersTable } from "./users-table";
 
 export function UsersManager() {
+  const actor = useSessionUser();
   const usersQuery = useAuthGetUsers({
     query: { page: 1, size: 100 },
   });
@@ -179,7 +181,9 @@ export function UsersManager() {
       <CardHeader className="border-b has-data-[slot=card-action]:grid-cols-1 md:has-data-[slot=card-action]:grid-cols-[1fr_auto]">
         <CardTitle className="text-xl leading-none">Users</CardTitle>
         <CardDescription className="max-w-sm leading-snug">
-          Onboard staff, assign roles, and manage account access.
+          {actor?.is_superuser
+            ? "Onboard staff, appoint roles, and manage account access."
+            : "Manage department employment and ordinary staff self-service. Special duties and account security require a system administrator."}
         </CardDescription>
         <CardAction className="col-start-1 row-start-auto flex w-full flex-wrap justify-start gap-2 justify-self-stretch md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:flex-nowrap md:justify-end md:justify-self-end">
           <InputGroup className="h-7 w-full md:w-64">
@@ -211,8 +215,12 @@ export function UsersManager() {
           <Button size="sm" variant="outline">
             <Download /> Export
           </Button>
-          <CreateAccountDialog />
-          <CreateUserDialog roles={roles} />
+          {actor?.is_superuser && (
+            <>
+              <CreateAccountDialog />
+              <CreateUserDialog roles={roles} />
+            </>
+          )}
         </CardAction>
       </CardHeader>
       <CardContent className="flex flex-col gap-4 px-0">

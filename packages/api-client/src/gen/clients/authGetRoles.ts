@@ -11,7 +11,7 @@ import type {
 } from "../models/AuthGetRoles.js";
 
 /**
- * @description Return roles (superuser only).
+ * @description Superusers list all role definitions. Scoped user managers list only ordinary roles eligible for bounded delegation.
  * @summary List roles
  * {@link /api/v1/auth/roles}
  */

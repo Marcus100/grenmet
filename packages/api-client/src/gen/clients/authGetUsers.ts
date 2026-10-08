@@ -11,7 +11,7 @@ import type {
 } from "../models/AuthGetUsers.js";
 
 /**
- * @description Return users (superuser or user.manage). Uses standard pagination (page, size, total_pages).
+ * @description Return users and counts within active employer/department user.manage scope. Superusers see all accounts. Uses standard pagination.
  * @summary List users
  * {@link /api/v1/auth/users}
  */
