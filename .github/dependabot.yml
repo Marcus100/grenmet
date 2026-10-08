@@ -113,6 +113,10 @@ updates:
     commit-message:
       prefix: ⬆
     ignore:
+      # Vitest 5.0.3's @vitest/mocker requires MSW ^2.4.9. Lift when its peer
+      # range supports MSW 3, then migrate imports and onUnhandledRequest together.
+      - dependency-name: msw
+        versions: [">=3.0.0"]
       # Payload declares graphql ^16.8.1. Lift when its peer range supports 17.
       - dependency-name: graphql
         update-types:
