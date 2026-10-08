@@ -16,9 +16,17 @@ import {
   staffInputSchema,
 } from "@barrelsgd/api-client";
 
-export const readStaff = () => hrGetStaffSetup({}).unwrap();
-export const readGrades = () => hrGetSetupGrades({}).unwrap();
-export const readPolicies = () => hrGetSetupPolicies({}).unwrap();
+export const readStaff = (organisationId?: string, unassigned = false) =>
+  hrGetStaffSetup({
+    query: {
+      organisation_id: unassigned ? undefined : organisationId,
+      unassigned,
+    },
+  }).unwrap();
+export const readGrades = (organisationId?: string) =>
+  hrGetSetupGrades({ query: { organisation_id: organisationId } }).unwrap();
+export const readPolicies = (organisationId?: string) =>
+  hrGetSetupPolicies({ query: { organisation_id: organisationId } }).unwrap();
 export const saveStaff = (id: string, body: unknown) =>
   hrUpdateStaffSetup({
     path: { user_id: id },

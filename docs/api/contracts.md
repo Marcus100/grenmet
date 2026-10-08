@@ -31,9 +31,12 @@ explicit `is_superuser` bypass. Only permissions from live `ALL` assignments and
 never-scoped legacy roles enter the projection; department/SELF authority cannot
 borrow the scope of another role, and expired/revoked authority cannot fall back
 to its legacy role link. This field does not remove any organisation boundary or
-permission-specific rule. Shared HR shift and public-holiday definitions require
-`ALL` `roster.manage` authority (or a superuser) for writes; a department's roster
-management grant still only manages its permitted department records.
+permission-specific rule. The compatible, default-empty `global_permission_keys`
+projection includes only preserved never-scoped legacy authority; canonical
+department-manager appointments require live scoped grants and cannot enter it.
+Shared HR shift and public-holiday definitions require this global
+`roster.manage` authority or a superuser for writes; organisation `ALL`,
+department and SELF grants cannot mutate definitions shared by other employers.
 
 ## Base URLs
 
@@ -1374,3 +1377,34 @@ Session responses add optional `session.mfa_verified_at`, preserving compatibili
 `AppPhoneCodeVerify` adds optional `totp_code` for enrolled authenticators/recovery codes. Email and phone challenges remain locked until factor verification succeeds and are consumed in that transaction; a missing factor keeps the valid primary code available for the MFA prompt. Failed-factor attempts use the existing account lockout.
 
 Target onboarding app status adds `mfa_enrolment` when enforce mode requires an encrypted enabled factor, and `requires_mfa_sign_in` to distinguish account prerequisites from a future session challenge. Enrolment can make an account ready to sign in; it never declares a target session authenticated. Explicit account `reauth=1` renders a fresh sign-in challenge while preserving the validated return destination.
+
+### HR organisation setup
+
+`POST /hr/organisations` registers an employer identity (permanent ID, unique code,
+display name); `PATCH /hr/organisations/{organisation_id}` changes only its name.
+Both are superuser-only and audited. Registration does not assign accounts,
+activate an app, or grant permissions. Existing organisation IDs remain stable.
+
+HR Setup selects an accessible organisation before loading its departments,
+staff, grades and notification settings. Staff, grade and policy setup queries
+accept optional `organisation_id`; legacy omitted context remains superuser-only.
+`StaffSetup.organisation_id` reports employment ownership, or an initial credential
+department if employment has not yet been recorded. `StaffInput.organisation_id`
+is optional for compatibility but, when supplied, must match the saved department.
+
+`unassigned=true` on staff setup returns eligible accounts with neither employment
+nor staff credentials and cannot be combined with `organisation_id`. Assigning
+such an account requires an explicitly chosen department; email domains and
+subdomains never establish employer membership. Grade and HR policy reads filter
+in SQL before returning data. Shift definitions remain shared reference data;
+roster ownership and authorisation still belong to each department.
+
+The effective-access projection adds optional `all_scope_permission_keys` for
+controls requiring organisation-wide authority, and `global_permission_keys` for
+preserved unscoped legacy authority. A flattened `permission_keys` entry alone
+does not prove either scope. Shared roster references require superuser or global
+authority; an organisation-wide grant is insufficient. Neither field
+overrides the employer and object checks on organisation-owned endpoints. Missing
+projection fields keep shared editing disabled. Grade creation/update reports
+HTTP 409 for a conflicting department grade definition instead of surfacing a
+raw constraint error.

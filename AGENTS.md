@@ -116,6 +116,7 @@ clean integration checkout; follow the Git and GitHub Workflow below. Never hand
 `openapi.json` or `packages/api-client/src/gen/`: take either side, regenerate
 (openapi command above → `pnpm generate:api-client` → `pnpm check:drift`).
 Dev servers stay on the host in the main checkout.
+- **Shared stashes:** Git stashes are shared across worktrees. Record and apply the exact stash SHA; never use an implicit latest stash during parallel work.
 
 ### Git and GitHub Workflow
 - Merge completed task branches into local `dev`, validate the combined result, then push `dev` directly; do not push feature branches or create feature-to-dev PRs unless the user requests them.
@@ -180,6 +181,8 @@ ask only when the lasting rule or its scope is ambiguous.
 - **Directory-specific rule** → that directory's `AGENTS.md` and add it to the Instruction map
 - **Domain or operational rule** → domain docs; add an instruction-file pointer only when useful
 - One or two lines per entry; no narrative prose. Keep this file under 20 KB — Codex concatenates root + nested files against a byte budget.
+
+- **Worktree cleanup:** A clean worktree may still back another live session. Confirm session ownership and preserve ignored local files before removal; keep uncertain worktrees and never remove another session's working directory.
 
 ### Session Handoff
 Claude Code and Codex share one working tree. A `SessionStart` hook tails

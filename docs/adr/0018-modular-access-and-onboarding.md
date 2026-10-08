@@ -31,3 +31,19 @@ The first delivery does not claim the wider permission migration is complete. Pu
 ## Consequences
 
 The first flow reuses existing challenge and audit storage, avoiding a parallel invitation/session system. Each subsequent module needs evidence that its resource scope is enforced on the server before departmental delegation is enabled. The UI describes admission separately from permission to perform an operation.
+
+## Organisation identity and the current HR milestone
+
+HR Setup reuses the existing employer organisation root and requires explicit
+context when more than one organisation is available. Identity registration,
+department structure, employment, app admission and workflow responsibilities
+remain separate actions. No email domain, subdomain or job title grants access.
+Each employer can define its own departments and grades. GMS reference data is an
+explicit template choice, not a default for every sector.
+
+This work stops before Transport and Janitor. Events promoter membership remains
+app-owned and does not require an HR employment record. The current employment
+model still permits one employer per work account; concurrent employments and
+structured site registries remain future decisions. Department delegation, MFA
+and HR workflow hardening are being developed in isolated worktrees; they are not
+complete until combined local checks and authenticated staging acceptance pass.

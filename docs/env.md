@@ -619,4 +619,18 @@ Configure `WXWATCH_DATABASE_URL` in the FastAPI environment with access to the s
 
 ### Privileged MFA rollout
 
-FastAPI auth settings: `AUTH_PRIVILEGED_MFA_MODE` defaults to `disabled`; set `enforce` only after the [readiness and recovery gates](operations/privileged-mfa.md). `AUTH_TOTP_ENCRYPTION_KEYS` is a deployment-secret JSON array of dedicated Fernet keys; first encrypts and remaining keys permit staged rotation. Missing keys disable new authenticator enrolment; enforce mode refuses to start. JWT `SECRET_KEY` is never used to encrypt authenticator secrets.
+FastAPI auth settings default to disabled enforcement; enable it only after the
+[readiness and recovery gates](operations/privileged-mfa.md).
+
+The deployment renderer accepts `AUTH_PRIVILEGED_MFA_MODE` from the selected
+GitHub environment's variable (`disabled` by default, or `enforce`) and
+`AUTH_TOTP_ENCRYPTION_KEYS` from its secret. Keys are a JSON array of dedicated
+Fernet keys, current encryption key first and retained decryption keys after it.
+Do not reuse `SECRET_KEY` or share keys across environments. These values reach
+API, worker and migration/prestart services, not web applications.
+
+While enforcement is disabled, missing keys leave enrolment unavailable. Enforcement
+with missing or malformed keys is rejected before deployment. Provision keys,
+convert existing secrets and verify privileged enrolment/recovery readiness while
+still disabled before enabling the gate; follow the MFA operator guide. This code
+change does not provision secrets or enable enforcement in production.

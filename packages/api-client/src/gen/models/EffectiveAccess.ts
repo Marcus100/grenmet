@@ -8,6 +8,11 @@ export type EffectiveAccess = {
   role_names: string[];
   permission_keys: string[];
   /**
+   * @description Preserved never-scoped legacy permissions for shared global definitions; organisation-scoped ALL grants are excluded.
+   * @type array | undefined
+   */
+  global_permission_keys?: string[];
+  /**
    * @description Permissions from live ALL assignments or preserved unscoped legacy roles; organisation boundaries still apply.
    * @type array | undefined
    */

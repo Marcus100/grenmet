@@ -6,7 +6,7 @@ from io import StringIO
 from sqlalchemy import and_, case, exists, false, or_, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.access import all_scope_permission_keys
+from src.auth.access import global_permission_keys
 from src.auth.models import User
 from src.auth.policy import has_permission, require_permission
 from src.hr import notifications as hr_notifications
@@ -100,7 +100,7 @@ async def require_global_roster_manage(session: AsyncSession, actor: User) -> No
     require_permission(current_user=actor, permission_key="roster.manage")
     if actor.is_superuser:
         return
-    if "roster.manage" not in await all_scope_permission_keys(session, actor):
+    if "roster.manage" not in await global_permission_keys(session, actor):
         raise HRPermissionDeniedError(
             "Global roster configuration requires global administrative authority"
         )

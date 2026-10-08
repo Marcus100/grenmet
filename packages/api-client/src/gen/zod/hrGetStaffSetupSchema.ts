@@ -7,7 +7,18 @@ import * as z from "zod";
 import { staffSetupSchema } from "./staffSetupSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
+export const hrGetStaffSetupQueryOrganisationIdSchema = z
+  .union([z.string(), z.null()])
+  .optional();
+
+export const hrGetStaffSetupQueryUnassignedSchema = z
+  .boolean()
+  .optional()
+  .default(false);
+
 export const hrGetStaffSetupStatus200Schema = z.array(staffSetupSchema);
+
+export const hrGetStaffSetupStatus400Schema = z.unknown();
 
 export const hrGetStaffSetupStatus403Schema = z.unknown();
 
@@ -23,6 +34,7 @@ export const hrGetStaffSetupStatus422Schema =
 export const hrGetStaffSetupResponseSchema = hrGetStaffSetupStatus200Schema;
 
 export const hrGetStaffSetupErrorSchema = z.union([
+  hrGetStaffSetupStatus400Schema,
   hrGetStaffSetupStatus403Schema,
   hrGetStaffSetupStatus404Schema,
   hrGetStaffSetupStatus409Schema,

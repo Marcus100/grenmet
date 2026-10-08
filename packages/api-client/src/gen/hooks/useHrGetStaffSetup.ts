@@ -13,27 +13,33 @@ import { queryOptions, useQuery } from "@tanstack/react-query";
 import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { hrGetStaffSetup } from "../clients/hrGetStaffSetup.js";
 import type {
+  HrGetStaffSetupOptions,
   HrGetStaffSetupStatus200,
+  HrGetStaffSetupStatus400,
   HrGetStaffSetupStatus403,
   HrGetStaffSetupStatus404,
   HrGetStaffSetupStatus409,
   HrGetStaffSetupStatus422,
 } from "../models/HrGetStaffSetup.js";
 
-export const hrGetStaffSetupQueryKey = () =>
-  [{ url: "/api/v1/hr/setup/staff" }] as const;
+export const hrGetStaffSetupQueryKey = ({
+  query,
+}: Omit<HrGetStaffSetupOptions, "headers"> = {}) =>
+  [{ url: "/api/v1/hr/setup/staff" }, ...(query ? [query] : [])] as const;
 
 type HrGetStaffSetupQueryKey = ReturnType<typeof hrGetStaffSetupQueryKey>;
 
 export function hrGetStaffSetupQueryOptions(
+  { query }: HrGetStaffSetupOptions = {},
   config: Partial<
     Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
   > = {}
 ) {
-  const queryKey = hrGetStaffSetupQueryKey();
+  const queryKey = hrGetStaffSetupQueryKey({ query });
   return queryOptions<
     HrGetStaffSetupStatus200,
     ResponseErrorConfig<
+      | HrGetStaffSetupStatus400
       | HrGetStaffSetupStatus403
       | HrGetStaffSetupStatus404
       | HrGetStaffSetupStatus409
@@ -46,6 +52,7 @@ export function hrGetStaffSetupQueryOptions(
     queryFn: async ({ signal }) => {
       return hrGetStaffSetup({
         ...config,
+        query,
         signal: config.signal ?? signal,
         throwOnError: true,
       }).unwrap();
@@ -54,7 +61,7 @@ export function hrGetStaffSetupQueryOptions(
 }
 
 /**
- * @description Review staff onboarding.
+ * @description Review staff onboarding for a selected organisation or eligible unassigned accounts. Omitted organisation context retains the superuser-only legacy list.
  * @summary Review staff onboarding
  * {@link /api/v1/hr/setup/staff}
  */
@@ -63,11 +70,19 @@ export function useHrGetStaffSetup<
   TQueryData = HrGetStaffSetupStatus200,
   TQueryKey extends QueryKey = HrGetStaffSetupQueryKey,
 >(
+  {
+    query,
+  }: {
+    query?:
+      | HrGetStaffSetupOptions["query"]
+      | (() => HrGetStaffSetupOptions["query"]);
+  } = {},
   options: {
     query?: Partial<
       QueryObserverOptions<
         HrGetStaffSetupStatus200,
         ResponseErrorConfig<
+          | HrGetStaffSetupStatus400
           | HrGetStaffSetupStatus403
           | HrGetStaffSetupStatus404
           | HrGetStaffSetupStatus409
@@ -85,11 +100,15 @@ export function useHrGetStaffSetup<
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
   const { client: queryClient, ...resolvedOptions } = queryConfig;
-  const queryKey = resolvedOptions?.queryKey ?? hrGetStaffSetupQueryKey();
+  const resolvedParams = {
+    query: typeof query === "function" ? query() : query,
+  };
+  const queryKey =
+    resolvedOptions?.queryKey ?? hrGetStaffSetupQueryKey(resolvedParams);
 
   const queryResult = useQuery(
     {
-      ...hrGetStaffSetupQueryOptions(config),
+      ...hrGetStaffSetupQueryOptions(resolvedParams, config),
       ...resolvedOptions,
       queryKey,
     } as unknown as QueryObserverOptions,
@@ -97,6 +116,7 @@ export function useHrGetStaffSetup<
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
+      | HrGetStaffSetupStatus400
       | HrGetStaffSetupStatus403
       | HrGetStaffSetupStatus404
       | HrGetStaffSetupStatus409
