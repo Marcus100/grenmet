@@ -90,6 +90,7 @@ async def valid_delegated_assignments(
             continue
         if (
             issuer.status != EmploymentStatus.ACTIVE
+            or target.status != EmploymentStatus.ACTIVE
             or issuer.organisation_id != source.organisation_id
         ):
             continue

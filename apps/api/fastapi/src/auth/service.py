@@ -841,7 +841,9 @@ async def create_user_role_assignment(
     if current_user is not None:
         await require_assignment_management(session, current_user, db_assignment)
         if not current_user.is_superuser:
-            source = await delegation_authority(session, current_user, db_assignment)
+            source = await delegation_authority(
+                session, current_user, db_assignment, require_active_target=True
+            )
             db_assignment.authority_assignment_id = source.id
             if source.effective_to and (
                 db_assignment.effective_to is None
@@ -905,7 +907,9 @@ async def update_user_role_assignment(
     if current_user is not None:
         await require_assignment_management(session, current_user, candidate)
         if not current_user.is_superuser:
-            source = await delegation_authority(session, current_user, candidate)
+            source = await delegation_authority(
+                session, current_user, candidate, require_active_target=True
+            )
             assignment_data["authority_assignment_id"] = source.id
             if source.effective_to and (
                 candidate.effective_to is None
@@ -998,7 +1002,11 @@ async def require_user_management(
 
 
 async def delegation_authority(
-    session: AsyncSession, actor: User, assignment: UserRoleAssignment
+    session: AsyncSession,
+    actor: User,
+    assignment: UserRoleAssignment,
+    *,
+    require_active_target: bool = False,
 ) -> UserRoleAssignment:
     from sqlalchemy.orm import selectinload
 
@@ -1034,6 +1042,8 @@ async def delegation_authority(
     )
     if employment is None:
         raise AppException("Target must belong to the same employer", 403)
+    if require_active_target and employment.status != EmploymentStatus.ACTIVE:
+        raise AppException("Delegation requires active recipient employment", 403)
     roles = {r.id: r for r in actor.roles}
     issuer = await session.scalar(
         select(EmploymentRecord).where(
