@@ -1,14 +1,17 @@
-"""TOTP (RFC 6238) helpers for two-factor authentication.
-
-The secret is stored on ``User.totp_secret``. For v1 it is stored as plaintext; a
-follow-up should encrypt it at rest (e.g. application-level Fernet with a KMS key).
-"""
+"""TOTP helpers and versioned authenticated encryption of stored secrets."""
 
 from __future__ import annotations
 
-import pyotp
+from binascii import Error as Base32Error
 
-ISSUER = "GrenMet GMS"
+import pyotp
+from cryptography.fernet import Fernet, InvalidToken, MultiFernet
+
+from src.auth.config import auth_settings
+from src.exceptions import AppException
+
+ISSUER = "Barrels account"
+ENCRYPTED_PREFIX = "fernet:v1:"
 
 
 def generate_secret() -> str:
@@ -16,12 +19,48 @@ def generate_secret() -> str:
 
 
 def provisioning_uri(*, secret: str, account_name: str) -> str:
-    """otpauth:// URI for authenticator apps (render as a QR on the client)."""
     return pyotp.TOTP(secret).provisioning_uri(name=account_name, issuer_name=ISSUER)
 
 
+def cipher() -> MultiFernet:
+    if not auth_settings.AUTH_TOTP_ENCRYPTION_KEYS:
+        raise AppException(
+            "Authenticator setup is unavailable; contact the platform operator", 503
+        )
+    return MultiFernet(
+        [Fernet(key.encode()) for key in auth_settings.AUTH_TOTP_ENCRYPTION_KEYS]
+    )
+
+
+def encrypt_secret(secret: str) -> str:
+    return ENCRYPTED_PREFIX + cipher().encrypt(secret.encode()).decode()
+
+
+def is_encrypted(secret: str | None) -> bool:
+    return bool(secret and secret.startswith(ENCRYPTED_PREFIX))
+
+
+def decrypt_secret(secret: str) -> str:
+    if not is_encrypted(secret):
+        # Compatibility during enrolment rollout; never accept plaintext in enforce mode.
+        if auth_settings.AUTH_PRIVILEGED_MFA_MODE == "enforce":
+            raise AppException(
+                "Authenticator storage must be upgraded by the platform operator", 503
+            )
+        return secret
+    try:
+        return cipher().decrypt(secret.removeprefix(ENCRYPTED_PREFIX).encode()).decode()
+    except InvalidToken, UnicodeError:
+        raise AppException(
+            "Authenticator storage is unavailable; contact the platform operator", 503
+        ) from None
+
+
 def verify_code(*, secret: str, code: str) -> bool:
-    """Verify a 6-digit code, allowing one step of clock skew either side."""
+    """Verify a six-digit code, allowing one step of clock skew either side."""
     if not secret or not code:
         return False
-    return pyotp.TOTP(secret).verify(code.strip(), valid_window=1)
+    try:
+        return pyotp.TOTP(secret).verify(code.strip(), valid_window=1)
+    except ValueError, TypeError, Base32Error:
+        return False

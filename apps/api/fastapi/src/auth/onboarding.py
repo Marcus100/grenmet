@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.audit import registry
 from src.audit import service as audit
-from src.auth import modern_service, service
+from src.auth import modern_service, service, totp
 from src.auth.config import auth_settings
 from src.auth.models import Session as LoginSession
 from src.auth.models import User
@@ -208,6 +208,14 @@ async def status(
         common.append(AccessBlocker.PASSWORD_SETUP)
     if user.email_verification_required and user.email_verified_at is None:
         common.append(AccessBlocker.EMAIL_VERIFICATION)
+    requires_mfa = auth_settings.AUTH_PRIVILEGED_MFA_MODE == "enforce" and (
+        user.is_superuser
+        or await service.has_effective_permission(
+            session=session, user=user, permission_key="user.manage"
+        )
+    )
+    if requires_mfa and not (user.totp_enabled and totp.is_encrypted(user.totp_secret)):
+        common.append(AccessBlocker.MFA_ENROLMENT)
     staff = [*common]
     if user.registration_pending:
         staff.append(AccessBlocker.STAFF_APPROVAL)
@@ -236,7 +244,9 @@ async def status(
             AppAccessStatus(
                 app="gaa-admin",
                 label="GAA Admin",
-                available=service.is_staff_eligible(user),
+                available=service.is_staff_eligible(user)
+                and AccessBlocker.MFA_ENROLMENT not in staff,
+                requires_mfa_sign_in=requires_mfa,
                 blockers=staff,
             ),
             AppAccessStatus(
@@ -244,7 +254,9 @@ async def status(
                 label="GMS content",
                 available=await service.is_eligible_for_app(
                     session=session, user=user, app_key="cms"
-                ),
+                )
+                and AccessBlocker.MFA_ENROLMENT not in cms,
+                requires_mfa_sign_in=requires_mfa,
                 blockers=cms,
             ),
         ],

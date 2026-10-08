@@ -150,6 +150,7 @@ class PermissionsPublic(BaseModel):
 
 # Session schemas
 class SessionBase(BaseModel):
+    mfa_verified_at: UtcDateTime | None = None
     expires_at: UtcDateTime
     client_type: str
     app_name: str | None = None
@@ -158,6 +159,7 @@ class SessionBase(BaseModel):
 
 
 class SessionCreate(BaseModel):
+    mfa_verified_at: UtcDateTime | None = None
     user_id: uuid.UUID
     session_token: str
     expires_at: UtcDateTime

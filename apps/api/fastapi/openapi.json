@@ -22157,7 +22157,8 @@
           "password_setup",
           "email_verification",
           "staff_approval",
-          "cms_grant"
+          "cms_grant",
+          "mfa_enrolment"
         ],
         "title": "AccessBlocker"
       },
@@ -22195,6 +22196,21 @@
       },
       "AccountSecurityPublic": {
         "properties": {
+          "privileged_mfa_required": {
+            "type": "boolean",
+            "title": "Privileged Mfa Required",
+            "default": false
+          },
+          "privileged_mfa_enforced": {
+            "type": "boolean",
+            "title": "Privileged Mfa Enforced",
+            "default": false
+          },
+          "authenticator_storage_ready": {
+            "type": "boolean",
+            "title": "Authenticator Storage Ready",
+            "default": false
+          },
           "recovery_codes_remaining": {
             "type": "integer",
             "title": "Recovery Codes Remaining",
@@ -22552,6 +22568,11 @@
             },
             "type": "array",
             "title": "Blockers"
+          },
+          "requires_mfa_sign_in": {
+            "type": "boolean",
+            "title": "Requires Mfa Sign In",
+            "default": false
           }
         },
         "type": "object",
@@ -22796,6 +22817,18 @@
       },
       "AppPhoneCodeVerify": {
         "properties": {
+          "totp_code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Totp Code"
+          },
           "phone": {
             "type": "string",
             "pattern": "^\\+[1-9]\\d{7,14}$",
@@ -37660,6 +37693,18 @@
       },
       "SecuritySessionPublic": {
         "properties": {
+          "mfa_verified_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mfa Verified At"
+          },
           "id": {
             "type": "string",
             "title": "Id"
@@ -37894,6 +37939,18 @@
       },
       "SessionPublic": {
         "properties": {
+          "mfa_verified_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mfa Verified At"
+          },
           "expires_at": {
             "type": "string",
             "format": "date-time",

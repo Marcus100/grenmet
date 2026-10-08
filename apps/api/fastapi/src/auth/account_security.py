@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import totp
+from src.auth.config import auth_settings
 from src.auth.models import Session as LoginSession
 from src.auth.models import User
 from src.auth.utils import verify_password_async
@@ -15,7 +16,23 @@ from src.exceptions import AppException
 from src.utils.datetime import utc_now
 
 
+async def record_security(session: AsyncSession, user: User, action: str) -> None:
+    from src.audit import service as audit
+
+    audit.set_actor(session, user.id)
+    await audit.record_change(
+        session,
+        entity_type="account",
+        entity_id=str(user.id),
+        record_type="account_security",
+        record_id=str(user.id),
+        action=action,
+        changes={"security": (None, action)},
+    )
+
+
 def recovery_hash(code: str) -> str:
+
     return hashlib.sha256(code.strip().upper().encode()).hexdigest()
 
 
@@ -32,17 +49,29 @@ async def verify_factor(session: AsyncSession, user: User, code: str) -> bool:
         .scalars()
         .one()
     )
-    if totp.verify_code(secret=locked.totp_secret or "", code=code):
-        return True
-    digest = recovery_hash(code)
-    if digest not in locked.mfa_recovery_hashes:
+    if not locked.totp_enabled or not code.strip():
         return False
-    locked.mfa_recovery_hashes = [
-        item for item in locked.mfa_recovery_hashes if item != digest
-    ]
-    session.add(locked)
-    await session.flush()
-    return True
+    digest = recovery_hash(code)
+    if digest in locked.mfa_recovery_hashes:
+        locked.mfa_recovery_hashes = [
+            item for item in locked.mfa_recovery_hashes if item != digest
+        ]
+        session.add(locked)
+        await session.flush()
+        await record_security(session, locked, "recovery_code_used")
+        return True
+    if totp.verify_code(
+        secret=totp.decrypt_secret(locked.totp_secret or ""), code=code
+    ):
+        if (
+            not totp.is_encrypted(locked.totp_secret)
+            and auth_settings.AUTH_TOTP_ENCRYPTION_KEYS
+        ):
+            locked.totp_secret = totp.encrypt_secret(locked.totp_secret or "")
+            session.add(locked)
+            await session.flush()
+        return True
+    return False
 
 
 async def new_recovery_codes(
@@ -56,6 +85,7 @@ async def new_recovery_codes(
         raise AppException("Authenticator or recovery code was not accepted", 400)
     codes = [secrets.token_hex(12).upper() for _ in range(8)]
     user.mfa_recovery_hashes = [recovery_hash(item) for item in codes]
+    await record_security(session, user, "recovery_replaced")
     session.add(user)
     await session.commit()
     return codes

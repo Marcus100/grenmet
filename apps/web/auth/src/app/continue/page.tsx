@@ -19,8 +19,8 @@ interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-function signInPath(request: HandoffRequest): string {
-  return `/?${new URLSearchParams({ app: request.app, returnTo: continuePath(request) })}`;
+function signInPath(request: HandoffRequest, reauth = false): string {
+  return `/?${new URLSearchParams({ app: request.app, returnTo: continuePath(request), ...(reauth ? { reauth: "1" } : {}) })}`;
 }
 
 function Notice({ title, children }: { title: string; children: string }) {
@@ -60,6 +60,33 @@ export default async function ContinuePage({ searchParams }: PageProps) {
   if (result.kind === "redirect") redirect(result.url);
   if (result.kind === "sign-in") redirect(signInPath(request));
   switch (result.kind) {
+    case "mfa-enrol":
+      return (
+        <AuthShell greeting="Barrels account" subtitle="Secure staff access.">
+          <AuthHeading title="Set up two-step verification">
+            Privileged staff tools require an authenticator. Set it up, save
+            recovery codes, then sign in again with your code.
+          </AuthHeading>
+          <a className="text-foreground text-sm underline" href="/security">
+            Open account security
+          </a>
+        </AuthShell>
+      );
+    case "mfa-sign-in":
+      return (
+        <AuthShell greeting="Barrels account" subtitle="Secure staff access.">
+          <AuthHeading title="Confirm your two-step sign-in">
+            This session was created without an authenticator challenge. Sign in
+            again using your authenticator or a saved recovery code.
+          </AuthHeading>
+          <a
+            className="text-foreground text-sm underline"
+            href={signInPath(request, true)}
+          >
+            Sign in again
+          </a>
+        </AuthShell>
+      );
     case "unavailable":
       return (
         <Notice title="Single sign-on isn't available">

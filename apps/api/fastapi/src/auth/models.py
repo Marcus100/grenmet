@@ -6,7 +6,14 @@ from enum import Enum
 
 from pydantic import BaseModel as PydanticBaseModel
 from pydantic import EmailStr
-from sqlalchemy import JSON, CheckConstraint, ForeignKey, ForeignKeyConstraint, String
+from sqlalchemy import (
+    JSON,
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    ForeignKeyConstraint,
+    String,
+)
 from sqlalchemy.dialects.postgresql import ENUM
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -83,8 +90,8 @@ class User(Base):
     mfa_recovery_hashes: Mapped[list[str]] = mapped_column(
         JSON, nullable=False, default=list
     )
-    # Two-factor auth (TOTP). Secret is plaintext for v1 — encrypt at rest in a follow-up.
-    totp_secret: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    # Versioned Fernet ciphertext; legacy plaintext is read only during rollout.
+    totp_secret: Mapped[str | None] = mapped_column(String(512), nullable=True)
     totp_enabled: Mapped[bool] = mapped_column(default=False)
     last_login_at: Mapped[datetime | None]
     # Null until the password is next changed, reset or set up after this
@@ -207,6 +214,9 @@ class Session(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     session_token: Mapped[str] = mapped_column(String(500), unique=True)
+    mfa_verified_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     expires_at: Mapped[datetime]
     client_type: Mapped[str] = mapped_column(String(50), default="web")
     app_name: Mapped[str | None] = mapped_column(String(100), nullable=True, index=True)

@@ -1366,3 +1366,11 @@ Activation is limited to incomplete or unverified non-superuser accounts. Establ
 ### HR onboarding readiness
 
 `StaffSetup` adds `account_active` and `staff_approval_ready`. `mailbox_ready` is persisted on the staff credential and defaults to unconfirmed for existing records; it is never inferred from account activity. `StaffInput.mailbox_ready` may be omitted or null to preserve the recorded value. HR setup saves never modify account activity, password/email requirements or sessions. Staff approval accepts verified email or completed, audited administrator-issued activation while retaining active membership/grade requirements and ordinary staff-only grants.
+
+### Privileged MFA session evidence
+
+Session responses add optional `session.mfa_verified_at`, preserving compatibility while distinguishing an actual factor challenge from `totp_enabled` enrolment. Account security adds `privileged_mfa_required`, `privileged_mfa_enforced` and `authenticator_storage_ready`; active security sessions expose optional MFA timestamps without secrets. In enforce mode, privileged staff requests and GAA Admin/CMS admission return 403 until encrypted enrolment and a live session challenge are present. Account security/enrolment, recovery and logout remain available. See [rollout and recovery](../operations/privileged-mfa.md).
+
+`AppPhoneCodeVerify` adds optional `totp_code` for enrolled authenticators/recovery codes. Email and phone challenges remain locked until factor verification succeeds and are consumed in that transaction; a missing factor keeps the valid primary code available for the MFA prompt. Failed-factor attempts use the existing account lockout.
+
+Target onboarding app status adds `mfa_enrolment` when enforce mode requires an encrypted enabled factor, and `requires_mfa_sign_in` to distinguish account prerequisites from a future session challenge. Enrolment can make an account ready to sign in; it never declares a target session authenticated. Explicit account `reauth=1` renders a fresh sign-in challenge while preserving the validated return destination.

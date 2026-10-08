@@ -183,7 +183,10 @@ export default async function Home({ searchParams }: PageProps) {
     readQueryParam(params.app),
     returnTo
   );
-  const { pageError, sessionData } = await loadSessionState();
+  const { pageError, sessionData } =
+    readQueryParam(params.reauth) === "1"
+      ? { pageError: null, sessionData: null }
+      : await loadSessionState();
 
   if (sessionData && returnTo) {
     redirect(returnTo);
