@@ -52,7 +52,7 @@ export function authGetUserByIdQueryOptions(
 }
 
 /**
- * @description Return user by ID. Non-superusers can only fetch themselves.
+ * @description Return yourself or a user within active management scope. Scoped managers cannot read platform administrator accounts.
  * @summary Get user by ID
  * {@link /api/v1/auth/users/:user_id}
  */

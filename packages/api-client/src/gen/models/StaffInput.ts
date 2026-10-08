@@ -6,6 +6,7 @@
 import type { EmploymentType } from "./EmploymentType.js";
 
 export type StaffInput = {
+  organisation_id?: string | null;
   department_id: string;
   grade_id: string;
   employee_number?: string | null;
@@ -16,9 +17,5 @@ export type StaffInput = {
   probation_completed_date?: string | null;
   service_details_source?: string | null;
   supervisor_id?: string | null;
-  /**
-   * @default false
-   * @type boolean | undefined
-   */
-  mailbox_ready?: boolean;
+  mailbox_ready?: boolean | null;
 };

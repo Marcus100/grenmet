@@ -5,29 +5,23 @@ from datetime import datetime
 from typing import Any
 from zoneinfo import ZoneInfo
 
-from sqlalchemy import select
+from sqlalchemy import or_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.audit import service as audit_service
 from src.auth.models import RoleAssignmentScope, User, UserRoleAssignment
 from src.exceptions import AppException
 from src.hr.exceptions import DepartmentNotFoundError
 from src.hr.models import Department, EmploymentRecord, EmploymentStatus, Organisation
-from src.utils.datetime import utc_now
 
 
 async def active_assignments(
     session: AsyncSession, user_id: uuid.UUID
 ) -> list[UserRoleAssignment]:
-    now = utc_now()
-    result = await session.execute(
-        select(UserRoleAssignment).where(
-            UserRoleAssignment.user_id == user_id,
-            UserRoleAssignment.effective_from <= now,
-            UserRoleAssignment.effective_to.is_(None)
-            | (UserRoleAssignment.effective_to > now),
-        )
-    )
-    return list(result.scalars().all())
+    from src.auth.policy import _active_assignments
+
+    return await _active_assignments(session=session, user_id=user_id)
 
 
 async def organisation_choices(
@@ -238,3 +232,46 @@ async def validate_service_facts(
         raise AppException(
             "Provide the HR source for recorded service and probation facts", 400
         )
+
+
+async def create_organisation(
+    session: AsyncSession, actor: User, *, organisation_id: str, code: str, name: str
+) -> Organisation:
+    if not actor.is_superuser:
+        raise AppException("Only a superuser can register an organisation", 403)
+    audit_service.set_actor(session, actor.id)
+    clean_name = name.strip()
+    if not clean_name:
+        raise AppException("Organisation name is required", 422)
+    if await session.scalar(
+        select(Organisation.id).where(
+            or_(Organisation.id == organisation_id, Organisation.code == code)
+        )
+    ):
+        raise AppException("Organisation ID or code already exists", 409)
+    organisation = Organisation(id=organisation_id, code=code, name=clean_name)
+    session.add(organisation)
+    try:
+        await session.commit()
+    except IntegrityError as exc:
+        await session.rollback()
+        raise AppException("Organisation ID or code already exists", 409) from exc
+    await session.refresh(organisation)
+    return organisation
+
+
+async def rename_organisation(
+    session: AsyncSession, actor: User, organisation_id: str, name: str
+) -> Organisation:
+    if not actor.is_superuser:
+        raise AppException("Only a superuser can rename an organisation", 403)
+    audit_service.set_actor(session, actor.id)
+    organisation = await session.get(Organisation, organisation_id)
+    if organisation is None:
+        raise AppException("Organisation not found", 404)
+    if not name.strip():
+        raise AppException("Organisation name is required", 422)
+    organisation.name = name.strip()
+    await session.commit()
+    await session.refresh(organisation)
+    return organisation

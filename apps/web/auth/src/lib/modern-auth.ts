@@ -1,5 +1,7 @@
 import "server-only";
 import {
+  type ActivationConfirm,
+  authConfirmActivation,
   authEmailConfirm,
   authEmailRequest,
   authGoogleComplete,
@@ -80,3 +82,6 @@ export const emailConfirm = (body: EmailConfirm) =>
   }).unwrap();
 
 const API_PREFIX = /^\/api\/v1/;
+
+export const confirmActivation = (body: ActivationConfirm) =>
+  authConfirmActivation({ body, client: transport }).unwrap();

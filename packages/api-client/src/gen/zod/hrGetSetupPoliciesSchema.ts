@@ -7,6 +7,10 @@ import * as z from "zod";
 import { policyPublicSchema } from "./policyPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
+export const hrGetSetupPoliciesQueryOrganisationIdSchema = z
+  .union([z.string(), z.null()])
+  .optional();
+
 export const hrGetSetupPoliciesStatus200Schema = z.array(policyPublicSchema);
 
 export const hrGetSetupPoliciesStatus403Schema = z.unknown();

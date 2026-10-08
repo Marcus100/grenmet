@@ -6,9 +6,17 @@ import { useMutation } from "@tanstack/react-query";
 import { useId, useState } from "react";
 import { importCatalogue, previewCatalogue } from "./setup-api";
 
-export function CatalogueSetup({ onSaved }: { onSaved: () => void }) {
+export function CatalogueSetup({
+  onSaved,
+  organisationId,
+}: {
+  onSaved: () => void;
+  organisationId?: string;
+}) {
   const id = useId();
-  const departmentsQuery = useHrListDepartments();
+  const departmentsQuery = useHrListDepartments({
+    query: { organisation_id: organisationId },
+  });
   const departments = departmentsQuery.data?.data ?? [];
   const previewMutation = useMutation({ mutationFn: previewCatalogue });
   const importMutation = useMutation({ mutationFn: importCatalogue });

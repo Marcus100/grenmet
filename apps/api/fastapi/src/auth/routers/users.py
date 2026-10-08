@@ -62,18 +62,22 @@ router = APIRouter(prefix="/auth/users", tags=["users"])
     dependencies=[Depends(get_current_user_manager)],
     response_model=PaginatedResponse[UserPublic],
     summary="List users",
-    description="Return users (superuser or user.manage). Uses standard pagination (page, size, total_pages).",
+    description="Return users and counts within active employer/department user.manage scope. Superusers see all accounts. Uses standard pagination.",
     responses={status.HTTP_200_OK: {"description": "Users returned"}},
 )
 async def read_users(
     session: SessionDep,
+    current_user: CurrentUser,
     pagination: Annotated[PaginationParams, Depends(get_pagination_params)],
 ) -> Any:
     """
     Retrieve users.
     """
     users, count = await service.get_users(
-        session=session, skip=pagination.skip, limit=pagination.limit
+        session=session,
+        skip=pagination.skip,
+        limit=pagination.limit,
+        current_user=current_user,
     )
     return PaginatedResponse(
         data=[UserPublic.model_validate(user, from_attributes=True) for user in users],
@@ -88,7 +92,7 @@ async def read_users(
     response_model=UserPublic,
     status_code=status.HTTP_201_CREATED,
     summary="Create user",
-    description="Create a user (superuser or user.manage). Only superusers can create superuser accounts.",
+    description="Create a global account (superuser only). HR placement and app admission are separate explicit actions.",
     responses={
         status.HTTP_201_CREATED: {"description": "User created"},
         status.HTTP_400_BAD_REQUEST: {
@@ -106,7 +110,7 @@ async def create_user(
     """
     Create new user.
     """
-    if user_in.is_superuser and not current_user.is_superuser:
+    if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail=ERROR_INSUFFICIENT_PRIVILEGES)
     user = await service.get_user_by_email(session=session, email=user_in.email)
     if user:
@@ -286,7 +290,7 @@ async def register_user(
     "/{user_id}",
     response_model=UserPublic,
     summary="Get user by ID",
-    description="Return user by ID. Non-superusers can only fetch themselves.",
+    description="Return yourself or a user within active management scope. Scoped managers cannot read platform administrator accounts.",
     responses={
         status.HTTP_200_OK: {"description": "User returned"},
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient privileges"},
@@ -308,6 +312,7 @@ async def read_user_by_id(
             status_code=403,
             detail=ERROR_INSUFFICIENT_PRIVILEGES,
         )
+    await service.require_user_management(session, current_user, user)
     return user
 
 
@@ -315,7 +320,7 @@ async def read_user_by_id(
     "/{user_id}",
     response_model=UserPublic,
     summary="Update user by ID",
-    description="Update a user by ID (superuser or user.manage). Superuser accounts, the is_superuser flag and CMS access are superuser-only.",
+    description="Update a user within active management scope. Scoped managers may correct names and titles; global account security, activation and platform/app privileges are superuser-only.",
     responses={
         status.HTTP_200_OK: {"description": "User updated"},
         status.HTTP_403_FORBIDDEN: {"description": "Insufficient privileges"},
@@ -337,8 +342,14 @@ async def update_user(
     db_user = await session.get(User, user_id)
     if not db_user:
         raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
+    await service.require_user_management(session, current_user, db_user)
     if not current_user.is_superuser and (
         db_user.is_superuser
+        or current_user.id == db_user.id
+        or bool(
+            user_in.model_fields_set
+            - {"title", "first_name", "middle_name", "last_name"}
+        )
         or "is_superuser" in user_in.model_fields_set
         or "cms_access" in user_in.model_fields_set
     ):
@@ -355,7 +366,7 @@ async def update_user(
 @router.delete(
     "/{user_id}",
     summary="Delete user by ID",
-    description="Delete a user by ID (superuser or user.manage). Superuser accounts can only be deleted by a superuser.",
+    description="Delete a global account by ID (superuser only).",
     responses={
         status.HTTP_200_OK: {"description": "User deleted"},
         status.HTTP_403_FORBIDDEN: {
@@ -372,6 +383,11 @@ async def delete_user(
     user = await session.get(User, user_id)
     if not user:
         raise HTTPException(status_code=404, detail=ERROR_USER_NOT_FOUND)
+    await service.require_user_management(session, current_user, user)
+    if not current_user.is_superuser:
+        raise HTTPException(
+            status_code=403, detail="Global account deletion requires a superuser"
+        )
     if user.id == current_user.id:
         raise HTTPException(status_code=403, detail=ERROR_SUPERUSER_DELETE_SELF)
     if user.is_superuser and not current_user.is_superuser:

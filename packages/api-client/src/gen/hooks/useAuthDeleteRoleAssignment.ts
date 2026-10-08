@@ -47,7 +47,7 @@ export function authDeleteRoleAssignmentMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Delete a user-role assignment (superuser or user.manage).
+ * @description Superusers revoke any assignment. Scoped managers revoke ordinary staff grants within active management scope. Revoking authority immediately disables grants issued through it.
  * @summary Revoke role assignment
  * {@link /api/v1/auth/role-assignments/:assignment_id}
  */

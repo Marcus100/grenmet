@@ -91,6 +91,23 @@ describe("/continue", () => {
     ).toBeTruthy();
   });
 
+  it("directs unverified administrators to email verification", async () => {
+    readSessionCookie.mockResolvedValue("account-session");
+    startHandoff.mockResolvedValue({ kind: "verify-email" });
+    render(await page({ app: "cms", state: STATE }));
+    expect(
+      screen.getByRole("heading", { name: "Verify your email address" })
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("link", { name: "Verify email" }).getAttribute("href")
+    ).toBe("/verify-email");
+    expect(
+      screen.queryByText(
+        "Ask an administrator to give your account access, then try again."
+      )
+    ).toBeNull();
+  });
+
   it("explains a missing grant and a broken link", async () => {
     readSessionCookie.mockResolvedValue("account-session");
     startHandoff.mockResolvedValue({
@@ -110,4 +127,18 @@ describe("/continue", () => {
       screen.getByRole("heading", { name: "That link didn't work" })
     ).toBeTruthy();
   });
+});
+
+it("offers an explicit fresh challenge while preserving the handoff", async () => {
+  readSessionCookie.mockResolvedValue("password-only-session");
+  startHandoff.mockResolvedValue({ kind: "mfa-sign-in" });
+  render(await page({ app: "gaa-admin", state: STATE }));
+  const href = screen
+    .getByRole("link", { name: "Sign in again" })
+    .getAttribute("href");
+  const target = new URL(href ?? "", "https://auth.example.com");
+  expect(target.searchParams.get("reauth")).toBe("1");
+  expect(target.searchParams.get("returnTo")).toBe(
+    `/continue?app=gaa-admin&state=${STATE}`
+  );
 });

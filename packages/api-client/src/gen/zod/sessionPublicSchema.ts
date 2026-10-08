@@ -6,6 +6,7 @@
 import * as z from "zod";
 
 export const sessionPublicSchema = z.object({
+  mfa_verified_at: z.union([z.iso.datetime(), z.null()]).optional(),
   expires_at: z.iso.datetime(),
   client_type: z.string(),
   app_name: z.union([z.string(), z.null()]).optional(),

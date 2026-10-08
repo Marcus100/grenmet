@@ -15,9 +15,8 @@ from src.auth.schemas import (
 )
 from src.dependencies import CurrentUser, SessionDep, get_current_user_manager
 
-# user.manage holders (hr-admins) assign and revoke domain roles during
-# onboarding/offboarding. Superuser status is a User flag, not a role, so
-# role assignment cannot grant it.
+# Scoped user.manage holders delegate ordinary staff only; explicit authority
+# and special-duty appointments remain superuser-managed.
 router = APIRouter(
     prefix="/auth/role-assignments",
     tags=["role-assignments"],
@@ -38,9 +37,18 @@ async def read_role_assignments(
     assignments = await service.get_user_role_assignments(
         session=session, user_id=user_id, current_user=current_user
     )
+    from src.auth.policy import _active_assignments
+
+    effective_ids: set[uuid.UUID] = set()
+    for subject_id in {assignment.user_id for assignment in assignments}:
+        effective_ids.update(
+            a.id for a in await _active_assignments(session=session, user_id=subject_id)
+        )
     return UserRoleAssignmentsPublic(
         data=[
-            UserRoleAssignmentPublic.model_validate(a, from_attributes=True)
+            UserRoleAssignmentPublic.model_validate(a, from_attributes=True).model_copy(
+                update={"is_effective": a.id in effective_ids}
+            )
             for a in assignments
         ],
         count=len(assignments),
@@ -66,7 +74,15 @@ async def read_role_assignment(
     if not assignment:
         raise HTTPException(status_code=404, detail=ERROR_ROLE_ASSIGNMENT_NOT_FOUND)
     await service.require_assignment_management(session, current_user, assignment)
-    return assignment
+    from src.auth.policy import _active_assignments
+
+    active_ids = {
+        a.id
+        for a in await _active_assignments(session=session, user_id=assignment.user_id)
+    }
+    return UserRoleAssignmentPublic.model_validate(
+        assignment, from_attributes=True
+    ).model_copy(update={"is_effective": assignment.id in active_ids})
 
 
 @router.post(
@@ -74,7 +90,7 @@ async def read_role_assignment(
     response_model=UserRoleAssignmentPublic,
     status_code=status.HTTP_201_CREATED,
     summary="Create role assignment",
-    description="Create a user-role assignment (within active user.manage scope).",
+    description="Superusers appoint explicit authority and special duties. Scoped managers delegate canonical staff self-service only, to another employee in their employer/department, bounded by their active authority.",
     responses={status.HTTP_201_CREATED: {"description": "Role assignment created"}},
 )
 async def create_role_assignment(
@@ -83,9 +99,18 @@ async def create_role_assignment(
     current_user: CurrentUser,
     assignment_in: UserRoleAssignmentCreate,
 ) -> Any:
-    return await service.create_user_role_assignment(
+    assignment = await service.create_user_role_assignment(
         session=session, assignment_in=assignment_in, current_user=current_user
     )
+    from src.auth.policy import _active_assignments
+
+    active_ids = {
+        a.id
+        for a in await _active_assignments(session=session, user_id=assignment.user_id)
+    }
+    return UserRoleAssignmentPublic.model_validate(
+        assignment, from_attributes=True
+    ).model_copy(update={"is_effective": assignment.id in active_ids})
 
 
 @router.patch(
@@ -110,19 +135,28 @@ async def update_role_assignment(
     )
     if not db_assignment:
         raise HTTPException(status_code=404, detail=ERROR_ROLE_ASSIGNMENT_NOT_FOUND)
-    return await service.update_user_role_assignment(
+    assignment = await service.update_user_role_assignment(
         session=session,
         db_assignment=db_assignment,
         assignment_in=assignment_in,
         current_user=current_user,
     )
+    from src.auth.policy import _active_assignments
+
+    active_ids = {
+        a.id
+        for a in await _active_assignments(session=session, user_id=assignment.user_id)
+    }
+    return UserRoleAssignmentPublic.model_validate(
+        assignment, from_attributes=True
+    ).model_copy(update={"is_effective": assignment.id in active_ids})
 
 
 @router.delete(
     "/{assignment_id}",
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Revoke role assignment",
-    description="Delete a user-role assignment (superuser or user.manage).",
+    description="Superusers revoke any assignment. Scoped managers revoke ordinary staff grants within active management scope. Revoking authority immediately disables grants issued through it.",
     responses={
         status.HTTP_204_NO_CONTENT: {"description": "Role assignment revoked"},
         status.HTTP_404_NOT_FOUND: {"description": "Role assignment not found"},

@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import JSON, ForeignKey, String
+from sqlalchemy import JSON, ForeignKey, String, false
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.orm import Base
@@ -25,6 +25,7 @@ class StaffCredential(Base):
     )
     department_id: Mapped[str] = mapped_column(ForeignKey("hr.department.id"))
     grade_id: Mapped[str] = mapped_column(ForeignKey("hr.grade.id"))
+    mailbox_ready: Mapped[bool] = mapped_column(default=False, server_default=false())
     revoked_at: Mapped[datetime | None]
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
 

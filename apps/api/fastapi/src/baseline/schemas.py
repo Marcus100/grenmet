@@ -24,6 +24,9 @@ class StaffCard(BaseModel):
 
 
 class StaffSetup(BaseModel):
+    organisation_id: str | None = None
+    account_active: bool = False
+    staff_approval_ready: bool = False
     registration_pending: bool = False
     user_id: uuid.UUID
     email: str
@@ -59,6 +62,7 @@ class GradeSetup(GradeInput):
 
 
 class StaffInput(BaseModel):
+    organisation_id: str | None = None
     department_id: str
     grade_id: str
     employee_number: str | None = Field(default=None, min_length=1, max_length=50)
@@ -69,7 +73,7 @@ class StaffInput(BaseModel):
     probation_completed_date: date | None = None
     service_details_source: str | None = Field(default=None, max_length=500)
     supervisor_id: uuid.UUID | None = None
-    mailbox_ready: bool = False
+    mailbox_ready: bool | None = None
 
 
 class BalanceInput(BaseModel):

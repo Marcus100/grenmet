@@ -9,7 +9,7 @@ import hashlib
 import logging
 import secrets
 import uuid
-from datetime import timedelta
+from datetime import datetime, timedelta
 from urllib.parse import urlencode
 
 import httpx
@@ -36,6 +36,7 @@ from src.auth.config import auth_settings
 from src.auth.devices import remember_device, schedule_new_sign_in_alert
 from src.auth.lockout import login_lockout
 from src.auth.models import Role, User, UserRoleLink
+from src.auth.models import Session as LoginSession
 from src.auth.modern_models import AuthChallenge, ExternalIdentity
 from src.auth.modern_schemas import (
     GoogleChallengePublic,
@@ -102,7 +103,7 @@ async def _issue_code(
 
 
 async def _verify_code(
-    session: AsyncSession, *, purpose: str, target: str, code: str
+    session: AsyncSession, *, purpose: str, target: str, code: str, consume: bool = True
 ) -> AuthChallenge:
     """Single-use, expiring, and locked after MAX_CODE_ATTEMPTS wrong guesses."""
     challenge = (
@@ -129,8 +130,9 @@ async def _verify_code(
             session.add(challenge)
         await session.commit()
         raise invalid
-    await session.delete(challenge)
-    await session.flush()
+    if consume:
+        await session.delete(challenge)
+        await session.flush()
     return challenge
 
 
@@ -183,7 +185,13 @@ async def ensure_member(session: AsyncSession, user: User, app: AppDefinition) -
 
 
 async def _session_response(
-    request: Request, session: AsyncSession, user: User, app: AppDefinition
+    request: Request,
+    session: AsyncSession,
+    user: User,
+    app: AppDefinition,
+    *,
+    mfa_verified_at: datetime | None = None,
+    mfa_source_session: LoginSession | None = None,
 ) -> SessionLoginResponse:
     # Staff apps (ADR-0017) keep the staff gate and mint ordinary staff tokens.
     staff = app.scope == "staff"
@@ -207,7 +215,18 @@ async def _session_response(
         user_agent=user_agent,
         ip_address=ip_address,
         enforce_approval=staff,
+        mfa_verified_at=mfa_verified_at,
+        mfa_source_session=mfa_source_session,
     )
+    if staff or app.key == "cms":
+        from src.auth.privileged_mfa import require_privileged_mfa
+
+        await require_privileged_mfa(
+            session,
+            user,
+            login_session=db_session,
+            app_key="cms" if app.key == "cms" else None,
+        )
     if new_device:
         schedule_new_sign_in_alert(
             email_to=user.email,
@@ -219,6 +238,7 @@ async def _session_response(
         user=user,
         expires_delta=service.get_session_access_token_expires_delta(),
         app=None if staff else app.key,
+        db_session=db_session,
     )
     return SessionLoginResponse(
         access_token=access_token,
@@ -233,9 +253,18 @@ async def _session_response(
 async def _require_totp(
     session: AsyncSession, user: User, totp_code: str | None
 ) -> None:
-    if user.totp_enabled and not await verify_factor(session, user, totp_code or ""):
+    if not user.totp_enabled:
+        return
+    if await login_lockout.is_locked(user.email):
+        raise AppException(
+            "Account temporarily locked due to repeated failed logins", 429
+        )
+    if not await verify_factor(session, user, totp_code or ""):
+        if totp_code:
+            await login_lockout.record_failure(user.email)
         await session.commit()
         raise AppException("Two-factor authentication code required or invalid", 400)
+    await login_lockout.reset(user.email)
 
 
 # --- Email one-time code (passwordless sign-in and sign-up) --------------------
@@ -294,7 +323,7 @@ async def email_code_verify(
     require_method(app, "email_code")
     email = str(body.email).lower()
     challenge = await _verify_code(
-        session, purpose=f"code:{app.key}", target=email, code=body.code
+        session, purpose=f"code:{app.key}", target=email, code=body.code, consume=False
     )
     user = await service.get_user_by_email(session=session, email=email)
     if user is None:
@@ -309,12 +338,19 @@ async def email_code_verify(
     if not user.is_active:
         raise AppException("That code is wrong or has expired. Request a new one.", 400)
     await _require_totp(session, user, body.totp_code)
+    await session.delete(challenge)
     if user.email_verified_at is None:
         user.email_verified_at = utc_now()
         session.add(user)
     await session.commit()
     await ensure_member(session, user, app)
-    return await _session_response(request, session, user, app)
+    return await _session_response(
+        request,
+        session,
+        user,
+        app,
+        mfa_verified_at=utc_now() if user.totp_enabled else None,
+    )
 
 
 # --- Email and password -------------------------------------------------------
@@ -342,7 +378,13 @@ async def password_login(
     await _require_totp(session, user, body.totp_code)
     await login_lockout.reset(email)
     await ensure_member(session, user, app)
-    return await _session_response(request, session, user, app)
+    return await _session_response(
+        request,
+        session,
+        user,
+        app,
+        mfa_verified_at=utc_now() if user.totp_enabled else None,
+    )
 
 
 # --- Google -------------------------------------------------------------------
@@ -456,7 +498,13 @@ async def google_finish(
     session.add(user)
     await session.commit()
     await ensure_member(session, user, app)
-    return await _session_response(request, session, user, app)
+    return await _session_response(
+        request,
+        session,
+        user,
+        app,
+        mfa_verified_at=utc_now() if user.totp_enabled else None,
+    )
 
 
 # --- Phone and WhatsApp (linked accounts only; off until a provider is chosen) --
@@ -492,12 +540,24 @@ async def phone_code_verify(
     user = await session.scalar(select(User).where(User.phone_e164 == body.phone))
     if user is None or not user.is_active:
         raise AppException("That code is wrong or has expired. Request a new one.", 400)
-    await _verify_code(
-        session, purpose=f"phone:{app.key}", target=body.phone, code=body.code
+    challenge = await _verify_code(
+        session,
+        purpose=f"phone:{app.key}",
+        target=body.phone,
+        code=body.code,
+        consume=False,
     )
+    await _require_totp(session, user, body.totp_code)
+    await session.delete(challenge)
     await session.commit()
     await ensure_member(session, user, app)
-    return await _session_response(request, session, user, app)
+    return await _session_response(
+        request,
+        session,
+        user,
+        app,
+        mfa_verified_at=utc_now() if user.totp_enabled else None,
+    )
 
 
 async def phone_link_start(
@@ -575,6 +635,12 @@ async def handoff_start(
                 "Ask an administrator to approve your account for staff tools.",
                 403,
             )
+    elif user.email_verified_at is None and not (
+        app.key == "cms" and service.cms_identity_ready(user)
+    ):
+        raise AppException(
+            "Verify your email address before signing in to this app.", 403
+        )
     elif not await service.is_eligible_for_app(
         session=session, user=user, app_key=app.key
     ):
@@ -587,11 +653,19 @@ async def handoff_start(
             session=session, user=user, app_key=app.key
         ):
             raise AppException("This account can't sign in to this app.", 403)
+    if app.scope == "staff" or app.key == "cms":
+        from src.auth.privileged_mfa import require_privileged_mfa
+
+        await require_privileged_mfa(session, user, login_session=account)
     code = await modern_service.issue(
         session,
         HANDOFF_PURPOSE,
         user_id=user.id,
-        data={"app": app.key, "state": modern_service.digest(body.state)},
+        data={
+            "app": app.key,
+            "state": modern_service.digest(body.state),
+            "source_session_id": str(account.id),
+        },
         minutes=HANDOFF_TTL_MINUTES,
     )
     await session.commit()
@@ -626,7 +700,26 @@ async def handoff_redeem(
     user = await service.get_user_by_id(session=session, user_id=user_id)
     if user is None or not user.is_active:
         raise AppException(HANDOFF_EXPIRED, 400)
-    return await _session_response(request, session, user, app)
+    try:
+        source_id = uuid.UUID(str(data.get("source_session_id", "")))
+    except ValueError:
+        raise AppException(HANDOFF_EXPIRED, 400) from None
+    source = await session.get(LoginSession, source_id)
+    if (
+        source is None
+        or source.user_id != user.id
+        or is_registered(source.app_name)
+        or not service.is_session_active(source)
+    ):
+        raise AppException(HANDOFF_EXPIRED, 400)
+    return await _session_response(
+        request,
+        session,
+        user,
+        app,
+        mfa_verified_at=source.mfa_verified_at,
+        mfa_source_session=source,
+    )
 
 
 # --- Barrels account: email-code sign-in at auth.barrels.gd (ADR-0017) --------
@@ -658,7 +751,11 @@ async def account_email_code_verify(
     account = _account()
     email = str(body.email).lower()
     challenge = await _verify_code(
-        session, purpose=f"code:{account.key}", target=email, code=body.code
+        session,
+        purpose=f"code:{account.key}",
+        target=email,
+        code=body.code,
+        consume=False,
     )
     user = await service.get_user_by_email(session=session, email=email)
     if user is None:
@@ -673,6 +770,7 @@ async def account_email_code_verify(
     if not user.is_active:
         raise AppException("That code is wrong or has expired. Request a new one.", 400)
     await _require_totp(session, user, body.totp_code)
+    await session.delete(challenge)
     if user.email_verified_at is None:
         user.email_verified_at = utc_now()
         session.add(user)
@@ -689,6 +787,7 @@ async def account_email_code_verify(
         user_agent=user_agent,
         ip_address=ip_address,
         enforce_approval=False,
+        mfa_verified_at=utc_now() if user.totp_enabled else None,
     )
     if new_device:
         schedule_new_sign_in_alert(
@@ -698,7 +797,9 @@ async def account_email_code_verify(
             signed_in_at=db_session.created_at,
         )
     access_token, expires = service.issue_access_token_for_user(
-        user=user, expires_delta=service.get_session_access_token_expires_delta()
+        user=user,
+        expires_delta=service.get_session_access_token_expires_delta(),
+        db_session=db_session,
     )
     return SessionLoginResponse(
         access_token=access_token,

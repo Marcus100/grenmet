@@ -4,6 +4,7 @@
  */
 
 export type SecuritySessionPublic = {
+  mfa_verified_at?: string | null;
   id: string;
   app_name?: string | null;
   client_type: string;

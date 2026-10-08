@@ -1,10 +1,10 @@
 import logging
 import uuid
 
-from sqlalchemy import select
+from sqlalchemy import exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.models import RoleAssignmentScope, User, UserRoleAssignment
+from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
 from src.exceptions import AuthorizationError
 from src.utils.datetime import utc_now
 
@@ -17,15 +17,36 @@ async def _active_assignments(
     *, session: AsyncSession, user_id: uuid.UUID
 ) -> list[UserRoleAssignment]:
     now = utc_now()
+    from src.auth.delegation import DEPARTMENT_AUTHORITY_ROLES
+    from src.hr.models import EmploymentRecord, EmploymentStatus
+
+    live_appointment = exists(
+        select(EmploymentRecord.id).where(
+            EmploymentRecord.user_id == UserRoleAssignment.user_id,
+            EmploymentRecord.organisation_id == UserRoleAssignment.organisation_id,
+            EmploymentRecord.department_id == UserRoleAssignment.department_id,
+            EmploymentRecord.status == EmploymentStatus.ACTIVE,
+            UserRoleAssignment.scope == RoleAssignmentScope.DEPARTMENT,
+            UserRoleAssignment.user_id.in_(
+                select(User.id).where(User.is_active.is_(True))
+            ),
+        )
+    )
     result = await session.execute(
         select(UserRoleAssignment).where(
             UserRoleAssignment.user_id == user_id,
             UserRoleAssignment.effective_from <= now,
             UserRoleAssignment.effective_to.is_(None)
             | (UserRoleAssignment.effective_to > now),
+            ~UserRoleAssignment.role_id.in_(
+                select(Role.id).where(Role.name.in_(DEPARTMENT_AUTHORITY_ROLES))
+            )
+            | live_appointment,
         )
     )
-    return list(result.scalars().all())
+    from src.auth.delegation import valid_delegated_assignments
+
+    return await valid_delegated_assignments(session, list(result.scalars().all()))
 
 
 def has_permission(*, current_user: User, permission_key: str) -> bool:
@@ -91,6 +112,21 @@ async def can_act_on_user(
     )
 
 
+async def approval_role_ids(
+    session: AsyncSession, role_ids: set[uuid.UUID]
+) -> set[uuid.UUID]:
+    """Expand only the two equal departmental authority templates."""
+    from src.auth.delegation import DEPARTMENT_AUTHORITY_ROLES
+
+    result = await session.execute(
+        select(Role.id).where(Role.name.in_(DEPARTMENT_AUTHORITY_ROLES))
+    )
+    equivalent_ids = set(result.scalars().all())
+    if role_ids & equivalent_ids:
+        return role_ids | equivalent_ids
+    return role_ids
+
+
 async def can_act_on_user_for_role(
     *,
     session: AsyncSession,
@@ -103,12 +139,13 @@ async def can_act_on_user_for_role(
         return True
     if allow_self and current_user.id == target_user_id:
         return True
+    required_role_ids = await approval_role_ids(session, {required_role_id})
     assignments = [
         assignment
         for assignment in await _active_assignments(
             session=session, user_id=current_user.id
         )
-        if assignment.role_id == required_role_id
+        if assignment.role_id in required_role_ids
     ]
     return await _assignment_allows_target(
         session=session,

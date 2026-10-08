@@ -4,12 +4,19 @@ export type { AbsenteeReportCreate } from "./AbsenteeReportCreate.js";
 export type { AbsenteeReportListPublic } from "./AbsenteeReportListPublic.js";
 export type { AbsenteeReportPublic } from "./AbsenteeReportPublic.js";
 export type { AbsenteeReportSubmit } from "./AbsenteeReportSubmit.js";
+export type { AccessBlocker } from "./AccessBlocker.js";
+export { accessBlocker } from "./AccessBlocker.js";
 export type { AccessReviewData } from "./AccessReviewData.js";
 export type { AccountSecurityPublic } from "./AccountSecurityPublic.js";
+export type { ActivationAccountCreate } from "./ActivationAccountCreate.js";
+export type { ActivationConfirm } from "./ActivationConfirm.js";
+export type { ActivationIssue } from "./ActivationIssue.js";
+export type { ActivationLink } from "./ActivationLink.js";
 export type { AddressPublic } from "./AddressPublic.js";
 export type { AddressUpdate } from "./AddressUpdate.js";
 export type { AnnouncementPublic } from "./AnnouncementPublic.js";
 export type { ApiError } from "./ApiError.js";
+export type { AppAccessStatus } from "./AppAccessStatus.js";
 export type { AppEmailCodeStart } from "./AppEmailCodeStart.js";
 export type { AppEmailCodeVerify } from "./AppEmailCodeVerify.js";
 export type { AppHandoffCode } from "./AppHandoffCode.js";
@@ -254,6 +261,25 @@ export type {
   AuthBrowserSessionStatus422,
 } from "./AuthBrowserSession.js";
 export type {
+  AuthConfirmActivationBody,
+  AuthConfirmActivationOptions,
+  AuthConfirmActivationResponse,
+  AuthConfirmActivationResponses,
+  AuthConfirmActivationStatus200,
+  AuthConfirmActivationStatus400,
+  AuthConfirmActivationStatus422,
+} from "./AuthConfirmActivation.js";
+export type {
+  AuthCreateOnboardingAccountBody,
+  AuthCreateOnboardingAccountOptions,
+  AuthCreateOnboardingAccountResponse,
+  AuthCreateOnboardingAccountResponses,
+  AuthCreateOnboardingAccountStatus201,
+  AuthCreateOnboardingAccountStatus403,
+  AuthCreateOnboardingAccountStatus409,
+  AuthCreateOnboardingAccountStatus422,
+} from "./AuthCreateOnboardingAccount.js";
+export type {
   AuthCreatePermissionBody,
   AuthCreatePermissionOptions,
   AuthCreatePermissionResponse,
@@ -400,6 +426,16 @@ export type {
   AuthGetEffectiveAccessStatus422,
 } from "./AuthGetEffectiveAccess.js";
 export type {
+  AuthGetOnboardingStatusOptions,
+  AuthGetOnboardingStatusPath,
+  AuthGetOnboardingStatusResponse,
+  AuthGetOnboardingStatusResponses,
+  AuthGetOnboardingStatusStatus200,
+  AuthGetOnboardingStatusStatus403,
+  AuthGetOnboardingStatusStatus404,
+  AuthGetOnboardingStatusStatus422,
+} from "./AuthGetOnboardingStatus.js";
+export type {
   AuthGetPermissionOptions,
   AuthGetPermissionPath,
   AuthGetPermissionResponse,
@@ -504,6 +540,19 @@ export type {
   AuthGoogleStartStatus403,
   AuthGoogleStartStatus422,
 } from "./AuthGoogleStart.js";
+export type {
+  AuthIssueActivationBody,
+  AuthIssueActivationOptions,
+  AuthIssueActivationPath,
+  AuthIssueActivationResponse,
+  AuthIssueActivationResponses,
+  AuthIssueActivationStatus201,
+  AuthIssueActivationStatus400,
+  AuthIssueActivationStatus403,
+  AuthIssueActivationStatus404,
+  AuthIssueActivationStatus409,
+  AuthIssueActivationStatus422,
+} from "./AuthIssueActivation.js";
 export type {
   AuthLoginAccessTokenBody,
   AuthLoginAccessTokenOptions,
@@ -615,6 +664,16 @@ export type {
   AuthResetPasswordStatus422,
   AuthResetPasswordStatus429,
 } from "./AuthResetPassword.js";
+export type {
+  AuthRevokeActivationOptions,
+  AuthRevokeActivationPath,
+  AuthRevokeActivationResponse,
+  AuthRevokeActivationResponses,
+  AuthRevokeActivationStatus204,
+  AuthRevokeActivationStatus403,
+  AuthRevokeActivationStatus404,
+  AuthRevokeActivationStatus422,
+} from "./AuthRevokeActivation.js";
 export type {
   AuthRevokeSecuritySessionOptions,
   AuthRevokeSecuritySessionPath,
@@ -1776,6 +1835,16 @@ export type {
   HrCreateLeaveRequestStatus422,
 } from "./HrCreateLeaveRequest.js";
 export type {
+  HrCreateOrganisationBody,
+  HrCreateOrganisationOptions,
+  HrCreateOrganisationResponse,
+  HrCreateOrganisationResponses,
+  HrCreateOrganisationStatus201,
+  HrCreateOrganisationStatus403,
+  HrCreateOrganisationStatus409,
+  HrCreateOrganisationStatus422,
+} from "./HrCreateOrganisation.js";
+export type {
   HrCreateParkingPermitBody,
   HrCreateParkingPermitOptions,
   HrCreateParkingPermitResponse,
@@ -2184,6 +2253,7 @@ export type {
 } from "./HrGetRoleConfiguration.js";
 export type {
   HrGetSetupGradesOptions,
+  HrGetSetupGradesQuery,
   HrGetSetupGradesResponse,
   HrGetSetupGradesResponses,
   HrGetSetupGradesStatus200,
@@ -2194,6 +2264,7 @@ export type {
 } from "./HrGetSetupGrades.js";
 export type {
   HrGetSetupPoliciesOptions,
+  HrGetSetupPoliciesQuery,
   HrGetSetupPoliciesResponse,
   HrGetSetupPoliciesResponses,
   HrGetSetupPoliciesStatus200,
@@ -2214,9 +2285,11 @@ export type {
 } from "./HrGetStaffCard.js";
 export type {
   HrGetStaffSetupOptions,
+  HrGetStaffSetupQuery,
   HrGetStaffSetupResponse,
   HrGetStaffSetupResponses,
   HrGetStaffSetupStatus200,
+  HrGetStaffSetupStatus400,
   HrGetStaffSetupStatus403,
   HrGetStaffSetupStatus404,
   HrGetStaffSetupStatus409,
@@ -2574,6 +2647,17 @@ export type {
   HrRemoveHolidayStatus404,
   HrRemoveHolidayStatus422,
 } from "./HrRemoveHoliday.js";
+export type {
+  HrRenameOrganisationBody,
+  HrRenameOrganisationOptions,
+  HrRenameOrganisationPath,
+  HrRenameOrganisationResponse,
+  HrRenameOrganisationResponses,
+  HrRenameOrganisationStatus200,
+  HrRenameOrganisationStatus403,
+  HrRenameOrganisationStatus404,
+  HrRenameOrganisationStatus422,
+} from "./HrRenameOrganisation.js";
 export type {
   HrSaveAttendanceBody,
   HrSaveAttendanceOptions,
@@ -3392,9 +3476,12 @@ export { observationProvenancePropertiesTimeBasisEnum } from "./ObservationProve
 export type { ObservationRecord } from "./ObservationRecord.js";
 export type { ObservationRecordPropertiesKindEnum } from "./ObservationRecordPropertiesKindEnum.js";
 export { observationRecordPropertiesKindEnum } from "./ObservationRecordPropertiesKindEnum.js";
+export type { OnboardingStatus } from "./OnboardingStatus.js";
 export type { OrganisationCatalogue } from "./OrganisationCatalogue.js";
+export type { OrganisationCreate } from "./OrganisationCreate.js";
 export type { OrganisationPreview } from "./OrganisationPreview.js";
 export type { OrganisationPublic } from "./OrganisationPublic.js";
+export type { OrganisationUpdate } from "./OrganisationUpdate.js";
 export type { OrganiserPublic } from "./OrganiserPublic.js";
 export type { OutlookProductPreview } from "./OutlookProductPreview.js";
 export type { OutlookProductPreviewInput } from "./OutlookProductPreviewInput.js";

@@ -19,8 +19,9 @@ export default async function SignIn({
       ) : null}
       <a href="/auth/start?returnTo=%2Fadmin">Sign in with GMS</a>
       <p>
-        Access requires active GMS employment or a FastAPI administrator
-        account.
+        Use a verified email or an administrator-approved staff account. System
+        administrators have full CMS access; other accounts need Writer or
+        Publisher access.
       </p>
     </main>
   );

@@ -84,6 +84,8 @@ jobs:
           CORE_PRIVATE_IP: ${{ vars.CORE_PRIVATE_IP }}
           POSTGIS_RESTORE_VERIFIED: ${{ vars.POSTGIS_RESTORE_VERIFIED }}
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          AUTH_PRIVILEGED_MFA_MODE: ${{ vars.AUTH_PRIVILEGED_MFA_MODE }}
+          AUTH_TOTP_ENCRYPTION_KEYS: ${{ secrets.AUTH_TOTP_ENCRYPTION_KEYS }}
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           FASTAPI_DB_PASSWORD: ${{ secrets.FASTAPI_DB_PASSWORD }}

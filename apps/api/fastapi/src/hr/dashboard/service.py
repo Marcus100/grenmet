@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.auth.models import User
 from src.auth.policy import has_permission
 from src.baseline.service import employment_for
+from src.hr import organisations
 from src.hr.absentee.models import AbsenteeReport
 from src.hr.dailystatus.models import StatusReport
 from src.hr.dashboard.schemas import (
@@ -44,11 +45,15 @@ async def read_dashboard(
         else None
     )
     # Only a superuser may see organisation-wide figures without employment.
-    can_view_department = has_permission(
-        current_user=current_user, permission_key="roster.view"
-    )
     org_wide = current_user.is_superuser and department_id is None
     department = await session.get(Department, department_id) if department_id else None
+    can_view_department = bool(
+        department
+        and department.id
+        in await organisations.permitted_departments(
+            session, current_user, department.organisation_id, "roster.view"
+        )
+    )
     scope = (
         department.name
         if department and can_view_department

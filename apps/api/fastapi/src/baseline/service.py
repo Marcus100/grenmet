@@ -1,9 +1,13 @@
 import uuid
 
-from sqlalchemy import delete, or_, select
+from sqlalchemy import delete, false, or_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from sqlalchemy.sql.elements import ColumnElement
 
+from src.audit.models import AuditEntry
+from src.auth import service as auth_service
 from src.auth.models import Permission, Role, User, UserImage, UserRoleAssignment
 from src.auth.models import Session as LoginSession
 from src.baseline.models import ApprovalPolicy, BaselineAudit, StaffCredential
@@ -19,7 +23,13 @@ from src.baseline.schemas import (
 )
 from src.exceptions import AppException
 from src.hr.leave import ledger
-from src.hr.models import Department, EmploymentRecord, EmploymentStatus, Grade
+from src.hr.models import (
+    Department,
+    EmploymentRecord,
+    EmploymentStatus,
+    Grade,
+    Organisation,
+)
 from src.hr.organisations import (
     department_for,
     validate_service_facts,
@@ -94,7 +104,7 @@ async def card_for(session: AsyncSession, user: User) -> StaffCard:
         status = "inactive"
     elif (
         user.is_active
-        and user.email_verified_at
+        and auth_service.is_staff_eligible(user)
         and not user.registration_pending
         and employment
         and employment.status == EmploymentStatus.ACTIVE
@@ -119,13 +129,48 @@ async def card_for(session: AsyncSession, user: User) -> StaffCard:
     )
 
 
-async def list_staff(session: AsyncSession) -> list[StaffSetup]:
+async def list_staff(
+    session: AsyncSession,
+    organisation_id: str | None = None,
+    *,
+    unassigned: bool = False,
+) -> list[StaffSetup]:
+    if unassigned and organisation_id is not None:
+        raise AppException(
+            "Unassigned accounts do not have an organisation context", 400
+        )
+    if (
+        organisation_id is not None
+        and await session.get(Organisation, organisation_id) is None
+    ):
+        raise AppException("Organisation not found", 404)
+    ownership = select(EmploymentRecord.user_id).where(
+        EmploymentRecord.organisation_id == organisation_id
+    )
+    credential_ownership = (
+        select(StaffCredential.user_id)
+        .join(Department, Department.id == StaffCredential.department_id)
+        .where(Department.organisation_id == organisation_id)
+    )
+    filters: list[ColumnElement[bool]] = []
+    if unassigned:
+        filters.append(~User.id.in_(select(EmploymentRecord.user_id)))
+        filters.append(~User.id.in_(select(StaffCredential.user_id)))
+    elif organisation_id is not None:
+        filters.append(
+            or_(
+                User.id.in_(ownership),
+                ~User.id.in_(select(EmploymentRecord.user_id))
+                & User.id.in_(credential_ownership),
+            )
+        )
     rows = (
         await session.execute(
             select(StaffCredential, User)
             .select_from(User)
             .outerjoin(StaffCredential, StaffCredential.user_id == User.id)
             .where(
+                *filters,
                 User.username != "admin",
                 # Public accounts appear only once they ask for staff access.
                 or_(
@@ -138,8 +183,18 @@ async def list_staff(session: AsyncSession) -> list[StaffSetup]:
     result = []
     for credential, user in rows:
         employment = await employment_for(session, user.id)
+        department = (
+            await department_for(session, credential.department_id)
+            if credential and not employment
+            else None
+        )
         result.append(
             StaffSetup(
+                organisation_id=employment.organisation_id
+                if employment
+                else department.organisation_id
+                if department
+                else None,
                 registration_pending=user.registration_pending,
                 user_id=user.id,
                 email=user.email,
@@ -155,7 +210,9 @@ async def list_staff(session: AsyncSession) -> list[StaffSetup]:
                 else credential.grade_id
                 if credential
                 else "",
-                mailbox_ready=user.is_active,
+                mailbox_ready=credential.mailbox_ready if credential else False,
+                account_active=user.is_active,
+                staff_approval_ready=await identity_ready_for_approval(session, user),
                 email_verified=user.email_verified_at is not None,
                 employment_ready=employment_complete(employment),
                 employee_number=employment.employee_number if employment else None,
@@ -202,6 +259,12 @@ async def save_staff(
     grade = await session.get(Grade, body.grade_id)
     if not grade or not grade.is_active or grade.department_id != body.department_id:
         raise AppException("Choose an active grade in this department", 400)
+    department = await department_for(session, body.department_id)
+    if (
+        body.organisation_id is not None
+        and department.organisation_id != body.organisation_id
+    ):
+        raise AppException("Department is outside the selected organisation", 400)
     credential = await session.get(StaffCredential, user_id)
     if credential and credential.revoked_at:
         raise AppException(
@@ -212,6 +275,8 @@ async def save_staff(
             user_id=user_id, department_id=body.department_id, grade_id=body.grade_id
         )
     credential.department_id, credential.grade_id = body.department_id, body.grade_id
+    if body.mailbox_ready is not None:
+        credential.mailbox_ready = body.mailbox_ready
     session.add(credential)
     employment = await employment_for(session, user_id)
     department = await department_for(session, body.department_id)
@@ -273,14 +338,6 @@ async def save_staff(
         if field in body.model_fields_set:
             setattr(employment, field, getattr(body, field))
     session.add(employment)
-    if body.mailbox_ready and not user.is_active:
-        user.email_verification_required = True
-    user.is_active = body.mailbox_ready
-    session.add(user)
-    if not user.is_active:
-        await session.execute(
-            delete(LoginSession).where(LoginSession.user_id == user_id)
-        )
     session.add(
         BaselineAudit(
             actor_id=actor.id,
@@ -301,6 +358,15 @@ async def save_grade(
     grade = await session.get(Grade, grade_id)
     if grade and grade.department_id != body.department_id:
         raise AppException("A grade cannot be moved between departments", 400)
+    duplicate = await session.scalar(
+        select(Grade.id).where(
+            Grade.department_id == body.department_id,
+            Grade.code == body.code,
+            Grade.id != grade_id,
+        )
+    )
+    if duplicate is not None:
+        raise AppException("Grade code already exists in this department", 409)
     if grade is None:
         grade = Grade(id=grade_id, **body.model_dump())
     else:
@@ -315,7 +381,13 @@ async def save_grade(
             details={"id": grade_id, **body.model_dump()},
         )
     )
-    await session.commit()
+    try:
+        await session.commit()
+    except IntegrityError as exc:
+        await session.rollback()
+        raise AppException(
+            "Grade conflicts with the current department configuration", 409
+        ) from exc
     await session.refresh(grade)
     return grade
 
@@ -430,19 +502,53 @@ async def require_leave_ready(
 
 
 async def read_setup_grades(
-    *, session: AsyncSession, current_user: User
+    *, session: AsyncSession, current_user: User, organisation_id: str | None = None
 ) -> list[Grade]:
     require_admin(current_user)
-    return list(
-        (await session.execute(select(Grade).order_by(Grade.rank))).scalars().all()
-    )
+    statement = select(Grade).order_by(Grade.rank)
+    if organisation_id is not None:
+        if await session.get(Organisation, organisation_id) is None:
+            raise AppException("Organisation not found", 404)
+        statement = statement.join(
+            Department, Department.id == Grade.department_id
+        ).where(Department.organisation_id == organisation_id)
+    return list((await session.execute(statement)).scalars().all())
 
 
 async def read_setup_policies(
-    *, session: AsyncSession, current_user: User
+    *, session: AsyncSession, current_user: User, organisation_id: str | None = None
 ) -> list[ApprovalPolicy]:
     require_admin(current_user)
-    return list((await session.execute(select(ApprovalPolicy))).scalars().all())
+    statement = select(ApprovalPolicy)
+    if organisation_id is not None:
+        if await session.get(Organisation, organisation_id) is None:
+            raise AppException("Organisation not found", 404)
+        departments = list(
+            (
+                await session.execute(
+                    select(Department.id).where(
+                        Department.organisation_id == organisation_id
+                    )
+                )
+            )
+            .scalars()
+            .all()
+        )
+        statement = (
+            statement.where(
+                or_(
+                    *(
+                        ApprovalPolicy.key.startswith(
+                            f"hr:{department_id}:", autoescape=True
+                        )
+                        for department_id in departments
+                    )
+                )
+            )
+            if departments
+            else statement.where(false())
+        )
+    return list((await session.execute(statement)).scalars().all())
 
 
 async def update_setup_policy(
@@ -529,6 +635,30 @@ async def update_role_configuration(
     )
 
 
+async def identity_ready_for_approval(session: AsyncSession, user: User) -> bool:
+    if not user.is_active or (
+        user.password_setup_pending and user.email_verified_at is None
+    ):
+        return False
+    if user.email_verified_at is not None:
+        return True
+    if user.email_verification_required or user.password_setup_pending:
+        return False
+    # An exemption alone is not proof that a pending public account was activated.
+    return bool(
+        await session.scalar(
+            select(AuditEntry.id)
+            .where(
+                AuditEntry.entity_type == "account",
+                AuditEntry.entity_id == str(user.id),
+                AuditEntry.record_type == "account_activation",
+                AuditEntry.action == "activated",
+            )
+            .limit(1)
+        )
+    )
+
+
 async def approve_registration(
     session: AsyncSession, actor: User, user_id: uuid.UUID
 ) -> None:
@@ -550,9 +680,10 @@ async def approve_registration(
         raise AppException("This registration has already been resolved", 409)
     employment = await employment_for(session, user_id)
     credential = await session.get(StaffCredential, user_id)
-    if not user.is_active or not user.email_verified_at:
+    if not await identity_ready_for_approval(session, user):
         raise AppException(
-            "The account must be active and its email verified before approval", 409
+            "The account must be active with verified email or completed administrator-approved activation before approval",
+            409,
         )
     grade = (
         await session.get(Grade, employment.grade_id)
@@ -597,14 +728,24 @@ async def approve_registration(
         .first()
     )
     if assignment is None:
-        session.add(
-            UserRoleAssignment(
-                user_id=user_id,
-                role_id=role.id,
-                scope=RoleAssignmentScope.SELF,
-                organisation_id=employment.organisation_id,
-            )
+        assignment = UserRoleAssignment(
+            user_id=user_id,
+            role_id=role.id,
+            scope=RoleAssignmentScope.SELF,
+            organisation_id=employment.organisation_id,
         )
+        session.add(assignment)
+        grant_action = "CREATE"
+    else:
+        grant_action = "UPDATE"
+    # Explicit approval is independent of expired/revoked departmental grants.
+    assignment.authority_assignment_id = None
+    assignment.effective_from = utc_now()
+    assignment.effective_to = None
+    from src.audit import service as audit_service
+
+    audit_service.set_actor(session, actor.id)
+    await auth_service.audit_assignment(session, assignment, grant_action)
     user.registration_pending = False
     session.add(user)
     session.add(

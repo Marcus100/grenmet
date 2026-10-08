@@ -8,7 +8,13 @@ from sqlalchemy import delete, exists, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from src.auth.models import Role, User, UserRoleAssignment, UserRoleLink
+from src.auth.models import (
+    Role,
+    RoleAssignmentScope,
+    User,
+    UserRoleAssignment,
+    UserRoleLink,
+)
 from src.auth.policy import _active_assignments
 from src.auth.schemas import AccessReviewData as AccessReviewData
 from src.auth.schemas import EffectiveAccess as EffectiveAccess
@@ -21,12 +27,17 @@ from src.exceptions import AppException
 
 
 async def effective_roles(session: AsyncSession, user: User) -> list[Role]:
+    from src.auth.delegation import DEPARTMENT_AUTHORITY_ROLES
+
     active = await _active_assignments(session=session, user_id=user.id)
     ids = {a.role_id for a in active}
     # Preserve legacy grants only where there has never been a scoped assignment.
     legacy = await session.execute(
-        select(UserRoleLink.role_id).where(
+        select(UserRoleLink.role_id)
+        .join(Role, Role.id == UserRoleLink.role_id)
+        .where(
             UserRoleLink.user_id == user.id,
+            Role.name.not_in(DEPARTMENT_AUTHORITY_ROLES),
             ~exists(
                 select(UserRoleAssignment.id).where(
                     UserRoleAssignment.user_id == user.id,
@@ -51,12 +62,66 @@ async def effective_roles(session: AsyncSession, user: User) -> list[Role]:
     )
 
 
+async def all_scope_permission_keys(session: AsyncSession, user: User) -> list[str]:
+    """Project live ALL grants and unchanged, never-scoped legacy authority.
+
+    Organisation-owned endpoints must still enforce their organisation boundary.
+    """
+    roles = await effective_roles(session, user)
+    all_ids = {
+        grant.role_id
+        for grant in await _active_assignments(session=session, user_id=user.id)
+        if grant.scope == RoleAssignmentScope.ALL
+    }
+    scoped_ids = set(
+        await session.scalars(
+            select(UserRoleAssignment.role_id).where(
+                UserRoleAssignment.user_id == user.id
+            )
+        )
+    )
+    return sorted(
+        {
+            permission.key
+            for role in roles
+            if role.id in all_ids or role.id not in scoped_ids
+            for permission in role.permissions
+        }
+    )
+
+
+async def global_permission_keys(session: AsyncSession, user: User) -> list[str]:
+    """Project preserved never-scoped legacy authority over shared definitions.
+
+    An ALL assignment covers its organisation, not every employer's catalogue.
+    effective_roles excludes canonical department authority without live grants.
+    """
+    roles = await effective_roles(session, user)
+    scoped_ids = set(
+        await session.scalars(
+            select(UserRoleAssignment.role_id).where(
+                UserRoleAssignment.user_id == user.id
+            )
+        )
+    )
+    return sorted(
+        {
+            permission.key
+            for role in roles
+            if role.id not in scoped_ids
+            for permission in role.permissions
+        }
+    )
+
+
 async def current(session: AsyncSession, user: User) -> EffectiveAccess:
     roles = await effective_roles(session, user)
     return EffectiveAccess(
         is_superuser=user.is_superuser,
         role_names=sorted(r.name for r in roles),
         permission_keys=sorted({p.key for r in roles for p in r.permissions}),
+        all_scope_permission_keys=await all_scope_permission_keys(session, user),
+        global_permission_keys=await global_permission_keys(session, user),
     )
 
 

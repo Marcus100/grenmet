@@ -6,6 +6,7 @@ from io import StringIO
 from sqlalchemy import and_, case, exists, false, or_, select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.auth.access import global_permission_keys
 from src.auth.models import User
 from src.auth.policy import has_permission, require_permission
 from src.hr import notifications as hr_notifications
@@ -92,6 +93,17 @@ async def require_roster_manage_scope(
     await organisations.require_organisation_permission(
         session, actor, department.organisation_id, key, department_id
     )
+
+
+async def require_global_roster_manage(session: AsyncSession, actor: User) -> None:
+    """Shared catalogues require live global or preserved legacy authority."""
+    require_permission(current_user=actor, permission_key="roster.manage")
+    if actor.is_superuser:
+        return
+    if "roster.manage" not in await global_permission_keys(session, actor):
+        raise HRPermissionDeniedError(
+            "Global roster configuration requires global administrative authority"
+        )
 
 
 async def _has_recorded_work(
@@ -225,7 +237,7 @@ REQUIRED_CSV_COLUMNS = {"user_id", "assignment_date", "shift_code"}
 async def create_public_holiday(
     *, session: AsyncSession, current_user: User, payload: PublicHolidayCreate
 ) -> PublicHoliday:
-    require_permission(current_user=current_user, permission_key="roster.manage")
+    await require_global_roster_manage(session, current_user)
     result = await session.execute(
         select(PublicHoliday).where(PublicHoliday.holiday_date == payload.holiday_date)
     )
@@ -263,7 +275,7 @@ async def list_public_holidays(
 async def delete_public_holiday(
     *, session: AsyncSession, current_user: User, holiday_id: uuid.UUID
 ) -> None:
-    require_permission(current_user=current_user, permission_key="roster.manage")
+    await require_global_roster_manage(session, current_user)
     holiday = await get_public_holiday_or_404(session=session, holiday_id=holiday_id)
     await session.delete(holiday)
     await session.commit()
@@ -426,7 +438,7 @@ def _default_shift_flags(category: ShiftCategory) -> dict[str, bool]:
 async def create_shift(
     *, session: AsyncSession, current_user: User, shift_in: ShiftCatalogCreate
 ) -> ShiftCatalog:
-    require_permission(current_user=current_user, permission_key="roster.manage")
+    await require_global_roster_manage(session, current_user)
     existing = await session.get(ShiftCatalog, shift_in.code)
     if existing is not None:
         raise HRValidationError(ERROR_SHIFT_CODE_ALREADY_EXISTS)
@@ -449,7 +461,7 @@ async def update_shift(
     code: str,
     shift_in: ShiftCatalogUpdate,
 ) -> ShiftCatalog:
-    require_permission(current_user=current_user, permission_key="roster.manage")
+    await require_global_roster_manage(session, current_user)
     db_shift = await session.scalar(
         select(ShiftCatalog)
         .where(ShiftCatalog.code == code)

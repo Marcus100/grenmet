@@ -7,6 +7,9 @@ import * as z from "zod";
 import { securitySessionPublicSchema } from "./securitySessionPublicSchema.js";
 
 export const accountSecurityPublicSchema = z.object({
+  privileged_mfa_required: z.boolean().optional().default(false),
+  privileged_mfa_enforced: z.boolean().optional().default(false),
+  authenticator_storage_ready: z.boolean().optional().default(false),
   recovery_codes_remaining: z.int().optional().default(0),
   email_verified: z.boolean(),
   google_configured: z.boolean(),

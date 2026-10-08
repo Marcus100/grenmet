@@ -7,6 +7,7 @@ import * as z from "zod";
 import { employmentTypeSchema } from "./employmentTypeSchema.js";
 
 export const staffInputSchema = z.object({
+  organisation_id: z.union([z.string(), z.null()]).optional(),
   department_id: z.string(),
   grade_id: z.string(),
   employee_number: z.union([z.string().min(1).max(50), z.null()]).optional(),
@@ -17,5 +18,5 @@ export const staffInputSchema = z.object({
   probation_completed_date: z.union([z.iso.date(), z.null()]).optional(),
   service_details_source: z.union([z.string().max(500), z.null()]).optional(),
   supervisor_id: z.union([z.uuid(), z.null()]).optional(),
-  mailbox_ready: z.boolean().optional().default(false),
+  mailbox_ready: z.union([z.boolean(), z.null()]).optional(),
 });

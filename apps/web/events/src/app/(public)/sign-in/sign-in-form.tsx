@@ -29,6 +29,8 @@ export function SignInForm({ returnTo }: { returnTo: string }) {
   const [step, setStep] = useState<Step>("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
+  const [factorRequired, setFactorRequired] = useState(false);
+  const [factorCode, setFactorCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -39,9 +41,22 @@ export function SignInForm({ returnTo }: { returnTo: string }) {
     const failure =
       step === "email"
         ? await post("/auth/email-code/start", { email })
-        : await post("/auth/email-code/verify", { code, email });
+        : await post("/auth/email-code/verify", {
+            code,
+            email,
+            totp_code: factorCode || null,
+          });
     setPending(false);
     if (failure) {
+      if (failure === "Two-factor authentication code required or invalid") {
+        setFactorRequired(true);
+        setError(
+          factorCode
+            ? "That authenticator or recovery code was not accepted."
+            : null
+        );
+        return;
+      }
       setError(failure);
       return;
     }
@@ -79,6 +94,19 @@ export function SignInForm({ returnTo }: { returnTo: string }) {
             pattern="\d{6}"
             required
             value={code}
+          />
+        </label>
+      ) : null}
+      {factorRequired ? (
+        <label className="block space-y-1 text-body" htmlFor="sign-in-factor">
+          Authenticator or recovery code
+          <Input
+            autoComplete="one-time-code"
+            id="sign-in-factor"
+            maxLength={64}
+            onChange={(event) => setFactorCode(event.target.value)}
+            required
+            value={factorCode}
           />
         </label>
       ) : null}

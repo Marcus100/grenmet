@@ -7,6 +7,10 @@ import * as z from "zod";
 import { gradeSetupSchema } from "./gradeSetupSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
+export const hrGetSetupGradesQueryOrganisationIdSchema = z
+  .union([z.string(), z.null()])
+  .optional();
+
 export const hrGetSetupGradesStatus200Schema = z.array(gradeSetupSchema);
 
 export const hrGetSetupGradesStatus403Schema = z.unknown();

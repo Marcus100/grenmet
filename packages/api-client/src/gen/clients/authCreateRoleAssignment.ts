@@ -11,7 +11,7 @@ import type {
 } from "../models/AuthCreateRoleAssignment.js";
 
 /**
- * @description Create a user-role assignment (within active user.manage scope).
+ * @description Superusers appoint explicit authority and special duties. Scoped managers delegate canonical staff self-service only, to another employee in their employer/department, bounded by their active authority.
  * @summary Create role assignment
  * {@link /api/v1/auth/role-assignments}
  */

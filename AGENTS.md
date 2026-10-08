@@ -89,7 +89,7 @@ package changes, compatible API changes, and additive migrations; apply the
 Blast-Radius Gate and explain material tradeoffs.
 
 ### Never
-- `gh pr merge` or any deploy command without explicit user authorization.
+- Merge to `main`, publish production releases, or run production deploy commands without explicit user authorization. Standing staging authorization is defined below.
 - Destructive Git operations remain blocked by `.claude/hooks/block-dangerous-git.mjs`.
 - Write to `.env.*` or `.env.local` files — blocked by `.claude/hooks/protect-files.mjs`
 - Manually edit `packages/api-client/src/gen/` — blocked by the same hook
@@ -111,12 +111,18 @@ type-checking, and tests.
 Several agents often run at once: give each its own git worktree and branch
 (Claude: `claude --worktree <topic>`, which creates `.claude/worktrees/<topic>`
 from the current `dev` HEAD; Codex: its worktree mode). Run `pnpm install` in a
-new worktree. Commit in the worktree, then land on `dev` with
-`git fetch && git rebase origin/dev`, `pnpm fix:changed`, `git push origin HEAD:dev`;
-if the push is rejected, rebase and retry — never force-push. Never hand-merge
+new worktree. Commit there, then merge completed branches into local `dev` in a
+clean integration checkout; follow the Git and GitHub Workflow below. Never hand-merge
 `openapi.json` or `packages/api-client/src/gen/`: take either side, regenerate
 (openapi command above → `pnpm generate:api-client` → `pnpm check:drift`).
 Dev servers stay on the host in the main checkout.
+- **Shared stashes:** Git stashes are shared across worktrees. Record and apply the exact stash SHA; never use an implicit latest stash during parallel work.
+
+### Git and GitHub Workflow
+- Merge completed task branches into local `dev`, validate the combined result, then push `dev` directly; do not push feature branches or create feature-to-dev PRs unless the user requests them.
+- Fetch first and integrate current `origin/dev`; run `pnpm fix:changed`, `pnpm type-check`, affected tests, staged guardrails and blast-radius review before pushing. If remote dev advances, integrate it locally and revalidate before retrying; never force-push or bypass hooks.
+- Standing authorization: after local validation and direct `dev` push, create/update the `dev → staging` PR and merge it automatically once all applicable checks pass for its current head. Review the promotion diff, verify dev has not advanced, and use `--match-head-commit`; never bypass protection or merge pending/failing checks.
+- Monitor the resulting staging deployment and report actionable failures or readiness for acceptance. Reuse an open promotion PR; production promotion (`staging → main`) and publication/deployment remain separately authorized. Do not promote unrelated or unfinished work.
 
 ### Communication
 Lead with the answer or the next step in plain language; keep responses short
@@ -175,6 +181,8 @@ ask only when the lasting rule or its scope is ambiguous.
 - **Directory-specific rule** → that directory's `AGENTS.md` and add it to the Instruction map
 - **Domain or operational rule** → domain docs; add an instruction-file pointer only when useful
 - One or two lines per entry; no narrative prose. Keep this file under 20 KB — Codex concatenates root + nested files against a byte budget.
+
+- **Worktree cleanup:** A clean worktree may still back another live session. Confirm session ownership and preserve ignored local files before removal; keep uncertain worktrees and never remove another session's working directory.
 
 ### Session Handoff
 Claude Code and Codex share one working tree. A `SessionStart` hook tails

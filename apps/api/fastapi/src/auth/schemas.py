@@ -150,6 +150,7 @@ class PermissionsPublic(BaseModel):
 
 # Session schemas
 class SessionBase(BaseModel):
+    mfa_verified_at: UtcDateTime | None = None
     expires_at: UtcDateTime
     client_type: str
     app_name: str | None = None
@@ -158,6 +159,7 @@ class SessionBase(BaseModel):
 
 
 class SessionCreate(BaseModel):
+    mfa_verified_at: UtcDateTime | None = None
     user_id: uuid.UUID
     session_token: str
     expires_at: UtcDateTime
@@ -259,6 +261,8 @@ class UserRoleAssignmentUpdate(BaseModel):
 
 
 class UserRoleAssignmentPublic(UserRoleAssignmentBase):
+    authority_assignment_id: uuid.UUID | None = None
+    is_effective: bool = True
     organisation_id: str
     id: uuid.UUID
     effective_from: UtcDateTime
@@ -275,6 +279,14 @@ class EffectiveAccess(BaseModel):
     is_superuser: bool
     role_names: list[str]
     permission_keys: list[str]
+    global_permission_keys: list[str] = Field(
+        default_factory=list,
+        description="Preserved never-scoped legacy permissions for shared global definitions; organisation-scoped ALL grants are excluded.",
+    )
+    all_scope_permission_keys: list[str] = Field(
+        default_factory=list,
+        description="Permissions from live ALL assignments or preserved unscoped legacy roles; organisation boundaries still apply.",
+    )
 
 
 class ReviewInput(BaseModel):

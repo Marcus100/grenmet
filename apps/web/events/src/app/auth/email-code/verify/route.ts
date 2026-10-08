@@ -9,6 +9,7 @@ import { reportError } from "@/lib/report-error";
 const bodySchema = z.object({
   code: z.string().regex(/^\d{6}$/),
   email: z.string().email().max(254),
+  totp_code: z.string().max(64).nullable().optional(),
 });
 
 export async function POST(request: Request) {

@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-09-23
+**Last updated:** 2026-10-07
 
 This guide documents the current FastAPI contract conventions. It complements the generated OpenAPI schema at `apps/api/fastapi/openapi.json` and the generated TypeScript client in `packages/api-client`.
 
@@ -16,6 +16,27 @@ Update this document whenever you:
 - Add a webhook endpoint or change its verification behaviour
 
 This document must stay in sync with the code. Do not mark a gap as resolved until the implementation exists.
+
+## Scoped HR account administration
+
+`GET /api/v1/auth/users` calculates rows and counts from the caller's active employer and department `user.manage` assignments; per-ID reads and profile corrections use the same boundary. Global account creation, activation, credentials, app/platform privilege changes and deletion require a superuser. Unplaced and personal accounts are excluded from departmental management.
+
+`GET /api/v1/auth/roles` permits scoped managers to list only canonical ordinary roles eligible for delegation. Role definition reads by ID and all definition mutations remain superuser-only. Role assignment create/update/revoke permits managers to grant `staff` with `SELF` scope to another employee in scope, bounded by canonical permissions and the issuer's active authority. Explicit managerial and special-duty appointments require a superuser.
+
+Role assignment responses include `authority_assignment_id` (null for explicit grants) and `is_effective`, which list/get calculate from live authority and expiry. Revoking authority disables its dependent grants immediately. See [department authority](../hr/department-authority.md) for scope and audit rules.
+
+`GET /api/v1/auth/access/me` returns the compatible, default-empty
+`all_scope_permission_keys` projection alongside `permission_keys` and the
+explicit `is_superuser` bypass. Only permissions from live `ALL` assignments and
+never-scoped legacy roles enter the projection; department/SELF authority cannot
+borrow the scope of another role, and expired/revoked authority cannot fall back
+to its legacy role link. This field does not remove any organisation boundary or
+permission-specific rule. The compatible, default-empty `global_permission_keys`
+projection includes only preserved never-scoped legacy authority; canonical
+department-manager appointments require live scoped grants and cannot enter it.
+Shared HR shift and public-holiday definitions require this global
+`roster.manage` authority or a superuser for writes; organisation `ALL`,
+department and SELF grants cannot mutate definitions shared by other employers.
 
 ## Base URLs
 
@@ -1325,8 +1346,65 @@ and self-service profile updates cannot grant CMS access.
 `GET /api/v1/auth/apps/{app}/me` returns live app-scoped identity and, for CMS,
 editorial permission keys. It requires a bearer token for the named app and
 rechecks admission. CMS handoff and session exchange require an active,
-email-verified account with an explicit grant (or a system administrator),
-independently of staff approval. CMS tokens cannot access staff APIs.
+account with a usable sign-in method and an explicit grant (or a system
+administrator). The identity gate accepts either a verified email or approved
+staff whose email verification is not required. Public accounts still need
+verified email. CMS tokens cannot access staff APIs.
 Access changes revoke CMS sessions; already-issued tokens read current grants.
 The additive `cmsaccess20261007` migration defaults existing users to `none`;
 system administrators retain full CMS access.
+
+
+### Administrator-mediated account activation
+
+- `POST /api/v1/auth/onboarding/accounts` (`authCreateOnboardingAccount`): superuser creates an active, staff-approved account with an unusable random password and password setup pending; no roles or CMS grants are assigned. Existing email/username conflicts return 409.
+- `GET /api/v1/auth/onboarding/{user_id}` (`authGetOnboardingStatus`): superuser receives email/activation state and typed GAA Admin/CMS blockers. This is app admission, not HR workflow readiness.
+- `POST /api/v1/auth/onboarding/{user_id}/activation` (`authIssueActivation`): requires explicit `identity_confirmed: true`; returns a private URL and expiry once with `Cache-Control: no-store`. The URL uses a fragment so its secret is not sent in page requests. Valid for 30 minutes; replacement invalidates earlier links.
+- `DELETE /api/v1/auth/onboarding/{user_id}/activation` (`authRevokeActivation`): superuser revokes outstanding links.
+- `POST /api/v1/auth/onboarding/activate` (`authConfirmActivation`): public, rate-limited; takes the one-use token and a 12–128 character password. Requires an active eligible target and an active superuser issuer, unchanged email and credentials. Atomically consumes proof, sets password, clears password setup/email requirement, revokes sessions and outstanding challenges. Does not verify email, approve pending staff, grant roles, change CMS access or reset MFA.
+
+Activation is limited to incomplete or unverified non-superuser accounts. Established verified accounts use the existing recovery process. Issuance, revocation and completion are audited under `account`; links and passwords are excluded from history. No new database migration is required: challenges, account flags and audit storage already exist.
+
+
+### HR onboarding readiness
+
+`StaffSetup` adds `account_active` and `staff_approval_ready`. `mailbox_ready` is persisted on the staff credential and defaults to unconfirmed for existing records; it is never inferred from account activity. `StaffInput.mailbox_ready` may be omitted or null to preserve the recorded value. HR setup saves never modify account activity, password/email requirements or sessions. Staff approval accepts verified email or completed, audited administrator-issued activation while retaining active membership/grade requirements and ordinary staff-only grants.
+
+### Privileged MFA session evidence
+
+Session responses add optional `session.mfa_verified_at`, preserving compatibility while distinguishing an actual factor challenge from `totp_enabled` enrolment. Account security adds `privileged_mfa_required`, `privileged_mfa_enforced` and `authenticator_storage_ready`; active security sessions expose optional MFA timestamps without secrets. In enforce mode, privileged staff requests and GAA Admin/CMS admission return 403 until encrypted enrolment and a live session challenge are present. Account security/enrolment, recovery and logout remain available. See [rollout and recovery](../operations/privileged-mfa.md).
+
+`AppPhoneCodeVerify` adds optional `totp_code` for enrolled authenticators/recovery codes. Email and phone challenges remain locked until factor verification succeeds and are consumed in that transaction; a missing factor keeps the valid primary code available for the MFA prompt. Failed-factor attempts use the existing account lockout.
+
+Target onboarding app status adds `mfa_enrolment` when enforce mode requires an encrypted enabled factor, and `requires_mfa_sign_in` to distinguish account prerequisites from a future session challenge. Enrolment can make an account ready to sign in; it never declares a target session authenticated. Explicit account `reauth=1` renders a fresh sign-in challenge while preserving the validated return destination.
+
+### HR organisation setup
+
+`POST /hr/organisations` registers an employer identity (permanent ID, unique code,
+display name); `PATCH /hr/organisations/{organisation_id}` changes only its name.
+Both are superuser-only and audited. Registration does not assign accounts,
+activate an app, or grant permissions. Existing organisation IDs remain stable.
+
+HR Setup selects an accessible organisation before loading its departments,
+staff, grades and notification settings. Staff, grade and policy setup queries
+accept optional `organisation_id`; legacy omitted context remains superuser-only.
+`StaffSetup.organisation_id` reports employment ownership, or an initial credential
+department if employment has not yet been recorded. `StaffInput.organisation_id`
+is optional for compatibility but, when supplied, must match the saved department.
+
+`unassigned=true` on staff setup returns eligible accounts with neither employment
+nor staff credentials and cannot be combined with `organisation_id`. Assigning
+such an account requires an explicitly chosen department; email domains and
+subdomains never establish employer membership. Grade and HR policy reads filter
+in SQL before returning data. Shift definitions remain shared reference data;
+roster ownership and authorisation still belong to each department.
+
+The effective-access projection adds optional `all_scope_permission_keys` for
+controls requiring organisation-wide authority, and `global_permission_keys` for
+preserved unscoped legacy authority. A flattened `permission_keys` entry alone
+does not prove either scope. Shared roster references require superuser or global
+authority; an organisation-wide grant is insufficient. Neither field
+overrides the employer and object checks on organisation-owned endpoints. Missing
+projection fields keep shared editing disabled. Grade creation/update reports
+HTTP 409 for a conflicting department grade definition instead of surfacing a
+raw constraint error.

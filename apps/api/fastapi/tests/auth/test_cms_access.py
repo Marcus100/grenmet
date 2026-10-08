@@ -117,26 +117,102 @@ async def test_user_manager_cannot_grant_cms(
 ):
     import uuid
 
-    from src.auth.models import UserRoleLink
-    from tests.factories import make_role_with_permission
+    from sqlalchemy import select
+
+    from src.auth.models import Role, RoleAssignmentScope, User
+    from src.auth.permissions import seed_permissions_and_roles_async
+    from tests.factories import assign_role, make_department, make_employee, make_user
 
     me = await async_client.get(
         "/api/v1/auth/users/me", headers=normal_user_token_headers_async
     )
     uid = me.json()["id"]
-    role, _ = await make_role_with_permission(db_async, "user.manage")
-    db_async.add(UserRoleLink(user_id=uuid.UUID(uid), role_id=role.id))
-    await db_async.commit()
-    # Prove this caller has ordinary user-management authority.
+    user = await db_async.get(User, uuid.UUID(uid))
+    await seed_permissions_and_roles_async(db_async)
+    department = await make_department(db_async)
+    await make_employee(db_async, user=user, department_id=department.id)
+    role = await db_async.scalar(select(Role).where(Role.name == "department-manager"))
+    await assign_role(
+        db_async,
+        user=user,
+        role=role,
+        scope=RoleAssignmentScope.DEPARTMENT,
+        department_id=department.id,
+    )
+    # Management routes cannot modify the caller's own account.
     result = await async_client.patch(
         f"/api/v1/auth/users/{uid}",
         headers=normal_user_token_headers_async,
         json={"first_name": "Manager"},
     )
+    assert result.status_code == 403
+    target = await make_user(db_async)
+    await make_employee(db_async, user=target, department_id=department.id)
+    # A manager can correct an ordinary colleague's profile in their own department.
+    result = await async_client.patch(
+        f"/api/v1/auth/users/{target.id}",
+        headers=normal_user_token_headers_async,
+        json={"first_name": "Colleague"},
+    )
     assert result.status_code == 200, result.text
     result = await async_client.patch(
-        f"/api/v1/auth/users/{uid}",
+        f"/api/v1/auth/users/{target.id}",
         headers=normal_user_token_headers_async,
         json={"cms_access": "publisher"},
     )
     assert result.status_code == 403
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "is_admin, grant, permission",
+    [
+        (True, "none", "cms.article.manage"),
+        (False, "publisher", "cms.article.manage"),
+        (False, "writer", "cms.article.create"),
+    ],
+)
+async def test_approved_legacy_staff_can_use_explicit_cms_access_without_email(
+    async_client, db_async, monkeypatch, is_admin, grant, permission
+):
+    monkeypatch.setattr(auth_settings, "CMS_SSO_CLIENT_SECRET", "cms-test-secret")
+    user = User(
+        email="legacy-admin@example.com",
+        username="legacy-admin",
+        first_name="Legacy",
+        last_name="Admin",
+        hashed_password=get_password_hash("Password-123!"),
+        is_superuser=is_admin,
+        is_active=True,
+        registration_pending=False,
+        email_verification_required=False,
+        email_verified_at=None,
+        cms_access=grant,
+    )
+    db_async.add(user)
+    await db_async.commit()
+    assert service.is_staff_eligible(user)
+    _, account = await service.create_session(
+        session=db_async, user=user, app_name="auth", enforce_approval=False
+    )
+    state = secrets.token_urlsafe(24)
+    started = await async_client.post(
+        f"{BASE}/handoff", json={"session_token": account, "state": state}
+    )
+    assert started.status_code == 200, started.text
+    redeemed = await async_client.post(
+        f"{BASE}/handoff/redeem",
+        json={
+            "code": started.json()["code"],
+            "state": state,
+            "client_secret": "cms-test-secret",
+        },
+    )
+    assert redeemed.status_code == 200, redeemed.text
+    identity = await async_client.get(
+        f"{BASE}/me",
+        headers={"Authorization": f"Bearer {redeemed.json()['access_token']}"},
+    )
+    assert identity.status_code == 200
+    assert identity.json()["is_superuser"] is is_admin
+    assert permission in identity.json()["permission_keys"]

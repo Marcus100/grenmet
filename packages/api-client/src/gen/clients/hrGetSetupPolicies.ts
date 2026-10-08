@@ -11,7 +11,7 @@ import type {
 } from "../models/HrGetSetupPolicies.js";
 
 /**
- * @description List approval policies.
+ * @description List approval policies, optionally restricted to HR departments in a selected employer organisation.
  * @summary List approval policies
  * {@link /api/v1/hr/setup/policies}
  */
