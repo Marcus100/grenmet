@@ -11,4 +11,5 @@ export const appAccessStatusSchema = z.object({
   label: z.string(),
   available: z.boolean(),
   blockers: z.array(accessBlockerSchema),
+  requires_mfa_sign_in: z.boolean().optional().default(false),
 });

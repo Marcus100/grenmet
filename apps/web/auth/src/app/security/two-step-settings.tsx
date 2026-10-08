@@ -286,9 +286,13 @@ function ConfirmDialog({
 export function TwoStepSettings({
   enabled: initiallyEnabled,
   recoveryCodesRemaining,
+  storageReady = true,
+  privileged = false,
 }: {
   enabled: boolean;
   recoveryCodesRemaining: number;
+  storageReady?: boolean;
+  privileged?: boolean;
 }) {
   const [enabled, setEnabled] = useState(initiallyEnabled);
   const [remaining, setRemaining] = useState(recoveryCodesRemaining);
@@ -322,7 +326,7 @@ export function TwoStepSettings({
           action={
             <button
               className={outlineButton}
-              disabled={starting}
+              disabled={starting || !storageReady}
               onClick={async () => {
                 setStarting(true);
                 try {
@@ -365,7 +369,11 @@ export function TwoStepSettings({
             Turn off
           </button>
         }
-        description="A code from your phone is required each time you sign in."
+        description={
+          privileged
+            ? "Privileged staff tools require a two-step sign-in. Turning this off blocks those tools until you enrol and sign in again."
+            : "A code from your phone is required each time you sign in."
+        }
         title="Authenticator app"
       >
         <StatusBadge tone="on">On</StatusBadge>

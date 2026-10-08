@@ -4,6 +4,7 @@
  */
 
 export type SessionPublic = {
+  mfa_verified_at?: string | null;
   /**
    * @description
    * Format: `date-time`

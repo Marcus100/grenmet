@@ -12,6 +12,7 @@ class AuthConfig(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env.local",
         env_ignore_empty=True,
+        hide_input_in_errors=True,
         extra="ignore",
     )
 
@@ -48,6 +49,11 @@ class AuthConfig(BaseSettings):
     # One-time codes by SMS/WhatsApp. "disabled" until a provider is chosen
     # (every message costs money); "console" logs codes for local development.
     PHONE_OTP_PROVIDER: Literal["disabled", "console"] = "disabled"
+
+    # Staged rollout: enforcement only after operator enrolment/recovery acceptance.
+    AUTH_PRIVILEGED_MFA_MODE: Literal["disabled", "enforce"] = "disabled"
+    # Dedicated Fernet keys: first encrypts; remaining keys decrypt during rotation.
+    AUTH_TOTP_ENCRYPTION_KEYS: list[str] = []
 
     SECRET_KEY: str = secrets.token_urlsafe(32)
     # Legacy OAuth2 bearer token (login/access-token). Short-lived by default: the
@@ -122,6 +128,22 @@ class AuthConfig(BaseSettings):
                 f"environment (got {self.BCRYPT_ROUNDS}); a lowered cost factor "
                 "is a test-only optimisation."
             )
+        if (
+            self.AUTH_PRIVILEGED_MFA_MODE == "enforce"
+            and not self.AUTH_TOTP_ENCRYPTION_KEYS
+        ):
+            raise ValueError(
+                "Privileged MFA enforcement requires AUTH_TOTP_ENCRYPTION_KEYS"
+            )
+        from cryptography.fernet import Fernet
+
+        for key in self.AUTH_TOTP_ENCRYPTION_KEYS:
+            try:
+                Fernet(key.encode())
+            except ValueError, TypeError:
+                raise ValueError(
+                    "AUTH_TOTP_ENCRYPTION_KEYS must contain Fernet keys"
+                ) from None
         return self
 
 

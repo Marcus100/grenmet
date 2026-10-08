@@ -1,7 +1,7 @@
 import logging
 import uuid
 from collections.abc import Collection
-from datetime import timedelta
+from datetime import datetime, timedelta
 from typing import Any
 
 from sqlalchemy import delete, false, func, select
@@ -259,12 +259,13 @@ async def begin_totp_setup(*, session: AsyncSession, user: User) -> str:
     """Generate and store a new (inactive) TOTP secret; return it for provisioning."""
     from src.auth import totp
 
+    await session.refresh(user, with_for_update=True)
     if user.totp_enabled:
         from src.exceptions import AppException
 
         raise AppException("Two-factor authentication is already enabled", 409)
     secret = totp.generate_secret()
-    user.totp_secret = secret
+    user.totp_secret = totp.encrypt_secret(secret)
     user.totp_enabled = False
     session.add(user)
     await session.commit()
@@ -276,9 +277,15 @@ async def activate_totp(*, session: AsyncSession, user: User, code: str) -> bool
     """Verify a code against the pending secret and enable 2FA on success."""
     from src.auth import totp
 
-    if not user.totp_secret or not totp.verify_code(secret=user.totp_secret, code=code):
+    await session.refresh(user, with_for_update=True)
+    if not user.totp_secret or not totp.verify_code(
+        secret=totp.decrypt_secret(user.totp_secret), code=code
+    ):
         return False
     user.totp_enabled = True
+    from src.auth.account_security import record_security
+
+    await record_security(session, user, "totp_enabled")
     session.add(user)
     await session.commit()
     await session.refresh(user)
@@ -287,8 +294,21 @@ async def activate_totp(*, session: AsyncSession, user: User, code: str) -> bool
 
 async def disable_totp(*, session: AsyncSession, user: User) -> None:
     """Disable 2FA and clear the stored secret."""
+    from src.auth.account_security import record_security
+
+    await session.flush()
+    await session.refresh(user, with_for_update=True)
+    await record_security(session, user, "totp_disabled")
     user.totp_secret = None
     user.totp_enabled = False
+    user.mfa_recovery_hashes = []
+    from sqlalchemy import update
+
+    await session.execute(
+        update(AuthSession)
+        .where(AuthSession.user_id == user.id)
+        .values(mfa_verified_at=None)
+    )
     session.add(user)
     await session.commit()
     await session.refresh(user)
@@ -310,12 +330,21 @@ def get_session_expires_delta() -> timedelta:
 
 
 def issue_access_token_for_user(
-    *, user: User, expires_delta: timedelta | None = None, app: str | None = None
+    *,
+    user: User,
+    expires_delta: timedelta | None = None,
+    app: str | None = None,
+    db_session: AuthSession | None = None,
 ) -> tuple[str, Any]:
     """Issue an access token and return its expiry timestamp."""
     ttl = expires_delta or get_legacy_access_token_expires_delta()
     expires_at = utc_now() + ttl
-    return create_access_token(user.id, expires_delta=ttl, app=app), expires_at
+    return create_access_token(
+        user.id,
+        expires_delta=ttl,
+        app=app,
+        session_id=str(db_session.id) if db_session else None,
+    ), expires_at
 
 
 def is_session_active(db_session: AuthSession, now: Any | None = None) -> bool:
@@ -334,12 +363,35 @@ async def create_session(
     ip_address: str | None = None,
     expires_delta: timedelta | None = None,
     enforce_approval: bool = True,
+    mfa_verified_at: datetime | None = None,
+    mfa_source_session: AuthSession | None = None,
 ) -> tuple[AuthSession, str]:
     """Create and persist a new opaque session for a user.
 
     App-scoped sessions (``enforce_approval=False``) skip the staff approval
     gate; the caller has already checked app eligibility.
     """
+    if mfa_verified_at is not None or mfa_source_session is not None:
+        verified_secret = user.totp_secret
+        # Hold the same account lock as disable until the new session is committed.
+        # A completed factor check cannot outlive concurrent disable/re-enrolment.
+        await session.flush()
+        await session.refresh(user, with_for_update=True)
+        if not user.totp_enabled or user.totp_secret != verified_secret:
+            mfa_verified_at = None
+        if mfa_source_session is not None:
+            source = await session.scalar(
+                select(AuthSession)
+                .where(AuthSession.id == mfa_source_session.id)
+                .execution_options(populate_existing=True)
+            )
+            if (
+                source is None
+                or source.user_id != user.id
+                or not is_session_active(source)
+            ):
+                raise AppException("Sign in again", 401)
+            mfa_verified_at = source.mfa_verified_at
     if enforce_approval:
         require_approved_account(user)
     now = utc_now()
@@ -348,6 +400,7 @@ async def create_session(
     session.add(user)
     db_session = AuthSession(
         **SessionCreate(
+            mfa_verified_at=mfa_verified_at,
             user_id=user.id,
             session_token=hash_session_token(session_secret),
             expires_at=now + (expires_delta or get_session_expires_delta()),
@@ -484,6 +537,17 @@ async def exchange_session_for_access_token(
         await revoke_session(session=session, db_session=db_session)
         return None
 
+    if is_registered(db_session.app_name) and (
+        not is_app_scoped(db_session.app_name) or db_session.app_name == "cms"
+    ):
+        from src.auth.privileged_mfa import require_privileged_mfa
+
+        await require_privileged_mfa(
+            session,
+            user,
+            login_session=db_session,
+            app_key="cms" if db_session.app_name == "cms" else None,
+        )
     db_session = await touch_session(
         session=session,
         db_session=db_session,
@@ -494,6 +558,7 @@ async def exchange_session_for_access_token(
         user=user,
         expires_delta=get_session_access_token_expires_delta(),
         app=scoped_app,
+        db_session=db_session,
     )
     return db_session, user, access_token, access_token_expires_at
 
@@ -507,11 +572,16 @@ async def rotate_session(
     ip_address: str | None = None,
 ) -> tuple[AuthSession, str]:
     """Rotate an active session by revoking it and minting a replacement."""
+    await session.refresh(user, with_for_update=True)
+    await session.refresh(db_session)
+    if not is_session_active(db_session):
+        raise AppException("Sign in again", 401)
     await revoke_session(session=session, db_session=db_session)
     return await create_session(
         session=session,
         user=user,
         client_type=db_session.client_type,
+        mfa_verified_at=db_session.mfa_verified_at,
         app_name=db_session.app_name,
         user_agent=user_agent or db_session.user_agent,
         ip_address=ip_address or db_session.ip_address,

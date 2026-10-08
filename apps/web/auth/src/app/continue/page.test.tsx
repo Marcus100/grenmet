@@ -128,3 +128,17 @@ describe("/continue", () => {
     ).toBeTruthy();
   });
 });
+
+it("offers an explicit fresh challenge while preserving the handoff", async () => {
+  readSessionCookie.mockResolvedValue("password-only-session");
+  startHandoff.mockResolvedValue({ kind: "mfa-sign-in" });
+  render(await page({ app: "gaa-admin", state: STATE }));
+  const href = screen
+    .getByRole("link", { name: "Sign in again" })
+    .getAttribute("href");
+  const target = new URL(href ?? "", "https://auth.example.com");
+  expect(target.searchParams.get("reauth")).toBe("1");
+  expect(target.searchParams.get("returnTo")).toBe(
+    `/continue?app=gaa-admin&state=${STATE}`
+  );
+});

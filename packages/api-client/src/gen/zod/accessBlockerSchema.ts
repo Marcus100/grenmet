@@ -11,4 +11,5 @@ export const accessBlockerSchema = z.enum([
   "email_verification",
   "staff_approval",
   "cms_grant",
+  "mfa_enrolment",
 ]);

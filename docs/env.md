@@ -616,3 +616,7 @@ Configure `WXWATCH_DATABASE_URL` in the FastAPI environment with access to the s
 ### eRegister database
 
 `EREGISTER_DATABASE_URL` is the PostgreSQL URL for the dedicated manual observation register. `EREGISTER_DB_NAME` is the expected database name used by its Alembic guard (default `eregister`). Provision `EREGISTER_DB_USER`, `EREGISTER_DB_PASSWORD` and `EREGISTER_DB_NAME` alongside the other domain databases. The register stores manual SYNOP, METAR and SPECI entries, revisions, QC decisions and WIS2box publication state; it does not replace SURFACE's automated observation store.
+
+### Privileged MFA rollout
+
+FastAPI auth settings: `AUTH_PRIVILEGED_MFA_MODE` defaults to `disabled`; set `enforce` only after the [readiness and recovery gates](operations/privileged-mfa.md). `AUTH_TOTP_ENCRYPTION_KEYS` is a deployment-secret JSON array of dedicated Fernet keys; first encrypts and remaining keys permit staged rotation. Missing keys disable new authenticator enrolment; enforce mode refuses to start. JWT `SECRET_KEY` is never used to encrypt authenticator secrets.

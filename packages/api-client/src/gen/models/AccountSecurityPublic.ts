@@ -7,6 +7,21 @@ import type { SecuritySessionPublic } from "./SecuritySessionPublic.js";
 
 export type AccountSecurityPublic = {
   /**
+   * @default false
+   * @type boolean | undefined
+   */
+  privileged_mfa_required?: boolean;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  privileged_mfa_enforced?: boolean;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  authenticator_storage_ready?: boolean;
+  /**
    * @default 0
    * @type integer | undefined
    */

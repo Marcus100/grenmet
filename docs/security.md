@@ -273,3 +273,7 @@ scanner exclusions. SQLite and the other Perl findings remain under review.
 ## Account activation without email
 
 Superusers may approve identity in person and deliver a single-use activation link directly. This establishes a password without claiming ownership of a mailbox. See [staff onboarding](operations/staff-onboarding.md) and [modular access decision](adr/0018-modular-access-and-onboarding.md). Links are hashed in storage, expire after 30 minutes, bind to the current account credentials/email and issuing administrator, and are revocable. Redemption revokes existing sessions and retains MFA. Existing approved staff exempt from email verification may enter CMS with explicit access; public accounts retain the verified-email gate.
+
+## Privileged two-step verification
+
+Privileged access has a separately activated MFA gate with encrypted authenticator storage, live session evidence, saved recovery codes and an operator readiness command. The default rollout preserves existing access while administrators enrol; it does not claim production enforcement. See [rollout and recovery](operations/privileged-mfa.md).

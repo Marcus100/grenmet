@@ -20,6 +20,8 @@ const reasons: Record<AccessBlocker, string> = {
     "Verify email, or use administrator-approved activation below.",
   staff_approval: "Staff approval is still required.",
   cms_grant: "Choose Writer or Publisher under CMS access.",
+  mfa_enrolment:
+    "Ask the person to set up two-step verification and save recovery codes in account security.",
 };
 
 export function AccountActivation({
@@ -96,6 +98,12 @@ function ActivationDetails({ user }: { user: Pick<UserPublic, "id"> }) {
                 {app.label}:{" "}
                 {app.available ? "Ready to sign in" : "Setup needed"}
               </p>
+              {app.requires_mfa_sign_in ? (
+                <p className="text-muted-foreground text-sm">
+                  The person must verify their authenticator or a recovery code
+                  when signing in.
+                </p>
+              ) : null}
               {app.blockers.map((reason) => (
                 <p className="text-muted-foreground text-sm" key={reason}>
                   {reasons[reason]}
