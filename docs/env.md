@@ -616,3 +616,21 @@ Configure `WXWATCH_DATABASE_URL` in the FastAPI environment with access to the s
 ### eRegister database
 
 `EREGISTER_DATABASE_URL` is the PostgreSQL URL for the dedicated manual observation register. `EREGISTER_DB_NAME` is the expected database name used by its Alembic guard (default `eregister`). Provision `EREGISTER_DB_USER`, `EREGISTER_DB_PASSWORD` and `EREGISTER_DB_NAME` alongside the other domain databases. The register stores manual SYNOP, METAR and SPECI entries, revisions, QC decisions and WIS2box publication state; it does not replace SURFACE's automated observation store.
+
+### Privileged MFA rollout
+
+FastAPI auth settings default to disabled enforcement; enable it only after the
+[readiness and recovery gates](operations/privileged-mfa.md).
+
+The deployment renderer accepts `AUTH_PRIVILEGED_MFA_MODE` from the selected
+GitHub environment's variable (`disabled` by default, or `enforce`) and
+`AUTH_TOTP_ENCRYPTION_KEYS` from its secret. Keys are a JSON array of dedicated
+Fernet keys, current encryption key first and retained decryption keys after it.
+Do not reuse `SECRET_KEY` or share keys across environments. These values reach
+API, worker and migration/prestart services, not web applications.
+
+While enforcement is disabled, missing keys leave enrolment unavailable. Enforcement
+with missing or malformed keys is rejected before deployment. Provision keys,
+convert existing secrets and verify privileged enrolment/recovery readiness while
+still disabled before enabling the gate; follow the MFA operator guide. This code
+change does not provision secrets or enable enforcement in production.

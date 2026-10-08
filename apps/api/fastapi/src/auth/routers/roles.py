@@ -1,6 +1,6 @@
 """Role management endpoints.
 
-All endpoints require superuser privileges.
+Role definitions require superuser privileges; managers may list ordinary roles.
 """
 
 import uuid
@@ -12,29 +12,33 @@ from src.auth import service
 from src.auth.constants import ERROR_ROLE_IN_USE, ERROR_ROLE_NOT_FOUND
 from src.auth.dependencies import get_current_active_superuser
 from src.auth.schemas import RoleCreate, RolePublic, RoleUpdate
-from src.dependencies import SessionDep
+from src.dependencies import CurrentUser, SessionDep, get_current_user_manager
 from src.pagination import PaginatedResponse, PaginationParams, get_pagination_params
 
 router = APIRouter(
     prefix="/auth/roles",
     tags=["roles"],
-    dependencies=[Depends(get_current_active_superuser)],
 )
 
 
 @router.get(
     "",
+    dependencies=[Depends(get_current_user_manager)],
     response_model=PaginatedResponse[RolePublic],
     summary="List roles",
-    description="Return roles (superuser only).",
+    description="Superusers list all role definitions. Scoped user managers list only ordinary roles eligible for bounded delegation.",
     responses={status.HTTP_200_OK: {"description": "Roles returned"}},
 )
 async def read_roles(
     session: SessionDep,
+    current_user: CurrentUser,
     pagination: Annotated[PaginationParams, Depends(get_pagination_params)],
 ) -> Any:
     roles, count = await service.get_roles_with_count(
-        session=session, skip=pagination.skip, limit=pagination.limit
+        session=session,
+        skip=pagination.skip,
+        limit=pagination.limit,
+        current_user=current_user,
     )
     return PaginatedResponse(
         data=[RolePublic.model_validate(role, from_attributes=True) for role in roles],
@@ -46,6 +50,7 @@ async def read_roles(
 
 @router.get(
     "/{role_id}",
+    dependencies=[Depends(get_current_active_superuser)],
     response_model=RolePublic,
     summary="Get role by ID",
     description="Return a role by ID (superuser only).",
@@ -63,6 +68,7 @@ async def read_role(session: SessionDep, role_id: uuid.UUID) -> Any:
 
 @router.post(
     "",
+    dependencies=[Depends(get_current_active_superuser)],
     response_model=RolePublic,
     status_code=status.HTTP_201_CREATED,
     summary="Create role",
@@ -75,6 +81,7 @@ async def create_role(*, session: SessionDep, role_in: RoleCreate) -> Any:
 
 @router.patch(
     "/{role_id}",
+    dependencies=[Depends(get_current_active_superuser)],
     response_model=RolePublic,
     summary="Update role",
     description="Update a role's name or description (superuser only).",
@@ -94,6 +101,7 @@ async def update_role(
 
 @router.delete(
     "/{role_id}",
+    dependencies=[Depends(get_current_active_superuser)],
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Delete role",
     description="Delete a role (superuser only). Fails while any user still holds the role.",

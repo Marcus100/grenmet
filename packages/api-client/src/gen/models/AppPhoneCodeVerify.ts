@@ -4,6 +4,7 @@
  */
 
 export type AppPhoneCodeVerify = {
+  totp_code?: string | null;
   /**
    * @pattern ^\+[1-9]\d{7,14}$
    * @type string

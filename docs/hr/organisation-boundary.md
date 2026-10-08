@@ -105,3 +105,24 @@ The personnel foundation has been verified with two organisations. This is not
 approval to enable a second organisation in production: remaining HR modules and
 central account-directory surfaces still need a full tenancy audit and rollout
 plan. Real object-storage integration remains the next document verification task.
+
+## Organisation setup milestone (2026-10-07)
+
+The existing organisation model is reused for explicit HR Setup selection and
+superuser-only audited registration/rename. Departments, staff, grades, policy
+reads and notification configuration receive the selected organisation. Initial
+unassigned accounts are distinct from its staff. Employment remains authoritative
+when resolving ownership; there is no organisation inference from email, host,
+sector, or CMS access. Shared shift definitions are labelled as reference data.
+
+The September validation above records historical implementation evidence, not a
+confirmation of today's production migration or acceptance state. The new setup
+and remaining department/workflow boundary checks require local regression checks
+and staging acceptance before release. No organisation data has been inserted in
+production as part of this work.
+
+Organisation identity can support different sectors without making employment a
+prerequisite for every app. Events promoters and other app memberships require
+module-owned relationships and validation when those modules are tackled; this
+HR milestone neither adds nor enables them. Sites are still recorded through the
+existing employment fields, not a new structured site registry.

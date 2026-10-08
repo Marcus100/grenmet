@@ -7,6 +7,7 @@ from typing import Any
 from sqlalchemy import func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.auth import policy as auth_policy
 from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
 from src.exceptions import AppException, NotFoundError
 from src.pagination import PaginatedResponse
@@ -108,7 +109,7 @@ async def users_with_roles(
             & (UserRoleAssignment.department_id == department_id)
         )
     result = await session.execute(
-        select(UserRoleAssignment.user_id)
+        select(UserRoleAssignment)
         .join(Role, Role.id == UserRoleAssignment.role_id)
         .join(User, User.id == UserRoleAssignment.user_id)
         .where(
@@ -121,7 +122,17 @@ async def users_with_roles(
             User.is_active.is_(True),
         )
     )
-    return set(result.scalars().all())
+    grants = list(result.scalars().all())
+    live_ids = {
+        user_id: {
+            assignment.id
+            for assignment in await auth_policy._active_assignments(
+                session=session, user_id=user_id
+            )
+        }
+        for user_id in {grant.user_id for grant in grants}
+    }
+    return {grant.user_id for grant in grants if grant.id in live_ids[grant.user_id]}
 
 
 async def notify(

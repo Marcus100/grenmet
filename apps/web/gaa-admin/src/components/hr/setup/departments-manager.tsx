@@ -52,7 +52,9 @@ function slugify(name: string): string {
 function DepartmentDialog({
   existing,
   trigger,
+  organisationId,
 }: {
+  organisationId?: string;
   existing?: DepartmentPublic;
   trigger: React.ReactNode;
 }) {
@@ -94,7 +96,11 @@ function DepartmentDialog({
         });
       } else {
         await createMutation.mutateAsync({
-          body: { id: id.trim(), name: name.trim() },
+          body: {
+            id: id.trim(),
+            name: name.trim(),
+            organisation_id: organisationId,
+          },
         });
       }
       await queryClient.invalidateQueries({
@@ -177,14 +183,21 @@ function DepartmentDialog({
   );
 }
 
-export function DepartmentsManager() {
-  const departmentsQuery = useHrListDepartments();
+export function DepartmentsManager({
+  organisationId,
+}: {
+  organisationId?: string;
+}) {
+  const departmentsQuery = useHrListDepartments({
+    query: { organisation_id: organisationId },
+  });
   const departments = departmentsQuery.data?.data ?? [];
 
   return (
     <div className="space-y-4">
       <div className="flex justify-end">
         <DepartmentDialog
+          organisationId={organisationId}
           trigger={
             <Button size="sm" type="button">
               <Plus data-icon="inline-start" />
@@ -223,6 +236,7 @@ export function DepartmentsManager() {
                 <TableCell className="text-right">
                   <DepartmentDialog
                     existing={dept}
+                    organisationId={organisationId}
                     trigger={
                       <Button size="sm" type="button" variant="ghost">
                         <Pencil className="size-3.5" />

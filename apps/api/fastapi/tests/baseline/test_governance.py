@@ -34,6 +34,7 @@ from src.hr.workflow.models import (
 )
 from src.hr.workflow.schemas import WorkflowActionRequest, WorkflowConfigurationInput
 from src.utils.datetime import utc_now
+from tests.factories import assign_role
 
 
 async def people(session):
@@ -370,15 +371,7 @@ async def test_configured_scope_restricts_named_users_and_global_role_holders(db
         .scalars()
         .one()
     )
-    db_async.add(
-        UserRoleAssignment(
-            organisation_id="gaa",
-            user_id=other.id,
-            role_id=role.id,
-            scope=RoleAssignmentScope.ALL,
-        )
-    )
-    await db_async.commit()
+    await assign_role(db_async, user=other, role=role, scope=RoleAssignmentScope.ALL)
     template = WorkflowTemplate(
         department_id="gms", workflow_type=WorkflowType.LEAVE_REQUEST, name="Scoped"
     )

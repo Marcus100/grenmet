@@ -6,6 +6,7 @@ import {
   type UserPublic,
   useAuthUpdateUser,
 } from "@barrelsgd/api-client";
+import { useSessionUser } from "@barrelsgd/auth";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import {
   DropdownMenu,
@@ -29,6 +30,7 @@ export function UserRowActions({
   row: { user: UserPublic; name: string };
   roles: RolePublic[];
 }) {
+  const actor = useSessionUser();
   const { user, name } = row;
   const queryClient = useQueryClient();
   const [manageOpen, setManageOpen] = useState(false);
@@ -68,16 +70,20 @@ export function UserRowActions({
               Manage roles &amp; access
             </DropdownMenuItem>
           </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            <DropdownMenuItem
-              disabled={updateUserMutation.isPending}
-              onClick={toggleActive}
-              variant={user.is_active ? "destructive" : "default"}
-            >
-              {user.is_active ? "Deactivate user" : "Reactivate account"}
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
+          {actor?.is_superuser && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <DropdownMenuItem
+                  disabled={updateUserMutation.isPending}
+                  onClick={toggleActive}
+                  variant={user.is_active ? "destructive" : "default"}
+                >
+                  {user.is_active ? "Deactivate user" : "Reactivate account"}
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 

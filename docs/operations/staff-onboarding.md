@@ -21,8 +21,32 @@ CMS access does not require employment details. For HR workflows, department, em
 
 Record **Work email inbox provisioned** only when the inbox actually works. This operational fact is independent of account activity, email verification, passwords, sessions and permissions. Existing records default to unconfirmed mailbox readiness; account activity is not evidence of an inbox. HR saves preserve account security. Use Users for enabling/disabling accounts, roles and CMS grants. Offboarding a staff account does not affect a separate personal account.
 
-The new activation controls are superuser-only. Department manager delegation and mandatory privileged MFA are subsequent milestones in [ADR-0018](../adr/0018-modular-access-and-onboarding.md). Existing role grants remain authoritative. No shared temporary passwords, fake mailbox verification, automatic manager privileges, or production SQL edits are needed for this new flow.
+Activation and staff-baseline controls are superuser-only. Explicit department manager and assistant-manager appointments have equal live authority within their department; ordinary staff delegation is bounded by that appointment. See [department authority](../hr/department-authority.md). Privileged MFA uses a disabled-by-default rollout with dedicated encrypted storage; see [the operator guide](privileged-mfa.md) before provisioning keys or enabling enforcement. Existing role grants remain authoritative. No shared temporary passwords, fake mailbox verification, automatic manager privileges, or production SQL edits are needed for this new flow.
 
 ## Release acceptance
 
 On staging, create a disposable work account without email, grant Writer, issue a link and activate it. Confirm password sign-in and CMS draft access; publishing must remain denied. Revoke or replace a second link and confirm it fails. Confirm an unrelated department's existing permissions remain unchanged and a public unverified account still cannot enter CMS. Delete only the disposable test account after evidence is recorded. Promote dev → staging → main through the release runbook after checks pass.
+
+## Identify the employer in HR Setup
+
+Choose the employer organisation before configuring departments and staff. With
+multiple organisations, HR Setup requires a choice. A superuser can register an
+organisation's permanent ID, unique code and display name, or rename its display
+name. Registering an identity alone creates no staff membership or app access.
+
+Use the selected organisation's department when saving a person's HR details.
+Accounts awaiting employer assignment are shown separately. Saving their first
+department establishes that HR context; an email address does not. Existing
+employment cannot be transferred between organisations through this setup flow.
+Shared shift definitions are explicitly labelled; they do not establish roster
+access. Department-only roster authority can read these references but cannot
+create, edit or deactivate shared shifts or public holidays. Shared catalogue
+edits require a superuser or preserved unscoped legacy authority; organisation-wide
+grants cannot change references shared by other employers. The UI fails closed
+when the global-access projection is unavailable. Configure actual employer structures rather than copying GAA defaults
+into every organisation.
+
+This milestone supplies HR setup context. It does not create Events promoter
+membership, a site registry, or a claim that every module is ready for unrestricted
+multi-organisation production use. App-specific memberships stay separate from
+employment. Validate each module's object and history boundaries before rollout.

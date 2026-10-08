@@ -18,15 +18,19 @@ import {
 } from "@/lib/session";
 
 const API_PREFIX = /\/api\/v1(?=\/|$)/;
-async function securityClient() {
-  const token = await readSessionCookie();
-  if (!token) throw new Error("Sign in to manage account security");
-  const session = await exchangeSessionForAccessToken(token);
+async function securityClient(accessToken?: string) {
+  let bearerToken = accessToken;
+  if (!bearerToken) {
+    const token = await readSessionCookie();
+    if (!token) throw new Error("Sign in to manage account security");
+    const session = await exchangeSessionForAccessToken(token);
+    bearerToken = session.access_token;
+  }
   const config = getAuthConfig();
   // An isolated instance keeps one user's bearer token out of shared server state.
   const client = createClient({
     baseURL: config.authApiBaseUrl,
-    headers: { Authorization: `Bearer ${session.access_token}` },
+    headers: { Authorization: `Bearer ${bearerToken}` },
     options: { cache: "no-store" },
   });
   client.interceptors.request.use((request) => ({
@@ -42,11 +46,20 @@ async function securityClient() {
   return client;
 }
 export async function loadSecurity() {
-  return authGetAccountSecurity({
+  const token = await readSessionCookie();
+  if (!token) throw new Error("Sign in to manage account security");
+  const currentSession = await exchangeSessionForAccessToken(token);
+  const security = await authGetAccountSecurity({
     ...{
-      client: await securityClient(),
+      client: await securityClient(currentSession.access_token),
     },
   }).unwrap();
+  return {
+    ...security,
+    current_session_mfa_verified: Boolean(
+      currentSession.session.mfa_verified_at
+    ),
+  };
 }
 export async function beginMfa() {
   return authTwofaSetup({

@@ -4,7 +4,7 @@ import { HrSetupTabs } from "@/components/hr/setup/hr-setup-tabs";
 export const metadata: Metadata = {
   title: "HR Setup",
   description:
-    "Configure the shift types and departments used by duty rosters.",
+    "Configure employer organisations, departments, grades and staff onboarding.",
 };
 
 export default function HrSetupPage() {
@@ -13,8 +13,8 @@ export default function HrSetupPage() {
       <div>
         <h1 className="font-semibold text-2xl tracking-tight">HR Setup</h1>
         <p className="text-muted-foreground text-sm">
-          Configure the building blocks a duty roster is assigned from — the
-          shift types and the departments that group staff.
+          Choose an organisation to manage its departments, grades and staff
+          onboarding.
         </p>
       </div>
       <HrSetupTabs />

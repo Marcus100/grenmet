@@ -824,6 +824,11 @@ export {
   useHrCreateLeaveRequest,
 } from "./useHrCreateLeaveRequest.js";
 export {
+  hrCreateOrganisationMutationKey,
+  hrCreateOrganisationMutationOptions,
+  useHrCreateOrganisation,
+} from "./useHrCreateOrganisation.js";
+export {
   hrCreateParkingPermitMutationKey,
   hrCreateParkingPermitMutationOptions,
   useHrCreateParkingPermit,
@@ -1218,6 +1223,11 @@ export {
   hrRemoveHolidayMutationOptions,
   useHrRemoveHoliday,
 } from "./useHrRemoveHoliday.js";
+export {
+  hrRenameOrganisationMutationKey,
+  hrRenameOrganisationMutationOptions,
+  useHrRenameOrganisation,
+} from "./useHrRenameOrganisation.js";
 export {
   hrSaveAttendanceMutationKey,
   hrSaveAttendanceMutationOptions,

@@ -54,7 +54,11 @@ async def get_cookie_user(
         origin = request.headers.get("origin")
         if origin is not None and origin not in settings.all_cors_origins:
             raise HTTPException(403, "Untrusted request origin")
-    return await get_authenticated_user(session, stored.user_id)
+    user = await get_authenticated_user(session, stored.user_id)
+    from src.auth.privileged_mfa import require_privileged_mfa
+
+    await require_privileged_mfa(session, user, login_session=stored)
+    return user
 
 
 async def get_browser_or_token_user(

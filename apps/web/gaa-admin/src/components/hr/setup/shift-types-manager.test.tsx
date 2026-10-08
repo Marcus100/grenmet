@@ -9,6 +9,7 @@ import { ShiftTypesManager } from "./shift-types-manager";
 const BASE = "http://localhost";
 const NEW_SHIFT_LABEL = /New shift type/;
 const CREATE_LABEL = /^Create$/;
+const SHARED_READ_ONLY_LABEL = /Shared shift definitions are read only/;
 
 const SHIFTS = {
   data: [
@@ -51,13 +52,13 @@ beforeAll(() => {
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
-function renderManager() {
+function renderManager(canManage = true) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
   return render(
     <QueryClientProvider client={queryClient}>
-      <ShiftTypesManager />
+      <ShiftTypesManager canManage={canManage} />
     </QueryClientProvider>
   );
 }
@@ -100,4 +101,22 @@ describe("ShiftTypesManager", () => {
       needs_approval: false,
     });
   }, 20_000);
+});
+
+it("shows shared definitions without global editing controls", async () => {
+  renderManager(false);
+  await screen.findByText("Morning");
+  expect(
+    screen.queryByRole("button", { name: NEW_SHIFT_LABEL })
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Edit" })
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Deactivate" })
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Reactivate" })
+  ).not.toBeInTheDocument();
+  expect(screen.getByText(SHARED_READ_ONLY_LABEL)).toBeInTheDocument();
 });

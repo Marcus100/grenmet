@@ -6,7 +6,18 @@
 import type { StaffSetup } from "./StaffSetup.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
+export type HrGetStaffSetupQuery = {
+  organisation_id?: string | null;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  unassigned?: boolean;
+};
+
 export type HrGetStaffSetupStatus200 = StaffSetup[];
+
+export type HrGetStaffSetupStatus400 = unknown;
 
 export type HrGetStaffSetupStatus403 = unknown;
 
@@ -23,12 +34,13 @@ export type HrGetStaffSetupStatus422 = ValidationErrorResponse;
 export type HrGetStaffSetupOptions = {
   body?: never;
   path?: never;
-  query?: never;
+  query?: HrGetStaffSetupQuery;
   headers?: never;
 };
 
 export type HrGetStaffSetupResponses = {
   "200": HrGetStaffSetupStatus200;
+  "400": HrGetStaffSetupStatus400;
   "403": HrGetStaffSetupStatus403;
   "404": HrGetStaffSetupStatus404;
   "409": HrGetStaffSetupStatus409;
@@ -40,6 +52,7 @@ export type HrGetStaffSetupResponses = {
  */
 export type HrGetStaffSetupResponse =
   | HrGetStaffSetupStatus200
+  | HrGetStaffSetupStatus400
   | HrGetStaffSetupStatus403
   | HrGetStaffSetupStatus404
   | HrGetStaffSetupStatus409

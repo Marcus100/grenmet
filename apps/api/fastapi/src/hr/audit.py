@@ -29,6 +29,7 @@ from .models import (
     Department,
     EmploymentRecord,
     Grade,
+    Organisation,
     UserAddress,
     UserProfile,
 )
@@ -155,6 +156,13 @@ async def _document(session: AsyncSession, actor: User, entity_id: str) -> bool:
     except AppException:
         return False
     return True
+
+
+async def _organisation_admin(
+    session: AsyncSession, actor: User, entity_id: str
+) -> bool:
+    _ = session, entity_id
+    return actor.is_superuser
 
 
 def register() -> None:
@@ -321,6 +329,10 @@ def register() -> None:
         exclude=("object_key",),
         sensitive=("description",),
     )
+
+    # Employer registration is platform-admin owned; no membership is inferred.
+    registry.register_entity("organisation", _organisation_admin)
+    registry.track(Organisation, record_type="organisation", label="Organisation")
 
     # Setup records: readable by whoever may manage or view that setup area.
     registry.register_entity(

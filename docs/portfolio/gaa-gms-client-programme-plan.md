@@ -6,6 +6,36 @@
 **Institutional authority:** Grenada Airports Authority  
 **Meteorological authority:** Grenada Meteorological Service
 
+## Current delivery focus — 7 October 2026
+
+The immediate outcome is usable staff onboarding and the HR foundation, before
+Transport or Janitor. Aim for one accepted outcome each week, adjusting scope
+from feedback rather than activating every roadmap workstream at once. The
+September sequence below is historical where it conflicts with this priority.
+
+- **Now, in implementation:** separate work identity and email-free activation;
+  explicit employer organisation, department and employment setup; independent
+  mailbox readiness; scoped department management; privileged MFA preparation;
+  and HR workflow/dashboard access hardening. Technical delivery owner: Barrels.
+  Operational acceptance owner: GAA/GMS for its pilot.
+- **Release gate:** combine work locally on dev, pass code/contract/security
+  checks, deploy staging, then exercise a disposable staff journey with negative
+  cross-department/organisation checks. Code and green CI are not institutional
+  acceptance. MFA enforcement additionally requires dedicated keys, enrolment,
+  recovery and a successful readiness check.
+- **Next:** exercise one existing HR staff-to-approver journey with the pilot
+  users and record adoption/support feedback. Choose its weekly scope before
+  expanding to another workflow or department.
+- **Queued:** Transport and Janitor follow the HR gate. eRegister, WxProducts,
+  SURFACE and wis2box retain their own domain/operational acceptance gates and
+  named owners; urgent GMS operational needs may interrupt the weekly outcome.
+
+Organisation identity supports reuse across sectors. It does not establish full
+multi-tenancy or automatically enable another employer in production. Events
+promoter membership remains app-owned; it must not require an HR employment
+record. See [ADR-0018](../adr/0018-modular-access-and-onboarding.md) and the
+[staff onboarding guide](../operations/staff-onboarding.md).
+
 ## Purpose and programme shape
 
 September execution is amended by the [23 September delivery plan](gaa-gms-september-delivery.md).

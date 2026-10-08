@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Create a private runner-only .env.local. Never executes dotenv content."""
+import base64
+import binascii
 import ipaddress
 import json
 import os
@@ -38,6 +40,21 @@ def render(config, environment):
     for key in ["GAA_ADMIN_SSO_CLIENT_SECRET", "CMS_SSO_CLIENT_SECRET", "EVENTS_SSO_CLIENT_SECRET", "WEATHER_SSO_CLIENT_SECRET", "MBIA_SSO_CLIENT_SECRET", "SIGNAL_SSO_CLIENT_SECRET", "DOCS_SSO_CLIENT_SECRET", "ELECTIONS_SSO_CLIENT_SECRET"]:
         if values[key] and len(values[key]) < 32:
             raise ValueError(f"{key} must contain at least 32 characters")
+    mode = environment.get("AUTH_PRIVILEGED_MFA_MODE", "") or "disabled"
+    if mode not in {"disabled", "enforce"}:
+        raise ValueError("AUTH_PRIVILEGED_MFA_MODE must be disabled or enforce")
+    try:
+        keys = json.loads(environment.get("AUTH_TOTP_ENCRYPTION_KEYS", "") or "[]")
+        if not isinstance(keys, list) or any(not isinstance(key, str) for key in keys):
+            raise ValueError
+        if any(len(base64.b64decode(key.encode("ascii"), altchars=b"-_", validate=True)) != 32 for key in keys):
+            raise ValueError
+    except (ValueError, UnicodeError, binascii.Error):
+        raise ValueError("AUTH_TOTP_ENCRYPTION_KEYS must be a JSON array of Fernet keys") from None
+    if mode == "enforce" and not keys:
+        raise ValueError("AUTH_TOTP_ENCRYPTION_KEYS is required for enforced privileged MFA")
+    values["AUTH_PRIVILEGED_MFA_MODE"] = mode
+    values["AUTH_TOTP_ENCRYPTION_KEYS"] = json.dumps(keys, separators=(",", ":"))
     telemetry_enabled = environment.get("TELEMETRY_ENABLED", "")
     if telemetry_enabled not in {"", "true", "false"}:
         raise ValueError("TELEMETRY_ENABLED must be true or false")

@@ -12,6 +12,8 @@ export const userRoleAssignmentPublicSchema = z.object({
   scope: roleAssignmentScopeSchema.optional().default("SELF"),
   department_id: z.union([z.string(), z.null()]).optional(),
   effective_to: z.union([z.iso.datetime(), z.null()]).optional(),
+  authority_assignment_id: z.union([z.uuid(), z.null()]).optional(),
+  is_effective: z.boolean().optional().default(true),
   organisation_id: z.string(),
   id: z.uuid(),
   effective_from: z.iso.datetime(),

@@ -63,6 +63,12 @@ async def user_for_app(
         session=session, user=user, app_key=app_key
     ):
         raise _unauthorized()
+    if app_key == "cms":
+        from src.auth.privileged_mfa import require_privileged_mfa
+
+        await require_privileged_mfa(
+            session, user, token=credentials.credentials, app_key=app_key
+        )
     return user
 
 

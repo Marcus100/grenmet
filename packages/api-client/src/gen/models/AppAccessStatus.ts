@@ -10,4 +10,9 @@ export type AppAccessStatus = {
   label: string;
   available: boolean;
   blockers: AccessBlocker[];
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  requires_mfa_sign_in?: boolean;
 };

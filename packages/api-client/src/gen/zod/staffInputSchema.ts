@@ -7,6 +7,7 @@ import * as z from "zod";
 import { employmentTypeSchema } from "./employmentTypeSchema.js";
 
 export const staffInputSchema = z.object({
+  organisation_id: z.union([z.string(), z.null()]).optional(),
   department_id: z.string(),
   grade_id: z.string(),
   employee_number: z.union([z.string().min(1).max(50), z.null()]).optional(),

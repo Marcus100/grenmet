@@ -463,7 +463,7 @@
           "users"
         ],
         "summary": "List users",
-        "description": "Return users (superuser or user.manage). Uses standard pagination (page, size, total_pages).",
+        "description": "Return users and counts within active employer/department user.manage scope. Superusers see all accounts. Uses standard pagination.",
         "operationId": "authGetUsers",
         "security": [
           {
@@ -527,7 +527,7 @@
           "users"
         ],
         "summary": "Create user",
-        "description": "Create a user (superuser or user.manage). Only superusers can create superuser accounts.",
+        "description": "Create a global account (superuser only). HR placement and app admission are separate explicit actions.",
         "operationId": "authCreateUser",
         "security": [
           {
@@ -841,7 +841,7 @@
           "users"
         ],
         "summary": "Get user by ID",
-        "description": "Return user by ID. Non-superusers can only fetch themselves.",
+        "description": "Return yourself or a user within active management scope. Scoped managers cannot read platform administrator accounts.",
         "operationId": "authGetUserById",
         "security": [
           {
@@ -891,7 +891,7 @@
           "users"
         ],
         "summary": "Update user by ID",
-        "description": "Update a user by ID (superuser or user.manage). Superuser accounts, the is_superuser flag and CMS access are superuser-only.",
+        "description": "Update a user within active management scope. Scoped managers may correct names and titles; global account security, activation and platform/app privileges are superuser-only.",
         "operationId": "authUpdateUser",
         "security": [
           {
@@ -957,7 +957,7 @@
           "users"
         ],
         "summary": "Delete user by ID",
-        "description": "Delete a user by ID (superuser or user.manage). Superuser accounts can only be deleted by a superuser.",
+        "description": "Delete a global account by ID (superuser only).",
         "operationId": "authDeleteUser",
         "security": [
           {
@@ -1186,7 +1186,7 @@
           "roles"
         ],
         "summary": "List roles",
-        "description": "Return roles (superuser only).",
+        "description": "Superusers list all role definitions. Scoped user managers list only ordinary roles eligible for bounded delegation.",
         "operationId": "authGetRoles",
         "security": [
           {
@@ -1672,7 +1672,7 @@
           "role-assignments"
         ],
         "summary": "Create role assignment",
-        "description": "Create a user-role assignment (within active user.manage scope).",
+        "description": "Superusers appoint explicit authority and special duties. Scoped managers delegate canonical staff self-service only, to another employee in their employer/department, bounded by their active authority.",
         "operationId": "authCreateRoleAssignment",
         "security": [
           {
@@ -1829,7 +1829,7 @@
           "role-assignments"
         ],
         "summary": "Revoke role assignment",
-        "description": "Delete a user-role assignment (superuser or user.manage).",
+        "description": "Superusers revoke any assignment. Scoped managers revoke ordinary staff grants within active management scope. Revoking authority immediately disables grants issued through it.",
         "operationId": "authDeleteRoleAssignment",
         "security": [
           {
@@ -1953,6 +1953,121 @@
             "OAuth2PasswordBearer": []
           }
         ]
+      },
+      "post": {
+        "tags": [
+          "hr"
+        ],
+        "summary": "Register an HR organisation",
+        "description": "Superuser-only registration of an employer identity. Does not grant membership, app access or enable other modules.",
+        "operationId": "hrCreateOrganisation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganisationCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganisationPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Superuser required"
+          },
+          "409": {
+            "description": "ID or code exists"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/organisations/{organisation_id}": {
+      "patch": {
+        "tags": [
+          "hr"
+        ],
+        "summary": "Rename an HR organisation",
+        "description": "Superuser-only display-name change. Stable IDs, ownership and access remain unchanged.",
+        "operationId": "hrRenameOrganisation",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Organisation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrganisationUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrganisationPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Superuser required"
+          },
+          "404": {
+            "description": "Organisation not found"
+          }
+        }
       }
     },
     "/api/v1/hr/departments": {
@@ -20375,32 +20490,65 @@
           "staff-setup"
         ],
         "summary": "Review staff onboarding",
-        "description": "Review staff onboarding.",
+        "description": "Review staff onboarding for a selected organisation or eligible unassigned accounts. Omitted organisation context retains the superuser-only legacy list.",
         "operationId": "hrGetStaffSetup",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Organisation Id"
+            }
+          },
+          {
+            "name": "unassigned",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": false,
+              "title": "Unassigned"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
+                  "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/StaffSetup"
                   },
-                  "type": "array",
                   "title": "Response Hrgetstaffsetup"
                 }
               }
             }
           },
           "422": {
-            "description": "Unprocessable Content",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ValidationErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Unprocessable Content"
           },
           "403": {
             "description": "Administrator access required"
@@ -20410,13 +20558,11 @@
           },
           "409": {
             "description": "Setup conflict"
+          },
+          "400": {
+            "description": "Unassigned accounts cannot be combined with organisation context"
           }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/hr/setup/staff/{user_id}": {
@@ -20622,32 +20768,55 @@
           "staff-setup"
         ],
         "summary": "List editable grade definitions",
-        "description": "List editable grade definitions.",
+        "description": "List editable grade definitions, optionally filtered by the employer organisation owning their departments.",
         "operationId": "hrGetSetupGrades",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Organisation Id"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
+                  "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/GradeSetup"
                   },
-                  "type": "array",
                   "title": "Response Hrgetsetupgrades"
                 }
               }
             }
           },
           "422": {
-            "description": "Unprocessable Content",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ValidationErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Unprocessable Content"
           },
           "403": {
             "description": "Administrator access required"
@@ -20658,12 +20827,7 @@
           "409": {
             "description": "Setup conflict"
           }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/hr/setup/grades/{grade_id}": {
@@ -20672,7 +20836,7 @@
           "staff-setup"
         ],
         "summary": "Create or update a grade",
-        "description": "Create or update a grade.",
+        "description": "Create or update a grade. Grade codes are unique within a department.",
         "operationId": "hrUpdateSetupGrade",
         "security": [
           {
@@ -20728,7 +20892,7 @@
             "description": "Record not found"
           },
           "409": {
-            "description": "Setup conflict"
+            "description": "Grade conflicts with the current department configuration"
           }
         }
       }
@@ -20739,32 +20903,55 @@
           "staff-setup"
         ],
         "summary": "List approval policies",
-        "description": "List approval policies.",
+        "description": "List approval policies, optionally restricted to HR departments in a selected employer organisation.",
         "operationId": "hrGetSetupPolicies",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Organisation Id"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
+                  "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/PolicyPublic"
                   },
-                  "type": "array",
                   "title": "Response Hrgetsetuppolicies"
                 }
               }
             }
           },
           "422": {
-            "description": "Unprocessable Content",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ValidationErrorResponse"
                 }
               }
-            }
+            },
+            "description": "Unprocessable Content"
           },
           "403": {
             "description": "Administrator access required"
@@ -20775,12 +20962,7 @@
           "409": {
             "description": "Setup conflict"
           }
-        },
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ]
+        }
       }
     },
     "/api/v1/hr/setup/policies/{key}": {
@@ -22157,7 +22339,8 @@
           "password_setup",
           "email_verification",
           "staff_approval",
-          "cms_grant"
+          "cms_grant",
+          "mfa_enrolment"
         ],
         "title": "AccessBlocker"
       },
@@ -22195,6 +22378,21 @@
       },
       "AccountSecurityPublic": {
         "properties": {
+          "privileged_mfa_required": {
+            "type": "boolean",
+            "title": "Privileged Mfa Required",
+            "default": false
+          },
+          "privileged_mfa_enforced": {
+            "type": "boolean",
+            "title": "Privileged Mfa Enforced",
+            "default": false
+          },
+          "authenticator_storage_ready": {
+            "type": "boolean",
+            "title": "Authenticator Storage Ready",
+            "default": false
+          },
           "recovery_codes_remaining": {
             "type": "integer",
             "title": "Recovery Codes Remaining",
@@ -22552,6 +22750,11 @@
             },
             "type": "array",
             "title": "Blockers"
+          },
+          "requires_mfa_sign_in": {
+            "type": "boolean",
+            "title": "Requires Mfa Sign In",
+            "default": false
           }
         },
         "type": "object",
@@ -22796,6 +22999,18 @@
       },
       "AppPhoneCodeVerify": {
         "properties": {
+          "totp_code": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 64
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Totp Code"
+          },
           "phone": {
             "type": "string",
             "pattern": "^\\+[1-9]\\d{7,14}$",
@@ -28399,6 +28614,22 @@
             },
             "type": "array",
             "title": "Permission Keys"
+          },
+          "global_permission_keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Global Permission Keys",
+            "description": "Preserved never-scoped legacy permissions for shared global definitions; organisation-scoped ALL grants are excluded."
+          },
+          "all_scope_permission_keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "All Scope Permission Keys",
+            "description": "Permissions from live ALL assignments or preserved unscoped legacy roles; organisation boundaries still apply."
           }
         },
         "type": "object",
@@ -33396,6 +33627,35 @@
         ],
         "title": "OrganisationCatalogue"
       },
+      "OrganisationCreate": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "maxLength": 100,
+            "pattern": "^[a-z][a-z0-9_-]*$",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "maxLength": 100,
+            "pattern": "^[A-Z][A-Z0-9_-]*$",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name"
+        ],
+        "title": "OrganisationCreate"
+      },
       "OrganisationPreview": {
         "properties": {
           "catalogue": {
@@ -33472,6 +33732,21 @@
           "name"
         ],
         "title": "OrganisationPublic"
+      },
+      "OrganisationUpdate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "OrganisationUpdate"
       },
       "OrganiserPublic": {
         "properties": {
@@ -37652,6 +37927,18 @@
       },
       "SecuritySessionPublic": {
         "properties": {
+          "mfa_verified_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mfa Verified At"
+          },
           "id": {
             "type": "string",
             "title": "Id"
@@ -37886,6 +38173,18 @@
       },
       "SessionPublic": {
         "properties": {
+          "mfa_verified_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mfa Verified At"
+          },
           "expires_at": {
             "type": "string",
             "format": "date-time",
@@ -39141,6 +39440,17 @@
       },
       "StaffInput": {
         "properties": {
+          "organisation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organisation Id"
+          },
           "department_id": {
             "type": "string",
             "title": "Department Id"
@@ -39265,6 +39575,17 @@
       },
       "StaffSetup": {
         "properties": {
+          "organisation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organisation Id"
+          },
           "account_active": {
             "type": "boolean",
             "title": "Account Active",
@@ -44060,6 +44381,23 @@
               }
             ],
             "title": "Effective To"
+          },
+          "authority_assignment_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Authority Assignment Id"
+          },
+          "is_effective": {
+            "type": "boolean",
+            "title": "Is Effective",
+            "default": true
           },
           "organisation_id": {
             "type": "string",

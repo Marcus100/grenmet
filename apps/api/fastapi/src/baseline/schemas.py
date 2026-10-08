@@ -24,6 +24,7 @@ class StaffCard(BaseModel):
 
 
 class StaffSetup(BaseModel):
+    organisation_id: str | None = None
     account_active: bool = False
     staff_approval_ready: bool = False
     registration_pending: bool = False
@@ -61,6 +62,7 @@ class GradeSetup(GradeInput):
 
 
 class StaffInput(BaseModel):
+    organisation_id: str | None = None
     department_id: str
     grade_id: str
     employee_number: str | None = Field(default=None, min_length=1, max_length=50)

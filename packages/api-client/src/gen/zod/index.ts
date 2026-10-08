@@ -1653,6 +1653,15 @@ export {
   hrCreateLeaveRequestStatus422Schema,
 } from "./hrCreateLeaveRequestSchema.js";
 export {
+  hrCreateOrganisationBodySchema,
+  hrCreateOrganisationErrorSchema,
+  hrCreateOrganisationResponseSchema,
+  hrCreateOrganisationStatus201Schema,
+  hrCreateOrganisationStatus403Schema,
+  hrCreateOrganisationStatus409Schema,
+  hrCreateOrganisationStatus422Schema,
+} from "./hrCreateOrganisationSchema.js";
+export {
   hrCreateParkingPermitBodySchema,
   hrCreateParkingPermitErrorSchema,
   hrCreateParkingPermitResponseSchema,
@@ -2041,6 +2050,7 @@ export {
 } from "./hrGetRoleConfigurationSchema.js";
 export {
   hrGetSetupGradesErrorSchema,
+  hrGetSetupGradesQueryOrganisationIdSchema,
   hrGetSetupGradesResponseSchema,
   hrGetSetupGradesStatus200Schema,
   hrGetSetupGradesStatus403Schema,
@@ -2050,6 +2060,7 @@ export {
 } from "./hrGetSetupGradesSchema.js";
 export {
   hrGetSetupPoliciesErrorSchema,
+  hrGetSetupPoliciesQueryOrganisationIdSchema,
   hrGetSetupPoliciesResponseSchema,
   hrGetSetupPoliciesStatus200Schema,
   hrGetSetupPoliciesStatus403Schema,
@@ -2068,8 +2079,11 @@ export {
 } from "./hrGetStaffCardSchema.js";
 export {
   hrGetStaffSetupErrorSchema,
+  hrGetStaffSetupQueryOrganisationIdSchema,
+  hrGetStaffSetupQueryUnassignedSchema,
   hrGetStaffSetupResponseSchema,
   hrGetStaffSetupStatus200Schema,
+  hrGetStaffSetupStatus400Schema,
   hrGetStaffSetupStatus403Schema,
   hrGetStaffSetupStatus404Schema,
   hrGetStaffSetupStatus409Schema,
@@ -2411,6 +2425,16 @@ export {
   hrRemoveHolidayStatus404Schema,
   hrRemoveHolidayStatus422Schema,
 } from "./hrRemoveHolidaySchema.js";
+export {
+  hrRenameOrganisationBodySchema,
+  hrRenameOrganisationErrorSchema,
+  hrRenameOrganisationPathOrganisationIdSchema,
+  hrRenameOrganisationResponseSchema,
+  hrRenameOrganisationStatus200Schema,
+  hrRenameOrganisationStatus403Schema,
+  hrRenameOrganisationStatus404Schema,
+  hrRenameOrganisationStatus422Schema,
+} from "./hrRenameOrganisationSchema.js";
 export {
   hrSaveAttendanceBodySchema,
   hrSaveAttendanceErrorSchema,
@@ -3154,8 +3178,10 @@ export { observationRecordPropertiesKindEnumSchema } from "./observationRecordPr
 export { observationRecordSchema } from "./observationRecordSchema.js";
 export { onboardingStatusSchema } from "./onboardingStatusSchema.js";
 export { organisationCatalogueSchema } from "./organisationCatalogueSchema.js";
+export { organisationCreateSchema } from "./organisationCreateSchema.js";
 export { organisationPreviewSchema } from "./organisationPreviewSchema.js";
 export { organisationPublicSchema } from "./organisationPublicSchema.js";
+export { organisationUpdateSchema } from "./organisationUpdateSchema.js";
 export { organiserPublicSchema } from "./organiserPublicSchema.js";
 export { outlookProductPreviewInputSchema } from "./outlookProductPreviewInputSchema.js";
 export { outlookProductPreviewSchema } from "./outlookProductPreviewSchema.js";

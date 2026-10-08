@@ -43,6 +43,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ChevronsUpDown, Pencil, Plus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { reportError } from "@/lib/report-error";
 
 type Category = "WORK" | "OFF" | "LEAVE" | "HOLIDAY";
 
@@ -179,6 +180,7 @@ function ShiftTypeDialog({
       );
       setOpen(false);
     } catch (error) {
+      reportError(error, "hr-shift-catalogue");
       const detail =
         error instanceof Error ? error.message : "Something went wrong";
       toast.error(`Could not save shift type: ${detail}`);
@@ -342,7 +344,11 @@ function ShiftTypeDialog({
   );
 }
 
-export function ShiftTypesManager() {
+export function ShiftTypesManager({
+  canManage = false,
+}: {
+  canManage?: boolean;
+}) {
   const queryClient = useQueryClient();
   const shiftsQuery = useHrListShiftCatalog({
     query: {
@@ -353,6 +359,7 @@ export function ShiftTypesManager() {
   const updateMutation = useHrUpdateShift();
 
   async function toggleActive(shift: ShiftCatalogPublic) {
+    if (!canManage) return;
     try {
       await updateMutation.mutateAsync({
         path: { code: shift.code },
@@ -367,6 +374,7 @@ export function ShiftTypesManager() {
           : `Reactivated "${shift.code}"`
       );
     } catch (error) {
+      reportError(error, "hr-shift-catalogue");
       const detail =
         error instanceof Error ? error.message : "Something went wrong";
       toast.error(`Could not update shift: ${detail}`);
@@ -375,16 +383,23 @@ export function ShiftTypesManager() {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end">
-        <ShiftTypeDialog
-          trigger={
-            <Button size="sm" type="button">
-              <Plus data-icon="inline-start" />
-              New shift type
-            </Button>
-          }
-        />
-      </div>
+      {canManage ? (
+        <div className="flex justify-end">
+          <ShiftTypeDialog
+            trigger={
+              <Button size="sm" type="button">
+                <Plus data-icon="inline-start" />
+                New shift type
+              </Button>
+            }
+          />
+        </div>
+      ) : (
+        <p className="text-muted-foreground text-sm">
+          Shared shift definitions are read only. Editing requires an
+          administrator with authority over the shared catalogue.
+        </p>
+      )}
       <Table>
         <TableHeader>
           <TableRow>
@@ -430,26 +445,28 @@ export function ShiftTypesManager() {
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <ShiftTypeDialog
-                      existing={shift}
-                      trigger={
-                        <Button size="sm" type="button" variant="ghost">
-                          <Pencil className="size-3.5" />
-                          Edit
-                        </Button>
-                      }
-                    />
-                    <Button
-                      disabled={updateMutation.isPending}
-                      onClick={() => toggleActive(shift)}
-                      size="sm"
-                      type="button"
-                      variant="ghost"
-                    >
-                      {shift.is_active ? "Deactivate" : "Reactivate"}
-                    </Button>
-                  </div>
+                  {canManage && (
+                    <div className="flex justify-end gap-2">
+                      <ShiftTypeDialog
+                        existing={shift}
+                        trigger={
+                          <Button size="sm" type="button" variant="ghost">
+                            <Pencil className="size-3.5" />
+                            Edit
+                          </Button>
+                        }
+                      />
+                      <Button
+                        disabled={updateMutation.isPending}
+                        onClick={() => toggleActive(shift)}
+                        size="sm"
+                        type="button"
+                        variant="ghost"
+                      >
+                        {shift.is_active ? "Deactivate" : "Reactivate"}
+                      </Button>
+                    </div>
+                  )}
                 </TableCell>
               </TableRow>
             ))

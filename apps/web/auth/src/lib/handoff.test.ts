@@ -71,3 +71,23 @@ describe("startHandoff", () => {
     await expect(startHandoff(request, "account-session")).rejects.toThrow();
   });
 });
+
+it.each([
+  [
+    "Set up two-step verification and save recovery codes in account security before using privileged staff tools",
+    "mfa-enrol",
+  ],
+  [
+    "Sign in again with your authenticator or recovery code before using privileged staff tools",
+    "mfa-sign-in",
+  ],
+])(
+  "routes MFA blocker to %s without an access-denied loop",
+  async (detail, kind) => {
+    authApiFetch.mockRejectedValueOnce(new AuthApiError(403, detail));
+    expect(
+      await startHandoff({ app: "gaa-admin", state: STATE }, "account-session")
+    ).toEqual({ kind });
+    expect(authApiFetch).toHaveBeenCalledTimes(1);
+  }
+);

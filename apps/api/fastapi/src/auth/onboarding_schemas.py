@@ -33,6 +33,7 @@ class AccessBlocker(str, Enum):
     EMAIL_VERIFICATION = "email_verification"
     STAFF_APPROVAL = "staff_approval"
     CMS_GRANT = "cms_grant"
+    MFA_ENROLMENT = "mfa_enrolment"
 
 
 class AppAccessStatus(BaseModel):
@@ -40,6 +41,8 @@ class AppAccessStatus(BaseModel):
     label: str
     available: bool
     blockers: list[AccessBlocker]
+    # Account readiness never proves that a future sign-in has verified a factor.
+    requires_mfa_sign_in: bool = False
 
 
 class OnboardingStatus(BaseModel):

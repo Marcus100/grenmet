@@ -7,6 +7,7 @@ import * as z from "zod";
 import { employmentTypeSchema } from "./employmentTypeSchema.js";
 
 export const staffSetupSchema = z.object({
+  organisation_id: z.union([z.string(), z.null()]).optional(),
   account_active: z.boolean().optional().default(false),
   staff_approval_ready: z.boolean().optional().default(false),
   registration_pending: z.boolean().optional().default(false),
