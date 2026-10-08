@@ -6,6 +6,7 @@
 import type { EmploymentType } from "./EmploymentType.js";
 
 export type StaffInput = {
+  organisation_id?: string | null;
   department_id: string;
   grade_id: string;
   employee_number?: string | null;

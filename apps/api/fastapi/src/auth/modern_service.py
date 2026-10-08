@@ -308,6 +308,7 @@ async def google_finish(
         user_agent=user_agent,
         ip_address=ip_address,
         enforce_approval=False,
+        mfa_verified_at=utc_now() if user.totp_enabled else None,
     )
     if new_device:
         schedule_new_sign_in_alert(
@@ -317,7 +318,9 @@ async def google_finish(
             signed_in_at=db_session.created_at,
         )
     access_token, expires = service.issue_access_token_for_user(
-        user=user, expires_delta=service.get_session_access_token_expires_delta()
+        user=user,
+        expires_delta=service.get_session_access_token_expires_delta(),
+        db_session=db_session,
     )
     return SessionLoginResponse(
         access_token=access_token,
@@ -363,6 +366,12 @@ async def account_security(
         .all()
     )
     return AccountSecurityPublic(
+        privileged_mfa_required=user.is_superuser
+        or await service.has_effective_permission(
+            session=session, user=user, permission_key="user.manage"
+        ),
+        privileged_mfa_enforced=auth_settings.AUTH_PRIVILEGED_MFA_MODE == "enforce",
+        authenticator_storage_ready=bool(auth_settings.AUTH_TOTP_ENCRYPTION_KEYS),
         recovery_codes_remaining=len(user.mfa_recovery_hashes),
         email_verified=user.email_verified_at is not None,
         google_configured=bool(
@@ -376,6 +385,7 @@ async def account_security(
         sessions=[
             SecuritySessionPublic(
                 id=str(row.id),
+                mfa_verified_at=row.mfa_verified_at,
                 app_name=row.app_name,
                 client_type=row.client_type,
                 user_agent=row.user_agent,

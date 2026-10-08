@@ -166,6 +166,7 @@ export { hrCreateHoliday } from "./clients/hrCreateHoliday.js";
 export { hrCreateHrEmployment } from "./clients/hrCreateHrEmployment.js";
 export { hrCreateInstance } from "./clients/hrCreateInstance.js";
 export { hrCreateLeaveRequest } from "./clients/hrCreateLeaveRequest.js";
+export { hrCreateOrganisation } from "./clients/hrCreateOrganisation.js";
 export { hrCreateParkingPermit } from "./clients/hrCreateParkingPermit.js";
 export { hrCreatePeriod } from "./clients/hrCreatePeriod.js";
 export { hrCreateShift } from "./clients/hrCreateShift.js";
@@ -245,6 +246,7 @@ export { hrPreviewStatusReportPdf } from "./clients/hrPreviewStatusReportPdf.js"
 export { hrProposeAttendanceCorrection } from "./clients/hrProposeAttendanceCorrection.js";
 export { hrPublishPeriod } from "./clients/hrPublishPeriod.js";
 export { hrRemoveHoliday } from "./clients/hrRemoveHoliday.js";
+export { hrRenameOrganisation } from "./clients/hrRenameOrganisation.js";
 export { hrSaveAttendance } from "./clients/hrSaveAttendance.js";
 export { hrSaveMySignature } from "./clients/hrSaveMySignature.js";
 export { hrSaveWorkflowConfiguration } from "./clients/hrSaveWorkflowConfiguration.js";
@@ -1180,6 +1182,11 @@ export {
   useHrCreateLeaveRequest,
 } from "./hooks/useHrCreateLeaveRequest.js";
 export {
+  hrCreateOrganisationMutationKey,
+  hrCreateOrganisationMutationOptions,
+  useHrCreateOrganisation,
+} from "./hooks/useHrCreateOrganisation.js";
+export {
   hrCreateParkingPermitMutationKey,
   hrCreateParkingPermitMutationOptions,
   useHrCreateParkingPermit,
@@ -1574,6 +1581,11 @@ export {
   hrRemoveHolidayMutationOptions,
   useHrRemoveHoliday,
 } from "./hooks/useHrRemoveHoliday.js";
+export {
+  hrRenameOrganisationMutationKey,
+  hrRenameOrganisationMutationOptions,
+  useHrRenameOrganisation,
+} from "./hooks/useHrRenameOrganisation.js";
 export {
   hrSaveAttendanceMutationKey,
   hrSaveAttendanceMutationOptions,
@@ -3956,6 +3968,16 @@ export type {
   HrCreateLeaveRequestStatus422,
 } from "./models/HrCreateLeaveRequest.js";
 export type {
+  HrCreateOrganisationBody,
+  HrCreateOrganisationOptions,
+  HrCreateOrganisationResponse,
+  HrCreateOrganisationResponses,
+  HrCreateOrganisationStatus201,
+  HrCreateOrganisationStatus403,
+  HrCreateOrganisationStatus409,
+  HrCreateOrganisationStatus422,
+} from "./models/HrCreateOrganisation.js";
+export type {
   HrCreateParkingPermitBody,
   HrCreateParkingPermitOptions,
   HrCreateParkingPermitResponse,
@@ -4364,6 +4386,7 @@ export type {
 } from "./models/HrGetRoleConfiguration.js";
 export type {
   HrGetSetupGradesOptions,
+  HrGetSetupGradesQuery,
   HrGetSetupGradesResponse,
   HrGetSetupGradesResponses,
   HrGetSetupGradesStatus200,
@@ -4374,6 +4397,7 @@ export type {
 } from "./models/HrGetSetupGrades.js";
 export type {
   HrGetSetupPoliciesOptions,
+  HrGetSetupPoliciesQuery,
   HrGetSetupPoliciesResponse,
   HrGetSetupPoliciesResponses,
   HrGetSetupPoliciesStatus200,
@@ -4394,9 +4418,11 @@ export type {
 } from "./models/HrGetStaffCard.js";
 export type {
   HrGetStaffSetupOptions,
+  HrGetStaffSetupQuery,
   HrGetStaffSetupResponse,
   HrGetStaffSetupResponses,
   HrGetStaffSetupStatus200,
+  HrGetStaffSetupStatus400,
   HrGetStaffSetupStatus403,
   HrGetStaffSetupStatus404,
   HrGetStaffSetupStatus409,
@@ -4754,6 +4780,17 @@ export type {
   HrRemoveHolidayStatus404,
   HrRemoveHolidayStatus422,
 } from "./models/HrRemoveHoliday.js";
+export type {
+  HrRenameOrganisationBody,
+  HrRenameOrganisationOptions,
+  HrRenameOrganisationPath,
+  HrRenameOrganisationResponse,
+  HrRenameOrganisationResponses,
+  HrRenameOrganisationStatus200,
+  HrRenameOrganisationStatus403,
+  HrRenameOrganisationStatus404,
+  HrRenameOrganisationStatus422,
+} from "./models/HrRenameOrganisation.js";
 export type {
   HrSaveAttendanceBody,
   HrSaveAttendanceOptions,
@@ -5574,8 +5611,10 @@ export type { ObservationRecordPropertiesKindEnum } from "./models/ObservationRe
 export { observationRecordPropertiesKindEnum } from "./models/ObservationRecordPropertiesKindEnum.js";
 export type { OnboardingStatus } from "./models/OnboardingStatus.js";
 export type { OrganisationCatalogue } from "./models/OrganisationCatalogue.js";
+export type { OrganisationCreate } from "./models/OrganisationCreate.js";
 export type { OrganisationPreview } from "./models/OrganisationPreview.js";
 export type { OrganisationPublic } from "./models/OrganisationPublic.js";
+export type { OrganisationUpdate } from "./models/OrganisationUpdate.js";
 export type { OrganiserPublic } from "./models/OrganiserPublic.js";
 export type { OutlookProductPreview } from "./models/OutlookProductPreview.js";
 export type { OutlookProductPreviewInput } from "./models/OutlookProductPreviewInput.js";
@@ -7993,6 +8032,15 @@ export {
   hrCreateLeaveRequestStatus422Schema,
 } from "./zod/hrCreateLeaveRequestSchema.js";
 export {
+  hrCreateOrganisationBodySchema,
+  hrCreateOrganisationErrorSchema,
+  hrCreateOrganisationResponseSchema,
+  hrCreateOrganisationStatus201Schema,
+  hrCreateOrganisationStatus403Schema,
+  hrCreateOrganisationStatus409Schema,
+  hrCreateOrganisationStatus422Schema,
+} from "./zod/hrCreateOrganisationSchema.js";
+export {
   hrCreateParkingPermitBodySchema,
   hrCreateParkingPermitErrorSchema,
   hrCreateParkingPermitResponseSchema,
@@ -8381,6 +8429,7 @@ export {
 } from "./zod/hrGetRoleConfigurationSchema.js";
 export {
   hrGetSetupGradesErrorSchema,
+  hrGetSetupGradesQueryOrganisationIdSchema,
   hrGetSetupGradesResponseSchema,
   hrGetSetupGradesStatus200Schema,
   hrGetSetupGradesStatus403Schema,
@@ -8390,6 +8439,7 @@ export {
 } from "./zod/hrGetSetupGradesSchema.js";
 export {
   hrGetSetupPoliciesErrorSchema,
+  hrGetSetupPoliciesQueryOrganisationIdSchema,
   hrGetSetupPoliciesResponseSchema,
   hrGetSetupPoliciesStatus200Schema,
   hrGetSetupPoliciesStatus403Schema,
@@ -8408,8 +8458,11 @@ export {
 } from "./zod/hrGetStaffCardSchema.js";
 export {
   hrGetStaffSetupErrorSchema,
+  hrGetStaffSetupQueryOrganisationIdSchema,
+  hrGetStaffSetupQueryUnassignedSchema,
   hrGetStaffSetupResponseSchema,
   hrGetStaffSetupStatus200Schema,
+  hrGetStaffSetupStatus400Schema,
   hrGetStaffSetupStatus403Schema,
   hrGetStaffSetupStatus404Schema,
   hrGetStaffSetupStatus409Schema,
@@ -8751,6 +8804,16 @@ export {
   hrRemoveHolidayStatus404Schema,
   hrRemoveHolidayStatus422Schema,
 } from "./zod/hrRemoveHolidaySchema.js";
+export {
+  hrRenameOrganisationBodySchema,
+  hrRenameOrganisationErrorSchema,
+  hrRenameOrganisationPathOrganisationIdSchema,
+  hrRenameOrganisationResponseSchema,
+  hrRenameOrganisationStatus200Schema,
+  hrRenameOrganisationStatus403Schema,
+  hrRenameOrganisationStatus404Schema,
+  hrRenameOrganisationStatus422Schema,
+} from "./zod/hrRenameOrganisationSchema.js";
 export {
   hrSaveAttendanceBodySchema,
   hrSaveAttendanceErrorSchema,
@@ -9494,8 +9557,10 @@ export { observationRecordPropertiesKindEnumSchema } from "./zod/observationReco
 export { observationRecordSchema } from "./zod/observationRecordSchema.js";
 export { onboardingStatusSchema } from "./zod/onboardingStatusSchema.js";
 export { organisationCatalogueSchema } from "./zod/organisationCatalogueSchema.js";
+export { organisationCreateSchema } from "./zod/organisationCreateSchema.js";
 export { organisationPreviewSchema } from "./zod/organisationPreviewSchema.js";
 export { organisationPublicSchema } from "./zod/organisationPublicSchema.js";
+export { organisationUpdateSchema } from "./zod/organisationUpdateSchema.js";
 export { organiserPublicSchema } from "./zod/organiserPublicSchema.js";
 export { outlookProductPreviewInputSchema } from "./zod/outlookProductPreviewInputSchema.js";
 export { outlookProductPreviewSchema } from "./zod/outlookProductPreviewSchema.js";

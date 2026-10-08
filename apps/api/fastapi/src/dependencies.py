@@ -105,7 +105,11 @@ async def get_current_user(session: SessionDep, token: TokenDep) -> User:
 
     This dependency is cached, so you can use it multiple times in
     chained dependencies without additional database queries."""
-    return await get_authenticated_user(session, _token_user_id(token))
+    user = await get_authenticated_user(session, _token_user_id(token))
+    from src.auth.privileged_mfa import require_privileged_mfa
+
+    await require_privileged_mfa(session, user, token=token)
+    return user
 
 
 async def get_account_user(session: SessionDep, token: TokenDep) -> User:

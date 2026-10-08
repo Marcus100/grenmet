@@ -1835,6 +1835,16 @@ export type {
   HrCreateLeaveRequestStatus422,
 } from "./HrCreateLeaveRequest.js";
 export type {
+  HrCreateOrganisationBody,
+  HrCreateOrganisationOptions,
+  HrCreateOrganisationResponse,
+  HrCreateOrganisationResponses,
+  HrCreateOrganisationStatus201,
+  HrCreateOrganisationStatus403,
+  HrCreateOrganisationStatus409,
+  HrCreateOrganisationStatus422,
+} from "./HrCreateOrganisation.js";
+export type {
   HrCreateParkingPermitBody,
   HrCreateParkingPermitOptions,
   HrCreateParkingPermitResponse,
@@ -2243,6 +2253,7 @@ export type {
 } from "./HrGetRoleConfiguration.js";
 export type {
   HrGetSetupGradesOptions,
+  HrGetSetupGradesQuery,
   HrGetSetupGradesResponse,
   HrGetSetupGradesResponses,
   HrGetSetupGradesStatus200,
@@ -2253,6 +2264,7 @@ export type {
 } from "./HrGetSetupGrades.js";
 export type {
   HrGetSetupPoliciesOptions,
+  HrGetSetupPoliciesQuery,
   HrGetSetupPoliciesResponse,
   HrGetSetupPoliciesResponses,
   HrGetSetupPoliciesStatus200,
@@ -2273,9 +2285,11 @@ export type {
 } from "./HrGetStaffCard.js";
 export type {
   HrGetStaffSetupOptions,
+  HrGetStaffSetupQuery,
   HrGetStaffSetupResponse,
   HrGetStaffSetupResponses,
   HrGetStaffSetupStatus200,
+  HrGetStaffSetupStatus400,
   HrGetStaffSetupStatus403,
   HrGetStaffSetupStatus404,
   HrGetStaffSetupStatus409,
@@ -2633,6 +2647,17 @@ export type {
   HrRemoveHolidayStatus404,
   HrRemoveHolidayStatus422,
 } from "./HrRemoveHoliday.js";
+export type {
+  HrRenameOrganisationBody,
+  HrRenameOrganisationOptions,
+  HrRenameOrganisationPath,
+  HrRenameOrganisationResponse,
+  HrRenameOrganisationResponses,
+  HrRenameOrganisationStatus200,
+  HrRenameOrganisationStatus403,
+  HrRenameOrganisationStatus404,
+  HrRenameOrganisationStatus422,
+} from "./HrRenameOrganisation.js";
 export type {
   HrSaveAttendanceBody,
   HrSaveAttendanceOptions,
@@ -3453,8 +3478,10 @@ export type { ObservationRecordPropertiesKindEnum } from "./ObservationRecordPro
 export { observationRecordPropertiesKindEnum } from "./ObservationRecordPropertiesKindEnum.js";
 export type { OnboardingStatus } from "./OnboardingStatus.js";
 export type { OrganisationCatalogue } from "./OrganisationCatalogue.js";
+export type { OrganisationCreate } from "./OrganisationCreate.js";
 export type { OrganisationPreview } from "./OrganisationPreview.js";
 export type { OrganisationPublic } from "./OrganisationPublic.js";
+export type { OrganisationUpdate } from "./OrganisationUpdate.js";
 export type { OrganiserPublic } from "./OrganiserPublic.js";
 export type { OutlookProductPreview } from "./OutlookProductPreview.js";
 export type { OutlookProductPreviewInput } from "./OutlookProductPreviewInput.js";

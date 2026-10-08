@@ -117,25 +117,46 @@ async def test_user_manager_cannot_grant_cms(
 ):
     import uuid
 
-    from src.auth.models import UserRoleLink
-    from tests.factories import make_role_with_permission
+    from sqlalchemy import select
+
+    from src.auth.models import Role, RoleAssignmentScope, User
+    from src.auth.permissions import seed_permissions_and_roles_async
+    from tests.factories import assign_role, make_department, make_employee, make_user
 
     me = await async_client.get(
         "/api/v1/auth/users/me", headers=normal_user_token_headers_async
     )
     uid = me.json()["id"]
-    role, _ = await make_role_with_permission(db_async, "user.manage")
-    db_async.add(UserRoleLink(user_id=uuid.UUID(uid), role_id=role.id))
-    await db_async.commit()
-    # Prove this caller has ordinary user-management authority.
+    user = await db_async.get(User, uuid.UUID(uid))
+    await seed_permissions_and_roles_async(db_async)
+    department = await make_department(db_async)
+    await make_employee(db_async, user=user, department_id=department.id)
+    role = await db_async.scalar(select(Role).where(Role.name == "department-manager"))
+    await assign_role(
+        db_async,
+        user=user,
+        role=role,
+        scope=RoleAssignmentScope.DEPARTMENT,
+        department_id=department.id,
+    )
+    # Management routes cannot modify the caller's own account.
     result = await async_client.patch(
         f"/api/v1/auth/users/{uid}",
         headers=normal_user_token_headers_async,
         json={"first_name": "Manager"},
     )
+    assert result.status_code == 403
+    target = await make_user(db_async)
+    await make_employee(db_async, user=target, department_id=department.id)
+    # A manager can correct an ordinary colleague's profile in their own department.
+    result = await async_client.patch(
+        f"/api/v1/auth/users/{target.id}",
+        headers=normal_user_token_headers_async,
+        json={"first_name": "Colleague"},
+    )
     assert result.status_code == 200, result.text
     result = await async_client.patch(
-        f"/api/v1/auth/users/{uid}",
+        f"/api/v1/auth/users/{target.id}",
         headers=normal_user_token_headers_async,
         json={"cms_access": "publisher"},
     )

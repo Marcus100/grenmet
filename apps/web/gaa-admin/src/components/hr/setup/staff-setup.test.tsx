@@ -54,14 +54,14 @@ beforeAll(() => {
 });
 afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
-function renderSetup() {
+function renderSetup(organisationId?: string) {
   return render(
     <QueryClientProvider
       client={
         new QueryClient({ defaultOptions: { queries: { retry: false } } })
       }
     >
-      <StaffSetupManager />
+      <StaffSetupManager organisationId={organisationId} />
     </QueryClientProvider>
   );
 }
@@ -230,4 +230,121 @@ it("blocks staff approval while identity activation is incomplete", async () => 
   expect(
     screen.getByRole("button", { name: "Refresh onboarding status" })
   ).toBeEnabled();
+});
+
+it("keeps unassigned accounts separate while grades and policies stay in the selected employer", async () => {
+  const staffRequests: URL[] = [];
+  const contextRequests: URL[] = [];
+  server.use(
+    http.get(`${BASE}/api/v1/hr/setup/staff`, ({ request }) => {
+      const url = new URL(request.url);
+      staffRequests.push(url);
+      return HttpResponse.json(
+        url.searchParams.get("unassigned") === "true"
+          ? [{ ...user, name: "Unassigned Person", organisation_id: null }]
+          : [{ ...user, organisation_id: "example" }]
+      );
+    }),
+    http.get(`${BASE}/api/v1/hr/setup/grades`, ({ request }) => {
+      contextRequests.push(new URL(request.url));
+      return HttpResponse.json([]);
+    }),
+    http.get(`${BASE}/api/v1/hr/setup/policies`, ({ request }) => {
+      contextRequests.push(new URL(request.url));
+      return HttpResponse.json([]);
+    })
+  );
+  renderSetup("example");
+  await screen.findByText("Test Staff · draft");
+  fireEvent.click(
+    screen.getByRole("button", {
+      name: "Show accounts awaiting employer assignment",
+    })
+  );
+  await screen.findByText("Unassigned Person · draft");
+  expect(screen.queryByText("Test Staff · draft")).not.toBeInTheDocument();
+  expect(staffRequests[0]?.searchParams.get("organisation_id")).toBe("example");
+  const queueRequest = staffRequests.find(
+    (url) => url.searchParams.get("unassigned") === "true"
+  );
+  expect(queueRequest?.searchParams.has("organisation_id")).toBe(false);
+  expect(queueRequest).toBeDefined();
+  expect(
+    contextRequests.every(
+      (url) => url.searchParams.get("organisation_id") === "example"
+    )
+  ).toBe(true);
+});
+
+it("assigns an existing employer supervisor during the first unassigned-account save", async () => {
+  const supervisorId = "00000000-0000-4000-8000-000000000002";
+  const saved: unknown[] = [];
+  server.use(
+    http.get(`${BASE}/api/v1/hr/setup/staff`, ({ request }) =>
+      HttpResponse.json(
+        new URL(request.url).searchParams.get("unassigned") === "true"
+          ? [
+              {
+                ...user,
+                name: "New Employee",
+                department_id: "",
+                organisation_id: null,
+              },
+            ]
+          : [
+              {
+                ...user,
+                user_id: supervisorId,
+                name: "Existing Supervisor",
+                employment_ready: true,
+                status: "active",
+                organisation_id: "example",
+              },
+            ]
+      )
+    ),
+    http.get(`${BASE}/api/v1/hr/setup/grades`, () =>
+      HttpResponse.json([
+        {
+          id: "EXAMPLE_STAFF",
+          department_id: "meteorological_department",
+          code: "STAFF",
+          label: "Staff",
+          rank: 1,
+          is_active: true,
+        },
+      ])
+    ),
+    http.put(
+      `${BASE}/api/v1/hr/setup/staff/${user.user_id}`,
+      async ({ request }) => {
+        saved.push(await request.json());
+        return HttpResponse.json({ message: "Staff setup saved" });
+      }
+    )
+  );
+  renderSetup("example");
+  fireEvent.click(
+    await screen.findByRole("button", {
+      name: "Show accounts awaiting employer assignment",
+    })
+  );
+  fireEvent.click(await screen.findByText("New Employee · draft"));
+  fireEvent.change(screen.getByLabelText("Grade"), {
+    target: { value: "EXAMPLE_STAFF" },
+  });
+  expect(
+    screen.getByRole("option", { name: "Existing Supervisor" })
+  ).toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText("Supervisor"), {
+    target: { value: supervisorId },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Save staff setup" }));
+  await waitFor(() => expect(saved).toHaveLength(1));
+  expect(saved[0]).toMatchObject({
+    organisation_id: "example",
+    supervisor_id: supervisorId,
+    department_id: "meteorological_department",
+    grade_id: "EXAMPLE_STAFF",
+  });
 });

@@ -6,6 +6,7 @@
 import * as z from "zod";
 
 export const appPhoneCodeVerifySchema = z.object({
+  totp_code: z.union([z.string().max(64), z.null()]).optional(),
   phone: z.string().regex(/^\+[1-9]\d{7,14}$/),
   code: z.string().regex(/^\d{6}$/),
 });

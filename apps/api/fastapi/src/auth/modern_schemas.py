@@ -36,6 +36,7 @@ class GoogleFinish(BaseModel):
 
 
 class SecuritySessionPublic(BaseModel):
+    mfa_verified_at: UtcDateTime | None = None
     id: str
     app_name: str | None = None
     client_type: str
@@ -46,6 +47,9 @@ class SecuritySessionPublic(BaseModel):
 
 
 class AccountSecurityPublic(BaseModel):
+    privileged_mfa_required: bool = False
+    privileged_mfa_enforced: bool = False
+    authenticator_storage_ready: bool = False
     recovery_codes_remaining: int = 0
     email_verified: bool
     google_configured: bool

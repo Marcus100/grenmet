@@ -6,6 +6,10 @@
 import type { GradeSetup } from "./GradeSetup.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
+export type HrGetSetupGradesQuery = {
+  organisation_id?: string | null;
+};
+
 export type HrGetSetupGradesStatus200 = GradeSetup[];
 
 export type HrGetSetupGradesStatus403 = unknown;
@@ -23,7 +27,7 @@ export type HrGetSetupGradesStatus422 = ValidationErrorResponse;
 export type HrGetSetupGradesOptions = {
   body?: never;
   path?: never;
-  query?: never;
+  query?: HrGetSetupGradesQuery;
   headers?: never;
 };
 

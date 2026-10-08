@@ -25,6 +25,12 @@ export type UserRoleAssignmentPublic = {
   scope?: RoleAssignmentScope;
   department_id?: string | null;
   effective_to?: string | null;
+  authority_assignment_id?: string | null;
+  /**
+   * @default true
+   * @type boolean | undefined
+   */
+  is_effective?: boolean;
   organisation_id: string;
   /**
    * @description

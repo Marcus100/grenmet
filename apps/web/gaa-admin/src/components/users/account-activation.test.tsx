@@ -11,6 +11,8 @@ import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 
+const READY_TO_SIGN_IN = /Ready to sign in/;
+
 const actor = vi.hoisted(() => ({ is_superuser: true }));
 vi.mock("@barrelsgd/auth", () => ({ useSessionUser: () => actor }));
 
@@ -129,4 +131,39 @@ it("hides identity approval from ordinary staff", () => {
   expect(
     screen.queryByRole("region", { name: "Account setup" })
   ).not.toBeInTheDocument();
+});
+
+it("explains MFA setup separately from verification at sign-in", async () => {
+  server.use(
+    http.get("http://localhost/api/v1/auth/onboarding/test-user", () =>
+      HttpResponse.json({
+        user_id: user.id,
+        email_verified: true,
+        password_setup_pending: false,
+        activation_pending: false,
+        can_issue_activation: false,
+        apps: [
+          {
+            app: "gaa-admin",
+            label: "GAA Admin",
+            available: false,
+            blockers: ["mfa_enrolment"],
+            requires_mfa_sign_in: true,
+          },
+        ],
+      })
+    )
+  );
+  mount();
+  expect(
+    await screen.findByText(
+      "Ask the person to set up two-step verification and save recovery codes in account security."
+    )
+  ).toBeInTheDocument();
+  expect(
+    screen.getByText(
+      "The person must verify their authenticator or a recovery code when signing in."
+    )
+  ).toBeInTheDocument();
+  expect(screen.queryByText(READY_TO_SIGN_IN)).not.toBeInTheDocument();
 });

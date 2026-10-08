@@ -51,6 +51,16 @@ class EmergencyContactPublic(BaseModel):
     relationship: str | None = None
 
 
+class OrganisationCreate(BaseModel):
+    id: str = Field(pattern=r"^[a-z][a-z0-9_-]*$", max_length=100)
+    code: str = Field(pattern=r"^[A-Z][A-Z0-9_-]*$", max_length=100)
+    name: str = Field(min_length=1, max_length=255)
+
+
+class OrganisationUpdate(BaseModel):
+    name: str = Field(min_length=1, max_length=255)
+
+
 class OrganisationPublic(BaseModel):
     id: str
     code: str

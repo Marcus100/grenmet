@@ -55,6 +55,7 @@ from src.email import (
 from src.email_config import email_settings
 from src.models import Message, Token
 from src.rate_limit import limiter
+from src.utils.datetime import utc_now
 
 from ..utils import create_access_token
 
@@ -225,6 +226,8 @@ async def login_session(
     if user.totp_enabled and not await verify_factor(
         session, user, body.totp_code or ""
     ):
+        if body.totp_code:
+            await login_lockout.record_failure(body.email)
         raise HTTPException(
             status_code=400, detail="Two-factor authentication code required or invalid"
         )
@@ -241,6 +244,7 @@ async def login_session(
         user_agent=user_agent,
         ip_address=ip_address,
         enforce_approval=False,
+        mfa_verified_at=utc_now() if user.totp_enabled else None,
     )
     if new_device:
         schedule_new_sign_in_alert(
@@ -252,6 +256,7 @@ async def login_session(
     access_token, access_token_expires_at = service.issue_access_token_for_user(
         user=user,
         expires_delta=service.get_session_access_token_expires_delta(),
+        db_session=db_session,
     )
     return _session_auth_response(
         access_token=access_token,
@@ -353,6 +358,7 @@ async def refresh_session(
     access_token, access_token_expires_at = service.issue_access_token_for_user(
         user=user,
         expires_delta=service.get_session_access_token_expires_delta(),
+        db_session=new_session,
         app=scoped_app,
     )
     return _session_auth_response(
