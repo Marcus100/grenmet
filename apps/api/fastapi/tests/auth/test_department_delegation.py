@@ -339,3 +339,46 @@ async def test_departed_manager_loses_authority_and_delegated_grants(
     assert await effective_roles(db_async, actor) == []
     assert await effective_roles(db_async, target) == []
     assert (await service.get_users(session=db_async, current_user=actor))[1] == 0
+
+
+async def test_terminated_recipient_loses_delegation_and_cannot_receive_new_grants(
+    db_async: AsyncSession,
+):
+    from src.hr.models import EmploymentRecord, EmploymentStatus
+
+    actor, target, _, _, authority, staff, _ = await setup(db_async)
+    grant = await service.create_user_role_assignment(
+        session=db_async,
+        current_user=actor,
+        assignment_in=UserRoleAssignmentCreate(user_id=target.id, role_id=staff.id),
+    )
+    assert [r.name for r in await effective_roles(db_async, target)] == ["staff"]
+    recipient = await db_async.scalar(
+        select(EmploymentRecord).where(EmploymentRecord.user_id == target.id)
+    )
+    recipient.status = EmploymentStatus.TERMINATED
+    await db_async.commit()
+    assert target.is_active
+    assert await effective_roles(db_async, target) == []
+    assert [r.name for r in await effective_roles(db_async, actor)] == [
+        "department-manager"
+    ]
+    with pytest.raises(AppException, match="active recipient employment"):
+        await service.create_user_role_assignment(
+            session=db_async,
+            current_user=actor,
+            assignment_in=UserRoleAssignmentCreate(user_id=target.id, role_id=staff.id),
+        )
+    with pytest.raises(AppException, match="active recipient employment"):
+        await service.update_user_role_assignment(
+            session=db_async,
+            current_user=actor,
+            db_assignment=grant,
+            assignment_in=UserRoleAssignmentUpdate(
+                effective_to=utc_now() + timedelta(days=1)
+            ),
+        )
+    # Scope remains sufficient to inspect and revoke inactive recipient grants.
+    await service.require_assignment_management(db_async, actor, grant)
+    await service.delete_user_role_assignment(session=db_async, db_assignment=grant)
+    assert await db_async.get(UserRoleAssignment, authority.id) is not None
