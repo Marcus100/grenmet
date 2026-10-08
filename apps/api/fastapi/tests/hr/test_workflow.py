@@ -213,6 +213,13 @@ async def test_workflow_transition_submit_to_approve(
     db_async.add(user)
     await db_async.commit()
 
+    await assign_role(
+        db_async,
+        user=user,
+        role=role,
+        scope=RoleAssignmentScope.DEPARTMENT,
+        department_id="dept_workflow",
+    )
     template = await create_workflow_template(
         session=db_async,
         current_user=user,
@@ -289,12 +296,15 @@ async def _make_requester(db: AsyncSession):
     return requester
 
 
-async def _make_peer(db: AsyncSession):
+async def _make_peer(db: AsyncSession, department_id: str):
     peer = await make_user(db)
     peer_role, _ = await make_role_with_permission(
         db, "workflow.instance.action", "workflow.instance.view"
     )
     await assign_role(db, user=peer, role=peer_role)
+    from tests.factories import make_employee
+
+    await make_employee(db, user=peer, department_id=department_id)
     return peer
 
 
@@ -306,8 +316,8 @@ async def test_named_coapprovers_all_must_approve(db_async: AsyncSession) -> Non
 
     requester = await _make_requester(db_async)
     await make_ready_staff(db_async, requester, dept.id)
-    peer_a = await _make_peer(db_async)
-    peer_b = await _make_peer(db_async)
+    peer_a = await _make_peer(db_async, dept.id)
+    peer_b = await _make_peer(db_async, dept.id)
     supervisor = await make_user(db_async)
     await assign_role(
         db_async, user=supervisor, role=sup_role, scope=RoleAssignmentScope.ALL
@@ -363,8 +373,8 @@ async def test_coapprover_rejection_rejects_instance(db_async: AsyncSession) -> 
     await _setup_coapproval(db_async, dept.id)
     requester = await _make_requester(db_async)
     await make_ready_staff(db_async, requester, dept.id)
-    peer_a = await _make_peer(db_async)
-    peer_b = await _make_peer(db_async)
+    peer_a = await _make_peer(db_async, dept.id)
+    peer_b = await _make_peer(db_async, dept.id)
 
     payload = _leave_payload(dept.id)
     payload.co_approver_user_ids = [peer_a.id, peer_b.id]
@@ -393,8 +403,10 @@ async def test_inbox_shows_instances_only_to_current_actor(
     sup_role = await _setup_coapproval(db_async, dept.id)
     requester = await _make_requester(db_async)
     await make_ready_staff(db_async, requester, dept.id)
-    peer = await _make_peer(db_async)
-    other = await _make_peer(db_async)  # has action/view but not on this instance
+    peer = await _make_peer(db_async, dept.id)
+    other = await _make_peer(
+        db_async, dept.id
+    )  # has action/view but not on this instance
     supervisor = await make_user(db_async)
     await assign_role(
         db_async, user=supervisor, role=sup_role, scope=RoleAssignmentScope.ALL
@@ -479,7 +491,7 @@ async def test_save_draft_then_submit(db_async: AsyncSession) -> None:
     await _setup_coapproval(db_async, dept.id)
     requester = await _make_requester(db_async)
     await make_ready_staff(db_async, requester, dept.id)
-    peer = await _make_peer(db_async)
+    peer = await _make_peer(db_async, dept.id)
 
     draft_payload = _leave_payload(dept.id)
     draft_payload.as_draft = True

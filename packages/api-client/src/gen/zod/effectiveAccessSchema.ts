@@ -9,4 +9,10 @@ export const effectiveAccessSchema = z.object({
   is_superuser: z.boolean(),
   role_names: z.array(z.string()),
   permission_keys: z.array(z.string()),
+  all_scope_permission_keys: z
+    .array(z.string())
+    .optional()
+    .describe(
+      "Permissions from live ALL assignments or preserved unscoped legacy roles; organisation boundaries still apply."
+    ),
 });

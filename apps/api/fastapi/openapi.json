@@ -28399,6 +28399,14 @@
             },
             "type": "array",
             "title": "Permission Keys"
+          },
+          "all_scope_permission_keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "All Scope Permission Keys",
+            "description": "Permissions from live ALL assignments or preserved unscoped legacy roles; organisation boundaries still apply."
           }
         },
         "type": "object",

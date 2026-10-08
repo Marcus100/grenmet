@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-09-23
+**Last updated:** 2026-10-07
 
 This guide documents the current FastAPI contract conventions. It complements the generated OpenAPI schema at `apps/api/fastapi/openapi.json` and the generated TypeScript client in `packages/api-client`.
 
@@ -24,6 +24,16 @@ This document must stay in sync with the code. Do not mark a gap as resolved unt
 `GET /api/v1/auth/roles` permits scoped managers to list only canonical ordinary roles eligible for delegation. Role definition reads by ID and all definition mutations remain superuser-only. Role assignment create/update/revoke permits managers to grant `staff` with `SELF` scope to another employee in scope, bounded by canonical permissions and the issuer's active authority. Explicit managerial and special-duty appointments require a superuser.
 
 Role assignment responses include `authority_assignment_id` (null for explicit grants) and `is_effective`, which list/get calculate from live authority and expiry. Revoking authority disables its dependent grants immediately. See [department authority](../hr/department-authority.md) for scope and audit rules.
+
+`GET /api/v1/auth/access/me` returns the compatible, default-empty
+`all_scope_permission_keys` projection alongside `permission_keys` and the
+explicit `is_superuser` bypass. Only permissions from live `ALL` assignments and
+never-scoped legacy roles enter the projection; department/SELF authority cannot
+borrow the scope of another role, and expired/revoked authority cannot fall back
+to its legacy role link. This field does not remove any organisation boundary or
+permission-specific rule. Shared HR shift and public-holiday definitions require
+`ALL` `roster.manage` authority (or a superuser) for writes; a department's roster
+management grant still only manages its permitted department records.
 
 ## Base URLs
 

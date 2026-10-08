@@ -277,6 +277,10 @@ class EffectiveAccess(BaseModel):
     is_superuser: bool
     role_names: list[str]
     permission_keys: list[str]
+    all_scope_permission_keys: list[str] = Field(
+        default_factory=list,
+        description="Permissions from live ALL assignments or preserved unscoped legacy roles; organisation boundaries still apply.",
+    )
 
 
 class ReviewInput(BaseModel):
