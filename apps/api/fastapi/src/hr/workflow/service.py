@@ -1,12 +1,18 @@
 import logging
 import uuid
 
-from sqlalchemy import or_, select
+from sqlalchemy import exists, false, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.auth import policy as auth_policy
 from src.auth.models import User
-from src.auth.policy import can_act_on_user_for_role, require_permission
+from src.auth.policy import (
+    can_act_on_user,
+    can_act_on_user_for_role,
+    require_permission,
+)
 from src.hr import notifications as hr_notifications
+from src.hr import organisations
 from src.hr.constants import (
     ERROR_WORKFLOW_CANNOT_BE_SUBMITTED,
     ERROR_WORKFLOW_NOT_PENDING,
@@ -41,11 +47,23 @@ from .schemas import (
 logger = logging.getLogger(__name__)
 
 
+async def _require_template_scope(
+    session: AsyncSession, actor: User, department_id: str, key: str
+) -> None:
+    department = await organisations.department_for(session, department_id)
+    await organisations.require_organisation_permission(
+        session, actor, department.organisation_id, key, department_id
+    )
+
+
 async def create_workflow_template(
     *, session: AsyncSession, current_user: User, template_in: WorkflowTemplateCreate
 ) -> WorkflowTemplate:
     require_permission(
         current_user=current_user, permission_key="workflow.template.manage"
+    )
+    await _require_template_scope(
+        session, current_user, template_in.department_id, "workflow.template.manage"
     )
     db_template = WorkflowTemplate(
         **template_in.model_dump(), created_by=current_user.id
@@ -69,6 +87,22 @@ async def create_workflow_step_template(
     workflow_template = await session.get(WorkflowTemplate, workflow_template_id)
     if not workflow_template:
         raise WorkflowTemplateNotFoundError()
+    await _require_template_scope(
+        session,
+        current_user,
+        workflow_template.department_id,
+        "workflow.template.manage",
+    )
+    if step_in.required_user_id is not None:
+        department = await organisations.department_for(
+            session, workflow_template.department_id
+        )
+        if not await _named_actor_in_organisation(
+            session, step_in.required_user_id, department.organisation_id
+        ):
+            raise HRValidationError(
+                "Named approver must be an active employee in this organisation"
+            )
     step_values = step_in.model_dump()
     step_values["scope_enforced"] = True
     db_step = WorkflowStepTemplate(
@@ -89,7 +123,32 @@ async def read_workflow_templates(
     )
     statement = select(WorkflowTemplate)
     if department_id:
+        await _require_template_scope(
+            session, current_user, department_id, "workflow.template.view"
+        )
         statement = statement.where(WorkflowTemplate.department_id == department_id)
+    elif not current_user.is_superuser:
+        from src.auth.models import RoleAssignmentScope
+        from src.hr.models import Department
+
+        role_ids = {
+            role.id
+            for role in current_user.roles
+            if any(p.key == "workflow.template.view" for p in role.permissions)
+        }
+        grants = await organisations.active_assignments(session, current_user.id)
+        scopes = [
+            Department.organisation_id == grant.organisation_id
+            if grant.scope == RoleAssignmentScope.ALL
+            else (Department.organisation_id == grant.organisation_id)
+            & (Department.id == grant.department_id)
+            for grant in grants
+            if grant.role_id in role_ids
+            and grant.scope in {RoleAssignmentScope.ALL, RoleAssignmentScope.DEPARTMENT}
+        ]
+        statement = statement.join(
+            Department, Department.id == WorkflowTemplate.department_id
+        ).where(or_(*scopes) if scopes else false())
     result = await session.execute(statement.limit(100))
     return list(result.scalars().all())
 
@@ -111,6 +170,18 @@ async def _create_step_instances_for_workflow(
     co_approver_user_ids = co_approver_user_ids or []
     order_offset = 1 if co_approver_user_ids else 0
 
+    if co_approver_user_ids:
+        instance = await session.get(WorkflowInstance, workflow_instance_id)
+        if instance is None:
+            raise WorkflowInstanceNotFoundError()
+        department = await organisations.department_for(session, instance.department_id)
+        for user_id in co_approver_user_ids:
+            if not await _named_actor_in_organisation(
+                session, user_id, department.organisation_id
+            ):
+                raise HRValidationError(
+                    "Co-approver must be an active employee in this organisation"
+                )
     for peer_user_id in co_approver_user_ids:
         session.add(
             WorkflowStepInstance(
@@ -252,7 +323,55 @@ async def read_workflow_instance_details(
         .order_by(WorkflowStepInstance.step_order)
     )
     steps = list(result.scalars().all())
+    if current_user and not current_user.is_superuser:
+        department = await organisations.department_for(
+            session, workflow_instance.department_id
+        )
+        own = workflow_instance.requested_by_user_id == current_user.id
+        named = any(step.required_user_id == current_user.id for step in steps)
+        if not own and not (
+            named
+            and await _named_actor_in_organisation(
+                session, current_user.id, department.organisation_id
+            )
+            and await can_act_on_user(
+                session=session,
+                current_user=current_user,
+                target_user_id=current_user.id,
+                permission_key="workflow.instance.view",
+            )
+        ):
+            await _require_template_scope(
+                session,
+                current_user,
+                workflow_instance.department_id,
+                "workflow.instance.view",
+            )
     return workflow_instance, steps
+
+
+async def _named_actor_in_organisation(
+    session: AsyncSession,
+    user_id: uuid.UUID,
+    organisation_id: str,
+    *,
+    allow_superuser: bool = True,
+) -> bool:
+    from src.hr.models import EmploymentRecord, EmploymentStatus
+
+    placement = exists(
+        select(EmploymentRecord.id).where(
+            EmploymentRecord.user_id == User.id,
+            EmploymentRecord.organisation_id == organisation_id,
+            EmploymentRecord.status == EmploymentStatus.ACTIVE,
+        )
+    )
+    allowed = User.is_superuser.is_(True) | placement if allow_superuser else placement
+    return bool(
+        await session.scalar(
+            select(User.id).where(User.id == user_id, User.is_active.is_(True), allowed)
+        )
+    )
 
 
 async def _is_actor_allowed_for_step(
@@ -262,6 +381,8 @@ async def _is_actor_allowed_for_step(
     workflow_instance: WorkflowInstance,
     workflow_step: WorkflowStepInstance,
 ) -> bool:
+    if not current_user.is_active:
+        return False
     if (
         not workflow_instance.allow_self_approval
         and current_user.id == workflow_instance.requested_by_user_id
@@ -307,8 +428,46 @@ async def _is_actor_allowed_for_step(
     # A named-user step is satisfied only by that specific person; a role step
     # falls back to the role + scope check against the requester.
     if workflow_step.required_user_id is not None:
-        return current_user.id == workflow_step.required_user_id
+        department = await organisations.department_for(
+            session, workflow_instance.department_id
+        )
+        return (
+            current_user.id == workflow_step.required_user_id
+            and (
+                await _named_actor_in_organisation(
+                    session, current_user.id, department.organisation_id
+                )
+            )
+            and (
+                await can_act_on_user(
+                    session=session,
+                    current_user=current_user,
+                    target_user_id=current_user.id,
+                    permission_key="workflow.instance.action",
+                )
+            )
+        )
     if workflow_step.required_role_id is not None:
+        department = await organisations.department_for(
+            session, workflow_instance.department_id
+        )
+        if not current_user.is_superuser:
+            # A transfer does not re-route an existing workflow. Match the
+            # recorded department access required by detail/action endpoints.
+            visible_departments = await organisations.permitted_departments(
+                session,
+                current_user,
+                department.organisation_id,
+                "workflow.instance.view",
+            )
+            if workflow_instance.department_id not in visible_departments:
+                return False
+            if not await _named_actor_in_organisation(
+                session,
+                workflow_instance.requested_by_user_id,
+                department.organisation_id,
+            ):
+                return False
         return await can_act_on_user_for_role(
             session=session,
             current_user=current_user,
@@ -755,6 +914,8 @@ async def list_actionable_instances(
     my_role_ids = (
         set() if current_user.is_superuser else {role.id for role in current_user.roles}
     )
+    if my_role_ids:
+        my_role_ids = await auth_policy.approval_role_ids(session, my_role_ids)
     match_conditions = [WorkflowStepInstance.required_user_id == current_user.id]
     if current_user.is_superuser:
         match_conditions.append(WorkflowStepInstance.required_role_id.is_not(None))

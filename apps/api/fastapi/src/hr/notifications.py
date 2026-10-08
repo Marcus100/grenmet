@@ -12,8 +12,10 @@ from zoneinfo import ZoneInfo
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
-from src.auth.models import RoleAssignmentScope, User, UserRoleAssignment
+from src.auth import policy as auth_policy
+from src.auth.models import Role, RoleAssignmentScope, User, UserRoleAssignment
 from src.notifications import events
 from src.notifications import service as notification_service
 from src.notifications.events import EventDef
@@ -329,6 +331,7 @@ async def pending_approvers(
         if step.required_user_id is None and step.required_role_id
     }
     if role_ids:
+        role_ids = await auth_policy.approval_role_ids(session, role_ids)
         employment = await session.scalar(
             select(EmploymentRecord).where(
                 EmploymentRecord.user_id == instance.requested_by_user_id
@@ -361,9 +364,38 @@ async def pending_approvers(
                     )
                 ):
                     approvers.add(grant.user_id)
-    if not instance.allow_self_approval:
-        approvers.discard(instance.requested_by_user_id)
-    return approvers
+    # Reuse the action check so revoked named membership, stage scope and
+    # distinct-approver rules also govern reminders and notification recipients.
+    from src.auth.policy import has_permission
+    from src.hr.workflow import service as workflow_service
+
+    candidates = (
+        (
+            await session.execute(
+                select(User)
+                .where(User.id.in_(approvers), User.is_active.is_(True))
+                .options(selectinload(User.roles).selectinload(Role.permissions))
+            )
+        )
+        .scalars()
+        .all()
+    )
+    permitted = set()
+    for actor in candidates:
+        if not has_permission(
+            current_user=actor, permission_key="workflow.instance.action"
+        ):
+            continue
+        for step in steps:
+            if await workflow_service._is_actor_allowed_for_step(
+                session=session,
+                current_user=actor,
+                workflow_instance=instance,
+                workflow_step=step,
+            ):
+                permitted.add(actor.id)
+                break
+    return permitted
 
 
 async def workflow_transitioned(
@@ -447,6 +479,15 @@ async def _acting_appointment(
         not leave
         or not leave.requires_acting_appointment
         or not leave.acting_officer_id
+    ):
+        return
+    from src.hr.workflow import service as workflow_service
+
+    if (
+        organisation_id is None
+        or not await workflow_service._named_actor_in_organisation(
+            session, leave.acting_officer_id, organisation_id, allow_superuser=False
+        )
     ):
         return
     await notification_service.notify(

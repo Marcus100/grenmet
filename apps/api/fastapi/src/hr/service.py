@@ -6,12 +6,12 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.auth import policy as auth_policy
 from src.auth.models import (
     Role,
     RoleAssignmentScope,
     User,
     UserImage,
-    UserRoleAssignment,
 )
 from src.auth.policy import can_act_on_user, require_permission
 from src.hr.leave import ledger
@@ -268,11 +268,9 @@ def _permissions_for_user(user: User) -> list[str]:
 async def _active_role_assignment_scope_by_role(
     *, session: AsyncSession, user_id: uuid.UUID
 ) -> dict[uuid.UUID, RoleAssignmentScope]:
-    now = utc_now()
-    result = await session.execute(
-        select(UserRoleAssignment).where(UserRoleAssignment.user_id == user_id)
+    assignments = await auth_policy._active_assignments(
+        session=session, user_id=user_id
     )
-    assignments = list(result.scalars().all())
     precedence = {
         RoleAssignmentScope.SELF: 1,
         RoleAssignmentScope.DEPARTMENT: 2,
@@ -280,10 +278,6 @@ async def _active_role_assignment_scope_by_role(
     }
     scope_by_role: dict[uuid.UUID, RoleAssignmentScope] = {}
     for assignment in assignments:
-        if assignment.effective_from > now:
-            continue
-        if assignment.effective_to and assignment.effective_to < now:
-            continue
         current_scope = scope_by_role.get(assignment.role_id)
         if (
             current_scope is None
