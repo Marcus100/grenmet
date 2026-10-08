@@ -11,7 +11,7 @@ import type {
 } from "../models/AuthUpdateUser.js";
 
 /**
- * @description Update a user by ID (superuser or user.manage). Superuser accounts, the is_superuser flag and CMS access are superuser-only.
+ * @description Update a user within active management scope. Scoped managers may correct names and titles; global account security, activation and platform/app privileges are superuser-only.
  * @summary Update user by ID
  * {@link /api/v1/auth/users/:user_id}
  */

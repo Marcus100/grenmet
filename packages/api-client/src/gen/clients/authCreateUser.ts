@@ -11,7 +11,7 @@ import type {
 } from "../models/AuthCreateUser.js";
 
 /**
- * @description Create a user (superuser or user.manage). Only superusers can create superuser accounts.
+ * @description Create a global account (superuser only). HR placement and app admission are separate explicit actions.
  * @summary Create user
  * {@link /api/v1/auth/users}
  */

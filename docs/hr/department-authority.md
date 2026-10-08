@@ -1,0 +1,15 @@
+# Department authority and ordinary staff delegation
+
+Owner: GAA/GMS for the initial client programme; the same employer and department boundaries apply to other organisations.
+
+`department-manager` and `department-assistant-manager` are equal permission templates. A superuser explicitly appoints each holder with `DEPARTMENT` scope and an employer-owned department. Job titles, email domains, websites and app admission never appoint a manager. HR account targets must have actual employment placement in the same employer and authorised department; unplaced and personal accounts are not managerial targets.
+
+Managers may delegate only the canonical `staff` self-service role with `SELF` scope. Supervisor, recorder, restricted-document, sensitive-audit, workflow-template, platform and other special duties remain separately appointed by a superuser. Delegation cannot change its role definition or elevate its own issuer. The recipient role's permissions must stay within both the canonical ordinary role and its issuer's permission bundle.
+
+The server records `authority_assignment_id` on each delegated grant and caps its expiry at the authority's expiry. Effective access rechecks the direct authority, active issuer employment, employer, current issuer and target departments and permission bounds. Revocation, expiration, termination, transfer, scope loss, employer movement or permission loss immediately disables the grant. Sources cannot themselves be delegated, so chains and cycles are refused. Managerial appointments require live active employment in the appointed employer and department. Existing explicit assignments have no provenance; other legacy roles retain their existing scope and expiry semantics.
+
+Revoked authorities deliberately leave inactive dependent rows and their source IDs. This preserves evidence and prevents a historical `user_role` link from becoming an effective legacy grant after revocation. New grants, updates and revocations are recorded in the employee change history with the request actor and employer.
+
+Scoped managers see only authorised users and ordinary role assignments, with counts calculated from the same scope before pagination. Basic names and titles may be corrected in scope; shared account security, global activation, account creation/deletion, app admission and platform privileges remain superuser-managed. HR employment changes and self-service profile edits retain their own endpoints and permission checks.
+
+Departmental permissions still pass through each HR record and workflow gate. Required-role approval checks treat the two canonical departmental authority templates as equivalent only within their live department scope; all other roles still require an exact match. Manager status does not bypass self-approval rules, distinct approver requirements, restricted document classification or the need for separately assigned special duties.

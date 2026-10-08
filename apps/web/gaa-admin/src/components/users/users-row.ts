@@ -71,6 +71,7 @@ export function toUserRows(
   const roleNameById = new Map(roles.map((role) => [role.id, role.name]));
   const roleNamesByUserId = new Map<string, string[]>();
   for (const assignment of assignments) {
+    if (assignment.is_effective === false) continue;
     const roleName = roleNameById.get(assignment.role_id);
     if (!roleName) continue;
     const list = roleNamesByUserId.get(assignment.user_id) ?? [];

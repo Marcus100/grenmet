@@ -127,6 +127,14 @@ export function CreateUserDialog({ roles }: CreateUserDialogProps) {
       });
 
       accountCreated = true;
+      await createEmploymentMutation.mutateAsync({
+        path: { user_id: user.id },
+        body: {
+          employee_number: form.employee_number.trim(),
+          department_id: departmentId,
+          position: form.position,
+        },
+      });
       const roleIdsByName = new Map(roles.map((r) => [r.name, r.id]));
       for (const roleName of rolesToAssign(form.role)) {
         const roleId = roleIdsByName.get(roleName);
@@ -141,15 +149,6 @@ export function CreateUserDialog({ roles }: CreateUserDialogProps) {
           });
         }
       }
-
-      await createEmploymentMutation.mutateAsync({
-        path: { user_id: user.id },
-        body: {
-          employee_number: form.employee_number.trim(),
-          department_id: departmentId,
-          position: form.position,
-        },
-      });
 
       await invalidateAfterUserOnboard(queryClient, { departmentId });
       toast.success(
@@ -185,7 +184,7 @@ export function CreateUserDialog({ roles }: CreateUserDialogProps) {
         <DialogHeader>
           <DialogTitle>Onboard staff member</DialogTitle>
           <DialogDescription>
-            Creates the account, assigns roles, and files the employment record.
+            Creates the account, records employer placement, and assigns roles.
             Share the temporary password with the person directly.
           </DialogDescription>
         </DialogHeader>
