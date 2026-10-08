@@ -10,6 +10,9 @@ export type HandoffResult =
   | { kind: "redirect"; url: string }
   | { kind: "join"; label: string }
   | { kind: "denied"; label: string; detail: string }
+  | { kind: "verify-email" }
+  | { kind: "mfa-enrol" }
+  | { kind: "mfa-sign-in" }
   | { kind: "sign-in" }
   | { kind: "unavailable" };
 
@@ -72,6 +75,16 @@ export async function startHandoff(
       case 401:
         return { kind: "sign-in" };
       case 403:
+        if (error.detail.startsWith("Set up two-step verification"))
+          return { kind: "mfa-enrol" };
+        if (error.detail.startsWith("Sign in again with your authenticator"))
+          return { kind: "mfa-sign-in" };
+        if (
+          error.detail ===
+          "Verify your email address before signing in to this app."
+        ) {
+          return { kind: "verify-email" };
+        }
         return {
           kind: "denied",
           label: await appLabel(request.app),

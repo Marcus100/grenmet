@@ -55,6 +55,7 @@ esac
           `#!/bin/bash
 printf 'docker %s\\n' "$*" >> "$TEST_LOG"
 case "$*" in
+  *"login"*"--password-stdin"*) cat > /dev/null ;;
   *"config --images"*)
     [[ "$TEST_FAILURE" != images ]] || exit 1
     echo ghcr.io/example/api@sha256:abc ;;
@@ -83,7 +84,8 @@ exit 0
               COMPOSE_PROJECT: "test",
               CORE_LOCK_DIR: join(root, "locks"),
               GITHUB_SHA: "a".repeat(40),
-              GHCR_TOKEN: "test",
+              // Exceed a pipe buffer so a login mock that ignores stdin fails reliably.
+              GHCR_TOKEN: "t".repeat(128 * 1024 - 100),
               GITHUB_ACTOR: "test",
               GITHUB_STEP_SUMMARY: join(root, "summary"),
               GITHUB_OUTPUT: "",
@@ -96,7 +98,11 @@ exit 0
         );
         const calls = readFileSync(join(root, "calls"), "utf8");
         const succeeds = failure === "none" || failure === "backup";
-        assert.equal(result.status === 0, succeeds, result.stderr);
+        assert.equal(
+          result.status === 0,
+          succeeds,
+          `status=${result.status} signal=${result.signal} error=${result.error?.message ?? "none"}\n${result.stdout}\n${result.stderr}\n${calls}`
+        );
         assert.equal(calls.includes("backup-core.py"), false);
         assert.equal(calls.includes("backup-files.py"), false);
         assert.equal(

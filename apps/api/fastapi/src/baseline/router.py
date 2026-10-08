@@ -57,13 +57,22 @@ async def read_staff_card(
     response_model=list[StaffSetup],
     summary="Review staff onboarding",
     status_code=200,
-    description="Review staff onboarding.",
+    description="Review staff onboarding for a selected organisation or eligible unassigned accounts. Omitted organisation context retains the superuser-only legacy list.",
+    responses={
+        400: {
+            "description": "Unassigned accounts cannot be combined with organisation context"
+        }
+    },
 )
 async def read_staff_setup(
-    *, session: SessionDep, current_user: AdminUser
+    *,
+    session: SessionDep,
+    current_user: AdminUser,
+    organisation_id: str | None = None,
+    unassigned: bool = False,
 ) -> list[StaffSetup]:
     service.require_admin(current_user)
-    return await service.list_staff(session)
+    return await service.list_staff(session, organisation_id, unassigned=unassigned)
 
 
 @router.put(
@@ -126,12 +135,14 @@ async def update_staff_balance(
     response_model=list[GradeSetup],
     summary="List editable grade definitions",
     status_code=200,
-    description="List editable grade definitions.",
+    description="List editable grade definitions, optionally filtered by the employer organisation owning their departments.",
 )
 async def read_setup_grades(
-    *, session: SessionDep, current_user: AdminUser
+    *, session: SessionDep, current_user: AdminUser, organisation_id: str | None = None
 ) -> list[Grade]:
-    return await service.read_setup_grades(session=session, current_user=current_user)
+    return await service.read_setup_grades(
+        session=session, current_user=current_user, organisation_id=organisation_id
+    )
 
 
 @router.put(
@@ -139,7 +150,12 @@ async def read_setup_grades(
     response_model=GradeSetup,
     summary="Create or update a grade",
     status_code=200,
-    description="Create or update a grade.",
+    description="Create or update a grade. Grade codes are unique within a department.",
+    responses={
+        409: {
+            "description": "Grade conflicts with the current department configuration"
+        }
+    },
 )
 async def update_setup_grade(
     *, session: SessionDep, current_user: AdminUser, grade_id: str, body: GradeInput
@@ -152,12 +168,14 @@ async def update_setup_grade(
     response_model=list[PolicyPublic],
     summary="List approval policies",
     status_code=200,
-    description="List approval policies.",
+    description="List approval policies, optionally restricted to HR departments in a selected employer organisation.",
 )
 async def read_setup_policies(
-    *, session: SessionDep, current_user: AdminUser
+    *, session: SessionDep, current_user: AdminUser, organisation_id: str | None = None
 ) -> list[ApprovalPolicy]:
-    return await service.read_setup_policies(session=session, current_user=current_user)
+    return await service.read_setup_policies(
+        session=session, current_user=current_user, organisation_id=organisation_id
+    )
 
 
 @router.put(
@@ -214,7 +232,7 @@ async def update_role_configuration(
     response_model=Message,
     summary="Approve a verified staff registration",
     status_code=200,
-    description="Administrator approves an email-verified registration after staff membership has been linked. Grants only the staff role; elevated roles remain separately managed.",
+    description="Administrator approves a registration after email verification or completed administrator-mediated activation and staff membership linkage. Grants only the staff role; elevated roles remain separately managed.",
 )
 async def approve_staff_registration(
     *, session: SessionDep, current_user: AdminUser, user_id: uuid.UUID

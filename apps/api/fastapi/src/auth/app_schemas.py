@@ -50,6 +50,7 @@ class AppPhoneCodeStart(BaseModel):
 
 
 class AppPhoneCodeVerify(BaseModel):
+    totp_code: str | None = Field(default=None, max_length=64)
     phone: str = Field(pattern=PHONE_PATTERN)
     code: str = Field(pattern=CODE_PATTERN)
 

@@ -13,6 +13,7 @@ import { queryOptions, useQuery } from "@tanstack/react-query";
 import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { hrGetSetupPolicies } from "../clients/hrGetSetupPolicies.js";
 import type {
+  HrGetSetupPoliciesOptions,
   HrGetSetupPoliciesStatus200,
   HrGetSetupPoliciesStatus403,
   HrGetSetupPoliciesStatus404,
@@ -20,17 +21,20 @@ import type {
   HrGetSetupPoliciesStatus422,
 } from "../models/HrGetSetupPolicies.js";
 
-export const hrGetSetupPoliciesQueryKey = () =>
-  [{ url: "/api/v1/hr/setup/policies" }] as const;
+export const hrGetSetupPoliciesQueryKey = ({
+  query,
+}: Omit<HrGetSetupPoliciesOptions, "headers"> = {}) =>
+  [{ url: "/api/v1/hr/setup/policies" }, ...(query ? [query] : [])] as const;
 
 type HrGetSetupPoliciesQueryKey = ReturnType<typeof hrGetSetupPoliciesQueryKey>;
 
 export function hrGetSetupPoliciesQueryOptions(
+  { query }: HrGetSetupPoliciesOptions = {},
   config: Partial<
     Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
   > = {}
 ) {
-  const queryKey = hrGetSetupPoliciesQueryKey();
+  const queryKey = hrGetSetupPoliciesQueryKey({ query });
   return queryOptions<
     HrGetSetupPoliciesStatus200,
     ResponseErrorConfig<
@@ -46,6 +50,7 @@ export function hrGetSetupPoliciesQueryOptions(
     queryFn: async ({ signal }) => {
       return hrGetSetupPolicies({
         ...config,
+        query,
         signal: config.signal ?? signal,
         throwOnError: true,
       }).unwrap();
@@ -54,7 +59,7 @@ export function hrGetSetupPoliciesQueryOptions(
 }
 
 /**
- * @description List approval policies.
+ * @description List approval policies, optionally restricted to HR departments in a selected employer organisation.
  * @summary List approval policies
  * {@link /api/v1/hr/setup/policies}
  */
@@ -63,6 +68,13 @@ export function useHrGetSetupPolicies<
   TQueryData = HrGetSetupPoliciesStatus200,
   TQueryKey extends QueryKey = HrGetSetupPoliciesQueryKey,
 >(
+  {
+    query,
+  }: {
+    query?:
+      | HrGetSetupPoliciesOptions["query"]
+      | (() => HrGetSetupPoliciesOptions["query"]);
+  } = {},
   options: {
     query?: Partial<
       QueryObserverOptions<
@@ -85,11 +97,15 @@ export function useHrGetSetupPolicies<
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
   const { client: queryClient, ...resolvedOptions } = queryConfig;
-  const queryKey = resolvedOptions?.queryKey ?? hrGetSetupPoliciesQueryKey();
+  const resolvedParams = {
+    query: typeof query === "function" ? query() : query,
+  };
+  const queryKey =
+    resolvedOptions?.queryKey ?? hrGetSetupPoliciesQueryKey(resolvedParams);
 
   const queryResult = useQuery(
     {
-      ...hrGetSetupPoliciesQueryOptions(config),
+      ...hrGetSetupPoliciesQueryOptions(resolvedParams, config),
       ...resolvedOptions,
       queryKey,
     } as unknown as QueryObserverOptions,

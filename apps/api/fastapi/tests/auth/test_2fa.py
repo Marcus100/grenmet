@@ -2,11 +2,21 @@
 
 import httpx
 import pyotp
+import pytest
+from cryptography.fernet import Fernet
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth import service
+from src.auth import service, totp
+from src.auth.config import auth_settings
 from src.auth.totp import generate_secret, verify_code
 from tests.factories import make_user
+
+
+@pytest.fixture(autouse=True)
+def encryption_key(monkeypatch):
+    monkeypatch.setattr(
+        auth_settings, "AUTH_TOTP_ENCRYPTION_KEYS", [Fernet.generate_key().decode()]
+    )
 
 
 def test_verify_code_accepts_valid_and_rejects_invalid() -> None:
@@ -21,7 +31,9 @@ async def test_enrollment_flow(db_async: AsyncSession) -> None:
     user = await make_user(db_async)
 
     secret = await service.begin_totp_setup(session=db_async, user=user)
-    assert user.totp_secret == secret
+    assert user.totp_secret != secret
+    assert totp.is_encrypted(user.totp_secret)
+    assert totp.decrypt_secret(user.totp_secret) == secret
     assert user.totp_enabled is False
 
     # Wrong code does not activate.

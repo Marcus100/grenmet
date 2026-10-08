@@ -4,8 +4,9 @@ from typing import Any
 from fastapi import APIRouter, status
 
 from src.dependencies import CurrentUser, SessionDep
+from src.hr import organisations
 from src.hr.organisations import organisation_choices
-from src.hr.schemas import OrganisationPublic
+from src.hr.schemas import OrganisationCreate, OrganisationPublic, OrganisationUpdate
 
 from .. import service
 from ..schemas import (
@@ -39,6 +40,50 @@ async def read_organisations(
         OrganisationPublic.model_validate(org, from_attributes=True)
         for org in await organisation_choices(session, current_user)
     ]
+
+
+@router.post(
+    "/organisations",
+    response_model=OrganisationPublic,
+    status_code=201,
+    summary="Register an HR organisation",
+    description="Superuser-only registration of an employer identity. Does not grant membership, app access or enable other modules.",
+    responses={
+        403: {"description": "Superuser required"},
+        409: {"description": "ID or code exists"},
+    },
+)
+async def create_organisation(
+    *, session: SessionDep, current_user: CurrentUser, body: OrganisationCreate
+) -> OrganisationPublic:
+    organisation = await organisations.create_organisation(
+        session, current_user, organisation_id=body.id, code=body.code, name=body.name
+    )
+    return OrganisationPublic.model_validate(organisation, from_attributes=True)
+
+
+@router.patch(
+    "/organisations/{organisation_id}",
+    response_model=OrganisationPublic,
+    status_code=200,
+    summary="Rename an HR organisation",
+    description="Superuser-only display-name change. Stable IDs, ownership and access remain unchanged.",
+    responses={
+        403: {"description": "Superuser required"},
+        404: {"description": "Organisation not found"},
+    },
+)
+async def rename_organisation(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    organisation_id: str,
+    body: OrganisationUpdate,
+) -> OrganisationPublic:
+    organisation = await organisations.rename_organisation(
+        session, current_user, organisation_id, body.name
+    )
+    return OrganisationPublic.model_validate(organisation, from_attributes=True)
 
 
 @router.get(

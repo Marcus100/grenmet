@@ -21,6 +21,7 @@ vi.mock("./qr-code", () => ({
 }));
 
 const EIGHT_LEFT = /8 unused codes left/;
+const PRIVILEGED_DISABLE_WARNING = /Turning this off blocks those tools/;
 
 function typeInto(label: string, value: string) {
   fireEvent.change(screen.getByLabelText(label), { target: { value } });
@@ -101,4 +102,21 @@ describe("TwoStepSettings", () => {
       await screen.findByRole("button", { name: "Set up" })
     ).toBeInTheDocument();
   });
+});
+
+it("blocks new enrolment until secure storage is configured", () => {
+  render(
+    <TwoStepSettings
+      enabled={false}
+      privileged
+      recoveryCodesRemaining={0}
+      storageReady={false}
+    />
+  );
+  expect(screen.getByRole("button", { name: "Set up" })).toBeDisabled();
+});
+
+it("explains the privileged access consequence of turning MFA off", () => {
+  render(<TwoStepSettings enabled privileged recoveryCodesRemaining={8} />);
+  expect(screen.getByText(PRIVILEGED_DISABLE_WARNING)).toBeInTheDocument();
 });

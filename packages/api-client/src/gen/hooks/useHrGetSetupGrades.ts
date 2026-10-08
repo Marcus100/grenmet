@@ -13,6 +13,7 @@ import { queryOptions, useQuery } from "@tanstack/react-query";
 import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { hrGetSetupGrades } from "../clients/hrGetSetupGrades.js";
 import type {
+  HrGetSetupGradesOptions,
   HrGetSetupGradesStatus200,
   HrGetSetupGradesStatus403,
   HrGetSetupGradesStatus404,
@@ -20,17 +21,20 @@ import type {
   HrGetSetupGradesStatus422,
 } from "../models/HrGetSetupGrades.js";
 
-export const hrGetSetupGradesQueryKey = () =>
-  [{ url: "/api/v1/hr/setup/grades" }] as const;
+export const hrGetSetupGradesQueryKey = ({
+  query,
+}: Omit<HrGetSetupGradesOptions, "headers"> = {}) =>
+  [{ url: "/api/v1/hr/setup/grades" }, ...(query ? [query] : [])] as const;
 
 type HrGetSetupGradesQueryKey = ReturnType<typeof hrGetSetupGradesQueryKey>;
 
 export function hrGetSetupGradesQueryOptions(
+  { query }: HrGetSetupGradesOptions = {},
   config: Partial<
     Omit<RequestConfig, "path" | "query" | "body" | "headers" | "url">
   > = {}
 ) {
-  const queryKey = hrGetSetupGradesQueryKey();
+  const queryKey = hrGetSetupGradesQueryKey({ query });
   return queryOptions<
     HrGetSetupGradesStatus200,
     ResponseErrorConfig<
@@ -46,6 +50,7 @@ export function hrGetSetupGradesQueryOptions(
     queryFn: async ({ signal }) => {
       return hrGetSetupGrades({
         ...config,
+        query,
         signal: config.signal ?? signal,
         throwOnError: true,
       }).unwrap();
@@ -54,7 +59,7 @@ export function hrGetSetupGradesQueryOptions(
 }
 
 /**
- * @description List editable grade definitions.
+ * @description List editable grade definitions, optionally filtered by the employer organisation owning their departments.
  * @summary List editable grade definitions
  * {@link /api/v1/hr/setup/grades}
  */
@@ -63,6 +68,13 @@ export function useHrGetSetupGrades<
   TQueryData = HrGetSetupGradesStatus200,
   TQueryKey extends QueryKey = HrGetSetupGradesQueryKey,
 >(
+  {
+    query,
+  }: {
+    query?:
+      | HrGetSetupGradesOptions["query"]
+      | (() => HrGetSetupGradesOptions["query"]);
+  } = {},
   options: {
     query?: Partial<
       QueryObserverOptions<
@@ -85,11 +97,15 @@ export function useHrGetSetupGrades<
 ) {
   const { query: queryConfig = {}, client: config = {} } = options ?? {};
   const { client: queryClient, ...resolvedOptions } = queryConfig;
-  const queryKey = resolvedOptions?.queryKey ?? hrGetSetupGradesQueryKey();
+  const resolvedParams = {
+    query: typeof query === "function" ? query() : query,
+  };
+  const queryKey =
+    resolvedOptions?.queryKey ?? hrGetSetupGradesQueryKey(resolvedParams);
 
   const queryResult = useQuery(
     {
-      ...hrGetSetupGradesQueryOptions(config),
+      ...hrGetSetupGradesQueryOptions(resolvedParams, config),
       ...resolvedOptions,
       queryKey,
     } as unknown as QueryObserverOptions,

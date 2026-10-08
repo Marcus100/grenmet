@@ -6,6 +6,17 @@
 import type { EmploymentType } from "./EmploymentType.js";
 
 export type StaffSetup = {
+  organisation_id?: string | null;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  account_active?: boolean;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  staff_approval_ready?: boolean;
   /**
    * @default false
    * @type boolean | undefined
