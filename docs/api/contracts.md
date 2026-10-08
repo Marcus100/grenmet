@@ -17,6 +17,14 @@ Update this document whenever you:
 
 This document must stay in sync with the code. Do not mark a gap as resolved until the implementation exists.
 
+## Scoped HR account administration
+
+`GET /api/v1/auth/users` calculates rows and counts from the caller's active employer and department `user.manage` assignments; per-ID reads and profile corrections use the same boundary. Global account creation, activation, credentials, app/platform privilege changes and deletion require a superuser. Unplaced and personal accounts are excluded from departmental management.
+
+`GET /api/v1/auth/roles` permits scoped managers to list only canonical ordinary roles eligible for delegation. Role definition reads by ID and all definition mutations remain superuser-only. Role assignment create/update/revoke permits managers to grant `staff` with `SELF` scope to another employee in scope, bounded by canonical permissions and the issuer's active authority. Explicit managerial and special-duty appointments require a superuser.
+
+Role assignment responses include `authority_assignment_id` (null for explicit grants) and `is_effective`, which list/get calculate from live authority and expiry. Revoking authority disables its dependent grants immediately. See [department authority](../hr/department-authority.md) for scope and audit rules.
+
 ## Base URLs
 
 | Environment | API base URL |

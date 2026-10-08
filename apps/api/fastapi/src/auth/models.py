@@ -259,6 +259,8 @@ class UserRoleAssignment(Base):
         default=RoleAssignmentScope.SELF,
     )
     department_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    # Retain provenance after revocation; an absent source disables this grant.
+    authority_assignment_id: Mapped[uuid.UUID | None] = mapped_column(index=True)
     effective_from: Mapped[datetime] = mapped_column(default=utc_now)
     effective_to: Mapped[datetime | None]
     created_at: Mapped[datetime] = mapped_column(default=utc_now)

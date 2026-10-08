@@ -90,6 +90,23 @@ function renderRoles() {
 }
 
 describe("toRoleRows", () => {
+  it("omits inactive grants and recognises both department authority templates", () => {
+    const authorityRoles = [
+      "department-manager",
+      "department-assistant-manager",
+    ].map((name) => ({ ...ROLES.data[0], id: name, name }));
+    const rows = toRoleRows(
+      [...ROLES.data, ...authorityRoles],
+      ROLE_ASSIGNMENTS.data.map((assignment) => ({
+        ...assignment,
+        is_effective: false,
+      }))
+    );
+    expect(rows.find((row) => row.name === "staff")?.users).toBe(0);
+    for (const name of ["department-manager", "department-assistant-manager"]) {
+      expect(rows.find((row) => row.name === name)?.type).toBe("System");
+    }
+  });
   it("counts distinct holders and classifies system vs custom roles", () => {
     const rows = toRoleRows(ROLES.data, ROLE_ASSIGNMENTS.data);
     const byName = new Map(rows.map((row) => [row.name, row]));

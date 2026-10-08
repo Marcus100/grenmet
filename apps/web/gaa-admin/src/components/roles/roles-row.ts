@@ -5,7 +5,7 @@ import type {
 import { format } from "date-fns";
 
 /**
- * Roles the app itself provisions at onboarding (see `position-roles.ts`).
+ * Canonical role templates seeded by the API.
  * Anything else in the roles table was created by an operator, so it is
  * classified as Custom. This is derived, not stored — the API has no such flag.
  */
@@ -15,6 +15,8 @@ const SYSTEM_ROLE_NAMES: ReadonlySet<string> = new Set([
   "management",
   "hr-admin",
   "hr-recorder",
+  "department-manager",
+  "department-assistant-manager",
   "cap-author",
   "cap-approver",
   "cap-publisher",
@@ -70,6 +72,7 @@ export function toRoleRows(
   for (const assignment of assignments) {
     const now = Date.now();
     if (
+      assignment.is_effective === false ||
       new Date(assignment.effective_from).getTime() > now ||
       (assignment.effective_to &&
         new Date(assignment.effective_to).getTime() <= now)

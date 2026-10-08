@@ -24,6 +24,7 @@ vi.mock("@barrelsgd/auth", () => ({ useSessionUser: () => actor }));
 vi.mock("./account-activation", () => ({ AccountActivation: () => null }));
 
 const BASE = "http://localhost";
+const DELEGATION_EXPLANATION = /Delegated access ends when your authority ends/;
 
 const ROLES: RolePublic[] = [
   {
@@ -87,6 +88,27 @@ function renderDialog() {
 }
 
 describe("ManageUserDialog — department & employment", () => {
+  it("shows bounded staff delegation and hides platform controls for managers", async () => {
+    actor.is_superuser = false;
+    server.use(
+      http.get(`${BASE}/api/v1/hr/employment/u-1`, () =>
+        HttpResponse.json({
+          id: "e-1",
+          user_id: "u-1",
+          organisation_id: "gaa",
+          employee_number: "MET-9",
+          department_id: "dept_met",
+          status: "ACTIVE",
+        })
+      )
+    );
+    renderDialog();
+    expect(await screen.findByText(DELEGATION_EXPLANATION)).toBeInTheDocument();
+    expect(screen.queryByLabelText("Assignment scope")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Deactivate account" })
+    ).not.toBeInTheDocument();
+  });
   it("assigns a department when the user has no record yet (POST)", async () => {
     const posted: unknown[] = [];
     server.use(

@@ -11,7 +11,7 @@ import type {
 } from "../models/AuthDeleteUser.js";
 
 /**
- * @description Delete a user by ID (superuser or user.manage). Superuser accounts can only be deleted by a superuser.
+ * @description Delete a global account by ID (superuser only).
  * @summary Delete user by ID
  * {@link /api/v1/auth/users/:user_id}
  */

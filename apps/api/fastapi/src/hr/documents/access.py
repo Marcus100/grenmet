@@ -11,10 +11,10 @@ from dataclasses import dataclass
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.models import RoleAssignmentScope, User, UserRoleAssignment
+from src.auth.models import RoleAssignmentScope, User
+from src.auth.policy import _active_assignments
 from src.hr.models import EmploymentRecord
 from src.hr.organisations import resolve_organisation
-from src.utils.datetime import utc_now
 
 from .models import DocumentCategory, DocumentSensitivity, EmployeeDocument
 
@@ -103,22 +103,11 @@ async def resolve_access(
         .scalars()
         .all()
     )
-    now = utc_now()
-    assignments = (
-        (
-            await session.execute(
-                select(UserRoleAssignment).where(
-                    UserRoleAssignment.user_id == actor.id,
-                    UserRoleAssignment.organisation_id == organisation_id,
-                    UserRoleAssignment.effective_from <= now,
-                    UserRoleAssignment.effective_to.is_(None)
-                    | (UserRoleAssignment.effective_to > now),
-                )
-            )
-        )
-        .scalars()
-        .all()
-    )
+    assignments = [
+        assignment
+        for assignment in await _active_assignments(session=session, user_id=actor.id)
+        if assignment.organisation_id == organisation_id
+    ]
     permissions = {role.id: {p.key for p in role.permissions} for role in actor.roles}
 
     def targets(key: str) -> set[uuid.UUID]:

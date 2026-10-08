@@ -19,9 +19,8 @@ import {
   toUserRows,
 } from "./users-row";
 
-vi.mock("@barrelsgd/auth", () => ({
-  useSessionUser: () => ({ is_superuser: true }),
-}));
+const actor = vi.hoisted(() => ({ is_superuser: true }));
+vi.mock("@barrelsgd/auth", () => ({ useSessionUser: () => actor }));
 
 const BASE = "http://localhost";
 const NEW_USER_LABEL = /New user/;
@@ -149,7 +148,10 @@ beforeAll(() => {
   configureApiClient({ baseURL: BASE });
   server.listen({ onUnhandledRequest: "error" });
 });
-afterEach(() => server.resetHandlers());
+afterEach(() => {
+  server.resetHandlers();
+  actor.is_superuser = true;
+});
 afterAll(() => server.close());
 
 function renderUsers() {
@@ -164,6 +166,17 @@ function renderUsers() {
 }
 
 describe("UsersManager", () => {
+  it("hides global account creation for scoped managers", async () => {
+    actor.is_superuser = false;
+    renderUsers();
+    await screen.findByText("Gerard Tamar");
+    expect(
+      screen.queryByRole("button", { name: NEW_USER_LABEL })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Create account" })
+    ).not.toBeInTheDocument();
+  });
   it("lists users with roles, status pills, and superuser badge; filters by search", async () => {
     renderUsers();
 
@@ -201,6 +214,7 @@ describe("UsersManager", () => {
         );
       }),
       http.post(`${BASE}/api/v1/auth/role-assignments`, async ({ request }) => {
+        expect(posted.employment).toHaveLength(1);
         const body = (await request.json()) as Record<string, string>;
         posted.assignments.push(body);
         return HttpResponse.json(
@@ -265,7 +279,7 @@ describe("UsersManager", () => {
     fireEvent.click(screen.getByRole("button", { name: "Create user" }));
 
     await waitFor(() => {
-      expect(posted.employment).toHaveLength(1);
+      expect(posted.assignments).toHaveLength(1);
     });
     expect(posted.users).toHaveLength(1);
     // Job titles never grant approval authority; onboarding defaults to self-service.
@@ -349,6 +363,18 @@ it("closes creation after an account is saved but its role assignment fails", as
   let accountsCreated = 0;
   let assignmentsAttempted = 0;
   server.use(
+    http.post(`${BASE}/api/v1/hr/employment/u-partial`, () =>
+      HttpResponse.json(
+        {
+          id: "e-partial",
+          user_id: "u-partial",
+          organisation_id: "gaa",
+          department_id: "dept_met",
+          status: "ACTIVE",
+        },
+        { status: 201 }
+      )
+    ),
     http.post(`${BASE}/api/v1/auth/users`, () => {
       accountsCreated += 1;
       return HttpResponse.json(
