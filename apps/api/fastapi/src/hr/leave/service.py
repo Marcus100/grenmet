@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 from src.auth.policy import can_act_on_user, require_permission
+from src.hr import organisations
 from src.hr.constants import (
     ERROR_LEAVE_REQUEST_ACTION_NOT_ALLOWED,
     ERROR_LEAVE_REQUEST_NOT_DRAFT,
@@ -20,6 +21,7 @@ from src.hr.exceptions import (
 )
 from src.hr.models import RequestStatus
 from src.hr.signatures import service as signature_service
+from src.hr.workflow import service as workflow_service
 from src.hr.workflow.models import WorkflowInstance, WorkflowStatus, WorkflowType
 from src.hr.workflow.service import start_workflow_for_entity, submit_draft_workflow
 from src.utils.datetime import utc_now
@@ -29,6 +31,20 @@ from .models import LeaveEntryKind, LeaveRequest, LeaveType, ProfAppointmentType
 from .schemas import LeaveRequestAction, LeaveRequestCreate, LeaveRequestSubmit
 
 logger = logging.getLogger(__name__)
+
+
+async def validate_acting_officer(
+    session: AsyncSession, department_id: str, acting_officer_id: uuid.UUID | None
+) -> None:
+    if acting_officer_id is None:
+        return
+    department = await organisations.department_for(session, department_id)
+    if not await workflow_service._named_actor_in_organisation(
+        session, acting_officer_id, department.organisation_id, allow_superuser=False
+    ):
+        raise HRValidationError(
+            "Acting officer must be an active employee in this organisation"
+        )
 
 
 def validate_leave_fields(
@@ -75,6 +91,9 @@ async def preview_leave_request_pdf(
     employment = await employment_for(session, current_user.id)
     if not employment or employment.department_id != payload.department_id:
         raise HRPermissionDeniedError("Preview is limited to your department")
+    await validate_acting_officer(
+        session, payload.department_id, payload.acting_officer_id
+    )
     validate_leave_fields(
         start_date=payload.start_date,
         end_date=payload.end_date,
@@ -122,6 +141,9 @@ async def create_leave_request(
     from src.baseline.models import StaffCredential
     from src.baseline.service import require_ready
 
+    await validate_acting_officer(
+        session, payload.department_id, payload.acting_officer_id
+    )
     await require_ready(session, current_user.id, payload.department_id)
     if await session.get(
         StaffCredential, current_user.id
@@ -210,6 +232,9 @@ async def submit_leave_request(
     if leave_request.status != RequestStatus.DRAFT:
         raise HRValidationError(ERROR_LEAVE_REQUEST_NOT_DRAFT)
 
+    await validate_acting_officer(
+        session, leave_request.department_id, leave_request.acting_officer_id
+    )
     validate_leave_fields(
         start_date=leave_request.start_date,
         end_date=leave_request.end_date,
@@ -298,6 +323,9 @@ async def update_leave_request(
         submitting=False,
     )
 
+    await validate_acting_officer(
+        session, payload.department_id, payload.acting_officer_id
+    )
     leave_request.department_id = payload.department_id
     leave_request.leave_type = payload.leave_type
     leave_request.start_date = payload.start_date
