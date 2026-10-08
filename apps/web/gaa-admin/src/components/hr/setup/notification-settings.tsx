@@ -209,9 +209,15 @@ function EditDialog({
   );
 }
 
-export function NotificationSettings() {
+export function NotificationSettings({
+  organisationId,
+}: {
+  organisationId?: string;
+}) {
   const queryClient = useQueryClient();
-  const query = useNotificationsGetNotificationSettings({});
+  const query = useNotificationsGetNotificationSettings({
+    query: { organisation_id: organisationId },
+  });
   const update = useNotificationsUpdateNotificationSetting();
   const [editing, setEditing] = useState<NotificationSettingPublic | null>(
     null

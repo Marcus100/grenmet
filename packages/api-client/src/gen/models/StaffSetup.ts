@@ -6,6 +6,7 @@
 import type { EmploymentType } from "./EmploymentType.js";
 
 export type StaffSetup = {
+  organisation_id?: string | null;
   /**
    * @default false
    * @type boolean | undefined

@@ -5,7 +5,9 @@ from sqlalchemy import delete, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from sqlalchemy.orm.attributes import set_committed_value
 
+from src.auth import access as auth_access
 from src.auth import policy as auth_policy
 from src.auth.models import (
     Role,
@@ -416,6 +418,7 @@ async def _build_profile_response(
         select(LeaveCarryOver).where(LeaveCarryOver.user_id == user.id)
     )
     carry_over = list(carry_result.scalars().all())
+    set_committed_value(user, "roles", await auth_access.effective_roles(session, user))
     scope_by_role = await _active_role_assignment_scope_by_role(
         session=session, user_id=user.id
     )

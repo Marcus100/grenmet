@@ -11,7 +11,7 @@ import type {
 } from "../models/HrUpdateSetupGrade.js";
 
 /**
- * @description Create or update a grade.
+ * @description Create or update a grade. Grade codes are unique within a department.
  * @summary Create or update a grade
  * {@link /api/v1/hr/setup/grades/:grade_id}
  */

@@ -7,7 +7,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.models import Role, RoleAssignmentScope, User
+from src.auth.models import Role, RoleAssignmentScope, User, UserRoleLink
 from src.auth.schemas import UserCreate
 from src.auth.service import create_user
 from src.exceptions import AuthorizationError, NotFoundError
@@ -66,7 +66,10 @@ async def test_create_shift_with_roster_manage_permission(
 ) -> None:
     user = await make_user(db_async)
     role, _ = await make_role_with_permission(db_async, "roster.manage")
-    await assign_role(db_async, user=user, role=role, scope=RoleAssignmentScope.ALL)
+    db_async.add(UserRoleLink(user_id=user.id, role_id=role.id))
+    await db_async.commit()
+    await db_async.refresh(user, attribute_names=["roles"])
+    await db_async.refresh(role, attribute_names=["permissions"])
 
     shift = await create_shift(
         session=db_async,
@@ -177,6 +180,7 @@ async def test_update_shift_not_found(db_async: AsyncSession) -> None:
         ("department-assistant-manager", RoleAssignmentScope.DEPARTMENT),
         ("legacy-roster-manager", RoleAssignmentScope.DEPARTMENT),
         ("legacy-roster-manager", RoleAssignmentScope.SELF),
+        ("legacy-roster-manager", RoleAssignmentScope.ALL),
     ],
 )
 async def test_scoped_managers_cannot_mutate_shared_roster_definitions(
@@ -248,3 +252,39 @@ async def test_scoped_managers_cannot_mutate_shared_roster_definitions(
     assert existing.label == "Shared definition" and existing.is_active
     assert await db_async.get(ShiftCatalog, "DENIED") is None
     assert await db_async.get(PublicHoliday, holiday.id) is not None
+
+
+async def test_preserved_legacy_global_authority_can_update_shared_definitions(
+    db_async,
+):
+    actor = await make_user(db_async)
+    role, _ = await make_role_with_permission(db_async, "roster.manage")
+    db_async.add(UserRoleLink(user_id=actor.id, role_id=role.id))
+    await db_async.commit()
+    await db_async.refresh(actor, attribute_names=["roles"])
+    await db_async.refresh(role, attribute_names=["permissions"])
+    shift = await create_shift(
+        session=db_async,
+        current_user=actor,
+        shift_in=ShiftCatalogCreate(
+            code="LEGACY", label="Legacy global", category=ShiftCategory.OFF
+        ),
+    )
+    shift = await update_shift(
+        session=db_async,
+        current_user=actor,
+        code=shift.code,
+        shift_in=ShiftCatalogUpdate(label="Updated legacy", is_active=False),
+    )
+    assert shift.label == "Updated legacy" and not shift.is_active
+    holiday = await create_public_holiday(
+        session=db_async,
+        current_user=actor,
+        payload=PublicHolidayCreate(
+            name="Legacy holiday", holiday_date=date(2031, 3, 1)
+        ),
+    )
+    await delete_public_holiday(
+        session=db_async, current_user=actor, holiday_id=holiday.id
+    )
+    assert await db_async.get(PublicHoliday, holiday.id) is None

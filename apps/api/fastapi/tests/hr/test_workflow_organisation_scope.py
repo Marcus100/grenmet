@@ -7,12 +7,18 @@ from zoneinfo import ZoneInfo
 
 import httpx
 import pytest
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.models import Role, RoleAssignmentScope, User
+from src.auth.models import (
+    Role,
+    RoleAssignmentScope,
+    User,
+    UserRoleAssignment,
+    UserRoleLink,
+)
 from src.auth.utils import create_access_token
-from src.exceptions import AppException
+from src.exceptions import AppException, AuthorizationError
 from src.hr import notifications
 from src.hr.dashboard import service as dashboard_service
 from src.hr.exceptions import HRValidationError
@@ -217,9 +223,8 @@ async def test_named_approver_membership_revocation_removes_inbox_history_and_no
     assert outsider.id not in await notifications.pending_approvers(
         db_async, instances[1]
     )
-    assert not await service.list_actionable_instances(
-        session=db_async, current_user=outsider
-    )
+    with pytest.raises(AuthorizationError):
+        await service.list_actionable_instances(session=db_async, current_user=outsider)
     peer_grant.effective_to = None
     # A named ID cannot confer access to a different organisation.
     named.required_user_id = actor.id
@@ -543,3 +548,95 @@ async def test_named_superuser_override_requires_active_identity_not_employment(
     assert not await service._named_actor_in_organisation(
         db_async, admin.id, "gaa", allow_superuser=False
     )
+
+
+@pytest.mark.parametrize("named", [False, True])
+async def test_notification_approvers_use_scoped_roles_without_legacy_links(
+    db_async: AsyncSession, named: bool
+):
+    actor, _, _, _, _, grant, _, instances, _ = await _setup(db_async)
+    await db_async.execute(delete(UserRoleLink).where(UserRoleLink.user_id == actor.id))
+    step = await db_async.scalar(
+        select(WorkflowStepInstance).where(
+            WorkflowStepInstance.workflow_instance_id == instances[0].id
+        )
+    )
+    assert step is not None
+    if named:
+        step.required_role_id = None
+        step.required_user_id = actor.id
+    await db_async.commit()
+    await db_async.refresh(actor, attribute_names=["roles"])
+    assert actor.roles == []
+    assert actor.id in await notifications.pending_approvers(db_async, instances[0])
+    # Hydrating effective roles must not create a persistent legacy role grant.
+    await db_async.flush()
+    assert (
+        await db_async.scalar(
+            select(UserRoleLink.role_id).where(UserRoleLink.user_id == actor.id)
+        )
+        is None
+    )
+    grant.effective_to = utc_now() - timedelta(seconds=1)
+    await db_async.commit()
+    assert actor.id not in await notifications.pending_approvers(db_async, instances[0])
+
+
+@pytest.mark.parametrize("revocation", ["expired", "terminated", "revoked"])
+async def test_admin_employment_response_projects_live_scoped_target_roles(
+    db_async: AsyncSession,
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
+    revocation: str,
+):
+    department = await make_department(db_async, "profile-live-scope")
+    target = await make_user(db_async)
+    employment = await make_employee(db_async, user=target, department_id=department.id)
+    role = await db_async.scalar(select(Role).where(Role.name == "department-manager"))
+    if role is None:
+        role, _ = await make_role_with_permission(
+            db_async,
+            "workflow.instance.action",
+            "workflow.instance.view",
+            role_name="department-manager",
+        )
+    grant = UserRoleAssignment(
+        organisation_id="gaa",
+        user_id=target.id,
+        role_id=role.id,
+        scope=RoleAssignmentScope.DEPARTMENT,
+        department_id=department.id,
+    )
+    db_async.add(grant)
+    await db_async.commit()
+
+    async def update():
+        result = await async_client.patch(
+            f"/api/v1/hr/employment/{target.id}",
+            headers=superuser_token_headers_async,
+            json={"employment": {"position": "Synthetic officer"}},
+        )
+        assert result.status_code == 200, result.text
+        return result.json()
+
+    active = await update()
+    assert {"name": "department-manager", "scope": "DEPARTMENT"} in active["roles"]
+    assert "workflow.instance.action" in active["permissions"]
+    assert (
+        await db_async.scalar(
+            select(UserRoleLink.role_id).where(UserRoleLink.user_id == target.id)
+        )
+        is None
+    )
+    # Historical compatibility links must not restore a revoked appointment.
+    db_async.add(UserRoleLink(user_id=target.id, role_id=role.id))
+    if revocation == "expired":
+        grant.effective_to = utc_now() - timedelta(seconds=1)
+    elif revocation == "terminated":
+        employment.status = EmploymentStatus.TERMINATED
+    else:
+        await db_async.delete(grant)
+    await db_async.commit()
+    revoked = await update()
+    assert all(item["name"] != "department-manager" for item in revoked["roles"])
+    assert "workflow.instance.action" not in revoked["permissions"]

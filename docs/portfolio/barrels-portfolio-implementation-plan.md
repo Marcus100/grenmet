@@ -19,6 +19,21 @@ The [planning index](README.md) defines the vocabulary and authority model. The
 outcomes, and the [repository delivery map](repository-delivery-map.md) maps
 this plan to implementation surfaces.
 
+## Current delivery amendment — 7 October 2026
+
+The user-selected immediate outcome is making existing GAA/GMS staff workflows
+usable. The current slice completes onboarding and the HR foundation before
+Transport and Janitor, aiming for one accepted outcome each week. This temporarily
+sets delivery sequencing without changing product ownership or treating GAA/GMS
+as Barrels products. See the [client plan's current focus](gaa-gms-client-programme-plan.md#current-delivery-focus--7-october-2026).
+
+Shared organisation identity, account security, scoped roles and audit support
+this client need. Employment and app-specific memberships remain distinct;
+Events promoters will not need HR employment. Implementing an organisation
+selector is not evidence of complete tenancy isolation or permission to roll out
+all sectors. Current parallel engineering work is unpublished until combined
+checks and authenticated staging acceptance pass.
+
 ## Portfolio policy
 
 1. Events and Tickets is the first transactional Barrels product and receives

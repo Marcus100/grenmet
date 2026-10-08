@@ -3,10 +3,11 @@
 from datetime import timedelta
 
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth import access
-from src.auth.models import RoleAssignmentScope, UserRoleAssignment, UserRoleLink
+from src.auth.models import Role, RoleAssignmentScope, UserRoleAssignment, UserRoleLink
 from src.auth.schemas import EffectiveAccess
 from src.utils.datetime import utc_now
 from tests.factories import (
@@ -43,6 +44,8 @@ async def test_all_scope_projection_does_not_borrow_another_roles_scope(
     assert set(result.permission_keys) == {"roster.manage", "user.manage"}
     expected = ["roster.manage"] if scope == RoleAssignmentScope.ALL else []
     assert result.all_scope_permission_keys == expected
+    assert result.global_permission_keys == []
+    assert await access.global_permission_keys(db_async, actor) == []
     assert await access.all_scope_permission_keys(db_async, actor) == expected
 
 
@@ -52,6 +55,7 @@ async def test_expired_scoped_history_does_not_revive_legacy_global_authority(db
     db_async.add(UserRoleLink(user_id=actor.id, role_id=role.id))
     await db_async.commit()
     assert await access.all_scope_permission_keys(db_async, actor) == ["roster.manage"]
+    assert await access.global_permission_keys(db_async, actor) == ["roster.manage"]
     grant = UserRoleAssignment(
         organisation_id="gaa",
         user_id=actor.id,
@@ -63,9 +67,11 @@ async def test_expired_scoped_history_does_not_revive_legacy_global_authority(db
     await db_async.commit()
     assert await access.all_scope_permission_keys(db_async, actor) == []
     assert (await access.current(db_async, actor)).permission_keys == []
+    assert await access.global_permission_keys(db_async, actor) == []
     grant.effective_to = None
     await db_async.commit()
     assert await access.all_scope_permission_keys(db_async, actor) == ["roster.manage"]
+    assert await access.global_permission_keys(db_async, actor) == []
     grant.scope = RoleAssignmentScope.SELF
     await db_async.commit()
     assert await access.all_scope_permission_keys(db_async, actor) == []
@@ -75,3 +81,20 @@ async def test_expired_scoped_history_does_not_revive_legacy_global_authority(db
 def test_effective_access_additive_projection_defaults_empty():
     previous = EffectiveAccess(is_superuser=False, role_names=[], permission_keys=[])
     assert previous.all_scope_permission_keys == []
+    assert previous.global_permission_keys == []
+
+
+async def test_global_projection_excludes_never_scoped_canonical_department_role(
+    db_async,
+):
+    actor = await make_user(db_async)
+    role = await db_async.scalar(select(Role).where(Role.name == "department-manager"))
+    if role is None:
+        role, _ = await make_role_with_permission(
+            db_async, "roster.manage", role_name="department-manager"
+        )
+    db_async.add(UserRoleLink(user_id=actor.id, role_id=role.id))
+    await db_async.commit()
+    result = await access.current(db_async, actor)
+    assert result.global_permission_keys == []
+    assert result.permission_keys == []

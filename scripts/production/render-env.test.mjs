@@ -20,6 +20,8 @@ function fixture(directory) {
     DEPLOY_IMAGE_TAG: `sha-${"a".repeat(40)}`,
   };
   env.NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS = undefined;
+  env.AUTH_PRIVILEGED_MFA_MODE = undefined;
+  env.AUTH_TOTP_ENCRYPTION_KEYS = undefined;
   for (const key of [
     "POSTGRES_USER",
     "POSTGRES_PASSWORD",
@@ -178,6 +180,10 @@ test("staging and production pass integrations to the intended services", () => 
         EMAIL_RENDER_SECRET: "fixture-only",
         RESEND_WEBHOOK_SECRET: "whsec_fixture",
         TELEMETRY_ENABLED: "true",
+        AUTH_PRIVILEGED_MFA_MODE: "enforce",
+        AUTH_TOTP_ENCRYPTION_KEYS: JSON.stringify([
+          `${Buffer.alloc(32, 3).toString("base64url")}=`,
+        ]),
         TELEMETRY_WORKER_HEARTBEAT_URL:
           "https://uptime.betterstack.com/api/v1/heartbeat/test-only",
         CAP_SIGNING_CERT:
@@ -211,6 +217,25 @@ test("staging and production pass integrations to the intended services", () => 
           }
         )
       );
+      for (const service of ["api", "worker", "prestart"]) {
+        assert.equal(
+          model.services[service].environment.AUTH_PRIVILEGED_MFA_MODE,
+          "enforce"
+        );
+        assert.deepEqual(
+          JSON.parse(
+            model.services[service].environment.AUTH_TOTP_ENCRYPTION_KEYS
+          ),
+          JSON.parse(env.AUTH_TOTP_ENCRYPTION_KEYS)
+        );
+      }
+      for (const [name, service] of Object.entries(model.services)) {
+        if (name.startsWith("web-"))
+          assert.equal(
+            service.environment.AUTH_TOTP_ENCRYPTION_KEYS,
+            undefined
+          );
+      }
       const cms = model.services["web-cms"];
       const events = model.services["web-events"].environment;
       assert.equal(
@@ -459,5 +484,80 @@ test("runtime missing staging Sentry never selects production", () => {
     assert.equal(rendered.includes("https://prod@example.test/2"), false);
   } finally {
     rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("privileged MFA runtime defaults safely and carries a separate rotation key list", () => {
+  const directory = mkdtempSync(join(tmpdir(), "delivery-mfa-"));
+  try {
+    const { env, config, destination } = fixture(directory);
+    execFileSync(
+      "python3",
+      ["scripts/production/render-env.py", config, destination],
+      { env }
+    );
+    assert.ok(
+      readFileSync(destination, "utf8").includes(
+        'AUTH_PRIVILEGED_MFA_MODE="disabled"'
+      )
+    );
+    assert.ok(
+      readFileSync(destination, "utf8").includes(
+        'AUTH_TOTP_ENCRYPTION_KEYS="[]"'
+      )
+    );
+    const keys = [
+      `${Buffer.alloc(32, 1).toString("base64url")}=`,
+      `${Buffer.alloc(32, 2).toString("base64url")}=`,
+    ];
+    const encryptedDestination = join(directory, "encrypted-runtime.txt");
+    execFileSync(
+      "python3",
+      ["scripts/production/render-env.py", config, encryptedDestination],
+      {
+        env: {
+          ...env,
+          AUTH_PRIVILEGED_MFA_MODE: "enforce",
+          AUTH_TOTP_ENCRYPTION_KEYS: JSON.stringify(keys),
+        },
+      }
+    );
+    const output = readFileSync(encryptedDestination, "utf8");
+    const keyLine = output
+      .split("\n")
+      .find((line) => line.startsWith("AUTH_TOTP_ENCRYPTION_KEYS="));
+    assert.deepEqual(
+      JSON.parse(
+        JSON.parse(keyLine.slice("AUTH_TOTP_ENCRYPTION_KEYS=".length))
+      ),
+      keys
+    );
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("privileged MFA rejects invalid mode, missing keys and malformed key arrays without exposing values", () => {
+  for (const change of [
+    { AUTH_PRIVILEGED_MFA_MODE: "DO-NOT-ECHO" },
+    { AUTH_PRIVILEGED_MFA_MODE: "enforce", AUTH_TOTP_ENCRYPTION_KEYS: "[]" },
+    { AUTH_TOTP_ENCRYPTION_KEYS: "DO-NOT-ECHO" },
+    { AUTH_TOTP_ENCRYPTION_KEYS: JSON.stringify(["DO-NOT-ECHO"]) },
+    { AUTH_TOTP_ENCRYPTION_KEYS: JSON.stringify([123]) },
+    { AUTH_TOTP_ENCRYPTION_KEYS: JSON.stringify("DO-NOT-ECHO") },
+  ]) {
+    const directory = mkdtempSync(join(tmpdir(), "delivery-mfa-invalid-"));
+    try {
+      const { env, config, destination } = fixture(directory);
+      const result = spawnSync(
+        "python3",
+        ["scripts/production/render-env.py", config, destination],
+        { env: { ...env, ...change }, encoding: "utf8" }
+      );
+      assert.notEqual(result.status, 0);
+      assert.equal(result.stderr.includes("DO-NOT-ECHO"), false);
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
   }
 });

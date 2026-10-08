@@ -7,12 +7,14 @@ import type {
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import Link from "next/link";
-import { useCallback, useEffect, useId, useState } from "react";
+import { useCallback, useEffect, useId, useRef, useState } from "react";
 import { hrApiErrorMessage } from "@/components/hr/api-error";
 import { OrganisationChart } from "@/components/hr/setup/organisation-chart";
 import { AccountActivation } from "@/components/users/account-activation";
 import { CreateAccountDialog } from "@/components/users/create-account-dialog";
+import { reportError } from "@/lib/report-error";
 import { CatalogueSetup } from "./catalogue-setup";
+import { CreateGrade } from "./create-grade";
 import {
   approveRegistration,
   offboardStaff,
@@ -30,8 +32,10 @@ function StaffEditor({
   grades,
   colleagues,
   onSaved,
+  organisationId,
 }: {
   staff: StaffSetup;
+  organisationId?: string;
   grades: GradeSetup[];
   colleagues: StaffSetup[];
   onSaved: () => void;
@@ -116,6 +120,7 @@ function StaffEditor({
           }
           try {
             await saveStaff(staff.user_id, {
+              organisation_id: organisationId,
               department_id: grade.department_id,
               grade_id: grade.id,
               employee_number:
@@ -533,33 +538,55 @@ function PolicyEditor({
   );
 }
 
-export function StaffSetupManager() {
+export function StaffSetupManager({
+  organisationId,
+}: {
+  organisationId?: string;
+}) {
+  const [unassigned, setUnassigned] = useState(false);
+  const requestGeneration = useRef(0);
   const [staff, setStaff] = useState<StaffSetup[]>([]);
+  const [colleagues, setColleagues] = useState<StaffSetup[]>([]);
   const [grades, setGrades] = useState<GradeSetup[]>([]);
   const [policies, setPolicies] = useState<PolicyPublic[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const load = useCallback(async () => {
+    const generation = ++requestGeneration.current;
+    setLoading(true);
     try {
-      const [people, bands, rules] = await Promise.all([
-        readStaff(),
-        readGrades(),
-        readPolicies(),
+      const peopleRequest = readStaff(organisationId, unassigned);
+      const colleaguesRequest =
+        unassigned && organisationId
+          ? readStaff(organisationId)
+          : peopleRequest;
+      const [people, bands, rules, employerStaff] = await Promise.all([
+        peopleRequest,
+        readGrades(organisationId),
+        readPolicies(organisationId),
+        colleaguesRequest,
       ]);
+      if (generation !== requestGeneration.current) return;
       setStaff(people);
+      setColleagues(employerStaff);
       setGrades(bands);
       setPolicies(rules);
       setError("");
     } catch (reason) {
+      if (generation !== requestGeneration.current) return;
+      reportError(reason, "hr-staff-setup");
       setError(
         reason instanceof Error ? reason.message : "Unable to load setup"
       );
     } finally {
-      setLoading(false);
+      if (generation === requestGeneration.current) setLoading(false);
     }
-  }, []);
+  }, [organisationId, unassigned]);
   useEffect(() => {
     load();
+    return () => {
+      requestGeneration.current++;
+    };
   }, [load]);
   if (loading) return <p role="status">Loading staff setup…</p>;
   if (error) return <p role="alert">{error}</p>;
@@ -572,9 +599,28 @@ export function StaffSetupManager() {
         </Link>
         .
       </p>
-      <CreateAccountDialog onCreated={load} />
+      <CreateAccountDialog
+        onCreated={async () => {
+          if (unassigned || !organisationId) await load();
+          else setUnassigned(true);
+        }}
+      />
+      {organisationId && (
+        <Button onClick={() => setUnassigned(!unassigned)} variant="outline">
+          {unassigned
+            ? "Show organisation staff"
+            : "Show accounts awaiting employer assignment"}
+        </Button>
+      )}
+      {unassigned && (
+        <p>
+          These accounts have no employer assigned. Saving their first
+          department identifies their organisation; account creation alone does
+          not.
+        </p>
+      )}
       <OrganisationChart staff={staff} />
-      <CatalogueSetup onSaved={load} />
+      <CatalogueSetup onSaved={load} organisationId={organisationId} />
       {grades.length === 0 && (
         <p role="alert">
           No grades are configured. Preview and import the missing reference
@@ -589,17 +635,18 @@ export function StaffSetupManager() {
       )}
       {policies.length === 0 && (
         <p role="alert">
-          Approval policies are missing. New HR and CAP submissions are blocked
-          until policies are configured.
+          Approval policies are missing. New HR submissions are blocked until
+          policies are configured.
         </p>
       )}
       <div className="space-y-3">
         {staff.map((person) => (
           <StaffEditor
-            colleagues={staff}
+            colleagues={colleagues}
             grades={grades}
             key={JSON.stringify(person)}
             onSaved={load}
+            organisationId={organisationId}
             staff={person}
           />
         ))}
@@ -608,6 +655,7 @@ export function StaffSetupManager() {
         )}
       </div>
       <h2 className="font-semibold text-xl">Grades</h2>
+      <CreateGrade onSaved={load} organisationId={organisationId} />
       {grades.map((grade) => (
         <GradeEditor grade={grade} key={grade.id} onSaved={load} />
       ))}

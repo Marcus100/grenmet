@@ -1,8 +1,10 @@
 import uuid
 
-from sqlalchemy import delete, or_, select
+from sqlalchemy import delete, false, or_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from sqlalchemy.sql.elements import ColumnElement
 
 from src.audit.models import AuditEntry
 from src.auth import service as auth_service
@@ -21,7 +23,13 @@ from src.baseline.schemas import (
 )
 from src.exceptions import AppException
 from src.hr.leave import ledger
-from src.hr.models import Department, EmploymentRecord, EmploymentStatus, Grade
+from src.hr.models import (
+    Department,
+    EmploymentRecord,
+    EmploymentStatus,
+    Grade,
+    Organisation,
+)
 from src.hr.organisations import (
     department_for,
     validate_service_facts,
@@ -121,13 +129,48 @@ async def card_for(session: AsyncSession, user: User) -> StaffCard:
     )
 
 
-async def list_staff(session: AsyncSession) -> list[StaffSetup]:
+async def list_staff(
+    session: AsyncSession,
+    organisation_id: str | None = None,
+    *,
+    unassigned: bool = False,
+) -> list[StaffSetup]:
+    if unassigned and organisation_id is not None:
+        raise AppException(
+            "Unassigned accounts do not have an organisation context", 400
+        )
+    if (
+        organisation_id is not None
+        and await session.get(Organisation, organisation_id) is None
+    ):
+        raise AppException("Organisation not found", 404)
+    ownership = select(EmploymentRecord.user_id).where(
+        EmploymentRecord.organisation_id == organisation_id
+    )
+    credential_ownership = (
+        select(StaffCredential.user_id)
+        .join(Department, Department.id == StaffCredential.department_id)
+        .where(Department.organisation_id == organisation_id)
+    )
+    filters: list[ColumnElement[bool]] = []
+    if unassigned:
+        filters.append(~User.id.in_(select(EmploymentRecord.user_id)))
+        filters.append(~User.id.in_(select(StaffCredential.user_id)))
+    elif organisation_id is not None:
+        filters.append(
+            or_(
+                User.id.in_(ownership),
+                ~User.id.in_(select(EmploymentRecord.user_id))
+                & User.id.in_(credential_ownership),
+            )
+        )
     rows = (
         await session.execute(
             select(StaffCredential, User)
             .select_from(User)
             .outerjoin(StaffCredential, StaffCredential.user_id == User.id)
             .where(
+                *filters,
                 User.username != "admin",
                 # Public accounts appear only once they ask for staff access.
                 or_(
@@ -140,8 +183,18 @@ async def list_staff(session: AsyncSession) -> list[StaffSetup]:
     result = []
     for credential, user in rows:
         employment = await employment_for(session, user.id)
+        department = (
+            await department_for(session, credential.department_id)
+            if credential and not employment
+            else None
+        )
         result.append(
             StaffSetup(
+                organisation_id=employment.organisation_id
+                if employment
+                else department.organisation_id
+                if department
+                else None,
                 registration_pending=user.registration_pending,
                 user_id=user.id,
                 email=user.email,
@@ -206,6 +259,12 @@ async def save_staff(
     grade = await session.get(Grade, body.grade_id)
     if not grade or not grade.is_active or grade.department_id != body.department_id:
         raise AppException("Choose an active grade in this department", 400)
+    department = await department_for(session, body.department_id)
+    if (
+        body.organisation_id is not None
+        and department.organisation_id != body.organisation_id
+    ):
+        raise AppException("Department is outside the selected organisation", 400)
     credential = await session.get(StaffCredential, user_id)
     if credential and credential.revoked_at:
         raise AppException(
@@ -299,6 +358,15 @@ async def save_grade(
     grade = await session.get(Grade, grade_id)
     if grade and grade.department_id != body.department_id:
         raise AppException("A grade cannot be moved between departments", 400)
+    duplicate = await session.scalar(
+        select(Grade.id).where(
+            Grade.department_id == body.department_id,
+            Grade.code == body.code,
+            Grade.id != grade_id,
+        )
+    )
+    if duplicate is not None:
+        raise AppException("Grade code already exists in this department", 409)
     if grade is None:
         grade = Grade(id=grade_id, **body.model_dump())
     else:
@@ -313,7 +381,13 @@ async def save_grade(
             details={"id": grade_id, **body.model_dump()},
         )
     )
-    await session.commit()
+    try:
+        await session.commit()
+    except IntegrityError as exc:
+        await session.rollback()
+        raise AppException(
+            "Grade conflicts with the current department configuration", 409
+        ) from exc
     await session.refresh(grade)
     return grade
 
@@ -428,19 +502,53 @@ async def require_leave_ready(
 
 
 async def read_setup_grades(
-    *, session: AsyncSession, current_user: User
+    *, session: AsyncSession, current_user: User, organisation_id: str | None = None
 ) -> list[Grade]:
     require_admin(current_user)
-    return list(
-        (await session.execute(select(Grade).order_by(Grade.rank))).scalars().all()
-    )
+    statement = select(Grade).order_by(Grade.rank)
+    if organisation_id is not None:
+        if await session.get(Organisation, organisation_id) is None:
+            raise AppException("Organisation not found", 404)
+        statement = statement.join(
+            Department, Department.id == Grade.department_id
+        ).where(Department.organisation_id == organisation_id)
+    return list((await session.execute(statement)).scalars().all())
 
 
 async def read_setup_policies(
-    *, session: AsyncSession, current_user: User
+    *, session: AsyncSession, current_user: User, organisation_id: str | None = None
 ) -> list[ApprovalPolicy]:
     require_admin(current_user)
-    return list((await session.execute(select(ApprovalPolicy))).scalars().all())
+    statement = select(ApprovalPolicy)
+    if organisation_id is not None:
+        if await session.get(Organisation, organisation_id) is None:
+            raise AppException("Organisation not found", 404)
+        departments = list(
+            (
+                await session.execute(
+                    select(Department.id).where(
+                        Department.organisation_id == organisation_id
+                    )
+                )
+            )
+            .scalars()
+            .all()
+        )
+        statement = (
+            statement.where(
+                or_(
+                    *(
+                        ApprovalPolicy.key.startswith(
+                            f"hr:{department_id}:", autoescape=True
+                        )
+                        for department_id in departments
+                    )
+                )
+            )
+            if departments
+            else statement.where(false())
+        )
+    return list((await session.execute(statement)).scalars().all())
 
 
 async def update_setup_policy(

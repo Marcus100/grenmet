@@ -6,6 +6,10 @@
 import type { PolicyPublic } from "./PolicyPublic.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
+export type HrGetSetupPoliciesQuery = {
+  organisation_id?: string | null;
+};
+
 export type HrGetSetupPoliciesStatus200 = PolicyPublic[];
 
 export type HrGetSetupPoliciesStatus403 = unknown;
@@ -23,7 +27,7 @@ export type HrGetSetupPoliciesStatus422 = ValidationErrorResponse;
 export type HrGetSetupPoliciesOptions = {
   body?: never;
   path?: never;
-  query?: never;
+  query?: HrGetSetupPoliciesQuery;
   headers?: never;
 };
 

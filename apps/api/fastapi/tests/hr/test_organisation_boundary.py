@@ -4,10 +4,13 @@ from datetime import timedelta
 
 import httpx
 import pytest
+from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
-from src.auth.models import RoleAssignmentScope
+from src.auth.models import Role, RoleAssignmentScope
+from src.auth.permissions import seed_permissions_and_roles_async
 from src.auth.policy import can_act_on_user
 from src.dependencies import get_current_user
 from src.exceptions import AppException
@@ -304,11 +307,35 @@ async def test_role_list_and_detail_share_department_scope_and_null_is_rejected(
     grant.scope = RoleAssignmentScope.DEPARTMENT
     grant.department_id = gaa.id
     await db_async.commit()
-    subject = await assign_role(db_async, user=employee, role=role)
+    await seed_permissions_and_roles_async(db_async)
+    manager = await db_async.scalar(
+        select(Role)
+        .where(Role.name == "department-manager")
+        .options(selectinload(Role.permissions))
+    )
+    staff = await db_async.scalar(
+        select(Role).where(Role.name == "staff").options(selectinload(Role.permissions))
+    )
+    assert manager is not None and staff is not None
+    await assign_role(
+        db_async,
+        user=actor,
+        role=manager,
+        scope=RoleAssignmentScope.DEPARTMENT,
+        department_id=gaa.id,
+    )
+    subject = await assign_role(db_async, user=employee, role=staff)
+    privileged_subject = await assign_role(db_async, user=employee, role=role)
     app.dependency_overrides[get_current_user] = lambda: actor
     response = await async_client.get("/api/v1/auth/role-assignments")
     assert response.status_code == 200, response.text
-    assert str(subject.id) in {row["id"] for row in response.json()["data"]}
+    listed_ids = {row["id"] for row in response.json()["data"]}
+    assert str(subject.id) in listed_ids
+    assert str(privileged_subject.id) not in listed_ids
+    response = await async_client.get(
+        f"/api/v1/auth/role-assignments/{privileged_subject.id}"
+    )
+    assert response.status_code == 403
     response = await async_client.get(f"/api/v1/auth/role-assignments/{subject.id}")
     assert response.status_code == 200
     response = await async_client.patch(

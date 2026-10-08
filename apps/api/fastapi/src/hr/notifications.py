@@ -366,6 +366,9 @@ async def pending_approvers(
                     approvers.add(grant.user_id)
     # Reuse the action check so revoked named membership, stage scope and
     # distinct-approver rules also govern reminders and notification recipients.
+    from sqlalchemy.orm.attributes import set_committed_value
+
+    from src.auth import access as auth_access
     from src.auth.policy import has_permission
     from src.hr.workflow import service as workflow_service
 
@@ -382,6 +385,9 @@ async def pending_approvers(
     )
     permitted = set()
     for actor in candidates:
+        set_committed_value(
+            actor, "roles", await auth_access.effective_roles(session, actor)
+        )
         if not has_permission(
             current_user=actor, permission_key="workflow.instance.action"
         ):
