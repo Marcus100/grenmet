@@ -34,7 +34,7 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     # in routes: granting superuser, editing role/permission definitions)
     PermissionDef(
         "user.manage",
-        "Create, update, deactivate user accounts and assign domain roles",
+        "Manage staff profiles in scope and delegate bounded ordinary roles; global account security requires a superuser",
     ),
     # HR — employment & profile
     PermissionDef("hr.employment.manage", "Manage employment records"),
@@ -315,6 +315,14 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
             "notifications.manage",
         ),
     ),
+    "department-manager": (
+        "Explicit department manager appointment; ordinary staff delegation only",
+        (),
+    ),
+    "department-assistant-manager": (
+        "Explicit assistant manager appointment; same departmental authority as manager",
+        (),
+    ),
     "cap-author": (
         "CAP author: draft and submit alerts",
         (
@@ -454,6 +462,23 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
         ),
     ),
 }
+
+
+DEPARTMENT_AUTHORITY_KEYS = tuple(
+    dict.fromkeys(
+        (
+            *DEFAULT_ROLES["staff"][1],
+            *DEFAULT_ROLES["hr-supervisor"][1],
+            "user.manage",
+            "hr.employment.manage",
+            "roster.manage",
+            "roster.import",
+            "hr.training.manage",
+        )
+    )
+)
+for _name in ("department-manager", "department-assistant-manager"):
+    DEFAULT_ROLES[_name] = (DEFAULT_ROLES[_name][0], DEPARTMENT_AUTHORITY_KEYS)
 
 
 def _derive_columns(key: str) -> tuple[str, str, str]:

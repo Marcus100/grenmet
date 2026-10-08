@@ -259,6 +259,8 @@ class UserRoleAssignmentUpdate(BaseModel):
 
 
 class UserRoleAssignmentPublic(UserRoleAssignmentBase):
+    authority_assignment_id: uuid.UUID | None = None
+    is_effective: bool = True
     organisation_id: str
     id: uuid.UUID
     effective_from: UtcDateTime

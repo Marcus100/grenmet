@@ -21,12 +21,17 @@ from src.exceptions import AppException
 
 
 async def effective_roles(session: AsyncSession, user: User) -> list[Role]:
+    from src.auth.delegation import DEPARTMENT_AUTHORITY_ROLES
+
     active = await _active_assignments(session=session, user_id=user.id)
     ids = {a.role_id for a in active}
     # Preserve legacy grants only where there has never been a scoped assignment.
     legacy = await session.execute(
-        select(UserRoleLink.role_id).where(
+        select(UserRoleLink.role_id)
+        .join(Role, Role.id == UserRoleLink.role_id)
+        .where(
             UserRoleLink.user_id == user.id,
+            Role.name.not_in(DEPARTMENT_AUTHORITY_ROLES),
             ~exists(
                 select(UserRoleAssignment.id).where(
                     UserRoleAssignment.user_id == user.id,
