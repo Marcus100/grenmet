@@ -87,8 +87,10 @@ Only on the user's go-ahead, and only the findings they name. Then:
 
 ```bash
 pnpm design-system:check
-pnpm fix && pnpm type-check
+pnpm fix:changed && pnpm type-check
 ```
+
+In a shared checkout, format explicit owned files as required by root AGENTS.md.
 
 Before declaring done, grep for other consumers of anything you touched — a shared primitive in `@barrelsgd/ui` reaches every app, and `gaa-admin` alone fronts cap, hr, wxwatch, wxproducts and salesbus. Report what the search surfaced; do not silently widen the edit.
 
