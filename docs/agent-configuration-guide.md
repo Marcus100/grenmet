@@ -445,3 +445,11 @@ If the full guide is too much, start with these five resources:
 The central lesson is:
 
 > Agent configuration is software. It has interfaces, loading rules, dependencies, permissions, tests, security boundaries, and maintenance costs.
+
+## Portable command skills
+
+Codex and Claude Code share the skills exposed by `.agents/skills` and `.claude/skills`. The five command-based procedures (`ci-triage`, `commit`, `pre-merge`, `release`, `ui-check`) are maintained in `.claude/commands/*.md`. Regenerate their skill copies with `node scripts/guardrails/sync-command-skills.mjs --write`; do not edit the generated copies. `pnpm test:guardrails` checks parity. Client invocation syntax and permissions remain client-specific.
+
+### Formatting ownership
+
+Codex has no mutating Stop formatter. Run formatting explicitly on owned files in a shared checkout; the existing staged-file commit hook remains. `fix:changed` includes all dirty and untracked files, so it is safe only when you own that whole change set. Session hooks load the shared handoff but do not write it or establish runtime trust.

@@ -32,7 +32,7 @@ directory. **Before editing under a path below, open its `AGENTS.md`.**
 pnpm install                 # dependencies
 pnpm start                   # Docker services (Postgres, Redis, FastAPI, worker) — HOST ONLY
 pnpm dev:web:<app>           # auth:3000 gaa-admin:3001 docs:3002 gms:3003 signal:3004 mbia:3005 cms:3006 elections:3007 events:3009 — HOST ONLY
-pnpm fix:changed             # Biome/Ultracite fix on this session's changed files
+pnpm fix:changed             # formats all dirty files; select explicit paths in shared checkouts
 pnpm type-check              # TypeScript across all packages
 pnpm fix                     # repo-wide fix — only when deliberate (e.g. dependency bump)
 turbo run test --filter=@barrelsgd/<package>   # one package's tests
@@ -65,7 +65,7 @@ PROJECT_NAME='Barrels Grenada' uv run --frozen --package fast-back python -c "fr
 ### Always (no confirmation needed)
 - Work locally first: implement, inspect the diff, and run formatting, types, affected tests and integration checks before pushing; use GitHub Actions as additional verification, not the first test run.
 - Stage, commit, push and open PRs for authorized work after required formatting, types, affected tests and blast-radius checks pass; review the diff, preserve unrelated changes and never bypass hooks or force-push.
-- Run `pnpm fix:changed` then `pnpm type-check` before marking any task done.
+- Run `pnpm fix:changed` then `pnpm type-check` before marking any task done. In shared checkouts, use `pnpm exec ultracite fix <owned-files>` to preserve unrelated edits.
   Repo-wide `pnpm fix` reformats unrelated in-progress files and can bust
   turbo's cache, surfacing pre-existing issues as if new
 - Treat GAA as the client organisation and GMS as its meteorological department; never describe either as a Barrels product. Software is Barrels IP; client data, marks and `Owner: GAA/GMS` docs are GAA's. The repo is public: never commit GAA confidential material; keep it in gitignored `/private/`
@@ -174,13 +174,10 @@ rules in domain docs and durable agent conventions in the relevant `AGENTS.md`;
 ask only when the lasting rule or its scope is ambiguous.
 
 ### AGENTS.md Update Protocol
-- **Behavioral rule** → the right tier, or a named rule under Behavioral Rules
-- **Code convention** → Code Conventions; lead with `**Name**`, say what to do and not do
-- **CI/CD fact** → CI/CD Conventions
-- **Lookup pointer** → Where to Look
-- **Directory-specific rule** → that directory's `AGENTS.md` and add it to the Instruction map
-- **Domain or operational rule** → domain docs; add an instruction-file pointer only when useful
-- One or two lines per entry; no narrative prose. Keep this file under 20 KB — Codex concatenates root + nested files against a byte budget.
+Keep root instructions under 20 KB. Put behavior in Behavioral Rules, code
+conventions in Code Conventions, CI facts in CI/CD Conventions, and lookup
+links in Where to Look. Put directory rules in nested `AGENTS.md` and update
+the Instruction map; put operational detail in domain docs. Keep entries short.
 
 - **Worktree cleanup:** A clean worktree may still back another live session. Confirm session ownership and preserve ignored local files before removal; keep uncertain worktrees and never remove another session's working directory.
 
@@ -189,16 +186,11 @@ Claude Code and Codex share one working tree. A `SessionStart` hook tails
 `SESSION_LOG.md` (main checkout root, gitignored; shared by every worktree) into context — read it before
 assuming a task is untouched. After a meaningful chunk of work, append one
 entry: timestamp, tool, one-line summary, files touched, next step. Newest at
-the bottom. Don't log trivial single-file tweaks.
+the bottom. For tool switches, follow `docs/agents/tool-usage.md`.
 
 ## Tool Usage
 
-- When the user wants to inspect a file, return full contents — not a summary.
-- Before investigating a CI or build failure, list the top hypotheses with the
-  fastest falsification command for each; test cheapest first and report after each.
-- For multi-file changes, trace impact across types, config, and related files first.
-- When delegating to a sub-agent, include the Blast-Radius Gate and the relevant
-  nested `AGENTS.md` paths in its brief — it starts cold.
+Read `docs/agents/tool-usage.md` before investigation or delegation.
 
 ## Playbooks and hooks
 

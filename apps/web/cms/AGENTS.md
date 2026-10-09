@@ -14,7 +14,7 @@ Port **3006**. Payload CMS for GMS editorial content (GMS is the client; Barrels
 - **CMS admission:** only system administrators grant `none`/`writer`/`publisher` in GAA Admin Users. Department and legacy Payload roles never grant access; CMS tokens must remain isolated from staff APIs.
 - Env through `src/env.ts` only.
 - After changing collections, run `generate:types` and `generate:importmap` and commit the generated `payload-types.ts` / import map. Commit them exactly as Payload writes them: Biome ignores both (`biome.jsonc`), so the dev server's rewrites never fail `check:ci`.
-- Schema changes need a Payload migration — Ask First, like any migration. Older migrations were hand-written without snapshots; `20260929_210000_editorial_collections.json` is the current snapshot, so `db:generate` now diffs correctly. Verify a new migration on a scratch database before committing.
+- Schema changes need a Payload migration. Additive migrations within the authorized task may proceed; ask first for destructive schema/data or breaking changes per root AGENTS.md. Older migrations were hand-written without snapshots; `20260929_210000_editorial_collections.json` is the current snapshot, so `db:generate` now diffs correctly. Verify a new migration on a scratch database before committing.
 - Publication requires the section permission; authors edit only their own unpublished content. Keep `src/access.ts` tests in step with any change.
 
 ## Commands and tests
