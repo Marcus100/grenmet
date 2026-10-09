@@ -90,6 +90,30 @@ async def all_scope_permission_keys(session: AsyncSession, user: User) -> list[s
     )
 
 
+async def global_permission_keys(session: AsyncSession, user: User) -> list[str]:
+    """Project preserved never-scoped legacy authority over shared definitions.
+
+    An ALL assignment covers its organisation, not every employer's catalogue.
+    effective_roles excludes canonical department authority without live grants.
+    """
+    roles = await effective_roles(session, user)
+    scoped_ids = set(
+        await session.scalars(
+            select(UserRoleAssignment.role_id).where(
+                UserRoleAssignment.user_id == user.id
+            )
+        )
+    )
+    return sorted(
+        {
+            permission.key
+            for role in roles
+            if role.id not in scoped_ids
+            for permission in role.permissions
+        }
+    )
+
+
 async def current(session: AsyncSession, user: User) -> EffectiveAccess:
     roles = await effective_roles(session, user)
     return EffectiveAccess(
@@ -97,6 +121,7 @@ async def current(session: AsyncSession, user: User) -> EffectiveAccess:
         role_names=sorted(r.name for r in roles),
         permission_keys=sorted({p.key for r in roles for p in r.permissions}),
         all_scope_permission_keys=await all_scope_permission_keys(session, user),
+        global_permission_keys=await global_permission_keys(session, user),
     )
 
 
