@@ -35,7 +35,7 @@ export function ThemeToggle({
       aria-label={`Current theme: ${THEME_LABEL[themeMode]}. Click to cycle themes`}
       className={cn(
         tone === "masthead"
-          ? "size-8 focus-visible:ring-gm-lime"
+          ? "size-11 focus-visible:ring-gm-lime"
           : "focus-visible:ring-gm-blue"
       )}
       onClick={cycleTheme}

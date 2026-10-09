@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ForecastDay } from "@/lib/forecast-days";
 import { cn } from "@/lib/utils";
-import { weatherIcon } from "@/lib/weather-icons";
+import { type WeatherCondition, weatherIcon } from "@/lib/weather-icons";
 
 export interface StripDay extends ForecastDay {
   href: string;
@@ -9,158 +9,133 @@ export interface StripDay extends ForecastDay {
   rain: number | null;
 }
 
-type Scale = (value: number) => number;
-
-/** SVG y (0–100) for a temperature; 12 units of padding top and bottom. */
-function scaleFor(days: StripDay[]): Scale | null {
-  const values = days.flatMap((day) =>
-    [day.high, day.low].filter((value): value is number => value !== null)
-  );
-  if (values.length === 0) return null;
-  const min = Math.min(...values);
-  const span = Math.max(...values) - min || 1;
-  return (value) => 12 + (1 - (value - min) / span) * 76;
+/** The compact Now column, shown in the strip on phones only. */
+export interface StripNow {
+  href: string;
+  sky: WeatherCondition;
+  temperature: number | null;
+  time: string | null;
 }
 
-/**
- * One tab's slice of the high/low line: from the midpoint with the previous
- * day, through this day's dot, to the midpoint with the next. Adjacent tabs
- * meet at their shared edge, so the slices read as one line across the strip.
- */
-function Slice({
-  className,
-  next,
-  prev,
-  scale,
-  value,
-}: {
-  className: string;
-  next: number | null;
-  prev: number | null;
-  scale: Scale;
-  value: number | null;
-}) {
-  if (value === null) return null;
-  const y = scale(value);
-  const points = [
-    prev === null ? null : `0,${(scale(prev) + y) / 2}`,
-    `50,${y}`,
-    next === null ? null : `100,${(scale(next) + y) / 2}`,
-  ].filter(Boolean);
+/** Rain skies take sky blue, sunny ones lime; cloud stays white. */
+const SKY_TINT: Record<WeatherCondition, string> = {
+  cloudy: "text-gm-text-inverse",
+  "partly-cloudy": "text-gm-lime",
+  showers: "text-gm-sky",
+  sunny: "text-gm-lime",
+};
+
+const TAB =
+  "flex h-full flex-col items-center gap-0.5 border-b-4 px-1 pt-2.5 pb-2 text-center outline-none hover:bg-gm-text-inverse/10 focus-visible:ring-2 focus-visible:ring-gm-lime focus-visible:ring-inset sm:gap-1 sm:pt-3 sm:pb-3";
+
+function tabState(current: boolean) {
+  return current
+    ? "border-gm-lime bg-gm-text-inverse/20"
+    : "border-transparent";
+}
+
+function SkyIcon({ sky, hidden }: { hidden?: boolean; sky: WeatherCondition }) {
+  const Icon = weatherIcon(sky);
   return (
-    <g className={className}>
-      <polyline
-        fill="none"
-        points={points.join(" ")}
-        stroke="currentColor"
-        strokeWidth={2}
-        vectorEffect="non-scaling-stroke"
-      />
-      <line
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeWidth={8}
-        vectorEffect="non-scaling-stroke"
-        x1={50}
-        x2={50}
-        y1={y}
-        y2={y}
-      />
-    </g>
+    <Icon
+      aria-hidden="true"
+      className={cn(
+        "my-0.5 size-7 sm:size-9 lg:size-11",
+        SKY_TINT[sky],
+        hidden && "invisible"
+      )}
+      strokeWidth={1.7}
+    />
   );
 }
 
 /**
- * The five forecast days as the hero's tabs: day, sky, the high and low drawn
- * as a line across the strip, and the chance of rain. Each tab links to its
- * dated route (today to the place's home), which keeps the page and changes
- * only the day panel. The selected day gets a lime underline and
- * `aria-current`.
+ * The forecast days as the hero's tabs: day, date, sky, the maximum and
+ * minimum, and the chance of rain. On phones a compact Now column leads the
+ * strip (wider screens show the Now card beside it instead). Each tab links
+ * to its route, which keeps the page and changes only the panel; the
+ * selected tab gets a lime underline and `aria-current`.
  */
 export function SkyDayStrip({
   days,
+  now,
   selected,
 }: {
   days: StripDay[];
-  /** `YYYY-MM-DD` of the day shown in the panel. */
+  now: StripNow;
+  /** `now`, or the `YYYY-MM-DD` of the day shown in the panel. */
   selected: string;
 }) {
-  const scale = scaleFor(days);
+  const nowCurrent = selected === "now";
   return (
-    <nav aria-label="Forecast days">
-      <ul className="grid grid-cols-5 overflow-hidden rounded-gm-card bg-gm-scrim">
-        {days.map((day, index) => {
+    <nav aria-label="Forecast days" className="h-full">
+      <ul className="grid h-full grid-cols-6 overflow-hidden rounded-gm-card bg-gm-scrim sm:grid-cols-5">
+        <li className="min-w-0 sm:hidden">
+          <Link
+            aria-current={nowCurrent ? "page" : undefined}
+            className={cn(TAB, tabState(nowCurrent))}
+            data-analytics-day="now"
+            data-analytics-event="forecast_tab_selected"
+            href={now.href}
+            scroll={false}
+          >
+            <span className="font-bold text-body-base leading-body-base">
+              Now
+            </span>
+            <span className="text-caption text-gm-text-inverse/85 tabular-nums leading-caption">
+              {now.time ?? " "}
+            </span>
+            <SkyIcon sky={now.sky} />
+            <span className="font-bold text-body-base tabular-nums leading-body-base">
+              {now.temperature === null
+                ? "—"
+                : `${Math.round(now.temperature)}°`}
+            </span>
+          </Link>
+        </li>
+        {days.map((day) => {
           const current = day.slug === selected;
-          const Icon = weatherIcon(day.condition);
           const missing = day.high === null && day.low === null;
-          const prev = days[index - 1];
-          const next = days[index + 1];
           return (
             <li
-              className="min-w-0 border-gm-text-inverse/10 border-l first:border-l-0"
+              className="min-w-0 border-gm-text-inverse/10 border-l sm:first:border-l-0"
               key={day.slug}
             >
               <Link
                 aria-current={current ? "page" : undefined}
-                className={cn(
-                  "flex h-full flex-col items-center border-b-4 px-1 pt-2.5 pb-1.5 text-center outline-none hover:bg-gm-text-inverse/10 focus-visible:ring-2 focus-visible:ring-gm-lime focus-visible:ring-inset lg:pt-3",
-                  current
-                    ? "border-gm-lime bg-gm-text-inverse/20"
-                    : "border-transparent"
-                )}
-                data-analytics-day="next"
+                className={cn(TAB, tabState(current))}
+                data-analytics-day={day.isToday ? "today" : "next"}
                 data-analytics-event="forecast_tab_selected"
                 href={day.href}
                 scroll={false}
               >
-                <span className="font-bold text-body-base leading-body-base lg:text-heading-sm lg:leading-heading-sm">
-                  {day.isToday ? "Today" : day.dayName}
+                <span className="font-bold text-body-base leading-body-base sm:text-heading-sm sm:leading-heading-sm">
+                  {day.dayName}
                 </span>
-                <span className="text-caption text-gm-text-inverse/85 tabular-nums leading-caption">
+                <span className="text-caption text-gm-text-inverse/85 tabular-nums leading-caption sm:text-body-sm sm:leading-body-sm">
                   {day.date}
                   <span className="sr-only"> {day.month}</span>
                 </span>
-                <Icon
-                  aria-hidden="true"
-                  className={cn(
-                    "mt-1 size-8 lg:size-9",
-                    missing && "invisible"
+                <SkyIcon hidden={missing} sky={day.condition} />
+                <span className="flex flex-col items-center tabular-nums sm:flex-row sm:items-baseline sm:gap-1">
+                  <span className="font-bold text-body-base leading-body-base sm:text-heading-sm sm:leading-heading-sm">
+                    {day.high === null ? "—" : `${day.high}°`}
+                    <span className="sr-only"> maximum,</span>
+                  </span>
+                  <span className="text-caption text-gm-text-inverse/85 leading-caption sm:text-body-sm sm:leading-body-sm">
+                    {day.low === null ? "—" : `${day.low}°`}
+                    <span className="sr-only"> minimum</span>
+                  </span>
+                </span>
+                <span className="hidden whitespace-nowrap font-semibold text-body-sm tabular-nums leading-body-sm sm:block">
+                  {day.rain === null ? (
+                    " "
+                  ) : (
+                    <>
+                      {day.rain}%
+                      <span className="sr-only"> chance of rain</span>
+                    </>
                   )}
-                  strokeWidth={1.6}
-                />
-                <span className="mt-1 font-bold text-body-base tabular-nums leading-body-base">
-                  {day.high === null ? "—" : `${day.high}°`}
-                  <span className="sr-only"> high,</span>
-                </span>
-                {scale && (
-                  <svg
-                    aria-hidden="true"
-                    className="h-10 w-full overflow-visible lg:h-12"
-                    preserveAspectRatio="none"
-                    viewBox="0 0 100 100"
-                  >
-                    <Slice
-                      className="text-gm-text-inverse"
-                      next={next?.high ?? null}
-                      prev={prev?.high ?? null}
-                      scale={scale}
-                      value={day.high}
-                    />
-                    <Slice
-                      className="text-gm-sky"
-                      next={next?.low ?? null}
-                      prev={prev?.low ?? null}
-                      scale={scale}
-                      value={day.low}
-                    />
-                  </svg>
-                )}
-                <span className="font-semibold text-body-sm text-gm-text-inverse/85 tabular-nums leading-body-sm">
-                  {day.low === null ? "—" : `${day.low}°`}
-                  <span className="sr-only"> low</span>
-                </span>
-                <span className="mt-1 whitespace-nowrap font-semibold text-caption tabular-nums leading-caption">
-                  {day.rain === null ? " " : `${day.rain}% rain`}
                 </span>
               </Link>
             </li>

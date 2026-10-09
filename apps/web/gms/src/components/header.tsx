@@ -68,7 +68,6 @@ export function Header({ alerts, accountLabel }: HeaderProps) {
                 {label}
               </Link>
             ))}
-            <ThemeToggle />
           </div>
         </div>
 
@@ -88,9 +87,11 @@ export function Header({ alerts, accountLabel }: HeaderProps) {
 
           <div className="flex shrink-0 items-center gap-1">
             <SiteSearch />
+            <ThemeToggle />
             {accountLabel ? (
               // The `dark` scope gives the outline button navy-safe tokens.
-              <div className="dark">
+              // Phones and tablets sign in from the drawer instead.
+              <div className="dark hidden lg:block">
                 <AccountButton appLabel={accountLabel} />
               </div>
             ) : null}
@@ -127,6 +128,7 @@ export function Header({ alerts, accountLabel }: HeaderProps) {
       </header>
 
       <NavDrawer
+        accountLabel={accountLabel}
         alerts={alerts}
         onClose={() => setNavOpen(false)}
         open={navOpen}
