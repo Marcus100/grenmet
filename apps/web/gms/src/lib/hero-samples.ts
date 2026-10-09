@@ -10,56 +10,90 @@
 /** Observation fields the MBIA register does not record. */
 export const SAMPLE_NOW = {
   airQuality: { index: 34, level: "Good" },
+  cloudCover: "60%",
   gusts: "23 mph",
+  uvIndex: "6",
   visibility: "10 km+",
 } as const;
 
-/** Forecast fields per day offset (0 = today) the issued product may omit. */
-export const SAMPLE_DAYS = [
-  { rainChance: 40, gusts: "25 mph", highTide: "03:48", lowTide: "09:55" },
-  { rainChance: 60, gusts: "35 mph", highTide: "04:35", lowTide: "10:42" },
-  { rainChance: 20, gusts: "22 mph", highTide: "05:24", lowTide: "11:31" },
-  { rainChance: 30, gusts: "22 mph", highTide: "06:18", lowTide: "00:45" },
-  { rainChance: 50, gusts: "30 mph", highTide: "07:17", lowTide: "01:44" },
-] as const;
-
-export const SAMPLE_SUN = { sunrise: "05:57", sunset: "18:01" } as const;
-
-export type PeriodSky = "fair" | "partly-cloudy" | "showers" | "sunny";
-export interface DayPeriod {
-  label: string;
-  sky: PeriodSky;
-  summary: string;
+export interface SampleDay {
+  airQuality: { index: number; level: string };
+  cloudCover: string;
+  gusts: string;
+  highTides: string;
+  humidity: string;
+  lowTides: string;
+  rainChance: number;
+  rainfall: string;
+  swell: { detail: string; value: string };
+  visibility: string;
 }
 
-/** Morning / afternoon / night skies; wxproducts issues one summary per day. */
-export const SAMPLE_PERIODS: readonly (readonly DayPeriod[])[] = [
-  [
-    { label: "Afternoon", sky: "showers", summary: "Scattered showers" },
-    { label: "Evening", sky: "partly-cloudy", summary: "Showers ending" },
-    { label: "Tonight", sky: "fair", summary: "Mostly fair" },
-  ],
-  [
-    { label: "Morning", sky: "partly-cloudy", summary: "Cloudy spells" },
-    { label: "Afternoon", sky: "showers", summary: "Heavy showers" },
-    { label: "Night", sky: "showers", summary: "Showers easing" },
-  ],
-  [
-    { label: "Morning", sky: "sunny", summary: "Hazy sun" },
-    { label: "Afternoon", sky: "partly-cloudy", summary: "Isolated shower" },
-    { label: "Night", sky: "fair", summary: "Hazy, fair" },
-  ],
-  [
-    { label: "Morning", sky: "sunny", summary: "Sunny" },
-    { label: "Afternoon", sky: "showers", summary: "A few showers" },
-    { label: "Night", sky: "fair", summary: "Mostly fair" },
-  ],
-  [
-    { label: "Morning", sky: "partly-cloudy", summary: "Partly cloudy" },
-    { label: "Afternoon", sky: "showers", summary: "Showers" },
-    { label: "Night", sky: "showers", summary: "Showers" },
-  ],
+/** Forecast fields per day offset (0 = today) the issued product may omit. */
+export const SAMPLE_DAYS: readonly SampleDay[] = [
+  {
+    airQuality: { index: 35, level: "Good" },
+    cloudCover: "60–80%",
+    gusts: "25 mph",
+    highTides: "03:48 · 16:02",
+    humidity: "75–90%",
+    lowTides: "09:55 · 22:10",
+    rainChance: 40,
+    rainfall: "5–10 mm",
+    swell: { detail: "9 s period", value: "NE 1.4 m" },
+    visibility: "10 km+",
+  },
+  {
+    airQuality: { index: 30, level: "Good" },
+    cloudCover: "70%",
+    gusts: "35 mph",
+    highTides: "04:35 · 16:50",
+    humidity: "75–90%",
+    lowTides: "10:42 · 23:00",
+    rainChance: 60,
+    rainfall: "8–15 mm",
+    swell: { detail: "9 s period", value: "NE 1.5 m" },
+    visibility: "10 km",
+  },
+  {
+    airQuality: { index: 28, level: "Good" },
+    cloudCover: "30%",
+    gusts: "22 mph",
+    highTides: "05:24 · 17:40",
+    humidity: "65–80%",
+    lowTides: "11:31 · 23:50",
+    rainChance: 20,
+    rainfall: "0–2 mm",
+    swell: { detail: "8 s period", value: "NE 1.2 m" },
+    visibility: "10 km+",
+  },
+  {
+    airQuality: { index: 32, level: "Good" },
+    cloudCover: "40%",
+    gusts: "22 mph",
+    highTides: "06:18 · 18:35",
+    humidity: "70–85%",
+    lowTides: "00:45 · 12:25",
+    rainChance: 30,
+    rainfall: "0–3 mm",
+    swell: { detail: "8 s period", value: "NE 1.1 m" },
+    visibility: "10 km+",
+  },
+  {
+    airQuality: { index: 55, level: "Moderate" },
+    cloudCover: "65%",
+    gusts: "30 mph",
+    highTides: "07:17 · 19:30",
+    humidity: "75–90%",
+    lowTides: "01:44 · 13:20",
+    rainChance: 50,
+    rainfall: "5–10 mm",
+    swell: { detail: "10 s period", value: "ENE 1.6 m" },
+    visibility: "10 km",
+  },
 ];
+
+export const SAMPLE_SUN = { sunrise: "05:57", sunset: "18:01" } as const;
 
 /**
  * Feels-like temperature (NWS heat index, Rothfusz regression) until the

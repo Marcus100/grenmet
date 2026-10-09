@@ -1,6 +1,8 @@
 import {
   scrubSentryEvent,
   scrubSentryTransaction,
+  sentryDataCollection,
+  sentryIgnoredSpans,
 } from "@barrelsgd/ui/lib/sentry-privacy";
 import { init } from "@sentry/nextjs";
 
@@ -9,7 +11,8 @@ init({
   environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT ?? "development",
   release: process.env.NEXT_PUBLIC_RELEASE,
   tracesSampleRate: 0,
-  sendDefaultPii: false,
+  dataCollection: sentryDataCollection,
+  ignoreSpans: sentryIgnoredSpans,
   beforeSend: scrubSentryEvent,
   beforeSendTransaction: scrubSentryTransaction,
   debug: false,
