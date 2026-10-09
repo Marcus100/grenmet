@@ -31,9 +31,11 @@ explicit `is_superuser` bypass. Only permissions from live `ALL` assignments and
 never-scoped legacy roles enter the projection; department/SELF authority cannot
 borrow the scope of another role, and expired/revoked authority cannot fall back
 to its legacy role link. This field does not remove any organisation boundary or
-permission-specific rule. Shared HR shift and public-holiday definitions require
-`ALL` `roster.manage` authority (or a superuser) for writes; a department's roster
-management grant still only manages its permitted department records.
+permission-specific rule. The compatible, default-empty `global_permission_keys`
+projection includes only preserved never-scoped noncanonical legacy authority.
+Shared HR shift and public-holiday definitions require this global
+`roster.manage` authority or a superuser for writes; organisation `ALL`,
+department and SELF grants cannot mutate definitions shared by other employers.
 
 ## Base URLs
 

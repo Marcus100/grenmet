@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from decimal import Decimal
 
 import pytest
@@ -7,6 +7,7 @@ from sqlalchemy import func, select
 
 from src.auth.models import RoleAssignmentScope
 from src.exceptions import AppException
+from src.hr.models import EmploymentStatus, Organisation
 from src.hr.roster.models import (
     RosterAssignment,
     RosterPeriod,
@@ -30,6 +31,7 @@ from src.hr.workflow.models import (
     WorkflowTemplate,
     WorkflowType,
 )
+from src.utils.datetime import utc_now
 from tests.factories import (
     assign_role,
     make_department,
@@ -347,18 +349,22 @@ async def test_transfer_preserves_filing_department_read_summary_and_approval(db
     assert approved.status == TimesheetStatus.APPROVED
 
 
-async def test_named_reviewer_retains_access_outside_current_department(db_async):
+async def _named_reviewer_timesheet(db_async):
     department = await make_department(db_async, "integrity_named")
     employee = await make_user(db_async, superuser=True)
     await make_employee(db_async, user=employee, department_id=department.id)
     reviewer = await make_user(db_async)
+    reviewer_department = await make_department(db_async, "integrity_named_reviewer")
+    reviewer_employment = await make_employee(
+        db_async, user=reviewer, department_id=reviewer_department.id
+    )
     role, _ = await make_role_with_permission(
         db_async,
         "timesheet.approve",
         "workflow.instance.action",
         "workflow.instance.view",
     )
-    await assign_role(db_async, user=reviewer, role=role)
+    grant = await assign_role(db_async, user=reviewer, role=role)
     timesheet, _ = await service.create_timesheet(
         session=db_async, current_user=employee, payload=payload(department.id)
     )
@@ -391,6 +397,12 @@ async def test_named_reviewer_retains_access_outside_current_department(db_async
     )
     timesheet.status = TimesheetStatus.SUBMITTED
     await db_async.commit()
+    return reviewer, reviewer_employment, grant, timesheet
+
+
+async def test_named_reviewer_retains_access_outside_current_department(db_async):
+    reviewer, employment, _, timesheet = await _named_reviewer_timesheet(db_async)
+    assert employment.department_id != timesheet.department_id
     details, _ = await service.read_timesheet_details(
         session=db_async, current_user=reviewer, timesheet_id=timesheet.id
     )
@@ -403,3 +415,48 @@ async def test_named_reviewer_retains_access_outside_current_department(db_async
         session=db_async, current_user=reviewer, timesheet_id=timesheet.id
     )
     assert approved.status == TimesheetStatus.APPROVED
+
+
+@pytest.mark.parametrize("revocation", ["foreign", "terminated", "expired"])
+async def test_named_timesheet_reviewer_live_scope_controls_details_summary_and_approval(
+    db_async, revocation: str
+):
+    reviewer, employment, grant, timesheet = await _named_reviewer_timesheet(db_async)
+    if revocation == "foreign":
+        db_async.add(
+            Organisation(id="named_other", code="NAMEDOTHER", name="Other employer")
+        )
+        await db_async.commit()
+        foreign = await make_department(
+            db_async, "integrity_named_foreign", organisation_id="named_other"
+        )
+        employment.organisation_id = foreign.organisation_id
+        employment.department_id = foreign.id
+    elif revocation == "terminated":
+        employment.status = EmploymentStatus.TERMINATED
+    else:
+        grant.effective_to = utc_now() - timedelta(seconds=1)
+    await db_async.commit()
+    assert reviewer.is_active
+    for operation in (
+        service.read_timesheet_details,
+        service.get_timesheet_summary,
+        service.approve_timesheet,
+    ):
+        with pytest.raises(AppException) as rejected:
+            await operation(
+                session=db_async, current_user=reviewer, timesheet_id=timesheet.id
+            )
+        assert rejected.value.status_code == 403
+    assert timesheet.status == TimesheetStatus.SUBMITTED
+    steps = list(
+        await db_async.scalars(
+            select(WorkflowStepInstance)
+            .join(
+                WorkflowInstance,
+                WorkflowInstance.id == WorkflowStepInstance.workflow_instance_id,
+            )
+            .where(WorkflowInstance.entity_id == timesheet.id)
+        )
+    )
+    assert len(steps) == 1 and steps[0].action is None

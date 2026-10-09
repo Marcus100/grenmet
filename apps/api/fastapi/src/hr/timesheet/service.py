@@ -110,14 +110,22 @@ async def _require_record_access(
         .limit(1)
         .scalar_subquery()
     )
-    if await session.scalar(
-        select(WorkflowStepInstance.id)
+    named_workflow_id = await session.scalar(
+        select(WorkflowStepInstance.workflow_instance_id)
         .where(
             WorkflowStepInstance.workflow_instance_id == latest_workflow,
             WorkflowStepInstance.required_user_id == current_user.id,
         )
         .limit(1)
-    ):
+    )
+    if named_workflow_id is not None:
+        # Named history follows the workflow's live detail policy, including
+        # employer membership and view authority; a recorded ID is not a grant.
+        await workflow_service.read_workflow_instance_details(
+            session=session,
+            current_user=current_user,
+            workflow_instance_id=named_workflow_id,
+        )
         return
     department = await session.get(Department, timesheet.department_id)
     if department is None:

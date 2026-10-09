@@ -28400,6 +28400,14 @@
             "type": "array",
             "title": "Permission Keys"
           },
+          "global_permission_keys": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Global Permission Keys",
+            "description": "Preserved never-scoped legacy permissions for shared global definitions; organisation-scoped ALL grants are excluded."
+          },
           "all_scope_permission_keys": {
             "items": {
               "type": "string"
