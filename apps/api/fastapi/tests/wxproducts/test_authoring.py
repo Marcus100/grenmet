@@ -135,15 +135,20 @@ async def test_forecast_routes_keep_authenticated_author_after_advisory_snapshot
     assert response.status_code == 200, response.text
 
 
-async def test_draft_publish_edit_withdraw_history(weather_sessions, actor):
+@pytest.mark.parametrize("issue_age_days", [0, 1])
+async def test_draft_publish_edit_withdraw_history(
+    weather_sessions, actor, issue_age_days
+):
     payload = current_input(action="draft")
+    issued_at = datetime.fromisoformat(payload.values["issuedAt"]) - timedelta(
+        days=issue_age_days
+    )
+    payload.values["issuedAt"] = issued_at.isoformat(timespec="minutes")
     async with weather_sessions() as session:
         first = await service.write_product(session, payload, actor)
         assert first.revision == 1 and first.published is None
     async with weather_sessions() as session:
-        saved = await service.list_authored(
-            session, "marine", datetime.now(validation.GRENADA).date()
-        )
+        saved = await service.list_authored(session, "marine", issued_at.date())
         # The signed-in actor is recorded as the issuing forecaster.
         assert saved[0].draft["values"] == payload.values | {
             "forecaster": actor.full_name
