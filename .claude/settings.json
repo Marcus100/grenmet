@@ -71,11 +71,11 @@
     ],
     "SessionStart": [
       {
-        "matcher": "startup|resume|clear",
+        "matcher": "startup|resume|clear|compact|fork",
         "hooks": [
           {
             "type": "command",
-            "command": "cd \"$(dirname \"$(git -C \"$CLAUDE_PROJECT_DIR\" rev-parse --path-format=absolute --git-common-dir)\")\" && { test -f SESSION_LOG.md && tail -c 50000 SESSION_LOG.md > SESSION_LOG.md.tmp && mv SESSION_LOG.md.tmp SESSION_LOG.md && tail -n 40 SESSION_LOG.md; } || true"
+            "command": "cd \"$(dirname \"$(git -C \"$CLAUDE_PROJECT_DIR\" rev-parse --path-format=absolute --git-common-dir)\")\" && { test ! -f SESSION_LOG.md || tail -c 50000 SESSION_LOG.md | tail -n 40; } || true"
           }
         ]
       }
