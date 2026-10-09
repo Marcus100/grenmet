@@ -385,12 +385,12 @@ export function GetAlertsStrip() {
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6 xl:px-8">
         <div className="flex flex-col gap-3 rounded-gm-card bg-gm-navy px-4 py-4 text-gm-text-inverse sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-2 sm:py-3">
-          <div className="flex min-w-0 flex-1 items-center gap-3 sm:gap-4">
+          <div className="flex min-w-0 flex-1 items-center justify-center gap-3 sm:justify-start sm:gap-4">
             <BellIcon
               aria-hidden="true"
               className="size-5 shrink-0 text-gm-lime"
             />
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 sm:flex-1">
               <h2
                 className="font-bold text-body-base leading-body-base"
                 id="get-alerts-title"

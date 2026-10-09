@@ -1,3 +1,4 @@
+import { MapPinIcon } from "lucide-react";
 import { ReadingGrid } from "@/components/home/reading-grid";
 import { SkyScene } from "@/components/home/sky-scene";
 import { isStale, localTime } from "@/lib/current-conditions";
@@ -41,7 +42,9 @@ function sourceLine(
       ? `Last observed ${time} · ${station}`
       : `Observed ${time} · ${station}`;
   }
-  return weather.observation ? "Midday reading" : "No current observation";
+  return weather.observation
+    ? `Midday reading · ${station}`
+    : `No current observation · ${station}`;
 }
 
 /**
@@ -77,8 +80,9 @@ export function NowSummary({
             Now
           </span>
         )}
-        <span className="truncate text-body-sm text-gm-text-inverse/85 leading-body-sm">
-          {sourceLine(weather, station, now)}
+        <span className="flex min-w-0 items-start gap-1 text-body-sm text-gm-text-inverse/85 leading-body-sm">
+          <MapPinIcon aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
+          <span className="min-w-0">{sourceLine(weather, station, now)}</span>
         </span>
         <Numeral
           className={cn(

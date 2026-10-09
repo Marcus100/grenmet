@@ -66,6 +66,7 @@ describe("SkyHero", () => {
       "MBIA"
     );
     expect(within(hero).queryByText(STATION_NAME)).not.toBeInTheDocument();
+    expect(within(hero).getByText("Your spice weather")).toBeVisible();
     expect(
       within(hero).getAllByText("32°", { exact: false }).length
     ).toBeGreaterThan(0);
@@ -105,7 +106,8 @@ describe("sample sections", () => {
     expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
       "Satellite",
       "Radar",
-      "Rainfall",
+      "Wind",
+      "Seas",
       "Audio",
       "Video",
     ]);

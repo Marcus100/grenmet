@@ -54,6 +54,7 @@ function issued(overrides: Partial<ForecastDayData> = {}): ForecastDayData {
       { label: "Chance of rain", value: "20%" },
       { label: "Sea state", value: "Moderate" },
       { label: "Wave height (5–7 ft)", value: "1.5–2.0 m" },
+      { label: "Swell · NE every 9 s", value: "1.4 m" },
       { label: "High tide (0.6 m)", value: "04:12" },
       { label: "High tide (0.5 m)", value: "16:30" },
       { label: "Low tide", value: "10:20" },
@@ -139,7 +140,9 @@ describe("Now", () => {
 
   it("falls back to the midday product temperature, labelled as such", () => {
     render(<SkyHero weather={weather({ current: null })} />);
-    expect(screen.getAllByText("Midday reading").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Midday reading · MBIA").length).toBeGreaterThan(
+      0
+    );
     expect(screen.getAllByText(numeral("32°C")).length).toBeGreaterThan(0);
     expect(within(nowPanel()).queryByRole("term")).not.toBeInTheDocument();
   });
@@ -229,6 +232,10 @@ describe("hero readings", () => {
       Sunrise: "05:58",
     });
     expect(rows.find((row) => row.label === "Seas")?.detail).toBe("Moderate");
+    expect(rows.find((row) => row.label === "Swell")).toMatchObject({
+      detail: "NE every 9 s",
+      value: "1.4 m",
+    });
   });
 
   it("fills gaps in an issued day from the samples", () => {

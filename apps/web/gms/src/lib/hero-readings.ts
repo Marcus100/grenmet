@@ -18,6 +18,8 @@ const WIND_DIRECTION = /^wind direction/i;
 const GUSTS = /^gusts/i;
 const WAVE_HEIGHT = /^wave height/i;
 const SEA_STATE = /^sea state/i;
+const SWELL = /^swell/i;
+const SWELL_DETAIL = /^swell · /i;
 const HIGH_TIDE = /^high tide/i;
 const LOW_TIDE = /^low tide/i;
 const SUNRISE = /^sunrise/i;
@@ -188,13 +190,24 @@ export function dayReadings(day: ForecastDayData, index: number): Reading[] {
       label: "Seas",
       value: (waves ?? sea)?.value ?? "",
     });
+  // FastAPI: value "1.4 m", label "Swell · NE every 9 s"; or the text alone.
+  const swell = find(c, SWELL);
   rows.push(
-    {
-      detail: sample.swell.detail,
-      icon: "swell",
-      label: "Swell",
-      value: sample.swell.value,
-    },
+    swell
+      ? {
+          detail: SWELL_DETAIL.test(swell.label)
+            ? swell.label.replace(SWELL_DETAIL, "")
+            : undefined,
+          icon: "swell",
+          label: "Swell",
+          value: swell.value,
+        }
+      : {
+          detail: sample.swell.detail,
+          icon: "swell",
+          label: "Swell",
+          value: sample.swell.value,
+        },
     {
       icon: "sunrise",
       label: "Sunrise",
