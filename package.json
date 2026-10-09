@@ -66,6 +66,6 @@
     "husky": "catalog:",
     "lint-staged": "catalog:",
     "turbo": "^2.11.7",
-    "ultracite": "^7.12.2"
+    "ultracite": "^7.12.4"
   }
 }
