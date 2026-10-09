@@ -1,4 +1,3 @@
-import { MapPinIcon } from "lucide-react";
 import Link from "next/link";
 import { DayPanel, DaySummary } from "@/components/home/day-panel";
 import { NowPanel, NowSummary } from "@/components/home/now-card";
@@ -66,15 +65,15 @@ export function SkyHero({
       className="bg-gm-gradient-sky text-gm-text-inverse"
     >
       <div className="mx-auto grid max-w-6xl grid-cols-1 gap-2 px-4 pt-2 pb-4 sm:px-6 lg:gap-2.5 lg:pt-3 lg:pb-6 xl:px-8">
-        <div className="flex min-h-11 flex-wrap items-center gap-x-3 gap-y-1">
-          <h1
-            className="flex items-center gap-1 font-bold text-body-sm leading-body-sm"
-            id="sky-hero-title"
-          >
-            <MapPinIcon aria-hidden="true" className="size-3.5 shrink-0" />
-            <span className="sr-only">{location.name} weather, </span>
-            {station}
-          </h1>
+        {/* The place is shown in the first card; the heading is for screen readers. */}
+        <h1 className="sr-only" id="sky-hero-title">
+          {location.name} weather, {station}
+        </h1>
+        <div className="flex min-h-11 flex-wrap items-center justify-between gap-x-3 gap-y-1">
+          {/* Brand line: large bold type, readable on the gradient. */}
+          <p className="font-bold font-gm-display text-heading-md uppercase leading-heading-md tracking-wide">
+            Your spice weather
+          </p>
           {switcher}
         </div>
 

@@ -32,9 +32,10 @@ describe("NavDrawer", () => {
     expect(screen.queryByText("Appearance")).not.toBeInTheDocument();
   });
 
-  it("leaves sign-in out when no account is configured", () => {
+  it("shows a static sign-in when no account is configured", () => {
     render(<NavDrawer onClose={() => undefined} open />);
-    expect(screen.queryByText("Your account")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Sign in" })).toBeInTheDocument();
+    expect(screen.queryByText("Coming soon")).not.toBeInTheDocument();
   });
 
   it("lists every top-level section", () => {

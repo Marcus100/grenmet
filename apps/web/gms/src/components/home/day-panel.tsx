@@ -63,20 +63,37 @@ export function DayPanel({
   /** Extra context, e.g. the national forecast on a place page. */
   note?: string;
 }) {
+  const chip = (
+    <p className="flex flex-wrap items-center gap-2 text-caption uppercase leading-caption tracking-wider">
+      <span className="rounded-full border border-gm-lime px-2 font-bold text-gm-lime">
+        Forecast
+      </span>
+      {longDate(day.date)}
+    </p>
+  );
   if (!isIssued(day)) {
+    // Same heading as an issued day, but no figures: an unissued day never
+    // gets sample values.
     return (
       <section
         aria-label="Forecast details"
-        className="grid gap-1 rounded-gm-card bg-gm-scrim p-4 lg:p-5"
+        className="grid content-start gap-4 rounded-gm-card bg-gm-scrim p-4 lg:p-5"
       >
-        <p className="font-bold text-body-base leading-body-base">
-          {day.title ?? day.summary}
-        </p>
-        {day.title && day.summary !== day.title && (
-          <p className="text-body-sm text-gm-text-inverse/85 leading-body-sm">
-            {day.summary}
+        <div className="grid min-w-0 gap-1.5">
+          {chip}
+          <p className="max-w-prose text-balance font-bold text-heading-sm leading-heading-sm lg:text-heading-md lg:leading-heading-md">
+            {day.title ?? day.summary}
           </p>
-        )}
+          {day.title && day.summary !== day.title && (
+            <p className="max-w-prose text-body-base text-gm-text-inverse/85 leading-body-base">
+              {day.summary}
+            </p>
+          )}
+        </div>
+        <p className="border-gm-text-inverse/15 border-t pt-4 text-body-sm text-gm-text-inverse/85 leading-body-sm">
+          Wind, rain, seas, tides and sun times appear here once this day's
+          forecast is issued.
+        </p>
       </section>
     );
   }
@@ -105,12 +122,7 @@ export function DayPanel({
           </p>
         </div>
         <div className="grid min-w-0 gap-1.5 sm:pb-6">
-          <p className="flex flex-wrap items-center gap-2 text-caption uppercase leading-caption tracking-wider">
-            <span className="rounded-full border border-gm-lime px-2 font-bold text-gm-lime">
-              Forecast
-            </span>
-            {longDate(day.date)}
-          </p>
+          {chip}
           <p className="max-w-prose text-balance font-bold text-heading-sm leading-heading-sm lg:text-heading-md lg:leading-heading-md">
             {day.summary}
           </p>

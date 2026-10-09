@@ -6,6 +6,7 @@ import {
   AnchorIcon,
   ChevronDownIcon,
   ChevronRightIcon,
+  LogInIcon,
   PlaneIcon,
   RadarIcon,
   TornadoIcon,
@@ -180,14 +181,23 @@ export function NavDrawer({
                   </div>
                 ))}
               </Accordion.Root>
-              {accountLabel ? (
-                <div className="flex flex-col gap-2 border-gm-border border-t px-6 pt-5">
-                  <p className="font-bold text-gm-text-muted text-label uppercase leading-label tracking-wider">
-                    Your account
-                  </p>
+              <div className="flex flex-col gap-2 border-gm-border border-t px-6 pt-5">
+                <p className="font-bold text-gm-text-muted text-label uppercase leading-label tracking-wider">
+                  Your account
+                </p>
+                {accountLabel ? (
                   <AccountButton appLabel={accountLabel} />
-                </div>
-              ) : null}
+                ) : (
+                  // Static placeholder until sign-in is configured for this site.
+                  <button
+                    className="flex h-11 w-fit items-center gap-2 rounded-md border border-gm-border px-4 font-semibold text-body text-gm-text-primary leading-body hover:bg-gm-surface"
+                    type="button"
+                  >
+                    <LogInIcon aria-hidden="true" className="size-4" />
+                    Sign in
+                  </button>
+                )}
+              </div>
             </nav>
           </div>
         </motion.div>
