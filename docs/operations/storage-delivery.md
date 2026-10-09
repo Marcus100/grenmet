@@ -99,6 +99,27 @@ The retired production/staging Compose files and upstream SURFACE development Do
 
 Core services rotate JSON logs at 10 MB with three files per container. Existing containers receive this setting when recreated by a reviewed deployment. Hono base-image updates now join the weekly Docker Dependabot review. These choices follow [Docker build guidance](https://docs.docker.com/build/building/best-practices/), [pnpm portable production packaging](https://pnpm.io/cli/deploy), and [Docker logging guidance](https://docs.docker.com/engine/logging/configure/).
 
+### Docker Hub authentication for CI and release builds
+
+Add `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` as repository Actions secrets.
+The token needs only Read access: base images come from Docker Hub; application
+images and build caches are published to GHCR with `GITHUB_TOKEN`. The reusable
+staging and production workflows inherit these repository secrets, so no
+per-environment copies are needed.
+
+Every image-building job logs in to Docker Hub before setting up Buildx, which
+also pulls its builder image. PostgreSQL and PostGIS service containers declare
+registry credentials directly because GitHub starts services before job steps.
+Fork and Dependabot pull requests do not receive repository Actions secrets;
+their Docker Hub login step is skipped and service pulls remain anonymous.
+Those runs can still encounter Docker Hub's anonymous rate limit. Do not use
+`pull_request_target` to expose credentials to those builds.
+
+After adding or rotating the secrets, rerun failed jobs if the workflow already
+contains this authentication. Older runs use their original workflow revision;
+push the workflow fix to trigger new checks. Local `docker login` authenticates
+only the local Docker client and does not affect GitHub Actions.
+
 ### Verification on dev pushes
 
 A push to `dev` runs CI and does not deploy. Image checks select affected applications; shared packages and workspace manifests select every Node image, while unknown build inputs or unavailable Git comparisons select the full image set. Documentation and editor-only changes skip image builds. Promotion PRs to staging/main still check every image. Required workflows always report; aggregate gates reject unexpected skips or failed selection.

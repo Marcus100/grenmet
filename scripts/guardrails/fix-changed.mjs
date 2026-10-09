@@ -1,11 +1,6 @@
 #!/usr/bin/env node
-// Runs `ultracite fix` scoped to the current session's changed files, not the
-// whole repo. `pnpm fix` (repo-wide) reformats every file with a fixable
-// issue, including unrelated in-progress work — confirmed to bust turbo's
-// type-check cache for an untouched package and surface an unrelated
-// pre-existing error as if it were new. Use this for the Always-tier
-// "run pnpm fix before done" step; use `pnpm fix` only when you actually
-// want repo-wide formatting (e.g. after a dependency bump).
+// Explicitly formats all dirty/untracked files in this checkout.
+// This does not determine session ownership; never invoke it from a Stop hook.
 
 import { spawnSync } from "node:child_process";
 
@@ -13,6 +8,9 @@ function run(command, args) {
   const result = spawnSync(command, args, { encoding: "utf8" });
   if (result.error) {
     throw result.error;
+  }
+  if (result.status !== 0) {
+    throw new Error(result.stderr || `${command} failed (${result.status})`);
   }
   return result.stdout;
 }
@@ -43,4 +41,4 @@ console.log(`fix-changed: formatting ${files.length} changed file(s)...`);
 const result = spawnSync("pnpm", ["exec", "ultracite", "fix", ...files], {
   stdio: "inherit",
 });
-process.exit(result.status ?? 0);
+process.exit(result.status ?? 1);

@@ -5,7 +5,7 @@ description = ""
 requires-python = ">=3.14,<3.15"
 dependencies = [
     # Upgrade the HTTP layer together; frozen lockfile records the tested pair.
-    "fastapi[standard]>=0.141.1,<0.142.0",
+    "fastapi[standard]>=0.142.2,<0.143.0",
     "starlette>=1.7.0,<1.8.0",
     "pydantic>=2.7,<3.0.0",
     "pydantic-settings>=2.4,<3.0.0",
@@ -16,7 +16,7 @@ dependencies = [
     "psycopg[binary]>=3.3.6,<4.0.0",
     "asyncpg>=0.29.0,<1.0.0",
     "bcrypt>=4.2.0,<5.0.0",
-    "sentry-sdk[fastapi]>=2.69.2,<3.0.0",
+    "sentry-sdk[fastapi]>=2.71.0,<3.0.0",
     "pyjwt>=2.9,<3.0.0",
     "scalar-fastapi>=1.4.4",
     "slowapi>=0.1.9",
@@ -33,7 +33,7 @@ dependencies = [
     "feedparser>=6.0.12",
     "signxml>=5.0.1",
     "defusedxml>=0.7.1",
-    "stripe>=15.2.0,<16.0.0",
+    "stripe>=16.0.0,<17.0.0",
     "weasyprint>=70",
 ]
 

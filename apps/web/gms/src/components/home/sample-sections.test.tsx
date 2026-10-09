@@ -20,7 +20,7 @@ afterEach(() => {
   vi.clearAllMocks();
 });
 
-const RIP_LINK = /Beach:.*Read: What is a rip current\?/;
+const RIP_LINK = /Tourism:.*Read: What is a rip current\?/;
 const READ_MORE = /^Read:/;
 
 const home = (settings: Partial<HomeContent["settings"]>): HomeContent => ({
@@ -40,7 +40,7 @@ const home = (settings: Partial<HomeContent["settings"]>): HomeContent => ({
   },
 });
 
-it("hangs a published explainer off its activity", async () => {
+it("hangs a published explainer off its service", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(
     home({
       exploreReading: {
@@ -60,6 +60,25 @@ it("hangs a published explainer off its activity", async () => {
   expect(screen.queryAllByText(READ_MORE)).toHaveLength(1);
 });
 
+it("shows each sector's hazard and its impact level", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
+  render(await ExploreToday());
+  for (const [sector, href] of [
+    ["Tourism", "/services/tourism"],
+    ["Fisheries", "/marine/fishing"],
+    ["Aviation", "/services/aviation"],
+    ["Agriculture", "/services/agriculture"],
+    ["Construction", "/services/construction"],
+    ["Health", "/services/health"],
+  ]) {
+    expect(screen.getByText(sector).closest("a")).toHaveAttribute("href", href);
+  }
+  expect(screen.getAllByRole("img", { name: "Minor impact" })).toHaveLength(5);
+  expect(screen.getAllByRole("img", { name: "Minimal impact" })).toHaveLength(
+    1
+  );
+});
+
 it("uses the editors' wording and keeps the standard wording when blank", async () => {
   vi.mocked(fetchHomeContent).mockResolvedValue(
     home({
@@ -72,7 +91,7 @@ it("uses the editors' wording and keeps the standard wording when blank", async 
   expect(
     screen.getByRole("heading", { name: "Your day outside" })
   ).toBeInTheDocument();
-  expect(screen.getByText("Plan your day")).toBeInTheDocument();
+  expect(screen.getByText("Plan your week")).toBeInTheDocument();
   expect(screen.getByText("Plan ahead.")).toBeInTheDocument();
 });
 

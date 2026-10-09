@@ -1,6 +1,8 @@
 import {
   scrubSentryEvent,
   scrubSentryTransaction,
+  sentryDataCollection,
+  sentryIgnoredSpans,
 } from "@barrelsgd/ui/lib/sentry-privacy";
 
 // Sentry is only loaded when a DSN is configured — the client SDK stays out
@@ -16,7 +18,8 @@ if (SENTRY_ENABLED) {
       environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT ?? "development",
       release: process.env.NEXT_PUBLIC_RELEASE,
       tracesSampleRate: 0,
-      sendDefaultPii: false,
+      dataCollection: sentryDataCollection,
+      ignoreSpans: sentryIgnoredSpans,
       beforeSend: scrubSentryEvent,
       beforeSendTransaction: scrubSentryTransaction,
       debug: false,

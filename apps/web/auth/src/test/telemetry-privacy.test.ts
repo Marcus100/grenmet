@@ -1,6 +1,7 @@
 import {
   scrubSentryEvent,
   scrubSentryTransaction,
+  sentryDataCollection,
 } from "@barrelsgd/ui/lib/sentry-privacy";
 import { expect, it } from "vitest";
 
@@ -48,4 +49,20 @@ it("drops performance events until their sanitation and quota are verified", () 
     },
   });
   expect(JSON.stringify(event)).not.toContain("private");
+});
+
+it("opts out of every Sentry 11 customer-content collection category", () => {
+  expect(sentryDataCollection).toEqual({
+    userInfo: false,
+    cookies: false,
+    httpHeaders: { request: false, response: false },
+    httpBodies: [],
+    urlQueryParams: false,
+    genAI: { inputs: false, outputs: false },
+    databaseQueryData: false,
+    queues: false,
+    graphQL: { document: false, variables: false },
+    stackFrameVariables: false,
+    frameContextLines: 0,
+  });
 });

@@ -155,3 +155,62 @@ test("release callers grant registry read permission required by reusable CI", (
     }
   }
 });
+
+const DOCKERHUB_USERNAME = /username: \$\{\{ secrets\.DOCKERHUB_USERNAME \}\}/;
+const DOCKERHUB_TOKEN = /password: \$\{\{ secrets\.DOCKERHUB_TOKEN \}\}/;
+const BUILDX_STEP =
+  /\n {6}- (?:name: Set up Docker Buildx\n {8}uses: |uses: )docker\/setup-buildx-action@/;
+
+test("every CI and release builder authenticates before pulling the BuildKit image", () => {
+  for (const workflow of [
+    "ci-api.yml",
+    "ci-web.yml",
+    "build-api-image.yml",
+    "build-web-images.yml",
+    "build-weather-images.yml",
+  ]) {
+    const jobs = readWorkflow(workflow).split(NEXT_JOB);
+    let builders = 0;
+    for (const job of jobs) {
+      const setup = job.search(BUILDX_STEP);
+      if (setup < 0) continue;
+      builders += 1;
+      const login = job.indexOf("- name: Log in to Docker Hub for base images");
+      assert.ok(
+        login >= 0 && login < setup,
+        `${workflow}: authenticate before Buildx`
+      );
+      const block = job.slice(login, setup);
+      assert.ok(block.includes("registry: docker.io"), workflow);
+      assert.match(block, DOCKERHUB_USERNAME, workflow);
+      assert.match(block, DOCKERHUB_TOKEN, workflow);
+      assert.ok(!block.includes("continue-on-error:"), workflow);
+      if (workflow.startsWith("ci-")) {
+        assert.ok(
+          block.includes("github.actor != 'dependabot[bot]'"),
+          workflow
+        );
+        assert.ok(
+          block.includes(
+            "github.event.pull_request.head.repo.full_name == github.repository"
+          ),
+          workflow
+        );
+      }
+    }
+    assert.equal(builders, workflow === "ci-web.yml" ? 2 : 1, workflow);
+  }
+});
+
+test("database services authenticate during initialization before job steps run", () => {
+  for (const workflow of ["ci-api.yml", "ci-web.yml"]) {
+    const source = readWorkflow(workflow);
+    const services = source
+      .split("    services:\n")[1]
+      ?.split("    steps:\n")[0];
+    assert.ok(services, workflow);
+    assert.ok(services.includes("        credentials:\n"), workflow);
+    assert.match(services, DOCKERHUB_USERNAME, workflow);
+    assert.match(services, DOCKERHUB_TOKEN, workflow);
+  }
+});

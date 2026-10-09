@@ -3,11 +3,11 @@ import { defaultLocation } from "@/lib/locations";
 
 export const metadata = { title: "Today's forecast" };
 
-/** Today at the Weather section root: the hero. */
+/** Today at the Weather section root: the hero with today's forecast tab selected. */
 export default function TodayPage() {
   return (
     <div className="pb-12">
-      <WeatherSurface location={defaultLocation()} />
+      <WeatherSurface location={defaultLocation()} selected="today" />
     </div>
   );
 }

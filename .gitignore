@@ -237,3 +237,6 @@ notebooks/metpy/sources/
 
 # Private owner material (employment, negotiation, legal drafts) — never commit
 /private/
+
+# Local Codex chat attachments are not repository source.
+/.codex-remote-attachments/
