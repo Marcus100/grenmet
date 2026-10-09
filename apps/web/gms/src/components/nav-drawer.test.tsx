@@ -6,6 +6,12 @@ import { NAV_SECTIONS } from "@/lib/nav-sections";
 
 // The theme toggle needs the preferences provider; it has its own test.
 vi.mock("@/components/theme-toggle", () => ({ ThemeToggle: () => null }));
+// The account button fetches /auth/me; its own package tests cover that.
+vi.mock("@barrelsgd/ui/components/account-button", () => ({
+  AccountButton: ({ appLabel }: { appLabel: string }) => (
+    <button type="button">Sign in to {appLabel}</button>
+  ),
+}));
 
 const FIRST_SECTION = NAV_SECTIONS[0];
 const ALERTS_WITH_STATUS = /^Alerts\s*No active alerts/;
@@ -16,6 +22,19 @@ describe("NavDrawer", () => {
       <NavDrawer onClose={() => undefined} open={false} />
     );
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it("offers sign-in when an account is configured, and no appearance switch", () => {
+    render(<NavDrawer accountLabel="Weather" onClose={() => undefined} open />);
+    expect(
+      screen.getByRole("button", { name: "Sign in to Weather" })
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Appearance")).not.toBeInTheDocument();
+  });
+
+  it("leaves sign-in out when no account is configured", () => {
+    render(<NavDrawer onClose={() => undefined} open />);
+    expect(screen.queryByText("Your account")).not.toBeInTheDocument();
   });
 
   it("lists every top-level section", () => {
