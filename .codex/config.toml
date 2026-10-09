@@ -37,14 +37,8 @@ type = "command"
 command = 'hook_root=$(git rev-parse --show-toplevel) && node "$hook_root/.claude/hooks/protect-files.mjs"'
 timeout = 30
 
-[[hooks.Stop]]
-# This formatter includes ALL dirty/untracked files, not just session edits.
-# Keep explicit file-scoped formatting for isolated work in a shared checkout.
-[[hooks.Stop.hooks]]
-type = "command"
-# Keep formatter diagnostics on stderr; successful Stop output must be JSON.
-command = "hook_root=$(git rev-parse --show-toplevel) && cd \"$hook_root\" && pnpm fix:changed >&2 && printf '{}'"
-timeout = 60
+# Formatting is explicit or staged at commit time. Never mutate all dirty files
+# automatically on Stop: another client may own them.
 
 [[hooks.SessionStart]]
 matcher = "^(startup|resume|clear|compact)$"

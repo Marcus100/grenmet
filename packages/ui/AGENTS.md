@@ -31,7 +31,7 @@ turbo run build --filter=@barrelsgd/ui
 5. No `"use client"` unless the component truly requires browser interactivity — most primitives are server-renderable
 6. Import via the full path in consuming apps — no barrel updates needed
 
-Adding a component to `@barrelsgd/ui` requires stopping and asking first (see root `AGENTS.md` — "Creating new files in `packages/` (shared — affects all apps)").
+Shared components required by an authorized task may proceed after checking consumers under the root Blast-Radius Gate. Ask first for changes outside scope or new design tokens.
 
 ## When to use `@barrelsgd/ui` vs a local component
 
@@ -63,5 +63,5 @@ Run `pnpm design-system:audit` to find drift. For the full token reference — `
 | `forwardRef` on a new component | Pass `ref` as a prop directly (React 19) |
 | Hardcoded hex/px values that exist in the token set | Use `--gm-*` CSS variables or their Tailwind aliases |
 | `"use client"` on a primitive that has no browser dependencies | Remove it — default to server-renderable |
-| Promoting an app-specific component to `@barrelsgd/ui` without asking | Stop and ask — shared packages affect all apps |
+| Promoting an app-specific component without checking consumers | Verify reuse, scope and the root Blast-Radius Gate |
 | A4/PDF sizing or `font-gm-document` in a shared primitive | Keep document-lane typography in app-local document templates only |

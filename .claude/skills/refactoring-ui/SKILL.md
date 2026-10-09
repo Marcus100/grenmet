@@ -49,4 +49,4 @@ These are the ones most likely to be violated by a plausible-looking first draft
 
 ## Where this fits
 
-`/design` produces the canvas, `/ui-check` compares an implementation against it, `pnpm design-system:check` guards the token contract. This skill is the judgment layer under all three: it tells you *what* to change; those tools tell you *whether the change is on-system*.
+A supplied design reference or available design workflow produces the canvas; `/ui-check` compares an implementation against it, `pnpm design-system:check` guards the token contract. This skill is the judgment layer under all three: it tells you *what* to change; those tools tell you *whether the change is on-system*.
