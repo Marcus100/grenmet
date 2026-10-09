@@ -48,15 +48,15 @@ When exploring the codebase, read `CONTEXT.md` (if it exists) so that test names
 
 Before writing any code:
 
-- [ ] Confirm with user what interface changes are needed
-- [ ] Confirm with user which behaviors to test (prioritize)
+- [ ] Establish interface changes from the authorized task; ask only about unresolved decisions
+- [ ] Prioritize observable behaviors from requirements and affected consumers
 - [ ] Identify opportunities for deep modules (small interface, deep implementation) — run the `/codebase-design` skill for the vocabulary and the testability checks
 - [ ] List the behaviors to test (not implementation steps)
-- [ ] Get user approval on the plan
+- [ ] Proceed within existing authorization; apply AGENTS.md Ask First boundaries
 
-Ask: "What should the public interface look like? Which behaviors are most important to test?"
+Ask about the interface or behavior only when material requirements are missing.
 
-**You can't test everything.** Confirm with the user exactly which behaviors matter most. Focus testing effort on critical paths and complex logic, not every possible edge case.
+**You can't test everything.** Use the agreed requirements to identify the behaviors that matter most. Focus testing effort on critical paths and complex logic, not every possible edge case.
 
 ### 2. Tracer Bullet
 

@@ -13,4 +13,4 @@ Kubb-generated TypeScript client for FastAPI. **`src/gen/` is generated and comm
 - Server Components call the fetch clients directly. Hooks are for client-side mutations and polling.
 - Operation IDs are stable and domain-prefixed (`capGetAlert`, `hrCreateLeaveRequest`). Renaming one is a breaking change for every consumer — grep before renaming.
 
-Only `src/configure.ts`, `src/index.ts`, and `kubb.config.ts` are hand-written. Changing them is Ask First (shared package).
+Only `src/configure.ts`, `src/index.ts`, and `kubb.config.ts` are hand-written. Changes required by an authorized task may proceed with the root Blast-Radius Gate; ask first for breaking contracts or work outside scope.

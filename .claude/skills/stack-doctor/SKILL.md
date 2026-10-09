@@ -21,14 +21,14 @@ Run the check script first, then interpret:
   devcontainer there is no docker CLI and services are reached via
   `host.docker.internal` — that is normal, not a failure.
 - **Docker daemon**: on the host, Docker Desktop is THE daemon; the native
-  `dockerd` was deliberately disabled after a split-brain incident. If
-  `docker context show` is not `desktop-linux` or containers appear duplicated,
-  suspect the native daemon has been re-enabled — flag it, don't fix it.
+  `dockerd` was deliberately disabled after a split-brain incident. Confirm
+  server identity with `docker info`; WSL can legitimately use the `default`
+  context for Docker Desktop. Flag an active native daemon or unreachable server.
 - **Ports**: expected listeners come from `docs/ports.md` (single source of
   truth). A missing web-app port usually just means that dev server isn't
   running — only flag it if the user expected it up. A port held by an
   unexpected process is the real finding: name the process.
-- **Toolchain**: expect Node 24.x and pnpm 10.33.2 via corepack. Mismatches
+- **Toolchain**: expect Node 24.x and the `packageManager` pnpm pin from root `package.json` via corepack. Mismatches
   cause subtle lockfile and build skew.
 - **WSL2 memory**: low MemTotal means `.wslconfig` limits — a host-side file the
   user must edit from Windows (`%UserProfile%\.wslconfig`), then `wsl --shutdown`.

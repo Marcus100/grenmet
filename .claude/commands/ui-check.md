@@ -15,8 +15,7 @@ Ask the user for:
 - The component file path (or "new component" if creating from scratch)
 - Target viewport(s): mobile (375px), desktop (1280px), or both
 
-Do not proceed until you have all three. If the user has no reference yet, offer
-to build one first with the `/design` skill.
+Do not proceed until you have all three. If the user has no reference yet, establish intent from the existing design lane and the user's description; use an available design skill if useful.
 
 **Step 2 — Establish the design intent**
 From the reference, write down the intended colors, typography (size, weight,
@@ -41,7 +40,7 @@ discrepancy:
 Present this list to the user. Do not edit files yet.
 
 **Step 4 — Propose changes**
-Show the proposed code changes. Wait for the user to approve before editing.
+For an implementation request, apply changes within the authorized scope. For a review-only request, show proposed changes without editing; existing authorization counts.
 Flag separately any change that would need a new or altered `--gm-*` token.
 
 **Step 5 — Apply and hand off**
