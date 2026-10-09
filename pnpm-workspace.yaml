@@ -104,7 +104,7 @@ catalog:
   topojson-client: "^3.1.0"
   react-hook-form: ^7.89.0
   "@hookform/resolvers": "^5.9.1"
-  "@fullcalendar/react": "^7.1.0"
+  "@fullcalendar/react": "^7.1.1"
   "@types/d3-geo": "^3.1.0"
   "@types/topojson-client": "^3.1.5"
   "@types/geojson": "^7946.0.16"
@@ -163,7 +163,7 @@ catalog:
   "@sentry/nextjs": ^11.4.0
 
   # Analytics
-  "posthog-js": ^1.435.8
+  "posthog-js": ^1.438.1
   "posthog-node": ^5.55.0
 
   # Testing
