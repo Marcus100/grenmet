@@ -6,7 +6,8 @@ Port **3003**. Public weather dashboard for Spice Island (Grenada) — daily for
 
 ## Auth pattern
 
-"Sign in" with the Barrels account (ADR-0017): `AccountButton` in the main bar,
+"Sign in" with the Barrels account (ADR-0017): `AccountButton` in the main bar
+on desktop and in the nav drawer on phones and tablets,
 routes `src/app/auth/{start,callback,me,logout}`, config `src/lib/auth-config.ts`
 (registry key `weather`). Off until `WEATHER_SSO_CLIENT_SECRET` is set. The
 button loads the account in the browser (`/auth/me`), so pages stay static.
@@ -71,13 +72,17 @@ src/app/
   sections carry no notice, and the sky hero fills fields FastAPI does not
   carry yet from `src/lib/hero-samples.ts` (only inside a real reading or
   issued day, never during an outage). Delete a sample once FastAPI supplies it.
-- **Home hero:** Now card beside five day tabs (stacked on phones); each tab
-  links to its dated route and the selected day's panel sits inside the hero
-  (`SkyHero selected=`). Readings are icon · value · label rows
-  (`lib/hero-readings.ts`). No provenance chips or issue tabs (owner, 30 Sep
-  2026); a reading over 3 h old still says "Last observed". No other hero
-  tabs (Marine tab removed 30 Sep 2026; marine lives at `/marine`). The website has no bottom tab bar;
-  `MobileTabBar` is kept for the app.
+- **Home hero:** table layout at every width (9 Oct 2026): a Now tab, then five
+  day tabs, then the selected tab's panel inside the hero (`SkyHero selected=`).
+  Now is selected on `/`; dated routes select their day, `/weather` selects
+  today. Phones show a picture card for the selected tab above a strip whose
+  first column is Now; wider screens put the Now card beside the day tabs.
+  Panels share `ReadingGrid` (`components/home/reading-grid.tsx`, items from
+  `lib/hero-readings.ts`). Forecast panels carry max/min only, no feels like
+  or UV. No provenance chips or issue tabs (owner, 30 Sep 2026); a reading over
+  3 h old still says "Last observed". No other hero tabs (marine lives at
+  `/marine`). The website has no bottom tab bar; `MobileTabBar` is kept for
+  the app.
 - **Bold sky:** the sky gradient and `bg-gm-scrim` are for the home hero only;
   see `docs/design/gms.md`.
 - **Locations:** places live in `src/lib/locations.ts`, keyed internally by airport
@@ -92,7 +97,7 @@ src/app/
   `src/lib/search.ts`. New menu pages are searchable automatically.
 - **Dark mode:** `<html class="gm-site">` scopes the GMS dark palette; the theme
   follows the device via `@barrelsgd/theme` (`ThemeBootScript` defaults to
-  `system`, `ThemeToggle` in the utility bar and drawer). Headings use
+  `system`, `ThemeToggle` in the main bar beside search and the alert pill). Headings use
   `text-gm-heading`, not `text-gm-navy`; printable products sit in `.gm-paper`.
 
 ## Key dependencies (unique to this app)
@@ -105,3 +110,13 @@ src/app/
 - Forecast days come from the FastAPI public forecast (`src/lib/weather-snapshot.ts`); `src/lib/forecast-days.ts` maps them to `/weather/YYYY/MM/DD`.
 - `src/lib/utils.ts` contains date utilities shared across components.
 - Interactive components use Base UI primitives (`@base-ui/react`, via `@barrelsgd/ui` where wrapped): the mega menu, drawer accordion.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

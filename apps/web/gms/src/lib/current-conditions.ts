@@ -11,6 +11,8 @@ export interface CurrentConditions {
   /** Relative humidity, %; feeds the feels-like figure. */
   humidity: number | null;
   observedAt: string;
+  /** Pressure tendency over three hours, when the observer recorded one. */
+  pressureTrend: "falling" | "rising" | "steady" | null;
   /** Four headline readings: wind, pressure, rain, humidity. */
   primary: Condition[];
   provisional: boolean;
@@ -89,6 +91,7 @@ export function currentConditions(o: PublicObservation): CurrentConditions {
     extra,
     humidity: o.relative_humidity ?? null,
     observedAt: o.observed_at,
+    pressureTrend: o.pressure_trend ?? null,
     primary,
     provisional: o.status !== "accepted",
     temperature: o.temperature_c ?? null,

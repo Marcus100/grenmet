@@ -110,11 +110,11 @@ catalog:
   "@types/geojson": "^7946.0.16"
 
   # Tables — admin-gms (data tables + virtualised lists)
-  "@tanstack/react-table": "^9.2.5"
+  "@tanstack/react-table": "^9.2.6"
   "@tanstack/react-virtual": "^3.13.17"
 
   # Animation — motion (successor to framer-motion); import from "motion/react"
-  motion: ^13.4.0
+  motion: ^14.0.0
 
   # Types
   "@types/node": ^26.6.4
@@ -160,7 +160,7 @@ catalog:
   "react-day-picker": "^10.0.2"
 
   # Error tracking
-  "@sentry/nextjs": ^10.75.0
+  "@sentry/nextjs": ^11.4.0
 
   # Analytics
   "posthog-js": ^1.435.8

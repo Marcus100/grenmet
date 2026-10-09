@@ -1,0 +1,102 @@
+name: Diagnose Docker Hub
+
+# Optional network diagnostics; this workflow is not a release gate.
+# A dev push changing this file runs it before it is available on main for dispatch.
+on:
+  workflow_dispatch:
+  push:
+    branches: [dev]
+    paths: [.github/workflows/diagnose-dockerhub.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    name: Docker Hub connectivity (${{ matrix.runner }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [ubuntu-24.04, ubuntu-22.04]
+    steps:
+      - name: Docker and DNS environment
+        run: |
+          docker version
+          getent ahosts auth.docker.io
+          getent ahosts registry-1.docker.io
+
+      - name: Compare unauthenticated network paths
+        continue-on-error: true
+        run: |
+          for family in -4 -6; do
+            echo "Network family: $family"
+            curl "$family" --silent --show-error --max-time 15 --output /dev/null \
+              --write-out 'registry HTTP=%{http_code} peer=%{remote_ip} seconds=%{time_total}\n' \
+              https://registry-1.docker.io/v2/ || true
+            curl "$family" --silent --show-error --max-time 15 --output /dev/null \
+              --write-out 'token HTTP=%{http_code} peer=%{remote_ip} seconds=%{time_total}\n' \
+              'https://auth.docker.io/token?service=registry.docker.io&scope=repository:library/node:pull' || true
+          done
+
+      - name: Compare authenticated token requests without Docker
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import base64
+          import json
+          import os
+          import time
+          from urllib.error import HTTPError, URLError
+          from urllib.parse import urlencode
+          from urllib.request import Request, urlopen
+
+          username = os.environ["DOCKERHUB_USERNAME"]
+          secret = os.environ["DOCKERHUB_TOKEN"]
+          if not username or not secret:
+              raise SystemExit("Required Docker Hub secrets are missing")
+          auth = base64.b64encode(f"{username}:{secret}".encode()).decode()
+          requests = {
+              "docker-login": {
+                  "account": username,
+                  "client_id": "docker",
+                  "offline_token": "true",
+                  "service": "registry.docker.io",
+              },
+              "image-pull": {
+                  "account": username,
+                  "scope": "repository:library/node:pull",
+                  "service": "registry.docker.io",
+              },
+          }
+          for label, query in requests.items():
+              request = Request(
+                  "https://auth.docker.io/token?" + urlencode(query),
+                  headers={"Authorization": "Basic " + auth},
+              )
+              started = time.monotonic()
+              result = {"probe": label}
+              try:
+                  with urlopen(request, timeout=20) as response:
+                      payload = json.load(response)
+                      result["http_status"] = response.status
+                      result["token_received"] = bool(payload.get("token") or payload.get("access_token"))
+              except HTTPError as error:
+                  result["http_status"] = error.code
+                  error.close()
+              except (URLError, TimeoutError) as error:
+                  result["error_type"] = type(error).__name__
+              result["seconds"] = round(time.monotonic() - started, 3)
+              # Never print the request, response body, Authorization header, or tokens.
+              print(json.dumps(result), flush=True)
+          PY
+
+      - name: Test the exact CI Docker login action
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}

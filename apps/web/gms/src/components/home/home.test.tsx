@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { ExploreToday, GrenadaInData } from "@/components/home/sample-sections";
 import { SkyHero } from "@/components/home/sky-hero";
@@ -60,13 +60,16 @@ describe("WarningTakeover", () => {
 
 describe("SkyHero", () => {
   it("leads with the latest observation and today's issued figures", () => {
-    render(<SkyHero weather={REFERENCE_WEATHER} />);
+    render(<SkyHero selected="today" weather={REFERENCE_WEATHER} />);
     const hero = screen.getByRole("region", { name: HERO_NAME });
     expect(within(hero).getByRole("heading", { level: 1 })).toHaveTextContent(
       "MBIA"
     );
     expect(within(hero).queryByText(STATION_NAME)).not.toBeInTheDocument();
-    expect(within(hero).getByText("32°", { exact: false })).toBeInTheDocument();
+    expect(within(hero).getByText("Your spice weather")).toBeVisible();
+    expect(
+      within(hero).getAllByText("32°", { exact: false }).length
+    ).toBeGreaterThan(0);
     expect(
       within(hero).getByText(REFERENCE_WEATHER.days[0].summary)
     ).toBeInTheDocument();
@@ -77,8 +80,14 @@ describe("SkyHero", () => {
 
   it("says so when there is no observation or forecast", () => {
     render(<SkyHero weather={unavailableWeather()} />);
-    expect(screen.getByText("No current observation")).toBeInTheDocument();
-    expect(screen.getByText("No current temperature")).toBeInTheDocument();
+    expect(
+      screen.getAllByText("No current observation").length
+    ).toBeGreaterThan(0);
+    expect(
+      screen.getAllByText("No current temperature").length
+    ).toBeGreaterThan(0);
+    cleanup();
+    render(<SkyHero selected="today" weather={unavailableWeather()} />);
     expect(screen.getByText("Forecast unavailable")).toBeInTheDocument();
   });
 });
@@ -97,7 +106,8 @@ describe("sample sections", () => {
     expect(screen.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
       "Satellite",
       "Radar",
-      "Rainfall",
+      "Wind",
+      "Seas",
       "Audio",
       "Video",
     ]);

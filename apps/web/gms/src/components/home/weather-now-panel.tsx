@@ -5,8 +5,9 @@ import {
   type LucideIcon,
   RadarIcon,
   SatelliteDishIcon,
-  UmbrellaIcon,
   VideoIcon,
+  WavesIcon,
+  WindIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { useId, useState } from "react";
@@ -23,7 +24,7 @@ export interface MediaItem {
   title: string;
 }
 
-type TabKey = "satellite" | "radar" | "rainfall" | "audio" | "video";
+type TabKey = "satellite" | "radar" | "wind" | "seas" | "audio" | "video";
 
 interface TabDef {
   href: string;
@@ -50,11 +51,18 @@ const TABS: TabDef[] = [
     pending: "Radar imagery will appear here once its feed is connected.",
   },
   {
-    key: "rainfall",
-    label: "Rainfall",
-    Icon: UmbrellaIcon,
-    href: "/weather/rainfall",
-    pending: "Station rainfall will appear here once its feed is connected.",
+    key: "wind",
+    label: "Wind",
+    Icon: WindIcon,
+    href: "/weather/conditions",
+    pending: "Wind across Grenada will appear here once its feed is connected.",
+  },
+  {
+    key: "seas",
+    label: "Seas",
+    Icon: WavesIcon,
+    href: "/marine/sea-conditions",
+    pending: "Sea conditions will appear here once their feed is connected.",
   },
   {
     key: "audio",
@@ -66,7 +74,7 @@ const TABS: TabDef[] = [
 ];
 
 /**
- * The big Weather now panel: five tabs that swap the panel in place, each
+ * The big Weather now panel: six tabs that swap the panel in place, each
  * with a link to its full page. Imagery is FastAPI data; Audio and Video
  * play CMS live posts. Nothing loads from YouTube, Facebook or SoundCloud
  * until the reader opens that tab.
@@ -89,7 +97,7 @@ export function WeatherNowPanel({
     <div className="flex flex-col overflow-hidden rounded-gm-card bg-gm-navy text-gm-text-inverse">
       <div
         aria-label="Weather now"
-        className="grid grid-cols-5 gap-1 p-1.5 sm:flex sm:p-2"
+        className="grid grid-cols-6 gap-0.5 p-1 sm:flex sm:gap-1 sm:p-2"
         role="tablist"
       >
         {TABS.map(({ key, label, Icon }) => (
@@ -97,7 +105,7 @@ export function WeatherNowPanel({
             aria-controls={`${baseId}-panel`}
             aria-selected={tab === key}
             className={cn(
-              "flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 rounded-md px-1 py-1.5 font-semibold text-caption leading-caption hover:bg-gm-text-inverse/10 sm:flex-row sm:gap-1.5 sm:whitespace-nowrap sm:px-3 sm:py-2 sm:text-body sm:leading-body",
+              "flex min-h-11 min-w-0 flex-col items-center justify-center gap-0.5 rounded-md px-0.5 py-1.5 font-semibold text-caption leading-caption hover:bg-gm-text-inverse/10 sm:flex-row sm:gap-1.5 sm:whitespace-nowrap sm:px-3 sm:py-2 sm:text-body sm:leading-body",
               tab === key &&
                 "bg-gm-text-inverse/15 ring-2 ring-gm-lime ring-inset"
             )}
