@@ -6,12 +6,16 @@ import { currentConditions } from "@/lib/current-conditions";
 import type { ForecastDayData, WeatherSnapshot } from "@/lib/forecast-data";
 import { REFERENCE_WEATHER } from "@/lib/forecast-data";
 import { unavailableWeather } from "@/lib/forecast-selection";
-import { dayReadings, nowReadings, rainChance } from "@/lib/hero-readings";
+import {
+  dayReadings,
+  nowReadings,
+  rainChance,
+  skyFromWords,
+} from "@/lib/hero-readings";
 import { SAMPLE_DAYS, SAMPLE_NOW } from "@/lib/hero-samples";
 
 const FEELS_LIKE = /^Feels like \d+°$/;
-const OBSERVED_CHIP = /^Observed/;
-const RAIN_LABEL = /% rain/;
+const CHANCE_OF_RAIN = /chance of rain/;
 const OBSERVED_AT = "2026-09-29T17:00:00Z"; // 13:00 AST
 const reading: PublicObservation = {
   station_id: "78958",
@@ -75,105 +79,156 @@ const at = (iso: string) => new Date(iso);
 /** The big numeral reads "31°C" to screen readers. */
 const numeral = (text: string) => (_: string, element: Element | null) =>
   element?.tagName === "P" && element.textContent === text;
-const nowCard = () =>
+const tabs = () =>
+  within(
+    screen.getByRole("navigation", { name: "Forecast days" })
+  ).getAllByRole("link");
+const nowPanel = () =>
   screen.getByRole("region", { name: "Current conditions" });
 const panel = () => screen.getByRole("region", { name: "Forecast details" });
+const terms = (region: HTMLElement) =>
+  within(region)
+    .getAllByRole("term")
+    .map((term) => term.textContent);
 
-describe("Now card", () => {
-  it("shows the register reading with feels-like and no provenance chip", () => {
+describe("Now", () => {
+  it("is selected by default and shows the register reading", () => {
     render(<SkyHero now={at("2026-09-29T17:12:00Z")} weather={weather()} />);
-    const card = nowCard();
-    expect(within(card).getByText(numeral("31°C"))).toBeInTheDocument();
-    expect(within(card).getByText("Light shower")).toBeInTheDocument();
-    expect(within(card).getByText(FEELS_LIKE)).toBeInTheDocument();
-    expect(within(card).getByText("ENE 16 mph")).toBeInTheDocument();
-    expect(within(card).queryByText("14 kt")).not.toBeInTheDocument();
-    expect(within(card).queryByText(OBSERVED_CHIP)).not.toBeInTheDocument();
-    expect(within(card).getByText("More readings (4)")).toBeInTheDocument();
+    expect(screen.getAllByText(numeral("31°C")).length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Light shower").length).toBeGreaterThan(0);
+    expect(screen.getAllByText(FEELS_LIKE).length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Observed 13:00 · MBIA").length).toBeGreaterThan(
+      0
+    );
+    expect(
+      screen
+        .getAllByRole("link", { current: "page" })
+        .every((link) => link.getAttribute("href") === "/")
+    ).toBe(true);
+    expect(within(nowPanel()).getByText("ENE 16 mph")).toBeInTheDocument();
+    expect(within(nowPanel()).queryByText("14 kt")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("region", { name: "Forecast details" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("lists every reading in pairs, ending with air quality", () => {
+    render(<SkyHero weather={weather()} />);
+    expect(terms(nowPanel())).toEqual([
+      "Wind",
+      "Gusts",
+      "Humidity",
+      "Dew point",
+      "Pressure",
+      "Visibility",
+      "Cloud cover",
+      "UV index",
+      "Rain",
+      "Air quality",
+    ]);
+    expect(within(nowPanel()).getByText(", rising")).toBeInTheDocument();
+    expect(within(nowPanel()).getByText("Mostly cloudy")).toBeInTheDocument();
   });
 
   it("says when an old reading was taken", () => {
     render(<SkyHero now={at("2026-09-29T21:00:00Z")} weather={weather()} />);
-    expect(within(nowCard()).getByText("Last observed 13:00")).toBeVisible();
+    expect(
+      screen.getAllByText("Last observed 13:00 · MBIA").length
+    ).toBeGreaterThan(0);
   });
 
   it("falls back to the midday product temperature, labelled as such", () => {
     render(<SkyHero weather={weather({ current: null })} />);
-    expect(within(nowCard()).getByText("Midday reading")).toBeInTheDocument();
-    expect(within(nowCard()).getByText(numeral("32°C"))).toBeInTheDocument();
-    expect(within(nowCard()).queryByRole("term")).not.toBeInTheDocument();
+    expect(screen.getAllByText("Midday reading").length).toBeGreaterThan(0);
+    expect(screen.getAllByText(numeral("32°C")).length).toBeGreaterThan(0);
+    expect(within(nowPanel()).queryByRole("term")).not.toBeInTheDocument();
   });
 });
 
 describe("Day tabs", () => {
-  it("links five days and marks today when nothing else is selected", () => {
+  it("links each day to its dated route, today included", () => {
     render(<SkyHero weather={weather()} />);
-    const tabs = within(
-      screen.getByRole("navigation", { name: "Forecast days" })
-    ).getAllByRole("link");
-    expect(tabs).toHaveLength(5);
-    expect(tabs[0]).toHaveAttribute("aria-current", "page");
-    expect(tabs[0]).toHaveAttribute("href", "/");
-    expect(tabs[1]).toHaveAttribute("href", "/weather/2026/09/09");
-    expect(tabs[0]).toHaveTextContent("20% rain");
+    const links = tabs();
+    expect(links).toHaveLength(6);
+    expect(links[0]).toHaveTextContent("Now");
+    expect(links[1]).toHaveAttribute("href", "/weather/2026/09/08");
+    expect(links[1]).toHaveTextContent("Tue");
+    expect(links[1]).toHaveTextContent("20% chance of rain");
+    expect(links[2]).toHaveAttribute("href", "/weather/2026/09/09");
   });
 
-  it("shows the selected day's forecast in the panel", () => {
+  it("shows the selected day's forecast instead of the readings", () => {
     render(<SkyHero selected="2026-09-09" weather={weather()} />);
-    const tabs = within(
-      screen.getByRole("navigation", { name: "Forecast days" })
-    ).getAllByRole("link");
-    expect(tabs[1]).toHaveAttribute("aria-current", "page");
-    expect(tabs[0]).not.toHaveAttribute("aria-current");
+    expect(tabs()[2]).toHaveAttribute("aria-current", "page");
+    expect(tabs()[0]).not.toHaveAttribute("aria-current");
     expect(
       within(panel()).getByText(REFERENCE_WEATHER.days[1].summary)
     ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("region", { name: "Current conditions" })
+    ).not.toBeInTheDocument();
+  });
+
+  it("selects today's forecast for `today`", () => {
+    render(<SkyHero selected="today" weather={weather()} />);
+    expect(tabs()[1]).toHaveAttribute("aria-current", "page");
+    expect(within(panel()).getByText("Midday words")).toBeInTheDocument();
+  });
+
+  it("falls back to Now for a date outside the five days", () => {
+    render(<SkyHero selected="2026-12-25" weather={weather()} />);
+    expect(nowPanel()).toBeInTheDocument();
   });
 });
 
 describe("Day panel", () => {
-  it("leads with the periods and words, then the reading rows", () => {
-    render(<SkyHero weather={weather()} />);
+  it("leads with the words, then the forecast items in pairs", () => {
+    render(<SkyHero selected="today" weather={weather()} />);
     expect(within(panel()).getByText("Midday words")).toBeInTheDocument();
-    expect(within(panel()).getAllByRole("listitem")).toHaveLength(3);
-    expect(
-      within(panel())
-        .getAllByRole("term")
-        .map((term) => term.textContent)
-    ).toEqual([
-      "Chance of rain",
+    expect(terms(panel())).toEqual([
       "Wind",
       "Gusts",
-      "Seas, moderate",
-      "High tide",
-      "Low tide",
+      "Chance of rain",
+      "Rainfall",
+      "Humidity",
+      "Cloud cover",
+      "Seas",
+      "Swell",
       "Sunrise",
       "Sunset",
+      "High tides",
+      "Low tides",
+      "Visibility",
+      "Air quality",
     ]);
+    expect(within(panel()).queryByText("Feels like")).not.toBeInTheDocument();
+    expect(within(panel()).queryByText("UV index")).not.toBeInTheDocument();
   });
 
   it("shows only the feed's words for a day with nothing issued", () => {
-    render(<SkyHero weather={unavailableWeather()} />);
+    render(<SkyHero selected="today" weather={unavailableWeather()} />);
     expect(within(panel()).getByText("Forecast unavailable")).toBeVisible();
     expect(within(panel()).queryByRole("term")).not.toBeInTheDocument();
-    expect(screen.queryByText(RAIN_LABEL)).not.toBeInTheDocument();
+    expect(screen.queryByText(CHANCE_OF_RAIN)).not.toBeInTheDocument();
   });
 });
 
 describe("hero readings", () => {
-  it("prefers issued values and keeps one tide of each kind", () => {
+  it("prefers issued values and keeps every tide time", () => {
+    const rows = dayReadings(issued(), 0);
     const values = Object.fromEntries(
-      dayReadings(issued(), 0).map((row) => [row.label, row.value])
+      rows.map((row) => [row.label, row.value])
     );
     expect(values).toMatchObject({
       "Chance of rain": "20%",
       Wind: "ENE 12–25 mph",
       Gusts: "35 mph",
-      "Seas, moderate": "1.5–2.0 m",
-      "High tide": "04:12",
-      "Low tide": "10:20",
+      Seas: "1.5–2.0 m",
+      "High tides": "04:12 · 16:30",
+      "Low tides": "10:20",
       Sunrise: "05:58",
     });
+    expect(rows.find((row) => row.label === "Seas")?.detail).toBe("Moderate");
   });
 
   it("fills gaps in an issued day from the samples", () => {
@@ -183,7 +238,8 @@ describe("hero readings", () => {
     );
     expect(values["Chance of rain"]).toBe(`${SAMPLE_DAYS[2].rainChance}%`);
     expect(values.Gusts).toBe(SAMPLE_DAYS[2].gusts);
-    expect(values["High tide"]).toBe(SAMPLE_DAYS[2].highTide);
+    expect(values["High tides"]).toBe(SAMPLE_DAYS[2].highTides);
+    expect(values.Rainfall).toBe(SAMPLE_DAYS[2].rainfall);
   });
 
   it("never invents a forecast for an outage", () => {
@@ -192,21 +248,29 @@ describe("hero readings", () => {
     expect(rainChance(outage, 0)).toBeNull();
   });
 
-  it("puts wind, humidity, rain and air quality first on the Now card", () => {
-    const { extra, primary } = nowReadings(currentConditions(reading));
-    expect(primary.map((row) => row.label)).toEqual([
-      "Wind",
-      "Humidity",
-      "Rain, last 3 h",
-      "Air quality",
-    ]);
-    expect(primary[3].value).toBe(`${SAMPLE_NOW.airQuality.index} AQI`);
-    expect(extra.map((row) => row.label)).toEqual([
-      "Gusts",
-      "Dew point",
-      "Pressure",
-      "Visibility",
-    ]);
+  it("takes register values first and samples only for gaps", () => {
+    const rows = nowReadings(currentConditions(reading));
+    const byLabel = Object.fromEntries(rows.map((row) => [row.label, row]));
+    expect(byLabel.Pressure).toMatchObject({
+      trend: "rising",
+      value: "1014.2 hPa",
+    });
+    expect(byLabel.Rain.value).toBe("0.4 mm");
+    expect(byLabel["UV index"].value).toBe(SAMPLE_NOW.uvIndex);
+    expect(byLabel["Air quality"]).toMatchObject({
+      tag: SAMPLE_NOW.airQuality.level,
+      value: `${SAMPLE_NOW.airQuality.index} AQI`,
+    });
+  });
+
+  it.each([
+    ["Light shower", "showers"],
+    ["Sunny intervals", "partly-cloudy"],
+    ["Fair", "sunny"],
+    ["Mostly cloudy", "cloudy"],
+    [null, "cloudy"],
+  ] as const)("draws %s as %s", (words, sky) => {
+    expect(skyFromWords(words)).toBe(sky);
   });
 });
 

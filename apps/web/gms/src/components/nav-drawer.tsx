@@ -1,5 +1,6 @@
 "use client";
 
+import { AccountButton } from "@barrelsgd/ui/components/account-button";
 import { Accordion } from "@base-ui/react/accordion";
 import {
   AnchorIcon,
@@ -11,7 +12,6 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect } from "react";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { type AlertsResult, alertsLevel, alertsSummary } from "@/lib/cap";
 import { menuSheet } from "@/lib/motion";
 import { NAV_SECTIONS } from "@/lib/nav-sections";
@@ -26,6 +26,8 @@ const QUICK_LINKS = [
 ] as const;
 
 interface NavDrawerProps {
+  /** Shows "Sign in" with the Barrels account (ADR-0017) when configured. */
+  accountLabel?: string;
   /** Live warning status, shown as a tag on the Alerts section. */
   alerts?: AlertsResult;
   onClose: () => void;
@@ -34,7 +36,13 @@ interface NavDrawerProps {
   top?: number;
 }
 
-export function NavDrawer({ alerts, open, onClose, top = 0 }: NavDrawerProps) {
+export function NavDrawer({
+  accountLabel,
+  alerts,
+  open,
+  onClose,
+  top = 0,
+}: NavDrawerProps) {
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     const onKey = (event: KeyboardEvent) => {
@@ -172,12 +180,14 @@ export function NavDrawer({ alerts, open, onClose, top = 0 }: NavDrawerProps) {
                   </div>
                 ))}
               </Accordion.Root>
-              <div className="flex flex-col gap-2 border-gm-border border-t px-6 pt-5">
-                <p className="font-bold text-gm-text-muted text-label uppercase leading-label tracking-wider">
-                  Appearance
-                </p>
-                <ThemeToggle tone="drawer" />
-              </div>
+              {accountLabel ? (
+                <div className="flex flex-col gap-2 border-gm-border border-t px-6 pt-5">
+                  <p className="font-bold text-gm-text-muted text-label uppercase leading-label tracking-wider">
+                    Your account
+                  </p>
+                  <AccountButton appLabel={accountLabel} />
+                </div>
+              ) : null}
             </nav>
           </div>
         </motion.div>

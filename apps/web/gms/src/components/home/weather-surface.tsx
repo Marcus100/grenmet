@@ -19,7 +19,7 @@ export async function WeatherSurface({
   /** Extra hero rows, forwarded to `SkyHero`. */
   children?: React.ReactNode;
   location: SiteLocation;
-  /** `YYYY-MM-DD` of the day in the hero's panel; defaults to today. */
+  /** `YYYY-MM-DD` of the day in the hero's panel, or `today`; Now when omitted. */
   selected?: string;
 }) {
   const [alerts, national] = await Promise.all([
