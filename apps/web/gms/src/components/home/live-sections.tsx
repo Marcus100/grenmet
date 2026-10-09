@@ -384,33 +384,35 @@ export function GetAlertsStrip() {
       className="bg-background pt-3 pb-4 lg:pt-4 lg:pb-6"
     >
       <div className="mx-auto max-w-6xl px-4 sm:px-6 xl:px-8">
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-gm-card bg-gm-navy px-4 py-3 text-gm-text-inverse">
-          <BellIcon
-            aria-hidden="true"
-            className="size-5 shrink-0 text-gm-lime"
-          />
-          <div className="min-w-0 flex-1">
-            <h2
-              className="font-bold text-body-base leading-body-base"
-              id="get-alerts-title"
-            >
-              Get official alerts first
-            </h2>
-            <p className="hidden text-body-sm text-gm-text-inverse/85 leading-body-sm sm:block">
-              The GMS app sends alerts the moment we issue them, or choose
-              WhatsApp, email or a feed.
-            </p>
+        <div className="flex flex-col gap-3 rounded-gm-card bg-gm-navy px-4 py-4 text-gm-text-inverse sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-2 sm:py-3">
+          <div className="flex min-w-0 flex-1 items-center justify-center gap-3 sm:justify-start sm:gap-4">
+            <BellIcon
+              aria-hidden="true"
+              className="size-5 shrink-0 text-gm-lime"
+            />
+            <div className="min-w-0 sm:flex-1">
+              <h2
+                className="font-bold text-body-base leading-body-base"
+                id="get-alerts-title"
+              >
+                Get official alerts first
+              </h2>
+              <p className="hidden text-body-sm text-gm-text-inverse/85 leading-body-sm sm:block">
+                The GMS app sends alerts the moment we issue them, or choose
+                WhatsApp, email or a feed.
+              </p>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
             <Link
-              className="flex h-11 items-center gap-2 rounded-md bg-gm-lime px-4 font-bold text-body text-gm-navy leading-body"
+              className="flex h-11 items-center justify-center gap-2 rounded-md bg-gm-lime px-4 font-bold text-body text-gm-navy leading-body"
               href="/app-guide"
             >
               <SmartphoneIcon aria-hidden="true" className="size-4" />
               Get the app
             </Link>
             <Link
-              className="flex h-11 items-center rounded-md border border-gm-text-inverse/30 px-3 font-semibold text-body-sm leading-body-sm hover:bg-gm-text-inverse/10"
+              className="flex h-11 items-center justify-center rounded-md border border-gm-text-inverse/30 px-3 font-semibold text-body-sm leading-body-sm hover:bg-gm-text-inverse/10"
               href="/alerts/get-alerts"
             >
               Other channels

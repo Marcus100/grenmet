@@ -1,10 +1,14 @@
 import {
+  DropletIcon,
   FishIcon,
-  FootprintsIcon,
-  MoonIcon,
-  SailboatIcon,
+  HardHatIcon,
+  HeartPulseIcon,
+  type LucideIcon,
+  PalmtreeIcon,
+  PlaneIcon,
   SproutIcon,
-  UmbrellaIcon,
+  SunIcon,
+  WavesIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { HOME_CARD, HomeSection } from "@/components/home/home-section";
@@ -24,127 +28,186 @@ import { cn } from "@/lib/utils";
  * as a warning. Replace each with its product once it is issued.
  */
 
-const ACTIVITIES = [
+/** wxproducts impact levels, lowest first; the meter fills one step per level. */
+const IMPACT_LEVELS = ["Minimal", "Minor", "Significant", "Severe"] as const;
+
+type HazardKind = "heat" | "rain" | "seas" | "wind";
+
+const HAZARD_GLYPH: Record<Exclude<HazardKind, "wind">, LucideIcon> = {
+  heat: SunIcon,
+  rain: DropletIcon,
+  seas: WavesIcon,
+};
+
+/** Wind steps rise like a signal meter; the other hazards repeat a glyph. */
+const WIND_STEP = ["h-1.5", "h-2.5", "h-3.5", "h-4.5"] as const;
+
+/**
+ * Impact meter shaped by the hazard: droplets for rain, waves for seas,
+ * suns for heat, rising bars for wind. One step fills per impact level.
+ * Neutral colours only, so a sample never reads as a warning.
+ */
+function HazardMeter({ kind, level }: { kind: HazardKind; level: number }) {
+  const label = `${IMPACT_LEVELS[level - 1]} impact`;
+  if (kind === "wind") {
+    return (
+      <span
+        aria-label={label}
+        className="flex h-4.5 items-end gap-1"
+        role="img"
+      >
+        {WIND_STEP.map((height, step) => (
+          <span
+            className={cn(
+              "w-2.5 rounded-sm",
+              height,
+              step < level ? "bg-gm-sky-ink" : "bg-gm-surface-muted"
+            )}
+            key={height}
+          />
+        ))}
+      </span>
+    );
+  }
+  const Glyph = HAZARD_GLYPH[kind];
+  return (
+    <span aria-label={label} className="flex gap-1" role="img">
+      {IMPACT_LEVELS.map((name, step) => (
+        <Glyph
+          aria-hidden="true"
+          className={cn(
+            "size-4.5",
+            step < level ? "text-gm-sky-ink" : "text-gm-surface-muted"
+          )}
+          fill={kind === "rain" && step < level ? "currentColor" : "none"}
+          key={name}
+          strokeWidth={2}
+        />
+      ))}
+    </span>
+  );
+}
+
+/**
+ * Impact by sector: how this week's hazards affect each sector. Mirrors the
+ * wxproducts impact fields (hazard, impact level); sample until FastAPI
+ * supplies it. The meter is neutral, never hazard colours. `reading` is the
+ * CMS key editors use to hang a story off a tile.
+ */
+const SECTORS = [
   {
-    Icon: UmbrellaIcon,
-    key: "beach",
-    label: "Beach",
-    rating: 4,
-    value: "Good until 11 AM",
-    detail: "Grand Anse calm; UV extreme after 10",
-    href: "/marine/beaches",
+    Icon: PalmtreeIcon,
+    sector: "Tourism",
+    period: "Today",
+    hazard: "PM showers",
+    kind: "rain",
+    level: 2,
+    href: "/services/tourism",
+    reading: "beach",
   },
   {
     Icon: FishIcon,
-    key: "fishing",
-    label: "Fishing",
-    rating: 3,
-    value: "Fair",
-    detail: "Best near sunrise, moderate seas",
+    sector: "Fisheries",
+    period: "Today",
+    hazard: "Moderate seas",
+    kind: "seas",
+    level: 2,
     href: "/marine/fishing",
+    reading: "fishing",
   },
   {
-    Icon: SailboatIcon,
-    key: "boating",
-    label: "Boating",
-    rating: 2,
-    value: "Use caution",
-    detail: "Channels choppy, E 25–35 km/h",
-    href: "/marine/forecast",
+    Icon: PlaneIcon,
+    sector: "Aviation",
+    period: "Today",
+    hazard: "Gusty showers",
+    kind: "wind",
+    level: 2,
+    href: "/services/aviation",
   },
   {
     Icon: SproutIcon,
-    key: "growing",
-    label: "Growing",
-    rating: 2,
-    value: "Dry spell, 8 days",
-    detail: "Irrigate seedlings; rain Tuesday",
+    sector: "Agriculture",
+    period: "This week",
+    hazard: "Rain Tuesday",
+    kind: "rain",
+    level: 1,
     href: "/services/agriculture",
+    reading: "growing",
   },
   {
-    Icon: FootprintsIcon,
-    key: "outdoors",
-    label: "Outdoors",
-    rating: 3,
-    value: "Hot after 11 AM",
-    detail: "Heat index 38°C at midday",
-    href: "/weather/heat",
+    Icon: HardHatIcon,
+    sector: "Construction",
+    period: "This week",
+    hazard: "Gusts 32 mph",
+    kind: "wind",
+    level: 2,
+    href: "/services/construction",
   },
   {
-    Icon: MoonIcon,
-    key: "night-sky",
-    label: "Night sky",
-    rating: 4,
-    value: "Good viewing",
-    detail: "Saturn visible, 20% cloud",
-    href: "/weather/sun-and-sky/night-sky",
+    Icon: HeartPulseIcon,
+    sector: "Health",
+    period: "This week",
+    hazard: "Midday heat",
+    kind: "heat",
+    level: 2,
+    href: "/services/health",
+    reading: "outdoors",
   },
 ] as const;
 
-const METER_STEPS = [1, 2, 3, 4, 5] as const;
-
 /**
- * Activities, ratings and figures will come from FastAPI; editors can only
- * reword the heading and hang a published story or explainer off an activity.
+ * Hazard impacts by sector. Impacts will come from
+ * FastAPI; editors can only reword the heading and hang a published story or
+ * explainer off a tile.
  */
 export async function ExploreToday() {
   if (await isSectionHidden("explore-today")) return null;
   const { settings } = await fetchHomeContent();
   const words = sectionWords(settings, "explore-today", {
-    kicker: "Plan your day",
-    title: "Explore today",
+    kicker: "Plan your week",
+    title: "What this week means for you",
   });
   return (
     <HomeSection tone="surface" {...words}>
-      <ul className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-6">
-        {ACTIVITIES.map(({ Icon, ...activity }) => {
-          const reading = settings.exploreReading[activity.key];
+      <ul className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3">
+        {SECTORS.map(({ Icon, ...service }) => {
+          const reading =
+            "reading" in service
+              ? settings.exploreReading[service.reading]
+              : undefined;
           return (
-            <li className="flex flex-col gap-0.5 sm:gap-1" key={activity.key}>
+            <li className="flex flex-col gap-0.5 sm:gap-1" key={service.href}>
               <Link
                 className={cn(
                   HOME_CARD,
                   "flex h-full flex-col gap-1.5 p-3 hover:border-gm-blue-ink sm:gap-2 sm:p-4 lg:p-5"
                 )}
-                href={activity.href}
+                href={service.href}
               >
-                <span className="flex items-center gap-2">
+                <span className="flex min-w-0 items-center gap-2">
                   <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-gm-navy text-gm-lime sm:size-10">
                     <Icon aria-hidden="true" className="size-4 sm:size-5" />
                   </span>
-                  <span className="font-bold text-body-base text-gm-heading leading-body-base">
-                    {activity.label}
+                  <span className="grid min-w-0 font-semibold text-label uppercase leading-label tracking-wider">
+                    <span className="truncate text-gm-sky-ink">
+                      {service.sector}
+                    </span>
+                    <span className="truncate text-gm-text-secondary">
+                      {service.period}
+                    </span>
                   </span>
                 </span>
-                <span className="font-semibold text-body text-gm-heading leading-body">
-                  {activity.value}
+                <span className="truncate font-bold text-body-base text-gm-heading leading-body-base">
+                  {service.hazard}
                 </span>
-                <span
-                  aria-label={`${activity.rating} of 5`}
-                  className="flex gap-0.5"
-                  role="img"
-                >
-                  {METER_STEPS.map((step) => (
-                    <span
-                      className={
-                        step <= activity.rating
-                          ? "h-1.5 flex-1 rounded-full bg-gm-sky-ink"
-                          : "h-1.5 flex-1 rounded-full bg-gm-surface-muted"
-                      }
-                      key={step}
-                    />
-                  ))}
-                </span>
-                <span className="text-body-sm text-gm-text-secondary leading-body-sm">
-                  {activity.detail}
-                </span>
+                <HazardMeter kind={service.kind} level={service.level} />
               </Link>
               {reading && (
                 <Link
                   className="px-1 font-semibold text-body-sm text-gm-blue-ink leading-body-sm hover:underline"
                   href={relatedHref(reading)}
                 >
-                  <span className="sr-only">{activity.label}: </span>
+                  <span className="sr-only">{service.sector}: </span>
                   Read: {reading.title}
                 </Link>
               )}
@@ -164,7 +227,7 @@ export async function GrenadaInData() {
   if (await isSectionHidden("grenada-in-data")) return null;
   const { settings } = await fetchHomeContent();
   const words = sectionWords(settings, "grenada-in-data", {
-    kicker: "From the national climate record",
+    kicker: "This month so far, from the monthly climate summary",
     title: "Grenada in data",
   });
   const stats = [
@@ -172,26 +235,26 @@ export async function GrenadaInData() {
       label: "Rainfall this month · MBIA",
       value: String(RAIN_SO_FAR),
       unit: "mm",
-      detail: `${Math.round((RAIN_SO_FAR / RAIN_NORMAL) * 100)}% of the September normal to date (${RAIN_NORMAL} mm)`,
+      detail: `${Math.round((RAIN_SO_FAR / RAIN_NORMAL) * 100)}% of the October normal to date (${RAIN_NORMAL} mm)`,
       bar: true,
     },
     {
-      label: "Temperature vs normal",
-      value: "+0.8",
+      label: "Highest temperature · MBIA",
+      value: "32.6",
       unit: "°C",
-      detail: "September mean; 12 months above normal",
+      detail: "on 3 October; normal monthly high 31.4 °C",
     },
     {
-      label: "Sea temperature",
-      value: "29.4",
+      label: "Lowest temperature · MBIA",
+      value: "23.8",
       unit: "°C",
-      detail: "+0.6 °C above normal around Grenada",
+      detail: "on 6 October; normal monthly low 23.5 °C",
     },
     {
-      label: "Dry days · MBIA",
-      value: "8",
+      label: "Rain days · MBIA",
+      value: "5",
       unit: "days",
-      detail: "since the last day with 5 mm or more",
+      detail: "with 1 mm or more; normal to date is 6",
     },
   ];
   return (
