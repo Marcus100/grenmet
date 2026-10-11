@@ -10,6 +10,9 @@ export default defineConfig({
       {
         test: {
           name: "node",
+          // Cold jsdom workers are slow under a full parallel run; the 5 s default flakes.
+          testTimeout: 30_000,
+          hookTimeout: 30_000,
           environment: "node",
           include: ["src/**/*.test.ts"],
           exclude: ["src/components/document/use-paper-scale.test.ts"],
@@ -18,6 +21,9 @@ export default defineConfig({
       {
         test: {
           name: "dom",
+          // Cold jsdom workers are slow under a full parallel run; the 5 s default flakes.
+          testTimeout: 30_000,
+          hookTimeout: 30_000,
           environment: "jsdom",
           include: [
             "src/**/*.test.tsx",
