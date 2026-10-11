@@ -20,7 +20,12 @@ The pnpm/Turborepo/Next.js workspace was already current (pnpm 12 catalogs, Type
 ## Evaluated and not adopted
 
 - **`typedRoutes`**: about 140 dynamic `href` strings across the apps would need `as Route` casts, which defeat the check.
-- **Cache Components** (`cacheComponents: true`): gms fails to build because its 13 `force-dynamic` and `dynamicParams` routes serve live CAP and weather data. Migrating them changes freshness for public alerts, so each route needs deliberate `"use cache"`/`cacheLife` choices verified against the running stack.
+- **Cache Components** (`cacheComponents: true`) in gms, measured on 11 Oct 2026. The recipe from Next's migration guide builds: delete the `dynamic` and `dynamicParams` exports, add `export const instant = false` to every page and layout, move the few `new Date()` reads behind `await connection()` or a `"use cache"` helper, and drop the empty `generateStaticParams` on the `[location]` routes. Comparing a build of unmodified `dev` with a build of the migrated app, and running both with `next start`, showed:
+  - **No freshness gain.** 143 of 145 routes were already dynamic, because every fetch is `cache: "no-store"`. Only about 9 dynamic-param routes would gain a static shell with streamed content.
+  - **Soft 404s.** Unknown URLs returned 200 instead of 404, including `/nonexistent-page`, a missing `/alerts/<id>`, a missing `/weather/issued/<id>` and `/carriacou`. A streamed shell commits the status before `notFound()` runs. That is wrong for a public alerts site.
+  - **Silent static handlers.** `/api/health`, `/api/search` and `/auth/callback` were prerendered at build time (search frozen with the CMS content at build, the callback baked in its unconfigured 404) until `await connection()` was added to each.
+
+  Revisit only if gms starts caching real data with `"use cache"` and the 404 behavior is fixed. If it is attempted again, compare route tables and HTTP status codes against a build of `dev` first.
 - **Vite+**: it wraps Vite, and every app here runs on Next.js. Vitest, Biome and Turborepo already cover its other parts.
 - **`pnpm dedupe --check` in CI**: `pnpm dedupe` does not converge on this lockfile (it rewrites about 600 lines and asks again), so a gate would always fail.
 - **Source exports for `@barrelsgd/api-client`**: the web Dockerfiles and `check-docker-workspaces.mjs` depend on its `dist/` build.
