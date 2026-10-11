@@ -209,14 +209,33 @@ test("Claude Code and Codex guardrail hooks reference the same scripts (no forke
 
 test(".agents/skills is a symlink to .claude/skills, not a forked copy", () => {
   const link = resolve(".agents/skills");
-  assert.ok(
-    lstatSync(link).isSymbolicLink(),
-    ".agents/skills must be a symlink"
-  );
-  const target = resolve(".claude/skills");
+  if (!lstatSync(link).isSymbolicLink()) {
+    // Checkouts with core.symlinks=false (WSL, devcontainer bind mounts,
+    // Windows) materialise a committed symlink as a plain file or directory.
+    // The committed object is then the source of truth.
+    const staged = spawnSync("git", ["ls-files", "-s", ".agents/skills"], {
+      cwd: repoRoot,
+      encoding: "utf8",
+    });
+    const target = spawnSync("git", ["cat-file", "-p", "HEAD:.agents/skills"], {
+      cwd: repoRoot,
+      encoding: "utf8",
+    });
+    assert.ok(
+      staged.stdout.startsWith("120000 "),
+      ".agents/skills must be committed as a symlink (mode 120000)"
+    );
+    assert.equal(
+      join(".agents", target.stdout.trim()),
+      ".claude/skills",
+      "committed symlink must point at .claude/skills"
+    );
+    return;
+  }
+  const targetPath = resolve(".claude/skills");
   assert.equal(
     statSync(link).ino,
-    statSync(target).ino,
+    statSync(targetPath).ino,
     "symlink must resolve to .claude/skills"
   );
 });
