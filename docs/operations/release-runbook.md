@@ -59,7 +59,12 @@ required checks on `staging` and `main` PRs.
 
 - Tag convention: `vN.M`, strictly increasing (…v0.10, v0.11). The tag IS the
   image tag — it must be new.
-- Draft notes from merged changes, then **human publishes**:
+- Easiest: run the **Draft Release** workflow (`gh workflow run draft-release.yml`).
+  It picks the next `vN.M`, creates a **draft** release on `main` with notes
+  generated from the PRs merged since the previous release, and prints its URL.
+  A draft does not deploy anything; review the notes, then **human publishes**
+  it from the Releases page.
+- By hand instead: draft notes from merged changes, then **human publishes**:
   `gh release create vN.M --target main --title "vN.M" --notes "…"`
 - Publishing triggers `pipeline-prod.yml`: builds ALL images at the tag, then
   deploys via `deploy.yml` on the self-hosted `production` runner. The runner
