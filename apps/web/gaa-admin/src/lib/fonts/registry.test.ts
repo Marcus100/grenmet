@@ -26,12 +26,14 @@ function registryKeys(): string[] {
   );
   const block = source.match(REGISTRY_BLOCK_REGEX);
   if (!block) throw new Error("fontRegistry block not found in registry.ts");
-  return [...block[1].matchAll(REGISTRY_KEY_REGEX)].map((m) => m[1]);
+  return [...(block[1] ?? "").matchAll(REGISTRY_KEY_REGEX)].map(
+    (m) => m[1] ?? ""
+  );
 }
 
 function cssKeys(): string[] {
   const css = readFileSync(path.join(appRoot, "app/globals.css"), "utf8");
-  return [...css.matchAll(DATA_FONT_RULE_REGEX)].map((m) => m[1]);
+  return [...css.matchAll(DATA_FONT_RULE_REGEX)].map((m) => m[1] ?? "");
 }
 
 describe("font registry ↔ globals.css data-font rules", () => {

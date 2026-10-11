@@ -56,7 +56,7 @@ function conditions(period: ForecastPeriod): Condition[] {
     ["Low Tide", "lowTides"],
     ["Sunrise", "sunrise"],
     ["Sunset", "sunset"],
-  ]) {
+  ] as const) {
     if (v[key]) result.push({ label, value: v[key] });
   }
   if (!period.period_key && v.observedTemperature)
@@ -126,9 +126,9 @@ export function weatherFromForecast(forecast: PublicForecast): WeatherSnapshot {
           observedAt: `Reported ${new Intl.DateTimeFormat("en-GB", { timeZone: forecast.timezone ?? "America/Grenada", dateStyle: "medium", timeStyle: "short" }).format(new Date(observed.source.issued_at))} AST`,
         }
       : null,
-    label: forecast.periods[0]?.source
-      ? days[0].source
-      : "Awaiting today’s morning forecast",
+    label:
+      (forecast.periods[0]?.source ? days[0]?.source : undefined) ??
+      "Awaiting today’s morning forecast",
   };
 }
 /** Navigation placeholders during an outage; no forecast selection or sample weather. */

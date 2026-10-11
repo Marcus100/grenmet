@@ -38,7 +38,7 @@ describe("linked products", () => {
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect((await response.json()).products).toEqual([toOption(product)]);
     expect(
-      String(fetcher.mock.calls[0][0].url ?? fetcher.mock.calls[0][0])
+      String(fetcher.mock.calls[0]?.[0].url ?? fetcher.mock.calls[0]?.[0])
     ).toContain("/api/v1/wxproducts/public/products");
     vi.unstubAllGlobals();
   });

@@ -1,5 +1,3 @@
-"use client";
-
 import { TransactionSummaryCard } from "@/components/salesbus/settlements";
 import { getTransactionSummary } from "@/lib/salesbus/mock-data";
 

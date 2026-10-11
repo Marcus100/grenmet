@@ -10,6 +10,7 @@ vi.mock("@/lib/auth-config", () => ({
   getSessionCookieName: () => "session",
 }));
 
+import { nth } from "@/test/nth";
 import {
   ImportedObservations,
   loadImportedObservations,
@@ -30,7 +31,7 @@ it("keeps UTC filters and forwards the session only to the configured service", 
     station: "TGPY",
     start: "2026-09-23T10:00",
   });
-  const [url, options] = mocks.fetch.mock.calls[0];
+  const [url, options] = nth(mocks.fetch.mock.calls);
   expect(url.pathname).toBe("/api/v1/wxproducts/observations");
   expect(url.searchParams.get("start")).toBe("2026-09-23T10:00:00.000Z");
   expect(url.searchParams.get("kind")).toBe("METAR");

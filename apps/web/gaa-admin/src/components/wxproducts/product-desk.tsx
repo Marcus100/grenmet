@@ -164,7 +164,7 @@ const COMPOSED_SOURCE: Record<string, string> = {
 function composedFrom(kind: ProductKind, key: string) {
   const day = DAY_KEY_PREFIX.exec(key)?.[1] ?? "";
   const name = day
-    ? key[day.length].toLowerCase() + key.slice(day.length + 1)
+    ? key.charAt(day.length).toLowerCase() + key.slice(day.length + 1)
     : key;
   const source = COMPOSED_SOURCE[name];
   return (
@@ -548,7 +548,7 @@ function ProductEditor({
                                 <span className="font-normal text-muted-foreground">
                                   {" · "}
                                   {formatComputedValue(
-                                    values[`day${section.slice(4)}Date`],
+                                    values[`day${section.slice(4)}Date`] ?? "",
                                     "date"
                                   )}
                                 </span>
@@ -816,7 +816,7 @@ export function ProductDesk({
   title,
   initialKind,
 }: {
-  kinds: ProductKind[];
+  kinds: [ProductKind, ...ProductKind[]];
   title: string;
   initialKind?: ProductKind;
 }) {
@@ -946,7 +946,7 @@ export function ProductDesk({
                     value={value}
                   >
                     {isForecastKind(value)
-                      ? value[0].toUpperCase() + value.slice(1)
+                      ? value.charAt(0).toUpperCase() + value.slice(1)
                       : productTitle(value)}
                   </TabsTrigger>
                 ))}

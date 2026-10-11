@@ -24,7 +24,9 @@ describe("reader discovery", () => {
         publishedAt: "2026-06-12",
       },
     ];
-    expect(selectStories(stories, COLLECTIONS[1].paths)).toEqual([stories[0]]);
+    expect(selectStories(stories, COLLECTIONS[1]?.paths ?? [])).toEqual([
+      stories[0],
+    ]);
     expect(selectStories(stories, ["missing/story"])).toEqual([]);
   });
   it("matches all search words without treating the query as a regular expression", () => {

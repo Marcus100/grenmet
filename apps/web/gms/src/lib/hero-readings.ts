@@ -156,6 +156,7 @@ export function dayReadings(day: ForecastDayData, index: number): Reading[] {
   if (!isIssued(day)) return [];
   const c = day.conditions;
   const sample = SAMPLE_DAYS[index] ?? SAMPLE_DAYS[0];
+  if (!sample) return [];
   const rows: Reading[] = [];
 
   const speed = find(c, WIND_SPEED);

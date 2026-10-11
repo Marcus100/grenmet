@@ -48,7 +48,7 @@ describe("public product feed", () => {
       ),
       expect.objectContaining({ cache: "no-store" })
     );
-    expect(fetcher.mock.calls[0][1]).not.toHaveProperty("headers");
+    expect(fetcher.mock.calls[0]?.[1]).not.toHaveProperty("headers");
   });
   it("distinguishes a service outage from an empty feed", async () => {
     vi.stubGlobal(
@@ -115,10 +115,10 @@ describe("one published product", () => {
       status: "ok",
       product: { id, current: false },
     });
-    expect(String(fetcher.mock.calls[0][0])).toBe(
+    expect(String(fetcher.mock.calls[0]?.[0])).toBe(
       `http://api.example.test/api/v1/wxproducts/public/products/${id}`
     );
-    expect(fetcher.mock.calls[0][1]).toMatchObject({ credentials: "omit" });
+    expect(fetcher.mock.calls[0]?.[1]).toMatchObject({ credentials: "omit" });
   });
   it("tells withdrawn apart from unavailable", async () => {
     vi.stubGlobal(

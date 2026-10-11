@@ -91,7 +91,11 @@ it("lets Latest visitors copy the article link when native sharing is unavailabl
     ],
   });
   render(await GmsNews());
-  fireEvent.click(screen.getAllByRole("button", { name: "Share update" })[0]);
+  const [shareButton] = screen.getAllByRole("button", { name: "Share update" });
+  if (!shareButton) {
+    throw new Error("expected a share button");
+  }
+  fireEvent.click(shareButton);
   await waitFor(() =>
     expect(writeText).toHaveBeenCalledWith(
       expect.stringContaining("/explore/updates/2026/09/marine-test")

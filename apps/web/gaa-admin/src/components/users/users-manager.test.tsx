@@ -403,7 +403,7 @@ it("closes creation after an account is saved but its role assignment fails", as
     ["Temporary password", "test-password-123"],
     ["Employee number", "MET-TEST"],
     ["Position", "Forecaster (Senior Supervisor)"],
-  ]) {
+  ] as const) {
     fireEvent.change(screen.getByLabelText(label), { target: { value } });
   }
   fireEvent.click(screen.getByRole("button", { name: "Create user" }));

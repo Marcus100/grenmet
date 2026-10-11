@@ -35,7 +35,7 @@ interface TabDef {
   pending?: string;
 }
 
-const TABS: TabDef[] = [
+const TABS: [TabDef, ...TabDef[]] = [
   {
     key: "satellite",
     label: "Satellite",

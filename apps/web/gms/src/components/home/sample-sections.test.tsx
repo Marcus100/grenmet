@@ -70,7 +70,7 @@ it("shows each sector's hazard and its impact level", async () => {
     ["Agriculture", "/services/agriculture"],
     ["Construction", "/services/construction"],
     ["Health", "/services/health"],
-  ]) {
+  ] as const) {
     expect(screen.getByText(sector).closest("a")).toHaveAttribute("href", href);
   }
   expect(screen.getAllByRole("img", { name: "Minor impact" })).toHaveLength(5);

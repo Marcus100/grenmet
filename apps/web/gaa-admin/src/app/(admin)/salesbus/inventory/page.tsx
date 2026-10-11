@@ -1,5 +1,3 @@
-"use client";
-
 import { CategoryCard } from "@/components/salesbus/inventory";
 import { categories } from "@/lib/salesbus/mock-data";
 

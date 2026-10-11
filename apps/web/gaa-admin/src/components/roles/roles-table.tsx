@@ -220,7 +220,7 @@ export function RolesTable({ table }: { table: LegacyReactTable<RoleRow> }) {
                 text=""
               />
             </PaginationItem>
-            {pageNumbers[0] > 1 ? (
+            {(pageNumbers[0] ?? 0) > 1 ? (
               <PaginationItem>
                 <PaginationEllipsis />
               </PaginationItem>

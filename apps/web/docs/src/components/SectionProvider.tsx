@@ -78,7 +78,11 @@ function useVisibleSections(sectionStore: StoreApi<SectionState>) {
         sectionIndex < sections.length;
         sectionIndex++
       ) {
-        const { id, headingRef, offsetRem = 0 } = sections[sectionIndex];
+        const section = sections[sectionIndex];
+        if (!section) {
+          continue;
+        }
+        const { id, headingRef, offsetRem = 0 } = section;
 
         if (!headingRef?.current) {
           continue;

@@ -4,6 +4,17 @@ import type { ElectionCalendar } from "@/data/election-2026";
 import { formatIsoDate } from "@/lib/format";
 
 /** Dissolution, announcement, nomination day and polling day (the legal deadline only until polling day is set). */
+/** Grid columns from `lg` up: keep rows balanced for 4, 5 and 6+ dates. */
+function largeColumns(count: number) {
+  if (count > 5) {
+    return "lg:grid-cols-3";
+  }
+  if (count > 4) {
+    return "lg:grid-cols-5";
+  }
+  return "lg:grid-cols-4";
+}
+
 export function KeyDates({ calendar }: { calendar: ElectionCalendar }) {
   const dates: {
     label: string;
@@ -71,11 +82,7 @@ export function KeyDates({ calendar }: { calendar: ElectionCalendar }) {
     <dl
       className={cn(
         "grid gap-px border border-el-rule bg-el-rule sm:grid-cols-2",
-        dates.length > 5
-          ? "lg:grid-cols-3"
-          : dates.length > 4
-            ? "lg:grid-cols-5"
-            : "lg:grid-cols-4"
+        largeColumns(dates.length)
       )}
     >
       {dates.map((d) => (

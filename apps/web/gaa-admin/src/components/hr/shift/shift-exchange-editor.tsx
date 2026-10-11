@@ -580,7 +580,8 @@ function ExchangeShiftPrefill({
       query.data?.data.filter(
         (entry) => entry.category === "WORK" && !entry.is_draft
       ) ?? [];
-    if (!selected && entries.length === 1) onPrefill(entries[0].shift_code);
+    const [only] = entries;
+    if (!selected && entries.length === 1 && only) onPrefill(only.shift_code);
   }, [query.data, selected, onPrefill]);
   return null;
 }

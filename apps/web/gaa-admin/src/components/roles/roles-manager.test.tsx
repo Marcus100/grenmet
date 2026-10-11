@@ -7,6 +7,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import { nth } from "@/test/nth";
 import { RolesManager } from "./roles-manager";
 import { toRoleRows } from "./roles-row";
 
@@ -94,7 +95,7 @@ describe("toRoleRows", () => {
     const authorityRoles = [
       "department-manager",
       "department-assistant-manager",
-    ].map((name) => ({ ...ROLES.data[0], id: name, name }));
+    ].map((name) => ({ ...nth(ROLES.data), id: name, name }));
     const rows = toRoleRows(
       [...ROLES.data, ...authorityRoles],
       ROLE_ASSIGNMENTS.data.map((assignment) => ({

@@ -29,7 +29,10 @@ export function ProductContentView({ content }: { content: ProductContent }) {
                 >
                   <dt className="text-muted-foreground text-sm">{f.label}</dt>
                   <dd className="whitespace-pre-wrap break-words">
-                    {content.values[f.key].replace(DATE_SEPARATOR, "$1 ")}
+                    {(content.values[f.key] ?? "").replace(
+                      DATE_SEPARATOR,
+                      "$1 "
+                    )}
                   </dd>
                 </div>
               ))}

@@ -7,7 +7,7 @@
  * Times past 24:00 (a night trip, GTFS convention) are marked "(next day)".
  */
 export function formatTime(value: string): string {
-  const [rawHour, minute] = value.split(":");
+  const [rawHour = "", minute] = value.split(":");
   const serviceHour = Number.parseInt(rawHour, 10);
   let hour = serviceHour % 24;
   const suffix = hour >= 12 ? "PM" : "AM";
@@ -44,6 +44,6 @@ const MONTHS = [
  * fixed month table avoids ICU differences ("Sep" vs "Sept") between runtimes.
  */
 export function formatDate(value: string): string {
-  const [year, month, day] = value.split("-").map(Number);
+  const [year, month = Number.NaN, day] = value.split("-").map(Number);
   return `${day} ${MONTHS[month - 1]} ${year}`;
 }

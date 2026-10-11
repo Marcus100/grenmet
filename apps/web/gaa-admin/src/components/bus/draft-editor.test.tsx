@@ -17,6 +17,7 @@ import {
 const router = vi.hoisted(() => ({ push: vi.fn(), refresh: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
 
+import { nth } from "@/test/nth";
 import { DraftEditor, grenadaToday } from "./draft-editor";
 import {
   catalogue,
@@ -135,7 +136,7 @@ describe("DraftEditor", () => {
 
   it("removes a trip after confirmation", async () => {
     renderEditor();
-    fireEvent.click(screen.getAllByRole("button", { name: "Remove" })[1]);
+    fireEvent.click(nth(screen.getAllByRole("button", { name: "Remove" }), 1));
     fireEvent.click(screen.getByRole("button", { name: "Remove trip" }));
     await waitFor(() => expect(router.refresh).toHaveBeenCalled());
   });

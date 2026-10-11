@@ -13,7 +13,10 @@ vi.mock("@barrelsgd/ui/components/account-button", () => ({
   ),
 }));
 
-const FIRST_SECTION = NAV_SECTIONS[0];
+const [FIRST_SECTION, SECOND_SECTION] = NAV_SECTIONS;
+if (!(FIRST_SECTION && SECOND_SECTION)) {
+  throw new Error("NAV_SECTIONS needs at least two sections");
+}
 const ALERTS_WITH_STATUS = /^Alerts\s*No active alerts/;
 
 describe("NavDrawer", () => {
@@ -61,14 +64,15 @@ describe("NavDrawer", () => {
       }
     }
     expect(
-      screen.queryByText(FIRST_SECTION.groups[0].links[0].description)
+      screen.queryByText(FIRST_SECTION.groups[0]?.links[0]?.description ?? "")
     ).toBeNull();
   });
 
   it("keeps one section open at a time", async () => {
     const user = userEvent.setup();
     render(<NavDrawer onClose={() => undefined} open />);
-    const [first, second] = NAV_SECTIONS;
+    const first = FIRST_SECTION;
+    const second = SECOND_SECTION;
     await user.click(screen.getByRole("button", { name: first.label }));
     await user.click(screen.getByRole("button", { name: second.label }));
     expect(
@@ -97,9 +101,12 @@ describe("NavDrawer", () => {
 
     await user.click(screen.getByText(FIRST_SECTION.label));
     const link = screen.getByRole("link", {
-      name: new RegExp(`^${FIRST_SECTION.groups[0].links[0].name}`, "i"),
+      name: new RegExp(`^${FIRST_SECTION.groups[0]?.links[0]?.name}`, "i"),
     });
-    expect(link).toHaveAttribute("href", FIRST_SECTION.groups[0].links[0].href);
+    expect(link).toHaveAttribute(
+      "href",
+      FIRST_SECTION.groups[0]?.links[0]?.href
+    );
     // Verify the close callback without asking jsdom to navigate documents.
     link.addEventListener("click", (event) => event.preventDefault(), {
       once: true,

@@ -228,9 +228,9 @@ function SearchResults({
 }: {
   autocomplete: Autocomplete;
   query: string;
-  collection: AutocompleteCollection<Result>;
+  collection: AutocompleteCollection<Result> | undefined;
 }) {
-  if (collection.items.length === 0) {
+  if (!collection || collection.items.length === 0) {
     return (
       <div className="p-6 text-center">
         <NoResultsIcon className="mx-auto h-5 w-5 stroke-zinc-900 dark:stroke-zinc-600" />

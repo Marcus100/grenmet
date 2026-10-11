@@ -141,7 +141,7 @@ describe("ShiftExchangeEditor (wired)", () => {
             {
               id: "33333333-3333-4333-8333-333333333333",
               requesting_user_id: PROFILE.id,
-              counterpart_user_id: MEMBERS.data[1].user_id,
+              counterpart_user_id: MEMBERS.data[1]?.user_id,
               department_id: "dept_met",
               swap_type: "TEMPORARY",
               source_date: "2026-09-26",
@@ -221,7 +221,7 @@ describe("ShiftExchangeEditor (wired)", () => {
           {
             id: "33333333-3333-4333-8333-333333333333",
             requesting_user_id: PROFILE.id,
-            counterpart_user_id: MEMBERS.data[1].user_id,
+            counterpart_user_id: MEMBERS.data[1]?.user_id,
             department_id: "dept_met",
             swap_type: "TEMPORARY",
             source_date: isoDay(15),
@@ -248,7 +248,7 @@ describe("ShiftExchangeEditor (wired)", () => {
     });
     const select = screen.getByLabelText("Exchange With (Department Member)");
     fireEvent.change(select, {
-      target: { value: MEMBERS.data[1].user_id },
+      target: { value: MEMBERS.data[1]?.user_id },
     });
     expect(memberOption).toBeInTheDocument();
 
@@ -277,7 +277,7 @@ describe("ShiftExchangeEditor (wired)", () => {
       expect(posted).toBeTruthy();
     });
     expect(posted).toEqual({
-      counterpart_user_id: MEMBERS.data[1].user_id,
+      counterpart_user_id: MEMBERS.data[1]?.user_id,
       department_id: "dept_met",
       swap_type: "TEMPORARY",
       source_date: isoDay(15),

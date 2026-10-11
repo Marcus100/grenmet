@@ -41,6 +41,8 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
+          # Full history for diffs, but no historic blobs (the repo carries ~2 GB of old images).
+          filter: blob:none
       - name: Select affected images (full set when comparison is unavailable)
         id: select
         env:
@@ -68,12 +70,17 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          fetch-depth: 0
+          # Full history for diffs, but no historic blobs (the repo carries ~2 GB of old images).
+          filter: blob:none
 
       - name: Setup Node.js with pnpm
         uses: ./.github/actions/setup-node
 
       - name: Type-check all web apps
-        run: pnpm type-check
+        # --affected only on dev PRs; promotion PRs and pushes stay full, like image selection.
+        run: pnpm type-check ${{ (github.event_name == 'pull_request' && github.base_ref == 'dev') && '--affected' || '' }}
 
   # Job 3: Peer dependency audit (strict mode — catches version mismatches)
   peer-check:
@@ -97,6 +104,8 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
         with:
           fetch-depth: 0
+          # Full history for diffs, but no historic blobs (the repo carries ~2 GB of old images).
+          filter: blob:none
 
       - name: Setup Node.js with pnpm
         uses: ./.github/actions/setup-node
@@ -170,12 +179,16 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          fetch-depth: 0
+          # Full history for diffs, but no historic blobs (the repo carries ~2 GB of old images).
+          filter: blob:none
 
       - name: Setup Node.js with pnpm
         uses: ./.github/actions/setup-node
 
       - name: Run all TypeScript unit tests
-        run: pnpm test
+        run: pnpm test ${{ (github.event_name == 'pull_request' && github.base_ref == 'dev') && '--affected' || '' }}
 
   # Stable required gate: absent images are intentional only when selection succeeds.
   # Runtime Dockerfiles already compile each application; do not rebuild with pnpm.

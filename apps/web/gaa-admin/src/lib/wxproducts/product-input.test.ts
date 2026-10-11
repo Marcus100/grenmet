@@ -83,7 +83,7 @@ describe("product presentation and transport", () => {
       true
     );
     expect(
-      isCurrentProduct(product, localDateTime(product.values.validTo))
+      isCurrentProduct(product, localDateTime(product.values.validTo ?? ""))
     ).toBe(false);
   });
 });

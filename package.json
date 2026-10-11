@@ -48,6 +48,7 @@
     "fix": "ultracite fix",
     "fix:changed": "node scripts/guardrails/fix-changed.mjs",
     "generate:api-client": "turbo run generate --filter=@barrelsgd/api-client",
+    "knip": "PAYLOAD_SECRET=knip-placeholder-secret-0123456789 DATABASE_URL=postgres://knip@localhost/knip knip --dependencies --no-exit-code",
     "check:drift": "node scripts/api/check-api-drift.mjs",
     "dev:web:cms": "turbo run dev --filter=@barrelsgd/web-cms",
     "cms:setup-db": "docker exec -i grenmet-postgres bash < infra/postgres/init-cms.sh",
@@ -62,10 +63,11 @@
     "test:verification": "node --test scripts/verification/*.test.mjs scripts/integrations/*.test.mjs scripts/perf/*.test.mjs && uv run --isolated --frozen --package fast-back python -m unittest tests.test_database_target"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.15",
+    "@biomejs/biome": "catalog:",
     "husky": "catalog:",
+    "knip": "catalog:",
     "lint-staged": "catalog:",
-    "turbo": "^2.11.7",
-    "ultracite": "^7.12.2"
+    "turbo": "catalog:",
+    "ultracite": "catalog:"
   }
 }

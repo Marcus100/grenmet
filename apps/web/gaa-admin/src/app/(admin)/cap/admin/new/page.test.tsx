@@ -13,6 +13,7 @@ import {
   vi,
 } from "vitest";
 import { NewAlertEditor } from "@/components/cap/alert-editor";
+import { nth } from "@/test/nth";
 import { waitForSubmission } from "@/test/wait-for-submission";
 
 const catalogs = {
@@ -96,7 +97,7 @@ async function renderWithLevel(product = "Warning", colour = "Yellow") {
 }
 
 function clickSaveDraft() {
-  fireEvent.click(screen.getAllByRole("button", { name: SAVE_DRAFT })[0]);
+  fireEvent.click(nth(screen.getAllByRole("button", { name: SAVE_DRAFT })));
 }
 
 describe("NewAlertPage", () => {
