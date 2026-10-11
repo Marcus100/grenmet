@@ -308,6 +308,27 @@ cd /home/github/actions-runner
 ./svc.sh start
 ```
 
+### Deploy fails — "no space left on device" or "Not enough free disk space"
+
+Each deploy pulls a full set of `sha-…` images and used to leave the old ones
+behind, which filled the staging disk on 2026-10-11 (`failed to extract layer …
+no space left on device`). `core.sh` now prunes unused images older than 72 hours
+(`IMAGE_PRUNE_AGE`) before it pulls, then stops with `Not enough free disk space
+to pull images` if less than 6 GB is free (`DEPLOY_MIN_FREE_GB`). That check runs
+before anything is pulled or restarted, so the running stack is untouched.
+
+If you still hit it, free space on the runner host and re-run the failed deploy:
+
+```bash
+df -h /
+docker system df
+docker image prune -a -f --filter "until=72h"   # never prune volumes: they hold data
+gh run rerun <run-id> --failed
+```
+
+Images used by running containers are never removed. On 2026-10-11 this freed
+about 26 GB on staging; Docker volumes were only 175 MB.
+
 ### Deploy fails — "secret not found" or blank value
 
 Check that the secret name in **Settings → Environments → staging** exactly matches

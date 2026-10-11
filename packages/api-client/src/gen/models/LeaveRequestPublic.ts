@@ -38,20 +38,8 @@ export type LeaveRequestPublic = {
    * @type string
    */
   end_date: string;
-  /**
-   * @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
-   * @type string
-   */
   days_requested: string;
-  /**
-   * @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
-   * @type string
-   */
   days_with_pay: string;
-  /**
-   * @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
-   * @type string
-   */
   days_without_pay: string;
   professional_appointment_subtype?: ProfAppointmentType | null;
   reason?: string | null;

@@ -36,6 +36,21 @@ docker compose --env-file "$DEPLOY_ENV.env" --env-file runtime/.env.local -f doc
 printf "%s\n" "Authenticate with GHCR"
 printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
 
+printf "%s\n" "Reclaim disk space before pulling images"
+set -euo pipefail
+# Nothing else prunes old release images, and a full pull needs several GB. Only
+# images no container uses and that are older than IMAGE_PRUNE_AGE (default 72h)
+# are removed, so the running stack and the last release's rollback window stay.
+docker image prune --all --force --filter "until=${IMAGE_PRUNE_AGE:-72h}" | tail -n 1
+required_gb=${DEPLOY_MIN_FREE_GB:-6}
+docker_root=$(docker info --format '{{.DockerRootDir}}')
+free_kb=$(df -Pk "$docker_root" | awk 'NR==2 {print $4}')
+printf "Free disk space on %s: %s GB (need %s GB)\n" "$docker_root" "$((free_kb / 1024 / 1024))" "$required_gb"
+if (( free_kb < required_gb * 1024 * 1024 )); then
+  echo "Not enough free disk space to pull images: $((free_kb / 1024 / 1024)) GB free on $docker_root, ${required_gb} GB required. Free space on this host (docker image prune -a) and re-run the deploy; the running stack was not touched." >&2
+  exit 1
+fi
+
 printf "%s\n" "Resolve and pull exact image digests"
 set -euo pipefail
 umask 077

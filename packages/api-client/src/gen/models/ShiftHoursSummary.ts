@@ -5,25 +5,9 @@
 
 export type ShiftHoursSummary = {
   shift_code: string;
-  /**
-   * @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
-   * @type string
-   */
   total_roster_hours: string;
-  /**
-   * @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
-   * @type string
-   */
   total_actual_hours: string;
-  /**
-   * @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
-   * @type string
-   */
   total_overtime_hours: string;
-  /**
-   * @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
-   * @type string
-   */
   total_break_hours: string;
   entry_count: number;
 };

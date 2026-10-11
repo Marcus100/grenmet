@@ -18,14 +18,7 @@ export const parkingPermitCreateSchema = z.object({
   action_requested: parkingActionSchema.optional().default("NEW_PERMIT"),
   action_other_detail: z.union([z.string().max(255), z.null()]).optional(),
   fee_amount: z
-    .union([
-      z.number().min(0),
-      z
-        .string()
-        .regex(
-          /^(?!^[-+.]*$)[+-]?0*(?:\d{0,6}|(?=[\d.]{1,9}0*$)\d{0,6}\.\d{0,2}0*$)/
-        ),
-    ])
+    .union([z.number().min(0), z.string()])
     .optional()
     .default("40.00"),
   as_draft: z.boolean().optional().default(false),

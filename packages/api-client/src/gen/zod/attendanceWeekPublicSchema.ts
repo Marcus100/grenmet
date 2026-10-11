@@ -10,6 +10,6 @@ export const attendanceWeekPublicSchema = z.object({
   period_start: z.iso.date(),
   period_end: z.iso.date(),
   shifts: z.array(attendanceShiftPublicSchema),
-  approved_hours: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
-  recorded_hours: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
+  approved_hours: z.string(),
+  recorded_hours: z.string(),
 });

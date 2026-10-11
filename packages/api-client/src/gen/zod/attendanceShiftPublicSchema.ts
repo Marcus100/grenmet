@@ -21,12 +21,8 @@ export const attendanceShiftPublicSchema = z.object({
   arrived_at: z.union([z.iso.datetime(), z.null()]).optional(),
   departed_at: z.union([z.iso.datetime(), z.null()]).optional(),
   break_minutes: z.int().optional().default(0),
-  actual_hours: z
-    .union([z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/), z.null()])
-    .optional(),
-  elapsed_hours: z
-    .union([z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/), z.null()])
-    .optional(),
+  actual_hours: z.union([z.string(), z.null()]).optional(),
+  elapsed_hours: z.union([z.string(), z.null()]).optional(),
   revision: z.int().optional().default(0),
   notes: z.union([z.string(), z.null()]).optional(),
   workflow_instance_id: z.union([z.uuid(), z.null()]).optional(),

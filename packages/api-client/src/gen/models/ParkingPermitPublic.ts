@@ -37,10 +37,6 @@ export type ParkingPermitPublic = {
   vehicle_insurance_expiry_date?: string | null;
   action_requested: ParkingAction;
   action_other_detail?: string | null;
-  /**
-   * @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
-   * @type string
-   */
   fee_amount: string;
   decal_number?: string | null;
   valid_from?: string | null;

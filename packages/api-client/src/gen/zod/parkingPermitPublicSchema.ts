@@ -23,7 +23,7 @@ export const parkingPermitPublicSchema = z.object({
   vehicle_insurance_expiry_date: z.union([z.iso.date(), z.null()]).optional(),
   action_requested: parkingActionSchema,
   action_other_detail: z.union([z.string(), z.null()]).optional(),
-  fee_amount: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
+  fee_amount: z.string(),
   decal_number: z.union([z.string(), z.null()]).optional(),
   valid_from: z.union([z.iso.date(), z.null()]).optional(),
   valid_to: z.union([z.iso.date(), z.null()]).optional(),
