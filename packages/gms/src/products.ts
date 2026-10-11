@@ -175,7 +175,9 @@ const astronomy = [
 ];
 /** `windDirFrom` for the main period, `day1WindDirFrom` for an evening outlook day. */
 export function parameterKey(prefix: string, name: string) {
-  return prefix ? `${prefix}${name[0].toUpperCase()}${name.slice(1)}` : name;
+  return prefix
+    ? `${prefix}${name.charAt(0).toUpperCase()}${name.slice(1)}`
+    : name;
 }
 function windFields(section: string, prefix: string): ProductField[] {
   const key = (name: string) => parameterKey(prefix, name);
@@ -290,7 +292,7 @@ function forecastFields(kind: ProductKind): ProductField[] {
     ...marineFields("Marine", ""),
     field("Marine", "marineAlert", "Marine alert"),
     ...["weather", "wind", "marine", "heat", "dust"].flatMap((hazard) => {
-      const section = `${hazard[0].toUpperCase()}${hazard.slice(1)} impacts`;
+      const section = `${hazard.charAt(0).toUpperCase()}${hazard.slice(1)} impacts`;
       return [
         field(section, `${hazard}Likelihood`, "Likelihood", {
           options: likelihoods,
@@ -639,7 +641,7 @@ export function withForecastSchedule(
   kind: ProductKind,
   values: ProductValues
 ): ProductValues {
-  const schedule = forecastSchedule(kind, values.issuedAt?.slice(0, 10));
+  const schedule = forecastSchedule(kind, values.issuedAt?.slice(0, 10) ?? "");
   if (!schedule) return values;
   const result: ProductValues = {
     ...values,
@@ -734,8 +736,8 @@ export function isCurrentProduct(product: PublishedProduct, now = Date.now()) {
   const values = withForecastSchedule(product.kind, product.values);
   return (
     Date.parse(product.publishedAt) <= now &&
-    localDateTime(values.issuedAt) <= now &&
-    localDateTime(values.validFrom) <= now &&
-    localDateTime(values.validTo) > now
+    localDateTime(values.issuedAt ?? "") <= now &&
+    localDateTime(values.validFrom ?? "") <= now &&
+    localDateTime(values.validTo ?? "") > now
   );
 }

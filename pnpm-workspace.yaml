@@ -19,6 +19,8 @@ minimumReleaseAgeExclude:
   - "ultracite@7.11.0"
 strictPeerDependencies: false
 autoInstallPeers: true
+# Reject hardcoded versions for catalogued dependencies at `pnpm add` time.
+catalogMode: strict
 # Host and devcontainer bind-mount the same repo, so they must share one store.
 # A relative path resolves to the same physical dir from both, on the same fs as
 # node_modules (required for hardlinking). Never set an absolute path here.
@@ -138,6 +140,9 @@ catalog:
   dotenv-cli: "^11.0.0"
 
   # Repository tooling
+  "@biomejs/biome": "^2.5.15"
+  turbo: "^2.11.7"
+  ultracite: "^7.12.2"
   husky: "^9.1.7"
   lint-staged: ^17.6.0
 

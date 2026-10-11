@@ -133,11 +133,12 @@ describe("editorial reader", () => {
     ).not.toBeInTheDocument();
   });
   it("renders missing images as intentional text stories", () => {
+    const base = getPublishedArticles()[1];
+    if (!base) {
+      throw new Error("expected a second published article");
+    }
     const { container } = render(
-      <StoryCard
-        article={{ ...getPublishedArticles()[1], slug: "unillustrated-story" }}
-        lead
-      />
+      <StoryCard article={{ ...base, slug: "unillustrated-story" }} lead />
     );
     expect(container.querySelector("img")).toBeNull();
     expect(

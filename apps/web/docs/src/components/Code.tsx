@@ -293,7 +293,10 @@ function useTabGroupProps(availableLanguages: string[]) {
   const activeLanguage = [...availableLanguages].sort(
     (a, z) => preferredLanguages.indexOf(z) - preferredLanguages.indexOf(a)
   )[0];
-  const languageIndex = availableLanguages.indexOf(activeLanguage);
+  const languageIndex =
+    activeLanguage === undefined
+      ? -1
+      : availableLanguages.indexOf(activeLanguage);
   const newSelectedIndex = languageIndex === -1 ? selectedIndex : languageIndex;
   if (newSelectedIndex !== selectedIndex) {
     setSelectedIndex(newSelectedIndex);
@@ -306,9 +309,11 @@ function useTabGroupProps(availableLanguages: string[]) {
     ref: positionRef,
     selectedIndex,
     onChange: (newSelectedIndex: number) => {
-      preventLayoutShift(() =>
-        addPreferredLanguage(availableLanguages[newSelectedIndex])
-      );
+      const language = availableLanguages[newSelectedIndex];
+      if (language === undefined) {
+        return;
+      }
+      preventLayoutShift(() => addPreferredLanguage(language));
     },
   };
 }

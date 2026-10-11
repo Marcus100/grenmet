@@ -1,6 +1,7 @@
 {
   "extends": "@barrelsgd/tsconfig/tsconfig.nextjs.json",
   "compilerOptions": {
+    "noUncheckedIndexedAccess": false,
     "paths": { "@/*": ["./src/*"] }
   },
   "include": [

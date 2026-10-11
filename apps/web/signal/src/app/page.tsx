@@ -12,10 +12,12 @@ export default function HomePage() {
   const brief = getLatestBrief();
   const articles = getCurrentArticles();
   const collection = COLLECTIONS[0];
-  const collectionStories = selectStories(articles, collection.paths);
+  const collectionStories = collection
+    ? selectStories(articles, collection.paths)
+    : [];
   const featuredPaths = new Set([
     ...HOME_LEAD_PATHS,
-    ...collection.paths.slice(0, 2),
+    ...(collection?.paths.slice(0, 2) ?? []),
   ]);
   return (
     <>
@@ -60,7 +62,7 @@ export default function HomePage() {
           <h1 className="py-8 font-serif text-4xl">The latest from Signal</h1>
         )}
         <LeadStories articles={selectStories(articles, HOME_LEAD_PATHS)} />
-        {collectionStories.length > 0 ? (
+        {collection && collectionStories.length > 0 ? (
           <section className="border-signal-rule border-b py-10">
             <header className="mb-8 flex flex-wrap items-end justify-between gap-x-8 gap-y-4">
               <div className="max-w-2xl">

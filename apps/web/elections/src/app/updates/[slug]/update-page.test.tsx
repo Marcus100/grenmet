@@ -28,7 +28,11 @@ describe("coverage posts", () => {
   });
 
   it("treats our hosted copy of the Gazette as an official record", () => {
-    expect(sourceKind(campaign.sources.gazette47)).toBe("official");
+    const gazette = campaign.sources.gazette47;
+    if (!gazette) {
+      throw new Error("gazette47 source missing");
+    }
+    expect(sourceKind(gazette)).toBe("official");
   });
 
   it("renders the article with its sources and the PDF download", async () => {
