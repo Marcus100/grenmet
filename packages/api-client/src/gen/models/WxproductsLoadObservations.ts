@@ -52,7 +52,4 @@ export type WxproductsLoadObservationsResponses = {
  * @description Union of all possible responses
  */
 export type WxproductsLoadObservationsResponse =
-  | WxproductsLoadObservationsStatus200
-  | WxproductsLoadObservationsStatus401
-  | WxproductsLoadObservationsStatus403
-  | WxproductsLoadObservationsStatus422;
+  WxproductsLoadObservationsStatus200;

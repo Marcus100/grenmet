@@ -28,6 +28,4 @@ export type CapGetAlertsGeojsonResponses = {
 /**
  * @description Union of all possible responses
  */
-export type CapGetAlertsGeojsonResponse =
-  | CapGetAlertsGeojsonStatus200
-  | CapGetAlertsGeojsonStatus422;
+export type CapGetAlertsGeojsonResponse = CapGetAlertsGeojsonStatus200;

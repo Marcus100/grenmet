@@ -34,6 +34,4 @@ export type NotificationsMarkAllNotificationsReadResponses = {
  * @description Union of all possible responses
  */
 export type NotificationsMarkAllNotificationsReadResponse =
-  | NotificationsMarkAllNotificationsReadStatus200
-  | NotificationsMarkAllNotificationsReadStatus401
-  | NotificationsMarkAllNotificationsReadStatus422;
+  NotificationsMarkAllNotificationsReadStatus200;

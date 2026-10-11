@@ -40,7 +40,4 @@ export type HrListShiftCatalogResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrListShiftCatalogResponse =
-  | HrListShiftCatalogStatus200
-  | HrListShiftCatalogStatus403
-  | HrListShiftCatalogStatus422;
+export type HrListShiftCatalogResponse = HrListShiftCatalogStatus200;

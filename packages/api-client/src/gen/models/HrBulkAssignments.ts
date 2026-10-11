@@ -41,9 +41,4 @@ export type HrBulkAssignmentsResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrBulkAssignmentsResponse =
-  | HrBulkAssignmentsStatus200
-  | HrBulkAssignmentsStatus400
-  | HrBulkAssignmentsStatus403
-  | HrBulkAssignmentsStatus404
-  | HrBulkAssignmentsStatus422;
+export type HrBulkAssignmentsResponse = HrBulkAssignmentsStatus200;

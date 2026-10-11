@@ -34,8 +34,4 @@ export type HrDeleteMySignatureResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrDeleteMySignatureResponse =
-  | HrDeleteMySignatureStatus204
-  | HrDeleteMySignatureStatus400
-  | HrDeleteMySignatureStatus401
-  | HrDeleteMySignatureStatus422;
+export type HrDeleteMySignatureResponse = HrDeleteMySignatureStatus204;

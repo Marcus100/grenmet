@@ -35,7 +35,4 @@ export type AuthRegisterUserResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthRegisterUserResponse =
-  | AuthRegisterUserStatus201
-  | AuthRegisterUserStatus400
-  | AuthRegisterUserStatus422;
+export type AuthRegisterUserResponse = AuthRegisterUserStatus201;

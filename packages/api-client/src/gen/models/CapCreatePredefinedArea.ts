@@ -32,6 +32,4 @@ export type CapCreatePredefinedAreaResponses = {
 /**
  * @description Union of all possible responses
  */
-export type CapCreatePredefinedAreaResponse =
-  | CapCreatePredefinedAreaStatus201
-  | CapCreatePredefinedAreaStatus422;
+export type CapCreatePredefinedAreaResponse = CapCreatePredefinedAreaStatus201;

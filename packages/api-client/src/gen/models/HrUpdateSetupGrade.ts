@@ -45,9 +45,4 @@ export type HrUpdateSetupGradeResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrUpdateSetupGradeResponse =
-  | HrUpdateSetupGradeStatus200
-  | HrUpdateSetupGradeStatus403
-  | HrUpdateSetupGradeStatus404
-  | HrUpdateSetupGradeStatus409
-  | HrUpdateSetupGradeStatus422;
+export type HrUpdateSetupGradeResponse = HrUpdateSetupGradeStatus200;

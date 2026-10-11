@@ -47,7 +47,4 @@ export type HrPreviewLeaveRequestPdfResponses = {
  * @description Union of all possible responses
  */
 export type HrPreviewLeaveRequestPdfResponse =
-  | HrPreviewLeaveRequestPdfStatus200
-  | HrPreviewLeaveRequestPdfStatus400
-  | HrPreviewLeaveRequestPdfStatus403
-  | HrPreviewLeaveRequestPdfStatus422;
+  HrPreviewLeaveRequestPdfStatus200;

@@ -35,7 +35,4 @@ export type AuthUpdatePasswordMeResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthUpdatePasswordMeResponse =
-  | AuthUpdatePasswordMeStatus200
-  | AuthUpdatePasswordMeStatus400
-  | AuthUpdatePasswordMeStatus422;
+export type AuthUpdatePasswordMeResponse = AuthUpdatePasswordMeStatus200;

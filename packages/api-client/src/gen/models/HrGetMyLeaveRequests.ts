@@ -47,6 +47,4 @@ export type HrGetMyLeaveRequestsResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrGetMyLeaveRequestsResponse =
-  | HrGetMyLeaveRequestsStatus200
-  | HrGetMyLeaveRequestsStatus422;
+export type HrGetMyLeaveRequestsResponse = HrGetMyLeaveRequestsStatus200;

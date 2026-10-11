@@ -38,8 +38,4 @@ export type HrCreateLeaveRequestResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrCreateLeaveRequestResponse =
-  | HrCreateLeaveRequestStatus201
-  | HrCreateLeaveRequestStatus400
-  | HrCreateLeaveRequestStatus403
-  | HrCreateLeaveRequestStatus422;
+export type HrCreateLeaveRequestResponse = HrCreateLeaveRequestStatus201;

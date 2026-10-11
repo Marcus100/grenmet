@@ -35,7 +35,4 @@ export type AuthTwofaActivateResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthTwofaActivateResponse =
-  | AuthTwofaActivateStatus200
-  | AuthTwofaActivateStatus400
-  | AuthTwofaActivateStatus422;
+export type AuthTwofaActivateResponse = AuthTwofaActivateStatus200;

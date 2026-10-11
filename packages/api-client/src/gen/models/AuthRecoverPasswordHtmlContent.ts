@@ -33,5 +33,4 @@ export type AuthRecoverPasswordHtmlContentResponses = {
  * @description Union of all possible responses
  */
 export type AuthRecoverPasswordHtmlContentResponse =
-  | AuthRecoverPasswordHtmlContentStatus200
-  | AuthRecoverPasswordHtmlContentStatus422;
+  AuthRecoverPasswordHtmlContentStatus200;

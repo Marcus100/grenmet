@@ -41,10 +41,4 @@ export type EventsListReportsResponses = {
 /**
  * @description Union of all possible responses
  */
-export type EventsListReportsResponse =
-  | EventsListReportsStatus200
-  | EventsListReportsStatus401
-  | EventsListReportsStatus403
-  | EventsListReportsStatus404
-  | EventsListReportsStatus422
-  | EventsListReportsStatus429;
+export type EventsListReportsResponse = EventsListReportsStatus200;

@@ -55,6 +55,4 @@ export type WxwatchRetrievalsResponses = {
 /**
  * @description Union of all possible responses
  */
-export type WxwatchRetrievalsResponse =
-  | WxwatchRetrievalsStatus200
-  | WxwatchRetrievalsStatus422;
+export type WxwatchRetrievalsResponse = WxwatchRetrievalsStatus200;

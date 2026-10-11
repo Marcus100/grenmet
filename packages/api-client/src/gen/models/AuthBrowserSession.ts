@@ -29,6 +29,4 @@ export type AuthBrowserSessionResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthBrowserSessionResponse =
-  | AuthBrowserSessionStatus200
-  | AuthBrowserSessionStatus422;
+export type AuthBrowserSessionResponse = AuthBrowserSessionStatus200;

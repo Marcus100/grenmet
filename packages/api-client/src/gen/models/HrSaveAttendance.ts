@@ -44,10 +44,4 @@ export type HrSaveAttendanceResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrSaveAttendanceResponse =
-  | HrSaveAttendanceStatus200
-  | HrSaveAttendanceStatus400
-  | HrSaveAttendanceStatus403
-  | HrSaveAttendanceStatus404
-  | HrSaveAttendanceStatus409
-  | HrSaveAttendanceStatus422;
+export type HrSaveAttendanceResponse = HrSaveAttendanceStatus200;

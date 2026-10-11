@@ -70,9 +70,4 @@ export type JanitorialGetShiftBoardResponses = {
 /**
  * @description Union of all possible responses
  */
-export type JanitorialGetShiftBoardResponse =
-  | JanitorialGetShiftBoardStatus200
-  | JanitorialGetShiftBoardStatus403
-  | JanitorialGetShiftBoardStatus404
-  | JanitorialGetShiftBoardStatus422
-  | JanitorialGetShiftBoardStatus503;
+export type JanitorialGetShiftBoardResponse = JanitorialGetShiftBoardStatus200;

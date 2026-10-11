@@ -35,8 +35,4 @@ export type AuthGetAccountSecurityResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthGetAccountSecurityResponse =
-  | AuthGetAccountSecurityStatus200
-  | AuthGetAccountSecurityStatus401
-  | AuthGetAccountSecurityStatus403
-  | AuthGetAccountSecurityStatus422;
+export type AuthGetAccountSecurityResponse = AuthGetAccountSecurityStatus200;

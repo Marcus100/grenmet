@@ -64,10 +64,4 @@ export type JanitorialCreateTaskResponses = {
 /**
  * @description Union of all possible responses
  */
-export type JanitorialCreateTaskResponse =
-  | JanitorialCreateTaskStatus201
-  | JanitorialCreateTaskStatus403
-  | JanitorialCreateTaskStatus404
-  | JanitorialCreateTaskStatus409
-  | JanitorialCreateTaskStatus422
-  | JanitorialCreateTaskStatus503;
+export type JanitorialCreateTaskResponse = JanitorialCreateTaskStatus201;

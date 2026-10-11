@@ -43,7 +43,4 @@ export type HrCreateInstanceResponses = {
  */
 export type HrCreateInstanceResponse =
   | HrCreateInstanceStatus200
-  | HrCreateInstanceStatus201
-  | HrCreateInstanceStatus403
-  | HrCreateInstanceStatus404
-  | HrCreateInstanceStatus422;
+  | HrCreateInstanceStatus201;

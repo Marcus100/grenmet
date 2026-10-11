@@ -38,6 +38,4 @@ export type CapDuplicateAlertResponses = {
 /**
  * @description Union of all possible responses
  */
-export type CapDuplicateAlertResponse =
-  | CapDuplicateAlertStatus200
-  | CapDuplicateAlertStatus422;
+export type CapDuplicateAlertResponse = CapDuplicateAlertStatus200;

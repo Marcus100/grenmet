@@ -44,8 +44,4 @@ export type AuthDeleteUserResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthDeleteUserResponse =
-  | AuthDeleteUserStatus200
-  | AuthDeleteUserStatus403
-  | AuthDeleteUserStatus404
-  | AuthDeleteUserStatus422;
+export type AuthDeleteUserResponse = AuthDeleteUserStatus200;

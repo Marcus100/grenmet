@@ -54,9 +54,4 @@ export type HrProposeAttendanceCorrectionResponses = {
  * @description Union of all possible responses
  */
 export type HrProposeAttendanceCorrectionResponse =
-  | HrProposeAttendanceCorrectionStatus201
-  | HrProposeAttendanceCorrectionStatus400
-  | HrProposeAttendanceCorrectionStatus403
-  | HrProposeAttendanceCorrectionStatus404
-  | HrProposeAttendanceCorrectionStatus409
-  | HrProposeAttendanceCorrectionStatus422;
+  HrProposeAttendanceCorrectionStatus201;

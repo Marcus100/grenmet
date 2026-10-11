@@ -38,9 +38,4 @@ export type HrGetStaffCardResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrGetStaffCardResponse =
-  | HrGetStaffCardStatus200
-  | HrGetStaffCardStatus403
-  | HrGetStaffCardStatus404
-  | HrGetStaffCardStatus409
-  | HrGetStaffCardStatus422;
+export type HrGetStaffCardResponse = HrGetStaffCardStatus200;

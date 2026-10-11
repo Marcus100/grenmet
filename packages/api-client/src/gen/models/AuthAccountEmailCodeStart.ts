@@ -39,7 +39,4 @@ export type AuthAccountEmailCodeStartResponses = {
  * @description Union of all possible responses
  */
 export type AuthAccountEmailCodeStartResponse =
-  | AuthAccountEmailCodeStartStatus200
-  | AuthAccountEmailCodeStartStatus422
-  | AuthAccountEmailCodeStartStatus429
-  | AuthAccountEmailCodeStartStatus503;
+  AuthAccountEmailCodeStartStatus200;

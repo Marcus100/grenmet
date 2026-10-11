@@ -37,6 +37,4 @@ export type CapDeleteFeedResponses = {
 /**
  * @description Union of all possible responses
  */
-export type CapDeleteFeedResponse =
-  | CapDeleteFeedStatus204
-  | CapDeleteFeedStatus422;
+export type CapDeleteFeedResponse = CapDeleteFeedStatus204;

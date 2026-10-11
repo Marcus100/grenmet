@@ -38,6 +38,4 @@ export type CapValidateAlertResponses = {
 /**
  * @description Union of all possible responses
  */
-export type CapValidateAlertResponse =
-  | CapValidateAlertStatus200
-  | CapValidateAlertStatus422;
+export type CapValidateAlertResponse = CapValidateAlertStatus200;

@@ -65,9 +65,4 @@ export type JanitorialUpdateShiftPatternResponses = {
  * @description Union of all possible responses
  */
 export type JanitorialUpdateShiftPatternResponse =
-  | JanitorialUpdateShiftPatternStatus200
-  | JanitorialUpdateShiftPatternStatus403
-  | JanitorialUpdateShiftPatternStatus404
-  | JanitorialUpdateShiftPatternStatus409
-  | JanitorialUpdateShiftPatternStatus422
-  | JanitorialUpdateShiftPatternStatus503;
+  JanitorialUpdateShiftPatternStatus200;

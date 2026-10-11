@@ -29,6 +29,4 @@ export type CapGetCapSettingsResponses = {
 /**
  * @description Union of all possible responses
  */
-export type CapGetCapSettingsResponse =
-  | CapGetCapSettingsStatus200
-  | CapGetCapSettingsStatus422;
+export type CapGetCapSettingsResponse = CapGetCapSettingsStatus200;

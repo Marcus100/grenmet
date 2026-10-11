@@ -56,8 +56,4 @@ export type TransportGetTimetableVersionResponses = {
  * @description Union of all possible responses
  */
 export type TransportGetTimetableVersionResponse =
-  | TransportGetTimetableVersionStatus200
-  | TransportGetTimetableVersionStatus403
-  | TransportGetTimetableVersionStatus404
-  | TransportGetTimetableVersionStatus422
-  | TransportGetTimetableVersionStatus503;
+  TransportGetTimetableVersionStatus200;

@@ -38,6 +38,4 @@ export type WxwatchMetadataResponses = {
 /**
  * @description Union of all possible responses
  */
-export type WxwatchMetadataResponse =
-  | WxwatchMetadataStatus200
-  | WxwatchMetadataStatus422;
+export type WxwatchMetadataResponse = WxwatchMetadataStatus200;

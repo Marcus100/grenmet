@@ -47,7 +47,4 @@ export type WxproductsLoadAviationDraftsResponses = {
  * @description Union of all possible responses
  */
 export type WxproductsLoadAviationDraftsResponse =
-  | WxproductsLoadAviationDraftsStatus200
-  | WxproductsLoadAviationDraftsStatus403
-  | WxproductsLoadAviationDraftsStatus422
-  | WxproductsLoadAviationDraftsStatus503;
+  WxproductsLoadAviationDraftsStatus200;

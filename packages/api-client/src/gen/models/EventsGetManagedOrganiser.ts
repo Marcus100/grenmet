@@ -45,10 +45,4 @@ export type EventsGetManagedOrganiserResponses = {
  * @description Union of all possible responses
  */
 export type EventsGetManagedOrganiserResponse =
-  | EventsGetManagedOrganiserStatus200
-  | EventsGetManagedOrganiserStatus401
-  | EventsGetManagedOrganiserStatus403
-  | EventsGetManagedOrganiserStatus404
-  | EventsGetManagedOrganiserStatus409
-  | EventsGetManagedOrganiserStatus422
-  | EventsGetManagedOrganiserStatus429;
+  EventsGetManagedOrganiserStatus200;

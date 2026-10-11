@@ -57,6 +57,4 @@ export type NotificationsGetNotificationsResponses = {
  * @description Union of all possible responses
  */
 export type NotificationsGetNotificationsResponse =
-  | NotificationsGetNotificationsStatus200
-  | NotificationsGetNotificationsStatus401
-  | NotificationsGetNotificationsStatus422;
+  NotificationsGetNotificationsStatus200;

@@ -28,6 +28,4 @@ export type UtilsHealthCheckResponses = {
 /**
  * @description Union of all possible responses
  */
-export type UtilsHealthCheckResponse =
-  | UtilsHealthCheckStatus200
-  | UtilsHealthCheckStatus422;
+export type UtilsHealthCheckResponse = UtilsHealthCheckStatus200;

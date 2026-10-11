@@ -36,7 +36,4 @@ export type HrGetTemplatesResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrGetTemplatesResponse =
-  | HrGetTemplatesStatus200
-  | HrGetTemplatesStatus403
-  | HrGetTemplatesStatus422;
+export type HrGetTemplatesResponse = HrGetTemplatesStatus200;

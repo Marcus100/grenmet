@@ -37,8 +37,4 @@ export type HrPreviewShiftSwapPdfResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrPreviewShiftSwapPdfResponse =
-  | HrPreviewShiftSwapPdfStatus200
-  | HrPreviewShiftSwapPdfStatus400
-  | HrPreviewShiftSwapPdfStatus403
-  | HrPreviewShiftSwapPdfStatus422;
+export type HrPreviewShiftSwapPdfResponse = HrPreviewShiftSwapPdfStatus200;

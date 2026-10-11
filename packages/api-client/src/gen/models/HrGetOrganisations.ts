@@ -29,6 +29,4 @@ export type HrGetOrganisationsResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrGetOrganisationsResponse =
-  | HrGetOrganisationsStatus200
-  | HrGetOrganisationsStatus422;
+export type HrGetOrganisationsResponse = HrGetOrganisationsStatus200;

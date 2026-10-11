@@ -29,6 +29,4 @@ export type AuthTwofaStatusResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthTwofaStatusResponse =
-  | AuthTwofaStatusStatus200
-  | AuthTwofaStatusStatus422;
+export type AuthTwofaStatusResponse = AuthTwofaStatusStatus200;

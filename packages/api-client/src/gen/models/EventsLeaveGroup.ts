@@ -45,9 +45,4 @@ export type EventsLeaveGroupResponses = {
 /**
  * @description Union of all possible responses
  */
-export type EventsLeaveGroupResponse =
-  | EventsLeaveGroupStatus204
-  | EventsLeaveGroupStatus401
-  | EventsLeaveGroupStatus404
-  | EventsLeaveGroupStatus422
-  | EventsLeaveGroupStatus429;
+export type EventsLeaveGroupResponse = EventsLeaveGroupStatus204;

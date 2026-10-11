@@ -35,5 +35,4 @@ export type EregisterValidateSynopObservationResponses = {
  * @description Union of all possible responses
  */
 export type EregisterValidateSynopObservationResponse =
-  | EregisterValidateSynopObservationStatus200
-  | EregisterValidateSynopObservationStatus422;
+  EregisterValidateSynopObservationStatus200;

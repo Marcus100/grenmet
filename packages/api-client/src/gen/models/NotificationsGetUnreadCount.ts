@@ -33,6 +33,4 @@ export type NotificationsGetUnreadCountResponses = {
  * @description Union of all possible responses
  */
 export type NotificationsGetUnreadCountResponse =
-  | NotificationsGetUnreadCountStatus200
-  | NotificationsGetUnreadCountStatus401
-  | NotificationsGetUnreadCountStatus422;
+  NotificationsGetUnreadCountStatus200;

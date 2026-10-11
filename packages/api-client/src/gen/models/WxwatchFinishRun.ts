@@ -44,6 +44,4 @@ export type WxwatchFinishRunResponses = {
 /**
  * @description Union of all possible responses
  */
-export type WxwatchFinishRunResponse =
-  | WxwatchFinishRunStatus204
-  | WxwatchFinishRunStatus422;
+export type WxwatchFinishRunResponse = WxwatchFinishRunStatus204;

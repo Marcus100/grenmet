@@ -55,11 +55,4 @@ export type AuthAppHandoffRedeemResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthAppHandoffRedeemResponse =
-  | AuthAppHandoffRedeemStatus200
-  | AuthAppHandoffRedeemStatus400
-  | AuthAppHandoffRedeemStatus401
-  | AuthAppHandoffRedeemStatus403
-  | AuthAppHandoffRedeemStatus404
-  | AuthAppHandoffRedeemStatus422
-  | AuthAppHandoffRedeemStatus429;
+export type AuthAppHandoffRedeemResponse = AuthAppHandoffRedeemStatus200;

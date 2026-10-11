@@ -58,9 +58,4 @@ export type JanitorialGetCatalogueResponses = {
 /**
  * @description Union of all possible responses
  */
-export type JanitorialGetCatalogueResponse =
-  | JanitorialGetCatalogueStatus200
-  | JanitorialGetCatalogueStatus403
-  | JanitorialGetCatalogueStatus404
-  | JanitorialGetCatalogueStatus422
-  | JanitorialGetCatalogueStatus503;
+export type JanitorialGetCatalogueResponse = JanitorialGetCatalogueStatus200;

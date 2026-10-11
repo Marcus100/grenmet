@@ -53,10 +53,4 @@ export type HrSubmitAttendanceResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrSubmitAttendanceResponse =
-  | HrSubmitAttendanceStatus200
-  | HrSubmitAttendanceStatus400
-  | HrSubmitAttendanceStatus403
-  | HrSubmitAttendanceStatus404
-  | HrSubmitAttendanceStatus409
-  | HrSubmitAttendanceStatus422;
+export type HrSubmitAttendanceResponse = HrSubmitAttendanceStatus200;

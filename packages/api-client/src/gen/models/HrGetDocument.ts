@@ -44,8 +44,4 @@ export type HrGetDocumentResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrGetDocumentResponse =
-  | HrGetDocumentStatus200
-  | HrGetDocumentStatus403
-  | HrGetDocumentStatus404
-  | HrGetDocumentStatus422;
+export type HrGetDocumentResponse = HrGetDocumentStatus200;

@@ -46,9 +46,4 @@ export type EventsJoinGroupResponses = {
 /**
  * @description Union of all possible responses
  */
-export type EventsJoinGroupResponse =
-  | EventsJoinGroupStatus200
-  | EventsJoinGroupStatus401
-  | EventsJoinGroupStatus404
-  | EventsJoinGroupStatus422
-  | EventsJoinGroupStatus429;
+export type EventsJoinGroupResponse = EventsJoinGroupStatus200;

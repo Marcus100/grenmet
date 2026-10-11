@@ -73,7 +73,4 @@ export type WxproductsPreviewProductResponses = {
  * @description Union of all possible responses
  */
 export type WxproductsPreviewProductResponse =
-  | WxproductsPreviewProductStatus200
-  | WxproductsPreviewProductStatus401
-  | WxproductsPreviewProductStatus403
-  | WxproductsPreviewProductStatus422;
+  WxproductsPreviewProductStatus200;

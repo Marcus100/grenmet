@@ -50,9 +50,4 @@ export type HrSubmitParkingPermitResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrSubmitParkingPermitResponse =
-  | HrSubmitParkingPermitStatus200
-  | HrSubmitParkingPermitStatus400
-  | HrSubmitParkingPermitStatus403
-  | HrSubmitParkingPermitStatus404
-  | HrSubmitParkingPermitStatus422;
+export type HrSubmitParkingPermitResponse = HrSubmitParkingPermitStatus200;

@@ -44,8 +44,4 @@ export type HrGetTimesheetSummaryResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrGetTimesheetSummaryResponse =
-  | HrGetTimesheetSummaryStatus200
-  | HrGetTimesheetSummaryStatus403
-  | HrGetTimesheetSummaryStatus404
-  | HrGetTimesheetSummaryStatus422;
+export type HrGetTimesheetSummaryResponse = HrGetTimesheetSummaryStatus200;

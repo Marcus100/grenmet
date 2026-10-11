@@ -45,9 +45,4 @@ export type HrUpdateSetupPolicyResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrUpdateSetupPolicyResponse =
-  | HrUpdateSetupPolicyStatus200
-  | HrUpdateSetupPolicyStatus403
-  | HrUpdateSetupPolicyStatus404
-  | HrUpdateSetupPolicyStatus409
-  | HrUpdateSetupPolicyStatus422;
+export type HrUpdateSetupPolicyResponse = HrUpdateSetupPolicyStatus200;

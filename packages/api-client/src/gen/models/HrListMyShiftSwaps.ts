@@ -47,6 +47,4 @@ export type HrListMyShiftSwapsResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrListMyShiftSwapsResponse =
-  | HrListMyShiftSwapsStatus200
-  | HrListMyShiftSwapsStatus422;
+export type HrListMyShiftSwapsResponse = HrListMyShiftSwapsStatus200;

@@ -47,9 +47,4 @@ export type HrClosePeriodResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrClosePeriodResponse =
-  | HrClosePeriodStatus200
-  | HrClosePeriodStatus400
-  | HrClosePeriodStatus403
-  | HrClosePeriodStatus404
-  | HrClosePeriodStatus422;
+export type HrClosePeriodResponse = HrClosePeriodStatus200;

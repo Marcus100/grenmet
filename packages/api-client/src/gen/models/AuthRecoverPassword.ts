@@ -36,7 +36,4 @@ export type AuthRecoverPasswordResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthRecoverPasswordResponse =
-  | AuthRecoverPasswordStatus200
-  | AuthRecoverPasswordStatus422
-  | AuthRecoverPasswordStatus429;
+export type AuthRecoverPasswordResponse = AuthRecoverPasswordStatus200;

@@ -44,8 +44,4 @@ export type AuthGetOnboardingStatusResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthGetOnboardingStatusResponse =
-  | AuthGetOnboardingStatusStatus200
-  | AuthGetOnboardingStatusStatus403
-  | AuthGetOnboardingStatusStatus404
-  | AuthGetOnboardingStatusStatus422;
+export type AuthGetOnboardingStatusResponse = AuthGetOnboardingStatusStatus200;

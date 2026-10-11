@@ -36,6 +36,4 @@ export type WxwatchStartRunResponses = {
 /**
  * @description Union of all possible responses
  */
-export type WxwatchStartRunResponse =
-  | WxwatchStartRunStatus200
-  | WxwatchStartRunStatus422;
+export type WxwatchStartRunResponse = WxwatchStartRunStatus200;

@@ -44,8 +44,4 @@ export type HrGetPeriodRevisionsResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrGetPeriodRevisionsResponse =
-  | HrGetPeriodRevisionsStatus200
-  | HrGetPeriodRevisionsStatus403
-  | HrGetPeriodRevisionsStatus404
-  | HrGetPeriodRevisionsStatus422;
+export type HrGetPeriodRevisionsResponse = HrGetPeriodRevisionsStatus200;

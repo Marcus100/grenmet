@@ -38,9 +38,4 @@ export type AuthGetAccessReviewsResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthGetAccessReviewsResponse =
-  | AuthGetAccessReviewsStatus200
-  | AuthGetAccessReviewsStatus401
-  | AuthGetAccessReviewsStatus403
-  | AuthGetAccessReviewsStatus409
-  | AuthGetAccessReviewsStatus422;
+export type AuthGetAccessReviewsResponse = AuthGetAccessReviewsStatus200;

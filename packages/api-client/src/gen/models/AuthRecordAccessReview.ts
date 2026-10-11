@@ -50,9 +50,4 @@ export type AuthRecordAccessReviewResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthRecordAccessReviewResponse =
-  | AuthRecordAccessReviewStatus201
-  | AuthRecordAccessReviewStatus401
-  | AuthRecordAccessReviewStatus403
-  | AuthRecordAccessReviewStatus409
-  | AuthRecordAccessReviewStatus422;
+export type AuthRecordAccessReviewResponse = AuthRecordAccessReviewStatus201;
