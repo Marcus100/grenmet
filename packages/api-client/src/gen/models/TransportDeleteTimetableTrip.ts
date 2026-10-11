@@ -63,9 +63,4 @@ export type TransportDeleteTimetableTripResponses = {
  * @description Union of all possible responses
  */
 export type TransportDeleteTimetableTripResponse =
-  | TransportDeleteTimetableTripStatus204
-  | TransportDeleteTimetableTripStatus403
-  | TransportDeleteTimetableTripStatus404
-  | TransportDeleteTimetableTripStatus409
-  | TransportDeleteTimetableTripStatus422
-  | TransportDeleteTimetableTripStatus503;
+  TransportDeleteTimetableTripStatus204;

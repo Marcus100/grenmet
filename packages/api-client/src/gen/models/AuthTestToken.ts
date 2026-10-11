@@ -29,6 +29,4 @@ export type AuthTestTokenResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthTestTokenResponse =
-  | AuthTestTokenStatus200
-  | AuthTestTokenStatus422;
+export type AuthTestTokenResponse = AuthTestTokenStatus200;

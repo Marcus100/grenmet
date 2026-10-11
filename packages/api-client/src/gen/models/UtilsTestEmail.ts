@@ -38,6 +38,4 @@ export type UtilsTestEmailResponses = {
 /**
  * @description Union of all possible responses
  */
-export type UtilsTestEmailResponse =
-  | UtilsTestEmailStatus201
-  | UtilsTestEmailStatus422;
+export type UtilsTestEmailResponse = UtilsTestEmailStatus201;

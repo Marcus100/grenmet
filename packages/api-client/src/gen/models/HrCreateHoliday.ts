@@ -43,7 +43,4 @@ export type HrCreateHolidayResponses = {
  */
 export type HrCreateHolidayResponse =
   | HrCreateHolidayStatus200
-  | HrCreateHolidayStatus201
-  | HrCreateHolidayStatus400
-  | HrCreateHolidayStatus403
-  | HrCreateHolidayStatus422;
+  | HrCreateHolidayStatus201;

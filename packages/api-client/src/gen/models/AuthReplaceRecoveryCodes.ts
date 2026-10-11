@@ -36,6 +36,4 @@ export type AuthReplaceRecoveryCodesResponses = {
  * @description Union of all possible responses
  */
 export type AuthReplaceRecoveryCodesResponse =
-  | AuthReplaceRecoveryCodesStatus200
-  | AuthReplaceRecoveryCodesStatus400
-  | AuthReplaceRecoveryCodesStatus422;
+  AuthReplaceRecoveryCodesStatus200;

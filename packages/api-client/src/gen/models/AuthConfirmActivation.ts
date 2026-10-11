@@ -35,7 +35,4 @@ export type AuthConfirmActivationResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthConfirmActivationResponse =
-  | AuthConfirmActivationStatus200
-  | AuthConfirmActivationStatus400
-  | AuthConfirmActivationStatus422;
+export type AuthConfirmActivationResponse = AuthConfirmActivationStatus200;

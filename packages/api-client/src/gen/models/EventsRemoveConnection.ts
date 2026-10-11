@@ -46,9 +46,4 @@ export type EventsRemoveConnectionResponses = {
 /**
  * @description Union of all possible responses
  */
-export type EventsRemoveConnectionResponse =
-  | EventsRemoveConnectionStatus204
-  | EventsRemoveConnectionStatus401
-  | EventsRemoveConnectionStatus404
-  | EventsRemoveConnectionStatus422
-  | EventsRemoveConnectionStatus429;
+export type EventsRemoveConnectionResponse = EventsRemoveConnectionStatus204;

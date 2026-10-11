@@ -33,7 +33,4 @@ export type HrPreviewParkingPermitPdfResponses = {
  * @description Union of all possible responses
  */
 export type HrPreviewParkingPermitPdfResponse =
-  | HrPreviewParkingPermitPdfStatus200
-  | HrPreviewParkingPermitPdfStatus400
-  | HrPreviewParkingPermitPdfStatus403
-  | HrPreviewParkingPermitPdfStatus422;
+  HrPreviewParkingPermitPdfStatus200;

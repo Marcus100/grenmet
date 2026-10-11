@@ -46,9 +46,4 @@ export type HrDeleteLeaveRequestResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrDeleteLeaveRequestResponse =
-  | HrDeleteLeaveRequestStatus204
-  | HrDeleteLeaveRequestStatus400
-  | HrDeleteLeaveRequestStatus403
-  | HrDeleteLeaveRequestStatus404
-  | HrDeleteLeaveRequestStatus422;
+export type HrDeleteLeaveRequestResponse = HrDeleteLeaveRequestStatus204;

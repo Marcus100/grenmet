@@ -33,6 +33,4 @@ export type AuthGetRoleAssignmentsResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthGetRoleAssignmentsResponse =
-  | AuthGetRoleAssignmentsStatus200
-  | AuthGetRoleAssignmentsStatus422;
+export type AuthGetRoleAssignmentsResponse = AuthGetRoleAssignmentsStatus200;

@@ -70,9 +70,4 @@ export type JanitorialUpdateContractorResponses = {
  * @description Union of all possible responses
  */
 export type JanitorialUpdateContractorResponse =
-  | JanitorialUpdateContractorStatus200
-  | JanitorialUpdateContractorStatus403
-  | JanitorialUpdateContractorStatus404
-  | JanitorialUpdateContractorStatus409
-  | JanitorialUpdateContractorStatus422
-  | JanitorialUpdateContractorStatus503;
+  JanitorialUpdateContractorStatus200;

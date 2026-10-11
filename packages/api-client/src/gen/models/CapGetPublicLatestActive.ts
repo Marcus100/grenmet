@@ -30,5 +30,4 @@ export type CapGetPublicLatestActiveResponses = {
  * @description Union of all possible responses
  */
 export type CapGetPublicLatestActiveResponse =
-  | CapGetPublicLatestActiveStatus200
-  | CapGetPublicLatestActiveStatus422;
+  CapGetPublicLatestActiveStatus200;

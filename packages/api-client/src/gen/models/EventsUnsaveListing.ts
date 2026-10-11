@@ -45,9 +45,4 @@ export type EventsUnsaveListingResponses = {
 /**
  * @description Union of all possible responses
  */
-export type EventsUnsaveListingResponse =
-  | EventsUnsaveListingStatus204
-  | EventsUnsaveListingStatus401
-  | EventsUnsaveListingStatus404
-  | EventsUnsaveListingStatus422
-  | EventsUnsaveListingStatus429;
+export type EventsUnsaveListingResponse = EventsUnsaveListingStatus204;

@@ -32,7 +32,4 @@ export type CapGetPublicWarningsResponses = {
 /**
  * @description Union of all possible responses
  */
-export type CapGetPublicWarningsResponse =
-  | CapGetPublicWarningsStatus200
-  | CapGetPublicWarningsStatus422
-  | CapGetPublicWarningsStatus503;
+export type CapGetPublicWarningsResponse = CapGetPublicWarningsStatus200;

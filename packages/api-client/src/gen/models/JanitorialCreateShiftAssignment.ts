@@ -62,9 +62,4 @@ export type JanitorialCreateShiftAssignmentResponses = {
  * @description Union of all possible responses
  */
 export type JanitorialCreateShiftAssignmentResponse =
-  | JanitorialCreateShiftAssignmentStatus201
-  | JanitorialCreateShiftAssignmentStatus403
-  | JanitorialCreateShiftAssignmentStatus404
-  | JanitorialCreateShiftAssignmentStatus409
-  | JanitorialCreateShiftAssignmentStatus422
-  | JanitorialCreateShiftAssignmentStatus503;
+  JanitorialCreateShiftAssignmentStatus201;

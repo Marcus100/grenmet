@@ -53,10 +53,4 @@ export type AuthIssueActivationResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthIssueActivationResponse =
-  | AuthIssueActivationStatus201
-  | AuthIssueActivationStatus400
-  | AuthIssueActivationStatus403
-  | AuthIssueActivationStatus404
-  | AuthIssueActivationStatus409
-  | AuthIssueActivationStatus422;
+export type AuthIssueActivationResponse = AuthIssueActivationStatus201;

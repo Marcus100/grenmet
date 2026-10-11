@@ -61,9 +61,4 @@ export type JanitorialCreateContractorResponses = {
  * @description Union of all possible responses
  */
 export type JanitorialCreateContractorResponse =
-  | JanitorialCreateContractorStatus201
-  | JanitorialCreateContractorStatus403
-  | JanitorialCreateContractorStatus404
-  | JanitorialCreateContractorStatus409
-  | JanitorialCreateContractorStatus422
-  | JanitorialCreateContractorStatus503;
+  JanitorialCreateContractorStatus201;

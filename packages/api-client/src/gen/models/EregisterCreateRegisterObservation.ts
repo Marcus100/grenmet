@@ -35,5 +35,4 @@ export type EregisterCreateRegisterObservationResponses = {
  * @description Union of all possible responses
  */
 export type EregisterCreateRegisterObservationResponse =
-  | EregisterCreateRegisterObservationStatus201
-  | EregisterCreateRegisterObservationStatus422;
+  EregisterCreateRegisterObservationStatus201;

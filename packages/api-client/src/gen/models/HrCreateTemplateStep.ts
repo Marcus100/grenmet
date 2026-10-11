@@ -52,7 +52,4 @@ export type HrCreateTemplateStepResponses = {
  */
 export type HrCreateTemplateStepResponse =
   | HrCreateTemplateStepStatus200
-  | HrCreateTemplateStepStatus201
-  | HrCreateTemplateStepStatus403
-  | HrCreateTemplateStepStatus404
-  | HrCreateTemplateStepStatus422;
+  | HrCreateTemplateStepStatus201;

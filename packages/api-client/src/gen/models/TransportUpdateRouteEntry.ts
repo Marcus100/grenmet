@@ -66,9 +66,4 @@ export type TransportUpdateRouteEntryResponses = {
  * @description Union of all possible responses
  */
 export type TransportUpdateRouteEntryResponse =
-  | TransportUpdateRouteEntryStatus200
-  | TransportUpdateRouteEntryStatus403
-  | TransportUpdateRouteEntryStatus404
-  | TransportUpdateRouteEntryStatus409
-  | TransportUpdateRouteEntryStatus422
-  | TransportUpdateRouteEntryStatus503;
+  TransportUpdateRouteEntryStatus200;

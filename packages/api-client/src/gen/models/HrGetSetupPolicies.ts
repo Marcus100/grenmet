@@ -42,9 +42,4 @@ export type HrGetSetupPoliciesResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrGetSetupPoliciesResponse =
-  | HrGetSetupPoliciesStatus200
-  | HrGetSetupPoliciesStatus403
-  | HrGetSetupPoliciesStatus404
-  | HrGetSetupPoliciesStatus409
-  | HrGetSetupPoliciesStatus422;
+export type HrGetSetupPoliciesResponse = HrGetSetupPoliciesStatus200;

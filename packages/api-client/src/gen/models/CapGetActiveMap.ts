@@ -30,6 +30,4 @@ export type CapGetActiveMapResponses = {
 /**
  * @description Union of all possible responses
  */
-export type CapGetActiveMapResponse =
-  | CapGetActiveMapStatus200
-  | CapGetActiveMapStatus422;
+export type CapGetActiveMapResponse = CapGetActiveMapStatus200;

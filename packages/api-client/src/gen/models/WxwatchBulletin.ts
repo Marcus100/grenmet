@@ -38,6 +38,4 @@ export type WxwatchBulletinResponses = {
 /**
  * @description Union of all possible responses
  */
-export type WxwatchBulletinResponse =
-  | WxwatchBulletinStatus200
-  | WxwatchBulletinStatus422;
+export type WxwatchBulletinResponse = WxwatchBulletinStatus200;

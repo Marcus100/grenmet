@@ -55,11 +55,4 @@ export type AuthAppPasswordLoginResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthAppPasswordLoginResponse =
-  | AuthAppPasswordLoginStatus200
-  | AuthAppPasswordLoginStatus400
-  | AuthAppPasswordLoginStatus403
-  | AuthAppPasswordLoginStatus404
-  | AuthAppPasswordLoginStatus422
-  | AuthAppPasswordLoginStatus429
-  | AuthAppPasswordLoginStatus503;
+export type AuthAppPasswordLoginResponse = AuthAppPasswordLoginStatus200;

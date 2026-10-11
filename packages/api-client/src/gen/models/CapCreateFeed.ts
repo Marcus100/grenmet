@@ -32,6 +32,4 @@ export type CapCreateFeedResponses = {
 /**
  * @description Union of all possible responses
  */
-export type CapCreateFeedResponse =
-  | CapCreateFeedStatus201
-  | CapCreateFeedStatus422;
+export type CapCreateFeedResponse = CapCreateFeedStatus201;

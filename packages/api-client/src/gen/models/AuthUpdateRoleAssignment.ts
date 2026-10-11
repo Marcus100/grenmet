@@ -45,6 +45,4 @@ export type AuthUpdateRoleAssignmentResponses = {
  * @description Union of all possible responses
  */
 export type AuthUpdateRoleAssignmentResponse =
-  | AuthUpdateRoleAssignmentStatus200
-  | AuthUpdateRoleAssignmentStatus404
-  | AuthUpdateRoleAssignmentStatus422;
+  AuthUpdateRoleAssignmentStatus200;

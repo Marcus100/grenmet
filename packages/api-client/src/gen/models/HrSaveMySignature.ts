@@ -38,8 +38,4 @@ export type HrSaveMySignatureResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrSaveMySignatureResponse =
-  | HrSaveMySignatureStatus200
-  | HrSaveMySignatureStatus400
-  | HrSaveMySignatureStatus401
-  | HrSaveMySignatureStatus422;
+export type HrSaveMySignatureResponse = HrSaveMySignatureStatus200;

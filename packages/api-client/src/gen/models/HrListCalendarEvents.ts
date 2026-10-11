@@ -59,9 +59,4 @@ export type HrListCalendarEventsResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrListCalendarEventsResponse =
-  | HrListCalendarEventsStatus200
-  | HrListCalendarEventsStatus400
-  | HrListCalendarEventsStatus403
-  | HrListCalendarEventsStatus404
-  | HrListCalendarEventsStatus422;
+export type HrListCalendarEventsResponse = HrListCalendarEventsStatus200;

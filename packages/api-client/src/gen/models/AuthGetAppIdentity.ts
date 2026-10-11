@@ -40,7 +40,4 @@ export type AuthGetAppIdentityResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthGetAppIdentityResponse =
-  | AuthGetAppIdentityStatus200
-  | AuthGetAppIdentityStatus401
-  | AuthGetAppIdentityStatus422;
+export type AuthGetAppIdentityResponse = AuthGetAppIdentityStatus200;

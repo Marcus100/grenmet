@@ -13,9 +13,8 @@ tooling. Start with `docs/technical-overview.md`.
 
 ## Instruction map — read the nested file before editing its directory
 
-Codex only loads `AGENTS.md` files from the repo root down to its start
-directory, and Claude only loads nested files when it reads inside that
-directory. **Before editing under a path below, open its `AGENTS.md`.**
+Agents auto-load only the root file and nested files they read. **Before
+editing under a path below, open its `AGENTS.md`.**
 
 | Path | Covers |
 | --- | --- |
@@ -29,29 +28,29 @@ directory. **Before editing under a path below, open its `AGENTS.md`.**
 ## Commands
 
 ```bash
-pnpm install                 # dependencies
-pnpm start                   # Docker services (Postgres, Redis, FastAPI, worker) — HOST ONLY
-pnpm dev:web:<app>           # auth:3000 gaa-admin:3001 docs:3002 gms:3003 signal:3004 mbia:3005 cms:3006 elections:3007 events:3009 — HOST ONLY
-pnpm fix:changed             # formats all dirty files; select explicit paths in shared checkouts
-pnpm type-check              # TypeScript across all packages
-pnpm fix                     # repo-wide fix — only when deliberate (e.g. dependency bump)
-turbo run test --filter=@barrelsgd/<package>   # one package's tests
-pnpm vitest run src/path/to/file.test.ts       # one test file (from the app dir)
-pnpm generate:api-client     # Kubb client from apps/api/fastapi/openapi.json
-pnpm check:drift             # client/openapi drift (fails CI)
-pnpm guardrails:staged       # FastAPI contract pairing check on staged files
-pnpm docs:check-links && pnpm docs:check-portfolio && pnpm test:docs   # docs gates
-pnpm design-system:check     # token gate
+pnpm install  # dependencies
+pnpm start  # Docker services (Postgres, Redis, FastAPI, worker) — HOST ONLY
+pnpm dev:web:<app>  # auth:3000 gaa-admin:3001 docs:3002 gms:3003 signal:3004 mbia:3005 cms:3006 elections:3007 events:3009 — HOST ONLY
+pnpm fix:changed  # formats all dirty files; select explicit paths in shared checkouts
+pnpm type-check  # TypeScript across all packages
+pnpm fix  # repo-wide fix — only when deliberate (e.g. dependency bump)
+turbo run test --filter=@barrelsgd/<package>  # one package's tests
+pnpm vitest run src/path/to/file.test.ts  # one test file (from the app dir)
+pnpm generate:api-client  # Kubb client from apps/api/fastapi/openapi.json
+pnpm check:drift  # client/openapi drift (fails CI)
+pnpm guardrails:staged  # FastAPI contract pairing check on staged files
+pnpm docs:check-links && pnpm docs:check-portfolio && pnpm test:docs  # docs gates
+pnpm design-system:check  # token gate
 ```
 
 FastAPI (from `apps/api/fastapi`; host stack uses `docker compose exec api …`):
 
 ```bash
-uv run --frozen --package fast-back pytest [tests/<domain>/]            # tests
-uv run --frozen --package fast-back alembic upgrade head                # main DB migrations
+uv run --frozen --package fast-back pytest [tests/<domain>/]  # tests
+uv run --frozen --package fast-back alembic upgrade head  # main DB migrations
 uv run --frozen --package fast-back alembic -c src/<domain>/alembic.ini upgrade head  # separate-DB domains
-./scripts/lint.sh     # Ruff + format check + mypy
-./scripts/format.sh   # Ruff fix + format
+./scripts/lint.sh  # Ruff + format check + mypy
+./scripts/format.sh  # Ruff fix + format
 PROJECT_NAME='Barrels Grenada' uv run --frozen --package fast-back python -c "from src.main import app; import json; json.dump(app.openapi(), open('openapi.json', 'w'), indent=2)"  # regen openapi.json
 ```
 
@@ -63,18 +62,15 @@ PROJECT_NAME='Barrels Grenada' uv run --frozen --package fast-back python -c "fr
 ## Behavioral Tiers
 
 ### Always (no confirmation needed)
-- Work locally first: implement, inspect the diff, and run formatting, types, affected tests and integration checks before pushing; use GitHub Actions as additional verification, not the first test run.
+- Work locally first: implement, inspect the diff, and run formatting, types, affected tests and integration checks before pushing; CI is extra verification, not the first test run.
 - Stage, commit, push and open PRs for authorized work after required formatting, types, affected tests and blast-radius checks pass; review the diff, preserve unrelated changes and never bypass hooks or force-push.
 - Run `pnpm fix:changed` then `pnpm type-check` before marking any task done. In shared checkouts, use `pnpm exec ultracite fix <owned-files>` to preserve unrelated edits.
-  Repo-wide `pnpm fix` reformats unrelated in-progress files and can bust
-  turbo's cache, surfacing pre-existing issues as if new
+  Repo-wide `pnpm fix` reformats unrelated in-progress files; use it deliberately.
 - Treat GAA as the client organisation and GMS as its meteorological department; never describe either as a Barrels product. Software is Barrels IP; client data, marks and `Owner: GAA/GMS` docs are GAA's. The repo is public: never commit GAA confidential material; keep it in gitignored `/private/`
 - Put backend logic in Python (FastAPI). The only TypeScript backend is the Payload CMS (`apps/web/cms`). Next.js route handlers may only validate, proxy to FastAPI, or render (e.g. email HTML); never add database access, business rules, or delivery there
 - Use Biome/Ultracite through `pnpm fix` for linting and formatting; never invoke Prettier or ESLint
 - Before marking a task done, grep every importer/callsite of changed symbols and confirm the change is complete across all affected layers — see Blast-Radius Gate
 - Follow existing patterns in the codebase before proposing new ones
-- Include tests with every new feature or significant logic change
-- Explain reasoning before proposing any new pattern, library, or abstraction
 
 ### Ask First (stop before proceeding)
 - Work outside the task or domain the user has authorized
@@ -229,20 +225,15 @@ Other:
 
 ### Claude Code
 
-- Claude Code v2.1.277+ loads `AGENTS.md` natively in its default Project instructions mode when no `CLAUDE.md` or `CLAUDE.local.md` exists in the working directory or an ancestor.
+- Claude Code loads `AGENTS.md` natively when no `CLAUDE.md` or `CLAUDE.local.md` exists in the working directory or an ancestor.
 - Invoke repo playbooks with the Skill tool or `/<name>` (for example `/api-change`, `/gaa-admin-change`, `/pre-merge`, `/ci-triage`, `/release`, `/commit`, `/ui-check`, `/design-critique`, `/tdd`, `/diagnosing-bugs`, and `/stack-doctor`).
 - Only spawn sub-agents when the user asks; when doing so, pass the Blast-Radius Gate and relevant nested `AGENTS.md` paths.
 - Claude hooks live in `.claude/settings.json`; `format-changed-file.mjs` formats each edited file automatically.
 
 ## CI/CD Conventions
 
-- **Promotion workflow:** after authorized work lands on `dev`, create or update one `dev` → `staging` PR and report its checks. Do not merge the promotion PR or deploy without explicit authorization.
-
-- Sentry: owner-approved shared projects for this repo are `grenmet-staging` and `grenmet-production`; route only through the matching environment secret, never cross-environment fallback. Preserve existing reporting during migration.
-
-- **Telemetry rollout:** verify dev → staging → production, with app/environment mappings in `packages/ui/src/lib/service-catalogue.json`; missing mappings disable collection, never fall back to another owner’s project.
-- **Public browser analytics:** collect only on production `barrels.gd` and its public subdomains; staging and previews must stay disabled even if legacy provider IDs exist. See `docs/operations/analytics-monitoring.md`.
-- **Monitoring ownership:** manage provider configuration, host probes and backup/restore jobs through reviewed CI/CD; activation and evidence gates are in `docs/operations/analytics-monitoring.md`.
+- **Promotion workflow:** after authorized work lands on `dev`, create or update one `dev` → `staging` PR and report its checks; merge it under the standing authorization in Git and GitHub Workflow. Production (`staging` → `main`), releases and deploys need explicit authorization.
+- **Sentry:** shared projects are `grenmet-staging` and `grenmet-production`; route only through the matching environment secret, never cross-environment fallback. Telemetry, analytics and monitoring rules: `docs/agents/extended-rules.md`.
 
 - Docker image names in GitHub workflows must be lowercase.
 - Pin all GitHub Actions to SHAs, not tags.
@@ -252,12 +243,9 @@ Other:
 
 ## Design
 
-- Loop: `docs/design-workflow.md`. Token contract: `docs/design-system.md`. Before building UI, read the lane spec `docs/design/<gms|gaa-admin|mbia|signal|elections|events>.md` (DESIGN.md format; drift-tested by `pnpm test:docs`).
-- **Figma is not linked to this repo.** Ignore Figma tools and node URLs; design intent arrives via Claude Design or a supplied screenshot. Never ask for a Figma frame URL.
-- Style only with `--gm-*` tokens / Tailwind aliases / shadcn semantics — never hardcode color/spacing/radius or add design values to Tailwind config. New or changed `--gm-*` tokens need approval and land in `packages/gms/src/styles/foundation.css`, **not** `packages/ui`. Run `pnpm design-system:sync` after editing the canonical block in `packages/ui/src/styles/globals.css`.
-- Brand: navy `#0b132b`, blue `#2878f5`, sky `#37a3ef`, lime `#b9ee63`. Kit hues fail AA as small text — use `--gm-*-ink` for text under 24px regular / 18.66px bold, icons under ~24px, and fills behind small white text.
-- Logo: `@barrelsgd/gms/components/logo`; never hardcode a path or set `width`/`height` (use `className`). Retired: `--gm-sun`, the orange wordmark.
-- Token commands: `pnpm design-system:check` (gate), `:audit` / `:audit:full`, `:contrast`, `:sync`. Dark mode is class-based; prefer semantic tokens over `dark:*` in shared primitives; printable "papers" stay light.
+- Before building UI, read the lane spec `docs/design/<gms|gaa-admin|mbia|signal|elections|events>.md`; loop in `docs/design-workflow.md`, tokens in `docs/design-system.md`.
+- **Figma is not linked to this repo.** Ignore Figma tools and node URLs; never ask for a Figma frame URL.
+- Style only with `--gm-*` tokens / Tailwind aliases / shadcn semantics — never hardcode color/spacing/radius. New or changed `--gm-*` tokens need approval. Brand colors, logo, accessibility and token commands: `docs/agents/extended-rules.md`.
 
 ## Where to Look
 

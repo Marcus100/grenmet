@@ -40,6 +40,4 @@ export type HrCreateTemplateResponses = {
  */
 export type HrCreateTemplateResponse =
   | HrCreateTemplateStatus200
-  | HrCreateTemplateStatus201
-  | HrCreateTemplateStatus403
-  | HrCreateTemplateStatus422;
+  | HrCreateTemplateStatus201;

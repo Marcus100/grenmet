@@ -66,9 +66,4 @@ export type TransportUpdateTimetableDraftResponses = {
  * @description Union of all possible responses
  */
 export type TransportUpdateTimetableDraftResponse =
-  | TransportUpdateTimetableDraftStatus200
-  | TransportUpdateTimetableDraftStatus403
-  | TransportUpdateTimetableDraftStatus404
-  | TransportUpdateTimetableDraftStatus409
-  | TransportUpdateTimetableDraftStatus422
-  | TransportUpdateTimetableDraftStatus503;
+  TransportUpdateTimetableDraftStatus200;

@@ -50,9 +50,4 @@ export type HrCreateHrEmploymentResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrCreateHrEmploymentResponse =
-  | HrCreateHrEmploymentStatus201
-  | HrCreateHrEmploymentStatus400
-  | HrCreateHrEmploymentStatus403
-  | HrCreateHrEmploymentStatus404
-  | HrCreateHrEmploymentStatus422;
+export type HrCreateHrEmploymentResponse = HrCreateHrEmploymentStatus201;

@@ -42,8 +42,4 @@ export type HrUpdateShiftResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrUpdateShiftResponse =
-  | HrUpdateShiftStatus200
-  | HrUpdateShiftStatus403
-  | HrUpdateShiftStatus404
-  | HrUpdateShiftStatus422;
+export type HrUpdateShiftResponse = HrUpdateShiftStatus200;

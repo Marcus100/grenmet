@@ -80,6 +80,9 @@ jobs:
 
       - name: Type-check all web apps
         # --affected only on dev PRs; promotion PRs and pushes stay full, like image selection.
+        # actions/checkout leaves the base only as origin/dev, so name it for turbo.
+        env:
+          TURBO_SCM_BASE: ${{ (github.event_name == 'pull_request' && github.base_ref == 'dev') && 'origin/dev' || '' }}
         run: pnpm type-check ${{ (github.event_name == 'pull_request' && github.base_ref == 'dev') && '--affected' || '' }}
 
   # Job 3: Peer dependency audit (strict mode — catches version mismatches)
@@ -188,6 +191,8 @@ jobs:
         uses: ./.github/actions/setup-node
 
       - name: Run all TypeScript unit tests
+        env:
+          TURBO_SCM_BASE: ${{ (github.event_name == 'pull_request' && github.base_ref == 'dev') && 'origin/dev' || '' }}
         run: pnpm test ${{ (github.event_name == 'pull_request' && github.base_ref == 'dev') && '--affected' || '' }}
 
   # Stable required gate: absent images are intentional only when selection succeeds.

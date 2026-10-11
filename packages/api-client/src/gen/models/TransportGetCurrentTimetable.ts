@@ -45,7 +45,4 @@ export type TransportGetCurrentTimetableResponses = {
  * @description Union of all possible responses
  */
 export type TransportGetCurrentTimetableResponse =
-  | TransportGetCurrentTimetableStatus200
-  | TransportGetCurrentTimetableStatus404
-  | TransportGetCurrentTimetableStatus422
-  | TransportGetCurrentTimetableStatus503;
+  TransportGetCurrentTimetableStatus200;

@@ -41,6 +41,4 @@ export type CapSubmitAlertResponses = {
 /**
  * @description Union of all possible responses
  */
-export type CapSubmitAlertResponse =
-  | CapSubmitAlertStatus200
-  | CapSubmitAlertStatus422;
+export type CapSubmitAlertResponse = CapSubmitAlertStatus200;

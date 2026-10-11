@@ -32,6 +32,4 @@ export type CapCreateAlertResponses = {
 /**
  * @description Union of all possible responses
  */
-export type CapCreateAlertResponse =
-  | CapCreateAlertStatus201
-  | CapCreateAlertStatus422;
+export type CapCreateAlertResponse = CapCreateAlertStatus201;

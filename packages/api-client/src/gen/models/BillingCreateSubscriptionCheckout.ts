@@ -40,8 +40,4 @@ export type BillingCreateSubscriptionCheckoutResponses = {
  * @description Union of all possible responses
  */
 export type BillingCreateSubscriptionCheckoutResponse =
-  | BillingCreateSubscriptionCheckoutStatus201
-  | BillingCreateSubscriptionCheckoutStatus401
-  | BillingCreateSubscriptionCheckoutStatus422
-  | BillingCreateSubscriptionCheckoutStatus502
-  | BillingCreateSubscriptionCheckoutStatus503;
+  BillingCreateSubscriptionCheckoutStatus201;

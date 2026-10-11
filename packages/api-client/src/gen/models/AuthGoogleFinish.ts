@@ -38,8 +38,4 @@ export type AuthGoogleFinishResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthGoogleFinishResponse =
-  | AuthGoogleFinishStatus200
-  | AuthGoogleFinishStatus400
-  | AuthGoogleFinishStatus403
-  | AuthGoogleFinishStatus422;
+export type AuthGoogleFinishResponse = AuthGoogleFinishStatus200;

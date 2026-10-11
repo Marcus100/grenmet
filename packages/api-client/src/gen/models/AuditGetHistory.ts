@@ -58,8 +58,4 @@ export type AuditGetHistoryResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuditGetHistoryResponse =
-  | AuditGetHistoryStatus200
-  | AuditGetHistoryStatus403
-  | AuditGetHistoryStatus404
-  | AuditGetHistoryStatus422;
+export type AuditGetHistoryResponse = AuditGetHistoryStatus200;

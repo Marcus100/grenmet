@@ -32,6 +32,4 @@ export type AuthCreatePermissionResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthCreatePermissionResponse =
-  | AuthCreatePermissionStatus201
-  | AuthCreatePermissionStatus422;
+export type AuthCreatePermissionResponse = AuthCreatePermissionStatus201;

@@ -55,11 +55,4 @@ export type AuthAppPhoneCodeStartResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthAppPhoneCodeStartResponse =
-  | AuthAppPhoneCodeStartStatus200
-  | AuthAppPhoneCodeStartStatus400
-  | AuthAppPhoneCodeStartStatus403
-  | AuthAppPhoneCodeStartStatus404
-  | AuthAppPhoneCodeStartStatus422
-  | AuthAppPhoneCodeStartStatus429
-  | AuthAppPhoneCodeStartStatus503;
+export type AuthAppPhoneCodeStartResponse = AuthAppPhoneCodeStartStatus200;

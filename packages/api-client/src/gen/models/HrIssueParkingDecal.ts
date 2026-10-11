@@ -50,9 +50,4 @@ export type HrIssueParkingDecalResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrIssueParkingDecalResponse =
-  | HrIssueParkingDecalStatus200
-  | HrIssueParkingDecalStatus400
-  | HrIssueParkingDecalStatus403
-  | HrIssueParkingDecalStatus404
-  | HrIssueParkingDecalStatus422;
+export type HrIssueParkingDecalResponse = HrIssueParkingDecalStatus200;

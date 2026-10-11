@@ -35,5 +35,4 @@ export type AuthExchangeSessionForAccessTokenResponses = {
  * @description Union of all possible responses
  */
 export type AuthExchangeSessionForAccessTokenResponse =
-  | AuthExchangeSessionForAccessTokenStatus200
-  | AuthExchangeSessionForAccessTokenStatus422;
+  AuthExchangeSessionForAccessTokenStatus200;

@@ -50,9 +50,4 @@ export type HrTakeActionResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrTakeActionResponse =
-  | HrTakeActionStatus200
-  | HrTakeActionStatus400
-  | HrTakeActionStatus403
-  | HrTakeActionStatus404
-  | HrTakeActionStatus422;
+export type HrTakeActionResponse = HrTakeActionStatus200;

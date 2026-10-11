@@ -35,8 +35,4 @@ export type AuthRequestStaffAccessResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthRequestStaffAccessResponse =
-  | AuthRequestStaffAccessStatus200
-  | AuthRequestStaffAccessStatus401
-  | AuthRequestStaffAccessStatus403
-  | AuthRequestStaffAccessStatus422;
+export type AuthRequestStaffAccessResponse = AuthRequestStaffAccessStatus200;

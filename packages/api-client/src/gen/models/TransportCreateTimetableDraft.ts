@@ -55,8 +55,4 @@ export type TransportCreateTimetableDraftResponses = {
  * @description Union of all possible responses
  */
 export type TransportCreateTimetableDraftResponse =
-  | TransportCreateTimetableDraftStatus201
-  | TransportCreateTimetableDraftStatus403
-  | TransportCreateTimetableDraftStatus409
-  | TransportCreateTimetableDraftStatus422
-  | TransportCreateTimetableDraftStatus503;
+  TransportCreateTimetableDraftStatus201;

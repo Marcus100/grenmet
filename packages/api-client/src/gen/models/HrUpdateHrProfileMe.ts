@@ -35,7 +35,4 @@ export type HrUpdateHrProfileMeResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrUpdateHrProfileMeResponse =
-  | HrUpdateHrProfileMeStatus200
-  | HrUpdateHrProfileMeStatus404
-  | HrUpdateHrProfileMeStatus422;
+export type HrUpdateHrProfileMeResponse = HrUpdateHrProfileMeStatus200;

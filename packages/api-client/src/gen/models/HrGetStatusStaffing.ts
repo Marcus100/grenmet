@@ -49,9 +49,4 @@ export type HrGetStatusStaffingResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrGetStatusStaffingResponse =
-  | HrGetStatusStaffingStatus200
-  | HrGetStatusStaffingStatus400
-  | HrGetStatusStaffingStatus403
-  | HrGetStatusStaffingStatus404
-  | HrGetStatusStaffingStatus422;
+export type HrGetStatusStaffingResponse = HrGetStatusStaffingStatus200;

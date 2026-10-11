@@ -51,10 +51,4 @@ export type HrGetAttendanceWeekResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrGetAttendanceWeekResponse =
-  | HrGetAttendanceWeekStatus200
-  | HrGetAttendanceWeekStatus400
-  | HrGetAttendanceWeekStatus403
-  | HrGetAttendanceWeekStatus404
-  | HrGetAttendanceWeekStatus409
-  | HrGetAttendanceWeekStatus422;
+export type HrGetAttendanceWeekResponse = HrGetAttendanceWeekStatus200;

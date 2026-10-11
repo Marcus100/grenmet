@@ -35,7 +35,4 @@ export type AuthResetPasswordResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthResetPasswordResponse =
-  | AuthResetPasswordStatus200
-  | AuthResetPasswordStatus422
-  | AuthResetPasswordStatus429;
+export type AuthResetPasswordResponse = AuthResetPasswordStatus200;

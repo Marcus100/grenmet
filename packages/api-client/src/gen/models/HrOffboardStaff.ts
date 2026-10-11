@@ -47,9 +47,4 @@ export type HrOffboardStaffResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrOffboardStaffResponse =
-  | HrOffboardStaffStatus200
-  | HrOffboardStaffStatus403
-  | HrOffboardStaffStatus404
-  | HrOffboardStaffStatus409
-  | HrOffboardStaffStatus422;
+export type HrOffboardStaffResponse = HrOffboardStaffStatus200;

@@ -41,7 +41,4 @@ export type JanitorialGetAccessResponses = {
 /**
  * @description Union of all possible responses
  */
-export type JanitorialGetAccessResponse =
-  | JanitorialGetAccessStatus200
-  | JanitorialGetAccessStatus401
-  | JanitorialGetAccessStatus422;
+export type JanitorialGetAccessResponse = JanitorialGetAccessStatus200;

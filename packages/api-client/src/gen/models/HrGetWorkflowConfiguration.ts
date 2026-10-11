@@ -39,8 +39,4 @@ export type HrGetWorkflowConfigurationResponses = {
  * @description Union of all possible responses
  */
 export type HrGetWorkflowConfigurationResponse =
-  | HrGetWorkflowConfigurationStatus200
-  | HrGetWorkflowConfigurationStatus401
-  | HrGetWorkflowConfigurationStatus403
-  | HrGetWorkflowConfigurationStatus409
-  | HrGetWorkflowConfigurationStatus422;
+  HrGetWorkflowConfigurationStatus200;

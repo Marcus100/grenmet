@@ -78,8 +78,4 @@ export type WxwatchArchiveAssetResponses = {
 /**
  * @description Union of all possible responses
  */
-export type WxwatchArchiveAssetResponse =
-  | WxwatchArchiveAssetStatus200
-  | WxwatchArchiveAssetStatus404
-  | WxwatchArchiveAssetStatus422
-  | WxwatchArchiveAssetStatus503;
+export type WxwatchArchiveAssetResponse = WxwatchArchiveAssetStatus200;

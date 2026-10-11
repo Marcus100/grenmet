@@ -53,10 +53,4 @@ export type EventsSendMessageResponses = {
 /**
  * @description Union of all possible responses
  */
-export type EventsSendMessageResponse =
-  | EventsSendMessageStatus201
-  | EventsSendMessageStatus401
-  | EventsSendMessageStatus403
-  | EventsSendMessageStatus404
-  | EventsSendMessageStatus422
-  | EventsSendMessageStatus429;
+export type EventsSendMessageResponse = EventsSendMessageStatus201;

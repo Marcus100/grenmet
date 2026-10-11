@@ -60,10 +60,4 @@ export type JanitorialCreateGrantsResponses = {
 /**
  * @description Union of all possible responses
  */
-export type JanitorialCreateGrantsResponse =
-  | JanitorialCreateGrantsStatus201
-  | JanitorialCreateGrantsStatus403
-  | JanitorialCreateGrantsStatus404
-  | JanitorialCreateGrantsStatus409
-  | JanitorialCreateGrantsStatus422
-  | JanitorialCreateGrantsStatus503;
+export type JanitorialCreateGrantsResponse = JanitorialCreateGrantsStatus201;

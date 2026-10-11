@@ -38,7 +38,4 @@ export type HrListPeriodsResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrListPeriodsResponse =
-  | HrListPeriodsStatus200
-  | HrListPeriodsStatus403
-  | HrListPeriodsStatus422;
+export type HrListPeriodsResponse = HrListPeriodsStatus200;

@@ -53,10 +53,4 @@ export type HrUpdateStaffSetupResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrUpdateStaffSetupResponse =
-  | HrUpdateStaffSetupStatus200
-  | HrUpdateStaffSetupStatus400
-  | HrUpdateStaffSetupStatus403
-  | HrUpdateStaffSetupStatus404
-  | HrUpdateStaffSetupStatus409
-  | HrUpdateStaffSetupStatus422;
+export type HrUpdateStaffSetupResponse = HrUpdateStaffSetupStatus200;

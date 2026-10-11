@@ -41,8 +41,4 @@ export type HrPreviewStatusReportPdfResponses = {
  * @description Union of all possible responses
  */
 export type HrPreviewStatusReportPdfResponse =
-  | HrPreviewStatusReportPdfStatus200
-  | HrPreviewStatusReportPdfStatus400
-  | HrPreviewStatusReportPdfStatus403
-  | HrPreviewStatusReportPdfStatus404
-  | HrPreviewStatusReportPdfStatus422;
+  HrPreviewStatusReportPdfStatus200;

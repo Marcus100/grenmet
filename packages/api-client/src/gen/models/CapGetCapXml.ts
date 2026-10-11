@@ -32,6 +32,4 @@ export type CapGetCapXmlResponses = {
 /**
  * @description Union of all possible responses
  */
-export type CapGetCapXmlResponse =
-  | CapGetCapXmlStatus200
-  | CapGetCapXmlStatus422;
+export type CapGetCapXmlResponse = CapGetCapXmlStatus200;

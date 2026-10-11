@@ -48,10 +48,4 @@ export type EventsBlockMemberResponses = {
 /**
  * @description Union of all possible responses
  */
-export type EventsBlockMemberResponse =
-  | EventsBlockMemberStatus204
-  | EventsBlockMemberStatus401
-  | EventsBlockMemberStatus404
-  | EventsBlockMemberStatus409
-  | EventsBlockMemberStatus422
-  | EventsBlockMemberStatus429;
+export type EventsBlockMemberResponse = EventsBlockMemberStatus204;

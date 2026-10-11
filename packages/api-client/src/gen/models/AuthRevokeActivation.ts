@@ -43,8 +43,4 @@ export type AuthRevokeActivationResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthRevokeActivationResponse =
-  | AuthRevokeActivationStatus204
-  | AuthRevokeActivationStatus403
-  | AuthRevokeActivationStatus404
-  | AuthRevokeActivationStatus422;
+export type AuthRevokeActivationResponse = AuthRevokeActivationStatus204;

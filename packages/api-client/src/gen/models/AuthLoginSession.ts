@@ -38,8 +38,4 @@ export type AuthLoginSessionResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthLoginSessionResponse =
-  | AuthLoginSessionStatus200
-  | AuthLoginSessionStatus400
-  | AuthLoginSessionStatus422
-  | AuthLoginSessionStatus429;
+export type AuthLoginSessionResponse = AuthLoginSessionStatus200;

@@ -55,11 +55,4 @@ export type AuthAppGoogleCompleteResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthAppGoogleCompleteResponse =
-  | AuthAppGoogleCompleteStatus200
-  | AuthAppGoogleCompleteStatus400
-  | AuthAppGoogleCompleteStatus403
-  | AuthAppGoogleCompleteStatus404
-  | AuthAppGoogleCompleteStatus422
-  | AuthAppGoogleCompleteStatus429
-  | AuthAppGoogleCompleteStatus503;
+export type AuthAppGoogleCompleteResponse = AuthAppGoogleCompleteStatus200;

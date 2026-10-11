@@ -32,6 +32,4 @@ export type CapGetIntegrationsResponses = {
 /**
  * @description Union of all possible responses
  */
-export type CapGetIntegrationsResponse =
-  | CapGetIntegrationsStatus200
-  | CapGetIntegrationsStatus422;
+export type CapGetIntegrationsResponse = CapGetIntegrationsStatus200;

@@ -40,6 +40,4 @@ export type CapSaveHazardProfileResponses = {
 /**
  * @description Union of all possible responses
  */
-export type CapSaveHazardProfileResponse =
-  | CapSaveHazardProfileStatus201
-  | CapSaveHazardProfileStatus422;
+export type CapSaveHazardProfileResponse = CapSaveHazardProfileStatus201;

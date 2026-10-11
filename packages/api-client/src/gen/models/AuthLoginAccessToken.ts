@@ -38,8 +38,4 @@ export type AuthLoginAccessTokenResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthLoginAccessTokenResponse =
-  | AuthLoginAccessTokenStatus200
-  | AuthLoginAccessTokenStatus400
-  | AuthLoginAccessTokenStatus422
-  | AuthLoginAccessTokenStatus429;
+export type AuthLoginAccessTokenResponse = AuthLoginAccessTokenStatus200;

@@ -32,7 +32,4 @@ export type HrGetHrProfileMeResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrGetHrProfileMeResponse =
-  | HrGetHrProfileMeStatus200
-  | HrGetHrProfileMeStatus404
-  | HrGetHrProfileMeStatus422;
+export type HrGetHrProfileMeResponse = HrGetHrProfileMeStatus200;

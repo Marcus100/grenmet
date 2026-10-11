@@ -29,6 +29,4 @@ export type CapGetHazardProfilesResponses = {
 /**
  * @description Union of all possible responses
  */
-export type CapGetHazardProfilesResponse =
-  | CapGetHazardProfilesStatus200
-  | CapGetHazardProfilesStatus422;
+export type CapGetHazardProfilesResponse = CapGetHazardProfilesStatus200;

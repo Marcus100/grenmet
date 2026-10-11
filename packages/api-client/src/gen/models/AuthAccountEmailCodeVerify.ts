@@ -42,8 +42,4 @@ export type AuthAccountEmailCodeVerifyResponses = {
  * @description Union of all possible responses
  */
 export type AuthAccountEmailCodeVerifyResponse =
-  | AuthAccountEmailCodeVerifyStatus200
-  | AuthAccountEmailCodeVerifyStatus400
-  | AuthAccountEmailCodeVerifyStatus403
-  | AuthAccountEmailCodeVerifyStatus422
-  | AuthAccountEmailCodeVerifyStatus429;
+  AuthAccountEmailCodeVerifyStatus200;

@@ -40,7 +40,4 @@ export type AuthGetAppSignInOptionsResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthGetAppSignInOptionsResponse =
-  | AuthGetAppSignInOptionsStatus200
-  | AuthGetAppSignInOptionsStatus404
-  | AuthGetAppSignInOptionsStatus422;
+export type AuthGetAppSignInOptionsResponse = AuthGetAppSignInOptionsStatus200;

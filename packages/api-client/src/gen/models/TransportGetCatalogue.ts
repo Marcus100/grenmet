@@ -37,7 +37,4 @@ export type TransportGetCatalogueResponses = {
 /**
  * @description Union of all possible responses
  */
-export type TransportGetCatalogueResponse =
-  | TransportGetCatalogueStatus200
-  | TransportGetCatalogueStatus422
-  | TransportGetCatalogueStatus503;
+export type TransportGetCatalogueResponse = TransportGetCatalogueStatus200;

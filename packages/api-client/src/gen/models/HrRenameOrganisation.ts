@@ -42,8 +42,4 @@ export type HrRenameOrganisationResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrRenameOrganisationResponse =
-  | HrRenameOrganisationStatus200
-  | HrRenameOrganisationStatus403
-  | HrRenameOrganisationStatus404
-  | HrRenameOrganisationStatus422;
+export type HrRenameOrganisationResponse = HrRenameOrganisationStatus200;

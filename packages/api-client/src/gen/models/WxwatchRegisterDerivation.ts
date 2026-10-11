@@ -37,5 +37,4 @@ export type WxwatchRegisterDerivationResponses = {
  * @description Union of all possible responses
  */
 export type WxwatchRegisterDerivationResponse =
-  | WxwatchRegisterDerivationStatus200
-  | WxwatchRegisterDerivationStatus422;
+  WxwatchRegisterDerivationStatus200;

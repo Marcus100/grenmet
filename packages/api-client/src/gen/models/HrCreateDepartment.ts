@@ -38,8 +38,4 @@ export type HrCreateDepartmentResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrCreateDepartmentResponse =
-  | HrCreateDepartmentStatus201
-  | HrCreateDepartmentStatus400
-  | HrCreateDepartmentStatus403
-  | HrCreateDepartmentStatus422;
+export type HrCreateDepartmentResponse = HrCreateDepartmentStatus201;

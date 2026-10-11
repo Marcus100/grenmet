@@ -32,6 +32,4 @@ export type AuthLogoutAllSessionsResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthLogoutAllSessionsResponse =
-  | AuthLogoutAllSessionsStatus200
-  | AuthLogoutAllSessionsStatus422;
+export type AuthLogoutAllSessionsResponse = AuthLogoutAllSessionsStatus200;
