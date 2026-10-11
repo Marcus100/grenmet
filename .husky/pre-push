@@ -1,3 +1,15 @@
-pnpm check:ci
-pnpm type-check
-pnpm test
+# Scope the local gate to what this branch changed against origin/dev (plus
+# its dependents); CI runs the full suite. Set PRE_PUSH_SCOPE="" for a full
+# local run, or any turbo flags to override.
+if [ -z "${PRE_PUSH_SCOPE+x}" ]; then
+  if git rev-parse --verify --quiet origin/dev >/dev/null 2>&1; then
+    PRE_PUSH_SCOPE="--affected"
+    export TURBO_SCM_BASE=origin/dev
+  else
+    PRE_PUSH_SCOPE=""
+  fi
+fi
+
+pnpm check:ci $PRE_PUSH_SCOPE
+pnpm type-check $PRE_PUSH_SCOPE
+pnpm test $PRE_PUSH_SCOPE
