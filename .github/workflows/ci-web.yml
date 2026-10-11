@@ -41,6 +41,8 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
+          # Full history for diffs, but no historic blobs (the repo carries ~2 GB of old images).
+          filter: blob:none
       - name: Select affected images (full set when comparison is unavailable)
         id: select
         env:
@@ -70,6 +72,8 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
         with:
           fetch-depth: 0
+          # Full history for diffs, but no historic blobs (the repo carries ~2 GB of old images).
+          filter: blob:none
 
       - name: Setup Node.js with pnpm
         uses: ./.github/actions/setup-node
@@ -100,6 +104,8 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
         with:
           fetch-depth: 0
+          # Full history for diffs, but no historic blobs (the repo carries ~2 GB of old images).
+          filter: blob:none
 
       - name: Setup Node.js with pnpm
         uses: ./.github/actions/setup-node
@@ -175,6 +181,8 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
         with:
           fetch-depth: 0
+          # Full history for diffs, but no historic blobs (the repo carries ~2 GB of old images).
+          filter: blob:none
 
       - name: Setup Node.js with pnpm
         uses: ./.github/actions/setup-node
