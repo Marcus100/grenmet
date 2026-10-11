@@ -32,4 +32,4 @@ The pnpm/Turborepo/Next.js workspace was already current (pnpm 12 catalogs, Type
 
 ## Consequences
 
-Unchanged packages type-check and test from cache in CI, and dev PRs only check what they affect. New index-access code must handle `undefined`. Open follow-ups: pilot Cache Components route by route (gms first), push `"use client"` boundaries down in `gaa-admin`, and review the packages Knip still flags (for example the `cms-migrations` sidecar, which Knip cannot see being used).
+Unchanged packages type-check and test from cache in CI, and dev PRs only check what they affect. New index-access code must handle `undefined`. Open follow-ups: review the packages Knip still flags (for example the `cms-migrations` sidecar, which Knip cannot see being used), and fix the nested-ternary and complexity warnings Biome reports. The planned `gaa-admin` client-boundary work found nothing to move: only 7 of 71 page and layout files are client files, and the remaining `"use client"` files are leaf components. Two salesbus pages that needed no client directive were converted.
