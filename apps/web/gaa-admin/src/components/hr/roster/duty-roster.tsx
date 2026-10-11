@@ -207,7 +207,7 @@ export function DutyRoster() {
     const assignments: RosterAssignmentInput[] = Object.entries(
       pendingEdits
     ).map(([key, shiftCode]) => {
-      const [userId, date] = key.split("|");
+      const [userId = "", date = ""] = key.split("|");
       return {
         user_id: userId,
         assignment_date: date,

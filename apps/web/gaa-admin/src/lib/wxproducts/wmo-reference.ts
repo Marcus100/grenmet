@@ -10,7 +10,7 @@ export function normalizeDescriptor(value: string): string | undefined {
   if (COMPACT_DESCRIPTOR.test(text)) return text;
   const parts = SEPARATED_DESCRIPTOR.exec(text);
   if (!parts) return undefined;
-  return `${parts[1]}${parts[2].padStart(2, "0")}${parts[3].padStart(3, "0")}`;
+  return `${parts[1]}${(parts[2] ?? "").padStart(2, "0")}${(parts[3] ?? "").padStart(3, "0")}`;
 }
 
 export function searchWmoFields(query: string) {

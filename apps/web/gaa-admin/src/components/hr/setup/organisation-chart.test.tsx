@@ -17,7 +17,7 @@ it("orders supervisors before staff without changing the source records", () => 
     ["manager", 0],
     ["employee", 1],
   ]);
-  expect(staff[0].user_id).toBe("employee");
+  expect(staff[0]?.user_id).toBe("employee");
 });
 it("retains disconnected staff, self-references and cycles once each", () => {
   const rows = chartRows([
@@ -31,7 +31,7 @@ it("retains disconnected staff, self-references and cycles once each", () => {
   expect(
     rows.filter((row) => row.issue?.startsWith("Reporting cycle"))
   ).toHaveLength(2);
-  expect(rows[0].issue).toBe("Supervisor unavailable in this view");
+  expect(rows[0]?.issue).toBe("Supervisor unavailable in this view");
 });
 it("shows relationships and an empty state without editing controls", () => {
   const { rerender } = render(
@@ -51,7 +51,7 @@ it("keeps descendants attached when they precede a reporting cycle", () => {
     person("a", "b"),
     person("b", "a"),
   ]);
-  expect(rows[0].person.user_id).toBe("a");
+  expect(rows[0]?.person.user_id).toBe("a");
   expect(rows.find((row) => row.person.user_id === "employee")).toMatchObject({
     depth: 1,
     issue: undefined,

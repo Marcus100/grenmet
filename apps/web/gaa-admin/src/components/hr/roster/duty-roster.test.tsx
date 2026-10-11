@@ -10,6 +10,7 @@ import {
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import { nth } from "@/test/nth";
 import { DutyRoster } from "./duty-roster";
 
 const BASE = "http://localhost";
@@ -123,7 +124,7 @@ const server = setupServer(
         {
           id: "a1",
           roster_period_id: PERIOD.id,
-          user_id: MEMBERS.data[0].user_id,
+          user_id: MEMBERS.data[0]?.user_id,
           assignment_date: `${year}-${pad(month + 1)}-02`,
           shift_code: "E",
           remarks: null,
@@ -161,7 +162,7 @@ describe("DutyRoster (wired)", () => {
             {
               id: "a1",
               roster_period_id: PERIOD.id,
-              user_id: MEMBERS.data[0].user_id,
+              user_id: MEMBERS.data[0]?.user_id,
               assignment_date: `${year}-${pad(month + 1)}-02`,
               shift_code: "E",
               availability: "ABSENT",
@@ -190,7 +191,7 @@ describe("DutyRoster (wired)", () => {
     if (!row) throw new Error("Expected a roster row for G. Tamar");
     await waitFor(() => {
       const cells = within(row).getAllByRole("button");
-      expect(cells[1].textContent).toBe("E");
+      expect(cells[1]?.textContent).toBe("E");
     });
   }, 20_000);
 
@@ -209,7 +210,7 @@ describe("DutyRoster (wired)", () => {
 
     const row = (await screen.findByText("G. Tamar")).closest("tr");
     if (!row) throw new Error("Expected a roster row for G. Tamar");
-    const firstCell = within(row).getAllByRole("button")[0];
+    const firstCell = nth(within(row).getAllByRole("button"));
 
     expect(firstCell.textContent).toBe("");
     fireEvent.click(firstCell);
@@ -225,7 +226,7 @@ describe("DutyRoster (wired)", () => {
       roster_period_id: PERIOD.id,
       assignments: [
         {
-          user_id: MEMBERS.data[0].user_id,
+          user_id: MEMBERS.data[0]?.user_id,
           assignment_date: `${year}-${pad(month + 1)}-01`,
           shift_code: "E",
         },
@@ -238,7 +239,7 @@ describe("DutyRoster (wired)", () => {
 
     const row = (await screen.findByText("G. Tamar")).closest("tr");
     if (!row) throw new Error("Expected a roster row for G. Tamar");
-    const firstCell = within(row).getAllByRole("button")[0];
+    const firstCell = nth(within(row).getAllByRole("button"));
 
     fireEvent.click(firstCell);
     expect(firstCell.textContent).toBe("M");

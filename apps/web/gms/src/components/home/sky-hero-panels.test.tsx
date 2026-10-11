@@ -38,10 +38,19 @@ const reading: PublicObservation = {
   cloud: "Mostly cloudy",
 };
 
+function firstReferenceDay(): ForecastDayData {
+  const day = REFERENCE_WEATHER.days[0];
+  if (!day) {
+    throw new Error("REFERENCE_WEATHER has no days");
+  }
+  return day;
+}
+const BASE_DAY = firstReferenceDay();
+
 /** An issued day in the FastAPI condition vocabulary. */
 function issued(overrides: Partial<ForecastDayData> = {}): ForecastDayData {
   return {
-    ...REFERENCE_WEATHER.days[0],
+    ...BASE_DAY,
     source: "",
     summary: "Midday words",
     high: 32,
@@ -165,7 +174,7 @@ describe("Day tabs", () => {
     expect(tabs()[2]).toHaveAttribute("aria-current", "page");
     expect(tabs()[0]).not.toHaveAttribute("aria-current");
     expect(
-      within(panel()).getByText(REFERENCE_WEATHER.days[1].summary)
+      within(panel()).getByText(REFERENCE_WEATHER.days[1]?.summary ?? "")
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("region", { name: "Current conditions" })
@@ -243,14 +252,17 @@ describe("hero readings", () => {
     const values = Object.fromEntries(
       dayReadings(day, 2).map((row) => [row.label, row.value])
     );
-    expect(values["Chance of rain"]).toBe(`${SAMPLE_DAYS[2].rainChance}%`);
-    expect(values.Gusts).toBe(SAMPLE_DAYS[2].gusts);
-    expect(values["High tides"]).toBe(SAMPLE_DAYS[2].highTides);
-    expect(values.Rainfall).toBe(SAMPLE_DAYS[2].rainfall);
+    expect(values["Chance of rain"]).toBe(`${SAMPLE_DAYS[2]?.rainChance}%`);
+    expect(values.Gusts).toBe(SAMPLE_DAYS[2]?.gusts);
+    expect(values["High tides"]).toBe(SAMPLE_DAYS[2]?.highTides);
+    expect(values.Rainfall).toBe(SAMPLE_DAYS[2]?.rainfall);
   });
 
   it("never invents a forecast for an outage", () => {
     const outage = unavailableWeather().days[0];
+    if (!outage) {
+      throw new Error("expected an outage placeholder day");
+    }
     expect(dayReadings(outage, 0)).toEqual([]);
     expect(rainChance(outage, 0)).toBeNull();
   });
@@ -262,8 +274,8 @@ describe("hero readings", () => {
       trend: "rising",
       value: "1014.2 hPa",
     });
-    expect(byLabel.Rain.value).toBe("0.4 mm");
-    expect(byLabel["UV index"].value).toBe(SAMPLE_NOW.uvIndex);
+    expect(byLabel.Rain?.value).toBe("0.4 mm");
+    expect(byLabel["UV index"]?.value).toBe(SAMPLE_NOW.uvIndex);
     expect(byLabel["Air quality"]).toMatchObject({
       tag: SAMPLE_NOW.airQuality.level,
       value: `${SAMPLE_NOW.airQuality.index} AQI`,

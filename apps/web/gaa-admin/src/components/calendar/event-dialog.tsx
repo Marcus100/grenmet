@@ -67,8 +67,8 @@ function defaultStart(): string {
 }
 
 function addHour(value: string): string {
-  const [datePart, timePart] = value.split("T");
-  const [hours, minutes] = timePart.split(":").map(Number);
+  const [datePart, timePart = ""] = value.split("T");
+  const [hours = 0, minutes = 0] = timePart.split(":").map(Number);
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${datePart}T${pad((hours + 1) % 24)}:${pad(minutes)}`;
 }

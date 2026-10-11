@@ -4,6 +4,7 @@ import {
   readSourceBulletinLink,
   sourceBulletinParameters,
 } from "@/lib/cap-bulletin-link";
+import { nth } from "@/test/nth";
 
 const bulletin = {
   id: "11111111-1111-4111-8111-111111111111",
@@ -25,7 +26,7 @@ describe("source bulletin link", () => {
   it("rejects incomplete or repeated links", () => {
     const parameters = sourceBulletinParameters(bulletin);
     expect(readSourceBulletinLink(parameters.slice(0, 2))).toBeNull();
-    expect(readSourceBulletinLink([...parameters, parameters[0]])).toBeNull();
+    expect(readSourceBulletinLink([...parameters, nth(parameters)])).toBeNull();
   });
 
   it("does not label a forecast as a source bulletin", () => {

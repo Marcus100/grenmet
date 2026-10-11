@@ -16,7 +16,7 @@ describe("getForecastDays", () => {
   it("returns five days, today first", () => {
     const days = getForecastDays();
     expect(days).toHaveLength(5);
-    expect(days[0].isToday).toBe(true);
+    expect(days[0]?.isToday).toBe(true);
     expect(days.slice(1).every((d) => !d.isToday)).toBe(true);
   });
 
@@ -37,7 +37,9 @@ describe("getForecastDays", () => {
   it("advances one calendar day at a time", () => {
     const slugs = getForecastDays().map((d) => Date.parse(d.slug));
     for (let i = 1; i < slugs.length; i++) {
-      expect(slugs[i] - slugs[i - 1]).toBe(86_400_000);
+      expect((slugs[i] ?? Number.NaN) - (slugs[i - 1] ?? Number.NaN)).toBe(
+        86_400_000
+      );
     }
   });
 });

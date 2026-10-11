@@ -397,7 +397,7 @@ export function ERegister() {
 
   if (view === "new") {
     const iso = new Date(observedAt).toISOString();
-    const metarPreview = `TGPY ${iso.slice(8, 10)}${iso.slice(11, 15)}Z ${structuredValues.wind_dir}${structuredValues.wind_speed.padStart(2, "0")}KT ${structuredValues.visibility === "10" ? "9999" : structuredValues.visibility} ${structuredValues.present_wx || "NSW"} ${structuredValues.total_cloud === "0" ? "NSC" : `BKN${structuredValues.total_cloud}00`} ${structuredValues.air_temp}/${structuredValues.dew_point} Q${structuredValues.msl_pressure.replace(".", "")}`;
+    const metarPreview = `TGPY ${iso.slice(8, 10)}${iso.slice(11, 15)}Z ${structuredValues.wind_dir}${(structuredValues.wind_speed ?? "").padStart(2, "0")}KT ${structuredValues.visibility === "10" ? "9999" : structuredValues.visibility} ${structuredValues.present_wx || "NSW"} ${structuredValues.total_cloud === "0" ? "NSC" : `BKN${structuredValues.total_cloud}00`} ${structuredValues.air_temp}/${structuredValues.dew_point} Q${(structuredValues.msl_pressure ?? "").replace(".", "")}`;
 
     return (
       <ERegisterWorkbook

@@ -24,7 +24,7 @@ export function WeatherQuiz({
     questions.map(() => null)
   );
   const answered = picked.filter((p) => p !== null).length;
-  const score = picked.filter((p, i) => p === questions[i].answer).length;
+  const score = picked.filter((p, i) => p === questions[i]?.answer).length;
 
   return (
     <div className="flex flex-col gap-5">

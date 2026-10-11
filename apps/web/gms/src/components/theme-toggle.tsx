@@ -25,7 +25,8 @@ export function ThemeToggle({
 
   const cycleTheme = () => {
     const next =
-      THEME_CYCLE[(THEME_CYCLE.indexOf(themeMode) + 1) % THEME_CYCLE.length];
+      THEME_CYCLE[(THEME_CYCLE.indexOf(themeMode) + 1) % THEME_CYCLE.length] ??
+      themeMode;
     setThemeMode(next);
     persistPreference("theme_mode", next).catch(() => undefined);
   };

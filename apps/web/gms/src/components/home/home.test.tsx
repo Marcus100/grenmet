@@ -71,7 +71,7 @@ describe("SkyHero", () => {
       within(hero).getAllByText("32°", { exact: false }).length
     ).toBeGreaterThan(0);
     expect(
-      within(hero).getByText(REFERENCE_WEATHER.days[0].summary)
+      within(hero).getByText(REFERENCE_WEATHER.days[0]?.summary ?? "")
     ).toBeInTheDocument();
     expect(
       within(hero).queryByRole("link", { name: "Marine" })

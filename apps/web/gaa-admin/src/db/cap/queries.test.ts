@@ -30,7 +30,7 @@ it("exchanges the session and bypasses caching for CAP reads", async () => {
 });
 it("forwards the audit filter as query data", async () => {
   await loadCapAudit(2, "id&size=500");
-  expect(mocks.request.mock.calls[0][0]).toBe(
+  expect(mocks.request.mock.calls[0]?.[0]).toBe(
     "/cap/audit?page=2&size=25&alert_id=id%26size%3D500"
   );
 });

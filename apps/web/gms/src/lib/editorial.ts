@@ -104,8 +104,8 @@ export function productPost(product: PublishedProduct): ProductPost {
     id: product.id,
     imageUrl:
       product.kind === "marine"
-        ? REFERENCE_POSTS[4].imageUrl
-        : REFERENCE_POSTS[0].imageUrl,
+        ? (REFERENCE_POSTS[4]?.imageUrl ?? "")
+        : (REFERENCE_POSTS[0]?.imageUrl ?? ""),
     summary:
       (
         v.summary ||
@@ -115,7 +115,7 @@ export function productPost(product: PublishedProduct): ProductPost {
       ).slice(0, 180) +
       ((v.summary || v.synopsis || v.systems || "").length > 180 ? "…" : ""),
     title: productTitle(product.kind),
-    issuedAt: v.issuedAt,
+    issuedAt: v.issuedAt ?? "",
     source: `${productTitle(product.kind)} · ${v.forecaster}`,
     href: `/weather/issued/${product.id}`,
     paragraphs: [
@@ -123,7 +123,7 @@ export function productPost(product: PublishedProduct): ProductPost {
       v.summary || v.synopsis || v.systems || "",
       v.formation || v.impacts || "",
       v.response || "",
-      `Valid from ${v.validFrom.replace("T", " ")} until ${v.validTo.replace("T", " ")} (Grenada time).`,
+      `Valid from ${(v.validFrom ?? "").replace("T", " ")} until ${(v.validTo ?? "").replace("T", " ")} (Grenada time).`,
     ].filter(Boolean),
   };
 }
@@ -255,7 +255,7 @@ export const WEATHER_ARTICLES: WeatherArticle[] = [
     ],
   },
 ];
-const PLACEHOLDER_ARTICLE_IMAGE = REFERENCE_POSTS[0].imageUrl;
+const PLACEHOLDER_ARTICLE_IMAGE = REFERENCE_POSTS[0]?.imageUrl ?? "";
 export function contentToArticle(content: PublishedContent): WeatherArticle {
   return {
     id: content.id,
