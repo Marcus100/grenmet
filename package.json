@@ -53,7 +53,7 @@
     "dev:web:cms": "turbo run dev --filter=@barrelsgd/web-cms",
     "cms:setup-db": "docker exec -i grenmet-postgres bash < infra/postgres/init-cms.sh",
     "storage:init": "bash scripts/production/init-local.sh",
-    "test:delivery": "node --test scripts/production/*.test.mjs apps/web/gaa-admin/scripts/*.test.mjs apps/web/cms/scripts/adopt.test.mjs",
+    "test:delivery": "node --test scripts/ci/*.test.mjs scripts/production/*.test.mjs apps/web/gaa-admin/scripts/*.test.mjs apps/web/cms/scripts/adopt.test.mjs",
     "verify:quick": "pnpm check && pnpm type-check && pnpm test",
     "verify:backend": "node scripts/verification/run.mjs backend",
     "verify:collectors": "bash scripts/verification/collectors.sh",
