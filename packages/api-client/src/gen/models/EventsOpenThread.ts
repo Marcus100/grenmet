@@ -44,10 +44,4 @@ export type EventsOpenThreadResponses = {
 /**
  * @description Union of all possible responses
  */
-export type EventsOpenThreadResponse =
-  | EventsOpenThreadStatus200
-  | EventsOpenThreadStatus401
-  | EventsOpenThreadStatus403
-  | EventsOpenThreadStatus404
-  | EventsOpenThreadStatus422
-  | EventsOpenThreadStatus429;
+export type EventsOpenThreadResponse = EventsOpenThreadStatus200;

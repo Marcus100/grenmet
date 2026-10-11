@@ -54,9 +54,4 @@ export type TransportCreateStopResponses = {
 /**
  * @description Union of all possible responses
  */
-export type TransportCreateStopResponse =
-  | TransportCreateStopStatus201
-  | TransportCreateStopStatus403
-  | TransportCreateStopStatus409
-  | TransportCreateStopStatus422
-  | TransportCreateStopStatus503;
+export type TransportCreateStopResponse = TransportCreateStopStatus201;

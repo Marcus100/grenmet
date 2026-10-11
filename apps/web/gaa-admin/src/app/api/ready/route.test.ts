@@ -30,10 +30,10 @@ describe("readiness after weather database handover", () => {
     expect(response.status).toBe(200);
     expect(checks.weather).toHaveBeenCalledOnce();
     expect(checks.apiReady).toHaveBeenCalledOnce();
-    expect(checks.apiReady.mock.calls[0][0].href).toBe(
+    expect(checks.apiReady.mock.calls[0]?.[0]?.href).toBe(
       "http://api.test/api/v1/utils/ready/"
     );
-    expect(checks.apiReady.mock.calls[0][1]).toMatchObject({
+    expect(checks.apiReady.mock.calls[0]?.[1]).toMatchObject({
       cache: "no-store",
       redirect: "error",
     });

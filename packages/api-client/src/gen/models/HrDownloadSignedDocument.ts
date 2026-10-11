@@ -58,7 +58,4 @@ export type HrDownloadSignedDocumentResponses = {
  * @description Union of all possible responses
  */
 export type HrDownloadSignedDocumentResponse =
-  | HrDownloadSignedDocumentStatus200
-  | HrDownloadSignedDocumentStatus403
-  | HrDownloadSignedDocumentStatus404
-  | HrDownloadSignedDocumentStatus422;
+  HrDownloadSignedDocumentStatus200;

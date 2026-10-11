@@ -38,8 +38,4 @@ export type HrValidateCsvResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrValidateCsvResponse =
-  | HrValidateCsvStatus200
-  | HrValidateCsvStatus400
-  | HrValidateCsvStatus403
-  | HrValidateCsvStatus422;
+export type HrValidateCsvResponse = HrValidateCsvStatus200;

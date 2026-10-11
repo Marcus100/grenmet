@@ -38,9 +38,4 @@ export type HrGetProductPoliciesResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrGetProductPoliciesResponse =
-  | HrGetProductPoliciesStatus200
-  | HrGetProductPoliciesStatus403
-  | HrGetProductPoliciesStatus404
-  | HrGetProductPoliciesStatus409
-  | HrGetProductPoliciesStatus422;
+export type HrGetProductPoliciesResponse = HrGetProductPoliciesStatus200;

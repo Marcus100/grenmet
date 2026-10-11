@@ -38,6 +38,4 @@ export type WxwatchEditionAssetsResponses = {
 /**
  * @description Union of all possible responses
  */
-export type WxwatchEditionAssetsResponse =
-  | WxwatchEditionAssetsStatus200
-  | WxwatchEditionAssetsStatus422;
+export type WxwatchEditionAssetsResponse = WxwatchEditionAssetsStatus200;

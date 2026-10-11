@@ -5,6 +5,7 @@ import type { NextConfig } from "next";
 
 const config: NextConfig = {
   output: "standalone",
+  reactCompiler: true,
   outputFileTracingRoot: path.join(import.meta.dirname, "../../.."),
 };
 export default withSentryConfig(withPayload(config), {

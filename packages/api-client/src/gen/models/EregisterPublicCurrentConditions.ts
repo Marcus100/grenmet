@@ -33,6 +33,4 @@ export type EregisterPublicCurrentConditionsResponses = {
  * @description Union of all possible responses
  */
 export type EregisterPublicCurrentConditionsResponse =
-  | EregisterPublicCurrentConditionsStatus200
-  | EregisterPublicCurrentConditionsStatus422
-  | EregisterPublicCurrentConditionsStatus503;
+  EregisterPublicCurrentConditionsStatus200;

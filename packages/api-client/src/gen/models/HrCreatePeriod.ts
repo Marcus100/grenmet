@@ -38,8 +38,4 @@ export type HrCreatePeriodResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrCreatePeriodResponse =
-  | HrCreatePeriodStatus201
-  | HrCreatePeriodStatus400
-  | HrCreatePeriodStatus403
-  | HrCreatePeriodStatus422;
+export type HrCreatePeriodResponse = HrCreatePeriodStatus201;

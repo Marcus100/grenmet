@@ -55,11 +55,4 @@ export type AuthAppHandoffStartResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthAppHandoffStartResponse =
-  | AuthAppHandoffStartStatus200
-  | AuthAppHandoffStartStatus401
-  | AuthAppHandoffStartStatus403
-  | AuthAppHandoffStartStatus404
-  | AuthAppHandoffStartStatus409
-  | AuthAppHandoffStartStatus422
-  | AuthAppHandoffStartStatus429;
+export type AuthAppHandoffStartResponse = AuthAppHandoffStartStatus200;

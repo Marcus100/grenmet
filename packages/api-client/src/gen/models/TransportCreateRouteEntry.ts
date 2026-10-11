@@ -55,8 +55,4 @@ export type TransportCreateRouteEntryResponses = {
  * @description Union of all possible responses
  */
 export type TransportCreateRouteEntryResponse =
-  | TransportCreateRouteEntryStatus201
-  | TransportCreateRouteEntryStatus403
-  | TransportCreateRouteEntryStatus409
-  | TransportCreateRouteEntryStatus422
-  | TransportCreateRouteEntryStatus503;
+  TransportCreateRouteEntryStatus201;

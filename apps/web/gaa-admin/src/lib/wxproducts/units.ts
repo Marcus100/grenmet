@@ -17,8 +17,9 @@ function span(values: (number | null)[], places = 0): string {
   if (present.length === 0) return "";
   const fmt = (v: number) =>
     places ? String(Number(v.toFixed(places))) : String(Math.round(v));
-  const first = fmt(present[0]);
-  const last = fmt(present.at(-1) ?? present[0]);
+  const [head = 0] = present;
+  const first = fmt(head);
+  const last = fmt(present.at(-1) ?? head);
   return first === last ? first : `${first}–${last}`;
 }
 

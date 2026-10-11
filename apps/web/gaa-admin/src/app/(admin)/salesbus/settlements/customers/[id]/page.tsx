@@ -32,13 +32,13 @@ export default function CustomerDetailPage() {
   const handlePreviousDate = () => {
     const date = new Date(currentDate);
     date.setDate(date.getDate() - 1);
-    setCurrentDate(date.toISOString().split("T")[0]);
+    setCurrentDate(date.toISOString().slice(0, 10));
   };
 
   const handleNextDate = () => {
     const date = new Date(currentDate);
     date.setDate(date.getDate() + 1);
-    setCurrentDate(date.toISOString().split("T")[0]);
+    setCurrentDate(date.toISOString().slice(0, 10));
   };
 
   if (!customer) {

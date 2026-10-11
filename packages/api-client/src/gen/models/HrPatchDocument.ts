@@ -54,9 +54,4 @@ export type HrPatchDocumentResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrPatchDocumentResponse =
-  | HrPatchDocumentStatus200
-  | HrPatchDocumentStatus400
-  | HrPatchDocumentStatus403
-  | HrPatchDocumentStatus404
-  | HrPatchDocumentStatus422;
+export type HrPatchDocumentResponse = HrPatchDocumentStatus200;

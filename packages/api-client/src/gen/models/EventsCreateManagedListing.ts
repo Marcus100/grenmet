@@ -48,10 +48,4 @@ export type EventsCreateManagedListingResponses = {
  * @description Union of all possible responses
  */
 export type EventsCreateManagedListingResponse =
-  | EventsCreateManagedListingStatus201
-  | EventsCreateManagedListingStatus401
-  | EventsCreateManagedListingStatus403
-  | EventsCreateManagedListingStatus404
-  | EventsCreateManagedListingStatus409
-  | EventsCreateManagedListingStatus422
-  | EventsCreateManagedListingStatus429;
+  EventsCreateManagedListingStatus201;

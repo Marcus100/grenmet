@@ -32,7 +32,4 @@ export type HrGetInboxResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrGetInboxResponse =
-  | HrGetInboxStatus200
-  | HrGetInboxStatus403
-  | HrGetInboxStatus422;
+export type HrGetInboxResponse = HrGetInboxStatus200;

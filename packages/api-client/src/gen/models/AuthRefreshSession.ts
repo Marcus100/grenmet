@@ -32,6 +32,4 @@ export type AuthRefreshSessionResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthRefreshSessionResponse =
-  | AuthRefreshSessionStatus200
-  | AuthRefreshSessionStatus422;
+export type AuthRefreshSessionResponse = AuthRefreshSessionStatus200;

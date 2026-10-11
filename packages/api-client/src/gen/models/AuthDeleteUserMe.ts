@@ -32,7 +32,4 @@ export type AuthDeleteUserMeResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthDeleteUserMeResponse =
-  | AuthDeleteUserMeStatus200
-  | AuthDeleteUserMeStatus403
-  | AuthDeleteUserMeStatus422;
+export type AuthDeleteUserMeResponse = AuthDeleteUserMeStatus200;

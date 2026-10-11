@@ -175,7 +175,9 @@ const astronomy = [
 ];
 /** `windDirFrom` for the main period, `day1WindDirFrom` for an evening outlook day. */
 export function parameterKey(prefix: string, name: string) {
-  return prefix ? `${prefix}${name[0].toUpperCase()}${name.slice(1)}` : name;
+  return prefix
+    ? `${prefix}${name.charAt(0).toUpperCase()}${name.slice(1)}`
+    : name;
 }
 function windFields(section: string, prefix: string): ProductField[] {
   const key = (name: string) => parameterKey(prefix, name);
@@ -290,7 +292,7 @@ function forecastFields(kind: ProductKind): ProductField[] {
     ...marineFields("Marine", ""),
     field("Marine", "marineAlert", "Marine alert"),
     ...["weather", "wind", "marine", "heat", "dust"].flatMap((hazard) => {
-      const section = `${hazard[0].toUpperCase()}${hazard.slice(1)} impacts`;
+      const section = `${hazard.charAt(0).toUpperCase()}${hazard.slice(1)} impacts`;
       return [
         field(section, `${hazard}Likelihood`, "Likelihood", {
           options: likelihoods,
@@ -635,23 +637,27 @@ export function forecastSchedule(kind: ProductKind, date: string) {
   };
 }
 
+function forecastValidity(kind: ProductKind) {
+  if (kind === "evening") {
+    return "Tonight (18:00–07:00) and four following days (07:00–07:00)";
+  }
+  if (kind === "morning") {
+    return "Today and tonight (07:00–07:00)";
+  }
+  return "This afternoon and tonight (12:00–07:00)";
+}
 export function withForecastSchedule(
   kind: ProductKind,
   values: ProductValues
 ): ProductValues {
-  const schedule = forecastSchedule(kind, values.issuedAt?.slice(0, 10));
+  const schedule = forecastSchedule(kind, values.issuedAt?.slice(0, 10) ?? "");
   if (!schedule) return values;
   const result: ProductValues = {
     ...values,
     issuedAt: schedule.issuedAt,
     validFrom: schedule.validFrom,
     validTo: schedule.validTo,
-    validity:
-      kind === "evening"
-        ? "Tonight (18:00–07:00) and four following days (07:00–07:00)"
-        : kind === "morning"
-          ? "Today and tonight (07:00–07:00)"
-          : "This afternoon and tonight (12:00–07:00)",
+    validity: forecastValidity(kind),
   };
   for (const period of schedule.periods) {
     if (period.prefix) result[`${period.prefix}Date`] = period.date;
@@ -734,8 +740,8 @@ export function isCurrentProduct(product: PublishedProduct, now = Date.now()) {
   const values = withForecastSchedule(product.kind, product.values);
   return (
     Date.parse(product.publishedAt) <= now &&
-    localDateTime(values.issuedAt) <= now &&
-    localDateTime(values.validFrom) <= now &&
-    localDateTime(values.validTo) > now
+    localDateTime(values.issuedAt ?? "") <= now &&
+    localDateTime(values.validFrom ?? "") <= now &&
+    localDateTime(values.validTo ?? "") > now
   );
 }

@@ -78,10 +78,4 @@ export type WxproductsSaveProductResponses = {
 /**
  * @description Union of all possible responses
  */
-export type WxproductsSaveProductResponse =
-  | WxproductsSaveProductStatus200
-  | WxproductsSaveProductStatus401
-  | WxproductsSaveProductStatus403
-  | WxproductsSaveProductStatus409
-  | WxproductsSaveProductStatus422
-  | WxproductsSaveProductStatus503;
+export type WxproductsSaveProductResponse = WxproductsSaveProductStatus200;

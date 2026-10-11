@@ -65,10 +65,10 @@ it("copies only selected text with attribution after checking the bulletin again
       expect.stringContaining("Avoid flooded roads.")
     )
   );
-  expect(onInsert.mock.calls[0][1]).toContain(
+  expect(onInsert.mock.calls[0]?.[1]).toContain(
     "CAP test-warning; sender GMS; issued"
   );
-  expect(onInsert.mock.calls[0][1]).not.toContain("Rain expected.");
+  expect(onInsert.mock.calls[0]?.[1]).not.toContain("Rain expected.");
   expect(fetcher).toHaveBeenCalledTimes(2);
   expect(
     screen.getByRole("dialog", { name: "Insert warning text" })
@@ -150,7 +150,7 @@ it("copies selected GMS bulletin text with attribution", async () => {
   fireEvent.click(screen.getByLabelText(RESPONSE_LABEL));
   fireEvent.click(screen.getByText("Add selected text"));
   await waitFor(() => expect(onInsert).toHaveBeenCalled());
-  expect(onInsert.mock.calls[0][1]).toBe(
+  expect(onInsert.mock.calls[0]?.[1]).toBe(
     "Small craft should exercise caution.\n\n[GMS Marine / Small Craft Bulletin r3; issued 2026-09-24 06:00]"
   );
 });

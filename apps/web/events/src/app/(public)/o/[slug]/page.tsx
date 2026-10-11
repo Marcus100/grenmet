@@ -31,7 +31,7 @@ export default async function OrganiserPage({ params }: { params: Params }) {
   const upcoming = events.filter((event) => new Date(event.endsAt) > now);
   const past = events
     .filter((event) => new Date(event.endsAt) <= now)
-    .toReversed();
+    .reverse();
 
   return (
     <div className="space-y-10">

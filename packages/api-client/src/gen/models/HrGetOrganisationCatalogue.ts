@@ -39,8 +39,4 @@ export type HrGetOrganisationCatalogueResponses = {
  * @description Union of all possible responses
  */
 export type HrGetOrganisationCatalogueResponse =
-  | HrGetOrganisationCatalogueStatus200
-  | HrGetOrganisationCatalogueStatus401
-  | HrGetOrganisationCatalogueStatus403
-  | HrGetOrganisationCatalogueStatus409
-  | HrGetOrganisationCatalogueStatus422;
+  HrGetOrganisationCatalogueStatus200;

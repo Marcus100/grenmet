@@ -51,8 +51,4 @@ export type HrUpdateRoleConfigurationResponses = {
  * @description Union of all possible responses
  */
 export type HrUpdateRoleConfigurationResponse =
-  | HrUpdateRoleConfigurationStatus200
-  | HrUpdateRoleConfigurationStatus403
-  | HrUpdateRoleConfigurationStatus404
-  | HrUpdateRoleConfigurationStatus409
-  | HrUpdateRoleConfigurationStatus422;
+  HrUpdateRoleConfigurationStatus200;

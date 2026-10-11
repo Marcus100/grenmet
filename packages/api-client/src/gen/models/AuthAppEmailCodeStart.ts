@@ -55,11 +55,4 @@ export type AuthAppEmailCodeStartResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthAppEmailCodeStartResponse =
-  | AuthAppEmailCodeStartStatus200
-  | AuthAppEmailCodeStartStatus400
-  | AuthAppEmailCodeStartStatus403
-  | AuthAppEmailCodeStartStatus404
-  | AuthAppEmailCodeStartStatus422
-  | AuthAppEmailCodeStartStatus429
-  | AuthAppEmailCodeStartStatus503;
+export type AuthAppEmailCodeStartResponse = AuthAppEmailCodeStartStatus200;

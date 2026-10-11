@@ -29,6 +29,4 @@ export type CapGetPredefinedAreasResponses = {
 /**
  * @description Union of all possible responses
  */
-export type CapGetPredefinedAreasResponse =
-  | CapGetPredefinedAreasStatus200
-  | CapGetPredefinedAreasStatus422;
+export type CapGetPredefinedAreasResponse = CapGetPredefinedAreasStatus200;

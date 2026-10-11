@@ -45,15 +45,19 @@ export function SkyHero({
   weather: WeatherSnapshot;
 }) {
   const days: StripDay[] = getForecastDays(weather.baseDate, weather.days).map(
-    (day, index) => ({
-      ...day,
-      href: day.path,
-      rain: weather.days[index] ? rainChance(weather.days[index], index) : null,
-    })
+    (day, index) => {
+      const issued = weather.days[index];
+      return {
+        ...day,
+        href: day.path,
+        rain: issued ? rainChance(issued, index) : null,
+      };
+    }
   );
   const wanted = selected === "today" ? days[0]?.slug : selected;
   const index = days.findIndex((day) => day.slug === wanted);
-  const tab = index === -1 ? "now" : days[index].slug;
+  const selectedDay = days[index];
+  const tab = selectedDay?.slug ?? "now";
   const station = location.station.replace(STATION_CODE, "$1");
   const nowHref = locationHref(location, "/");
   const current = weather.current;
@@ -78,10 +82,10 @@ export function SkyHero({
         </div>
 
         <div className="rounded-gm-card bg-gm-scrim p-4 sm:hidden">
-          {nowCurrent || index === -1 ? (
+          {nowCurrent || !selectedDay ? (
             <NowSummary now={now} station={station} weather={weather} />
           ) : (
-            <DaySummary day={days[index]} />
+            <DaySummary day={selectedDay} />
           )}
         </div>
 

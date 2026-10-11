@@ -41,9 +41,4 @@ export type HrImportGridResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrImportGridResponse =
-  | HrImportGridStatus200
-  | HrImportGridStatus400
-  | HrImportGridStatus403
-  | HrImportGridStatus404
-  | HrImportGridStatus422;
+export type HrImportGridResponse = HrImportGridStatus200;

@@ -38,8 +38,4 @@ export type AuthEmailRequestResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthEmailRequestResponse =
-  | AuthEmailRequestStatus200
-  | AuthEmailRequestStatus400
-  | AuthEmailRequestStatus403
-  | AuthEmailRequestStatus422;
+export type AuthEmailRequestResponse = AuthEmailRequestStatus200;

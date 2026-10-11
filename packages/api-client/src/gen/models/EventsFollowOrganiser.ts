@@ -45,9 +45,4 @@ export type EventsFollowOrganiserResponses = {
 /**
  * @description Union of all possible responses
  */
-export type EventsFollowOrganiserResponse =
-  | EventsFollowOrganiserStatus204
-  | EventsFollowOrganiserStatus401
-  | EventsFollowOrganiserStatus404
-  | EventsFollowOrganiserStatus422
-  | EventsFollowOrganiserStatus429;
+export type EventsFollowOrganiserResponse = EventsFollowOrganiserStatus204;

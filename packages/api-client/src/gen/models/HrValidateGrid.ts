@@ -38,8 +38,4 @@ export type HrValidateGridResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrValidateGridResponse =
-  | HrValidateGridStatus200
-  | HrValidateGridStatus403
-  | HrValidateGridStatus404
-  | HrValidateGridStatus422;
+export type HrValidateGridResponse = HrValidateGridStatus200;

@@ -22,10 +22,10 @@ it("uses the UTC day and forwards the session only to the configured API", async
   expect(
     await getImagesByDateAndSynoptic(new Date("2026-09-17T23:00:00-04:00"))
   ).toEqual([]);
-  expect(String(mocks.fetch.mock.calls[0][0])).toBe(
+  expect(String(mocks.fetch.mock.calls[0]?.[0])).toBe(
     "http://api.test/api/v1/wxwatch/metadata?day=2026-09-18"
   );
-  expect(mocks.fetch.mock.calls[0][1]).toMatchObject({
+  expect(mocks.fetch.mock.calls[0]?.[1]).toMatchObject({
     headers: { Cookie: "session=opaque-secret" },
     cache: "no-store",
     redirect: "error",
@@ -48,7 +48,7 @@ it("distinguishes unavailable storage from an empty gallery", async () => {
 it("readiness needs no user credentials", async () => {
   mocks.fetch.mockResolvedValue(new Response(null, { status: 204 }));
   expect(await checkImageryReady()).toBe(true);
-  expect(mocks.fetch.mock.calls[0][1]).not.toHaveProperty("headers");
+  expect(mocks.fetch.mock.calls[0]?.[1]).not.toHaveProperty("headers");
   expect(mocks.cookie).not.toHaveBeenCalled();
 });
 
@@ -59,14 +59,14 @@ it("forwards archive filters and validates the generated response", async () => 
   );
   const params = new URLSearchParams({ source: "sfcana", offset: "30" });
   expect((await getArchive(params)).offset).toBe(30);
-  expect(String(mocks.fetch.mock.calls[0][0])).toContain(
+  expect(String(mocks.fetch.mock.calls[0]?.[0])).toContain(
     "/wxwatch/archive?source=sfcana&offset=30"
   );
   mocks.fetch.mockResolvedValue(
     Response.json({ items: [], has_more: false, offset: 30 })
   );
   await getArchiveHistory("edition-id", "30");
-  expect(String(mocks.fetch.mock.calls[1][0])).toContain(
+  expect(String(mocks.fetch.mock.calls[1]?.[0])).toContain(
     "/archive/edition-id/retrievals?offset=30"
   );
   mocks.fetch.mockResolvedValue(new Response(null, { status: 422 }));

@@ -48,4 +48,4 @@ export type CapGetAuditResponses = {
 /**
  * @description Union of all possible responses
  */
-export type CapGetAuditResponse = CapGetAuditStatus200 | CapGetAuditStatus422;
+export type CapGetAuditResponse = CapGetAuditStatus200;

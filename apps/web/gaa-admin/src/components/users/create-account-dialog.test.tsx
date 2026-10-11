@@ -65,7 +65,7 @@ it("creates a work identity without an administrator choosing a password, then o
     ["Last name", "Staff"],
     ["Username", "newstaff"],
     ["Work email address", "new@example.com"],
-  ])
+  ] as const)
     fireEvent.change(screen.getByLabelText(label), { target: { value } });
   fireEvent.click(screen.getByRole("button", { name: "Create account" }));
   expect(await screen.findByText("Activation controls")).toBeInTheDocument();

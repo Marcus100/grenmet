@@ -36,6 +36,4 @@ export type WxwatchIngestResponses = {
 /**
  * @description Union of all possible responses
  */
-export type WxwatchIngestResponse =
-  | WxwatchIngestStatus200
-  | WxwatchIngestStatus422;
+export type WxwatchIngestResponse = WxwatchIngestStatus200;

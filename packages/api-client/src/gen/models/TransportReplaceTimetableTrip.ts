@@ -66,9 +66,4 @@ export type TransportReplaceTimetableTripResponses = {
  * @description Union of all possible responses
  */
 export type TransportReplaceTimetableTripResponse =
-  | TransportReplaceTimetableTripStatus200
-  | TransportReplaceTimetableTripStatus403
-  | TransportReplaceTimetableTripStatus404
-  | TransportReplaceTimetableTripStatus409
-  | TransportReplaceTimetableTripStatus422
-  | TransportReplaceTimetableTripStatus503;
+  TransportReplaceTimetableTripStatus200;

@@ -48,8 +48,4 @@ export type HrApproveStaffRegistrationResponses = {
  * @description Union of all possible responses
  */
 export type HrApproveStaffRegistrationResponse =
-  | HrApproveStaffRegistrationStatus200
-  | HrApproveStaffRegistrationStatus403
-  | HrApproveStaffRegistrationStatus404
-  | HrApproveStaffRegistrationStatus409
-  | HrApproveStaffRegistrationStatus422;
+  HrApproveStaffRegistrationStatus200;

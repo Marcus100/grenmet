@@ -44,5 +44,4 @@ export type EregisterListRegisterObservationsResponses = {
  * @description Union of all possible responses
  */
 export type EregisterListRegisterObservationsResponse =
-  | EregisterListRegisterObservationsStatus200
-  | EregisterListRegisterObservationsStatus422;
+  EregisterListRegisterObservationsStatus200;

@@ -38,9 +38,4 @@ export type EventsGetMyNetworkResponses = {
 /**
  * @description Union of all possible responses
  */
-export type EventsGetMyNetworkResponse =
-  | EventsGetMyNetworkStatus200
-  | EventsGetMyNetworkStatus401
-  | EventsGetMyNetworkStatus404
-  | EventsGetMyNetworkStatus422
-  | EventsGetMyNetworkStatus429;
+export type EventsGetMyNetworkResponse = EventsGetMyNetworkStatus200;

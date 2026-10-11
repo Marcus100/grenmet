@@ -48,7 +48,7 @@ it("keeps setup unavailable when the backend has not reported secure storage rea
   expect(screen.getByRole("alert")).toHaveTextContent(
     "awaiting secure storage configuration"
   );
-  expect(mocks.settings.mock.calls[0][0]).toMatchObject({
+  expect(mocks.settings.mock.calls[0]?.[0]).toMatchObject({
     storageReady: false,
   });
 });

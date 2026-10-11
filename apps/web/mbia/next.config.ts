@@ -5,6 +5,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  reactCompiler: true,
   ...(process.env.NODE_ENV === "production" && {
     outputFileTracingRoot: fileURLToPath(new URL("../../..", import.meta.url)),
     outputFileTracingIncludes: {

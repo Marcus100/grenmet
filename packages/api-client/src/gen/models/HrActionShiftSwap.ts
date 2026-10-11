@@ -50,9 +50,4 @@ export type HrActionShiftSwapResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrActionShiftSwapResponse =
-  | HrActionShiftSwapStatus200
-  | HrActionShiftSwapStatus400
-  | HrActionShiftSwapStatus403
-  | HrActionShiftSwapStatus404
-  | HrActionShiftSwapStatus422;
+export type HrActionShiftSwapResponse = HrActionShiftSwapStatus200;

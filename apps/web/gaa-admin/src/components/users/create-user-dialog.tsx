@@ -48,6 +48,45 @@ const INITIAL_FORM = {
   employee_number: "",
 };
 
+type AssignRole = ReturnType<typeof useAuthCreateRoleAssignment>["mutateAsync"];
+
+/** True when the role catalogue has every role this onboarding choice needs. */
+function hasAllRoles(roleChoice: string, roles: RolePublic[]) {
+  return rolesToAssign(roleChoice).every((name) =>
+    roles.some((role) => role.name === name)
+  );
+}
+
+/** Gives the new user their baseline and chosen roles, one request each. */
+async function assignOnboardingRoles({
+  assign,
+  departmentId,
+  roleChoice,
+  roles,
+  userId,
+}: {
+  assign: AssignRole;
+  departmentId: string;
+  roleChoice: string;
+  roles: RolePublic[];
+  userId: string;
+}) {
+  const roleIdsByName = new Map(roles.map((r) => [r.name, r.id]));
+  for (const roleName of rolesToAssign(roleChoice)) {
+    const roleId = roleIdsByName.get(roleName);
+    if (roleId) {
+      await assign({
+        body: {
+          user_id: userId,
+          role_id: roleId,
+          scope: roleName === "staff" ? "SELF" : "DEPARTMENT",
+          department_id: roleName === "staff" ? null : departmentId,
+        },
+      });
+    }
+  }
+}
+
 export function CreateUserDialog({ roles }: CreateUserDialogProps) {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -104,11 +143,7 @@ export function CreateUserDialog({ roles }: CreateUserDialogProps) {
 
   async function submit() {
     if (!canSubmit) return;
-    if (
-      rolesToAssign(form.role).some(
-        (name) => !roles.some((role) => role.name === name)
-      )
-    ) {
+    if (!hasAllRoles(form.role, roles)) {
       toast.error(
         "Required roles are missing. Initialise the role catalogue before onboarding."
       );
@@ -135,20 +170,13 @@ export function CreateUserDialog({ roles }: CreateUserDialogProps) {
           position: form.position,
         },
       });
-      const roleIdsByName = new Map(roles.map((r) => [r.name, r.id]));
-      for (const roleName of rolesToAssign(form.role)) {
-        const roleId = roleIdsByName.get(roleName);
-        if (roleId) {
-          await assignRoleMutation.mutateAsync({
-            body: {
-              user_id: user.id,
-              role_id: roleId,
-              scope: roleName === "staff" ? "SELF" : "DEPARTMENT",
-              department_id: roleName === "staff" ? null : departmentId,
-            },
-          });
-        }
-      }
+      await assignOnboardingRoles({
+        assign: assignRoleMutation.mutateAsync,
+        departmentId,
+        roleChoice: form.role,
+        roles,
+        userId: user.id,
+      });
 
       await invalidateAfterUserOnboard(queryClient, { departmentId });
       toast.success(

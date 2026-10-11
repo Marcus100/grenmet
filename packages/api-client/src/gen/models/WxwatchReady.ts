@@ -28,6 +28,4 @@ export type WxwatchReadyResponses = {
 /**
  * @description Union of all possible responses
  */
-export type WxwatchReadyResponse =
-  | WxwatchReadyStatus204
-  | WxwatchReadyStatus422;
+export type WxwatchReadyResponse = WxwatchReadyStatus204;

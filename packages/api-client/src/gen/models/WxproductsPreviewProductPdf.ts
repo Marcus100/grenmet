@@ -58,7 +58,4 @@ export type WxproductsPreviewProductPdfResponses = {
  * @description Union of all possible responses
  */
 export type WxproductsPreviewProductPdfResponse =
-  | WxproductsPreviewProductPdfStatus200
-  | WxproductsPreviewProductPdfStatus401
-  | WxproductsPreviewProductPdfStatus403
-  | WxproductsPreviewProductPdfStatus422;
+  WxproductsPreviewProductPdfStatus200;

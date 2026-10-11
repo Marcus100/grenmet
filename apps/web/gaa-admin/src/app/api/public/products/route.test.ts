@@ -33,7 +33,7 @@ describe("weather product forwarding", () => {
         signal: expect.any(AbortSignal),
       })
     );
-    expect(fetcher.mock.calls[0][1]).not.toHaveProperty("headers");
+    expect(fetcher.mock.calls[0]?.[1]).not.toHaveProperty("headers");
   });
   it("rejects invalid kinds without contacting FastAPI", async () => {
     const fetcher = vi.fn();

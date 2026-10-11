@@ -38,9 +38,4 @@ export type AuthGetEffectiveAccessResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthGetEffectiveAccessResponse =
-  | AuthGetEffectiveAccessStatus200
-  | AuthGetEffectiveAccessStatus401
-  | AuthGetEffectiveAccessStatus403
-  | AuthGetEffectiveAccessStatus409
-  | AuthGetEffectiveAccessStatus422;
+export type AuthGetEffectiveAccessResponse = AuthGetEffectiveAccessStatus200;

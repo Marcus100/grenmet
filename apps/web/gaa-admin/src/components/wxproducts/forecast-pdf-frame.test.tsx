@@ -34,7 +34,7 @@ it("renders once edits settle and shows the backend PDF", async () => {
   expect(preview).not.toHaveBeenCalled();
   await act(() => vi.advanceTimersByTimeAsync(1));
   expect(preview).toHaveBeenCalledTimes(1);
-  expect(preview.mock.calls[0][0]).toMatchObject({
+  expect(preview.mock.calls[0]?.[0]).toMatchObject({
     kind: "morning",
     values: { summary: "Sunny spells" },
   });
@@ -48,7 +48,7 @@ it("cancels a superseded render and reports failures", async () => {
   preview.mockResolvedValue({ ok: false, error: "down" });
   const view = render(frame("A"));
   await act(() => vi.advanceTimersByTimeAsync(1000));
-  const firstSignal: AbortSignal = preview.mock.calls[0][1];
+  const firstSignal: AbortSignal = preview.mock.calls[0]?.[1];
   view.rerender(frame("B"));
   expect(firstSignal.aborted).toBe(true);
   await act(() => vi.advanceTimersByTimeAsync(1000));

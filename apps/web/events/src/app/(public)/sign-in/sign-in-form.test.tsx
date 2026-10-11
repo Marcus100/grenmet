@@ -89,7 +89,7 @@ it("adds the enrolled authenticator challenge and supports a recovery code", asy
   );
   fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
   await waitFor(() => expect(replace).toHaveBeenCalledWith("/me"));
-  expect(JSON.parse(fetchMock.mock.calls[2][1].body)).toEqual({
+  expect(JSON.parse(fetchMock.mock.calls[2]?.[1].body)).toEqual({
     code: "123456",
     email: "a@b.gd",
     totp_code: "SAVED-RECOVERY-CODE",

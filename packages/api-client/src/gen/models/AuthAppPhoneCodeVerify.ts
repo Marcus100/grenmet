@@ -55,11 +55,4 @@ export type AuthAppPhoneCodeVerifyResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthAppPhoneCodeVerifyResponse =
-  | AuthAppPhoneCodeVerifyStatus200
-  | AuthAppPhoneCodeVerifyStatus400
-  | AuthAppPhoneCodeVerifyStatus403
-  | AuthAppPhoneCodeVerifyStatus404
-  | AuthAppPhoneCodeVerifyStatus422
-  | AuthAppPhoneCodeVerifyStatus429
-  | AuthAppPhoneCodeVerifyStatus503;
+export type AuthAppPhoneCodeVerifyResponse = AuthAppPhoneCodeVerifyStatus200;

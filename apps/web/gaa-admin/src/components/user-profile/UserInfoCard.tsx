@@ -30,6 +30,55 @@ const GENDER_OPTIONS: { label: string; value: Gender }[] = [
   { value: "UNSPECIFIED", label: "Unspecified" },
 ];
 
+interface Draft {
+  emergencyName: string;
+  emergencyPhone: string;
+  emergencyRelationship: string;
+  firstName: string;
+  gender: Gender | "";
+  lastName: string;
+  middleName: string;
+  nationality: string;
+  phone: string;
+  title: Title | "";
+}
+
+/** The editable form values for a profile, with empty strings for blanks. */
+function draftFrom(profile: UserProfilePublic): Draft {
+  return {
+    title: profile.profile.title || "",
+    firstName: profile.profile.first_name,
+    middleName: profile.profile.middle_name || "",
+    lastName: profile.profile.last_name,
+    phone: profile.identity.phone || "",
+    nationality: profile.profile.nationality || "",
+    gender: profile.profile.gender || "",
+    emergencyName: profile.emergency_contact.name || "",
+    emergencyPhone: profile.emergency_contact.phone || "",
+    emergencyRelationship: profile.emergency_contact.relationship || "",
+  };
+}
+
+/** The update payload for the form values; blank fields are sent as null. */
+function payloadFrom(draft: Draft): UserProfileUpdateMe {
+  return {
+    profile: {
+      title: draft.title || null,
+      first_name: draft.firstName,
+      middle_name: draft.middleName || null,
+      last_name: draft.lastName,
+      phone: draft.phone || null,
+      nationality: draft.nationality || null,
+      gender: draft.gender || null,
+    },
+    emergency_contact: {
+      name: draft.emergencyName || null,
+      phone: draft.emergencyPhone || null,
+      relationship: draft.emergencyRelationship || null,
+    },
+  };
+}
+
 interface UserInfoCardProps {
   isSaving: boolean;
   onSave: (payload: UserProfileUpdateMe) => Promise<void>;
@@ -48,41 +97,33 @@ export default function UserInfoCard({
   const [isOpen, setIsOpen] = useState(false);
   const openModal = () => setIsOpen(true);
   const closeModal = () => setIsOpen(false);
-  const [title, setTitle] = useState<Title | "">(profile.profile.title || "");
-  const [firstName, setFirstName] = useState(profile.profile.first_name);
-  const [middleName, setMiddleName] = useState(
-    profile.profile.middle_name || ""
-  );
-  const [lastName, setLastName] = useState(profile.profile.last_name);
-  const [phone, setPhone] = useState(profile.identity.phone || "");
-  const [nationality, setNationality] = useState(
-    profile.profile.nationality || ""
-  );
-  const [gender, setGender] = useState<Gender | "">(
-    profile.profile.gender || ""
-  );
-  const [emergencyName, setEmergencyName] = useState(
-    profile.emergency_contact.name || ""
-  );
-  const [emergencyPhone, setEmergencyPhone] = useState(
-    profile.emergency_contact.phone || ""
-  );
+  const initial = draftFrom(profile);
+  const [title, setTitle] = useState<Title | "">(initial.title);
+  const [firstName, setFirstName] = useState(initial.firstName);
+  const [middleName, setMiddleName] = useState(initial.middleName);
+  const [lastName, setLastName] = useState(initial.lastName);
+  const [phone, setPhone] = useState(initial.phone);
+  const [nationality, setNationality] = useState(initial.nationality);
+  const [gender, setGender] = useState<Gender | "">(initial.gender);
+  const [emergencyName, setEmergencyName] = useState(initial.emergencyName);
+  const [emergencyPhone, setEmergencyPhone] = useState(initial.emergencyPhone);
   const [emergencyRelationship, setEmergencyRelationship] = useState(
-    profile.emergency_contact.relationship || ""
+    initial.emergencyRelationship
   );
 
   const handleOpen = () => {
+    const draft = draftFrom(profile);
     setError("");
-    setTitle(profile.profile.title || "");
-    setFirstName(profile.profile.first_name);
-    setMiddleName(profile.profile.middle_name || "");
-    setLastName(profile.profile.last_name);
-    setPhone(profile.identity.phone || "");
-    setNationality(profile.profile.nationality || "");
-    setGender(profile.profile.gender || "");
-    setEmergencyName(profile.emergency_contact.name || "");
-    setEmergencyPhone(profile.emergency_contact.phone || "");
-    setEmergencyRelationship(profile.emergency_contact.relationship || "");
+    setTitle(draft.title);
+    setFirstName(draft.firstName);
+    setMiddleName(draft.middleName);
+    setLastName(draft.lastName);
+    setPhone(draft.phone);
+    setNationality(draft.nationality);
+    setGender(draft.gender);
+    setEmergencyName(draft.emergencyName);
+    setEmergencyPhone(draft.emergencyPhone);
+    setEmergencyRelationship(draft.emergencyRelationship);
     openModal();
   };
 
@@ -90,22 +131,20 @@ export default function UserInfoCard({
     setSubmitting(true);
     setError("");
     try {
-      await onSave({
-        profile: {
-          title: title || null,
-          first_name: firstName,
-          middle_name: middleName || null,
-          last_name: lastName,
-          phone: phone || null,
-          nationality: nationality || null,
-          gender: gender || null,
-        },
-        emergency_contact: {
-          name: emergencyName || null,
-          phone: emergencyPhone || null,
-          relationship: emergencyRelationship || null,
-        },
-      });
+      await onSave(
+        payloadFrom({
+          title,
+          firstName,
+          middleName,
+          lastName,
+          phone,
+          nationality,
+          gender,
+          emergencyName,
+          emergencyPhone,
+          emergencyRelationship,
+        })
+      );
       closeModal();
     } catch {
       setError("Unable to save your changes. Please try again.");

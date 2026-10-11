@@ -38,9 +38,4 @@ export type EventsGetMyProfileResponses = {
 /**
  * @description Union of all possible responses
  */
-export type EventsGetMyProfileResponse =
-  | EventsGetMyProfileStatus200
-  | EventsGetMyProfileStatus401
-  | EventsGetMyProfileStatus404
-  | EventsGetMyProfileStatus422
-  | EventsGetMyProfileStatus429;
+export type EventsGetMyProfileResponse = EventsGetMyProfileStatus200;

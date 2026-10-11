@@ -41,9 +41,4 @@ export type EventsCreateReportResponses = {
 /**
  * @description Union of all possible responses
  */
-export type EventsCreateReportResponse =
-  | EventsCreateReportStatus201
-  | EventsCreateReportStatus401
-  | EventsCreateReportStatus404
-  | EventsCreateReportStatus422
-  | EventsCreateReportStatus429;
+export type EventsCreateReportResponse = EventsCreateReportStatus201;

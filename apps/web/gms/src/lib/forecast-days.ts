@@ -27,6 +27,9 @@ export function getForecastDays(
     const d = new Date(today);
     d.setDate(today.getDate() + i);
     const forecast = forecasts[i];
+    if (!forecast) {
+      throw new Error(`Missing forecast for day ${i}`);
+    }
     const slug = d.toISOString().slice(0, 10);
     return {
       condition: forecast.condition,
@@ -54,7 +57,7 @@ export function slugToSegments(slug: string): {
   month: string;
   year: string;
 } {
-  const [year, month, day] = slug.split("-");
+  const [year = "", month = "", day = ""] = slug.split("-");
   return { year, month, day };
 }
 

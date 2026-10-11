@@ -38,9 +38,4 @@ export type HrPreviewOrganisationResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrPreviewOrganisationResponse =
-  | HrPreviewOrganisationStatus200
-  | HrPreviewOrganisationStatus401
-  | HrPreviewOrganisationStatus403
-  | HrPreviewOrganisationStatus409
-  | HrPreviewOrganisationStatus422;
+export type HrPreviewOrganisationResponse = HrPreviewOrganisationStatus200;

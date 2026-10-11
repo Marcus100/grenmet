@@ -4,6 +4,7 @@ import type {
   RosterCalendarEntry,
 } from "@barrelsgd/api-client";
 import { describe, expect, it } from "vitest";
+import { nth } from "@/test/nth";
 import {
   needsEvents,
   needsRoster,
@@ -52,7 +53,7 @@ function event(overrides: Partial<CalendarEventPublic>): CalendarEventPublic {
 
 describe("toEventLayer — the department's own entries", () => {
   it("passes a timed entry through on its local wall clock", () => {
-    const [mapped] = toEventLayer([event({})]);
+    const mapped = nth(toEventLayer([event({})]));
 
     expect(mapped.start).toBe("2026-07-06T09:30:00");
     expect(mapped.end).toBe("2026-07-06T10:30:00");
@@ -63,13 +64,15 @@ describe("toEventLayer — the department's own entries", () => {
   });
 
   it("drops the time part of an all-day entry", () => {
-    const [mapped] = toEventLayer([
-      event({
-        all_day: true,
-        starts_at_local: "2026-07-06T00:00:00",
-        ends_at_local: "2026-07-06T00:00:00",
-      }),
-    ]);
+    const mapped = nth(
+      toEventLayer([
+        event({
+          all_day: true,
+          starts_at_local: "2026-07-06T00:00:00",
+          ends_at_local: "2026-07-06T00:00:00",
+        }),
+      ])
+    );
 
     expect(mapped.start).toBe("2026-07-06");
     expect(mapped.end).toBeUndefined();
@@ -77,17 +80,17 @@ describe("toEventLayer — the department's own entries", () => {
   });
 
   it("keeps a cancelled entry on the calendar, marked and greyed", () => {
-    const [mapped] = toEventLayer([event({ is_cancelled: true })]);
+    const mapped = nth(toEventLayer([event({ is_cancelled: true })]));
 
     expect(mapped.title).toBe("Monthly staff meeting (cancelled)");
     expect(mapped.color).toBe("var(--gm-risk-grey)");
   });
 
   it("colours each kind from a design token, never a literal", () => {
-    expect(toEventLayer([event({ kind: "TRAINING" })])[0].color).toBe(
+    expect(toEventLayer([event({ kind: "TRAINING" })])[0]?.color).toBe(
       "var(--gm-sky)"
     );
-    expect(toEventLayer([event({ kind: "DEADLINE" })])[0].color).toBe(
+    expect(toEventLayer([event({ kind: "DEADLINE" })])[0]?.color).toBe(
       "var(--gm-risk-red)"
     );
   });
@@ -95,20 +98,22 @@ describe("toEventLayer — the department's own entries", () => {
 
 describe("toRosterLayer — the duty roster read onto the calendar", () => {
   it("shows approved exceptions on the leave view without changing the scheduled night shift", () => {
-    const [mapped] = toRosterLayer(
-      [
-        entry({
-          availability: "ABSENT",
-          shift_code: "N",
-          label: "Night",
-          assignment_date: "2026-09-26",
-          starts_at_local: "2026-09-26T22:30:00",
-          ends_at_local: "2026-09-27T06:00:00",
-        }),
-        entry({ availability: "SCHEDULED" }),
-      ],
-      "leave",
-      { showPerson: true }
+    const mapped = nth(
+      toRosterLayer(
+        [
+          entry({
+            availability: "ABSENT",
+            shift_code: "N",
+            label: "Night",
+            assignment_date: "2026-09-26",
+            starts_at_local: "2026-09-26T22:30:00",
+            ends_at_local: "2026-09-27T06:00:00",
+          }),
+          entry({ availability: "SCHEDULED" }),
+        ],
+        "leave",
+        { showPerson: true }
+      )
     );
     expect(mapped.title).toBe("Jude Andre Charles · Night · Approved absence");
     expect(mapped.extendedProps.code).toBe("N");
@@ -116,7 +121,9 @@ describe("toRosterLayer — the duty roster read onto the calendar", () => {
     expect(mapped.end).toBe("2026-09-27T06:00:00");
   });
   it("keeps a timed shift on its own local wall clock", () => {
-    const [mapped] = toRosterLayer([entry({})], "mine", { showPerson: false });
+    const mapped = nth(
+      toRosterLayer([entry({})], "mine", { showPerson: false })
+    );
 
     expect(mapped.start).toBe("2026-07-06T05:30:00");
     expect(mapped.end).toBe("2026-07-06T14:00:00");
@@ -124,17 +131,19 @@ describe("toRosterLayer — the duty roster read onto the calendar", () => {
   });
 
   it("runs the night shift into the following morning", () => {
-    const [mapped] = toRosterLayer(
-      [
-        entry({
-          shift_code: "N",
-          label: "Night",
-          starts_at_local: "2026-07-06T22:30:00",
-          ends_at_local: "2026-07-07T06:00:00",
-        }),
-      ],
-      "mine",
-      { showPerson: false }
+    const mapped = nth(
+      toRosterLayer(
+        [
+          entry({
+            shift_code: "N",
+            label: "Night",
+            starts_at_local: "2026-07-06T22:30:00",
+            ends_at_local: "2026-07-07T06:00:00",
+          }),
+        ],
+        "mine",
+        { showPerson: false }
+      )
     );
 
     expect(mapped.start).toBe("2026-07-06T22:30:00");
@@ -142,19 +151,21 @@ describe("toRosterLayer — the duty roster read onto the calendar", () => {
   });
 
   it("renders codes with no clock time as all-day on the assignment date", () => {
-    const [mapped] = toRosterLayer(
-      [
-        entry({
-          shift_code: "V",
-          label: "Vacation",
-          category: "LEAVE",
-          starts_at_local: null,
-          ends_at_local: null,
-          all_day: true,
-        }),
-      ],
-      "mine",
-      { showPerson: false }
+    const mapped = nth(
+      toRosterLayer(
+        [
+          entry({
+            shift_code: "V",
+            label: "Vacation",
+            category: "LEAVE",
+            starts_at_local: null,
+            ends_at_local: null,
+            all_day: true,
+          }),
+        ],
+        "mine",
+        { showPerson: false }
+      )
     );
 
     expect(mapped.start).toBe("2026-07-06");
@@ -190,13 +201,15 @@ describe("toRosterLayer — the duty roster read onto the calendar", () => {
     );
 
     expect(mapped).toHaveLength(1);
-    expect(mapped[0].title).toBe("Jude Andre Charles · Vacation");
+    expect(mapped[0]?.title).toBe("Jude Andre Charles · Vacation");
   });
 
   it("names the person on department views and marks draft rosters", () => {
-    const [mapped] = toRosterLayer([entry({ is_draft: true })], "department", {
-      showPerson: true,
-    });
+    const mapped = nth(
+      toRosterLayer([entry({ is_draft: true })], "department", {
+        showPerson: true,
+      })
+    );
 
     expect(mapped.title).toBe("Jude Andre Charles · Morning (draft)");
     expect(mapped.extendedProps.isDraft).toBe(true);
@@ -246,7 +259,7 @@ describe("toHolidayLayer", () => {
       created_at: "2026-07-01T00:00:00+0000",
     };
 
-    const [mapped] = toHolidayLayer([holiday]);
+    const mapped = nth(toHolidayLayer([holiday]));
 
     expect(mapped.display).toBe("background");
     expect(mapped.allDay).toBe(true);

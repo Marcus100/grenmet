@@ -34,6 +34,4 @@ export type WxproductsPublicForecastResponses = {
  * @description Union of all possible responses
  */
 export type WxproductsPublicForecastResponse =
-  | WxproductsPublicForecastStatus200
-  | WxproductsPublicForecastStatus422
-  | WxproductsPublicForecastStatus503;
+  WxproductsPublicForecastStatus200;

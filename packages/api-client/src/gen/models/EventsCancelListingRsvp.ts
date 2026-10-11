@@ -45,9 +45,4 @@ export type EventsCancelListingRsvpResponses = {
 /**
  * @description Union of all possible responses
  */
-export type EventsCancelListingRsvpResponse =
-  | EventsCancelListingRsvpStatus204
-  | EventsCancelListingRsvpStatus401
-  | EventsCancelListingRsvpStatus404
-  | EventsCancelListingRsvpStatus422
-  | EventsCancelListingRsvpStatus429;
+export type EventsCancelListingRsvpResponse = EventsCancelListingRsvpStatus204;

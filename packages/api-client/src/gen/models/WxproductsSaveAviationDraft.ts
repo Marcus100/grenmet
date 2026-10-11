@@ -43,8 +43,4 @@ export type WxproductsSaveAviationDraftResponses = {
  * @description Union of all possible responses
  */
 export type WxproductsSaveAviationDraftResponse =
-  | WxproductsSaveAviationDraftStatus200
-  | WxproductsSaveAviationDraftStatus403
-  | WxproductsSaveAviationDraftStatus409
-  | WxproductsSaveAviationDraftStatus422
-  | WxproductsSaveAviationDraftStatus503;
+  WxproductsSaveAviationDraftStatus200;

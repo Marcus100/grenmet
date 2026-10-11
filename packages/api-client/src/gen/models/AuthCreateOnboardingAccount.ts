@@ -39,7 +39,4 @@ export type AuthCreateOnboardingAccountResponses = {
  * @description Union of all possible responses
  */
 export type AuthCreateOnboardingAccountResponse =
-  | AuthCreateOnboardingAccountStatus201
-  | AuthCreateOnboardingAccountStatus403
-  | AuthCreateOnboardingAccountStatus409
-  | AuthCreateOnboardingAccountStatus422;
+  AuthCreateOnboardingAccountStatus201;

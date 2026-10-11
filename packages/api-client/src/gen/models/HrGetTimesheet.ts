@@ -44,8 +44,4 @@ export type HrGetTimesheetResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrGetTimesheetResponse =
-  | HrGetTimesheetStatus200
-  | HrGetTimesheetStatus403
-  | HrGetTimesheetStatus404
-  | HrGetTimesheetStatus422;
+export type HrGetTimesheetResponse = HrGetTimesheetStatus200;

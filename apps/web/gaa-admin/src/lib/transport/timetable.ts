@@ -77,7 +77,6 @@ export function moveItem<T>(items: T[], index: number, delta: number): T[] {
   const target = Math.min(Math.max(index + delta, 0), items.length - 1);
   if (target === index) return items;
   const next = [...items];
-  const [item] = next.splice(index, 1);
-  next.splice(target, 0, item);
+  next.splice(target, 0, ...next.splice(index, 1));
   return next;
 }

@@ -44,10 +44,4 @@ export type EventsRequestConnectionResponses = {
 /**
  * @description Union of all possible responses
  */
-export type EventsRequestConnectionResponse =
-  | EventsRequestConnectionStatus200
-  | EventsRequestConnectionStatus401
-  | EventsRequestConnectionStatus404
-  | EventsRequestConnectionStatus409
-  | EventsRequestConnectionStatus422
-  | EventsRequestConnectionStatus429;
+export type EventsRequestConnectionResponse = EventsRequestConnectionStatus200;

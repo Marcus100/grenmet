@@ -35,7 +35,4 @@ export type EventsCreateSuggestionResponses = {
 /**
  * @description Union of all possible responses
  */
-export type EventsCreateSuggestionResponse =
-  | EventsCreateSuggestionStatus201
-  | EventsCreateSuggestionStatus422
-  | EventsCreateSuggestionStatus429;
+export type EventsCreateSuggestionResponse = EventsCreateSuggestionStatus201;

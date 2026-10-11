@@ -53,8 +53,4 @@ export type NotificationsUpdateNotificationSettingResponses = {
  * @description Union of all possible responses
  */
 export type NotificationsUpdateNotificationSettingResponse =
-  | NotificationsUpdateNotificationSettingStatus200
-  | NotificationsUpdateNotificationSettingStatus400
-  | NotificationsUpdateNotificationSettingStatus403
-  | NotificationsUpdateNotificationSettingStatus404
-  | NotificationsUpdateNotificationSettingStatus422;
+  NotificationsUpdateNotificationSettingStatus200;

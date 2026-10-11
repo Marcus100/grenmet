@@ -35,8 +35,4 @@ export type HrGetHrDashboardResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrGetHrDashboardResponse =
-  | HrGetHrDashboardStatus200
-  | HrGetHrDashboardStatus401
-  | HrGetHrDashboardStatus403
-  | HrGetHrDashboardStatus422;
+export type HrGetHrDashboardResponse = HrGetHrDashboardStatus200;

@@ -46,9 +46,4 @@ export type HrDeleteShiftSwapResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrDeleteShiftSwapResponse =
-  | HrDeleteShiftSwapStatus204
-  | HrDeleteShiftSwapStatus400
-  | HrDeleteShiftSwapStatus403
-  | HrDeleteShiftSwapStatus404
-  | HrDeleteShiftSwapStatus422;
+export type HrDeleteShiftSwapResponse = HrDeleteShiftSwapStatus204;

@@ -104,6 +104,7 @@ test("pre-push stops on lint, type-check and test failures", (t) => {
   const hookEnvironment = {
     CALL_LOG: log,
     PATH: `${bin}:${process.env.PATH}`,
+    PRE_PUSH_SCOPE: "",
   };
 
   let result = run("sh", ["-e", prePushHook], {
@@ -128,4 +129,15 @@ test("pre-push stops on lint, type-check and test failures", (t) => {
   });
   assert.equal(result.status, 1);
   assert.equal(readFileSync(log, "utf8"), "check:ci\ntype-check\ntest\n");
+
+  writeFileSync(log, "");
+  result = run("sh", ["-e", prePushHook], {
+    cwd: workspace,
+    env: { ...hookEnvironment, PRE_PUSH_SCOPE: "--affected" },
+  });
+  assert.equal(result.status, 0);
+  assert.equal(
+    readFileSync(log, "utf8"),
+    "check:ci --affected\ntype-check --affected\ntest --affected\n"
+  );
 });

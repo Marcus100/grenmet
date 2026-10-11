@@ -42,7 +42,11 @@ function WorkflowEditor({
       const next = [...current];
       const other = index + delta;
       if (other < 0 || other >= next.length) return current;
-      [next[index], next[other]] = [next[other], next[index]];
+      const moving = next[index];
+      const displaced = next[other];
+      if (!(moving && displaced)) return current;
+      next[index] = displaced;
+      next[other] = moving;
       return next;
     });
   }

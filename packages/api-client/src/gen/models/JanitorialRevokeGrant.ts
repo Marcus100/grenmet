@@ -65,10 +65,4 @@ export type JanitorialRevokeGrantResponses = {
 /**
  * @description Union of all possible responses
  */
-export type JanitorialRevokeGrantResponse =
-  | JanitorialRevokeGrantStatus204
-  | JanitorialRevokeGrantStatus403
-  | JanitorialRevokeGrantStatus404
-  | JanitorialRevokeGrantStatus409
-  | JanitorialRevokeGrantStatus422
-  | JanitorialRevokeGrantStatus503;
+export type JanitorialRevokeGrantResponse = JanitorialRevokeGrantStatus204;

@@ -48,7 +48,7 @@ const WHITESPACE = /\s+/;
 export function initials(member: NamedMember): string {
   const parts = displayName(member).split(WHITESPACE).filter(Boolean);
   if (parts.length === 0) return "?";
-  const first = parts[0].charAt(0);
+  const first = parts[0]?.charAt(0) ?? "";
   const last = parts.length > 1 ? parts.at(-1)?.charAt(0) : "";
   return `${first}${last ?? ""}`.toUpperCase();
 }

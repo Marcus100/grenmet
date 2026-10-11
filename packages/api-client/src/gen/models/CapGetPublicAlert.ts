@@ -33,6 +33,4 @@ export type CapGetPublicAlertResponses = {
 /**
  * @description Union of all possible responses
  */
-export type CapGetPublicAlertResponse =
-  | CapGetPublicAlertStatus200
-  | CapGetPublicAlertStatus422;
+export type CapGetPublicAlertResponse = CapGetPublicAlertStatus200;

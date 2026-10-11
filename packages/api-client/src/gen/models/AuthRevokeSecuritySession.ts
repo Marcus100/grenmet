@@ -42,6 +42,4 @@ export type AuthRevokeSecuritySessionResponses = {
  * @description Union of all possible responses
  */
 export type AuthRevokeSecuritySessionResponse =
-  | AuthRevokeSecuritySessionStatus200
-  | AuthRevokeSecuritySessionStatus404
-  | AuthRevokeSecuritySessionStatus422;
+  AuthRevokeSecuritySessionStatus200;

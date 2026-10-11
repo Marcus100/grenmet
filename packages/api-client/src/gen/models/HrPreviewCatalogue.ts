@@ -42,9 +42,4 @@ export type HrPreviewCatalogueResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrPreviewCatalogueResponse =
-  | HrPreviewCatalogueStatus200
-  | HrPreviewCatalogueStatus403
-  | HrPreviewCatalogueStatus404
-  | HrPreviewCatalogueStatus409
-  | HrPreviewCatalogueStatus422;
+export type HrPreviewCatalogueResponse = HrPreviewCatalogueStatus200;

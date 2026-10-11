@@ -48,9 +48,4 @@ export type WxproductsLoadHistoryResponses = {
 /**
  * @description Union of all possible responses
  */
-export type WxproductsLoadHistoryResponse =
-  | WxproductsLoadHistoryStatus200
-  | WxproductsLoadHistoryStatus401
-  | WxproductsLoadHistoryStatus403
-  | WxproductsLoadHistoryStatus422
-  | WxproductsLoadHistoryStatus503;
+export type WxproductsLoadHistoryResponse = WxproductsLoadHistoryStatus200;

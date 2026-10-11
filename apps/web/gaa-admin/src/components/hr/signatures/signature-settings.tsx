@@ -33,7 +33,7 @@ export function SignatureSettings() {
     setUpload(null);
   }
 
-  function point(event: PointerEvent<HTMLCanvasElement>) {
+  function point(event: PointerEvent<HTMLCanvasElement>): [number, number] {
     const surface = event.currentTarget;
     const bounds = surface.getBoundingClientRect();
     return [

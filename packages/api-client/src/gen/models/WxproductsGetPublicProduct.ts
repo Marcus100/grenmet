@@ -50,7 +50,4 @@ export type WxproductsGetPublicProductResponses = {
  * @description Union of all possible responses
  */
 export type WxproductsGetPublicProductResponse =
-  | WxproductsGetPublicProductStatus200
-  | WxproductsGetPublicProductStatus404
-  | WxproductsGetPublicProductStatus422
-  | WxproductsGetPublicProductStatus503;
+  WxproductsGetPublicProductStatus200;

@@ -40,7 +40,4 @@ export type EventsGetPersonResponses = {
 /**
  * @description Union of all possible responses
  */
-export type EventsGetPersonResponse =
-  | EventsGetPersonStatus200
-  | EventsGetPersonStatus404
-  | EventsGetPersonStatus422;
+export type EventsGetPersonResponse = EventsGetPersonStatus200;

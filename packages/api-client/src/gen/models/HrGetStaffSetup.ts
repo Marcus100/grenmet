@@ -50,10 +50,4 @@ export type HrGetStaffSetupResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrGetStaffSetupResponse =
-  | HrGetStaffSetupStatus200
-  | HrGetStaffSetupStatus400
-  | HrGetStaffSetupStatus403
-  | HrGetStaffSetupStatus404
-  | HrGetStaffSetupStatus409
-  | HrGetStaffSetupStatus422;
+export type HrGetStaffSetupResponse = HrGetStaffSetupStatus200;

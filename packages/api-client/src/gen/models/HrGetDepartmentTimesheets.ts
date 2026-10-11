@@ -55,7 +55,4 @@ export type HrGetDepartmentTimesheetsResponses = {
  * @description Union of all possible responses
  */
 export type HrGetDepartmentTimesheetsResponse =
-  | HrGetDepartmentTimesheetsStatus200
-  | HrGetDepartmentTimesheetsStatus400
-  | HrGetDepartmentTimesheetsStatus403
-  | HrGetDepartmentTimesheetsStatus422;
+  HrGetDepartmentTimesheetsStatus200;

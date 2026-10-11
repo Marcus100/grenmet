@@ -33,6 +33,4 @@ export type TransportSpecResponses = {
 /**
  * @description Union of all possible responses
  */
-export type TransportSpecResponse =
-  | TransportSpecStatus200
-  | TransportSpecStatus422;
+export type TransportSpecResponse = TransportSpecStatus200;

@@ -395,7 +395,7 @@ function AreaMap({
               properties: {},
               geometry: {
                 type: "Polygon",
-                coordinates: [[...polygonPoints, polygonPoints[0]]],
+                coordinates: [[...polygonPoints, ...polygonPoints.slice(0, 1)]],
               },
             }}
             id="cap-polygon"

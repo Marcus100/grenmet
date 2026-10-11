@@ -41,6 +41,4 @@ export type AuthDeleteRoleAssignmentResponses = {
  * @description Union of all possible responses
  */
 export type AuthDeleteRoleAssignmentResponse =
-  | AuthDeleteRoleAssignmentStatus204
-  | AuthDeleteRoleAssignmentStatus404
-  | AuthDeleteRoleAssignmentStatus422;
+  AuthDeleteRoleAssignmentStatus204;

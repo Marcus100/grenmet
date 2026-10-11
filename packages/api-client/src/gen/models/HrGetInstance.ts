@@ -44,8 +44,4 @@ export type HrGetInstanceResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrGetInstanceResponse =
-  | HrGetInstanceStatus200
-  | HrGetInstanceStatus403
-  | HrGetInstanceStatus404
-  | HrGetInstanceStatus422;
+export type HrGetInstanceResponse = HrGetInstanceStatus200;

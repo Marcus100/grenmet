@@ -41,10 +41,4 @@ export type EventsListSuggestionsResponses = {
 /**
  * @description Union of all possible responses
  */
-export type EventsListSuggestionsResponse =
-  | EventsListSuggestionsStatus200
-  | EventsListSuggestionsStatus401
-  | EventsListSuggestionsStatus403
-  | EventsListSuggestionsStatus404
-  | EventsListSuggestionsStatus422
-  | EventsListSuggestionsStatus429;
+export type EventsListSuggestionsResponse = EventsListSuggestionsStatus200;

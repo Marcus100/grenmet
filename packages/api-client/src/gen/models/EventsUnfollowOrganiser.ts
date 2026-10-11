@@ -45,9 +45,4 @@ export type EventsUnfollowOrganiserResponses = {
 /**
  * @description Union of all possible responses
  */
-export type EventsUnfollowOrganiserResponse =
-  | EventsUnfollowOrganiserStatus204
-  | EventsUnfollowOrganiserStatus401
-  | EventsUnfollowOrganiserStatus404
-  | EventsUnfollowOrganiserStatus422
-  | EventsUnfollowOrganiserStatus429;
+export type EventsUnfollowOrganiserResponse = EventsUnfollowOrganiserStatus204;

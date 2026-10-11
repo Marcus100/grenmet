@@ -39,14 +39,14 @@ it("obtains CSRF proof and sends a cookie-authenticated mutation without actor i
   expect((await saveProductAction({ ...input, actorId: "forged" })).ok).toBe(
     true
   );
-  expect(fetcher.mock.calls[0][0]).toBe("/_backend/browser-session");
-  expect(fetcher.mock.calls[1][1]).toMatchObject({
+  expect(fetcher.mock.calls[0]?.[0]).toBe("/_backend/browser-session");
+  expect(fetcher.mock.calls[1]?.[1]).toMatchObject({
     credentials: "same-origin",
     cache: "no-store",
     method: "POST",
     headers: { "X-CSRF-Token": "proof" },
   });
-  expect(JSON.parse(fetcher.mock.calls[1][1].body)).toEqual(input);
+  expect(JSON.parse(fetcher.mock.calls[1]?.[1]?.body)).toEqual(input);
 });
 it("does not write when session validation fails", async () => {
   fetcher.mockResolvedValue(
@@ -92,7 +92,7 @@ it("requests an archive page without kind or date restrictions", async () => {
     ok: true,
     products: [],
   });
-  expect(fetcher.mock.calls[0][0]).toBe(
+  expect(fetcher.mock.calls[0]?.[0]).toBe(
     "/_backend/weather/products?limit=50&offset=50"
   );
 });
@@ -115,8 +115,8 @@ it("previews through FastAPI and preserves normalized values and errors", async 
       changeSummary: "",
     })
   ).toEqual({ ok: true, preview });
-  expect(fetcher.mock.calls[1][0]).toBe("/_backend/weather/products/preview");
-  expect(fetcher.mock.calls[1][1].headers["X-CSRF-Token"]).toBe("proof");
+  expect(fetcher.mock.calls[1]?.[0]).toBe("/_backend/weather/products/preview");
+  expect(fetcher.mock.calls[1]?.[1]?.headers["X-CSRF-Token"]).toBe("proof");
 });
 it("does not provide a valid preview during an outage", async () => {
   fetcher.mockRejectedValue(new Error("offline"));

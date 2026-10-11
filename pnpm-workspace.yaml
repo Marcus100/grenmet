@@ -19,6 +19,8 @@ minimumReleaseAgeExclude:
   - "ultracite@7.11.0"
 strictPeerDependencies: false
 autoInstallPeers: true
+# Reject hardcoded versions for catalogued dependencies at `pnpm add` time.
+catalogMode: strict
 # Host and devcontainer bind-mount the same repo, so they must share one store.
 # A relative path resolves to the same physical dir from both, on the same fs as
 # node_modules (required for hardlinking). Never set an absolute path here.
@@ -55,24 +57,20 @@ catalog:
   # Core
   react: ^19.3.0
   react-dom: ^19.3.0
-  next: 16.3.8
+  next: 16.4.0
   babel-plugin-react-compiler: "^1.0.0"
   server-only: "0.0.1"
   typescript: "^7.0.2"
 
-  tsx: "^4.23.15"
 
   # Styling
   tailwindcss: "^4.3.3"
   "@tailwindcss/postcss": "^4.3.3"
 
   # Weather and GIS maps
-  "maplibre-gl": ^6.12.0
+  "maplibre-gl": ^6.13.0
   "react-map-gl": "^8.1.3"
   "pmtiles": "^4.5.0"
-  "@turf/helpers": "^7.4.0"
-  "@turf/buffer": "^7.4.0"
-  "@turf/distance": "^7.4.0"
   "@turf/boolean-point-in-polygon": "^7.4.0"
 
   # Data fetching
@@ -80,7 +78,6 @@ catalog:
 
   # UI
   lucide-react: ^1.52.0
-  geist: "^1.7.2"
   "@base-ui/react": "^1.8.0"
   class-variance-authority: "^0.7.1"
   cn: ^0.4.0
@@ -89,29 +86,18 @@ catalog:
   sonner: "^2.0.8"
   recharts: "^3.10.1"
   vaul: "^1.1.2"
-  react-resizable-panels: "^4.14.2"
+  react-resizable-panels: "^4.14.3"
   input-otp: "^1.5.0"
   qrcode: "^1.5.4"
   "@types/qrcode": "^1.5.6"
   embla-carousel-react: "^8.6.0"
-  simple-icons: ^16.34.0
 
   # Studio demo dashboards (kanban/invoice drag-drop, logistics map)
-  "@dnd-kit/core": "^6.3.1"
-  "@dnd-kit/modifiers": "^9.0.0"
-  "@dnd-kit/sortable": "^10.0.0"
-  d3-geo: "^3.1.1"
-  topojson-client: "^3.1.0"
-  react-hook-form: ^7.89.0
-  "@hookform/resolvers": "^5.9.1"
-  "@fullcalendar/react": "^7.1.0"
-  "@types/d3-geo": "^3.1.0"
-  "@types/topojson-client": "^3.1.5"
+  "@fullcalendar/react": "^7.1.1"
   "@types/geojson": "^7946.0.16"
 
   # Tables — admin-gms (data tables + virtualised lists)
   "@tanstack/react-table": "^9.2.6"
-  "@tanstack/react-virtual": "^3.13.17"
 
   # Animation — motion (successor to framer-motion); import from "motion/react"
   motion: ^14.0.0
@@ -135,10 +121,13 @@ catalog:
   # Database (pg) — used in wxwatch and wxproducts
   pg: "^8.23.1"
   "@types/pg": "^8.23.1"
-  dotenv-cli: "^11.0.0"
 
   # Repository tooling
+  "@biomejs/biome": "^2.5.15"
+  turbo: "^2.11.7"
+  ultracite: "^7.12.4"
   husky: "^9.1.7"
+  knip: "^6.40.0"
   lint-staged: ^17.6.0
 
   # Headless UI — used in gms and docs (migrate to Base UI eventually)
@@ -160,10 +149,10 @@ catalog:
   "react-day-picker": "^10.0.2"
 
   # Error tracking
-  "@sentry/nextjs": ^11.4.0
+  "@sentry/nextjs": ^11.5.0
 
   # Analytics
-  "posthog-js": ^1.435.8
+  "posthog-js": ^1.438.2
   "posthog-node": ^5.55.0
 
   # Testing
@@ -175,8 +164,7 @@ catalog:
   "@testing-library/jest-dom": "^7.0.1"
   "@testing-library/dom": ^10.4.2
   jsdom: ^30.1.2
-  "@playwright/test": "^1.63.0"
-  "@faker-js/faker": "^10.2.0"
+  "@playwright/test": "^1.64.0"
 
 
 # Payload CMS's Postgres adapter depends on drizzle-kit; replace its esbuild

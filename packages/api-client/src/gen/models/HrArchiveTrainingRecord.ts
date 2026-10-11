@@ -47,8 +47,4 @@ export type HrArchiveTrainingRecordResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrArchiveTrainingRecordResponse =
-  | HrArchiveTrainingRecordStatus200
-  | HrArchiveTrainingRecordStatus403
-  | HrArchiveTrainingRecordStatus404
-  | HrArchiveTrainingRecordStatus422;
+export type HrArchiveTrainingRecordResponse = HrArchiveTrainingRecordStatus200;

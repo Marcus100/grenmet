@@ -161,7 +161,7 @@ export function stopAnalytics(): void {
     /* Storage can be unavailable. */
   }
   for (const cookie of document.cookie.split(";")) {
-    const name = cookie.trim().split("=")[0];
+    const name = cookie.trim().split("=")[0] ?? "";
     if (!(name.startsWith("_ga") || name.startsWith("ph_"))) continue;
     const parts = location.hostname.split(".");
     // biome-ignore lint/suspicious/noDocumentCookie: delete legacy cookies in browsers without Cookie Store API.

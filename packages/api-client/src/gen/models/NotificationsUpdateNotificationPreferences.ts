@@ -39,6 +39,4 @@ export type NotificationsUpdateNotificationPreferencesResponses = {
  * @description Union of all possible responses
  */
 export type NotificationsUpdateNotificationPreferencesResponse =
-  | NotificationsUpdateNotificationPreferencesStatus200
-  | NotificationsUpdateNotificationPreferencesStatus400
-  | NotificationsUpdateNotificationPreferencesStatus422;
+  NotificationsUpdateNotificationPreferencesStatus200;

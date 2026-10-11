@@ -84,7 +84,7 @@ describe("Logo", () => {
         name: SERVICE_NAME,
       });
       expect(rest).toHaveLength(0);
-      expect(mark.tagName.toLowerCase()).toBe("svg");
+      expect(mark?.tagName.toLowerCase()).toBe("svg");
       expect(mark).toHaveClass("gm-logo", inkClass, "size-7");
       expect(mark).toHaveAttribute("fill", "currentColor");
     }

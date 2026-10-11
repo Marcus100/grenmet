@@ -45,9 +45,4 @@ export type EventsSaveListingResponses = {
 /**
  * @description Union of all possible responses
  */
-export type EventsSaveListingResponse =
-  | EventsSaveListingStatus204
-  | EventsSaveListingStatus401
-  | EventsSaveListingStatus404
-  | EventsSaveListingStatus422
-  | EventsSaveListingStatus429;
+export type EventsSaveListingResponse = EventsSaveListingStatus204;

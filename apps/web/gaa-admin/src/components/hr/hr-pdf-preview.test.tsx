@@ -62,8 +62,8 @@ it("downloads the edited PDF without invoking browser print", async () => {
       filename: "absentee-report.pdf",
     });
     expect(click).toHaveBeenCalledOnce();
-    expect(request.mock.calls[0][1].method).toBe("POST");
-    expect(JSON.parse(request.mock.calls[0][1].body)).toEqual({
+    expect(request.mock.calls[0]?.[1]?.method).toBe("POST");
+    expect(JSON.parse(request.mock.calls[0]?.[1]?.body)).toEqual({
       employee_id: "subject-2",
     });
     await act(() => vi.advanceTimersByTimeAsync(1000));
@@ -85,11 +85,11 @@ it("uses the saved signed document for downloads after submission", async () => 
       filename: "absentee-report.pdf",
       signedDocumentId: "signed-2",
     });
-    expect(request.mock.calls[0][0]).toBe(
+    expect(request.mock.calls[0]?.[0]).toBe(
       "/api/v1/hr/signed-documents/signed-2/pdf"
     );
-    expect(request.mock.calls[0][1].method).toBe("GET");
-    expect(request.mock.calls[0][1].body).toBeUndefined();
+    expect(request.mock.calls[0]?.[1]?.method).toBe("GET");
+    expect(request.mock.calls[0]?.[1]?.body).toBeUndefined();
   } finally {
     click.mockRestore();
   }
@@ -128,10 +128,10 @@ it("renders an edited form through the FastAPI PDF endpoint after edits settle",
   expect(request).not.toHaveBeenCalled();
   await act(() => vi.advanceTimersByTimeAsync(1));
   expect(request).toHaveBeenCalledTimes(1);
-  expect(request.mock.calls[0][0]).toBe(
+  expect(request.mock.calls[0]?.[0]).toBe(
     "/api/v1/hr/leave-requests/preview-pdf"
   );
-  expect(JSON.parse(request.mock.calls[0][1].body)).toMatchObject({
+  expect(JSON.parse(request.mock.calls[0]?.[1]?.body)).toMatchObject({
     days_requested: "2",
   });
   expect(screen.getByTitle("Leave Application PDF preview")).toHaveAttribute(
@@ -152,10 +152,10 @@ it("loads the immutable signed PDF after submission", async () => {
     />
   );
   await act(() => vi.advanceTimersByTimeAsync(0));
-  expect(request.mock.calls[0][0]).toBe(
+  expect(request.mock.calls[0]?.[0]).toBe(
     "/api/v1/hr/signed-documents/signed-1/pdf"
   );
-  expect(request.mock.calls[0][1].method).toBe("GET");
+  expect(request.mock.calls[0]?.[1]?.method).toBe("GET");
 });
 
 it("clears an obsolete PDF when required form fields are removed", async () => {

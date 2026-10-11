@@ -39,11 +39,12 @@ export async function PublishedProducts({ kinds }: { kinds: ProductKind[] }) {
                       href={`/weather/issued/${product.id}`}
                     >
                       {productTitle(kind)} ·{" "}
-                      {product.values.issuedAt.replace("T", " ")}
+                      {(product.values.issuedAt ?? "").replace("T", " ")}
                     </Link>
                     <p>{product.values.area}</p>
                     <p className="font-mono text-body-sm text-gm-text-secondary leading-body-sm">
-                      Valid until {product.values.validTo.replace("T", " ")}{" "}
+                      Valid until{" "}
+                      {(product.values.validTo ?? "").replace("T", " ")}{" "}
                       (Grenada time) · Revision {product.revision}
                     </p>
                     {product.values.notice ? (

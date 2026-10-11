@@ -32,6 +32,4 @@ export type AuthCreateRoleResponses = {
 /**
  * @description Union of all possible responses
  */
-export type AuthCreateRoleResponse =
-  | AuthCreateRoleStatus201
-  | AuthCreateRoleStatus422;
+export type AuthCreateRoleResponse = AuthCreateRoleStatus201;

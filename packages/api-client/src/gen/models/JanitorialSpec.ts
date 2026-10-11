@@ -29,6 +29,4 @@ export type JanitorialSpecResponses = {
 /**
  * @description Union of all possible responses
  */
-export type JanitorialSpecResponse =
-  | JanitorialSpecStatus200
-  | JanitorialSpecStatus422;
+export type JanitorialSpecResponse = JanitorialSpecStatus200;

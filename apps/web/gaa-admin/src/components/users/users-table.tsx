@@ -161,7 +161,7 @@ export function UsersTable({ table }: { table: LegacyReactTable<UserRow> }) {
                 text=""
               />
             </PaginationItem>
-            {pageNumbers[0] > 1 ? (
+            {(pageNumbers[0] ?? 0) > 1 ? (
               <PaginationItem>
                 <PaginationEllipsis />
               </PaginationItem>

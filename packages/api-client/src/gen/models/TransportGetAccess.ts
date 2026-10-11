@@ -37,7 +37,4 @@ export type TransportGetAccessResponses = {
 /**
  * @description Union of all possible responses
  */
-export type TransportGetAccessResponse =
-  | TransportGetAccessStatus200
-  | TransportGetAccessStatus401
-  | TransportGetAccessStatus422;
+export type TransportGetAccessResponse = TransportGetAccessStatus200;

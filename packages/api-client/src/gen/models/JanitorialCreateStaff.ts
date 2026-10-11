@@ -60,10 +60,4 @@ export type JanitorialCreateStaffResponses = {
 /**
  * @description Union of all possible responses
  */
-export type JanitorialCreateStaffResponse =
-  | JanitorialCreateStaffStatus201
-  | JanitorialCreateStaffStatus403
-  | JanitorialCreateStaffStatus404
-  | JanitorialCreateStaffStatus409
-  | JanitorialCreateStaffStatus422
-  | JanitorialCreateStaffStatus503;
+export type JanitorialCreateStaffResponse = JanitorialCreateStaffStatus201;

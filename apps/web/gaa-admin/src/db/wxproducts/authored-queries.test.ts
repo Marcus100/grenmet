@@ -17,7 +17,7 @@ it("loads dashboard products from FastAPI without credentials or cached data", a
     new URL("http://api.test/api/v1/wxproducts/public/products?kind=marine"),
     expect.objectContaining({ cache: "no-store" })
   );
-  expect(fetcher.mock.calls[0][1]).not.toHaveProperty("headers");
+  expect(fetcher.mock.calls[0]?.[1]).not.toHaveProperty("headers");
 });
 it("reports an unavailable source instead of an empty feed", async () => {
   vi.stubGlobal(

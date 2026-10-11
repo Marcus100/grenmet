@@ -42,5 +42,4 @@ export type CapDraftFromHazardProfileResponses = {
  * @description Union of all possible responses
  */
 export type CapDraftFromHazardProfileResponse =
-  | CapDraftFromHazardProfileStatus201
-  | CapDraftFromHazardProfileStatus422;
+  CapDraftFromHazardProfileStatus201;

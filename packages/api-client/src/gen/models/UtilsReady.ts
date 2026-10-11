@@ -33,7 +33,4 @@ export type UtilsReadyResponses = {
 /**
  * @description Union of all possible responses
  */
-export type UtilsReadyResponse =
-  | UtilsReadyStatus200
-  | UtilsReadyStatus422
-  | UtilsReadyStatus503;
+export type UtilsReadyResponse = UtilsReadyStatus200;

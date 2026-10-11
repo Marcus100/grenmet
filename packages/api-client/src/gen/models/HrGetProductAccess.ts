@@ -38,9 +38,4 @@ export type HrGetProductAccessResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrGetProductAccessResponse =
-  | HrGetProductAccessStatus200
-  | HrGetProductAccessStatus403
-  | HrGetProductAccessStatus404
-  | HrGetProductAccessStatus409
-  | HrGetProductAccessStatus422;
+export type HrGetProductAccessResponse = HrGetProductAccessStatus200;

@@ -64,10 +64,4 @@ export type JanitorialUpdateSectionResponses = {
 /**
  * @description Union of all possible responses
  */
-export type JanitorialUpdateSectionResponse =
-  | JanitorialUpdateSectionStatus200
-  | JanitorialUpdateSectionStatus403
-  | JanitorialUpdateSectionStatus404
-  | JanitorialUpdateSectionStatus409
-  | JanitorialUpdateSectionStatus422
-  | JanitorialUpdateSectionStatus503;
+export type JanitorialUpdateSectionResponse = JanitorialUpdateSectionStatus200;

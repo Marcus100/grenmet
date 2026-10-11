@@ -46,9 +46,4 @@ export type HrDeleteStatusReportResponses = {
 /**
  * @description Union of all possible responses
  */
-export type HrDeleteStatusReportResponse =
-  | HrDeleteStatusReportStatus204
-  | HrDeleteStatusReportStatus400
-  | HrDeleteStatusReportStatus403
-  | HrDeleteStatusReportStatus404
-  | HrDeleteStatusReportStatus422;
+export type HrDeleteStatusReportResponse = HrDeleteStatusReportStatus204;

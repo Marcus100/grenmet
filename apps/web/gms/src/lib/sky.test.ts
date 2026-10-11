@@ -8,7 +8,7 @@ const ast = (date: Date) =>
     minute: "2-digit",
   }).format(date);
 const minutes = (hhmm: string) => {
-  const [h, m] = hhmm.split(":").map(Number);
+  const [h = 0, m = 0] = hhmm.split(":").map(Number);
   return h * 60 + m;
 };
 
