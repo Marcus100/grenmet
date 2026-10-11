@@ -54,7 +54,7 @@ export function buildCycleCodes(catalog: ShiftCatalogPublic[]): string[] {
 export function nextCode(codes: string[], current: string): string {
   if (codes.length === 0) return current;
   const idx = codes.indexOf(current);
-  return codes[(idx + 1) % codes.length];
+  return codes[(idx + 1) % codes.length] ?? current;
 }
 
 /** "05:30" / "14:00" → "0530–1400 hrs", matching the printed legend. */

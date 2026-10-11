@@ -170,7 +170,7 @@ describe("labels", () => {
       "Manager",
       "Senior Level Technician",
     ]);
-    expect(groups[1].members).toHaveLength(2);
+    expect(groups[1]?.members).toHaveLength(2);
   });
 
   it("keeps ungraded members in one trailing unlabelled group", () => {
@@ -180,8 +180,8 @@ describe("labels", () => {
     ]);
 
     expect(groups).toHaveLength(2);
-    expect(groups[1].label).toBeNull();
-    expect(groups[1].members.map((m) => m.user_id)).toEqual(["nobody"]);
+    expect(groups[1]?.label).toBeNull();
+    expect(groups[1]?.members.map((m) => m.user_id)).toEqual(["nobody"]);
   });
 
   it("builds stable cell keys", () => {

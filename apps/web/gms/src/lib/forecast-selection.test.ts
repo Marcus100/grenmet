@@ -37,24 +37,27 @@ describe("forecast presentation", () => {
   it("renders backend-selected dates and values without reselecting against the browser clock", () => {
     const result = weatherFromForecast(selection());
     expect(result.baseDate).toBe("2026-09-14");
-    expect(result.days[0].title).toBe("Tonight");
-    expect(result.days[0].high).toBeNull();
-    expect(result.days[0].summary).toBe("LOCAL TEST — Fair");
-    expect(result.days[0].condition).toBe("sunny");
-    expect(result.days[0].conditions).toContainEqual({
+    expect(result.days[0]?.title).toBe("Tonight");
+    expect(result.days[0]?.high).toBeNull();
+    expect(result.days[0]?.summary).toBe("LOCAL TEST — Fair");
+    expect(result.days[0]?.condition).toBe("sunny");
+    expect(result.days[0]?.conditions).toContainEqual({
       label: "High Tide",
       value: "09:15",
     });
-    expect(result.days[0].conditions).not.toContainEqual({
+    expect(result.days[0]?.conditions).not.toContainEqual({
       label: "Word of the day",
       value: "Cloudy",
     });
-    expect(result.days[4].date).toBe("2026-09-18");
-    expect(result.days[4].high).toBe(32);
+    expect(result.days[4]?.date).toBe("2026-09-18");
+    expect(result.days[4]?.high).toBe(32);
   });
   it("labels today's issues oldest first for the forecast tabs", () => {
     const data = selection();
     const [first] = data.periods;
+    if (!first) {
+      throw new Error("expected a forecast period");
+    }
     const morning = {
       ...first,
       source: first.source && {
@@ -69,14 +72,18 @@ describe("forecast presentation", () => {
       "Morning",
       "Evening",
     ]);
-    expect(result.todayIssues[1].day.summary).toBe("LOCAL TEST — Fair");
+    expect(result.todayIssues[1]?.day.summary).toBe("LOCAL TEST — Fair");
     expect(weatherFromForecast(selection()).todayIssues).toEqual([]);
   });
   it("distinguishes missing publication from a service outage", () => {
     const data = selection();
-    data.periods[0].source = null;
+    const [period] = data.periods;
+    if (!period) {
+      throw new Error("expected a forecast period");
+    }
+    period.source = null;
     const result = weatherFromForecast(data);
-    expect(result.days[0].title).toBe("Awaiting today’s morning forecast");
+    expect(result.days[0]?.title).toBe("Awaiting today’s morning forecast");
     const outage = unavailableWeather();
     expect(outage.days).toHaveLength(5);
     expect(
@@ -86,7 +93,7 @@ describe("forecast presentation", () => {
   });
   it("formats the report time without labelling it a measured observation time", () => {
     const data = selection();
-    const source = data.periods[0].source;
+    const source = data.periods[0]?.source;
     if (!source) throw new Error("Fixture source missing");
     data.observation = {
       temperature: 25.9,
@@ -102,12 +109,16 @@ describe("forecast presentation", () => {
 describe("structured conditions from the forecast feed", () => {
   it("uses the feed's formatted tiles and icon names", () => {
     const forecast = selection();
-    forecast.periods[0].conditions = [
+    const [period] = forecast.periods;
+    if (!period) {
+      throw new Error("expected a forecast period");
+    }
+    period.conditions = [
       { icon: "wind", value: "12–23 mph", label: "Wind speed (10–20 kt)" },
       { icon: "arrow-up-to-line", value: "05:50", label: "High tide (0.6 m)" },
     ];
     const [today] = weatherFromForecast(forecast).days;
-    expect(today.conditions).toEqual([
+    expect(today?.conditions).toEqual([
       { icon: "wind", value: "12–23 mph", label: "Wind speed (10–20 kt)" },
       { icon: "arrow-up-to-line", value: "05:50", label: "High tide (0.6 m)" },
     ]);

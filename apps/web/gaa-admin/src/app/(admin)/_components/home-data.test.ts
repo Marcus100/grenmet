@@ -60,7 +60,7 @@ describe("summarizeProducts", () => {
       "pending",
       "pending",
     ]);
-    expect(summary.schedule[0].issuedAt).toBe("2026-09-09T05:30");
+    expect(summary.schedule[0]?.issuedAt).toBe("2026-09-09T05:30");
     expect(summary.bulletins.map((item) => item.kind)).toEqual(["marine"]);
   });
 

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { nth } from "@/test/nth";
 import {
   normalizeDescriptor,
   searchWmoFields,
@@ -30,7 +31,7 @@ describe("WMO reference", () => {
     });
   });
   it("preserves missing and reserved values as reference entries", () => {
-    const weather = searchWmoFields("020009")[0];
+    const weather = nth(searchWmoFields("020009"));
     expect(weather.codes).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ code: "0", meaning: "Reserved" }),
@@ -56,7 +57,7 @@ describe("WMO reference", () => {
     const synop = wmoReference.sequences.find(
       (sequence) => sequence.id === "307080"
     );
-    expect(synop?.members[0].id).toBe("301090");
+    expect(synop?.members[0]?.id).toBe("301090");
     expect(synop?.members.map((member) => member.id)).toContain("101002");
   });
 });

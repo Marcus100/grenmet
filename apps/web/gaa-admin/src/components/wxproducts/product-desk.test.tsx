@@ -272,7 +272,7 @@ it("opens older products across kinds from the shared archive and starts new for
   });
   fireEvent.click(screen.getByRole("button", { name: "Save draft" }));
   await waitFor(() => expect(actions.saveProductAction).toHaveBeenCalled());
-  expect(actions.saveProductAction.mock.calls[0][0].values.issuedAt).toBe(
+  expect(actions.saveProductAction.mock.calls[0]?.[0]?.values.issuedAt).toBe(
     `${grenadaDate()}T18:00`
   );
 });

@@ -51,7 +51,10 @@ import {
 import { EventCalendarViews } from "@/components/calendar/event-calendar-views";
 import { EventDialog } from "@/components/calendar/event-dialog";
 
-const views = [
+const views: [
+  { value: string; label: string },
+  ...{ value: string; label: string }[],
+] = [
   { value: "dayGridMonth", label: "Month" },
   { value: "timeGridWeek", label: "Week" },
   { value: "timeGridDay", label: "Day" },

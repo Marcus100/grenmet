@@ -16,6 +16,7 @@ import {
   vi,
 } from "vitest";
 import { floodProfile } from "@/lib/cap-profile-defaults";
+import { nth } from "@/test/nth";
 import { ProfileEditor } from "./profile-editor";
 
 vi.mock("next/navigation", () => ({
@@ -70,7 +71,7 @@ describe("Hazard profile editor", () => {
       "meteorology@gaa.gd; 1-473-444-4142"
     );
     fireEvent.click(
-      screen.getAllByRole("button", { name: "Add assessment rule" })[0]
+      nth(screen.getAllByRole("button", { name: "Add assessment rule" }))
     );
     fireEvent.change(screen.getByLabelText("Metric or observed condition"), {
       target: { value: "Rainfall accumulation" },

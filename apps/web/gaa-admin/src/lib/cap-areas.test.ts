@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { nth } from "@/test/nth";
 import {
   buildCircleArea,
   buildGeocodeArea,
@@ -103,7 +104,7 @@ describe("circleToRingCoordinates", () => {
       8
     );
     expect(ring).toHaveLength(9); // steps + 1 to close the ring
-    const first = ring[0];
+    const first = nth(ring);
     const last = ring.at(-1);
     expect(first[0]).toBeCloseTo(last?.[0] ?? Number.NaN, 6);
     expect(first[1]).toBeCloseTo(last?.[1] ?? Number.NaN, 6);

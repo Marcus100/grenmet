@@ -57,11 +57,11 @@ describe("groupTrips", () => {
       catalogue
     );
     expect(groups.map((group) => group.route.id)).toEqual([1, 3]);
-    expect(groups[1].shifts.map((group) => group.shift.name)).toEqual([
+    expect(groups[1]?.shifts.map((group) => group.shift.name)).toEqual([
       "Morning",
       "Night",
     ]);
-    expect(groups[1].tripCount).toBe(2);
+    expect(groups[1]?.tripCount).toBe(2);
   });
 
   it("keeps empty routes for the draft editor", () => {
@@ -78,7 +78,7 @@ describe("issues", () => {
       { severity: "warning", code: "no_stops", message: "x", tripId: 5 },
       { severity: "error", code: "no_trips", message: "y" },
     ] as const;
-    expect(issuesByTrip([...issues]).get(5)?.[0].code).toBe("no_stops");
+    expect(issuesByTrip([...issues]).get(5)?.[0]?.code).toBe("no_stops");
     expect(hasBlockingIssues([...issues])).toBe(true);
     expect(hasBlockingIssues([issues[0]])).toBe(false);
   });

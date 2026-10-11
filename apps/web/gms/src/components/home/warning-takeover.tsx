@@ -35,7 +35,7 @@ export function WarningTakeover({ alerts }: { alerts: AlertsResult }) {
           id="takeover-title"
         >
           {urgent.length === 1
-            ? urgent[0].event
+            ? urgent[0]?.event
             : `${urgent.length} warnings need action now`}
         </h2>
         <ul className="grid gap-3 md:grid-cols-2">

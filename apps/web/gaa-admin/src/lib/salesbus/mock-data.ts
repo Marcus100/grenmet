@@ -264,6 +264,6 @@ export function getTransactionSummary(date?: string) {
     all: allTotal,
     cash: cashTotal,
     credit: creditTotal,
-    date: date ?? new Date().toISOString().split("T")[0],
+    date: date ?? new Date().toISOString().slice(0, 10),
   };
 }

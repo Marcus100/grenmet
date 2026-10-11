@@ -29,7 +29,7 @@ it("keeps the existing outlook editor independent of guidance availability", asy
 });
 it("uses the existing route for NHC-only guidance", async () => {
   render(await Page({ searchParams: Promise.resolve({ source: "cimss" }) }));
-  expect(mocks.archive.mock.calls[0][0].get("source")).toBe("nhc");
+  expect(mocks.archive.mock.calls[0]?.[0]?.get("source")).toBe("nhc");
   expect(screen.getByRole("link", { name: "Outlook editor" })).toHaveAttribute(
     "href",
     "/wxproducts/nhc?view=editor"

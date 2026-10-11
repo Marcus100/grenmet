@@ -17,6 +17,7 @@ const router = vi.hoisted(() => ({ refresh: vi.fn() }));
 vi.mock("next/navigation", () => ({ useRouter: () => router }));
 
 import { terminal } from "@/lib/janitorial/test-fixtures";
+import { nth } from "@/test/nth";
 import {
   AreaEditButton,
   TaskButton,
@@ -25,7 +26,7 @@ import {
 } from "./area-forms";
 
 const BASE = "http://localhost";
-const restrooms = terminal.areas[0];
+const restrooms = nth(terminal.areas);
 let received: unknown;
 const server = setupServer();
 
