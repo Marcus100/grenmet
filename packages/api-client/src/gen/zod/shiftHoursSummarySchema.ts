@@ -7,9 +7,9 @@ import * as z from "zod";
 
 export const shiftHoursSummarySchema = z.object({
   shift_code: z.string(),
-  total_roster_hours: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
-  total_actual_hours: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
-  total_overtime_hours: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
-  total_break_hours: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
+  total_roster_hours: z.string(),
+  total_actual_hours: z.string(),
+  total_overtime_hours: z.string(),
+  total_break_hours: z.string(),
   entry_count: z.int(),
 });

@@ -19,14 +19,6 @@ export type AttendanceWeekPublic = {
    */
   period_end: string;
   shifts: AttendanceShiftPublic[];
-  /**
-   * @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
-   * @type string
-   */
   approved_hours: string;
-  /**
-   * @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
-   * @type string
-   */
   recorded_hours: string;
 };

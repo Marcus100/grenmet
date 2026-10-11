@@ -19,9 +19,9 @@ export const leaveRequestPublicSchema = z.object({
   leave_type: leaveTypeSchema,
   start_date: z.iso.date(),
   end_date: z.iso.date(),
-  days_requested: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
-  days_with_pay: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
-  days_without_pay: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
+  days_requested: z.string(),
+  days_with_pay: z.string(),
+  days_without_pay: z.string(),
   professional_appointment_subtype: z
     .union([profAppointmentTypeSchema, z.null()])
     .optional(),

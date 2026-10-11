@@ -8,9 +8,6 @@ import { leaveTypeSchema } from "./leaveTypeSchema.js";
 
 export const balanceInputSchema = z.object({
   leave_type: leaveTypeSchema,
-  balance: z.union([
-    z.number().min(0).max(9999),
-    z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d{0,2}0*$/),
-  ]),
+  balance: z.union([z.number().min(0).max(9999), z.string()]),
   reason: z.string().min(5).max(200),
 });
