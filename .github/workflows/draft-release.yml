@@ -1,0 +1,59 @@
+name: Draft Release
+
+# Creates a DRAFT release for the next vN.M tag on main, with notes generated from
+# the PRs merged since the previous release. A draft does not trigger
+# pipeline-prod.yml: a human reviews the notes and clicks Publish, which is the
+# production gate (see docs/operations/release-runbook.md §4).
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to draft (leave empty for the next vN.M after the latest release)"
+        required: false
+        default: ""
+
+concurrency:
+  group: draft-release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  draft:
+    name: Draft the next release
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          ref: main
+      - name: Draft release with generated notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_OVERRIDE: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          tags="$(gh release list --limit 200 --json tagName --jq '.[].tagName')"
+          previous="$(node scripts/ci/next-release-tag.mjs --latest <<<"$tags")"
+          if [ -n "$TAG_OVERRIDE" ]; then
+            node scripts/ci/next-release-tag.mjs --validate "$TAG_OVERRIDE" </dev/null
+            tag="$TAG_OVERRIDE"
+          else
+            tag="$(node scripts/ci/next-release-tag.mjs <<<"$tags")"
+          fi
+          if gh release view "$tag" >/dev/null 2>&1; then
+            echo "::error::A release named $tag already exists"
+            exit 1
+          fi
+          url="$(gh release create "$tag" --draft --target main --title "$tag" \
+            --generate-notes --notes-start-tag "$previous")"
+          {
+            echo "### Draft release $tag"
+            echo
+            echo "Compared with \`$previous\`. Review the notes, then **Publish** to deploy production:"
+            echo
+            echo "$url"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "$url"
