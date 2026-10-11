@@ -50,9 +50,12 @@ variables only through the app's typed `src/env.ts`. The full reference is
   `--gm-*` tokens and semantic classes only (see `docs/design-system.md`).
 - **Lint and format:** Biome via Ultracite (`pnpm fix:changed`); rules in
   `.agents/rules/ultracite.mdc`.
-- **React Compiler** is enabled in auth, docs, events, gaa-admin, and gms. There,
-  don't add `useMemo`/`useCallback` for performance. It is not enabled in cms,
-  mbia, or signal.
+- **React Compiler** is enabled in every app. Don't add `useMemo`/`useCallback`
+  for performance.
+- **Strict indexing.** `noUncheckedIndexedAccess` is on everywhere, so
+  `array[i]` and `record[key]` can be `undefined`. Narrow with a guard or a
+  fallback, never `!`. Tests that need the first item can use `nth()` from
+  `apps/web/gaa-admin/src/test/nth.ts`. See `docs/adr/0019-workspace-toolchain-baseline.md`.
 - **Sentry** is wired through `instrumentation.ts` / `instrumentation-client.ts`
   in auth, docs, gaa-admin, gms, mbia, and signal. Do not remove these files.
 
