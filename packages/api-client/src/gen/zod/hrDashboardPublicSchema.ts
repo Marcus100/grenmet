@@ -12,9 +12,7 @@ export const hrDashboardPublicSchema = z.object({
   date: z.iso.date(),
   scope: z.string(),
   can_approve: z.boolean(),
-  vacation_balance: z
-    .union([z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/), z.null()])
-    .optional(),
+  vacation_balance: z.union([z.string(), z.null()]).optional(),
   next_shift: z.union([z.string(), z.null()]).optional(),
   open_requests: z.int(),
   active_staff: z.int(),

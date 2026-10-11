@@ -26,35 +26,11 @@ export type TimesheetEntryPublic = {
   entry_date: string;
   shift_code?: string | null;
   roster_assignment_id?: string | null;
-  /**
-   * @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
-   * @type string
-   */
   roster_hours: string;
-  /**
-   * @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
-   * @type string
-   */
   actual_hours: string;
-  /**
-   * @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
-   * @type string
-   */
   total_hours: string;
-  /**
-   * @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
-   * @type string
-   */
   overtime_hours: string;
-  /**
-   * @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
-   * @type string
-   */
   break_hours: string;
-  /**
-   * @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
-   * @type string
-   */
   hours_worked: string;
   medical_certificate_attached: boolean;
   comments?: string | null;

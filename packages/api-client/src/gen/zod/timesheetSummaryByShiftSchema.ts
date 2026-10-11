@@ -9,7 +9,7 @@ import { shiftHoursSummarySchema } from "./shiftHoursSummarySchema.js";
 export const timesheetSummaryByShiftSchema = z.object({
   timesheet_id: z.uuid(),
   shifts: z.array(shiftHoursSummarySchema),
-  grand_total_roster: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
-  grand_total_actual: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
-  grand_total_overtime: z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/),
+  grand_total_roster: z.string(),
+  grand_total_actual: z.string(),
+  grand_total_overtime: z.string(),
 });

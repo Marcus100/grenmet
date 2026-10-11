@@ -7,7 +7,7 @@ import * as z from "zod";
 
 export const leavePublicSchema = z.object({
   balances: z
-    .record(z.string(), z.string().regex(/^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$/))
+    .record(z.string(), z.string())
     .optional()
     .describe(
       "Current ledger balance in days for each leave type with a verified opening."

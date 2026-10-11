@@ -13,19 +13,7 @@ export type TimesheetSummaryByShift = {
    */
   timesheet_id: string;
   shifts: ShiftHoursSummary[];
-  /**
-   * @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
-   * @type string
-   */
   grand_total_roster: string;
-  /**
-   * @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
-   * @type string
-   */
   grand_total_actual: string;
-  /**
-   * @pattern ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
-   * @type string
-   */
   grand_total_overtime: string;
 };
