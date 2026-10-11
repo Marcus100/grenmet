@@ -23,18 +23,17 @@ test("fixtures publish via the API without supplying audit identity", async (t) 
   const calls = [];
   t.mock.method(globalThis, "fetch", (url, options) => {
     calls.push({ url, options });
+    if (url.pathname.endsWith("/preview")) {
+      return Response.json({
+        errors: [],
+        values: {
+          ...JSON.parse(options.body).values,
+          summary: "Backend normalized",
+        },
+      });
+    }
     return Response.json(
-      url.pathname.endsWith("/preview")
-        ? {
-            errors: [],
-            values: {
-              ...JSON.parse(options.body).values,
-              summary: "Backend normalized",
-            },
-          }
-        : options.method === "POST"
-          ? { revision: 1 }
-          : { products: [] }
+      options.method === "POST" ? { revision: 1 } : { products: [] }
     );
   });
   t.mock.method(console, "log", () => {

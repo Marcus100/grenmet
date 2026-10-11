@@ -637,6 +637,15 @@ export function forecastSchedule(kind: ProductKind, date: string) {
   };
 }
 
+function forecastValidity(kind: ProductKind) {
+  if (kind === "evening") {
+    return "Tonight (18:00–07:00) and four following days (07:00–07:00)";
+  }
+  if (kind === "morning") {
+    return "Today and tonight (07:00–07:00)";
+  }
+  return "This afternoon and tonight (12:00–07:00)";
+}
 export function withForecastSchedule(
   kind: ProductKind,
   values: ProductValues
@@ -648,12 +657,7 @@ export function withForecastSchedule(
     issuedAt: schedule.issuedAt,
     validFrom: schedule.validFrom,
     validTo: schedule.validTo,
-    validity:
-      kind === "evening"
-        ? "Tonight (18:00–07:00) and four following days (07:00–07:00)"
-        : kind === "morning"
-          ? "Today and tonight (07:00–07:00)"
-          : "This afternoon and tonight (12:00–07:00)",
+    validity: forecastValidity(kind),
   };
   for (const period of schedule.periods) {
     if (period.prefix) result[`${period.prefix}Date`] = period.date;
