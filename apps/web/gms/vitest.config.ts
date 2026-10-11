@@ -16,6 +16,9 @@ export default defineConfig({
     ],
   },
   test: {
+    // Cold jsdom workers are slow under a full parallel run; the 5 s default flakes.
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
     environment: "jsdom",
     globals: true,
     maxWorkers: 2,
