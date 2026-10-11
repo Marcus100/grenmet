@@ -15,12 +15,12 @@ it("renders a credited archive image with descriptive alt text and a local asset
   );
   expect(screen.getByRole("img")).toHaveAttribute(
     "alt",
-    STORY_IMAGES["weather-ready/saharan-dust"].alt
+    STORY_IMAGES["weather-ready/saharan-dust"]?.alt
   );
   expect(screen.getByText(ARCHIVE_CAPTION)).toHaveTextContent("18 June 2020");
   expect(
     screen.getByRole("link", { name: "NASA / Public domain" })
-  ).toHaveAttribute("href", STORY_IMAGES["weather-ready/saharan-dust"].source);
+  ).toHaveAttribute("href", STORY_IMAGES["weather-ready/saharan-dust"]?.source);
   for (const image of Object.values(STORY_IMAGES)) {
     expect(existsSync(`public${image.src}`)).toBe(true);
   }

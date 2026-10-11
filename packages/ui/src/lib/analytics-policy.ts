@@ -126,7 +126,7 @@ const SECTIONS = [
 ] as const;
 const URL_SUFFIX = /[?#]/;
 export function pageSection(path: string): (typeof SECTIONS)[number] {
-  const section = path.split(URL_SUFFIX)[0].split("/")[1] || "home";
+  const section = path.split(URL_SUFFIX)[0]?.split("/")[1] || "home";
   return (SECTIONS as readonly string[]).includes(section)
     ? (section as (typeof SECTIONS)[number])
     : "other";
@@ -231,7 +231,7 @@ const APP_EVENTS: Record<PublicApp, readonly AnalyticsEvent[]> = {
 /** Events also hosts private member and organiser pages on the same origin. */
 export function analyticsAllowedOnPath(app: PublicApp, path: string): boolean {
   if (app !== "events") return true;
-  const pathname = path.split(URL_SUFFIX)[0];
+  const pathname = path.split(URL_SUFFIX)[0] ?? "";
   return (
     pathname === "/" ||
     pathname === "/events" ||
@@ -256,7 +256,7 @@ export function sanitizeEvent(
   for (const [key, value] of Object.entries(properties)) {
     if (
       typeof value !== "string" ||
-      !(Object.hasOwn(rules, key) && rules[key].includes(value))
+      !(Object.hasOwn(rules, key) && rules[key]?.includes(value))
     )
       return null;
     result[key] = value;

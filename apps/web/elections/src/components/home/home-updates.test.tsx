@@ -67,8 +67,12 @@ describe("homepage updates", () => {
     );
     const items = screen.getAllByRole("article");
     expect(items).toHaveLength(3);
+    const [first] = items;
+    if (!first) {
+      throw new Error("expected a first update");
+    }
     expect(
-      within(items[0]).getByRole("heading", { name: "Afternoon" })
+      within(first).getByRole("heading", { name: "Afternoon" })
     ).toHaveClass("font-serif");
     expect(items[0]).toHaveTextContent("Second post");
     expect(items[1]).toHaveTextContent("Morning");

@@ -30,7 +30,7 @@ it("curates the lead and October collection and keeps the sample URLs available"
     )
   ).toEqual(HOME_LEAD_PATHS);
   expect(
-    selectStories(getCurrentArticles(), COLLECTIONS[0].paths)
+    selectStories(getCurrentArticles(), COLLECTIONS[0]?.paths ?? [])
   ).toHaveLength(3);
   expect(getLatestBrief()?.date).toBe("2026-10-03");
   expect(getLatestBrief()?.reviewStatus).toBe("editorial-preview");
@@ -51,7 +51,7 @@ it("curates the lead and October collection and keeps the sample URLs available"
 it("gives every topic distinct coverage beyond the main selections", () => {
   const featured = new Set([
     ...HOME_LEAD_PATHS,
-    ...COLLECTIONS[0].paths.slice(0, 2),
+    ...(COLLECTIONS[0]?.paths.slice(0, 2) ?? []),
   ]);
   for (const section of [
     "news-community",

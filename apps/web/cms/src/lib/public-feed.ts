@@ -348,7 +348,9 @@ const GRENADA_DATE = new Intl.DateTimeFormat("en-CA", {
 /** Today's date in Grenada as numbers and as `YYYY-MM-DD`. */
 export function grenadaToday(now: Date) {
   const iso = GRENADA_DATE.format(now);
-  const [year, month, day] = iso.split("-").map(Number);
+  const [year = Number.NaN, month = Number.NaN, day = Number.NaN] = iso
+    .split("-")
+    .map(Number);
   return { iso, year, month, day };
 }
 

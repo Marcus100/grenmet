@@ -136,7 +136,7 @@ it("shows all six earlier elections with historical names, source caveats and co
     [1961, 10, 6],
     [1962, 10, 6],
     [1967, 10, 6],
-  ]) {
+  ] as const) {
     fireEvent.click(
       within(timeline).getByRole("button", { name: String(year) })
     );
