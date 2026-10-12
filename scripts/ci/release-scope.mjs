@@ -40,6 +40,7 @@ export const coreServices = [
   "api",
   "prestart",
   "worker",
+  "nhc-worker",
   ...webImages.map((image) => {
     if (image.app === "cms-migrate") return "cms-migrate";
     return `web-${image.app}`;
