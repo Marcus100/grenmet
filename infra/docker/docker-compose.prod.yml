@@ -188,12 +188,13 @@ services:
       redis:
         condition: service_healthy
     command: arq src.worker.nhc.NhcWorkerSettings
+    # Staging cold startup reached its first heartbeat after 167 seconds.
     healthcheck:
       test: ["CMD", "arq", "--check", "src.worker.nhc.NhcWorkerSettings"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s
+      start_period: 180s
     volumes:
       - nhc-archive:/app/nhc-archive
     environment:
