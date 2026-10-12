@@ -15,6 +15,8 @@ import type { ReactElement } from "react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { ProductDesk } from "./product-desk";
 
+const PUBLICATION_CONFIRMATION = /checked the content/;
+
 const OPEN_MARINE = /^Open Marine/;
 const ISSUE_DATE_LABEL = /Issue date and time/;
 const FORECASTER_LABEL = /Forecaster on duty/;
@@ -96,7 +98,9 @@ it("reviews the backend's normalized content and invalidates it after editing", 
   });
   expect(region).toHaveTextContent("Backend normalized forecast");
   expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeDisabled();
-  fireEvent.click(screen.getByRole("checkbox"));
+  fireEvent.click(
+    screen.getByRole("checkbox", { name: PUBLICATION_CONFIRMATION })
+  );
   expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeEnabled();
   fireEvent.change(screen.getByDisplayValue("Backend normalized forecast"), {
     target: { value: "Edited forecast" },
@@ -541,7 +545,9 @@ it("validates and publishes a bulletin after saving its draft", async () => {
   });
   fireEvent.click(validate);
   await screen.findByRole("region", { name: "Publication preview" });
-  fireEvent.click(screen.getByRole("checkbox"));
+  fireEvent.click(
+    screen.getByRole("checkbox", { name: PUBLICATION_CONFIRMATION })
+  );
   fireEvent.click(screen.getByRole("button", { name: "Publish to GMS" }));
   await waitFor(() =>
     expect(actions.saveProductAction).toHaveBeenLastCalledWith(
@@ -588,4 +594,85 @@ it("shows saved-draft validation errors beside the publication controls", async 
     "Required to validate and publish a saved draft, including its first publication."
   );
   expect(screen.queryByRole("button", { name: "Publish to GMS" })).toBeNull();
+});
+
+it("snapshots reviewed guidance and requires a fresh review after a system edit", async () => {
+  actions.previewProductAction.mockImplementation(
+    async ({ values, guidance }) => ({
+      ok: true,
+      preview: {
+        values,
+        guidance,
+        errors: [],
+        checked_at: "2026-10-12T12:00:00Z",
+      },
+    })
+  );
+  actions.saveProductAction.mockImplementation(
+    async ({ id, kind, values, guidance }) => ({
+      ok: true,
+      product: {
+        id,
+        kind,
+        values,
+        guidance: {
+          ...guidance,
+          local_assessment: "Canonical saved assessment",
+        },
+        revision: 1,
+        publishedRevision: null,
+        updatedAt: "2026-10-12T12:00:00Z",
+      },
+    })
+  );
+  render(<ProductDesk kinds={["outlook"]} title="Alerts" />);
+  const validate = screen.getByRole("button", { name: "Validate and preview" });
+  await waitFor(() => expect(validate).toBeEnabled());
+  fireEvent.click(
+    screen.getByRole("button", { name: "Add meteorological system" })
+  );
+  fireEvent.change(screen.getByLabelText("Name"), {
+    target: { value: "Eastern wave" },
+  });
+  fireEvent.change(screen.getByLabelText("System narrative"), {
+    target: { value: "Reviewed wave analysis" },
+  });
+  fireEvent.click(validate);
+  await screen.findByRole("region", { name: "Publication preview" });
+  await waitFor(() =>
+    expect(actions.previewProductPdfAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        guidance: expect.objectContaining({
+          systems: [
+            expect.objectContaining({ narrative: "Reviewed wave analysis" }),
+          ],
+        }),
+      }),
+      expect.any(AbortSignal)
+    )
+  );
+  fireEvent.click(
+    screen.getByRole("checkbox", { name: PUBLICATION_CONFIRMATION })
+  );
+  expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeEnabled();
+  fireEvent.change(screen.getByLabelText("System narrative"), {
+    target: { value: "Manual override" },
+  });
+  expect(screen.queryByRole("button", { name: "Publish to GMS" })).toBeNull();
+  expect(screen.getByText("Changes pending")).toBeInTheDocument();
+  expect(actions.previewProductPdfAction).toHaveBeenCalledTimes(1);
+  fireEvent.click(screen.getByRole("button", { name: "Save draft" }));
+  await screen.findByText("Draft saved.");
+  await waitFor(() =>
+    expect(actions.previewProductPdfAction).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        expectedRevision: 1,
+        guidance: expect.objectContaining({
+          local_assessment: "Canonical saved assessment",
+          systems: [expect.objectContaining({ narrative: "Manual override" })],
+        }),
+      }),
+      expect.any(AbortSignal)
+    )
+  );
 });

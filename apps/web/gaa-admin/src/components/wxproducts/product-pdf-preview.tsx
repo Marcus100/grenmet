@@ -116,8 +116,15 @@ export function ProductPdfPreview({
     ["Valid until (Grenada time)", content.values.validTo?.replace("T", " ")],
     ["Forecaster", content.values.forecaster],
   ];
+  const systems = content.guidance?.systems ?? [];
   const productFields = displayProductFields(content.kind);
   const fields = productFields.filter((field) => {
+    if (
+      content.kind === "outlook" &&
+      systems.length &&
+      ["formationChance48h", "formationChance7d"].includes(field.key)
+    )
+      return false;
     if (
       [
         "issuedAt",
@@ -174,6 +181,51 @@ export function ProductPdfPreview({
           </div>
         ))}
       </dl>
+      {systems.length
+        ? systems.map((system) => (
+            <section
+              aria-label={`${system.name || "Unnamed system"} summary`}
+              className="space-y-2 border-t pt-3"
+              key={system.id}
+            >
+              <h3 className="font-medium text-sm">
+                {system.name || "Unnamed system"}
+              </h3>
+              <p className="whitespace-pre-wrap break-words text-sm">
+                {system.narrative || "Not entered"}
+              </p>
+              <dl className="grid gap-3 sm:grid-cols-2">
+                {(system.facts ?? [])
+                  .filter((fact) => fact.key === "formation_probability")
+                  .map((fact, index) => (
+                    <div key={fact.id ?? `${fact.horizon_hours}-${index}`}>
+                      <dt className="text-muted-foreground text-xs">
+                        Formation probability
+                        {fact.horizon_hours ? ` (${fact.horizon_hours} h)` : ""}
+                      </dt>
+                      <dd className="text-sm">
+                        {fact.description ||
+                          fact.qualifier ||
+                          (fact.value !== null && fact.value !== undefined
+                            ? `${fact.value}%`
+                            : "Not entered")}
+                      </dd>
+                    </div>
+                  ))}
+              </dl>
+              {system.local_assessment ? (
+                <p className="whitespace-pre-wrap break-words text-sm">
+                  {system.local_assessment}
+                </p>
+              ) : null}
+            </section>
+          ))
+        : null}
+      {content.guidance?.local_assessment ? (
+        <p className="whitespace-pre-wrap break-words text-sm">
+          {content.guidance.local_assessment}
+        </p>
+      ) : null}
       <div>
         <h3 className="text-muted-foreground text-xs">Summary</h3>
         <p className="whitespace-pre-wrap break-words text-sm">

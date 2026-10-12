@@ -47,6 +47,7 @@ export function ForecastPdfFrame({
           {
             kind: request.content.kind,
             values: request.content.values,
+            guidance: request.content.guidance,
             expectedRevision: request.expectedRevision,
             changeSummary: "",
           },

@@ -8,10 +8,26 @@
       </div>
     </section>
 
+    {% if guidance and guidance.systems %}
+      {% for system in guidance.systems %}
+      <section class="card prose">
+        <h2 class="eyebrow">{{ system.name }}</h2>
+        <p>{{ system.narrative }}</p>
+        <dl class="details">
+        {% for fact in system.facts %}
+          <dt>{{ fact.key | replace("_", " ") }}{% if fact.horizon_hours %} · {{ fact.horizon_hours }} hours{% endif %}</dt>
+          <dd>{% if fact.key == "formation_probability" and fact.value is none %}{{ fact.source_text or fact.description }}{% else %}{% if fact.qualifier %}{{ fact.qualifier }} {% endif %}{% if fact.value is not none %}{{ fact.value }}{% elif fact.minimum is not none or fact.maximum is not none %}{{ fact.minimum if fact.minimum is not none else "?" }}–{{ fact.maximum if fact.maximum is not none else "?" }}{% endif %}{% if fact.unit %} {{ fact.unit | replace("_", " ") }}{% endif %} {{ fact.description }}{% if fact.value is none and fact.minimum is none and fact.maximum is none and not fact.description %}{{ fact.source_text }}{% endif %}{% endif %}</dd>
+        {% endfor %}
+        </dl>
+        {% if system.local_assessment %}<h3>GMS assessment</h3><p>{{ system.local_assessment }}</p>{% endif %}
+      </section>
+      {% endfor %}
+    {% else %}
     <section class="card prose">
       <h2 class="eyebrow">Tropical waves and systems</h2>
       <p>{{ systems or "—" }}</p>
     </section>
+    {% endif %}
 
     <section class="card prose">
       <h2 class="eyebrow">Formation outlook</h2>
@@ -36,4 +52,5 @@
       </dl>
     </section>
     <p class="note">Guidance summary for Grenada, Carriacou and Petite Martinique. Official tropical cyclone advisories come from the National Hurricane Center and GMS bulletins.</p>
+{% include "guidance.html.j2" %}
 {% endblock %}

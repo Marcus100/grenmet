@@ -121,7 +121,10 @@ services:
     depends_on:
       prestart:
         condition: service_completed_successfully
+    volumes:
+      - nhc-archive:/app/nhc-archive:ro
     environment:
+      WXWATCH_LOCAL_ASSET_ROOTS: '{"nhc-local":"/app/nhc-archive"}'
       WXWATCH_INGEST_TOKEN: ${WXWATCH_INGEST_TOKEN:-}
       WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL:?WXPRODUCTS_DB_URL required}
       WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL:?WXWATCH_DB_URL required}
@@ -270,6 +273,56 @@ services:
       EMAIL_RENDER_SECRET: ${EMAIL_RENDER_SECRET:-}
       NOTIFICATIONS_WEB_BASE_URL: https://admin.${BASE_DOMAIN}
       NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS: ${NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS?Render notification policy before deployment}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      TELEMETRY_ENABLED: ${TELEMETRY_ENABLED:-false}
+      TELEMETRY_ENVIRONMENT: ${ENVIRONMENT}
+      TELEMETRY_REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      STORAGE_ENDPOINT_URL: ${STORAGE_ENDPOINT_URL:-}
+      STORAGE_REGION: ${STORAGE_REGION:-}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-}
+      STORAGE_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY_ID:-}
+      STORAGE_SECRET_ACCESS_KEY: ${STORAGE_SECRET_ACCESS_KEY:-}
+      STORAGE_PUBLIC_BASE_URL: ${STORAGE_PUBLIC_BASE_URL:-}
+    networks:
+      - grenmet
+
+  nhc-worker:
+    logging: *bounded-logging
+    image: ${REGISTRY}/${IMAGE_NAME}:${TAG}
+    restart: always
+    depends_on:
+      prestart:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    command: arq src.worker.nhc.NhcWorkerSettings
+    # The worker has no HTTP server; override the API image's inherited probe.
+    healthcheck:
+      test: ["CMD", "arq", "--check", "src.worker.nhc.NhcWorkerSettings"]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 60s
+    volumes:
+      - nhc-archive:/app/nhc-archive
+    environment:
+      WXWATCH_NHC_ROOT: /app/nhc-archive
+      WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL:?WXWATCH_DB_URL required}
+      POSTGRES_SERVER: db
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${FASTAPI_DB_USER:?FASTAPI_DB_USER required}
+      POSTGRES_PASSWORD: ${FASTAPI_DB_PASSWORD:?FASTAPI_DB_PASSWORD required}
+      SECRET_KEY: ${SECRET_KEY}
+      AUTH_PRIVILEGED_MFA_MODE: ${AUTH_PRIVILEGED_MFA_MODE:-disabled}
+      AUTH_TOTP_ENCRYPTION_KEYS: ${AUTH_TOTP_ENCRYPTION_KEYS:-[]}
+      FIRST_SUPERUSER: ${FIRST_SUPERUSER}
+      FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
+      ENVIRONMENT: ${ENVIRONMENT}
+      SENTRY_DSN: ${SENTRY_DSN_WORKER:-}
+      API_BASE_URL: https://api.${BASE_DOMAIN}
+      SENTRY_RELEASE: ${SENTRY_RELEASE:-}
+      PROJECT_NAME: ${PROJECT_NAME}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
       TELEMETRY_ENABLED: ${TELEMETRY_ENABLED:-false}
       TELEMETRY_ENVIRONMENT: ${ENVIRONMENT}
@@ -625,6 +678,7 @@ networks:
     driver: bridge
 
 volumes:
+  nhc-archive:
   # Persistent CMS uploads; distinct for each Compose project/environment.
   cms-media:
   # DATA-CRITICAL: external + name pins the exact existing volumes on each

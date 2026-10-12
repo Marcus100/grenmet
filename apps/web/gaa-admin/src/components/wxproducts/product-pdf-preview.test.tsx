@@ -265,3 +265,61 @@ it.each([
     ).toBeInTheDocument();
   }
 );
+
+it("keeps formation probabilities beside their systems without distributing legacy values", () => {
+  render(
+    <ProductPdfPreview
+      {...previewControls}
+      content={{
+        kind: "outlook",
+        values: { formationChance48h: "90", formationChance7d: "100" },
+        guidance: {
+          systems: [
+            {
+              id: "system-a",
+              name: "Eastern wave",
+              feature_type: "tropical_wave",
+              narrative: "Wave analysis",
+              facts: [
+                {
+                  key: "formation_probability",
+                  record_type: "forecast",
+                  horizon_hours: 48,
+                  qualifier: "near zero",
+                  description: "near zero",
+                  value: null,
+                },
+              ],
+            },
+            {
+              id: "system-b",
+              name: "Western low",
+              feature_type: "low_pressure_area",
+              narrative: "Low analysis",
+              facts: [
+                {
+                  key: "formation_probability",
+                  record_type: "forecast",
+                  horizon_hours: 168,
+                  value: 70,
+                },
+              ],
+            },
+          ],
+        },
+      }}
+    />
+  );
+  expect(
+    within(
+      screen.getByRole("region", { name: "Eastern wave summary" })
+    ).getByText("near zero")
+  ).toBeInTheDocument();
+  expect(
+    within(
+      screen.getByRole("region", { name: "Western low summary" })
+    ).getByText("70%")
+  ).toBeInTheDocument();
+  expect(screen.queryByText("90")).toBeNull();
+  expect(screen.queryByText("100")).toBeNull();
+});

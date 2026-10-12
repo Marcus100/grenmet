@@ -9,7 +9,7 @@ from pydantic import TypeAdapter, ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.concurrency import run_in_threadpool
 
-from . import advisories, forecast, forecast_pdf, pdf, service, validation
+from . import advisories, forecast, forecast_pdf, guidance, pdf, service, validation
 from .dependencies import (
     AdvisorySessionDep,
     AuthorDep,
@@ -222,6 +222,8 @@ async def save_product(
 ) -> StoredProduct:
     response.headers.update(NO_STORE)
     author.require_kind(body.kind)
+    if body.action != "withdraw":
+        body.guidance = await guidance.validate(body.guidance)
     snapshot = (
         await advisories.snapshot(cap_session, session)
         if body.kind in validation.ISSUE_HOURS and body.action != "withdraw"
@@ -413,6 +415,7 @@ async def preview_product(
     weather_session: WxProductsSessionDep,
 ) -> ProductPreview:
     author.require_kind(body.kind)
+    body.guidance = await guidance.validate(body.guidance)
     response.headers.update(NO_STORE)
     snapshot = (
         await advisories.snapshot(cap_session, weather_session)
@@ -452,6 +455,7 @@ async def preview_product_pdf(
     weather_session: WxProductsSessionDep,
 ) -> Response:
     author.require_kind(body.kind)
+    body.guidance = await guidance.validate(body.guidance)
     if body.kind not in forecast_pdf.SHEET_KINDS:
         raise ProductValidationError(["PDF preview is not available for this product"])
     snapshot = (
@@ -461,7 +465,7 @@ async def preview_product_pdf(
     )
     values = validation.normalize(
         body.kind,
-        values_as_dict(body.values),
+        guidance.compose(body.kind, values_as_dict(body.values), body.guidance),
         forecaster=author.user.full_name or author.user.email,
         advisories=snapshot,
     )
@@ -471,6 +475,8 @@ async def preview_product_pdf(
         values,
         status="DRAFT PREVIEW — NOT FOR ISSUE",
         revision="Unsaved draft preview",
+        guidance=body.guidance,
+        graphic_images=await guidance.images(body.guidance),
     )
     return Response(
         content,
@@ -509,7 +515,11 @@ async def product_revision_pdf(
         source = await service.pdf_source(
             session, product_id, revision, author.allowed_kinds
         )
-        content = await run_in_threadpool(pdf.render_product_pdf, source)
+        content = await run_in_threadpool(
+            pdf.render_product_pdf,
+            source,
+            graphic_images=await guidance.images(source.guidance),
+        )
     except SQLAlchemyError, OSError, TimeoutError:
         raise WeatherUnavailable()
     return Response(

@@ -154,3 +154,46 @@ it("retains the last PDF on failure and offers an explicit retry", async () => {
   await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
   await waitFor(() => expect(screen.queryByText("Changes pending")).toBeNull());
 });
+
+it("renders selected guidance from the snapshot and marks guidance edits stale", async () => {
+  const guidance = {
+    systems: [
+      {
+        id: "sys-1",
+        name: "Disturbance",
+        feature_type: "disturbance" as const,
+        narrative: "Reviewed source",
+      },
+    ],
+  };
+  const saved: ProductContent = { kind: "outlook", values: {}, guidance };
+  const snapshot: PdfPreviewRequest = {
+    content: saved,
+    expectedRevision: 2,
+    requestId: 1,
+  };
+  const view = render(frame(saved, snapshot));
+  await screen.findByTitle("Forecast PDF preview");
+  expect(preview.mock.calls[0]?.[0].guidance).toEqual(guidance);
+  view.rerender(
+    frame(
+      {
+        ...saved,
+        guidance: {
+          ...guidance,
+          systems: [
+            {
+              id: "sys-1",
+              name: "Disturbance",
+              feature_type: "disturbance",
+              narrative: "Manual override",
+            },
+          ],
+        },
+      },
+      snapshot
+    )
+  );
+  expect(screen.getByText("Changes pending")).toBeInTheDocument();
+  expect(preview).toHaveBeenCalledTimes(1);
+});

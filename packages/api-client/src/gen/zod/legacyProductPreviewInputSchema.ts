@@ -5,8 +5,10 @@
 
 import * as z from "zod";
 import { legacyProductPreviewPropertiesKindEnumSchema } from "./legacyProductPreviewPropertiesKindEnumSchema.js";
+import { productGuidanceSchema } from "./productGuidanceSchema.js";
 
 export const legacyProductPreviewInputSchema = z.strictObject({
+  guidance: z.union([productGuidanceSchema, z.null()]).optional(),
   values: z.record(z.string(), z.string().max(12000)),
   expectedRevision: z.int().min(0),
   changeSummary: z.string().max(1000),

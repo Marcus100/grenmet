@@ -15,6 +15,7 @@ class WxWatchConfig(BaseSettings):
     INGEST_TOKEN: SecretStr | None = None
     LOCAL_IMAGES_DIR: Path | None = None
     LOCAL_ASSET_ROOTS: dict[str, Path] = Field(default_factory=dict)
+    NHC_ROOT: Path | None = None
 
 
 wxwatch_settings = WxWatchConfig()

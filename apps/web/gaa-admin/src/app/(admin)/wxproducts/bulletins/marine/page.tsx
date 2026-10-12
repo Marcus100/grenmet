@@ -1,4 +1,4 @@
 import { redirect } from "next/navigation";
 export default function MarineBulletinPage() {
-  redirect("/wxproducts/bulletins");
+  redirect("/wxproducts/alerts");
 }

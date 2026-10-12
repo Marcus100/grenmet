@@ -1420,6 +1420,9 @@ importers:
 
   packages/gms:
     dependencies:
+      '@barrelsgd/api-client':
+        specifier: workspace:*
+        version: link:../api-client
       '@barrelsgd/ui':
         specifier: workspace:*
         version: link:../ui

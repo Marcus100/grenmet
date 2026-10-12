@@ -14,6 +14,7 @@ from pydantic import (
 )
 
 from src.models import BaseModel, UtcDateTime
+from src.wxwatch.nhc_schemas import ProductGuidance
 
 from .models import AuthoredProduct
 
@@ -81,6 +82,7 @@ class PublishedProductBase[ValuesT](BaseModel):
 
 
 class StoredProductBase[ValuesT](BaseModel):
+    guidance: ProductGuidance | None = None
     id: UUID
     values: ValuesT
     revision: int
@@ -104,6 +106,7 @@ class StoredProductBase[ValuesT](BaseModel):
 
 
 class ProductWriteBase[ValuesT](BaseModel):
+    guidance: ProductGuidance | None = None
     model_config = ConfigDict(extra="forbid")
 
     id: UUID
@@ -117,6 +120,7 @@ class ProductWriteBase[ValuesT](BaseModel):
 
 
 class ProductPreviewInputBase[ValuesT](BaseModel):
+    guidance: ProductGuidance | None = None
     model_config = ConfigDict(extra="forbid")
 
     values: ValuesT
@@ -127,12 +131,14 @@ class ProductPreviewInputBase[ValuesT](BaseModel):
 
 
 class ProductPreviewBase[ValuesT](BaseModel):
+    guidance: ProductGuidance | None = None
     values: ValuesT
     errors: list[str]
     checked_at: UtcDateTime
 
 
 class ProductPdfSourceBase[ValuesT](BaseModel):
+    guidance: ProductGuidance | None = None
     product_id: UUID
     revision: int
     values: ValuesT

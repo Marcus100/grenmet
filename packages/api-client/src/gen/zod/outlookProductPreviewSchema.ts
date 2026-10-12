@@ -5,8 +5,10 @@
 
 import * as z from "zod";
 import { outlookValuesDraftSchema } from "./outlookValuesDraftSchema.js";
+import { productGuidanceSchema } from "./productGuidanceSchema.js";
 
 export const outlookProductPreviewSchema = z.object({
+  guidance: z.union([productGuidanceSchema, z.null()]).optional(),
   values: outlookValuesDraftSchema,
   errors: z.array(z.string()),
   checked_at: z.iso.datetime(),

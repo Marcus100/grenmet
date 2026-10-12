@@ -1729,10 +1729,20 @@ export {
   wxwatchBulletinQueryOptions,
 } from "./useWxwatchBulletin.js";
 export {
+  useWxwatchEdition,
+  wxwatchEditionQueryKey,
+  wxwatchEditionQueryOptions,
+} from "./useWxwatchEdition.js";
+export {
   useWxwatchEditionAssets,
   wxwatchEditionAssetsQueryKey,
   wxwatchEditionAssetsQueryOptions,
 } from "./useWxwatchEditionAssets.js";
+export {
+  useWxwatchEditions,
+  wxwatchEditionsQueryKey,
+  wxwatchEditionsQueryOptions,
+} from "./useWxwatchEditions.js";
 export {
   useWxwatchFinishRun,
   wxwatchFinishRunMutationKey,
@@ -1749,6 +1759,21 @@ export {
   wxwatchMetadataQueryOptions,
 } from "./useWxwatchMetadata.js";
 export {
+  useWxwatchPoint,
+  wxwatchPointMutationKey,
+  wxwatchPointMutationOptions,
+} from "./useWxwatchPoint.js";
+export {
+  useWxwatchPropose,
+  wxwatchProposeMutationKey,
+  wxwatchProposeMutationOptions,
+} from "./useWxwatchPropose.js";
+export {
+  useWxwatchPull,
+  wxwatchPullMutationKey,
+  wxwatchPullMutationOptions,
+} from "./useWxwatchPull.js";
+export {
   useWxwatchReady,
   wxwatchReadyQueryKey,
   wxwatchReadyQueryOptions,
@@ -1759,10 +1784,20 @@ export {
   wxwatchRegisterDerivationMutationOptions,
 } from "./useWxwatchRegisterDerivation.js";
 export {
+  useWxwatchRequestStatus,
+  wxwatchRequestStatusQueryKey,
+  wxwatchRequestStatusQueryOptions,
+} from "./useWxwatchRequestStatus.js";
+export {
   useWxwatchRetrievals,
   wxwatchRetrievalsQueryKey,
   wxwatchRetrievalsQueryOptions,
 } from "./useWxwatchRetrievals.js";
+export {
+  useWxwatchSourceChecks,
+  wxwatchSourceChecksQueryKey,
+  wxwatchSourceChecksQueryOptions,
+} from "./useWxwatchSourceChecks.js";
 export {
   useWxwatchStartRun,
   wxwatchStartRunMutationKey,

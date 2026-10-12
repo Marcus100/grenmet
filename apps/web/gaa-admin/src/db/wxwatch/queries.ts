@@ -89,3 +89,10 @@ async function archiveRequest(path: string): Promise<unknown> {
   if (!response.ok) throw new Error("Archive unavailable. Try again later.");
   return response.json();
 }
+
+export async function getNhcEditions(params: URLSearchParams) {
+  const { nhcPageSchema } = await import("@barrelsgd/api-client");
+  return nhcPageSchema.parse(
+    await archiveRequest(`/wxwatch/nhc/editions?${params}`)
+  );
+}
