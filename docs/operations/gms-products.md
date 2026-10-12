@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** GMS (operational content); maintained by Barrels Grenada  
-**Last updated:** 2026-09-18
+**Last updated:** 2026-10-12
 
 The product desk in gaa-admin calls FastAPI, which owns authoring and migrations in the separate wxproducts Postgres database.
 
@@ -43,6 +43,10 @@ Use a suitable current test date; historical dates can fail the backend expiry r
 Outlook systems are entered as a narrative with a paragraph for each named wave/system.
 
 ## Publication process
+
+The [public forecast quality audit](forecast-quality.md) records validation,
+publication safeguards and the remaining observation-verification gaps against
+WMO guidance. Validation is not an accuracy score or a WMO conformity certificate.
 
 An active authenticated product author can save incomplete drafts. Publication
 requires valid fields, explicit preview confirmation, and an issue/revision note

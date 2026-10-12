@@ -283,6 +283,14 @@ def validate(body: ProductWrite, *, now: datetime | None = None) -> list[str]:
             f"{label}{message}"
             for message in parameter_errors(period_values(values, prefix))
         )
+        low_key, high_key = (
+            (f"{prefix}Min", f"{prefix}Max")
+            if prefix
+            else ("minTemperature", "maxTemperature")
+        )
+        low, high = optional_number(values, low_key), optional_number(values, high_key)
+        if low is not None and high is not None and low > high:
+            errors.append(f"{label}Minimum temperature exceeds maximum")
     issue = timestamp(values.get("issuedAt", ""))
     end = timestamp(values.get("validTo", ""))
     if end <= timestamp(values.get("validFrom", "")):
@@ -300,15 +308,6 @@ def validate(body: ProductWrite, *, now: datetime | None = None) -> list[str]:
             )
             if values.get(f"day{day}Date") != expected:
                 errors.append(f"Day {day} must be {expected} (the following four days)")
-            low, high = values.get(f"day{day}Min"), values.get(f"day{day}Max")
-            if low and high and number(low) > number(high):
-                errors.append(f"Day {day}: minimum temperature exceeds maximum")
-    if (
-        values.get("minTemperature")
-        and values.get("maxTemperature")
-        and number(values["minTemperature"]) > number(values["maxTemperature"])
-    ):
-        errors.append("Minimum temperature exceeds maximum")
     if publish:
         if any("example" in value.lower() for value in values.values()):
             errors.append("Replace example draft wording before publishing")
