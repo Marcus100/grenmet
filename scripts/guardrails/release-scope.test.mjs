@@ -3,7 +3,9 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import { runInNewContext } from "node:vm";
 import {
+  coreServices,
   releaseScope,
+  validateComposeScope,
   validateReleaseConfiguration,
 } from "../ci/release-scope.mjs";
 
@@ -34,10 +36,7 @@ test("promotion pipelines require scope validation and cannot invoke deferred de
   }
 });
 
-test("deployment rejects a missing core service or an extra deferred service", async () => {
-  const { coreServices, validateComposeScope } = await import(
-    "../ci/release-scope.mjs"
-  );
+test("deployment rejects a missing core service or an extra deferred service", () => {
   const services = Object.fromEntries(
     coreServices.map((service) => [service, {}])
   );
@@ -57,6 +56,28 @@ test("deployment rejects a missing core service or an extra deferred service", a
     assert.throws(() =>
       validateComposeScope({ services: { ...services, [service]: {} } })
     );
+});
+
+const COMPOSE_SECTION_BOUNDARY = /\n\S/;
+const COMPOSE_SERVICE_NAME = /^ {2}([a-z][a-z0-9-]*):/gm;
+
+test("deployment scope accepts the services declared in the shared Compose stack", () => {
+  const compose = readFileSync(
+    new URL("../../infra/docker/docker-compose.deploy.yml", import.meta.url),
+    "utf8"
+  );
+  const servicesBlock = compose
+    .split("\nservices:\n")[1]
+    ?.split(COMPOSE_SECTION_BOUNDARY)[0];
+  assert.ok(servicesBlock);
+  const services = Object.fromEntries(
+    [...servicesBlock.matchAll(COMPOSE_SERVICE_NAME)].map((match) => [
+      match[1],
+      {},
+    ])
+  );
+  assert.ok(Object.hasOwn(services, "nhc-worker"));
+  validateComposeScope({ services });
 });
 
 const ENVIRONMENT_EXPRESSION = /^ {4}environment: \$\{\{ (.+) \}\}$/m;
