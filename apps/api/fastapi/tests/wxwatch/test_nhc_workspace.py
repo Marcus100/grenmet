@@ -289,6 +289,11 @@ async def test_native_grid_sampling_prefill_retains_location_period_and_units(
     (tmp_path / "manifest.json").write_text(json.dumps(manifest))
     import_manifest(tmp_path, "manifest.json", engine=weather_engine)
     monkeypatch.setattr(nhc.database, "create_session", archive_sessions)
+    monkeypatch.setattr(
+        nhc.wxwatch_settings,
+        "DATABASE_URL",
+        weather_engine.url.render_as_string(hide_password=False),
+    )
     monkeypatch.setattr(nhc.wxwatch_settings, "NHC_ROOT", tmp_path)
     async with archive_sessions() as session:
         edition = await session.scalar(text("SELECT id FROM archive_editions"))
