@@ -10,6 +10,11 @@ The product desk in gaa-admin calls FastAPI, which owns authoring and migrations
 - NHC Products: `/wxproducts/nhc` (source guidance collection, inspection and collected history).
 - Alerts: `/wxproducts/alerts` (Tropical Weather Outlook and all nine hazard bulletin categories). Old Bulletin and NHC editor URLs redirect to Alerts.
 
+Alerts uses the same segmented tab styling as Forecasts, with responsive rows
+and wrapping labels. Product tabs omit the repeated word “Bulletin”; the tsunami
+editor is labelled “Tsunami / Earthquake”. These navigation labels do not rename
+stored product kinds or official document titles.
+
 The evening forecast covers tonight (18:00–07:00) plus four days, each 07:00–07:00.
 Morning covers 07:00–07:00 the next day; midday covers 12:00–07:00 the next day.
 The editor and write boundary derive validity and evening dates from the issue date.

@@ -10,12 +10,12 @@ import {
   isBulletin,
   isComposedForecastField,
   isForecastKind,
+  PRODUCT_KINDS,
   type ProductField,
   type ProductKind,
   type ProductValues,
   parameterKey,
   productFields,
-  productTitle,
   type StoredProduct,
   TIDE_SLOTS,
 } from "@barrelsgd/gms/products";
@@ -82,6 +82,12 @@ import { ProductList } from "./product-list";
 
 const DAY_SECTION_PREFIX = /^Day (\d)/;
 const DAY_KEY_PREFIX = /^(day[1-4])/;
+
+function productTabLabel(kind: ProductKind) {
+  if (isForecastKind(kind)) return kind.charAt(0).toUpperCase() + kind.slice(1);
+  if (kind === "tsunami") return "Tsunami / Earthquake";
+  return PRODUCT_KINDS[kind];
+}
 
 interface HistoryItem {
   action: string;
@@ -1108,6 +1114,7 @@ export function ProductDesk({
   const [reload, setReload] = useState(0);
   const [archivePage, setArchivePage] = useState(0);
   const deskKinds = kinds.includes(kind) ? kinds : [...kinds, kind];
+  const hasAlertTabs = deskKinds.some((value) => !isForecastKind(value));
   useEffect(() => {
     if (reload < 0) return;
     let active = true;
@@ -1214,16 +1221,25 @@ export function ProductDesk({
               }}
               value={kind}
             >
-              <TabsList className="h-8 w-full justify-start overflow-x-auto rounded-lg bg-muted p-1 sm:justify-center">
+              <TabsList
+                aria-label="Product type"
+                className={cn(
+                  "h-8 w-full justify-start overflow-x-auto rounded-lg bg-muted p-1 sm:justify-center",
+                  hasAlertTabs &&
+                    "grid h-auto @2xl:grid-cols-5 @sm:grid-cols-3 grid-cols-2 gap-1 overflow-visible group-data-[orientation=horizontal]/tabs:h-auto"
+                )}
+              >
                 {deskKinds.map((value) => (
                   <TabsTrigger
-                    className="font-normal text-muted-foreground data-active:text-foreground"
+                    className={cn(
+                      "font-normal text-muted-foreground data-active:text-foreground",
+                      hasAlertTabs &&
+                        "h-auto min-h-10 whitespace-normal text-balance px-2 py-1 text-center leading-4"
+                    )}
                     key={value}
                     value={value}
                   >
-                    {isForecastKind(value)
-                      ? value.charAt(0).toUpperCase() + value.slice(1)
-                      : productTitle(value)}
+                    {productTabLabel(value)}
                   </TabsTrigger>
                 ))}
               </TabsList>

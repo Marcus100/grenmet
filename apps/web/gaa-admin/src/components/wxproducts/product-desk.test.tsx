@@ -31,6 +31,7 @@ const TIDE_TIME_LABEL = /^Tide \d time$/;
 const WIND_SUMMARY_LABEL = /^Wind summary/;
 const MAX_WINDS_LABEL = /Maximum winds and gusts/;
 const DAY_ONE_HEADING = /^Day 1/;
+const EVENT_TIME_LABEL = /Event date and time/;
 
 const actions = vi.hoisted(() => ({
   loadProductsAction: vi.fn(),
@@ -163,6 +164,52 @@ it("shows a tab per forecast kind and switches when the form is clean", async ()
   expect(
     screen.getByText("Issued (Grenada time)").nextElementSibling
   ).toHaveTextContent("12:00");
+});
+
+it("uses compact alert tab names and opens the existing earthquake and tsunami editor", async () => {
+  render(
+    <ProductDesk
+      kinds={[
+        "outlook",
+        "cyclone",
+        "marine",
+        "flood",
+        "thunderstorm",
+        "wind",
+        "heat",
+        "dust",
+        "coastal",
+        "tsunami",
+      ]}
+      title="Alerts"
+    />
+  );
+  const tabs = within(screen.getByRole("tablist", { name: "Product type" }));
+  expect(tabs.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
+    "Tropical Weather Outlook",
+    "Tropical Cyclone",
+    "Marine / Small Craft",
+    "Flood / Heavy Rain",
+    "Thunderstorm",
+    "Wind",
+    "Heat",
+    "Dust / Haze",
+    "Coastal Hazard",
+    "Tsunami / Earthquake",
+  ]);
+  await waitFor(() =>
+    expect(
+      screen.getByRole("button", { name: "Validate and preview" })
+    ).toBeEnabled()
+  );
+  fireEvent.click(tabs.getByRole("tab", { name: "Tsunami / Earthquake" }));
+  await waitFor(() =>
+    expect(
+      screen.getByRole("tab", { name: "Tsunami / Earthquake" })
+    ).toHaveAttribute("aria-selected", "true")
+  );
+  expect(screen.getByLabelText(EVENT_TIME_LABEL)).toBeInTheDocument();
+  expect(actions.saveProductAction).not.toHaveBeenCalled();
 });
 
 it("keeps evening periods in subtabs without losing edits or rendering PDFs", async () => {
@@ -509,9 +556,7 @@ it("gives marine bulletins structured wind while cyclones keep free text", async
   expect(screen.queryByLabelText(FORECASTER_LABEL)).toBeNull();
   expect(screen.getByText("Signed In Forecaster")).toBeInTheDocument();
   expect(screen.getByLabelText(AREA_LABEL)).toBeInTheDocument();
-  fireEvent.click(
-    screen.getByRole("tab", { name: "Tropical Cyclone Bulletin" })
-  );
+  fireEvent.click(screen.getByRole("tab", { name: "Tropical Cyclone" }));
   expect(await screen.findByLabelText(MAX_WINDS_LABEL)).toBeInTheDocument();
   view.unmount();
 });
