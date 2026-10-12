@@ -8,7 +8,7 @@ from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
-from src.wxwatch import nhc_service
+from src.wxwatch import database, nhc_service
 from src.wxwatch.nhc_import import import_manifest
 from tests.wxwatch.test_migration import migrate
 from tests.wxwatch.test_nhc_import import fixture_manifest
@@ -153,7 +153,7 @@ async def test_worker_coalesces_widened_running_pull_and_reports_partial(
 ):
     from src.worker import nhc
 
-    monkeypatch.setattr(nhc.database, "create_session", archive_sessions)
+    monkeypatch.setattr(database, "create_session", archive_sessions)
     monkeypatch.setattr(
         nhc.wxwatch_settings,
         "DATABASE_URL",
@@ -199,7 +199,7 @@ async def test_worker_recovers_expired_lease(
 ):
     from src.worker import nhc
 
-    monkeypatch.setattr(nhc.database, "create_session", archive_sessions)
+    monkeypatch.setattr(database, "create_session", archive_sessions)
     monkeypatch.setattr(
         nhc.wxwatch_settings,
         "DATABASE_URL",
@@ -288,7 +288,7 @@ async def test_native_grid_sampling_prefill_retains_location_period_and_units(
     manifest["products"][record["id"]] = record
     (tmp_path / "manifest.json").write_text(json.dumps(manifest))
     import_manifest(tmp_path, "manifest.json", engine=weather_engine)
-    monkeypatch.setattr(nhc.database, "create_session", archive_sessions)
+    monkeypatch.setattr(database, "create_session", archive_sessions)
     monkeypatch.setattr(
         nhc.wxwatch_settings,
         "DATABASE_URL",

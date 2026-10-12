@@ -1,5 +1,7 @@
 """Dedicated NHC queue: drain operator requests, never initiate scheduled pulls."""
 
+from __future__ import annotations
+
 import asyncio
 import hashlib
 import json
@@ -7,19 +9,18 @@ import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from uuid import uuid4
 
 from arq import cron
 from arq.connections import RedisSettings
-from sqlalchemy import create_engine, text
-from sqlalchemy.engine import make_url
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.worker.config import worker_settings
 from src.worker.main import startup
-from src.wxwatch import database, nhc_import
 from src.wxwatch.config import wxwatch_settings
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 FAMILY_GROUPS = {
@@ -32,6 +33,8 @@ FAMILY_GROUPS = {
 
 @asynccontextmanager
 async def archive_session() -> AsyncIterator[AsyncSession]:
+    from src.wxwatch import database
+
     session = database.create_session()
     if session is None:
         raise RuntimeError("NHC archive unavailable")
@@ -40,6 +43,8 @@ async def archive_session() -> AsyncIterator[AsyncSession]:
 
 
 def verified_grid(root: Path, key: str, expected_hash: str) -> Path:
+    from src.wxwatch import nhc_import
+
     path = nhc_import.local_path(root, key)
     digest = hashlib.sha256()
     with path.open("rb") as stream:
@@ -51,6 +56,11 @@ def verified_grid(root: Path, key: str, expected_hash: str) -> Path:
 
 
 def import_run(root: Path, manifest: str) -> dict[str, Any]:
+    from sqlalchemy import create_engine, text
+    from sqlalchemy.engine import make_url
+
+    from src.wxwatch import nhc_import
+
     engine = create_engine(
         make_url(wxwatch_settings.DATABASE_URL or "").set(
             drivername="postgresql+psycopg"
@@ -73,6 +83,10 @@ def import_run(root: Path, manifest: str) -> dict[str, Any]:
 
 
 async def execute(payload: dict[str, Any], kind: str, root: Path) -> dict[str, Any]:
+    from sqlalchemy import text
+
+    from src.wxwatch import nhc_import
+
     if kind == "point":
         # The existing collector has no py.typed marker.
         from gms_ingest import grids  # type: ignore[import-untyped]
@@ -152,6 +166,8 @@ async def execute(payload: dict[str, Any], kind: str, root: Path) -> dict[str, A
 
 
 async def drain_requests(_ctx: dict[Any, Any]) -> None:
+    from sqlalchemy import text
+
     root = wxwatch_settings.NHC_ROOT
     if root is None or not wxwatch_settings.DATABASE_URL:
         return None

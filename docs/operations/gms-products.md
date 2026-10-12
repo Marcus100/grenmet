@@ -161,7 +161,10 @@ Per-product failures retain the last successful edition and its source timestamp
 The worker needs `WXWATCH_DATABASE_URL`, `REDIS_URL` and `WXWATCH_NHC_ROOT` pointing
 to the shared NHC archive volume. API mounts that volume read-only; the dedicated
 worker mounts it read/write. Prestart applies the separate WxWatch migration before
-serving. Compose includes worker health checks. Grid subsets retain the collector's
+serving. The NHC health probe checks its Redis heartbeat without loading database
+or image-processing dependencies. Deployment stacks allow 180 seconds of startup
+grace: staging cold startup first recorded a heartbeat after 167 seconds. Missing
+or stale heartbeats still fail the probe after startup. Grid subsets retain the collector's
 existing Atlantic/Caribbean bounding box and are independent of outlook interest
 areas. Native-cell point requests use the same worker and retain coordinates,
 distance, source units and forecast validity. Guidance reads and original downloads
