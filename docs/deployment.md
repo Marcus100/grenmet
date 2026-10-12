@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-09-18
+**Last updated:** 2026-10-12
 
 > Current releases use `docker-compose.deploy.yml` and the canonical domain table
 > at the end of this guide. The per-environment `docker-compose.prod.yml` and
@@ -11,6 +11,10 @@
 This monorepo uses GitHub Actions with self-hosted runners to deploy to staging and production.
 Each environment runs on its own dedicated Digital Ocean droplet. Elections Grenada
 is the exception: it deploys independently to Vercel; see [its deployment guide](web/elections-deployment.md).
+
+For operational SSH access, use the `deploy` account on production and `root` on
+staging. Authenticate with the existing SSH key; DigitalOcean API authentication
+through `doctl` does not unlock an encrypted SSH key.
 
 ## Pipeline overview
 
