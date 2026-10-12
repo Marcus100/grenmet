@@ -100,6 +100,12 @@ it("pulls all four families by default and retains the current filters", async (
 });
 
 it("keeps selected editions and comparison when filtering collected history", async () => {
+  mocks.request.mockImplementation((path: string) =>
+    Promise.resolve({
+      ...content,
+      edition: { ...content.edition, id: path.split("/")[1] },
+    })
+  );
   await act(async () =>
     render(
       <NhcWorkspace
