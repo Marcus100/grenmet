@@ -18,7 +18,6 @@ const OPEN_MARINE = /^Open Marine/;
 const ISSUE_DATE_LABEL = /Issue date and time/;
 const FORECASTER_LABEL = /Forecaster on duty/;
 const AREA_LABEL = /Area covered/;
-const ISSUE_SUMMARY_DATE = /^\d{1,2} [A-Z][a-z]{2} \d{4}, \d{2}:\d{2}$/;
 const SPEED_FROM_LABEL = /Speed from \(kt\)/;
 const WEATHER_SUMMARY_LABEL = /Weather summary/;
 const SPEED_TO_LABEL = /Speed to \(kt\)/;
@@ -34,12 +33,11 @@ const actions = vi.hoisted(() => ({
   loadProductHistoryAction: vi.fn(),
   previewProductAction: vi.fn(),
   saveProductAction: vi.fn(),
+  previewProductPdfAction: vi.fn(),
+  downloadProductPdfAction: vi.fn(),
 }));
 vi.mock("@/app/(admin)/wxproducts/product-actions", () => actions);
 vi.mock("./cap-forecast-picker", () => ({ CapForecastPicker: () => null }));
-vi.mock("@/components/wxproducts/product-pdf-preview", () => ({
-  ProductPdfPreview: () => null,
-}));
 vi.mock("@barrelsgd/gms/components/product-content", () => ({
   ProductContentView: ({
     content,
@@ -66,6 +64,12 @@ function render(ui: ReactElement) {
 beforeEach(() => {
   vi.resetAllMocks();
   actions.loadProductsAction.mockResolvedValue({ ok: true, products: [] });
+  actions.previewProductPdfAction.mockResolvedValue({
+    ok: true,
+    blob: new Blob(["%PDF"]),
+  });
+  URL.createObjectURL = vi.fn(() => "blob:preview");
+  URL.revokeObjectURL = vi.fn();
 });
 async function openEditor() {
   render(<ProductDesk kinds={["morning"]} title="Forecasts" />);
@@ -150,9 +154,9 @@ it("shows a tab per forecast kind and switches when the form is clean", async ()
     undefined,
     0
   );
-  expect(screen.getByText("Issued").nextElementSibling).toHaveTextContent(
-    "12:00"
-  );
+  expect(
+    screen.getByText("Issued (Grenada time)").nextElementSibling
+  ).toHaveTextContent("12:00");
 });
 
 it("asks before switching tabs with unsaved changes", async () => {
@@ -195,7 +199,8 @@ it("uses today's fixed forecast slot without redundant date controls", async () 
   expect(screen.queryByLabelText("Forecast / issue date")).toBeNull();
   expect(document.getElementById("desk-time")).toBeNull();
   expect(screen.queryByLabelText("Saved forecast date")).toBeNull();
-  const issued = screen.getByText("Issued").nextElementSibling?.textContent;
+  const issued = screen.getByText("Issued (Grenada time)").nextElementSibling
+    ?.textContent;
   expect(issued).toContain("07:00");
 });
 
@@ -262,9 +267,9 @@ it("opens older products across kinds from the shared archive and starts new for
     "aria-selected",
     "true"
   );
-  expect(screen.getByText("Issued").nextElementSibling).toHaveTextContent(
-    "1 Jan 2026, 18:00"
-  );
+  expect(
+    screen.getByText("Issued (Grenada time)").nextElementSibling
+  ).toHaveTextContent("2026-01-01 18:00");
   fireEvent.click(screen.getByRole("button", { name: "New Evening Forecast" }));
   actions.saveProductAction.mockResolvedValue({
     ok: false,
@@ -277,7 +282,7 @@ it("opens older products across kinds from the shared archive and starts new for
   );
 });
 
-it("shows scheduled and fixed issue details as text, not fields", async () => {
+it("shows scheduled and fixed issue details only in the text preview", async () => {
   await openEditor();
   expect(screen.queryByLabelText(ISSUE_DATE_LABEL)).toBeNull();
   expect(screen.queryByLabelText(FORECASTER_LABEL)).toBeNull();
@@ -286,7 +291,12 @@ it("shows scheduled and fixed issue details as text, not fields", async () => {
   expect(
     screen.getByText("Grenada, Carriacou and Petite Martinique")
   ).toBeInTheDocument();
-  expect(screen.getByText(ISSUE_SUMMARY_DATE)).toBeInTheDocument();
+  expect(
+    screen.getByText("Issued (Grenada time)").nextElementSibling
+  ).toHaveTextContent(`${grenadaDate()} 07:00`);
+  expect(screen.queryByText("Issued", { exact: true })).toBeNull();
+  expect(screen.queryByText("Valid", { exact: true })).toBeNull();
+  expect(screen.queryByText("Area", { exact: true })).toBeNull();
 });
 
 it("sizes structured inputs and hints converted units", async () => {

@@ -243,7 +243,7 @@ export async function previewProductPdfAction(
     return {
       ok: false as const,
       error:
-        "Could not render the preview. Check your connection; it retries on your next edit.",
+        "Could not render the preview. Check your connection and retry the PDF preview.",
     };
   }
 }

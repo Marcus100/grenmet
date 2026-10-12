@@ -51,6 +51,7 @@ import {
   previewProductAction,
   saveProductAction,
 } from "@/app/(admin)/wxproducts/product-actions";
+import type { PdfPreviewRequest } from "@/components/wxproducts/forecast-pdf-frame";
 import { ProductDeskLayout } from "@/components/wxproducts/product-desk-layout";
 import { ProductPdfPreview } from "@/components/wxproducts/product-pdf-preview";
 import { bulletinExample } from "@/lib/wxproducts/bulletin-examples";
@@ -216,6 +217,8 @@ function ProductEditor({
   const [baseline, setBaseline] = useState(() => JSON.stringify(start));
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [preview, setPreview] = useState<ProductValues | null>(null);
+  const [pdfRequest, setPdfRequest] = useState<PdfPreviewRequest | null>(null);
+  const [pdfExpanded, setPdfExpanded] = useState(false);
   const [reviewed, setReviewed] = useState(false);
   const [changeSummary, setChangeSummary] = useState("");
   const [message, setMessage] = useState("");
@@ -238,6 +241,18 @@ function ProductEditor({
     )
   );
   const form = useForm({ defaultValues });
+  function refreshPdf(
+    values: ProductValues,
+    expectedRevision: number,
+    open = false
+  ) {
+    setPdfRequest((previous) => ({
+      content: { kind, values: { ...values } },
+      expectedRevision,
+      requestId: (previous?.requestId ?? 0) + 1,
+    }));
+    if (open) setPdfExpanded(true);
+  }
   function replaceValues(values: ProductValues) {
     setDefaultValues(values);
     form.reset(values);
@@ -267,6 +282,7 @@ function ProductEditor({
     setPublishedRevision(result.product.publishedRevision);
     setBaseline(JSON.stringify(result.product.values));
     replaceValues(result.product.values);
+    refreshPdf(result.product.values, result.product.revision);
     setPreview(null);
     setReviewed(false);
     setChangeSummary("");
@@ -319,6 +335,7 @@ function ProductEditor({
         replaceValues(result.preview.values);
         setMessage("");
         setPreview(result.preview.values);
+        refreshPdf(result.preview.values, revision, true);
       } finally {
         onBusy(false);
       }
@@ -487,40 +504,6 @@ function ProductEditor({
                       ) : null}
                     </div>
                   </div>
-                  <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm">
-                    <dt className="text-muted-foreground">Forecaster</dt>
-                    <dd>{values.forecaster}</dd>
-                    {isForecastKind(kind) ? (
-                      <>
-                        <dt className="text-muted-foreground">Area</dt>
-                        <dd>{values.area}</dd>
-                        <dt className="text-muted-foreground">Issued</dt>
-                        <dd>
-                          {formatComputedValue(
-                            values.issuedAt ?? "",
-                            "datetime-local"
-                          )}
-                        </dd>
-                        <dt className="text-muted-foreground">Valid</dt>
-                        <dd>
-                          {formatComputedValue(
-                            values.validFrom ?? "",
-                            "datetime-local"
-                          )}{" "}
-                          –{" "}
-                          {formatComputedValue(
-                            values.validTo ?? "",
-                            "datetime-local"
-                          )}
-                          {values.validity ? (
-                            <span className="block text-muted-foreground">
-                              {values.validity}
-                            </span>
-                          ) : null}
-                        </dd>
-                      </>
-                    ) : null}
-                  </dl>
                   <form
                     className="space-y-4"
                     onSubmit={(event) => {
@@ -779,8 +762,13 @@ function ProductEditor({
               }
               preview={
                 <ProductPdfPreview
+                  busy={pending || disabled}
                   content={{ kind, values }}
                   dirty={dirty}
+                  expanded={pdfExpanded}
+                  onExpandedChange={setPdfExpanded}
+                  onPreview={() => refreshPdf(values, revision, true)}
+                  request={pdfRequest}
                   saved={{ id, revision, publishedRevision }}
                 />
               }
