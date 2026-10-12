@@ -1,5 +1,6 @@
 "use client";
 
+import type { GuidanceSystem, ProductGuidance } from "@barrelsgd/api-client";
 import { useSessionUser } from "@barrelsgd/auth";
 import { ProductContentView } from "@barrelsgd/gms/components/product-content";
 import {
@@ -58,6 +59,7 @@ import { feetHint, nauticalMilesHint, windHint } from "@/lib/wxproducts/units";
 import { visibleProductFields } from "@/lib/wxproducts/visible-fields";
 
 import { CapForecastPicker } from "./cap-forecast-picker";
+import { NhcGuidanceEditor } from "./nhc-guidance-editor";
 import { ProductList } from "./product-list";
 
 const DAY_SECTION_PREFIX = /^Day (\d)/;
@@ -189,7 +191,11 @@ function ProductEditor({
   disabled,
   controls,
   archive,
+  sourceEditionIds,
+  existingSystems,
 }: {
+  sourceEditionIds: string[];
+  existingSystems: GuidanceSystem[];
   archive: ReactNode;
   controls: ReactNode;
   kind: ProductKind;
@@ -213,6 +219,13 @@ function ProductEditor({
       sessionUser.full_name ?? sessionUser.email
     )
   );
+  const [guidance, setGuidance] = useState<ProductGuidance | null>(
+    initial?.guidance ?? null
+  );
+  const [guidanceBaseline, setGuidanceBaseline] = useState(() =>
+    JSON.stringify(initial?.guidance ?? null)
+  );
+  const [previewGuidance, setPreviewGuidance] = useState<string | null>(null);
   const [baseline, setBaseline] = useState(() => JSON.stringify(start));
   const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [preview, setPreview] = useState<ProductValues | null>(null);
@@ -243,7 +256,18 @@ function ProductEditor({
     form.reset(values);
   }
   const fields = visibleProductFields(kind).filter(
-    (f) => !isComputedField(kind, f.key)
+    (f) =>
+      !(
+        isComputedField(kind, f.key) ||
+        (kind === "outlook" &&
+          guidance?.systems?.length &&
+          [
+            "systems",
+            "formationChance48h",
+            "formationChance7d",
+            "source",
+          ].includes(f.key))
+      )
   );
   const sections = [...new Set(fields.map((f) => f.section))];
   async function save(
@@ -255,6 +279,7 @@ function ProductEditor({
       expectedRevision: revision,
       kind,
       values,
+      guidance,
       action,
       changeSummary,
       reviewed,
@@ -265,6 +290,8 @@ function ProductEditor({
     }
     setRevision(result.product.revision);
     setPublishedRevision(result.product.publishedRevision);
+    setGuidance(result.product.guidance ?? null);
+    setGuidanceBaseline(JSON.stringify(result.product.guidance ?? null));
     setBaseline(JSON.stringify(result.product.values));
     replaceValues(result.product.values);
     setPreview(null);
@@ -304,6 +331,7 @@ function ProductEditor({
         const result = await previewProductAction({
           kind,
           values,
+          guidance,
           expectedRevision: revision,
           changeSummary,
         });
@@ -319,6 +347,7 @@ function ProductEditor({
         replaceValues(result.preview.values);
         setMessage("");
         setPreview(result.preview.values);
+        setPreviewGuidance(JSON.stringify(guidance));
       } finally {
         onBusy(false);
       }
@@ -327,9 +356,12 @@ function ProductEditor({
   return (
     <form.Subscribe selector={(s) => s.values}>
       {(values) => {
-        const dirty = JSON.stringify(values) !== baseline;
+        const dirty =
+          JSON.stringify(values) !== baseline ||
+          JSON.stringify(guidance) !== guidanceBaseline;
         const previewCurrent =
           preview !== null &&
+          previewGuidance === JSON.stringify(guidance) &&
           JSON.stringify(preview) === JSON.stringify(values);
         const renderField = (f: ProductField) => (
           <form.Field key={f.key} name={f.key}>
@@ -532,6 +564,24 @@ function ProductEditor({
                       className="space-y-4"
                       disabled={pending || disabled}
                     >
+                      {(kind === "outlook" ||
+                        kind === "cyclone" ||
+                        kind === "marine") && (
+                        <NhcGuidanceEditor
+                          disabled={pending || disabled}
+                          existingSystems={existingSystems}
+                          guidance={guidance}
+                          kind={kind}
+                          onChange={(next, proposedValues) => {
+                            setGuidance(next);
+                            if (proposedValues) replaceValues(proposedValues);
+                            setReviewed(false);
+                            setPreview(null);
+                          }}
+                          sourceEditionIds={sourceEditionIds}
+                          values={values}
+                        />
+                      )}
                       {sections.map((section) => {
                         const { group, prefix } = sectionParts(section);
                         const k = (name: string) => parameterKey(prefix, name);
@@ -779,7 +829,7 @@ function ProductEditor({
               }
               preview={
                 <ProductPdfPreview
-                  content={{ kind, values }}
+                  content={{ kind, values, guidance }}
                   dirty={dirty}
                   saved={{ id, revision, publishedRevision }}
                 />
@@ -815,10 +865,12 @@ export function ProductDesk({
   kinds,
   title,
   initialKind,
+  sourceEditionIds = [],
 }: {
   kinds: [ProductKind, ...ProductKind[]];
   title: string;
   initialKind?: ProductKind;
+  sourceEditionIds?: string[];
 }) {
   const [kind, setKind] = useState(initialKind ?? kinds[0]);
   const [discard, setDiscard] = useState<(() => void) | null>(null);
@@ -955,6 +1007,13 @@ export function ProductDesk({
           ) : null
         }
         disabled={loading}
+        existingSystems={[
+          ...new Map(
+            products
+              .flatMap((product) => product.guidance?.systems ?? [])
+              .map((system) => [system.id, system])
+          ).values(),
+        ]}
         initial={selected}
         issueDate={grenadaDate()}
         key={`${kind}-${editorKey}`}
@@ -965,6 +1024,7 @@ export function ProductDesk({
           setArchivePage(0);
           setReload((value) => value + 1);
         }}
+        sourceEditionIds={sourceEditionIds}
       />
     </div>
   );

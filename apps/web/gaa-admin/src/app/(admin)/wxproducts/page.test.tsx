@@ -13,7 +13,7 @@ it("links to the four product desks and distinguishes the sample register", () =
   for (const [name, href] of [
     ["Forecasts", "/wxproducts/fcsts"],
     ["NHC Products", "/wxproducts/nhc"],
-    ["Bulletins", "/wxproducts/bulletins"],
+    ["Alerts", "/wxproducts/alerts"],
     ["Aviation", "/wxproducts/aviation"],
   ]) {
     expect(

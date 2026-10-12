@@ -75,6 +75,7 @@ path-prefixed, auth-gated routes under `(admin)/`. All are gated by
   bulletin and outlook PDFs are rendered by FastAPI; the editor previews them in an iframe.
 - **TAF/METAR composer:** Use the wxRegister-style data-entry and review layout; do not add a PDF preview to this working composer.
 - **Field widths match data:** size inputs to their data type (numbers/times narrow, selects to their longest option, only prose full width); never stretch every field to the column.
+- **NHC and Alerts:** `/wxproducts/nhc` is for NHC product collection and viewing only; keep authoring links/actions out of it. `/wxproducts/alerts` hosts outlook and existing hazard bulletin editors, including reviewed source selection. Old Bulletin/editor routes redirect there.
 - **Product parity:** a wxproducts improvement to forecasts also applies to bulletins (and the outlook) unless the user excludes them; they share `ProductDesk`.
 
 ## Testing

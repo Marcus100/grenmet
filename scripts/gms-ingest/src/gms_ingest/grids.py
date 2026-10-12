@@ -1,6 +1,7 @@
 """Stream GRIB messages into regional native-cell NetCDF datasets."""
 
 import math
+from datetime import UTC, datetime
 
 
 def decode(path, target, bbox):
@@ -81,7 +82,7 @@ def decode(path, target, bbox):
         },
         attrs={
             "bbox": list(bbox),
-            "decoder_version": "2",
+            "decoder_version": "3",
             "sampling": "native cells; no interpolation",
         },
     )
@@ -102,7 +103,30 @@ def decode(path, target, bbox):
     finally:
         dataset.close()
         temporary.unlink(missing_ok=True)
+
+    def source_time(row, date_key, time_key):
+        date, time = row.get(date_key), row.get(time_key)
+        if date is None or time is None:
+            return None
+        try:
+            return (
+                datetime.strptime(str(date) + f"{int(time):04d}", "%Y%m%d%H%M")
+                .replace(tzinfo=UTC)
+                .isoformat()
+            )
+        except ValueError, TypeError:
+            return None
+
+    cycles = {source_time(row, "dataDate", "dataTime") for row in metadata}
+    validity = sorted(
+        time
+        for row in metadata
+        if (time := source_time(row, "validityDate", "validityTime"))
+    )
     return {
+        "reference_time": next(iter(cycles)) if len(cycles) == 1 else None,
+        "valid_start": validity[0] if validity else None,
+        "valid_end": validity[-1] if validity and validity[-1] != validity[0] else None,
         "bbox": list(bbox),
         "cells": len(coordinates[0]),
         "records": metadata,

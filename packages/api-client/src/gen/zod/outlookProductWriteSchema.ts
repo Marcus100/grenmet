@@ -6,8 +6,10 @@
 import * as z from "zod";
 import { legacyProductWritePropertiesActionEnumSchema } from "./legacyProductWritePropertiesActionEnumSchema.js";
 import { outlookValuesDraftSchema } from "./outlookValuesDraftSchema.js";
+import { productGuidanceSchema } from "./productGuidanceSchema.js";
 
 export const outlookProductWriteSchema = z.strictObject({
+  guidance: z.union([productGuidanceSchema, z.null()]).optional(),
   id: z.uuid(),
   expectedRevision: z.int().min(0),
   values: outlookValuesDraftSchema,

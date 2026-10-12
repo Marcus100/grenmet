@@ -14,6 +14,8 @@ import type { ReactElement } from "react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { ProductDesk } from "./product-desk";
 
+const PUBLICATION_CONFIRMATION = /checked the content/;
+
 const OPEN_MARINE = /^Open Marine/;
 const ISSUE_DATE_LABEL = /Issue date and time/;
 const FORECASTER_LABEL = /Forecaster on duty/;
@@ -90,7 +92,9 @@ it("reviews the backend's normalized content and invalidates it after editing", 
   });
   expect(region).toHaveTextContent("Backend normalized forecast");
   expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeDisabled();
-  fireEvent.click(screen.getByRole("checkbox"));
+  fireEvent.click(
+    screen.getByRole("checkbox", { name: PUBLICATION_CONFIRMATION })
+  );
   expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeEnabled();
   fireEvent.change(screen.getByDisplayValue("Backend normalized forecast"), {
     target: { value: "Edited forecast" },
@@ -370,7 +374,9 @@ it("validates and publishes a bulletin after saving its draft", async () => {
   });
   fireEvent.click(validate);
   await screen.findByRole("region", { name: "Publication preview" });
-  fireEvent.click(screen.getByRole("checkbox"));
+  fireEvent.click(
+    screen.getByRole("checkbox", { name: PUBLICATION_CONFIRMATION })
+  );
   fireEvent.click(screen.getByRole("button", { name: "Publish to GMS" }));
   await waitFor(() =>
     expect(actions.saveProductAction).toHaveBeenLastCalledWith(

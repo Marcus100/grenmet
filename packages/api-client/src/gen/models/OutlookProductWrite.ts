@@ -5,8 +5,10 @@
 
 import type { LegacyProductWritePropertiesActionEnum } from "./LegacyProductWritePropertiesActionEnum.js";
 import type { OutlookValuesDraft } from "./OutlookValuesDraft.js";
+import type { ProductGuidance } from "./ProductGuidance.js";
 
 export type OutlookProductWrite = {
+  guidance?: ProductGuidance | null;
   /**
    * @description
    * Format: `uuid`

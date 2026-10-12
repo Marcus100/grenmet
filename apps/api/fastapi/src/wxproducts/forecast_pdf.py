@@ -17,6 +17,8 @@ from markupsafe import Markup
 from weasyprint import CSS, HTML, Document  # type: ignore[import-untyped]
 from weasyprint.text.fonts import FontConfiguration  # type: ignore[import-untyped]
 
+from src.wxwatch.nhc_schemas import ProductGuidance
+
 from . import advisories, units
 from .presentation import conditions as _conditions
 from .validation import FIELDS, GRENADA, optional_number, period_values
@@ -461,7 +463,13 @@ def outlook_context(
 
 
 def render_document(
-    kind: str, values: dict[str, str], *, status: str, revision: str
+    kind: str,
+    values: dict[str, str],
+    *,
+    status: str,
+    revision: str,
+    guidance: ProductGuidance | None = None,
+    graphic_images: dict[str, str] | None = None,
 ) -> Document:
     """Forecast, bulletin or outlook sheet."""
     if kind == "outlook":
@@ -479,6 +487,10 @@ def render_document(
             "forecast.html.j2",
             forecast_context(kind, values, status=status, revision=revision),
         )
+    context["guidance"] = guidance
+    context["graphic_images"] = graphic_images or {}
+    if guidance and guidance.systems:
+        context["chances"] = []
     html = _environment().get_template(template).render(**context)
     return HTML(string=html, base_url=str(BASE) + "/").render(
         stylesheets=[_stylesheet()], font_config=_fonts()
@@ -492,9 +504,18 @@ def render_sheet_pdf(
     status: str,
     revision: str,
     archival: bool = False,
+    guidance: ProductGuidance | None = None,
+    graphic_images: dict[str, str] | None = None,
 ) -> bytes:
     """Render a sheet; saved revisions are official records, so they are PDF/A-3b."""
-    document = render_document(kind, values, status=status, revision=revision)
+    document = render_document(
+        kind,
+        values,
+        status=status,
+        revision=revision,
+        guidance=guidance,
+        graphic_images=graphic_images,
+    )
     pdf = document.write_pdf(pdf_variant="pdf/a-3b" if archival else None)
     if not isinstance(pdf, bytes):
         raise TypeError("WeasyPrint returned no PDF bytes")

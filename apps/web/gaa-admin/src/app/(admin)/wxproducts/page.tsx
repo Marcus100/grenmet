@@ -13,13 +13,13 @@ const desks = [
     href: "/wxproducts/nhc",
     title: "NHC Products",
     description:
-      "Browse archived NHC guidance and bulletins, or open the tropical outlook editor.",
+      "Browse current NHC guidance and previously collected editions.",
   },
   {
-    href: "/wxproducts/bulletins",
-    title: "Bulletins",
+    href: "/wxproducts/alerts",
+    title: "Alerts",
     description:
-      "Prepare marine and other hazard bulletins. Save drafts and review them before publication.",
+      "Prepare tropical outlooks, marine and other hazard bulletins. Save drafts and review them before publication.",
   },
   {
     href: "/wxproducts/aviation",

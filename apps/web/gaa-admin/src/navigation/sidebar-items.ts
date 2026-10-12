@@ -145,8 +145,8 @@ export const sidebarItems: NavGroup[] = [
       },
       {
         id: "bulletin-marine",
-        title: "Bulletins",
-        url: "/wxproducts/bulletins",
+        title: "Alerts",
+        url: "/wxproducts/alerts",
         icon: Waves,
       },
       {

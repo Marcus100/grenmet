@@ -1,3 +1,5 @@
+import type { ProductGuidance } from "@barrelsgd/api-client";
+
 /** Authored GMS products are separate from CAP alerts. */
 export const BULLETIN_CATEGORIES = {
   cyclone: "Tropical Cyclone",
@@ -31,6 +33,7 @@ export interface ProductField {
   type?: "text" | "textarea" | "date" | "datetime-local" | "number" | "time";
 }
 export interface ProductContent {
+  guidance?: ProductGuidance | null;
   kind: ProductKind;
   values: ProductValues;
 }

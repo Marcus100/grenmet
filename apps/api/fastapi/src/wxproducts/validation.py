@@ -310,6 +310,19 @@ def validate(body: ProductWrite, *, now: datetime | None = None) -> list[str]:
     ):
         errors.append("Minimum temperature exceeds maximum")
     if publish:
+        if (
+            kind == "marine"
+            and body.guidance
+            and body.guidance.sources
+            and not body.guidance.local_assessment.strip()
+        ):
+            errors.append(
+                "Add the GMS local assessment of regional marine guidance before publishing"
+            )
+        if body.guidance and any(
+            not system.name.strip() for system in body.guidance.systems
+        ):
+            errors.append("Name every meteorological system before publishing")
         if any("example" in value.lower() for value in values.values()):
             errors.append("Replace example draft wording before publishing")
         if not body.reviewed:
@@ -332,9 +345,11 @@ def preview(
     advisories: str | None = None,
 ) -> ProductPreview:
     instant = now or datetime.now(UTC)
+    from .guidance import compose
+
     values = normalize(
         body.kind,
-        values_as_dict(body.values),
+        compose(body.kind, values_as_dict(body.values), body.guidance),
         forecaster=forecaster,
         advisories=advisories,
     )
@@ -345,6 +360,7 @@ def preview(
             "expectedRevision": body.expectedRevision,
             "kind": body.kind,
             "values": values,
+            "guidance": body.guidance,
             "action": "publish",
             "changeSummary": body.changeSummary,
             "reviewed": True,
@@ -354,6 +370,7 @@ def preview(
         {
             "kind": body.kind,
             "values": values,
+            "guidance": body.guidance,
             "errors": validate(candidate, now=instant),
             "checked_at": instant,
         }

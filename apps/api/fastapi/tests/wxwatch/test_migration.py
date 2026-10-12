@@ -26,7 +26,7 @@ def test_fresh_repeat_and_wrong_target(weather_engine):
     with weather_engine.connect() as connection:
         assert (
             connection.scalar(text("SELECT version_num FROM wxwatch_alembic_version"))
-            == "wxwatch_0006"
+            == "wxwatch_0007"
         )
 
 
