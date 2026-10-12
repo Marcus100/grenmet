@@ -300,7 +300,6 @@ class NhcWorkerSettings:
             "src.worker.nhc.drain_requests",
             second=set(range(0, 60, 5)),
             unique=True,
-            job_id="nhc-drain",
         )
     ]
     queue_name = "grenmet:nhc"
