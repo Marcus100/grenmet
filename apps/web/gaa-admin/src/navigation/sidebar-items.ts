@@ -85,22 +85,22 @@ export const sidebarItems: NavGroup[] = [
         title: "Human Resources",
         icon: Contact,
         subItems: [
-          { id: "hr-dashboard", title: "Dashboard", url: "/hr", icon: Gauge },
+          { id: "hr-dashboard", title: "Home", url: "/hr", icon: Gauge },
           {
             id: "hr-documents",
-            title: "Documents",
+            title: "Records",
             url: "/hr/documents",
             icon: FileText,
           },
           {
             id: "hr-forms",
-            title: "Forms",
+            title: "Requests",
             url: "/hr/forms",
             icon: FileText,
           },
           {
             id: "hr-approvals",
-            title: "Approvals",
+            title: "Team approvals",
             url: "/hr/approvals",
             icon: ClipboardCheck,
           },
