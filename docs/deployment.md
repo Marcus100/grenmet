@@ -312,7 +312,25 @@ cd /home/github/actions-runner
 ./svc.sh start
 ```
 
+### Reading a failed deploy
+
+`core.sh deploy` prints each phase (render-config, auth, disk, pull-verify,
+databases, migrations, grants, start, smoke) as a collapsible, timestamped log
+group, and the job summary shows a duration table. On failure it prints an
+`::error::` naming the failed and last completed phase, whether the previous
+release should still be serving, and — once containers have changed — a
+bounded (`DIAGNOSTIC_TIMEOUT`, default 30 s) report: every container's state,
+exit code, restart count and OOM flag, plus the recent health-probe output and
+last 200 log lines of each unhealthy, restarting or failed container. It never
+prints full `docker inspect` output, which contains the environment. The final
+`up` uses `--remove-orphans`, so containers of services removed from
+`docker-compose.deploy.yml` are retired on the next deploy.
+
 ### Deploy fails — "no space left on device" or "Not enough free disk space"
+
+The disk phase also requires 2 GB free in the runner's temp directory
+(`RUNNER_MIN_FREE_GB`); a full runner disk failed staging on 2026-10-07 with
+`No space left on device` while writing the step summary.
 
 Each deploy pulls a full set of `sha-…` images and used to leave the old ones
 behind, which filled the staging disk on 2026-10-11 (`failed to extract layer …
