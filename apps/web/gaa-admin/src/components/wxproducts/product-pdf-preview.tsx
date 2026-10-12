@@ -14,6 +14,9 @@ import {
   ForecastPdfFrame,
   type PdfPreviewRequest,
 } from "@/components/wxproducts/forecast-pdf-frame";
+import { productFieldLabel, productFieldValue } from "@/lib/wxproducts/units";
+
+const DAY_SUBSECTION = /^Day [1-4] · /;
 
 /**
  * Document preview for every weather product: FastAPI renders the draft with the
@@ -155,7 +158,9 @@ export function ProductPdfPreview({
       className="space-y-4 rounded-xl border bg-card p-4"
     >
       <div className="space-y-2">
-        <h2 className="font-medium text-lg">{productTitle(content.kind)}</h2>
+        <h2 className="font-semibold text-lg leading-6">
+          {productTitle(content.kind)}
+        </h2>
         <p className="text-muted-foreground text-xs">
           Live summary · Grenada time (UTC−04:00)
         </p>
@@ -167,8 +172,10 @@ export function ProductPdfPreview({
       <dl className="grid gap-3 sm:grid-cols-2">
         {basicFields.map(([label, value]) => (
           <div key={label}>
-            <dt className="text-muted-foreground text-xs">{label}</dt>
-            <dd className="break-words text-sm">
+            <dt className="font-medium text-muted-foreground text-xs">
+              {label}
+            </dt>
+            <dd className="break-words text-sm tabular-nums leading-5">
               {value?.trim() || "Not entered"}
             </dd>
           </div>
@@ -231,7 +238,9 @@ export function ProductPdfPreview({
           className="space-y-3 border-t pt-3"
           key={section}
         >
-          <h3 className="font-medium text-sm">{section}</h3>
+          <h3 className="font-semibold text-sm leading-5">
+            {section.replace(DAY_SUBSECTION, "")}
+          </h3>
           <dl className="grid gap-3 sm:grid-cols-2">
             {fields
               .filter((field) => field.section === section)
@@ -242,13 +251,13 @@ export function ProductPdfPreview({
                   }
                   key={field.key}
                 >
-                  <dt className="text-muted-foreground text-xs">
-                    {field.label}
+                  <dt className="font-medium text-muted-foreground text-xs">
+                    {productFieldLabel(field)}
                   </dt>
-                  <dd className="whitespace-pre-wrap break-words text-sm">
+                  <dd className="whitespace-pre-wrap break-words text-sm tabular-nums leading-5">
                     {field.type === "datetime-local"
                       ? content.values[field.key]?.replace("T", " ")
-                      : content.values[field.key]}
+                      : productFieldValue(field, content.values[field.key])}
                   </dd>
                 </div>
               ))}

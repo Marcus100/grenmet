@@ -204,7 +204,7 @@ it("groups entered weather, wind, marine, tides and astronomy without empty fiel
   ).toBeInTheDocument();
   expect(
     within(screen.getByRole("region", { name: "Marine summary" })).getByText(
-      "1.5"
+      "4.92"
     )
   ).toBeInTheDocument();
   expect(
@@ -224,7 +224,11 @@ it("groups entered weather, wind, marine, tides and astronomy without empty fiel
   ).toBeInTheDocument();
   expect(screen.queryByText("Old wind summary")).toBeNull();
   expect(screen.queryByText("Old marine summary")).toBeNull();
-  expect(screen.queryByText("Gusts (kt)")).toBeNull();
+  expect(screen.getByText("Speed from (mph)")).toBeInTheDocument();
+  expect(
+    screen.getByText("Tide 1 height (ft)").nextElementSibling
+  ).toHaveTextContent("1.31");
+  expect(screen.queryByText("Gusts (mph)")).toBeNull();
 });
 
 it.each([
@@ -232,7 +236,7 @@ it.each([
     "evening",
     { day1Weather: "Day one weather", day1WindSpeedMin: "12" },
     "Day 1 · Wind summary",
-    "12",
+    "13.81",
   ],
   [
     "marine",

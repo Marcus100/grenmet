@@ -44,6 +44,10 @@ Outlook systems have separate typed data forms and stable GMS IDs. Legacy narrat
 
 ## Publication process
 
+The [public forecast quality audit](forecast-quality.md) records validation,
+publication safeguards and the remaining observation-verification gaps against
+WMO guidance. Validation is not an accuracy score or a WMO conformity certificate.
+
 An active authenticated product author can save incomplete drafts. Publication
 requires valid fields, explicit preview confirmation, and an issue/revision note
 after the first save. Author identity is taken from the validated session; the

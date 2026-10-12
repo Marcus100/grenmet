@@ -64,6 +64,52 @@ def test_drafts_can_be_incomplete_but_not_invalid() -> None:
         )
 
 
+@pytest.mark.parametrize("day", range(1, 5))
+@pytest.mark.parametrize("action", ["draft", "publish"])
+def test_evening_temperature_order_is_checked_for_every_period(day, action) -> None:
+    values = complete("evening") | {f"day{day}Min": "30", f"day{day}Max": "25"}
+    errors = validation.validate(body("evening", action=action, values=values), now=NOW)
+    assert errors == [f"Day {day}: Minimum temperature exceeds maximum"]
+
+
+@pytest.mark.parametrize("day", range(1, 5))
+@pytest.mark.parametrize(
+    "temperatures", [("", "25"), ("25", ""), ("25", "25"), ("0", "25")]
+)
+def test_evening_temperature_check_allows_missing_equal_and_zero_values(
+    day, temperatures
+) -> None:
+    low, high = temperatures
+    errors = validation.validate(
+        body(
+            "evening",
+            action="draft",
+            values={f"day{day}Min": low, f"day{day}Max": high},
+        ),
+        now=NOW,
+    )
+    assert errors == []
+
+
+@pytest.mark.parametrize("kind", ["morning", "midday", "evening"])
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("windSpeedMin", "-1"),
+        ("windGust", "Infinity"),
+        ("rainChance", "101"),
+        ("waveHeightMin", "-0.1"),
+    ],
+)
+def test_forecast_parameter_checks_reject_invalid_entered_draft_values(
+    kind, field, value
+) -> None:
+    errors = validation.validate(
+        body(kind, action="draft", values={field: value}), now=NOW
+    )
+    assert errors
+
+
 def test_publication_safeguards() -> None:
     payload = body(expectedRevision=2, reviewed=False)
     payload.values["validTo"] = "2026-09-08T06:00"

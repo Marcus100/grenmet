@@ -31,8 +31,17 @@ import {
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Card } from "@barrelsgd/ui/components/ui/card";
-import { Field, FieldLabel } from "@barrelsgd/ui/components/ui/field";
-import { Input } from "@barrelsgd/ui/components/ui/input";
+import {
+  Field,
+  FieldContent,
+  FieldLabel,
+} from "@barrelsgd/ui/components/ui/field";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+  InputGroupTextarea,
+} from "@barrelsgd/ui/components/ui/input-group";
 import {
   Select,
   SelectContent,
@@ -41,7 +50,7 @@ import {
   SelectValue,
 } from "@barrelsgd/ui/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@barrelsgd/ui/components/ui/tabs";
-import { Textarea } from "@barrelsgd/ui/components/ui/textarea";
+import { cn } from "@barrelsgd/ui/lib/utils";
 import { useForm } from "@tanstack/react-form";
 import { format, isValid, parseISO } from "date-fns";
 import { Plus, X } from "lucide-react";
@@ -54,9 +63,17 @@ import {
 } from "@/app/(admin)/wxproducts/product-actions";
 import type { PdfPreviewRequest } from "@/components/wxproducts/forecast-pdf-frame";
 import { ProductDeskLayout } from "@/components/wxproducts/product-desk-layout";
+import { ProductNumberInput } from "@/components/wxproducts/product-number-input";
 import { ProductPdfPreview } from "@/components/wxproducts/product-pdf-preview";
 import { bulletinExample } from "@/lib/wxproducts/bulletin-examples";
-import { feetHint, nauticalMilesHint, windHint } from "@/lib/wxproducts/units";
+import {
+  metresHint,
+  nauticalMilesHint,
+  productFieldCaption,
+  productFieldLabel,
+  productFieldUnit,
+  windHint,
+} from "@/lib/wxproducts/units";
 import { visibleProductFields } from "@/lib/wxproducts/visible-fields";
 
 import { CapForecastPicker } from "./cap-forecast-picker";
@@ -94,17 +111,36 @@ function withIssuer(
   return { ...values, area: FORECAST_AREA, forecaster };
 }
 const DAY_SECTION = /^Day (\d)$/;
+const SUN_TIME_KEY = /(?:sunrise|sunset)$/i;
 /** Size inputs to the data they hold; only free prose spans the card. */
 function fieldWidth(f: ProductField) {
-  if (f.type === "textarea") return "basis-full";
-  if (f.type === "number") return "w-28";
-  if (f.type === "time") return "w-32";
+  if (f.key === "definition") return "w-full max-w-sm";
+  if (f.type === "textarea") return "col-span-full basis-full";
+  if (sectionParts(f.section).group === "Tides") {
+    if (f.options) return "w-32";
+    return f.type === "time" ? "w-40" : "w-36";
+  }
+  if (sectionParts(f.section).group === "Wind") {
+    if (f.type === "number") return "w-24";
+    return f.key.endsWith("To") ? "w-22" : "w-28";
+  }
+  if (SUN_TIME_KEY.test(f.key)) return "w-32 min-w-0 max-w-40";
+  if (f.key === "word") return "w-48";
+  if (["Max temp", "Min temp"].includes(productFieldCaption(f))) return "w-36";
+  if (productFieldCaption(f) === "Rain chance") return "w-40";
+  if (["Min waves", "Max waves"].includes(productFieldCaption(f)))
+    return "w-40";
+  if (productFieldCaption(f) === "Period") return "w-28";
+  if (productFieldCaption(f) === "Swell") return "w-32";
+  if (f.type === "number") return "w-40";
+  if (f.type === "time") return "w-44";
   if (f.type === "date") return "w-40";
   if (f.type === "datetime-local") return "w-52";
   if (f.options) {
+    if (sectionParts(f.section).group === "Weather") return "w-44";
     const longest = Math.max(...f.options.map((o) => o.length));
-    if (longest <= 8) return "w-32";
-    return longest <= 16 ? "w-44" : "w-60";
+    if (longest <= 8) return "w-40";
+    return longest <= 16 ? "w-52" : "w-64";
   }
   return "w-full max-w-sm";
 }
@@ -182,6 +218,28 @@ export function formatComputedValue(value: string, type?: string) {
   if (!(value && isValid(parsed))) return value;
   return format(parsed, type === "date" ? "d MMM yyyy" : "d MMM yyyy, HH:mm");
 }
+function ForecastPeriodFields({
+  evening,
+  period,
+  children,
+}: {
+  evening: boolean;
+  period: string;
+  children: ReactNode;
+}) {
+  if (!evening) return <div className="space-y-4">{children}</div>;
+  return (
+    <div
+      aria-labelledby={`evening-${period || "tonight"}-tab`}
+      className="space-y-4"
+      id="evening-period-panel"
+      role="tabpanel"
+    >
+      {children}
+    </div>
+  );
+}
+
 function ProductEditor({
   kind,
   initial,
@@ -234,6 +292,7 @@ function ProductEditor({
   const [pdfExpanded, setPdfExpanded] = useState(false);
   const [reviewed, setReviewed] = useState(false);
   const [changeSummary, setChangeSummary] = useState("");
+  const [period, setPeriod] = useState("");
   const [message, setMessage] = useState("");
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [pending, startTransition] = useTransition();
@@ -396,6 +455,10 @@ function ProductEditor({
           <form.Field key={f.key} name={f.key}>
             {(input) => {
               const inputId = `${kind}-${f.key}`;
+              const accessibleLabel = `${productFieldLabel(f)}${f.required ? " *" : ""}`;
+              const showCaption =
+                Boolean(input.state.value?.trim()) ||
+                ["date", "time", "datetime-local"].includes(f.type ?? "");
               let control: ReactNode;
               if (f.options) {
                 control = (
@@ -403,8 +466,17 @@ function ProductEditor({
                     onValueChange={(value) => input.handleChange(value ?? "")}
                     value={input.state.value}
                   >
-                    <SelectTrigger className="w-full" id={inputId}>
-                      <SelectValue placeholder="Select…" />
+                    <SelectTrigger
+                      aria-label={accessibleLabel}
+                      className={cn(
+                        "min-w-0 flex-1 rounded-none border-0 bg-transparent pl-1.5 focus-visible:ring-0 dark:bg-transparent",
+                        showCaption && "pt-3 pb-0 leading-4"
+                      )}
+                      data-slot="input-group-control"
+                      id={inputId}
+                      title={productFieldLabel(f)}
+                    >
+                      <SelectValue placeholder={productFieldCaption(f)} />
                     </SelectTrigger>
                     <SelectContent>
                       {f.options.map((option) => (
@@ -417,33 +489,89 @@ function ProductEditor({
                 );
               } else if (f.type === "textarea") {
                 control = (
-                  <Textarea
+                  <InputGroupTextarea
+                    aria-label={accessibleLabel}
+                    className={cn("min-h-16", showCaption && "pt-5")}
                     id={inputId}
                     maxLength={12_000}
                     onChange={(e) => input.handleChange(e.target.value)}
-                    rows={4}
+                    placeholder={productFieldCaption(f)}
+                    rows={2}
+                    title={productFieldLabel(f)}
+                    value={input.state.value ?? ""}
+                  />
+                );
+              } else if (f.type === "number") {
+                control = (
+                  <ProductNumberInput
+                    field={f}
+                    id={inputId}
+                    onChange={input.handleChange}
                     value={input.state.value ?? ""}
                   />
                 );
               } else {
                 control = (
-                  <Input
+                  <InputGroupInput
+                    aria-label={accessibleLabel}
+                    className={showCaption ? "pt-3 pb-0 leading-4" : undefined}
                     id={inputId}
                     maxLength={12_000}
                     onChange={(e) => input.handleChange(e.target.value)}
-                    step={f.type === "number" ? "any" : undefined}
+                    placeholder={productFieldCaption(f)}
+                    title={productFieldLabel(f)}
                     type={f.type ?? "text"}
                     value={input.state.value ?? ""}
                   />
                 );
               }
               return (
-                <Field className={fieldWidth(f)}>
-                  <FieldLabel htmlFor={inputId}>
-                    {f.label}
+                <Field
+                  className={cn(
+                    "gap-2 [&>[data-slot=field-label]]:flex-none",
+                    fieldWidth(f),
+                    f.type === "textarea" && "items-start"
+                  )}
+                  orientation="horizontal"
+                >
+                  <FieldLabel className="sr-only" htmlFor={inputId}>
+                    {productFieldLabel(f)}
                     {f.required ? " *" : ""}
                   </FieldLabel>
-                  {control}
+                  <InputGroup className="min-w-0 flex-1">
+                    {showCaption ? (
+                      <InputGroupAddon
+                        align="inline-start"
+                        aria-hidden="true"
+                        className="pointer-events-none absolute top-0.5 right-2 left-2 z-10 justify-start gap-1 truncate p-0 font-normal text-xs leading-3"
+                      >
+                        {productFieldCaption(f)}
+                        {f.required ? (
+                          <span className="text-destructive">*</span>
+                        ) : null}
+                      </InputGroupAddon>
+                    ) : null}
+                    {!showCaption && f.required ? (
+                      <InputGroupAddon
+                        align="inline-start"
+                        aria-hidden="true"
+                        className="pointer-events-none self-start text-destructive text-xs"
+                      >
+                        *
+                      </InputGroupAddon>
+                    ) : null}
+                    {control}
+                    {productFieldUnit(f) &&
+                    sectionParts(f.section).group !== "Wind" ? (
+                      <InputGroupAddon
+                        align="inline-end"
+                        aria-hidden="true"
+                        className="shrink-0 text-xs"
+                      >
+                        {productFieldUnit(f)}
+                      </InputGroupAddon>
+                    ) : null}
+                  </InputGroup>
                 </Field>
               );
             }}
@@ -468,8 +596,32 @@ function ProductEditor({
             <ProductDeskLayout
               archive={archive}
               editor={
-                <Card className="gap-5 p-4 sm:p-6">
+                <Card className="gap-4 p-4">
                   {controls}
+                  {kind === "evening" ? (
+                    <Tabs
+                      onValueChange={(value) => setPeriod(String(value))}
+                      value={period}
+                    >
+                      <TabsList
+                        aria-label="Evening forecast period"
+                        className="w-full"
+                        variant="line"
+                      >
+                        {PERIOD_PREFIXES.map((prefix, index) => (
+                          <TabsTrigger
+                            aria-controls="evening-period-panel"
+                            disabled={pending || disabled}
+                            id={`evening-${prefix || "tonight"}-tab`}
+                            key={prefix}
+                            value={prefix}
+                          >
+                            {index ? `Day ${index}` : "Tonight"}
+                          </TabsTrigger>
+                        ))}
+                      </TabsList>
+                    </Tabs>
+                  ) : null}
                   <DirtyState dirty={dirty} onDirty={onDirty} />
                   <AlertDialog
                     onOpenChange={setWithdrawOpen}
@@ -497,7 +649,7 @@ function ProductEditor({
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
-                  <div className="flex flex-wrap items-center justify-between gap-3 border-t pt-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
                     <div className="flex flex-wrap items-center gap-1.5">
                       <Badge variant="outline">
                         {revision ? `Revision ${revision}` : "New draft"}
@@ -577,161 +729,233 @@ function ProductEditor({
                           values={values}
                         />
                       )}
-                      {sections.map((section) => {
-                        const { group, prefix } = sectionParts(section);
-                        const k = (name: string) => parameterKey(prefix, name);
-                        const rows = tideRows[prefix] ?? 1;
-                        return (
-                          <section
-                            className="@container space-y-4 rounded-lg border p-4"
-                            key={section}
-                          >
-                            <h2 className="font-medium">
-                              {section}
-                              {DAY_SECTION.test(section) &&
-                              values[`day${section.slice(4)}Date`] ? (
-                                <span className="font-normal text-muted-foreground">
-                                  {" · "}
-                                  {formatComputedValue(
-                                    values[`day${section.slice(4)}Date`] ?? "",
-                                    "date"
-                                  )}
-                                </span>
-                              ) : null}
-                            </h2>
-                            <div className="flex flex-wrap items-end gap-4">
-                              {group === "Tides" ? (
-                                <div className="flex basis-full flex-col gap-3">
-                                  {TIDE_SLOTS.slice(0, rows).map((n) => (
-                                    <div
-                                      className="flex flex-wrap items-end gap-3"
-                                      key={n}
-                                    >
-                                      {fields
-                                        .filter((f) =>
-                                          f.key.startsWith(k(`tide${n}`))
-                                        )
-                                        .map(renderField)}
-                                      <Button
-                                        aria-label={`Remove tide ${n}${prefix ? ` (${section.split(" · ")[0]})` : ""}`}
-                                        onClick={() => removeTide(prefix, n)}
-                                        size="icon"
-                                        type="button"
-                                        variant="ghost"
-                                      >
-                                        <X />
-                                      </Button>
-                                    </div>
-                                  ))}
-                                  {rows < TIDE_SLOTS.length ? (
-                                    <Button
-                                      className="w-fit"
-                                      onClick={() =>
-                                        setTideRows((r) => ({
-                                          ...r,
-                                          [prefix]: rows + 1,
-                                        }))
-                                      }
-                                      size="sm"
-                                      type="button"
-                                      variant="outline"
-                                    >
-                                      <Plus data-icon="inline-start" />
-                                      Add tide
-                                    </Button>
+                      <ForecastPeriodFields
+                        evening={kind === "evening"}
+                        period={period}
+                      >
+                        {sections
+                          .filter(
+                            (section) =>
+                              kind !== "evening" ||
+                              sectionParts(section).prefix === period
+                          )
+                          .map((section) => {
+                            const { group, prefix } = sectionParts(section);
+                            let heading = section;
+                            if (kind === "evening" && period)
+                              heading = DAY_SECTION.test(section)
+                                ? "Weather"
+                                : group;
+                            const k = (name: string) =>
+                              parameterKey(prefix, name);
+                            const rows = tideRows[prefix] ?? 1;
+                            const sectionFields = fields
+                              .filter((f) => f.section === section)
+                              .sort(
+                                (a, b) =>
+                                  Number(a.type === "textarea") -
+                                  Number(b.type === "textarea")
+                              );
+                            return (
+                              <section
+                                aria-label={`${section} fields`}
+                                className="@container space-y-3 border-t pt-4 first:border-t-0 first:pt-0"
+                                key={section}
+                              >
+                                <h2 className="font-semibold text-sm leading-5">
+                                  {heading}
+                                  {group === "Wind" ? (
+                                    <span className="font-normal text-muted-foreground text-xs">
+                                      {" "}
+                                      · mph
+                                    </span>
                                   ) : null}
+                                  {DAY_SECTION.test(section) &&
+                                  values[`day${section.slice(4)}Date`] ? (
+                                    <span className="font-normal text-muted-foreground">
+                                      {" · "}
+                                      {formatComputedValue(
+                                        values[`day${section.slice(4)}Date`] ??
+                                          "",
+                                        "date"
+                                      )}
+                                    </span>
+                                  ) : null}
+                                </h2>
+                                <div
+                                  className={cn(
+                                    "flex flex-wrap items-end gap-2",
+                                    group === "Astronomy" &&
+                                      "grid max-w-sm grid-cols-2",
+                                    group === "Word of the day" && "items-start"
+                                  )}
+                                >
+                                  {group === "Tides" ? (
+                                    <div className="flex basis-full flex-col gap-2">
+                                      {TIDE_SLOTS.slice(0, rows).map((n) => (
+                                        <div
+                                          className="flex flex-wrap items-end gap-3"
+                                          key={n}
+                                        >
+                                          {fields
+                                            .filter((f) =>
+                                              f.key.startsWith(k(`tide${n}`))
+                                            )
+                                            .map(renderField)}
+                                          <Button
+                                            aria-label={`Remove tide ${n}${prefix ? ` (${section.split(" · ")[0]})` : ""}`}
+                                            onClick={() =>
+                                              removeTide(prefix, n)
+                                            }
+                                            size="icon-sm"
+                                            type="button"
+                                            variant="ghost"
+                                          >
+                                            <X />
+                                          </Button>
+                                        </div>
+                                      ))}
+                                      {rows < TIDE_SLOTS.length ? (
+                                        <Button
+                                          className="w-fit"
+                                          onClick={() =>
+                                            setTideRows((r) => ({
+                                              ...r,
+                                              [prefix]: rows + 1,
+                                            }))
+                                          }
+                                          size="sm"
+                                          type="button"
+                                          variant="outline"
+                                        >
+                                          <Plus data-icon="inline-start" />
+                                          Add tide
+                                        </Button>
+                                      ) : null}
+                                    </div>
+                                  ) : (
+                                    sectionFields.map(renderField)
+                                  )}
                                 </div>
-                              ) : (
-                                fields
-                                  .filter((f) => f.section === section)
-                                  .map(renderField)
-                              )}
-                            </div>
-                            {group === "Wind" &&
-                            windHint(
-                              values[k("windSpeedMin")],
-                              values[k("windSpeedMax")],
-                              values[k("windGust")]
-                            ) ? (
-                              <p className="text-muted-foreground text-xs">
-                                {windHint(
+                                {group === "Wind" &&
+                                windHint(
                                   values[k("windSpeedMin")],
                                   values[k("windSpeedMax")],
                                   values[k("windGust")]
-                                )}
-                              </p>
-                            ) : null}
-                            {group === "Marine" &&
-                            feetHint(
-                              values[k("waveHeightMin")],
-                              values[k("waveHeightMax")]
-                            ) ? (
-                              <p className="text-muted-foreground text-xs">
-                                Waves{" "}
-                                {feetHint(
+                                ) ? (
+                                  <p className="text-muted-foreground text-xs">
+                                    {windHint(
+                                      values[k("windSpeedMin")],
+                                      values[k("windSpeedMax")],
+                                      values[k("windGust")]
+                                    )}
+                                  </p>
+                                ) : null}
+                                {group === "Marine" &&
+                                metresHint(
                                   values[k("waveHeightMin")],
                                   values[k("waveHeightMax")]
-                                )}
-                                {values[k("swellHeight")]
-                                  ? ` · swell ${feetHint(values[k("swellHeight")])}`
-                                  : ""}
-                              </p>
-                            ) : null}
-                            {group === "Visibility" &&
-                            nauticalMilesHint(
-                              values[k("visibilityMin")],
-                              values[k("visibilityMax")]
-                            ) ? (
-                              <p className="text-muted-foreground text-xs">
-                                {nauticalMilesHint(
+                                ) ? (
+                                  <p className="text-muted-foreground text-xs">
+                                    Waves{" "}
+                                    {metresHint(
+                                      values[k("waveHeightMin")],
+                                      values[k("waveHeightMax")]
+                                    )}
+                                    {values[k("swellHeight")]
+                                      ? ` · swell ${metresHint(values[k("swellHeight")])}`
+                                      : ""}
+                                  </p>
+                                ) : null}
+                                {group === "Visibility" &&
+                                nauticalMilesHint(
                                   values[k("visibilityMin")],
                                   values[k("visibilityMax")]
-                                )}
-                              </p>
-                            ) : null}
-                            {legacyNote(section, values)}
-                          </section>
-                        );
-                      })}
-                      <p className="text-muted-foreground text-sm">
-                        * Required to publish. All issue and validity times use
-                        Grenada time (UTC−04:00).
-                        {isForecastKind(kind)
-                          ? " Coverage is calculated from the selected issue date. Early publications appear at their scheduled issue time. Warnings are supplied separately through CAP."
-                          : ""}
-                      </p>
-                      <Field>
-                        <FieldLabel htmlFor="change-summary">
-                          Issue / revision note
-                        </FieldLabel>
-                        <Textarea
-                          aria-describedby={
-                            revision ? "change-summary-hint" : undefined
-                          }
-                          id="change-summary"
-                          maxLength={1000}
-                          onChange={(e) => setChangeSummary(e.target.value)}
-                          value={changeSummary}
-                        />
-                        {revision > 0 ? (
-                          <p
-                            className="text-muted-foreground text-sm"
-                            id="change-summary-hint"
-                          >
-                            Required to validate and publish a saved draft,
-                            including its first publication.
-                          </p>
+                                ) ? (
+                                  <p className="text-muted-foreground text-xs">
+                                    {nauticalMilesHint(
+                                      values[k("visibilityMin")],
+                                      values[k("visibilityMax")]
+                                    )}
+                                  </p>
+                                ) : null}
+                                {legacyNote(section, values)}
+                              </section>
+                            );
+                          })}
+                      </ForecastPeriodFields>
+                      <div className="space-y-2 text-muted-foreground text-xs">
+                        <p>
+                          * Required to publish. Times: Grenada (UTC−04:00).
+                        </p>
+                        {isForecastKind(kind) ? (
+                          <details>
+                            <summary className="cursor-pointer">
+                              Forecast timing and warning sources
+                            </summary>
+                            <p className="pt-2">
+                              Validity is calculated from the issue date. Early
+                              publications enter the current forecast feed at
+                              their scheduled issue time. CAP alerts and hazard
+                              bulletins remain the official warning sources.
+                            </p>
+                          </details>
                         ) : null}
+                      </div>
+                      <Field
+                        className="items-start gap-2 [&>[data-slot=field-label]]:flex-none"
+                        orientation="horizontal"
+                      >
+                        <FieldLabel
+                          className="text-body-sm leading-body-sm"
+                          htmlFor="change-summary"
+                        >
+                          <span aria-hidden="true">Revision note:</span>
+                          <span className="sr-only">Issue / revision note</span>
+                        </FieldLabel>
+                        <FieldContent className="min-w-0 flex-1 gap-2">
+                          <InputGroup>
+                            {revision > 0 ? (
+                              <InputGroupAddon
+                                align="inline-start"
+                                aria-hidden="true"
+                                className="pointer-events-none self-start text-destructive text-xs"
+                              >
+                                *
+                              </InputGroupAddon>
+                            ) : null}
+                            <InputGroupTextarea
+                              aria-describedby={
+                                revision ? "change-summary-hint" : undefined
+                              }
+                              aria-label="Issue / revision note"
+                              id="change-summary"
+                              maxLength={1000}
+                              onChange={(e) => setChangeSummary(e.target.value)}
+                              rows={2}
+                              value={changeSummary}
+                            />
+                          </InputGroup>
+                          {revision > 0 ? (
+                            <p
+                              className="text-muted-foreground text-xs"
+                              id="change-summary-hint"
+                            >
+                              Required to validate and publish a saved draft,
+                              including its first publication.
+                            </p>
+                          ) : null}
+                        </FieldContent>
                       </Field>
                       {message ? (
                         <p
-                          className="whitespace-pre-wrap rounded-lg border p-4 text-sm"
+                          className="whitespace-pre-wrap rounded-lg border p-3 text-sm"
                           role="status"
                         >
                           {message}
                         </p>
                       ) : null}
-                      <div className="flex flex-wrap gap-3">
+                      <div className="flex flex-wrap gap-2">
                         <Button type="submit">Save draft</Button>
                         <Button
                           onClick={() => review(values)}
@@ -763,7 +987,7 @@ function ProductEditor({
                   {previewCurrent && preview ? (
                     <section
                       aria-label="Publication preview"
-                      className="space-y-5 rounded-lg border p-5"
+                      className="space-y-4 rounded-lg border p-4"
                     >
                       <p className="font-semibold text-sm">
                         Review before publication
@@ -915,9 +1139,9 @@ export function ProductDesk({
     else action();
   }
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <header className="space-y-1">
-        <h1 className="font-medium text-3xl tracking-tight">{title}</h1>
+        <h1 className="font-semibold text-2xl tracking-tight">{title}</h1>
         <p className="text-muted-foreground text-sm">
           Save a draft, check the preview, then publish. Revisions preserve the
           currently published product until you issue the update.
@@ -990,7 +1214,7 @@ export function ProductDesk({
               }}
               value={kind}
             >
-              <TabsList className="h-9 w-full justify-start overflow-x-auto rounded-lg bg-foreground/5 p-1 sm:justify-center">
+              <TabsList className="h-8 w-full justify-start overflow-x-auto rounded-lg bg-muted p-1 sm:justify-center">
                 {deskKinds.map((value) => (
                   <TabsTrigger
                     className="font-normal text-muted-foreground data-active:text-foreground"
