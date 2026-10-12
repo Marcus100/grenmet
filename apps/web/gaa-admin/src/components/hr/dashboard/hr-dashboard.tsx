@@ -3,7 +3,7 @@ import type { HrDashboardPublic } from "@barrelsgd/api-client";
 
 import { useSessionUser } from "@barrelsgd/auth";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
-import { Button, buttonVariants } from "@barrelsgd/ui/components/ui/button";
+import { buttonVariants } from "@barrelsgd/ui/components/ui/button";
 import {
   Card,
   CardContent,
@@ -20,47 +20,19 @@ import {
   DropdownMenuTrigger,
 } from "@barrelsgd/ui/components/ui/dropdown-menu";
 import { cn } from "@barrelsgd/ui/lib/utils";
-import {
-  ChevronDown,
-  FileBarChart,
-  type LucideIcon,
-  Plus,
-  ShieldCheck,
-  User,
-} from "lucide-react";
+import { format, parseISO } from "date-fns";
+import { ChevronDown, Plus } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import {
-  type Activity,
-  type Approval,
-  adminModules,
   dashboardData,
-  type Module,
   type MyRequest,
   type NewRequestItem,
   newRequestItems,
-  type OrgStat,
   type PersonIn,
   type PersonOut,
   type RequestState,
-  type Stat,
-  type Trend,
 } from "./dashboard-data";
-
-const trendClass: Record<Trend, string> = {
-  up: "text-gm-warning-green-fg",
-  down: "text-destructive",
-  flat: "text-muted-foreground",
-};
-
-const statusVariant: Record<
-  PersonOut["status"],
-  { label: string; variant: "light-info" | "light-warning" | "light-success" }
-> = {
-  leave: { label: "Scheduled away", variant: "light-info" },
-  sick: { label: "Sick", variant: "light-warning" },
-  field: { label: "Field duty", variant: "light-success" },
-};
 
 const requestState: Record<
   RequestState,
@@ -74,69 +46,10 @@ const requestState: Record<
   cancelled: { label: "Cancelled", variant: "light-info" },
 };
 
-type DashboardView = "staff" | "admin";
+const PROGRESS_STEPS = [0, 1, 2] as const;
 
-function headingFor(isAdmin: boolean, firstName: string | undefined): string {
-  if (isAdmin) {
-    return "HR overview";
-  }
-  if (firstName) {
-    return `Welcome back, ${firstName}`;
-  }
-  return "Welcome back";
-}
-
-interface SegmentOption {
-  icon?: LucideIcon;
-  id: string;
-  label: string;
-}
-
-/** Reusable segmented switcher (Staff/Admin view, On-duty/Away list, …). */
-function SegmentToggle({
-  ariaLabel,
-  onChange,
-  options,
-  size = "default",
-  value,
-}: {
-  ariaLabel: string;
-  onChange: (id: string) => void;
-  options: SegmentOption[];
-  size?: "sm" | "default";
-  value: string;
-}) {
-  return (
-    <fieldset
-      aria-label={ariaLabel}
-      className="m-0 inline-flex items-center rounded-full border bg-muted p-0.5"
-    >
-      {options.map((option) => {
-        const Icon = option.icon;
-        const active = value === option.id;
-        return (
-          <button
-            aria-pressed={active}
-            className={cn(
-              "inline-flex items-center gap-1.5 rounded-full font-medium transition-colors",
-              size === "sm" ? "px-2.5 py-0.5 text-xs" : "px-3 py-1 text-sm",
-              active
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-            key={option.id}
-            onClick={() => onChange(option.id)}
-            type="button"
-          >
-            {Icon ? (
-              <Icon className={size === "sm" ? "size-3" : "size-3.5"} />
-            ) : null}
-            {option.label}
-          </button>
-        );
-      })}
-    </fieldset>
-  );
+function firstNameOf(fullName: string | null | undefined): string | undefined {
+  return fullName?.split(" ")[0];
 }
 
 function initialsOf(name: string): string {
@@ -149,14 +62,9 @@ function initialsOf(name: string): string {
     .toUpperCase();
 }
 
-function Initials({ name, className }: { name: string; className?: string }) {
+function Initials({ name }: { name: string }) {
   return (
-    <div
-      className={cn(
-        "flex size-9 shrink-0 items-center justify-center rounded-full bg-primary/10 font-medium text-primary text-xs",
-        className
-      )}
-    >
+    <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary/10 font-medium text-primary text-xs">
       {initialsOf(name)}
     </div>
   );
@@ -174,7 +82,7 @@ function SectionCard({
   return (
     <Card className="gap-0 py-0">
       <CardHeader className="flex flex-row items-center justify-between gap-2 border-b py-3.5">
-        <CardTitle className="text-sm">{title}</CardTitle>
+        <CardTitle className="text-base">{title}</CardTitle>
         {action}
       </CardHeader>
       <CardContent className="p-0">{children}</CardContent>
@@ -182,288 +90,110 @@ function SectionCard({
   );
 }
 
-/** Compact, hairline-divided stat grid — the cells share 1px `bg-border` gutters. */
-function StatGrid({ stats }: { stats: Stat[] }) {
+function GlanceCard({
+  children,
+  title,
+}: {
+  children: React.ReactNode;
+  title: string;
+}) {
   return (
-    <div className="overflow-hidden rounded-xl border bg-border">
-      <div className="grid grid-cols-2 gap-px xl:grid-cols-4">
-        {stats.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <div className="bg-card p-4" key={stat.id}>
-              <div className="flex items-center gap-1.5 font-medium text-muted-foreground text-xs">
-                <Icon className="size-3.5" />
-                {stat.label}
-              </div>
-              <div className="mt-1.5 flex flex-wrap items-baseline gap-2 font-medium text-xl tabular-nums tracking-tight">
-                <span>
-                  {stat.value}
-                  {stat.valueSuffix ? (
-                    <span className="ml-1 font-normal text-muted-foreground text-sm">
-                      {stat.valueSuffix}
-                    </span>
-                  ) : null}
-                </span>
-                {stat.delta ? (
-                  <span
-                    className={cn(
-                      "font-semibold text-xs tabular-nums",
-                      trendClass[stat.trend ?? "flat"]
-                    )}
-                  >
-                    {stat.delta}
-                  </span>
-                ) : null}
-              </div>
-              <p className="mt-0.5 text-muted-foreground text-xs">
-                {stat.foot}
-              </p>
-            </div>
-          );
-        })}
-      </div>
-    </div>
+    <Card className="gap-3 py-5">
+      <CardHeader className="py-0">
+        <CardTitle className="font-medium text-muted-foreground text-sm">
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-2">{children}</CardContent>
+    </Card>
   );
 }
 
-function ModuleGrid({ modules }: { modules: Module[] }) {
+function GlanceLink({ href, children }: { href: string; children: string }) {
   return (
-    <div className="grid gap-3 p-4 sm:grid-cols-2 xl:grid-cols-3">
-      {modules.map((mod) => {
-        const Icon = mod.icon;
-        return (
-          <Link
-            className="group rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            href={mod.href}
-            key={mod.id}
-          >
-            <Card className="h-full gap-0 py-4 transition-colors group-hover:border-primary/40">
-              <CardContent className="px-4">
-                <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                  <Icon className="size-5" />
-                </div>
-                <div className="mt-2.5 flex items-center gap-2 font-medium text-sm">
-                  {mod.title}
-                  {mod.count ? (
-                    <Badge variant={mod.countHot ? "light-error" : "secondary"}>
-                      {mod.count}
-                    </Badge>
-                  ) : null}
-                </div>
-                <p className="mt-0.5 text-muted-foreground text-xs">
-                  {mod.description}
-                </p>
-              </CardContent>
-            </Card>
-          </Link>
-        );
-      })}
-    </div>
-  );
-}
-
-function WhosOutList({ people }: { people: PersonOut[] }) {
-  if (people.length === 0)
-    return (
-      <p className="p-4 text-muted-foreground text-sm">
-        No published time away for today.
-      </p>
-    );
-  return (
-    <ul className="divide-y divide-border">
-      {people.map((person) => {
-        const status = statusVariant[person.status];
-        return (
-          <li className="flex items-center gap-3 px-4 py-3" key={person.id}>
-            <Initials name={person.name} />
-            <div className="min-w-0 flex-1">
-              <div className="truncate font-medium text-sm">{person.name}</div>
-              <div className="truncate text-muted-foreground text-xs">
-                {person.department} · {person.note}
-              </div>
-            </div>
-            <Badge variant={status.variant}>{status.label}</Badge>
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
-function OnDutyList({ people }: { people: PersonIn[] }) {
-  if (people.length === 0)
-    return (
-      <p className="p-4 text-muted-foreground text-sm">
-        No published work shifts for today.
-      </p>
-    );
-  return (
-    <ul className="divide-y divide-border">
-      {people.map((person) => (
-        <li className="flex items-center gap-3 px-4 py-3" key={person.id}>
-          <Initials name={person.name} />
-          <div className="min-w-0 flex-1">
-            <div className="truncate font-medium text-sm">{person.name}</div>
-            <div className="truncate text-muted-foreground text-xs">
-              {person.department} · {person.shift}
-            </div>
-          </div>
-          <Badge variant={"secondary"}>Scheduled</Badge>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-/** Attendance at a glance — headline in/away split, with a per-list toggle. */
-function PresenceCard({
-  onDutyToday,
-  whosOut,
-  presenceToday,
-}: Pick<
-  ReturnType<typeof dashboardData>,
-  "onDutyToday" | "whosOut" | "presenceToday"
->) {
-  const [side, setSide] = useState<"in" | "out">("in");
-  const total = presenceToday.in + presenceToday.out;
-  const inPct = total > 0 ? Math.round((presenceToday.in / total) * 100) : 0;
-
-  return (
-    <SectionCard
-      action={
-        <Link
-          className="font-medium text-primary text-sm hover:underline"
-          href="/roster"
-        >
-          Open roster
-        </Link>
-      }
-      title="Published schedule today"
+    <Link
+      className="font-medium text-primary text-sm hover:underline"
+      href={href}
     >
-      <div className="flex flex-col gap-2.5 border-b px-4 py-3">
-        <div className="flex items-center justify-between text-sm">
-          <span>
-            <span className="font-medium tabular-nums">{presenceToday.in}</span>
-            <span className="text-muted-foreground"> on duty</span>
+      {children}
+    </Link>
+  );
+}
+
+function AtAGlance({ data }: { data: HrDashboardPublic }) {
+  const balance = data.vacation_balance;
+  const hasBalance = balance !== null && balance !== undefined;
+  return (
+    <section
+      aria-label="At a glance"
+      className="grid gap-4 md:grid-cols-2 lg:grid-cols-3"
+    >
+      <GlanceCard title="Vacation leave">
+        <p className="flex items-baseline gap-1.5">
+          <span className="font-semibold text-4xl tabular-nums tracking-tight">
+            {hasBalance ? balance : "Not recorded"}
           </span>
-          <span>
-            <span className="font-medium tabular-nums">
-              {presenceToday.out}
-            </span>
-            <span className="text-muted-foreground"> away</span>
-          </span>
-        </div>
-        <div className="flex h-1.5 overflow-hidden rounded-full bg-muted">
-          <div className="bg-primary" style={{ width: `${inPct}%` }} />
-        </div>
-      </div>
-      <div className="flex items-center justify-between border-b px-4 py-2.5">
-        <span className="font-medium text-muted-foreground text-xs">
-          {side === "in" ? "On duty" : "Away today"}
-        </span>
-        <SegmentToggle
-          ariaLabel="Show who is on duty or away"
-          onChange={(id) => setSide(id as "in" | "out")}
-          options={[
-            { id: "in", label: "On duty" },
-            { id: "out", label: "Away" },
-          ]}
-          size="sm"
-          value={side}
+          {hasBalance ? (
+            <span className="text-muted-foreground">days left</span>
+          ) : null}
+        </p>
+        <p className="text-muted-foreground text-sm">
+          {data.open_requests === 1
+            ? "1 open request"
+            : `${data.open_requests} open requests`}
+        </p>
+      </GlanceCard>
+      <GlanceCard title="Your next shift">
+        <p className="font-semibold text-xl">
+          {data.next_shift ?? "Not scheduled"}
+        </p>
+        <GlanceLink href="/roster">View roster</GlanceLink>
+      </GlanceCard>
+      <GlanceCard title="Timesheet">
+        <p className="font-semibold text-xl">Pay period hours</p>
+        <GlanceLink href="/hr/timesheet">Review hours</GlanceLink>
+      </GlanceCard>
+    </section>
+  );
+}
+
+function Progress({ step }: { step: MyRequest["step"] }) {
+  if (step === 0) {
+    return null;
+  }
+  return (
+    <ol aria-label={`Step ${step} of 3`} className="m-0 flex gap-1 p-0">
+      {PROGRESS_STEPS.map((index) => (
+        <li
+          className={cn(
+            "h-1 w-7 list-none rounded-full",
+            index < step ? "bg-primary" : "bg-muted"
+          )}
+          key={index}
         />
-      </div>
-      {side === "in" ? (
-        <OnDutyList people={onDutyToday} />
-      ) : (
-        <WhosOutList people={whosOut} />
-      )}
-    </SectionCard>
-  );
-}
-
-function ActivityList({ items }: { items: Activity[] }) {
-  if (items.length === 0)
-    return (
-      <p className="p-4 text-muted-foreground text-sm">
-        No HR activity recorded yet.
-      </p>
-    );
-  return (
-    <ul className="divide-y divide-border">
-      {items.map((item) => {
-        const Icon = item.icon;
-        return (
-          <li className="flex items-center gap-3 px-4 py-3" key={item.id}>
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
-              <Icon className="size-4" />
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="truncate font-medium text-sm">{item.title}</div>
-              <div className="truncate text-muted-foreground text-xs">
-                {item.detail}
-              </div>
-            </div>
-            <span className="shrink-0 text-muted-foreground text-xs tabular-nums">
-              {item.when}
-            </span>
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
-function ApprovalsPreview({ approvals }: { approvals: Approval[] }) {
-  if (approvals.length === 0)
-    return (
-      <p className="p-4 text-muted-foreground text-sm">
-        No requests currently need your approval.
-      </p>
-    );
-  return (
-    <ul className="divide-y divide-border">
-      {approvals.map((approval) => (
-        <li className="px-3 py-3" key={approval.id}>
-          <div className="flex items-center gap-2.5">
-            <Initials className="size-8" name={approval.name} />
-            <div className="min-w-0 flex-1">
-              <div className="truncate font-medium text-sm">
-                {approval.name}
-              </div>
-              <div className="truncate text-muted-foreground text-xs">
-                {approval.kind}
-              </div>
-            </div>
-            <span className="shrink-0 text-muted-foreground text-xs tabular-nums">
-              {approval.when}
-            </span>
-          </div>
-          <Link
-            className="mt-2.5 inline-block text-primary text-sm underline"
-            href="/hr/approvals"
-          >
-            Review request
-          </Link>
-        </li>
       ))}
-    </ul>
+    </ol>
   );
 }
 
 function MyRequestsList({ requests }: { requests: MyRequest[] }) {
-  if (requests.length === 0)
+  if (requests.length === 0) {
     return (
       <p className="p-4 text-muted-foreground text-sm">
         You have no requests yet.
       </p>
     );
+  }
   return (
     <ul className="divide-y divide-border">
       {requests.map((request) => {
         const state = requestState[request.state];
         return (
-          <li className="flex items-center gap-3 px-4 py-3" key={request.id}>
-            <div className="min-w-0 flex-1">
+          <li
+            className="flex flex-wrap items-center gap-x-4 gap-y-2 px-5 py-4"
+            key={request.id}
+          >
+            <div className="min-w-48 flex-1">
               <div className="truncate font-medium text-sm">
                 {request.title}
               </div>
@@ -471,6 +201,7 @@ function MyRequestsList({ requests }: { requests: MyRequest[] }) {
                 {request.meta}
               </div>
             </div>
+            <Progress step={request.step} />
             <Badge variant={state.variant}>{state.label}</Badge>
           </li>
         );
@@ -479,31 +210,93 @@ function MyRequestsList({ requests }: { requests: MyRequest[] }) {
   );
 }
 
-function OrgSnapshot({ stats }: { stats: OrgStat[] }) {
+function TeamToday({
+  onDuty,
+  away,
+}: {
+  onDuty: PersonIn[];
+  away: PersonOut[];
+}) {
+  const [side, setSide] = useState<"in" | "out">("in");
+  const rows =
+    side === "in"
+      ? onDuty.map((p) => ({ id: p.id, name: p.name, note: p.shift }))
+      : away.map((p) => ({ id: p.id, name: p.name, note: p.note }));
   return (
-    <ul className="divide-y divide-border">
-      {stats.map((stat) => {
-        const Icon = stat.icon;
-        return (
-          <li
-            className="flex items-center justify-between px-4 py-3"
-            key={stat.id}
+    <SectionCard
+      action={
+        <span className="text-muted-foreground text-sm">
+          {onDuty.length} on duty
+        </span>
+      }
+      title="Team today"
+    >
+      <fieldset
+        aria-label="Show who is on duty or away"
+        className="m-0 flex gap-1 border-b px-5 py-2.5"
+      >
+        {(
+          [
+            ["in", "On duty"],
+            ["out", "Away"],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            aria-pressed={side === id}
+            className={cn(
+              "rounded-full px-3 py-1 font-medium text-xs transition-colors",
+              side === id
+                ? "bg-muted text-foreground"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+            key={id}
+            onClick={() => setSide(id)}
+            type="button"
           >
-            <span className="flex items-center gap-2.5 text-muted-foreground text-sm">
-              <Icon className="size-4" />
-              {stat.label}
-            </span>
-            <span className="font-medium text-sm tabular-nums">
-              {stat.value}
-            </span>
-          </li>
-        );
-      })}
-    </ul>
+            {label}
+          </button>
+        ))}
+      </fieldset>
+      {rows.length === 0 ? (
+        <p className="p-4 text-muted-foreground text-sm">
+          {side === "in"
+            ? "No published work shifts for today."
+            : "No published time away for today."}
+        </p>
+      ) : (
+        <ul className="flex flex-col gap-3 p-5">
+          {rows.map((row) => (
+            <li className="flex items-center gap-2.5" key={row.id}>
+              <Initials name={row.name} />
+              <span className="flex-1 truncate text-sm">{row.name}</span>
+              <span className="text-muted-foreground text-xs">{row.note}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </SectionCard>
   );
 }
 
-function NewRequestItemRow({ item }: { item: NewRequestItem }) {
+function ApprovalsCallout({ count }: { count: number }) {
+  return (
+    <section className="flex flex-col gap-2 rounded-xl bg-primary-soft p-5">
+      <h2 className="font-semibold text-base">
+        {count === 0
+          ? "Nothing needs your approval"
+          : `${count} ${count === 1 ? "request needs" : "requests need"} your approval`}
+      </h2>
+      <Link
+        className="font-semibold text-primary text-sm hover:underline"
+        href="/hr/approvals"
+      >
+        Open approvals →
+      </Link>
+    </section>
+  );
+}
+
+function OtherFormsItem({ item }: { item: NewRequestItem }) {
   const Icon = item.icon;
   return (
     <DropdownMenuItem
@@ -523,16 +316,18 @@ function NewRequestItemRow({ item }: { item: NewRequestItem }) {
   );
 }
 
-/** "New request" launcher — the forms/records live here, not on the dashboard. */
-function NewRequestMenu() {
-  const requests = newRequestItems.filter((item) => item.group === "request");
+/** Secondary launcher — leave is the one primary action on Home. */
+function OtherFormsMenu() {
+  const requests = newRequestItems.filter(
+    (item) => item.group === "request" && item.id !== "leave"
+  );
   const records = newRequestItems.filter((item) => item.group === "record");
-
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger render={<Button size="lg" />}>
-        <Plus />
-        New request
+      <DropdownMenuTrigger
+        className={cn(buttonVariants({ size: "lg", variant: "outline" }))}
+      >
+        Other forms
         <ChevronDown className="opacity-70" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
@@ -541,7 +336,7 @@ function NewRequestMenu() {
             Requests
           </DropdownMenuLabel>
           {requests.map((item) => (
-            <NewRequestItemRow item={item} key={item.id} />
+            <OtherFormsItem item={item} key={item.id} />
           ))}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
@@ -550,7 +345,7 @@ function NewRequestMenu() {
             Records
           </DropdownMenuLabel>
           {records.map((item) => (
-            <NewRequestItemRow item={item} key={item.id} />
+            <OtherFormsItem item={item} key={item.id} />
           ))}
         </DropdownMenuGroup>
       </DropdownMenuContent>
@@ -559,121 +354,41 @@ function NewRequestMenu() {
 }
 
 export function HrDashboard({ data }: { data: HrDashboardPublic }) {
-  const {
-    staffStats,
-    adminStats,
-    myRequests,
-    recentActivity,
-    onDutyToday,
-    whosOut,
-    pendingApprovals,
-    orgStats,
-    presenceToday,
-  } = dashboardData(data);
+  const { myRequests, onDutyToday, whosOut, pendingCount } =
+    dashboardData(data);
   const user = useSessionUser();
-  const [view, setView] = useState<DashboardView>("staff");
-  const isAdminView = data.can_approve && view === "admin";
-  const firstName = user.full_name?.split(" ")[0];
+  const firstName = firstNameOf(user.full_name);
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Header */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="font-semibold text-muted-foreground text-xs uppercase tracking-wider">
-            Human Resources
+          <p className="text-muted-foreground text-sm">
+            {format(parseISO(data.date), "EEEE, d MMMM")}
           </p>
           <h1 className="mt-1 font-semibold text-2xl tracking-tight">
-            {headingFor(isAdminView, firstName)}
+            {firstName ? `Welcome back, ${firstName}` : "Welcome back"}
           </h1>
-          <p className="text-muted-foreground text-sm">
-            {isAdminView
-              ? "Approvals, published roster and recorded staff."
-              : "Your requests, roster and HR forms — all in one place."}
-          </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {data.can_approve && (
-            <SegmentToggle
-              ariaLabel="Switch view"
-              onChange={(id) => setView(id as DashboardView)}
-              options={[
-                { id: "staff", label: "Staff", icon: User },
-                { id: "admin", label: "Admin", icon: ShieldCheck },
-              ]}
-              value={view}
-            />
-          )}
-          {isAdminView ? (
-            <Link
-              className={cn(buttonVariants({ size: "lg", variant: "outline" }))}
-              href="/hr/reports"
-            >
-              <FileBarChart />
-              Reports
-            </Link>
-          ) : null}
-          <NewRequestMenu />
+          <OtherFormsMenu />
+          <Link className={cn(buttonVariants({ size: "lg" }))} href="/hr/leave">
+            <Plus />
+            Request leave
+          </Link>
         </div>
       </div>
 
-      {/* Stat strip — org metrics in the admin view, personal in the staff view */}
-      <StatGrid stats={isAdminView ? adminStats : staffStats} />
+      <AtAGlance data={data} />
 
-      {/* Main + rail */}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_336px]">
-        <div className="flex flex-col gap-6">
-          {isAdminView ? (
-            <SectionCard
-              action={
-                <Link
-                  className="font-medium text-primary text-sm hover:underline"
-                  href="/hr-setup"
-                >
-                  Settings
-                </Link>
-              }
-              title="Manage"
-            >
-              <ModuleGrid modules={adminModules} />
-            </SectionCard>
-          ) : null}
+        <SectionCard title="Your requests">
+          <MyRequestsList requests={myRequests} />
+        </SectionCard>
 
-          <PresenceCard
-            onDutyToday={onDutyToday}
-            presenceToday={presenceToday}
-            whosOut={whosOut}
-          />
-
-          <SectionCard title="Recent activity">
-            <ActivityList items={recentActivity} />
-          </SectionCard>
-        </div>
-
-        <aside className="flex flex-col gap-6">
-          {isAdminView ? (
-            <SectionCard
-              action={
-                <Link
-                  className="font-medium text-primary text-sm hover:underline"
-                  href="/hr/approvals"
-                >
-                  All ({pendingApprovals.length})
-                </Link>
-              }
-              title="Approvals inbox"
-            >
-              <ApprovalsPreview approvals={pendingApprovals} />
-            </SectionCard>
-          ) : (
-            <SectionCard title="My requests">
-              <MyRequestsList requests={myRequests} />
-            </SectionCard>
-          )}
-
-          <SectionCard title={`Organisation · ${data.scope}`}>
-            <OrgSnapshot stats={orgStats} />
-          </SectionCard>
+        <aside className="flex flex-col gap-4">
+          <TeamToday away={whosOut} onDuty={onDutyToday} />
+          {data.can_approve ? <ApprovalsCallout count={pendingCount} /> : null}
         </aside>
       </div>
     </div>

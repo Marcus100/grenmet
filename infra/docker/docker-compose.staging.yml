@@ -83,7 +83,10 @@ services:
     depends_on:
       prestart:
         condition: service_completed_successfully
+    volumes:
+      - nhc-archive:/app/nhc-archive:ro
     environment:
+      WXWATCH_LOCAL_ASSET_ROOTS: '{"nhc-local":"/app/nhc-archive"}'
       WXWATCH_INGEST_TOKEN: ${WXWATCH_INGEST_TOKEN:-}
       WXPRODUCTS_DATABASE_URL: ${WXPRODUCTS_DB_URL:?WXPRODUCTS_DB_URL required}
       WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL:?WXWATCH_DB_URL required}
@@ -168,7 +171,49 @@ services:
     networks:
       - grenmet-staging
 
+  # Dedicated manual NHC collection and grid-query worker.
+  nhc-worker:
+    image: ${REGISTRY}/${IMAGE_NAME}:${TAG}
+    restart: always
+    depends_on:
+      prestart:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    command: arq src.worker.nhc.NhcWorkerSettings
+    healthcheck:
+      test: ["CMD", "arq", "--check", "src.worker.nhc.NhcWorkerSettings"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    volumes:
+      - nhc-archive:/app/nhc-archive
+    environment:
+      WXWATCH_NHC_ROOT: /app/nhc-archive
+      WXWATCH_DATABASE_URL: ${WXWATCH_DB_URL:?WXWATCH_DB_URL required}
+      POSTGRES_SERVER: db
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      SECRET_KEY: ${SECRET_KEY}
+      FIRST_SUPERUSER: ${FIRST_SUPERUSER}
+      FIRST_SUPERUSER_PASSWORD: ${FIRST_SUPERUSER_PASSWORD}
+      ENVIRONMENT: ${ENVIRONMENT}
+      PROJECT_NAME: ${PROJECT_NAME}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      STORAGE_ENDPOINT_URL: ${STORAGE_ENDPOINT_URL:-}
+      STORAGE_REGION: ${STORAGE_REGION:-}
+      STORAGE_BUCKET: ${STORAGE_BUCKET:-}
+      STORAGE_ACCESS_KEY_ID: ${STORAGE_ACCESS_KEY_ID:-}
+      STORAGE_SECRET_ACCESS_KEY: ${STORAGE_SECRET_ACCESS_KEY:-}
+      STORAGE_PUBLIC_BASE_URL: ${STORAGE_PUBLIC_BASE_URL:-}
+    networks:
+      - grenmet-staging
+
   # ── Web Apps ─────────────────────────────────────────────────────────────────
+
   web-auth:
     image: ghcr.io/${GHCR_OWNER}/grenmet-web-auth:${WEB_TAG:-staging}
     restart: always
@@ -348,6 +393,7 @@ networks:
     driver: bridge
 
 volumes:
+  nhc-archive:
   pgdata-staging:
   traefik-certificates-staging:
   redis-data-staging:

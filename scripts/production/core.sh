@@ -89,7 +89,7 @@ printf "%s\n" "Start applications only after migration success"
 set -euo pipefail
 # Allow the admin's 120s start period and five 30s probe intervals to finish.
 # Staging's worker recovered just after the former 180s deadline on 2026-10-06.
-docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --no-deps --wait --wait-timeout 300 api worker web-auth web-admin web-cms web-docs web-gms web-signal web-mbia web-events proxy
+docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --no-deps --wait --wait-timeout 300 api worker nhc-worker web-auth web-admin web-cms web-docs web-gms web-signal web-mbia web-events proxy
 
 printf "%s\n" "Required external readiness and functional smoke"
 set -euo pipefail

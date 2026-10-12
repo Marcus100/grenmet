@@ -14,7 +14,9 @@ def publication_label(source: ProductPdfSource) -> str:
     return "PUBLISHED ISSUE"
 
 
-def render_product_pdf(source: ProductPdfSource) -> bytes:
+def render_product_pdf(
+    source: ProductPdfSource, *, graphic_images: dict[str, str] | None = None
+) -> bytes:
     """Every product kind has a GMS sheet; saved revisions are archival PDF/A."""
     return forecast_pdf.render_sheet_pdf(
         source.kind,
@@ -25,4 +27,6 @@ def render_product_pdf(source: ProductPdfSource) -> bytes:
             f"{source.recorded_at:%Y-%m-%d %H:%M} UTC"
         ),
         archival=True,
+        guidance=source.guidance,
+        graphic_images=graphic_images,
     )

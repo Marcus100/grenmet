@@ -9,7 +9,7 @@ from datetime import UTC, datetime
 from email.utils import parsedate_to_datetime
 from urllib.error import HTTPError
 
-from . import discovery, registry, text
+from . import discovery, facts, registry, text
 from .download import Downloader
 from .storage import artifact_key, atomic_json, read_json, utc_now
 
@@ -87,7 +87,13 @@ def is_stale(record):
     return age > limit * 3600 or age < -3600
 
 
-def collect(root, groups, bbox=registry.DEFAULT_BBOX, downloader_factory=Downloader):
+def collect(
+    root,
+    groups,
+    bbox=registry.DEFAULT_BBOX,
+    downloader_factory=Downloader,
+    families=None,
+):
     root.mkdir(parents=True, exist_ok=True)
     with (root / ".collector.lock").open("a") as lock:
         try:
@@ -115,6 +121,20 @@ def collect(root, groups, bbox=registry.DEFAULT_BBOX, downloader_factory=Downloa
 
         while queue:
             product = queue.pop(0)
+            bootstrap = product.kind in {
+                "storms",
+                "outlook",
+                "gis-feed",
+                "graphics-feed",
+                "storm-page",
+                "grid-index",
+            }
+            if (
+                families
+                and not bootstrap
+                and facts.family(asdict(product)) not in families
+            ):
+                continue
             if product.id in attempted:
                 continue
             if len(attempted) >= 500:
@@ -152,6 +172,21 @@ def collect(root, groups, bbox=registry.DEFAULT_BBOX, downloader_factory=Downloa
                         bbox,
                         metadata,
                     )
+                    result["structured"] = facts.extract(result)
+                    if result.get("text"):
+                        result["header_issued_at"] = text.issue_time(
+                            result["text"],
+                            result.get("issued_at") or metadata["retrieved_at"],
+                        )
+                    if result.get("text"):
+                        result.update(
+                            text.analysis_times(
+                                result["text"],
+                                result.get("header_issued_at")
+                                or result.get("issued_at")
+                                or product.issued_at,
+                            )
+                        )
                     if result.get("text"):
                         destination.mkdir(parents=True, exist_ok=True)
                         (destination / "bulletin.txt").write_text(
@@ -167,18 +202,6 @@ def collect(root, groups, bbox=registry.DEFAULT_BBOX, downloader_factory=Downloa
                     issued_at=result.get("issued_at") or product.issued_at,
                     decoded_source_sha256=metadata["sha256"],
                 )
-                if product.kind == "grid":
-                    records = result.get("records", [])
-                    if records and records[0].get("dataDate") is not None:
-                        cycle = (
-                            str(records[0]["dataDate"])
-                            + f"{int(records[0]['dataTime']):04d}"
-                        )
-                        record["issued_at"] = (
-                            datetime.strptime(cycle, "%Y%m%d%H%M")
-                            .replace(tzinfo=UTC)
-                            .isoformat()
-                        )
                 record["stale"] = is_stale(record)
                 if product.kind == "storms":
                     storm_list = result["storms"]
@@ -276,6 +299,7 @@ def collect(root, groups, bbox=registry.DEFAULT_BBOX, downloader_factory=Downloa
             changed = False
             for key, record in list(products.items()):
                 parent = products.get(record.get("parent_id"), {})
+                selected_family = not families or facts.family(record) in families
                 removed = (
                     record.get("parent_id") in outcomes
                     and parent.get("status") == "success"
@@ -283,6 +307,7 @@ def collect(root, groups, bbox=registry.DEFAULT_BBOX, downloader_factory=Downloa
                 )
                 if (
                     record.get("group") in groups
+                    and selected_family
                     and record.get("active", True)
                     and parent
                     and (removed or parent.get("active") is False)
@@ -295,6 +320,7 @@ def collect(root, groups, bbox=registry.DEFAULT_BBOX, downloader_factory=Downloa
             if (
                 record.get("group") == "charts"
                 and "charts" in groups
+                and (not families or facts.family(record) in families)
                 and key not in attempted
             ):
                 products[key] = {**record, "active": False, "status": "inactive"}
@@ -311,6 +337,7 @@ def collect(root, groups, bbox=registry.DEFAULT_BBOX, downloader_factory=Downloa
             "schema_version": 2,
             "run_id": run_id,
             "groups": sorted(groups),
+            "families": sorted(families) if families else None,
             "bbox": list(bbox),
             "status": "partial" if errors else "success",
             "errors": errors,

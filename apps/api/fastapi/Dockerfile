@@ -26,8 +26,8 @@ RUN apt-get update \
 # uid 1000 matches the host user, keeping bind-mounted source writable.
 RUN groupadd -r appuser \
     && useradd -r -g appuser -u 1000 -m appuser \
-    && mkdir -p /app /home/appuser/.cache/uv \
-    && chown appuser:appuser /app \
+    && mkdir -p /app/nhc-archive /home/appuser/.cache/uv \
+    && chown appuser:appuser /app /app/nhc-archive \
     && chown -R appuser:appuser /home/appuser/.cache
 
 USER appuser
@@ -49,6 +49,7 @@ RUN --mount=type=cache,target=/home/appuser/.cache/uv,uid=1000,gid=1000 \
 
 # Copy application code
 WORKDIR /app/apps/api/fastapi
+COPY --chown=appuser:appuser scripts/gms-ingest /app/scripts/gms-ingest
 COPY --chown=appuser:appuser apps/api/fastapi/src ./src
 COPY --chown=appuser:appuser apps/api/fastapi/alembic ./alembic
 COPY --chown=appuser:appuser apps/api/fastapi/alembic.ini ./alembic.ini
@@ -58,7 +59,7 @@ COPY --chown=appuser:appuser apps/api/fastapi/seed ./seed
 
 # Install the FastAPI workspace member now that its source is present.
 RUN --mount=type=cache,target=/home/appuser/.cache/uv,uid=1000,gid=1000 \
-    uv sync --frozen --package fast-back
+    uv sync --frozen --package fast-back --package gms-ingest
 
 # Expose port (8000 is standard)
 EXPOSE 8000

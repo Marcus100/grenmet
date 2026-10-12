@@ -4,8 +4,10 @@
  */
 
 import type { LegacyProductPreviewPropertiesKindEnum } from "./LegacyProductPreviewPropertiesKindEnum.js";
+import type { ProductGuidance } from "./ProductGuidance.js";
 
 export type LegacyStoredProduct = {
+  guidance?: ProductGuidance | null;
   /**
    * @description
    * Format: `uuid`

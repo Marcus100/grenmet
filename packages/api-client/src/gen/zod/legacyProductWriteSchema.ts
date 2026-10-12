@@ -6,8 +6,10 @@
 import * as z from "zod";
 import { legacyProductPreviewPropertiesKindEnumSchema } from "./legacyProductPreviewPropertiesKindEnumSchema.js";
 import { legacyProductWritePropertiesActionEnumSchema } from "./legacyProductWritePropertiesActionEnumSchema.js";
+import { productGuidanceSchema } from "./productGuidanceSchema.js";
 
 export const legacyProductWriteSchema = z.strictObject({
+  guidance: z.union([productGuidanceSchema, z.null()]).optional(),
   id: z.uuid(),
   expectedRevision: z.int().min(0),
   values: z.record(z.string(), z.string().max(12000)),

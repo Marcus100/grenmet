@@ -102,6 +102,24 @@ class PipelineTests(unittest.TestCase):
         )
         self.assertTrue((historic / "normalized.json").exists())
 
+    def test_family_selection_preserves_unselected_products(self):
+        self.run_collection()
+        previous = storage.read_json(self.root / "latest.json")["products"]["twdat"]
+        FixtureDownloader.data["twdat"] = URLError("must not request unselected family")
+        success, run = collector.collect(
+            self.root,
+            {"text", "storms"},
+            downloader_factory=FixtureDownloader,
+            families={"marine"},
+        )
+        self.assertTrue(success)
+        manifest = storage.read_json(run / "manifest.json")
+        self.assertNotIn("twdat", manifest["products"])
+        self.assertIn("offnt3", manifest["products"])
+        self.assertEqual(
+            storage.read_json(self.root / "latest.json")["products"]["twdat"], previous
+        )
+
     def test_raw_survives_decode_failure(self):
         FixtureDownloader.data["twdat"] = b"<html>Not a feed</html>"
         self.assertFalse(self.run_collection()[0])

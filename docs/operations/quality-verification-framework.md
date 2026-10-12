@@ -2,7 +2,12 @@
 
 **Status:** Draft  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-08-19
+**Last updated:** 2026-10-12
+
+The targets below are proposed operational goals, not WMO-mandated thresholds
+or evidence that collection and scoring are implemented. The
+[public forecast quality audit](forecast-quality.md) records the current
+validation and observation-verification boundary.
 
 | Field | Detail |
 |---|---|
@@ -59,8 +64,8 @@ Every metric should eventually be generated automatically from operational data 
 
 | Product | Schedule | On-time window |
 |---|---|---|
-| Daily Public Forecast | 0600 and 1800 AST | ±15 minutes |
-| Marine Forecast | 0600 AST | ±15 minutes |
+| Public Forecasts | 0700, 1200 and 1800 AST | ±15 minutes (proposed) |
+| Marine Forecast | 0500 AST | ±15 minutes (proposed) |
 | TAF | Per operational agreement | ±5 minutes |
 | METAR | Every 30/60 minutes | ±2 minutes |
 

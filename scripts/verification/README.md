@@ -47,9 +47,10 @@ credentials. Backend database creation/teardown requires an administrative role
 on the disposable instance; ordinary application roles should remain restricted.
 Backend uses two workers by default; set `TEST_WORKERS` to measured capacity.
 Coverage and JUnit reports are written under `apps/api/fastapi/`.
-Backend verification uses an isolated uv environment, preserving the development
-`.venv` even when host and devcontainer interpreter paths differ. Dependencies
-come from the frozen lockfile and can reuse uv's download cache.
+Backend verification creates and cleans up its own temporary uv environment,
+preserving the development `.venv` even when host and devcontainer interpreter
+paths differ. It installs the API and GMS collector together for NHC acceptance,
+using the frozen lockfile and uv's download cache.
 
 The shared database helper assigns a run identifier before importing application
 settings and extends it with the worker identifier. Operations must match that

@@ -44,6 +44,8 @@ geonetcast/*
 !scripts/gms-ingest/
 scripts/gms-ingest/*
 !scripts/gms-ingest/pyproject.toml
+!scripts/gms-ingest/src/
+!scripts/gms-ingest/src/**
 
 # Keep local caches, secrets and runtime artifacts out of every build.
 **/node_modules/

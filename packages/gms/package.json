@@ -23,7 +23,8 @@
   },
   "dependencies": {
     "@barrelsgd/ui": "workspace:*",
-    "class-variance-authority": "catalog:"
+    "class-variance-authority": "catalog:",
+    "@barrelsgd/api-client": "workspace:*"
   },
   "peerDependencies": {
     "next": "*",

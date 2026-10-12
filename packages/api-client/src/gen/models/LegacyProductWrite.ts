@@ -5,8 +5,10 @@
 
 import type { LegacyProductPreviewPropertiesKindEnum } from "./LegacyProductPreviewPropertiesKindEnum.js";
 import type { LegacyProductWritePropertiesActionEnum } from "./LegacyProductWritePropertiesActionEnum.js";
+import type { ProductGuidance } from "./ProductGuidance.js";
 
 export type LegacyProductWrite = {
+  guidance?: ProductGuidance | null;
   /**
    * @description
    * Format: `uuid`
