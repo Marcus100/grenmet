@@ -22,7 +22,7 @@ Signing out of one app leaves the others signed in; "sign out everywhere" ends a
 
 ## Flow
 
-```
+```text
 app (no cookie) ─► app /auth/start        sets host-only state cookie (10 min)
                 ─► auth /continue?app&state&returnTo
 auth: account session valid + eligible?

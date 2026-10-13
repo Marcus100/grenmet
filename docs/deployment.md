@@ -153,13 +153,13 @@ A wildcard record is simplest if your provider supports it:
 
 **Staging:**
 
-```
+```text
 *.staging.barrels.gd  →  <staging droplet IP>   (A record, TTL 300)
 ```
 
 **Production:**
 
-```
+```text
 *.barrels.gd          →  <production droplet IP>  (A record, TTL 300)
 ```
 

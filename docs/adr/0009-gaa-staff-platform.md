@@ -113,7 +113,7 @@ Role assignment today is `(user, role, scope)` where scope is
 dimension, so it cannot express any of the above. Reaching this model means role
 assignment becomes:
 
-```
+```text
 (user, organisation, application, role, scope)
 ```
 

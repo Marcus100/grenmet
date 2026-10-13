@@ -35,7 +35,7 @@ Consumes FastAPI HR + Auth endpoints via `@barrelsgd/api-client`. Initialised in
 
 ## Route groups
 
-```
+```text
 src/app/
   (admin)/           ← main authenticated layout (AppSidebar + AppHeader)
     page.tsx         ← GMS operations dashboard (live panels in `_components/`)

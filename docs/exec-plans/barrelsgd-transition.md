@@ -70,7 +70,7 @@ ownership.
 
 The organisational hierarchy the naming must reflect:
 
-```
+```text
 Barrels Grenada                       software company, owns this repository
 └── GAA                               client organisation
     ├── GMS                           meteorological department  → weather.gd

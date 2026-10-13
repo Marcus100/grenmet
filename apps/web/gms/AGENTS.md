@@ -40,7 +40,7 @@ No DB access. Two backends, never gaa-admin (it only authors into FastAPI):
 Seven sections, one URL root each (Bold sky IA, 28 Sep 2026; Warnings became
 Alerts and moved first on 29 Sep): `/alerts`, `/weather`, `/marine`, `/climate`, `/services`, `/explore`, `/about`.
 
-```
+```text
 src/app/
   (weather)/                     ← takeover + sky hero + day strip
     layout.tsx

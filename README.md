@@ -11,7 +11,7 @@ inventory, backend boundaries, and a source-linked HR dashboard walkthrough.
 
 ## Workspace Layout
 
-```
+```text
 barrelsgd/
 ├── apps/                       # Application code
 │   ├── api/
@@ -82,13 +82,13 @@ pnpm start
 pnpm dev
 ```
 
-- **API Swagger**: http://localhost:8000/swagger
-- **API ReDoc**: http://localhost:8000/redoc
-- **API Scalar**: http://localhost:8000/scalar
-- **OpenAPI JSON**: http://localhost:8000/api/v1/openapi.json
-- **Health Check**: http://localhost:8000/api/v1/utils/health-check/
-- **Adminer**: http://localhost:8080
-- **MailCatcher**: http://localhost:1080
+- **API Swagger**: <http://localhost:8000/swagger>
+- **API ReDoc**: <http://localhost:8000/redoc>
+- **API Scalar**: <http://localhost:8000/scalar>
+- **OpenAPI JSON**: <http://localhost:8000/api/v1/openapi.json>
+- **Health Check**: <http://localhost:8000/api/v1/utils/health-check/>
+- **Adminer**: <http://localhost:8080>
+- **MailCatcher**: <http://localhost:1080>
 
 For all available scripts, see [Scripts](#scripts) below.
 

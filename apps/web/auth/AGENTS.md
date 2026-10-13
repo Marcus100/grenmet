@@ -13,7 +13,7 @@ This IS the auth app — it does not delegate to itself. It integrates directly 
 
 ## Routes
 
-```
+```text
 src/app/
   page.tsx                        ← sign-in form
   signup/page.tsx

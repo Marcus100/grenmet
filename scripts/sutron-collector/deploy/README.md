@@ -8,7 +8,7 @@ production**. Nothing here touches `/home/data/Sutron_Linux`.
 Only one process can hold `/dev/ttyS1`. Legacy's cron opens it **23 times an
 hour**, not the 6 its code suggests:
 
-```
+```bash
 00 02 05 09 10 12 15 19 20 22 25 29 30 35 40 44 45 49 50 52 54 56 58
 ```
 

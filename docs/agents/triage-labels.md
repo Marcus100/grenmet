@@ -20,10 +20,10 @@ When a skill mentions a role (e.g. "apply the AFK-ready triage label"), use the 
 
 ## Agent workflow labels
 
-| Label           | Meaning                                                                 |
-| --------------- | ----------------------------------------------------------------------- |
-| `friction`      | Something an agent worked around; filed by the `file-friction` skill     |
-| `agent-claimed` | An agent is working on it now; others skip it (see `routines.md`)        |
+| Label                                    | Meaning                                                                  |
+| ---------------------------------------- | ------------------------------------------------------------------------ |
+| `friction`                               | Something an agent worked around; filed by the `file-friction` skill     |
+| `agent-claimed`                          | An agent is working on it now; others skip it (see `routines.md`)        |
 | `risk:low`, `risk:standard`, `risk:high` | PR risk tier from `scripts/guardrails/risk-tier.mjs`; high needs a human |
 
 A `friction` issue starts as `needs-triage`. `/triage` promotes it to

@@ -4,7 +4,7 @@ MJML email templates for the FastAPI application.
 
 ## Structure
 
-```
+```text
 email-templates/
 ├── src/              ← MJML source files (edit these)
 │   ├── new_account.mjml
