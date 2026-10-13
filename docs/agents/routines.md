@@ -75,3 +75,27 @@ routine files issues only; it makes no code changes).
    breadcrumbs: the repo is public.
 5. Finish with a summary of issues filed and commented.
 ```
+
+## Weekly cleanup
+
+Schedule: Wednesdays 02:00 America/Grenada. Cap: **1 PR per run**, at most 10 files.
+
+```text
+You are the weekly cleanup agent for Marcus100/grenmet. Read AGENTS.md and
+docs/agents/routines.md, and follow "Shared rules for every routine".
+
+1. Run `pnpm knip:unused` and list the unused files.
+2. Pick one coherent group of at most 10 files (for example one app, or one
+   family such as unused icons). For each file confirm it is truly unused:
+   `git grep -n "<basename without extension>"` across apps and packages, and
+   check dynamic imports, MDX, CSS `@import`, config files and docs references.
+   Skip anything with a reference you cannot explain, and anything under
+   `surface/`, `wis2box/`, `packages/api-client/src/gen/` or `.claude/`.
+3. Delete the confirmed files, then run the full `/commit` gates. If a type check
+   or test fails because of a deletion, restore that file and leave it out.
+4. Open one PR to dev titled `chore(<scope>): remove unused <thing>`. List every
+   deleted file and the evidence it was unused. Label it with its risk tier.
+5. Run `pnpm knip` as well and file at most 2 `friction` issues for unused
+   dependencies or exports worth a human decision; do not change them yourself.
+6. Finish with a summary of files removed and files skipped, with reasons.
+```
