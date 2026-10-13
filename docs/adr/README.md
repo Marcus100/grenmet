@@ -24,6 +24,9 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0016](0016-app-scoped-accounts-and-sessions.md) | App-scoped accounts and sessions: shared accounts, per-app sign-in, cookie and access |
 | [0017](0017-single-sign-on-handoff.md) | Proposed: single sign-on handoff between app-scoped sessions |
 | [0018](0018-modular-access-and-onboarding.md) | Modular access and administrator-mediated staff onboarding |
+| [0019](0019-workspace-toolchain-baseline.md) | Workspace toolchain baseline |
+| [0020](0020-feature-flags-with-success-metrics.md) | Proposed: feature flags with success metrics |
+| [0021](0021-timed-recovery-drill.md) | Proposed: monthly timed recovery drill |
 
 ## Template
 
