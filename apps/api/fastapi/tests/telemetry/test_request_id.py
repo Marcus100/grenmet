@@ -57,6 +57,10 @@ async def test_a_malformed_incoming_id_is_replaced(
 async def test_the_request_log_line_names_the_id(
     client: httpx.AsyncClient, caplog: pytest.LogCaptureFixture
 ) -> None:
+    # Bootstrapping the test database runs Alembic's fileConfig, which disables
+    # loggers that already exist; re-enable ours so this test is order-independent.
+    request_logger = logging.getLogger("src.request")
+    request_logger.disabled = False
     with caplog.at_level(logging.INFO, logger="src.request"):
         response = await client.get(HEALTH)
     request_id = response.headers[REQUEST_ID_HEADER]
