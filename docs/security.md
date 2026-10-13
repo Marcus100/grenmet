@@ -83,7 +83,6 @@ The following are not globally implemented yet:
 - Mandatory MFA for privileged accounts and encryption of stored TOTP secrets. TOTP, recovery codes and app-scoped SSO already exist.
 - Verification of deployed Redis-backed rate limiting configuration; the implementation already supports Redis.
 - WAF or bot-protection layer.
-- Request ID or correlation ID middleware.
 - Formal backup restore drill evidence.
 - Formal data retention and deletion policy in code.
 

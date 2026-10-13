@@ -12,6 +12,8 @@ import os
 
 from pythonjsonlogger.json import JsonFormatter
 
+from src.request_context import RequestIdFilter
+
 
 class _DatadogFormatter(JsonFormatter):
     """JSON formatter that includes ddtrace context fields when present."""
@@ -23,6 +25,9 @@ class _DatadogFormatter(JsonFormatter):
         message_dict: dict[str, object],
     ) -> None:
         super().add_fields(log_record, record, message_dict)
+        request_id = record.__dict__.get("request_id")
+        if request_id and request_id != "-":
+            log_record["request_id"] = request_id
         # ddtrace injects these onto the LogRecord when DD_LOGS_INJECTION=true
         for field in (
             "dd.trace_id",
@@ -46,11 +51,12 @@ def configure_logging(level: str = "INFO") -> None:
     log_level = getattr(logging, os.getenv("LOG_LEVEL", level).upper(), logging.INFO)
 
     handler = logging.StreamHandler()
+    handler.addFilter(RequestIdFilter())
 
     if log_format == "text":
         handler.setFormatter(
             logging.Formatter(
-                "%(asctime)s %(levelname)s [%(name)s] %(message)s",
+                "%(asctime)s %(levelname)s [%(name)s] [%(request_id)s] %(message)s",
                 datefmt="%Y-%m-%dT%H:%M:%S",
             )
         )

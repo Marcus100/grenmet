@@ -9,7 +9,10 @@ import { fileURLToPath } from "node:url";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const API = "apps/api/fastapi/";
-const UV = ["uv", "run", "--frozen", "--package", "fast-back"];
+// Mirrors ci-api.yml: sync the API with the GMS collector once, then run every
+// tool with --no-sync so none of them re-syncs the collector away (mypy needs it).
+const API_SYNC = "uv sync --frozen --package fast-back --package gms-ingest";
+const UV_RUN = "uv run --no-sync --package fast-back";
 // Files Biome formats; everything else is ignored by `ultracite check`.
 const BIOME = /\.(?:[cm]?[jt]sx?|json|jsonc|css|graphql)$/;
 const CONTRACT =
@@ -86,14 +89,23 @@ function apiPytestTargets(apiFiles, testFiles) {
 function apiChecks(files, testFiles) {
   const apiFiles = files.filter((f) => f.startsWith(API) && f.endsWith(".py"));
   if (apiFiles.length === 0) return [];
-  const checks = [check("api lint+types", "bash", ["scripts/lint.sh"], API)];
+  const lint = [
+    API_SYNC,
+    `${UV_RUN} ruff check src scripts`,
+    `${UV_RUN} ruff format src scripts --check`,
+    `${UV_RUN} mypy src`,
+  ].join(" && ");
+  const checks = [check("api lint+types", "bash", ["-c", lint], API)];
   const targets = apiPytestTargets(apiFiles, testFiles);
   if (targets)
     checks.push(
       check(
         "api tests",
-        UV[0],
-        [...UV.slice(1), "pytest", "-q", ...targets],
+        "bash",
+        [
+          "-c",
+          `${API_SYNC} && ${[UV_RUN, "pytest", "-q", ...targets].join(" ")}`,
+        ],
         API
       )
     );

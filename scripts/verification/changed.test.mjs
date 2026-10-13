@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { apiTestTargets, planChecks } from "./changed.mjs";
 
+const HR_TESTS = /pytest -q tests\/hr$/;
+const FULL_SUITE = /pytest -q$/;
 const TEST_FILES = ["cap/", "hr/", "conftest.py", "test_eregister_public.py"];
 const names = (checks) => checks.map((check) => check.name);
 const find = (checks, name) => checks.find((check) => check.name === name);
@@ -30,7 +32,7 @@ test("API domain change runs lint and only that domain's tests", () => {
     testFiles: TEST_FILES,
   });
   assert.ok(names(checks).includes("api lint+types"));
-  assert.deepEqual(find(checks, "api tests").args.slice(-1), ["tests/hr"]);
+  assert.match(find(checks, "api tests").args.at(-1), HR_TESTS);
   assert.ok(!names(checks).includes("api client drift"));
 });
 
@@ -54,10 +56,7 @@ test("shared API module or conftest change runs the full API suite", () => {
     const checks = planChecks([`apps/api/fastapi/${file}`], {
       testFiles: TEST_FILES,
     });
-    assert.deepEqual(find(checks, "api tests").args.slice(-2), [
-      "pytest",
-      "-q",
-    ]);
+    assert.match(find(checks, "api tests").args.at(-1), FULL_SUITE);
   }
 });
 

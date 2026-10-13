@@ -68,6 +68,12 @@ from src.logging_config import configure_logging
 from src.models import ValidationErrorResponse
 from src.notifications.router import router as notifications_router
 from src.rate_limit import limiter
+from src.request_context import (
+    REQUEST_ID_HEADER,
+    bind_request_id,
+    reset_request_id,
+    resolve_request_id,
+)
 
 # from src.shipments.router import router as shipments_router
 from src.storage.router import router as weather_images_router
@@ -293,16 +299,25 @@ logger = logging.getLogger("src.request")
 async def request_logging_middleware(request: Request, call_next: Any) -> Any:
     start = time.perf_counter()
     status = 500
+    request_id = resolve_request_id(request.headers.get(REQUEST_ID_HEADER))
+    token = bind_request_id(request_id)
+    sentry_sdk.set_tag("request_id", request_id)
     try:
         response = await call_next(request)
         status = response.status_code
+        response.headers[REQUEST_ID_HEADER] = request_id
     finally:
         duration_s = time.perf_counter() - start
         route = getattr(request.scope.get("route"), "path", "unmatched")
         logger.info(
-            "request route=%s status=%s duration=%.3fs", route, status, duration_s
+            "request route=%s status=%s duration=%.3fs request_id=%s",
+            route,
+            status,
+            duration_s,
+            request_id,
         )
         await operational_metrics.record_request(route, status, duration_s)
+        reset_request_id(token)
     return response
 
 
@@ -316,6 +331,7 @@ if settings.all_cors_origins:
         # Browser clients and observability integrations may add headers beyond
         # the authentication and content headers used by the API itself.
         allow_headers=["Authorization", "Content-Type"],
+        expose_headers=[REQUEST_ID_HEADER],
     )
 app.add_middleware(BaseHTTPMiddleware, dispatch=request_logging_middleware)
 # Include routers

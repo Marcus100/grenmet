@@ -212,7 +212,7 @@ Frontend (TypeScript/React) — full style rules in `.agents/rules/ultracite.mdc
 - **UI primitives** — `@barrelsgd/ui/components/ui/<name>`; utils from `@barrelsgd/ui/lib/utils`.
 - **Class composition** — use `cn` from `@barrelsgd/ui/lib/utils` for conditional utilities and caller `className`; keep custom `text-*` size/color pairs intact when `cn` would merge them.
 - **Generated client** — types, fetch clients, hooks, and Zod schemas come from `@barrelsgd/api-client`; never hand-write a FastAPI response type.
-- **Sentry everywhere** — let unexpected errors throw to the app's `error.tsx` / `global-error.tsx` (both report to Sentry). If you catch an error and show a fallback instead, call `reportError(error, "<area>")` from the app's `src/lib/report-error.ts` (it skips expected 4xx via the shared `shouldReportError` rule). Never import `@sentry/nextjs` in a shared package — it would resolve an uninitialised copy of the SDK. Only `area` and `digest` tags survive the privacy scrubber; never put user data in Sentry.
+- **Sentry everywhere** — let unexpected errors throw to the app's `error.tsx` / `global-error.tsx` (both report to Sentry). If you catch an error and show a fallback instead, call `reportError(error, "<area>")` from the app's `src/lib/report-error.ts` (it skips expected 4xx via the shared `shouldReportError` rule). Never import `@sentry/nextjs` in a shared package — it would resolve an uninitialised copy of the SDK. Only `area`, `digest` and `request_id` tags survive the privacy scrubber; never put user data in Sentry.
 
 Backend (Python/FastAPI) — details in `apps/api/fastapi/AGENTS.md`:
 - **Two layers** — SQLAlchemy models in `models.py`, `src.models.BaseModel` schemas in `schemas.py`; never expose ORM models.
