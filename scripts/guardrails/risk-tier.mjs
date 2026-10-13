@@ -25,6 +25,7 @@ const HIGH = [
     /^(?:apps\/[^/]+\/[^/]+\/)?(?:package\.json|pyproject\.toml)$|^(?:pnpm-lock\.yaml|pnpm-workspace\.yaml|uv\.lock)$/,
     "dependencies",
   ],
+  [/^scripts\/guardrails\/suppression-baseline\.json$/, "suppression baseline"],
   [/^(?:turbo\.json|biome\.jsonc|tsconfig[^/]*\.json)$/, "repo toolchain"],
 ];
 

@@ -275,7 +275,7 @@ Other:
 | HR forms and new form modules | `docs/hr/adding-a-form-module.md` |
 | HR forms, roster, attendance and timesheet alignment | `docs/hr/end-to-end-alignment.md` |
 | Agent configuration (how this layout works) | `docs/agent-configuration-guide.md` |
-| Shared helpers; agent routines | `docs/agents/primitives.md`, `routines.md` |
+| Shared helpers; principles; agent routines | `docs/agents/primitives.md`, `engineering-principles.md`, `routines.md` |
 | Vendored ops apps (SURFACE, wis2box) | `VENDORED.md` |
 
 ## Issue tracking and domain docs
