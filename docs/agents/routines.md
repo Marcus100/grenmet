@@ -20,6 +20,11 @@ Edit the prompt here first, then update the live routine to match.
   blast-radius). Then push **that branch** and open a PR to `dev` with the
   `/commit` step 7 recap. Never push `dev`, `staging` or `main`, never merge, and
   never close, delete or force-push anything.
+- Run `node scripts/guardrails/risk-tier.mjs --base origin/dev` and label the PR
+  `risk:low`, `risk:standard` or `risk:high`. A **high** PR (auth, permissions,
+  migrations, CI/CD, infrastructure, containers, dependencies, toolchain, agent
+  hooks) always needs a human review; say so in the PR body. Low and standard
+  PRs still need the AI reviewer and every check green before a human merges.
 - Stay inside what the issue describes. Ask First and Never tiers in `AGENTS.md`
   still apply: an issue that needs them becomes `ready-for-human`.
 - Comment the outcome on the issue (`success`, `flawed`, `blocked`, `manual`) with

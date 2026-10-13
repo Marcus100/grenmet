@@ -40,6 +40,7 @@ test("API contract change adds drift and blast-radius checks", () => {
     testFiles: TEST_FILES,
   });
   assert.ok(names(checks).includes("api client drift"));
+  assert.ok(names(checks).includes("risk tier"));
   assert.deepEqual(find(checks, "blast radius").args.slice(-4), [
     "--base",
     "abc123",

@@ -34,6 +34,7 @@
     "docs:check-portfolio": "node scripts/docs/check-portfolio-coverage.mjs",
     "docs:check-links": "node scripts/docs/check-links.mjs",
     "guardrails": "node scripts/guardrails/check-blast-radius.mjs",
+    "guardrails:tier": "node scripts/guardrails/risk-tier.mjs --base origin/dev",
     "guardrails:staged": "node scripts/guardrails/check-blast-radius.mjs --staged",
     "test:guardrails": "node --test scripts/guardrails/*.test.mjs",
     "test:docs": "node --test scripts/docs/*.test.mjs",

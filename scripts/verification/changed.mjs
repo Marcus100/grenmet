@@ -114,6 +114,11 @@ export function planChecks(files, { base, testFiles = [] } = {}) {
     if (files.some(matches)) checks.push(...ruleChecks);
   if (base)
     checks.push(
+      check("risk tier", "node", [
+        "scripts/guardrails/risk-tier.mjs",
+        "--base",
+        base,
+      ]),
       check("blast radius", "node", [
         "scripts/guardrails/check-blast-radius.mjs",
         "--base",
