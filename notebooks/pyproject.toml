@@ -48,5 +48,5 @@ dependencies = [
     "xclim>=0.62.0",
     "xgboost>=3.2.0",
     "xskillscore>=0.0.29",
-    "zarr>=3.3.0",
+    "zarr>=3.4.1",
 ]
