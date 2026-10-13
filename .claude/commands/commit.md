@@ -47,3 +47,7 @@ allowed-tools: Bash(git *), Bash(pnpm *), Bash(gh *)
      `blocked` (missing credential, service or decision) or `manual` (deliberately
      left for a human), with the reason.
    - **Friction:** issue numbers filed or commented, or `none`.
+
+8. When the work was an agent task, post a run record with
+   `node scripts/agents/run-record.mjs --kind run ... --post <issue>`; see
+   `docs/agents/run-records.md`.
