@@ -115,7 +115,7 @@ Dev servers stay on the host in the main checkout.
 - **Shared stashes:** Git stashes are shared across worktrees. Record and apply the exact stash SHA; never use an implicit latest stash during parallel work.
 
 ### Git and GitHub Workflow
-- Merge completed task branches into local `dev`, validate the combined result, then push `dev` directly; do not push feature branches or create feature-to-dev PRs unless the user requests them.
+- Merge completed task branches into local `dev`, validate the combined result, then push `dev` directly; do not push feature branches or create feature-to-dev PRs unless the user requests them. Unattended routines open feature-to-dev PRs instead.
 - Fetch first and integrate current `origin/dev`; run `pnpm fix:changed`, `pnpm type-check`, affected tests, staged guardrails and blast-radius review before pushing. If remote dev advances, integrate it locally and revalidate before retrying; never force-push or bypass hooks.
 - Standing authorization: after local validation and direct `dev` push, create/update the `dev → staging` PR and merge it automatically once all applicable checks pass for its current head. Review the promotion diff, verify dev has not advanced, and use `--match-head-commit`; never bypass protection or merge pending/failing checks.
 - Monitor the resulting staging deployment and report actionable failures or readiness for acceptance. Reuse an open promotion PR; production promotion (`staging → main`) and publication/deployment remain separately authorized. Do not promote unrelated or unfinished work.
@@ -181,8 +181,8 @@ the Instruction map; put operational detail in domain docs. Keep entries short.
 Claude Code and Codex share one working tree. A `SessionStart` hook tails
 `SESSION_LOG.md` (main checkout root, gitignored; shared by every worktree) into context — read it before
 assuming a task is untouched. After a meaningful chunk of work, append one
-entry: timestamp, tool, one-line summary, files touched, next step. Newest at
-the bottom. For tool switches, follow `docs/agents/tool-usage.md`.
+entry: timestamp, tool, summary, files, friction issues, next step. Newest at
+the bottom. If you worked around anything, run the `file-friction` skill. For tool switches, follow `docs/agents/tool-usage.md`.
 
 ## Tool Usage
 
@@ -274,6 +274,7 @@ Other:
 | HR forms and new form modules | `docs/hr/adding-a-form-module.md` |
 | HR forms, roster, attendance and timesheet alignment | `docs/hr/end-to-end-alignment.md` |
 | Agent configuration (how this layout works) | `docs/agent-configuration-guide.md` |
+| Shared helpers; agent routines | `docs/agents/primitives.md`, `routines.md` |
 | Vendored ops apps (SURFACE, wis2box) | `VENDORED.md` |
 
 ## Issue tracking and domain docs

@@ -26,7 +26,8 @@ if not, triage it first. Run `pnpm check:ci` and `pnpm type-check`, then the
 
 **2. dev → staging**
 Create or reuse the promotion PR (`gh pr create --base staging --head dev`).
-Review its complete diff for authorized, finished work. Wait for every applicable
+Review its complete diff for authorized, finished work. Keep the PR body's
+recap current: changed, gates, outcome and friction per `/commit` step 7. Wait for every applicable
 check to complete successfully on its current head; expected skipped jobs are
 acceptable, pending or failed checks are not. Verify `dev` still matches that
 head, then run `gh pr merge <num> --merge --match-head-commit <sha>` without

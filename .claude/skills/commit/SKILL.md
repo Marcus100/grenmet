@@ -32,9 +32,21 @@ Use this procedure when the user requests this task. Respect the current request
    checks above, then push `dev` directly. Do not push feature branches or create
    feature-to-dev PRs unless explicitly requested. If remote dev advances,
    integrate and revalidate locally before retrying; never force-push.
+   Unattended scheduled runs (`docs/agents/routines.md`) instead push their task
+   branch and open a feature-to-dev PR; they never push `dev`.
 
 5. Use PRs for `dev → staging → main` promotion, reusing an existing promotion PR.
    After a verified dev push, automatically create/update and merge the staging
    PR when all applicable checks pass for the current head, following `/release`.
    This has standing authorization. Main merges and production publication or
    deployment still require separate authorization.
+
+6. Run the `file-friction` skill for anything you worked around during this task.
+
+7. End with a recap for the user (and the staging PR body when you promote):
+   - **Changed:** one line per commit.
+   - **Gates:** each check run and its result.
+   - **Outcome:** `success`, `flawed` (shipped but needed rework or left known gaps),
+     `blocked` (missing credential, service or decision) or `manual` (deliberately
+     left for a human), with the reason.
+   - **Friction:** issue numbers filed or commented, or `none`.

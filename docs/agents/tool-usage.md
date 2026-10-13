@@ -10,7 +10,7 @@
 ## Switching between Codex and Claude Code
 
 Before a handoff, append the current task, checkout path, branch, changed files,
-checks and their results, outstanding decisions, and exact next action to the
+checks and their results, friction issues filed, outstanding decisions, and exact next action to the
 main checkout's `SESSION_LOG.md`. Read the latest file before appending; preserve
 other entries. Update durable knowledge in Bishop when it belongs there and the
 workspace is accessible; keep private context out of this public repository.

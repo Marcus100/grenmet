@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-06-27
+**Last updated:** 2026-10-13
 
 The skills speak in terms of five canonical triage roles. This file maps those roles to the actual label strings used in this repo's issue tracker.
 
@@ -14,6 +14,17 @@ The skills speak in terms of five canonical triage roles. This file maps those r
 | `ready-for-human`          | `ready-for-human`    | Requires human implementation            |
 | `wontfix`                  | `wontfix`            | Will not be actioned                     |
 
-`wontfix` already exists in this repo's GitHub labels. The other four are created on first use by `/triage`. These state labels sit alongside the existing classification labels (`bug`, `enhancement`, `question`) and area labels (`frontend`, `backend`, `web/<app>`, etc.) — they do not replace them.
+All five exist in this repo's GitHub labels. These state labels sit alongside the existing classification labels (`bug`, `enhancement`, `question`) and area labels (`frontend`, `backend`, `web/<app>`, etc.) — they do not replace them.
 
 When a skill mentions a role (e.g. "apply the AFK-ready triage label"), use the corresponding label string from this table. Edit the right-hand column to match whatever vocabulary you actually use.
+
+## Agent workflow labels
+
+| Label           | Meaning                                                                 |
+| --------------- | ----------------------------------------------------------------------- |
+| `friction`      | Something an agent worked around; filed by the `file-friction` skill     |
+| `agent-claimed` | An agent is working on it now; others skip it (see `routines.md`)        |
+
+A `friction` issue starts as `needs-triage`. `/triage` promotes it to
+`ready-for-agent` when the fix is small and clear, which makes it eligible for
+the nightly friction fixer in [routines.md](routines.md).
