@@ -5,7 +5,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 from urllib.parse import urlparse
 
-import feedparser  # type: ignore[import-untyped]
+import feedparser
 import httpx
 import sqlalchemy as sa
 from fastapi.concurrency import run_in_threadpool

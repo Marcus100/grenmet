@@ -63,6 +63,20 @@ strict = true
 python_version = "3.14"
 exclude = ["venv", ".venv", "alembic"]
 
+[[tool.mypy.overrides]]
+# Third-party libraries that ship no type information (or, for gms_ingest, no
+# py.typed marker). Importing them is fine; state it once instead of per import.
+module = [
+    "boto3",
+    "botocore.*",
+    "feedparser",
+    "gms_ingest.*",
+    "lxml.*",
+    "shapely.*",
+    "weasyprint.*",
+]
+ignore_missing_imports = true
+
 [tool.ruff]
 target-version = "py314"
 exclude = ["alembic"]

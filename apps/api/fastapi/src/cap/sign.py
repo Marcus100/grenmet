@@ -33,7 +33,7 @@ def _load(value: str) -> bytes:
 
 def _hardened_parser() -> Any:
     """lxml parser with entity resolution and network access disabled (XXE-safe)."""
-    from lxml import etree  # type: ignore[import-untyped]
+    from lxml import etree
 
     return etree.XMLParser(
         resolve_entities=False, no_network=True, dtd_validation=False

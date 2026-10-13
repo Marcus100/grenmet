@@ -89,7 +89,7 @@ async def execute(payload: dict[str, Any], kind: str, root: Path) -> dict[str, A
 
     if kind == "point":
         # The existing collector has no py.typed marker.
-        from gms_ingest import grids  # type: ignore[import-untyped]
+        from gms_ingest import grids
 
         from src.wxwatch.nhc_service import content
 

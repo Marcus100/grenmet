@@ -7,7 +7,7 @@ from __future__ import annotations
 import io
 
 from PIL import Image, ImageDraw, ImageFont
-from shapely.geometry import MultiPoint  # type: ignore[import-untyped]
+from shapely.geometry import MultiPoint
 
 _SEVERITY_BG: dict[str, tuple[int, int, int]] = {
     "Extreme": (153, 0, 0),

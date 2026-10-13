@@ -10,7 +10,7 @@ from src.hr.signatures.service import DocumentSnapshot, gaa_letterhead
 
 
 def render_status_pdf(snapshot: DocumentSnapshot, image: bytes | None) -> bytes:
-    from weasyprint import HTML  # type: ignore[import-untyped]
+    from weasyprint import HTML
 
     form = snapshot["form"]
 
