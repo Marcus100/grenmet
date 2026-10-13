@@ -3,7 +3,8 @@
 **Status:** Findings only — no document was edited
 **Recorded:** 2026-09-10
 **Owner:** Barrels Grenada
-**Repository state:** branch `dev` at `055bdce3`
+**Repository state:** branch `dev` at `055bdce3`  
+**Last updated:** 2026-09-23
 
 **Scope:** all 82 Markdown files under `docs/`, the 12 `CLAUDE.md` / `AGENTS.md`
 agent-instruction files, and root `README.md`, `CONTRIBUTING.md`, `VENDORED.md`.

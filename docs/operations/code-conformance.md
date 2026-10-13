@@ -1,6 +1,7 @@
 # GMS report and BUFR conformance checks
 
-**Status:** implementation checklist; no report type is certified by this page.
+**Status:** implementation checklist; no report type is certified by this page.  
+**Last updated:** 2026-09-25
 
 The applicable references are the WMO Technical Regulations (WMO-No. 49), the
 Manual on Codes (WMO-No. 306), and, for aviation, ICAO Annex 3 and PANS-MET.

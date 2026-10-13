@@ -1,5 +1,7 @@
 # Extended agent rules
 
+**Last updated:** 2026-10-11
+
 Detail moved out of the root `AGENTS.md` to keep it under its 20 KB budget. The
 rules are unchanged; `AGENTS.md` links here. Read the relevant section before
 touching design tokens, branding, telemetry or monitoring.

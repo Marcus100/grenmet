@@ -1,6 +1,7 @@
 # GAA HR end-to-end alignment
 
-**Status:** Active implementation and verification plan, 2026-09-28. GAA is the
+**Status:** Active implementation and verification plan, 2026-09-28. GAA is the  
+**Last updated:** 2026-09-28
 client organisation; GMS is its meteorological department. This plan records
 user instructions and verified code gaps, not institutional policy approval or
 deployed behaviour. It supplements [ADR-0009](../adr/0009-gaa-staff-platform.md)

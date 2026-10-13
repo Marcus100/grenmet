@@ -1,6 +1,7 @@
 # Department authority and ordinary staff delegation
 
 Owner: GAA/GMS for the initial client programme; the same employer and department boundaries apply to other organisations.
+**Last updated:** 2026-10-08
 
 `department-manager` and `department-assistant-manager` are equal permission templates. A superuser explicitly appoints each holder with `DEPARTMENT` scope and an employer-owned department. Job titles, email domains, websites and app admission never appoint a manager. HR account targets must have actual employment placement in the same employer and authorised department; unplaced and personal accounts are not managerial targets.
 

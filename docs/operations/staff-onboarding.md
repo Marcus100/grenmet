@@ -1,6 +1,7 @@
 # Staff onboarding without an email inbox
 
 Owner: Barrels platform. Client acceptance: GAA/GMS.
+**Last updated:** 2026-10-08
 
 ## Create and activate an account
 

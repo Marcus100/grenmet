@@ -1,5 +1,7 @@
 # GMS CAP warning model — agent handoff
 
+**Last updated:** 2026-09-25
+
 24 September 2026 · `/workspace` · branch `dev` at start of this work: `009807cc`
 
 ## Read first

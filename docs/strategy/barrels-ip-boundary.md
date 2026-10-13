@@ -2,7 +2,8 @@
 
 **Status:** Owner decision recorded 2026-10-03; licence text and GAA agreement pending legal review  
 **Recorded:** 2026-09-23  
-**Owner:** Barrels Grenada
+**Owner:** Barrels Grenada  
+**Last updated:** 2026-10-03
 
 ## Purpose
 

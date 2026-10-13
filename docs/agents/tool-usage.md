@@ -1,5 +1,7 @@
 # Agent tool usage
 
+**Last updated:** 2026-10-13
+
 - When the user wants to inspect a file, return full contents — not a summary.
 - Before investigating a CI or build failure, list the top hypotheses with the
   fastest falsification command for each; test cheapest first and report after each.

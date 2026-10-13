@@ -1,6 +1,7 @@
 # Integration readiness and owner setup
 
-**Owner:** Barrels Grenada engineering
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-10-06
 
 **Last reviewed:** 2026-10-05
 

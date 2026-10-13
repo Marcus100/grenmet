@@ -1,5 +1,7 @@
 # Elections Grenada deployment
 
+**Last updated:** 2026-10-07
+
 Elections Grenada is an independent Vercel project in the existing monorepo.
 The Barrels holding page has its own Vercel project; operational apps retain the DigitalOcean/GitHub Actions release flow. The target
 production domain is `elections.barrels.gd`; configuration alone does not establish

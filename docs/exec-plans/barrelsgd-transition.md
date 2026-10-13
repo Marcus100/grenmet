@@ -3,7 +3,8 @@
 **Status:** In progress — boundaries 1-8 complete; Events unblocked
 **Recorded:** 2026-07-18
 **Amended:** 2026-08-16 — GAA/GMS corrected from product to client programme
-**Owner:** Repository maintainers
+**Owner:** Repository maintainers  
+**Last updated:** 2026-10-13
 
 This document describes the destination architecture. The execution order,
 baseline freeze, commit boundaries, and rollout sequencing live in

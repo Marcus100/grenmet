@@ -1,5 +1,7 @@
 # Recorded service and probation facts
 
+**Last updated:** 2026-09-28
+
 HR Setup and the authenticated employment API record verified facts separately:
 employment commencement (`start_date`), recognised continuous-service date,
 recorded expected probation end, actual verified probation completion, and the
