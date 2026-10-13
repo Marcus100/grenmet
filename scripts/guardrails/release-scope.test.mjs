@@ -1,11 +1,22 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 import { runInNewContext } from "node:vm";
 import {
+  appServices,
+  coreServices,
+  dataServices,
+  migrationServices,
   releaseScope,
+  validateComposeScope,
   validateReleaseConfiguration,
 } from "../ci/release-scope.mjs";
+
+const CHECK_SCRIPT = fileURLToPath(
+  new URL("../ci/check-release-scope.mjs", import.meta.url)
+);
 
 test("release includes nine core images and rejects contradictory weather configuration", () => {
   assert.equal(releaseScope.web.length, 9);
@@ -34,10 +45,7 @@ test("promotion pipelines require scope validation and cannot invoke deferred de
   }
 });
 
-test("deployment rejects a missing core service or an extra deferred service", async () => {
-  const { coreServices, validateComposeScope } = await import(
-    "../ci/release-scope.mjs"
-  );
+test("deployment rejects a missing core service or an extra deferred service", () => {
   const services = Object.fromEntries(
     coreServices.map((service) => [service, {}])
   );
@@ -57,6 +65,32 @@ test("deployment rejects a missing core service or an extra deferred service", a
     assert.throws(() =>
       validateComposeScope({ services: { ...services, [service]: {} } })
     );
+});
+
+test("service roles partition the core services and drive the CLI", () => {
+  const roles = {
+    data: dataServices,
+    migration: migrationServices,
+    app: appServices,
+  };
+  const all = [...dataServices, ...migrationServices, ...appServices];
+  assert.equal(new Set(all).size, all.length, "a service has two roles");
+  assert.deepEqual([...all].sort(), [...coreServices].sort());
+  for (const service of ["api", "worker", "nhc-worker", "proxy"])
+    assert.ok(appServices.includes(service));
+  for (const [role, services] of Object.entries(roles)) {
+    const printed = execFileSync(
+      process.execPath,
+      [CHECK_SCRIPT, "--print", role],
+      { encoding: "utf8" }
+    );
+    assert.deepEqual(printed.trim().split(" "), services);
+  }
+  assert.throws(() =>
+    execFileSync(process.execPath, [CHECK_SCRIPT, "--print", "bogus"], {
+      stdio: "pipe",
+    })
+  );
 });
 
 const ENVIRONMENT_EXPRESSION = /^ {4}environment: \$\{\{ (.+) \}\}$/m;

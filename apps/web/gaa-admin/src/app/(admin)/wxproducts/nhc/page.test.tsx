@@ -1,17 +1,27 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ archive: vi.fn(), history: vi.fn() }));
-vi.mock("@/db/wxwatch/queries", () => ({
-  getArchive: mocks.archive,
-  getArchiveHistory: mocks.history,
+const EDITOR_LINK = /editor|Alerts/i;
+const mocks = vi.hoisted(() => ({
+  editions: vi.fn(),
+  redirect: vi.fn(),
+  reportError: vi.fn(),
 }));
-vi.mock("@/components/wxproducts/product-desk", () => ({
-  ProductDesk: ({ title }: { title: string }) => <div>{title} form</div>,
-}));
-vi.mock("@/components/wxwatch/archive-browser", () => ({
-  ArchiveBrowser: ({ query }: { query: string }) => (
-    <div>Guidance results: {query}</div>
+vi.mock("@/db/wxwatch/queries", () => ({ getNhcEditions: mocks.editions }));
+vi.mock("@/lib/report-error", () => ({ reportError: mocks.reportError }));
+vi.mock("next/navigation", () => ({ redirect: mocks.redirect }));
+vi.mock("@/components/wxproducts/nhc-workspace", () => ({
+  NhcWorkspace: ({
+    query,
+    loadError,
+  }: {
+    query: string;
+    loadError: string;
+  }) => (
+    <div>
+      {loadError ? <p role="alert">{loadError}</p> : null}Guidance results:{" "}
+      {query}
+    </div>
   ),
 }));
 
@@ -20,28 +30,56 @@ import Page from "./page";
 afterEach(cleanup);
 beforeEach(() => {
   vi.clearAllMocks();
-  mocks.archive.mockResolvedValue({ items: [], has_more: false, offset: 0 });
+  mocks.editions.mockResolvedValue({ items: [], has_more: false, offset: 0 });
+  mocks.redirect.mockImplementation((url: string) => {
+    throw new Error(`Redirect: ${url}`);
+  });
 });
-it("keeps the existing outlook editor independent of guidance availability", async () => {
-  render(await Page({ searchParams: Promise.resolve({ view: "editor" }) }));
-  expect(screen.getByText("Outlook editor form")).toBeInTheDocument();
-  expect(mocks.archive).not.toHaveBeenCalled();
+it("redirects the old editor link to Alerts without loading guidance", async () => {
+  await expect(
+    Page({
+      searchParams: Promise.resolve({
+        view: "editor",
+        sources: "source-a,source-b",
+      }),
+    })
+  ).rejects.toMatchObject({
+    message:
+      "Redirect: /wxproducts/alerts?kind=outlook&sources=source-a%2Csource-b",
+  });
+  expect(mocks.editions).not.toHaveBeenCalled();
 });
-it("uses the existing route for NHC-only guidance", async () => {
-  render(await Page({ searchParams: Promise.resolve({ source: "cimss" }) }));
-  expect(mocks.archive.mock.calls[0]?.[0]?.get("source")).toBe("nhc");
-  expect(screen.getByRole("link", { name: "Outlook editor" })).toHaveAttribute(
-    "href",
-    "/wxproducts/nhc?view=editor"
+it("preserves cyclone or marine selection on an old editor URL", async () => {
+  await expect(
+    Page({ searchParams: Promise.resolve({ view: "editor", kind: "cyclone" }) })
+  ).rejects.toMatchObject({
+    message: "Redirect: /wxproducts/alerts?kind=cyclone",
+  });
+});
+it("displays guidance filters without an editor link", async () => {
+  render(
+    await Page({
+      searchParams: Promise.resolve({
+        family: "marine",
+        storm: "al012026",
+        sources: "source-a",
+      }),
+    })
   );
+  expect(mocks.editions.mock.calls[0]?.[0]?.get("family")).toBe("marine");
+  expect(mocks.editions.mock.calls[0]?.[0]?.get("storm")).toBe("al012026");
+  expect(
+    screen.queryByRole("link", { name: EDITOR_LINK })
+  ).not.toBeInTheDocument();
 });
-it("keeps the editor link available when guidance fails", async () => {
-  mocks.archive.mockRejectedValue(new Error("offline"));
+it("displays guidance failure without an editor link", async () => {
+  mocks.editions.mockRejectedValue(new Error("offline"));
   render(await Page({ searchParams: Promise.resolve({}) }));
   expect(screen.getByRole("alert")).toHaveTextContent(
     "NHC guidance unavailable"
   );
   expect(
-    screen.getByRole("link", { name: "Outlook editor" })
-  ).toBeInTheDocument();
+    screen.queryByRole("link", { name: EDITOR_LINK })
+  ).not.toBeInTheDocument();
+  expect(mocks.reportError).toHaveBeenCalled();
 });

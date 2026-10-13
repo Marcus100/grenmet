@@ -42,6 +42,38 @@ def issue_time(text, reference):
     )
 
 
+def analysis_times(body, issued_at):
+    """Resolve explicitly labelled UTC analysis/image times only against known issuance."""
+    if not issued_at:
+        return {}
+    issued = datetime.fromisoformat(issued_at.replace("Z", "+00:00"))
+    if issued.tzinfo is None:
+        raise ValueError("Issue time must include timezone")
+    result = {}
+    for key, pattern in [
+        ("reference_time", r"Based on (\d{2})(\d{2}) UTC surface analysis"),
+        ("observed_at", r"satellite imagery through (\d{2})(\d{2}) UTC"),
+    ]:
+        match = re.search(pattern, body, re.I)
+        if match:
+            value = issued.replace(
+                hour=int(match[1]), minute=int(match[2]), second=0, microsecond=0
+            )
+            if value > issued:
+                value -= timedelta(days=1)
+            result[key] = value.astimezone(UTC).isoformat()
+    center = re.search(
+        r"CENTER LOCATED NEAR.+?AT (\d{2})/(\d{2})(\d{2})Z",
+        " ".join(body.split()),
+        re.I,
+    )
+    if center:
+        result["reference_time"] = issue_time(
+            f"WTNT00 KNHC {center[1]}{center[2]}{center[3]}", issued_at
+        )
+    return result
+
+
 def sections(text):
     matches = list(re.finditer(r"^\.{3}([^\n]+?)\.{3}\s*$", text, re.M))
     return [

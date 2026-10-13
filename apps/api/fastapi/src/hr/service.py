@@ -290,27 +290,31 @@ async def _active_role_assignment_scope_by_role(
 
 
 async def _get_or_create_profile(session: AsyncSession, user: User) -> UserProfile:
+    user_id = user.id
     result = await session.execute(
-        select(UserProfile).where(UserProfile.user_id == user.id)
+        select(UserProfile).where(UserProfile.user_id == user_id)
     )
     profile = result.scalars().first()
     if profile:
         return profile
     try:
-        profile = UserProfile(
-            user_id=user.id,
-            created_by=user.id,
-        )
-        session.add(profile)
-        await session.commit()
-        await session.refresh(profile)
-        return profile
+        # A concurrent first read can create this row after our SELECT. Roll back
+        # only that INSERT, preserving the user and earlier profile records.
+        async with session.begin_nested():
+            profile = UserProfile(user_id=user_id, created_by=user_id)
+            session.add(profile)
+            await session.flush()
     except IntegrityError:
-        await session.rollback()
         result = await session.execute(
-            select(UserProfile).where(UserProfile.user_id == user.id)
+            select(UserProfile).where(UserProfile.user_id == user_id)
         )
-        return result.scalars().first()  # type: ignore[return-value]
+        profile = result.scalars().first()
+        if profile is None:
+            raise
+        return profile
+    await session.commit()
+    await session.refresh(profile)
+    return profile
 
 
 async def _get_or_create_address(
@@ -323,17 +327,21 @@ async def _get_or_create_address(
     if address:
         return address
     try:
-        address = UserAddress(user_id=user_id)
-        session.add(address)
-        await session.commit()
-        await session.refresh(address)
-        return address
+        async with session.begin_nested():
+            address = UserAddress(user_id=user_id)
+            session.add(address)
+            await session.flush()
     except IntegrityError:
-        await session.rollback()
         result = await session.execute(
             select(UserAddress).where(UserAddress.user_id == user_id)
         )
-        return result.scalars().first()  # type: ignore[return-value]
+        address = result.scalars().first()
+        if address is None:
+            raise
+        return address
+    await session.commit()
+    await session.refresh(address)
+    return address
 
 
 async def _get_or_create_roster_preference(
@@ -346,17 +354,21 @@ async def _get_or_create_roster_preference(
     if preference:
         return preference
     try:
-        preference = RosterPreference(user_id=user_id)
-        session.add(preference)
-        await session.commit()
-        await session.refresh(preference)
-        return preference
+        async with session.begin_nested():
+            preference = RosterPreference(user_id=user_id)
+            session.add(preference)
+            await session.flush()
     except IntegrityError:
-        await session.rollback()
         result = await session.execute(
             select(RosterPreference).where(RosterPreference.user_id == user_id)
         )
-        return result.scalars().first()  # type: ignore[return-value]
+        preference = result.scalars().first()
+        if preference is None:
+            raise
+        return preference
+    await session.commit()
+    await session.refresh(preference)
+    return preference
 
 
 async def _get_or_create_approval_authority(
@@ -369,17 +381,21 @@ async def _get_or_create_approval_authority(
     if authority:
         return authority
     try:
-        authority = ApprovalAuthority(user_id=user_id)
-        session.add(authority)
-        await session.commit()
-        await session.refresh(authority)
-        return authority
+        async with session.begin_nested():
+            authority = ApprovalAuthority(user_id=user_id)
+            session.add(authority)
+            await session.flush()
     except IntegrityError:
-        await session.rollback()
         result = await session.execute(
             select(ApprovalAuthority).where(ApprovalAuthority.user_id == user_id)
         )
-        return result.scalars().first()  # type: ignore[return-value]
+        authority = result.scalars().first()
+        if authority is None:
+            raise
+        return authority
+    await session.commit()
+    await session.refresh(authority)
+    return authority
 
 
 async def _get_employment_record(

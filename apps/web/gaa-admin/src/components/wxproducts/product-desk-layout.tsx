@@ -37,12 +37,12 @@ export function ProductDeskLayout({
   }, []);
 
   const archiveCard = (
-    <Card className="order-3 min-w-0 gap-5 p-4 sm:p-6">{archive}</Card>
+    <Card className="order-3 min-w-0 gap-4 p-4">{archive}</Card>
   );
 
   return (
-    <div className="grid @4xl:grid-cols-2 items-start gap-5">
-      <div className="@4xl:block contents @4xl:min-w-0 @4xl:space-y-5">
+    <div className="grid @4xl:grid-cols-2 items-start gap-4">
+      <div className="@4xl:block contents @4xl:min-w-0 @4xl:space-y-4">
         <div
           className="order-1 min-w-0"
           data-slot="product-editor-panel"
@@ -52,7 +52,7 @@ export function ProductDeskLayout({
         </div>
         {belowEditor ? archiveCard : null}
       </div>
-      <div className="@4xl:block contents @4xl:min-w-0 @4xl:space-y-5">
+      <div className="@4xl:block contents @4xl:min-w-0 @4xl:space-y-4">
         <div
           className="order-2 min-w-0"
           data-slot="product-preview-panel"

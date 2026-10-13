@@ -2,13 +2,18 @@
 
 **Status:** Active reference  
 **Owner:** GMS (operational content); maintained by Barrels Grenada  
-**Last updated:** 2026-09-18
+**Last updated:** 2026-10-12
 
 The product desk in gaa-admin calls FastAPI, which owns authoring and migrations in the separate wxproducts Postgres database.
 
 - Forecasts: `/wxproducts/fcsts` (morning, midday, evening).
-- NHC Products: `/wxproducts/nhc` (Tropical Weather Outlook).
-- Bulletins: `/wxproducts/bulletins` (all nine hazard categories).
+- NHC Products: `/wxproducts/nhc` (source guidance collection, inspection and collected history).
+- Alerts: `/wxproducts/alerts` (Tropical Weather Outlook and all nine hazard bulletin categories). Old Bulletin and NHC editor URLs redirect to Alerts.
+
+Alerts uses the same segmented tab styling as Forecasts, with responsive rows
+and wrapping labels. Product tabs omit the repeated word “Bulletin”; the tsunami
+editor is labelled “Tsunami / Earthquake”. These navigation labels do not rename
+stored product kinds or official document titles.
 
 The evening forecast covers tonight (18:00–07:00) plus four days, each 07:00–07:00.
 Morning covers 07:00–07:00 the next day; midday covers 12:00–07:00 the next day.
@@ -40,9 +45,13 @@ validation before each new publication and submits the returned normalized value
 validation failures stop publication. The write endpoint revalidates every request.
 Without `--apply`, it only prints unvalidated fixture JSON, requiring no API access.
 Use a suitable current test date; historical dates can fail the backend expiry rules.
-Outlook systems are entered as a narrative with a paragraph for each named wave/system.
+Outlook systems have separate typed data forms and stable GMS IDs. Legacy narrative-only outlooks remain readable. Each system owns its formation probabilities; an old bulletin-wide probability is never assigned to several systems.
 
 ## Publication process
+
+The [public forecast quality audit](forecast-quality.md) records validation,
+publication safeguards and the remaining observation-verification gaps against
+WMO guidance. Validation is not an accuracy score or a WMO conformity certificate.
 
 An active authenticated product author can save incomplete drafts. Publication
 requires valid fields, explicit preview confirmation, and an issue/revision note
@@ -113,7 +122,7 @@ Public pages: `/weather/issued`, `/weather/tropics` (NHC outlook),
 `/alerts/bulletins`, and `/weather/issued/<id>` (the old `/products/*`
 URLs redirect).
 `/marine/forecast` also shows issued marine bulletins.
-All product forms have printable PDF previews, including the restored forecast and marine layouts and complete data sheets. There is no public archive, automatic NHC import or deployment in this change. Existing legacy product tables and example document components
+All product forms have printable PDF previews, including the restored forecast and marine layouts and complete data sheets. There is no public archive or scheduled NHC collection. Existing legacy product tables and example document components
 remain available; the new desk stores authored drafts/publications separately.
 
 ## Database handover
@@ -130,3 +139,46 @@ Backend authorization reads identity/grade policy from the main database; produc
 writes and their audit records use one transaction in the weather database. No
 cross-database write transaction is assumed. CAP authorization is unchanged.
 The unused structured morning-product server action and its direct database client have been removed. Legacy tables and pure assembly/schema helpers remain for compatibility. Gaa-admin weather readiness now checks FastAPI, and the web runtime no longer needs weather database credentials. Hono is deferred. The product editor now calls FastAPI using the existing HttpOnly session cookie and a session-bound CSRF token. Next.js performs runtime URL rewriting only; it no longer exchanges sessions or executes product server actions. Server-rendered page guards and other apps retain their existing session adapters. Add the editor origin to FastAPI BACKEND_CORS_ORIGINS for cookie-authenticated mutations. Production browser acceptance remains required.
+
+## NHC guidance operations
+
+The NHC workspace contains collection and viewing tools only. Authors select exact
+source editions inside Alerts, review deterministic proposed fields, and accept
+prefills explicitly. Existing edits are preserved unless the author selects their
+replacement. Cross-description identity links and embedded-feature relationships
+require confirmation. Regional marine guidance requires a local assessment before
+publication. New source editions produce review flags without modifying saved or
+published content. Preview confirmation and each product's publication policy
+remain in force; no CAP message is generated.
+
+`Pull latest NHC products` defaults to all four families. Optional update and aviation
+wallet products are discovered from active Atlantic metadata and official NHC feeds.
+The dedicated `nhc-worker` uses Redis queue `grenmet:nhc` and drains durable WxWatch
+requests; its dispatcher never initiates a collection without an operator request.
+Worker leases recover after interruption and overlapping pulls share one request.
+Per-product failures retain the last successful edition and its source timestamps.
+
+The worker needs `WXWATCH_DATABASE_URL`, `REDIS_URL` and `WXWATCH_NHC_ROOT` pointing
+to the shared NHC archive volume. API mounts that volume read-only; the dedicated
+worker mounts it read/write. Prestart applies the separate WxWatch migration before
+serving. The NHC health probe checks its Redis heartbeat without loading database
+or image-processing dependencies. Deployment stacks allow 180 seconds of startup
+grace: staging cold startup first recorded a heartbeat after 167 seconds. Missing
+or stale heartbeats still fail the probe after startup. Grid subsets retain the collector's
+existing Atlantic/Caribbean bounding box and are independent of outlook interest
+areas. Native-cell point requests use the same worker and retain coordinates,
+distance, source units and forecast validity. Guidance reads and original downloads
+require existing authenticated archive access. Pulls and prefills require existing
+outlook, cyclone or marine author permissions; publication uses its own kind policy.
+
+Source facts, editions, verified assets and decoder lineage remain in WxWatch.
+Reviewed guidance is saved alongside scalar values in immutable WxProducts revisions.
+Logical edition IDs connect these separate databases. Source passages, qualified
+values and unknown meteorological times are retained. Public scalar summaries are
+composed by FastAPI, without exposing archive paths or draft guidance. There is no
+historical backfill, AI extraction, automatic publication or production rollout.
+
+Feed references: [NHC RSS products](https://www.nhc.noaa.gov/mobile/rss.html) and
+[NHC active storm JSON reference](https://www.nhc.noaa.gov/productexamples/NHC_Tropical_Cyclone_Status_JSON_File_Reference.pdf).
+
+Withdrawing an already saved product preserves its revision content and remains available when the NHC archive is unavailable. Saving new guidance and generating source graphics still require archive access.

@@ -11,6 +11,11 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
+import {
+  appServices,
+  dataServices,
+  migrationServices,
+} from "../ci/release-scope.mjs";
 
 const ENOUGH_FREE_KB = 40 * 1024 * 1024;
 const RECLAIMED_LINE = /Total reclaimed space: 1\.2GB/;
@@ -19,6 +24,9 @@ const FREE_DISK_LINE =
 const LOW_DISK_ERROR = /Not enough free disk space to pull images: 2 GB free/;
 const STACK_UNTOUCHED = /the running stack was not touched/;
 const OVERRIDE_ERROR = /10 GB free.*12 GB required/;
+const SECRET_MARKER = "ci-secret-marker-must-not-leak";
+const RUNNER_DISK_ERROR =
+  /Not enough free disk space for the runner: 1 GB free/;
 
 /** Runs the real core.sh deploy in a temp tree with stubbed docker, python3, node and df. */
 function runDeploy({
@@ -34,12 +42,20 @@ function runDeploy({
       "infra/docker/runtime",
       "bin",
       "locks",
+      "runner-temp",
     ])
       mkdirSync(join(root, dir), { recursive: true });
     copyFileSync(
       new URL("./core.sh", import.meta.url),
       join(root, "scripts/production/core.sh")
     );
+    // The real release registry supplies the service lists core.sh starts.
+    mkdirSync(join(root, "scripts/ci"), { recursive: true });
+    for (const file of ["release-scope.mjs", "check-release-scope.mjs"])
+      copyFileSync(
+        new URL(`../ci/${file}`, import.meta.url),
+        join(root, "scripts/ci", file)
+      );
     writeFileSync(
       join(root, "bin/python3"),
       `#!/bin/bash
@@ -68,7 +84,17 @@ case "$*" in
   *"image inspect"*)
     if [[ "$*" == *gd.barrels.environment* ]]; then if [[ "$TEST_FAILURE" == environment ]]; then echo wrong; else echo "$DEPLOY_ENV"; fi; elif [[ "$TEST_FAILURE" == revision ]]; then echo wrong; else echo "$GITHUB_SHA"; fi ;;
   *"run --rm --no-deps prestart"*) [[ "$TEST_FAILURE" != migration ]] || exit 1 ;;
-  *"up -d --no-deps --wait"*) [[ "$TEST_FAILURE" != readiness ]] || exit 1 ;;
+  *"up -d --no-deps --remove-orphans --wait"*) [[ "$TEST_FAILURE" != readiness ]] || exit 1 ;;
+  "ps -aq --filter label=com.docker.compose.project=test")
+    [[ -z "$TEST_DIAGNOSTIC_HANG" ]] || exec sleep 30
+    printf 'c1\\nc2\\n' ;;
+  "inspect --format"*"restarts="*) printf '/test-nhc-worker-1 status=running health=unhealthy exit=0 restarts=0 oom=false\\n/test-api-1 status=running health=healthy exit=0 restarts=0 oom=false\\n' ;;
+  "inspect --format"*"Health.Log"*) echo "2026-10-12T21:05:00Z exit=1 heartbeat missing" ;;
+  "inspect --format"*" c1") echo "/test-nhc-worker-1 running unhealthy 0" ;;
+  "inspect --format"*" c2") echo "/test-api-1 running healthy 0" ;;
+  "inspect "*) echo "SECRET_KEY=$SECRET_KEY" ;;
+  "logs --tail 200 c1") echo "nhc worker log line" ;;
+  "logs --tail"*) echo "unexpected log for healthy service" ;;
 esac
 exit 0
 `,
@@ -78,13 +104,18 @@ exit 0
       join(root, "bin/df"),
       `#!/bin/bash
 printf 'Filesystem 1024-blocks Used Available Capacity Mounted on\\n'
-printf '/dev/test 50000000 1000 %s 10%% /\\n' "$TEST_FREE_KB"
+free=$TEST_FREE_KB
+[[ "$*" != *"$RUNNER_TEMP"* ]] || free=$TEST_RUNNER_FREE_KB
+printf '/dev/test 50000000 1000 %s 10%% /\\n' "$free"
 `,
       { mode: 0o700 }
     );
     writeFileSync(
       join(root, "bin/node"),
-      '#!/bin/bash\n[[ "$*" != *smoke.mjs* ]] || echo smoke >> "$TEST_LOG"\n',
+      `#!/bin/bash
+[[ "$*" != *smoke.mjs* ]] || echo smoke >> "$TEST_LOG"
+[[ "$*" != *--print* ]] || exec "${process.execPath}" "$@"
+`,
       { mode: 0o700 }
     );
     const result = spawnSync(
@@ -105,14 +136,22 @@ printf '/dev/test 50000000 1000 %s 10%% /\\n' "$TEST_FREE_KB"
           GITHUB_OUTPUT: "",
           TEST_FAILURE: failure,
           TEST_FREE_KB: String(freeKb),
+          TEST_RUNNER_FREE_KB: String(ENOUGH_FREE_KB),
+          RUNNER_TEMP: join(root, "runner-temp"),
+          SECRET_KEY: SECRET_MARKER,
+          DIAGNOSTIC_TIMEOUT: "2",
           TEST_LOG: join(root, "calls"),
           ...extraEnv,
         },
         encoding: "utf8",
-        timeout: 10_000,
+        timeout: 30_000,
       }
     );
-    return { result, calls: readFileSync(join(root, "calls"), "utf8") };
+    return {
+      result,
+      calls: readFileSync(join(root, "calls"), "utf8"),
+      summary: readFileSync(join(root, "summary"), "utf8"),
+    };
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -200,3 +239,105 @@ for (const environment of ["staging", "production"]) {
     assert.equal(ok.result.status, 0, ok.result.stderr);
   });
 }
+
+const PHASE_GROUP = /::group::\[\d{2}:\d{2}:\d{2}Z\] render-config/;
+const FAILED_START = /failed in phase 'start' \(last completed: grants\)/;
+const FAILED_MIGRATIONS =
+  /failed in phase 'migrations' \(last completed: databases\)/;
+const PARTIAL_RELEASE = /a partial release may be running/;
+const UNHEALTHY_STATE = /test-nhc-worker-1 status=running health=unhealthy/;
+const HEALTH_PROBE = /exit=1 heartbeat missing/;
+const DIAGNOSTICS_INCOMPLETE = /Diagnostics incomplete/;
+const SUMMARY_FAILED_START =
+  /Core delivery failed[\s\S]*\| start \| \d+s \| failed \|/;
+const SUMMARY_SUCCEEDED =
+  /Core delivery succeeded[\s\S]*\| render-config \| \d+s \| ok \|[\s\S]*\| smoke \| \d+s \| ok \|/;
+
+test("deploy groups timestamped phases and summarises their durations", () => {
+  const { result, summary } = runDeploy({ environment: "staging" });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, PHASE_GROUP);
+  assert.match(summary, SUMMARY_SUCCEEDED);
+  assert.equal(result.stdout.includes("Failure diagnostics"), false);
+});
+
+test("an unhealthy service reports its phase, health probes and only its own logs", () => {
+  const { result, calls, summary } = runDeploy({
+    environment: "staging",
+    failure: "readiness",
+  });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stdout, FAILED_START);
+  assert.match(result.stdout, PARTIAL_RELEASE);
+  assert.match(result.stdout, UNHEALTHY_STATE);
+  assert.match(result.stdout, HEALTH_PROBE);
+  assert.ok(result.stdout.includes("nhc worker log line"));
+  assert.equal(result.stdout.includes("unexpected log"), false);
+  assert.match(summary, SUMMARY_FAILED_START);
+  assert.ok(calls.includes("logout"), "credentials are still cleaned up");
+});
+
+test("a failed migration names the migrations phase", () => {
+  const { result } = runDeploy({
+    environment: "production",
+    failure: "migration",
+  });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stdout, FAILED_MIGRATIONS);
+});
+
+test("a hanging diagnostic keeps the original exit status and still cleans up", () => {
+  const started = Date.now();
+  const { result, calls } = runDeploy({
+    environment: "staging",
+    failure: "readiness",
+    extraEnv: { TEST_DIAGNOSTIC_HANG: "1" },
+  });
+  assert.ok(Date.now() - started < 25_000, "diagnostics must be time-bounded");
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, DIAGNOSTICS_INCOMPLETE);
+  assert.match(result.stdout, FAILED_START);
+  assert.ok(calls.includes("logout"));
+});
+
+test("diagnostics never print secrets from the container environment", () => {
+  const { result, summary } = runDeploy({
+    environment: "staging",
+    failure: "readiness",
+  });
+  for (const output of [result.stdout, result.stderr, summary])
+    assert.equal(output.includes(SECRET_MARKER), false);
+});
+
+test("deploy stops before pruning or pulling when the runner disk is full", () => {
+  const { result, calls } = runDeploy({
+    environment: "staging",
+    extraEnv: { TEST_RUNNER_FREE_KB: String(1024 * 1024) },
+  });
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, RUNNER_DISK_ERROR);
+  for (const forbidden of ["image prune", " pull", " up -d"])
+    assert.equal(
+      calls.includes(forbidden),
+      false,
+      `must not run: ${forbidden}`
+    );
+  assert.equal(result.stdout.includes("Failure diagnostics"), false);
+});
+
+test("deploy retires containers of services removed from the deployment file", () => {
+  const { result, calls } = runDeploy({ environment: "staging" });
+  assert.equal(result.status, 0, result.stderr);
+  assert.ok(calls.includes("up -d --no-deps --remove-orphans --wait"));
+});
+
+test("delivery starts exactly the services in the release registry", () => {
+  const { result, calls } = runDeploy({ environment: "staging" });
+  assert.equal(result.status, 0, result.stderr);
+  assert.ok(calls.includes(`up -d --wait ${dataServices.join(" ")}\n`));
+  for (const service of migrationServices)
+    assert.ok(calls.includes(`run --rm --no-deps ${service}\n`));
+  assert.ok(
+    calls.includes(`--wait --wait-timeout 300 ${appServices.join(" ")}\n`)
+  );
+});

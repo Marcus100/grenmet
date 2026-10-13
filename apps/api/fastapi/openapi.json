@@ -12152,7 +12152,7 @@
           "eregister"
         ],
         "summary": "Validate a SYNOP observation",
-        "description": "Validates the structured SYNOP workbook and returns field-level issues plus the normalized workbook.",
+        "description": "Validates the coded SYNOP workbook against the FM-12 code tables and WMO B/C1 regulations, returning field-level errors and warnings, the normalized workbook and the SI-decoded values. Warnings advise; only errors make the workbook invalid.",
         "operationId": "eregisterValidateSynopObservation",
         "requestBody": {
           "content": {
@@ -12632,6 +12632,565 @@
               }
             },
             "description": "Unprocessable Content"
+          }
+        }
+      }
+    },
+    "/api/v1/wxwatch/nhc/editions": {
+      "get": {
+        "tags": [
+          "wxwatch-nhc"
+        ],
+        "summary": "Browse NHC guidance",
+        "description": "Latest active products or collected edition history; meteorological and collection times remain separate.",
+        "operationId": "wxwatchEditions",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "family",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/NhcEditionPropertiesFamilyEnum"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Family"
+            }
+          },
+          {
+            "name": "product",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 300
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Product"
+            }
+          },
+          {
+            "name": "storm",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^al\\d{6}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Storm"
+            }
+          },
+          {
+            "name": "start",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Start"
+            }
+          },
+          {
+            "name": "end",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "date"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "End"
+            }
+          },
+          {
+            "name": "latest",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "default": true,
+              "title": "Latest"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100000,
+              "minimum": 0,
+              "default": 0,
+              "title": "Offset"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 100,
+              "minimum": 1,
+              "default": 30,
+              "title": "Limit"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NhcPage"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Product access denied"
+          },
+          "404": {
+            "description": "Edition or request not found"
+          },
+          "503": {
+            "description": "NHC archive unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/wxwatch/nhc/editions/{edition_id}": {
+      "get": {
+        "tags": [
+          "wxwatch-nhc"
+        ],
+        "summary": "Read NHC edition",
+        "description": "Read preserved source content, decoded fields and verified asset references.",
+        "operationId": "wxwatchEdition",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "edition_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Edition Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NhcContent"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Product access denied"
+          },
+          "404": {
+            "description": "Edition or request not found"
+          },
+          "503": {
+            "description": "NHC archive unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/wxwatch/nhc/pulls": {
+      "post": {
+        "tags": [
+          "wxwatch-nhc"
+        ],
+        "summary": "Pull latest NHC guidance",
+        "description": "Queue an on-demand collection. Concurrent pulls coalesce; no periodic collection is installed.",
+        "operationId": "wxwatchPull",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NhcPullRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NhcJob"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Product access denied"
+          },
+          "404": {
+            "description": "Edition or request not found"
+          },
+          "503": {
+            "description": "NHC archive unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/wxwatch/nhc/jobs/{job_id}": {
+      "get": {
+        "tags": [
+          "wxwatch-nhc"
+        ],
+        "summary": "Read NHC request progress",
+        "description": "Read durable collection or point-query progress and per-product outcomes.",
+        "operationId": "wxwatchRequestStatus",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "job_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Job Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NhcJob"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Product access denied"
+          },
+          "404": {
+            "description": "Edition or request not found"
+          },
+          "503": {
+            "description": "NHC archive unavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/wxwatch/nhc/points": {
+      "post": {
+        "tags": [
+          "wxwatch-nhc"
+        ],
+        "summary": "Sample an NHC grid",
+        "description": "Queue nearest native-cell sampling for a selected grid edition; no interpolation or local forecast inference.",
+        "operationId": "wxwatchPoint",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NhcPointRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NhcJob"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Product access denied"
+          },
+          "404": {
+            "description": "Edition or request not found"
+          },
+          "503": {
+            "description": "NHC archive unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/wxwatch/nhc/prefill": {
+      "post": {
+        "tags": [
+          "wxwatch-nhc"
+        ],
+        "summary": "Propose GMS product fields",
+        "description": "Prepare deterministic proposals and exact source references; accepting or publishing remains a forecaster action.",
+        "operationId": "wxwatchPropose",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NhcPrefillRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NhcPrefill"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Product access denied"
+          },
+          "404": {
+            "description": "Edition or request not found"
+          },
+          "503": {
+            "description": "NHC archive unavailable"
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/wxwatch/nhc/source-checks": {
+      "get": {
+        "tags": [
+          "wxwatch-nhc"
+        ],
+        "summary": "Check selected NHC sources",
+        "description": "Identify newer editions without changing authored content or publications.",
+        "operationId": "wxwatchSourceChecks",
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "edition_ids",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "minItems": 1,
+              "maxItems": 30,
+              "title": "Edition Ids"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NhcSourceCheck"
+                  },
+                  "title": "Response Wxwatchsourcechecks"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Sign-in required"
+          },
+          "403": {
+            "description": "Product access denied"
+          },
+          "404": {
+            "description": "Edition or request not found"
+          },
+          "503": {
+            "description": "NHC archive unavailable"
           }
         }
       }
@@ -30361,6 +30920,426 @@
         ],
         "title": "GroupSummary"
       },
+      "GuidanceFact": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "key": {
+            "$ref": "#/components/schemas/GuidanceFactPropertiesKeyEnum"
+          },
+          "record_type": {
+            "$ref": "#/components/schemas/GuidanceFactPropertiesRecordTypeEnum"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Value"
+          },
+          "minimum": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Minimum"
+          },
+          "maximum": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Maximum"
+          },
+          "unit": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Unit"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000,
+            "title": "Description",
+            "default": ""
+          },
+          "qualifier": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Qualifier"
+          },
+          "horizon_hours": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 240.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Horizon Hours"
+          },
+          "source_edition_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Edition Id"
+          },
+          "source_text": {
+            "type": "string",
+            "maxLength": 12000,
+            "title": "Source Text",
+            "default": ""
+          },
+          "sample": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GuidanceGridSample"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "reference_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference Time"
+          },
+          "valid_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid From"
+          },
+          "valid_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid To"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "key",
+          "record_type"
+        ],
+        "title": "GuidanceFact"
+      },
+      "GuidanceGraphic": {
+        "properties": {
+          "edition_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Edition Id"
+          },
+          "asset_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Asset Id"
+          },
+          "caption": {
+            "type": "string",
+            "maxLength": 1000,
+            "title": "Caption"
+          }
+        },
+        "type": "object",
+        "required": [
+          "edition_id",
+          "asset_id",
+          "caption"
+        ],
+        "title": "GuidanceGraphic"
+      },
+      "GuidanceGridSample": {
+        "properties": {
+          "job_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Job Id"
+          },
+          "record_index": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Record Index"
+          },
+          "requested_latitude": {
+            "type": "number",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Requested Latitude"
+          },
+          "requested_longitude": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Requested Longitude"
+          },
+          "cell_latitude": {
+            "type": "number",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Cell Latitude"
+          },
+          "cell_longitude": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Cell Longitude"
+          },
+          "distance_km": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Distance Km"
+          },
+          "source_value": {
+            "type": "number",
+            "title": "Source Value"
+          },
+          "parameter": {
+            "type": "string",
+            "title": "Parameter"
+          },
+          "units": {
+            "type": "string",
+            "title": "Units"
+          },
+          "data_date": {
+            "type": "string",
+            "title": "Data Date"
+          },
+          "data_time": {
+            "type": "string",
+            "title": "Data Time"
+          },
+          "validity_date": {
+            "type": "string",
+            "title": "Validity Date"
+          },
+          "validity_time": {
+            "type": "string",
+            "title": "Validity Time"
+          },
+          "step_range": {
+            "type": "string",
+            "title": "Step Range"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "job_id",
+          "record_index",
+          "requested_latitude",
+          "requested_longitude",
+          "cell_latitude",
+          "cell_longitude",
+          "distance_km",
+          "source_value",
+          "parameter",
+          "units",
+          "data_date",
+          "data_time",
+          "validity_date",
+          "validity_time",
+          "step_range"
+        ],
+        "title": "GuidanceGridSample"
+      },
+      "GuidanceSource": {
+        "properties": {
+          "edition_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Edition Id"
+          },
+          "product_key": {
+            "type": "string",
+            "title": "Product Key"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "issued_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued At"
+          },
+          "sha256": {
+            "type": "string",
+            "title": "Sha256"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "edition_id",
+          "product_key",
+          "title",
+          "sha256"
+        ],
+        "title": "GuidanceSource"
+      },
+      "GuidanceSystem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "source_feature_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Feature Key"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Name"
+          },
+          "feature_type": {
+            "$ref": "#/components/schemas/GuidanceSystemPropertiesFeatureTypeEnum"
+          },
+          "parent_system_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent System Id"
+          },
+          "suggested_parent_system_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Suggested Parent System Id"
+          },
+          "relationship_confirmed": {
+            "type": "boolean",
+            "title": "Relationship Confirmed",
+            "default": false
+          },
+          "narrative": {
+            "type": "string",
+            "maxLength": 12000,
+            "title": "Narrative",
+            "default": ""
+          },
+          "local_assessment": {
+            "type": "string",
+            "maxLength": 12000,
+            "title": "Local Assessment",
+            "default": ""
+          },
+          "facts": {
+            "items": {
+              "$ref": "#/components/schemas/GuidanceFact"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Facts"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "feature_type"
+        ],
+        "title": "GuidanceSystem"
+      },
       "HrDashboardPublic": {
         "properties": {
           "date": {
@@ -31990,6 +32969,16 @@
       },
       "LegacyProductPreview": {
         "properties": {
+          "guidance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProductGuidance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "values": {
             "additionalProperties": {
               "type": "string"
@@ -32024,6 +33013,16 @@
       },
       "LegacyProductPreviewInput": {
         "properties": {
+          "guidance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProductGuidance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "values": {
             "additionalProperties": {
               "type": "string",
@@ -32061,6 +33060,16 @@
       },
       "LegacyProductWrite": {
         "properties": {
+          "guidance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProductGuidance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -32113,6 +33122,16 @@
       },
       "LegacyStoredProduct": {
         "properties": {
+          "guidance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProductGuidance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -33007,6 +34026,519 @@
         ],
         "title": "NewPassword"
       },
+      "NhcAsset": {
+        "properties": {
+          "asset_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Asset Id"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "media_type": {
+            "type": "string",
+            "title": "Media Type"
+          },
+          "byte_size": {
+            "type": "integer",
+            "title": "Byte Size"
+          }
+        },
+        "type": "object",
+        "required": [
+          "asset_id",
+          "role",
+          "media_type",
+          "byte_size"
+        ],
+        "title": "NhcAsset"
+      },
+      "NhcContent": {
+        "properties": {
+          "edition": {
+            "$ref": "#/components/schemas/NhcEdition"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "decoded": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "type": "object",
+            "title": "Decoded"
+          }
+        },
+        "type": "object",
+        "required": [
+          "edition",
+          "decoded"
+        ],
+        "title": "NhcContent"
+      },
+      "NhcEdition": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "product_key": {
+            "type": "string",
+            "title": "Product Key"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "family": {
+            "$ref": "#/components/schemas/NhcEditionPropertiesFamilyEnum"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/NhcEditionPropertiesKindEnum"
+          },
+          "storm_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Storm Id"
+          },
+          "issued_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued At"
+          },
+          "header_issued_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Header Issued At"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
+          },
+          "reference_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reference Time"
+          },
+          "valid_start": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid Start"
+          },
+          "valid_end": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid End"
+          },
+          "first_received_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "First Received At"
+          },
+          "last_checked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Checked At"
+          },
+          "last_attempted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Attempted At"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "active": {
+            "type": "boolean",
+            "title": "Active"
+          },
+          "stale": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stale"
+          },
+          "sha256": {
+            "type": "string",
+            "title": "Sha256"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          },
+          "assets": {
+            "items": {
+              "$ref": "#/components/schemas/NhcAsset"
+            },
+            "type": "array",
+            "title": "Assets"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "product_key",
+          "title",
+          "family",
+          "kind",
+          "first_received_at",
+          "status",
+          "active",
+          "sha256"
+        ],
+        "title": "NhcEdition"
+      },
+      "NhcJob": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "kind": {
+            "$ref": "#/components/schemas/NhcJobPropertiesKindEnum"
+          },
+          "status": {
+            "$ref": "#/components/schemas/NhcJobPropertiesStatusEnum"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "result": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/JsonValue"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "kind",
+          "status",
+          "created_at"
+        ],
+        "title": "NhcJob"
+      },
+      "NhcPage": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NhcEdition"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "has_more": {
+            "type": "boolean",
+            "title": "Has More"
+          },
+          "offset": {
+            "type": "integer",
+            "title": "Offset"
+          }
+        },
+        "type": "object",
+        "required": [
+          "items",
+          "has_more",
+          "offset"
+        ],
+        "title": "NhcPage"
+      },
+      "NhcPointRequest": {
+        "properties": {
+          "edition_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Edition Id"
+          },
+          "latitude": {
+            "type": "number",
+            "maximum": 90.0,
+            "minimum": -90.0,
+            "title": "Latitude"
+          },
+          "longitude": {
+            "type": "number",
+            "maximum": 180.0,
+            "minimum": -180.0,
+            "title": "Longitude"
+          }
+        },
+        "type": "object",
+        "required": [
+          "edition_id",
+          "latitude",
+          "longitude"
+        ],
+        "title": "NhcPointRequest"
+      },
+      "NhcPrefill": {
+        "properties": {
+          "guidance": {
+            "$ref": "#/components/schemas/ProductGuidance"
+          },
+          "values": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Values"
+          },
+          "notices": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Notices"
+          }
+        },
+        "type": "object",
+        "required": [
+          "guidance",
+          "values",
+          "notices"
+        ],
+        "title": "NhcPrefill"
+      },
+      "NhcPrefillRequest": {
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/NhcPrefillRequestPropertiesKindEnum"
+          },
+          "edition_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "minItems": 1,
+            "title": "Edition Ids"
+          },
+          "point_job_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "title": "Point Job Ids"
+          },
+          "zone_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 20
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Zone Id"
+          },
+          "period_label": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Period Label"
+          }
+        },
+        "type": "object",
+        "required": [
+          "kind",
+          "edition_ids"
+        ],
+        "title": "NhcPrefillRequest"
+      },
+      "NhcPullRequest": {
+        "properties": {
+          "families": {
+            "items": {
+              "$ref": "#/components/schemas/NhcEditionPropertiesFamilyEnum"
+            },
+            "type": "array",
+            "maxItems": 4,
+            "minItems": 1,
+            "title": "Families"
+          }
+        },
+        "type": "object",
+        "required": [
+          "families"
+        ],
+        "title": "NhcPullRequest"
+      },
+      "NhcSourceCheck": {
+        "properties": {
+          "edition_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Edition Id"
+          },
+          "newer_edition_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Newer Edition Id"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "edition_id",
+          "status"
+        ],
+        "title": "NhcSourceCheck"
+      },
       "NotificationParams": {
         "properties": {
           "remind_after_days": {
@@ -33787,6 +35319,16 @@
       },
       "OutlookProductPreview": {
         "properties": {
+          "guidance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProductGuidance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "values": {
             "$ref": "#/components/schemas/OutlookValuesDraft"
           },
@@ -33819,6 +35361,16 @@
       },
       "OutlookProductPreviewInput": {
         "properties": {
+          "guidance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProductGuidance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "values": {
             "$ref": "#/components/schemas/OutlookValuesDraft"
           },
@@ -33850,6 +35402,16 @@
       },
       "OutlookProductWrite": {
         "properties": {
+          "guidance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProductGuidance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -33896,6 +35458,16 @@
       },
       "OutlookStoredProduct": {
         "properties": {
+          "guidance": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ProductGuidance"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "id": {
             "type": "string",
             "format": "uuid",
@@ -35150,6 +36722,51 @@
           "error"
         ],
         "title": "ProductFeedError"
+      },
+      "ProductGuidance": {
+        "properties": {
+          "sources": {
+            "items": {
+              "$ref": "#/components/schemas/GuidanceSource"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "title": "Sources"
+          },
+          "systems": {
+            "items": {
+              "$ref": "#/components/schemas/GuidanceSystem"
+            },
+            "type": "array",
+            "maxItems": 30,
+            "title": "Systems"
+          },
+          "facts": {
+            "items": {
+              "$ref": "#/components/schemas/GuidanceFact"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Facts"
+          },
+          "graphics": {
+            "items": {
+              "$ref": "#/components/schemas/GuidanceGraphic"
+            },
+            "type": "array",
+            "maxItems": 10,
+            "title": "Graphics"
+          },
+          "local_assessment": {
+            "type": "string",
+            "maxLength": 12000,
+            "title": "Local Assessment",
+            "default": ""
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ProductGuidance"
       },
       "ProductHistory": {
         "properties": {
@@ -40857,6 +42474,194 @@
         ],
         "title": "SwapType"
       },
+      "SynopDecoded": {
+        "properties": {
+          "international_data_subcategory": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "International Data Subcategory"
+          },
+          "is_nil_report": {
+            "type": "boolean",
+            "title": "Is Nil Report",
+            "default": false
+          },
+          "air_temperature_k": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Air Temperature K"
+          },
+          "wet_bulb_k": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wet Bulb K"
+          },
+          "dew_point_k": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dew Point K"
+          },
+          "max_temperature_k": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Temperature K"
+          },
+          "min_temperature_k": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Temperature K"
+          },
+          "station_pressure_pa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station Pressure Pa"
+          },
+          "mean_sea_level_pressure_pa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mean Sea Level Pressure Pa"
+          },
+          "wind_direction_deg": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Direction Deg"
+          },
+          "wind_speed_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Speed Ms"
+          },
+          "wind_gust_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Gust Ms"
+          },
+          "relative_humidity_percent": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relative Humidity Percent"
+          },
+          "visibility_m": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visibility M"
+          },
+          "total_cloud_percent": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Cloud Percent"
+          },
+          "precipitation_kg_m2": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Precipitation Kg M2"
+          },
+          "rainfall_24h_kg_m2": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rainfall 24H Kg M2"
+          }
+        },
+        "type": "object",
+        "title": "SynopDecoded",
+        "description": "SI values decoded from the coded groups; missing or unobserved is null."
+      },
       "SynopValidationIssue": {
         "properties": {
           "field": {
@@ -40870,6 +42675,9 @@
           "message": {
             "type": "string",
             "title": "Message"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/SynopValidationIssuePropertiesSeverityEnum"
           }
         },
         "type": "object",
@@ -40907,6 +42715,9 @@
           },
           "normalized": {
             "$ref": "#/components/schemas/SynopWorkbook"
+          },
+          "decoded": {
+            "$ref": "#/components/schemas/SynopDecoded"
           }
         },
         "type": "object",
@@ -41062,6 +42873,18 @@
             ],
             "title": "Wind Speed"
           },
+          "wind_gust": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Gust"
+          },
           "air_temp": {
             "anyOf": [
               {
@@ -41074,6 +42897,18 @@
             ],
             "title": "Air Temp"
           },
+          "wet_bulb": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wet Bulb"
+          },
           "dew_point": {
             "anyOf": [
               {
@@ -41085,6 +42920,18 @@
               }
             ],
             "title": "Dew Point"
+          },
+          "relative_humidity": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relative Humidity"
           },
           "station_pressure": {
             "anyOf": [
@@ -41505,6 +43352,18 @@
               }
             ],
             "title": "S3 Remarks"
+          },
+          "observer_initials": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observer Initials"
           },
           "notes": {
             "anyOf": [
@@ -46098,6 +47957,64 @@
           "member"
         ]
       },
+      "GuidanceFactPropertiesKeyEnum": {
+        "type": "string",
+        "enum": [
+          "latitude",
+          "longitude",
+          "axis_longitude",
+          "axis_northern_limit",
+          "relative_location",
+          "pressure",
+          "movement_direction",
+          "movement_speed",
+          "maximum_wind",
+          "gust",
+          "convection_coverage",
+          "convection_intensity",
+          "convection_location",
+          "organization",
+          "latitude_min",
+          "latitude_max",
+          "longitude_west",
+          "longitude_east",
+          "environment",
+          "limiting_factor",
+          "development_window",
+          "formation_probability",
+          "hazard",
+          "affected_area",
+          "duration",
+          "rainfall",
+          "flooding",
+          "wind_direction",
+          "wind_speed",
+          "wave_height",
+          "swell_height",
+          "swell_direction",
+          "swell_period",
+          "visibility"
+        ]
+      },
+      "GuidanceFactPropertiesRecordTypeEnum": {
+        "type": "string",
+        "enum": [
+          "observation",
+          "analysis",
+          "forecast"
+        ]
+      },
+      "GuidanceSystemPropertiesFeatureTypeEnum": {
+        "type": "string",
+        "enum": [
+          "disturbance",
+          "tropical_wave",
+          "low_pressure_area",
+          "low_pressure_centre",
+          "tropical_cyclone",
+          "other"
+        ]
+      },
       "ImageInputPropertiesTimeBasisEnum": {
         "type": "string",
         "enum": [
@@ -46204,6 +48121,55 @@
         "enum": [
           "public",
           "connections"
+        ]
+      },
+      "NhcEditionPropertiesFamilyEnum": {
+        "type": "string",
+        "enum": [
+          "tropical_development",
+          "active_cyclones",
+          "marine",
+          "aviation_recon"
+        ]
+      },
+      "NhcEditionPropertiesKindEnum": {
+        "type": "string",
+        "enum": [
+          "outlook",
+          "bulletin",
+          "text",
+          "image",
+          "vector",
+          "grid",
+          "storms",
+          "hdob",
+          "vortex",
+          "dropsonde"
+        ]
+      },
+      "NhcJobPropertiesKindEnum": {
+        "type": "string",
+        "enum": [
+          "pull",
+          "point"
+        ]
+      },
+      "NhcJobPropertiesStatusEnum": {
+        "type": "string",
+        "enum": [
+          "queued",
+          "running",
+          "success",
+          "partial",
+          "failed"
+        ]
+      },
+      "NhcPrefillRequestPropertiesKindEnum": {
+        "type": "string",
+        "enum": [
+          "outlook",
+          "cyclone",
+          "marine"
         ]
       },
       "ObservationProvenancePropertiesTimeBasisEnum": {
@@ -46339,6 +48305,14 @@
           "approved",
           "rejected"
         ]
+      },
+      "SynopValidationIssuePropertiesSeverityEnum": {
+        "type": "string",
+        "enum": [
+          "error",
+          "warning"
+        ],
+        "default": "error"
       },
       "ThreadDetailPropertiesKindEnum": {
         "type": "string",

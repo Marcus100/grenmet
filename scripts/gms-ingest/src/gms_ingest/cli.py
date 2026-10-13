@@ -5,7 +5,7 @@ import json
 import sys
 from pathlib import Path
 
-from . import registry
+from . import facts, registry
 from .storage import read_json
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[4] / "data" / "gms-ingest" / "nhc"
@@ -18,6 +18,7 @@ def main(argv=None):
         "collect", help="Collect current selected products once"
     )
     collect.add_argument("--groups", default="all")
+    collect.add_argument("--families", default="all")
     collect.add_argument(
         "--bbox",
         nargs=4,
@@ -47,12 +48,15 @@ def main(argv=None):
                     "--groups must be all or a comma-separated selection of "
                     + ",".join(sorted(registry.GROUPS))
                 )
+            families = None if args.families == "all" else set(args.families.split(","))
+            if families is not None and (not families or families - facts.FAMILIES):
+                parser.error("Unknown NHC product family")
             west, south, east, north = args.bbox
             if not (-180 <= west < east <= 180 and -90 <= south < north <= 90):
                 parser.error("Invalid bounding box")
             from .collector import collect as run
 
-            success, path = run(root, groups, tuple(args.bbox))
+            success, path = run(root, groups, tuple(args.bbox), families=families)
             print(
                 f"NHC collection {'succeeded' if success else 'partially failed'}: {path}"
             )

@@ -4,8 +4,10 @@
  */
 
 import type { OutlookValuesDraft } from "./OutlookValuesDraft.js";
+import type { ProductGuidance } from "./ProductGuidance.js";
 
 export type OutlookStoredProduct = {
+  guidance?: ProductGuidance | null;
   /**
    * @description
    * Format: `uuid`

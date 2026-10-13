@@ -13,6 +13,8 @@ Separate PostgreSQL database with its own Alembic history (`alembic.ini`, `migra
 - `GET /api/v1/wxwatch/ready` is anonymous and returns only 204/503.
 - Image bytes are served through authenticated storage routes, never public bucket URLs.
 
+- NHC reads and durable operator requests live in `nhc_router.py`/`nhc_service.py`; only the dedicated NHC worker collects/imports. Meteorological times remain separate from retrieval/check times. Source editions and assets are immutable; failed pulls retain previous successful data.
+
 ## Tests
 `tests/wxwatch/` (archive, assets, catalogue, gallery, ingestion, migration, NHC import).
 

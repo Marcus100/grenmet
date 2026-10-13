@@ -4,8 +4,10 @@
  */
 
 import type { OutlookValuesDraft } from "./OutlookValuesDraft.js";
+import type { ProductGuidance } from "./ProductGuidance.js";
 
 export type OutlookProductPreview = {
+  guidance?: ProductGuidance | null;
   values: OutlookValuesDraft;
   errors: string[];
   /**

@@ -1,7 +1,7 @@
-import Link from "next/link";
-import { ProductDesk } from "@/components/wxproducts/product-desk";
-import { ArchiveBrowser } from "@/components/wxwatch/archive-browser";
-import { getArchive, getArchiveHistory } from "@/db/wxwatch/queries";
+import type { NhcPage } from "@barrelsgd/api-client";
+import { redirect } from "next/navigation";
+import { NhcWorkspace } from "@/components/wxproducts/nhc-workspace";
+import { getNhcEditions } from "@/db/wxwatch/queries";
 import { reportError } from "@/lib/report-error";
 
 export const metadata = { title: "NHC Products" };
@@ -14,68 +14,43 @@ export default async function NhcProductsPage({
 }) {
   const raw = await searchParams;
   const editor = raw.view === "editor";
-  return (
-    <div className="space-y-6">
-      <nav aria-label="NHC Products views" className="flex gap-4">
-        <Link
-          aria-current={editor ? undefined : "page"}
-          className="underline"
-          href="/wxproducts/nhc"
-        >
-          NHC guidance
-        </Link>
-        <Link
-          aria-current={editor ? "page" : undefined}
-          className="underline"
-          href="/wxproducts/nhc?view=editor"
-        >
-          Outlook editor
-        </Link>
-      </nav>
-      {editor ? (
-        <ProductDesk kinds={["outlook"]} title="Outlook editor" />
-      ) : (
-        await guidance(raw)
-      )}
-    </div>
-  );
-}
-
-async function guidance(raw: Record<string, string | string[] | undefined>) {
-  const params = new URLSearchParams({ source: "nhc" });
-  for (const key of ["product", "start", "end", "unknown_time", "offset"]) {
-    const value = raw[key];
+  const params = new URLSearchParams();
+  for (const [key, value] of Object.entries(raw))
     if (typeof value === "string" && value) params.set(key, value);
+  const query = new URLSearchParams();
+  for (const key of [
+    "family",
+    "product",
+    "storm",
+    "start",
+    "end",
+    "latest",
+    "offset",
+  ]) {
+    const value = params.get(key);
+    if (value) query.set(key, value);
   }
-  const edition = typeof raw.edition === "string" ? raw.edition : undefined;
-  const offset =
-    typeof raw.history_offset === "string" ? raw.history_offset : "0";
+  if (editor) {
+    const target = new URLSearchParams({
+      kind: params.get("kind") ?? "outlook",
+    });
+    if (params.get("sources"))
+      target.set("sources", params.get("sources") ?? "");
+    redirect(`/wxproducts/alerts?${target}`);
+  }
+  let archive: NhcPage | null = null;
+  let loadError = "";
   try {
-    const [archive, history] = await Promise.all([
-      getArchive(params),
-      edition ? getArchiveHistory(edition, offset) : Promise.resolve(null),
-    ]);
-    return (
-      <ArchiveBrowser
-        archive={archive}
-        edition={edition}
-        history={history}
-        nhcOnly
-        query={params.toString()}
-      />
-    );
+    archive = await getNhcEditions(query);
   } catch (error) {
     reportError(error, "wxproducts-nhc");
-    return (
-      <div className="space-y-3">
-        <p role="alert">
-          NHC guidance unavailable. Check the date filters or try again.
-        </p>
-        <Link className="underline" href="/wxproducts/nhc">
-          Reset guidance filters
-        </Link>
-        <p>The outlook editor is still available above.</p>
-      </div>
-    );
+    loadError = "NHC guidance unavailable. Pull progress remains accessible.";
   }
+  return (
+    <NhcWorkspace
+      archive={archive}
+      loadError={loadError}
+      query={params.toString()}
+    />
+  );
 }

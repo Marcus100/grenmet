@@ -1504,6 +1504,14 @@ export { groupDetailSchema } from "./groupDetailSchema.js";
 export { groupMemberPublicPropertiesRoleEnumSchema } from "./groupMemberPublicPropertiesRoleEnumSchema.js";
 export { groupMemberPublicSchema } from "./groupMemberPublicSchema.js";
 export { groupSummarySchema } from "./groupSummarySchema.js";
+export { guidanceFactPropertiesKeyEnumSchema } from "./guidanceFactPropertiesKeyEnumSchema.js";
+export { guidanceFactPropertiesRecordTypeEnumSchema } from "./guidanceFactPropertiesRecordTypeEnumSchema.js";
+export { guidanceFactSchema } from "./guidanceFactSchema.js";
+export { guidanceGraphicSchema } from "./guidanceGraphicSchema.js";
+export { guidanceGridSampleSchema } from "./guidanceGridSampleSchema.js";
+export { guidanceSourceSchema } from "./guidanceSourceSchema.js";
+export { guidanceSystemPropertiesFeatureTypeEnumSchema } from "./guidanceSystemPropertiesFeatureTypeEnumSchema.js";
+export { guidanceSystemSchema } from "./guidanceSystemSchema.js";
 export {
   hrActionLeaveRequestBodySchema,
   hrActionLeaveRequestErrorSchema,
@@ -3096,6 +3104,21 @@ export { myProfilePropertiesVisibilityEnumSchema } from "./myProfilePropertiesVi
 export { myProfileSchema } from "./myProfileSchema.js";
 export { networkPublicSchema } from "./networkPublicSchema.js";
 export { newPasswordSchema } from "./newPasswordSchema.js";
+export { nhcAssetSchema } from "./nhcAssetSchema.js";
+export { nhcContentSchema } from "./nhcContentSchema.js";
+export { nhcEditionPropertiesFamilyEnumSchema } from "./nhcEditionPropertiesFamilyEnumSchema.js";
+export { nhcEditionPropertiesKindEnumSchema } from "./nhcEditionPropertiesKindEnumSchema.js";
+export { nhcEditionSchema } from "./nhcEditionSchema.js";
+export { nhcJobPropertiesKindEnumSchema } from "./nhcJobPropertiesKindEnumSchema.js";
+export { nhcJobPropertiesStatusEnumSchema } from "./nhcJobPropertiesStatusEnumSchema.js";
+export { nhcJobSchema } from "./nhcJobSchema.js";
+export { nhcPageSchema } from "./nhcPageSchema.js";
+export { nhcPointRequestSchema } from "./nhcPointRequestSchema.js";
+export { nhcPrefillRequestPropertiesKindEnumSchema } from "./nhcPrefillRequestPropertiesKindEnumSchema.js";
+export { nhcPrefillRequestSchema } from "./nhcPrefillRequestSchema.js";
+export { nhcPrefillSchema } from "./nhcPrefillSchema.js";
+export { nhcPullRequestSchema } from "./nhcPullRequestSchema.js";
+export { nhcSourceCheckSchema } from "./nhcSourceCheckSchema.js";
 export { notificationParamsSchema } from "./notificationParamsSchema.js";
 export { notificationPreferencePublicSchema } from "./notificationPreferencePublicSchema.js";
 export { notificationPreferenceUpdateSchema } from "./notificationPreferenceUpdateSchema.js";
@@ -3213,6 +3236,7 @@ export { productAccessCurrentSchema } from "./productAccessCurrentSchema.js";
 export { productAccessInputSchema } from "./productAccessInputSchema.js";
 export { productAccessPublicSchema } from "./productAccessPublicSchema.js";
 export { productFeedErrorSchema } from "./productFeedErrorSchema.js";
+export { productGuidanceSchema } from "./productGuidanceSchema.js";
 export { productHistoryEntrySchema } from "./productHistoryEntrySchema.js";
 export { productHistorySchema } from "./productHistorySchema.js";
 export { profAppointmentTypeSchema } from "./profAppointmentTypeSchema.js";
@@ -3346,9 +3370,11 @@ export { suggestionPublicSchema } from "./suggestionPublicSchema.js";
 export { suggestionUpdatePropertiesStatusEnumSchema } from "./suggestionUpdatePropertiesStatusEnumSchema.js";
 export { suggestionUpdateSchema } from "./suggestionUpdateSchema.js";
 export { swapTypeSchema } from "./swapTypeSchema.js";
+export { synopDecodedSchema } from "./synopDecodedSchema.js";
 export { synopticImageGroupSchema } from "./synopticImageGroupSchema.js";
 export { synopticImageGroupsSchema } from "./synopticImageGroupsSchema.js";
 export { synopticSlotsSchema } from "./synopticSlotsSchema.js";
+export { synopValidationIssuePropertiesSeverityEnumSchema } from "./synopValidationIssuePropertiesSeverityEnumSchema.js";
 export { synopValidationIssueSchema } from "./synopValidationIssueSchema.js";
 export { synopValidationRequestSchema } from "./synopValidationRequestSchema.js";
 export { synopValidationResponseSchema } from "./synopValidationResponseSchema.js";
@@ -3811,6 +3837,35 @@ export {
   wxwatchEditionAssetsStatus422Schema,
 } from "./wxwatchEditionAssetsSchema.js";
 export {
+  wxwatchEditionErrorSchema,
+  wxwatchEditionPathEditionIdSchema,
+  wxwatchEditionResponseSchema,
+  wxwatchEditionStatus200Schema,
+  wxwatchEditionStatus401Schema,
+  wxwatchEditionStatus403Schema,
+  wxwatchEditionStatus404Schema,
+  wxwatchEditionStatus422Schema,
+  wxwatchEditionStatus503Schema,
+} from "./wxwatchEditionSchema.js";
+export {
+  wxwatchEditionsErrorSchema,
+  wxwatchEditionsQueryEndSchema,
+  wxwatchEditionsQueryFamilySchema,
+  wxwatchEditionsQueryLatestSchema,
+  wxwatchEditionsQueryLimitSchema,
+  wxwatchEditionsQueryOffsetSchema,
+  wxwatchEditionsQueryProductSchema,
+  wxwatchEditionsQueryStartSchema,
+  wxwatchEditionsQueryStormSchema,
+  wxwatchEditionsResponseSchema,
+  wxwatchEditionsStatus200Schema,
+  wxwatchEditionsStatus401Schema,
+  wxwatchEditionsStatus403Schema,
+  wxwatchEditionsStatus404Schema,
+  wxwatchEditionsStatus422Schema,
+  wxwatchEditionsStatus503Schema,
+} from "./wxwatchEditionsSchema.js";
+export {
   wxwatchFinishRunBodySchema,
   wxwatchFinishRunErrorSchema,
   wxwatchFinishRunHeaderAuthorizationSchema,
@@ -3835,6 +3890,39 @@ export {
   wxwatchMetadataStatus422Schema,
 } from "./wxwatchMetadataSchema.js";
 export {
+  wxwatchPointBodySchema,
+  wxwatchPointErrorSchema,
+  wxwatchPointResponseSchema,
+  wxwatchPointStatus202Schema,
+  wxwatchPointStatus401Schema,
+  wxwatchPointStatus403Schema,
+  wxwatchPointStatus404Schema,
+  wxwatchPointStatus422Schema,
+  wxwatchPointStatus503Schema,
+} from "./wxwatchPointSchema.js";
+export {
+  wxwatchProposeBodySchema,
+  wxwatchProposeErrorSchema,
+  wxwatchProposeResponseSchema,
+  wxwatchProposeStatus200Schema,
+  wxwatchProposeStatus401Schema,
+  wxwatchProposeStatus403Schema,
+  wxwatchProposeStatus404Schema,
+  wxwatchProposeStatus422Schema,
+  wxwatchProposeStatus503Schema,
+} from "./wxwatchProposeSchema.js";
+export {
+  wxwatchPullBodySchema,
+  wxwatchPullErrorSchema,
+  wxwatchPullResponseSchema,
+  wxwatchPullStatus202Schema,
+  wxwatchPullStatus401Schema,
+  wxwatchPullStatus403Schema,
+  wxwatchPullStatus404Schema,
+  wxwatchPullStatus422Schema,
+  wxwatchPullStatus503Schema,
+} from "./wxwatchPullSchema.js";
+export {
   wxwatchReadyErrorSchema,
   wxwatchReadyResponseSchema,
   wxwatchReadyStatus204Schema,
@@ -3849,6 +3937,17 @@ export {
   wxwatchRegisterDerivationStatus422Schema,
 } from "./wxwatchRegisterDerivationSchema.js";
 export {
+  wxwatchRequestStatusErrorSchema,
+  wxwatchRequestStatusPathJobIdSchema,
+  wxwatchRequestStatusResponseSchema,
+  wxwatchRequestStatusStatus200Schema,
+  wxwatchRequestStatusStatus401Schema,
+  wxwatchRequestStatusStatus403Schema,
+  wxwatchRequestStatusStatus404Schema,
+  wxwatchRequestStatusStatus422Schema,
+  wxwatchRequestStatusStatus503Schema,
+} from "./wxwatchRequestStatusSchema.js";
+export {
   wxwatchRetrievalsErrorSchema,
   wxwatchRetrievalsPathEditionIdSchema,
   wxwatchRetrievalsQueryLimitSchema,
@@ -3857,6 +3956,17 @@ export {
   wxwatchRetrievalsStatus200Schema,
   wxwatchRetrievalsStatus422Schema,
 } from "./wxwatchRetrievalsSchema.js";
+export {
+  wxwatchSourceChecksErrorSchema,
+  wxwatchSourceChecksQueryEditionIdsSchema,
+  wxwatchSourceChecksResponseSchema,
+  wxwatchSourceChecksStatus200Schema,
+  wxwatchSourceChecksStatus401Schema,
+  wxwatchSourceChecksStatus403Schema,
+  wxwatchSourceChecksStatus404Schema,
+  wxwatchSourceChecksStatus422Schema,
+  wxwatchSourceChecksStatus503Schema,
+} from "./wxwatchSourceChecksSchema.js";
 export {
   wxwatchStartRunBodySchema,
   wxwatchStartRunErrorSchema,

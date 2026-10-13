@@ -59,6 +59,21 @@ def make_product(url, prefix, group, storm_id=None, issued_at=None):
 def storm_products(storms, groups):
     result = []
     for storm in storms:
+        wallet = re.fullmatch(r"AT([1-5])", str(storm.get("binNumber", "")), re.I)
+        if wallet and "storms" in groups:
+            for prefix in ("TCUAT", "TCANT"):
+                code = prefix + wallet[1]
+                result.append(
+                    Product(
+                        storm["id"] + "-" + code.lower(),
+                        "storms",
+                        BASE + "/xml/" + code + ".xml",
+                        "bulletin",
+                        code,
+                        storm_id=storm["id"],
+                        optional=True,
+                    )
+                )
         for name, product in storm.items():
             if not isinstance(product, dict):
                 continue
@@ -113,7 +128,7 @@ def advisory_products(items):
     result = []
     for item in items:
         code = re.search(
-            r"\b(?:TCPAT|TCMAT|TCDAT|PWSAT|TCVAT)\d\b", item.get("text", "")
+            r"\b(?:TCPAT|TCMAT|TCDAT|PWSAT|TCVAT|TCUAT|TCANT)\d\b", item.get("text", "")
         )
         storm = re.search(r"\bAL\d{6}\b", item.get("text", ""), re.I)
         if not code or not item.get("url"):
@@ -126,6 +141,7 @@ def advisory_products(items):
                     "storms",
                     found.url,
                     "text",
+                    code=code[0],
                     storm_id=storm[0].lower() if storm else None,
                     issued_at=item.get("issued_at"),
                 )

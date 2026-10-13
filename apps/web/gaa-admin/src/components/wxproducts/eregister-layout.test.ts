@@ -1,0 +1,78 @@
+import { expect, it } from "vitest";
+import {
+  cellUpdates,
+  cellValue,
+  FIELD_LABELS,
+  type FieldColumn,
+  REGISTER_FIELDS,
+  REGISTER_KEYS,
+  REGISTER_SECTIONS,
+} from "./eregister-layout";
+
+const find = (id: string): FieldColumn => {
+  const column = REGISTER_FIELDS.find((candidate) => candidate.id === id);
+  if (!column) throw new Error(`no column ${id}`);
+  return column;
+};
+
+const stored = { air_temp: "0280", day: "30", time_utc: "12" };
+
+it("shows Date-Time as one YYGG cell over day and hour", () => {
+  const dateTime = find("date_time");
+  expect(cellValue(dateTime, stored)).toBe("3012");
+  expect(cellUpdates(dateTime, "0723", stored).updates).toEqual([
+    ["day", "07"],
+    ["time_utc", "23"],
+  ]);
+});
+
+it("splits a temperature into the paper's 1Sn cell and the TTT cell", () => {
+  const sign = find("air_temp:sign");
+  const digits = find("air_temp:digits");
+  expect(cellValue(sign, stored)).toBe("10");
+  expect(cellValue(digits, stored)).toBe("280");
+  expect(cellUpdates(sign, "11", stored)).toEqual({
+    lead: "1",
+    updates: [["air_temp", "1280"]],
+  });
+  expect(cellUpdates(digits, "345", stored).updates).toEqual([
+    ["air_temp", "0345"],
+  ]);
+});
+
+it("keeps the sign while the digits are still being keyed", () => {
+  const digits = find("air_temp:digits");
+  const partial = { air_temp: "028" };
+  const leads = { air_temp: "0" };
+  expect(cellValue(digits, partial, leads)).toBe("28");
+  expect(cellUpdates(digits, "280", partial, leads).updates).toEqual([
+    ["air_temp", "0280"],
+  ]);
+});
+
+it("leaves the sign open until it is keyed, storing plain TTT", () => {
+  const digits = find("air_temp:digits");
+  expect(cellUpdates(digits, "280", {}).updates).toEqual([["air_temp", "280"]]);
+  expect(cellValue(find("air_temp:sign"), { air_temp: "280" })).toBe("");
+});
+
+it("stores only real fields and names issues by paper column", () => {
+  expect(REGISTER_KEYS).toContain("wet_bulb");
+  expect(REGISTER_KEYS).toContain("wind_gust");
+  expect(REGISTER_KEYS).not.toContain("date_time");
+  expect(FIELD_LABELS.time_utc).toBe("Date-Time GMT (YYGG)");
+  expect(FIELD_LABELS.wind_gust).toBe("Gust (fmfm)");
+});
+
+it("numbers the columns like the paper register, 1 to 65", () => {
+  const numbers = REGISTER_SECTIONS.flatMap((section) =>
+    section.columns.flatMap((column) => (column.no ? [column.no] : []))
+  );
+  expect(Math.max(...numbers)).toBe(65);
+  expect(new Set(numbers).size).toBe(numbers.length);
+  // Paper column 17 (barometer as read / total corrections) is not built yet.
+  const missing = Array.from({ length: 65 }, (_, i) => i + 1).filter(
+    (n) => !numbers.includes(n)
+  );
+  expect(missing).toEqual([17]);
+});

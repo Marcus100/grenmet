@@ -17,6 +17,8 @@ Migration `0001` adopts verified Drizzle history and intentionally refuses to in
 - Forecast/bulletin/outlook PDFs have one renderer (WeasyPrint) for the live draft preview and saved revisions; it needs Pango/HarfBuzz/fontconfig in the image. Style with `--gm-*` variables only; `PALETTE` mirrors `foundation.css`.
 - New schema changes: add an Alembic revision with `-c src/wxproducts/alembic.ini`. Never add Drizzle migrations in gaa-admin.
 
+- Reviewed NHC guidance is optional typed content in immutable revisions; source facts remain in WxWatch. Compose public scalar summaries compatibly. Each outlook system owns its probabilities; never distribute legacy bulletin-wide values. Explicit identity/embedded links require forecaster confirmation; source-backed marine publication requires a local assessment.
+
 ## Tests
 `tests/wxproducts/` (authoring, aviation, forecast, migrations, PDF, preview, public products, validation). Shared template/clone fixtures live in the root `tests/conftest.py`.
 

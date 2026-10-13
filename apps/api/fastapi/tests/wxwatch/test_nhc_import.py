@@ -71,7 +71,7 @@ def test_import_retries_checks_and_corrections(weather_engine, tmp_path):
     import_manifest(tmp_path, "manifest.json", engine=weather_engine)
     with weather_engine.connect() as c:
         assert c.scalar(text("SELECT count(*) FROM archive_editions")) == 2
-        assert c.scalar(text("SELECT count(*) FROM archive_assets")) == 2
+        assert c.scalar(text("SELECT count(*) FROM archive_assets")) == 4
         assert c.scalar(text("SELECT count(*) FROM archive_nhc_events")) == 4
         assert c.scalar(text("SELECT count(*) FROM weather_images")) == 0
         assert (
@@ -243,7 +243,13 @@ async def test_nhc_image_import_to_authenticated_delivery(
         assert c.scalar(text("SELECT count(*) FROM archive_editions")) == 1
         assert c.scalar(text("SELECT count(*) FROM archive_nhc_text")) == 0
         assert c.scalar(text("SELECT count(*) FROM archive_nhc_events")) == 2
-        asset = c.execute(text("SELECT * FROM archive_assets")).mappings().one()
+        asset = (
+            c.execute(
+                text("SELECT * FROM archive_assets WHERE media_type LIKE 'image/%'")
+            )
+            .mappings()
+            .one()
+        )
         assert (asset["media_type"], asset["width"], asset["height"]) == (
             "image/png",
             12,

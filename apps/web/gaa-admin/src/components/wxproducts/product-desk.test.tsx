@@ -9,37 +9,40 @@ import {
   fireEvent,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { beforeEach, expect, it, vi } from "vitest";
 import { ProductDesk } from "./product-desk";
 
+const PUBLICATION_CONFIRMATION = /checked the content/;
+
 const OPEN_MARINE = /^Open Marine/;
 const ISSUE_DATE_LABEL = /Issue date and time/;
 const FORECASTER_LABEL = /Forecaster on duty/;
 const AREA_LABEL = /Area covered/;
-const ISSUE_SUMMARY_DATE = /^\d{1,2} [A-Z][a-z]{2} \d{4}, \d{2}:\d{2}$/;
-const SPEED_FROM_LABEL = /Speed from \(kt\)/;
-const WEATHER_SUMMARY_LABEL = /Weather summary/;
-const SPEED_TO_LABEL = /Speed to \(kt\)/;
-const WAVES_FROM_LABEL = /Waves from \(m\)/;
-const WAVES_FEET_HINT = /Waves ≈ 6 ft/;
+const SPEED_FROM_LABEL = /Speed from \(mph\)/;
+const WEATHER_SUMMARY_LABEL = /^Weather summary \*$/;
+const SPEED_TO_LABEL = /Speed to \(mph\)/;
+const WAVES_FROM_LABEL = /Waves from \(ft\)/;
+const WAVES_METRES_HINT = /Waves ≈ 0.55 m/;
 const HIGH_TIDES_LABEL = /High tides \(times\)/;
 const TIDE_TIME_LABEL = /^Tide \d time$/;
 const WIND_SUMMARY_LABEL = /^Wind summary/;
 const MAX_WINDS_LABEL = /Maximum winds and gusts/;
+const DAY_ONE_HEADING = /^Day 1/;
+const EVENT_TIME_LABEL = /Event date and time/;
 
 const actions = vi.hoisted(() => ({
   loadProductsAction: vi.fn(),
   loadProductHistoryAction: vi.fn(),
   previewProductAction: vi.fn(),
   saveProductAction: vi.fn(),
+  previewProductPdfAction: vi.fn(),
+  downloadProductPdfAction: vi.fn(),
 }));
 vi.mock("@/app/(admin)/wxproducts/product-actions", () => actions);
 vi.mock("./cap-forecast-picker", () => ({ CapForecastPicker: () => null }));
-vi.mock("@/components/wxproducts/product-pdf-preview", () => ({
-  ProductPdfPreview: () => null,
-}));
 vi.mock("@barrelsgd/gms/components/product-content", () => ({
   ProductContentView: ({
     content,
@@ -66,6 +69,12 @@ function render(ui: ReactElement) {
 beforeEach(() => {
   vi.resetAllMocks();
   actions.loadProductsAction.mockResolvedValue({ ok: true, products: [] });
+  actions.previewProductPdfAction.mockResolvedValue({
+    ok: true,
+    blob: new Blob(["%PDF"]),
+  });
+  URL.createObjectURL = vi.fn(() => "blob:preview");
+  URL.revokeObjectURL = vi.fn();
 });
 async function openEditor() {
   render(<ProductDesk kinds={["morning"]} title="Forecasts" />);
@@ -90,7 +99,9 @@ it("reviews the backend's normalized content and invalidates it after editing", 
   });
   expect(region).toHaveTextContent("Backend normalized forecast");
   expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeDisabled();
-  fireEvent.click(screen.getByRole("checkbox"));
+  fireEvent.click(
+    screen.getByRole("checkbox", { name: PUBLICATION_CONFIRMATION })
+  );
   expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeEnabled();
   fireEvent.change(screen.getByDisplayValue("Backend normalized forecast"), {
     target: { value: "Edited forecast" },
@@ -150,9 +161,152 @@ it("shows a tab per forecast kind and switches when the form is clean", async ()
     undefined,
     0
   );
-  expect(screen.getByText("Issued").nextElementSibling).toHaveTextContent(
-    "12:00"
+  expect(
+    screen.getByText("Issued (Grenada time)").nextElementSibling
+  ).toHaveTextContent("12:00");
+});
+
+it("uses compact alert tab names and opens the existing earthquake and tsunami editor", async () => {
+  render(
+    <ProductDesk
+      kinds={[
+        "outlook",
+        "cyclone",
+        "marine",
+        "flood",
+        "thunderstorm",
+        "wind",
+        "heat",
+        "dust",
+        "coastal",
+        "tsunami",
+      ]}
+      title="Alerts"
+    />
   );
+  const tabs = within(screen.getByRole("tablist", { name: "Product type" }));
+  expect(tabs.getAllByRole("tab").map((tab) => tab.textContent)).toEqual([
+    "Tropical Weather Outlook",
+    "Tropical Cyclone",
+    "Marine / Small Craft",
+    "Flood / Heavy Rain",
+    "Thunderstorm",
+    "Wind",
+    "Heat",
+    "Dust / Haze",
+    "Coastal Hazard",
+    "Tsunami / Earthquake",
+  ]);
+  await waitFor(() =>
+    expect(
+      screen.getByRole("button", { name: "Validate and preview" })
+    ).toBeEnabled()
+  );
+  fireEvent.click(tabs.getByRole("tab", { name: "Tsunami / Earthquake" }));
+  await waitFor(() =>
+    expect(
+      screen.getByRole("tab", { name: "Tsunami / Earthquake" })
+    ).toHaveAttribute("aria-selected", "true")
+  );
+  expect(screen.getByLabelText(EVENT_TIME_LABEL)).toBeInTheDocument();
+  expect(actions.saveProductAction).not.toHaveBeenCalled();
+});
+
+it("keeps evening periods in subtabs without losing edits or rendering PDFs", async () => {
+  render(<ProductDesk kinds={["evening"]} title="Forecasts" />);
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Save draft" })).toBeEnabled()
+  );
+  const tonight = screen.getByRole("tabpanel", { name: "Tonight" });
+  const periodTabs = screen.getByRole("tablist", {
+    name: "Evening forecast period",
+  });
+  expect(
+    periodTabs.compareDocumentPosition(screen.getByText("New draft"))
+  ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+  fireEvent.change(within(tonight).getByLabelText("Tonight's weather *"), {
+    target: { value: "Tonight draft" },
+  });
+  fireEvent.click(screen.getByRole("tab", { name: "Day 1" }));
+  const day1 = screen.getByRole("tabpanel", { name: "Day 1" });
+  expect(
+    within(day1).queryByRole("heading", { name: DAY_ONE_HEADING })
+  ).toBeNull();
+  expect(screen.queryByRole("region", { name: "Weather fields" })).toBeNull();
+  fireEvent.change(within(day1).getByLabelText("Weather *", { exact: true }), {
+    target: { value: "Day one draft" },
+  });
+  fireEvent.change(within(day1).getByLabelText(SPEED_FROM_LABEL), {
+    target: { value: "10" },
+  });
+  fireEvent.click(screen.getByRole("tab", { name: "Day 2" }));
+  fireEvent.change(
+    within(screen.getByRole("tabpanel", { name: "Day 2" })).getByLabelText(
+      "Weather *",
+      { exact: true }
+    ),
+    { target: { value: "Day two draft" } }
+  );
+  fireEvent.click(screen.getByRole("tab", { name: "Day 1" }));
+  expect(
+    within(screen.getByRole("tabpanel", { name: "Day 1" })).getByLabelText(
+      "Weather *",
+      { exact: true }
+    )
+  ).toHaveValue("Day one draft");
+  expect(
+    within(screen.getByRole("tabpanel", { name: "Day 1" })).getByLabelText(
+      SPEED_FROM_LABEL
+    )
+  ).toHaveValue(10);
+  fireEvent.click(screen.getByRole("tab", { name: "Tonight" }));
+  expect(screen.getByLabelText("Tonight's weather *")).toHaveValue(
+    "Tonight draft"
+  );
+  expect(actions.previewProductPdfAction).not.toHaveBeenCalled();
+  actions.saveProductAction.mockResolvedValue({
+    ok: false,
+    error: "Not persisted",
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Save draft" }));
+  await waitFor(() => expect(actions.saveProductAction).toHaveBeenCalledOnce());
+  const saved = actions.saveProductAction.mock.calls[0]?.[0]?.values;
+  expect(saved.summary).toBe("Tonight draft");
+  expect(saved.day1Weather).toBe("Day one draft");
+  expect(saved.day2Weather).toBe("Day two draft");
+  expect(Number(saved.day1WindSpeedMin)).toBeCloseTo(
+    10 / (1852 / 1609.344),
+    10
+  );
+});
+
+it("preserves publication review when switching evening periods and invalidates it after a day edit", async () => {
+  actions.previewProductAction.mockImplementation(async ({ values }) => ({
+    ok: true,
+    preview: { values, errors: [], checked_at: "2026-10-12T22:00:00Z" },
+  }));
+  render(<ProductDesk kinds={["evening"]} title="Forecasts" />);
+  await waitFor(() =>
+    expect(
+      screen.getByRole("button", { name: "Validate and preview" })
+    ).toBeEnabled()
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Validate and preview" }));
+  await screen.findByRole("region", { name: "Publication preview" });
+  fireEvent.click(screen.getByRole("checkbox"));
+  fireEvent.click(screen.getByRole("tab", { name: "Day 2" }));
+  expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeEnabled();
+  fireEvent.change(
+    within(screen.getByRole("tabpanel", { name: "Day 2" })).getByLabelText(
+      "Weather *",
+      { exact: true }
+    ),
+    { target: { value: "Edited day two" } }
+  );
+  expect(
+    screen.queryByRole("region", { name: "Publication preview" })
+  ).toBeNull();
+  expect(actions.previewProductPdfAction).toHaveBeenCalledOnce();
 });
 
 it("asks before switching tabs with unsaved changes", async () => {
@@ -195,7 +349,8 @@ it("uses today's fixed forecast slot without redundant date controls", async () 
   expect(screen.queryByLabelText("Forecast / issue date")).toBeNull();
   expect(document.getElementById("desk-time")).toBeNull();
   expect(screen.queryByLabelText("Saved forecast date")).toBeNull();
-  const issued = screen.getByText("Issued").nextElementSibling?.textContent;
+  const issued = screen.getByText("Issued (Grenada time)").nextElementSibling
+    ?.textContent;
   expect(issued).toContain("07:00");
 });
 
@@ -262,9 +417,9 @@ it("opens older products across kinds from the shared archive and starts new for
     "aria-selected",
     "true"
   );
-  expect(screen.getByText("Issued").nextElementSibling).toHaveTextContent(
-    "1 Jan 2026, 18:00"
-  );
+  expect(
+    screen.getByText("Issued (Grenada time)").nextElementSibling
+  ).toHaveTextContent("2026-01-01 18:00");
   fireEvent.click(screen.getByRole("button", { name: "New Evening Forecast" }));
   actions.saveProductAction.mockResolvedValue({
     ok: false,
@@ -277,7 +432,7 @@ it("opens older products across kinds from the shared archive and starts new for
   );
 });
 
-it("shows scheduled and fixed issue details as text, not fields", async () => {
+it("shows scheduled and fixed issue details only in the text preview", async () => {
   await openEditor();
   expect(screen.queryByLabelText(ISSUE_DATE_LABEL)).toBeNull();
   expect(screen.queryByLabelText(FORECASTER_LABEL)).toBeNull();
@@ -286,13 +441,32 @@ it("shows scheduled and fixed issue details as text, not fields", async () => {
   expect(
     screen.getByText("Grenada, Carriacou and Petite Martinique")
   ).toBeInTheDocument();
-  expect(screen.getByText(ISSUE_SUMMARY_DATE)).toBeInTheDocument();
+  expect(
+    screen.getByText("Issued (Grenada time)").nextElementSibling
+  ).toHaveTextContent(`${grenadaDate()} 07:00`);
+  expect(screen.queryByText("Issued", { exact: true })).toBeNull();
+  expect(screen.queryByText("Valid", { exact: true })).toBeNull();
+  expect(screen.queryByText("Area", { exact: true })).toBeNull();
 });
 
-it("sizes structured inputs and hints converted units", async () => {
+it("uses compact wind and astronomy rows with preferred units and canonical saves", async () => {
   await openEditor();
   const speed = screen.getByLabelText(SPEED_FROM_LABEL);
-  expect(speed.closest("[data-slot=field]")).toHaveClass("w-28");
+  const wind = screen.getByRole("region", { name: "Wind fields" });
+  expect(speed.closest("[data-slot=field]")).toHaveClass("w-24");
+  expect(speed.closest("[data-slot=field]")?.parentElement).toHaveClass(
+    "flex-wrap"
+  );
+  expect(wind).not.toHaveClass("rounded-lg", "p-4");
+  const astronomy = screen.getByRole("region", { name: "Astronomy fields" });
+  const sunrise = within(astronomy).getByLabelText("Sunrise");
+  const sunset = within(astronomy).getByLabelText("Sunset");
+  expect(sunrise.closest("[data-slot=field]")?.parentElement).toHaveClass(
+    "grid-cols-2"
+  );
+  expect(sunrise.closest("[data-slot=field]")?.parentElement).toBe(
+    sunset.closest("[data-slot=field]")?.parentElement
+  );
   expect(
     screen.getByLabelText(WEATHER_SUMMARY_LABEL).closest("[data-slot=field]")
   ).toHaveClass("basis-full");
@@ -300,12 +474,60 @@ it("sizes structured inputs and hints converted units", async () => {
   fireEvent.change(screen.getByLabelText(SPEED_TO_LABEL), {
     target: { value: "20" },
   });
-  expect(screen.getByText("≈ 12–23 mph · 19–37 km/h")).toBeInTheDocument();
+  expect(screen.getByText("≈ 9–17 kt · 16–32 km/h")).toBeInTheDocument();
   fireEvent.change(screen.getByLabelText(WAVES_FROM_LABEL), {
     target: { value: "1.8" },
   });
-  expect(screen.getByText(WAVES_FEET_HINT)).toBeInTheDocument();
+  expect(screen.getByText(WAVES_METRES_HINT)).toBeInTheDocument();
+  fireEvent.change(screen.getByLabelText("Tide 1 height (ft)"), {
+    target: { value: "1" },
+  });
+  expect(
+    screen.getByLabelText("Minimum temperature (°C) *")
+  ).toBeInTheDocument();
+  const min = screen.getByLabelText("Minimum temperature (°C) *");
+  expect(min).toHaveAttribute("placeholder", "Min temp");
+  fireEvent.change(min, { target: { value: "24" } });
+  expect(min.closest("[data-slot=field]")).toHaveTextContent("Min temp");
+  expect(min.closest("[data-slot=field]")).toHaveAttribute(
+    "data-orientation",
+    "horizontal"
+  );
+  expect(min.closest("[data-slot=input-group]")).toHaveTextContent("°C");
+  expect(min.closest("[data-slot=input-group]")).toHaveTextContent("*");
+  const visibleLabel = min
+    .closest("[data-slot=field]")
+    ?.querySelector("label > span[aria-hidden]");
+  expect(visibleLabel).toBeNull();
+  expect(min.closest("[data-slot=input-group]")).toHaveTextContent("Min temp");
+  expect(sunrise).toHaveAttribute("placeholder", "Sunrise");
+  expect(screen.getByLabelText("Term")).toHaveAttribute("placeholder", "Term");
+  expect(screen.getByLabelText("Meaning")).toHaveAttribute(
+    "placeholder",
+    "Meaning"
+  );
+  expect(screen.getByLabelText(WEATHER_SUMMARY_LABEL)).toBeVisible();
+  const weather = screen.getByRole("region", { name: "Weather fields" });
+  const weatherControls = [
+    ...weather.querySelectorAll("input, button, textarea"),
+  ];
+  expect(weatherControls.at(-1)).toBe(
+    screen.getByLabelText(WEATHER_SUMMARY_LABEL)
+  );
+  const marine = screen.getByRole("region", { name: "Marine fields" });
+  expect(marine.querySelector("textarea")).toBeNull();
   expect(screen.queryByLabelText(HIGH_TIDES_LABEL)).toBeNull();
+  actions.saveProductAction.mockResolvedValue({
+    ok: false,
+    error: "Not persisted",
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Save draft" }));
+  await waitFor(() => expect(actions.saveProductAction).toHaveBeenCalledOnce());
+  const saved = actions.saveProductAction.mock.calls[0]?.[0]?.values;
+  expect(Number(saved.windSpeedMin)).toBeCloseTo(10 / (1852 / 1609.344), 10);
+  expect(Number(saved.waveHeightMin)).toBeCloseTo(1.8 * 0.3048, 10);
+  expect(Number(saved.tide1Height)).toBeCloseTo(0.3048, 10);
+  expect(saved.minTemperature).toBe("24");
 });
 
 it("adds and removes tide rows, shifting later tides up", async () => {
@@ -334,9 +556,7 @@ it("gives marine bulletins structured wind while cyclones keep free text", async
   expect(screen.queryByLabelText(FORECASTER_LABEL)).toBeNull();
   expect(screen.getByText("Signed In Forecaster")).toBeInTheDocument();
   expect(screen.getByLabelText(AREA_LABEL)).toBeInTheDocument();
-  fireEvent.click(
-    screen.getByRole("tab", { name: "Tropical Cyclone Bulletin" })
-  );
+  fireEvent.click(screen.getByRole("tab", { name: "Tropical Cyclone" }));
   expect(await screen.findByLabelText(MAX_WINDS_LABEL)).toBeInTheDocument();
   view.unmount();
 });
@@ -370,7 +590,9 @@ it("validates and publishes a bulletin after saving its draft", async () => {
   });
   fireEvent.click(validate);
   await screen.findByRole("region", { name: "Publication preview" });
-  fireEvent.click(screen.getByRole("checkbox"));
+  fireEvent.click(
+    screen.getByRole("checkbox", { name: PUBLICATION_CONFIRMATION })
+  );
   fireEvent.click(screen.getByRole("button", { name: "Publish to GMS" }));
   await waitFor(() =>
     expect(actions.saveProductAction).toHaveBeenLastCalledWith(
@@ -417,4 +639,85 @@ it("shows saved-draft validation errors beside the publication controls", async 
     "Required to validate and publish a saved draft, including its first publication."
   );
   expect(screen.queryByRole("button", { name: "Publish to GMS" })).toBeNull();
+});
+
+it("snapshots reviewed guidance and requires a fresh review after a system edit", async () => {
+  actions.previewProductAction.mockImplementation(
+    async ({ values, guidance }) => ({
+      ok: true,
+      preview: {
+        values,
+        guidance,
+        errors: [],
+        checked_at: "2026-10-12T12:00:00Z",
+      },
+    })
+  );
+  actions.saveProductAction.mockImplementation(
+    async ({ id, kind, values, guidance }) => ({
+      ok: true,
+      product: {
+        id,
+        kind,
+        values,
+        guidance: {
+          ...guidance,
+          local_assessment: "Canonical saved assessment",
+        },
+        revision: 1,
+        publishedRevision: null,
+        updatedAt: "2026-10-12T12:00:00Z",
+      },
+    })
+  );
+  render(<ProductDesk kinds={["outlook"]} title="Alerts" />);
+  const validate = screen.getByRole("button", { name: "Validate and preview" });
+  await waitFor(() => expect(validate).toBeEnabled());
+  fireEvent.click(
+    screen.getByRole("button", { name: "Add meteorological system" })
+  );
+  fireEvent.change(screen.getByLabelText("Name"), {
+    target: { value: "Eastern wave" },
+  });
+  fireEvent.change(screen.getByLabelText("System narrative"), {
+    target: { value: "Reviewed wave analysis" },
+  });
+  fireEvent.click(validate);
+  await screen.findByRole("region", { name: "Publication preview" });
+  await waitFor(() =>
+    expect(actions.previewProductPdfAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        guidance: expect.objectContaining({
+          systems: [
+            expect.objectContaining({ narrative: "Reviewed wave analysis" }),
+          ],
+        }),
+      }),
+      expect.any(AbortSignal)
+    )
+  );
+  fireEvent.click(
+    screen.getByRole("checkbox", { name: PUBLICATION_CONFIRMATION })
+  );
+  expect(screen.getByRole("button", { name: "Publish to GMS" })).toBeEnabled();
+  fireEvent.change(screen.getByLabelText("System narrative"), {
+    target: { value: "Manual override" },
+  });
+  expect(screen.queryByRole("button", { name: "Publish to GMS" })).toBeNull();
+  expect(screen.getByText("Changes pending")).toBeInTheDocument();
+  expect(actions.previewProductPdfAction).toHaveBeenCalledTimes(1);
+  fireEvent.click(screen.getByRole("button", { name: "Save draft" }));
+  await screen.findByText("Draft saved.");
+  await waitFor(() =>
+    expect(actions.previewProductPdfAction).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        expectedRevision: 1,
+        guidance: expect.objectContaining({
+          local_assessment: "Canonical saved assessment",
+          systems: [expect.objectContaining({ narrative: "Manual override" })],
+        }),
+      }),
+      expect.any(AbortSignal)
+    )
+  );
 });

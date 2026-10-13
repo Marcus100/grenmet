@@ -1,0 +1,12 @@
+{% if guidance %}
+{% if guidance.local_assessment %}<section class="card prose"><h2>GMS assessment</h2><p>{{ guidance.local_assessment }}</p></section>{% endif %}
+{% for graphic in guidance.graphics %}
+<figure class="card"><img style="max-width:100%;height:auto" src="{{ graphic_images.get(graphic.asset_id|string, '') }}" alt="{{ graphic.caption }}"><figcaption>{{ graphic.caption }} · National Hurricane Center{% for source in guidance.sources %}{% if source.edition_id == graphic.edition_id %} · {{ source.title }} · {{ source.issued_at or "Issue time unknown" }}{% endif %}{% endfor %}</figcaption></figure>
+{% endfor %}
+{% for fact in guidance.facts %}{% if fact.sample %}
+<section class="card prose"><h2 class="eyebrow">Source grid sample · {{ fact.key | replace("_", " ") }}</h2>
+<p>{{ fact.sample.parameter }}: {{ fact.sample.source_value }} {{ fact.sample.units }}. Native cell {{ fact.sample.cell_latitude }}, {{ fact.sample.cell_longitude }}; distance {{ "%.2f" | format(fact.sample.distance_km) }} km from requested {{ fact.sample.requested_latitude }}, {{ fact.sample.requested_longitude }}.</p>
+<p>Source validity {{ fact.sample.validity_date or "unknown" }} {{ fact.sample.validity_time }} UTC; forecast step {{ fact.sample.step_range or "unknown" }}. GMS reviewed value {{ fact.value if fact.value is not none else fact.description }} {{ fact.unit or "" }}.</p></section>
+{% endif %}{% endfor %}
+{% if guidance.sources %}<section class="card prose"><h2 class="eyebrow">Source guidance</h2><ul>{% for source in guidance.sources %}<li>{{ source.title }} · {{ source.issued_at or "Issue time unknown" }}</li>{% endfor %}</ul></section>{% endif %}
+{% endif %}

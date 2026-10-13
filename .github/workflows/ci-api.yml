@@ -90,17 +90,18 @@ jobs:
 
       - name: Install dependencies
         # --frozen installs exactly what's in the lockfile after the explicit
-        # freshness check above, matching the production image.
-        run: uv sync --frozen --package fast-back
+        # freshness check above. Include the worker's existing collector package,
+        # and preserve the combined environment during the following checks.
+        run: uv sync --frozen --package fast-back --package gms-ingest
 
       - name: Run Ruff (Linter)
-        run: uv run --frozen --package fast-back ruff check src scripts
+        run: uv run --no-sync --package fast-back ruff check src scripts
 
       - name: Run Ruff (Formatter Check)
-        run: uv run --frozen --package fast-back ruff format src scripts --check
+        run: uv run --no-sync --package fast-back ruff format src scripts --check
 
       - name: Run mypy (Type Checker)
-        run: uv run --frozen --package fast-back mypy src
+        run: uv run --no-sync --package fast-back mypy src
 
   # Job 2: Security Checks
   security:

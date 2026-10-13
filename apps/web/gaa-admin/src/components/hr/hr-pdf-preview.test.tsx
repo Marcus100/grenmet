@@ -101,7 +101,8 @@ afterEach(() => {
 });
 
 function pdfResponse() {
-  return new Response(new Blob(["%PDF-1.7"]), {
+  // A string body: jsdom's Blob has no stream(), which Node's Response needs.
+  return new Response("%PDF-1.7", {
     headers: { "content-type": "application/pdf" },
   });
 }

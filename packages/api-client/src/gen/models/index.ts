@@ -1671,6 +1671,17 @@ export type { GroupMemberPublic } from "./GroupMemberPublic.js";
 export type { GroupMemberPublicPropertiesRoleEnum } from "./GroupMemberPublicPropertiesRoleEnum.js";
 export { groupMemberPublicPropertiesRoleEnum } from "./GroupMemberPublicPropertiesRoleEnum.js";
 export type { GroupSummary } from "./GroupSummary.js";
+export type { GuidanceFact } from "./GuidanceFact.js";
+export type { GuidanceFactPropertiesKeyEnum } from "./GuidanceFactPropertiesKeyEnum.js";
+export { guidanceFactPropertiesKeyEnum } from "./GuidanceFactPropertiesKeyEnum.js";
+export type { GuidanceFactPropertiesRecordTypeEnum } from "./GuidanceFactPropertiesRecordTypeEnum.js";
+export { guidanceFactPropertiesRecordTypeEnum } from "./GuidanceFactPropertiesRecordTypeEnum.js";
+export type { GuidanceGraphic } from "./GuidanceGraphic.js";
+export type { GuidanceGridSample } from "./GuidanceGridSample.js";
+export type { GuidanceSource } from "./GuidanceSource.js";
+export type { GuidanceSystem } from "./GuidanceSystem.js";
+export type { GuidanceSystemPropertiesFeatureTypeEnum } from "./GuidanceSystemPropertiesFeatureTypeEnum.js";
+export { guidanceSystemPropertiesFeatureTypeEnum } from "./GuidanceSystemPropertiesFeatureTypeEnum.js";
 export type {
   HrActionLeaveRequestBody,
   HrActionLeaveRequestOptions,
@@ -3387,6 +3398,26 @@ export type { MyProfilePropertiesVisibilityEnum } from "./MyProfilePropertiesVis
 export { myProfilePropertiesVisibilityEnum } from "./MyProfilePropertiesVisibilityEnum.js";
 export type { NetworkPublic } from "./NetworkPublic.js";
 export type { NewPassword } from "./NewPassword.js";
+export type { NhcAsset } from "./NhcAsset.js";
+export type { NhcContent } from "./NhcContent.js";
+export type { NhcEdition } from "./NhcEdition.js";
+export type { NhcEditionPropertiesFamilyEnum } from "./NhcEditionPropertiesFamilyEnum.js";
+export { nhcEditionPropertiesFamilyEnum } from "./NhcEditionPropertiesFamilyEnum.js";
+export type { NhcEditionPropertiesKindEnum } from "./NhcEditionPropertiesKindEnum.js";
+export { nhcEditionPropertiesKindEnum } from "./NhcEditionPropertiesKindEnum.js";
+export type { NhcJob } from "./NhcJob.js";
+export type { NhcJobPropertiesKindEnum } from "./NhcJobPropertiesKindEnum.js";
+export { nhcJobPropertiesKindEnum } from "./NhcJobPropertiesKindEnum.js";
+export type { NhcJobPropertiesStatusEnum } from "./NhcJobPropertiesStatusEnum.js";
+export { nhcJobPropertiesStatusEnum } from "./NhcJobPropertiesStatusEnum.js";
+export type { NhcPage } from "./NhcPage.js";
+export type { NhcPointRequest } from "./NhcPointRequest.js";
+export type { NhcPrefill } from "./NhcPrefill.js";
+export type { NhcPrefillRequest } from "./NhcPrefillRequest.js";
+export type { NhcPrefillRequestPropertiesKindEnum } from "./NhcPrefillRequestPropertiesKindEnum.js";
+export { nhcPrefillRequestPropertiesKindEnum } from "./NhcPrefillRequestPropertiesKindEnum.js";
+export type { NhcPullRequest } from "./NhcPullRequest.js";
+export type { NhcSourceCheck } from "./NhcSourceCheck.js";
 export type { NotificationParams } from "./NotificationParams.js";
 export type { NotificationPreferencePublic } from "./NotificationPreferencePublic.js";
 export type { NotificationPreferenceUpdate } from "./NotificationPreferenceUpdate.js";
@@ -3516,6 +3547,7 @@ export type { ProductAccessCurrent } from "./ProductAccessCurrent.js";
 export type { ProductAccessInput } from "./ProductAccessInput.js";
 export type { ProductAccessPublic } from "./ProductAccessPublic.js";
 export type { ProductFeedError } from "./ProductFeedError.js";
+export type { ProductGuidance } from "./ProductGuidance.js";
 export type { ProductHistory } from "./ProductHistory.js";
 export type { ProductHistoryEntry } from "./ProductHistoryEntry.js";
 export type { ProfAppointmentType } from "./ProfAppointmentType.js";
@@ -3673,10 +3705,13 @@ export type { SuggestionUpdatePropertiesStatusEnum } from "./SuggestionUpdatePro
 export { suggestionUpdatePropertiesStatusEnum } from "./SuggestionUpdatePropertiesStatusEnum.js";
 export type { SwapType } from "./SwapType.js";
 export { swapType } from "./SwapType.js";
+export type { SynopDecoded } from "./SynopDecoded.js";
 export type { SynopticImageGroup } from "./SynopticImageGroup.js";
 export type { SynopticImageGroups } from "./SynopticImageGroups.js";
 export type { SynopticSlots } from "./SynopticSlots.js";
 export type { SynopValidationIssue } from "./SynopValidationIssue.js";
+export type { SynopValidationIssuePropertiesSeverityEnum } from "./SynopValidationIssuePropertiesSeverityEnum.js";
+export { synopValidationIssuePropertiesSeverityEnum } from "./SynopValidationIssuePropertiesSeverityEnum.js";
 export type { SynopValidationRequest } from "./SynopValidationRequest.js";
 export type { SynopValidationResponse } from "./SynopValidationResponse.js";
 export type { SynopWorkbook } from "./SynopWorkbook.js";
@@ -4166,6 +4201,18 @@ export type {
   WxwatchBulletinStatus422,
 } from "./WxwatchBulletin.js";
 export type {
+  WxwatchEditionOptions,
+  WxwatchEditionPath,
+  WxwatchEditionResponse,
+  WxwatchEditionResponses,
+  WxwatchEditionStatus200,
+  WxwatchEditionStatus401,
+  WxwatchEditionStatus403,
+  WxwatchEditionStatus404,
+  WxwatchEditionStatus422,
+  WxwatchEditionStatus503,
+} from "./WxwatchEdition.js";
+export type {
   WxwatchEditionAssetsOptions,
   WxwatchEditionAssetsPath,
   WxwatchEditionAssetsResponse,
@@ -4173,6 +4220,18 @@ export type {
   WxwatchEditionAssetsStatus200,
   WxwatchEditionAssetsStatus422,
 } from "./WxwatchEditionAssets.js";
+export type {
+  WxwatchEditionsOptions,
+  WxwatchEditionsQuery,
+  WxwatchEditionsResponse,
+  WxwatchEditionsResponses,
+  WxwatchEditionsStatus200,
+  WxwatchEditionsStatus401,
+  WxwatchEditionsStatus403,
+  WxwatchEditionsStatus404,
+  WxwatchEditionsStatus422,
+  WxwatchEditionsStatus503,
+} from "./WxwatchEditions.js";
 export type {
   WxwatchFinishRunBody,
   WxwatchFinishRunHeaders,
@@ -4201,6 +4260,42 @@ export type {
   WxwatchMetadataStatus422,
 } from "./WxwatchMetadata.js";
 export type {
+  WxwatchPointBody,
+  WxwatchPointOptions,
+  WxwatchPointResponse,
+  WxwatchPointResponses,
+  WxwatchPointStatus202,
+  WxwatchPointStatus401,
+  WxwatchPointStatus403,
+  WxwatchPointStatus404,
+  WxwatchPointStatus422,
+  WxwatchPointStatus503,
+} from "./WxwatchPoint.js";
+export type {
+  WxwatchProposeBody,
+  WxwatchProposeOptions,
+  WxwatchProposeResponse,
+  WxwatchProposeResponses,
+  WxwatchProposeStatus200,
+  WxwatchProposeStatus401,
+  WxwatchProposeStatus403,
+  WxwatchProposeStatus404,
+  WxwatchProposeStatus422,
+  WxwatchProposeStatus503,
+} from "./WxwatchPropose.js";
+export type {
+  WxwatchPullBody,
+  WxwatchPullOptions,
+  WxwatchPullResponse,
+  WxwatchPullResponses,
+  WxwatchPullStatus202,
+  WxwatchPullStatus401,
+  WxwatchPullStatus403,
+  WxwatchPullStatus404,
+  WxwatchPullStatus422,
+  WxwatchPullStatus503,
+} from "./WxwatchPull.js";
+export type {
   WxwatchReadyOptions,
   WxwatchReadyResponse,
   WxwatchReadyResponses,
@@ -4217,6 +4312,18 @@ export type {
   WxwatchRegisterDerivationStatus422,
 } from "./WxwatchRegisterDerivation.js";
 export type {
+  WxwatchRequestStatusOptions,
+  WxwatchRequestStatusPath,
+  WxwatchRequestStatusResponse,
+  WxwatchRequestStatusResponses,
+  WxwatchRequestStatusStatus200,
+  WxwatchRequestStatusStatus401,
+  WxwatchRequestStatusStatus403,
+  WxwatchRequestStatusStatus404,
+  WxwatchRequestStatusStatus422,
+  WxwatchRequestStatusStatus503,
+} from "./WxwatchRequestStatus.js";
+export type {
   WxwatchRetrievalsOptions,
   WxwatchRetrievalsPath,
   WxwatchRetrievalsQuery,
@@ -4225,6 +4332,18 @@ export type {
   WxwatchRetrievalsStatus200,
   WxwatchRetrievalsStatus422,
 } from "./WxwatchRetrievals.js";
+export type {
+  WxwatchSourceChecksOptions,
+  WxwatchSourceChecksQuery,
+  WxwatchSourceChecksResponse,
+  WxwatchSourceChecksResponses,
+  WxwatchSourceChecksStatus200,
+  WxwatchSourceChecksStatus401,
+  WxwatchSourceChecksStatus403,
+  WxwatchSourceChecksStatus404,
+  WxwatchSourceChecksStatus422,
+  WxwatchSourceChecksStatus503,
+} from "./WxwatchSourceChecks.js";
 export type {
   WxwatchStartRunBody,
   WxwatchStartRunHeaders,

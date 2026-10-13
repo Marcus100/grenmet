@@ -33,13 +33,14 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --package fast-back --no-dev --no-install-workspace
 
 # Install the FastAPI member after its source is available.
+COPY scripts/gms-ingest scripts/gms-ingest
 COPY apps/api/fastapi/src apps/api/fastapi/src
 COPY apps/api/fastapi/alembic apps/api/fastapi/alembic
 COPY apps/api/fastapi/alembic.ini apps/api/fastapi/alembic.ini
 COPY apps/api/fastapi/email-templates apps/api/fastapi/email-templates
 COPY apps/api/fastapi/scripts apps/api/fastapi/scripts
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --package fast-back --no-dev
+    uv sync --frozen --package fast-back --package gms-ingest --no-dev
 
 # Stage 2: Runtime - Minimal production image
 FROM python:3.14-slim-bookworm@sha256:82bc3c539b8813ada9d68c63b40158fa002f7f33de9bf3312a3dfdc0620dff56
@@ -78,8 +79,8 @@ RUN apt-get update \
 # uses the installed virtual environment without resolving dependencies.
 RUN groupadd -r appuser \
     && useradd -r -g appuser -u 1000 -m appuser \
-    && mkdir -p /app /home/appuser/.cache/uv \
-    && chown appuser:appuser /app \
+    && mkdir -p /app/nhc-archive /home/appuser/.cache/uv \
+    && chown appuser:appuser /app /app/nhc-archive \
     && chown -R appuser:appuser /home/appuser
 
 # Set environment variables
@@ -96,6 +97,7 @@ WORKDIR /app
 # Copy virtual environment from builder. Ownership is applied as the layer is
 # written, avoiding an extra recursive ownership layer.
 COPY --from=builder --chown=appuser:appuser /app/.venv /app/.venv
+COPY --from=builder --chown=appuser:appuser /app/scripts/gms-ingest /app/scripts/gms-ingest
 # Patch packages inside the copied virtualenv before vulnerability scanning.
 RUN uv pip install --python /app/.venv/bin/python --no-cache --upgrade "msgpack>=1.2.1" "setuptools>=78.1.1"
 

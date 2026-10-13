@@ -1057,12 +1057,21 @@ Structured forecast parameters (flat string values, no contract change): `windDi
 ### eRegister structured SYNOP workbook
 
 `POST /api/v1/eregister/observations/validate-synop` accepts the structured
-FM-12 workbook model used by GAA Admin. It validates the identification fields,
-Section 1 global groups, and Section 3 regional/national groups and returns
-`valid`, field-level `issues`, and the normalized workbook. Draft creation
-remains available through `POST /api/v1/eregister/observations`; validation is
-currently advisory while the full WMO code-table encoder is being added. The
-validation endpoint does not save, publish, or transmit an observation.
+FM-12 workbook model used by GAA Admin. Observers key coded groups as on the
+paper register (dd=07, TTT=254, PPPP=0149, VV=65, ww=05). The endpoint checks
+each entry against the FM-12 code tables and the WMO-No. 306 Vol. I.2 B/C1
+regulations and returns `valid`, field-level `issues`, the normalized workbook
+and `decoded` SI values (K, Pa, m s-1, m, kg m-2) for later BUFR, TAC and IWXXM
+encoders. Each issue has a `severity`: `error` entries are impossible or
+malformed and make the workbook invalid; `warning` entries are reporting
+practice advice and never change `valid`. GAA Admin validates before saving and
+blocks the save on errors only. A workbook with only identification fields is a
+NIL report (`decoded.is_nil_report`). Optional entries beyond the original
+workbook are the wet bulb (`wet_bulb`), wind gust (`wind_gust`), relative
+humidity (`relative_humidity`) and observer initials (`observer_initials`, not
+an observation value). The endpoint does not save, publish, or
+transmit an observation; `POST /api/v1/eregister/observations` still stores a
+draft.
 
 ### GAA operational catalogues
 
@@ -1408,3 +1417,72 @@ overrides the employer and object checks on organisation-owned endpoints. Missin
 projection fields keep shared editing disabled. Grade creation/update reports
 HTTP 409 for a conflicting department grade definition instead of surfacing a
 raw constraint error.
+
+
+## NHC guidance workspace and reviewed GMS content
+
+`/wxproducts/nhc` in gaa-admin is an NHC collection/viewing workspace. The four
+families are tropical development, active cyclones, marine and aviation/reconnaissance.
+The outlook and existing hazard bulletin editors live at `/wxproducts/alerts`;
+`/wxproducts/bulletins` and the old NHC `?view=editor` URL redirect there. NHC
+Products has no authoring link. Authors choose exact source editions inside Alerts.
+
+The authenticated FastAPI interfaces are:
+
+| Method and path (`/api/v1` prefix) | Contract |
+| --- | --- |
+| `GET /wxwatch/nhc/editions` | `NhcPage`; family/product/storm/UTC dates, latest or collected history, offset/limit |
+| `GET /wxwatch/nhc/editions/{edition_id}` | `NhcContent`; preserved text, decoded metadata, verified assets |
+| `POST /wxwatch/nhc/pulls` | `NhcPullRequest` → `202 NhcJob`; selected families, one coalesced pull per archive |
+| `GET /wxwatch/nhc/jobs/{job_id}` | Durable queued/running/success/partial/failed state and per-product outcomes |
+| `POST /wxwatch/nhc/points` | `NhcPointRequest` → `202 NhcJob`; selected grid, native-cell coordinates, distance, units and source validity |
+| `POST /wxwatch/nhc/prefill` | `NhcPrefillRequest` → `NhcPrefill`; exact editions, optional marine zone/period, proposals only |
+| `GET /wxwatch/nhc/source-checks` | Repeated `edition_ids`; flags a newer edition without modifying content |
+
+Reads use existing staff archive access. Pulls and points require authority for at
+least one of outlook/cyclone/marine; prefills require authority for the requested
+kind. Existing draft/publish/withdraw policy, CSRF and explicit preview review stay
+in force. Assets use the existing authenticated `/wxwatch/assets/{asset_id}` route,
+which verifies local checksums before serving originals or derived data.
+
+`NhcEdition` distinguishes issuance, header issuance, observation/analysis,
+forecast validity, first receipt and collection checks. Unknown times stay null.
+Corrections retain distinct edition identities; failed pulls preserve successful
+source bytes and their timestamps. History includes only locally collected editions.
+Decoded content/result maps intentionally preserve varying official decoder metadata
+and per-product outcomes; measurements are not inferred from graphical pixels.
+
+Optional `ProductGuidance` accompanies the existing scalar values on authored
+writes, previews and saved drafts/revisions. It contains exact checksum-bearing
+source references, typed facts, stable GMS system UUIDs, parent/embedded relationships,
+local assessments and selected graphics/captions. A relationship or cross-edition
+system link requires explicit forecaster confirmation. Quantities retain units,
+ranges, qualifiers and source passages; observations, analyses and forecasts have
+distinct record types and optional reference/validity times. Source facts remain
+in WxWatch; reviewed content is snapshotted in WxProducts without cross-database
+foreign keys. Source-update checks flag changes without rewriting drafts or issues.
+
+FastAPI composes compatible public scalar summaries. Structured outlook probabilities
+are rendered beside their own system and suppress the older bulletin-wide pair;
+legacy records retain their original scalar interpretation. Regional marine source
+prefills require a GMS local assessment before publication. The live and saved PDF
+paths use the same immutable guidance snapshot and verified source graphics.
+
+The separate `nhc-worker` ARQ process drains persisted operator requests on
+`grenmet:nhc`; its dispatcher schedule does not initiate collection. There is no
+NHC collection schedule, historical backfill, AI extraction, automatic publication
+or CAP generation. `gms-ingest` retains its file lock, conditional requests and
+size/discovery limits. Durable leases recover interrupted work (up to three claims).
+The API mounts the NHC archive read-only; this worker alone gets write access.
+Run the WxWatch `0007` migration before using these interfaces.
+
+Grid-prefill requests may supply `point_job_ids` from successfully completed point
+jobs for their selected editions. Supported NDFD wind speed/direction, gust and wave
+height records become forecast facts with typed `GuidanceGridSample` evidence:
+requested/native coordinates, distance, parameter, source value/units, GRIB data and
+validity date/time, step range, job ID and record index. Unsupported hazard codes stay
+in the viewer. Save/preview validate this evidence against the persisted worker
+result. Reviewed values may be edited while native sample evidence stays unchanged;
+no interpolated values or automatic regional-to-local scalar inference is made.
+
+GRIB `dataDate`/`dataTime` identify reference cycles, not publication time. Grid edition issuance stays unknown unless explicitly advertised; available forecast validity timestamps are retained separately and native records preserve their exact validity and step range.

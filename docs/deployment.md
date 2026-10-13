@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-09-18
+**Last updated:** 2026-10-12
 
 > Current releases use `docker-compose.deploy.yml` and the canonical domain table
 > at the end of this guide. The per-environment `docker-compose.prod.yml` and
@@ -11,6 +11,10 @@
 This monorepo uses GitHub Actions with self-hosted runners to deploy to staging and production.
 Each environment runs on its own dedicated Digital Ocean droplet. Elections Grenada
 is the exception: it deploys independently to Vercel; see [its deployment guide](web/elections-deployment.md).
+
+For operational SSH access, use the `deploy` account on production and `root` on
+staging. Authenticate with the existing SSH key; DigitalOcean API authentication
+through `doctl` does not unlock an encrypted SSH key.
 
 ## Pipeline overview
 
@@ -297,6 +301,23 @@ The **Deploy to Production** wrapper delegates to this same workflow.
 
 ---
 
+### Adding a deployed service or a required secret
+
+The service registry in `scripts/ci/release-scope.mjs` is the single list of
+core services, split into data (`db`, `redis`), migration and app roles.
+`core.sh` starts exactly those lists, so a service you add to
+`docker-compose.deploy.yml` must also be added to the registry. CI enforces
+this: `scripts/production/deploy-preflight.test.mjs` (part of
+`pnpm test:delivery`) renders the staging and production Compose models with
+synthetic secrets, with no real credentials, and fails when a service is
+missing or unregistered, an app service has no healthcheck, or an image does not
+map to the registry. Live credentials are still checked by `core.sh` on the
+deployment host.
+
+A new required secret goes in `REQUIRED_SECRETS` in
+`scripts/production/render-env.py` and in the `deploy.yml` env block; the same
+test fails if either is missing.
+
 ## Troubleshooting
 
 ### Runner is offline
@@ -308,7 +329,25 @@ cd /home/github/actions-runner
 ./svc.sh start
 ```
 
+### Reading a failed deploy
+
+`core.sh deploy` prints each phase (render-config, auth, disk, pull-verify,
+databases, migrations, grants, start, smoke) as a collapsible, timestamped log
+group, and the job summary shows a duration table. On failure it prints an
+`::error::` naming the failed and last completed phase, whether the previous
+release should still be serving, and — once containers have changed — a
+bounded (`DIAGNOSTIC_TIMEOUT`, default 30 s) report: every container's state,
+exit code, restart count and OOM flag, plus the recent health-probe output and
+last 200 log lines of each unhealthy, restarting or failed container. It never
+prints full `docker inspect` output, which contains the environment. The final
+`up` uses `--remove-orphans`, so containers of services removed from
+`docker-compose.deploy.yml` are retired on the next deploy.
+
 ### Deploy fails — "no space left on device" or "Not enough free disk space"
+
+The disk phase also requires 2 GB free in the runner's temp directory
+(`RUNNER_MIN_FREE_GB`); a full runner disk failed staging on 2026-10-07 with
+`No space left on device` while writing the step summary.
 
 Each deploy pulls a full set of `sha-…` images and used to leave the old ones
 behind, which filled the staging disk on 2026-10-11 (`failed to extract layer …

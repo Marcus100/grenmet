@@ -34,7 +34,7 @@ def atomic_json(path, value):
 
 def artifact_key(source_hash, kind, bbox):
     options = json.dumps(
-        {"sha256": source_hash, "kind": kind, "bbox": bbox, "decoder": 2},
+        {"sha256": source_hash, "kind": kind, "bbox": bbox, "decoder": 3},
         sort_keys=True,
     )
     return hashlib.sha256(options.encode()).hexdigest()

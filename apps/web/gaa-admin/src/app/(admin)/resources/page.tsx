@@ -10,7 +10,7 @@ export default function ResourcesPage() {
           body: "Impact-Based Forecasts: 07:00, 12:00, 18:00. Marine: 05:00. Tropical Weather Outlook: 02:00, 08:00, 14:00, 20:00. These times are Grenada local time.",
           links: [
             { label: "Forecast desk", href: "/wxproducts/fcsts" },
-            { label: "Bulletins", href: "/wxproducts/bulletins" },
+            { label: "Alerts", href: "/wxproducts/alerts" },
             { label: "NHC Products", href: "/wxproducts/nhc" },
           ],
         },

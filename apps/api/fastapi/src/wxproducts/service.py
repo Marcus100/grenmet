@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 
-from . import validation
+from . import guidance, validation
 from .exceptions import ProductValidationError, RevisionConflict
 from .models import (
     AuthoredProduct,
@@ -176,7 +176,7 @@ async def write_product(
 ) -> AuthoredProduct:
     normalized = validation.normalize(
         body.kind,
-        values_as_dict(body.values),
+        guidance.compose(body.kind, values_as_dict(body.values), body.guidance),
         forecaster=actor.full_name or actor.email,
         advisories=advisories,
     )
@@ -205,7 +205,13 @@ async def write_product(
         content = (
             previous.draft
             if body.action == "withdraw" and previous
-            else {"kind": body.kind, "values": values_as_dict(body.values)}
+            else {
+                "kind": body.kind,
+                "values": values_as_dict(body.values),
+                "guidance": body.guidance.model_dump(mode="json")
+                if body.guidance
+                else None,
+            }
         )
         published = (
             {
@@ -384,6 +390,7 @@ async def pdf_source(
             "revision": revision,
             "kind": record.content["kind"],
             "values": record.content["values"],
+            "guidance": record.content.get("guidance"),
             "action": record.action,
             "recorded_at": record.created_at,
             "current_publication": bool(
