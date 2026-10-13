@@ -81,3 +81,11 @@ test("agent configuration changes run guardrails", () => {
 test("no changes plan no checks", () => {
   assert.deepEqual(planChecks([]), []);
 });
+
+test("deleted files still plan checks but are never formatted", () => {
+  const checks = planChecks(
+    ["apps/web/docs/src/components/icons/BellIcon.tsx"],
+    { deleted: ["apps/web/docs/src/components/icons/BellIcon.tsx"] }
+  );
+  assert.deepEqual(names(checks), ["type-check", "test"]);
+});

@@ -102,9 +102,14 @@ function apiChecks(files, testFiles) {
 
 // Pure planner: maps changed paths to checks. `testFiles` lists entries under
 // apps/api/fastapi/tests (directories end with "/").
-export function planChecks(files, { base, testFiles = [] } = {}) {
+// `deleted` paths still trigger type-check, tests and drift, but are never
+// passed to the formatter because they no longer exist.
+export function planChecks(files, { base, testFiles = [], deleted = [] } = {}) {
   const checks = [];
-  const biomeFiles = files.filter((file) => BIOME.test(file));
+  const gone = new Set(deleted);
+  const biomeFiles = files.filter(
+    (file) => BIOME.test(file) && !gone.has(file)
+  );
   if (biomeFiles.length > 0)
     checks.push(
       pnpm("format+lint", "exec", "ultracite", "check", ...biomeFiles)
@@ -155,10 +160,11 @@ function main() {
   // Committed, staged, unstaged and untracked changes since the merge base.
   const files = [
     ...new Set([
-      ...lines(git(["diff", "--name-only", "--diff-filter=ACMR", mergeBase])),
+      ...lines(git(["diff", "--name-only", "--diff-filter=ACMRD", mergeBase])),
       ...lines(git(["ls-files", "--others", "--exclude-standard"])),
     ]),
-  ].filter((file) => existsSync(join(root, file)));
+  ];
+  const deleted = files.filter((file) => !existsSync(join(root, file)));
   if (files.length === 0) {
     console.log(`verify:changed: nothing changed since ${options.base}.`);
     return;
@@ -172,6 +178,7 @@ function main() {
   const committed = git(["rev-parse", "HEAD"]) !== mergeBase;
   const checks = planChecks(files, {
     base: committed ? mergeBase : undefined,
+    deleted,
     testFiles,
   }).filter((check) => !options.skip.has(check.name));
 
