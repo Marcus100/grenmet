@@ -4,7 +4,7 @@
 
 **Owner:** Barrels Grenada engineering
 
-**Last updated:** 2026-09-27
+**Last updated:** 2026-10-13
 
 ## Purpose
 
@@ -88,6 +88,23 @@ normal development, staging or production database as a disposable test target.
 Coverage reports help locate unexecuted code. They do not prove requirements,
 assertion quality or permission coverage. Do not pursue an arbitrary percentage
 by adding tests that merely repeat the implementation.
+
+## Coverage floors
+
+Line and branch coverage floors for the API and for each web app that has the v8
+provider (`auth`, `gaa-admin`, `gms`, `mbia`, `signal`) live in
+`scripts/guardrails/coverage-baseline.json`. `pnpm coverage:check` compares the
+latest reports (`apps/web/<app>/coverage/coverage-summary.json` from
+`vitest run --coverage --coverage.reporter=json-summary`, and
+`apps/api/fastapi/coverage.xml` from the backend suite) with those floors and
+fails when one falls below. Apps without a report are skipped, so a partial run
+still checks what it measured.
+
+Floors only rise. `pnpm coverage:check -- --write` raises a floor to the measured
+value minus a 0.5 point noise margin and never lowers one. The baseline is a
+high-risk path in `scripts/guardrails/risk-tier.mjs`, so lowering a floor always
+needs a human review and a stated reason. `cms`, `elections`, `events` and `docs`
+have no coverage provider yet; adding one is a separate change.
 
 ## Current gaps and follow-up
 

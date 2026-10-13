@@ -35,6 +35,7 @@ test("security, data, delivery and dependency surfaces are high", () => {
     "uv.lock",
     "turbo.json",
     "scripts/guardrails/suppression-baseline.json",
+    "scripts/guardrails/coverage-baseline.json",
   ])
     assert.equal(tier(file), "high", file);
 });
