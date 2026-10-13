@@ -15,9 +15,9 @@ from alembic import context
 sys.path.append(str(Path(__file__).parent.parent))
 
 # Import all models to ensure they're registered with SQLAlchemy metadata.
-from src.audit.models import AuditEntry  # noqa: F401
-from src.auth.models import User  # noqa: F401
-from src.cap.models import (  # noqa: F401
+from src.audit.models import AuditEntry
+from src.auth.models import User
+from src.cap.models import (
     CapAlert,
     CapArea,
     CapAuditEvent,
@@ -35,17 +35,17 @@ from src.cap.models import (  # noqa: F401
     CapWebhook,
 )
 from src.config import settings
-from src.hr.absentee.models import AbsenteeReport  # noqa: F401
-from src.hr.attendance.models import (  # noqa: F401
+from src.hr.absentee.models import AbsenteeReport
+from src.hr.attendance.models import (
     AttendanceCorrection,
     AttendanceRecord,
 )
-from src.hr.calendar.models import CalendarEvent  # noqa: F401
-from src.hr.dailystatus.models import StatusReport, StatusReportEntry  # noqa: F401
-from src.hr.documents.models import EmployeeDocument  # noqa: F401
-from src.hr.exchange.models import ShiftSwapRequest  # noqa: F401
-from src.hr.leave.models import LeaveBalanceEvent, LeaveRequest  # noqa: F401
-from src.hr.models import (  # noqa: F401
+from src.hr.calendar.models import CalendarEvent
+from src.hr.dailystatus.models import StatusReport, StatusReportEntry
+from src.hr.documents.models import EmployeeDocument
+from src.hr.exchange.models import ShiftSwapRequest
+from src.hr.leave.models import LeaveBalanceEvent, LeaveRequest
+from src.hr.models import (
     ApprovalAuthority,
     Department,
     EmploymentRecord,
@@ -58,8 +58,8 @@ from src.hr.models import (  # noqa: F401
     UserAddress,
     UserProfile,
 )
-from src.hr.parking.models import ParkingPermit  # noqa: F401
-from src.hr.roster.models import (  # noqa: F401
+from src.hr.parking.models import ParkingPermit
+from src.hr.roster.models import (
     PublicHoliday,
     RosterAssignment,
     RosterImportJob,
@@ -68,22 +68,22 @@ from src.hr.roster.models import (  # noqa: F401
     RosterRevision,
     ShiftCatalog,
 )
-from src.hr.signatures.models import SavedSignature, SignedDocument  # noqa: F401
-from src.hr.timesheet.models import (  # noqa: F401
+from src.hr.signatures.models import SavedSignature, SignedDocument
+from src.hr.timesheet.models import (
     DepartmentPolicy,
     Timesheet,
     TimesheetEntry,
     TimesheetSubmission,
 )
-from src.hr.training.models import TrainingRecord  # noqa: F401
-from src.hr.workflow.models import (  # noqa: F401
+from src.hr.training.models import TrainingRecord
+from src.hr.workflow.models import (
     ApprovalActionLog,
     WorkflowInstance,
     WorkflowStepInstance,
     WorkflowStepTemplate,
     WorkflowTemplate,
 )
-from src.notifications.models import (  # noqa: F401
+from src.notifications.models import (
     Notification,
     NotificationDelivery,
     NotificationPreference,

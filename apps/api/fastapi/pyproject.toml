@@ -97,6 +97,10 @@ ignore = [
 # Scripts: dev/ops tooling — print output, re-exports, and a guarded
 # rollback swallow are expected.
 "scripts/*.py" = ["T201", "F401", "S110"]
+# Model registries: these imports exist only to register tables on the shared
+# SQLAlchemy metadata, so Ruff would otherwise flag every one as unused.
+"src/database.py" = ["F401"]
+"alembic/env.py" = ["F401"]
 # Tests: hardcoded test secrets/URLs are expected.
 "tests/*.py" = ["S105", "S106", "S107", "S108"]
 
