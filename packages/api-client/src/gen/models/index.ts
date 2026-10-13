@@ -3705,10 +3705,13 @@ export type { SuggestionUpdatePropertiesStatusEnum } from "./SuggestionUpdatePro
 export { suggestionUpdatePropertiesStatusEnum } from "./SuggestionUpdatePropertiesStatusEnum.js";
 export type { SwapType } from "./SwapType.js";
 export { swapType } from "./SwapType.js";
+export type { SynopDecoded } from "./SynopDecoded.js";
 export type { SynopticImageGroup } from "./SynopticImageGroup.js";
 export type { SynopticImageGroups } from "./SynopticImageGroups.js";
 export type { SynopticSlots } from "./SynopticSlots.js";
 export type { SynopValidationIssue } from "./SynopValidationIssue.js";
+export type { SynopValidationIssuePropertiesSeverityEnum } from "./SynopValidationIssuePropertiesSeverityEnum.js";
+export { synopValidationIssuePropertiesSeverityEnum } from "./SynopValidationIssuePropertiesSeverityEnum.js";
 export type { SynopValidationRequest } from "./SynopValidationRequest.js";
 export type { SynopValidationResponse } from "./SynopValidationResponse.js";
 export type { SynopWorkbook } from "./SynopWorkbook.js";

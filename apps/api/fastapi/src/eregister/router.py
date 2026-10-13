@@ -9,14 +9,13 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from src.auth.browser import BrowserUser
 
-from . import public
+from . import public, rules
 from .dependencies import PublicRegisterSession, RegisterSession
 from .schemas import (
     PublicCurrentConditions,
     RegisterObservationCreate,
     RegisterObservationList,
     RegisterObservationRead,
-    SynopValidationIssue,
     SynopValidationRequest,
     SynopValidationResponse,
 )
@@ -65,54 +64,18 @@ async def list_register_observations(
     "/observations/validate-synop",
     response_model=SynopValidationResponse,
     summary="Validate a SYNOP observation",
-    description="Validates the structured SYNOP workbook and returns field-level issues plus the normalized workbook.",
+    description="Validates the coded SYNOP workbook against the FM-12 code tables and WMO B/C1 regulations, returning field-level errors and warnings, the normalized workbook and the SI-decoded values. Warnings advise; only errors make the workbook invalid.",
 )
 async def validate_synop_observation(
     body: SynopValidationRequest,
     _user: BrowserUser,
 ) -> SynopValidationResponse:
     workbook = body.workbook
-    issues: list[SynopValidationIssue] = []
-
-    def add_issue(field: str, code: str, message: str) -> None:
-        issues.append(SynopValidationIssue(field=field, code=code, message=message))
-
-    def check_integer(field: str, minimum: int, maximum: int, label: str) -> None:
-        value = getattr(workbook, field)
-        if value in (None, ""):
-            return
-        try:
-            number = int(value)
-        except ValueError:
-            add_issue(field, "not_integer", f"{label} must be numeric.")
-            return
-        if not minimum <= number <= maximum:
-            add_issue(
-                field,
-                "out_of_range",
-                f"{label} must be between {minimum} and {maximum}.",
-            )
-
-    if workbook.report_type not in (None, "", "AAXX", "BBXX", "OOXX"):
-        add_issue(
-            "report_type", "invalid_code", "Use AAXX, BBXX, or OOXX for this workbook."
-        )
-    check_integer("day", 1, 31, "Day")
-    check_integer("time_utc", 0, 23, "UTC hour")
-    check_integer("total_cloud", 0, 9, "Total cloud")
-    check_integer("wind_dir", 0, 36, "Wind direction")
-    check_integer("wind_speed", 0, 999, "Wind speed")
-    station_id = workbook.station_id
-    if (
-        station_id is not None
-        and station_id != ""
-        and (len(station_id) != 5 or not station_id.isdigit())
-    ):
-        add_issue(
-            "station_id", "invalid_station", "Station identifier must be five digits."
-        )
-
-    return SynopValidationResponse(valid=not issues, issues=issues, normalized=workbook)
+    issues, decoded = rules.validate_synop(workbook)
+    valid = all(issue.severity != "error" for issue in issues)
+    return SynopValidationResponse(
+        valid=valid, issues=issues, normalized=workbook, decoded=decoded
+    )
 
 
 @router.post(

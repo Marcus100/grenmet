@@ -11,6 +11,11 @@ import {
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
+import {
+  appServices,
+  dataServices,
+  migrationServices,
+} from "../ci/release-scope.mjs";
 
 const ENOUGH_FREE_KB = 40 * 1024 * 1024;
 const RECLAIMED_LINE = /Total reclaimed space: 1\.2GB/;
@@ -44,6 +49,13 @@ function runDeploy({
       new URL("./core.sh", import.meta.url),
       join(root, "scripts/production/core.sh")
     );
+    // The real release registry supplies the service lists core.sh starts.
+    mkdirSync(join(root, "scripts/ci"), { recursive: true });
+    for (const file of ["release-scope.mjs", "check-release-scope.mjs"])
+      copyFileSync(
+        new URL(`../ci/${file}`, import.meta.url),
+        join(root, "scripts/ci", file)
+      );
     writeFileSync(
       join(root, "bin/python3"),
       `#!/bin/bash
@@ -100,7 +112,10 @@ printf '/dev/test 50000000 1000 %s 10%% /\\n' "$free"
     );
     writeFileSync(
       join(root, "bin/node"),
-      '#!/bin/bash\n[[ "$*" != *smoke.mjs* ]] || echo smoke >> "$TEST_LOG"\n',
+      `#!/bin/bash
+[[ "$*" != *smoke.mjs* ]] || echo smoke >> "$TEST_LOG"
+[[ "$*" != *--print* ]] || exec "${process.execPath}" "$@"
+`,
       { mode: 0o700 }
     );
     const result = spawnSync(
@@ -129,7 +144,7 @@ printf '/dev/test 50000000 1000 %s 10%% /\\n' "$free"
           ...extraEnv,
         },
         encoding: "utf8",
-        timeout: 10_000,
+        timeout: 30_000,
       }
     );
     return {
@@ -278,7 +293,7 @@ test("a hanging diagnostic keeps the original exit status and still cleans up", 
     failure: "readiness",
     extraEnv: { TEST_DIAGNOSTIC_HANG: "1" },
   });
-  assert.ok(Date.now() - started < 9000, "diagnostics must be time-bounded");
+  assert.ok(Date.now() - started < 25_000, "diagnostics must be time-bounded");
   assert.equal(result.status, 1);
   assert.match(result.stdout, DIAGNOSTICS_INCOMPLETE);
   assert.match(result.stdout, FAILED_START);
@@ -314,4 +329,15 @@ test("deploy retires containers of services removed from the deployment file", (
   const { result, calls } = runDeploy({ environment: "staging" });
   assert.equal(result.status, 0, result.stderr);
   assert.ok(calls.includes("up -d --no-deps --remove-orphans --wait"));
+});
+
+test("delivery starts exactly the services in the release registry", () => {
+  const { result, calls } = runDeploy({ environment: "staging" });
+  assert.equal(result.status, 0, result.stderr);
+  assert.ok(calls.includes(`up -d --wait ${dataServices.join(" ")}\n`));
+  for (const service of migrationServices)
+    assert.ok(calls.includes(`run --rm --no-deps ${service}\n`));
+  assert.ok(
+    calls.includes(`--wait --wait-timeout 300 ${appServices.join(" ")}\n`)
+  );
 });

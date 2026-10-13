@@ -12152,7 +12152,7 @@
           "eregister"
         ],
         "summary": "Validate a SYNOP observation",
-        "description": "Validates the structured SYNOP workbook and returns field-level issues plus the normalized workbook.",
+        "description": "Validates the coded SYNOP workbook against the FM-12 code tables and WMO B/C1 regulations, returning field-level errors and warnings, the normalized workbook and the SI-decoded values. Warnings advise; only errors make the workbook invalid.",
         "operationId": "eregisterValidateSynopObservation",
         "requestBody": {
           "content": {
@@ -42474,6 +42474,194 @@
         ],
         "title": "SwapType"
       },
+      "SynopDecoded": {
+        "properties": {
+          "international_data_subcategory": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "International Data Subcategory"
+          },
+          "is_nil_report": {
+            "type": "boolean",
+            "title": "Is Nil Report",
+            "default": false
+          },
+          "air_temperature_k": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Air Temperature K"
+          },
+          "wet_bulb_k": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wet Bulb K"
+          },
+          "dew_point_k": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dew Point K"
+          },
+          "max_temperature_k": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Temperature K"
+          },
+          "min_temperature_k": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Temperature K"
+          },
+          "station_pressure_pa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Station Pressure Pa"
+          },
+          "mean_sea_level_pressure_pa": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mean Sea Level Pressure Pa"
+          },
+          "wind_direction_deg": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Direction Deg"
+          },
+          "wind_speed_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Speed Ms"
+          },
+          "wind_gust_ms": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Gust Ms"
+          },
+          "relative_humidity_percent": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relative Humidity Percent"
+          },
+          "visibility_m": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Visibility M"
+          },
+          "total_cloud_percent": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Cloud Percent"
+          },
+          "precipitation_kg_m2": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Precipitation Kg M2"
+          },
+          "rainfall_24h_kg_m2": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rainfall 24H Kg M2"
+          }
+        },
+        "type": "object",
+        "title": "SynopDecoded",
+        "description": "SI values decoded from the coded groups; missing or unobserved is null."
+      },
       "SynopValidationIssue": {
         "properties": {
           "field": {
@@ -42487,6 +42675,9 @@
           "message": {
             "type": "string",
             "title": "Message"
+          },
+          "severity": {
+            "$ref": "#/components/schemas/SynopValidationIssuePropertiesSeverityEnum"
           }
         },
         "type": "object",
@@ -42524,6 +42715,9 @@
           },
           "normalized": {
             "$ref": "#/components/schemas/SynopWorkbook"
+          },
+          "decoded": {
+            "$ref": "#/components/schemas/SynopDecoded"
           }
         },
         "type": "object",
@@ -42679,6 +42873,18 @@
             ],
             "title": "Wind Speed"
           },
+          "wind_gust": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wind Gust"
+          },
           "air_temp": {
             "anyOf": [
               {
@@ -42691,6 +42897,18 @@
             ],
             "title": "Air Temp"
           },
+          "wet_bulb": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Wet Bulb"
+          },
           "dew_point": {
             "anyOf": [
               {
@@ -42702,6 +42920,18 @@
               }
             ],
             "title": "Dew Point"
+          },
+          "relative_humidity": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 3
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Relative Humidity"
           },
           "station_pressure": {
             "anyOf": [
@@ -43122,6 +43352,18 @@
               }
             ],
             "title": "S3 Remarks"
+          },
+          "observer_initials": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observer Initials"
           },
           "notes": {
             "anyOf": [
@@ -48063,6 +48305,14 @@
           "approved",
           "rejected"
         ]
+      },
+      "SynopValidationIssuePropertiesSeverityEnum": {
+        "type": "string",
+        "enum": [
+          "error",
+          "warning"
+        ],
+        "default": "error"
       },
       "ThreadDetailPropertiesKindEnum": {
         "type": "string",

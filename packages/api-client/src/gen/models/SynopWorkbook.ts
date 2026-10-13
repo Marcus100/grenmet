@@ -20,8 +20,11 @@ export type SynopWorkbook = {
   total_cloud?: string | null;
   wind_dir?: string | null;
   wind_speed?: string | null;
+  wind_gust?: string | null;
   air_temp?: string | null;
+  wet_bulb?: string | null;
   dew_point?: string | null;
+  relative_humidity?: string | null;
   station_pressure?: string | null;
   msl_pressure?: string | null;
   pressure_tendency?: string | null;
@@ -57,5 +60,6 @@ export type SynopWorkbook = {
   s3_layer4_height?: string | null;
   s3_special_phenomena?: string | null;
   s3_remarks?: string | null;
+  observer_initials?: string | null;
   notes?: string | null;
 };

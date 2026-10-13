@@ -19,8 +19,11 @@ export const synopWorkbookSchema = z
     total_cloud: z.union([z.string().max(2), z.null()]).optional(),
     wind_dir: z.union([z.string().max(3), z.null()]).optional(),
     wind_speed: z.union([z.string().max(3), z.null()]).optional(),
+    wind_gust: z.union([z.string().max(3), z.null()]).optional(),
     air_temp: z.union([z.string().max(8), z.null()]).optional(),
+    wet_bulb: z.union([z.string().max(8), z.null()]).optional(),
     dew_point: z.union([z.string().max(8), z.null()]).optional(),
+    relative_humidity: z.union([z.string().max(3), z.null()]).optional(),
     station_pressure: z.union([z.string().max(8), z.null()]).optional(),
     msl_pressure: z.union([z.string().max(8), z.null()]).optional(),
     pressure_tendency: z.union([z.string().max(2), z.null()]).optional(),
@@ -56,6 +59,7 @@ export const synopWorkbookSchema = z
     s3_layer4_height: z.union([z.string().max(4), z.null()]).optional(),
     s3_special_phenomena: z.union([z.string().max(32), z.null()]).optional(),
     s3_remarks: z.union([z.string().max(4000), z.null()]).optional(),
+    observer_initials: z.union([z.string().max(4), z.null()]).optional(),
     notes: z.union([z.string().max(4000), z.null()]).optional(),
   })
   .describe("Structured FM-12 workbook values before TAC/BUFR encoding.");

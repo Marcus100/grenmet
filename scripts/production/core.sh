@@ -117,6 +117,10 @@ phase render-config
 python3 ../../scripts/production/render-env.py "$DEPLOY_ENV.env" runtime/.env.local
 docker compose --env-file "$DEPLOY_ENV.env" --env-file runtime/.env.local -f docker-compose.deploy.yml -p "$COMPOSE_PROJECT" config --quiet
 docker compose --env-file "$DEPLOY_ENV.env" --env-file runtime/.env.local -f docker-compose.deploy.yml -p "$COMPOSE_PROJECT" config --format json | node ../../scripts/ci/check-release-scope.mjs --compose
+# Resolved before anything changes: service lists come from the release registry, so scope and delivery cannot drift.
+data_services=$(node ../../scripts/ci/check-release-scope.mjs --print data)
+migration_services=$(node ../../scripts/ci/check-release-scope.mjs --print migration)
+app_services=$(node ../../scripts/ci/check-release-scope.mjs --print app)
 
 phase auth
 printf '%s' "$GHCR_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
@@ -150,11 +154,12 @@ done < runtime/images.txt
 docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" config --images >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
 
 phase databases
-docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --wait db redis
+# shellcheck disable=SC2086
+docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --wait $data_services
 docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" exec -T db bash /docker-entrypoint-initdb.d/init-databases.sh
 
 phase migrations
-for service in prestart cms-migrate; do
+for service in $migration_services; do
   docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" run --rm --no-deps "$service"
 done
 
@@ -165,7 +170,8 @@ phase start
 # Allow the admin's 120s start period and five 30s probe intervals to finish.
 # Staging's worker recovered just after the former 180s deadline on 2026-10-06.
 # --remove-orphans retires containers of services no longer in the deployment file.
-docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --no-deps --remove-orphans --wait --wait-timeout 300 api worker nhc-worker web-auth web-admin web-cms web-docs web-gms web-signal web-mbia web-events proxy
+# shellcheck disable=SC2086
+docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --no-deps --remove-orphans --wait --wait-timeout 300 $app_services
 
 phase smoke
 domain=$(python3 -c 'import sys; from pathlib import Path; print(next(line.split("=", 1)[1] for line in Path(sys.argv[1]).read_text().splitlines() if line.startswith("BASE_DOMAIN=")))' "$DEPLOY_ENV.env")
