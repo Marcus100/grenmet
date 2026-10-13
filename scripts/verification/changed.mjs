@@ -18,6 +18,10 @@ const BIOME = /\.(?:[cm]?[jt]sx?|json|jsonc|css|graphql)$/;
 const CONTRACT =
   /^apps\/api\/fastapi\/(?:openapi\.json|src\/main\.py|src\/(?:.+\/)?(?:router|routes|schemas?)\.py|src\/(?:.+\/)?(?:routers|schemas?)\/.*\.py)$/;
 
+// Portfolio coverage fails when a directory under these parents is not listed in
+// docs/portfolio/repository-delivery-map.md, so any change there can break it.
+const PORTFOLIO_SURFACE =
+  /^(?:scripts|packages|infra|docs\/portfolio|\.github|\.claude|\.agents)\//;
 const WEB = /^(?:apps\/web|packages)\//;
 const API_DOMAIN = /^src\/([^/]+)\//;
 const API_SHARED = /^src\/[^/]+\.py$/;
@@ -54,7 +58,7 @@ const RULES = [
     [pnpm("doc links", "docs:check-links"), pnpm("doc tests", "test:docs")],
   ],
   [
-    (f) => f.startsWith("docs/portfolio/"),
+    (f) => PORTFOLIO_SURFACE.test(f),
     [pnpm("portfolio coverage", "docs:check-portfolio")],
   ],
 ];
