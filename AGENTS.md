@@ -33,6 +33,7 @@ pnpm start  # Docker services (Postgres, Redis, FastAPI, worker) — HOST ONLY
 pnpm dev:web:<app>  # auth:3000 gaa-admin:3001 docs:3002 gms:3003 signal:3004 mbia:3005 cms:3006 elections:3007 events:3009 — HOST ONLY
 pnpm fix:changed  # formats all dirty files; select explicit paths in shared checkouts
 pnpm type-check  # TypeScript across all packages
+pnpm verify:changed  # only the gates this diff needs (--dry-run to list)
 pnpm fix  # repo-wide fix — only when deliberate (e.g. dependency bump)
 turbo run test --filter=@barrelsgd/<package>  # one package's tests
 pnpm vitest run src/path/to/file.test.ts  # one test file (from the app dir)

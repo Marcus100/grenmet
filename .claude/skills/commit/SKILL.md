@@ -21,8 +21,9 @@ Use this procedure when the user requests this task. Respect the current request
    - Add a body if the change is non-obvious (what changed and why, not how)
    - If multiple logical changes exist, note that and suggest splitting
 
-2. Run the required formatting, type, affected test and blast-radius checks from
-   `AGENTS.md`. Review the final diff and resolve failures before committing.
+2. Run `pnpm verify:changed` (`--dry-run` lists the checks it picks for this
+   diff), plus any check from `AGENTS.md` it does not cover. Review the final
+   diff and resolve failures before committing.
 
 3. Stage only authorized changes, preserving unrelated staged and unstaged work.
    Commit with the reviewed message. Do not bypass hooks or force-push.
