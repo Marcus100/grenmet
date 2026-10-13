@@ -14,8 +14,8 @@ add it here and file friction with the `file-friction` skill.
 | UI component | shadcn primitives (button, dialog, field, table, sidebar, sonner, …) | `packages/ui/src/components/ui/` → `@barrelsgd/ui/components/ui/<name>` |
 | Conditional classes | `cn` | `packages/ui/src/lib/utils.ts` → `@barrelsgd/ui/lib/utils` |
 | Initials, currency formatting | `getInitials`, `formatCurrency` | `packages/ui/src/lib/utils.ts` |
-| Report a caught error | `reportError(error, "<area>")` | `apps/web/<app>/src/lib/report-error.ts` |
-| Should an error reach Sentry? | `shouldReportError` | `packages/ui/src/lib/report-error.ts` |
+| Report a caught error | `reportError(error, "<area>")`, built with `createReportError(captureException)` | `apps/web/<app>/src/lib/report-error.ts` |
+| Should an error reach Sentry? | `shouldReportError`, `createReportError` | `packages/ui/src/lib/report-error.ts` |
 | Sentry privacy scrubber | shared before-send rules | `packages/ui/src/lib/sentry-privacy.ts` |
 | Analytics | consent policy + runtime | `packages/ui/src/lib/analytics-policy.ts`, `analytics-runtime.ts` |
 | FastAPI types, fetchers, hooks, Zod | generated client | `@barrelsgd/api-client` (never edit `src/gen/`) |
