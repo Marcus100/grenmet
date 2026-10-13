@@ -187,6 +187,7 @@ artifacts/
 
 # Cross-tool session handoff log — local scratch, not project docs
 /SESSION_LOG.md
+/SESSION_LOG.archive/
 
 # Bash command audit trail (defense-in-depth for the git-guardrail hook) — local scratch
 /.agents-bash-audit.log

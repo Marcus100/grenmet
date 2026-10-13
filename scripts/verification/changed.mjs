@@ -20,7 +20,7 @@ const API_DOMAIN = /^src\/([^/]+)\//;
 const API_SHARED = /^src\/[^/]+\.py$/;
 const API_TEST = /^tests\/.+\.py$/;
 const AGENT_CONFIG =
-  /^(?:\.claude|\.codex|\.agents|scripts\/guardrails|\.github)\//;
+  /^(?:\.claude|\.codex|\.agents|scripts\/(?:guardrails|agents)|\.github)\//;
 const VERIFICATION = /^scripts\/(?:verification|integrations|perf)\//;
 const DELIVERY = /^scripts\/(?:ci|production)\//;
 

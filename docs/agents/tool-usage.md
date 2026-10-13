@@ -25,3 +25,12 @@ verified and ask only about unresolved intent.
 The SessionStart hooks read recent log entries; they do not create the handoff
 or share hidden chat history. Claude also reloads the log after compaction and
 forking. Runtime hook trust and client permissions remain separate checks.
+
+## Keeping the session log short
+
+`SESSION_LOG.md` is shared by every checkout and grows by about 10 KB a day.
+`pnpm session-log:archive` lists the entries older than 7 days that it would
+move; add `--write` to move them to `SESSION_LOG.archive/<YYYY-MM>.md` (also
+gitignored, next to the log in the main checkout). `--days <n>` changes the
+window. Nothing is deleted, reruns are safe, and it retries if another agent
+appends while it runs. Run it only when no other agent is mid-handoff.
