@@ -1,9 +1,29 @@
 import { appendFileSync, readFileSync } from "node:fs";
 import {
+  appServices,
+  dataServices,
+  migrationServices,
   releaseScope,
   validateComposeScope,
   validateReleaseConfiguration,
 } from "./release-scope.mjs";
+
+// `--print <role>` lets delivery scripts start exactly the registered services.
+const printIndex = process.argv.indexOf("--print");
+if (printIndex !== -1) {
+  const roles = {
+    app: appServices,
+    data: dataServices,
+    migration: migrationServices,
+  };
+  const services = roles[process.argv[printIndex + 1]];
+  if (!services) {
+    console.error("Usage: check-release-scope.mjs --print app|data|migration");
+    process.exit(2);
+  }
+  console.log(services.join(" "));
+  process.exit(0);
+}
 
 validateReleaseConfiguration(process.env);
 if (process.argv.includes("--compose"))

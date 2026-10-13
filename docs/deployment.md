@@ -301,6 +301,23 @@ The **Deploy to Production** wrapper delegates to this same workflow.
 
 ---
 
+### Adding a deployed service or a required secret
+
+The service registry in `scripts/ci/release-scope.mjs` is the single list of
+core services, split into data (`db`, `redis`), migration and app roles.
+`core.sh` starts exactly those lists, so a service you add to
+`docker-compose.deploy.yml` must also be added to the registry. CI enforces
+this: `scripts/production/deploy-preflight.test.mjs` (part of
+`pnpm test:delivery`) renders the staging and production Compose models with
+synthetic secrets, with no real credentials, and fails when a service is
+missing or unregistered, an app service has no healthcheck, or an image does not
+map to the registry. Live credentials are still checked by `core.sh` on the
+deployment host.
+
+A new required secret goes in `REQUIRED_SECRETS` in
+`scripts/production/render-env.py` and in the `deploy.yml` env block; the same
+test fails if either is missing.
+
 ## Troubleshooting
 
 ### Runner is offline

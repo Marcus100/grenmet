@@ -33,18 +33,23 @@ export function validateReleaseConfiguration(environment) {
   }
 }
 
-export const coreServices = [
-  "db",
-  "redis",
-  "proxy",
+// Roles follow the delivery order in scripts/production/core.sh: data services
+// first, migrations next, then everything the deployment starts after migrations.
+export const dataServices = ["db", "redis"];
+export const migrationServices = ["prestart", "cms-migrate"];
+export const appServices = [
   "api",
-  "prestart",
   "worker",
   "nhc-worker",
-  ...webImages.map((image) => {
-    if (image.app === "cms-migrate") return "cms-migrate";
-    return `web-${image.app}`;
-  }),
+  ...webImages
+    .filter((image) => image.app !== "cms-migrate")
+    .map((image) => `web-${image.app}`),
+  "proxy",
+];
+export const coreServices = [
+  ...dataServices,
+  ...migrationServices,
+  ...appServices,
 ];
 export function validateComposeScope(model) {
   const services = Object.keys(model.services ?? {});

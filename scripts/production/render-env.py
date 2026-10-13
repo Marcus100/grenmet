@@ -23,9 +23,13 @@ def read_config(path):
     return result
 
 
+# Secrets the deployment cannot start without; the CI preflight reads this list.
+REQUIRED_SECRETS = ["POSTGRES_USER", "POSTGRES_PASSWORD", "FASTAPI_DB_PASSWORD", "SECRET_KEY", "FIRST_SUPERUSER", "FIRST_SUPERUSER_PASSWORD", "RESEND_API_KEY", "EMAIL", "USERNAME", "HASHED_PASSWORD", "PAYLOAD_SECRET", "GAA_ADMIN_SSO_CLIENT_SECRET", "CMS_SSO_CLIENT_SECRET"]
+REQUIRED_SECRETS += [f"{domain}_DB_PASSWORD" for domain in ["WXWATCH", "WXPRODUCTS", "EREGISTER", "TRANSPORT", "JANITORIAL", "EVENTS", "CMS"]]
+
+
 def render(config, environment):
-    required = ["POSTGRES_USER", "POSTGRES_PASSWORD", "FASTAPI_DB_PASSWORD", "SECRET_KEY", "FIRST_SUPERUSER", "FIRST_SUPERUSER_PASSWORD", "RESEND_API_KEY", "EMAIL", "USERNAME", "HASHED_PASSWORD", "PAYLOAD_SECRET", "GAA_ADMIN_SSO_CLIENT_SECRET", "CMS_SSO_CLIENT_SECRET"]
-    required += [f"{domain}_DB_PASSWORD" for domain in ["WXWATCH", "WXPRODUCTS", "EREGISTER", "TRANSPORT", "JANITORIAL", "EVENTS", "CMS"]]
+    required = REQUIRED_SECRETS
     values = {}
     for key in required:
         if not environment.get(key):

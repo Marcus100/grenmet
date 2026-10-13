@@ -1,13 +1,22 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 import { runInNewContext } from "node:vm";
 import {
+  appServices,
   coreServices,
+  dataServices,
+  migrationServices,
   releaseScope,
   validateComposeScope,
   validateReleaseConfiguration,
 } from "../ci/release-scope.mjs";
+
+const CHECK_SCRIPT = fileURLToPath(
+  new URL("../ci/check-release-scope.mjs", import.meta.url)
+);
 
 test("release includes nine core images and rejects contradictory weather configuration", () => {
   assert.equal(releaseScope.web.length, 9);
@@ -58,26 +67,30 @@ test("deployment rejects a missing core service or an extra deferred service", (
     );
 });
 
-const COMPOSE_SECTION_BOUNDARY = /\n\S/;
-const COMPOSE_SERVICE_NAME = /^ {2}([a-z][a-z0-9-]*):/gm;
-
-test("deployment scope accepts the services declared in the shared Compose stack", () => {
-  const compose = readFileSync(
-    new URL("../../infra/docker/docker-compose.deploy.yml", import.meta.url),
-    "utf8"
+test("service roles partition the core services and drive the CLI", () => {
+  const roles = {
+    data: dataServices,
+    migration: migrationServices,
+    app: appServices,
+  };
+  const all = [...dataServices, ...migrationServices, ...appServices];
+  assert.equal(new Set(all).size, all.length, "a service has two roles");
+  assert.deepEqual([...all].sort(), [...coreServices].sort());
+  for (const service of ["api", "worker", "nhc-worker", "proxy"])
+    assert.ok(appServices.includes(service));
+  for (const [role, services] of Object.entries(roles)) {
+    const printed = execFileSync(
+      process.execPath,
+      [CHECK_SCRIPT, "--print", role],
+      { encoding: "utf8" }
+    );
+    assert.deepEqual(printed.trim().split(" "), services);
+  }
+  assert.throws(() =>
+    execFileSync(process.execPath, [CHECK_SCRIPT, "--print", "bogus"], {
+      stdio: "pipe",
+    })
   );
-  const servicesBlock = compose
-    .split("\nservices:\n")[1]
-    ?.split(COMPOSE_SECTION_BOUNDARY)[0];
-  assert.ok(servicesBlock);
-  const services = Object.fromEntries(
-    [...servicesBlock.matchAll(COMPOSE_SERVICE_NAME)].map((match) => [
-      match[1],
-      {},
-    ])
-  );
-  assert.ok(Object.hasOwn(services, "nhc-worker"));
-  validateComposeScope({ services });
 });
 
 const ENVIRONMENT_EXPRESSION = /^ {4}environment: \$\{\{ (.+) \}\}$/m;
