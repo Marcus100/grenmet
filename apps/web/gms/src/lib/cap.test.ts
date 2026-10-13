@@ -102,7 +102,7 @@ describe("fetchActiveAlerts", () => {
         );
       })) as typeof fetch;
     expect(await fetchActiveAlerts()).toEqual({ status: "unavailable" });
-  }, 10_000);
+  });
 
   it("reports unavailable when the request throws", async () => {
     globalThis.fetch = (() =>

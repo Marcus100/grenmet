@@ -155,7 +155,7 @@ describe("ManageUserDialog — department & employment", () => {
       department_id: "dept_met",
       position: "Forecaster",
     });
-  }, 20_000);
+  });
 
   it("edits an existing employment record (PATCH with wrapper)", async () => {
     const patched: unknown[] = [];
@@ -200,7 +200,7 @@ describe("ManageUserDialog — department & employment", () => {
         status: "INACTIVE",
       },
     });
-  }, 20_000);
+  });
 });
 
 describe("CMS access", () => {

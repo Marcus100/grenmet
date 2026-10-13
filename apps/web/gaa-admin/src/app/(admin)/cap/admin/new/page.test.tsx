@@ -203,7 +203,7 @@ describe("NewAlertPage", () => {
     expect(await waitForSubmission(() => capturedBody)).toMatchObject({
       info: [{ event: "Rockfall", categories: ["Geo"], severity: "Moderate" }],
     });
-  }, 15_000);
+  });
 
   it("blocks submission and shows an error when required fields are empty", async () => {
     await renderWithLevel();

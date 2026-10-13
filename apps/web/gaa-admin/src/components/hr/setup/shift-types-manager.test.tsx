@@ -100,7 +100,7 @@ describe("ShiftTypesManager", () => {
       needs_reason: false,
       needs_approval: false,
     });
-  }, 20_000);
+  });
 });
 
 it("shows shared definitions without global editing controls", async () => {

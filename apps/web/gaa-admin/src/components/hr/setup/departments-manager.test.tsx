@@ -65,5 +65,5 @@ describe("DepartmentsManager", () => {
 
     await waitFor(() => expect(posted).toHaveLength(1));
     expect(posted[0]).toMatchObject({ id: "ops_team", name: "Ops Team" });
-  }, 20_000);
+  });
 });

@@ -193,7 +193,7 @@ describe("DutyRoster (wired)", () => {
       const cells = within(row).getAllByRole("button");
       expect(cells[1]?.textContent).toBe("E");
     });
-  }, 20_000);
+  });
 
   it("cycles a cell locally and posts only pending edits on save", async () => {
     let bulkBody: unknown;
@@ -232,7 +232,7 @@ describe("DutyRoster (wired)", () => {
         },
       ],
     });
-  }, 20_000);
+  });
 
   it("discards pending edits without touching server state", async () => {
     renderRoster();
@@ -246,5 +246,5 @@ describe("DutyRoster (wired)", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Discard" }));
     expect(firstCell.textContent).toBe("");
-  }, 20_000);
+  });
 });

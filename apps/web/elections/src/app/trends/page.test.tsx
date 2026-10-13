@@ -5,10 +5,7 @@ import TrendsPage from "@/app/trends/page";
 vi.mock("server-only", () => ({}));
 
 describe("Election explainer", () => {
-  // This whole-page render shares CI workers with the other application suites.
-  it("renders every chart with reading guidance and source caveats", {
-    timeout: 20_000,
-  }, () => {
+  it("renders every chart with reading guidance and source caveats", () => {
     const { container } = render(<TrendsPage />);
     expect(
       screen.getByRole("heading", {

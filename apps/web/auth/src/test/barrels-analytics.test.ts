@@ -76,4 +76,4 @@ it("static Barrels uses the shared consent and Google protocol with no preview c
       dom.window.close();
     }
   }
-}, 15_000);
+});
