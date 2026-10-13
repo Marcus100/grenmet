@@ -24,8 +24,11 @@ class SynopWorkbook(BaseModel):
     total_cloud: str | None = Field(default=None, max_length=2)
     wind_dir: str | None = Field(default=None, max_length=3)
     wind_speed: str | None = Field(default=None, max_length=3)
+    wind_gust: str | None = Field(default=None, max_length=3)
     air_temp: str | None = Field(default=None, max_length=8)
+    wet_bulb: str | None = Field(default=None, max_length=8)
     dew_point: str | None = Field(default=None, max_length=8)
+    relative_humidity: str | None = Field(default=None, max_length=3)
     station_pressure: str | None = Field(default=None, max_length=8)
     msl_pressure: str | None = Field(default=None, max_length=8)
     pressure_tendency: str | None = Field(default=None, max_length=2)
@@ -61,6 +64,7 @@ class SynopWorkbook(BaseModel):
     s3_layer4_height: str | None = Field(default=None, max_length=4)
     s3_special_phenomena: str | None = Field(default=None, max_length=32)
     s3_remarks: str | None = Field(default=None, max_length=4000)
+    observer_initials: str | None = Field(default=None, max_length=4)
     notes: str | None = Field(default=None, max_length=4000)
 
 
@@ -72,12 +76,36 @@ class SynopValidationIssue(BaseModel):
     field: str
     code: str
     message: str
+    severity: Literal["error", "warning"] = "error"
+
+
+class SynopDecoded(BaseModel):
+    """SI values decoded from the coded groups; missing or unobserved is null."""
+
+    international_data_subcategory: int | None = None
+    is_nil_report: bool = False
+    air_temperature_k: float | None = None
+    wet_bulb_k: float | None = None
+    dew_point_k: float | None = None
+    max_temperature_k: float | None = None
+    min_temperature_k: float | None = None
+    station_pressure_pa: float | None = None
+    mean_sea_level_pressure_pa: float | None = None
+    wind_direction_deg: int | None = None
+    wind_speed_ms: float | None = None
+    wind_gust_ms: float | None = None
+    relative_humidity_percent: int | None = None
+    visibility_m: float | None = None
+    total_cloud_percent: int | None = None
+    precipitation_kg_m2: float | None = None
+    rainfall_24h_kg_m2: float | None = None
 
 
 class SynopValidationResponse(BaseModel):
     valid: bool
     issues: list[SynopValidationIssue] = Field(default_factory=list)
     normalized: SynopWorkbook
+    decoded: SynopDecoded = Field(default_factory=SynopDecoded)
 
 
 class RegisterObservationWrite(BaseModel):

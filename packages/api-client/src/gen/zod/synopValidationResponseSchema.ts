@@ -4,6 +4,7 @@
  */
 
 import * as z from "zod";
+import { synopDecodedSchema } from "./synopDecodedSchema.js";
 import { synopValidationIssueSchema } from "./synopValidationIssueSchema.js";
 import { synopWorkbookSchema } from "./synopWorkbookSchema.js";
 
@@ -13,4 +14,9 @@ export const synopValidationResponseSchema = z.object({
   normalized: synopWorkbookSchema.describe(
     "Structured FM-12 workbook values before TAC/BUFR encoding."
   ),
+  decoded: synopDecodedSchema
+    .optional()
+    .describe(
+      "SI values decoded from the coded groups; missing or unobserved is null."
+    ),
 });

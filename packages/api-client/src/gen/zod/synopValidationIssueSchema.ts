@@ -4,9 +4,13 @@
  */
 
 import * as z from "zod";
+import { synopValidationIssuePropertiesSeverityEnumSchema } from "./synopValidationIssuePropertiesSeverityEnumSchema.js";
 
 export const synopValidationIssueSchema = z.object({
   field: z.string(),
   code: z.string(),
   message: z.string(),
+  severity: synopValidationIssuePropertiesSeverityEnumSchema
+    .optional()
+    .default("error"),
 });

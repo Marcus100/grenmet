@@ -1057,12 +1057,21 @@ Structured forecast parameters (flat string values, no contract change): `windDi
 ### eRegister structured SYNOP workbook
 
 `POST /api/v1/eregister/observations/validate-synop` accepts the structured
-FM-12 workbook model used by GAA Admin. It validates the identification fields,
-Section 1 global groups, and Section 3 regional/national groups and returns
-`valid`, field-level `issues`, and the normalized workbook. Draft creation
-remains available through `POST /api/v1/eregister/observations`; validation is
-currently advisory while the full WMO code-table encoder is being added. The
-validation endpoint does not save, publish, or transmit an observation.
+FM-12 workbook model used by GAA Admin. Observers key coded groups as on the
+paper register (dd=07, TTT=254, PPPP=0149, VV=65, ww=05). The endpoint checks
+each entry against the FM-12 code tables and the WMO-No. 306 Vol. I.2 B/C1
+regulations and returns `valid`, field-level `issues`, the normalized workbook
+and `decoded` SI values (K, Pa, m s-1, m, kg m-2) for later BUFR, TAC and IWXXM
+encoders. Each issue has a `severity`: `error` entries are impossible or
+malformed and make the workbook invalid; `warning` entries are reporting
+practice advice and never change `valid`. GAA Admin validates before saving and
+blocks the save on errors only. A workbook with only identification fields is a
+NIL report (`decoded.is_nil_report`). Optional entries beyond the original
+workbook are the wet bulb (`wet_bulb`), wind gust (`wind_gust`), relative
+humidity (`relative_humidity`) and observer initials (`observer_initials`, not
+an observation value). The endpoint does not save, publish, or
+transmit an observation; `POST /api/v1/eregister/observations` still stores a
+draft.
 
 ### GAA operational catalogues
 

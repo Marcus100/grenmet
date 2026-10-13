@@ -3,6 +3,7 @@
  * Do not edit manually.
  */
 
+import type { SynopDecoded } from "./SynopDecoded.js";
 import type { SynopValidationIssue } from "./SynopValidationIssue.js";
 import type { SynopWorkbook } from "./SynopWorkbook.js";
 
@@ -14,4 +15,9 @@ export type SynopValidationResponse = {
    * @type object
    */
   normalized: SynopWorkbook;
+  /**
+   * @description SI values decoded from the coded groups; missing or unobserved is null.
+   * @type object | undefined
+   */
+  decoded?: SynopDecoded;
 };

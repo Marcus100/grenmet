@@ -46,7 +46,7 @@ export function eregisterValidateSynopObservationMutationOptions<
 }
 
 /**
- * @description Validates the structured SYNOP workbook and returns field-level issues plus the normalized workbook.
+ * @description Validates the coded SYNOP workbook against the FM-12 code tables and WMO B/C1 regulations, returning field-level errors and warnings, the normalized workbook and the SI-decoded values. Warnings advise; only errors make the workbook invalid.
  * @summary Validate a SYNOP observation
  * {@link /api/v1/eregister/observations/validate-synop}
  */
