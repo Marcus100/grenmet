@@ -46,7 +46,7 @@ async def cached_json(
     value = await producer()
     try:
         await client.set(key, json.dumps(value, default=str), ex=ttl)
-    except Exception:  # noqa: BLE001
+    except Exception:  # noqa: BLE001 - cache must never break the request
         logger.warning("cache set failed", extra={"key": key}, exc_info=True)
     return value
 
@@ -62,12 +62,12 @@ async def cached_text(
         hit = await client.get(key)
         if hit is not None:
             return str(hit)
-    except Exception:  # noqa: BLE001
+    except Exception:  # noqa: BLE001 - cache must never break the request
         logger.warning("cache get failed", extra={"key": key}, exc_info=True)
     value = await producer()
     try:
         await client.set(key, value, ex=ttl)
-    except Exception:  # noqa: BLE001
+    except Exception:  # noqa: BLE001 - cache must never break the request
         logger.warning("cache set failed", extra={"key": key}, exc_info=True)
     return value
 
@@ -79,7 +79,7 @@ async def invalidate(*keys: str) -> None:
         return
     try:
         await client.delete(*keys)
-    except Exception:  # noqa: BLE001
+    except Exception:  # noqa: BLE001 - cache must never break the request
         logger.warning("cache invalidate failed", exc_info=True)
 
 
