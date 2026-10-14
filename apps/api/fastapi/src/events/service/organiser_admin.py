@@ -3,7 +3,9 @@
 import re
 import secrets
 import uuid
+from typing import Literal
 
+from pydantic import TypeAdapter
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,6 +23,9 @@ from ..models import (
 )
 from .common import _naive_utc
 from .discover import _cards, _group, _group_summaries, _organiser_public, _tiers
+
+_STATUS = TypeAdapter(Literal["draft", "published", "cancelled"])
+_VISIBILITY = TypeAdapter(Literal["public", "unlisted"])
 
 # --- Organiser management -------------------------------------------------------------------
 
@@ -52,8 +57,8 @@ async def _managed(
         organiser=await _organiser_public(db, organiser, user.id),
         group=(await _group_summaries(db, [group], user.id))[0] if group else None,
         tiers=await _tiers(db, listing.id),
-        status=listing.status,  # type: ignore[arg-type]
-        visibility=listing.visibility,  # type: ignore[arg-type]
+        status=_STATUS.validate_python(listing.status),
+        visibility=_VISIBILITY.validate_python(listing.visibility),
     )
 
 
