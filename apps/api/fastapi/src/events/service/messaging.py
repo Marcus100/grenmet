@@ -2,7 +2,9 @@
 
 import uuid
 from datetime import datetime
+from typing import Literal
 
+from pydantic import TypeAdapter
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -25,6 +27,8 @@ from .people import (
     can_message,
     get_or_create_profile,
 )
+
+_THREAD_KIND = TypeAdapter(Literal["direct", "group"])
 
 # --- Messaging -----------------------------------------------------------------------------
 
@@ -71,7 +75,7 @@ async def list_threads(db: AsyncSession, user: User) -> list[schemas.ThreadSumma
         summaries.append(
             schemas.ThreadSummary(
                 id=thread.id,
-                kind=thread.kind,  # type: ignore[arg-type]
+                kind=_THREAD_KIND.validate_python(thread.kind),
                 title=title,
                 group_slug=group_slug,
                 last_message=last.body[:140] if last else None,
@@ -130,7 +134,7 @@ async def get_thread(
     title, group_slug = await _thread_title(db, thread, user.id)
     return schemas.ThreadDetail(
         id=thread.id,
-        kind=thread.kind,  # type: ignore[arg-type]
+        kind=_THREAD_KIND.validate_python(thread.kind),
         title=title,
         group_slug=group_slug,
         participants=[

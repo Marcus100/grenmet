@@ -5,13 +5,19 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
-import { claimLock, releaseLock } from "./claim-issue.mjs";
+import {
+  claimLock,
+  listLocks,
+  releaseLock,
+  sweepLocks,
+} from "./claim-issue.mjs";
 
 const SCRIPT = fileURLToPath(new URL("./claim-issue.mjs", import.meta.url));
 const HOUR_MS = 3_600_000;
 const HELD_BY_ALPHA = /already claimed \(agent lock for #7 by alpha/;
 const HELD_BY_NEXT = /by next/;
 const NO_LOCK = /no lock to release/;
+const REFUSED = /remote refused.*pnpm agents:sweep/;
 
 function git(cwd, ...args) {
   const result = spawnSync("git", args, { cwd, encoding: "utf8" });
@@ -145,4 +151,69 @@ test("bad input is rejected with exit code 2", async (t) => {
   assert.equal((await run(workdirs[0], ["claim", "0"])).status, 2);
   assert.equal((await run(workdirs[0], ["claim", "abc"])).status, 2);
   assert.equal((await run(workdirs[0], ["steal", "3"])).status, 2);
+});
+
+// A remote that accepts new refs but refuses to delete them, like the proxy in
+// a cloud sandbox.
+function refuseDeletes(origin) {
+  const hook = join(origin, "hooks", "pre-receive");
+  writeFileSync(
+    hook,
+    '#!/bin/sh\nwhile read old new ref; do\n  if [ "$new" = "0000000000000000000000000000000000000000" ]; then exit 1; fi\ndone\n',
+    { mode: 0o755 }
+  );
+}
+
+test("a remote that refuses deletes is reported as refused, not as an absent lock", (t) => {
+  const { origin, workdirs } = createRemote(t);
+  const cwd = workdirs[0];
+  claimLock({ claimant: "cloud", cwd, issue: 8 });
+  refuseDeletes(origin);
+  const result = releaseLock({ cwd, issue: 8 });
+  assert.equal(result.released, false);
+  assert.equal(result.reason, "refused");
+  assert.equal(releaseLock({ cwd, issue: 99 }).reason, "absent");
+});
+
+test("the release command tells a maintainer how to clear a refused lock", async (t) => {
+  const { origin, workdirs } = createRemote(t);
+  claimLock({ claimant: "cloud", cwd: workdirs[0], issue: 8 });
+  refuseDeletes(origin);
+  const result = await run(workdirs[0], ["release", "8"]);
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, REFUSED);
+});
+
+test("sweep deletes the locks of closed issues and keeps open ones", (t) => {
+  const { origin, workdirs } = createRemote(t);
+  const cwd = workdirs[0];
+  for (const issue of [11, 12, 13]) claimLock({ claimant: "a", cwd, issue });
+  assert.deepEqual(listLocks({ cwd }).sort(), [11, 12, 13]);
+
+  const closed = new Set([11, 13]);
+  const preview = sweepLocks({
+    cwd,
+    dryRun: true,
+    isClosed: (issue) => closed.has(issue),
+  });
+  assert.deepEqual(preview.swept.sort(), [11, 13]);
+  assert.equal(listLocks({ cwd }).length, 3);
+
+  const result = sweepLocks({ cwd, isClosed: (issue) => closed.has(issue) });
+  assert.deepEqual(result.swept.sort(), [11, 13]);
+  assert.deepEqual(result.kept, [12]);
+  assert.deepEqual(result.failed, []);
+  assert.deepEqual(remoteLocks(origin).split("\n"), [
+    "refs/heads/agent-lock/12",
+  ]);
+});
+
+test("sweep reports locks it could not delete", (t) => {
+  const { origin, workdirs } = createRemote(t);
+  const cwd = workdirs[0];
+  claimLock({ claimant: "a", cwd, issue: 21 });
+  refuseDeletes(origin);
+  const result = sweepLocks({ cwd, isClosed: () => true });
+  assert.deepEqual(result.failed, [21]);
+  assert.deepEqual(result.swept, []);
 });

@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-13
+**Last updated:** 2026-10-14
 
 Versioned prompts for unattended agent runs. They work the same in either tool:
 run them as a Claude Code `/schedule` routine or a Codex cloud task. Only **one**
@@ -16,8 +16,17 @@ Edit the prompt here first, then update the live routine to match.
 - Claim before working with `node scripts/agents/claim-issue.mjs claim <n> --as <agent>`.
   It creates the lock ref `agent-lock/<n>`, which only one claimant can win, then
   sets `agent-claimed`. Exit code 3 means someone else holds it: skip that issue.
-  Always run `claim-issue.mjs release <n>` when you finish, whatever the outcome. A
-  lock older than 12 hours is treated as a crashed run and may be taken over.
+  Run `claim-issue.mjs release <n>` when you finish. A cloud sandbox cannot delete
+  refs, so release may report that the remote refused; say so in the run record and
+  carry on. The lock then stays until the issue is closed and a maintainer runs
+  `pnpm agents:sweep` (it deletes the locks of closed issues), or it passes 12 hours
+  and may be taken over. Never take over a lock whose issue has an open PR from an
+  `agent/<n>-*` branch.
+- **Cloud sandbox limits.** There is no `gh` CLI, so labels, comments and PRs go
+  through the GitHub tools the sandbox provides, and the script's label warning and
+  `--post` do not work: post the run record as an issue comment by hand. A PR that
+  says `Closes #n` does not close the issue when it merges into `dev`; the
+  maintainer closes it.
 - Work in a fresh branch `agent/<issue-number>-<slug>` from current `origin/dev`.
   Run the full `/commit` gates (format, types, affected tests, guardrails,
   blast-radius). Then push **that branch** and open a PR to `dev` with the
@@ -37,6 +46,12 @@ Edit the prompt here first, then update the live routine to match.
 - For a task that changes `apps/web/gms` or `apps/web/gaa-admin`, run `pnpm e2e`. A
   SKIP means no dev server was reachable; say so in the run record instead of
   claiming the UI was checked.
+- **Sandbox limits.** The cloud sandbox may not have the Python patch version in
+  `.python-version`. If `uv sync` cannot find it, use the nearest 3.14 patch with
+  `uv sync --frozen --python 3.14 --package fast-back --package gms-ingest`, run
+  `pnpm install --frozen-lockfile` first, then run the steps of `pnpm verify:changed`
+  by hand. Record `verify: skipped` in the run record and list exactly which gates
+  you ran in the PR body. CI is the full check; a human reviews the PR.
 - Stay inside what the issue describes. Ask First and Never tiers in `AGENTS.md`
   still apply: an issue that needs them becomes `ready-for-human`.
 - Finish every task with a run record: `node scripts/agents/run-record.mjs --kind run
@@ -56,7 +71,7 @@ You are the nightly friction fixer for Marcus100/grenmet. Read AGENTS.md and
 docs/agents/routines.md, and follow "Shared rules for every routine".
 
 1. List open issues with both labels friction and ready-for-agent, without
-   agent-claimed, oldest first:
+   agent-claimed and without an open PR from an `agent/<n>-*` branch, oldest first:
    gh issue list --label friction --label ready-for-agent --state open \
      --json number,title,labels --jq '[.[] | select(all(.labels[]; .name != "agent-claimed"))]'
 2. Take at most 2. For each: claim it, read nested AGENTS.md files for the paths

@@ -7,8 +7,13 @@
 // (force-with-lease against the exact old SHA), so a crashed run cannot block an
 // issue forever.
 //
+// Cloud sandboxes can create refs but their remote refuses to delete them, so a
+// lock cannot always be released by the run that took it. `sweep` is for a
+// maintainer's machine: it deletes the lock of every closed issue.
+//
 // Usage: node scripts/agents/claim-issue.mjs claim|release <issue> [--remote origin]
 //          [--as <name>] [--stale-hours 12] [--no-label]
+//        node scripts/agents/claim-issue.mjs sweep [--dry-run] [--remote origin]
 // Exit codes: 0 claimed/released, 3 already claimed, 2 usage or git error.
 
 import { spawnSync } from "node:child_process";
@@ -23,6 +28,7 @@ const EXIT_CLAIMED_BY_OTHER = 3;
 const EXIT_ERROR = 2;
 const LABEL = "agent-claimed";
 const WHITESPACE = /\s+/;
+const DIGITS = /^\d+$/;
 
 function git(args, { cwd, env, input } = {}) {
   const result = spawnSync("git", args, {
@@ -130,14 +136,50 @@ export function releaseLock({ cwd, remote = "origin", issue }) {
   const ref = lockRef(issue);
   // `push --delete` on a missing ref exits 0 with only a warning, so look first.
   const listing = must(git(["ls-remote", remote, ref], { cwd }), "ls-remote");
-  if (!listing) return { released: false };
-  return {
-    released: git(["push", remote, "--delete", ref], { cwd }).status === 0,
-  };
+  if (!listing) return { released: false, reason: "absent" };
+  const deleted = git(["push", remote, "--delete", ref], { cwd });
+  if (deleted.status === 0) return { released: true };
+  return { released: false, reason: "refused", detail: deleted.stderr };
+}
+
+/** Issue numbers that currently hold a lock ref on the remote. */
+export function listLocks({ cwd, remote = "origin" }) {
+  const out = must(
+    git(["ls-remote", remote, `${LOCK_PREFIX}*`], { cwd }),
+    "ls-remote"
+  );
+  return out
+    .split("\n")
+    .map((line) => line.split(WHITESPACE)[1]?.slice(LOCK_PREFIX.length))
+    .filter((name) => name && DIGITS.test(name))
+    .map(Number);
+}
+
+// Deletes the lock of every issue `isClosed` says is finished. A lock whose
+// issue is still open may belong to a live run or an open PR, so it stays.
+export function sweepLocks({ cwd, remote = "origin", isClosed, dryRun }) {
+  const swept = [];
+  const kept = [];
+  const failed = [];
+  for (const issue of listLocks({ cwd, remote })) {
+    if (!isClosed(issue)) {
+      kept.push(issue);
+      continue;
+    }
+    if (dryRun) {
+      swept.push(issue);
+      continue;
+    }
+    const result = releaseLock({ cwd, issue, remote });
+    (result.released ? swept : failed).push(issue);
+  }
+  return { failed, kept, swept };
 }
 
 function parseArgs(argv) {
-  const [command, issueText, ...rest] = argv;
+  const [command, ...tail] = argv;
+  const takesIssue = command !== "sweep";
+  const [issueText, ...rest] = takesIssue ? tail : [undefined, ...tail];
   const options = {
     claimant: process.env.AGENT_NAME ?? `${hostname()}-${process.pid}`,
     command,
@@ -152,11 +194,14 @@ function parseArgs(argv) {
     else if (rest[i] === "--stale-hours")
       options.staleHours = Number(rest[++i]);
     else if (rest[i] === "--no-label") options.label = false;
+    else if (rest[i] === "--dry-run") options.dryRun = true;
     else throw new Error(`Unknown argument: ${rest[i]}`);
   }
-  if (!["claim", "release"].includes(command))
-    throw new Error("Usage: claim-issue.mjs claim|release <issue> [options]");
-  assertIssue(options.issue);
+  if (!["claim", "release", "sweep"].includes(command))
+    throw new Error(
+      "Usage: claim-issue.mjs claim|release <issue> | sweep [options]"
+    );
+  if (takesIssue) assertIssue(options.issue);
   return options;
 }
 
@@ -174,13 +219,46 @@ function setLabel(issue, add) {
     console.error(`warning: could not update the ${LABEL} label`);
 }
 
+function issueIsClosed(issue) {
+  const result = spawnSync(
+    "gh",
+    ["issue", "view", String(issue), "--json", "state", "--jq", ".state"],
+    { encoding: "utf8" }
+  );
+  if (result.status !== 0)
+    throw new Error(`could not read issue #${issue} with gh`);
+  return result.stdout.trim() === "CLOSED";
+}
+
+function describeRelease(issue, result) {
+  if (result.released) return `released #${issue}`;
+  if (result.reason === "refused")
+    return `could not delete the lock for #${issue}: the remote refused. It expires after ${DEFAULT_STALE_HOURS}h, or a maintainer can run: pnpm agents:sweep`;
+  return "no lock to release";
+}
+
 function main() {
   const options = parseArgs(process.argv.slice(2));
   const common = { issue: options.issue, remote: options.remote };
+  if (options.command === "sweep") {
+    const { failed, kept, swept } = sweepLocks({
+      dryRun: options.dryRun,
+      isClosed: issueIsClosed,
+      remote: options.remote,
+    });
+    const verb = options.dryRun ? "would release" : "released";
+    console.log(`${verb}: ${swept.join(", ") || "none"}`);
+    console.log(`kept (issue still open): ${kept.join(", ") || "none"}`);
+    if (failed.length > 0) {
+      console.log(`could not delete: ${failed.join(", ")}`);
+      process.exitCode = EXIT_ERROR;
+    }
+    return;
+  }
   if (options.command === "release") {
-    const { released } = releaseLock(common);
+    const result = releaseLock(common);
     if (options.label) setLabel(options.issue, false);
-    console.log(released ? `released #${options.issue}` : "no lock to release");
+    console.log(describeRelease(options.issue, result));
     return;
   }
   const result = claimLock({

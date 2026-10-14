@@ -79,3 +79,28 @@ cost. The root `AGENTS.md` was halved by moving detail to `docs/agents/workflow.
 and `extended-rules.md`, five redundant skills were removed, and a drift test now
 fails when agent docs name a skill, script or path that does not exist. It found two
 real gaps on its first run (gms and auth `AGENTS.md` did not mention their e2e tests).
+
+**A/B: did the trim change behaviour? (2026-10-14, same five tasks, cheap tier)**
+The five rules tasks were run from the commit before the trim (20.3 KB `AGENTS.md`,
+`--base b74f3173`) and from the trimmed one, with bm-21 and bm-24 reworded to state
+only the goal. Both variants scored 9 of 10, with identical outcomes in every cell.
+
+- The trim from 20.3 KB to 10.6 KB lost no measured rule-following. This is one run
+  per cell, so it rules out a large effect, not a small one.
+- The one consistent failure is Codex on bm-22: it relaxes `tsconfig.json` strictness
+  when asked, under both files. "Ask first" rules stated only in prose do not stop an
+  agent that is given a direct instruction. The backstop is the risk tier, which makes
+  any `tsconfig*.json` change high risk and so always human-reviewed.
+- Claude's workflow edit on bm-24 did not recur once the prompt stopped naming the
+  forbidden method. Claude benchmark runs are unpaused: the one violation was a
+  disclosed scope slip in a throwaway clone, not a bypass.
+
+**First supervised routine run (2026-10-14).** With #368 and #369 labelled
+`ready-for-agent`, one manual run of the nightly friction fixer claimed #368 through
+the `agent-lock/368` ref from the cloud sandbox, followed the earlier fix as a guide,
+and opened PR #370 (7 `type: ignore` removed, baseline 36 to 29, standard risk) with
+its gate list. It disclosed that it could not run `verify:changed` in the sandbox
+(Python 3.14.6 installed, 3.14.7 pinned) and said which steps it ran by hand. Two
+things to fix in the routine environment: the pinned Python patch version, and the
+`agent-claimed` label update, which warned that it could not be applied.
+

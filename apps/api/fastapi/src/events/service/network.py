@@ -1,7 +1,9 @@
 """Person pages, plans and the member network."""
 
 import uuid
+from typing import Literal
 
+from pydantic import TypeAdapter
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -38,6 +40,11 @@ from .people import (
 # --- People ---------------------------------------------------------------------------------
 
 
+_PARISH = TypeAdapter(schemas.Parish)
+_INTERESTS = TypeAdapter(list[schemas.Category])
+_INTENTS = TypeAdapter(list[schemas.Intent])
+
+
 async def get_person(
     db: AsyncSession, handle: str, viewer_id: uuid.UUID | None
 ) -> schemas.ProfilePublic:
@@ -60,7 +67,9 @@ async def get_person(
             )
         )
     ).all()
-    allowed = bool(viewer_id) and await can_message(db, viewer_id, profile.user_id)  # type: ignore[arg-type]
+    allowed = viewer_id is not None and await can_message(
+        db, viewer_id, profile.user_id
+    )
     thread_id = None
     if viewer_id is not None and viewer_id != profile.user_id:
         thread_id = await db.scalar(
@@ -72,11 +81,11 @@ async def get_person(
         handle=profile.handle,
         display_name=profile.display_name,
         headline=profile.headline,
-        parish=profile.parish,  # type: ignore[arg-type]
+        parish=_PARISH.validate_python(profile.parish),
         restricted=restricted,
         bio=None if restricted else profile.bio,
-        interests=[] if restricted else list(profile.interests),  # type: ignore[arg-type]
-        intents=[] if restricted else list(profile.intents),  # type: ignore[arg-type]
+        interests=[] if restricted else _INTERESTS.validate_python(profile.interests),
+        intents=[] if restricted else _INTENTS.validate_python(profile.intents),
         groups=[] if restricted else await _group_summaries(db, group_rows, viewer_id),
         connection_state=state,
         can_message=allowed,
@@ -159,7 +168,7 @@ async def network(db: AsyncSession, user: User) -> schemas.NetworkPublic:
         profile = profiles.get(other_id)
         if profile is None or other_id in hidden:
             continue
-        state = (
+        state: Literal["connected", "sent", "received"] = (
             "connected"
             if link.status == "accepted"
             else ("sent" if link.requester_id == user.id else "received")
@@ -171,7 +180,7 @@ async def network(db: AsyncSession, user: User) -> schemas.NetworkPublic:
                     handle=profile.handle, display_name=profile.display_name
                 ),
                 headline=profile.headline,
-                state=state,  # type: ignore[arg-type]
+                state=state,
             )
         )
     # Suggestions: share a group or an interest; not linked, not blocked.
@@ -202,7 +211,7 @@ async def network(db: AsyncSession, user: User) -> schemas.NetworkPublic:
                 handle=row.handle,
                 display_name=row.display_name,
                 headline=row.headline,
-                intents=list(row.intents),  # type: ignore[arg-type]
+                intents=_INTENTS.validate_python(row.intents),
             )
             for row in candidates
         ],
