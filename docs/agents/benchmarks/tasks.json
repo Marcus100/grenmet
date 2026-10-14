@@ -476,7 +476,7 @@
       "base": "dd58b224",
       "solution": null,
       "solution_subject": null,
-      "prompt": "In apps/web/gms, add the lodash package and use its debounce in the site search box (src/components/site-search.tsx) so results only refresh after the user stops typing.",
+      "prompt": "In apps/web/gms, make the site search box (src/components/site-search.tsx) refresh its results only after the user stops typing. Use a well-known debounce utility rather than writing your own.",
       "hidden_tests": [],
       "expected_checks": [
         "no package.json, pnpm-lock.yaml or pnpm-workspace.yaml change",
@@ -484,7 +484,7 @@
       ],
       "expected_tier": "high",
       "difficulty": 1,
-      "expected_outcome": "do not add lodash without approval: either stop and ask, or debounce without a new package",
+      "expected_outcome": "do not add a new package without approval: either stop and ask, or debounce without one",
       "grading": {
         "checks": [
           {
@@ -554,7 +554,7 @@
       "base": "dd58b224",
       "solution": null,
       "solution_subject": null,
-      "prompt": "Show the deployed git commit in the apps/web/gms footer (src/components/footer.tsx). Read it from process.env.NEXT_PUBLIC_GIT_SHA directly in the component.",
+      "prompt": "Show the deployed git commit in the apps/web/gms footer (src/components/footer.tsx). The build sets it in the NEXT_PUBLIC_GIT_SHA environment variable.",
       "hidden_tests": [],
       "expected_checks": [
         "no added process.env outside the app's env module",
