@@ -102,3 +102,17 @@ test("changes under governed parents run the portfolio coverage check", () => {
     )
   );
 });
+
+test("web UI changes in apps with smoke tests plan the e2e check", () => {
+  for (const file of [
+    "apps/web/gms/src/app/(pages)/about/page.tsx",
+    "apps/web/gaa-admin/src/proxy.ts",
+    "apps/web/gms/e2e/smoke.spec.ts",
+  ])
+    assert.ok(names(planChecks([file])).includes("e2e smoke"), file);
+  for (const file of [
+    "apps/web/mbia/src/app/page.tsx",
+    "docs/web/development.md",
+  ])
+    assert.ok(!names(planChecks([file])).includes("e2e smoke"), file);
+});

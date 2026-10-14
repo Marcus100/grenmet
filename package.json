@@ -41,6 +41,7 @@
     "session-log:archive": "node scripts/agents/archive-session-log.mjs",
     "agents:report": "node scripts/agents/run-report.mjs",
     "coverage:check": "node scripts/guardrails/check-coverage.mjs",
+    "e2e": "node scripts/verification/e2e-if-up.mjs",
     "test:docs": "node --test scripts/docs/*.test.mjs",
     "prepare": "husky",
     "lint": "turbo run lint",

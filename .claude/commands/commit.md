@@ -20,6 +20,8 @@ allowed-tools: Bash(git *), Bash(pnpm *), Bash(gh *)
 2. Run `pnpm verify:changed` (`--dry-run` lists the checks it picks for this
    diff), plus any check from `AGENTS.md` it does not cover. Review the final
    diff and resolve failures before committing.
+   For web UI changes in `gms` or `gaa-admin` it also runs `pnpm e2e` (a SKIP
+   means no dev server is running; say so in the recap).
 
 3. Stage only authorized changes, preserving unrelated staged and unstaged work.
    Commit with the reviewed message. Do not bypass hooks or force-push.

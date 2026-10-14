@@ -22,6 +22,9 @@ const CONTRACT =
 // docs/portfolio/repository-delivery-map.md, so any change there can break it.
 const PORTFOLIO_SURFACE =
   /^(?:scripts|packages|infra|docs\/portfolio|\.github|\.claude|\.agents)\//;
+// Smoke tests exist for these apps; they skip themselves when no dev server is up.
+const WEB_UI =
+  /^apps\/web\/(?:gms|gaa-admin)\/(?:src|e2e|playwright\.config\.ts)/;
 const WEB = /^(?:apps\/web|packages)\//;
 const API_DOMAIN = /^src\/([^/]+)\//;
 const API_SHARED = /^src\/[^/]+\.py$/;
@@ -41,6 +44,10 @@ const RULES = [
     ["type-check", "test"].map((task) =>
       pnpm(task, "turbo", "run", task, "--affected")
     ),
+  ],
+  [
+    (f) => WEB_UI.test(f),
+    [check("e2e smoke", "node", ["scripts/verification/e2e-if-up.mjs"])],
   ],
   [(f) => CONTRACT.test(f), [pnpm("api client drift", "check:drift")]],
   [
