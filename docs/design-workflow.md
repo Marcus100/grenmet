@@ -10,7 +10,7 @@ The end-to-end loop for designing and building web UI in this monorepo: design �
 
 This is **CSS-first**. `packages/ui/src/styles/globals.css` owns the token contract; every app reads it. Design intent arrives as a Claude Design canvas, a screenshot, or a description — it is never fetched from a linked design tool.
 
-```
+```text
 design intent  ──►  packages/ui/src/styles/globals.css  ──@theme──►  Tailwind v4 utils
  (Claude Design,      --gm-* + semantic contract                     bg-primary, px-6
   screenshot, brief)              │

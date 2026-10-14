@@ -40,7 +40,7 @@ No DB access. Two backends, never gaa-admin (it only authors into FastAPI):
 Seven sections, one URL root each (Bold sky IA, 28 Sep 2026; Warnings became
 Alerts and moved first on 29 Sep): `/alerts`, `/weather`, `/marine`, `/climate`, `/services`, `/explore`, `/about`.
 
-```
+```text
 src/app/
   (weather)/                     ← takeover + sky hero + day strip
     layout.tsx
@@ -110,6 +110,7 @@ src/app/
 - Forecast days come from the FastAPI public forecast (`src/lib/weather-snapshot.ts`); `src/lib/forecast-days.ts` maps them to `/weather/YYYY/MM/DD`.
 - `src/lib/utils.ts` contains date utilities shared across components.
 - Interactive components use Base UI primitives (`@base-ui/react`, via `@barrelsgd/ui` where wrapped): the mega menu, drawer accordion.
+- Playwright smoke tests live in `e2e/` (`smoke.spec.ts`) and are excluded from Vitest; run them from the repo root with `pnpm e2e` while `pnpm dev:web:gms` is up.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

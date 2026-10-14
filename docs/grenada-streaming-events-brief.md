@@ -31,7 +31,7 @@ vertical slice** to prove the subscription/transcode/offline loop (the technical
 
 A media group with two divisions, separate consumer brands, shared backbone.
 
-```
+```text
 Parent media group (owner / EIC)
 ├── Signal Caribbean        → news / intelligence / culture · sponsorship + B2B
 └── [Streaming + Events brand, unnamed] → entertainment / commerce · subscription + ticket fees

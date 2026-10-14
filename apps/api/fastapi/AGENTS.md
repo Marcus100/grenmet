@@ -10,7 +10,7 @@ To add a new HR form module, follow `docs/hr/adding-a-form-module.md` (recipe) a
 
 ## Project Layout
 
-```
+```text
 src/
 ├── {domain}/
 │   ├── router.py       — APIRouter: endpoints only, no business logic

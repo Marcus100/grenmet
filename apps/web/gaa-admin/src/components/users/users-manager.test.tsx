@@ -197,7 +197,7 @@ describe("UsersManager", () => {
     });
     expect(screen.getByText("Gerard Tamar")).toBeInTheDocument();
     expect(screen.queryByText("Eugine Whint")).not.toBeInTheDocument();
-  }, 20_000);
+  });
 
   it("onboards a user: account, roles (baseline + suggested), employment", async () => {
     const posted: {
@@ -296,7 +296,7 @@ describe("UsersManager", () => {
       department_id: "dept_met",
       position: "Forecaster (Senior Supervisor)",
     });
-  }, 20_000);
+  });
 });
 
 describe("toUserRows", () => {
@@ -415,7 +415,7 @@ it("closes creation after an account is saved but its role assignment fails", as
   fireEvent.click(screen.getByRole("button", { name: NEW_USER_LABEL }));
   expect(await screen.findByLabelText("Username")).toHaveValue("");
   expect(screen.getByRole("button", { name: "Create user" })).toBeDisabled();
-}, 20_000);
+});
 
 it.each(["users", "roles", "role-assignments"])(
   "explains denied %s access and hides management controls",

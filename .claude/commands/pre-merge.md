@@ -35,7 +35,7 @@ Grep all workflow YAMLs for `uses:` lines. Flag any action pinned to a tag (e.g.
 ---
 
 **Output format:**
-```
+```text
 ✅ Types — clean
 ❌ Lint — 3 violations in apps/web/gms/src/...
 ✅ Docker image names — consistent

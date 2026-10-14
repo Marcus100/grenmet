@@ -2,7 +2,8 @@
 
 **Status:** Authoritative repository coverage map  
 **Effective:** 2026-08-16  
-**Owner:** Barrels Grenada engineering
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-10-10
 
 ## Purpose
 
@@ -99,6 +100,7 @@ GMS or GAA.
 | `scripts/design-system` | Barrels engineering design-system automation | Active | Separate brand-neutral enforcement from GMS-specific contracts |
 | `scripts/ci` | Barrels engineering CI image selection | Active | Select affected images conservatively and retain full verification on promotion PRs |
 | `scripts/guardrails` | Barrels engineering change-safety automation | Active | Preserve blast-radius checks across all products and programmes |
+| `scripts/agents` | Barrels engineering agent-factory tooling: atomic issue claims, run records and reports, session-log archiving and benchmark checks | Active | Keep claims atomic, records validated and reports reproducible; never store secrets, client data or issue text in a record |
 | `scripts/verification` | Barrels engineering verification tooling | Implemented; host integration acceptance pending | Share local and CI checks, isolate disposable databases by run and worker, and clean up only the current test project |
 | `scripts/api` | Barrels engineering API generation/drift automation | Active | Keep OpenAPI and generated clients synchronized |
 | `scripts/audit` | Barrels engineering API/UI reference inventory | Active | Reproduce route-reference candidates for the launch ledger; static references do not establish connected journey coverage |

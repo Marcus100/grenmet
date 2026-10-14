@@ -1,6 +1,7 @@
 # HR operator acceptance
 
-**Owner:** GAA (institutional acceptance); maintained by Barrels Grenada
+**Owner:** GAA (institutional acceptance); maintained by Barrels Grenada  
+**Last updated:** 2026-10-08
 
 **Scope:** account activation through HR setup and existing staff workflows
 

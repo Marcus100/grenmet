@@ -1,48 +1,135 @@
 import logging
-import uuid
-from collections.abc import Collection
-from datetime import datetime, timedelta
 from typing import Any
 
-from sqlalchemy import delete, false, func, select
+from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session as SQLAlchemySession
 
-from src.auth.apps import is_app_scoped, is_registered
+from src.auth.assignments import (
+    audit_assignment,
+    create_user_role_assignment,
+    delegation_authority,
+    delete_user_role_assignment,
+    get_user_role_assignment,
+    get_user_role_assignments,
+    require_assignment_management,
+    require_user_management,
+    update_user_role_assignment,
+)
 from src.auth.config import auth_settings
-from src.auth.models import (
-    Permission,
-    Role,
-    RoleAssignmentScope,
-    User,
-    UserRoleAssignment,
+from src.auth.eligibility import (
+    cms_identity_ready,
+    has_effective_permission,
+    is_eligible_for_app,
+    is_staff_eligible,
+    request_staff_access,
+    require_approved_account,
 )
 from src.auth.models import Session as AuthSession
+from src.auth.models import (
+    User,
+)
+from src.auth.roles import (
+    count_role_assignments_for_role,
+    create_permission,
+    create_role,
+    delete_role,
+    get_permission,
+    get_permissions_with_count,
+    get_role,
+    get_roles_with_count,
+    update_permission,
+    update_role,
+)
 from src.auth.schemas import (
-    PermissionCreate,
-    PermissionUpdate,
-    RoleCreate,
-    RoleUpdate,
-    SessionCreate,
     UserCreate,
-    UserRoleAssignmentCreate,
-    UserRoleAssignmentUpdate,
     UserUpdate,
     UserUpdateMe,
 )
+from src.auth.sessions import (
+    create_session,
+    exchange_session_for_access_token,
+    get_active_session_by_secret,
+    get_legacy_access_token_expires_delta,
+    get_session_access_token_expires_delta,
+    get_session_by_secret,
+    get_session_expires_delta,
+    is_session_active,
+    issue_access_token_for_user,
+    revoke_session,
+    revoke_user_sessions,
+    rotate_session,
+    touch_session,
+)
+from src.auth.totp_enrolment import (
+    activate_totp,
+    begin_totp_setup,
+    disable_totp,
+)
+from src.auth.user_queries import (
+    get_user_by_email,
+    get_user_by_id,
+    get_users,
+    get_users_by_ids,
+)
 from src.auth.utils import (
     DUMMY_PASSWORD_HASH,
-    create_access_token,
-    create_session_token,
     get_password_hash,
     get_password_hash_async,
-    hash_session_token,
     verify_password_async,
 )
 from src.exceptions import AppException
 from src.utils.datetime import utc_now
 
 logger = logging.getLogger(__name__)
+
+__all__ = [
+    "activate_totp",
+    "audit_assignment",
+    "begin_totp_setup",
+    "cms_identity_ready",
+    "count_role_assignments_for_role",
+    "create_permission",
+    "create_role",
+    "create_session",
+    "create_user_role_assignment",
+    "delegation_authority",
+    "delete_role",
+    "delete_user_role_assignment",
+    "disable_totp",
+    "exchange_session_for_access_token",
+    "get_active_session_by_secret",
+    "get_legacy_access_token_expires_delta",
+    "get_permission",
+    "get_permissions_with_count",
+    "get_role",
+    "get_roles_with_count",
+    "get_session_access_token_expires_delta",
+    "get_session_by_secret",
+    "get_session_expires_delta",
+    "get_user_by_email",
+    "get_user_by_id",
+    "get_user_role_assignment",
+    "get_user_role_assignments",
+    "get_users",
+    "get_users_by_ids",
+    "has_effective_permission",
+    "is_eligible_for_app",
+    "is_session_active",
+    "is_staff_eligible",
+    "issue_access_token_for_user",
+    "request_staff_access",
+    "require_approved_account",
+    "require_assignment_management",
+    "require_user_management",
+    "revoke_session",
+    "revoke_user_sessions",
+    "rotate_session",
+    "touch_session",
+    "update_permission",
+    "update_role",
+    "update_user_role_assignment",
+]
 
 
 def create_user_sync(*, session: SQLAlchemySession, user_create: UserCreate) -> User:
@@ -166,80 +253,6 @@ async def delete_user(*, session: AsyncSession, user: User) -> None:
     logger.info("User deleted", extra={"user_id": user_id})
 
 
-async def get_user_by_email(*, session: AsyncSession, email: str) -> User | None:
-    """Get user by email address."""
-    statement = select(User).where(User.email == email)
-    result = await session.execute(statement)
-    return result.scalars().first()
-
-
-async def get_user_by_id(*, session: AsyncSession, user_id: uuid.UUID) -> User | None:
-    """Get user by ID."""
-    statement = select(User).where(User.id == user_id)
-    result = await session.execute(statement)
-    return result.scalars().first()
-
-
-async def get_users_by_ids(
-    *, session: AsyncSession, user_ids: Collection[uuid.UUID]
-) -> dict[uuid.UUID, User]:
-    """Users keyed by id, for domains that store Barrels Login ids by value."""
-    if not user_ids:
-        return {}
-    result = await session.execute(select(User).where(User.id.in_(set(user_ids))))
-    return {user.id: user for user in result.scalars()}
-
-
-async def get_users(
-    *,
-    session: AsyncSession,
-    skip: int = 0,
-    limit: int = 100,
-    current_user: User | None = None,
-) -> tuple[list[User], int]:
-    """Get users with total count. Returns (list of users, total count)."""
-    statement = select(User)
-    if current_user is not None and not current_user.is_superuser:
-        from src.auth.policy import _active_assignments
-        from src.hr.models import EmploymentRecord
-
-        role_ids = {
-            r.id
-            for r in current_user.roles
-            if any(p.key == "user.manage" for p in r.permissions)
-        }
-        from sqlalchemy import and_, or_
-
-        filters = [
-            and_(
-                EmploymentRecord.organisation_id == a.organisation_id,
-                *(
-                    [EmploymentRecord.department_id == a.department_id]
-                    if a.scope == RoleAssignmentScope.DEPARTMENT
-                    else []
-                ),
-            )
-            for a in await _active_assignments(session=session, user_id=current_user.id)
-            if a.role_id in role_ids
-            and a.scope in {RoleAssignmentScope.ALL, RoleAssignmentScope.DEPARTMENT}
-        ]
-        statement = statement.where(
-            User.is_superuser.is_(False),
-            User.id.in_(
-                select(EmploymentRecord.user_id).where(
-                    or_(*filters) if filters else false()
-                )
-            ),
-        )
-    count_stmt = select(func.count()).select_from(statement.subquery())
-    count_result = await session.execute(count_stmt)
-    total = count_result.scalar() or 0
-    list_stmt = statement.order_by(User.id).offset(skip).limit(limit)
-    list_result = await session.execute(list_stmt)
-    users = list(list_result.scalars().all())
-    return users, total
-
-
 async def authenticate(
     *, session: AsyncSession, email: str, password: str
 ) -> User | None:
@@ -253,935 +266,3 @@ async def authenticate(
     if not await verify_password_async(password, db_user.hashed_password):
         return None
     return db_user
-
-
-async def begin_totp_setup(*, session: AsyncSession, user: User) -> str:
-    """Generate and store a new (inactive) TOTP secret; return it for provisioning."""
-    from src.auth import totp
-
-    await session.refresh(user, with_for_update=True)
-    if user.totp_enabled:
-        from src.exceptions import AppException
-
-        raise AppException("Two-factor authentication is already enabled", 409)
-    secret = totp.generate_secret()
-    user.totp_secret = totp.encrypt_secret(secret)
-    user.totp_enabled = False
-    session.add(user)
-    await session.commit()
-    await session.refresh(user)
-    return secret
-
-
-async def activate_totp(*, session: AsyncSession, user: User, code: str) -> bool:
-    """Verify a code against the pending secret and enable 2FA on success."""
-    from src.auth import totp
-
-    await session.refresh(user, with_for_update=True)
-    if not user.totp_secret or not totp.verify_code(
-        secret=totp.decrypt_secret(user.totp_secret), code=code
-    ):
-        return False
-    user.totp_enabled = True
-    from src.auth.account_security import record_security
-
-    await record_security(session, user, "totp_enabled")
-    session.add(user)
-    await session.commit()
-    await session.refresh(user)
-    return True
-
-
-async def disable_totp(*, session: AsyncSession, user: User) -> None:
-    """Disable 2FA and clear the stored secret."""
-    from src.auth.account_security import record_security
-
-    await session.flush()
-    await session.refresh(user, with_for_update=True)
-    await record_security(session, user, "totp_disabled")
-    user.totp_secret = None
-    user.totp_enabled = False
-    user.mfa_recovery_hashes = []
-    from sqlalchemy import update
-
-    await session.execute(
-        update(AuthSession)
-        .where(AuthSession.user_id == user.id)
-        .values(mfa_verified_at=None)
-    )
-    session.add(user)
-    await session.commit()
-    await session.refresh(user)
-
-
-def get_legacy_access_token_expires_delta() -> timedelta:
-    """Get the existing access-token TTL used by direct-token clients."""
-    return timedelta(minutes=auth_settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-
-
-def get_session_access_token_expires_delta() -> timedelta:
-    """Get the short-lived access-token TTL used by session-backed clients."""
-    return timedelta(minutes=auth_settings.SESSION_ACCESS_TOKEN_EXPIRE_MINUTES)
-
-
-def get_session_expires_delta() -> timedelta:
-    """Get the persisted session TTL used by web clients."""
-    return timedelta(days=auth_settings.SESSION_EXPIRE_DAYS)
-
-
-def issue_access_token_for_user(
-    *,
-    user: User,
-    expires_delta: timedelta | None = None,
-    app: str | None = None,
-    db_session: AuthSession | None = None,
-) -> tuple[str, Any]:
-    """Issue an access token and return its expiry timestamp."""
-    ttl = expires_delta or get_legacy_access_token_expires_delta()
-    expires_at = utc_now() + ttl
-    return create_access_token(
-        user.id,
-        expires_delta=ttl,
-        app=app,
-        session_id=str(db_session.id) if db_session else None,
-    ), expires_at
-
-
-def is_session_active(db_session: AuthSession, now: Any | None = None) -> bool:
-    """Return whether a stored session is active and usable."""
-    current_time = now or utc_now()
-    return db_session.revoked_at is None and db_session.expires_at > current_time
-
-
-async def create_session(
-    *,
-    session: AsyncSession,
-    user: User,
-    client_type: str = "web",
-    app_name: str | None = None,
-    user_agent: str | None = None,
-    ip_address: str | None = None,
-    expires_delta: timedelta | None = None,
-    enforce_approval: bool = True,
-    mfa_verified_at: datetime | None = None,
-    mfa_source_session: AuthSession | None = None,
-) -> tuple[AuthSession, str]:
-    """Create and persist a new opaque session for a user.
-
-    App-scoped sessions (``enforce_approval=False``) skip the staff approval
-    gate; the caller has already checked app eligibility.
-    """
-    if mfa_verified_at is not None or mfa_source_session is not None:
-        verified_secret = user.totp_secret
-        # Hold the same account lock as disable until the new session is committed.
-        # A completed factor check cannot outlive concurrent disable/re-enrolment.
-        await session.flush()
-        await session.refresh(user, with_for_update=True)
-        if not user.totp_enabled or user.totp_secret != verified_secret:
-            mfa_verified_at = None
-        if mfa_source_session is not None:
-            source = await session.scalar(
-                select(AuthSession)
-                .where(AuthSession.id == mfa_source_session.id)
-                .execution_options(populate_existing=True)
-            )
-            if (
-                source is None
-                or source.user_id != user.id
-                or not is_session_active(source)
-            ):
-                raise AppException("Sign in again", 401)
-            mfa_verified_at = source.mfa_verified_at
-    if enforce_approval:
-        require_approved_account(user)
-    now = utc_now()
-    session_secret = create_session_token()
-    user.last_login_at = now
-    session.add(user)
-    db_session = AuthSession(
-        **SessionCreate(
-            mfa_verified_at=mfa_verified_at,
-            user_id=user.id,
-            session_token=hash_session_token(session_secret),
-            expires_at=now + (expires_delta or get_session_expires_delta()),
-            client_type=client_type,
-            app_name=app_name,
-            user_agent=user_agent,
-            ip_address=ip_address,
-            last_used_at=now,
-        ).model_dump()
-    )
-    session.add(db_session)
-    await session.commit()
-    await session.refresh(db_session)
-    return db_session, session_secret
-
-
-async def get_session_by_secret(
-    *, session: AsyncSession, session_secret: str
-) -> AuthSession | None:
-    """Look up a persisted session by the raw opaque secret."""
-    statement = select(AuthSession).where(
-        AuthSession.session_token == hash_session_token(session_secret)
-    )
-    result = await session.execute(statement)
-    return result.scalars().first()
-
-
-async def get_active_session_by_secret(
-    *, session: AsyncSession, session_secret: str
-) -> AuthSession | None:
-    """Return an active session or None when the secret is invalid, expired, or revoked."""
-    db_session = await get_session_by_secret(
-        session=session, session_secret=session_secret
-    )
-    if not db_session or not is_session_active(db_session):
-        return None
-    return db_session
-
-
-async def touch_session(
-    *,
-    session: AsyncSession,
-    db_session: AuthSession,
-    user_agent: str | None = None,
-    ip_address: str | None = None,
-) -> AuthSession:
-    """Update activity metadata for a session."""
-    now = utc_now()
-    db_session.last_used_at = now
-    db_session.updated_at = now
-    if user_agent is not None:
-        db_session.user_agent = user_agent
-    if ip_address is not None:
-        db_session.ip_address = ip_address
-    session.add(db_session)
-    await session.commit()
-    await session.refresh(db_session)
-    return db_session
-
-
-async def revoke_session(
-    *, session: AsyncSession, db_session: AuthSession
-) -> AuthSession:
-    """Revoke a persisted session."""
-    now = utc_now()
-    if db_session.revoked_at is None:
-        db_session.revoked_at = now
-    db_session.updated_at = now
-    session.add(db_session)
-    await session.commit()
-    await session.refresh(db_session)
-    return db_session
-
-
-async def revoke_user_sessions(
-    *,
-    session: AsyncSession,
-    user_id: uuid.UUID,
-) -> int:
-    """Revoke every active session owned by a user."""
-    statement = (
-        select(AuthSession)
-        .where(
-            AuthSession.user_id == user_id,
-            AuthSession.revoked_at.is_(None),
-        )
-        .limit(500)
-    )  # a user shouldn't have more active sessions than this
-    result = await session.execute(statement)
-    sessions = list(result.scalars().all())
-    if not sessions:
-        return 0
-
-    now = utc_now()
-    revoked_count = 0
-    for db_session in sessions:
-        db_session.revoked_at = now
-        db_session.updated_at = now
-        session.add(db_session)
-        revoked_count += 1
-
-    await session.commit()
-    return revoked_count
-
-
-async def exchange_session_for_access_token(
-    *,
-    session: AsyncSession,
-    session_secret: str,
-    user_agent: str | None = None,
-    ip_address: str | None = None,
-) -> tuple[AuthSession, User, str, Any] | None:
-    """Validate a session, refresh its activity metadata, and mint a short-lived access token."""
-    db_session = await get_active_session_by_secret(
-        session=session, session_secret=session_secret
-    )
-    if not db_session:
-        return None
-
-    user = await get_user_by_id(session=session, user_id=db_session.user_id)
-    scoped_app = db_session.app_name if is_app_scoped(db_session.app_name) else None
-    if scoped_app is not None:
-        eligible = user is not None and await is_eligible_for_app(
-            session=session, user=user, app_key=scoped_app
-        )
-    elif is_registered(db_session.app_name):
-        # Staff-app session (GAA Admin): keep the staff gate.
-        eligible = user is not None and is_staff_eligible(user)
-    else:
-        # Account session from auth.barrels.gd: any active account. Its
-        # unscoped token still fails every staff route for unapproved users.
-        eligible = user is not None and user.is_active
-    if not eligible or user is None:
-        await revoke_session(session=session, db_session=db_session)
-        return None
-
-    if is_registered(db_session.app_name) and (
-        not is_app_scoped(db_session.app_name) or db_session.app_name == "cms"
-    ):
-        from src.auth.privileged_mfa import require_privileged_mfa
-
-        await require_privileged_mfa(
-            session,
-            user,
-            login_session=db_session,
-            app_key="cms" if db_session.app_name == "cms" else None,
-        )
-    db_session = await touch_session(
-        session=session,
-        db_session=db_session,
-        user_agent=user_agent,
-        ip_address=ip_address,
-    )
-    access_token, access_token_expires_at = issue_access_token_for_user(
-        user=user,
-        expires_delta=get_session_access_token_expires_delta(),
-        app=scoped_app,
-        db_session=db_session,
-    )
-    return db_session, user, access_token, access_token_expires_at
-
-
-async def rotate_session(
-    *,
-    session: AsyncSession,
-    db_session: AuthSession,
-    user: User,
-    user_agent: str | None = None,
-    ip_address: str | None = None,
-) -> tuple[AuthSession, str]:
-    """Rotate an active session by revoking it and minting a replacement."""
-    await session.refresh(user, with_for_update=True)
-    await session.refresh(db_session)
-    if not is_session_active(db_session):
-        raise AppException("Sign in again", 401)
-    await revoke_session(session=session, db_session=db_session)
-    return await create_session(
-        session=session,
-        user=user,
-        client_type=db_session.client_type,
-        mfa_verified_at=db_session.mfa_verified_at,
-        app_name=db_session.app_name,
-        user_agent=user_agent or db_session.user_agent,
-        ip_address=ip_address or db_session.ip_address,
-        # Only staff-app sessions require staff approval.
-        enforce_approval=is_registered(db_session.app_name)
-        and not is_app_scoped(db_session.app_name),
-    )
-
-
-async def has_effective_permission(
-    *, session: AsyncSession, user: User, permission_key: str
-) -> bool:
-    """Permission check for app-scoped users, whose roles aren't preloaded."""
-    if user.is_superuser:
-        return True
-    from src.auth.access import effective_roles
-
-    roles = await effective_roles(session, user)
-    return any(
-        permission.key == permission_key
-        for role in roles
-        for permission in role.permissions
-    )
-
-
-async def request_staff_access(*, session: AsyncSession, user: User) -> User:
-    """Put an account in the staff approval queue (idempotent)."""
-    if user.registration_pending and user.staff_access_requested_at is None:
-        user.staff_access_requested_at = utc_now()
-        session.add(user)
-        await session.commit()
-        await session.refresh(user)
-    return user
-
-
-def is_staff_eligible(user: User) -> bool:
-    """The staff gate ``get_authenticated_user`` applies, for staff-app handoffs."""
-    return (
-        user.is_active
-        and not user.registration_pending
-        and not (user.password_setup_pending and user.email_verified_at is None)
-        and not (user.email_verification_required and user.email_verified_at is None)
-    )
-
-
-def cms_identity_ready(user: User) -> bool:
-    """Verified inbox or administrator-approved staff; no implicit CMS grant."""
-    return bool(
-        user.email_verified_at is not None
-        or (not user.email_verification_required and not user.registration_pending)
-    )
-
-
-async def is_eligible_for_app(
-    *, session: AsyncSession, user: User, app_key: str
-) -> bool:
-    """Active, verified, with explicit CMS access or ``app.<key>.access``.
-
-    ``registration_pending`` means "staff approval pending" and does not
-    affect app-scoped access.
-    """
-    if not user.is_active or (
-        user.password_setup_pending and user.email_verified_at is None
-    ):
-        return False
-    if app_key == "cms":
-        if not cms_identity_ready(user):
-            return False
-    elif user.email_verified_at is None:
-        return False
-    if user.is_superuser:
-        return True
-    if app_key == "cms":
-        return user.cms_access in {"writer", "publisher"}
-    from src.auth.access import effective_roles
-
-    roles = await effective_roles(session, user)
-    key = f"app.{app_key}.access"
-    return any(
-        permission.key == key for role in roles for permission in role.permissions
-    )
-
-
-# Role management
-async def create_role(*, session: AsyncSession, role_in: RoleCreate) -> Role:
-    """Create a new role."""
-    db_role = Role(**role_in.model_dump())
-    session.add(db_role)
-    await session.commit()
-    await session.refresh(db_role)
-    return db_role
-
-
-async def get_role(*, session: AsyncSession, role_id: uuid.UUID) -> Role | None:
-    """Get a role by ID."""
-    statement = select(Role).where(Role.id == role_id)
-    result = await session.execute(statement)
-    return result.scalars().first()
-
-
-async def get_roles_with_count(
-    *,
-    session: AsyncSession,
-    skip: int = 0,
-    limit: int = 100,
-    current_user: User | None = None,
-) -> tuple[list[Role], int]:
-    """Get roles with total count. Returns (list of roles, total count)."""
-    if current_user is not None and not current_user.is_superuser:
-        from sqlalchemy.orm import selectinload
-
-        from src.auth.delegation import DELEGATABLE_ROLES, ordinary_role
-
-        choices = [
-            r
-            for r in (
-                await session.scalars(
-                    select(Role)
-                    .where(Role.name.in_(DELEGATABLE_ROLES))
-                    .options(selectinload(Role.permissions))
-                )
-            ).all()
-            if ordinary_role(r)
-        ]
-        return choices[skip : skip + limit], len(choices)
-    count_stmt = select(func.count()).select_from(Role)
-    count_result = await session.execute(count_stmt)
-    total = count_result.scalar() or 0
-    list_stmt = select(Role).offset(skip).limit(limit)
-    list_result = await session.execute(list_stmt)
-    roles = list(list_result.scalars().all())
-    return roles, total
-
-
-async def update_role(
-    *, session: AsyncSession, db_role: Role, role_in: RoleUpdate
-) -> Role:
-    """Update a role's name/description."""
-    role_data = role_in.model_dump(exclude_unset=True)
-    for key, value in role_data.items():
-        setattr(db_role, key, value)
-    session.add(db_role)
-    await session.commit()
-    await session.refresh(db_role)
-    return db_role
-
-
-async def count_role_assignments_for_role(
-    *, session: AsyncSession, role_id: uuid.UUID
-) -> int:
-    """Count active user-role assignments referencing a role."""
-    count_stmt = (
-        select(func.count())
-        .select_from(UserRoleAssignment)
-        .where(UserRoleAssignment.role_id == role_id)
-    )
-    result = await session.execute(count_stmt)
-    return result.scalar() or 0
-
-
-async def delete_role(*, session: AsyncSession, db_role: Role) -> None:
-    """Delete a role. Callers must ensure no assignments reference it."""
-    # Clear the role_permission link rows explicitly — the FK has no cascade.
-    await session.refresh(db_role, attribute_names=["permissions"])
-    db_role.permissions.clear()
-    session.add(db_role)
-    await session.flush()
-    await session.delete(db_role)
-    await session.commit()
-
-
-async def delete_user_role_assignment(
-    *, session: AsyncSession, db_assignment: UserRoleAssignment
-) -> None:
-    """Revoke the assignment and remove legacy fallback when the last grant ends."""
-    from src.auth.models import UserRoleLink
-
-    await audit_assignment(session, db_assignment, "DELETE")
-    await session.delete(db_assignment)
-    await session.flush()
-    remaining = (
-        await session.execute(
-            select(UserRoleAssignment.id).where(
-                UserRoleAssignment.user_id == db_assignment.user_id,
-                UserRoleAssignment.role_id == db_assignment.role_id,
-            )
-        )
-    ).first()
-    if remaining is None:
-        await session.execute(
-            delete(UserRoleLink).where(
-                UserRoleLink.user_id == db_assignment.user_id,
-                UserRoleLink.role_id == db_assignment.role_id,
-            )
-        )
-    await session.commit()
-
-
-# Permission management
-async def create_permission(
-    *, session: AsyncSession, permission_in: PermissionCreate
-) -> Permission:
-    """Create a new permission."""
-    permission_data = permission_in.model_dump()
-    if not permission_data.get("key"):
-        permission_data["key"] = (
-            f"{permission_in.entity}.{permission_in.action}".strip().lower()
-        )
-    db_permission = Permission(**permission_data)
-    session.add(db_permission)
-    await session.commit()
-    await session.refresh(db_permission)
-    return db_permission
-
-
-async def update_permission(
-    *, session: AsyncSession, db_permission: Permission, permission_in: PermissionUpdate
-) -> Permission:
-    """Update a permission."""
-    permission_data = permission_in.model_dump(exclude_unset=True)
-    if "key" not in permission_data and (
-        "entity" in permission_data or "action" in permission_data
-    ):
-        permission_data["key"] = (
-            f"{permission_data.get('entity', db_permission.entity)}."
-            f"{permission_data.get('action', db_permission.action)}"
-        ).lower()
-    for key, value in permission_data.items():
-        setattr(db_permission, key, value)
-    session.add(db_permission)
-    await session.commit()
-    await session.refresh(db_permission)
-    return db_permission
-
-
-async def get_permission(
-    *, session: AsyncSession, permission_id: uuid.UUID
-) -> Permission | None:
-    """Get a permission by ID."""
-    statement = select(Permission).where(Permission.id == permission_id)
-    result = await session.execute(statement)
-    return result.scalars().first()
-
-
-async def get_permissions_with_count(
-    *, session: AsyncSession, skip: int = 0, limit: int = 100
-) -> tuple[list[Permission], int]:
-    """Get permissions with total count. Returns (list of permissions, total count)."""
-    count_stmt = select(func.count()).select_from(Permission)
-    count_result = await session.execute(count_stmt)
-    total = count_result.scalar() or 0
-    list_stmt = select(Permission).offset(skip).limit(limit)
-    list_result = await session.execute(list_stmt)
-    permissions = list(list_result.scalars().all())
-    return permissions, total
-
-
-async def create_user_role_assignment(
-    *,
-    session: AsyncSession,
-    assignment_in: UserRoleAssignmentCreate,
-    current_user: User | None = None,
-) -> UserRoleAssignment:
-    from src.hr.models import EmploymentRecord, Organisation
-    from src.hr.organisations import department_for
-
-    data = assignment_in.model_dump()
-    employment = await session.scalar(
-        select(EmploymentRecord).where(
-            EmploymentRecord.user_id == assignment_in.user_id
-        )
-    )
-    department = (
-        await department_for(session, assignment_in.department_id)
-        if assignment_in.department_id
-        else None
-    )
-    organisation_id = assignment_in.organisation_id or (
-        department.organisation_id
-        if department
-        else employment.organisation_id
-        if employment
-        else None
-    )
-    if organisation_id is None:
-        choices = list((await session.execute(select(Organisation.id))).scalars().all())
-        if len(choices) != 1:
-            raise AppException(
-                "Select an organisation; assignment ownership is ambiguous", 400
-            )
-        organisation_id = choices[0]
-    if await session.get(Organisation, organisation_id) is None:
-        raise AppException("Organisation not found", 404)
-    if department and department.organisation_id != organisation_id:
-        raise AppException("Department belongs to another organisation", 400)
-    if assignment_in.scope == RoleAssignmentScope.DEPARTMENT and department is None:
-        if not employment or employment.organisation_id != organisation_id:
-            raise AppException("Department scope requires an explicit department", 400)
-        data["department_id"] = employment.department_id
-    data["organisation_id"] = organisation_id
-    db_assignment = UserRoleAssignment(**data)
-    role = await get_role(session=session, role_id=assignment_in.role_id)
-    target = await session.get(User, assignment_in.user_id)
-    if role is None or target is None:
-        raise AppException("Role or user not found", 404)
-    from src.auth.delegation import DEPARTMENT_AUTHORITY_ROLES
-
-    if (
-        role.name in DEPARTMENT_AUTHORITY_ROLES
-        and db_assignment.scope != RoleAssignmentScope.DEPARTMENT
-    ):
-        raise AppException("Managers require an explicit department appointment", 400)
-    if current_user is not None and (
-        employment is None or employment.organisation_id != organisation_id
-    ):
-        raise AppException(
-            "Place the target in this employer before assigning HR access", 400
-        )
-    if (
-        employment is not None
-        and db_assignment.scope == RoleAssignmentScope.DEPARTMENT
-        and db_assignment.department_id != employment.department_id
-    ):
-        raise AppException("Target must belong to the appointed department", 400)
-    if db_assignment.effective_to and db_assignment.effective_to <= utc_now():
-        raise AppException("Expiry must be in the future", 400)
-    if current_user is not None:
-        await require_assignment_management(session, current_user, db_assignment)
-        if not current_user.is_superuser:
-            source = await delegation_authority(
-                session, current_user, db_assignment, require_active_target=True
-            )
-            db_assignment.authority_assignment_id = source.id
-            if source.effective_to and (
-                db_assignment.effective_to is None
-                or db_assignment.effective_to > source.effective_to
-            ):
-                db_assignment.effective_to = source.effective_to
-        from src.audit.service import set_actor
-
-        set_actor(session, current_user.id)
-    session.add(db_assignment)
-    await audit_assignment(session, db_assignment, "CREATE")
-    await session.commit()
-    await session.refresh(db_assignment)
-    return db_assignment
-
-
-async def update_user_role_assignment(
-    *,
-    session: AsyncSession,
-    db_assignment: UserRoleAssignment,
-    assignment_in: UserRoleAssignmentUpdate,
-    current_user: User | None = None,
-) -> UserRoleAssignment:
-    if current_user is not None:
-        await require_assignment_management(session, current_user, db_assignment)
-    assignment_data = assignment_in.model_dump(exclude_unset=True)
-    if "scope" in assignment_data and assignment_data["scope"] is None:
-        raise AppException("Scope cannot be null", 400)
-    from src.hr.organisations import department_for
-
-    destination_id = assignment_data.get("department_id", db_assignment.department_id)
-    if destination_id:
-        destination = await department_for(session, destination_id)
-        if destination.organisation_id != db_assignment.organisation_id:
-            raise AppException("Department belongs to another organisation", 400)
-    if (
-        assignment_data.get("scope", db_assignment.scope)
-        == RoleAssignmentScope.DEPARTMENT
-        and not destination_id
-    ):
-        raise AppException("Department scope requires an explicit department", 400)
-    candidate = UserRoleAssignment(
-        **{
-            column.key: getattr(db_assignment, column.key)
-            for column in UserRoleAssignment.__table__.columns
-        }
-    )
-    for key, value in assignment_data.items():
-        setattr(candidate, key, value)
-    if candidate.effective_to and candidate.effective_to <= utc_now():
-        raise AppException("Expiry must be in the future", 400)
-    from src.auth.delegation import DEPARTMENT_AUTHORITY_ROLES
-
-    role = await get_role(session=session, role_id=candidate.role_id)
-    if (
-        role
-        and role.name in DEPARTMENT_AUTHORITY_ROLES
-        and candidate.scope != RoleAssignmentScope.DEPARTMENT
-    ):
-        raise AppException("Managers require an explicit department appointment", 400)
-    if current_user is not None:
-        await require_assignment_management(session, current_user, candidate)
-        if not current_user.is_superuser:
-            source = await delegation_authority(
-                session, current_user, candidate, require_active_target=True
-            )
-            assignment_data["authority_assignment_id"] = source.id
-            if source.effective_to and (
-                candidate.effective_to is None
-                or candidate.effective_to > source.effective_to
-            ):
-                assignment_data["effective_to"] = source.effective_to
-        from src.audit.service import set_actor
-
-        set_actor(session, current_user.id)
-    for key, value in assignment_data.items():
-        setattr(db_assignment, key, value)
-    session.add(db_assignment)
-    await audit_assignment(session, db_assignment, "UPDATE")
-    await session.commit()
-    await session.refresh(db_assignment)
-    return db_assignment
-
-
-async def get_user_role_assignment(
-    *, session: AsyncSession, assignment_id: uuid.UUID
-) -> UserRoleAssignment | None:
-    statement = select(UserRoleAssignment).where(UserRoleAssignment.id == assignment_id)
-    result = await session.execute(statement)
-    return result.scalars().first()
-
-
-async def get_user_role_assignments(
-    *,
-    session: AsyncSession,
-    user_id: uuid.UUID | None = None,
-    current_user: User | None = None,
-) -> list[UserRoleAssignment]:
-    statement = select(UserRoleAssignment)
-    if user_id:
-        statement = statement.where(UserRoleAssignment.user_id == user_id)
-    result = await session.execute(statement)
-    assignments = list(result.scalars().all())
-    if current_user is None or current_user.is_superuser:
-        return assignments
-    allowed = []
-    for assignment in assignments:
-        try:
-            await require_assignment_management(session, current_user, assignment)
-        except AppException:
-            continue
-        allowed.append(assignment)
-    return allowed
-
-
-async def require_assignment_management(
-    session: AsyncSession, actor: User, assignment: UserRoleAssignment
-) -> None:
-    from src.hr.models import EmploymentRecord
-    from src.hr.organisations import require_organisation_permission
-
-    department_id = (
-        assignment.department_id
-        if assignment.scope == RoleAssignmentScope.DEPARTMENT
-        else None
-    )
-    if assignment.scope == RoleAssignmentScope.SELF:
-        employment = await session.scalar(
-            select(EmploymentRecord).where(
-                EmploymentRecord.user_id == assignment.user_id,
-                EmploymentRecord.organisation_id == assignment.organisation_id,
-            )
-        )
-        department_id = employment.department_id if employment else None
-    await require_organisation_permission(
-        session, actor, assignment.organisation_id, "user.manage", department_id
-    )
-    if not actor.is_superuser:
-        await delegation_authority(session, actor, assignment)
-
-
-async def require_user_management(
-    session: AsyncSession, actor: User, target: User
-) -> None:
-    from src.auth.policy import can_act_on_user
-
-    if actor.is_superuser:
-        return
-    if target.is_superuser or not await can_act_on_user(
-        session=session,
-        current_user=actor,
-        target_user_id=target.id,
-        permission_key="user.manage",
-    ):
-        raise AppException("User is outside your active management scope", 403)
-
-
-async def delegation_authority(
-    session: AsyncSession,
-    actor: User,
-    assignment: UserRoleAssignment,
-    *,
-    require_active_target: bool = False,
-) -> UserRoleAssignment:
-    from sqlalchemy.orm import selectinload
-
-    from src.auth.delegation import ordinary_role, permission_keys
-    from src.auth.policy import _active_assignments
-    from src.hr.models import EmploymentRecord, EmploymentStatus
-
-    if actor.id == assignment.user_id:
-        raise AppException("Another administrator must manage your access", 403)
-    target = await session.get(User, assignment.user_id)
-    if target is None or target.is_superuser:
-        raise AppException("Platform accounts are superuser-managed", 403)
-    role = await session.scalar(
-        select(Role)
-        .where(Role.id == assignment.role_id)
-        .options(selectinload(Role.permissions))
-    )
-    if (
-        role is None
-        or not ordinary_role(role)
-        or assignment.scope != RoleAssignmentScope.SELF
-        or assignment.department_id is not None
-    ):
-        raise AppException(
-            "Only ordinary staff self-service access may be delegated; appointments and special duties require a superuser",
-            403,
-        )
-    employment = await session.scalar(
-        select(EmploymentRecord).where(
-            EmploymentRecord.user_id == assignment.user_id,
-            EmploymentRecord.organisation_id == assignment.organisation_id,
-        )
-    )
-    if employment is None:
-        raise AppException("Target must belong to the same employer", 403)
-    if require_active_target and employment.status != EmploymentStatus.ACTIVE:
-        raise AppException("Delegation requires active recipient employment", 403)
-    roles = {r.id: r for r in actor.roles}
-    issuer = await session.scalar(
-        select(EmploymentRecord).where(
-            EmploymentRecord.user_id == actor.id,
-            EmploymentRecord.status == EmploymentStatus.ACTIVE,
-        )
-    )
-    if issuer is None:
-        raise AppException("Delegation requires active employer placement", 403)
-    for source in await _active_assignments(session=session, user_id=actor.id):
-        source_role = roles.get(source.role_id)
-        if (
-            source.authority_assignment_id
-            or source.organisation_id != assignment.organisation_id
-            or issuer.organisation_id != source.organisation_id
-            or (
-                source.scope == RoleAssignmentScope.DEPARTMENT
-                and issuer.department_id != source.department_id
-            )
-            or source_role is None
-        ):
-            continue
-        keys = permission_keys(source_role)
-        if "user.manage" not in keys or not permission_keys(role).issubset(keys):
-            continue
-        if source.scope == RoleAssignmentScope.ALL or (
-            source.scope == RoleAssignmentScope.DEPARTMENT
-            and source.department_id == employment.department_id
-        ):
-            return source
-    raise AppException("No active authority permits this delegated grant", 403)
-
-
-async def audit_assignment(
-    session: AsyncSession, assignment: UserRoleAssignment, action: str
-) -> None:
-    from src.audit.service import record_change
-
-    await session.flush()
-    snapshot = {
-        key: str(getattr(assignment, key))
-        if getattr(assignment, key) is not None
-        else None
-        for key in (
-            "role_id",
-            "scope",
-            "department_id",
-            "effective_to",
-            "authority_assignment_id",
-        )
-    }
-    await record_change(
-        session,
-        entity_type="employee",
-        entity_id=str(assignment.user_id),
-        record_type="role_assignment",
-        record_id=str(assignment.id),
-        organisation_id=assignment.organisation_id,
-        action=action,
-        changes={
-            "assignment": (
-                snapshot if action == "DELETE" else None,
-                None if action == "DELETE" else snapshot,
-            )
-        },
-    )
-
-
-def require_approved_account(user: User) -> None:
-    if user.registration_pending:
-        raise AppException("Your registration is awaiting administrator approval", 403)

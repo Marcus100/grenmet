@@ -1,4 +1,4 @@
-import { shouldReportError } from "@barrelsgd/ui/lib/report-error";
+import { createReportError } from "@barrelsgd/ui/lib/report-error";
 import { captureException } from "@sentry/nextjs";
 
 /**
@@ -6,8 +6,4 @@ import { captureException } from "@sentry/nextjs";
  * Errors that are rethrown reach Sentry through the error boundaries and
  * `onRequestError`, so only call this where the error is swallowed.
  */
-export function reportError(error: unknown, area: string): void {
-  if (shouldReportError(error)) {
-    captureException(error, { tags: { area } });
-  }
-}
+export const reportError = createReportError(captureException);

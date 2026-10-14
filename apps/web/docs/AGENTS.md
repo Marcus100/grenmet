@@ -72,7 +72,7 @@ node scripts/generate-sections.mjs
 ## Adding content pages
 
 1. Create `src/content/your-slug.mdx` with YAML frontmatter:
-   ```
+   ```yaml
    ---
    title: 'Page Title'
    description: 'Optional description.'

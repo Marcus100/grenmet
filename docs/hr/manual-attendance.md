@@ -1,5 +1,9 @@
 # Manual shift attendance
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-28
+
 GAA staff record their own actual arrival, departure and break duration against a
 published roster assignment. This is an attendance record, not evidence inferred
 from scheduled hours. D staff record one attendance record; M/E status reports

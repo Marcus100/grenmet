@@ -220,7 +220,7 @@ describe("LeaveSubmissions", () => {
     expect(await screen.findByText("VACATION")).toBeInTheDocument();
     expect(screen.getByText("2026-08-03")).toBeInTheDocument();
     expect(screen.getByText("SUBMITTED")).toBeInTheDocument();
-  }, 20_000);
+  });
 });
 
 it("keeps a submitted draft printable with the server date and resets cleanly", async () => {
@@ -306,7 +306,7 @@ it("requires both dates before sending a new leave draft to the API", async () =
     expect(toast.error).toHaveBeenCalledWith("Start and end dates are required")
   );
   expect(create).not.toHaveBeenCalled();
-}, 20_000);
+});
 
 it("shows the API reason when leave submission is rejected", async () => {
   navigation.search = "draft=lr-draft";
@@ -349,4 +349,4 @@ it("shows the API reason when leave submission is rejected", async () => {
       "Submission failed: Verify the opening balance for this leave type"
     )
   );
-}, 20_000);
+});

@@ -2,6 +2,8 @@
 
 Decision record: ADR-0017 (proposed), building on ADR-0016.
 Status: **steps 1–4 built; each site's "Sign in" switches on with its secret.** Each phase ships and
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-10-13
 is reviewed on its own.
 
 ## Goal
@@ -22,7 +24,7 @@ Signing out of one app leaves the others signed in; "sign out everywhere" ends a
 
 ## Flow
 
-```
+```text
 app (no cookie) ─► app /auth/start        sets host-only state cookie (10 min)
                 ─► auth /continue?app&state&returnTo
 auth: account session valid + eligible?

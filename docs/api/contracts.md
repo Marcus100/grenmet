@@ -262,6 +262,17 @@ those optional fields; they do not change application route definitions.
 
 Contract rule for new endpoints: return structured JSON errors and document non-obvious status codes in the route `responses` metadata.
 
+## Request IDs
+
+Every response carries an `X-Request-ID` header (exposed to browsers through CORS).
+A caller may supply its own `X-Request-ID` of 8–64 characters from `A-Z a-z 0-9 . _ -`
+and the API echoes it back; anything else is replaced with a random 32-character
+ID, so the header cannot inject log content. The same ID is written to every log
+line for that request (`request_id` in JSON logs) and set as the `request_id`
+Sentry tag, so a failed call can be traced from the browser to the API log and
+the Sentry event. It is random and carries no user data. The header is not part
+of the OpenAPI schema.
+
 ## Pagination
 
 The standard helper is `src.pagination`:

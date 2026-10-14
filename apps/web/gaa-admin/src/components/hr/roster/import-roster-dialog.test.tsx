@@ -97,5 +97,5 @@ describe("ImportRosterDialog", () => {
       period_start: "2026-07-01",
       period_end: "2026-07-31",
     });
-  }, 20_000);
+  });
 });

@@ -1,0 +1,11 @@
+{
+  "note": "First-party lint and type suppressions. Counts may only go down. To lower a count, edit it here in the same change; raising one needs a justified reason and human review (this file is high risk in risk-tier.mjs).",
+  "counts": {
+    "biome-ignore": 34,
+    "biome-ignore-all": 6,
+    "noqa": 69,
+    "ts-expect-error": 0,
+    "ts-ignore": 0,
+    "type-ignore": 36
+  }
+}

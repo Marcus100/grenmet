@@ -10,6 +10,7 @@ if several share that date, the most recently published wins.
 import logging
 from collections import defaultdict
 from datetime import date, datetime
+from decimal import Decimal
 from zoneinfo import ZoneInfo
 
 from sqlalchemy import delete, func, select, update
@@ -35,6 +36,12 @@ from src.transport.models import (
 from . import schemas
 
 logger = logging.getLogger(__name__)
+
+
+def _coordinate(value: float | None) -> Decimal | None:
+    """Stop coordinates arrive as floats but are stored as NUMERIC(9, 6)."""
+    return None if value is None else Decimal(str(value))
+
 
 GRENADA = ZoneInfo("America/Grenada")
 WEEKDAYS = tuple(schemas.TransportWeekday)
@@ -259,8 +266,8 @@ async def update_stop(
     stop.code = payload.code
     stop.name = payload.name
     stop.landmark = payload.landmark
-    stop.latitude = payload.latitude  # type: ignore[assignment]
-    stop.longitude = payload.longitude  # type: ignore[assignment]
+    stop.latitude = _coordinate(payload.latitude)
+    stop.longitude = _coordinate(payload.longitude)
     stop.active = payload.active
     await _commit(session, f"Stop code {payload.code} is already in use")
     logger.info("Transport stop updated", extra={"stop_id": stop_id})

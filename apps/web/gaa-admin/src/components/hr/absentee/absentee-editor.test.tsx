@@ -341,7 +341,7 @@ describe("AbsenteeEditor (wired)", () => {
       signature_version: "11111111-1111-4111-8111-111111111111",
       co_approver_user_ids: [],
     });
-  }, 20_000);
+  });
 });
 
 describe("AbsenteeSubmissions", () => {
@@ -375,5 +375,5 @@ describe("AbsenteeSubmissions", () => {
     expect(screen.getByText("2026-07-03")).toBeInTheDocument();
     expect(screen.getByText("Family matter")).toBeInTheDocument();
     expect(screen.getByText("SUBMITTED")).toBeInTheDocument();
-  }, 20_000);
+  });
 });

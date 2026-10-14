@@ -77,7 +77,7 @@ describe("NotificationBell", () => {
     fireEvent.click(await screen.findByText(unreadItem.title));
 
     await waitFor(() => expect(marked).toEqual(["n1"]));
-  }, 20_000);
+  });
 });
 
 describe("NotificationPreferences", () => {
@@ -127,5 +127,5 @@ describe("NotificationPreferences", () => {
         [{ event_key: "workflow.approved", email_enabled: false }],
       ])
     );
-  }, 20_000);
+  });
 });

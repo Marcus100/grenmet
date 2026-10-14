@@ -32,6 +32,11 @@ const WIND_SUMMARY_LABEL = /^Wind summary/;
 const MAX_WINDS_LABEL = /Maximum winds and gusts/;
 const DAY_ONE_HEADING = /^Day 1/;
 const EVENT_TIME_LABEL = /Event date and time/;
+const FIELD_LIMIT_ERROR = /forecast field limit/;
+const REVISION_TWO_LINE =
+  /Revision 2 · publish · Ann Forecaster · 2026-10-07T12:00:00Z/;
+const REVISION_ONE_LINE =
+  /Revision 1 · save · Ann Forecaster · 2026-10-07T11:00:00Z/;
 
 const actions = vi.hoisted(() => ({
   loadProductsAction: vi.fn(),
@@ -42,7 +47,44 @@ const actions = vi.hoisted(() => ({
   downloadProductPdfAction: vi.fn(),
 }));
 vi.mock("@/app/(admin)/wxproducts/product-actions", () => actions);
-vi.mock("./cap-forecast-picker", () => ({ CapForecastPicker: () => null }));
+const picker = vi.hoisted(() => ({ expose: false }));
+// Renders nothing unless a test opts in, so existing tests are unaffected. When
+// exposed it behaves like the real picker: it reports an insert error instead of
+// throwing out of the click handler.
+vi.mock("./cap-forecast-picker", async () => {
+  const { useState } = await import("react");
+  return {
+    CapForecastPicker: ({
+      onInsert,
+      targets,
+    }: {
+      onInsert: (target: string, text: string) => void;
+      targets: { value: string }[];
+    }) => {
+      const [error, setError] = useState("");
+      if (!picker.expose) return null;
+      const insert = (text: string) => {
+        try {
+          onInsert(targets[0]?.value ?? "summary", text);
+          setError("");
+        } catch (caught) {
+          setError(caught instanceof Error ? caught.message : String(caught));
+        }
+      };
+      return (
+        <div>
+          <button onClick={() => insert("CAP wording")} type="button">
+            Insert CAP wording
+          </button>
+          <button onClick={() => insert("x".repeat(12_001))} type="button">
+            Insert oversized CAP text
+          </button>
+          {error ? <p role="alert">{error}</p> : null}
+        </div>
+      );
+    },
+  };
+});
 vi.mock("@barrelsgd/gms/components/product-content", () => ({
   ProductContentView: ({
     content,
@@ -67,6 +109,7 @@ function render(ui: ReactElement) {
   );
 }
 beforeEach(() => {
+  picker.expose = false;
   vi.resetAllMocks();
   actions.loadProductsAction.mockResolvedValue({ ok: true, products: [] });
   actions.previewProductPdfAction.mockResolvedValue({
@@ -719,5 +762,104 @@ it("snapshots reviewed guidance and requires a fresh review after a system edit"
       }),
       expect.any(AbortSignal)
     )
+  );
+});
+
+it("appends CAP wording to the chosen forecast field and refuses text over the field limit", async () => {
+  picker.expose = true;
+  await openEditor();
+  const summary = screen.getByLabelText(WEATHER_SUMMARY_LABEL);
+  fireEvent.change(summary, { target: { value: "Existing summary." } });
+
+  fireEvent.click(screen.getByRole("button", { name: "Insert CAP wording" }));
+  await waitFor(() =>
+    expect(summary).toHaveValue("Existing summary.\n\nCAP wording")
+  );
+
+  fireEvent.click(
+    screen.getByRole("button", { name: "Insert oversized CAP text" })
+  );
+  expect(await screen.findByRole("alert")).toHaveTextContent(FIELD_LIMIT_ERROR);
+  expect(summary).toHaveValue("Existing summary.\n\nCAP wording");
+});
+
+function storedMarine(overrides: Partial<StoredProduct> = {}): StoredProduct {
+  return {
+    id: "7d517fe0-a25b-4f12-a2b4-eaaed8116010",
+    kind: "marine",
+    values: emptyProduct("marine", grenadaDate()),
+    revision: 2,
+    publishedRevision: 2,
+    updatedAt: "2026-10-07T12:00:00Z",
+    ...overrides,
+  };
+}
+
+it("requires a revision note before withdrawing a published product", async () => {
+  actions.loadProductsAction.mockResolvedValue({
+    ok: true,
+    products: [storedMarine()],
+  });
+  render(<ProductDesk kinds={["marine"]} title="Bulletins" />);
+  fireEvent.click(await screen.findByRole("button", { name: OPEN_MARINE }));
+
+  fireEvent.click(screen.getByRole("button", { name: "Withdraw publication" }));
+  expect(
+    await screen.findByText("Explain the withdrawal in the revision note.")
+  ).toBeInTheDocument();
+  expect(screen.queryByRole("alertdialog")).toBeNull();
+
+  fireEvent.change(screen.getByLabelText("Issue / revision note"), {
+    target: { value: "Issued in error" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Withdraw publication" }));
+  expect(await screen.findByRole("alertdialog")).toBeInTheDocument();
+});
+
+it("loads the revision history on request, lists each revision and reports a failed load", async () => {
+  actions.loadProductsAction.mockResolvedValue({
+    ok: true,
+    products: [storedMarine({ publishedRevision: null })],
+  });
+  actions.loadProductHistoryAction
+    .mockResolvedValueOnce({ ok: false, error: "History is unavailable." })
+    .mockResolvedValueOnce({
+      ok: true,
+      history: [
+        {
+          revision: 2,
+          action: "publish",
+          actorName: "Ann Forecaster",
+          createdAt: "2026-10-07T12:00:00Z",
+          changeSummary: "Initial issue",
+        },
+        {
+          revision: 1,
+          action: "save",
+          actorName: "Ann Forecaster",
+          createdAt: "2026-10-07T11:00:00Z",
+          changeSummary: "",
+        },
+      ],
+    });
+  render(<ProductDesk kinds={["marine"]} title="Bulletins" />);
+  fireEvent.click(await screen.findByRole("button", { name: OPEN_MARINE }));
+  const load = screen.getByRole("button", { name: "View revision history" });
+
+  fireEvent.click(load);
+  expect(
+    await screen.findByText("History is unavailable.")
+  ).toBeInTheDocument();
+
+  await waitFor(() => expect(load).toBeEnabled());
+  fireEvent.click(load);
+  expect(await screen.findByText(REVISION_TWO_LINE)).toBeInTheDocument();
+  expect(screen.getByText("Initial issue")).toBeInTheDocument();
+  const older = screen.getByText(REVISION_ONE_LINE);
+  expect(
+    within(older.closest("li") as HTMLElement).queryByText("Initial issue")
+  ).toBeNull();
+  expect(actions.loadProductHistoryAction).toHaveBeenCalledWith(
+    "7d517fe0-a25b-4f12-a2b4-eaaed8116010"
   );
 });

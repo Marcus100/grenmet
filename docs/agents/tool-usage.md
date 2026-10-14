@@ -1,5 +1,9 @@
 # Agent tool usage
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-10-13
+
 - When the user wants to inspect a file, return full contents — not a summary.
 - Before investigating a CI or build failure, list the top hypotheses with the
   fastest falsification command for each; test cheapest first and report after each.
@@ -10,7 +14,7 @@
 ## Switching between Codex and Claude Code
 
 Before a handoff, append the current task, checkout path, branch, changed files,
-checks and their results, outstanding decisions, and exact next action to the
+checks and their results, friction issues filed, outstanding decisions, and exact next action to the
 main checkout's `SESSION_LOG.md`. Read the latest file before appending; preserve
 other entries. Update durable knowledge in Bishop when it belongs there and the
 workspace is accessible; keep private context out of this public repository.
@@ -25,3 +29,12 @@ verified and ask only about unresolved intent.
 The SessionStart hooks read recent log entries; they do not create the handoff
 or share hidden chat history. Claude also reloads the log after compaction and
 forking. Runtime hook trust and client permissions remain separate checks.
+
+## Keeping the session log short
+
+`SESSION_LOG.md` is shared by every checkout and grows by about 10 KB a day.
+`pnpm session-log:archive` lists the entries older than 7 days that it would
+move; add `--write` to move them to `SESSION_LOG.archive/<YYYY-MM>.md` (also
+gitignored, next to the log in the main checkout). `--days <n>` changes the
+window. Nothing is deleted, reruns are safe, and it retries if another agent
+appends while it runs. Run it only when no other agent is mid-handoff.

@@ -82,7 +82,7 @@ cron seeds synthetic hour-varying values with zero host dependencies:
 
 Install on the host (`crontab -e`):
 
-```
+```bash
 1 * * * * /home/eugine/grenmet/scripts/wis2-setup/seed-hourly.sh >> /tmp/wis2-seed.log 2>&1
 ```
 

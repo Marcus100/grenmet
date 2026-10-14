@@ -204,7 +204,6 @@ describe("TimesheetEditor", () => {
           },
         ],
       });
-    },
-    20_000
+    }
   );
 });

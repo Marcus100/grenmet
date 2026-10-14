@@ -217,6 +217,11 @@ jobs:
         # gets its own database — see the bootstrap in tests/conftest.py.
         run: bash ../../../scripts/verification/backend.sh
 
+      - name: Check API coverage floor
+        # Floors only rise (scripts/guardrails/coverage-baseline.json); this fails
+        # when line or branch coverage drops below the committed floor.
+        run: node ../../../scripts/guardrails/check-coverage.mjs --only api
+
       - name: Upload test results
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a

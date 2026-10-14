@@ -218,6 +218,12 @@ RANGES = {
 }
 
 
+def _exceeds(pair: list[float | None]) -> bool:
+    """True when both ends of a from/to pair are set and from is above to."""
+    low, high = pair
+    return low is not None and high is not None and low > high
+
+
 def parameter_errors(values: dict[str, str]) -> list[str]:
     """Physical plausibility and ordering of structured forecast parameters."""
     errors = []
@@ -226,17 +232,17 @@ def parameter_errors(values: dict[str, str]) -> list[str]:
         if value is not None and not low <= value <= high:
             errors.append(f"{key}: must be between {low} and {high}")
     speeds = [optional_number(values, k) for k in ("windSpeedMin", "windSpeedMax")]
-    if None not in speeds and speeds[0] > speeds[1]:  # type: ignore[operator]
+    if _exceeds(speeds):
         errors.append("Wind: 'speed from' exceeds 'speed to'")
     gust = optional_number(values, "windGust")
     fastest = max((s for s in speeds if s is not None), default=None)
     if gust is not None and fastest is not None and gust < fastest:
         errors.append("Wind: gusts must be at least the highest sustained speed")
     waves = [optional_number(values, k) for k in ("waveHeightMin", "waveHeightMax")]
-    if None not in waves and waves[0] > waves[1]:  # type: ignore[operator]
+    if _exceeds(waves):
         errors.append("Marine: 'wave height from' exceeds 'wave height to'")
     seen = [optional_number(values, k) for k in ("visibilityMin", "visibilityMax")]
-    if None not in seen and seen[0] > seen[1]:  # type: ignore[operator]
+    if _exceeds(seen):
         errors.append("Visibility: 'from' exceeds 'to'")
     states = list(units.SEA_STATES)
     start, end = values.get("seaStateFrom", ""), values.get("seaStateTo", "")

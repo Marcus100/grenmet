@@ -1,5 +1,12 @@
 # Verification before promotion
 
+Run `pnpm verify:changed` to run only the gates the diff against `origin/dev`
+needs: Biome on changed files, affected Turbo type-check and tests, FastAPI lint
+and the changed domains' pytest suites, drift, blast radius, guardrails and docs.
+`--dry-run` prints the plan; `--skip <check>` drops one (for example `api tests`
+when no database is reachable); `--base <ref>` changes the comparison. API tests
+use the same database environment as a direct `pytest` run.
+
 Run `pnpm verify:quick` for lint, types and unit tests. The pre-push hook remains
 TypeScript plus unit tests. It does not claim backend or deployment acceptance.
 

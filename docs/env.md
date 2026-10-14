@@ -206,7 +206,7 @@ After a successful sign-in, the auth app reads a `return_to` query parameter and
 
 Local dev value (all apps):
 
-```
+```text
 AUTH_ALLOWED_RETURN_HOSTS=localhost:3001,localhost:3002,localhost:3003,localhost:3004
 ```
 
@@ -365,7 +365,7 @@ secrets, not in either file.
 
 `.gitignore` entries that must be present in every app:
 
-```
+```text
 .env
 .env.local
 .env.*.local

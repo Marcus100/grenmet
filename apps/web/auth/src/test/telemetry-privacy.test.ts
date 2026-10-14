@@ -29,11 +29,20 @@ it("removes sensitive Sentry context while retaining error types and stack locat
   expect(result.exception.values[0]?.stacktrace.frames[0]?.lineno).toBe(10);
 });
 
-it("keeps only the digest and area tags, dropping anything else", () => {
+it("keeps only the digest, area and request_id tags, dropping anything else", () => {
   const result = scrubSentryEvent({
-    tags: { digest: "abc123", area: "cap", email: "private@example.test" },
+    tags: {
+      digest: "abc123",
+      area: "cap",
+      request_id: "req-12345678",
+      email: "private@example.test",
+    },
   });
-  expect(result.tags).toEqual({ digest: "abc123", area: "cap" });
+  expect(result.tags).toEqual({
+    digest: "abc123",
+    area: "cap",
+    request_id: "req-12345678",
+  });
   expect(scrubSentryEvent({ tags: { email: "private" } }).tags).toBeUndefined();
 });
 

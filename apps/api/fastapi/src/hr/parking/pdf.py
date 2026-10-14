@@ -21,7 +21,7 @@ RULES = (
 
 
 def render_parking_pdf(snapshot: DocumentSnapshot, image: bytes | None) -> bytes:
-    from weasyprint import HTML  # type: ignore[import-untyped]
+    from weasyprint import HTML
 
     form = snapshot["form"]
 

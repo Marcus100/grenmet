@@ -149,7 +149,7 @@ describe("RolesManager", () => {
     });
     expect(screen.getByText("duty-officer")).toBeInTheDocument();
     expect(screen.queryByText("hr-admin")).not.toBeInTheDocument();
-  }, 20_000);
+  });
 
   it("groups rows under System/Custom headers and counts the page", async () => {
     renderRoles();
@@ -157,7 +157,7 @@ describe("RolesManager", () => {
     expect(await screen.findByText("System roles")).toBeInTheDocument();
     expect(screen.getByText("Custom roles")).toBeInTheDocument();
     expect(screen.getByText("Showing 1 to 3 of 3 roles")).toBeInTheDocument();
-  }, 20_000);
+  });
 
   it("drops a group header when the filter leaves it empty", async () => {
     renderRoles();
@@ -170,5 +170,5 @@ describe("RolesManager", () => {
     // Only the custom role survives, so the System header goes away.
     expect(screen.getByText("Custom roles")).toBeInTheDocument();
     expect(screen.queryByText("System roles")).not.toBeInTheDocument();
-  }, 20_000);
+  });
 });
