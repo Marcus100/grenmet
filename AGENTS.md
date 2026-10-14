@@ -91,7 +91,7 @@ REDIS_URL=redis://host.docker.internal:6379/0` (full list in
 
 Frontend (full style rules in `.agents/rules/ultracite.mdc`):
 - No `any` (use `unknown` and narrow); no `forwardRef` (React 19 `ref` prop).
-- No `process.env` in app code: use the app's `src/env.ts` (except `next.config.*`, `instrumentation.ts`, `sentry.*.config.ts`).
+- No `process.env` in app code: use the app's typed env module (`src/env.ts` or `src/lib/env.ts`; except `next.config.*`, `instrumentation.ts`, `sentry.*.config.ts`).
 - Server Components by default; React Query only for client-side mutations and polling.
 - `catalog:` for shared deps; `@/` path alias; UI primitives from `@barrelsgd/ui/components/ui/<name>`, `cn` from `@barrelsgd/ui/lib/utils`.
 - Types, fetch clients, hooks and Zod schemas come from `@barrelsgd/api-client`; never hand-write a FastAPI response type.
