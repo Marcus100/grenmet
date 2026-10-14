@@ -6,6 +6,6 @@
     "noqa": 69,
     "ts-expect-error": 0,
     "ts-ignore": 0,
-    "type-ignore": 23
+    "type-ignore": 19
   }
 }
