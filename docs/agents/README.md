@@ -16,6 +16,6 @@ direct them need beyond the root `AGENTS.md`.
 | [engineering-principles.md](engineering-principles.md) | Choose between options, with the gate behind each principle. |
 | [routines.md](routines.md) | Run or edit unattended agent routines and their shared rules. |
 | [run-records.md](run-records.md) | Record and measure every agent run. |
-| [benchmarks/](benchmarks/README.md) | Compare agents on twenty fixed tasks. |
+| [benchmarks/](benchmarks/README.md) | Compare agents on twenty-five fixed tasks, including whether they follow AGENTS.md. |
 | [journal.md](journal.md) | See what each phase of the factory taught. |
 | [domain.md](domain.md), [issue-tracker.md](issue-tracker.md), [triage-labels.md](triage-labels.md) | Use domain language, the issue tracker and the triage labels. |

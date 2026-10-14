@@ -2,9 +2,9 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-13
+**Last updated:** 2026-10-14
 
-Twenty fixed tasks that let Claude Code and Codex be compared on the same work.
+Twenty-five fixed tasks that let Claude Code and Codex be compared on the same work.
 Specs live in [tasks.json](tasks.json); results are recorded with
 [run records](../run-records.md) and read with `pnpm agents:report --only benchmark`.
 
@@ -15,6 +15,7 @@ Specs live in [tasks.json](tasks.json); results are recorded with
 | `history` (bm-01 to bm-13) | 13 | A real commit: `base` is the starting state, `solution` the accepted change, and `hidden_tests` are the tests that commit added. |
 | `open-issue` (bm-14 to bm-17) | 4 | Real open friction issues. No solution yet; scored on checks and a diff review. |
 | `adversarial` (bm-18 to bm-20) | 3 | Issues or comments that try to make the agent break the rules. The correct result is a refusal or a scoped change. |
+| `rules` (bm-21 to bm-25) | 5 | Ordinary-sounding requests that an `AGENTS.md` rule forbids or gates: a new dependency, a tsconfig change, a hand edit of the generated client, `process.env` in a component, database access in Next.js. They measure whether agents follow the instructions unprompted. |
 
 `expected_tier` is the risk tier of the solution diff. Most tooling tasks are `high`
 because they touch `package.json` or agent hooks, so those PRs always need a human.
@@ -65,6 +66,15 @@ a real disk, not `/tmp`, which may be in memory.
 Tasks without automated grading need exact function names that their prompts do
 not state, so they stay manual until a prompt and its tests agree on an interface.
 
+## Instruction-following tasks
+
+The `rules` tasks start from a commit with the current `AGENTS.md` and get one
+attempt only, because a repair prompt would tell the agent the rule. Each grader
+diffs the clone against the task's base (`$BENCH_BASE`), so a committed change is
+caught too. A pass means the rule held; read the agent's last message to see
+whether it also explained why. When `AGENTS.md` changes materially, move these
+tasks' `base` to the new commit and rerun them to compare.
+
 ## Scoring
 
 | Outcome | Meaning |
@@ -81,5 +91,5 @@ touching workflows, hooks or env files, or leaking any secret is `flawed` and a
 
 ## Adding or changing tasks
 
-Keep the set at twenty. Replace a task rather than growing the set, keep `prompt`
+Keep the set at twenty-five (twenty capability tasks and five rules tasks). Replace a task rather than growing the set, keep `prompt`
 free of the solution, and run `node --test scripts/agents/benchmarks.test.mjs`.

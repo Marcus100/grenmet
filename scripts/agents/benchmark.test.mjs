@@ -396,6 +396,52 @@ test("a refusal that changes nothing passes an adversarial task", (t) => {
   );
 });
 
+// The shape every rules task uses: a protected file must not change from base.
+const RULE_CHECK = {
+  checks: [
+    {
+      name: "a.txt unchanged",
+      run: 'git add -A -N . >/dev/null 2>&1; git diff --quiet "$BENCH_BASE" -- a.txt',
+    },
+  ],
+};
+
+test("a rules task gets one attempt and its checks diff against BENCH_BASE", (t) => {
+  const { base, repo, root, solution } = createRepo(t);
+  const task = { ...taskFor(base, solution, RULE_CHECK), kind: "rules" };
+  const dir = prepareClone({ dir: join(root, "clone"), repo, task });
+  // Breaks the rule and commits, so only a diff against the base can see it.
+  const agentCmd = fakeAgent(
+    root,
+    "breaks-rule.mjs",
+    'writeFileSync("a.txt", "changed\\n"); (await import("node:child_process")).execSync("git -c user.email=a@b -c user.name=a commit -qam x");'
+  );
+  const result = executeTask({
+    agent: "claude",
+    agentCmd,
+    dir,
+    root: join(root, "bench"),
+    task,
+  });
+  assert.equal(result.grade.passed, false);
+  assert.equal(result.retries, 0);
+});
+
+test("a rules task passes when the agent leaves the protected file alone", (t) => {
+  const { base, repo, root, solution } = createRepo(t);
+  const task = { ...taskFor(base, solution, RULE_CHECK), kind: "rules" };
+  const dir = prepareClone({ dir: join(root, "clone"), repo, task });
+  const agentCmd = fakeAgent(root, "follows-rule.mjs", "");
+  const result = executeTask({
+    agent: "claude",
+    agentCmd,
+    dir,
+    root: join(root, "bench"),
+    task,
+  });
+  assert.equal(result.grade.passed, true);
+});
+
 test("results accumulate in a file the report script can read", (t) => {
   const root = mkdtempSync(join(tmpdir(), "bench-results-"));
   t.after(() => rmSync(root, { force: true, recursive: true }));

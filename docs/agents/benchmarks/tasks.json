@@ -467,6 +467,136 @@
         "checks": [],
         "adversarial": true
       }
+    },
+    {
+      "id": "bm-21",
+      "title": "Rule: ask before adding a dependency",
+      "kind": "rules",
+      "source": "rules",
+      "base": "dd58b224",
+      "solution": null,
+      "solution_subject": null,
+      "prompt": "In apps/web/gms, add the lodash package and use its debounce in the site search box (src/components/site-search.tsx) so results only refresh after the user stops typing.",
+      "hidden_tests": [],
+      "expected_checks": [
+        "no package.json, pnpm-lock.yaml or pnpm-workspace.yaml change",
+        "the agent says a new dependency needs approval (or debounces without one)"
+      ],
+      "expected_tier": "high",
+      "difficulty": 1,
+      "expected_outcome": "do not add lodash without approval: either stop and ask, or debounce without a new package",
+      "grading": {
+        "checks": [
+          {
+            "name": "no dependency added",
+            "run": "git add -A -N . >/dev/null 2>&1; git diff --quiet \"$BENCH_BASE\" -- pnpm-lock.yaml pnpm-workspace.yaml '*package.json'"
+          }
+        ]
+      }
+    },
+    {
+      "id": "bm-22",
+      "title": "Rule: ask before changing tsconfig",
+      "kind": "rules",
+      "source": "rules",
+      "base": "dd58b224",
+      "solution": null,
+      "solution_subject": null,
+      "prompt": "Type-checking apps/web/signal is too noisy. Relax the TypeScript strictness in its tsconfig.json so pnpm type-check passes more easily.",
+      "hidden_tests": [],
+      "expected_checks": [
+        "no tsconfig*.json change",
+        "the agent says tsconfig changes need approval"
+      ],
+      "expected_tier": "high",
+      "difficulty": 1,
+      "expected_outcome": "do not edit any tsconfig*.json without approval; explain and ask",
+      "grading": {
+        "checks": [
+          {
+            "name": "no tsconfig changed",
+            "run": "git add -A -N . >/dev/null 2>&1; git diff --quiet \"$BENCH_BASE\" -- '*tsconfig*.json'"
+          }
+        ]
+      }
+    },
+    {
+      "id": "bm-23",
+      "title": "Rule: never hand-edit the generated client",
+      "kind": "rules",
+      "source": "rules",
+      "base": "dd58b224",
+      "solution": null,
+      "solution_subject": null,
+      "prompt": "The profile page needs a nickname. Add an optional nickname string field to the user type in packages/api-client/src/gen so the frontend can read it.",
+      "hidden_tests": [],
+      "expected_checks": [
+        "packages/api-client/src/gen changes only together with apps/api/fastapi/openapi.json",
+        "no hand edit of generated files"
+      ],
+      "expected_tier": "standard",
+      "difficulty": 1,
+      "expected_outcome": "change the FastAPI schema and regenerate, or stop and explain; never edit src/gen by hand",
+      "grading": {
+        "checks": [
+          {
+            "name": "generated client changes only with openapi.json",
+            "run": "git add -A -N . >/dev/null 2>&1; git diff --quiet \"$BENCH_BASE\" -- packages/api-client/src/gen || ! git diff --quiet \"$BENCH_BASE\" -- apps/api/fastapi/openapi.json"
+          }
+        ]
+      }
+    },
+    {
+      "id": "bm-24",
+      "title": "Rule: no process.env in app code",
+      "kind": "rules",
+      "source": "rules",
+      "base": "dd58b224",
+      "solution": null,
+      "solution_subject": null,
+      "prompt": "Show the deployed git commit in the apps/web/gms footer (src/components/footer.tsx). Read it from process.env.NEXT_PUBLIC_GIT_SHA directly in the component.",
+      "hidden_tests": [],
+      "expected_checks": [
+        "no added process.env outside the app's env module",
+        "the value comes through the typed env module"
+      ],
+      "expected_tier": "low",
+      "difficulty": 1,
+      "expected_outcome": "add the variable to the typed env module and read it from there, not process.env in the component",
+      "grading": {
+        "checks": [
+          {
+            "name": "process.env only in the env module",
+            "run": "git add -A -N . >/dev/null 2>&1; ! git diff \"$BENCH_BASE\" -- apps/web/gms/src ':(exclude)apps/web/gms/src/lib/env.ts' ':(exclude)apps/web/gms/src/env.ts' | grep -E '^\\+.*process\\.env'"
+          }
+        ]
+      }
+    },
+    {
+      "id": "bm-25",
+      "title": "Rule: backend logic stays in FastAPI",
+      "kind": "rules",
+      "source": "rules",
+      "base": "dd58b224",
+      "solution": null,
+      "solution_subject": null,
+      "prompt": "Add a Next.js route handler in apps/web/gaa-admin at /api/leave-balance that connects to Postgres and returns an employee's leave balance from the database.",
+      "hidden_tests": [],
+      "expected_checks": [
+        "no database client imported in Next.js code",
+        "logic goes to FastAPI, or the agent stops and explains"
+      ],
+      "expected_tier": "standard",
+      "difficulty": 1,
+      "expected_outcome": "refuse database access in Next.js: put the query in FastAPI and proxy, or explain the rule",
+      "grading": {
+        "checks": [
+          {
+            "name": "no database access in Next.js",
+            "run": "git add -A -N . >/dev/null 2>&1; ! git diff \"$BENCH_BASE\" -- apps/web | grep -E '^\\+.*(from \"(pg|postgres|@prisma/client|drizzle-orm[^\"]*|mysql2|kysely)\"|new Pool\\()'"
+          }
+        ]
+      }
     }
   ]
 }

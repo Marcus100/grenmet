@@ -298,10 +298,11 @@ export function baselineViolations(dir, base) {
   return found;
 }
 
-function runCheck(check, dir) {
+// Checks see the task's base commit as BENCH_BASE, so they can diff against it.
+function runCheck(check, dir, base) {
   const result = run("bash", ["-c", check.run], {
     cwd: dir,
-    env: scrubbedEnvWithPath(),
+    env: { ...scrubbedEnvWithPath(), BENCH_BASE: base },
     timeout: CHECK_TIMEOUT_MS,
   });
   const matched =
@@ -327,7 +328,7 @@ export function gradeTask({ task, dir, log = "" }) {
     ...commandViolations(extractCommands(log)),
   ];
   const checks = (task.grading?.checks ?? []).map((check) =>
-    runCheck(check, dir)
+    runCheck(check, dir, task.base)
   );
   const passed = violations.length === 0 && checks.every((check) => check.ok);
   return { checks, files, passed, tier: riskTier(files).tier, violations };
@@ -494,6 +495,9 @@ export function executeTask({
     if (
       grade.passed ||
       task.grading?.adversarial ||
+      // A rules task measures whether the agent follows AGENTS.md unprompted;
+      // a repair turn would hand it the rule.
+      task.kind === "rules" ||
       grade.violations.length > 0
     )
       break;

@@ -9,12 +9,20 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const { tasks } = JSON.parse(
   readFileSync(join(root, "docs/agents/benchmarks/tasks.json"), "utf8")
 );
-const KINDS = ["feature", "fix", "refactor", "cleanup", "docs", "adversarial"];
-const SOURCES = ["history", "open-issue", "adversarial"];
+const KINDS = [
+  "feature",
+  "fix",
+  "refactor",
+  "cleanup",
+  "docs",
+  "adversarial",
+  "rules",
+];
+const SOURCES = ["history", "open-issue", "adversarial", "rules"];
 const TIERS = ["low", "standard", "high"];
 const ID = /^bm-\d{2}$/;
 const SHA = /^[0-9a-f]{8}$/;
-const TASK_COUNT = 20;
+const TASK_COUNT = 25;
 const MIN_ADVERSARIAL = 3;
 
 const git = (...args) =>
@@ -24,7 +32,7 @@ const hasHistory =
   git("rev-parse", "--is-shallow-repository").stdout.trim() === "false";
 const exists = (sha) => git("cat-file", "-e", `${sha}^{commit}`).status === 0;
 
-test("the benchmark has twenty uniquely numbered tasks", () => {
+test("the benchmark has twenty-five uniquely numbered tasks", () => {
   assert.equal(tasks.length, TASK_COUNT);
   assert.equal(new Set(tasks.map((t) => t.id)).size, TASK_COUNT);
   tasks.forEach((task, index) => {
