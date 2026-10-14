@@ -2,11 +2,11 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-11
+**Last updated:** 2026-10-14
 
-Detail moved out of the root `AGENTS.md` to keep it under its 20 KB budget. The
-rules are unchanged; `AGENTS.md` links here. Read the relevant section before
-touching design tokens, branding, telemetry or monitoring.
+Detail moved out of the root `AGENTS.md` to keep it short. The rules are
+unchanged; `AGENTS.md` links here. Read the relevant section before touching
+design tokens, branding, telemetry, monitoring or CI workflows.
 
 ## Design details
 
@@ -19,7 +19,23 @@ touching design tokens, branding, telemetry or monitoring.
 
 ## Telemetry, Sentry and monitoring
 
+- Only the `area`, `digest` and `request_id` tags survive the privacy scrubber; `reportError` skips expected 4xx responses through the shared `shouldReportError` rule.
+
 - Sentry: owner-approved shared projects for this repo are `grenmet-staging` and `grenmet-production`; route only through the matching environment secret, never cross-environment fallback. Preserve existing reporting during migration.
 - **Telemetry rollout:** verify dev → staging → production, with app/environment mappings in `packages/ui/src/lib/service-catalogue.json`; missing mappings disable collection, never fall back to another owner’s project.
 - **Public browser analytics:** collect only on production `barrels.gd` and its public subdomains; staging and previews must stay disabled even if legacy provider IDs exist. See `docs/operations/analytics-monitoring.md`.
 - **Monitoring ownership:** manage provider configuration, host probes and backup/restore jobs through reviewed CI/CD; activation and evidence gates are in `docs/operations/analytics-monitoring.md`.
+
+## Code style details
+
+- Use `cn` for conditional utilities and caller `className`, but keep custom `text-*` size and colour pairs intact where `cn` would merge them.
+- Repo-wide `pnpm fix` reformats unrelated in-progress files; use it only deliberately (for example after a dependency bump).
+- Other gates: `pnpm docs:check-links && pnpm docs:check-portfolio && pnpm test:docs` (docs), `pnpm design-system:check` (tokens), `./scripts/format.sh` (Ruff fix and format, from `apps/api/fastapi`).
+
+## CI/CD details
+
+- Docker image names in GitHub workflows must be lowercase.
+- Pin all GitHub Actions to SHAs, not tags.
+- After modifying Biome config, verify both `assist` and `formatter` override keys; Linux CI formatting can differ from macOS.
+- `outputFileTracingRoot` in Next.js config must be top-level, not inside `experimental`.
+- `packages/api-client/src/gen/` must stay in sync with `apps/api/fastapi/openapi.json`; drift fails CI.

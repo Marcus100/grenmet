@@ -1,0 +1,107 @@
+# Agent workflow rules
+
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-10-14
+
+Detail behind the short rules in the root `AGENTS.md`. Read the matching section
+before parallel work, integrating or pushing, a cross-layer change, or editing
+agent instructions. Nothing here relaxes a root rule.
+
+## Parallel agents and worktrees
+
+- Several agents often run at once: give each its own git worktree and branch
+  (Claude: `claude --worktree <topic>`, which creates `.claude/worktrees/<topic>`
+  from the current `dev` HEAD; Codex: its worktree mode).
+- A new worktree needs `pnpm install --frozen-lockfile`; API work also needs
+  `uv sync --frozen --package fast-back --package gms-ingest`, and web
+  type-checks need `pnpm turbo run build --filter=@barrelsgd/api-client`.
+- Commit in the worktree, then merge completed branches into local `dev` in a
+  clean integration checkout. Dev servers stay on the host in the main checkout.
+- Never hand-merge `openapi.json` or `packages/api-client/src/gen/`: take either
+  side and regenerate (openapi command in `AGENTS.md` → `pnpm generate:api-client`
+  → `pnpm check:drift`).
+- **Shared stashes:** git stashes are shared across worktrees. Record and apply
+  the exact stash SHA; never use an implicit latest stash during parallel work.
+- **Worktree cleanup:** a clean worktree may still back another live session.
+  Confirm session ownership and preserve ignored local files before removal;
+  keep uncertain worktrees and never remove another session's working directory.
+
+## Git and GitHub workflow
+
+**Attended sessions** (a person is directing the agent):
+
+- Merge completed task branches into local `dev`, validate the combined result,
+  then push `dev` directly. Do not push feature branches or open feature-to-dev
+  PRs unless the user asks.
+- Fetch first and integrate current `origin/dev`; run `pnpm fix:changed`,
+  `pnpm type-check`, affected tests, staged guardrails and the blast-radius review
+  before pushing. If remote `dev` advances, integrate it locally and revalidate
+  before retrying.
+- Standing authorization: after local validation and a direct `dev` push,
+  create or update the `dev → staging` PR and merge it once all applicable checks
+  pass for its current head. Review the promotion diff, verify `dev` has not
+  advanced, and use `--match-head-commit`; never merge pending or failing checks.
+- Monitor the staging deployment and report actionable failures or readiness for
+  acceptance. Reuse an open promotion PR. Production (`staging → main`), releases
+  and deploys need separate explicit authorization. Do not promote unrelated or
+  unfinished work.
+
+**Unattended routines** follow [routines.md](routines.md) instead: they push only
+their own `agent/<n>-<slug>` branch, open a PR to `dev`, and never push `dev`,
+`staging` or `main` or merge anything.
+
+## Blast-radius gate
+
+A change is not done when the named file passes `pnpm fix` and `pnpm type-check`.
+Run `pnpm guardrails:staged` (FastAPI route or schema changes must be paired with
+`openapi.json`; CI runs the same check), then grep for every remaining consumer of
+the symbols you touched and verify each affected layer. The script covers one
+case, not the general one. The gate finds impact; it does not override explicit
+file limits or authorize unrelated work.
+
+| If you change… | Also verify… |
+| --- | --- |
+| A FastAPI route or schema | regen `openapi.json` → `pnpm generate:api-client` → `pnpm check:drift`; `docs/api/contracts.md`; every web consumer of the generated hook or type |
+| A SQLAlchemy model | Alembic revision for the right database (main or `src/<domain>/alembic.ini`); seeds; `openapi.json` if it surfaces in a schema |
+| A permission key | `src/auth/permissions.py` catalogue (enforced by `tests/auth/test_permission_registry.py`); UI gating in gaa-admin |
+| Auth behaviour (`packages/auth`) | every app using it plus delegating apps (docs, gms via `AUTH_API_URL`) |
+| A domain baseline (`src/<domain>/migrations/drizzle-history.json`) | never edit it: it verifies adopted production history; new schema work is a new Alembic revision |
+| A consolidated admin route | the other folded modules in gaa-admin |
+| A `@barrelsgd/ui` primitive | every app importing it |
+
+## Session handoff
+
+Claude Code and Codex share one working tree. A `SessionStart` hook tails
+`SESSION_LOG.md` (main checkout root, gitignored, shared by every worktree) into
+context; read it before assuming a task is untouched. After a meaningful chunk of
+work, append one entry: timestamp, tool, summary, files, friction issues, next
+step, newest at the bottom. If you worked around anything, run the
+`file-friction` skill. For tool switches, follow [tool-usage.md](tool-usage.md).
+
+## Editing agent instructions
+
+- Keep the root `AGENTS.md` a short map (about 10 KB): commands, hard rules,
+  the instruction map and links. Research on repository context files found that
+  extra requirements lower agent success and raise cost, so add a root rule only
+  when an agent got it wrong without it and the code cannot show it.
+- Put directory rules in nested `AGENTS.md` files and update the instruction map;
+  put operational detail in a doc under `docs/` and link it.
+- A rule that must hold every time belongs in a hook or a test, not in prose.
+- Codex reads the root file and each nested file down to the working directory up
+  to `project_doc_max_bytes` in `.codex/config.toml`;
+  `scripts/guardrails/check-agent-config.test.mjs` checks every chain fits.
+- Record durable domain rules in domain docs and durable agent conventions in the
+  relevant `AGENTS.md`; ask only when the lasting rule or its scope is ambiguous.
+
+## Hooks
+
+Hook scripts live in `.claude/hooks/` and are wired in `.claude/settings.json`
+(Claude Code) and `.codex/config.toml` (Codex), so one script serves both tools.
+`block-dangerous-git.mjs` blocks force pushes, `git reset --hard`, `git clean -f`,
+`git branch -D`, `git checkout .`/`git restore .` and `gh pr merge`;
+`protect-files.mjs` blocks `.env*` writes and edits to the generated API client.
+To extend the git blocklist, edit `DANGEROUS_PATTERNS` in
+`block-dangerous-git.mjs` and add a blocking case (and, for phrases that can appear
+in quoted text, a non-blocking case) to
+`scripts/guardrails/agent-hook-behavior.test.mjs`.
