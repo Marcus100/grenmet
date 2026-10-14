@@ -19,15 +19,6 @@ import {
   type StoredProduct,
   TIDE_SLOTS,
 } from "@barrelsgd/gms/products";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogTitle,
-} from "@barrelsgd/ui/components/ui/alert-dialog";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Card } from "@barrelsgd/ui/components/ui/card";
@@ -77,6 +68,7 @@ import {
 import { visibleProductFields } from "@/lib/wxproducts/visible-fields";
 import { CapForecastPicker } from "./cap-forecast-picker";
 import { NhcGuidanceEditor } from "./nhc-guidance-editor";
+import { ProductDiscardDialog } from "./product-discard-dialog";
 import { type HistoryItem, ProductHistoryPanel } from "./product-history-panel";
 import { ProductList } from "./product-list";
 import { ProductWithdrawDialog } from "./product-withdraw-dialog";
@@ -1112,30 +1104,16 @@ export function ProductDesk({
           currently published product until you issue the update.
         </p>
       </header>
-      <AlertDialog
+      <ProductDiscardDialog
+        onConfirm={() => {
+          discard?.();
+          setDiscard(null);
+        }}
         onOpenChange={(open) => {
           if (!open) setDiscard(null);
         }}
         open={discard !== null}
-      >
-        <AlertDialogContent>
-          <AlertDialogTitle>Discard unsaved changes?</AlertDialogTitle>
-          <AlertDialogDescription>
-            Save a draft first if you want to keep these changes.
-          </AlertDialogDescription>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Keep editing</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                discard?.();
-                setDiscard(null);
-              }}
-            >
-              Discard changes
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      />
       <ProductEditor
         archive={
           <ProductList
