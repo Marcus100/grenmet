@@ -79,6 +79,7 @@ import { CapForecastPicker } from "./cap-forecast-picker";
 import { NhcGuidanceEditor } from "./nhc-guidance-editor";
 import { type HistoryItem, ProductHistoryPanel } from "./product-history-panel";
 import { ProductList } from "./product-list";
+import { ProductWithdrawDialog } from "./product-withdraw-dialog";
 
 const DAY_SECTION_PREFIX = /^Day (\d)/;
 const DAY_KEY_PREFIX = /^(day[1-4])/;
@@ -622,32 +623,15 @@ function ProductEditor({
                     </Tabs>
                   ) : null}
                   <DirtyState dirty={dirty} onDirty={onDirty} />
-                  <AlertDialog
+                  <ProductWithdrawDialog
+                    onConfirm={() => {
+                      setWithdrawOpen(false);
+                      submit(values, "withdraw");
+                    }}
                     onOpenChange={setWithdrawOpen}
                     open={withdrawOpen}
-                  >
-                    <AlertDialogContent>
-                      <AlertDialogTitle>Withdraw publication?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This removes the published product from GMS. Its
-                        revision history remains. If this had an escalated CAP
-                        Alert, cancel it separately in CAP Admin — withdrawing
-                        here does not do that automatically.
-                      </AlertDialogDescription>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Cancel</AlertDialogCancel>
-                        <AlertDialogAction
-                          disabled={pending}
-                          onClick={() => {
-                            setWithdrawOpen(false);
-                            submit(values, "withdraw");
-                          }}
-                        >
-                          Confirm withdrawal
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
+                    pending={pending}
+                  />
                   <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
                     <div className="flex flex-wrap items-center gap-1.5">
                       <Badge variant="outline">
