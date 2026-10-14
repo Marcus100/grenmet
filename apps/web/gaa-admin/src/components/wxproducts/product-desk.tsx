@@ -48,11 +48,6 @@ import type { PdfPreviewRequest } from "@/components/wxproducts/forecast-pdf-fra
 import { ProductDeskLayout } from "@/components/wxproducts/product-desk-layout";
 import { ProductPdfPreview } from "@/components/wxproducts/product-pdf-preview";
 import { bulletinExample } from "@/lib/wxproducts/bulletin-examples";
-import {
-  metresHint,
-  nauticalMilesHint,
-  windHint,
-} from "@/lib/wxproducts/units";
 import { visibleProductFields } from "@/lib/wxproducts/visible-fields";
 import { CapForecastPicker } from "./cap-forecast-picker";
 import { NhcGuidanceEditor } from "./nhc-guidance-editor";
@@ -61,6 +56,7 @@ import { ProductFieldControl, sectionParts } from "./product-field-control";
 import { type HistoryItem, ProductHistoryPanel } from "./product-history-panel";
 import { ProductList } from "./product-list";
 import { ProductWithdrawDialog } from "./product-withdraw-dialog";
+import { SectionHints } from "./section-hints";
 
 const DAY_KEY_PREFIX = /^(day[1-4])/;
 
@@ -645,48 +641,11 @@ function ProductEditor({
                                     sectionFields.map(renderField)
                                   )}
                                 </div>
-                                {group === "Wind" &&
-                                windHint(
-                                  values[k("windSpeedMin")],
-                                  values[k("windSpeedMax")],
-                                  values[k("windGust")]
-                                ) ? (
-                                  <p className="text-muted-foreground text-xs">
-                                    {windHint(
-                                      values[k("windSpeedMin")],
-                                      values[k("windSpeedMax")],
-                                      values[k("windGust")]
-                                    )}
-                                  </p>
-                                ) : null}
-                                {group === "Marine" &&
-                                metresHint(
-                                  values[k("waveHeightMin")],
-                                  values[k("waveHeightMax")]
-                                ) ? (
-                                  <p className="text-muted-foreground text-xs">
-                                    Waves{" "}
-                                    {metresHint(
-                                      values[k("waveHeightMin")],
-                                      values[k("waveHeightMax")]
-                                    )}
-                                    {values[k("swellHeight")]
-                                      ? ` · swell ${metresHint(values[k("swellHeight")])}`
-                                      : ""}
-                                  </p>
-                                ) : null}
-                                {group === "Visibility" &&
-                                nauticalMilesHint(
-                                  values[k("visibilityMin")],
-                                  values[k("visibilityMax")]
-                                ) ? (
-                                  <p className="text-muted-foreground text-xs">
-                                    {nauticalMilesHint(
-                                      values[k("visibilityMin")],
-                                      values[k("visibilityMax")]
-                                    )}
-                                  </p>
-                                ) : null}
+                                <SectionHints
+                                  group={group}
+                                  prefix={prefix}
+                                  values={values}
+                                />
                                 {legacyNote(section, values)}
                               </section>
                             );
