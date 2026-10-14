@@ -32,7 +32,7 @@ Elections and the separate Barrels holding page use Vercel; the operational apps
 - Every figure needs a source. Show uncertain figures, but mark them: ✱ unverified,
   ✱✱ conflicting or unclear, † corroborated by a contemporaneous report (`Flag`).
 - Official-data-only comparisons require every input to be officially supported; withhold incomplete measures, never zero-fill or re-normalise partial votes. Retain full history with visible source labels by default.
-- Map constituency codes to names from `source/reference/constituencies.json`, never from memory
+- Map constituency codes to names from `src/data/source/reference/constituencies.json`, never from memory
   (J = St. George North West, G = Town of St. George).
 - Coverage posts are editorial. They live in `src/data/coverage.ts` until they move to
   Payload CMS. Each post has its own page at `/updates/<slug>`, which lists its sources; the
