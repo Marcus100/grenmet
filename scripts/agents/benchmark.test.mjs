@@ -23,9 +23,11 @@ import {
   installSteps,
   loadTasks,
   logDetails,
+  MODEL_TIERS,
   pathViolations,
   prepareClone,
   removeClone,
+  resolveModel,
   saveResult,
   scrubbedEnv,
   selfCheck,
@@ -33,6 +35,8 @@ import {
 } from "./benchmark.mjs";
 import { validateRecord } from "./run-record.mjs";
 
+const NEEDS_MODEL = /--model <name> or --tier/;
+const TIER_ERROR = /--tier must be/;
 const INVALID_RECORD = /Invalid record/;
 const WORKFLOW_PATH = /\.github\/workflows\/x\.yml/;
 const AGENT_NAME_ERROR = /must be claude or codex/;
@@ -546,6 +550,7 @@ test("model and token usage are read from both agents' logs", () => {
     model: "claude-sonnet-5-5",
     outputTokens: 300,
     reportedCostUsd: 0.02,
+    totalInputTokens: 2900,
   });
   const codexLog = [
     JSON.stringify({
@@ -611,4 +616,31 @@ test("selfcheck deletes its large clone unless asked to keep it", (t) => {
   assert.equal(existsSync(gone), false);
   removeClone(kept);
   assert.equal(existsSync(kept), false);
+});
+
+test("a run must name its model, directly or through a tier", () => {
+  assert.equal(
+    resolveModel({ agent: "codex", model: "gpt-6-luna" }),
+    "gpt-6-luna"
+  );
+  assert.equal(
+    resolveModel({ agent: "claude", tier: "cheap" }),
+    "claude-haiku-5-5"
+  );
+  assert.equal(resolveModel({ agent: "codex", tier: "cheap" }), "gpt-6-luna");
+  assert.equal(
+    resolveModel({ agent: "codex", tier: "balanced" }),
+    "gpt-6.1-sol"
+  );
+  assert.deepEqual(Object.keys(MODEL_TIERS).sort(), ["balanced", "cheap"]);
+  assert.throws(() => resolveModel({ agent: "claude" }), NEEDS_MODEL);
+  assert.throws(
+    () => resolveModel({ agent: "gpt", tier: "cheap" }),
+    TIER_ERROR
+  );
+  // An explicit model wins over a tier.
+  assert.equal(
+    resolveModel({ agent: "claude", model: "x", tier: "cheap" }),
+    "x"
+  );
 });

@@ -6,7 +6,7 @@
 //   run <id> --agent claude|codex        prepare, run, grade, retry, record
 //   selfcheck <id>                       apply the known solution and grade it
 //
-// Options: --model <name>  --root <dir>  --max-retries <0-2>  --agent-cmd <exe>  --keep
+// Options: --model <name> | --tier cheap|balanced  --root <dir>  --max-retries <0-2>  --agent-cmd <exe>  --keep
 // Clones with dependencies installed are about 2 GB, so they are deleted after
 // grading unless --keep is given. Keep --root off tmpfs (/tmp may be in memory).
 //
@@ -511,12 +511,36 @@ export function executeTask({
 // Model and token usage from the agents' JSONL logs. Both CLIs report usage:
 // Claude on its final result event, Codex on every completed turn. Tokens are the
 // best available proxy for plan-limit cost, which is not billed per run.
+// Folds one usage object into the running totals. Codex counts cached tokens
+// inside input_tokens; Claude reports them apart, so add them back to compare
+// the two on one scale.
+function addUsage(details, usage, event) {
+  const input = usage.input_tokens ?? 0;
+  const cached =
+    (usage.cached_input_tokens ?? 0) + (usage.cache_read_input_tokens ?? 0);
+  details.inputTokens += input;
+  details.outputTokens += usage.output_tokens ?? 0;
+  details.cachedTokens += cached;
+  details.totalInputTokens +=
+    "cached_input_tokens" in usage
+      ? input
+      : input +
+        (usage.cache_read_input_tokens ?? 0) +
+        (usage.cache_creation_input_tokens ?? 0);
+  if (event.total_cost_usd)
+    details.reportedCostUsd =
+      (details.reportedCostUsd ?? 0) + event.total_cost_usd;
+}
+
+const USAGE_EVENTS = new Set(["result", "turn.completed"]);
+
 export function logDetails(log) {
   const details = {
     cachedTokens: 0,
     inputTokens: 0,
     model: undefined,
     outputTokens: 0,
+    totalInputTokens: 0,
   };
   for (const line of log.split("\n")) {
     let event;
@@ -527,18 +551,8 @@ export function logDetails(log) {
     }
     if (event.type === "system" && event.subtype === "init" && event.model)
       details.model = event.model;
-    const usage =
-      event.type === "result" || event.type === "turn.completed"
-        ? event.usage
-        : undefined;
-    if (!usage) continue;
-    details.inputTokens += usage.input_tokens ?? 0;
-    details.outputTokens += usage.output_tokens ?? 0;
-    details.cachedTokens +=
-      (usage.cached_input_tokens ?? 0) + (usage.cache_read_input_tokens ?? 0);
-    if (event.total_cost_usd)
-      details.reportedCostUsd =
-        (details.reportedCostUsd ?? 0) + event.total_cost_usd;
+    if (USAGE_EVENTS.has(event.type) && event.usage)
+      addUsage(details, event.usage, event);
   }
   return details;
 }
@@ -611,6 +625,29 @@ export function selfCheck({ keep = false, repo = repoRoot, root, task }) {
   return grade;
 }
 
+// Benchmark runs must name their model: a CLI default hides which model was
+// measured (Codex defaulted to gpt-6-astra in the first pilot, Claude to Opus).
+// Tiers pair comparable models so agents are compared like for like.
+export const MODEL_TIERS = {
+  balanced: { claude: "claude-sonnet-5-5", codex: "gpt-6.1-sol" },
+  cheap: { claude: "claude-haiku-5-5", codex: "gpt-6-luna" },
+};
+
+export function resolveModel({ agent, model, tier }) {
+  if (model) return model;
+  if (tier) {
+    const chosen = MODEL_TIERS[tier]?.[agent];
+    if (!chosen)
+      throw new Error(
+        `--tier must be ${Object.keys(MODEL_TIERS).join(" or ")} with --agent claude or codex`
+      );
+    return chosen;
+  }
+  throw new Error(
+    "Give --model <name> or --tier cheap|balanced so the record names the real model"
+  );
+}
+
 function parseArgs(argv) {
   const [command, id, ...rest] = argv;
   const options = { command, id, maxRetries: MAX_RETRIES, root: DEFAULT_ROOT };
@@ -619,6 +656,7 @@ function parseArgs(argv) {
     "--agent-cmd": "agentCmd",
     "--dir": "dir",
     "--model": "model",
+    "--tier": "tier",
     "--root": "root",
   };
   for (let i = 0; i < rest.length; i++) {
@@ -647,6 +685,14 @@ function main() {
     process.exitCode = grade.passed ? 0 : 1;
     return;
   }
+  const model =
+    options.command === "run"
+      ? resolveModel({
+          agent: options.agent,
+          model: options.model,
+          tier: options.tier,
+        })
+      : undefined;
   const dir =
     options.dir ??
     join(options.root, "clones", `${task.id}-${options.agent ?? "manual"}`);
@@ -660,12 +706,12 @@ function main() {
       "Usage: benchmark.mjs list|prepare|run|selfcheck <id> [options]"
     );
   installDependencies(task, dir);
-  const result = executeTask({ ...options, dir, task });
+  const result = executeTask({ ...options, dir, model, task });
   const details = logDetails(result.log);
   const record = toRunRecord({
     ...result,
     agent: options.agent,
-    model: options.model ?? details.model,
+    model: details.model ?? model,
     task,
   });
   const file = saveResult(options.root, record, details);

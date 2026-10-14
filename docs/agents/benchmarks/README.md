@@ -47,12 +47,15 @@ automated grading (`node scripts/agents/benchmark.mjs list`):
 
 ```bash
 node scripts/agents/benchmark.mjs selfcheck bm-12      # the known solution must pass
-node scripts/agents/benchmark.mjs run bm-12 --agent claude --model claude-sonnet-5-5
-node scripts/agents/benchmark.mjs run bm-12 --agent codex
+node scripts/agents/benchmark.mjs run bm-12 --agent claude --tier cheap     # claude-haiku-5-5
+node scripts/agents/benchmark.mjs run bm-12 --agent codex --tier cheap      # gpt-6-luna
 pnpm agents:report --file ~/.cache/grenmet-bench/results.json --only benchmark
 ```
 
-Each run uses a standalone clone with no remote and no later history, a scrubbed
+Every run must name its model with `--model <name>` or `--tier cheap|balanced`, because a
+CLI default hides which model was measured. The tiers pair comparable models: cheap is
+`claude-haiku-5-5` with `gpt-6-luna`, balanced is `claude-sonnet-5-5` with
+`gpt-6.1-sol`. Each run uses a standalone clone with no remote and no later history, a scrubbed
 environment, and (for Claude) no MCP servers and only the built-in tools it needs.
 Results land in `results.json` beside the logs, including model and token usage
 from the agents' own logs as the cost proxy. A clone with dependencies installed is
