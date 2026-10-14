@@ -2,13 +2,14 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-13
+**Last updated:** 2026-10-14
 
 Everything agents (Claude Code, Codex and scheduled routines) and the people who
 direct them need beyond the root `AGENTS.md`.
 
 | Document | Read it to |
 | --- | --- |
+| [workflow.md](workflow.md) | Work in parallel worktrees, integrate and push, check blast radius, hand off, extend hooks. |
 | [tool-usage.md](tool-usage.md) | Hand work between tools and keep the session log short. |
 | [extended-rules.md](extended-rules.md) | Follow design, branding, telemetry and monitoring rules. |
 | [primitives.md](primitives.md) | Reuse shared helpers before writing new ones. |

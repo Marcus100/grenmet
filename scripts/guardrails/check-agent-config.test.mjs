@@ -265,8 +265,7 @@ test("skills-lock.json has no dangling entries and no orphaned external skill di
   }
 
   // Skills not in the lockfile are expected: repo-custom skills (api-change,
-  // gaa-admin-change, design-critique, refactoring-ui, stack-doctor,
-  // git-guardrails-claude-code) have no upstream source, so they're never
-  // locked. This only catches the other direction: a locked skill whose
+  // gaa-admin-change, design-critique, refactoring-ui, stack-doctor) have no
+  // upstream source, so they're never locked. This only catches the other direction: a locked skill whose
   // directory is gone.
 });
