@@ -6,6 +6,7 @@ from collections.abc import Sequence
 from datetime import datetime
 from typing import Any, Literal
 
+from pydantic import TypeAdapter
 from sqlalchemy import Select, delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -30,6 +31,13 @@ from ..models import (
 )
 from .common import GOING_PREVIEW, _pairs, when_window
 from .people import _chips, blocked_ids, get_or_create_profile
+
+_CATEGORY = TypeAdapter(schemas.Category)
+_PARISH = TypeAdapter(schemas.Parish)
+_ADMISSION = TypeAdapter(schemas.Admission)
+_JOIN_POLICY = TypeAdapter(Literal["open", "approval"])
+_VIEWER_STATUS = TypeAdapter(Literal["host", "member", "pending"])
+
 
 # --- Listings -----------------------------------------------------------------------
 
@@ -125,12 +133,12 @@ async def _cards(
                 slug=listing.slug,
                 title=listing.title,
                 summary=listing.summary,
-                category=listing.category,  # type: ignore[arg-type]
-                parish=listing.parish,  # type: ignore[arg-type]
+                category=_CATEGORY.validate_python(listing.category),
+                parish=_PARISH.validate_python(listing.parish),
                 venue=listing.venue,
                 starts_at=listing.starts_at,
                 ends_at=listing.ends_at,
-                admission=listing.admission,  # type: ignore[arg-type]
+                admission=_ADMISSION.validate_python(listing.admission),
                 price_from_minor=price,
                 currency=currency,
                 recurrence=listing.recurrence,
@@ -339,7 +347,7 @@ async def _group_summaries(
             )
         ).all()
     )
-    statuses: dict[uuid.UUID, str] = {}
+    statuses: dict[uuid.UUID, Literal["host", "member", "pending"]] = {}
     if viewer_id is not None:
         for group_id, role, status in (
             await db.execute(
@@ -348,19 +356,21 @@ async def _group_summaries(
                 ).where(GroupMember.user_id == viewer_id, GroupMember.group_id.in_(ids))
             )
         ).all():
-            statuses[group_id] = "pending" if status == "pending" else role
+            statuses[group_id] = _VIEWER_STATUS.validate_python(
+                "pending" if status == "pending" else role
+            )
     return [
         schemas.GroupSummary(
             id=group.id,
             slug=group.slug,
             name=group.name,
             tagline=group.tagline,
-            category=group.category,  # type: ignore[arg-type]
-            parish=group.parish,  # type: ignore[arg-type]
-            join_policy=group.join_policy,  # type: ignore[arg-type]
+            category=_CATEGORY.validate_python(group.category),
+            parish=_PARISH.validate_python(group.parish),
+            join_policy=_JOIN_POLICY.validate_python(group.join_policy),
             member_count=int(counts.get(group.id, 0)),
             next_listing_starts_at=nexts.get(group.id),
-            viewer_status=statuses.get(group.id),  # type: ignore[arg-type]
+            viewer_status=statuses.get(group.id),
         )
         for group in groups
     ]

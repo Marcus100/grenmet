@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-13
+**Last updated:** 2026-10-14
 
 Versioned prompts for unattended agent runs. They work the same in either tool:
 run them as a Claude Code `/schedule` routine or a Codex cloud task. Only **one**
@@ -37,6 +37,12 @@ Edit the prompt here first, then update the live routine to match.
 - For a task that changes `apps/web/gms` or `apps/web/gaa-admin`, run `pnpm e2e`. A
   SKIP means no dev server was reachable; say so in the run record instead of
   claiming the UI was checked.
+- **Sandbox limits.** The cloud sandbox may not have the Python patch version in
+  `.python-version`. If `uv sync` cannot find it, use the nearest 3.14 patch with
+  `uv sync --frozen --python 3.14 --package fast-back --package gms-ingest`, run
+  `pnpm install --frozen-lockfile` first, then run the steps of `pnpm verify:changed`
+  by hand. Record `verify: skipped` in the run record and list exactly which gates
+  you ran in the PR body. CI is the full check; a human reviews the PR.
 - Stay inside what the issue describes. Ask First and Never tiers in `AGENTS.md`
   still apply: an issue that needs them becomes `ready-for-human`.
 - Finish every task with a run record: `node scripts/agents/run-record.mjs --kind run

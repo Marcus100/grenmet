@@ -24,6 +24,7 @@ import {
   loadTasks,
   logDetails,
   MODEL_TIERS,
+  parseArgs,
   pathViolations,
   prepareClone,
   removeClone,
@@ -35,6 +36,7 @@ import {
 } from "./benchmark.mjs";
 import { validateRecord } from "./run-record.mjs";
 
+const UNKNOWN_ARGUMENT = /Unknown argument/;
 const NEEDS_MODEL = /--model <name> or --tier/;
 const TIER_ERROR = /--tier must be/;
 const INVALID_RECORD = /Invalid record/;
@@ -689,4 +691,23 @@ test("a run must name its model, directly or through a tier", () => {
     resolveModel({ agent: "claude", model: "x", tier: "cheap" }),
     "x"
   );
+});
+
+test("a run can start from another commit and carry a label for A/B comparisons", () => {
+  const options = parseArgs([
+    "run",
+    "bm-21",
+    "--agent",
+    "codex",
+    "--tier",
+    "cheap",
+    "--base",
+    "b74f3173",
+    "--label",
+    "old-agents-md",
+  ]);
+  assert.equal(options.base, "b74f3173");
+  assert.equal(options.label, "old-agents-md");
+  assert.equal(parseArgs(["run", "bm-21"]).base, undefined);
+  assert.throws(() => parseArgs(["run", "bm-21", "--bogus"]), UNKNOWN_ARGUMENT);
 });

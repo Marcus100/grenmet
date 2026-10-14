@@ -7,6 +7,7 @@
 //   selfcheck <id>                       apply the known solution and grade it
 //
 // Options: --model <name> | --tier cheap|balanced  --root <dir>  --max-retries <0-2>  --agent-cmd <exe>  --keep
+//   --base <commit>  start from another commit (for A/B runs)  --label <text>  tag the saved details
 // Clones with dependencies installed are about 2 GB, so they are deleted after
 // grading unless --keep is given. Keep --root off tmpfs (/tmp may be in memory).
 //
@@ -652,13 +653,15 @@ export function resolveModel({ agent, model, tier }) {
   );
 }
 
-function parseArgs(argv) {
+export function parseArgs(argv) {
   const [command, id, ...rest] = argv;
   const options = { command, id, maxRetries: MAX_RETRIES, root: DEFAULT_ROOT };
   const flags = {
     "--agent": "agent",
     "--agent-cmd": "agentCmd",
+    "--base": "base",
     "--dir": "dir",
+    "--label": "label",
     "--model": "model",
     "--tier": "tier",
     "--root": "root",
@@ -680,7 +683,8 @@ function main() {
       console.log(`${task.id}  ${task.kind.padEnd(11)}  ${task.title}`);
     return;
   }
-  const task = findTask(options.id);
+  const found = findTask(options.id);
+  const task = options.base ? { ...found, base: options.base } : found;
   if (!isGradable(task))
     throw new Error(`${task.id} has no automated grading yet`);
   if (options.command === "selfcheck") {
@@ -711,7 +715,11 @@ function main() {
     );
   installDependencies(task, dir);
   const result = executeTask({ ...options, dir, model, task });
-  const details = logDetails(result.log);
+  const details = {
+    ...logDetails(result.log),
+    ...(options.label ? { label: options.label } : {}),
+    ...(options.base ? { base: options.base } : {}),
+  };
   const record = toRunRecord({
     ...result,
     agent: options.agent,
