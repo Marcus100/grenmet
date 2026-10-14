@@ -75,9 +75,9 @@ import {
   windHint,
 } from "@/lib/wxproducts/units";
 import { visibleProductFields } from "@/lib/wxproducts/visible-fields";
-
 import { CapForecastPicker } from "./cap-forecast-picker";
 import { NhcGuidanceEditor } from "./nhc-guidance-editor";
+import { type HistoryItem, ProductHistoryPanel } from "./product-history-panel";
 import { ProductList } from "./product-list";
 
 const DAY_SECTION_PREFIX = /^Day (\d)/;
@@ -89,13 +89,6 @@ function productTabLabel(kind: ProductKind) {
   return PRODUCT_KINDS[kind];
 }
 
-interface HistoryItem {
-  action: string;
-  actorName: string;
-  changeSummary: string;
-  createdAt: string;
-  revision: number;
-}
 const EVENING_DAY_DATE = /^day[1-4]Date$/;
 const COMPUTED_FORECAST_FIELDS = [
   "issuedAt",
@@ -1019,36 +1012,17 @@ function ProductEditor({
                     </section>
                   ) : null}
                   {revision ? (
-                    <section className="space-y-3">
-                      <Button
-                        disabled={pending}
-                        onClick={() =>
-                          startTransition(async () => {
-                            const result = await loadProductHistoryAction(id);
-                            if (result.ok) setHistory(result.history);
-                            else setMessage(result.error);
-                          })
-                        }
-                        type="button"
-                        variant="outline"
-                      >
-                        View revision history
-                      </Button>
-                      <ul className="space-y-2">
-                        {history.map((item) => (
-                          <li
-                            className="rounded-lg border p-3 text-sm"
-                            key={item.revision}
-                          >
-                            Revision {item.revision} · {item.action} ·{" "}
-                            {item.actorName} · {item.createdAt}
-                            {item.changeSummary ? (
-                              <p>{item.changeSummary}</p>
-                            ) : null}
-                          </li>
-                        ))}
-                      </ul>
-                    </section>
+                    <ProductHistoryPanel
+                      history={history}
+                      onLoad={() =>
+                        startTransition(async () => {
+                          const result = await loadProductHistoryAction(id);
+                          if (result.ok) setHistory(result.history);
+                          else setMessage(result.error);
+                        })
+                      }
+                      pending={pending}
+                    />
                   ) : null}
                 </Card>
               }
