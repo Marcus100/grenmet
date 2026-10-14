@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import {
   chmodSync,
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -24,6 +25,7 @@ import {
   logDetails,
   pathViolations,
   prepareClone,
+  removeClone,
   saveResult,
   scrubbedEnv,
   selfCheck,
@@ -589,4 +591,24 @@ test("run details are saved beside the records", (t) => {
   assert.deepEqual(data.runs, [
     { agent: "codex", details: { inputTokens: 5 }, task: "bm-02" },
   ]);
+});
+
+test("selfcheck deletes its large clone unless asked to keep it", (t) => {
+  const { base, repo, root, solution } = createRepo(t);
+  const task = taskFor(base, solution, PASSING);
+  const kept = join(root, "keep", "selfcheck", task.id);
+  const gone = join(root, "gone", "selfcheck", task.id);
+
+  assert.equal(
+    selfCheck({ keep: true, repo, root: join(root, "keep"), task }).passed,
+    true
+  );
+  assert.equal(existsSync(kept), true);
+  assert.equal(
+    selfCheck({ repo, root: join(root, "gone"), task }).passed,
+    true
+  );
+  assert.equal(existsSync(gone), false);
+  removeClone(kept);
+  assert.equal(existsSync(kept), false);
 });

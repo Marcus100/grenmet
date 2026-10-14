@@ -40,6 +40,28 @@ because they touch `package.json` or agent hooks, so those PRs always need a hum
 Run each task once per agent per model. Re-running a task with a changed prompt or
 skill counts as a new experiment; note it in `docs/agents/journal.md`.
 
+## Running with the harness
+
+`scripts/agents/benchmark.mjs` automates the steps above for the tasks that have
+automated grading (`node scripts/agents/benchmark.mjs list`):
+
+```bash
+node scripts/agents/benchmark.mjs selfcheck bm-12      # the known solution must pass
+node scripts/agents/benchmark.mjs run bm-12 --agent claude --model claude-sonnet-5-5
+node scripts/agents/benchmark.mjs run bm-12 --agent codex
+pnpm agents:report --file ~/.cache/grenmet-bench/results.json --only benchmark
+```
+
+Each run uses a standalone clone with no remote and no later history, a scrubbed
+environment, and (for Claude) no MCP servers and only the built-in tools it needs.
+Results land in `results.json` beside the logs, including model and token usage
+from the agents' own logs as the cost proxy. A clone with dependencies installed is
+about 2 GB, so it is deleted after grading unless you pass `--keep`; keep `--root` on
+a real disk, not `/tmp`, which may be in memory.
+
+Tasks without automated grading need exact function names that their prompts do
+not state, so they stay manual until a prompt and its tests agree on an interface.
+
 ## Scoring
 
 | Outcome | Meaning |

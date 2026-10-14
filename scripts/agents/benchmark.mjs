@@ -6,7 +6,9 @@
 //   run <id> --agent claude|codex        prepare, run, grade, retry, record
 //   selfcheck <id>                       apply the known solution and grade it
 //
-// Options: --model <name>  --root <dir>  --max-retries <0-2>  --agent-cmd <exe>
+// Options: --model <name>  --root <dir>  --max-retries <0-2>  --agent-cmd <exe>  --keep
+// Clones with dependencies installed are about 2 GB, so they are deleted after
+// grading unless --keep is given. Keep --root off tmpfs (/tmp may be in memory).
 //
 // Isolation: every run uses a standalone clone (not a worktree, which shares git
 // config) reset to the task's base commit, with origin removed and all later
@@ -581,8 +583,12 @@ export function saveResult(root, record, details) {
   return file;
 }
 
+export function removeClone(dir) {
+  rmSync(dir, { force: true, recursive: true });
+}
+
 // Applies the solution commit's diff onto a clone of the base and grades it.
-export function selfCheck({ repo = repoRoot, root, task }) {
+export function selfCheck({ keep = false, repo = repoRoot, root, task }) {
   const dir = prepareClone({
     repo,
     dir: join(root, "selfcheck", task.id),
@@ -600,7 +606,9 @@ export function selfCheck({ repo = repoRoot, root, task }) {
     "applying the solution"
   );
   installDependencies(task, dir);
-  return gradeTask({ dir, task });
+  const grade = gradeTask({ dir, task });
+  if (!keep) removeClone(dir);
+  return grade;
 }
 
 function parseArgs(argv) {
@@ -615,6 +623,7 @@ function parseArgs(argv) {
   };
   for (let i = 0; i < rest.length; i++) {
     if (flags[rest[i]]) options[flags[rest[i]]] = rest[++i];
+    else if (rest[i] === "--keep") options.keep = true;
     else if (rest[i] === "--max-retries")
       options.maxRetries = Math.min(Number(rest[++i]), MAX_RETRIES);
     else throw new Error(`Unknown argument: ${rest[i]}`);
@@ -633,7 +642,7 @@ function main() {
   if (!isGradable(task))
     throw new Error(`${task.id} has no automated grading yet`);
   if (options.command === "selfcheck") {
-    const grade = selfCheck({ root: options.root, task });
+    const grade = selfCheck({ keep: options.keep, root: options.root, task });
     console.log(JSON.stringify(grade, null, 2));
     process.exitCode = grade.passed ? 0 : 1;
     return;
@@ -660,6 +669,7 @@ function main() {
     task,
   });
   const file = saveResult(options.root, record, details);
+  if (!options.keep) removeClone(dir);
   console.log(formatRecord(record));
   console.log(`saved to ${file}; ${result.grade.passed ? "PASSED" : "FAILED"}`);
   process.exitCode = result.grade.passed ? 0 : 1;
