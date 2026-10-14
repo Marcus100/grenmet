@@ -2,6 +2,7 @@
 
 Decision record: ADR-0017 (proposed), building on ADR-0016.
 Status: **steps 1–4 built; each site's "Sign in" switches on with its secret.** Each phase ships and
+**Owner:** Barrels Grenada engineering  
 **Last updated:** 2026-10-13
 is reviewed on its own.
 

@@ -3,6 +3,7 @@
 //  - every fenced code block names its language (use `text` for plain output)
 //  - at most one H1 per file, and heading levels never skip (h2 -> h4)
 //  - SKILL.md has `name` (matching its folder) and `description` frontmatter
+//  - docs under docs/ show Status, Owner and Last updated near the top
 // Skills copied from upstream are hash-locked in skills-lock.json, and the
 // block `next dev` regenerates in app AGENTS.md files is not ours to edit, so
 // both are exempt. Usage: node scripts/docs/check-markdown.mjs
@@ -23,6 +24,16 @@ const FRONTMATTER = /^---\n([\s\S]*?)\n---/;
 const SKILL_PATH = /^\.claude\/skills\/([^/]+)\/SKILL\.md$/;
 const LOCKED_SKILL_PATH = /^\.claude\/skills\/([^/]+)\//;
 
+const DOC_PATH = /^docs\//;
+// ADRs have their own template, READMEs are indexes, and the design specs keep
+// their metadata in YAML frontmatter checked by their own test.
+const DOC_EXEMPT = /^docs\/adr\/|(?:^|\/)README\.md$/;
+const HEADER_LINES = 30;
+const DOC_METADATA = [
+  ["Status", /^(?:\*\*)?Status:/m],
+  ["Owner", /^(?:\*\*)?Owner:/m],
+  ["Last updated", /^(?:\*\*)?Last updated:/m],
+];
 const NAME_FIELD = /^name:\s*(.+)$/m;
 const DESCRIPTION_FIELD = /^description:\s*\S/m;
 
@@ -92,6 +103,15 @@ export function checkMarkdown(text, { skipFences = false } = {}) {
   return violations;
 }
 
+// A doc must say who owns it, whether it is current and when it last changed.
+export function checkDocMetadata(text) {
+  if (text.startsWith("---")) return [];
+  const header = text.split("\n").slice(0, HEADER_LINES).join("\n");
+  return DOC_METADATA.filter(([, pattern]) => !pattern.test(header)).map(
+    ([name]) => violation(1, "doc-metadata", `docs need ${name} near the top`)
+  );
+}
+
 // SKILL.md must declare a name equal to its folder and a description.
 export function checkSkillFrontmatter(text, folder) {
   const block = FRONTMATTER.exec(text)?.[1] ?? "";
@@ -128,6 +148,8 @@ export function checkRepository() {
     const owner = LOCKED_SKILL_PATH.exec(file)?.[1];
     if (owner && locked.has(owner)) continue;
     const found = checkMarkdown(text);
+    if (DOC_PATH.test(file) && !DOC_EXEMPT.test(file))
+      found.push(...checkDocMetadata(text));
     const skill = SKILL_PATH.exec(file);
     if (skill) found.push(...checkSkillFrontmatter(text, skill[1]));
     for (const violation of found) results.push({ file, ...violation });

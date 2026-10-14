@@ -1,5 +1,7 @@
 # Manual shift attendance
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
 **Last updated:** 2026-09-28
 
 GAA staff record their own actual arrival, departure and break duration against a

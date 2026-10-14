@@ -1,5 +1,7 @@
 # GMS CAP warning model — agent handoff
 
+**Status:** Historical handoff: a dated note from 2026-09-24, not current guidance  
+**Owner:** Barrels Grenada engineering  
 **Last updated:** 2026-09-25
 
 24 September 2026 · `/workspace` · branch `dev` at start of this work: `009807cc`

@@ -1,6 +1,7 @@
 # GMS report and BUFR conformance checks
 
 **Status:** implementation checklist; no report type is certified by this page.  
+**Owner:** Barrels Grenada engineering  
 **Last updated:** 2026-09-25
 
 The applicable references are the WMO Technical Regulations (WMO-No. 49), the

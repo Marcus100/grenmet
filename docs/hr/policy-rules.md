@@ -1,6 +1,7 @@
 # GAA HR leave rules and accounting map
 
 **Status:** Working evidence register for the GMS pilot, updated 2026-09-26. GMS is a department of GAA. This document records what the available sources say and what the current application does; it does not approve a policy or change an entitlement. HR must confirm coverage, amendments, current law, and operational interpretation before a rule becomes enforceable.  
+**Owner:** GAA/GMS (policy); Barrels Grenada engineering (maintains this register)  
 **Last updated:** 2026-09-26
 
 **Scope:** The first official leave journey and the following leave-year allocation. Add rules for later HR work only when that work starts. Keep policy documents and employee balance files in their controlled locations; this register contains no personal data.

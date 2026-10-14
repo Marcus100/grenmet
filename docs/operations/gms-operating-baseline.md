@@ -3,6 +3,7 @@
 **Recorded:** 2026-09-10  
 **Status:** User-confirmed operating facts and proposed acceptance work; not operational sign-off  
 **Client:** GAA; meteorological department: GMS; software delivery partner: Barrels  
+**Owner:** Barrels Grenada engineering  
 **Last updated:** 2026-09-23
 
 ## Purpose and evidence

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  checkDocMetadata,
   checkMarkdown,
   checkRepository,
   checkSkillFrontmatter,
@@ -61,4 +62,26 @@ test("every tracked Markdown file in the repository follows the conventions", ()
     results.map((r) => `${r.file}:${r.line} [${r.rule}] ${r.message}`),
     []
   );
+});
+
+test("a doc must show Status, Owner and Last updated near the top", () => {
+  const complete =
+    "# T\n\n**Status:** Active  \n**Owner:** Barrels  \n**Last updated:** 2026-10-13\n";
+  assert.deepEqual(checkDocMetadata(complete), []);
+  const plain =
+    "# T\n\nStatus: draft\nOwner: GAA/GMS\nLast updated: 2026-10-13\n";
+  assert.deepEqual(checkDocMetadata(plain), []);
+
+  const missing = checkDocMetadata("# T\n\n**Owner:** Barrels\n");
+  assert.deepEqual(
+    missing.map((v) => v.message),
+    ["docs need Status near the top", "docs need Last updated near the top"]
+  );
+  assert.equal(checkDocMetadata("# T\n\nno metadata").length, 3);
+});
+
+test("metadata far below the header does not count, and frontmatter docs are exempt", () => {
+  const late = `# T\n${"filler\n".repeat(40)}**Status:** x\n**Owner:** y\n**Last updated:** z\n`;
+  assert.equal(checkDocMetadata(late).length, 3);
+  assert.deepEqual(checkDocMetadata("---\ntitle: x\n---\n# T\n"), []);
 });

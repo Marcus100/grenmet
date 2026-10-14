@@ -1,5 +1,7 @@
 # Extended agent rules
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
 **Last updated:** 2026-10-11
 
 Detail moved out of the root `AGENTS.md` to keep it under its 20 KB budget. The

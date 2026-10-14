@@ -1,5 +1,7 @@
 # Agent tool usage
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
 **Last updated:** 2026-10-13
 
 - When the user wants to inspect a file, return full contents — not a summary.

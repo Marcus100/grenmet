@@ -4,6 +4,7 @@
 **Recorded:** 11 September 2026.
 **Client:** Grenada Airports Authority (GAA).
 **Delivery surface:** Authenticated GAA-admin staff portal.  
+**Owner:** Barrels Grenada engineering, for GAA  
 **Last updated:** 2026-09-11
 
 ## Decisions and recommended delivery

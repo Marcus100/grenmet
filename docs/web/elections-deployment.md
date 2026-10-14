@@ -1,5 +1,7 @@
 # Elections Grenada deployment
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
 **Last updated:** 2026-10-07
 
 Elections Grenada is an independent Vercel project in the existing monorepo.
