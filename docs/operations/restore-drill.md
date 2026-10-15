@@ -25,6 +25,14 @@ workflow is `.github/workflows/restore-drill.yml`; the logic is
 5. Always removes the container and the downloaded dumps. The log and the result file
    hold table names, row counts and timings only, never row contents.
 
+## How it relates to the manual restore
+
+`scripts/production/restore-core.sh` restores downloaded dumps by hand onto an isolated
+restore host and leaves the databases for a person to inspect. The drill automates the
+same restore with the same safe flags (fatal on error, no owners or privileges) in a
+container it creates and removes, and adds the migration, row-floor and timing checks.
+Use the manual script for a real recovery and the drill to prove the process works.
+
 ## Not covered yet
 
 Starting the API against the restored databases and running authenticated reads
