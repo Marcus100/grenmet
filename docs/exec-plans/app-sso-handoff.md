@@ -120,6 +120,9 @@ app /auth/callback: state == cookie?
   gms, mbia, signal, docs and elections mount `/auth/{start,callback,me,logout}`
   and show "Sign in" when their `<SITE>_SSO_CLIENT_SECRET` is set.
 - Not yet: `/sessions` grouped by app (auth logout already calls logout-all).
+- *Done (15 Oct 2026):* gaa-admin and cms Log out land on `auth /signed-out`
+  (plus a Log out of all apps item); `auth /apps` lists apps with Join and Leave
+  (`/auth/account/apps*`).
 - Update ADR-0002 (superseded in part), ADR-0016 (amended), `packages/auth`
   README and AGENTS, and `apps/web/auth/AGENTS.md`.
 

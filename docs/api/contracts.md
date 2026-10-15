@@ -196,6 +196,8 @@ their own host-only cookie. All routes are public and rate-limited:
 | `POST /api/v1/auth/apps/{app}/login` | Email and password |
 | `POST /api/v1/auth/apps/{app}/google/start` · `/complete` · `/finish` | Google with the app's redirect URI |
 | `POST /api/v1/auth/apps/{app}/phone-code/start` · `/verify` | SMS/WhatsApp code for linked numbers (disabled until a provider is configured) |
+| `POST /api/v1/auth/account/apps` | List single sign-on apps with `joined` and `can_leave`; body is the auth.barrels.gd account `session_token` (an app session gets 401) |
+| `POST /api/v1/auth/account/apps/{app}/join` · `/leave` | Join (default role) or leave (remove it and end that app's sessions only) a self sign-up app; `leave` returns `still_has_access` when another role keeps access; staff apps return 403 |
 | `POST /api/v1/auth/apps/{app}/phone/link/start` · `/verify` | Signed-in member links a phone number |
 | `POST /api/v1/auth/apps/{app}/handoff` | Single sign-on (ADR-0017): auth's server swaps the account session plus a `state` for a one-use, 60-second code and the app's `callback_url`. 409 = join required (retry with `join: true`), 403 = no access |
 | `POST /api/v1/auth/apps/{app}/handoff/redeem` | The app's server swaps `code`, `state` and its `client_secret` for a new session in that app only |

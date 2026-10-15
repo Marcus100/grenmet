@@ -27,6 +27,9 @@
 - Session/cookie behaviour → verify `packages/auth`, `apps/web/auth`, and every delegating app (root Blast-Radius table).
 - Route changes → `openapi.json`, client regen, `docs/api/contracts.md`.
 
+## Account apps (join and leave)
+`app_router.account_router` (`/auth/account/apps`, `/{app}/join`, `/{app}/leave`) manages memberships for the auth.barrels.gd account session; `_account_session_user` rejects app sessions. Leaving removes only the app's default role link and ends that app's sessions (`sessions.revoke_user_app_sessions`); staff-scope apps cannot be left. Tests: `tests/auth/test_account_apps.py`.
+
 ## Tests
 `tests/auth/` (routers, 2FA, lockout, devices, modern auth, token TTL, user management, permission registry).
 

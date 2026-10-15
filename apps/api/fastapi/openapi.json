@@ -21942,6 +21942,181 @@
         }
       }
     },
+    "/api/v1/auth/account/apps": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "List the apps on this account",
+        "description": "Which single sign-on apps this account can use, and which it may leave. Needs the auth.barrels.gd account session, not an app session.",
+        "operationId": "authListAccountApps",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountSessionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AccountAppPublic"
+                  },
+                  "type": "array",
+                  "title": "Response Authlistaccountapps"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in to the Barrels account"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/account/apps/{app}/join": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Join an app",
+        "description": "Grant the app's default role. Harmless if already a member.",
+        "operationId": "authJoinAccountApp",
+        "parameters": [
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,30}$",
+              "title": "App"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountSessionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppJoinResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Not signed in to the Barrels account"
+          },
+          "403": {
+            "description": "This app cannot be joined or left from here"
+          },
+          "404": {
+            "description": "Unknown app"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/account/apps/{app}/leave": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Leave an app",
+        "description": "Remove the app's default role and end this account's sessions in that app only. The account and other apps are unaffected.",
+        "operationId": "authLeaveAccountApp",
+        "parameters": [
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,30}$",
+              "title": "App"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountSessionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppLeaveResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Not signed in to the Barrels account"
+          },
+          "403": {
+            "description": "This app cannot be joined or left from here"
+          },
+          "404": {
+            "description": "Unknown app"
+          }
+        }
+      }
+    },
     "/api/v1/hr/staff-card/me": {
       "get": {
         "tags": [
@@ -23936,6 +24111,34 @@
         ],
         "title": "AccessReviewData"
       },
+      "AccountAppPublic": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "joined": {
+            "type": "boolean",
+            "title": "Joined"
+          },
+          "can_leave": {
+            "type": "boolean",
+            "title": "Can Leave"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "joined",
+          "can_leave"
+        ],
+        "title": "AccountAppPublic"
+      },
       "AccountSecurityPublic": {
         "properties": {
           "privileged_mfa_required": {
@@ -24003,6 +24206,21 @@
           "sessions"
         ],
         "title": "AccountSecurityPublic"
+      },
+      "AccountSessionRequest": {
+        "properties": {
+          "session_token": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Session Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_token"
+        ],
+        "title": "AccountSessionRequest"
       },
       "ActivationAccountCreate": {
         "properties": {
@@ -24505,6 +24723,37 @@
           "permission_keys"
         ],
         "title": "AppIdentityPublic"
+      },
+      "AppJoinResult": {
+        "properties": {
+          "joined": {
+            "type": "boolean",
+            "title": "Joined"
+          }
+        },
+        "type": "object",
+        "required": [
+          "joined"
+        ],
+        "title": "AppJoinResult"
+      },
+      "AppLeaveResult": {
+        "properties": {
+          "left": {
+            "type": "boolean",
+            "title": "Left"
+          },
+          "still_has_access": {
+            "type": "boolean",
+            "title": "Still Has Access"
+          }
+        },
+        "type": "object",
+        "required": [
+          "left",
+          "still_has_access"
+        ],
+        "title": "AppLeaveResult"
       },
       "AppPasswordLogin": {
         "properties": {

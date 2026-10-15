@@ -49,6 +49,9 @@ export { authGoogleComplete } from "./clients/authGoogleComplete.js";
 export { authGoogleFinish } from "./clients/authGoogleFinish.js";
 export { authGoogleStart } from "./clients/authGoogleStart.js";
 export { authIssueActivation } from "./clients/authIssueActivation.js";
+export { authJoinAccountApp } from "./clients/authJoinAccountApp.js";
+export { authLeaveAccountApp } from "./clients/authLeaveAccountApp.js";
+export { authListAccountApps } from "./clients/authListAccountApps.js";
 export { authLoginAccessToken } from "./clients/authLoginAccessToken.js";
 export { authLoginSession } from "./clients/authLoginSession.js";
 export { authLogoutAllSessions } from "./clients/authLogoutAllSessions.js";
@@ -613,6 +616,21 @@ export {
   authIssueActivationMutationOptions,
   useAuthIssueActivation,
 } from "./hooks/useAuthIssueActivation.js";
+export {
+  authJoinAccountAppMutationKey,
+  authJoinAccountAppMutationOptions,
+  useAuthJoinAccountApp,
+} from "./hooks/useAuthJoinAccountApp.js";
+export {
+  authLeaveAccountAppMutationKey,
+  authLeaveAccountAppMutationOptions,
+  useAuthLeaveAccountApp,
+} from "./hooks/useAuthLeaveAccountApp.js";
+export {
+  authListAccountAppsMutationKey,
+  authListAccountAppsMutationOptions,
+  useAuthListAccountApps,
+} from "./hooks/useAuthListAccountApps.js";
 export {
   authLoginAccessTokenMutationKey,
   authLoginAccessTokenMutationOptions,
@@ -2242,7 +2260,9 @@ export type { AbsenteeReportSubmit } from "./models/AbsenteeReportSubmit.js";
 export type { AccessBlocker } from "./models/AccessBlocker.js";
 export { accessBlocker } from "./models/AccessBlocker.js";
 export type { AccessReviewData } from "./models/AccessReviewData.js";
+export type { AccountAppPublic } from "./models/AccountAppPublic.js";
 export type { AccountSecurityPublic } from "./models/AccountSecurityPublic.js";
+export type { AccountSessionRequest } from "./models/AccountSessionRequest.js";
 export type { ActivationAccountCreate } from "./models/ActivationAccountCreate.js";
 export type { ActivationConfirm } from "./models/ActivationConfirm.js";
 export type { ActivationIssue } from "./models/ActivationIssue.js";
@@ -2258,6 +2278,8 @@ export type { AppHandoffCode } from "./models/AppHandoffCode.js";
 export type { AppHandoffRedeem } from "./models/AppHandoffRedeem.js";
 export type { AppHandoffStart } from "./models/AppHandoffStart.js";
 export type { AppIdentityPublic } from "./models/AppIdentityPublic.js";
+export type { AppJoinResult } from "./models/AppJoinResult.js";
+export type { AppLeaveResult } from "./models/AppLeaveResult.js";
 export type { AppPasswordLogin } from "./models/AppPasswordLogin.js";
 export type { AppPhoneCodeStart } from "./models/AppPhoneCodeStart.js";
 export type { AppPhoneCodeStartPropertiesChannelEnum } from "./models/AppPhoneCodeStartPropertiesChannelEnum.js";
@@ -2805,6 +2827,39 @@ export type {
   AuthIssueActivationStatus409,
   AuthIssueActivationStatus422,
 } from "./models/AuthIssueActivation.js";
+export type {
+  AuthJoinAccountAppBody,
+  AuthJoinAccountAppOptions,
+  AuthJoinAccountAppPath,
+  AuthJoinAccountAppResponse,
+  AuthJoinAccountAppResponses,
+  AuthJoinAccountAppStatus200,
+  AuthJoinAccountAppStatus401,
+  AuthJoinAccountAppStatus403,
+  AuthJoinAccountAppStatus404,
+  AuthJoinAccountAppStatus422,
+} from "./models/AuthJoinAccountApp.js";
+export type {
+  AuthLeaveAccountAppBody,
+  AuthLeaveAccountAppOptions,
+  AuthLeaveAccountAppPath,
+  AuthLeaveAccountAppResponse,
+  AuthLeaveAccountAppResponses,
+  AuthLeaveAccountAppStatus200,
+  AuthLeaveAccountAppStatus401,
+  AuthLeaveAccountAppStatus403,
+  AuthLeaveAccountAppStatus404,
+  AuthLeaveAccountAppStatus422,
+} from "./models/AuthLeaveAccountApp.js";
+export type {
+  AuthListAccountAppsBody,
+  AuthListAccountAppsOptions,
+  AuthListAccountAppsResponse,
+  AuthListAccountAppsResponses,
+  AuthListAccountAppsStatus200,
+  AuthListAccountAppsStatus401,
+  AuthListAccountAppsStatus422,
+} from "./models/AuthListAccountApps.js";
 export type {
   AuthLoginAccessTokenBody,
   AuthLoginAccessTokenOptions,
@@ -6867,7 +6922,9 @@ export { absenteeReportPublicSchema } from "./zod/absenteeReportPublicSchema.js"
 export { absenteeReportSubmitSchema } from "./zod/absenteeReportSubmitSchema.js";
 export { accessBlockerSchema } from "./zod/accessBlockerSchema.js";
 export { accessReviewDataSchema } from "./zod/accessReviewDataSchema.js";
+export { accountAppPublicSchema } from "./zod/accountAppPublicSchema.js";
 export { accountSecurityPublicSchema } from "./zod/accountSecurityPublicSchema.js";
+export { accountSessionRequestSchema } from "./zod/accountSessionRequestSchema.js";
 export { activationAccountCreateSchema } from "./zod/activationAccountCreateSchema.js";
 export { activationConfirmSchema } from "./zod/activationConfirmSchema.js";
 export { activationIssueSchema } from "./zod/activationIssueSchema.js";
@@ -6883,6 +6940,8 @@ export { appHandoffCodeSchema } from "./zod/appHandoffCodeSchema.js";
 export { appHandoffRedeemSchema } from "./zod/appHandoffRedeemSchema.js";
 export { appHandoffStartSchema } from "./zod/appHandoffStartSchema.js";
 export { appIdentityPublicSchema } from "./zod/appIdentityPublicSchema.js";
+export { appJoinResultSchema } from "./zod/appJoinResultSchema.js";
+export { appLeaveResultSchema } from "./zod/appLeaveResultSchema.js";
 export { appPasswordLoginSchema } from "./zod/appPasswordLoginSchema.js";
 export { appPhoneCodeStartPropertiesChannelEnumSchema } from "./zod/appPhoneCodeStartPropertiesChannelEnumSchema.js";
 export { appPhoneCodeStartSchema } from "./zod/appPhoneCodeStartSchema.js";
@@ -7385,6 +7444,36 @@ export {
   authIssueActivationStatus409Schema,
   authIssueActivationStatus422Schema,
 } from "./zod/authIssueActivationSchema.js";
+export {
+  authJoinAccountAppBodySchema,
+  authJoinAccountAppErrorSchema,
+  authJoinAccountAppPathAppSchema,
+  authJoinAccountAppResponseSchema,
+  authJoinAccountAppStatus200Schema,
+  authJoinAccountAppStatus401Schema,
+  authJoinAccountAppStatus403Schema,
+  authJoinAccountAppStatus404Schema,
+  authJoinAccountAppStatus422Schema,
+} from "./zod/authJoinAccountAppSchema.js";
+export {
+  authLeaveAccountAppBodySchema,
+  authLeaveAccountAppErrorSchema,
+  authLeaveAccountAppPathAppSchema,
+  authLeaveAccountAppResponseSchema,
+  authLeaveAccountAppStatus200Schema,
+  authLeaveAccountAppStatus401Schema,
+  authLeaveAccountAppStatus403Schema,
+  authLeaveAccountAppStatus404Schema,
+  authLeaveAccountAppStatus422Schema,
+} from "./zod/authLeaveAccountAppSchema.js";
+export {
+  authListAccountAppsBodySchema,
+  authListAccountAppsErrorSchema,
+  authListAccountAppsResponseSchema,
+  authListAccountAppsStatus200Schema,
+  authListAccountAppsStatus401Schema,
+  authListAccountAppsStatus422Schema,
+} from "./zod/authListAccountAppsSchema.js";
 export {
   authLoginAccessTokenBodySchema,
   authLoginAccessTokenErrorSchema,

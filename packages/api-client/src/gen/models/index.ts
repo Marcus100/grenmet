@@ -7,7 +7,9 @@ export type { AbsenteeReportSubmit } from "./AbsenteeReportSubmit.js";
 export type { AccessBlocker } from "./AccessBlocker.js";
 export { accessBlocker } from "./AccessBlocker.js";
 export type { AccessReviewData } from "./AccessReviewData.js";
+export type { AccountAppPublic } from "./AccountAppPublic.js";
 export type { AccountSecurityPublic } from "./AccountSecurityPublic.js";
+export type { AccountSessionRequest } from "./AccountSessionRequest.js";
 export type { ActivationAccountCreate } from "./ActivationAccountCreate.js";
 export type { ActivationConfirm } from "./ActivationConfirm.js";
 export type { ActivationIssue } from "./ActivationIssue.js";
@@ -23,6 +25,8 @@ export type { AppHandoffCode } from "./AppHandoffCode.js";
 export type { AppHandoffRedeem } from "./AppHandoffRedeem.js";
 export type { AppHandoffStart } from "./AppHandoffStart.js";
 export type { AppIdentityPublic } from "./AppIdentityPublic.js";
+export type { AppJoinResult } from "./AppJoinResult.js";
+export type { AppLeaveResult } from "./AppLeaveResult.js";
 export type { AppPasswordLogin } from "./AppPasswordLogin.js";
 export type { AppPhoneCodeStart } from "./AppPhoneCodeStart.js";
 export type { AppPhoneCodeStartPropertiesChannelEnum } from "./AppPhoneCodeStartPropertiesChannelEnum.js";
@@ -570,6 +574,39 @@ export type {
   AuthIssueActivationStatus409,
   AuthIssueActivationStatus422,
 } from "./AuthIssueActivation.js";
+export type {
+  AuthJoinAccountAppBody,
+  AuthJoinAccountAppOptions,
+  AuthJoinAccountAppPath,
+  AuthJoinAccountAppResponse,
+  AuthJoinAccountAppResponses,
+  AuthJoinAccountAppStatus200,
+  AuthJoinAccountAppStatus401,
+  AuthJoinAccountAppStatus403,
+  AuthJoinAccountAppStatus404,
+  AuthJoinAccountAppStatus422,
+} from "./AuthJoinAccountApp.js";
+export type {
+  AuthLeaveAccountAppBody,
+  AuthLeaveAccountAppOptions,
+  AuthLeaveAccountAppPath,
+  AuthLeaveAccountAppResponse,
+  AuthLeaveAccountAppResponses,
+  AuthLeaveAccountAppStatus200,
+  AuthLeaveAccountAppStatus401,
+  AuthLeaveAccountAppStatus403,
+  AuthLeaveAccountAppStatus404,
+  AuthLeaveAccountAppStatus422,
+} from "./AuthLeaveAccountApp.js";
+export type {
+  AuthListAccountAppsBody,
+  AuthListAccountAppsOptions,
+  AuthListAccountAppsResponse,
+  AuthListAccountAppsResponses,
+  AuthListAccountAppsStatus200,
+  AuthListAccountAppsStatus401,
+  AuthListAccountAppsStatus422,
+} from "./AuthListAccountApps.js";
 export type {
   AuthLoginAccessTokenBody,
   AuthLoginAccessTokenOptions,
