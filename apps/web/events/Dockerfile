@@ -36,6 +36,8 @@ COPY packages/tsconfig/package.json packages/tsconfig/
 COPY packages/ui/package.json packages/ui/
 RUN HUSKY=0 pnpm install --frozen-lockfile
 
+ARG NEXT_PUBLIC_SITE_URL="http://localhost:3009"
+ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 ARG NEXT_PUBLIC_API_URL=""
 ARG NEXT_PUBLIC_ENVIRONMENT=""
 ARG SENTRY_PROJECT=""

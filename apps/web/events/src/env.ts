@@ -12,8 +12,16 @@ export const env = createEnv({
     // Host-only cookie for Events sign-in (ADR-0016): never set a Domain.
     EVENTS_SESSION_COOKIE_NAME: z.string().optional().default("events_session"),
   },
-  client: {},
+  client: {
+    // Canonical public address, for absolute share-preview links (metadataBase).
+    NEXT_PUBLIC_SITE_URL: z
+      .string()
+      .url()
+      .optional()
+      .default("http://localhost:3009"),
+  },
   runtimeEnv: {
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     AUTH_API_URL: process.env.AUTH_API_URL,
     AUTH_API_V1_STR: process.env.AUTH_API_V1_STR,
     AUTH_APP_URL: process.env.AUTH_APP_URL,

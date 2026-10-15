@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-07
+**Last updated:** 2026-10-15
 
 Elections Grenada is an independent Vercel project in the existing monorepo.
 The Barrels holding page has its own Vercel project; operational apps retain the DigitalOcean/GitHub Actions release flow. The target
@@ -71,6 +71,7 @@ other apps' staging project. Configure these in Vercel's project settings:
 | `SENTRY_AUTH_TOKEN` | Build-time source-map upload credential, if enabled |
 | `NEXT_PUBLIC_SENTRY_DSN` | Elections project's public ingestion DSN |
 | `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | `production` or `preview`, matching the target |
+| `NEXT_PUBLIC_SITE_URL` | `https://elections.barrels.gd` in production; the absolute base for share-preview links (`metadataBase`). Without it previews point at `http://localhost:3007`. |
 
 The Sentry organization is `grenmet`, matching the repository configuration.
 Without a DSN the site can run but error reporting is not active. Do not copy
