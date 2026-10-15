@@ -1,10 +1,23 @@
 // @vitest-environment jsdom
 import { render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const readSessionCookie = vi.hoisted(() => vi.fn());
+const exchangeSessionForAccessToken = vi.hoisted(() => vi.fn());
+class FakeAuthApiError extends Error {
+  status: number;
+  constructor(status: number) {
+    super("api");
+    this.status = status;
+  }
+}
 vi.mock("next/cache", () => ({ unstable_noStore: () => undefined }));
-vi.mock("@/lib/session", () => ({ readSessionCookie }));
+vi.mock("@/lib/session", () => ({
+  exchangeSessionForAccessToken,
+  isAuthApiError: (error: unknown) =>
+    typeof error === "object" && error !== null && "status" in error,
+  readSessionCookie,
+}));
 vi.mock("@/app/actions", () => ({ signOutAction: vi.fn() }));
 vi.mock("@/lib/app-links", () => ({
   getAppHrefs: () => ({
@@ -37,6 +50,9 @@ async function show(params: Record<string, string>) {
 }
 
 afterEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  exchangeSessionForAccessToken.mockResolvedValue({});
+});
 
 describe("/signed-out", () => {
   it("says which app was left and offers to sign out everywhere", async () => {
@@ -78,5 +94,17 @@ describe("/signed-out", () => {
     expect(
       screen.getByRole("heading", { name: "You're signed out of all apps" })
     ).toBeTruthy();
+  });
+
+  it("does not claim you are still signed in when the cookie's session was revoked", async () => {
+    readSessionCookie.mockResolvedValue("revoked-session");
+    exchangeSessionForAccessToken.mockImplementation(() => {
+      throw new FakeAuthApiError(401);
+    });
+    await show({ app: "gaa-admin" });
+    expect(
+      screen.getByRole("heading", { name: "You're signed out of all apps" })
+    ).toBeTruthy();
+    expect(screen.queryByRole("button")).toBeNull();
   });
 });

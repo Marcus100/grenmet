@@ -5,7 +5,11 @@ import { APP_GROUPS, findRequestedApp } from "@/components/app-directory";
 import { AuthHeading, AuthShell } from "@/components/auth-shell";
 import { getAppHrefs } from "@/lib/app-links";
 import { readQueryParam } from "@/lib/return-to";
-import { readSessionCookie } from "@/lib/session";
+import {
+  exchangeSessionForAccessToken,
+  isAuthApiError,
+  readSessionCookie,
+} from "@/lib/session";
 
 export const metadata: Metadata = { title: "Signed out — Barrels account" };
 export const dynamic = "force-dynamic";
@@ -26,6 +30,20 @@ function appName(requested: string | null): string {
   return "this app";
 }
 
+/** A cookie can outlive its session (revoked by "sign out of all apps"). */
+async function accountSessionIsLive(): Promise<boolean> {
+  const token = await readSessionCookie();
+  if (!token) return false;
+  try {
+    await exchangeSessionForAccessToken(token);
+    return true;
+  } catch (error) {
+    if (isAuthApiError(error) && (error.status === 401 || error.status === 403))
+      return false;
+    throw error;
+  }
+}
+
 /**
  * Where an app's Log out lands (ADR-0017). Sending the browser straight back to
  * the app would sign it in again through the still-live account session, so say
@@ -36,7 +54,7 @@ export default async function SignedOutPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const requested = readQueryParam(params.app);
   const everywhere = readQueryParam(params.all) === "1";
-  const accountSignedIn = Boolean(await readSessionCookie());
+  const accountSignedIn = await accountSessionIsLive();
 
   if (everywhere || !accountSignedIn) {
     return (
