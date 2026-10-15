@@ -26,7 +26,7 @@ This directory records durable architecture decisions for Barrels Grenada. ADRs 
 | [0018](0018-modular-access-and-onboarding.md) | Modular access and administrator-mediated staff onboarding |
 | [0019](0019-workspace-toolchain-baseline.md) | Workspace toolchain baseline |
 | [0020](0020-feature-flags-with-success-metrics.md) | Proposed: feature flags with success metrics |
-| [0021](0021-timed-recovery-drill.md) | Proposed: monthly timed recovery drill |
+| [0021](0021-timed-recovery-drill.md) | Accepted: monthly timed recovery drill (built, not yet run; API start phase pending) |
 
 ## Template
 
