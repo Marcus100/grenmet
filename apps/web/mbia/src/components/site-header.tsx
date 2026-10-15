@@ -174,7 +174,7 @@ export function SiteHeader({ accountLabel }: { accountLabel?: string }) {
             alt="Grenada Airports Authority"
             className="h-10 w-auto"
             height={40}
-            priority
+            preload
             src="/images/gaa-logo-blue.png"
             width={78}
           />

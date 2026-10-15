@@ -64,7 +64,7 @@ function LightboxContent({ image }: { image: WeatherImage }) {
           alt={image.name || "Weather image"}
           className="rounded-md object-contain"
           fill
-          priority
+          preload
           sizes="96vw"
           src={imageUrl}
           unoptimized={

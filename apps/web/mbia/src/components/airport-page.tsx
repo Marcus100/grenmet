@@ -38,7 +38,7 @@ export function AirportPage({
           alt={imageAlt}
           className="absolute inset-0 size-full object-cover"
           fill
-          priority
+          preload
           sizes="100vw"
           src={image}
         />

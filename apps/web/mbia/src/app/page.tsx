@@ -91,7 +91,7 @@ function Hero() {
         alt="Aerial view of Maurice Bishop International Airport between the hills and the Caribbean Sea"
         className="absolute inset-0 size-full object-cover"
         fill
-        priority
+        preload
         sizes="100vw"
         src="/images/hero-mbia-aerial.jpg"
       />
