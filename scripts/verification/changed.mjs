@@ -33,6 +33,9 @@ const AGENT_CONFIG =
   /^(?:\.claude|\.codex|\.agents|scripts\/(?:guardrails|agents)|\.github)\//;
 const VERIFICATION = /^scripts\/(?:verification|integrations|perf)\//;
 const DELIVERY = /^scripts\/(?:ci|production)\//;
+// The suppression ratchet in the guardrail tests counts lint and type suppressions
+// in every first-party source file, so any added or edited source file can fail it.
+const SUPPRESSIBLE = /\.(?:py|[cm]?[jt]sx?)$/;
 
 const check = (name, command, args, cwd) => ({ name, command, args, cwd });
 const pnpm = (name, ...args) => check(name, "pnpm", args);
@@ -140,6 +143,12 @@ export function planChecks(files, { base, testFiles = [], deleted = [] } = {}) {
   checks.push(...apiChecks(files, testFiles));
   for (const [matches, ruleChecks] of RULES)
     if (files.some(matches)) checks.push(...ruleChecks);
+  // CI runs the guardrail tests on every change; a deleted file cannot add a suppression.
+  if (
+    files.some((file) => SUPPRESSIBLE.test(file) && !gone.has(file)) &&
+    !checks.some((c) => c.name === "guardrails")
+  )
+    checks.push(pnpm("guardrails", "test:guardrails"));
   if (base)
     checks.push(
       check("risk tier", "node", [

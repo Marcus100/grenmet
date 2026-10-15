@@ -241,12 +241,16 @@ services:
         condition: service_healthy
     command: arq src.worker.main.WorkerSettings
     # The worker has no HTTP server; override the API image's inherited probe.
+    # A release restarts every service at once on a shared host, and the staging
+    # deploy of 956a8c24 failed because probes timed out for the first two minutes
+    # while images were pulled; the worker itself ran fine. Match the NHC worker's
+    # start window and give the probe more time so a busy host is not a failed deploy.
     healthcheck:
       test: ["CMD", "arq", "--check", "src.worker.main.WorkerSettings"]
       interval: 30s
-      timeout: 15s
+      timeout: 30s
       retries: 3
-      start_period: 60s
+      start_period: 180s
     environment:
       POSTGRES_SERVER: db
       POSTGRES_PORT: ${POSTGRES_PORT:-5432}
