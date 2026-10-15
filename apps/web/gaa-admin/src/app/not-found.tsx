@@ -10,7 +10,7 @@ export default function NotFound() {
       </p>
       <Button
         nativeButton={false}
-        render={<Link href="/" prefetch={false} replace />}
+        render={<Link href="/" replace />}
         variant="outline"
       >
         Go back home

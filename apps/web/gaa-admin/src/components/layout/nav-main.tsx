@@ -176,7 +176,6 @@ function NavLinkItem({ item, isActive, showIconFallback }: NavLinkItemProps) {
         render={
           <Link
             href={item.url}
-            prefetch={false}
             rel={item.newTab ? "noreferrer" : undefined}
             target={item.newTab ? "_blank" : undefined}
           />
@@ -249,7 +248,6 @@ function NavDropdownItem({
                       }
                       className="flex items-center gap-2"
                       href={subItem.url}
-                      prefetch={false}
                       rel={subItem.newTab ? "noreferrer" : undefined}
                       target={subItem.newTab ? "_blank" : undefined}
                     />
@@ -315,7 +313,6 @@ function NavCollapsibleItem({
                   render={
                     <Link
                       href={subItem.url}
-                      prefetch={false}
                       rel={subItem.newTab ? "noreferrer" : undefined}
                       target={subItem.newTab ? "_blank" : undefined}
                     />
