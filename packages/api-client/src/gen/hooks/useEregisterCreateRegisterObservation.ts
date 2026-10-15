@@ -14,6 +14,8 @@ import { eregisterCreateRegisterObservation } from "../clients/eregisterCreateRe
 import type {
   EregisterCreateRegisterObservationOptions,
   EregisterCreateRegisterObservationStatus201,
+  EregisterCreateRegisterObservationStatus401,
+  EregisterCreateRegisterObservationStatus403,
   EregisterCreateRegisterObservationStatus422,
 } from "../models/EregisterCreateRegisterObservation.js";
 
@@ -30,7 +32,11 @@ export function eregisterCreateRegisterObservationMutationOptions<
   const mutationKey = eregisterCreateRegisterObservationMutationKey();
   return mutationOptions<
     EregisterCreateRegisterObservationStatus201,
-    ResponseErrorConfig<EregisterCreateRegisterObservationStatus422>,
+    ResponseErrorConfig<
+      | EregisterCreateRegisterObservationStatus401
+      | EregisterCreateRegisterObservationStatus403
+      | EregisterCreateRegisterObservationStatus422
+    >,
     EregisterCreateRegisterObservationOptions,
     TContext
   >({
@@ -54,7 +60,11 @@ export function useEregisterCreateRegisterObservation<TContext>(
   options: {
     mutation?: UseMutationOptions<
       EregisterCreateRegisterObservationStatus201,
-      ResponseErrorConfig<EregisterCreateRegisterObservationStatus422>,
+      ResponseErrorConfig<
+        | EregisterCreateRegisterObservationStatus401
+        | EregisterCreateRegisterObservationStatus403
+        | EregisterCreateRegisterObservationStatus422
+      >,
       EregisterCreateRegisterObservationOptions,
       TContext
     > & { client?: QueryClient };
@@ -73,14 +83,22 @@ export function useEregisterCreateRegisterObservation<TContext>(
     config
   ) as UseMutationOptions<
     EregisterCreateRegisterObservationStatus201,
-    ResponseErrorConfig<EregisterCreateRegisterObservationStatus422>,
+    ResponseErrorConfig<
+      | EregisterCreateRegisterObservationStatus401
+      | EregisterCreateRegisterObservationStatus403
+      | EregisterCreateRegisterObservationStatus422
+    >,
     EregisterCreateRegisterObservationOptions,
     TContext
   >;
 
   return useMutation<
     EregisterCreateRegisterObservationStatus201,
-    ResponseErrorConfig<EregisterCreateRegisterObservationStatus422>,
+    ResponseErrorConfig<
+      | EregisterCreateRegisterObservationStatus401
+      | EregisterCreateRegisterObservationStatus403
+      | EregisterCreateRegisterObservationStatus422
+    >,
     EregisterCreateRegisterObservationOptions,
     TContext
   >(
@@ -92,7 +110,11 @@ export function useEregisterCreateRegisterObservation<TContext>(
     queryClient
   ) as UseMutationResult<
     EregisterCreateRegisterObservationStatus201,
-    ResponseErrorConfig<EregisterCreateRegisterObservationStatus422>,
+    ResponseErrorConfig<
+      | EregisterCreateRegisterObservationStatus401
+      | EregisterCreateRegisterObservationStatus403
+      | EregisterCreateRegisterObservationStatus422
+    >,
     EregisterCreateRegisterObservationOptions,
     TContext
   >;

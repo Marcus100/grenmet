@@ -4,15 +4,18 @@ from fastapi import APIRouter, Response, status
 
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import ShiftSwapDep
+from src.hr.roster.schemas import RosterRulesPublic, RuleViolationPublic
 from src.hr.submission import submission_list, submission_public
+from src.openapi_responses import AUTHENTICATED
 from src.pagination import PaginationDep
 
-from . import service
+from . import service, swap_rules
 from .schemas import (
     ShiftSwapAction,
     ShiftSwapRequestCreate,
     ShiftSwapRequestPublic,
     ShiftSwapRequestsPublic,
+    ShiftSwapRuleCheckPublic,
     ShiftSwapSubmit,
 )
 
@@ -55,6 +58,7 @@ async def preview_shift_swap(
     summary="List my shift swap requests",
     description="Return shift swap requests created by the current user, newest first.",
     responses={
+        **AUTHENTICATED,
         status.HTTP_200_OK: {"description": "Shift swap requests returned"},
     },
 )
@@ -221,3 +225,50 @@ async def action_shift_swap(
         payload=payload,
     )
     return await submission_public(session, result, ShiftSwapRequestPublic)
+
+
+@router.get(
+    "/shift-swaps/{shift_swap_id}/rule-check",
+    response_model=ShiftSwapRuleCheckPublic,
+    operation_id="hrCheckShiftSwapRules",
+    summary="Check a shift exchange against department roster rules",
+    description=(
+        "Return warn-only breaches of the department's rest, consecutive-day and "
+        "weekly-hour limits that this exchange would introduce for the two "
+        "employees. Never blocks approval. Available to the two employees and to "
+        "holders of roster.view in the department scope."
+    ),
+    responses={
+        status.HTTP_200_OK: {"description": "Rule check returned"},
+        status.HTTP_403_FORBIDDEN: {"description": "Not permitted to view this swap"},
+        status.HTTP_404_NOT_FOUND: {"description": "Shift swap not found"},
+    },
+)
+async def check_shift_swap_rules(
+    session: SessionDep, current_user: CurrentUser, swap: ShiftSwapDep
+) -> Any:
+    rules, violations = await swap_rules.check_swap_rules(
+        session=session, current_user=current_user, swap=swap
+    )
+    return ShiftSwapRuleCheckPublic(
+        shift_swap_id=swap.id,
+        rules=RosterRulesPublic(
+            department_id=swap.department_id,
+            min_rest_hours=rules.min_rest_hours,
+            max_consecutive_days=rules.max_consecutive_days,
+            max_weekly_hours=rules.max_weekly_hours,
+        ),
+        violations=[
+            RuleViolationPublic(
+                code=v.code.value,
+                user_id=v.user_id,
+                start_date=v.start_date,
+                end_date=v.end_date,
+                observed=v.observed,
+                limit=v.limit,
+                detail=v.detail,
+            )
+            for v in violations
+        ],
+        count=len(violations),
+    )

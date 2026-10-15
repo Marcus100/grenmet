@@ -3,7 +3,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from enum import Enum
 
-from sqlalchemy import ForeignKey, Numeric, String
+from sqlalchemy import ForeignKey, Integer, Numeric, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.orm import Base
@@ -32,6 +32,13 @@ class DepartmentPolicy(Base):
     )
     allow_employee_self_submit: Mapped[bool] = mapped_column(default=True)
     allow_supervisor_proxy_submit: Mapped[bool] = mapped_column(default=True)
+    # Roster rule limits (hr/roster/rules.py). NULL disables a rule; no default is
+    # assumed because GAA HR has not confirmed any values.
+    min_rest_hours: Mapped[Decimal | None] = mapped_column(Numeric(5, 2), nullable=True)
+    max_consecutive_days: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    max_weekly_hours: Mapped[Decimal | None] = mapped_column(
+        Numeric(5, 2), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now)
 

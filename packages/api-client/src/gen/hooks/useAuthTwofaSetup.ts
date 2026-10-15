@@ -13,6 +13,8 @@ import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { authTwofaSetup } from "../clients/authTwofaSetup.js";
 import type {
   AuthTwofaSetupStatus200,
+  AuthTwofaSetupStatus401,
+  AuthTwofaSetupStatus403,
   AuthTwofaSetupStatus422,
 } from "../models/AuthTwofaSetup.js";
 
@@ -27,7 +29,11 @@ export function authTwofaSetupMutationOptions<TContext = unknown>(
   const mutationKey = authTwofaSetupMutationKey();
   return mutationOptions<
     AuthTwofaSetupStatus200,
-    ResponseErrorConfig<AuthTwofaSetupStatus422>,
+    ResponseErrorConfig<
+      | AuthTwofaSetupStatus401
+      | AuthTwofaSetupStatus403
+      | AuthTwofaSetupStatus422
+    >,
     undefined,
     TContext
   >({
@@ -47,7 +53,11 @@ export function useAuthTwofaSetup<TContext>(
   options: {
     mutation?: UseMutationOptions<
       AuthTwofaSetupStatus200,
-      ResponseErrorConfig<AuthTwofaSetupStatus422>,
+      ResponseErrorConfig<
+        | AuthTwofaSetupStatus401
+        | AuthTwofaSetupStatus403
+        | AuthTwofaSetupStatus422
+      >,
       undefined,
       TContext
     > & { client?: QueryClient };
@@ -65,14 +75,22 @@ export function useAuthTwofaSetup<TContext>(
     config
   ) as UseMutationOptions<
     AuthTwofaSetupStatus200,
-    ResponseErrorConfig<AuthTwofaSetupStatus422>,
+    ResponseErrorConfig<
+      | AuthTwofaSetupStatus401
+      | AuthTwofaSetupStatus403
+      | AuthTwofaSetupStatus422
+    >,
     undefined,
     TContext
   >;
 
   return useMutation<
     AuthTwofaSetupStatus200,
-    ResponseErrorConfig<AuthTwofaSetupStatus422>,
+    ResponseErrorConfig<
+      | AuthTwofaSetupStatus401
+      | AuthTwofaSetupStatus403
+      | AuthTwofaSetupStatus422
+    >,
     undefined,
     TContext
   >(
@@ -84,7 +102,11 @@ export function useAuthTwofaSetup<TContext>(
     queryClient
   ) as UseMutationResult<
     AuthTwofaSetupStatus200,
-    ResponseErrorConfig<AuthTwofaSetupStatus422>,
+    ResponseErrorConfig<
+      | AuthTwofaSetupStatus401
+      | AuthTwofaSetupStatus403
+      | AuthTwofaSetupStatus422
+    >,
     undefined,
     TContext
   >;

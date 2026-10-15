@@ -10,6 +10,12 @@ export const authRecoverPasswordHtmlContentPathEmailSchema = z.string();
 
 export const authRecoverPasswordHtmlContentStatus200Schema = z.string();
 
+export const authRecoverPasswordHtmlContentStatus401Schema = z.unknown();
+
+export const authRecoverPasswordHtmlContentStatus403Schema = z.unknown();
+
+export const authRecoverPasswordHtmlContentStatus404Schema = z.unknown();
+
 export const authRecoverPasswordHtmlContentStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -18,5 +24,9 @@ export const authRecoverPasswordHtmlContentStatus422Schema =
 export const authRecoverPasswordHtmlContentResponseSchema =
   authRecoverPasswordHtmlContentStatus200Schema;
 
-export const authRecoverPasswordHtmlContentErrorSchema =
-  authRecoverPasswordHtmlContentStatus422Schema;
+export const authRecoverPasswordHtmlContentErrorSchema = z.union([
+  authRecoverPasswordHtmlContentStatus401Schema,
+  authRecoverPasswordHtmlContentStatus403Schema,
+  authRecoverPasswordHtmlContentStatus404Schema,
+  authRecoverPasswordHtmlContentStatus422Schema,
+]);

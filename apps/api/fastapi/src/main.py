@@ -21,6 +21,7 @@ from starlette.requests import Request
 
 from src import operational_metrics
 from src.audit.router import router as audit_router
+from src.auth.app_router import account_router as account_apps_router
 from src.auth.app_router import router as app_auth_router
 from src.auth.browser import router as browser_auth_router
 from src.auth.modern import router as modern_auth_router
@@ -48,6 +49,7 @@ from src.exceptions import (
     validation_exception_handler,
 )
 from src.hr.absentee.router import router as hr_absentee_router
+from src.hr.attendance.clock_router import router as hr_clock_router
 from src.hr.attendance.router import router as hr_attendance_router
 from src.hr.calendar.router import router as hr_calendar_router
 from src.hr.dailystatus.router import router as hr_dailystatus_router
@@ -349,6 +351,7 @@ app.include_router(hr_workflow_router, prefix="/api/v1")
 app.include_router(hr_roster_router, prefix="/api/v1")
 app.include_router(hr_calendar_router, prefix="/api/v1")
 app.include_router(hr_timesheet_router, prefix="/api/v1")
+app.include_router(hr_clock_router, prefix="/api/v1")
 app.include_router(hr_attendance_router, prefix="/api/v1")
 app.include_router(hr_training_router, prefix="/api/v1")
 app.include_router(hr_signatures_router, prefix="/api/v1")
@@ -406,6 +409,7 @@ def get_scalar_docs() -> Any:
 app.include_router(onboarding_router, prefix=settings.API_V1_STR)
 app.include_router(modern_auth_router, prefix=settings.API_V1_STR)
 app.include_router(app_auth_router, prefix=settings.API_V1_STR)
+app.include_router(account_apps_router, prefix=settings.API_V1_STR)
 
 app.include_router(staff_setup_router, prefix=settings.API_V1_STR)
 

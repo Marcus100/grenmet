@@ -9,6 +9,10 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthCreateRoleStatus201 = SrcAuthSchemasRolePublic;
 
+export type AuthCreateRoleStatus401 = unknown;
+
+export type AuthCreateRoleStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -26,6 +30,8 @@ export type AuthCreateRoleOptions = {
 
 export type AuthCreateRoleResponses = {
   "201": AuthCreateRoleStatus201;
+  "401": AuthCreateRoleStatus401;
+  "403": AuthCreateRoleStatus403;
   "422": AuthCreateRoleStatus422;
 };
 

@@ -223,6 +223,32 @@ async def revoke_user_sessions(
     return revoked_count
 
 
+async def revoke_user_app_sessions(
+    *,
+    session: AsyncSession,
+    user_id: uuid.UUID,
+    app_key: str,
+) -> int:
+    """Revoke a user's active sessions in one app, leaving the rest alone."""
+    result = await session.execute(
+        select(AuthSession).where(
+            AuthSession.user_id == user_id,
+            AuthSession.app_name == app_key,
+            AuthSession.revoked_at.is_(None),
+        )
+    )
+    now = utc_now()
+    revoked = 0
+    for db_session in result.scalars().all():
+        db_session.revoked_at = now
+        db_session.updated_at = now
+        session.add(db_session)
+        revoked += 1
+    if revoked:
+        await session.commit()
+    return revoked
+
+
 async def exchange_session_for_access_token(
     *,
     session: AsyncSession,

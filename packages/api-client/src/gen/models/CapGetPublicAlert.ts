@@ -12,6 +12,8 @@ export type CapGetPublicAlertPath = {
 
 export type CapGetPublicAlertStatus200 = CapAlertPublic;
 
+export type CapGetPublicAlertStatus404 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -27,6 +29,7 @@ export type CapGetPublicAlertOptions = {
 
 export type CapGetPublicAlertResponses = {
   "200": CapGetPublicAlertStatus200;
+  "404": CapGetPublicAlertStatus404;
   "422": CapGetPublicAlertStatus422;
 };
 

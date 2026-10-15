@@ -3,10 +3,15 @@
  * Do not edit manually.
  */
 
+import * as z from "zod";
 import { twoFactorSetupResponseSchema } from "./twoFactorSetupResponseSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const authTwofaSetupStatus200Schema = twoFactorSetupResponseSchema;
+
+export const authTwofaSetupStatus401Schema = z.unknown();
+
+export const authTwofaSetupStatus403Schema = z.unknown();
 
 export const authTwofaSetupStatus422Schema =
   validationErrorResponseSchema.describe(
@@ -15,4 +20,8 @@ export const authTwofaSetupStatus422Schema =
 
 export const authTwofaSetupResponseSchema = authTwofaSetupStatus200Schema;
 
-export const authTwofaSetupErrorSchema = authTwofaSetupStatus422Schema;
+export const authTwofaSetupErrorSchema = z.union([
+  authTwofaSetupStatus401Schema,
+  authTwofaSetupStatus403Schema,
+  authTwofaSetupStatus422Schema,
+]);

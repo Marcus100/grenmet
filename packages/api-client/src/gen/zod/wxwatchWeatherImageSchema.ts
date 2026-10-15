@@ -10,6 +10,14 @@ export const wxwatchWeatherImagePathStoragePathSchema = z.string();
 
 export const wxwatchWeatherImageStatus307Schema = z.unknown();
 
+export const wxwatchWeatherImageStatus400Schema = z.unknown();
+
+export const wxwatchWeatherImageStatus401Schema = z.unknown();
+
+export const wxwatchWeatherImageStatus403Schema = z.unknown();
+
+export const wxwatchWeatherImageStatus404Schema = z.unknown();
+
 export const wxwatchWeatherImageStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -19,5 +27,9 @@ export const wxwatchWeatherImageResponseSchema = z.unknown();
 
 export const wxwatchWeatherImageErrorSchema = z.union([
   wxwatchWeatherImageStatus307Schema,
+  wxwatchWeatherImageStatus400Schema,
+  wxwatchWeatherImageStatus401Schema,
+  wxwatchWeatherImageStatus403Schema,
+  wxwatchWeatherImageStatus404Schema,
   wxwatchWeatherImageStatus422Schema,
 ]);

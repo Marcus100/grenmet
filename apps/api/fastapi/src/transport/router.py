@@ -2,6 +2,7 @@ from fastapi import APIRouter
 from sqlalchemy import text
 
 from src.auth.browser import BrowserUser
+from src.openapi_responses import AUTHENTICATED
 
 from .dependencies import TransportSession as Session
 from .dependencies import get_session
@@ -20,6 +21,7 @@ router.include_router(timetable_router)
     summary="Get the transport timetable",
     description="Deprecated: returns the v1 catalogue, which no longer changes. Use /transport/timetable/current, which follows published timetable versions.",
     deprecated=True,
+    responses={**AUTHENTICATED},
 )
 async def spec(_user: BrowserUser, session: Session) -> list[RouteView]:
     route_rows = (

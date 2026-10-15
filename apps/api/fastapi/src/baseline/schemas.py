@@ -1,6 +1,7 @@
 import uuid
 from datetime import date
 from decimal import Decimal
+from typing import Literal
 
 from pydantic import Field
 
@@ -162,3 +163,35 @@ class OrganisationPreview(BaseModel):
     conflicts: list[str] = Field(default_factory=list)
     gms_staff_by_grade: dict[str, int] = Field(default_factory=dict)
     gms_differences: list[str] = Field(default_factory=list)
+
+
+class BalanceImportRequest(BaseModel):
+    """Opening leave balances from a spreadsheet export (for example HrPlus).
+
+    The CSV needs the columns ``employee_number``, ``leave_type`` (an exact leave
+    type code) and ``balance``; other columns, such as names, are ignored and never
+    stored. Nothing is posted unless ``apply`` is true and every row is valid.
+    """
+
+    organisation_id: str = Field(max_length=100)
+    source: str = Field(min_length=3, max_length=100)
+    as_of: date
+    csv: str = Field(min_length=1, max_length=500_000)
+    apply: bool = False
+
+
+class BalanceImportRow(BaseModel):
+    row: int
+    employee_number: str
+    leave_type: str
+    balance: Decimal | None = None
+    status: Literal["OK", "ERROR"]
+    message: str | None = None
+
+
+class BalanceImportResult(BaseModel):
+    applied: bool
+    total: int
+    valid: int
+    invalid: int
+    rows: list[BalanceImportRow]

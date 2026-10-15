@@ -15,6 +15,8 @@ import { capGetAudit } from "../clients/capGetAudit.js";
 import type {
   CapGetAuditOptions,
   CapGetAuditStatus200,
+  CapGetAuditStatus401,
+  CapGetAuditStatus403,
   CapGetAuditStatus422,
 } from "../models/CapGetAudit.js";
 
@@ -34,7 +36,9 @@ export function capGetAuditQueryOptions(
   const queryKey = capGetAuditQueryKey({ query });
   return queryOptions<
     CapGetAuditStatus200,
-    ResponseErrorConfig<CapGetAuditStatus422>,
+    ResponseErrorConfig<
+      CapGetAuditStatus401 | CapGetAuditStatus403 | CapGetAuditStatus422
+    >,
     CapGetAuditStatus200,
     typeof queryKey
   >({
@@ -69,7 +73,9 @@ export function useCapGetAudit<
     query?: Partial<
       QueryObserverOptions<
         CapGetAuditStatus200,
-        ResponseErrorConfig<CapGetAuditStatus422>,
+        ResponseErrorConfig<
+          CapGetAuditStatus401 | CapGetAuditStatus403 | CapGetAuditStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -95,9 +101,12 @@ export function useCapGetAudit<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient
-  ) as UseQueryResult<TData, ResponseErrorConfig<CapGetAuditStatus422>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      CapGetAuditStatus401 | CapGetAuditStatus403 | CapGetAuditStatus422
+    >
+  > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;
 

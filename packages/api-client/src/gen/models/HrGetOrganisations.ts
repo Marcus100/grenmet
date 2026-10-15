@@ -8,6 +8,10 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type HrGetOrganisationsStatus200 = OrganisationPublic[];
 
+export type HrGetOrganisationsStatus401 = unknown;
+
+export type HrGetOrganisationsStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -23,6 +27,8 @@ export type HrGetOrganisationsOptions = {
 
 export type HrGetOrganisationsResponses = {
   "200": HrGetOrganisationsStatus200;
+  "401": HrGetOrganisationsStatus401;
+  "403": HrGetOrganisationsStatus403;
   "422": HrGetOrganisationsStatus422;
 };
 

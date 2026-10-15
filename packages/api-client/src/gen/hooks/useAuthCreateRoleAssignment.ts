@@ -14,6 +14,8 @@ import { authCreateRoleAssignment } from "../clients/authCreateRoleAssignment.js
 import type {
   AuthCreateRoleAssignmentOptions,
   AuthCreateRoleAssignmentStatus201,
+  AuthCreateRoleAssignmentStatus401,
+  AuthCreateRoleAssignmentStatus403,
   AuthCreateRoleAssignmentStatus422,
 } from "../models/AuthCreateRoleAssignment.js";
 
@@ -28,7 +30,11 @@ export function authCreateRoleAssignmentMutationOptions<TContext = unknown>(
   const mutationKey = authCreateRoleAssignmentMutationKey();
   return mutationOptions<
     AuthCreateRoleAssignmentStatus201,
-    ResponseErrorConfig<AuthCreateRoleAssignmentStatus422>,
+    ResponseErrorConfig<
+      | AuthCreateRoleAssignmentStatus401
+      | AuthCreateRoleAssignmentStatus403
+      | AuthCreateRoleAssignmentStatus422
+    >,
     AuthCreateRoleAssignmentOptions,
     TContext
   >({
@@ -52,7 +58,11 @@ export function useAuthCreateRoleAssignment<TContext>(
   options: {
     mutation?: UseMutationOptions<
       AuthCreateRoleAssignmentStatus201,
-      ResponseErrorConfig<AuthCreateRoleAssignmentStatus422>,
+      ResponseErrorConfig<
+        | AuthCreateRoleAssignmentStatus401
+        | AuthCreateRoleAssignmentStatus403
+        | AuthCreateRoleAssignmentStatus422
+      >,
       AuthCreateRoleAssignmentOptions,
       TContext
     > & { client?: QueryClient };
@@ -70,14 +80,22 @@ export function useAuthCreateRoleAssignment<TContext>(
     config
   ) as UseMutationOptions<
     AuthCreateRoleAssignmentStatus201,
-    ResponseErrorConfig<AuthCreateRoleAssignmentStatus422>,
+    ResponseErrorConfig<
+      | AuthCreateRoleAssignmentStatus401
+      | AuthCreateRoleAssignmentStatus403
+      | AuthCreateRoleAssignmentStatus422
+    >,
     AuthCreateRoleAssignmentOptions,
     TContext
   >;
 
   return useMutation<
     AuthCreateRoleAssignmentStatus201,
-    ResponseErrorConfig<AuthCreateRoleAssignmentStatus422>,
+    ResponseErrorConfig<
+      | AuthCreateRoleAssignmentStatus401
+      | AuthCreateRoleAssignmentStatus403
+      | AuthCreateRoleAssignmentStatus422
+    >,
     AuthCreateRoleAssignmentOptions,
     TContext
   >(
@@ -89,7 +107,11 @@ export function useAuthCreateRoleAssignment<TContext>(
     queryClient
   ) as UseMutationResult<
     AuthCreateRoleAssignmentStatus201,
-    ResponseErrorConfig<AuthCreateRoleAssignmentStatus422>,
+    ResponseErrorConfig<
+      | AuthCreateRoleAssignmentStatus401
+      | AuthCreateRoleAssignmentStatus403
+      | AuthCreateRoleAssignmentStatus422
+    >,
     AuthCreateRoleAssignmentOptions,
     TContext
   >;

@@ -104,3 +104,23 @@ its gate list. It disclosed that it could not run `verify:changed` in the sandbo
 things to fix in the routine environment: the pinned Python patch version, and the
 `agent-claimed` label update, which warned that it could not be applied.
 
+**Python typing task on both cheap models (bm-17, 2026-10-14).** This is the same kind
+of work the nightly routine does, so it was the check before moving the routine to Haiku.
+
+| | Haiku (Claude) | Luna (Codex) |
+| --- | --- | --- |
+| Outcome | passed after 1 repair | passed after 1 repair |
+| Wall time | 6.5 min | 3.8 min |
+| Input tokens | 4.3M | 1.95M |
+| Output tokens | 54k | 9.3k |
+
+- Both needed one repair attempt, so both score `flawed` by the retry rule. Neither
+  broke a rule. Luna was faster and used about a fifth of the output tokens, which
+  agrees with bm-12 and supports sending Python to Luna once a Codex task exists.
+- A first Haiku run was marked a policy violation ("read an env file"). It was a false
+  alarm: the detector matched the text of `ls | grep "\.env"`, which only lists names.
+  The detector now needs a real env-file path as the reader's argument; the first run is
+  superseded by the rerun above.
+- The routine now runs on Haiku with tonight's Python issue (#373), so the first
+  unattended Haiku PR is a real test of this result.
+

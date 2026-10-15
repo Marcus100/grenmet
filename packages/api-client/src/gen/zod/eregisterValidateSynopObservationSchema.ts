@@ -3,12 +3,17 @@
  * Do not edit manually.
  */
 
+import * as z from "zod";
 import { synopValidationRequestSchema } from "./synopValidationRequestSchema.js";
 import { synopValidationResponseSchema } from "./synopValidationResponseSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const eregisterValidateSynopObservationStatus200Schema =
   synopValidationResponseSchema;
+
+export const eregisterValidateSynopObservationStatus401Schema = z.unknown();
+
+export const eregisterValidateSynopObservationStatus403Schema = z.unknown();
 
 export const eregisterValidateSynopObservationStatus422Schema =
   validationErrorResponseSchema.describe(
@@ -18,8 +23,11 @@ export const eregisterValidateSynopObservationStatus422Schema =
 export const eregisterValidateSynopObservationResponseSchema =
   eregisterValidateSynopObservationStatus200Schema;
 
-export const eregisterValidateSynopObservationErrorSchema =
-  eregisterValidateSynopObservationStatus422Schema;
+export const eregisterValidateSynopObservationErrorSchema = z.union([
+  eregisterValidateSynopObservationStatus401Schema,
+  eregisterValidateSynopObservationStatus403Schema,
+  eregisterValidateSynopObservationStatus422Schema,
+]);
 
 export const eregisterValidateSynopObservationBodySchema =
   synopValidationRequestSchema;

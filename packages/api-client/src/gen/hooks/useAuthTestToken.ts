@@ -13,6 +13,8 @@ import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { authTestToken } from "../clients/authTestToken.js";
 import type {
   AuthTestTokenStatus200,
+  AuthTestTokenStatus401,
+  AuthTestTokenStatus403,
   AuthTestTokenStatus422,
 } from "../models/AuthTestToken.js";
 
@@ -27,7 +29,9 @@ export function authTestTokenMutationOptions<TContext = unknown>(
   const mutationKey = authTestTokenMutationKey();
   return mutationOptions<
     AuthTestTokenStatus200,
-    ResponseErrorConfig<AuthTestTokenStatus422>,
+    ResponseErrorConfig<
+      AuthTestTokenStatus401 | AuthTestTokenStatus403 | AuthTestTokenStatus422
+    >,
     undefined,
     TContext
   >({
@@ -47,7 +51,9 @@ export function useAuthTestToken<TContext>(
   options: {
     mutation?: UseMutationOptions<
       AuthTestTokenStatus200,
-      ResponseErrorConfig<AuthTestTokenStatus422>,
+      ResponseErrorConfig<
+        AuthTestTokenStatus401 | AuthTestTokenStatus403 | AuthTestTokenStatus422
+      >,
       undefined,
       TContext
     > & { client?: QueryClient };
@@ -64,14 +70,18 @@ export function useAuthTestToken<TContext>(
     config
   ) as UseMutationOptions<
     AuthTestTokenStatus200,
-    ResponseErrorConfig<AuthTestTokenStatus422>,
+    ResponseErrorConfig<
+      AuthTestTokenStatus401 | AuthTestTokenStatus403 | AuthTestTokenStatus422
+    >,
     undefined,
     TContext
   >;
 
   return useMutation<
     AuthTestTokenStatus200,
-    ResponseErrorConfig<AuthTestTokenStatus422>,
+    ResponseErrorConfig<
+      AuthTestTokenStatus401 | AuthTestTokenStatus403 | AuthTestTokenStatus422
+    >,
     undefined,
     TContext
   >(
@@ -83,7 +93,9 @@ export function useAuthTestToken<TContext>(
     queryClient
   ) as UseMutationResult<
     AuthTestTokenStatus200,
-    ResponseErrorConfig<AuthTestTokenStatus422>,
+    ResponseErrorConfig<
+      AuthTestTokenStatus401 | AuthTestTokenStatus403 | AuthTestTokenStatus422
+    >,
     undefined,
     TContext
   >;

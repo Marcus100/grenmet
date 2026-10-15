@@ -33,6 +33,21 @@ export function getAppName(): string {
   return "gaa-admin";
 }
 
+/**
+ * Where Log out lands (ADR-0017). Returning straight to the app would sign the
+ * browser back in through the live account session, so auth explains first.
+ */
+export function getSignedOutUrl({
+  all = false,
+}: {
+  all?: boolean;
+} = {}): string {
+  const url = new URL("/signed-out", getAuthAppUrl());
+  url.searchParams.set("app", getAppName());
+  if (all) url.searchParams.set("all", "1");
+  return url.toString();
+}
+
 export function getAuthConfig(): AuthConfig {
   return {
     authApiBaseUrl: getAuthApiBaseUrl(),

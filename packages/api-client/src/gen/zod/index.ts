@@ -5,7 +5,9 @@ export { absenteeReportPublicSchema } from "./absenteeReportPublicSchema.js";
 export { absenteeReportSubmitSchema } from "./absenteeReportSubmitSchema.js";
 export { accessBlockerSchema } from "./accessBlockerSchema.js";
 export { accessReviewDataSchema } from "./accessReviewDataSchema.js";
+export { accountAppPublicSchema } from "./accountAppPublicSchema.js";
 export { accountSecurityPublicSchema } from "./accountSecurityPublicSchema.js";
+export { accountSessionRequestSchema } from "./accountSessionRequestSchema.js";
 export { activationAccountCreateSchema } from "./activationAccountCreateSchema.js";
 export { activationConfirmSchema } from "./activationConfirmSchema.js";
 export { activationIssueSchema } from "./activationIssueSchema.js";
@@ -21,6 +23,8 @@ export { appHandoffCodeSchema } from "./appHandoffCodeSchema.js";
 export { appHandoffRedeemSchema } from "./appHandoffRedeemSchema.js";
 export { appHandoffStartSchema } from "./appHandoffStartSchema.js";
 export { appIdentityPublicSchema } from "./appIdentityPublicSchema.js";
+export { appJoinResultSchema } from "./appJoinResultSchema.js";
+export { appLeaveResultSchema } from "./appLeaveResultSchema.js";
 export { appPasswordLoginSchema } from "./appPasswordLoginSchema.js";
 export { appPhoneCodeStartPropertiesChannelEnumSchema } from "./appPhoneCodeStartPropertiesChannelEnumSchema.js";
 export { appPhoneCodeStartSchema } from "./appPhoneCodeStartSchema.js";
@@ -240,6 +244,7 @@ export {
   authBrowserSessionErrorSchema,
   authBrowserSessionResponseSchema,
   authBrowserSessionStatus200Schema,
+  authBrowserSessionStatus401Schema,
   authBrowserSessionStatus422Schema,
 } from "./authBrowserSessionSchema.js";
 export {
@@ -264,6 +269,8 @@ export {
   authCreatePermissionErrorSchema,
   authCreatePermissionResponseSchema,
   authCreatePermissionStatus201Schema,
+  authCreatePermissionStatus401Schema,
+  authCreatePermissionStatus403Schema,
   authCreatePermissionStatus422Schema,
 } from "./authCreatePermissionSchema.js";
 export {
@@ -271,6 +278,8 @@ export {
   authCreateRoleAssignmentErrorSchema,
   authCreateRoleAssignmentResponseSchema,
   authCreateRoleAssignmentStatus201Schema,
+  authCreateRoleAssignmentStatus401Schema,
+  authCreateRoleAssignmentStatus403Schema,
   authCreateRoleAssignmentStatus422Schema,
 } from "./authCreateRoleAssignmentSchema.js";
 export {
@@ -278,6 +287,8 @@ export {
   authCreateRoleErrorSchema,
   authCreateRoleResponseSchema,
   authCreateRoleStatus201Schema,
+  authCreateRoleStatus401Schema,
+  authCreateRoleStatus403Schema,
   authCreateRoleStatus422Schema,
 } from "./authCreateRoleSchema.js";
 export {
@@ -412,6 +423,8 @@ export {
   authGetPermissionsQuerySizeSchema,
   authGetPermissionsResponseSchema,
   authGetPermissionsStatus200Schema,
+  authGetPermissionsStatus401Schema,
+  authGetPermissionsStatus403Schema,
   authGetPermissionsStatus422Schema,
 } from "./authGetPermissionsSchema.js";
 export {
@@ -427,6 +440,8 @@ export {
   authGetRoleAssignmentsQueryUserIdSchema,
   authGetRoleAssignmentsResponseSchema,
   authGetRoleAssignmentsStatus200Schema,
+  authGetRoleAssignmentsStatus401Schema,
+  authGetRoleAssignmentsStatus403Schema,
   authGetRoleAssignmentsStatus422Schema,
 } from "./authGetRoleAssignmentsSchema.js";
 export {
@@ -443,6 +458,8 @@ export {
   authGetRolesQuerySizeSchema,
   authGetRolesResponseSchema,
   authGetRolesStatus200Schema,
+  authGetRolesStatus401Schema,
+  authGetRolesStatus403Schema,
   authGetRolesStatus422Schema,
 } from "./authGetRolesSchema.js";
 export {
@@ -457,6 +474,8 @@ export {
   authGetUserMeErrorSchema,
   authGetUserMeResponseSchema,
   authGetUserMeStatus200Schema,
+  authGetUserMeStatus401Schema,
+  authGetUserMeStatus403Schema,
   authGetUserMeStatus422Schema,
 } from "./authGetUserMeSchema.js";
 export {
@@ -465,6 +484,8 @@ export {
   authGetUsersQuerySizeSchema,
   authGetUsersResponseSchema,
   authGetUsersStatus200Schema,
+  authGetUsersStatus401Schema,
+  authGetUsersStatus403Schema,
   authGetUsersStatus422Schema,
 } from "./authGetUsersSchema.js";
 export {
@@ -506,6 +527,36 @@ export {
   authIssueActivationStatus409Schema,
   authIssueActivationStatus422Schema,
 } from "./authIssueActivationSchema.js";
+export {
+  authJoinAccountAppBodySchema,
+  authJoinAccountAppErrorSchema,
+  authJoinAccountAppPathAppSchema,
+  authJoinAccountAppResponseSchema,
+  authJoinAccountAppStatus200Schema,
+  authJoinAccountAppStatus401Schema,
+  authJoinAccountAppStatus403Schema,
+  authJoinAccountAppStatus404Schema,
+  authJoinAccountAppStatus422Schema,
+} from "./authJoinAccountAppSchema.js";
+export {
+  authLeaveAccountAppBodySchema,
+  authLeaveAccountAppErrorSchema,
+  authLeaveAccountAppPathAppSchema,
+  authLeaveAccountAppResponseSchema,
+  authLeaveAccountAppStatus200Schema,
+  authLeaveAccountAppStatus401Schema,
+  authLeaveAccountAppStatus403Schema,
+  authLeaveAccountAppStatus404Schema,
+  authLeaveAccountAppStatus422Schema,
+} from "./authLeaveAccountAppSchema.js";
+export {
+  authListAccountAppsBodySchema,
+  authListAccountAppsErrorSchema,
+  authListAccountAppsResponseSchema,
+  authListAccountAppsStatus200Schema,
+  authListAccountAppsStatus401Schema,
+  authListAccountAppsStatus422Schema,
+} from "./authListAccountAppsSchema.js";
 export {
   authLoginAccessTokenBodySchema,
   authLoginAccessTokenErrorSchema,
@@ -556,6 +607,9 @@ export {
   authRecoverPasswordHtmlContentPathEmailSchema,
   authRecoverPasswordHtmlContentResponseSchema,
   authRecoverPasswordHtmlContentStatus200Schema,
+  authRecoverPasswordHtmlContentStatus401Schema,
+  authRecoverPasswordHtmlContentStatus403Schema,
+  authRecoverPasswordHtmlContentStatus404Schema,
   authRecoverPasswordHtmlContentStatus422Schema,
 } from "./authRecoverPasswordHtmlContentSchema.js";
 export {
@@ -626,6 +680,8 @@ export {
   authTestTokenErrorSchema,
   authTestTokenResponseSchema,
   authTestTokenStatus200Schema,
+  authTestTokenStatus401Schema,
+  authTestTokenStatus403Schema,
   authTestTokenStatus422Schema,
 } from "./authTestTokenSchema.js";
 export {
@@ -648,12 +704,16 @@ export {
   authTwofaSetupErrorSchema,
   authTwofaSetupResponseSchema,
   authTwofaSetupStatus200Schema,
+  authTwofaSetupStatus401Schema,
+  authTwofaSetupStatus403Schema,
   authTwofaSetupStatus422Schema,
 } from "./authTwofaSetupSchema.js";
 export {
   authTwofaStatusErrorSchema,
   authTwofaStatusResponseSchema,
   authTwofaStatusStatus200Schema,
+  authTwofaStatusStatus401Schema,
+  authTwofaStatusStatus403Schema,
   authTwofaStatusStatus422Schema,
 } from "./authTwofaStatusSchema.js";
 export {
@@ -707,6 +767,10 @@ export { aviationDraftReadSchema } from "./aviationDraftReadSchema.js";
 export { aviationDraftWriteSchema } from "./aviationDraftWriteSchema.js";
 export { aviationHistorySchema } from "./aviationHistorySchema.js";
 export { aviationRevisionReadSchema } from "./aviationRevisionReadSchema.js";
+export { balanceImportRequestSchema } from "./balanceImportRequestSchema.js";
+export { balanceImportResultSchema } from "./balanceImportResultSchema.js";
+export { balanceImportRowPropertiesStatusEnumSchema } from "./balanceImportRowPropertiesStatusEnumSchema.js";
+export { balanceImportRowSchema } from "./balanceImportRowSchema.js";
 export { balanceInputSchema } from "./balanceInputSchema.js";
 export {
   billingCreateSubscriptionCheckoutErrorSchema,
@@ -744,6 +808,9 @@ export {
   capApproveAlertPathAlertIdSchema,
   capApproveAlertResponseSchema,
   capApproveAlertStatus200Schema,
+  capApproveAlertStatus401Schema,
+  capApproveAlertStatus403Schema,
+  capApproveAlertStatus404Schema,
   capApproveAlertStatus422Schema,
 } from "./capApproveAlertSchema.js";
 export {
@@ -751,6 +818,9 @@ export {
   capApproveHazardProfilePathProfileIdSchema,
   capApproveHazardProfileResponseSchema,
   capApproveHazardProfileStatus200Schema,
+  capApproveHazardProfileStatus401Schema,
+  capApproveHazardProfileStatus403Schema,
+  capApproveHazardProfileStatus404Schema,
   capApproveHazardProfileStatus422Schema,
 } from "./capApproveHazardProfileSchema.js";
 export { capAreaCreateSchema } from "./capAreaCreateSchema.js";
@@ -764,6 +834,9 @@ export {
   capCancelAlertPathAlertIdSchema,
   capCancelAlertResponseSchema,
   capCancelAlertStatus200Schema,
+  capCancelAlertStatus401Schema,
+  capCancelAlertStatus403Schema,
+  capCancelAlertStatus404Schema,
   capCancelAlertStatus422Schema,
 } from "./capCancelAlertSchema.js";
 export { capCatalogsPublicSchema } from "./capCatalogsPublicSchema.js";
@@ -774,6 +847,8 @@ export {
   capCreateAlertErrorSchema,
   capCreateAlertResponseSchema,
   capCreateAlertStatus201Schema,
+  capCreateAlertStatus401Schema,
+  capCreateAlertStatus403Schema,
   capCreateAlertStatus422Schema,
 } from "./capCreateAlertSchema.js";
 export {
@@ -781,6 +856,8 @@ export {
   capCreateFeedErrorSchema,
   capCreateFeedResponseSchema,
   capCreateFeedStatus201Schema,
+  capCreateFeedStatus401Schema,
+  capCreateFeedStatus403Schema,
   capCreateFeedStatus422Schema,
 } from "./capCreateFeedSchema.js";
 export {
@@ -788,6 +865,8 @@ export {
   capCreatePredefinedAreaErrorSchema,
   capCreatePredefinedAreaResponseSchema,
   capCreatePredefinedAreaStatus201Schema,
+  capCreatePredefinedAreaStatus401Schema,
+  capCreatePredefinedAreaStatus403Schema,
   capCreatePredefinedAreaStatus422Schema,
 } from "./capCreatePredefinedAreaSchema.js";
 export {
@@ -795,6 +874,9 @@ export {
   capDeleteFeedPathFeedIdSchema,
   capDeleteFeedResponseSchema,
   capDeleteFeedStatus204Schema,
+  capDeleteFeedStatus401Schema,
+  capDeleteFeedStatus403Schema,
+  capDeleteFeedStatus404Schema,
   capDeleteFeedStatus422Schema,
 } from "./capDeleteFeedSchema.js";
 export { capDownloadPublicAttachmentParametersSchemaEnumSchema } from "./capDownloadPublicAttachmentParametersSchemaEnumSchema.js";
@@ -813,6 +895,9 @@ export {
   capDraftFromHazardProfilePathProfileIdSchema,
   capDraftFromHazardProfileResponseSchema,
   capDraftFromHazardProfileStatus201Schema,
+  capDraftFromHazardProfileStatus401Schema,
+  capDraftFromHazardProfileStatus403Schema,
+  capDraftFromHazardProfileStatus404Schema,
   capDraftFromHazardProfileStatus422Schema,
 } from "./capDraftFromHazardProfileSchema.js";
 export {
@@ -820,6 +905,9 @@ export {
   capDuplicateAlertPathAlertIdSchema,
   capDuplicateAlertResponseSchema,
   capDuplicateAlertStatus200Schema,
+  capDuplicateAlertStatus401Schema,
+  capDuplicateAlertStatus403Schema,
+  capDuplicateAlertStatus404Schema,
   capDuplicateAlertStatus422Schema,
 } from "./capDuplicateAlertSchema.js";
 export {
@@ -828,6 +916,9 @@ export {
   capExpireAlertPathAlertIdSchema,
   capExpireAlertResponseSchema,
   capExpireAlertStatus200Schema,
+  capExpireAlertStatus401Schema,
+  capExpireAlertStatus403Schema,
+  capExpireAlertStatus404Schema,
   capExpireAlertStatus422Schema,
 } from "./capExpireAlertSchema.js";
 export { capFeedImportCreateSchema } from "./capFeedImportCreateSchema.js";
@@ -844,6 +935,9 @@ export {
   capGetAlertPathAlertIdSchema,
   capGetAlertResponseSchema,
   capGetAlertStatus200Schema,
+  capGetAlertStatus401Schema,
+  capGetAlertStatus403Schema,
+  capGetAlertStatus404Schema,
   capGetAlertStatus422Schema,
 } from "./capGetAlertSchema.js";
 export {
@@ -859,6 +953,8 @@ export {
   capGetAlertsQuerySizeSchema,
   capGetAlertsResponseSchema,
   capGetAlertsStatus200Schema,
+  capGetAlertsStatus401Schema,
+  capGetAlertsStatus403Schema,
   capGetAlertsStatus422Schema,
 } from "./capGetAlertsSchema.js";
 export {
@@ -868,12 +964,16 @@ export {
   capGetAuditQuerySizeSchema,
   capGetAuditResponseSchema,
   capGetAuditStatus200Schema,
+  capGetAuditStatus401Schema,
+  capGetAuditStatus403Schema,
   capGetAuditStatus422Schema,
 } from "./capGetAuditSchema.js";
 export {
   capGetCapSettingsErrorSchema,
   capGetCapSettingsResponseSchema,
   capGetCapSettingsStatus200Schema,
+  capGetCapSettingsStatus401Schema,
+  capGetCapSettingsStatus403Schema,
   capGetCapSettingsStatus422Schema,
 } from "./capGetCapSettingsSchema.js";
 export {
@@ -881,36 +981,47 @@ export {
   capGetCapXmlPathIdentifierSchema,
   capGetCapXmlResponseSchema,
   capGetCapXmlStatus200Schema,
+  capGetCapXmlStatus404Schema,
   capGetCapXmlStatus422Schema,
 } from "./capGetCapXmlSchema.js";
 export {
   capGetCatalogsErrorSchema,
   capGetCatalogsResponseSchema,
   capGetCatalogsStatus200Schema,
+  capGetCatalogsStatus401Schema,
+  capGetCatalogsStatus403Schema,
   capGetCatalogsStatus422Schema,
 } from "./capGetCatalogsSchema.js";
 export {
   capGetFeedsErrorSchema,
   capGetFeedsResponseSchema,
   capGetFeedsStatus200Schema,
+  capGetFeedsStatus401Schema,
+  capGetFeedsStatus403Schema,
   capGetFeedsStatus422Schema,
 } from "./capGetFeedsSchema.js";
 export {
   capGetHazardProfilesErrorSchema,
   capGetHazardProfilesResponseSchema,
   capGetHazardProfilesStatus200Schema,
+  capGetHazardProfilesStatus401Schema,
+  capGetHazardProfilesStatus403Schema,
   capGetHazardProfilesStatus422Schema,
 } from "./capGetHazardProfilesSchema.js";
 export {
   capGetIntegrationsErrorSchema,
   capGetIntegrationsResponseSchema,
   capGetIntegrationsStatus200Schema,
+  capGetIntegrationsStatus401Schema,
+  capGetIntegrationsStatus403Schema,
   capGetIntegrationsStatus422Schema,
 } from "./capGetIntegrationsSchema.js";
 export {
   capGetPredefinedAreasErrorSchema,
   capGetPredefinedAreasResponseSchema,
   capGetPredefinedAreasStatus200Schema,
+  capGetPredefinedAreasStatus401Schema,
+  capGetPredefinedAreasStatus403Schema,
   capGetPredefinedAreasStatus422Schema,
 } from "./capGetPredefinedAreasSchema.js";
 export {
@@ -918,6 +1029,7 @@ export {
   capGetPublicAlertPathIdentifierSchema,
   capGetPublicAlertResponseSchema,
   capGetPublicAlertStatus200Schema,
+  capGetPublicAlertStatus404Schema,
   capGetPublicAlertStatus422Schema,
 } from "./capGetPublicAlertSchema.js";
 export {
@@ -956,6 +1068,8 @@ export {
   capImportAlertErrorSchema,
   capImportAlertResponseSchema,
   capImportAlertStatus201Schema,
+  capImportAlertStatus401Schema,
+  capImportAlertStatus403Schema,
   capImportAlertStatus422Schema,
 } from "./capImportAlertSchema.js";
 export { capInfoCreateSchema } from "./capInfoCreateSchema.js";
@@ -983,6 +1097,9 @@ export {
   capPublishAlertPathAlertIdSchema,
   capPublishAlertResponseSchema,
   capPublishAlertStatus200Schema,
+  capPublishAlertStatus401Schema,
+  capPublishAlertStatus403Schema,
+  capPublishAlertStatus404Schema,
   capPublishAlertStatus422Schema,
 } from "./capPublishAlertSchema.js";
 export { capPublishPublicSchema } from "./capPublishPublicSchema.js";
@@ -996,6 +1113,8 @@ export {
   capSaveHazardProfilePathKeySchema,
   capSaveHazardProfileResponseSchema,
   capSaveHazardProfileStatus201Schema,
+  capSaveHazardProfileStatus401Schema,
+  capSaveHazardProfileStatus403Schema,
   capSaveHazardProfileStatus422Schema,
 } from "./capSaveHazardProfileSchema.js";
 export { capScopeSchema } from "./capScopeSchema.js";
@@ -1010,6 +1129,9 @@ export {
   capSubmitAlertPathAlertIdSchema,
   capSubmitAlertResponseSchema,
   capSubmitAlertStatus200Schema,
+  capSubmitAlertStatus401Schema,
+  capSubmitAlertStatus403Schema,
+  capSubmitAlertStatus404Schema,
   capSubmitAlertStatus422Schema,
 } from "./capSubmitAlertSchema.js";
 export {
@@ -1018,6 +1140,9 @@ export {
   capUpdateAlertPathAlertIdSchema,
   capUpdateAlertResponseSchema,
   capUpdateAlertStatus200Schema,
+  capUpdateAlertStatus401Schema,
+  capUpdateAlertStatus403Schema,
+  capUpdateAlertStatus404Schema,
   capUpdateAlertStatus422Schema,
 } from "./capUpdateAlertSchema.js";
 export {
@@ -1025,6 +1150,8 @@ export {
   capUpdateCapSettingsErrorSchema,
   capUpdateCapSettingsResponseSchema,
   capUpdateCapSettingsStatus200Schema,
+  capUpdateCapSettingsStatus401Schema,
+  capUpdateCapSettingsStatus403Schema,
   capUpdateCapSettingsStatus422Schema,
 } from "./capUpdateCapSettingsSchema.js";
 export {
@@ -1033,6 +1160,9 @@ export {
   capUpdateFeedPathFeedIdSchema,
   capUpdateFeedResponseSchema,
   capUpdateFeedStatus200Schema,
+  capUpdateFeedStatus401Schema,
+  capUpdateFeedStatus403Schema,
+  capUpdateFeedStatus404Schema,
   capUpdateFeedStatus422Schema,
 } from "./capUpdateFeedSchema.js";
 export { capUrgencySchema } from "./capUrgencySchema.js";
@@ -1041,12 +1171,23 @@ export {
   capValidateAlertPathAlertIdSchema,
   capValidateAlertResponseSchema,
   capValidateAlertStatus200Schema,
+  capValidateAlertStatus401Schema,
+  capValidateAlertStatus403Schema,
+  capValidateAlertStatus404Schema,
   capValidateAlertStatus422Schema,
 } from "./capValidateAlertSchema.js";
 export { capValidationResultSchema } from "./capValidationResultSchema.js";
 export { catalogueApplySchema } from "./catalogueApplySchema.js";
 export { cataloguePreviewSchema } from "./cataloguePreviewSchema.js";
 export { checkoutSessionPublicSchema } from "./checkoutSessionPublicSchema.js";
+export { clockRequestSchema } from "./clockRequestSchema.js";
+export { clockResultPropertiesActionEnumSchema } from "./clockResultPropertiesActionEnumSchema.js";
+export { clockResultSchema } from "./clockResultSchema.js";
+export { clockSiteActiveSchema } from "./clockSiteActiveSchema.js";
+export { clockSiteCreateSchema } from "./clockSiteCreateSchema.js";
+export { clockSiteIssuedSchema } from "./clockSiteIssuedSchema.js";
+export { clockSitePublicSchema } from "./clockSitePublicSchema.js";
+export { clockSitesPublicSchema } from "./clockSitesPublicSchema.js";
 export { connectionCreateSchema } from "./connectionCreateSchema.js";
 export { connectionPublicPropertiesStateEnumSchema } from "./connectionPublicPropertiesStateEnumSchema.js";
 export { connectionPublicSchema } from "./connectionPublicSchema.js";
@@ -1088,6 +1229,8 @@ export {
   eregisterCreateRegisterObservationErrorSchema,
   eregisterCreateRegisterObservationResponseSchema,
   eregisterCreateRegisterObservationStatus201Schema,
+  eregisterCreateRegisterObservationStatus401Schema,
+  eregisterCreateRegisterObservationStatus403Schema,
   eregisterCreateRegisterObservationStatus422Schema,
 } from "./eregisterCreateRegisterObservationSchema.js";
 export {
@@ -1097,6 +1240,8 @@ export {
   eregisterListRegisterObservationsQueryStationIdSchema,
   eregisterListRegisterObservationsResponseSchema,
   eregisterListRegisterObservationsStatus200Schema,
+  eregisterListRegisterObservationsStatus401Schema,
+  eregisterListRegisterObservationsStatus403Schema,
   eregisterListRegisterObservationsStatus422Schema,
 } from "./eregisterListRegisterObservationsSchema.js";
 export {
@@ -1111,6 +1256,8 @@ export {
   eregisterValidateSynopObservationErrorSchema,
   eregisterValidateSynopObservationResponseSchema,
   eregisterValidateSynopObservationStatus200Schema,
+  eregisterValidateSynopObservationStatus401Schema,
+  eregisterValidateSynopObservationStatus403Schema,
   eregisterValidateSynopObservationStatus422Schema,
 } from "./eregisterValidateSynopObservationSchema.js";
 export {
@@ -1288,6 +1435,7 @@ export {
   eventsListGroupsErrorSchema,
   eventsListGroupsResponseSchema,
   eventsListGroupsStatus200Schema,
+  eventsListGroupsStatus401Schema,
   eventsListGroupsStatus422Schema,
 } from "./eventsListGroupsSchema.js";
 export { eventsListListingsParametersSchemaAnyOfEnum2Schema } from "./eventsListListingsParametersSchemaAnyOfEnum2Schema.js";
@@ -1306,6 +1454,7 @@ export {
   eventsListListingsQueryWhenSchema,
   eventsListListingsResponseSchema,
   eventsListListingsStatus200Schema,
+  eventsListListingsStatus401Schema,
   eventsListListingsStatus422Schema,
 } from "./eventsListListingsSchema.js";
 export {
@@ -1583,6 +1732,35 @@ export {
   hrBulkAssignmentsStatus422Schema,
 } from "./hrBulkAssignmentsSchema.js";
 export {
+  hrCheckPeriodRulesErrorSchema,
+  hrCheckPeriodRulesPathPeriodIdSchema,
+  hrCheckPeriodRulesResponseSchema,
+  hrCheckPeriodRulesStatus200Schema,
+  hrCheckPeriodRulesStatus403Schema,
+  hrCheckPeriodRulesStatus404Schema,
+  hrCheckPeriodRulesStatus422Schema,
+} from "./hrCheckPeriodRulesSchema.js";
+export {
+  hrCheckShiftSwapRulesErrorSchema,
+  hrCheckShiftSwapRulesPathShiftSwapIdSchema,
+  hrCheckShiftSwapRulesResponseSchema,
+  hrCheckShiftSwapRulesStatus200Schema,
+  hrCheckShiftSwapRulesStatus403Schema,
+  hrCheckShiftSwapRulesStatus404Schema,
+  hrCheckShiftSwapRulesStatus422Schema,
+} from "./hrCheckShiftSwapRulesSchema.js";
+export {
+  hrClockBodySchema,
+  hrClockErrorSchema,
+  hrClockResponseSchema,
+  hrClockStatus200Schema,
+  hrClockStatus400Schema,
+  hrClockStatus403Schema,
+  hrClockStatus404Schema,
+  hrClockStatus409Schema,
+  hrClockStatus422Schema,
+} from "./hrClockSchema.js";
+export {
   hrClosePeriodErrorSchema,
   hrClosePeriodPathPeriodIdSchema,
   hrClosePeriodResponseSchema,
@@ -1611,6 +1789,15 @@ export {
   hrCreateCalendarEventStatus404Schema,
   hrCreateCalendarEventStatus422Schema,
 } from "./hrCreateCalendarEventSchema.js";
+export {
+  hrCreateClockSiteBodySchema,
+  hrCreateClockSiteErrorSchema,
+  hrCreateClockSiteResponseSchema,
+  hrCreateClockSiteStatus201Schema,
+  hrCreateClockSiteStatus403Schema,
+  hrCreateClockSiteStatus404Schema,
+  hrCreateClockSiteStatus422Schema,
+} from "./hrCreateClockSiteSchema.js";
 export {
   hrCreateDepartmentBodySchema,
   hrCreateDepartmentErrorSchema,
@@ -1869,6 +2056,14 @@ export {
   hrGetAttendanceWeekStatus422Schema,
 } from "./hrGetAttendanceWeekSchema.js";
 export {
+  hrGetDepartmentRulesErrorSchema,
+  hrGetDepartmentRulesPathDepartmentIdSchema,
+  hrGetDepartmentRulesResponseSchema,
+  hrGetDepartmentRulesStatus200Schema,
+  hrGetDepartmentRulesStatus403Schema,
+  hrGetDepartmentRulesStatus422Schema,
+} from "./hrGetDepartmentRulesSchema.js";
+export {
   hrGetDepartmentTimesheetsErrorSchema,
   hrGetDepartmentTimesheetsQueryDepartmentIdSchema,
   hrGetDepartmentTimesheetsQueryPageSchema,
@@ -1887,6 +2082,8 @@ export {
   hrGetDocumentEmployeesQuerySizeSchema,
   hrGetDocumentEmployeesResponseSchema,
   hrGetDocumentEmployeesStatus200Schema,
+  hrGetDocumentEmployeesStatus401Schema,
+  hrGetDocumentEmployeesStatus403Schema,
   hrGetDocumentEmployeesStatus422Schema,
 } from "./hrGetDocumentEmployeesSchema.js";
 export {
@@ -1958,6 +2155,8 @@ export {
   hrGetMyLeaveRequestsQuerySizeSchema,
   hrGetMyLeaveRequestsResponseSchema,
   hrGetMyLeaveRequestsStatus200Schema,
+  hrGetMyLeaveRequestsStatus401Schema,
+  hrGetMyLeaveRequestsStatus403Schema,
   hrGetMyLeaveRequestsStatus422Schema,
 } from "./hrGetMyLeaveRequestsSchema.js";
 export {
@@ -1984,6 +2183,8 @@ export {
   hrGetMyTimesheetsQuerySizeSchema,
   hrGetMyTimesheetsResponseSchema,
   hrGetMyTimesheetsStatus200Schema,
+  hrGetMyTimesheetsStatus401Schema,
+  hrGetMyTimesheetsStatus403Schema,
   hrGetMyTimesheetsStatus422Schema,
 } from "./hrGetMyTimesheetsSchema.js";
 export {
@@ -1999,6 +2200,8 @@ export {
   hrGetOrganisationsErrorSchema,
   hrGetOrganisationsResponseSchema,
   hrGetOrganisationsStatus200Schema,
+  hrGetOrganisationsStatus401Schema,
+  hrGetOrganisationsStatus403Schema,
   hrGetOrganisationsStatus422Schema,
 } from "./hrGetOrganisationsSchema.js";
 export {
@@ -2225,6 +2428,16 @@ export {
   hrImportOrganisationStatus422Schema,
 } from "./hrImportOrganisationSchema.js";
 export {
+  hrImportStaffBalancesBodySchema,
+  hrImportStaffBalancesErrorSchema,
+  hrImportStaffBalancesResponseSchema,
+  hrImportStaffBalancesStatus200Schema,
+  hrImportStaffBalancesStatus403Schema,
+  hrImportStaffBalancesStatus404Schema,
+  hrImportStaffBalancesStatus409Schema,
+  hrImportStaffBalancesStatus422Schema,
+} from "./hrImportStaffBalancesSchema.js";
+export {
   hrIssueParkingDecalBodySchema,
   hrIssueParkingDecalErrorSchema,
   hrIssueParkingDecalPathPermitIdSchema,
@@ -2263,6 +2476,15 @@ export {
   hrListCalendarEventsStatus422Schema,
 } from "./hrListCalendarEventsSchema.js";
 export {
+  hrListClockSitesErrorSchema,
+  hrListClockSitesQueryDepartmentIdSchema,
+  hrListClockSitesResponseSchema,
+  hrListClockSitesStatus200Schema,
+  hrListClockSitesStatus403Schema,
+  hrListClockSitesStatus404Schema,
+  hrListClockSitesStatus422Schema,
+} from "./hrListClockSitesSchema.js";
+export {
   hrListDepartmentMembersErrorSchema,
   hrListDepartmentMembersPathDepartmentIdSchema,
   hrListDepartmentMembersResponseSchema,
@@ -2293,6 +2515,8 @@ export {
   hrListMyShiftSwapsQuerySizeSchema,
   hrListMyShiftSwapsResponseSchema,
   hrListMyShiftSwapsStatus200Schema,
+  hrListMyShiftSwapsStatus401Schema,
+  hrListMyShiftSwapsStatus403Schema,
   hrListMyShiftSwapsStatus422Schema,
 } from "./hrListMyShiftSwapsSchema.js";
 export {
@@ -2425,6 +2649,15 @@ export {
   hrPublishPeriodStatus422Schema,
 } from "./hrPublishPeriodSchema.js";
 export {
+  hrPutDepartmentRulesBodySchema,
+  hrPutDepartmentRulesErrorSchema,
+  hrPutDepartmentRulesPathDepartmentIdSchema,
+  hrPutDepartmentRulesResponseSchema,
+  hrPutDepartmentRulesStatus200Schema,
+  hrPutDepartmentRulesStatus403Schema,
+  hrPutDepartmentRulesStatus422Schema,
+} from "./hrPutDepartmentRulesSchema.js";
+export {
   hrRemoveHolidayErrorSchema,
   hrRemoveHolidayPathHolidayIdSchema,
   hrRemoveHolidayResponseSchema,
@@ -2443,6 +2676,15 @@ export {
   hrRenameOrganisationStatus404Schema,
   hrRenameOrganisationStatus422Schema,
 } from "./hrRenameOrganisationSchema.js";
+export {
+  hrRotateClockSiteErrorSchema,
+  hrRotateClockSitePathSiteIdSchema,
+  hrRotateClockSiteResponseSchema,
+  hrRotateClockSiteStatus200Schema,
+  hrRotateClockSiteStatus403Schema,
+  hrRotateClockSiteStatus404Schema,
+  hrRotateClockSiteStatus422Schema,
+} from "./hrRotateClockSiteSchema.js";
 export {
   hrSaveAttendanceBodySchema,
   hrSaveAttendanceErrorSchema,
@@ -2474,6 +2716,16 @@ export {
   hrSaveWorkflowConfigurationStatus409Schema,
   hrSaveWorkflowConfigurationStatus422Schema,
 } from "./hrSaveWorkflowConfigurationSchema.js";
+export {
+  hrSetClockSiteActiveBodySchema,
+  hrSetClockSiteActiveErrorSchema,
+  hrSetClockSiteActivePathSiteIdSchema,
+  hrSetClockSiteActiveResponseSchema,
+  hrSetClockSiteActiveStatus200Schema,
+  hrSetClockSiteActiveStatus403Schema,
+  hrSetClockSiteActiveStatus404Schema,
+  hrSetClockSiteActiveStatus422Schema,
+} from "./hrSetClockSiteActiveSchema.js";
 export {
   hrSubmitAbsenteeReportBodySchema,
   hrSubmitAbsenteeReportErrorSchema,
@@ -2957,6 +3209,8 @@ export {
   janitorialSpecErrorSchema,
   janitorialSpecResponseSchema,
   janitorialSpecStatus200Schema,
+  janitorialSpecStatus401Schema,
+  janitorialSpecStatus403Schema,
   janitorialSpecStatus422Schema,
 } from "./janitorialSpecSchema.js";
 export { janitorialStaffListSchema } from "./janitorialStaffListSchema.js";
@@ -3126,6 +3380,29 @@ export { notificationPublicSchema } from "./notificationPublicSchema.js";
 export { notificationSettingPublicSchema } from "./notificationSettingPublicSchema.js";
 export { notificationSettingsPublicSchema } from "./notificationSettingsPublicSchema.js";
 export { notificationSettingUpdateSchema } from "./notificationSettingUpdateSchema.js";
+export { notificationSnoozeCreateSchema } from "./notificationSnoozeCreateSchema.js";
+export { notificationSnoozePublicSchema } from "./notificationSnoozePublicSchema.js";
+export {
+  notificationsCreateNotificationSnoozeBodySchema,
+  notificationsCreateNotificationSnoozeErrorSchema,
+  notificationsCreateNotificationSnoozeQueryOrganisationIdSchema,
+  notificationsCreateNotificationSnoozeResponseSchema,
+  notificationsCreateNotificationSnoozeStatus201Schema,
+  notificationsCreateNotificationSnoozeStatus400Schema,
+  notificationsCreateNotificationSnoozeStatus403Schema,
+  notificationsCreateNotificationSnoozeStatus404Schema,
+  notificationsCreateNotificationSnoozeStatus422Schema,
+} from "./notificationsCreateNotificationSnoozeSchema.js";
+export {
+  notificationsDeleteNotificationSnoozeErrorSchema,
+  notificationsDeleteNotificationSnoozePathSnoozeIdSchema,
+  notificationsDeleteNotificationSnoozeQueryOrganisationIdSchema,
+  notificationsDeleteNotificationSnoozeResponseSchema,
+  notificationsDeleteNotificationSnoozeStatus204Schema,
+  notificationsDeleteNotificationSnoozeStatus403Schema,
+  notificationsDeleteNotificationSnoozeStatus404Schema,
+  notificationsDeleteNotificationSnoozeStatus422Schema,
+} from "./notificationsDeleteNotificationSnoozeSchema.js";
 export {
   notificationsGetNotificationPreferencesErrorSchema,
   notificationsGetNotificationPreferencesResponseSchema,
@@ -3141,6 +3418,14 @@ export {
   notificationsGetNotificationSettingsStatus403Schema,
   notificationsGetNotificationSettingsStatus422Schema,
 } from "./notificationsGetNotificationSettingsSchema.js";
+export {
+  notificationsGetNotificationSnoozesErrorSchema,
+  notificationsGetNotificationSnoozesQueryOrganisationIdSchema,
+  notificationsGetNotificationSnoozesResponseSchema,
+  notificationsGetNotificationSnoozesStatus200Schema,
+  notificationsGetNotificationSnoozesStatus403Schema,
+  notificationsGetNotificationSnoozesStatus422Schema,
+} from "./notificationsGetNotificationSnoozesSchema.js";
 export {
   notificationsGetNotificationsErrorSchema,
   notificationsGetNotificationsQueryPageSchema,
@@ -3306,7 +3591,11 @@ export { rosterPreferencesUpdateSchema } from "./rosterPreferencesUpdateSchema.j
 export { rosterRevisionActionSchema } from "./rosterRevisionActionSchema.js";
 export { rosterRevisionPublicSchema } from "./rosterRevisionPublicSchema.js";
 export { rosterRevisionsPublicSchema } from "./rosterRevisionsPublicSchema.js";
+export { rosterRuleCheckPublicSchema } from "./rosterRuleCheckPublicSchema.js";
+export { rosterRulesPublicSchema } from "./rosterRulesPublicSchema.js";
+export { rosterRulesUpdateSchema } from "./rosterRulesUpdateSchema.js";
 export { routeViewSchema } from "./routeViewSchema.js";
+export { ruleViolationPublicSchema } from "./ruleViolationPublicSchema.js";
 export { runFinishPropertiesStatusEnumSchema } from "./runFinishPropertiesStatusEnumSchema.js";
 export { runFinishSchema } from "./runFinishSchema.js";
 export { runInputPropertiesSourceEnumSchema } from "./runInputPropertiesSourceEnumSchema.js";
@@ -3340,6 +3629,7 @@ export { shiftSwapActionSchema } from "./shiftSwapActionSchema.js";
 export { shiftSwapRequestCreateSchema } from "./shiftSwapRequestCreateSchema.js";
 export { shiftSwapRequestPublicSchema } from "./shiftSwapRequestPublicSchema.js";
 export { shiftSwapRequestsPublicSchema } from "./shiftSwapRequestsPublicSchema.js";
+export { shiftSwapRuleCheckPublicSchema } from "./shiftSwapRuleCheckPublicSchema.js";
 export { shiftSwapSubmitSchema } from "./shiftSwapSubmitSchema.js";
 export { shiftViewSchema } from "./shiftViewSchema.js";
 export { signatureInputSchema } from "./signatureInputSchema.js";
@@ -3498,6 +3788,8 @@ export {
   transportGetCatalogueErrorSchema,
   transportGetCatalogueResponseSchema,
   transportGetCatalogueStatus200Schema,
+  transportGetCatalogueStatus401Schema,
+  transportGetCatalogueStatus403Schema,
   transportGetCatalogueStatus422Schema,
   transportGetCatalogueStatus503Schema,
 } from "./transportGetCatalogueSchema.js";
@@ -3559,6 +3851,8 @@ export {
   transportSpecErrorSchema,
   transportSpecResponseSchema,
   transportSpecStatus200Schema,
+  transportSpecStatus401Schema,
+  transportSpecStatus403Schema,
   transportSpecStatus422Schema,
 } from "./transportSpecSchema.js";
 export { transportStopInputSchema } from "./transportStopInputSchema.js";
@@ -3641,6 +3935,8 @@ export {
   utilsTestEmailQueryEmailToSchema,
   utilsTestEmailResponseSchema,
   utilsTestEmailStatus201Schema,
+  utilsTestEmailStatus401Schema,
+  utilsTestEmailStatus403Schema,
   utilsTestEmailStatus422Schema,
 } from "./utilsTestEmailSchema.js";
 export { validationErrorItemSchema } from "./validationErrorItemSchema.js";
@@ -3820,6 +4116,8 @@ export {
   wxwatchArchiveQueryUnknownTimeSchema,
   wxwatchArchiveResponseSchema,
   wxwatchArchiveStatus200Schema,
+  wxwatchArchiveStatus401Schema,
+  wxwatchArchiveStatus403Schema,
   wxwatchArchiveStatus422Schema,
 } from "./wxwatchArchiveSchema.js";
 export {
@@ -3827,6 +4125,9 @@ export {
   wxwatchBulletinPathEditionIdSchema,
   wxwatchBulletinResponseSchema,
   wxwatchBulletinStatus200Schema,
+  wxwatchBulletinStatus401Schema,
+  wxwatchBulletinStatus403Schema,
+  wxwatchBulletinStatus404Schema,
   wxwatchBulletinStatus422Schema,
 } from "./wxwatchBulletinSchema.js";
 export {
@@ -3834,6 +4135,9 @@ export {
   wxwatchEditionAssetsPathEditionIdSchema,
   wxwatchEditionAssetsResponseSchema,
   wxwatchEditionAssetsStatus200Schema,
+  wxwatchEditionAssetsStatus401Schema,
+  wxwatchEditionAssetsStatus403Schema,
+  wxwatchEditionAssetsStatus404Schema,
   wxwatchEditionAssetsStatus422Schema,
 } from "./wxwatchEditionAssetsSchema.js";
 export {
@@ -3872,6 +4176,8 @@ export {
   wxwatchFinishRunPathRunIdSchema,
   wxwatchFinishRunResponseSchema,
   wxwatchFinishRunStatus204Schema,
+  wxwatchFinishRunStatus401Schema,
+  wxwatchFinishRunStatus409Schema,
   wxwatchFinishRunStatus422Schema,
 } from "./wxwatchFinishRunSchema.js";
 export {
@@ -3887,6 +4193,8 @@ export {
   wxwatchMetadataQueryDaySchema,
   wxwatchMetadataResponseSchema,
   wxwatchMetadataStatus200Schema,
+  wxwatchMetadataStatus401Schema,
+  wxwatchMetadataStatus403Schema,
   wxwatchMetadataStatus422Schema,
 } from "./wxwatchMetadataSchema.js";
 export {
@@ -3954,6 +4262,9 @@ export {
   wxwatchRetrievalsQueryOffsetSchema,
   wxwatchRetrievalsResponseSchema,
   wxwatchRetrievalsStatus200Schema,
+  wxwatchRetrievalsStatus401Schema,
+  wxwatchRetrievalsStatus403Schema,
+  wxwatchRetrievalsStatus404Schema,
   wxwatchRetrievalsStatus422Schema,
 } from "./wxwatchRetrievalsSchema.js";
 export {
@@ -3980,6 +4291,10 @@ export {
   wxwatchWeatherImagePathStoragePathSchema,
   wxwatchWeatherImageResponseSchema,
   wxwatchWeatherImageStatus307Schema,
+  wxwatchWeatherImageStatus400Schema,
+  wxwatchWeatherImageStatus401Schema,
+  wxwatchWeatherImageStatus403Schema,
+  wxwatchWeatherImageStatus404Schema,
   wxwatchWeatherImageStatus422Schema,
 } from "./wxwatchWeatherImageSchema.js";
 export { zoneCreateSchema } from "./zoneCreateSchema.js";

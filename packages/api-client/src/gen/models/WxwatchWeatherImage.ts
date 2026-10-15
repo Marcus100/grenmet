@@ -11,6 +11,14 @@ export type WxwatchWeatherImagePath = {
 
 export type WxwatchWeatherImageStatus307 = unknown;
 
+export type WxwatchWeatherImageStatus400 = unknown;
+
+export type WxwatchWeatherImageStatus401 = unknown;
+
+export type WxwatchWeatherImageStatus403 = unknown;
+
+export type WxwatchWeatherImageStatus404 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -26,6 +34,10 @@ export type WxwatchWeatherImageOptions = {
 
 export type WxwatchWeatherImageResponses = {
   "307": WxwatchWeatherImageStatus307;
+  "400": WxwatchWeatherImageStatus400;
+  "401": WxwatchWeatherImageStatus401;
+  "403": WxwatchWeatherImageStatus403;
+  "404": WxwatchWeatherImageStatus404;
   "422": WxwatchWeatherImageStatus422;
 };
 
@@ -34,4 +46,8 @@ export type WxwatchWeatherImageResponses = {
  */
 export type WxwatchWeatherImageResponse =
   | WxwatchWeatherImageStatus307
+  | WxwatchWeatherImageStatus400
+  | WxwatchWeatherImageStatus401
+  | WxwatchWeatherImageStatus403
+  | WxwatchWeatherImageStatus404
   | WxwatchWeatherImageStatus422;

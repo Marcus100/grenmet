@@ -10,6 +10,10 @@ from typing import Annotated
 from fastapi import Depends, Query
 from pydantic import BaseModel, Field
 
+# Keeps (page - 1) * size far inside PostgreSQL's int64 OFFSET range; without an
+# upper bound a huge page number reached the database and returned a 500.
+MAX_PAGE = 1_000_000
+
 
 class PaginatedResponse[T](BaseModel):
     """Generic paginated response model."""
@@ -47,7 +51,9 @@ class PaginationParams(BaseModel):
     Provides both page-based and offset-based pagination.
     """
 
-    page: int = Field(default=1, ge=1, description="Page number (1-indexed)")
+    page: int = Field(
+        default=1, ge=1, le=MAX_PAGE, description="Page number (1-indexed)"
+    )
     size: int = Field(default=100, ge=1, le=1000, description="Items per page")
 
     @property
@@ -63,7 +69,9 @@ class PaginationParams(BaseModel):
 
 # FastAPI dependency function for pagination
 def get_pagination_params(
-    page: Annotated[int, Query(ge=1, description="Page number (1-indexed)")] = 1,
+    page: Annotated[
+        int, Query(ge=1, le=MAX_PAGE, description="Page number (1-indexed)")
+    ] = 1,
     size: Annotated[int, Query(ge=1, le=1000, description="Items per page")] = 100,
 ) -> PaginationParams:
     """

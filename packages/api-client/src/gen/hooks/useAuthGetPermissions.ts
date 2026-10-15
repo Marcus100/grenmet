@@ -15,6 +15,8 @@ import { authGetPermissions } from "../clients/authGetPermissions.js";
 import type {
   AuthGetPermissionsOptions,
   AuthGetPermissionsStatus200,
+  AuthGetPermissionsStatus401,
+  AuthGetPermissionsStatus403,
   AuthGetPermissionsStatus422,
 } from "../models/AuthGetPermissions.js";
 
@@ -34,7 +36,11 @@ export function authGetPermissionsQueryOptions(
   const queryKey = authGetPermissionsQueryKey({ query });
   return queryOptions<
     AuthGetPermissionsStatus200,
-    ResponseErrorConfig<AuthGetPermissionsStatus422>,
+    ResponseErrorConfig<
+      | AuthGetPermissionsStatus401
+      | AuthGetPermissionsStatus403
+      | AuthGetPermissionsStatus422
+    >,
     AuthGetPermissionsStatus200,
     typeof queryKey
   >({
@@ -71,7 +77,11 @@ export function useAuthGetPermissions<
     query?: Partial<
       QueryObserverOptions<
         AuthGetPermissionsStatus200,
-        ResponseErrorConfig<AuthGetPermissionsStatus422>,
+        ResponseErrorConfig<
+          | AuthGetPermissionsStatus401
+          | AuthGetPermissionsStatus403
+          | AuthGetPermissionsStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -99,7 +109,11 @@ export function useAuthGetPermissions<
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<AuthGetPermissionsStatus422>
+    ResponseErrorConfig<
+      | AuthGetPermissionsStatus401
+      | AuthGetPermissionsStatus403
+      | AuthGetPermissionsStatus422
+    >
   > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;

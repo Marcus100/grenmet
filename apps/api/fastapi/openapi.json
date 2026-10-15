@@ -309,6 +309,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -453,6 +459,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -477,6 +492,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -519,6 +535,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       },
@@ -602,6 +624,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -1034,6 +1062,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -1071,6 +1105,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -1200,6 +1240,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -1242,6 +1283,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       },
@@ -1287,6 +1334,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -1469,6 +1522,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -1511,6 +1565,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       },
@@ -1556,6 +1616,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -1664,6 +1730,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       },
@@ -1709,6 +1781,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -1946,6 +2024,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -3684,7 +3768,7 @@
           "hr-rosters"
         ],
         "summary": "Publish roster period",
-        "description": "Transition a draft roster period to published. Requires roster.manage permission.",
+        "description": "Transition a draft roster period to published. Roster rule warnings are recorded on the published revision and never block publishing. Requires roster.manage permission.",
         "operationId": "hrPublishPeriod",
         "security": [
           {
@@ -4005,6 +4089,171 @@
           },
           "403": {
             "description": "Insufficient permission"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/rosters/departments/{department_id}/rules": {
+      "get": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Read department roster rule limits",
+        "description": "Return the roster rule limits for a department. A null limit means the rule is disabled. Requires roster.view within the department scope.",
+        "operationId": "hrGetDepartmentRules",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Department Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rule limits returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRulesPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Department outside your scope"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Set department roster rule limits",
+        "description": "Replace the roster rule limits for a department; null disables a rule. Rules only produce warnings and never block publishing. Requires roster.manage within the department scope.",
+        "operationId": "hrPutDepartmentRules",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Department Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RosterRulesUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Rule limits saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRulesPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/rosters/periods/{period_id}/rule-check": {
+      "get": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Check a roster period against department rules",
+        "description": "Return warn-only violations of the department's rest, consecutive-day and weekly-hour limits for a roster period. Neighbouring published periods are included so runs crossing the boundary are seen. Requires roster.view.",
+        "operationId": "hrCheckPeriodRules",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "period_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Period Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rule check returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRuleCheckPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Department outside your scope"
+          },
+          "404": {
+            "description": "Roster period not found"
           }
         }
       }
@@ -4424,6 +4673,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -4466,6 +4716,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -4499,6 +4755,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -4657,6 +4914,290 @@
           },
           "404": {
             "description": "Timesheet not found"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance/clock": {
+      "post": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Clock in or out at a clock point",
+        "description": "Records arrival against the caller's rostered work shift, or departure when a shift is already open. The token proves presence at a department clock point. It feeds the same attendance record and supervisor review as manual attendance. Late, early-departure and overtime minutes are informational only.",
+        "operationId": "hrClock",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClockRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClockResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid attendance for this shift"
+          },
+          "403": {
+            "description": "Clock point belongs to another department"
+          },
+          "404": {
+            "description": "Clock-in code is not valid"
+          },
+          "409": {
+            "description": "No rostered shift to clock in to at this time"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/attendance/clock-sites": {
+      "get": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "List clock sites for a department",
+        "description": "Clock points for a department. Tokens are never returned. Requires roster.manage in the department scope.",
+        "operationId": "hrListClockSites",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Department Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClockSitesPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient permission or department outside your scope"
+          },
+          "404": {
+            "description": "Clock site not found"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Create a clock site",
+        "description": "Creates a clock point and returns its token once, for the NFC tag or QR poster. Only a hash is stored. Requires roster.manage in the department scope.",
+        "operationId": "hrCreateClockSite",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClockSiteCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClockSiteIssued"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient permission or department outside your scope"
+          },
+          "404": {
+            "description": "Clock site not found"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance/clock-sites/{site_id}/rotate": {
+      "post": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Rotate a clock site token",
+        "description": "Issues a new token, invalidating the old one, and returns it once. Use when a tag or poster is photographed or lost. Requires roster.manage in the department scope.",
+        "operationId": "hrRotateClockSite",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Site Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClockSiteIssued"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient permission or department outside your scope"
+          },
+          "404": {
+            "description": "Clock site not found"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance/clock-sites/{site_id}/active": {
+      "put": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Activate or deactivate a clock site",
+        "description": "A deactivated site rejects every scan. Requires roster.manage in the department scope.",
+        "operationId": "hrSetClockSiteActive",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Site Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClockSiteActive"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClockSitePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient permission or department outside your scope"
+          },
+          "404": {
+            "description": "Clock site not found"
           }
         }
       }
@@ -5158,6 +5699,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -5298,6 +5840,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -5568,6 +6111,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -6042,6 +6586,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -6084,6 +6629,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -6220,6 +6771,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -6523,6 +7075,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -6565,6 +7118,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -6875,6 +7434,61 @@
         }
       }
     },
+    "/api/v1/hr/shift-swaps/{shift_swap_id}/rule-check": {
+      "get": {
+        "tags": [
+          "hr-exchange"
+        ],
+        "summary": "Check a shift exchange against department roster rules",
+        "description": "Return warn-only breaches of the department's rest, consecutive-day and weekly-hour limits that this exchange would introduce for the two employees. Never blocks approval. Available to the two employees and to holders of roster.view in the department scope.",
+        "operationId": "hrCheckShiftSwapRules",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "shift_swap_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Shift Swap Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rule check returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShiftSwapRuleCheckPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Not permitted to view this swap"
+          },
+          "404": {
+            "description": "Shift swap not found"
+          }
+        }
+      }
+    },
     "/api/v1/hr/status-reports/staffing": {
       "get": {
         "tags": [
@@ -7090,6 +7704,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -7642,6 +8257,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -7908,6 +8524,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -8004,6 +8621,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -8046,6 +8664,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -8315,6 +8939,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -8397,6 +9022,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -8819,6 +9445,204 @@
         }
       }
     },
+    "/api/v1/notifications/snoozes": {
+      "get": {
+        "tags": [
+          "notifications"
+        ],
+        "summary": "List active notification snoozes",
+        "description": "Notifications currently silenced for the organisation. Requires notifications.manage.",
+        "operationId": "notificationsGetNotificationSnoozes",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Organisation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NotificationSnoozePublic"
+                  },
+                  "title": "Response Notificationsgetnotificationsnoozes"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient scope for this organisation"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Snooze a notification",
+        "description": "Silence a notification, or one entity of it, until a set time, e.g. during planned work. Requires notifications.manage.",
+        "operationId": "notificationsCreateNotificationSnooze",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Organisation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationSnoozeCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationSnoozePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Snooze must end in the future, or entity is incomplete"
+          },
+          "403": {
+            "description": "Insufficient scope for this organisation"
+          },
+          "404": {
+            "description": "Unknown notification"
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/snoozes/{snooze_id}": {
+      "delete": {
+        "tags": [
+          "notifications"
+        ],
+        "summary": "End a notification snooze",
+        "description": "Removes a snooze so the notification resumes. Requires notifications.manage.",
+        "operationId": "notificationsDeleteNotificationSnooze",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "snooze_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Snooze Id"
+            }
+          },
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Organisation Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient scope for this organisation"
+          },
+          "404": {
+            "description": "Snooze not found"
+          }
+        }
+      }
+    },
     "/api/v1/cap/hazard-profiles": {
       "get": {
         "tags": [
@@ -8852,6 +9676,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -8917,6 +9747,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -8967,6 +9803,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -9027,6 +9872,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -9067,6 +9921,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -9109,6 +9964,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       },
@@ -9154,6 +10015,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -9196,6 +10063,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -9250,6 +10123,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       },
@@ -9307,6 +10189,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -9356,6 +10247,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -9405,6 +10305,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -9464,6 +10373,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -9523,6 +10441,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -9582,6 +10509,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -9641,6 +10577,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -9700,6 +10645,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -9732,6 +10686,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -9777,6 +10737,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -9814,6 +10780,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -9855,6 +10827,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -9900,6 +10878,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -9945,6 +10929,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -9991,6 +10981,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -10033,6 +11024,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -10069,6 +11066,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -10114,6 +11117,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -10178,6 +11187,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       },
@@ -10218,6 +11236,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -10392,6 +11419,9 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -10572,6 +11602,9 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -10621,6 +11654,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -10737,6 +11776,18 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -11135,6 +12186,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 100000,
               "minimum": 0,
               "default": 0,
               "title": "Offset"
@@ -12094,6 +13146,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       },
@@ -12142,6 +13200,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -12184,6 +13248,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -12279,6 +13349,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -12448,6 +13524,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -12524,6 +13606,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -12576,6 +13667,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -12632,6 +13732,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -13314,6 +14423,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
           }
         }
       }
@@ -13466,6 +14581,9 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
           }
         },
         "security": [
@@ -15806,6 +16924,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -15898,6 +17022,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           },
           "503": {
             "description": "Transport database unavailable",
@@ -17204,6 +18334,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "deprecated": true,
@@ -17374,6 +18510,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 100000,
               "minimum": 0,
               "default": 0,
               "title": "Offset"
@@ -17400,6 +18537,9 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
           }
         }
       }
@@ -17540,6 +18680,9 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
           }
         },
         "security": [
@@ -20997,6 +22140,181 @@
         }
       }
     },
+    "/api/v1/auth/account/apps": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "List the apps on this account",
+        "description": "Which single sign-on apps this account can use, and which it may leave. Needs the auth.barrels.gd account session, not an app session.",
+        "operationId": "authListAccountApps",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountSessionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AccountAppPublic"
+                  },
+                  "type": "array",
+                  "title": "Response Authlistaccountapps"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in to the Barrels account"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/account/apps/{app}/join": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Join an app",
+        "description": "Grant the app's default role. Harmless if already a member.",
+        "operationId": "authJoinAccountApp",
+        "parameters": [
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,30}$",
+              "title": "App"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountSessionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppJoinResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Not signed in to the Barrels account"
+          },
+          "403": {
+            "description": "This app cannot be joined or left from here"
+          },
+          "404": {
+            "description": "Unknown app"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/account/apps/{app}/leave": {
+      "post": {
+        "tags": [
+          "auth"
+        ],
+        "summary": "Leave an app",
+        "description": "Remove the app's default role and end this account's sessions in that app only. The account and other apps are unaffected.",
+        "operationId": "authLeaveAccountApp",
+        "parameters": [
+          {
+            "name": "app",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z][a-z0-9-]{1,30}$",
+              "title": "App"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountSessionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppLeaveResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Not signed in to the Barrels account"
+          },
+          "403": {
+            "description": "This app cannot be joined or left from here"
+          },
+          "404": {
+            "description": "Unknown app"
+          }
+        }
+      }
+    },
     "/api/v1/hr/staff-card/me": {
       "get": {
         "tags": [
@@ -21319,6 +22637,62 @@
             "description": "Setup conflict"
           }
         }
+      }
+    },
+    "/api/v1/hr/setup/staff/balances/import": {
+      "post": {
+        "tags": [
+          "staff-setup"
+        ],
+        "summary": "Validate or apply opening leave balances from a CSV export",
+        "description": "Reads a CSV with employee_number, leave_type and balance columns (other columns are ignored), checks every row, and posts through the leave ledger only when apply is true and every row is valid. Superuser only.",
+        "operationId": "hrImportStaffBalances",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BalanceImportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BalanceImportResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Administrator access required"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Setup conflict"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
       }
     },
     "/api/v1/hr/setup/grades": {
@@ -22935,6 +24309,34 @@
         ],
         "title": "AccessReviewData"
       },
+      "AccountAppPublic": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "joined": {
+            "type": "boolean",
+            "title": "Joined"
+          },
+          "can_leave": {
+            "type": "boolean",
+            "title": "Can Leave"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "label",
+          "joined",
+          "can_leave"
+        ],
+        "title": "AccountAppPublic"
+      },
       "AccountSecurityPublic": {
         "properties": {
           "privileged_mfa_required": {
@@ -23002,6 +24404,21 @@
           "sessions"
         ],
         "title": "AccountSecurityPublic"
+      },
+      "AccountSessionRequest": {
+        "properties": {
+          "session_token": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Session Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "session_token"
+        ],
+        "title": "AccountSessionRequest"
       },
       "ActivationAccountCreate": {
         "properties": {
@@ -23504,6 +24921,37 @@
           "permission_keys"
         ],
         "title": "AppIdentityPublic"
+      },
+      "AppJoinResult": {
+        "properties": {
+          "joined": {
+            "type": "boolean",
+            "title": "Joined"
+          }
+        },
+        "type": "object",
+        "required": [
+          "joined"
+        ],
+        "title": "AppJoinResult"
+      },
+      "AppLeaveResult": {
+        "properties": {
+          "left": {
+            "type": "boolean",
+            "title": "Left"
+          },
+          "still_has_access": {
+            "type": "boolean",
+            "title": "Still Has Access"
+          }
+        },
+        "type": "object",
+        "required": [
+          "left",
+          "still_has_access"
+        ],
+        "title": "AppLeaveResult"
       },
       "AppPasswordLogin": {
         "properties": {
@@ -25122,6 +26570,131 @@
           "recorded_at"
         ],
         "title": "AviationRevisionRead"
+      },
+      "BalanceImportRequest": {
+        "properties": {
+          "organisation_id": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Organisation Id"
+          },
+          "source": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 3,
+            "title": "Source"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of"
+          },
+          "csv": {
+            "type": "string",
+            "maxLength": 500000,
+            "minLength": 1,
+            "title": "Csv"
+          },
+          "apply": {
+            "type": "boolean",
+            "title": "Apply",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "organisation_id",
+          "source",
+          "as_of",
+          "csv"
+        ],
+        "title": "BalanceImportRequest",
+        "description": "Opening leave balances from a spreadsheet export (for example HrPlus).\n\nThe CSV needs the columns ``employee_number``, ``leave_type`` (an exact leave\ntype code) and ``balance``; other columns, such as names, are ignored and never\nstored. Nothing is posted unless ``apply`` is true and every row is valid."
+      },
+      "BalanceImportResult": {
+        "properties": {
+          "applied": {
+            "type": "boolean",
+            "title": "Applied"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "valid": {
+            "type": "integer",
+            "title": "Valid"
+          },
+          "invalid": {
+            "type": "integer",
+            "title": "Invalid"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/BalanceImportRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          }
+        },
+        "type": "object",
+        "required": [
+          "applied",
+          "total",
+          "valid",
+          "invalid",
+          "rows"
+        ],
+        "title": "BalanceImportResult"
+      },
+      "BalanceImportRow": {
+        "properties": {
+          "row": {
+            "type": "integer",
+            "title": "Row"
+          },
+          "employee_number": {
+            "type": "string",
+            "title": "Employee Number"
+          },
+          "leave_type": {
+            "type": "string",
+            "title": "Leave Type"
+          },
+          "balance": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Balance"
+          },
+          "status": {
+            "$ref": "#/components/schemas/BalanceImportRowPropertiesStatusEnum"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "row",
+          "employee_number",
+          "leave_type",
+          "status"
+        ],
+        "title": "BalanceImportRow"
       },
       "BalanceInput": {
         "properties": {
@@ -28571,6 +30144,187 @@
           "url"
         ],
         "title": "CheckoutSessionPublic"
+      },
+      "ClockRequest": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 8,
+            "title": "Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token"
+        ],
+        "title": "ClockRequest"
+      },
+      "ClockResult": {
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/ClockResultPropertiesActionEnum"
+          },
+          "site_name": {
+            "type": "string",
+            "title": "Site Name"
+          },
+          "attendance": {
+            "$ref": "#/components/schemas/AttendanceShiftPublic"
+          },
+          "late_minutes": {
+            "type": "integer",
+            "title": "Late Minutes",
+            "default": 0
+          },
+          "early_departure_minutes": {
+            "type": "integer",
+            "title": "Early Departure Minutes",
+            "default": 0
+          },
+          "overtime_minutes": {
+            "type": "integer",
+            "title": "Overtime Minutes",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "action",
+          "site_name",
+          "attendance"
+        ],
+        "title": "ClockResult"
+      },
+      "ClockSiteActive": {
+        "properties": {
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "is_active"
+        ],
+        "title": "ClockSiteActive"
+      },
+      "ClockSiteCreate": {
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "department_id",
+          "name"
+        ],
+        "title": "ClockSiteCreate"
+      },
+      "ClockSiteIssued": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "token": {
+            "type": "string",
+            "title": "Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "department_id",
+          "name",
+          "is_active",
+          "created_at",
+          "token"
+        ],
+        "title": "ClockSiteIssued",
+        "description": "Returned only when a site is created or its token rotated."
+      },
+      "ClockSitePublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "department_id",
+          "name",
+          "is_active",
+          "created_at"
+        ],
+        "title": "ClockSitePublic"
+      },
+      "ClockSitesPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/ClockSitePublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "ClockSitesPublic"
       },
       "ConnectionCreate": {
         "properties": {
@@ -34901,6 +36655,116 @@
         ],
         "title": "NotificationSettingsPublic"
       },
+      "NotificationSnoozeCreate": {
+        "properties": {
+          "event_key": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Event Key"
+          },
+          "entity_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Type"
+          },
+          "entity_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Id"
+          },
+          "until": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Until"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Reason",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_key",
+          "until"
+        ],
+        "title": "NotificationSnoozeCreate"
+      },
+      "NotificationSnoozePublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "event_key": {
+            "type": "string",
+            "title": "Event Key"
+          },
+          "entity_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Type"
+          },
+          "entity_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Id"
+          },
+          "until": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Until"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "event_key",
+          "entity_type",
+          "entity_id",
+          "until",
+          "reason",
+          "created_at"
+        ],
+        "title": "NotificationSnoozePublic"
+      },
       "ObservationList": {
         "properties": {
           "observations": {
@@ -39326,6 +41190,135 @@
         ],
         "title": "RosterRevisionsPublic"
       },
+      "RosterRuleCheckPublic": {
+        "properties": {
+          "period_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Period Id"
+          },
+          "rules": {
+            "$ref": "#/components/schemas/RosterRulesPublic"
+          },
+          "violations": {
+            "items": {
+              "$ref": "#/components/schemas/RuleViolationPublic"
+            },
+            "type": "array",
+            "title": "Violations"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "period_id",
+          "rules",
+          "violations",
+          "count"
+        ],
+        "title": "RosterRuleCheckPublic"
+      },
+      "RosterRulesPublic": {
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "min_rest_hours": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Rest Hours"
+          },
+          "max_consecutive_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Consecutive Days"
+          },
+          "max_weekly_hours": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Weekly Hours"
+          }
+        },
+        "type": "object",
+        "required": [
+          "department_id"
+        ],
+        "title": "RosterRulesPublic"
+      },
+      "RosterRulesUpdate": {
+        "properties": {
+          "min_rest_hours": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 72.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Rest Hours"
+          },
+          "max_consecutive_days": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 31.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Consecutive Days"
+          },
+          "max_weekly_hours": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 168.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Weekly Hours"
+          }
+        },
+        "type": "object",
+        "title": "RosterRulesUpdate",
+        "description": "Replace all limits for a department; null disables a rule."
+      },
       "RouteView": {
         "properties": {
           "id": {
@@ -39356,6 +41349,52 @@
           "shifts"
         ],
         "title": "RouteView"
+      },
+      "RuleViolationPublic": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Start Date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "title": "End Date"
+          },
+          "observed": {
+            "type": "string",
+            "title": "Observed"
+          },
+          "limit": {
+            "type": "string",
+            "title": "Limit"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "user_id",
+          "start_date",
+          "end_date",
+          "observed",
+          "limit",
+          "detail"
+        ],
+        "title": "RuleViolationPublic"
       },
       "RunFinish": {
         "properties": {
@@ -40742,6 +42781,38 @@
           "count"
         ],
         "title": "ShiftSwapRequestsPublic"
+      },
+      "ShiftSwapRuleCheckPublic": {
+        "properties": {
+          "shift_swap_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Shift Swap Id"
+          },
+          "rules": {
+            "$ref": "#/components/schemas/RosterRulesPublic"
+          },
+          "violations": {
+            "items": {
+              "$ref": "#/components/schemas/RuleViolationPublic"
+            },
+            "type": "array",
+            "title": "Violations"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "shift_swap_id",
+          "rules",
+          "violations",
+          "count"
+        ],
+        "title": "ShiftSwapRuleCheckPublic",
+        "description": "Warn-only rule breaches the exchange would introduce, never blocking it."
       },
       "ShiftSwapSubmit": {
         "properties": {
@@ -47828,6 +49899,13 @@
           "TAF"
         ]
       },
+      "BalanceImportRowPropertiesStatusEnum": {
+        "type": "string",
+        "enum": [
+          "OK",
+          "ERROR"
+        ]
+      },
       "BuildingCreatePropertiesKindEnum": {
         "type": "string",
         "enum": [
@@ -47881,6 +49959,13 @@
           "observed"
         ],
         "default": ">="
+      },
+      "ClockResultPropertiesActionEnum": {
+        "type": "string",
+        "enum": [
+          "ARRIVED",
+          "DEPARTED"
+        ]
       },
       "ConnectionPublicPropertiesStateEnum": {
         "type": "string",

@@ -54,10 +54,13 @@ export const eventsListListingsQueryLimitSchema = z
 export const eventsListListingsQueryOffsetSchema = z
   .int()
   .min(0)
+  .max(100000)
   .optional()
   .default(0);
 
 export const eventsListListingsStatus200Schema = listingCardListSchema;
+
+export const eventsListListingsStatus401Schema = z.unknown();
 
 export const eventsListListingsStatus422Schema =
   validationErrorResponseSchema.describe(
@@ -67,4 +70,7 @@ export const eventsListListingsStatus422Schema =
 export const eventsListListingsResponseSchema =
   eventsListListingsStatus200Schema;
 
-export const eventsListListingsErrorSchema = eventsListListingsStatus422Schema;
+export const eventsListListingsErrorSchema = z.union([
+  eventsListListingsStatus401Schema,
+  eventsListListingsStatus422Schema,
+]);

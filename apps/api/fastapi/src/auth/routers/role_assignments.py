@@ -14,6 +14,7 @@ from src.auth.schemas import (
     UserRoleAssignmentUpdate,
 )
 from src.dependencies import CurrentUser, SessionDep, get_current_user_manager
+from src.openapi_responses import AUTHENTICATED
 
 # Scoped user.manage holders delegate ordinary staff only; explicit authority
 # and special-duty appointments remain superuser-managed.
@@ -29,7 +30,10 @@ router = APIRouter(
     response_model=UserRoleAssignmentsPublic,
     summary="List role assignments",
     description="Return role assignments, optionally filtered by user_id (within active user.manage scope).",
-    responses={status.HTTP_200_OK: {"description": "Role assignments returned"}},
+    responses={
+        **AUTHENTICATED,
+        status.HTTP_200_OK: {"description": "Role assignments returned"},
+    },
 )
 async def read_role_assignments(
     session: SessionDep, current_user: CurrentUser, user_id: uuid.UUID | None = None
@@ -91,7 +95,10 @@ async def read_role_assignment(
     status_code=status.HTTP_201_CREATED,
     summary="Create role assignment",
     description="Superusers appoint explicit authority and special duties. Scoped managers delegate canonical staff self-service only, to another employee in their employer/department, bounded by their active authority.",
-    responses={status.HTTP_201_CREATED: {"description": "Role assignment created"}},
+    responses={
+        **AUTHENTICATED,
+        status.HTTP_201_CREATED: {"description": "Role assignment created"},
+    },
 )
 async def create_role_assignment(
     *,

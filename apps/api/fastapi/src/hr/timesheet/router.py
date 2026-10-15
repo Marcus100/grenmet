@@ -9,6 +9,7 @@ from src.hr.dependencies import TimesheetDep
 from src.hr.roster import service as roster_service
 from src.hr.roster.models import RosterAvailability
 from src.hr.submission import signed_document_ids
+from src.openapi_responses import AUTHENTICATED
 from src.pagination import PaginationDep
 
 from . import service
@@ -146,7 +147,10 @@ async def approve_timesheet(
     response_model=TimesheetListPublic,
     summary="List my timesheets",
     description="Return timesheets for the current user.",
-    responses={status.HTTP_200_OK: {"description": "Timesheets returned"}},
+    responses={
+        **AUTHENTICATED,
+        status.HTTP_200_OK: {"description": "Timesheets returned"},
+    },
 )
 async def read_my_timesheets(
     session: SessionDep, current_user: CurrentUser, pagination: PaginationDep

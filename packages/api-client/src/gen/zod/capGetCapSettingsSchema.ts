@@ -3,10 +3,15 @@
  * Do not edit manually.
  */
 
+import * as z from "zod";
 import { capSettingsPublicSchema } from "./capSettingsPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const capGetCapSettingsStatus200Schema = capSettingsPublicSchema;
+
+export const capGetCapSettingsStatus401Schema = z.unknown();
+
+export const capGetCapSettingsStatus403Schema = z.unknown();
 
 export const capGetCapSettingsStatus422Schema =
   validationErrorResponseSchema.describe(
@@ -15,4 +20,8 @@ export const capGetCapSettingsStatus422Schema =
 
 export const capGetCapSettingsResponseSchema = capGetCapSettingsStatus200Schema;
 
-export const capGetCapSettingsErrorSchema = capGetCapSettingsStatus422Schema;
+export const capGetCapSettingsErrorSchema = z.union([
+  capGetCapSettingsStatus401Schema,
+  capGetCapSettingsStatus403Schema,
+  capGetCapSettingsStatus422Schema,
+]);

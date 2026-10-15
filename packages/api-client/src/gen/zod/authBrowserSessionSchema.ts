@@ -3,10 +3,13 @@
  * Do not edit manually.
  */
 
+import * as z from "zod";
 import { browserSessionSchema } from "./browserSessionSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const authBrowserSessionStatus200Schema = browserSessionSchema;
+
+export const authBrowserSessionStatus401Schema = z.unknown();
 
 export const authBrowserSessionStatus422Schema =
   validationErrorResponseSchema.describe(
@@ -16,4 +19,7 @@ export const authBrowserSessionStatus422Schema =
 export const authBrowserSessionResponseSchema =
   authBrowserSessionStatus200Schema;
 
-export const authBrowserSessionErrorSchema = authBrowserSessionStatus422Schema;
+export const authBrowserSessionErrorSchema = z.union([
+  authBrowserSessionStatus401Schema,
+  authBrowserSessionStatus422Schema,
+]);

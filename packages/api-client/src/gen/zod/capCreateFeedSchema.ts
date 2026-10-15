@@ -3,11 +3,16 @@
  * Do not edit manually.
  */
 
+import * as z from "zod";
 import { capFeedImportCreateSchema } from "./capFeedImportCreateSchema.js";
 import { capFeedImportPublicSchema } from "./capFeedImportPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const capCreateFeedStatus201Schema = capFeedImportPublicSchema;
+
+export const capCreateFeedStatus401Schema = z.unknown();
+
+export const capCreateFeedStatus403Schema = z.unknown();
 
 export const capCreateFeedStatus422Schema =
   validationErrorResponseSchema.describe(
@@ -16,6 +21,10 @@ export const capCreateFeedStatus422Schema =
 
 export const capCreateFeedResponseSchema = capCreateFeedStatus201Schema;
 
-export const capCreateFeedErrorSchema = capCreateFeedStatus422Schema;
+export const capCreateFeedErrorSchema = z.union([
+  capCreateFeedStatus401Schema,
+  capCreateFeedStatus403Schema,
+  capCreateFeedStatus422Schema,
+]);
 
 export const capCreateFeedBodySchema = capFeedImportCreateSchema;

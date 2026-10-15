@@ -14,6 +14,8 @@ import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { capGetCapSettings } from "../clients/capGetCapSettings.js";
 import type {
   CapGetCapSettingsStatus200,
+  CapGetCapSettingsStatus401,
+  CapGetCapSettingsStatus403,
   CapGetCapSettingsStatus422,
 } from "../models/CapGetCapSettings.js";
 
@@ -30,7 +32,11 @@ export function capGetCapSettingsQueryOptions(
   const queryKey = capGetCapSettingsQueryKey();
   return queryOptions<
     CapGetCapSettingsStatus200,
-    ResponseErrorConfig<CapGetCapSettingsStatus422>,
+    ResponseErrorConfig<
+      | CapGetCapSettingsStatus401
+      | CapGetCapSettingsStatus403
+      | CapGetCapSettingsStatus422
+    >,
     CapGetCapSettingsStatus200,
     typeof queryKey
   >({
@@ -59,7 +65,11 @@ export function useCapGetCapSettings<
     query?: Partial<
       QueryObserverOptions<
         CapGetCapSettingsStatus200,
-        ResponseErrorConfig<CapGetCapSettingsStatus422>,
+        ResponseErrorConfig<
+          | CapGetCapSettingsStatus401
+          | CapGetCapSettingsStatus403
+          | CapGetCapSettingsStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -83,7 +93,11 @@ export function useCapGetCapSettings<
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<CapGetCapSettingsStatus422>
+    ResponseErrorConfig<
+      | CapGetCapSettingsStatus401
+      | CapGetCapSettingsStatus403
+      | CapGetCapSettingsStatus422
+    >
   > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;

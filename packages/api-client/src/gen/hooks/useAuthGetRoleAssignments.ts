@@ -15,6 +15,8 @@ import { authGetRoleAssignments } from "../clients/authGetRoleAssignments.js";
 import type {
   AuthGetRoleAssignmentsOptions,
   AuthGetRoleAssignmentsStatus200,
+  AuthGetRoleAssignmentsStatus401,
+  AuthGetRoleAssignmentsStatus403,
   AuthGetRoleAssignmentsStatus422,
 } from "../models/AuthGetRoleAssignments.js";
 
@@ -39,7 +41,11 @@ export function authGetRoleAssignmentsQueryOptions(
   const queryKey = authGetRoleAssignmentsQueryKey({ query });
   return queryOptions<
     AuthGetRoleAssignmentsStatus200,
-    ResponseErrorConfig<AuthGetRoleAssignmentsStatus422>,
+    ResponseErrorConfig<
+      | AuthGetRoleAssignmentsStatus401
+      | AuthGetRoleAssignmentsStatus403
+      | AuthGetRoleAssignmentsStatus422
+    >,
     AuthGetRoleAssignmentsStatus200,
     typeof queryKey
   >({
@@ -76,7 +82,11 @@ export function useAuthGetRoleAssignments<
     query?: Partial<
       QueryObserverOptions<
         AuthGetRoleAssignmentsStatus200,
-        ResponseErrorConfig<AuthGetRoleAssignmentsStatus422>,
+        ResponseErrorConfig<
+          | AuthGetRoleAssignmentsStatus401
+          | AuthGetRoleAssignmentsStatus403
+          | AuthGetRoleAssignmentsStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -104,7 +114,11 @@ export function useAuthGetRoleAssignments<
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<AuthGetRoleAssignmentsStatus422>
+    ResponseErrorConfig<
+      | AuthGetRoleAssignmentsStatus401
+      | AuthGetRoleAssignmentsStatus403
+      | AuthGetRoleAssignmentsStatus422
+    >
   > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;

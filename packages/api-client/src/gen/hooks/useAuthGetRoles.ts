@@ -15,6 +15,8 @@ import { authGetRoles } from "../clients/authGetRoles.js";
 import type {
   AuthGetRolesOptions,
   AuthGetRolesStatus200,
+  AuthGetRolesStatus401,
+  AuthGetRolesStatus403,
   AuthGetRolesStatus422,
 } from "../models/AuthGetRoles.js";
 
@@ -34,7 +36,9 @@ export function authGetRolesQueryOptions(
   const queryKey = authGetRolesQueryKey({ query });
   return queryOptions<
     AuthGetRolesStatus200,
-    ResponseErrorConfig<AuthGetRolesStatus422>,
+    ResponseErrorConfig<
+      AuthGetRolesStatus401 | AuthGetRolesStatus403 | AuthGetRolesStatus422
+    >,
     AuthGetRolesStatus200,
     typeof queryKey
   >({
@@ -69,7 +73,9 @@ export function useAuthGetRoles<
     query?: Partial<
       QueryObserverOptions<
         AuthGetRolesStatus200,
-        ResponseErrorConfig<AuthGetRolesStatus422>,
+        ResponseErrorConfig<
+          AuthGetRolesStatus401 | AuthGetRolesStatus403 | AuthGetRolesStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -95,9 +101,12 @@ export function useAuthGetRoles<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient
-  ) as UseQueryResult<TData, ResponseErrorConfig<AuthGetRolesStatus422>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      AuthGetRolesStatus401 | AuthGetRolesStatus403 | AuthGetRolesStatus422
+    >
+  > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;
 

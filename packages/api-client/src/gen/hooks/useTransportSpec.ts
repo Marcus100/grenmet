@@ -14,6 +14,8 @@ import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { transportSpec } from "../clients/transportSpec.js";
 import type {
   TransportSpecStatus200,
+  TransportSpecStatus401,
+  TransportSpecStatus403,
   TransportSpecStatus422,
 } from "../models/TransportSpec.js";
 
@@ -30,7 +32,9 @@ export function transportSpecQueryOptions(
   const queryKey = transportSpecQueryKey();
   return queryOptions<
     TransportSpecStatus200,
-    ResponseErrorConfig<TransportSpecStatus422>,
+    ResponseErrorConfig<
+      TransportSpecStatus401 | TransportSpecStatus403 | TransportSpecStatus422
+    >,
     TransportSpecStatus200,
     typeof queryKey
   >({
@@ -60,7 +64,11 @@ export function useTransportSpec<
     query?: Partial<
       QueryObserverOptions<
         TransportSpecStatus200,
-        ResponseErrorConfig<TransportSpecStatus422>,
+        ResponseErrorConfig<
+          | TransportSpecStatus401
+          | TransportSpecStatus403
+          | TransportSpecStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -82,9 +90,12 @@ export function useTransportSpec<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient
-  ) as UseQueryResult<TData, ResponseErrorConfig<TransportSpecStatus422>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      TransportSpecStatus401 | TransportSpecStatus403 | TransportSpecStatus422
+    >
+  > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;
 

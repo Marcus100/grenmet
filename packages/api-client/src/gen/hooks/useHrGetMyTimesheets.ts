@@ -15,6 +15,8 @@ import { hrGetMyTimesheets } from "../clients/hrGetMyTimesheets.js";
 import type {
   HrGetMyTimesheetsOptions,
   HrGetMyTimesheetsStatus200,
+  HrGetMyTimesheetsStatus401,
+  HrGetMyTimesheetsStatus403,
   HrGetMyTimesheetsStatus422,
 } from "../models/HrGetMyTimesheets.js";
 
@@ -34,7 +36,11 @@ export function hrGetMyTimesheetsQueryOptions(
   const queryKey = hrGetMyTimesheetsQueryKey({ query });
   return queryOptions<
     HrGetMyTimesheetsStatus200,
-    ResponseErrorConfig<HrGetMyTimesheetsStatus422>,
+    ResponseErrorConfig<
+      | HrGetMyTimesheetsStatus401
+      | HrGetMyTimesheetsStatus403
+      | HrGetMyTimesheetsStatus422
+    >,
     HrGetMyTimesheetsStatus200,
     typeof queryKey
   >({
@@ -71,7 +77,11 @@ export function useHrGetMyTimesheets<
     query?: Partial<
       QueryObserverOptions<
         HrGetMyTimesheetsStatus200,
-        ResponseErrorConfig<HrGetMyTimesheetsStatus422>,
+        ResponseErrorConfig<
+          | HrGetMyTimesheetsStatus401
+          | HrGetMyTimesheetsStatus403
+          | HrGetMyTimesheetsStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -99,7 +109,11 @@ export function useHrGetMyTimesheets<
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<HrGetMyTimesheetsStatus422>
+    ResponseErrorConfig<
+      | HrGetMyTimesheetsStatus401
+      | HrGetMyTimesheetsStatus403
+      | HrGetMyTimesheetsStatus422
+    >
   > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;

@@ -196,6 +196,8 @@ their own host-only cookie. All routes are public and rate-limited:
 | `POST /api/v1/auth/apps/{app}/login` | Email and password |
 | `POST /api/v1/auth/apps/{app}/google/start` · `/complete` · `/finish` | Google with the app's redirect URI |
 | `POST /api/v1/auth/apps/{app}/phone-code/start` · `/verify` | SMS/WhatsApp code for linked numbers (disabled until a provider is configured) |
+| `POST /api/v1/auth/account/apps` | List single sign-on apps with `joined` and `can_leave`; body is the auth.barrels.gd account `session_token` (an app session gets 401) |
+| `POST /api/v1/auth/account/apps/{app}/join` · `/leave` | Join (default role) or leave (remove it and end that app's sessions only) a self sign-up app; `leave` returns `still_has_access` when another role keeps access; staff apps return 403 |
 | `POST /api/v1/auth/apps/{app}/phone/link/start` · `/verify` | Signed-in member links a phone number |
 | `POST /api/v1/auth/apps/{app}/handoff` | Single sign-on (ADR-0017): auth's server swaps the account session plus a `state` for a one-use, 60-second code and the app's `callback_url`. 409 = join required (retry with `join: true`), 403 = no access |
 | `POST /api/v1/auth/apps/{app}/handoff/redeem` | The app's server swaps `code`, `state` and its `client_secret` for a new session in that app only |
@@ -361,6 +363,8 @@ reminder sweep at 10:00 UTC. Emails carry only a summary and a portal link.
 | `GET/PUT /api/v1/notifications/preferences` | Own email opt-outs per event; approval events (`email_mutable: false`) cannot be muted → 400 |
 | `GET /api/v1/notifications/settings?organisation_id=` | `notifications.manage` in the organisation: every event with effective settings, plus staff whose email domain is outside `NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS` |
 | `PUT /api/v1/notifications/settings/{event_key}?organisation_id=` | `notifications.manage`: on/off, email on/off, extra recipient roles, title/body Jinja templates (validated), timings (`remind_after_days`, `escalate_after_days`, `expiry_days_before`) |
+| `GET/POST /api/v1/notifications/snoozes?organisation_id=` | `notifications.manage`: list active snoozes / silence an event, or one entity of it (`entity_type` + `entity_id` together), until a future `until`; unknown event → 404 |
+| `DELETE /api/v1/notifications/snoozes/{id}?organisation_id=` | `notifications.manage`: end a snooze (204); another organisation's → 404 |
 
 ## HR Contract
 
@@ -444,6 +448,62 @@ isolation. See [organisation boundary](../hr/organisation-boundary.md) for the
 separately approved migration prerequisite. Do not enable another organisation
 on the strength of these document checks alone.
 
+
+### Opening leave balance import
+
+| Endpoint | Permission | Purpose |
+| --- | --- | --- |
+| `POST /api/v1/hr/setup/staff/balances/import` | Superuser | Check, or apply, opening leave balances from a CSV |
+
+The body carries `organisation_id`, a `source` description, an `as_of` date, the CSV
+text and `apply`. The CSV needs `employee_number`, `leave_type` and `balance` columns;
+other columns (such as names) are ignored and never stored. `leave_type` must be an
+exact leave type code, because mapping another system's leave names is a policy
+decision HR has not made. With `apply` false the call only reports each row. With
+`apply` true nothing is posted unless every row is valid, then every balance is
+posted through the leave ledger (`OPENING`, or `ADJUSTMENT` when an entry exists) with
+the source and as-of date in the reason and the baseline audit. The ledger has no
+separate as-of column yet.
+
+### Clock-in
+
+| Endpoint | Permission | Purpose |
+| --- | --- | --- |
+| `POST /api/v1/hr/attendance/clock` | `timesheet.submit.self` | Record arrival, or departure when a shift is open |
+| `GET /api/v1/hr/attendance/clock-sites` | `roster.manage` in the department scope | List a department's clock points (no tokens) |
+| `POST /api/v1/hr/attendance/clock-sites` | `roster.manage` in the department scope | Create a clock point; the token is returned once |
+| `POST /api/v1/hr/attendance/clock-sites/{site_id}/rotate` | `roster.manage` in the department scope | Replace the token; the old one stops working |
+| `PUT /api/v1/hr/attendance/clock-sites/{site_id}/active` | `roster.manage` in the department scope | Activate or deactivate a clock point |
+
+A clock point proves presence with a static token on an NFC tag or QR poster; only
+its SHA-256 hash is stored. A scan feeds the existing attendance record through
+`save_attendance`, so roster, permission and revision rules and the supervisor
+workflow are those of manual attendance. Arrival needs a published work shift that
+started at most two hours ago or ends within the next hour; with none, the call
+returns 409 and no shift is invented. A second scan within 60 seconds changes
+nothing. The clock point must belong to the caller's own department. `late_minutes`,
+`early_departure_minutes` and `overtime_minutes` are informational and not stored.
+
+### Roster rule limits and check
+
+| Endpoint | Permission | Purpose |
+| --- | --- | --- |
+| `GET /api/v1/hr/rosters/departments/{department_id}/rules` | `roster.view` in the department scope | Read the department's limits |
+| `PUT /api/v1/hr/rosters/departments/{department_id}/rules` | `roster.manage` in the department scope | Replace the limits |
+| `GET /api/v1/hr/rosters/periods/{period_id}/rule-check` | `roster.view` in the department scope | Violations for one period |
+
+Limits are `min_rest_hours`, `max_consecutive_days` and `max_weekly_hours`, stored
+on `hr.department_policy`. A null limit disables that rule and no defaults are
+assumed, because GAA HR has not confirmed any values. The check is warn-only: it
+never blocks saving, publishing or swaps. It also reads neighbouring published
+periods so a run or rest gap that crosses a period boundary is seen. Weeks run
+Sunday to Saturday by shift start date. Publishing also runs the check and records any
+warnings on the `PUBLISHED` revision (summary and a `rule_warnings` snapshot entry,
+present only when there are warnings); a shift exchange can be checked with `GET /api/v1/hr/shift-swaps/{shift_swap_id}/rule-check`,
+which reports only the breaches the exchange would introduce for the two employees
+(visible to them and to `roster.view` holders in the department) and never blocks
+approval; the approvals inbox shows it for shift exchanges. Changes
+to the limits are audited under entity `roster_rules` for the department.
 
 ### Roster calendar feed
 

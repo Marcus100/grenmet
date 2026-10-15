@@ -14,6 +14,8 @@ import { capSaveHazardProfile } from "../clients/capSaveHazardProfile.js";
 import type {
   CapSaveHazardProfileOptions,
   CapSaveHazardProfileStatus201,
+  CapSaveHazardProfileStatus401,
+  CapSaveHazardProfileStatus403,
   CapSaveHazardProfileStatus422,
 } from "../models/CapSaveHazardProfile.js";
 
@@ -28,7 +30,11 @@ export function capSaveHazardProfileMutationOptions<TContext = unknown>(
   const mutationKey = capSaveHazardProfileMutationKey();
   return mutationOptions<
     CapSaveHazardProfileStatus201,
-    ResponseErrorConfig<CapSaveHazardProfileStatus422>,
+    ResponseErrorConfig<
+      | CapSaveHazardProfileStatus401
+      | CapSaveHazardProfileStatus403
+      | CapSaveHazardProfileStatus422
+    >,
     CapSaveHazardProfileOptions,
     TContext
   >({
@@ -53,7 +59,11 @@ export function useCapSaveHazardProfile<TContext>(
   options: {
     mutation?: UseMutationOptions<
       CapSaveHazardProfileStatus201,
-      ResponseErrorConfig<CapSaveHazardProfileStatus422>,
+      ResponseErrorConfig<
+        | CapSaveHazardProfileStatus401
+        | CapSaveHazardProfileStatus403
+        | CapSaveHazardProfileStatus422
+      >,
       CapSaveHazardProfileOptions,
       TContext
     > & { client?: QueryClient };
@@ -71,14 +81,22 @@ export function useCapSaveHazardProfile<TContext>(
     config
   ) as UseMutationOptions<
     CapSaveHazardProfileStatus201,
-    ResponseErrorConfig<CapSaveHazardProfileStatus422>,
+    ResponseErrorConfig<
+      | CapSaveHazardProfileStatus401
+      | CapSaveHazardProfileStatus403
+      | CapSaveHazardProfileStatus422
+    >,
     CapSaveHazardProfileOptions,
     TContext
   >;
 
   return useMutation<
     CapSaveHazardProfileStatus201,
-    ResponseErrorConfig<CapSaveHazardProfileStatus422>,
+    ResponseErrorConfig<
+      | CapSaveHazardProfileStatus401
+      | CapSaveHazardProfileStatus403
+      | CapSaveHazardProfileStatus422
+    >,
     CapSaveHazardProfileOptions,
     TContext
   >(
@@ -90,7 +108,11 @@ export function useCapSaveHazardProfile<TContext>(
     queryClient
   ) as UseMutationResult<
     CapSaveHazardProfileStatus201,
-    ResponseErrorConfig<CapSaveHazardProfileStatus422>,
+    ResponseErrorConfig<
+      | CapSaveHazardProfileStatus401
+      | CapSaveHazardProfileStatus403
+      | CapSaveHazardProfileStatus422
+    >,
     CapSaveHazardProfileOptions,
     TContext
   >;

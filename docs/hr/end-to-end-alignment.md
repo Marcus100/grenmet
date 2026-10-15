@@ -79,6 +79,8 @@ hours or an absence label: unresolved rules remain in [the policy register](poli
 | Parking | Original vehicle-pass fields and eight conditions, persisted drafts, renewal, signed submission, scoped approval/issuance and Python PDF are implemented and tested. | Host browser acceptance remains outstanding. |
 | Profile, setup, roster, workflow, documents, training | Verified service/probation facts, supervisor validation, scoped writes/imports, retained approval cycles and immutable signed document access after employee transfers are implemented. Document/training lifecycle tests cover existing scoped routes. | Complete authenticated browser journeys remain outstanding. No entitlement or employment policy is inferred from recorded facts. |
 
+Sequencing for what comes next is in the [HR product roadmap](product-roadmap.md).
+
 The hardware presence-token proposal in ADR-0009 is future work. Manual arrival
 and departure is the current requested first step; no device integration or
 automatic payroll is claimed by this plan.

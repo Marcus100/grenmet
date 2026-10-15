@@ -8,6 +8,10 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type JanitorialSpecStatus200 = BuildingView[];
 
+export type JanitorialSpecStatus401 = unknown;
+
+export type JanitorialSpecStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -23,6 +27,8 @@ export type JanitorialSpecOptions = {
 
 export type JanitorialSpecResponses = {
   "200": JanitorialSpecStatus200;
+  "401": JanitorialSpecStatus401;
+  "403": JanitorialSpecStatus403;
   "422": JanitorialSpecStatus422;
 };
 

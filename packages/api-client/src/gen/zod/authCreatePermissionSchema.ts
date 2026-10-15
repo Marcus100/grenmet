@@ -3,11 +3,16 @@
  * Do not edit manually.
  */
 
+import * as z from "zod";
 import { permissionCreateSchema } from "./permissionCreateSchema.js";
 import { permissionPublicSchema } from "./permissionPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const authCreatePermissionStatus201Schema = permissionPublicSchema;
+
+export const authCreatePermissionStatus401Schema = z.unknown();
+
+export const authCreatePermissionStatus403Schema = z.unknown();
 
 export const authCreatePermissionStatus422Schema =
   validationErrorResponseSchema.describe(
@@ -17,7 +22,10 @@ export const authCreatePermissionStatus422Schema =
 export const authCreatePermissionResponseSchema =
   authCreatePermissionStatus201Schema;
 
-export const authCreatePermissionErrorSchema =
-  authCreatePermissionStatus422Schema;
+export const authCreatePermissionErrorSchema = z.union([
+  authCreatePermissionStatus401Schema,
+  authCreatePermissionStatus403Schema,
+  authCreatePermissionStatus422Schema,
+]);
 
 export const authCreatePermissionBodySchema = permissionCreateSchema;

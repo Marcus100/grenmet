@@ -11,6 +11,12 @@ export const capApproveHazardProfilePathProfileIdSchema = z.uuid();
 
 export const capApproveHazardProfileStatus200Schema = capProfilePublicSchema;
 
+export const capApproveHazardProfileStatus401Schema = z.unknown();
+
+export const capApproveHazardProfileStatus403Schema = z.unknown();
+
+export const capApproveHazardProfileStatus404Schema = z.unknown();
+
 export const capApproveHazardProfileStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -19,5 +25,9 @@ export const capApproveHazardProfileStatus422Schema =
 export const capApproveHazardProfileResponseSchema =
   capApproveHazardProfileStatus200Schema;
 
-export const capApproveHazardProfileErrorSchema =
-  capApproveHazardProfileStatus422Schema;
+export const capApproveHazardProfileErrorSchema = z.union([
+  capApproveHazardProfileStatus401Schema,
+  capApproveHazardProfileStatus403Schema,
+  capApproveHazardProfileStatus404Schema,
+  capApproveHazardProfileStatus422Schema,
+]);

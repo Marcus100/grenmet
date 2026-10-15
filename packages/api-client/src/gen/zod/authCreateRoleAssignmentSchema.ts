@@ -3,12 +3,17 @@
  * Do not edit manually.
  */
 
+import * as z from "zod";
 import { userRoleAssignmentCreateSchema } from "./userRoleAssignmentCreateSchema.js";
 import { userRoleAssignmentPublicSchema } from "./userRoleAssignmentPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const authCreateRoleAssignmentStatus201Schema =
   userRoleAssignmentPublicSchema;
+
+export const authCreateRoleAssignmentStatus401Schema = z.unknown();
+
+export const authCreateRoleAssignmentStatus403Schema = z.unknown();
 
 export const authCreateRoleAssignmentStatus422Schema =
   validationErrorResponseSchema.describe(
@@ -18,8 +23,11 @@ export const authCreateRoleAssignmentStatus422Schema =
 export const authCreateRoleAssignmentResponseSchema =
   authCreateRoleAssignmentStatus201Schema;
 
-export const authCreateRoleAssignmentErrorSchema =
-  authCreateRoleAssignmentStatus422Schema;
+export const authCreateRoleAssignmentErrorSchema = z.union([
+  authCreateRoleAssignmentStatus401Schema,
+  authCreateRoleAssignmentStatus403Schema,
+  authCreateRoleAssignmentStatus422Schema,
+]);
 
 export const authCreateRoleAssignmentBodySchema =
   userRoleAssignmentCreateSchema;

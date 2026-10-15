@@ -83,11 +83,14 @@ from src.notifications.models import (
     NotificationDelivery,
     NotificationPreference,
     NotificationSetting,
+    NotificationSnooze,
 )
+from src.wxwatch import alerts as _wxwatch_alerts
 
 # Modules register what they audit and notify about before any session exists.
 _hr_audit.register()
 _hr_notifications.register()
+_wxwatch_alerts.register()
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 

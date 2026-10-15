@@ -10,6 +10,7 @@ export type AuthGetUsersQuery = {
   /**
    * @description Page number (1-indexed)
    * @minLength 1
+   * @maxLength 1000000
    * @default 1
    * @type integer | undefined
    */
@@ -26,6 +27,10 @@ export type AuthGetUsersQuery = {
 
 export type AuthGetUsersStatus200 = PaginatedResponseUserPublic;
 
+export type AuthGetUsersStatus401 = unknown;
+
+export type AuthGetUsersStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -41,6 +46,8 @@ export type AuthGetUsersOptions = {
 
 export type AuthGetUsersResponses = {
   "200": AuthGetUsersStatus200;
+  "401": AuthGetUsersStatus401;
+  "403": AuthGetUsersStatus403;
   "422": AuthGetUsersStatus422;
 };
 

@@ -21,6 +21,10 @@ export type EregisterListRegisterObservationsQuery = {
 export type EregisterListRegisterObservationsStatus200 =
   RegisterObservationList;
 
+export type EregisterListRegisterObservationsStatus401 = unknown;
+
+export type EregisterListRegisterObservationsStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -37,6 +41,8 @@ export type EregisterListRegisterObservationsOptions = {
 
 export type EregisterListRegisterObservationsResponses = {
   "200": EregisterListRegisterObservationsStatus200;
+  "401": EregisterListRegisterObservationsStatus401;
+  "403": EregisterListRegisterObservationsStatus403;
   "422": EregisterListRegisterObservationsStatus422;
 };
 

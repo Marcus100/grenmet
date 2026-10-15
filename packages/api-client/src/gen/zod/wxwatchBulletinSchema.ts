@@ -11,6 +11,12 @@ export const wxwatchBulletinPathEditionIdSchema = z.uuid();
 
 export const wxwatchBulletinStatus200Schema = archiveBulletinSchema;
 
+export const wxwatchBulletinStatus401Schema = z.unknown();
+
+export const wxwatchBulletinStatus403Schema = z.unknown();
+
+export const wxwatchBulletinStatus404Schema = z.unknown();
+
 export const wxwatchBulletinStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -18,4 +24,9 @@ export const wxwatchBulletinStatus422Schema =
 
 export const wxwatchBulletinResponseSchema = wxwatchBulletinStatus200Schema;
 
-export const wxwatchBulletinErrorSchema = wxwatchBulletinStatus422Schema;
+export const wxwatchBulletinErrorSchema = z.union([
+  wxwatchBulletinStatus401Schema,
+  wxwatchBulletinStatus403Schema,
+  wxwatchBulletinStatus404Schema,
+  wxwatchBulletinStatus422Schema,
+]);

@@ -8,6 +8,10 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type CapGetCapSettingsStatus200 = CapSettingsPublic;
 
+export type CapGetCapSettingsStatus401 = unknown;
+
+export type CapGetCapSettingsStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -23,6 +27,8 @@ export type CapGetCapSettingsOptions = {
 
 export type CapGetCapSettingsResponses = {
   "200": CapGetCapSettingsStatus200;
+  "401": CapGetCapSettingsStatus401;
+  "403": CapGetCapSettingsStatus403;
   "422": CapGetCapSettingsStatus422;
 };
 

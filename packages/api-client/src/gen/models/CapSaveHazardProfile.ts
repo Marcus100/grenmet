@@ -17,6 +17,10 @@ export type CapSaveHazardProfilePath = {
 
 export type CapSaveHazardProfileStatus201 = CapProfilePublic;
 
+export type CapSaveHazardProfileStatus401 = unknown;
+
+export type CapSaveHazardProfileStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -34,6 +38,8 @@ export type CapSaveHazardProfileOptions = {
 
 export type CapSaveHazardProfileResponses = {
   "201": CapSaveHazardProfileStatus201;
+  "401": CapSaveHazardProfileStatus401;
+  "403": CapSaveHazardProfileStatus403;
   "422": CapSaveHazardProfileStatus422;
 };
 

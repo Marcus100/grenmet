@@ -10,6 +10,7 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 export const hrGetMyLeaveRequestsQueryPageSchema = z
   .int()
   .min(1)
+  .max(1000000)
   .optional()
   .default(1)
   .describe("Page number (1-indexed)");
@@ -24,6 +25,10 @@ export const hrGetMyLeaveRequestsQuerySizeSchema = z
 
 export const hrGetMyLeaveRequestsStatus200Schema = leaveRequestListPublicSchema;
 
+export const hrGetMyLeaveRequestsStatus401Schema = z.unknown();
+
+export const hrGetMyLeaveRequestsStatus403Schema = z.unknown();
+
 export const hrGetMyLeaveRequestsStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -32,5 +37,8 @@ export const hrGetMyLeaveRequestsStatus422Schema =
 export const hrGetMyLeaveRequestsResponseSchema =
   hrGetMyLeaveRequestsStatus200Schema;
 
-export const hrGetMyLeaveRequestsErrorSchema =
-  hrGetMyLeaveRequestsStatus422Schema;
+export const hrGetMyLeaveRequestsErrorSchema = z.union([
+  hrGetMyLeaveRequestsStatus401Schema,
+  hrGetMyLeaveRequestsStatus403Schema,
+  hrGetMyLeaveRequestsStatus422Schema,
+]);

@@ -15,6 +15,9 @@ import { wxwatchBulletin } from "../clients/wxwatchBulletin.js";
 import type {
   WxwatchBulletinOptions,
   WxwatchBulletinStatus200,
+  WxwatchBulletinStatus401,
+  WxwatchBulletinStatus403,
+  WxwatchBulletinStatus404,
   WxwatchBulletinStatus422,
 } from "../models/WxwatchBulletin.js";
 
@@ -36,7 +39,12 @@ export function wxwatchBulletinQueryOptions(
   const queryKey = wxwatchBulletinQueryKey({ path });
   return queryOptions<
     WxwatchBulletinStatus200,
-    ResponseErrorConfig<WxwatchBulletinStatus422>,
+    ResponseErrorConfig<
+      | WxwatchBulletinStatus401
+      | WxwatchBulletinStatus403
+      | WxwatchBulletinStatus404
+      | WxwatchBulletinStatus422
+    >,
     WxwatchBulletinStatus200,
     typeof queryKey
   >({
@@ -73,7 +81,12 @@ export function useWxwatchBulletin<
     query?: Partial<
       QueryObserverOptions<
         WxwatchBulletinStatus200,
-        ResponseErrorConfig<WxwatchBulletinStatus422>,
+        ResponseErrorConfig<
+          | WxwatchBulletinStatus401
+          | WxwatchBulletinStatus403
+          | WxwatchBulletinStatus404
+          | WxwatchBulletinStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -97,9 +110,15 @@ export function useWxwatchBulletin<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient
-  ) as UseQueryResult<TData, ResponseErrorConfig<WxwatchBulletinStatus422>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      | WxwatchBulletinStatus401
+      | WxwatchBulletinStatus403
+      | WxwatchBulletinStatus404
+      | WxwatchBulletinStatus422
+    >
+  > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;
 

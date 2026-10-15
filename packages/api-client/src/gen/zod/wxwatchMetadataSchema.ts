@@ -11,6 +11,10 @@ export const wxwatchMetadataQueryDaySchema = z.iso.date();
 
 export const wxwatchMetadataStatus200Schema = synopticImageGroupsSchema;
 
+export const wxwatchMetadataStatus401Schema = z.unknown();
+
+export const wxwatchMetadataStatus403Schema = z.unknown();
+
 export const wxwatchMetadataStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -18,4 +22,8 @@ export const wxwatchMetadataStatus422Schema =
 
 export const wxwatchMetadataResponseSchema = wxwatchMetadataStatus200Schema;
 
-export const wxwatchMetadataErrorSchema = wxwatchMetadataStatus422Schema;
+export const wxwatchMetadataErrorSchema = z.union([
+  wxwatchMetadataStatus401Schema,
+  wxwatchMetadataStatus403Schema,
+  wxwatchMetadataStatus422Schema,
+]);

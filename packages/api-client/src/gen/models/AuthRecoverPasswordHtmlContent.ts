@@ -11,6 +11,12 @@ export type AuthRecoverPasswordHtmlContentPath = {
 
 export type AuthRecoverPasswordHtmlContentStatus200 = string;
 
+export type AuthRecoverPasswordHtmlContentStatus401 = unknown;
+
+export type AuthRecoverPasswordHtmlContentStatus403 = unknown;
+
+export type AuthRecoverPasswordHtmlContentStatus404 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -26,6 +32,9 @@ export type AuthRecoverPasswordHtmlContentOptions = {
 
 export type AuthRecoverPasswordHtmlContentResponses = {
   "200": AuthRecoverPasswordHtmlContentStatus200;
+  "401": AuthRecoverPasswordHtmlContentStatus401;
+  "403": AuthRecoverPasswordHtmlContentStatus403;
+  "404": AuthRecoverPasswordHtmlContentStatus404;
   "422": AuthRecoverPasswordHtmlContentStatus422;
 };
 

@@ -18,7 +18,12 @@ export async function POST(request: Request) {
       /* Clear expired or revoked local sessions too. */
     }
   }
-  const response = NextResponse.redirect(new URL("/signin", request.url), 303);
+  // Not back to /signin: the live account session would sign this browser
+  // straight in again (ADR-0017), so auth explains and offers the choice.
+  const response = NextResponse.redirect(
+    new URL("/signed-out?all=1", config.authAppUrl),
+    303
+  );
   clearSessionCookieOnResponse(config, response);
   return response;
 }

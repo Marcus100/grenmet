@@ -1,16 +1,15 @@
-from collections.abc import AsyncGenerator
 from datetime import date
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, HTTPException, Query, Response
 from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.browser import BrowserUser
+from src.openapi_responses import AUTHENTICATED, NOT_FOUND
 
-from . import database, service
+from . import service
+from .dependencies import ImageSession
 from .schemas import (
     ArchiveBulletin,
     ArchiveHistory,
@@ -22,21 +21,9 @@ from .schemas import (
 router = APIRouter(prefix="/wxwatch", tags=["wxwatch"])
 
 
-async def get_session() -> AsyncGenerator[AsyncSession]:
-    session = database.create_session()
-    if session is None:
-        raise HTTPException(503, "Weather image metadata is unavailable")
-    try:
-        async with session:
-            yield session
-    except SQLAlchemyError, OSError, TimeoutError:
-        raise HTTPException(503, "Weather image metadata is unavailable") from None
-
-
-ImageSession = Annotated[AsyncSession, Depends(get_session)]
-
-
-@router.get("/metadata", response_model=SynopticImageGroups)
+@router.get(
+    "/metadata", response_model=SynopticImageGroups, responses={**AUTHENTICATED}
+)
 async def metadata(
     day: date, _user: BrowserUser, session: ImageSession, response: Response
 ) -> SynopticImageGroups:
@@ -57,6 +44,7 @@ async def ready(session: ImageSession, response: Response) -> None:
     response_model=ArchivePage,
     summary="Search the weather image archive",
     description="Returns a paginated archive search with optional source, product, date-range, and unknown-time filters.",
+    responses={**AUTHENTICATED},
 )
 async def archive(
     _user: BrowserUser,
@@ -94,6 +82,7 @@ async def archive(
     response_model=ArchiveHistory,
     summary="List archive retrieval history",
     description="Returns paginated retrieval history for one archived weather-image edition.",
+    responses={**AUTHENTICATED, **NOT_FOUND},
 )
 async def retrievals(
     edition_id: UUID,
@@ -116,6 +105,7 @@ async def retrievals(
     response_model=ArchiveBulletin,
     summary="Get an archived bulletin",
     description="Returns the bulletin associated with one archived weather-image edition.",
+    responses={**AUTHENTICATED, **NOT_FOUND},
 )
 async def bulletin(
     edition_id: UUID, _user: BrowserUser, session: ImageSession, response: Response
@@ -132,6 +122,7 @@ async def bulletin(
     response_model=list[EditionAsset],
     summary="List edition assets",
     description="Returns the image and supporting assets associated with one archived weather-image edition.",
+    responses={**AUTHENTICATED, **NOT_FOUND},
 )
 async def edition_assets(
     edition_id: UUID, _user: BrowserUser, session: ImageSession, response: Response

@@ -11,6 +11,8 @@ export type CapGetCapXmlPath = {
 
 export type CapGetCapXmlStatus200 = Blob;
 
+export type CapGetCapXmlStatus404 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -26,6 +28,7 @@ export type CapGetCapXmlOptions = {
 
 export type CapGetCapXmlResponses = {
   "200": CapGetCapXmlStatus200;
+  "404": CapGetCapXmlStatus404;
   "422": CapGetCapXmlStatus422;
 };
 

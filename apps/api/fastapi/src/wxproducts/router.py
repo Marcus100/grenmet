@@ -176,7 +176,7 @@ async def load_products(
     kind: ProductKind | None = None,
     issue_date: date | None = None,
     limit: int = Query(default=100, ge=1, le=100),
-    offset: int = Query(default=0, ge=0),
+    offset: int = Query(default=0, ge=0, le=100000),
 ) -> AuthoredProducts:
     response.headers.update(NO_STORE)
     if kind is not None:

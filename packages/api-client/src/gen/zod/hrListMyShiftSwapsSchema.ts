@@ -10,6 +10,7 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 export const hrListMyShiftSwapsQueryPageSchema = z
   .int()
   .min(1)
+  .max(1000000)
   .optional()
   .default(1)
   .describe("Page number (1-indexed)");
@@ -24,6 +25,10 @@ export const hrListMyShiftSwapsQuerySizeSchema = z
 
 export const hrListMyShiftSwapsStatus200Schema = shiftSwapRequestsPublicSchema;
 
+export const hrListMyShiftSwapsStatus401Schema = z.unknown();
+
+export const hrListMyShiftSwapsStatus403Schema = z.unknown();
+
 export const hrListMyShiftSwapsStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -32,4 +37,8 @@ export const hrListMyShiftSwapsStatus422Schema =
 export const hrListMyShiftSwapsResponseSchema =
   hrListMyShiftSwapsStatus200Schema;
 
-export const hrListMyShiftSwapsErrorSchema = hrListMyShiftSwapsStatus422Schema;
+export const hrListMyShiftSwapsErrorSchema = z.union([
+  hrListMyShiftSwapsStatus401Schema,
+  hrListMyShiftSwapsStatus403Schema,
+  hrListMyShiftSwapsStatus422Schema,
+]);

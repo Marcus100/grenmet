@@ -4,6 +4,7 @@ from fastapi import APIRouter, status
 
 from src.auth.browser import BrowserUser
 from src.models import ApiError
+from src.openapi_responses import AUTHENTICATED
 from src.transport.dependencies import TransportSession
 
 from . import schemas, service
@@ -59,7 +60,7 @@ async def get_access(*, user: BrowserUser) -> Any:
     status_code=status.HTTP_200_OK,
     summary="Get the transport reference registry",
     description="Returns routes, shifts, stops (with the routes serving them today) and service calendars. Any signed-in user may read it.",
-    responses={**UNAVAILABLE},
+    responses={**AUTHENTICATED, **UNAVAILABLE},
 )
 async def get_catalogue(*, _user: BrowserUser, session: TransportSession) -> Any:
     return await service.catalogue(session)

@@ -9,6 +9,10 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 
 export const janitorialSpecStatus200Schema = z.array(buildingViewSchema);
 
+export const janitorialSpecStatus401Schema = z.unknown();
+
+export const janitorialSpecStatus403Schema = z.unknown();
+
 export const janitorialSpecStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -16,4 +20,8 @@ export const janitorialSpecStatus422Schema =
 
 export const janitorialSpecResponseSchema = janitorialSpecStatus200Schema;
 
-export const janitorialSpecErrorSchema = janitorialSpecStatus422Schema;
+export const janitorialSpecErrorSchema = z.union([
+  janitorialSpecStatus401Schema,
+  janitorialSpecStatus403Schema,
+  janitorialSpecStatus422Schema,
+]);

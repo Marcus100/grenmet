@@ -104,7 +104,16 @@ const PERIOD = {
   updated_at: "2026-06-25T12:00:00+0000",
 };
 
+const RULE_CHECK_PATH = `${BASE}/api/v1/hr/rosters/periods/${PERIOD.id}/rule-check`;
+const EMPTY_RULE_CHECK = {
+  period_id: PERIOD.id,
+  rules: { department_id: "dept_met" },
+  violations: [],
+  count: 0,
+};
+
 const server = setupServer(
+  http.get(RULE_CHECK_PATH, () => HttpResponse.json(EMPTY_RULE_CHECK)),
   http.get(`${BASE}/api/v1/hr/rosters/shifts`, () =>
     HttpResponse.json(CATALOG)
   ),
@@ -153,6 +162,45 @@ function renderRoster() {
 }
 
 describe("DutyRoster (wired)", () => {
+  it("lists roster rule warnings by staff name without blocking publish", async () => {
+    server.use(
+      http.get(RULE_CHECK_PATH, () =>
+        HttpResponse.json({
+          ...EMPTY_RULE_CHECK,
+          rules: { department_id: "dept_met", min_rest_hours: "11.00" },
+          count: 1,
+          violations: [
+            {
+              code: "MIN_REST",
+              user_id: MEMBERS.data[0]?.user_id,
+              start_date: `${year}-${pad(month + 1)}-03`,
+              end_date: `${year}-${pad(month + 1)}-04`,
+              observed: "7.00",
+              limit: "11.00",
+              detail: "7.00 h rest between shifts; minimum is 11.00 h",
+            },
+          ],
+        })
+      )
+    );
+    renderRoster();
+    const warnings = await screen.findByRole("region", {
+      name: "Roster rule warnings",
+    });
+    expect(warnings).toHaveTextContent("1 roster rule warning");
+    expect(warnings).toHaveTextContent("G. Tamar");
+    expect(warnings).toHaveTextContent("Short rest between shifts");
+    expect(screen.getByRole("button", { name: "Publish" })).toBeEnabled();
+  });
+
+  it("shows no warning panel when nothing is breached", async () => {
+    renderRoster();
+    await screen.findByText("G. Tamar");
+    expect(
+      screen.queryByRole("region", { name: "Roster rule warnings" })
+    ).not.toBeInTheDocument();
+  });
+
   it("shows an approved exception while retaining the original scheduled shift", async () => {
     server.use(
       http.get(`${BASE}/api/v1/hr/rosters/periods/${PERIOD.id}`, () =>

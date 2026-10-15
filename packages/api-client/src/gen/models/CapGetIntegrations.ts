@@ -11,6 +11,10 @@ export type CapGetIntegrationsStatus200 = {
   }[];
 };
 
+export type CapGetIntegrationsStatus401 = unknown;
+
+export type CapGetIntegrationsStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -26,6 +30,8 @@ export type CapGetIntegrationsOptions = {
 
 export type CapGetIntegrationsResponses = {
   "200": CapGetIntegrationsStatus200;
+  "401": CapGetIntegrationsStatus401;
+  "403": CapGetIntegrationsStatus403;
   "422": CapGetIntegrationsStatus422;
 };
 

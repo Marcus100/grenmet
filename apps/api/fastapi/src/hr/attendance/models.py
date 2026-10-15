@@ -52,3 +52,25 @@ class AttendanceCorrection(Base):
         ForeignKey("hr.workflow_instance.id")
     )
     created_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+class ClockSite(Base):
+    """A place staff clock in at, proved by a static token on an NFC tag or QR code.
+
+    Only the SHA-256 hash is stored; the token is shown once when created or
+    rotated. A static token accepts the risk of a photographed tag (ADR-0009).
+    """
+
+    __tablename__ = "clock_site"
+    __table_args__ = {"schema": "hr"}
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    department_id: Mapped[str] = mapped_column(
+        ForeignKey("hr.department.id"), index=True
+    )
+    name: Mapped[str] = mapped_column(String(120))
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    is_active: Mapped[bool] = mapped_column(default=True)
+    created_by_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("user.id"))
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)
+    updated_at: Mapped[datetime] = mapped_column(default=utc_now)

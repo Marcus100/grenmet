@@ -14,6 +14,8 @@ import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { capGetIntegrations } from "../clients/capGetIntegrations.js";
 import type {
   CapGetIntegrationsStatus200,
+  CapGetIntegrationsStatus401,
+  CapGetIntegrationsStatus403,
   CapGetIntegrationsStatus422,
 } from "../models/CapGetIntegrations.js";
 
@@ -30,7 +32,11 @@ export function capGetIntegrationsQueryOptions(
   const queryKey = capGetIntegrationsQueryKey();
   return queryOptions<
     CapGetIntegrationsStatus200,
-    ResponseErrorConfig<CapGetIntegrationsStatus422>,
+    ResponseErrorConfig<
+      | CapGetIntegrationsStatus401
+      | CapGetIntegrationsStatus403
+      | CapGetIntegrationsStatus422
+    >,
     CapGetIntegrationsStatus200,
     typeof queryKey
   >({
@@ -59,7 +65,11 @@ export function useCapGetIntegrations<
     query?: Partial<
       QueryObserverOptions<
         CapGetIntegrationsStatus200,
-        ResponseErrorConfig<CapGetIntegrationsStatus422>,
+        ResponseErrorConfig<
+          | CapGetIntegrationsStatus401
+          | CapGetIntegrationsStatus403
+          | CapGetIntegrationsStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -83,7 +93,11 @@ export function useCapGetIntegrations<
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<CapGetIntegrationsStatus422>
+    ResponseErrorConfig<
+      | CapGetIntegrationsStatus401
+      | CapGetIntegrationsStatus403
+      | CapGetIntegrationsStatus422
+    >
   > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;

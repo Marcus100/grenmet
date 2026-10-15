@@ -8,6 +8,8 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type EventsListGroupsStatus200 = GroupSummary[];
 
+export type EventsListGroupsStatus401 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -23,6 +25,7 @@ export type EventsListGroupsOptions = {
 
 export type EventsListGroupsResponses = {
   "200": EventsListGroupsStatus200;
+  "401": EventsListGroupsStatus401;
   "422": EventsListGroupsStatus422;
 };
 

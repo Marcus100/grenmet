@@ -8,6 +8,10 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type CapGetFeedsStatus200 = CapFeedImportPublic[];
 
+export type CapGetFeedsStatus401 = unknown;
+
+export type CapGetFeedsStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -23,6 +27,8 @@ export type CapGetFeedsOptions = {
 
 export type CapGetFeedsResponses = {
   "200": CapGetFeedsStatus200;
+  "401": CapGetFeedsStatus401;
+  "403": CapGetFeedsStatus403;
   "422": CapGetFeedsStatus422;
 };
 

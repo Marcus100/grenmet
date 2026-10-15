@@ -1,12 +1,13 @@
 import uuid
-from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 
-from src.auth.models import User
-from src.baseline import catalogue, product_access, service
+from src.baseline import balance_import, catalogue, product_access, service
+from src.baseline.dependencies import AdminUser
 from src.baseline.models import ApprovalPolicy
 from src.baseline.schemas import (
+    BalanceImportRequest,
+    BalanceImportResult,
     BalanceInput,
     CatalogueApply,
     CataloguePreview,
@@ -23,7 +24,7 @@ from src.baseline.schemas import (
     StaffInput,
     StaffSetup,
 )
-from src.dependencies import CurrentUser, SessionDep, get_current_active_superuser
+from src.dependencies import CurrentUser, SessionDep
 from src.hr.models import Grade
 from src.models import Message
 
@@ -36,7 +37,6 @@ router = APIRouter(
         409: {"description": "Setup conflict"},
     },
 )
-AdminUser = Annotated[User, Depends(get_current_active_superuser)]
 
 
 @router.get(
@@ -128,6 +128,23 @@ async def update_staff_balance(
 ) -> Message:
     await service.set_balance(session, current_user, user_id, body)
     return Message(message="Balance adjustment recorded")
+
+
+@router.post(
+    "/setup/staff/balances/import",
+    response_model=BalanceImportResult,
+    summary="Validate or apply opening leave balances from a CSV export",
+    status_code=200,
+    description=(
+        "Reads a CSV with employee_number, leave_type and balance columns (other "
+        "columns are ignored), checks every row, and posts through the leave ledger "
+        "only when apply is true and every row is valid. Superuser only."
+    ),
+)
+async def import_staff_balances(
+    *, session: SessionDep, current_user: AdminUser, body: BalanceImportRequest
+) -> BalanceImportResult:
+    return await balance_import.import_opening_balances(session, current_user, body)
 
 
 @router.get(

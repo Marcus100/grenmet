@@ -15,6 +15,7 @@ export const capGetAlertsQueryLifecycleStateSchema = z
 export const capGetAlertsQueryPageSchema = z
   .int()
   .min(1)
+  .max(1000000)
   .optional()
   .default(1)
   .describe("Page number (1-indexed)");
@@ -29,6 +30,10 @@ export const capGetAlertsQuerySizeSchema = z
 
 export const capGetAlertsStatus200Schema = capAlertListPublicSchema;
 
+export const capGetAlertsStatus401Schema = z.unknown();
+
+export const capGetAlertsStatus403Schema = z.unknown();
+
 export const capGetAlertsStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -36,4 +41,8 @@ export const capGetAlertsStatus422Schema =
 
 export const capGetAlertsResponseSchema = capGetAlertsStatus200Schema;
 
-export const capGetAlertsErrorSchema = capGetAlertsStatus422Schema;
+export const capGetAlertsErrorSchema = z.union([
+  capGetAlertsStatus401Schema,
+  capGetAlertsStatus403Schema,
+  capGetAlertsStatus422Schema,
+]);

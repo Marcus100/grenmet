@@ -144,6 +144,11 @@ def _apps() -> dict[str, AppDefinition]:
     return {app.key: app for app in (events, gaa_admin, cms, *sites)}
 
 
+def registered_apps() -> list[AppDefinition]:
+    """Apps that take part in single sign-on, in display order."""
+    return [app for app in _apps().values() if app.sso]
+
+
 def is_registered(app_name: str | None) -> bool:
     """Whether a session belongs to a registered app rather than the account."""
     return app_name is not None and app_name in _apps()

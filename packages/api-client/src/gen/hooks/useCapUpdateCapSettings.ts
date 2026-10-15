@@ -14,6 +14,8 @@ import { capUpdateCapSettings } from "../clients/capUpdateCapSettings.js";
 import type {
   CapUpdateCapSettingsOptions,
   CapUpdateCapSettingsStatus200,
+  CapUpdateCapSettingsStatus401,
+  CapUpdateCapSettingsStatus403,
   CapUpdateCapSettingsStatus422,
 } from "../models/CapUpdateCapSettings.js";
 
@@ -28,7 +30,11 @@ export function capUpdateCapSettingsMutationOptions<TContext = unknown>(
   const mutationKey = capUpdateCapSettingsMutationKey();
   return mutationOptions<
     CapUpdateCapSettingsStatus200,
-    ResponseErrorConfig<CapUpdateCapSettingsStatus422>,
+    ResponseErrorConfig<
+      | CapUpdateCapSettingsStatus401
+      | CapUpdateCapSettingsStatus403
+      | CapUpdateCapSettingsStatus422
+    >,
     CapUpdateCapSettingsOptions,
     TContext
   >({
@@ -52,7 +58,11 @@ export function useCapUpdateCapSettings<TContext>(
   options: {
     mutation?: UseMutationOptions<
       CapUpdateCapSettingsStatus200,
-      ResponseErrorConfig<CapUpdateCapSettingsStatus422>,
+      ResponseErrorConfig<
+        | CapUpdateCapSettingsStatus401
+        | CapUpdateCapSettingsStatus403
+        | CapUpdateCapSettingsStatus422
+      >,
       CapUpdateCapSettingsOptions,
       TContext
     > & { client?: QueryClient };
@@ -70,14 +80,22 @@ export function useCapUpdateCapSettings<TContext>(
     config
   ) as UseMutationOptions<
     CapUpdateCapSettingsStatus200,
-    ResponseErrorConfig<CapUpdateCapSettingsStatus422>,
+    ResponseErrorConfig<
+      | CapUpdateCapSettingsStatus401
+      | CapUpdateCapSettingsStatus403
+      | CapUpdateCapSettingsStatus422
+    >,
     CapUpdateCapSettingsOptions,
     TContext
   >;
 
   return useMutation<
     CapUpdateCapSettingsStatus200,
-    ResponseErrorConfig<CapUpdateCapSettingsStatus422>,
+    ResponseErrorConfig<
+      | CapUpdateCapSettingsStatus401
+      | CapUpdateCapSettingsStatus403
+      | CapUpdateCapSettingsStatus422
+    >,
     CapUpdateCapSettingsOptions,
     TContext
   >(
@@ -89,7 +107,11 @@ export function useCapUpdateCapSettings<TContext>(
     queryClient
   ) as UseMutationResult<
     CapUpdateCapSettingsStatus200,
-    ResponseErrorConfig<CapUpdateCapSettingsStatus422>,
+    ResponseErrorConfig<
+      | CapUpdateCapSettingsStatus401
+      | CapUpdateCapSettingsStatus403
+      | CapUpdateCapSettingsStatus422
+    >,
     CapUpdateCapSettingsOptions,
     TContext
   >;

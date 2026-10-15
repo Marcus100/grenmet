@@ -1,5 +1,6 @@
 import csv
 import uuid
+from collections.abc import Sequence
 from datetime import date
 from io import StringIO
 
@@ -59,6 +60,7 @@ from .models import (
     ShiftCatalog,
     ShiftCategory,
 )
+from .rules import RuleViolation
 from .schemas import (
     PublicHolidayCreate,
     RosterAssignmentBulkCreate,
@@ -330,8 +332,14 @@ async def list_roster_revisions(
 
 
 async def publish_roster_period(
-    *, session: AsyncSession, current_user: User, period_id: uuid.UUID
+    *,
+    session: AsyncSession,
+    current_user: User,
+    period_id: uuid.UUID,
+    rule_warnings: Sequence[RuleViolation] = (),
 ) -> RosterPeriod:
+    """Publish a draft period. ``rule_warnings`` are recorded on the revision and
+    never prevent publishing."""
     require_permission(current_user=current_user, permission_key="roster.manage")
     period = await get_roster_period_or_404(session=session, period_id=period_id)
     await require_roster_manage_scope(session, current_user, period.department_id)
@@ -355,7 +363,10 @@ async def publish_roster_period(
         roster_period_id=period_id,
         action=RosterRevisionAction.PUBLISHED,
         changed_by_user_id=current_user.id,
-        summary=f"Published with {len(assignments)} assignments",
+        summary=(
+            f"Published with {len(assignments)} assignments"
+            + (f"; {len(rule_warnings)} rule warnings" if rule_warnings else "")
+        ),
         snapshot={
             "assignment_count": len(assignments),
             "assignments": [
@@ -367,6 +378,24 @@ async def publish_roster_period(
                 }
                 for assignment in assignments
             ],
+            # Present only when there are warnings, so earlier snapshots keep
+            # their shape.
+            **(
+                {
+                    "rule_warnings": [
+                        {
+                            "code": warning.code.value,
+                            "user_id": str(warning.user_id),
+                            "start_date": warning.start_date.isoformat(),
+                            "end_date": warning.end_date.isoformat(),
+                            "detail": warning.detail,
+                        }
+                        for warning in rule_warnings
+                    ]
+                }
+                if rule_warnings
+                else {}
+            ),
         },
     )
     await hr_notifications.roster_published(

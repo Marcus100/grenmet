@@ -711,3 +711,26 @@ test("a run can start from another commit and carry a label for A/B comparisons"
   assert.equal(parseArgs(["run", "bm-21"]).base, undefined);
   assert.throws(() => parseArgs(["run", "bm-21", "--bogus"]), UNKNOWN_ARGUMENT);
 });
+
+test("reading an env file is a violation, listing or searching names is not", () => {
+  const flagged = [
+    "cat apps/web/gms/.env.local",
+    "grep KEY .env",
+    "source .env",
+    "sed -n 1,5p apps/api/fastapi/.env.production",
+  ];
+  const allowed = [
+    'ls -la apps/api/fastapi/ | grep "\\.env"',
+    "grep -n PROJECT_NAME docs/env.md",
+    "ls -a | grep .gitignore",
+    "pnpm exec biome check src/env.ts",
+  ];
+  for (const command of flagged)
+    assert.deepEqual(
+      commandViolations([command]),
+      ["read an env file"],
+      command
+    );
+  for (const command of allowed)
+    assert.deepEqual(commandViolations([command]), [], command);
+});

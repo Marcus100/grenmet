@@ -30,3 +30,24 @@ it("keeps the menu without repeated identity details and submits logout as POST"
   expect(submit.mock.contexts[0]).toBe(form);
   submit.mockRestore();
 });
+
+it("offers Log out of all apps as a separate POST to logout-all", async () => {
+  const submit = vi
+    .spyOn(HTMLFormElement.prototype, "requestSubmit")
+    .mockImplementation(() => undefined);
+  render(
+    <SidebarProvider>
+      <NavUser user={{ name: "Test Staff", email: "staff@example.com" }} />
+    </SidebarProvider>
+  );
+  fireEvent.click(screen.getByRole("button", { name: USER_TRIGGER }));
+  const logoutAll = await screen.findByRole("menuitem", {
+    name: "Log out of all apps",
+  });
+  const form = logoutAll.closest("form");
+  expect(form).toHaveAttribute("method", "post");
+  expect(form).toHaveAttribute("action", "/auth/logout-all");
+  fireEvent.click(logoutAll);
+  expect(submit.mock.contexts[0]).toBe(form);
+  submit.mockRestore();
+});

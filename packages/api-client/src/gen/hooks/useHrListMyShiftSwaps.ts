@@ -15,6 +15,8 @@ import { hrListMyShiftSwaps } from "../clients/hrListMyShiftSwaps.js";
 import type {
   HrListMyShiftSwapsOptions,
   HrListMyShiftSwapsStatus200,
+  HrListMyShiftSwapsStatus401,
+  HrListMyShiftSwapsStatus403,
   HrListMyShiftSwapsStatus422,
 } from "../models/HrListMyShiftSwaps.js";
 
@@ -34,7 +36,11 @@ export function hrListMyShiftSwapsQueryOptions(
   const queryKey = hrListMyShiftSwapsQueryKey({ query });
   return queryOptions<
     HrListMyShiftSwapsStatus200,
-    ResponseErrorConfig<HrListMyShiftSwapsStatus422>,
+    ResponseErrorConfig<
+      | HrListMyShiftSwapsStatus401
+      | HrListMyShiftSwapsStatus403
+      | HrListMyShiftSwapsStatus422
+    >,
     HrListMyShiftSwapsStatus200,
     typeof queryKey
   >({
@@ -71,7 +77,11 @@ export function useHrListMyShiftSwaps<
     query?: Partial<
       QueryObserverOptions<
         HrListMyShiftSwapsStatus200,
-        ResponseErrorConfig<HrListMyShiftSwapsStatus422>,
+        ResponseErrorConfig<
+          | HrListMyShiftSwapsStatus401
+          | HrListMyShiftSwapsStatus403
+          | HrListMyShiftSwapsStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -99,7 +109,11 @@ export function useHrListMyShiftSwaps<
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<HrListMyShiftSwapsStatus422>
+    ResponseErrorConfig<
+      | HrListMyShiftSwapsStatus401
+      | HrListMyShiftSwapsStatus403
+      | HrListMyShiftSwapsStatus422
+    >
   > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;

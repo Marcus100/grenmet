@@ -14,6 +14,8 @@ import { capCreateFeed } from "../clients/capCreateFeed.js";
 import type {
   CapCreateFeedOptions,
   CapCreateFeedStatus201,
+  CapCreateFeedStatus401,
+  CapCreateFeedStatus403,
   CapCreateFeedStatus422,
 } from "../models/CapCreateFeed.js";
 
@@ -28,7 +30,9 @@ export function capCreateFeedMutationOptions<TContext = unknown>(
   const mutationKey = capCreateFeedMutationKey();
   return mutationOptions<
     CapCreateFeedStatus201,
-    ResponseErrorConfig<CapCreateFeedStatus422>,
+    ResponseErrorConfig<
+      CapCreateFeedStatus401 | CapCreateFeedStatus403 | CapCreateFeedStatus422
+    >,
     CapCreateFeedOptions,
     TContext
   >({
@@ -48,7 +52,9 @@ export function useCapCreateFeed<TContext>(
   options: {
     mutation?: UseMutationOptions<
       CapCreateFeedStatus201,
-      ResponseErrorConfig<CapCreateFeedStatus422>,
+      ResponseErrorConfig<
+        CapCreateFeedStatus401 | CapCreateFeedStatus403 | CapCreateFeedStatus422
+      >,
       CapCreateFeedOptions,
       TContext
     > & { client?: QueryClient };
@@ -65,14 +71,18 @@ export function useCapCreateFeed<TContext>(
     config
   ) as UseMutationOptions<
     CapCreateFeedStatus201,
-    ResponseErrorConfig<CapCreateFeedStatus422>,
+    ResponseErrorConfig<
+      CapCreateFeedStatus401 | CapCreateFeedStatus403 | CapCreateFeedStatus422
+    >,
     CapCreateFeedOptions,
     TContext
   >;
 
   return useMutation<
     CapCreateFeedStatus201,
-    ResponseErrorConfig<CapCreateFeedStatus422>,
+    ResponseErrorConfig<
+      CapCreateFeedStatus401 | CapCreateFeedStatus403 | CapCreateFeedStatus422
+    >,
     CapCreateFeedOptions,
     TContext
   >(
@@ -84,7 +94,9 @@ export function useCapCreateFeed<TContext>(
     queryClient
   ) as UseMutationResult<
     CapCreateFeedStatus201,
-    ResponseErrorConfig<CapCreateFeedStatus422>,
+    ResponseErrorConfig<
+      CapCreateFeedStatus401 | CapCreateFeedStatus403 | CapCreateFeedStatus422
+    >,
     CapCreateFeedOptions,
     TContext
   >;

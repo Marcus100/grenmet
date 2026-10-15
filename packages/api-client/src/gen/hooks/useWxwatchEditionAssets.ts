@@ -15,6 +15,9 @@ import { wxwatchEditionAssets } from "../clients/wxwatchEditionAssets.js";
 import type {
   WxwatchEditionAssetsOptions,
   WxwatchEditionAssetsStatus200,
+  WxwatchEditionAssetsStatus401,
+  WxwatchEditionAssetsStatus403,
+  WxwatchEditionAssetsStatus404,
   WxwatchEditionAssetsStatus422,
 } from "../models/WxwatchEditionAssets.js";
 
@@ -38,7 +41,12 @@ export function wxwatchEditionAssetsQueryOptions(
   const queryKey = wxwatchEditionAssetsQueryKey({ path });
   return queryOptions<
     WxwatchEditionAssetsStatus200,
-    ResponseErrorConfig<WxwatchEditionAssetsStatus422>,
+    ResponseErrorConfig<
+      | WxwatchEditionAssetsStatus401
+      | WxwatchEditionAssetsStatus403
+      | WxwatchEditionAssetsStatus404
+      | WxwatchEditionAssetsStatus422
+    >,
     WxwatchEditionAssetsStatus200,
     typeof queryKey
   >({
@@ -75,7 +83,12 @@ export function useWxwatchEditionAssets<
     query?: Partial<
       QueryObserverOptions<
         WxwatchEditionAssetsStatus200,
-        ResponseErrorConfig<WxwatchEditionAssetsStatus422>,
+        ResponseErrorConfig<
+          | WxwatchEditionAssetsStatus401
+          | WxwatchEditionAssetsStatus403
+          | WxwatchEditionAssetsStatus404
+          | WxwatchEditionAssetsStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -101,7 +114,12 @@ export function useWxwatchEditionAssets<
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<WxwatchEditionAssetsStatus422>
+    ResponseErrorConfig<
+      | WxwatchEditionAssetsStatus401
+      | WxwatchEditionAssetsStatus403
+      | WxwatchEditionAssetsStatus404
+      | WxwatchEditionAssetsStatus422
+    >
   > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;

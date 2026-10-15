@@ -15,12 +15,16 @@ from starlette.requests import Request
 from src.auth import app_service, cms_access
 from src.auth.app_dependencies import OptionalBearer, unauthorized, user_for_app
 from src.auth.app_schemas import (
+    AccountAppPublic,
+    AccountSessionRequest,
     AppEmailCodeStart,
     AppEmailCodeVerify,
     AppHandoffCode,
     AppHandoffRedeem,
     AppHandoffStart,
     AppIdentityPublic,
+    AppJoinResult,
+    AppLeaveResult,
     AppPasswordLogin,
     AppPhoneCodeStart,
     AppPhoneCodeVerify,
@@ -41,6 +45,7 @@ from src.models import Message
 from src.rate_limit import limiter
 
 router = APIRouter(prefix="/auth/apps/{app}", tags=["auth"])
+account_router = APIRouter(prefix="/auth/account/apps", tags=["auth"])
 
 
 def _app(app: Annotated[str, Path(pattern="^[a-z][a-z0-9-]{1,30}$")]) -> AppDefinition:
@@ -334,4 +339,65 @@ async def get_app_identity(*, app: AppDep, user: AppMember) -> AppIdentityPublic
         email=user.email,
         is_superuser=user.is_superuser,
         permission_keys=cms_access.permission_keys(user) if app.key == "cms" else [],
+    )
+
+
+_ACCOUNT: dict[int | str, dict[str, Any]] = {
+    401: {"description": "Not signed in to the Barrels account"},
+    403: {"description": "This app cannot be joined or left from here"},
+    404: {"description": "Unknown app"},
+}
+
+
+@account_router.post(
+    "",
+    response_model=list[AccountAppPublic],
+    status_code=status.HTTP_200_OK,
+    summary="List the apps on this account",
+    description="Which single sign-on apps this account can use, and which it may leave. Needs the auth.barrels.gd account session, not an app session.",
+    responses={401: _ACCOUNT[401]},
+)
+@limiter.limit("60/minute")
+async def list_account_apps(
+    *, request: Request, session: SessionDep, body: AccountSessionRequest
+) -> list[AccountAppPublic]:
+    _ = request
+    return await app_service.list_account_apps(
+        session=session, session_token=body.session_token
+    )
+
+
+@account_router.post(
+    "/{app}/join",
+    response_model=AppJoinResult,
+    status_code=status.HTTP_200_OK,
+    summary="Join an app",
+    description="Grant the app's default role. Harmless if already a member.",
+    responses=_ACCOUNT,
+)
+@limiter.limit("30/minute")
+async def join_account_app(
+    *, request: Request, session: SessionDep, app: AppDep, body: AccountSessionRequest
+) -> AppJoinResult:
+    _ = request
+    return await app_service.join_account_app(
+        session=session, app=app, session_token=body.session_token
+    )
+
+
+@account_router.post(
+    "/{app}/leave",
+    response_model=AppLeaveResult,
+    status_code=status.HTTP_200_OK,
+    summary="Leave an app",
+    description="Remove the app's default role and end this account's sessions in that app only. The account and other apps are unaffected.",
+    responses=_ACCOUNT,
+)
+@limiter.limit("30/minute")
+async def leave_account_app(
+    *, request: Request, session: SessionDep, app: AppDep, body: AccountSessionRequest
+) -> AppLeaveResult:
+    _ = request
+    return await app_service.leave_account_app(
+        session=session, app=app, session_token=body.session_token
     )

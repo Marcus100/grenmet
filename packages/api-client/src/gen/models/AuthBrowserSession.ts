@@ -8,6 +8,8 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthBrowserSessionStatus200 = BrowserSession;
 
+export type AuthBrowserSessionStatus401 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -23,6 +25,7 @@ export type AuthBrowserSessionOptions = {
 
 export type AuthBrowserSessionResponses = {
   "200": AuthBrowserSessionStatus200;
+  "401": AuthBrowserSessionStatus401;
   "422": AuthBrowserSessionStatus422;
 };
 

@@ -14,6 +14,8 @@ import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { capGetCatalogs } from "../clients/capGetCatalogs.js";
 import type {
   CapGetCatalogsStatus200,
+  CapGetCatalogsStatus401,
+  CapGetCatalogsStatus403,
   CapGetCatalogsStatus422,
 } from "../models/CapGetCatalogs.js";
 
@@ -30,7 +32,11 @@ export function capGetCatalogsQueryOptions(
   const queryKey = capGetCatalogsQueryKey();
   return queryOptions<
     CapGetCatalogsStatus200,
-    ResponseErrorConfig<CapGetCatalogsStatus422>,
+    ResponseErrorConfig<
+      | CapGetCatalogsStatus401
+      | CapGetCatalogsStatus403
+      | CapGetCatalogsStatus422
+    >,
     CapGetCatalogsStatus200,
     typeof queryKey
   >({
@@ -59,7 +65,11 @@ export function useCapGetCatalogs<
     query?: Partial<
       QueryObserverOptions<
         CapGetCatalogsStatus200,
-        ResponseErrorConfig<CapGetCatalogsStatus422>,
+        ResponseErrorConfig<
+          | CapGetCatalogsStatus401
+          | CapGetCatalogsStatus403
+          | CapGetCatalogsStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -81,9 +91,14 @@ export function useCapGetCatalogs<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient
-  ) as UseQueryResult<TData, ResponseErrorConfig<CapGetCatalogsStatus422>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      | CapGetCatalogsStatus401
+      | CapGetCatalogsStatus403
+      | CapGetCatalogsStatus422
+    >
+  > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;
 

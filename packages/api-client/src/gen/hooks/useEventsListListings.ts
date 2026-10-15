@@ -15,6 +15,7 @@ import { eventsListListings } from "../clients/eventsListListings.js";
 import type {
   EventsListListingsOptions,
   EventsListListingsStatus200,
+  EventsListListingsStatus401,
   EventsListListingsStatus422,
 } from "../models/EventsListListings.js";
 
@@ -34,7 +35,9 @@ export function eventsListListingsQueryOptions(
   const queryKey = eventsListListingsQueryKey({ query });
   return queryOptions<
     EventsListListingsStatus200,
-    ResponseErrorConfig<EventsListListingsStatus422>,
+    ResponseErrorConfig<
+      EventsListListingsStatus401 | EventsListListingsStatus422
+    >,
     EventsListListingsStatus200,
     typeof queryKey
   >({
@@ -71,7 +74,9 @@ export function useEventsListListings<
     query?: Partial<
       QueryObserverOptions<
         EventsListListingsStatus200,
-        ResponseErrorConfig<EventsListListingsStatus422>,
+        ResponseErrorConfig<
+          EventsListListingsStatus401 | EventsListListingsStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -99,7 +104,9 @@ export function useEventsListListings<
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<EventsListListingsStatus422>
+    ResponseErrorConfig<
+      EventsListListingsStatus401 | EventsListListingsStatus422
+    >
   > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;

@@ -15,6 +15,10 @@ export const wxwatchFinishRunHeaderAuthorizationSchema = z
 
 export const wxwatchFinishRunStatus204Schema = z.unknown();
 
+export const wxwatchFinishRunStatus401Schema = z.unknown();
+
+export const wxwatchFinishRunStatus409Schema = z.unknown();
+
 export const wxwatchFinishRunStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -22,6 +26,10 @@ export const wxwatchFinishRunStatus422Schema =
 
 export const wxwatchFinishRunResponseSchema = wxwatchFinishRunStatus204Schema;
 
-export const wxwatchFinishRunErrorSchema = wxwatchFinishRunStatus422Schema;
+export const wxwatchFinishRunErrorSchema = z.union([
+  wxwatchFinishRunStatus401Schema,
+  wxwatchFinishRunStatus409Schema,
+  wxwatchFinishRunStatus422Schema,
+]);
 
 export const wxwatchFinishRunBodySchema = runFinishSchema;
