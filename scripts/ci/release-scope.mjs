@@ -7,7 +7,14 @@ export const webImages = [
     port: 3001,
   },
   { app: "docs", image: "web-docs", path: "apps/web/docs", port: 3002 },
-  { app: "gms", image: "web-gms", path: "apps/web/gms", port: 3003 },
+  // Served at weather.barrels.gd, so its public address uses that host.
+  {
+    app: "gms",
+    host: "weather",
+    image: "web-gms",
+    path: "apps/web/gms",
+    port: 3003,
+  },
   { app: "cms", image: "web-cms", path: "apps/web/cms", port: 3006 },
   {
     app: "cms-migrate",

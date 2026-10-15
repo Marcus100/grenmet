@@ -9,6 +9,7 @@ import {
   MAIN_CONTENT_ID,
   SkipLink,
 } from "@barrelsgd/ui/components/ui/skip-link";
+import { env } from "@/lib/env";
 
 const notoSans = Noto_Sans({
   subsets: ["latin"],
@@ -30,6 +31,8 @@ const manrope = Manrope({
 });
 
 export const metadata: Metadata = {
+  // Absolute base for share-preview links; set per environment at build time.
+  metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
   title: {
     default:
       "Grenada Airports Authority — Gateway to the Spice of the Caribbean",

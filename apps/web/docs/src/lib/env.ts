@@ -18,6 +18,12 @@ export const env = createEnv({
     AUTH_ALLOWED_RETURN_HOSTS: z.string().optional().default(""),
   },
   client: {
+    // Canonical public address, for absolute share-preview links (metadataBase).
+    NEXT_PUBLIC_SITE_URL: z
+      .string()
+      .url()
+      .optional()
+      .default("http://localhost:3002"),
     NEXT_PUBLIC_SENTRY_DSN: z.string().optional(),
     NEXT_PUBLIC_SENTRY_ENVIRONMENT: z
       .string()
@@ -30,6 +36,7 @@ export const env = createEnv({
       .default("https://us.i.posthog.com"),
   },
   runtimeEnv: {
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     AUTH_APP_URL: process.env.AUTH_APP_URL,
     DOCS_SESSION_COOKIE_NAME: process.env.DOCS_SESSION_COOKIE_NAME,
     DOCS_SSO_CLIENT_SECRET: process.env.DOCS_SSO_CLIENT_SECRET,

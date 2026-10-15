@@ -10,6 +10,7 @@ import {
   MAIN_CONTENT_ID,
   SkipLink,
 } from "@barrelsgd/ui/components/ui/skip-link";
+import { env } from "@/lib/env";
 
 const notoSans = Noto_Sans({
   subsets: ["latin"],
@@ -33,6 +34,8 @@ const sourceSerif = localFont({
 });
 
 export const metadata: Metadata = {
+  // Absolute base for share-preview links; set per environment at build time.
+  metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
   title: {
     default: "Grenada Signal — Know what going on.",
     template: "%s | Grenada Signal",

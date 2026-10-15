@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-09-23
+**Last updated:** 2026-10-15
 
 This document is the human-readable reference for supported environment variables
 in the Grenmet monorepo: what each variable does, where it is supplied, and which
@@ -255,6 +255,7 @@ are set in Vercel and in GitHub (for the API).
 | `CAP_API_URL` | **gms only.** FastAPI base URL for the unauthenticated public CAP endpoints (`/api/cap/*`) that render the current-warnings panel. Separate from `AUTH_API_URL` because these endpoints need no session |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Optional browser error reporting |
 | `NEXT_PUBLIC_POSTHOG_KEY` / `NEXT_PUBLIC_POSTHOG_HOST` | Optional browser analytics |
+| `NEXT_PUBLIC_SITE_URL` | Canonical public address, used as `metadataBase` so share previews get absolute links. Set at **build** time: CI passes `https://<host>.barrels.gd` (gms uses `weather`, from `scripts/ci/release-scope.mjs`); Elections sets it in Vercel. Defaults to the local port. gms, docs, events, elections, signal and mbia read it. |
 
 ### gaa-admin (`apps/web/gaa-admin/.env.local`)
 
