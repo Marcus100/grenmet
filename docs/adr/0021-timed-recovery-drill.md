@@ -2,8 +2,23 @@
 
 ## Status
 
-Proposed — 2026-10-13. Needs owner approval before any workflow is added: it
-reads production backups and uses the production runner.
+Accepted — 2026-10-15 by the project owner. The workflow and script are built
+(`.github/workflows/restore-drill.yml`, `scripts/production/restore-drill.py`) and
+unit-tested against a local fake backup store, but **have not been run against real
+backups**. Runbook: [restore drill](../operations/restore-drill.md).
+
+Differences from the plan below, found while building it:
+
+- The scheduled production backup (`backup-database.yml`) writes
+  `production/YYYY/MM/DD/<database>_<timestamp>.dump` and no marker file, so the
+  drill reads that layout and uses the `latest-success.json` marker only if one exists.
+- Step 4 (start the API against the restored databases and run authenticated
+  reads) is **not built**. Until it is, the drill proves restoration, migration
+  match and row floors, not recovery of the running application, and the recovery
+  time stays unverified.
+- The row-count floors file does not exist yet; the first run reports counts and a
+  human records the floors afterwards.
+- Persistent-failure issue creation is not built.
 
 ## Context
 
