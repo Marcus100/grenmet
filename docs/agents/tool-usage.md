@@ -18,6 +18,11 @@ checks and their results, friction issues filed, outstanding decisions, and exac
 main checkout's `SESSION_LOG.md`. Read the latest file before appending; preserve
 other entries. Update durable knowledge in Bishop when it belongs there and the
 workspace is accessible; keep private context out of this public repository.
+Where the `bishop` MCP server is configured, agents may search Bishop read-only
+and use the results in conversation, never in commits. The pre-commit hook runs
+`pnpm guardrails:private`, which rejects staged Bishop vault content (Obsidian
+wikilinks, vault note frontmatter, vault folder layout); a test scans the whole
+tracked tree for the same markers.
 
 The receiving agent reads that entry, applicable AGENTS files and the current
 Git status/diff before continuing. Use the same checkout for sequential work;
