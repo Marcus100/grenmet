@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-04
+**Last updated:** 2026-10-15
 
 Canonical port map for the monorepo. **This file is the single source of truth** —
 when a port changes, update it here first, then propagate to the locations listed
@@ -33,6 +33,20 @@ uses **one port across local dev and its container** (no dev/prod skew).
 | cms | `@barrelsgd/web-cms` | 3006 |
 | elections | `@barrelsgd/web-elections` | 3007 |
 | events | `@barrelsgd/web-events` | 3009 |
+
+### Reserved and planned
+
+Ports are **never reused** after an app is retired. Claim a port here, in the same
+change that plans the app, so the next person does not pick it.
+
+| Port | App | Status |
+| --- | --- | --- |
+| 3008 | `@barrelsgd/web-shop` (`shop.barrels.gd`) | Reserved; see `docs/exec-plans/barrelsgd-migration-plan.md` |
+| 3010 | `@barrelsgd/web-cap` | Planned; CAP split out of gaa-admin |
+
+In production only Traefik's entry points are published to the host; app ports stay
+on the Docker network and Traefik routes by hostname using an explicit
+`loadbalancer.server.port` label.
 
 The static `apps/web/barrels` homepage has no assigned Next.js port. Port
 allocation does not indicate deployment status; see the
