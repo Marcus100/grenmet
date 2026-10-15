@@ -41,6 +41,19 @@ Accepted | Proposed | Superseded
 
 What forces or constraints led to this decision?
 
+## Evidence
+
+- **Facts:** verifiable observations, each with a source (file, PR, metric, doc link).
+- **Interpretation:** what the facts mean here, labelled best practice / heuristic / speculation.
+- **Uncertainty:** what we do not know yet, and what would change the decision.
+
+Mark confidence on each point: high · medium · low.
+
+## Options considered
+
+At least two options, compared on correctness, complexity, maintainability,
+performance, cost and operational risk.
+
 ## Decision
 
 What did we choose?
@@ -49,4 +62,7 @@ What did we choose?
 
 What does this make easier, harder, or forbidden?
 ```
+
+Existing ADRs keep their format; use the Evidence and Options sections for new
+ones.
 
