@@ -20,8 +20,9 @@ const CONTRACT =
 
 // Portfolio coverage fails when a directory under these parents is not listed in
 // docs/portfolio/repository-delivery-map.md, so any change there can break it.
+// Root documents such as SECURITY.md are governed surfaces too.
 const PORTFOLIO_SURFACE =
-  /^(?:scripts|packages|infra|docs\/portfolio|\.github|\.claude|\.agents)\//;
+  /^(?:(?:scripts|packages|infra|docs\/portfolio|\.github|\.claude|\.agents)\/|[A-Z][A-Z_]*\.md$)/;
 // Smoke tests exist for these apps; they skip themselves when no dev server is up.
 const WEB_UI =
   /^apps\/web\/(?:gms|gaa-admin)\/(?:src|e2e|playwright\.config\.ts)/;
