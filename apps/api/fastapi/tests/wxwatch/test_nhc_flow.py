@@ -14,8 +14,8 @@ from src.wxproducts import validation
 from src.wxproducts.dependencies import get_session as products_session
 from src.wxwatch import database as archive_database
 from src.wxwatch.config import wxwatch_settings
+from src.wxwatch.dependencies import get_session as archive_session
 from src.wxwatch.nhc_import import import_manifest
-from src.wxwatch.router import get_session as archive_session
 from tests.wxproducts.test_migrations import migrate as migrate_products
 from tests.wxproducts.test_validation import complete
 from tests.wxwatch.test_migration import migrate as migrate_archive

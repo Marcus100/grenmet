@@ -12,6 +12,7 @@ from src.wxproducts.dependencies import AuthorDep, ProductAuthor
 from src.wxproducts.exceptions import ProductValidationError
 
 from . import nhc_service
+from .dependencies import ImageSession
 from .nhc_schemas import (
     NhcContent,
     NhcFamily,
@@ -23,7 +24,6 @@ from .nhc_schemas import (
     NhcPullRequest,
     NhcSourceCheck,
 )
-from .router import ImageSession
 
 router = APIRouter(prefix="/wxwatch/nhc", tags=["wxwatch-nhc"])
 ERRORS: dict[int | str, dict[str, Any]] = {

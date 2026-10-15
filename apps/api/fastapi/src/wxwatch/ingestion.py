@@ -14,7 +14,7 @@ from src.models import BaseModel, UtcDateTime
 
 from . import catalogue, derivations
 from .config import wxwatch_settings
-from .router import ImageSession
+from .dependencies import ImageSession
 
 
 def authenticate_worker(authorization: Annotated[str | None, Header()] = None) -> None:

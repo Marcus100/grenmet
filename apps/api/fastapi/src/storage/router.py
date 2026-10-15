@@ -10,7 +10,7 @@ from src.auth.browser import BrowserUser
 from src.storage import service
 from src.wxwatch import assets
 from src.wxwatch.config import wxwatch_settings
-from src.wxwatch.router import ImageSession
+from src.wxwatch.dependencies import ImageSession
 
 router = APIRouter(prefix="/wxwatch", tags=["weather-images"])
 _SAFE_PATH = re.compile(

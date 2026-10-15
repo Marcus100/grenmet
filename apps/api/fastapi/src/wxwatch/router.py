@@ -1,16 +1,14 @@
-from collections.abc import AsyncGenerator
 from datetime import date
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, HTTPException, Query, Response
 from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.browser import BrowserUser
 
-from . import database, service
+from . import service
+from .dependencies import ImageSession
 from .schemas import (
     ArchiveBulletin,
     ArchiveHistory,
@@ -20,20 +18,6 @@ from .schemas import (
 )
 
 router = APIRouter(prefix="/wxwatch", tags=["wxwatch"])
-
-
-async def get_session() -> AsyncGenerator[AsyncSession]:
-    session = database.create_session()
-    if session is None:
-        raise HTTPException(503, "Weather image metadata is unavailable")
-    try:
-        async with session:
-            yield session
-    except SQLAlchemyError, OSError, TimeoutError:
-        raise HTTPException(503, "Weather image metadata is unavailable") from None
-
-
-ImageSession = Annotated[AsyncSession, Depends(get_session)]
 
 
 @router.get("/metadata", response_model=SynopticImageGroups)

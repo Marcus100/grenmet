@@ -9,7 +9,7 @@ from src.auth.browser import get_browser_or_token_user
 from src.auth.models import User
 from src.main import app
 from src.wxwatch import service
-from src.wxwatch.router import get_session
+from src.wxwatch.dependencies import get_session
 from src.wxwatch.schemas import WeatherImage
 from tests.wxwatch.test_migration import migrate
 

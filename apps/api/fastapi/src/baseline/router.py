@@ -1,10 +1,9 @@
 import uuid
-from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 
-from src.auth.models import User
 from src.baseline import catalogue, product_access, service
+from src.baseline.dependencies import AdminUser
 from src.baseline.models import ApprovalPolicy
 from src.baseline.schemas import (
     BalanceInput,
@@ -23,7 +22,7 @@ from src.baseline.schemas import (
     StaffInput,
     StaffSetup,
 )
-from src.dependencies import CurrentUser, SessionDep, get_current_active_superuser
+from src.dependencies import CurrentUser, SessionDep
 from src.hr.models import Grade
 from src.models import Message
 
@@ -36,7 +35,6 @@ router = APIRouter(
         409: {"description": "Setup conflict"},
     },
 )
-AdminUser = Annotated[User, Depends(get_current_active_superuser)]
 
 
 @router.get(

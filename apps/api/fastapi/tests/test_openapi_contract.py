@@ -86,6 +86,102 @@ def test_operations_are_described_and_have_success_responses() -> None:
     )
 
 
+# Authenticated or path-addressed operations that predate the error-response
+# check. Remove an entry when its route documents a 4xx; never add new ones.
+_ERROR_RESPONSE_BACKLOG = frozenset(
+    {
+        "authBrowserSession",
+        "authCreatePermission",
+        "authCreateRole",
+        "authCreateRoleAssignment",
+        "authGetPermissions",
+        "authGetRoleAssignments",
+        "authGetRoles",
+        "authGetUserMe",
+        "authGetUsers",
+        "authRecoverPasswordHtmlContent",
+        "authTestToken",
+        "authTwofaSetup",
+        "authTwofaStatus",
+        "capApproveAlert",
+        "capApproveHazardProfile",
+        "capCancelAlert",
+        "capCreateAlert",
+        "capCreateFeed",
+        "capCreatePredefinedArea",
+        "capDeleteFeed",
+        "capDraftFromHazardProfile",
+        "capDuplicateAlert",
+        "capExpireAlert",
+        "capGetAlert",
+        "capGetAlerts",
+        "capGetAudit",
+        "capGetCapSettings",
+        "capGetCapXml",
+        "capGetCatalogs",
+        "capGetFeeds",
+        "capGetHazardProfiles",
+        "capGetIntegrations",
+        "capGetPredefinedAreas",
+        "capGetPublicAlert",
+        "capImportAlert",
+        "capPublishAlert",
+        "capSaveHazardProfile",
+        "capSubmitAlert",
+        "capUpdateAlert",
+        "capUpdateCapSettings",
+        "capUpdateFeed",
+        "capValidateAlert",
+        "eregisterCreateRegisterObservation",
+        "eregisterListRegisterObservations",
+        "eregisterValidateSynopObservation",
+        "eventsListGroups",
+        "eventsListListings",
+        "hrGetDocumentEmployees",
+        "hrGetMyLeaveRequests",
+        "hrGetMyTimesheets",
+        "hrGetOrganisations",
+        "hrListMyShiftSwaps",
+        "janitorialSpec",
+        "transportGetCatalogue",
+        "transportSpec",
+        "utilsTestEmail",
+        "wxwatchArchive",
+        "wxwatchBulletin",
+        "wxwatchEditionAssets",
+        "wxwatchFinishRun",
+        "wxwatchMetadata",
+        "wxwatchRetrievals",
+        "wxwatchWeatherImage",
+    }
+)
+
+
+def _missing_error_responses() -> set[str]:
+    offenders = set()
+    for _path, _method, operation in _operations():
+        addressed = any(
+            parameter.get("in") == "path"
+            for parameter in operation.get("parameters", [])
+        )
+        if not operation.get("security") and not addressed:
+            continue
+        responses = operation.get("responses", {})
+        if not any(code.startswith("4") and code != "422" for code in responses):
+            offenders.add(operation["operationId"])
+    return offenders
+
+
+def test_operations_document_error_responses() -> None:
+    offenders = _missing_error_responses()
+    new = sorted(offenders - _ERROR_RESPONSE_BACKLOG)
+    assert not new, "Operations missing a documented 4xx response: " + ", ".join(new)
+    fixed = sorted(_ERROR_RESPONSE_BACKLOG - offenders)
+    assert not fixed, "Remove fixed entries from _ERROR_RESPONSE_BACKLOG: " + ", ".join(
+        fixed
+    )
+
+
 def test_openapi_has_no_anonymous_enums() -> None:
     offenders = list(
         _inline_enums(
