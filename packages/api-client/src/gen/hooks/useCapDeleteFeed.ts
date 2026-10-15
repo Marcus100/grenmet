@@ -14,6 +14,9 @@ import { capDeleteFeed } from "../clients/capDeleteFeed.js";
 import type {
   CapDeleteFeedOptions,
   CapDeleteFeedStatus204,
+  CapDeleteFeedStatus401,
+  CapDeleteFeedStatus403,
+  CapDeleteFeedStatus404,
   CapDeleteFeedStatus422,
 } from "../models/CapDeleteFeed.js";
 
@@ -28,7 +31,12 @@ export function capDeleteFeedMutationOptions<TContext = unknown>(
   const mutationKey = capDeleteFeedMutationKey();
   return mutationOptions<
     CapDeleteFeedStatus204,
-    ResponseErrorConfig<CapDeleteFeedStatus422>,
+    ResponseErrorConfig<
+      | CapDeleteFeedStatus401
+      | CapDeleteFeedStatus403
+      | CapDeleteFeedStatus404
+      | CapDeleteFeedStatus422
+    >,
     CapDeleteFeedOptions,
     TContext
   >({
@@ -48,7 +56,12 @@ export function useCapDeleteFeed<TContext>(
   options: {
     mutation?: UseMutationOptions<
       CapDeleteFeedStatus204,
-      ResponseErrorConfig<CapDeleteFeedStatus422>,
+      ResponseErrorConfig<
+        | CapDeleteFeedStatus401
+        | CapDeleteFeedStatus403
+        | CapDeleteFeedStatus404
+        | CapDeleteFeedStatus422
+      >,
       CapDeleteFeedOptions,
       TContext
     > & { client?: QueryClient };
@@ -65,14 +78,24 @@ export function useCapDeleteFeed<TContext>(
     config
   ) as UseMutationOptions<
     CapDeleteFeedStatus204,
-    ResponseErrorConfig<CapDeleteFeedStatus422>,
+    ResponseErrorConfig<
+      | CapDeleteFeedStatus401
+      | CapDeleteFeedStatus403
+      | CapDeleteFeedStatus404
+      | CapDeleteFeedStatus422
+    >,
     CapDeleteFeedOptions,
     TContext
   >;
 
   return useMutation<
     CapDeleteFeedStatus204,
-    ResponseErrorConfig<CapDeleteFeedStatus422>,
+    ResponseErrorConfig<
+      | CapDeleteFeedStatus401
+      | CapDeleteFeedStatus403
+      | CapDeleteFeedStatus404
+      | CapDeleteFeedStatus422
+    >,
     CapDeleteFeedOptions,
     TContext
   >(
@@ -84,7 +107,12 @@ export function useCapDeleteFeed<TContext>(
     queryClient
   ) as UseMutationResult<
     CapDeleteFeedStatus204,
-    ResponseErrorConfig<CapDeleteFeedStatus422>,
+    ResponseErrorConfig<
+      | CapDeleteFeedStatus401
+      | CapDeleteFeedStatus403
+      | CapDeleteFeedStatus404
+      | CapDeleteFeedStatus422
+    >,
     CapDeleteFeedOptions,
     TContext
   >;

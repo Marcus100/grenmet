@@ -17,6 +17,10 @@ export type WxwatchMetadataQuery = {
 
 export type WxwatchMetadataStatus200 = SynopticImageGroups;
 
+export type WxwatchMetadataStatus401 = unknown;
+
+export type WxwatchMetadataStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -32,6 +36,8 @@ export type WxwatchMetadataOptions = {
 
 export type WxwatchMetadataResponses = {
   "200": WxwatchMetadataStatus200;
+  "401": WxwatchMetadataStatus401;
+  "403": WxwatchMetadataStatus403;
   "422": WxwatchMetadataStatus422;
 };
 

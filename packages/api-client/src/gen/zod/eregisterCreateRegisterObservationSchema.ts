@@ -3,12 +3,17 @@
  * Do not edit manually.
  */
 
+import * as z from "zod";
 import { registerObservationCreateSchema } from "./registerObservationCreateSchema.js";
 import { registerObservationReadSchema } from "./registerObservationReadSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const eregisterCreateRegisterObservationStatus201Schema =
   registerObservationReadSchema;
+
+export const eregisterCreateRegisterObservationStatus401Schema = z.unknown();
+
+export const eregisterCreateRegisterObservationStatus403Schema = z.unknown();
 
 export const eregisterCreateRegisterObservationStatus422Schema =
   validationErrorResponseSchema.describe(
@@ -18,8 +23,11 @@ export const eregisterCreateRegisterObservationStatus422Schema =
 export const eregisterCreateRegisterObservationResponseSchema =
   eregisterCreateRegisterObservationStatus201Schema;
 
-export const eregisterCreateRegisterObservationErrorSchema =
-  eregisterCreateRegisterObservationStatus422Schema;
+export const eregisterCreateRegisterObservationErrorSchema = z.union([
+  eregisterCreateRegisterObservationStatus401Schema,
+  eregisterCreateRegisterObservationStatus403Schema,
+  eregisterCreateRegisterObservationStatus422Schema,
+]);
 
 export const eregisterCreateRegisterObservationBodySchema =
   registerObservationCreateSchema;

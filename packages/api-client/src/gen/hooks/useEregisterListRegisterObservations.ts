@@ -15,6 +15,8 @@ import { eregisterListRegisterObservations } from "../clients/eregisterListRegis
 import type {
   EregisterListRegisterObservationsOptions,
   EregisterListRegisterObservationsStatus200,
+  EregisterListRegisterObservationsStatus401,
+  EregisterListRegisterObservationsStatus403,
   EregisterListRegisterObservationsStatus422,
 } from "../models/EregisterListRegisterObservations.js";
 
@@ -39,7 +41,11 @@ export function eregisterListRegisterObservationsQueryOptions(
   const queryKey = eregisterListRegisterObservationsQueryKey({ query });
   return queryOptions<
     EregisterListRegisterObservationsStatus200,
-    ResponseErrorConfig<EregisterListRegisterObservationsStatus422>,
+    ResponseErrorConfig<
+      | EregisterListRegisterObservationsStatus401
+      | EregisterListRegisterObservationsStatus403
+      | EregisterListRegisterObservationsStatus422
+    >,
     EregisterListRegisterObservationsStatus200,
     typeof queryKey
   >({
@@ -76,7 +82,11 @@ export function useEregisterListRegisterObservations<
     query?: Partial<
       QueryObserverOptions<
         EregisterListRegisterObservationsStatus200,
-        ResponseErrorConfig<EregisterListRegisterObservationsStatus422>,
+        ResponseErrorConfig<
+          | EregisterListRegisterObservationsStatus401
+          | EregisterListRegisterObservationsStatus403
+          | EregisterListRegisterObservationsStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -105,7 +115,11 @@ export function useEregisterListRegisterObservations<
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<EregisterListRegisterObservationsStatus422>
+    ResponseErrorConfig<
+      | EregisterListRegisterObservationsStatus401
+      | EregisterListRegisterObservationsStatus403
+      | EregisterListRegisterObservationsStatus422
+    >
   > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;

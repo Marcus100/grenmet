@@ -11,6 +11,12 @@ export const capValidateAlertPathAlertIdSchema = z.uuid();
 
 export const capValidateAlertStatus200Schema = capValidationResultSchema;
 
+export const capValidateAlertStatus401Schema = z.unknown();
+
+export const capValidateAlertStatus403Schema = z.unknown();
+
+export const capValidateAlertStatus404Schema = z.unknown();
+
 export const capValidateAlertStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -18,4 +24,9 @@ export const capValidateAlertStatus422Schema =
 
 export const capValidateAlertResponseSchema = capValidateAlertStatus200Schema;
 
-export const capValidateAlertErrorSchema = capValidateAlertStatus422Schema;
+export const capValidateAlertErrorSchema = z.union([
+  capValidateAlertStatus401Schema,
+  capValidateAlertStatus403Schema,
+  capValidateAlertStatus404Schema,
+  capValidateAlertStatus422Schema,
+]);

@@ -11,6 +11,7 @@ from fastapi.security import APIKeyCookie, HTTPAuthorizationCredentials, HTTPBea
 from src.config import settings
 from src.dependencies import SessionDep, get_authenticated_user, get_current_user
 from src.models import BaseModel
+from src.openapi_responses import UNAUTHENTICATED
 
 from . import apps, service
 from .config import auth_settings
@@ -84,7 +85,11 @@ class BrowserSession(BaseModel):
     csrfToken: str
 
 
-@router.get("/auth/browser/session", response_model=BrowserSession)
+@router.get(
+    "/auth/browser/session",
+    response_model=BrowserSession,
+    responses={**UNAUTHENTICATED},
+)
 async def browser_session(
     user: CookieUser, secret: CookieSecret, response: Response
 ) -> BrowserSession:

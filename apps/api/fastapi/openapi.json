@@ -309,6 +309,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -453,6 +459,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -477,6 +492,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -519,6 +535,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       },
@@ -602,6 +624,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -1034,6 +1062,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -1071,6 +1105,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -1200,6 +1240,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -1242,6 +1283,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       },
@@ -1287,6 +1334,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -1469,6 +1522,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -1511,6 +1565,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       },
@@ -1556,6 +1616,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -1664,6 +1730,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       },
@@ -1709,6 +1781,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -1946,6 +2024,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -4589,6 +4673,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -4631,6 +4716,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -4664,6 +4755,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -5607,6 +5699,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -5747,6 +5840,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -6017,6 +6111,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -6491,6 +6586,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -6533,6 +6629,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -6669,6 +6771,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -6972,6 +7075,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -7014,6 +7118,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -7594,6 +7704,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -8146,6 +8257,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -8412,6 +8524,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -8508,6 +8621,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -8550,6 +8664,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -8819,6 +8939,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -8901,6 +9022,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -9356,6 +9478,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -9421,6 +9549,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -9471,6 +9605,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -9531,6 +9674,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -9571,6 +9723,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -9613,6 +9766,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       },
@@ -9658,6 +9817,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -9700,6 +9865,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -9754,6 +9925,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       },
@@ -9811,6 +9991,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -9860,6 +10049,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -9909,6 +10107,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -9968,6 +10175,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -10027,6 +10243,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -10086,6 +10311,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -10145,6 +10379,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -10204,6 +10447,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -10236,6 +10488,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -10281,6 +10539,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -10318,6 +10582,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -10359,6 +10629,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -10404,6 +10680,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -10449,6 +10731,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -10495,6 +10783,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 1000000,
               "minimum": 1,
               "description": "Page number (1-indexed)",
               "default": 1,
@@ -10537,6 +10826,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -10573,6 +10868,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -10618,6 +10919,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -10682,6 +10989,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       },
@@ -10722,6 +11038,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -10896,6 +11221,9 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -11076,6 +11404,9 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -11125,6 +11456,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -11241,6 +11578,18 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "400": {
+            "description": "Malformed request"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -11639,6 +11988,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 100000,
               "minimum": 0,
               "default": 0,
               "title": "Offset"
@@ -12598,6 +12948,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       },
@@ -12646,6 +13002,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -12688,6 +13050,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -12783,6 +13151,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -12952,6 +13326,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         }
       }
@@ -13028,6 +13408,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -13080,6 +13469,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -13136,6 +13534,15 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
+          },
+          "404": {
+            "description": "Resource not found"
           }
         }
       }
@@ -13818,6 +14225,12 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "409": {
+            "description": "Request conflicts with current state"
           }
         }
       }
@@ -13970,6 +14383,9 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
           }
         },
         "security": [
@@ -16310,6 +16726,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "security": [
@@ -16402,6 +16824,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           },
           "503": {
             "description": "Transport database unavailable",
@@ -17708,6 +18136,12 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
+          },
+          "403": {
+            "description": "Account not permitted: inactive, not yet approved, or lacking the required permission"
           }
         },
         "deprecated": true,
@@ -17878,6 +18312,7 @@
             "required": false,
             "schema": {
               "type": "integer",
+              "maximum": 100000,
               "minimum": 0,
               "default": 0,
               "title": "Offset"
@@ -17904,6 +18339,9 @@
               }
             },
             "description": "Unprocessable Content"
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
           }
         }
       }
@@ -18044,6 +18482,9 @@
                 }
               }
             }
+          },
+          "401": {
+            "description": "Missing or invalid credentials"
           }
         },
         "security": [

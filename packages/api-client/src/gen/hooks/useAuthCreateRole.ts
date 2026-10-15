@@ -14,6 +14,8 @@ import { authCreateRole } from "../clients/authCreateRole.js";
 import type {
   AuthCreateRoleOptions,
   AuthCreateRoleStatus201,
+  AuthCreateRoleStatus401,
+  AuthCreateRoleStatus403,
   AuthCreateRoleStatus422,
 } from "../models/AuthCreateRole.js";
 
@@ -28,7 +30,11 @@ export function authCreateRoleMutationOptions<TContext = unknown>(
   const mutationKey = authCreateRoleMutationKey();
   return mutationOptions<
     AuthCreateRoleStatus201,
-    ResponseErrorConfig<AuthCreateRoleStatus422>,
+    ResponseErrorConfig<
+      | AuthCreateRoleStatus401
+      | AuthCreateRoleStatus403
+      | AuthCreateRoleStatus422
+    >,
     AuthCreateRoleOptions,
     TContext
   >({
@@ -48,7 +54,11 @@ export function useAuthCreateRole<TContext>(
   options: {
     mutation?: UseMutationOptions<
       AuthCreateRoleStatus201,
-      ResponseErrorConfig<AuthCreateRoleStatus422>,
+      ResponseErrorConfig<
+        | AuthCreateRoleStatus401
+        | AuthCreateRoleStatus403
+        | AuthCreateRoleStatus422
+      >,
       AuthCreateRoleOptions,
       TContext
     > & { client?: QueryClient };
@@ -66,14 +76,22 @@ export function useAuthCreateRole<TContext>(
     config
   ) as UseMutationOptions<
     AuthCreateRoleStatus201,
-    ResponseErrorConfig<AuthCreateRoleStatus422>,
+    ResponseErrorConfig<
+      | AuthCreateRoleStatus401
+      | AuthCreateRoleStatus403
+      | AuthCreateRoleStatus422
+    >,
     AuthCreateRoleOptions,
     TContext
   >;
 
   return useMutation<
     AuthCreateRoleStatus201,
-    ResponseErrorConfig<AuthCreateRoleStatus422>,
+    ResponseErrorConfig<
+      | AuthCreateRoleStatus401
+      | AuthCreateRoleStatus403
+      | AuthCreateRoleStatus422
+    >,
     AuthCreateRoleOptions,
     TContext
   >(
@@ -85,7 +103,11 @@ export function useAuthCreateRole<TContext>(
     queryClient
   ) as UseMutationResult<
     AuthCreateRoleStatus201,
-    ResponseErrorConfig<AuthCreateRoleStatus422>,
+    ResponseErrorConfig<
+      | AuthCreateRoleStatus401
+      | AuthCreateRoleStatus403
+      | AuthCreateRoleStatus422
+    >,
     AuthCreateRoleOptions,
     TContext
   >;

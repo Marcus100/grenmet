@@ -14,6 +14,8 @@ import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { capGetPredefinedAreas } from "../clients/capGetPredefinedAreas.js";
 import type {
   CapGetPredefinedAreasStatus200,
+  CapGetPredefinedAreasStatus401,
+  CapGetPredefinedAreasStatus403,
   CapGetPredefinedAreasStatus422,
 } from "../models/CapGetPredefinedAreas.js";
 
@@ -32,7 +34,11 @@ export function capGetPredefinedAreasQueryOptions(
   const queryKey = capGetPredefinedAreasQueryKey();
   return queryOptions<
     CapGetPredefinedAreasStatus200,
-    ResponseErrorConfig<CapGetPredefinedAreasStatus422>,
+    ResponseErrorConfig<
+      | CapGetPredefinedAreasStatus401
+      | CapGetPredefinedAreasStatus403
+      | CapGetPredefinedAreasStatus422
+    >,
     CapGetPredefinedAreasStatus200,
     typeof queryKey
   >({
@@ -61,7 +67,11 @@ export function useCapGetPredefinedAreas<
     query?: Partial<
       QueryObserverOptions<
         CapGetPredefinedAreasStatus200,
-        ResponseErrorConfig<CapGetPredefinedAreasStatus422>,
+        ResponseErrorConfig<
+          | CapGetPredefinedAreasStatus401
+          | CapGetPredefinedAreasStatus403
+          | CapGetPredefinedAreasStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -85,7 +95,11 @@ export function useCapGetPredefinedAreas<
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<CapGetPredefinedAreasStatus422>
+    ResponseErrorConfig<
+      | CapGetPredefinedAreasStatus401
+      | CapGetPredefinedAreasStatus403
+      | CapGetPredefinedAreasStatus422
+    >
   > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;

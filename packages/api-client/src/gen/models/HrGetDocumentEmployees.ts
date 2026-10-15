@@ -17,6 +17,7 @@ export type HrGetDocumentEmployeesQuery = {
   /**
    * @description Page number (1-indexed)
    * @minLength 1
+   * @maxLength 1000000
    * @default 1
    * @type integer | undefined
    */
@@ -33,6 +34,10 @@ export type HrGetDocumentEmployeesQuery = {
 
 export type HrGetDocumentEmployeesStatus200 = DocumentEmployeeListPublic;
 
+export type HrGetDocumentEmployeesStatus401 = unknown;
+
+export type HrGetDocumentEmployeesStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -48,6 +53,8 @@ export type HrGetDocumentEmployeesOptions = {
 
 export type HrGetDocumentEmployeesResponses = {
   "200": HrGetDocumentEmployeesStatus200;
+  "401": HrGetDocumentEmployeesStatus401;
+  "403": HrGetDocumentEmployeesStatus403;
   "422": HrGetDocumentEmployeesStatus422;
 };
 

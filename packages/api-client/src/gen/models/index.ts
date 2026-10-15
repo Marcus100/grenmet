@@ -258,6 +258,7 @@ export type {
   AuthBrowserSessionResponse,
   AuthBrowserSessionResponses,
   AuthBrowserSessionStatus200,
+  AuthBrowserSessionStatus401,
   AuthBrowserSessionStatus422,
 } from "./AuthBrowserSession.js";
 export type {
@@ -285,6 +286,8 @@ export type {
   AuthCreatePermissionResponse,
   AuthCreatePermissionResponses,
   AuthCreatePermissionStatus201,
+  AuthCreatePermissionStatus401,
+  AuthCreatePermissionStatus403,
   AuthCreatePermissionStatus422,
 } from "./AuthCreatePermission.js";
 export type {
@@ -293,6 +296,8 @@ export type {
   AuthCreateRoleResponse,
   AuthCreateRoleResponses,
   AuthCreateRoleStatus201,
+  AuthCreateRoleStatus401,
+  AuthCreateRoleStatus403,
   AuthCreateRoleStatus422,
 } from "./AuthCreateRole.js";
 export type {
@@ -301,6 +306,8 @@ export type {
   AuthCreateRoleAssignmentResponse,
   AuthCreateRoleAssignmentResponses,
   AuthCreateRoleAssignmentStatus201,
+  AuthCreateRoleAssignmentStatus401,
+  AuthCreateRoleAssignmentStatus403,
   AuthCreateRoleAssignmentStatus422,
 } from "./AuthCreateRoleAssignment.js";
 export type {
@@ -450,6 +457,8 @@ export type {
   AuthGetPermissionsResponse,
   AuthGetPermissionsResponses,
   AuthGetPermissionsStatus200,
+  AuthGetPermissionsStatus401,
+  AuthGetPermissionsStatus403,
   AuthGetPermissionsStatus422,
 } from "./AuthGetPermissions.js";
 export type {
@@ -476,6 +485,8 @@ export type {
   AuthGetRoleAssignmentsResponse,
   AuthGetRoleAssignmentsResponses,
   AuthGetRoleAssignmentsStatus200,
+  AuthGetRoleAssignmentsStatus401,
+  AuthGetRoleAssignmentsStatus403,
   AuthGetRoleAssignmentsStatus422,
 } from "./AuthGetRoleAssignments.js";
 export type {
@@ -484,6 +495,8 @@ export type {
   AuthGetRolesResponse,
   AuthGetRolesResponses,
   AuthGetRolesStatus200,
+  AuthGetRolesStatus401,
+  AuthGetRolesStatus403,
   AuthGetRolesStatus422,
 } from "./AuthGetRoles.js";
 export type {
@@ -500,6 +513,8 @@ export type {
   AuthGetUserMeResponse,
   AuthGetUserMeResponses,
   AuthGetUserMeStatus200,
+  AuthGetUserMeStatus401,
+  AuthGetUserMeStatus403,
   AuthGetUserMeStatus422,
 } from "./AuthGetUserMe.js";
 export type {
@@ -508,6 +523,8 @@ export type {
   AuthGetUsersResponse,
   AuthGetUsersResponses,
   AuthGetUsersStatus200,
+  AuthGetUsersStatus401,
+  AuthGetUsersStatus403,
   AuthGetUsersStatus422,
 } from "./AuthGetUsers.js";
 export type {
@@ -618,6 +635,9 @@ export type {
   AuthRecoverPasswordHtmlContentResponse,
   AuthRecoverPasswordHtmlContentResponses,
   AuthRecoverPasswordHtmlContentStatus200,
+  AuthRecoverPasswordHtmlContentStatus401,
+  AuthRecoverPasswordHtmlContentStatus403,
+  AuthRecoverPasswordHtmlContentStatus404,
   AuthRecoverPasswordHtmlContentStatus422,
 } from "./AuthRecoverPasswordHtmlContent.js";
 export type {
@@ -688,6 +708,8 @@ export type {
   AuthTestTokenResponse,
   AuthTestTokenResponses,
   AuthTestTokenStatus200,
+  AuthTestTokenStatus401,
+  AuthTestTokenStatus403,
   AuthTestTokenStatus422,
 } from "./AuthTestToken.js";
 export type {
@@ -713,6 +735,8 @@ export type {
   AuthTwofaSetupResponse,
   AuthTwofaSetupResponses,
   AuthTwofaSetupStatus200,
+  AuthTwofaSetupStatus401,
+  AuthTwofaSetupStatus403,
   AuthTwofaSetupStatus422,
 } from "./AuthTwofaSetup.js";
 export type {
@@ -720,6 +744,8 @@ export type {
   AuthTwofaStatusResponse,
   AuthTwofaStatusResponses,
   AuthTwofaStatusStatus200,
+  AuthTwofaStatusStatus401,
+  AuthTwofaStatusStatus403,
   AuthTwofaStatusStatus422,
 } from "./AuthTwofaStatus.js";
 export type {
@@ -826,6 +852,9 @@ export type {
   CapApproveAlertResponse,
   CapApproveAlertResponses,
   CapApproveAlertStatus200,
+  CapApproveAlertStatus401,
+  CapApproveAlertStatus403,
+  CapApproveAlertStatus404,
   CapApproveAlertStatus422,
 } from "./CapApproveAlert.js";
 export type {
@@ -834,6 +863,9 @@ export type {
   CapApproveHazardProfileResponse,
   CapApproveHazardProfileResponses,
   CapApproveHazardProfileStatus200,
+  CapApproveHazardProfileStatus401,
+  CapApproveHazardProfileStatus403,
+  CapApproveHazardProfileStatus404,
   CapApproveHazardProfileStatus422,
 } from "./CapApproveHazardProfile.js";
 export type { CapAreaCreate } from "./CapAreaCreate.js";
@@ -849,6 +881,9 @@ export type {
   CapCancelAlertResponse,
   CapCancelAlertResponses,
   CapCancelAlertStatus200,
+  CapCancelAlertStatus401,
+  CapCancelAlertStatus403,
+  CapCancelAlertStatus404,
   CapCancelAlertStatus422,
 } from "./CapCancelAlert.js";
 export type { CapCatalogsPublic } from "./CapCatalogsPublic.js";
@@ -862,6 +897,8 @@ export type {
   CapCreateAlertResponse,
   CapCreateAlertResponses,
   CapCreateAlertStatus201,
+  CapCreateAlertStatus401,
+  CapCreateAlertStatus403,
   CapCreateAlertStatus422,
 } from "./CapCreateAlert.js";
 export type {
@@ -870,6 +907,8 @@ export type {
   CapCreateFeedResponse,
   CapCreateFeedResponses,
   CapCreateFeedStatus201,
+  CapCreateFeedStatus401,
+  CapCreateFeedStatus403,
   CapCreateFeedStatus422,
 } from "./CapCreateFeed.js";
 export type {
@@ -878,6 +917,8 @@ export type {
   CapCreatePredefinedAreaResponse,
   CapCreatePredefinedAreaResponses,
   CapCreatePredefinedAreaStatus201,
+  CapCreatePredefinedAreaStatus401,
+  CapCreatePredefinedAreaStatus403,
   CapCreatePredefinedAreaStatus422,
 } from "./CapCreatePredefinedArea.js";
 export type {
@@ -886,6 +927,9 @@ export type {
   CapDeleteFeedResponse,
   CapDeleteFeedResponses,
   CapDeleteFeedStatus204,
+  CapDeleteFeedStatus401,
+  CapDeleteFeedStatus403,
+  CapDeleteFeedStatus404,
   CapDeleteFeedStatus422,
 } from "./CapDeleteFeed.js";
 export type {
@@ -906,6 +950,9 @@ export type {
   CapDraftFromHazardProfileResponse,
   CapDraftFromHazardProfileResponses,
   CapDraftFromHazardProfileStatus201,
+  CapDraftFromHazardProfileStatus401,
+  CapDraftFromHazardProfileStatus403,
+  CapDraftFromHazardProfileStatus404,
   CapDraftFromHazardProfileStatus422,
 } from "./CapDraftFromHazardProfile.js";
 export type {
@@ -914,6 +961,9 @@ export type {
   CapDuplicateAlertResponse,
   CapDuplicateAlertResponses,
   CapDuplicateAlertStatus200,
+  CapDuplicateAlertStatus401,
+  CapDuplicateAlertStatus403,
+  CapDuplicateAlertStatus404,
   CapDuplicateAlertStatus422,
 } from "./CapDuplicateAlert.js";
 export type {
@@ -923,6 +973,9 @@ export type {
   CapExpireAlertResponse,
   CapExpireAlertResponses,
   CapExpireAlertStatus200,
+  CapExpireAlertStatus401,
+  CapExpireAlertStatus403,
+  CapExpireAlertStatus404,
   CapExpireAlertStatus422,
 } from "./CapExpireAlert.js";
 export type { CapFeedImportCreate } from "./CapFeedImportCreate.js";
@@ -941,6 +994,9 @@ export type {
   CapGetAlertResponse,
   CapGetAlertResponses,
   CapGetAlertStatus200,
+  CapGetAlertStatus401,
+  CapGetAlertStatus403,
+  CapGetAlertStatus404,
   CapGetAlertStatus422,
 } from "./CapGetAlert.js";
 export type {
@@ -949,6 +1005,8 @@ export type {
   CapGetAlertsResponse,
   CapGetAlertsResponses,
   CapGetAlertsStatus200,
+  CapGetAlertsStatus401,
+  CapGetAlertsStatus403,
   CapGetAlertsStatus422,
 } from "./CapGetAlerts.js";
 export type {
@@ -964,6 +1022,8 @@ export type {
   CapGetAuditResponse,
   CapGetAuditResponses,
   CapGetAuditStatus200,
+  CapGetAuditStatus401,
+  CapGetAuditStatus403,
   CapGetAuditStatus422,
 } from "./CapGetAudit.js";
 export type {
@@ -971,6 +1031,8 @@ export type {
   CapGetCapSettingsResponse,
   CapGetCapSettingsResponses,
   CapGetCapSettingsStatus200,
+  CapGetCapSettingsStatus401,
+  CapGetCapSettingsStatus403,
   CapGetCapSettingsStatus422,
 } from "./CapGetCapSettings.js";
 export type {
@@ -979,6 +1041,7 @@ export type {
   CapGetCapXmlResponse,
   CapGetCapXmlResponses,
   CapGetCapXmlStatus200,
+  CapGetCapXmlStatus404,
   CapGetCapXmlStatus422,
 } from "./CapGetCapXml.js";
 export type {
@@ -986,6 +1049,8 @@ export type {
   CapGetCatalogsResponse,
   CapGetCatalogsResponses,
   CapGetCatalogsStatus200,
+  CapGetCatalogsStatus401,
+  CapGetCatalogsStatus403,
   CapGetCatalogsStatus422,
 } from "./CapGetCatalogs.js";
 export type {
@@ -993,6 +1058,8 @@ export type {
   CapGetFeedsResponse,
   CapGetFeedsResponses,
   CapGetFeedsStatus200,
+  CapGetFeedsStatus401,
+  CapGetFeedsStatus403,
   CapGetFeedsStatus422,
 } from "./CapGetFeeds.js";
 export type {
@@ -1000,6 +1067,8 @@ export type {
   CapGetHazardProfilesResponse,
   CapGetHazardProfilesResponses,
   CapGetHazardProfilesStatus200,
+  CapGetHazardProfilesStatus401,
+  CapGetHazardProfilesStatus403,
   CapGetHazardProfilesStatus422,
 } from "./CapGetHazardProfiles.js";
 export type {
@@ -1007,6 +1076,8 @@ export type {
   CapGetIntegrationsResponse,
   CapGetIntegrationsResponses,
   CapGetIntegrationsStatus200,
+  CapGetIntegrationsStatus401,
+  CapGetIntegrationsStatus403,
   CapGetIntegrationsStatus422,
 } from "./CapGetIntegrations.js";
 export type {
@@ -1014,6 +1085,8 @@ export type {
   CapGetPredefinedAreasResponse,
   CapGetPredefinedAreasResponses,
   CapGetPredefinedAreasStatus200,
+  CapGetPredefinedAreasStatus401,
+  CapGetPredefinedAreasStatus403,
   CapGetPredefinedAreasStatus422,
 } from "./CapGetPredefinedAreas.js";
 export type {
@@ -1022,6 +1095,7 @@ export type {
   CapGetPublicAlertResponse,
   CapGetPublicAlertResponses,
   CapGetPublicAlertStatus200,
+  CapGetPublicAlertStatus404,
   CapGetPublicAlertStatus422,
 } from "./CapGetPublicAlert.js";
 export type {
@@ -1066,6 +1140,8 @@ export type {
   CapImportAlertResponse,
   CapImportAlertResponses,
   CapImportAlertStatus201,
+  CapImportAlertStatus401,
+  CapImportAlertStatus403,
   CapImportAlertStatus422,
 } from "./CapImportAlert.js";
 export type { CapInfoCreate } from "./CapInfoCreate.js";
@@ -1101,6 +1177,9 @@ export type {
   CapPublishAlertResponse,
   CapPublishAlertResponses,
   CapPublishAlertStatus200,
+  CapPublishAlertStatus401,
+  CapPublishAlertStatus403,
+  CapPublishAlertStatus404,
   CapPublishAlertStatus422,
 } from "./CapPublishAlert.js";
 export type { CapPublishPublic } from "./CapPublishPublic.js";
@@ -1115,6 +1194,8 @@ export type {
   CapSaveHazardProfileResponse,
   CapSaveHazardProfileResponses,
   CapSaveHazardProfileStatus201,
+  CapSaveHazardProfileStatus401,
+  CapSaveHazardProfileStatus403,
   CapSaveHazardProfileStatus422,
 } from "./CapSaveHazardProfile.js";
 export type { CapScope } from "./CapScope.js";
@@ -1133,6 +1214,9 @@ export type {
   CapSubmitAlertResponse,
   CapSubmitAlertResponses,
   CapSubmitAlertStatus200,
+  CapSubmitAlertStatus401,
+  CapSubmitAlertStatus403,
+  CapSubmitAlertStatus404,
   CapSubmitAlertStatus422,
 } from "./CapSubmitAlert.js";
 export type {
@@ -1142,6 +1226,9 @@ export type {
   CapUpdateAlertResponse,
   CapUpdateAlertResponses,
   CapUpdateAlertStatus200,
+  CapUpdateAlertStatus401,
+  CapUpdateAlertStatus403,
+  CapUpdateAlertStatus404,
   CapUpdateAlertStatus422,
 } from "./CapUpdateAlert.js";
 export type {
@@ -1150,6 +1237,8 @@ export type {
   CapUpdateCapSettingsResponse,
   CapUpdateCapSettingsResponses,
   CapUpdateCapSettingsStatus200,
+  CapUpdateCapSettingsStatus401,
+  CapUpdateCapSettingsStatus403,
   CapUpdateCapSettingsStatus422,
 } from "./CapUpdateCapSettings.js";
 export type {
@@ -1159,6 +1248,9 @@ export type {
   CapUpdateFeedResponse,
   CapUpdateFeedResponses,
   CapUpdateFeedStatus200,
+  CapUpdateFeedStatus401,
+  CapUpdateFeedStatus403,
+  CapUpdateFeedStatus404,
   CapUpdateFeedStatus422,
 } from "./CapUpdateFeed.js";
 export type { CapUrgency } from "./CapUrgency.js";
@@ -1169,6 +1261,9 @@ export type {
   CapValidateAlertResponse,
   CapValidateAlertResponses,
   CapValidateAlertStatus200,
+  CapValidateAlertStatus401,
+  CapValidateAlertStatus403,
+  CapValidateAlertStatus404,
   CapValidateAlertStatus422,
 } from "./CapValidateAlert.js";
 export type { CapValidationResult } from "./CapValidationResult.js";
@@ -1231,6 +1326,8 @@ export type {
   EregisterCreateRegisterObservationResponse,
   EregisterCreateRegisterObservationResponses,
   EregisterCreateRegisterObservationStatus201,
+  EregisterCreateRegisterObservationStatus401,
+  EregisterCreateRegisterObservationStatus403,
   EregisterCreateRegisterObservationStatus422,
 } from "./EregisterCreateRegisterObservation.js";
 export type {
@@ -1239,6 +1336,8 @@ export type {
   EregisterListRegisterObservationsResponse,
   EregisterListRegisterObservationsResponses,
   EregisterListRegisterObservationsStatus200,
+  EregisterListRegisterObservationsStatus401,
+  EregisterListRegisterObservationsStatus403,
   EregisterListRegisterObservationsStatus422,
 } from "./EregisterListRegisterObservations.js";
 export type {
@@ -1255,6 +1354,8 @@ export type {
   EregisterValidateSynopObservationResponse,
   EregisterValidateSynopObservationResponses,
   EregisterValidateSynopObservationStatus200,
+  EregisterValidateSynopObservationStatus401,
+  EregisterValidateSynopObservationStatus403,
   EregisterValidateSynopObservationStatus422,
 } from "./EregisterValidateSynopObservation.js";
 export type {
@@ -1451,6 +1552,7 @@ export type {
   EventsListGroupsResponse,
   EventsListGroupsResponses,
   EventsListGroupsStatus200,
+  EventsListGroupsStatus401,
   EventsListGroupsStatus422,
 } from "./EventsListGroups.js";
 export type {
@@ -1459,6 +1561,7 @@ export type {
   EventsListListingsResponse,
   EventsListListingsResponses,
   EventsListListingsStatus200,
+  EventsListListingsStatus401,
   EventsListListingsStatus422,
 } from "./EventsListListings.js";
 export type { EventsListListingsParametersSchemaAnyOfEnum } from "./EventsListListingsParametersSchemaAnyOfEnum.js";
@@ -2160,6 +2263,8 @@ export type {
   HrGetDocumentEmployeesResponse,
   HrGetDocumentEmployeesResponses,
   HrGetDocumentEmployeesStatus200,
+  HrGetDocumentEmployeesStatus401,
+  HrGetDocumentEmployeesStatus403,
   HrGetDocumentEmployeesStatus422,
 } from "./HrGetDocumentEmployees.js";
 export type {
@@ -2222,6 +2327,8 @@ export type {
   HrGetMyLeaveRequestsResponse,
   HrGetMyLeaveRequestsResponses,
   HrGetMyLeaveRequestsStatus200,
+  HrGetMyLeaveRequestsStatus401,
+  HrGetMyLeaveRequestsStatus403,
   HrGetMyLeaveRequestsStatus422,
 } from "./HrGetMyLeaveRequests.js";
 export type {
@@ -2249,6 +2356,8 @@ export type {
   HrGetMyTimesheetsResponse,
   HrGetMyTimesheetsResponses,
   HrGetMyTimesheetsStatus200,
+  HrGetMyTimesheetsStatus401,
+  HrGetMyTimesheetsStatus403,
   HrGetMyTimesheetsStatus422,
 } from "./HrGetMyTimesheets.js";
 export type {
@@ -2266,6 +2375,8 @@ export type {
   HrGetOrganisationsResponse,
   HrGetOrganisationsResponses,
   HrGetOrganisationsStatus200,
+  HrGetOrganisationsStatus401,
+  HrGetOrganisationsStatus403,
   HrGetOrganisationsStatus422,
 } from "./HrGetOrganisations.js";
 export type {
@@ -2591,6 +2702,8 @@ export type {
   HrListMyShiftSwapsResponse,
   HrListMyShiftSwapsResponses,
   HrListMyShiftSwapsStatus200,
+  HrListMyShiftSwapsStatus401,
+  HrListMyShiftSwapsStatus403,
   HrListMyShiftSwapsStatus422,
 } from "./HrListMyShiftSwaps.js";
 export type {
@@ -3349,6 +3462,8 @@ export type {
   JanitorialSpecResponse,
   JanitorialSpecResponses,
   JanitorialSpecStatus200,
+  JanitorialSpecStatus401,
+  JanitorialSpecStatus403,
   JanitorialSpecStatus422,
 } from "./JanitorialSpec.js";
 export type { JanitorialStaffList } from "./JanitorialStaffList.js";
@@ -3971,6 +4086,8 @@ export type {
   TransportGetCatalogueResponse,
   TransportGetCatalogueResponses,
   TransportGetCatalogueStatus200,
+  TransportGetCatalogueStatus401,
+  TransportGetCatalogueStatus403,
   TransportGetCatalogueStatus422,
   TransportGetCatalogueStatus503,
 } from "./TransportGetCatalogue.js";
@@ -4037,6 +4154,8 @@ export type {
   TransportSpecResponse,
   TransportSpecResponses,
   TransportSpecStatus200,
+  TransportSpecStatus401,
+  TransportSpecStatus403,
   TransportSpecStatus422,
 } from "./TransportSpec.js";
 export type { TransportStop } from "./TransportStop.js";
@@ -4129,6 +4248,8 @@ export type {
   UtilsTestEmailResponse,
   UtilsTestEmailResponses,
   UtilsTestEmailStatus201,
+  UtilsTestEmailStatus401,
+  UtilsTestEmailStatus403,
   UtilsTestEmailStatus422,
 } from "./UtilsTestEmail.js";
 export type { ValidationErrorItem } from "./ValidationErrorItem.js";
@@ -4297,6 +4418,8 @@ export type {
   WxwatchArchiveResponse,
   WxwatchArchiveResponses,
   WxwatchArchiveStatus200,
+  WxwatchArchiveStatus401,
+  WxwatchArchiveStatus403,
   WxwatchArchiveStatus422,
 } from "./WxwatchArchive.js";
 export type {
@@ -4320,6 +4443,9 @@ export type {
   WxwatchBulletinResponse,
   WxwatchBulletinResponses,
   WxwatchBulletinStatus200,
+  WxwatchBulletinStatus401,
+  WxwatchBulletinStatus403,
+  WxwatchBulletinStatus404,
   WxwatchBulletinStatus422,
 } from "./WxwatchBulletin.js";
 export type {
@@ -4340,6 +4466,9 @@ export type {
   WxwatchEditionAssetsResponse,
   WxwatchEditionAssetsResponses,
   WxwatchEditionAssetsStatus200,
+  WxwatchEditionAssetsStatus401,
+  WxwatchEditionAssetsStatus403,
+  WxwatchEditionAssetsStatus404,
   WxwatchEditionAssetsStatus422,
 } from "./WxwatchEditionAssets.js";
 export type {
@@ -4362,6 +4491,8 @@ export type {
   WxwatchFinishRunResponse,
   WxwatchFinishRunResponses,
   WxwatchFinishRunStatus204,
+  WxwatchFinishRunStatus401,
+  WxwatchFinishRunStatus409,
   WxwatchFinishRunStatus422,
 } from "./WxwatchFinishRun.js";
 export type {
@@ -4379,6 +4510,8 @@ export type {
   WxwatchMetadataResponse,
   WxwatchMetadataResponses,
   WxwatchMetadataStatus200,
+  WxwatchMetadataStatus401,
+  WxwatchMetadataStatus403,
   WxwatchMetadataStatus422,
 } from "./WxwatchMetadata.js";
 export type {
@@ -4452,6 +4585,9 @@ export type {
   WxwatchRetrievalsResponse,
   WxwatchRetrievalsResponses,
   WxwatchRetrievalsStatus200,
+  WxwatchRetrievalsStatus401,
+  WxwatchRetrievalsStatus403,
+  WxwatchRetrievalsStatus404,
   WxwatchRetrievalsStatus422,
 } from "./WxwatchRetrievals.js";
 export type {
@@ -4481,6 +4617,10 @@ export type {
   WxwatchWeatherImageResponse,
   WxwatchWeatherImageResponses,
   WxwatchWeatherImageStatus307,
+  WxwatchWeatherImageStatus400,
+  WxwatchWeatherImageStatus401,
+  WxwatchWeatherImageStatus403,
+  WxwatchWeatherImageStatus404,
   WxwatchWeatherImageStatus422,
 } from "./WxwatchWeatherImage.js";
 export type { ZoneCreate } from "./ZoneCreate.js";

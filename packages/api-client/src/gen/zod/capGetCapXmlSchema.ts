@@ -10,6 +10,8 @@ export const capGetCapXmlPathIdentifierSchema = z.string();
 
 export const capGetCapXmlStatus200Schema = z.instanceof(File);
 
+export const capGetCapXmlStatus404Schema = z.unknown();
+
 export const capGetCapXmlStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -17,4 +19,7 @@ export const capGetCapXmlStatus422Schema =
 
 export const capGetCapXmlResponseSchema = capGetCapXmlStatus200Schema;
 
-export const capGetCapXmlErrorSchema = capGetCapXmlStatus422Schema;
+export const capGetCapXmlErrorSchema = z.union([
+  capGetCapXmlStatus404Schema,
+  capGetCapXmlStatus422Schema,
+]);

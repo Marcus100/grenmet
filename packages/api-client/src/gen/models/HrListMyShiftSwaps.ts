@@ -10,6 +10,7 @@ export type HrListMyShiftSwapsQuery = {
   /**
    * @description Page number (1-indexed)
    * @minLength 1
+   * @maxLength 1000000
    * @default 1
    * @type integer | undefined
    */
@@ -26,6 +27,10 @@ export type HrListMyShiftSwapsQuery = {
 
 export type HrListMyShiftSwapsStatus200 = ShiftSwapRequestsPublic;
 
+export type HrListMyShiftSwapsStatus401 = unknown;
+
+export type HrListMyShiftSwapsStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -41,6 +46,8 @@ export type HrListMyShiftSwapsOptions = {
 
 export type HrListMyShiftSwapsResponses = {
   "200": HrListMyShiftSwapsStatus200;
+  "401": HrListMyShiftSwapsStatus401;
+  "403": HrListMyShiftSwapsStatus403;
   "422": HrListMyShiftSwapsStatus422;
 };
 

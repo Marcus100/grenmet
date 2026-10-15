@@ -9,6 +9,10 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthCreateRoleAssignmentStatus201 = UserRoleAssignmentPublic;
 
+export type AuthCreateRoleAssignmentStatus401 = unknown;
+
+export type AuthCreateRoleAssignmentStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -26,6 +30,8 @@ export type AuthCreateRoleAssignmentOptions = {
 
 export type AuthCreateRoleAssignmentResponses = {
   "201": AuthCreateRoleAssignmentStatus201;
+  "401": AuthCreateRoleAssignmentStatus401;
+  "403": AuthCreateRoleAssignmentStatus403;
   "422": AuthCreateRoleAssignmentStatus422;
 };
 

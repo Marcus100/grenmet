@@ -21,6 +21,10 @@ export type WxwatchFinishRunHeaders = {
 
 export type WxwatchFinishRunStatus204 = unknown;
 
+export type WxwatchFinishRunStatus401 = unknown;
+
+export type WxwatchFinishRunStatus409 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -38,6 +42,8 @@ export type WxwatchFinishRunOptions = {
 
 export type WxwatchFinishRunResponses = {
   "204": WxwatchFinishRunStatus204;
+  "401": WxwatchFinishRunStatus401;
+  "409": WxwatchFinishRunStatus409;
   "422": WxwatchFinishRunStatus422;
 };
 

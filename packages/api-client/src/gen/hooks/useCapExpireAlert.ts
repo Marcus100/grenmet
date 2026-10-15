@@ -14,6 +14,9 @@ import { capExpireAlert } from "../clients/capExpireAlert.js";
 import type {
   CapExpireAlertOptions,
   CapExpireAlertStatus200,
+  CapExpireAlertStatus401,
+  CapExpireAlertStatus403,
+  CapExpireAlertStatus404,
   CapExpireAlertStatus422,
 } from "../models/CapExpireAlert.js";
 
@@ -28,7 +31,12 @@ export function capExpireAlertMutationOptions<TContext = unknown>(
   const mutationKey = capExpireAlertMutationKey();
   return mutationOptions<
     CapExpireAlertStatus200,
-    ResponseErrorConfig<CapExpireAlertStatus422>,
+    ResponseErrorConfig<
+      | CapExpireAlertStatus401
+      | CapExpireAlertStatus403
+      | CapExpireAlertStatus404
+      | CapExpireAlertStatus422
+    >,
     CapExpireAlertOptions,
     TContext
   >({
@@ -53,7 +61,12 @@ export function useCapExpireAlert<TContext>(
   options: {
     mutation?: UseMutationOptions<
       CapExpireAlertStatus200,
-      ResponseErrorConfig<CapExpireAlertStatus422>,
+      ResponseErrorConfig<
+        | CapExpireAlertStatus401
+        | CapExpireAlertStatus403
+        | CapExpireAlertStatus404
+        | CapExpireAlertStatus422
+      >,
       CapExpireAlertOptions,
       TContext
     > & { client?: QueryClient };
@@ -71,14 +84,24 @@ export function useCapExpireAlert<TContext>(
     config
   ) as UseMutationOptions<
     CapExpireAlertStatus200,
-    ResponseErrorConfig<CapExpireAlertStatus422>,
+    ResponseErrorConfig<
+      | CapExpireAlertStatus401
+      | CapExpireAlertStatus403
+      | CapExpireAlertStatus404
+      | CapExpireAlertStatus422
+    >,
     CapExpireAlertOptions,
     TContext
   >;
 
   return useMutation<
     CapExpireAlertStatus200,
-    ResponseErrorConfig<CapExpireAlertStatus422>,
+    ResponseErrorConfig<
+      | CapExpireAlertStatus401
+      | CapExpireAlertStatus403
+      | CapExpireAlertStatus404
+      | CapExpireAlertStatus422
+    >,
     CapExpireAlertOptions,
     TContext
   >(
@@ -90,7 +113,12 @@ export function useCapExpireAlert<TContext>(
     queryClient
   ) as UseMutationResult<
     CapExpireAlertStatus200,
-    ResponseErrorConfig<CapExpireAlertStatus422>,
+    ResponseErrorConfig<
+      | CapExpireAlertStatus401
+      | CapExpireAlertStatus403
+      | CapExpireAlertStatus404
+      | CapExpireAlertStatus422
+    >,
     CapExpireAlertOptions,
     TContext
   >;

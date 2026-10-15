@@ -25,6 +25,10 @@ export const eregisterListRegisterObservationsQueryLimitSchema = z
 export const eregisterListRegisterObservationsStatus200Schema =
   registerObservationListSchema;
 
+export const eregisterListRegisterObservationsStatus401Schema = z.unknown();
+
+export const eregisterListRegisterObservationsStatus403Schema = z.unknown();
+
 export const eregisterListRegisterObservationsStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -33,5 +37,8 @@ export const eregisterListRegisterObservationsStatus422Schema =
 export const eregisterListRegisterObservationsResponseSchema =
   eregisterListRegisterObservationsStatus200Schema;
 
-export const eregisterListRegisterObservationsErrorSchema =
-  eregisterListRegisterObservationsStatus422Schema;
+export const eregisterListRegisterObservationsErrorSchema = z.union([
+  eregisterListRegisterObservationsStatus401Schema,
+  eregisterListRegisterObservationsStatus403Schema,
+  eregisterListRegisterObservationsStatus422Schema,
+]);

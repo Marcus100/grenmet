@@ -2,8 +2,10 @@
 
 from decimal import Decimal
 
+import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.config import settings
 from src.hr.leave.schemas import LeaveRequestCreate
 from src.hr.leave.service import create_leave_request, list_leave_requests
 from tests.factories import (
@@ -65,3 +67,18 @@ async def test_offset_windows_the_result(db_async: AsyncSession) -> None:
     ids = {r.id for r in page1} | {r.id for r in page2} | {r.id for r in tail}
     assert len(ids) == 5  # non-overlapping pages cover the whole set
     assert len(tail) == 1  # last page has the remainder
+
+
+async def test_out_of_range_page_is_rejected_not_a_server_error(
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    # Found by tests/test_api_fuzz.py: an unbounded page overflowed the int64
+    # OFFSET in PostgreSQL and surfaced as a 500.
+    for path in ("absentee-reports", "status-reports", "parking-permits"):
+        resp = await async_client.get(
+            f"{settings.API_V1_STR}/hr/{path}",
+            headers=superuser_token_headers_async,
+            params={"page": 10**19},
+        )
+        assert resp.status_code == 422, (path, resp.status_code)

@@ -11,6 +11,10 @@ export const hrGetOrganisationsStatus200Schema = z.array(
   organisationPublicSchema
 );
 
+export const hrGetOrganisationsStatus401Schema = z.unknown();
+
+export const hrGetOrganisationsStatus403Schema = z.unknown();
+
 export const hrGetOrganisationsStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -19,4 +23,8 @@ export const hrGetOrganisationsStatus422Schema =
 export const hrGetOrganisationsResponseSchema =
   hrGetOrganisationsStatus200Schema;
 
-export const hrGetOrganisationsErrorSchema = hrGetOrganisationsStatus422Schema;
+export const hrGetOrganisationsErrorSchema = z.union([
+  hrGetOrganisationsStatus401Schema,
+  hrGetOrganisationsStatus403Schema,
+  hrGetOrganisationsStatus422Schema,
+]);

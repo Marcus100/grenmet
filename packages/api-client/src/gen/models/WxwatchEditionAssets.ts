@@ -17,6 +17,12 @@ export type WxwatchEditionAssetsPath = {
 
 export type WxwatchEditionAssetsStatus200 = EditionAsset[];
 
+export type WxwatchEditionAssetsStatus401 = unknown;
+
+export type WxwatchEditionAssetsStatus403 = unknown;
+
+export type WxwatchEditionAssetsStatus404 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -32,6 +38,9 @@ export type WxwatchEditionAssetsOptions = {
 
 export type WxwatchEditionAssetsResponses = {
   "200": WxwatchEditionAssetsStatus200;
+  "401": WxwatchEditionAssetsStatus401;
+  "403": WxwatchEditionAssetsStatus403;
+  "404": WxwatchEditionAssetsStatus404;
   "422": WxwatchEditionAssetsStatus422;
 };
 

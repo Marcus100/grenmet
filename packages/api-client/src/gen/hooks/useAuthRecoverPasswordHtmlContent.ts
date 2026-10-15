@@ -14,6 +14,9 @@ import { authRecoverPasswordHtmlContent } from "../clients/authRecoverPasswordHt
 import type {
   AuthRecoverPasswordHtmlContentOptions,
   AuthRecoverPasswordHtmlContentStatus200,
+  AuthRecoverPasswordHtmlContentStatus401,
+  AuthRecoverPasswordHtmlContentStatus403,
+  AuthRecoverPasswordHtmlContentStatus404,
   AuthRecoverPasswordHtmlContentStatus422,
 } from "../models/AuthRecoverPasswordHtmlContent.js";
 
@@ -30,7 +33,12 @@ export function authRecoverPasswordHtmlContentMutationOptions<
   const mutationKey = authRecoverPasswordHtmlContentMutationKey();
   return mutationOptions<
     AuthRecoverPasswordHtmlContentStatus200,
-    ResponseErrorConfig<AuthRecoverPasswordHtmlContentStatus422>,
+    ResponseErrorConfig<
+      | AuthRecoverPasswordHtmlContentStatus401
+      | AuthRecoverPasswordHtmlContentStatus403
+      | AuthRecoverPasswordHtmlContentStatus404
+      | AuthRecoverPasswordHtmlContentStatus422
+    >,
     AuthRecoverPasswordHtmlContentOptions,
     TContext
   >({
@@ -54,7 +62,12 @@ export function useAuthRecoverPasswordHtmlContent<TContext>(
   options: {
     mutation?: UseMutationOptions<
       AuthRecoverPasswordHtmlContentStatus200,
-      ResponseErrorConfig<AuthRecoverPasswordHtmlContentStatus422>,
+      ResponseErrorConfig<
+        | AuthRecoverPasswordHtmlContentStatus401
+        | AuthRecoverPasswordHtmlContentStatus403
+        | AuthRecoverPasswordHtmlContentStatus404
+        | AuthRecoverPasswordHtmlContentStatus422
+      >,
       AuthRecoverPasswordHtmlContentOptions,
       TContext
     > & { client?: QueryClient };
@@ -72,14 +85,24 @@ export function useAuthRecoverPasswordHtmlContent<TContext>(
     config
   ) as UseMutationOptions<
     AuthRecoverPasswordHtmlContentStatus200,
-    ResponseErrorConfig<AuthRecoverPasswordHtmlContentStatus422>,
+    ResponseErrorConfig<
+      | AuthRecoverPasswordHtmlContentStatus401
+      | AuthRecoverPasswordHtmlContentStatus403
+      | AuthRecoverPasswordHtmlContentStatus404
+      | AuthRecoverPasswordHtmlContentStatus422
+    >,
     AuthRecoverPasswordHtmlContentOptions,
     TContext
   >;
 
   return useMutation<
     AuthRecoverPasswordHtmlContentStatus200,
-    ResponseErrorConfig<AuthRecoverPasswordHtmlContentStatus422>,
+    ResponseErrorConfig<
+      | AuthRecoverPasswordHtmlContentStatus401
+      | AuthRecoverPasswordHtmlContentStatus403
+      | AuthRecoverPasswordHtmlContentStatus404
+      | AuthRecoverPasswordHtmlContentStatus422
+    >,
     AuthRecoverPasswordHtmlContentOptions,
     TContext
   >(
@@ -91,7 +114,12 @@ export function useAuthRecoverPasswordHtmlContent<TContext>(
     queryClient
   ) as UseMutationResult<
     AuthRecoverPasswordHtmlContentStatus200,
-    ResponseErrorConfig<AuthRecoverPasswordHtmlContentStatus422>,
+    ResponseErrorConfig<
+      | AuthRecoverPasswordHtmlContentStatus401
+      | AuthRecoverPasswordHtmlContentStatus403
+      | AuthRecoverPasswordHtmlContentStatus404
+      | AuthRecoverPasswordHtmlContentStatus422
+    >,
     AuthRecoverPasswordHtmlContentOptions,
     TContext
   >;

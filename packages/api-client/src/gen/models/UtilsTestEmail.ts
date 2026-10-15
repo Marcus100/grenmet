@@ -17,6 +17,10 @@ export type UtilsTestEmailQuery = {
 
 export type UtilsTestEmailStatus201 = Message;
 
+export type UtilsTestEmailStatus401 = unknown;
+
+export type UtilsTestEmailStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -32,6 +36,8 @@ export type UtilsTestEmailOptions = {
 
 export type UtilsTestEmailResponses = {
   "201": UtilsTestEmailStatus201;
+  "401": UtilsTestEmailStatus401;
+  "403": UtilsTestEmailStatus403;
   "422": UtilsTestEmailStatus422;
 };
 

@@ -14,6 +14,8 @@ import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { hrGetOrganisations } from "../clients/hrGetOrganisations.js";
 import type {
   HrGetOrganisationsStatus200,
+  HrGetOrganisationsStatus401,
+  HrGetOrganisationsStatus403,
   HrGetOrganisationsStatus422,
 } from "../models/HrGetOrganisations.js";
 
@@ -30,7 +32,11 @@ export function hrGetOrganisationsQueryOptions(
   const queryKey = hrGetOrganisationsQueryKey();
   return queryOptions<
     HrGetOrganisationsStatus200,
-    ResponseErrorConfig<HrGetOrganisationsStatus422>,
+    ResponseErrorConfig<
+      | HrGetOrganisationsStatus401
+      | HrGetOrganisationsStatus403
+      | HrGetOrganisationsStatus422
+    >,
     HrGetOrganisationsStatus200,
     typeof queryKey
   >({
@@ -59,7 +65,11 @@ export function useHrGetOrganisations<
     query?: Partial<
       QueryObserverOptions<
         HrGetOrganisationsStatus200,
-        ResponseErrorConfig<HrGetOrganisationsStatus422>,
+        ResponseErrorConfig<
+          | HrGetOrganisationsStatus401
+          | HrGetOrganisationsStatus403
+          | HrGetOrganisationsStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -83,7 +93,11 @@ export function useHrGetOrganisations<
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<HrGetOrganisationsStatus422>
+    ResponseErrorConfig<
+      | HrGetOrganisationsStatus401
+      | HrGetOrganisationsStatus403
+      | HrGetOrganisationsStatus422
+    >
   > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;

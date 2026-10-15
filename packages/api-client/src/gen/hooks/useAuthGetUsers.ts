@@ -15,6 +15,8 @@ import { authGetUsers } from "../clients/authGetUsers.js";
 import type {
   AuthGetUsersOptions,
   AuthGetUsersStatus200,
+  AuthGetUsersStatus401,
+  AuthGetUsersStatus403,
   AuthGetUsersStatus422,
 } from "../models/AuthGetUsers.js";
 
@@ -34,7 +36,9 @@ export function authGetUsersQueryOptions(
   const queryKey = authGetUsersQueryKey({ query });
   return queryOptions<
     AuthGetUsersStatus200,
-    ResponseErrorConfig<AuthGetUsersStatus422>,
+    ResponseErrorConfig<
+      AuthGetUsersStatus401 | AuthGetUsersStatus403 | AuthGetUsersStatus422
+    >,
     AuthGetUsersStatus200,
     typeof queryKey
   >({
@@ -69,7 +73,9 @@ export function useAuthGetUsers<
     query?: Partial<
       QueryObserverOptions<
         AuthGetUsersStatus200,
-        ResponseErrorConfig<AuthGetUsersStatus422>,
+        ResponseErrorConfig<
+          AuthGetUsersStatus401 | AuthGetUsersStatus403 | AuthGetUsersStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -95,9 +101,12 @@ export function useAuthGetUsers<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient
-  ) as UseQueryResult<TData, ResponseErrorConfig<AuthGetUsersStatus422>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      AuthGetUsersStatus401 | AuthGetUsersStatus403 | AuthGetUsersStatus422
+    >
+  > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;
 

@@ -34,6 +34,12 @@ export type WxwatchRetrievalsQuery = {
 
 export type WxwatchRetrievalsStatus200 = ArchiveHistory;
 
+export type WxwatchRetrievalsStatus401 = unknown;
+
+export type WxwatchRetrievalsStatus403 = unknown;
+
+export type WxwatchRetrievalsStatus404 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -49,6 +55,9 @@ export type WxwatchRetrievalsOptions = {
 
 export type WxwatchRetrievalsResponses = {
   "200": WxwatchRetrievalsStatus200;
+  "401": WxwatchRetrievalsStatus401;
+  "403": WxwatchRetrievalsStatus403;
+  "404": WxwatchRetrievalsStatus404;
   "422": WxwatchRetrievalsStatus422;
 };
 

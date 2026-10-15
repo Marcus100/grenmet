@@ -20,6 +20,7 @@ export type WxproductsLoadProductsQuery = {
   limit?: number;
   /**
    * @minLength 0
+   * @maxLength 100000
    * @default 0
    * @type integer | undefined
    */

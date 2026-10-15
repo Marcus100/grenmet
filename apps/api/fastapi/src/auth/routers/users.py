@@ -51,6 +51,7 @@ from src.dependencies import (
 from src.email import generate_new_account_email, send_email
 from src.email_config import email_settings
 from src.models import Message
+from src.openapi_responses import AUTHENTICATED
 from src.pagination import PaginatedResponse, PaginationParams, get_pagination_params
 from src.rate_limit import limiter
 
@@ -63,7 +64,7 @@ router = APIRouter(prefix="/auth/users", tags=["users"])
     response_model=PaginatedResponse[UserPublic],
     summary="List users",
     description="Return users and counts within active employer/department user.manage scope. Superusers see all accounts. Uses standard pagination.",
-    responses={status.HTTP_200_OK: {"description": "Users returned"}},
+    responses={**AUTHENTICATED, status.HTTP_200_OK: {"description": "Users returned"}},
 )
 async def read_users(
     session: SessionDep,
@@ -138,7 +139,10 @@ async def create_user(
     response_model=UserPublic,
     summary="Get current user",
     description="Return the currently authenticated user.",
-    responses={status.HTTP_200_OK: {"description": "Current user returned"}},
+    responses={
+        **AUTHENTICATED,
+        status.HTTP_200_OK: {"description": "Current user returned"},
+    },
 )
 async def read_user_me(current_user: AccountUser) -> Any:
     """

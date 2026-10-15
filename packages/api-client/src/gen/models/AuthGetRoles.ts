@@ -10,6 +10,7 @@ export type AuthGetRolesQuery = {
   /**
    * @description Page number (1-indexed)
    * @minLength 1
+   * @maxLength 1000000
    * @default 1
    * @type integer | undefined
    */
@@ -26,6 +27,10 @@ export type AuthGetRolesQuery = {
 
 export type AuthGetRolesStatus200 = PaginatedResponseRolePublic;
 
+export type AuthGetRolesStatus401 = unknown;
+
+export type AuthGetRolesStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -41,6 +46,8 @@ export type AuthGetRolesOptions = {
 
 export type AuthGetRolesResponses = {
   "200": AuthGetRolesStatus200;
+  "401": AuthGetRolesStatus401;
+  "403": AuthGetRolesStatus403;
   "422": AuthGetRolesStatus422;
 };
 

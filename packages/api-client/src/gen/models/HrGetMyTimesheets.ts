@@ -10,6 +10,7 @@ export type HrGetMyTimesheetsQuery = {
   /**
    * @description Page number (1-indexed)
    * @minLength 1
+   * @maxLength 1000000
    * @default 1
    * @type integer | undefined
    */
@@ -26,6 +27,10 @@ export type HrGetMyTimesheetsQuery = {
 
 export type HrGetMyTimesheetsStatus200 = TimesheetListPublic;
 
+export type HrGetMyTimesheetsStatus401 = unknown;
+
+export type HrGetMyTimesheetsStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -41,6 +46,8 @@ export type HrGetMyTimesheetsOptions = {
 
 export type HrGetMyTimesheetsResponses = {
   "200": HrGetMyTimesheetsStatus200;
+  "401": HrGetMyTimesheetsStatus401;
+  "403": HrGetMyTimesheetsStatus403;
   "422": HrGetMyTimesheetsStatus422;
 };
 

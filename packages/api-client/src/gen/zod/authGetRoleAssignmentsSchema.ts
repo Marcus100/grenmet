@@ -14,6 +14,10 @@ export const authGetRoleAssignmentsQueryUserIdSchema = z
 export const authGetRoleAssignmentsStatus200Schema =
   userRoleAssignmentsPublicSchema;
 
+export const authGetRoleAssignmentsStatus401Schema = z.unknown();
+
+export const authGetRoleAssignmentsStatus403Schema = z.unknown();
+
 export const authGetRoleAssignmentsStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -22,5 +26,8 @@ export const authGetRoleAssignmentsStatus422Schema =
 export const authGetRoleAssignmentsResponseSchema =
   authGetRoleAssignmentsStatus200Schema;
 
-export const authGetRoleAssignmentsErrorSchema =
-  authGetRoleAssignmentsStatus422Schema;
+export const authGetRoleAssignmentsErrorSchema = z.union([
+  authGetRoleAssignmentsStatus401Schema,
+  authGetRoleAssignmentsStatus403Schema,
+  authGetRoleAssignmentsStatus422Schema,
+]);

@@ -15,6 +15,8 @@ import { wxwatchMetadata } from "../clients/wxwatchMetadata.js";
 import type {
   WxwatchMetadataOptions,
   WxwatchMetadataStatus200,
+  WxwatchMetadataStatus401,
+  WxwatchMetadataStatus403,
   WxwatchMetadataStatus422,
 } from "../models/WxwatchMetadata.js";
 
@@ -34,7 +36,11 @@ export function wxwatchMetadataQueryOptions(
   const queryKey = wxwatchMetadataQueryKey({ query });
   return queryOptions<
     WxwatchMetadataStatus200,
-    ResponseErrorConfig<WxwatchMetadataStatus422>,
+    ResponseErrorConfig<
+      | WxwatchMetadataStatus401
+      | WxwatchMetadataStatus403
+      | WxwatchMetadataStatus422
+    >,
     WxwatchMetadataStatus200,
     typeof queryKey
   >({
@@ -71,7 +77,11 @@ export function useWxwatchMetadata<
     query?: Partial<
       QueryObserverOptions<
         WxwatchMetadataStatus200,
-        ResponseErrorConfig<WxwatchMetadataStatus422>,
+        ResponseErrorConfig<
+          | WxwatchMetadataStatus401
+          | WxwatchMetadataStatus403
+          | WxwatchMetadataStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -97,9 +107,14 @@ export function useWxwatchMetadata<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient
-  ) as UseQueryResult<TData, ResponseErrorConfig<WxwatchMetadataStatus422>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      | WxwatchMetadataStatus401
+      | WxwatchMetadataStatus403
+      | WxwatchMetadataStatus422
+    >
+  > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;
 

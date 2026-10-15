@@ -14,6 +14,9 @@ import { capCancelAlert } from "../clients/capCancelAlert.js";
 import type {
   CapCancelAlertOptions,
   CapCancelAlertStatus200,
+  CapCancelAlertStatus401,
+  CapCancelAlertStatus403,
+  CapCancelAlertStatus404,
   CapCancelAlertStatus422,
 } from "../models/CapCancelAlert.js";
 
@@ -28,7 +31,12 @@ export function capCancelAlertMutationOptions<TContext = unknown>(
   const mutationKey = capCancelAlertMutationKey();
   return mutationOptions<
     CapCancelAlertStatus200,
-    ResponseErrorConfig<CapCancelAlertStatus422>,
+    ResponseErrorConfig<
+      | CapCancelAlertStatus401
+      | CapCancelAlertStatus403
+      | CapCancelAlertStatus404
+      | CapCancelAlertStatus422
+    >,
     CapCancelAlertOptions,
     TContext
   >({
@@ -53,7 +61,12 @@ export function useCapCancelAlert<TContext>(
   options: {
     mutation?: UseMutationOptions<
       CapCancelAlertStatus200,
-      ResponseErrorConfig<CapCancelAlertStatus422>,
+      ResponseErrorConfig<
+        | CapCancelAlertStatus401
+        | CapCancelAlertStatus403
+        | CapCancelAlertStatus404
+        | CapCancelAlertStatus422
+      >,
       CapCancelAlertOptions,
       TContext
     > & { client?: QueryClient };
@@ -71,14 +84,24 @@ export function useCapCancelAlert<TContext>(
     config
   ) as UseMutationOptions<
     CapCancelAlertStatus200,
-    ResponseErrorConfig<CapCancelAlertStatus422>,
+    ResponseErrorConfig<
+      | CapCancelAlertStatus401
+      | CapCancelAlertStatus403
+      | CapCancelAlertStatus404
+      | CapCancelAlertStatus422
+    >,
     CapCancelAlertOptions,
     TContext
   >;
 
   return useMutation<
     CapCancelAlertStatus200,
-    ResponseErrorConfig<CapCancelAlertStatus422>,
+    ResponseErrorConfig<
+      | CapCancelAlertStatus401
+      | CapCancelAlertStatus403
+      | CapCancelAlertStatus404
+      | CapCancelAlertStatus422
+    >,
     CapCancelAlertOptions,
     TContext
   >(
@@ -90,7 +113,12 @@ export function useCapCancelAlert<TContext>(
     queryClient
   ) as UseMutationResult<
     CapCancelAlertStatus200,
-    ResponseErrorConfig<CapCancelAlertStatus422>,
+    ResponseErrorConfig<
+      | CapCancelAlertStatus401
+      | CapCancelAlertStatus403
+      | CapCancelAlertStatus404
+      | CapCancelAlertStatus422
+    >,
     CapCancelAlertOptions,
     TContext
   >;

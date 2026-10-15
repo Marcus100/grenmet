@@ -12,6 +12,7 @@ export const hrGetDepartmentTimesheetsQueryDepartmentIdSchema = z.string();
 export const hrGetDepartmentTimesheetsQueryPageSchema = z
   .int()
   .min(1)
+  .max(1000000)
   .optional()
   .default(1)
   .describe("Page number (1-indexed)");

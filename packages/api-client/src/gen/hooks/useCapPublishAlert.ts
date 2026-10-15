@@ -14,6 +14,9 @@ import { capPublishAlert } from "../clients/capPublishAlert.js";
 import type {
   CapPublishAlertOptions,
   CapPublishAlertStatus200,
+  CapPublishAlertStatus401,
+  CapPublishAlertStatus403,
+  CapPublishAlertStatus404,
   CapPublishAlertStatus422,
 } from "../models/CapPublishAlert.js";
 
@@ -28,7 +31,12 @@ export function capPublishAlertMutationOptions<TContext = unknown>(
   const mutationKey = capPublishAlertMutationKey();
   return mutationOptions<
     CapPublishAlertStatus200,
-    ResponseErrorConfig<CapPublishAlertStatus422>,
+    ResponseErrorConfig<
+      | CapPublishAlertStatus401
+      | CapPublishAlertStatus403
+      | CapPublishAlertStatus404
+      | CapPublishAlertStatus422
+    >,
     CapPublishAlertOptions,
     TContext
   >({
@@ -53,7 +61,12 @@ export function useCapPublishAlert<TContext>(
   options: {
     mutation?: UseMutationOptions<
       CapPublishAlertStatus200,
-      ResponseErrorConfig<CapPublishAlertStatus422>,
+      ResponseErrorConfig<
+        | CapPublishAlertStatus401
+        | CapPublishAlertStatus403
+        | CapPublishAlertStatus404
+        | CapPublishAlertStatus422
+      >,
       CapPublishAlertOptions,
       TContext
     > & { client?: QueryClient };
@@ -71,14 +84,24 @@ export function useCapPublishAlert<TContext>(
     config
   ) as UseMutationOptions<
     CapPublishAlertStatus200,
-    ResponseErrorConfig<CapPublishAlertStatus422>,
+    ResponseErrorConfig<
+      | CapPublishAlertStatus401
+      | CapPublishAlertStatus403
+      | CapPublishAlertStatus404
+      | CapPublishAlertStatus422
+    >,
     CapPublishAlertOptions,
     TContext
   >;
 
   return useMutation<
     CapPublishAlertStatus200,
-    ResponseErrorConfig<CapPublishAlertStatus422>,
+    ResponseErrorConfig<
+      | CapPublishAlertStatus401
+      | CapPublishAlertStatus403
+      | CapPublishAlertStatus404
+      | CapPublishAlertStatus422
+    >,
     CapPublishAlertOptions,
     TContext
   >(
@@ -90,7 +113,12 @@ export function useCapPublishAlert<TContext>(
     queryClient
   ) as UseMutationResult<
     CapPublishAlertStatus200,
-    ResponseErrorConfig<CapPublishAlertStatus422>,
+    ResponseErrorConfig<
+      | CapPublishAlertStatus401
+      | CapPublishAlertStatus403
+      | CapPublishAlertStatus404
+      | CapPublishAlertStatus422
+    >,
     CapPublishAlertOptions,
     TContext
   >;

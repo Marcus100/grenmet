@@ -14,6 +14,7 @@ import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { authBrowserSession } from "../clients/authBrowserSession.js";
 import type {
   AuthBrowserSessionStatus200,
+  AuthBrowserSessionStatus401,
   AuthBrowserSessionStatus422,
 } from "../models/AuthBrowserSession.js";
 
@@ -30,7 +31,9 @@ export function authBrowserSessionQueryOptions(
   const queryKey = authBrowserSessionQueryKey();
   return queryOptions<
     AuthBrowserSessionStatus200,
-    ResponseErrorConfig<AuthBrowserSessionStatus422>,
+    ResponseErrorConfig<
+      AuthBrowserSessionStatus401 | AuthBrowserSessionStatus422
+    >,
     AuthBrowserSessionStatus200,
     typeof queryKey
   >({
@@ -59,7 +62,9 @@ export function useAuthBrowserSession<
     query?: Partial<
       QueryObserverOptions<
         AuthBrowserSessionStatus200,
-        ResponseErrorConfig<AuthBrowserSessionStatus422>,
+        ResponseErrorConfig<
+          AuthBrowserSessionStatus401 | AuthBrowserSessionStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -83,7 +88,9 @@ export function useAuthBrowserSession<
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<AuthBrowserSessionStatus422>
+    ResponseErrorConfig<
+      AuthBrowserSessionStatus401 | AuthBrowserSessionStatus422
+    >
   > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;

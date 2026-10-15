@@ -11,6 +11,7 @@ from src.auth.dependencies import get_current_active_superuser
 from src.dependencies import SessionDep
 from src.email import generate_test_email, send_email
 from src.models import Message
+from src.openapi_responses import AUTHENTICATED
 
 
 @lru_cache(maxsize=1)
@@ -31,6 +32,7 @@ router = APIRouter(prefix="/utils", tags=["utils"])
     status_code=status.HTTP_201_CREATED,
     summary="Send a test email",
     description="Sends a test email to the requested address. This administrative endpoint requires an active superuser.",
+    responses={**AUTHENTICATED},
 )
 async def test_email(email_to: EmailStr) -> Message:
     email_data = generate_test_email(email_to=email_to)

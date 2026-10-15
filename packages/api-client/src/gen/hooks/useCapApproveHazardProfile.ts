@@ -14,6 +14,9 @@ import { capApproveHazardProfile } from "../clients/capApproveHazardProfile.js";
 import type {
   CapApproveHazardProfileOptions,
   CapApproveHazardProfileStatus200,
+  CapApproveHazardProfileStatus401,
+  CapApproveHazardProfileStatus403,
+  CapApproveHazardProfileStatus404,
   CapApproveHazardProfileStatus422,
 } from "../models/CapApproveHazardProfile.js";
 
@@ -28,7 +31,12 @@ export function capApproveHazardProfileMutationOptions<TContext = unknown>(
   const mutationKey = capApproveHazardProfileMutationKey();
   return mutationOptions<
     CapApproveHazardProfileStatus200,
-    ResponseErrorConfig<CapApproveHazardProfileStatus422>,
+    ResponseErrorConfig<
+      | CapApproveHazardProfileStatus401
+      | CapApproveHazardProfileStatus403
+      | CapApproveHazardProfileStatus404
+      | CapApproveHazardProfileStatus422
+    >,
     CapApproveHazardProfileOptions,
     TContext
   >({
@@ -52,7 +60,12 @@ export function useCapApproveHazardProfile<TContext>(
   options: {
     mutation?: UseMutationOptions<
       CapApproveHazardProfileStatus200,
-      ResponseErrorConfig<CapApproveHazardProfileStatus422>,
+      ResponseErrorConfig<
+        | CapApproveHazardProfileStatus401
+        | CapApproveHazardProfileStatus403
+        | CapApproveHazardProfileStatus404
+        | CapApproveHazardProfileStatus422
+      >,
       CapApproveHazardProfileOptions,
       TContext
     > & { client?: QueryClient };
@@ -70,14 +83,24 @@ export function useCapApproveHazardProfile<TContext>(
     config
   ) as UseMutationOptions<
     CapApproveHazardProfileStatus200,
-    ResponseErrorConfig<CapApproveHazardProfileStatus422>,
+    ResponseErrorConfig<
+      | CapApproveHazardProfileStatus401
+      | CapApproveHazardProfileStatus403
+      | CapApproveHazardProfileStatus404
+      | CapApproveHazardProfileStatus422
+    >,
     CapApproveHazardProfileOptions,
     TContext
   >;
 
   return useMutation<
     CapApproveHazardProfileStatus200,
-    ResponseErrorConfig<CapApproveHazardProfileStatus422>,
+    ResponseErrorConfig<
+      | CapApproveHazardProfileStatus401
+      | CapApproveHazardProfileStatus403
+      | CapApproveHazardProfileStatus404
+      | CapApproveHazardProfileStatus422
+    >,
     CapApproveHazardProfileOptions,
     TContext
   >(
@@ -89,7 +112,12 @@ export function useCapApproveHazardProfile<TContext>(
     queryClient
   ) as UseMutationResult<
     CapApproveHazardProfileStatus200,
-    ResponseErrorConfig<CapApproveHazardProfileStatus422>,
+    ResponseErrorConfig<
+      | CapApproveHazardProfileStatus401
+      | CapApproveHazardProfileStatus403
+      | CapApproveHazardProfileStatus404
+      | CapApproveHazardProfileStatus422
+    >,
     CapApproveHazardProfileOptions,
     TContext
   >;

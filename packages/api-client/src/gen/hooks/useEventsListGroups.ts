@@ -14,6 +14,7 @@ import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { eventsListGroups } from "../clients/eventsListGroups.js";
 import type {
   EventsListGroupsStatus200,
+  EventsListGroupsStatus401,
   EventsListGroupsStatus422,
 } from "../models/EventsListGroups.js";
 
@@ -30,7 +31,7 @@ export function eventsListGroupsQueryOptions(
   const queryKey = eventsListGroupsQueryKey();
   return queryOptions<
     EventsListGroupsStatus200,
-    ResponseErrorConfig<EventsListGroupsStatus422>,
+    ResponseErrorConfig<EventsListGroupsStatus401 | EventsListGroupsStatus422>,
     EventsListGroupsStatus200,
     typeof queryKey
   >({
@@ -59,7 +60,9 @@ export function useEventsListGroups<
     query?: Partial<
       QueryObserverOptions<
         EventsListGroupsStatus200,
-        ResponseErrorConfig<EventsListGroupsStatus422>,
+        ResponseErrorConfig<
+          EventsListGroupsStatus401 | EventsListGroupsStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -81,9 +84,10 @@ export function useEventsListGroups<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient
-  ) as UseQueryResult<TData, ResponseErrorConfig<EventsListGroupsStatus422>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<EventsListGroupsStatus401 | EventsListGroupsStatus422>
+  > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;
 

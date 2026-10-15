@@ -11,6 +11,10 @@ export const utilsTestEmailQueryEmailToSchema = z.email();
 
 export const utilsTestEmailStatus201Schema = messageSchema;
 
+export const utilsTestEmailStatus401Schema = z.unknown();
+
+export const utilsTestEmailStatus403Schema = z.unknown();
+
 export const utilsTestEmailStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -18,4 +22,8 @@ export const utilsTestEmailStatus422Schema =
 
 export const utilsTestEmailResponseSchema = utilsTestEmailStatus201Schema;
 
-export const utilsTestEmailErrorSchema = utilsTestEmailStatus422Schema;
+export const utilsTestEmailErrorSchema = z.union([
+  utilsTestEmailStatus401Schema,
+  utilsTestEmailStatus403Schema,
+  utilsTestEmailStatus422Schema,
+]);

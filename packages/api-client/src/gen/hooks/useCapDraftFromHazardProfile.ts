@@ -14,6 +14,9 @@ import { capDraftFromHazardProfile } from "../clients/capDraftFromHazardProfile.
 import type {
   CapDraftFromHazardProfileOptions,
   CapDraftFromHazardProfileStatus201,
+  CapDraftFromHazardProfileStatus401,
+  CapDraftFromHazardProfileStatus403,
+  CapDraftFromHazardProfileStatus404,
   CapDraftFromHazardProfileStatus422,
 } from "../models/CapDraftFromHazardProfile.js";
 
@@ -28,7 +31,12 @@ export function capDraftFromHazardProfileMutationOptions<TContext = unknown>(
   const mutationKey = capDraftFromHazardProfileMutationKey();
   return mutationOptions<
     CapDraftFromHazardProfileStatus201,
-    ResponseErrorConfig<CapDraftFromHazardProfileStatus422>,
+    ResponseErrorConfig<
+      | CapDraftFromHazardProfileStatus401
+      | CapDraftFromHazardProfileStatus403
+      | CapDraftFromHazardProfileStatus404
+      | CapDraftFromHazardProfileStatus422
+    >,
     CapDraftFromHazardProfileOptions,
     TContext
   >({
@@ -53,7 +61,12 @@ export function useCapDraftFromHazardProfile<TContext>(
   options: {
     mutation?: UseMutationOptions<
       CapDraftFromHazardProfileStatus201,
-      ResponseErrorConfig<CapDraftFromHazardProfileStatus422>,
+      ResponseErrorConfig<
+        | CapDraftFromHazardProfileStatus401
+        | CapDraftFromHazardProfileStatus403
+        | CapDraftFromHazardProfileStatus404
+        | CapDraftFromHazardProfileStatus422
+      >,
       CapDraftFromHazardProfileOptions,
       TContext
     > & { client?: QueryClient };
@@ -71,14 +84,24 @@ export function useCapDraftFromHazardProfile<TContext>(
     config
   ) as UseMutationOptions<
     CapDraftFromHazardProfileStatus201,
-    ResponseErrorConfig<CapDraftFromHazardProfileStatus422>,
+    ResponseErrorConfig<
+      | CapDraftFromHazardProfileStatus401
+      | CapDraftFromHazardProfileStatus403
+      | CapDraftFromHazardProfileStatus404
+      | CapDraftFromHazardProfileStatus422
+    >,
     CapDraftFromHazardProfileOptions,
     TContext
   >;
 
   return useMutation<
     CapDraftFromHazardProfileStatus201,
-    ResponseErrorConfig<CapDraftFromHazardProfileStatus422>,
+    ResponseErrorConfig<
+      | CapDraftFromHazardProfileStatus401
+      | CapDraftFromHazardProfileStatus403
+      | CapDraftFromHazardProfileStatus404
+      | CapDraftFromHazardProfileStatus422
+    >,
     CapDraftFromHazardProfileOptions,
     TContext
   >(
@@ -90,7 +113,12 @@ export function useCapDraftFromHazardProfile<TContext>(
     queryClient
   ) as UseMutationResult<
     CapDraftFromHazardProfileStatus201,
-    ResponseErrorConfig<CapDraftFromHazardProfileStatus422>,
+    ResponseErrorConfig<
+      | CapDraftFromHazardProfileStatus401
+      | CapDraftFromHazardProfileStatus403
+      | CapDraftFromHazardProfileStatus404
+      | CapDraftFromHazardProfileStatus422
+    >,
     CapDraftFromHazardProfileOptions,
     TContext
   >;

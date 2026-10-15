@@ -6,6 +6,7 @@ from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import ShiftSwapDep
 from src.hr.roster.schemas import RosterRulesPublic, RuleViolationPublic
 from src.hr.submission import submission_list, submission_public
+from src.openapi_responses import AUTHENTICATED
 from src.pagination import PaginationDep
 
 from . import service, swap_rules
@@ -57,6 +58,7 @@ async def preview_shift_swap(
     summary="List my shift swap requests",
     description="Return shift swap requests created by the current user, newest first.",
     responses={
+        **AUTHENTICATED,
         status.HTTP_200_OK: {"description": "Shift swap requests returned"},
     },
 )

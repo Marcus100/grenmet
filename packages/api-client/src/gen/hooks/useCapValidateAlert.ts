@@ -14,6 +14,9 @@ import { capValidateAlert } from "../clients/capValidateAlert.js";
 import type {
   CapValidateAlertOptions,
   CapValidateAlertStatus200,
+  CapValidateAlertStatus401,
+  CapValidateAlertStatus403,
+  CapValidateAlertStatus404,
   CapValidateAlertStatus422,
 } from "../models/CapValidateAlert.js";
 
@@ -28,7 +31,12 @@ export function capValidateAlertMutationOptions<TContext = unknown>(
   const mutationKey = capValidateAlertMutationKey();
   return mutationOptions<
     CapValidateAlertStatus200,
-    ResponseErrorConfig<CapValidateAlertStatus422>,
+    ResponseErrorConfig<
+      | CapValidateAlertStatus401
+      | CapValidateAlertStatus403
+      | CapValidateAlertStatus404
+      | CapValidateAlertStatus422
+    >,
     CapValidateAlertOptions,
     TContext
   >({
@@ -48,7 +56,12 @@ export function useCapValidateAlert<TContext>(
   options: {
     mutation?: UseMutationOptions<
       CapValidateAlertStatus200,
-      ResponseErrorConfig<CapValidateAlertStatus422>,
+      ResponseErrorConfig<
+        | CapValidateAlertStatus401
+        | CapValidateAlertStatus403
+        | CapValidateAlertStatus404
+        | CapValidateAlertStatus422
+      >,
       CapValidateAlertOptions,
       TContext
     > & { client?: QueryClient };
@@ -66,14 +79,24 @@ export function useCapValidateAlert<TContext>(
     config
   ) as UseMutationOptions<
     CapValidateAlertStatus200,
-    ResponseErrorConfig<CapValidateAlertStatus422>,
+    ResponseErrorConfig<
+      | CapValidateAlertStatus401
+      | CapValidateAlertStatus403
+      | CapValidateAlertStatus404
+      | CapValidateAlertStatus422
+    >,
     CapValidateAlertOptions,
     TContext
   >;
 
   return useMutation<
     CapValidateAlertStatus200,
-    ResponseErrorConfig<CapValidateAlertStatus422>,
+    ResponseErrorConfig<
+      | CapValidateAlertStatus401
+      | CapValidateAlertStatus403
+      | CapValidateAlertStatus404
+      | CapValidateAlertStatus422
+    >,
     CapValidateAlertOptions,
     TContext
   >(
@@ -85,7 +108,12 @@ export function useCapValidateAlert<TContext>(
     queryClient
   ) as UseMutationResult<
     CapValidateAlertStatus200,
-    ResponseErrorConfig<CapValidateAlertStatus422>,
+    ResponseErrorConfig<
+      | CapValidateAlertStatus401
+      | CapValidateAlertStatus403
+      | CapValidateAlertStatus404
+      | CapValidateAlertStatus422
+    >,
     CapValidateAlertOptions,
     TContext
   >;

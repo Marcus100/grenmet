@@ -8,6 +8,10 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthTwofaSetupStatus200 = TwoFactorSetupResponse;
 
+export type AuthTwofaSetupStatus401 = unknown;
+
+export type AuthTwofaSetupStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -23,6 +27,8 @@ export type AuthTwofaSetupOptions = {
 
 export type AuthTwofaSetupResponses = {
   "200": AuthTwofaSetupStatus200;
+  "401": AuthTwofaSetupStatus401;
+  "403": AuthTwofaSetupStatus403;
   "422": AuthTwofaSetupStatus422;
 };
 

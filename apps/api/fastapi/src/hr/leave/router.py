@@ -5,6 +5,7 @@ from fastapi import APIRouter, Response, status
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import LeaveRequestDep
 from src.hr.submission import submission_list, submission_public
+from src.openapi_responses import AUTHENTICATED
 from src.pagination import PaginationDep
 
 from . import service
@@ -192,7 +193,10 @@ async def action_leave_request(
     response_model=LeaveRequestListPublic,
     summary="List my leave requests",
     description="Return leave requests for the current user.",
-    responses={status.HTTP_200_OK: {"description": "Leave requests returned"}},
+    responses={
+        **AUTHENTICATED,
+        status.HTTP_200_OK: {"description": "Leave requests returned"},
+    },
 )
 async def read_my_leave_requests(
     session: SessionDep, current_user: CurrentUser, pagination: PaginationDep

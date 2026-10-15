@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 from src.dependencies import CurrentUser, SessionDep
+from src.openapi_responses import AUTHENTICATED
 from src.pagination import PaginationDep
 from src.storage.service import StorageNotConfiguredError
 
@@ -162,7 +163,10 @@ async def read_documents(
     status_code=status.HTTP_200_OK,
     summary="List employees available in the document workspace",
     description="Only employees covered by active document read or management assignments are returned. Search and counts are scoped before pagination.",
-    responses={status.HTTP_200_OK: {"description": "Scoped employee choices"}},
+    responses={
+        **AUTHENTICATED,
+        status.HTTP_200_OK: {"description": "Scoped employee choices"},
+    },
 )
 async def read_document_employees(
     *,

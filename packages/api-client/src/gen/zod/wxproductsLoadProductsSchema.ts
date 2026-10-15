@@ -27,6 +27,7 @@ export const wxproductsLoadProductsQueryLimitSchema = z
 export const wxproductsLoadProductsQueryOffsetSchema = z
   .int()
   .min(0)
+  .max(100000)
   .optional()
   .default(0);
 

@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException, Response
 from fastapi.responses import FileResponse, RedirectResponse, StreamingResponse
 
 from src.auth.browser import BrowserUser
+from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, NOT_FOUND
 from src.storage import service
 from src.wxwatch import assets
 from src.wxwatch.config import wxwatch_settings
@@ -19,7 +20,10 @@ _SAFE_PATH = re.compile(
 
 
 @router.get(
-    "/images/{storage_path:path}", response_class=RedirectResponse, status_code=307
+    "/images/{storage_path:path}",
+    response_class=RedirectResponse,
+    status_code=307,
+    responses={**AUTHENTICATED, **BAD_REQUEST, **NOT_FOUND},
 )
 async def weather_image(storage_path: str, _current_user: BrowserUser) -> Response:
     """Issue a short-lived download redirect scoped to the environment's wxwatch prefix."""

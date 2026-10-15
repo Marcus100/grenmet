@@ -13,6 +13,7 @@ from src.auth.constants import ERROR_ROLE_IN_USE, ERROR_ROLE_NOT_FOUND
 from src.auth.dependencies import get_current_active_superuser
 from src.auth.schemas import RoleCreate, RolePublic, RoleUpdate
 from src.dependencies import CurrentUser, SessionDep, get_current_user_manager
+from src.openapi_responses import AUTHENTICATED
 from src.pagination import PaginatedResponse, PaginationParams, get_pagination_params
 
 router = APIRouter(
@@ -27,7 +28,7 @@ router = APIRouter(
     response_model=PaginatedResponse[RolePublic],
     summary="List roles",
     description="Superusers list all role definitions. Scoped user managers list only ordinary roles eligible for bounded delegation.",
-    responses={status.HTTP_200_OK: {"description": "Roles returned"}},
+    responses={**AUTHENTICATED, status.HTTP_200_OK: {"description": "Roles returned"}},
 )
 async def read_roles(
     session: SessionDep,
@@ -73,7 +74,10 @@ async def read_role(session: SessionDep, role_id: uuid.UUID) -> Any:
     status_code=status.HTTP_201_CREATED,
     summary="Create role",
     description="Create a role (superuser only).",
-    responses={status.HTTP_201_CREATED: {"description": "Role created"}},
+    responses={
+        **AUTHENTICATED,
+        status.HTTP_201_CREATED: {"description": "Role created"},
+    },
 )
 async def create_role(*, session: SessionDep, role_in: RoleCreate) -> Any:
     return await service.create_role(session=session, role_in=role_in)

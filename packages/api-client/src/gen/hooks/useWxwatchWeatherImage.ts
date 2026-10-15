@@ -15,6 +15,10 @@ import { wxwatchWeatherImage } from "../clients/wxwatchWeatherImage.js";
 import type {
   WxwatchWeatherImageOptions,
   WxwatchWeatherImageResponse,
+  WxwatchWeatherImageStatus400,
+  WxwatchWeatherImageStatus401,
+  WxwatchWeatherImageStatus403,
+  WxwatchWeatherImageStatus404,
   WxwatchWeatherImageStatus422,
 } from "../models/WxwatchWeatherImage.js";
 
@@ -36,7 +40,13 @@ export function wxwatchWeatherImageQueryOptions(
   const queryKey = wxwatchWeatherImageQueryKey({ path });
   return queryOptions<
     WxwatchWeatherImageResponse,
-    ResponseErrorConfig<WxwatchWeatherImageStatus422>,
+    ResponseErrorConfig<
+      | WxwatchWeatherImageStatus400
+      | WxwatchWeatherImageStatus401
+      | WxwatchWeatherImageStatus403
+      | WxwatchWeatherImageStatus404
+      | WxwatchWeatherImageStatus422
+    >,
     WxwatchWeatherImageResponse,
     typeof queryKey
   >({
@@ -73,7 +83,13 @@ export function useWxwatchWeatherImage<
     query?: Partial<
       QueryObserverOptions<
         WxwatchWeatherImageResponse,
-        ResponseErrorConfig<WxwatchWeatherImageStatus422>,
+        ResponseErrorConfig<
+          | WxwatchWeatherImageStatus400
+          | WxwatchWeatherImageStatus401
+          | WxwatchWeatherImageStatus403
+          | WxwatchWeatherImageStatus404
+          | WxwatchWeatherImageStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -99,7 +115,13 @@ export function useWxwatchWeatherImage<
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<WxwatchWeatherImageStatus422>
+    ResponseErrorConfig<
+      | WxwatchWeatherImageStatus400
+      | WxwatchWeatherImageStatus401
+      | WxwatchWeatherImageStatus403
+      | WxwatchWeatherImageStatus404
+      | WxwatchWeatherImageStatus422
+    >
   > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;

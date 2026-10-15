@@ -10,6 +10,10 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 export type EregisterValidateSynopObservationStatus200 =
   SynopValidationResponse;
 
+export type EregisterValidateSynopObservationStatus401 = unknown;
+
+export type EregisterValidateSynopObservationStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -28,6 +32,8 @@ export type EregisterValidateSynopObservationOptions = {
 
 export type EregisterValidateSynopObservationResponses = {
   "200": EregisterValidateSynopObservationStatus200;
+  "401": EregisterValidateSynopObservationStatus401;
+  "403": EregisterValidateSynopObservationStatus403;
   "422": EregisterValidateSynopObservationStatus422;
 };
 

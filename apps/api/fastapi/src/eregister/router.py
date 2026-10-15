@@ -8,6 +8,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.exc import SQLAlchemyError
 
 from src.auth.browser import BrowserUser
+from src.openapi_responses import AUTHENTICATED
 
 from . import public, rules
 from .dependencies import PublicRegisterSession, RegisterSession
@@ -32,6 +33,7 @@ def _read(row: dict[str, Any]) -> RegisterObservationRead:
     response_model=RegisterObservationList,
     summary="List register observations",
     description="Returns recent SYNOP, METAR, and SPECI observations, optionally filtered by station and observation kind.",
+    responses={**AUTHENTICATED},
 )
 async def list_register_observations(
     _user: BrowserUser,
@@ -65,6 +67,7 @@ async def list_register_observations(
     response_model=SynopValidationResponse,
     summary="Validate a SYNOP observation",
     description="Validates the coded SYNOP workbook against the FM-12 code tables and WMO B/C1 regulations, returning field-level errors and warnings, the normalized workbook and the SI-decoded values. Warnings advise; only errors make the workbook invalid.",
+    responses={**AUTHENTICATED},
 )
 async def validate_synop_observation(
     body: SynopValidationRequest,
@@ -84,6 +87,7 @@ async def validate_synop_observation(
     status_code=201,
     summary="Create a register observation",
     description="Stores a structured SYNOP, METAR, or SPECI observation and returns the canonical saved record.",
+    responses={**AUTHENTICATED},
 )
 async def create_register_observation(
     body: RegisterObservationCreate,

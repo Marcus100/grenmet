@@ -15,6 +15,9 @@ import { capGetAlert } from "../clients/capGetAlert.js";
 import type {
   CapGetAlertOptions,
   CapGetAlertStatus200,
+  CapGetAlertStatus401,
+  CapGetAlertStatus403,
+  CapGetAlertStatus404,
   CapGetAlertStatus422,
 } from "../models/CapGetAlert.js";
 
@@ -34,7 +37,12 @@ export function capGetAlertQueryOptions(
   const queryKey = capGetAlertQueryKey({ path });
   return queryOptions<
     CapGetAlertStatus200,
-    ResponseErrorConfig<CapGetAlertStatus422>,
+    ResponseErrorConfig<
+      | CapGetAlertStatus401
+      | CapGetAlertStatus403
+      | CapGetAlertStatus404
+      | CapGetAlertStatus422
+    >,
     CapGetAlertStatus200,
     typeof queryKey
   >({
@@ -67,7 +75,12 @@ export function useCapGetAlert<
     query?: Partial<
       QueryObserverOptions<
         CapGetAlertStatus200,
-        ResponseErrorConfig<CapGetAlertStatus422>,
+        ResponseErrorConfig<
+          | CapGetAlertStatus401
+          | CapGetAlertStatus403
+          | CapGetAlertStatus404
+          | CapGetAlertStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -91,9 +104,15 @@ export function useCapGetAlert<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient
-  ) as UseQueryResult<TData, ResponseErrorConfig<CapGetAlertStatus422>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      | CapGetAlertStatus401
+      | CapGetAlertStatus403
+      | CapGetAlertStatus404
+      | CapGetAlertStatus422
+    >
+  > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;
 

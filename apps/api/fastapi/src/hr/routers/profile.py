@@ -7,6 +7,7 @@ from src.dependencies import CurrentUser, SessionDep
 from src.hr import organisations
 from src.hr.organisations import organisation_choices
 from src.hr.schemas import OrganisationCreate, OrganisationPublic, OrganisationUpdate
+from src.openapi_responses import AUTHENTICATED
 
 from .. import service
 from ..schemas import (
@@ -32,6 +33,7 @@ router = APIRouter(prefix="/hr", tags=["hr"])
     response_model=list[OrganisationPublic],
     summary="List accessible organisations",
     description="Returns the organisations that the authenticated user can access.",
+    responses={**AUTHENTICATED},
 )
 async def read_organisations(
     session: SessionDep, current_user: CurrentUser

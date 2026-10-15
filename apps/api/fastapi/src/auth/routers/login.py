@@ -54,6 +54,7 @@ from src.email import (
 )
 from src.email_config import email_settings
 from src.models import Message, Token
+from src.openapi_responses import AUTHENTICATED, NOT_FOUND
 from src.rate_limit import limiter
 from src.utils.datetime import utc_now
 
@@ -411,7 +412,9 @@ async def logout_all_sessions(
     return Message(message=SUCCESS_LOGGED_OUT_ALL)
 
 
-@router.post("/login/test-token", response_model=UserPublic)
+@router.post(
+    "/login/test-token", response_model=UserPublic, responses={**AUTHENTICATED}
+)
 async def test_token(current_user: CurrentUser) -> Any:
     """
     Test access token.
@@ -489,6 +492,7 @@ async def reset_password(
     "/password-recovery-html-content/{email}",
     dependencies=[Depends(get_current_active_superuser)],
     response_class=HTMLResponse,
+    responses={**AUTHENTICATED, **NOT_FOUND},
 )
 async def recover_password_html_content(email: str, session: SessionDep) -> Any:
     """

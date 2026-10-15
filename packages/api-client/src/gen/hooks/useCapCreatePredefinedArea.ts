@@ -14,6 +14,8 @@ import { capCreatePredefinedArea } from "../clients/capCreatePredefinedArea.js";
 import type {
   CapCreatePredefinedAreaOptions,
   CapCreatePredefinedAreaStatus201,
+  CapCreatePredefinedAreaStatus401,
+  CapCreatePredefinedAreaStatus403,
   CapCreatePredefinedAreaStatus422,
 } from "../models/CapCreatePredefinedArea.js";
 
@@ -28,7 +30,11 @@ export function capCreatePredefinedAreaMutationOptions<TContext = unknown>(
   const mutationKey = capCreatePredefinedAreaMutationKey();
   return mutationOptions<
     CapCreatePredefinedAreaStatus201,
-    ResponseErrorConfig<CapCreatePredefinedAreaStatus422>,
+    ResponseErrorConfig<
+      | CapCreatePredefinedAreaStatus401
+      | CapCreatePredefinedAreaStatus403
+      | CapCreatePredefinedAreaStatus422
+    >,
     CapCreatePredefinedAreaOptions,
     TContext
   >({
@@ -52,7 +58,11 @@ export function useCapCreatePredefinedArea<TContext>(
   options: {
     mutation?: UseMutationOptions<
       CapCreatePredefinedAreaStatus201,
-      ResponseErrorConfig<CapCreatePredefinedAreaStatus422>,
+      ResponseErrorConfig<
+        | CapCreatePredefinedAreaStatus401
+        | CapCreatePredefinedAreaStatus403
+        | CapCreatePredefinedAreaStatus422
+      >,
       CapCreatePredefinedAreaOptions,
       TContext
     > & { client?: QueryClient };
@@ -70,14 +80,22 @@ export function useCapCreatePredefinedArea<TContext>(
     config
   ) as UseMutationOptions<
     CapCreatePredefinedAreaStatus201,
-    ResponseErrorConfig<CapCreatePredefinedAreaStatus422>,
+    ResponseErrorConfig<
+      | CapCreatePredefinedAreaStatus401
+      | CapCreatePredefinedAreaStatus403
+      | CapCreatePredefinedAreaStatus422
+    >,
     CapCreatePredefinedAreaOptions,
     TContext
   >;
 
   return useMutation<
     CapCreatePredefinedAreaStatus201,
-    ResponseErrorConfig<CapCreatePredefinedAreaStatus422>,
+    ResponseErrorConfig<
+      | CapCreatePredefinedAreaStatus401
+      | CapCreatePredefinedAreaStatus403
+      | CapCreatePredefinedAreaStatus422
+    >,
     CapCreatePredefinedAreaOptions,
     TContext
   >(
@@ -89,7 +107,11 @@ export function useCapCreatePredefinedArea<TContext>(
     queryClient
   ) as UseMutationResult<
     CapCreatePredefinedAreaStatus201,
-    ResponseErrorConfig<CapCreatePredefinedAreaStatus422>,
+    ResponseErrorConfig<
+      | CapCreatePredefinedAreaStatus401
+      | CapCreatePredefinedAreaStatus403
+      | CapCreatePredefinedAreaStatus422
+    >,
     CapCreatePredefinedAreaOptions,
     TContext
   >;
