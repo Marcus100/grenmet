@@ -1,6 +1,6 @@
 import type { PublicObservation } from "@barrelsgd/api-client";
-import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { fireEvent, render, screen, within } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { SkyHero } from "@/components/home/sky-hero";
 import { currentConditions } from "@/lib/current-conditions";
 import type { ForecastDayData, WeatherSnapshot } from "@/lib/forecast-data";
@@ -190,6 +190,60 @@ describe("Day tabs", () => {
   it("falls back to Now for a date outside the five days", () => {
     render(<SkyHero selected="2026-12-25" weather={weather()} />);
     expect(nowPanel()).toBeInTheDocument();
+  });
+});
+
+describe("Switching tabs", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("shows the clicked day at once and updates the address without navigating", () => {
+    const replaceState = vi.spyOn(window.history, "replaceState");
+    render(<SkyHero weather={weather()} />);
+    const target = tabs()[2];
+    if (!target) {
+      throw new Error("No second day tab");
+    }
+    const notPrevented = fireEvent.click(target);
+    expect(notPrevented).toBe(false);
+    expect(tabs()[2]).toHaveAttribute("aria-current", "page");
+    expect(tabs()[0]).not.toHaveAttribute("aria-current");
+    expect(
+      within(panel()).getByText(REFERENCE_WEATHER.days[1]?.summary ?? "")
+    ).toBeInTheDocument();
+    expect(replaceState).toHaveBeenCalledWith(null, "", "/weather/2026/09/09");
+  });
+
+  it("returns to the readings when Now is clicked", () => {
+    render(<SkyHero selected="2026-09-09" weather={weather()} />);
+    const now = tabs()[0];
+    if (!now) {
+      throw new Error("No Now tab");
+    }
+    fireEvent.click(now);
+    expect(tabs()[0]).toHaveAttribute("aria-current", "page");
+    expect(nowPanel()).toBeInTheDocument();
+  });
+
+  it("leaves modified clicks to the browser so a day can open in a new tab", () => {
+    render(<SkyHero weather={weather()} />);
+    const target = tabs()[2];
+    if (!target) {
+      throw new Error("No second day tab");
+    }
+    const notPrevented = fireEvent.click(target, { ctrlKey: true });
+    expect(notPrevented).toBe(true);
+    expect(tabs()[0]).toHaveAttribute("aria-current", "page");
+  });
+
+  it("follows a real navigation to a different day", () => {
+    const { rerender } = render(
+      <SkyHero selected="2026-09-08" weather={weather()} />
+    );
+    fireEvent.click(tabs()[2] as HTMLElement);
+    rerender(<SkyHero selected="2026-09-10" weather={weather()} />);
+    expect(tabs()[3]).toHaveAttribute("aria-current", "page");
   });
 });
 
