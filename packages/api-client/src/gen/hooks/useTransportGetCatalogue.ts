@@ -14,6 +14,8 @@ import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { transportGetCatalogue } from "../clients/transportGetCatalogue.js";
 import type {
   TransportGetCatalogueStatus200,
+  TransportGetCatalogueStatus401,
+  TransportGetCatalogueStatus403,
   TransportGetCatalogueStatus422,
   TransportGetCatalogueStatus503,
 } from "../models/TransportGetCatalogue.js";
@@ -34,7 +36,10 @@ export function transportGetCatalogueQueryOptions(
   return queryOptions<
     TransportGetCatalogueStatus200,
     ResponseErrorConfig<
-      TransportGetCatalogueStatus422 | TransportGetCatalogueStatus503
+      | TransportGetCatalogueStatus401
+      | TransportGetCatalogueStatus403
+      | TransportGetCatalogueStatus422
+      | TransportGetCatalogueStatus503
     >,
     TransportGetCatalogueStatus200,
     typeof queryKey
@@ -65,7 +70,10 @@ export function useTransportGetCatalogue<
       QueryObserverOptions<
         TransportGetCatalogueStatus200,
         ResponseErrorConfig<
-          TransportGetCatalogueStatus422 | TransportGetCatalogueStatus503
+          | TransportGetCatalogueStatus401
+          | TransportGetCatalogueStatus403
+          | TransportGetCatalogueStatus422
+          | TransportGetCatalogueStatus503
         >,
         TData,
         TQueryData,
@@ -91,7 +99,10 @@ export function useTransportGetCatalogue<
   ) as UseQueryResult<
     TData,
     ResponseErrorConfig<
-      TransportGetCatalogueStatus422 | TransportGetCatalogueStatus503
+      | TransportGetCatalogueStatus401
+      | TransportGetCatalogueStatus403
+      | TransportGetCatalogueStatus422
+      | TransportGetCatalogueStatus503
     >
   > & { queryKey: TQueryKey };
 

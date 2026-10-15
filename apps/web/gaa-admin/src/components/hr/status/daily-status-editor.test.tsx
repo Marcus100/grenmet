@@ -259,7 +259,7 @@ describe("DailyStatusEditor (wired)", () => {
       signature_version: "11111111-1111-4111-8111-111111111111",
       co_approver_user_ids: [],
     });
-  }, 20_000);
+  });
 });
 
 describe("StatusSubmissions", () => {
@@ -290,7 +290,7 @@ describe("StatusSubmissions", () => {
     expect(await screen.findByText("2026-07-15")).toBeInTheDocument();
     expect(screen.getByText("AM")).toBeInTheDocument();
     expect(screen.getByText("SUBMITTED")).toBeInTheDocument();
-  }, 20_000);
+  });
 
   it("renders nothing when the list endpoint returns 403", async () => {
     let requested = false;
@@ -305,7 +305,7 @@ describe("StatusSubmissions", () => {
     // Let the query settle into its error state, then confirm nothing rendered.
     await waitFor(() => expect(requested).toBe(true));
     await waitFor(() => expect(container).toBeEmptyDOMElement());
-  }, 20_000);
+  });
 });
 
 describe("daily status alignment", () => {

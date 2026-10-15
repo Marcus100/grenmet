@@ -9,6 +9,10 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 
 export const capGetFeedsStatus200Schema = z.array(capFeedImportPublicSchema);
 
+export const capGetFeedsStatus401Schema = z.unknown();
+
+export const capGetFeedsStatus403Schema = z.unknown();
+
 export const capGetFeedsStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -16,4 +20,8 @@ export const capGetFeedsStatus422Schema =
 
 export const capGetFeedsResponseSchema = capGetFeedsStatus200Schema;
 
-export const capGetFeedsErrorSchema = capGetFeedsStatus422Schema;
+export const capGetFeedsErrorSchema = z.union([
+  capGetFeedsStatus401Schema,
+  capGetFeedsStatus403Schema,
+  capGetFeedsStatus422Schema,
+]);

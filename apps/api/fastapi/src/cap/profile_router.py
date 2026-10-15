@@ -11,6 +11,7 @@ from src.cap.profile_schemas import (
 )
 from src.cap.schemas import CapAlertPublic
 from src.dependencies import CurrentUser, SessionDep
+from src.openapi_responses import AUTHENTICATED, NOT_FOUND
 
 router = APIRouter(prefix="/hazard-profiles", tags=["cap"])
 
@@ -20,6 +21,7 @@ router = APIRouter(prefix="/hazard-profiles", tags=["cap"])
     response_model=list[CapProfilePublic],
     summary="List CAP hazard profiles",
     description="Returns the latest accessible version of each CAP hazard profile for the current user.",
+    responses={**AUTHENTICATED},
 )
 async def read_hazard_profiles(
     session: SessionDep, current_user: CurrentUser
@@ -33,6 +35,7 @@ async def read_hazard_profiles(
     status_code=201,
     summary="Save a CAP hazard profile version",
     description="Creates a new version of a named CAP hazard profile for later alert drafting and review.",
+    responses={**AUTHENTICATED},
 )
 async def save_hazard_profile(
     session: SessionDep,
@@ -48,6 +51,7 @@ async def save_hazard_profile(
     response_model=CapProfilePublic,
     summary="Approve a CAP hazard profile",
     description="Approves a reviewed CAP hazard profile version so it can be used to create alerts.",
+    responses={**AUTHENTICATED, **NOT_FOUND},
 )
 async def approve_hazard_profile(
     session: SessionDep, current_user: CurrentUser, profile_id: uuid.UUID
@@ -61,6 +65,7 @@ async def approve_hazard_profile(
     status_code=201,
     summary="Draft an alert from a CAP hazard profile",
     description="Creates a new CAP alert draft using the selected hazard profile and supplied event details.",
+    responses={**AUTHENTICATED, **NOT_FOUND},
 )
 async def draft_from_hazard_profile(
     session: SessionDep,

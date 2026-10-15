@@ -18,6 +18,12 @@ export type CapSubmitAlertPath = {
 
 export type CapSubmitAlertStatus200 = CapAlertPublic;
 
+export type CapSubmitAlertStatus401 = unknown;
+
+export type CapSubmitAlertStatus403 = unknown;
+
+export type CapSubmitAlertStatus404 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -35,6 +41,9 @@ export type CapSubmitAlertOptions = {
 
 export type CapSubmitAlertResponses = {
   "200": CapSubmitAlertStatus200;
+  "401": CapSubmitAlertStatus401;
+  "403": CapSubmitAlertStatus403;
+  "404": CapSubmitAlertStatus404;
   "422": CapSubmitAlertStatus422;
 };
 

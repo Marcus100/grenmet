@@ -14,6 +14,7 @@ export const hrGetAbsenteeReportsQueryDepartmentIdSchema = z
 export const hrGetAbsenteeReportsQueryPageSchema = z
   .int()
   .min(1)
+  .max(1000000)
   .optional()
   .default(1)
   .describe("Page number (1-indexed)");

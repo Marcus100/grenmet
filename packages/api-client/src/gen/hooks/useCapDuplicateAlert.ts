@@ -14,6 +14,9 @@ import { capDuplicateAlert } from "../clients/capDuplicateAlert.js";
 import type {
   CapDuplicateAlertOptions,
   CapDuplicateAlertStatus200,
+  CapDuplicateAlertStatus401,
+  CapDuplicateAlertStatus403,
+  CapDuplicateAlertStatus404,
   CapDuplicateAlertStatus422,
 } from "../models/CapDuplicateAlert.js";
 
@@ -28,7 +31,12 @@ export function capDuplicateAlertMutationOptions<TContext = unknown>(
   const mutationKey = capDuplicateAlertMutationKey();
   return mutationOptions<
     CapDuplicateAlertStatus200,
-    ResponseErrorConfig<CapDuplicateAlertStatus422>,
+    ResponseErrorConfig<
+      | CapDuplicateAlertStatus401
+      | CapDuplicateAlertStatus403
+      | CapDuplicateAlertStatus404
+      | CapDuplicateAlertStatus422
+    >,
     CapDuplicateAlertOptions,
     TContext
   >({
@@ -52,7 +60,12 @@ export function useCapDuplicateAlert<TContext>(
   options: {
     mutation?: UseMutationOptions<
       CapDuplicateAlertStatus200,
-      ResponseErrorConfig<CapDuplicateAlertStatus422>,
+      ResponseErrorConfig<
+        | CapDuplicateAlertStatus401
+        | CapDuplicateAlertStatus403
+        | CapDuplicateAlertStatus404
+        | CapDuplicateAlertStatus422
+      >,
       CapDuplicateAlertOptions,
       TContext
     > & { client?: QueryClient };
@@ -70,14 +83,24 @@ export function useCapDuplicateAlert<TContext>(
     config
   ) as UseMutationOptions<
     CapDuplicateAlertStatus200,
-    ResponseErrorConfig<CapDuplicateAlertStatus422>,
+    ResponseErrorConfig<
+      | CapDuplicateAlertStatus401
+      | CapDuplicateAlertStatus403
+      | CapDuplicateAlertStatus404
+      | CapDuplicateAlertStatus422
+    >,
     CapDuplicateAlertOptions,
     TContext
   >;
 
   return useMutation<
     CapDuplicateAlertStatus200,
-    ResponseErrorConfig<CapDuplicateAlertStatus422>,
+    ResponseErrorConfig<
+      | CapDuplicateAlertStatus401
+      | CapDuplicateAlertStatus403
+      | CapDuplicateAlertStatus404
+      | CapDuplicateAlertStatus422
+    >,
     CapDuplicateAlertOptions,
     TContext
   >(
@@ -89,7 +112,12 @@ export function useCapDuplicateAlert<TContext>(
     queryClient
   ) as UseMutationResult<
     CapDuplicateAlertStatus200,
-    ResponseErrorConfig<CapDuplicateAlertStatus422>,
+    ResponseErrorConfig<
+      | CapDuplicateAlertStatus401
+      | CapDuplicateAlertStatus403
+      | CapDuplicateAlertStatus404
+      | CapDuplicateAlertStatus422
+    >,
     CapDuplicateAlertOptions,
     TContext
   >;

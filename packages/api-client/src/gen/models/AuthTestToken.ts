@@ -8,6 +8,10 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthTestTokenStatus200 = UserPublic;
 
+export type AuthTestTokenStatus401 = unknown;
+
+export type AuthTestTokenStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -23,6 +27,8 @@ export type AuthTestTokenOptions = {
 
 export type AuthTestTokenResponses = {
   "200": AuthTestTokenStatus200;
+  "401": AuthTestTokenStatus401;
+  "403": AuthTestTokenStatus403;
   "422": AuthTestTokenStatus422;
 };
 

@@ -570,3 +570,42 @@ for (const suffix of ["", "app.include_router(new_router)\n"]) {
     );
   });
 }
+
+const REQUEST_ID_BEFORE = `from src.rate_limit import limiter
+${REQUEST_LOGGING_AFTER.split("\n").slice(1).join("\n")}    app.add_middleware(
+        CORSMiddleware,
+        allow_headers=["Authorization", "Content-Type"],
+    )
+`;
+const REQUEST_ID_AFTER = REQUEST_ID_BEFORE.replace(
+  "from src.rate_limit import limiter\n",
+  "from src.rate_limit import limiter\nfrom src.request_context import (\n    REQUEST_ID_HEADER,\n    bind_request_id,\n    reset_request_id,\n    resolve_request_id,\n)\n"
+)
+  .replace(
+    "    try:\n        response = await call_next(request)\n        status = response.status_code\n    finally:",
+    '    request_id = resolve_request_id(request.headers.get(REQUEST_ID_HEADER))\n    token = bind_request_id(request_id)\n    sentry_sdk.set_tag("request_id", request_id)\n    try:\n        response = await call_next(request)\n        status = response.status_code\n        response.headers[REQUEST_ID_HEADER] = request_id\n    finally:'
+  )
+  .replace(
+    '        logger.info(\n            "request route=%s status=%s duration=%.3fs", route, status, duration_s\n        )\n        await operational_metrics.record_request(route, status, duration_s)\n',
+    '        logger.info(\n            "request route=%s status=%s duration=%.3fs request_id=%s",\n            route,\n            status,\n            duration_s,\n            request_id,\n        )\n        await operational_metrics.record_request(route, status, duration_s)\n        reset_request_id(token)\n'
+  )
+  .replace(
+    'allow_headers=["Authorization", "Content-Type"],\n    )',
+    'allow_headers=["Authorization", "Content-Type"],\n        expose_headers=[REQUEST_ID_HEADER],\n    )'
+  );
+for (const suffix of ["", "app.include_router(new_router)\n"]) {
+  test(`request ID exemption rejects additional route edits: ${Boolean(suffix)}`, (t) => {
+    const file = "apps/api/fastapi/src/main.py";
+    const { base, repository } = createRepository(t, {
+      [file]: REQUEST_ID_BEFORE,
+    });
+    write(repository, file, REQUEST_ID_AFTER + suffix);
+    git(repository, "add", file);
+    assert.equal(check(repository, ["--staged"]).status, suffix ? 1 : 0);
+    const head = commit(repository);
+    assert.equal(
+      check(repository, ["--base", base, "--head", head]).status,
+      suffix ? 1 : 0
+    );
+  });
+}

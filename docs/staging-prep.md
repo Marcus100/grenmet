@@ -24,7 +24,7 @@ remaining manual steps. Companion to `docs/fastapi-cap-audit.md`.
 
 ## Required env vars for staging/prod (set in deploy env, not committed)
 
-```
+```text
 ENVIRONMENT=staging|production
 SECRET_KEY=<32+ chars, explicit>            # refusal-to-default enforced outside local
 POSTGRES_PASSWORD / FIRST_SUPERUSER_PASSWORD  # strength-validated outside local

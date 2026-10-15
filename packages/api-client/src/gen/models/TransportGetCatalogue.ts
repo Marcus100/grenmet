@@ -9,6 +9,10 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type TransportGetCatalogueStatus200 = TransportCatalogue;
 
+export type TransportGetCatalogueStatus401 = unknown;
+
+export type TransportGetCatalogueStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -30,6 +34,8 @@ export type TransportGetCatalogueOptions = {
 
 export type TransportGetCatalogueResponses = {
   "200": TransportGetCatalogueStatus200;
+  "401": TransportGetCatalogueStatus401;
+  "403": TransportGetCatalogueStatus403;
   "422": TransportGetCatalogueStatus422;
   "503": TransportGetCatalogueStatus503;
 };

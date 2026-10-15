@@ -20,6 +20,7 @@ export const hrGetDocumentEmployeesQueryOrganisationIdSchema = z
 export const hrGetDocumentEmployeesQueryPageSchema = z
   .int()
   .min(1)
+  .max(1000000)
   .optional()
   .default(1)
   .describe("Page number (1-indexed)");
@@ -35,6 +36,10 @@ export const hrGetDocumentEmployeesQuerySizeSchema = z
 export const hrGetDocumentEmployeesStatus200Schema =
   documentEmployeeListPublicSchema;
 
+export const hrGetDocumentEmployeesStatus401Schema = z.unknown();
+
+export const hrGetDocumentEmployeesStatus403Schema = z.unknown();
+
 export const hrGetDocumentEmployeesStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -43,5 +48,8 @@ export const hrGetDocumentEmployeesStatus422Schema =
 export const hrGetDocumentEmployeesResponseSchema =
   hrGetDocumentEmployeesStatus200Schema;
 
-export const hrGetDocumentEmployeesErrorSchema =
-  hrGetDocumentEmployeesStatus422Schema;
+export const hrGetDocumentEmployeesErrorSchema = z.union([
+  hrGetDocumentEmployeesStatus401Schema,
+  hrGetDocumentEmployeesStatus403Schema,
+  hrGetDocumentEmployeesStatus422Schema,
+]);

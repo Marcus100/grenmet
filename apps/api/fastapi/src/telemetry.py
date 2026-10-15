@@ -4,8 +4,9 @@ import os
 from typing import Any
 
 # Tags without customer content or identity; must match the web scrubber in
-# packages/ui/src/lib/sentry-privacy.ts.
-SAFE_TAGS = frozenset({"area", "digest"})
+# packages/ui/src/lib/sentry-privacy.ts. `request_id` is a random per-request
+# token (src/request_context.py) that links an event to its log lines.
+SAFE_TAGS = frozenset({"area", "digest", "request_id"})
 
 
 def scrub_sentry_event(event: dict[str, Any], _hint: dict[str, Any]) -> dict[str, Any]:

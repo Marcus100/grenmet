@@ -4,6 +4,7 @@
 
 ## What lives here
 - Users, roles, permissions, role assignments (`models.py`, `routers/`), 2FA/TOTP (`totp.py`, `routers/twofa.py`), lockout, devices, account security.
+- Core account logic in `service.py` (user writes, `authenticate`, `set_password`, `update_password`), with the rest split by area and re-exported through `service.__all__`, so `service.<name>` still works everywhere: `user_queries.py` (lookups), `eligibility.py` (app and staff eligibility, effective permission), `totp_enrolment.py`, `sessions.py` (sessions and access tokens), `roles.py` (roles and permission catalogue), `assignments.py` (role assignments and delegated authority). Imports point one way: `sessions` ← `eligibility`, `user_queries`; `assignments` ← `roles`; never import `service` from these. Tests patch `service.verify_password_async`, so functions that call it (`authenticate`, `update_password`) stay in `service.py`, and so do the ones that log through `service`'s logger.
 - Modern sign-in flows (`modern.py`, `modern_service.py`: email codes, Google, recovery codes) under `/api/v1/auth/modern`.
 - Browser session auth for web apps (`browser.py`) — opaque sessions per ADR-0002.
 - App-scoped sign-in (`apps.py`, `app_router.py`, `app_service.py`, `app_dependencies.py`, `otp.py`) under `/api/v1/auth/apps/{app}` — ADR-0016; single sign-on handoff (`/handoff`, `/handoff/redeem`) — ADR-0017.
@@ -25,6 +26,9 @@
 - New permission → add to `PERMISSIONS`, default role grants if needed, gate the UI in gaa-admin, and add a test.
 - Session/cookie behaviour → verify `packages/auth`, `apps/web/auth`, and every delegating app (root Blast-Radius table).
 - Route changes → `openapi.json`, client regen, `docs/api/contracts.md`.
+
+## Account apps (join and leave)
+`app_router.account_router` (`/auth/account/apps`, `/{app}/join`, `/{app}/leave`) manages memberships for the auth.barrels.gd account session; `_account_session_user` rejects app sessions. Leaving removes only the app's default role link and ends that app's sessions (`sessions.revoke_user_app_sessions`); staff-scope apps cannot be left. Tests: `tests/auth/test_account_apps.py`.
 
 ## Tests
 `tests/auth/` (routers, 2FA, lockout, devices, modern auth, token TTL, user management, permission registry).

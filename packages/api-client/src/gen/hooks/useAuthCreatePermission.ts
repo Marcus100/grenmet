@@ -14,6 +14,8 @@ import { authCreatePermission } from "../clients/authCreatePermission.js";
 import type {
   AuthCreatePermissionOptions,
   AuthCreatePermissionStatus201,
+  AuthCreatePermissionStatus401,
+  AuthCreatePermissionStatus403,
   AuthCreatePermissionStatus422,
 } from "../models/AuthCreatePermission.js";
 
@@ -28,7 +30,11 @@ export function authCreatePermissionMutationOptions<TContext = unknown>(
   const mutationKey = authCreatePermissionMutationKey();
   return mutationOptions<
     AuthCreatePermissionStatus201,
-    ResponseErrorConfig<AuthCreatePermissionStatus422>,
+    ResponseErrorConfig<
+      | AuthCreatePermissionStatus401
+      | AuthCreatePermissionStatus403
+      | AuthCreatePermissionStatus422
+    >,
     AuthCreatePermissionOptions,
     TContext
   >({
@@ -52,7 +58,11 @@ export function useAuthCreatePermission<TContext>(
   options: {
     mutation?: UseMutationOptions<
       AuthCreatePermissionStatus201,
-      ResponseErrorConfig<AuthCreatePermissionStatus422>,
+      ResponseErrorConfig<
+        | AuthCreatePermissionStatus401
+        | AuthCreatePermissionStatus403
+        | AuthCreatePermissionStatus422
+      >,
       AuthCreatePermissionOptions,
       TContext
     > & { client?: QueryClient };
@@ -70,14 +80,22 @@ export function useAuthCreatePermission<TContext>(
     config
   ) as UseMutationOptions<
     AuthCreatePermissionStatus201,
-    ResponseErrorConfig<AuthCreatePermissionStatus422>,
+    ResponseErrorConfig<
+      | AuthCreatePermissionStatus401
+      | AuthCreatePermissionStatus403
+      | AuthCreatePermissionStatus422
+    >,
     AuthCreatePermissionOptions,
     TContext
   >;
 
   return useMutation<
     AuthCreatePermissionStatus201,
-    ResponseErrorConfig<AuthCreatePermissionStatus422>,
+    ResponseErrorConfig<
+      | AuthCreatePermissionStatus401
+      | AuthCreatePermissionStatus403
+      | AuthCreatePermissionStatus422
+    >,
     AuthCreatePermissionOptions,
     TContext
   >(
@@ -89,7 +107,11 @@ export function useAuthCreatePermission<TContext>(
     queryClient
   ) as UseMutationResult<
     AuthCreatePermissionStatus201,
-    ResponseErrorConfig<AuthCreatePermissionStatus422>,
+    ResponseErrorConfig<
+      | AuthCreatePermissionStatus401
+      | AuthCreatePermissionStatus403
+      | AuthCreatePermissionStatus422
+    >,
     AuthCreatePermissionOptions,
     TContext
   >;

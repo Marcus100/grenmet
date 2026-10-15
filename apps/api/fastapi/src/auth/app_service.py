@@ -22,16 +22,19 @@ from starlette.requests import Request
 from src.auth import modern_service, otp, service
 from src.auth.account_security import verify_factor
 from src.auth.app_schemas import (
+    AccountAppPublic,
     AppEmailCodeStart,
     AppEmailCodeVerify,
     AppHandoffCode,
     AppHandoffRedeem,
     AppHandoffStart,
+    AppJoinResult,
+    AppLeaveResult,
     AppPasswordLogin,
     AppPhoneCodeStart,
     AppPhoneCodeVerify,
 )
-from src.auth.apps import AppDefinition, is_registered, require_method
+from src.auth.apps import AppDefinition, is_registered, registered_apps, require_method
 from src.auth.config import auth_settings
 from src.auth.devices import remember_device, schedule_new_sign_in_alert
 from src.auth.lockout import login_lockout
@@ -46,6 +49,7 @@ from src.auth.modern_schemas import (
     GoogleStartPublic,
 )
 from src.auth.schemas import SessionLoginResponse, SessionPublic, SessionUserPublic
+from src.auth.sessions import revoke_user_app_sessions
 from src.auth.utils import get_password_hash_async
 from src.email import send_email
 from src.email_config import email_settings
@@ -612,6 +616,21 @@ def _require_sso(app: AppDefinition) -> None:
         raise AppException("This app doesn't accept single sign-on", 404)
 
 
+async def _account_session_user(
+    session: AsyncSession, session_token: str
+) -> tuple[LoginSession, User]:
+    """The live auth.barrels.gd session and its user; app sessions don't count."""
+    account = await service.get_active_session_by_secret(
+        session=session, session_secret=session_token
+    )
+    if account is None or is_registered(account.app_name):
+        raise AppException("Sign in again", 401)
+    user = await service.get_user_by_id(session=session, user_id=account.user_id)
+    if user is None or not user.is_active:
+        raise AppException("Sign in again", 401)
+    return account, user
+
+
 async def handoff_start(
     *, session: AsyncSession, app: AppDefinition, body: AppHandoffStart
 ) -> AppHandoffCode:
@@ -621,14 +640,7 @@ async def handoff_start(
     session) may start a handoff, so no app session can mint access to another.
     """
     _require_sso(app)
-    account = await service.get_active_session_by_secret(
-        session=session, session_secret=body.session_token
-    )
-    if account is None or is_registered(account.app_name):
-        raise AppException("Sign in again", 401)
-    user = await service.get_user_by_id(session=session, user_id=account.user_id)
-    if user is None or not user.is_active:
-        raise AppException("Sign in again", 401)
+    account, user = await _account_session_user(session, body.session_token)
     if app.scope == "staff":
         if not service.is_staff_eligible(user):
             raise AppException(
@@ -809,3 +821,64 @@ async def account_email_code_verify(
         session=SessionPublic.model_validate(db_session, from_attributes=True),
         user=SessionUserPublic.model_validate(user, from_attributes=True),
     )
+
+
+def _self_service(app: AppDefinition) -> bool:
+    """Apps people join and leave themselves, as opposed to staff-granted ones."""
+    return app.scope == "app" and app.self_signup
+
+
+async def list_account_apps(
+    *, session: AsyncSession, session_token: str
+) -> list[AccountAppPublic]:
+    """Every single sign-on app, and whether this account can use it now."""
+    _, user = await _account_session_user(session, session_token)
+    return [
+        AccountAppPublic(
+            key=app.key,
+            label=app.label,
+            joined=await service.is_eligible_for_app(
+                session=session, user=user, app_key=app.key
+            ),
+            can_leave=_self_service(app),
+        )
+        for app in registered_apps()
+    ]
+
+
+async def join_account_app(
+    *, session: AsyncSession, app: AppDefinition, session_token: str
+) -> AppJoinResult:
+    """Join an app from the account page, without signing in to it."""
+    _, user = await _account_session_user(session, session_token)
+    if not _self_service(app):
+        raise AppException("Ask the team to give you access to this app.", 403)
+    if user.email_verified_at is None:
+        raise AppException("Verify your email address before joining an app.", 403)
+    await ensure_member(session, user, app)
+    return AppJoinResult(joined=True)
+
+
+async def leave_account_app(
+    *, session: AsyncSession, app: AppDefinition, session_token: str
+) -> AppLeaveResult:
+    """Drop the app's default role and end the person's sessions in that app.
+
+    The account and every other app are untouched. Idempotent. Staff apps are
+    granted by an administrator, so they can't be left here.
+    """
+    _, user = await _account_session_user(session, session_token)
+    if not _self_service(app):
+        raise AppException("Access to this app is managed by your administrators.", 403)
+    role_id = await session.scalar(select(Role.id).where(Role.name == app.default_role))
+    if role_id is not None:
+        link = await session.get(UserRoleLink, (user.id, role_id))
+        if link is not None:
+            await session.delete(link)
+            await session.commit()
+    await revoke_user_app_sessions(session=session, user_id=user.id, app_key=app.key)
+    logger.info("User left app", extra={"user_id": str(user.id), "app": app.key})
+    still = await service.is_eligible_for_app(
+        session=session, user=user, app_key=app.key
+    )
+    return AppLeaveResult(left=True, still_has_access=still)

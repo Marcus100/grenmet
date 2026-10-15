@@ -13,7 +13,7 @@ This IS the auth app — it does not delegate to itself. It integrates directly 
 
 ## Routes
 
-```
+```text
 src/app/
   page.tsx                        ← sign-in form
   signup/page.tsx
@@ -34,6 +34,8 @@ src/app/
 - `AUTH_ALLOWED_RETURN_HOSTS` controls which hosts are valid redirect targets after sign-in. Never redirect to an unvalidated host — always go through `getSafeLocalReturnTo()`.
 - `buildSharedSignInUrl()` from `@barrelsgd/auth/server` is what other apps use to redirect here. Do not construct the URL manually.
 - The account session lives in a host-only `AUTH_SESSION_COOKIE_NAME` cookie (`auth_session`). Other apps never read it; they get their own session through `/continue` (ADR-0017). Signing out here signs out of every app.
+
+- Playwright smoke tests live in `e2e/` (`sign-in.spec.ts`); run them with `pnpm --filter @barrelsgd/web-auth test:e2e` (its config starts the dev server). The repo-wide `pnpm e2e` covers only gms and gaa-admin.
 
 ## Key dependencies
 

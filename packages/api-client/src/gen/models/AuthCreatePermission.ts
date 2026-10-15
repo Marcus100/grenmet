@@ -9,6 +9,10 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthCreatePermissionStatus201 = PermissionPublic;
 
+export type AuthCreatePermissionStatus401 = unknown;
+
+export type AuthCreatePermissionStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -26,6 +30,8 @@ export type AuthCreatePermissionOptions = {
 
 export type AuthCreatePermissionResponses = {
   "201": AuthCreatePermissionStatus201;
+  "401": AuthCreatePermissionStatus401;
+  "403": AuthCreatePermissionStatus403;
   "422": AuthCreatePermissionStatus422;
 };
 

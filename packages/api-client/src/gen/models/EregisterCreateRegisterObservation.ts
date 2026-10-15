@@ -10,6 +10,10 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 export type EregisterCreateRegisterObservationStatus201 =
   RegisterObservationRead;
 
+export type EregisterCreateRegisterObservationStatus401 = unknown;
+
+export type EregisterCreateRegisterObservationStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -28,6 +32,8 @@ export type EregisterCreateRegisterObservationOptions = {
 
 export type EregisterCreateRegisterObservationResponses = {
   "201": EregisterCreateRegisterObservationStatus201;
+  "401": EregisterCreateRegisterObservationStatus401;
+  "403": EregisterCreateRegisterObservationStatus403;
   "422": EregisterCreateRegisterObservationStatus422;
 };
 

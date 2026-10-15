@@ -14,6 +14,8 @@ import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { authTwofaStatus } from "../clients/authTwofaStatus.js";
 import type {
   AuthTwofaStatusStatus200,
+  AuthTwofaStatusStatus401,
+  AuthTwofaStatusStatus403,
   AuthTwofaStatusStatus422,
 } from "../models/AuthTwofaStatus.js";
 
@@ -30,7 +32,11 @@ export function authTwofaStatusQueryOptions(
   const queryKey = authTwofaStatusQueryKey();
   return queryOptions<
     AuthTwofaStatusStatus200,
-    ResponseErrorConfig<AuthTwofaStatusStatus422>,
+    ResponseErrorConfig<
+      | AuthTwofaStatusStatus401
+      | AuthTwofaStatusStatus403
+      | AuthTwofaStatusStatus422
+    >,
     AuthTwofaStatusStatus200,
     typeof queryKey
   >({
@@ -59,7 +65,11 @@ export function useAuthTwofaStatus<
     query?: Partial<
       QueryObserverOptions<
         AuthTwofaStatusStatus200,
-        ResponseErrorConfig<AuthTwofaStatusStatus422>,
+        ResponseErrorConfig<
+          | AuthTwofaStatusStatus401
+          | AuthTwofaStatusStatus403
+          | AuthTwofaStatusStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -81,9 +91,14 @@ export function useAuthTwofaStatus<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient
-  ) as UseQueryResult<TData, ResponseErrorConfig<AuthTwofaStatusStatus422>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      | AuthTwofaStatusStatus401
+      | AuthTwofaStatusStatus403
+      | AuthTwofaStatusStatus422
+    >
+  > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;
 

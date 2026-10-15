@@ -10,6 +10,7 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 export const hrGetMyTimesheetsQueryPageSchema = z
   .int()
   .min(1)
+  .max(1000000)
   .optional()
   .default(1)
   .describe("Page number (1-indexed)");
@@ -24,6 +25,10 @@ export const hrGetMyTimesheetsQuerySizeSchema = z
 
 export const hrGetMyTimesheetsStatus200Schema = timesheetListPublicSchema;
 
+export const hrGetMyTimesheetsStatus401Schema = z.unknown();
+
+export const hrGetMyTimesheetsStatus403Schema = z.unknown();
+
 export const hrGetMyTimesheetsStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -31,4 +36,8 @@ export const hrGetMyTimesheetsStatus422Schema =
 
 export const hrGetMyTimesheetsResponseSchema = hrGetMyTimesheetsStatus200Schema;
 
-export const hrGetMyTimesheetsErrorSchema = hrGetMyTimesheetsStatus422Schema;
+export const hrGetMyTimesheetsErrorSchema = z.union([
+  hrGetMyTimesheetsStatus401Schema,
+  hrGetMyTimesheetsStatus403Schema,
+  hrGetMyTimesheetsStatus422Schema,
+]);

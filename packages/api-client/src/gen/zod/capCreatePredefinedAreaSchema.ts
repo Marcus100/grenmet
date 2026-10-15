@@ -3,12 +3,17 @@
  * Do not edit manually.
  */
 
+import * as z from "zod";
 import { capPredefinedAreaCreateSchema } from "./capPredefinedAreaCreateSchema.js";
 import { capPredefinedAreaPublicSchema } from "./capPredefinedAreaPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const capCreatePredefinedAreaStatus201Schema =
   capPredefinedAreaPublicSchema;
+
+export const capCreatePredefinedAreaStatus401Schema = z.unknown();
+
+export const capCreatePredefinedAreaStatus403Schema = z.unknown();
 
 export const capCreatePredefinedAreaStatus422Schema =
   validationErrorResponseSchema.describe(
@@ -18,7 +23,10 @@ export const capCreatePredefinedAreaStatus422Schema =
 export const capCreatePredefinedAreaResponseSchema =
   capCreatePredefinedAreaStatus201Schema;
 
-export const capCreatePredefinedAreaErrorSchema =
-  capCreatePredefinedAreaStatus422Schema;
+export const capCreatePredefinedAreaErrorSchema = z.union([
+  capCreatePredefinedAreaStatus401Schema,
+  capCreatePredefinedAreaStatus403Schema,
+  capCreatePredefinedAreaStatus422Schema,
+]);
 
 export const capCreatePredefinedAreaBodySchema = capPredefinedAreaCreateSchema;

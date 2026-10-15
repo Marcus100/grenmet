@@ -5,8 +5,9 @@ from fastapi import APIRouter, Query, status
 
 from src.dependencies import CurrentUser, SessionDep
 from src.hr.dependencies import PublicHolidayDep, RosterPeriodDep
+from src.hr.timesheet.models import DepartmentPolicy
 
-from . import service
+from . import rule_service, service
 from .models import RosterAvailability, RosterPeriodStatus
 from .schemas import (
     PublicHolidayCreate,
@@ -28,6 +29,10 @@ from .schemas import (
     RosterPeriodsPublic,
     RosterRevisionPublic,
     RosterRevisionsPublic,
+    RosterRuleCheckPublic,
+    RosterRulesPublic,
+    RosterRulesUpdate,
+    RuleViolationPublic,
     ShiftCatalogCreate,
     ShiftCatalogPublic,
     ShiftCatalogsPublic,
@@ -421,7 +426,11 @@ async def import_csv(
     "/periods/{period_id}/publish",
     response_model=RosterPeriodPublic,
     summary="Publish roster period",
-    description="Transition a draft roster period to published. Requires roster.manage permission.",
+    description=(
+        "Transition a draft roster period to published. Roster rule warnings "
+        "are recorded on the published revision and never block publishing. "
+        "Requires roster.manage permission."
+    ),
     responses={
         status.HTTP_200_OK: {"description": "Roster period published"},
         status.HTTP_400_BAD_REQUEST: {
@@ -434,8 +443,15 @@ async def import_csv(
 async def publish_period(
     *, session: SessionDep, current_user: CurrentUser, period: RosterPeriodDep
 ) -> Any:
-    return await service.publish_roster_period(
+    # Warn-only: violations are recorded on the revision but never block publish.
+    _, _, warnings = await rule_service.check_period_rules(
         session=session, current_user=current_user, period_id=period.id
+    )
+    return await service.publish_roster_period(
+        session=session,
+        current_user=current_user,
+        period_id=period.id,
+        rule_warnings=warnings,
     )
 
 
@@ -555,4 +571,115 @@ async def remove_holiday(
 ) -> None:
     await service.delete_public_holiday(
         session=session, current_user=current_user, holiday_id=holiday.id
+    )
+
+
+def _rules_public(
+    department_id: str, policy: DepartmentPolicy | None
+) -> RosterRulesPublic:
+    if policy is None:
+        return RosterRulesPublic(department_id=department_id)
+    return RosterRulesPublic(
+        department_id=department_id,
+        min_rest_hours=policy.min_rest_hours,
+        max_consecutive_days=policy.max_consecutive_days,
+        max_weekly_hours=policy.max_weekly_hours,
+    )
+
+
+@router.get(
+    "/departments/{department_id}/rules",
+    response_model=RosterRulesPublic,
+    summary="Read department roster rule limits",
+    description=(
+        "Return the roster rule limits for a department. A null limit means the "
+        "rule is disabled. Requires roster.view within the department scope."
+    ),
+    responses={
+        status.HTTP_200_OK: {"description": "Rule limits returned"},
+        status.HTTP_403_FORBIDDEN: {"description": "Department outside your scope"},
+    },
+)
+async def get_department_rules(
+    *, session: SessionDep, current_user: CurrentUser, department_id: str
+) -> Any:
+    policy = await rule_service.read_department_rules(
+        session=session, current_user=current_user, department_id=department_id
+    )
+    return _rules_public(department_id, policy)
+
+
+@router.put(
+    "/departments/{department_id}/rules",
+    response_model=RosterRulesPublic,
+    summary="Set department roster rule limits",
+    description=(
+        "Replace the roster rule limits for a department; null disables a rule. "
+        "Rules only produce warnings and never block publishing. Requires "
+        "roster.manage within the department scope."
+    ),
+    responses={
+        status.HTTP_200_OK: {"description": "Rule limits saved"},
+        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+    },
+)
+async def put_department_rules(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    department_id: str,
+    data: RosterRulesUpdate,
+) -> Any:
+    policy = await rule_service.update_department_rules(
+        session=session,
+        current_user=current_user,
+        department_id=department_id,
+        data=data,
+    )
+    return _rules_public(department_id, policy)
+
+
+@router.get(
+    "/periods/{period_id}/rule-check",
+    response_model=RosterRuleCheckPublic,
+    summary="Check a roster period against department rules",
+    description=(
+        "Return warn-only violations of the department's rest, consecutive-day "
+        "and weekly-hour limits for a roster period. Neighbouring published "
+        "periods are included so runs crossing the boundary are seen. Requires "
+        "roster.view."
+    ),
+    responses={
+        status.HTTP_200_OK: {"description": "Rule check returned"},
+        status.HTTP_403_FORBIDDEN: {"description": "Department outside your scope"},
+        status.HTTP_404_NOT_FOUND: {"description": "Roster period not found"},
+    },
+)
+async def check_period_rules(
+    *, session: SessionDep, current_user: CurrentUser, period: RosterPeriodDep
+) -> Any:
+    checked, rules, violations = await rule_service.check_period_rules(
+        session=session, current_user=current_user, period_id=period.id
+    )
+    return RosterRuleCheckPublic(
+        period_id=checked.id,
+        rules=RosterRulesPublic(
+            department_id=checked.department_id,
+            min_rest_hours=rules.min_rest_hours,
+            max_consecutive_days=rules.max_consecutive_days,
+            max_weekly_hours=rules.max_weekly_hours,
+        ),
+        violations=[
+            RuleViolationPublic(
+                code=v.code.value,
+                user_id=v.user_id,
+                start_date=v.start_date,
+                end_date=v.end_date,
+                observed=v.observed,
+                limit=v.limit,
+                detail=v.detail,
+            )
+            for v in violations
+        ],
+        count=len(violations),
     )

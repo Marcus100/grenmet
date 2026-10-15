@@ -10,6 +10,7 @@ export type HrGetMyLeaveRequestsQuery = {
   /**
    * @description Page number (1-indexed)
    * @minLength 1
+   * @maxLength 1000000
    * @default 1
    * @type integer | undefined
    */
@@ -26,6 +27,10 @@ export type HrGetMyLeaveRequestsQuery = {
 
 export type HrGetMyLeaveRequestsStatus200 = LeaveRequestListPublic;
 
+export type HrGetMyLeaveRequestsStatus401 = unknown;
+
+export type HrGetMyLeaveRequestsStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -41,6 +46,8 @@ export type HrGetMyLeaveRequestsOptions = {
 
 export type HrGetMyLeaveRequestsResponses = {
   "200": HrGetMyLeaveRequestsStatus200;
+  "401": HrGetMyLeaveRequestsStatus401;
+  "403": HrGetMyLeaveRequestsStatus403;
   "422": HrGetMyLeaveRequestsStatus422;
 };
 

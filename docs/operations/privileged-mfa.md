@@ -1,6 +1,7 @@
 # Privileged MFA rollout and recovery
 
-**Owner:** Barrels Grenada platform engineering
+**Owner:** Barrels Grenada platform engineering  
+**Last updated:** 2026-10-08
 
 **Status:** Implementation ready for staged acceptance; no deployment activation implied
 

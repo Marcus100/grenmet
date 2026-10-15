@@ -127,7 +127,7 @@ async def test_nhc_reader_and_history(async_client, weather_engine, tmp_path):
     from src.auth.browser import get_browser_or_token_user
     from src.auth.models import User
     from src.main import app
-    from src.wxwatch.router import get_session
+    from src.wxwatch.dependencies import get_session
 
     migrate(weather_engine)
     manifest = fixture_manifest(
@@ -227,7 +227,7 @@ async def test_nhc_image_import_to_authenticated_delivery(
     from src.auth.models import User
     from src.main import app
     from src.wxwatch.config import wxwatch_settings
-    from src.wxwatch.router import get_session
+    from src.wxwatch.dependencies import get_session
 
     migrate(weather_engine)
     manifest, raw = image_manifest(tmp_path)

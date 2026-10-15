@@ -14,6 +14,8 @@ import { capImportAlert } from "../clients/capImportAlert.js";
 import type {
   CapImportAlertOptions,
   CapImportAlertStatus201,
+  CapImportAlertStatus401,
+  CapImportAlertStatus403,
   CapImportAlertStatus422,
 } from "../models/CapImportAlert.js";
 
@@ -28,7 +30,11 @@ export function capImportAlertMutationOptions<TContext = unknown>(
   const mutationKey = capImportAlertMutationKey();
   return mutationOptions<
     CapImportAlertStatus201,
-    ResponseErrorConfig<CapImportAlertStatus422>,
+    ResponseErrorConfig<
+      | CapImportAlertStatus401
+      | CapImportAlertStatus403
+      | CapImportAlertStatus422
+    >,
     CapImportAlertOptions,
     TContext
   >({
@@ -48,7 +54,11 @@ export function useCapImportAlert<TContext>(
   options: {
     mutation?: UseMutationOptions<
       CapImportAlertStatus201,
-      ResponseErrorConfig<CapImportAlertStatus422>,
+      ResponseErrorConfig<
+        | CapImportAlertStatus401
+        | CapImportAlertStatus403
+        | CapImportAlertStatus422
+      >,
       CapImportAlertOptions,
       TContext
     > & { client?: QueryClient };
@@ -66,14 +76,22 @@ export function useCapImportAlert<TContext>(
     config
   ) as UseMutationOptions<
     CapImportAlertStatus201,
-    ResponseErrorConfig<CapImportAlertStatus422>,
+    ResponseErrorConfig<
+      | CapImportAlertStatus401
+      | CapImportAlertStatus403
+      | CapImportAlertStatus422
+    >,
     CapImportAlertOptions,
     TContext
   >;
 
   return useMutation<
     CapImportAlertStatus201,
-    ResponseErrorConfig<CapImportAlertStatus422>,
+    ResponseErrorConfig<
+      | CapImportAlertStatus401
+      | CapImportAlertStatus403
+      | CapImportAlertStatus422
+    >,
     CapImportAlertOptions,
     TContext
   >(
@@ -85,7 +103,11 @@ export function useCapImportAlert<TContext>(
     queryClient
   ) as UseMutationResult<
     CapImportAlertStatus201,
-    ResponseErrorConfig<CapImportAlertStatus422>,
+    ResponseErrorConfig<
+      | CapImportAlertStatus401
+      | CapImportAlertStatus403
+      | CapImportAlertStatus422
+    >,
     CapImportAlertOptions,
     TContext
   >;

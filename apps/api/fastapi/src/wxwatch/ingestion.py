@@ -11,10 +11,11 @@ from sqlalchemy import text
 from starlette.concurrency import run_in_threadpool
 
 from src.models import BaseModel, UtcDateTime
+from src.openapi_responses import CONFLICT, UNAUTHENTICATED
 
 from . import catalogue, derivations
 from .config import wxwatch_settings
-from .router import ImageSession
+from .dependencies import ImageSession
 
 
 def authenticate_worker(authorization: Annotated[str | None, Header()] = None) -> None:
@@ -127,6 +128,7 @@ async def start_run(body: RunInput, session: ImageSession) -> RunResult:
     status_code=204,
     summary="Finish an archive ingestion run",
     description="Closes an active ingestion run with a finished or failed status.",
+    responses={**UNAUTHENTICATED, **CONFLICT},
 )
 async def finish_run(run_id: UUID, body: RunFinish, session: ImageSession) -> None:
     result = await session.execute(

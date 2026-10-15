@@ -1,6 +1,8 @@
 # GAA HR end-to-end alignment
 
-**Status:** Active implementation and verification plan, 2026-09-28. GAA is the
+**Status:** Active implementation and verification plan, 2026-09-28. GAA is the  
+**Owner:** Barrels Grenada engineering, for GAA/GMS  
+**Last updated:** 2026-09-28
 client organisation; GMS is its meteorological department. This plan records
 user instructions and verified code gaps, not institutional policy approval or
 deployed behaviour. It supplements [ADR-0009](../adr/0009-gaa-staff-platform.md)
@@ -76,6 +78,8 @@ hours or an absence label: unresolved rules remain in [the policy register](poli
 | Daily status | Structured M/E/N reports preserve original operational fields, roster prefill, confirmed attendance and approved absence. Scheduled staff remain unconfirmed until actual attendance is recorded. Python preview and signed output share a renderer. | Host browser acceptance remains outstanding. |
 | Parking | Original vehicle-pass fields and eight conditions, persisted drafts, renewal, signed submission, scoped approval/issuance and Python PDF are implemented and tested. | Host browser acceptance remains outstanding. |
 | Profile, setup, roster, workflow, documents, training | Verified service/probation facts, supervisor validation, scoped writes/imports, retained approval cycles and immutable signed document access after employee transfers are implemented. Document/training lifecycle tests cover existing scoped routes. | Complete authenticated browser journeys remain outstanding. No entitlement or employment policy is inferred from recorded facts. |
+
+Sequencing for what comes next is in the [HR product roadmap](product-roadmap.md).
 
 The hardware presence-token proposal in ADR-0009 is future work. Manual arrival
 and departure is the current requested first step; no device integration or

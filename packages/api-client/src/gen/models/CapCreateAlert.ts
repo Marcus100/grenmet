@@ -9,6 +9,10 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type CapCreateAlertStatus201 = CapAlertPublic;
 
+export type CapCreateAlertStatus401 = unknown;
+
+export type CapCreateAlertStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -26,6 +30,8 @@ export type CapCreateAlertOptions = {
 
 export type CapCreateAlertResponses = {
   "201": CapCreateAlertStatus201;
+  "401": CapCreateAlertStatus401;
+  "403": CapCreateAlertStatus403;
   "422": CapCreateAlertStatus422;
 };
 

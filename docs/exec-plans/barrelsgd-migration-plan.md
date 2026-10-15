@@ -2,7 +2,8 @@
 
 **Status:** Partially executed — baseline landed; transition boundaries 1–2 complete
 **Recorded:** 2026-07-25
-**Reconciled:** 2026-08-16 — portfolio sequencing and client boundaries moved to
+**Reconciled:** 2026-08-16 — portfolio sequencing and client boundaries moved to  
+**Last updated:** 2026-08-19
 the authoritative portfolio views
 **Owner:** Repository maintainers
 **Companion documents:**

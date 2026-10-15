@@ -3,7 +3,8 @@
 **Status:** Working strategy  
 **Recorded:** 2026-09-23  
 **Horizon:** Five years, with a 2035 national-ambition reference  
-**Owner:** Barrels Grenada
+**Owner:** Barrels Grenada  
+**Last updated:** 2026-10-03
 
 ## Purpose
 

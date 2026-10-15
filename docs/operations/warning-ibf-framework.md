@@ -81,7 +81,7 @@ The following hazard types are active for v1 warning operations:
 
 ## 5. Warning Lifecycle
 
-```
+```text
 Monitor
   ↓
 Detect hazard signal (observation, model, satellite, regional guidance)

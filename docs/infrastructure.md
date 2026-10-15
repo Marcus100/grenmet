@@ -133,7 +133,6 @@ These are not implemented as repo-level controls yet:
 
 - Centralized log storage and retention.
 - External uptime monitoring and alert rules.
-- Request ID or correlation ID middleware.
 - OpenTelemetry for the FastAPI app. The vendored CAP Composer has OTEL support, but the main FastAPI app currently uses Sentry plus request logs.
 - Redis-backed distributed rate limiting.
 - Background worker execution for CAP publish job events.

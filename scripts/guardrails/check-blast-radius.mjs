@@ -144,6 +144,72 @@ const telemetryOnlyStartupChange = (comparison) => {
   );
 };
 
+// Request-ID correlation (src/request_context.py) changes the request logging
+// middleware, its import and the CORS exposed headers. No route, schema or
+// response model changes, so the OpenAPI contract is unaffected. Only this exact
+// edit is exempt; anything else in main.py keeps the companion gate.
+const requestIdMiddlewareChange = (comparison) => {
+  const file = "apps/api/fastapi/src/main.py";
+  const refs =
+    comparison.mode === "staged"
+      ? [`HEAD:${file}`, `:${file}`]
+      : [`${comparison.base}:${file}`, `${comparison.head}:${file}`];
+  const versions = refs.map((ref) =>
+    spawnSync("git", ["show", ref], { encoding: "utf8" })
+  );
+  if (versions.some((result) => result.error || result.status !== 0))
+    return false;
+  const before = versions[0].stdout;
+  const after = versions[1].stdout;
+  const expected = before
+    .replace(
+      "from src.rate_limit import limiter\n",
+      "from src.rate_limit import limiter\nfrom src.request_context import (\n    REQUEST_ID_HEADER,\n    bind_request_id,\n    reset_request_id,\n    resolve_request_id,\n)\n"
+    )
+    .replace(
+      `    start = time.perf_counter()
+    status = 500
+    try:
+        response = await call_next(request)
+        status = response.status_code
+    finally:
+        duration_s = time.perf_counter() - start
+        route = getattr(request.scope.get("route"), "path", "unmatched")
+        logger.info(
+            "request route=%s status=%s duration=%.3fs", route, status, duration_s
+        )
+        await operational_metrics.record_request(route, status, duration_s)
+    return response`,
+      `    start = time.perf_counter()
+    status = 500
+    request_id = resolve_request_id(request.headers.get(REQUEST_ID_HEADER))
+    token = bind_request_id(request_id)
+    sentry_sdk.set_tag("request_id", request_id)
+    try:
+        response = await call_next(request)
+        status = response.status_code
+        response.headers[REQUEST_ID_HEADER] = request_id
+    finally:
+        duration_s = time.perf_counter() - start
+        route = getattr(request.scope.get("route"), "path", "unmatched")
+        logger.info(
+            "request route=%s status=%s duration=%.3fs request_id=%s",
+            route,
+            status,
+            duration_s,
+            request_id,
+        )
+        await operational_metrics.record_request(route, status, duration_s)
+        reset_request_id(token)
+    return response`
+    )
+    .replace(
+      '        allow_headers=["Authorization", "Content-Type"],\n    )',
+      '        allow_headers=["Authorization", "Content-Type"],\n        expose_headers=[REQUEST_ID_HEADER],\n    )'
+    );
+  return before !== after && expected === after;
+};
+
 // This exact query fix includes areas without a section in the existing
 // response model; it does not change the OpenAPI contract.
 const janitorialUnsectionedAreaChange = (comparison) => {
@@ -346,7 +412,8 @@ const evaluateChanges = (changes, comparison) => {
         !(
           (file === "apps/api/fastapi/src/main.py" &&
             (telemetryOnlyStartupChange(comparison) ||
-              apiDescriptionOnlyStartupChange(comparison))) ||
+              apiDescriptionOnlyStartupChange(comparison) ||
+              requestIdMiddlewareChange(comparison))) ||
           (file === "apps/api/fastapi/src/janitorial/router.py" &&
             janitorialUnsectionedAreaChange(comparison)) ||
           (file === "apps/api/fastapi/src/wxproducts/router.py" &&

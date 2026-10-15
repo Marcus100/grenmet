@@ -14,6 +14,8 @@ import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { capGetFeeds } from "../clients/capGetFeeds.js";
 import type {
   CapGetFeedsStatus200,
+  CapGetFeedsStatus401,
+  CapGetFeedsStatus403,
   CapGetFeedsStatus422,
 } from "../models/CapGetFeeds.js";
 
@@ -30,7 +32,9 @@ export function capGetFeedsQueryOptions(
   const queryKey = capGetFeedsQueryKey();
   return queryOptions<
     CapGetFeedsStatus200,
-    ResponseErrorConfig<CapGetFeedsStatus422>,
+    ResponseErrorConfig<
+      CapGetFeedsStatus401 | CapGetFeedsStatus403 | CapGetFeedsStatus422
+    >,
     CapGetFeedsStatus200,
     typeof queryKey
   >({
@@ -59,7 +63,9 @@ export function useCapGetFeeds<
     query?: Partial<
       QueryObserverOptions<
         CapGetFeedsStatus200,
-        ResponseErrorConfig<CapGetFeedsStatus422>,
+        ResponseErrorConfig<
+          CapGetFeedsStatus401 | CapGetFeedsStatus403 | CapGetFeedsStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -81,9 +87,12 @@ export function useCapGetFeeds<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient
-  ) as UseQueryResult<TData, ResponseErrorConfig<CapGetFeedsStatus422>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      CapGetFeedsStatus401 | CapGetFeedsStatus403 | CapGetFeedsStatus422
+    >
+  > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;
 

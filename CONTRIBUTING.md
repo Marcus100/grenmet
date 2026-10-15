@@ -10,7 +10,7 @@ Make sure you have the full dev environment set up first. See the [Quick Start](
 
 ## Branching strategy
 
-```
+```text
 main          ← production; protected; never commit directly
 staging       ← pre-production; deploy target for staging environment
 dev           ← integration branch; all feature work merges here first
@@ -45,7 +45,7 @@ Merges go: `feature/* → dev → staging → main`. Never merge directly to `ma
 
 Use [Conventional Commits](https://www.conventionalcommits.org/):
 
-```
+```text
 <type>(<scope>): <short description>
 
 [optional body]
@@ -68,7 +68,7 @@ Use [Conventional Commits](https://www.conventionalcommits.org/):
 
 **Examples:**
 
-```
+```text
 feat(gaa-admin): add midday forecast PDF export
 fix(auth): redirect loop when session cookie is missing
 docs(env): document return-host allowlist

@@ -10,6 +10,7 @@ export type AuthGetPermissionsQuery = {
   /**
    * @description Page number (1-indexed)
    * @minLength 1
+   * @maxLength 1000000
    * @default 1
    * @type integer | undefined
    */
@@ -26,6 +27,10 @@ export type AuthGetPermissionsQuery = {
 
 export type AuthGetPermissionsStatus200 = PaginatedResponsePermissionPublic;
 
+export type AuthGetPermissionsStatus401 = unknown;
+
+export type AuthGetPermissionsStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -41,6 +46,8 @@ export type AuthGetPermissionsOptions = {
 
 export type AuthGetPermissionsResponses = {
   "200": AuthGetPermissionsStatus200;
+  "401": AuthGetPermissionsStatus401;
+  "403": AuthGetPermissionsStatus403;
   "422": AuthGetPermissionsStatus422;
 };
 

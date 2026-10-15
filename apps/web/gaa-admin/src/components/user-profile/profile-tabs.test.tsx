@@ -52,7 +52,7 @@ describe("UserProfileContent tabs", () => {
     expect(screen.getByRole("tab", { name: "Personal" })).toBeVisible();
     expect(screen.getByRole("tab", { name: "Employment" })).toBeVisible();
     expect(screen.getByRole("tab", { name: "Documents" })).toBeVisible();
-  }, 20_000);
+  });
 
   it("opens Overview first and switches on click", async () => {
     renderProfile();
@@ -64,5 +64,5 @@ describe("UserProfileContent tabs", () => {
     fireEvent.click(personal);
     expect(personal).toHaveAttribute("aria-selected", "true");
     expect(overview).toHaveAttribute("aria-selected", "false");
-  }, 20_000);
+  });
 });

@@ -14,6 +14,9 @@ import { capUpdateFeed } from "../clients/capUpdateFeed.js";
 import type {
   CapUpdateFeedOptions,
   CapUpdateFeedStatus200,
+  CapUpdateFeedStatus401,
+  CapUpdateFeedStatus403,
+  CapUpdateFeedStatus404,
   CapUpdateFeedStatus422,
 } from "../models/CapUpdateFeed.js";
 
@@ -28,7 +31,12 @@ export function capUpdateFeedMutationOptions<TContext = unknown>(
   const mutationKey = capUpdateFeedMutationKey();
   return mutationOptions<
     CapUpdateFeedStatus200,
-    ResponseErrorConfig<CapUpdateFeedStatus422>,
+    ResponseErrorConfig<
+      | CapUpdateFeedStatus401
+      | CapUpdateFeedStatus403
+      | CapUpdateFeedStatus404
+      | CapUpdateFeedStatus422
+    >,
     CapUpdateFeedOptions,
     TContext
   >({
@@ -53,7 +61,12 @@ export function useCapUpdateFeed<TContext>(
   options: {
     mutation?: UseMutationOptions<
       CapUpdateFeedStatus200,
-      ResponseErrorConfig<CapUpdateFeedStatus422>,
+      ResponseErrorConfig<
+        | CapUpdateFeedStatus401
+        | CapUpdateFeedStatus403
+        | CapUpdateFeedStatus404
+        | CapUpdateFeedStatus422
+      >,
       CapUpdateFeedOptions,
       TContext
     > & { client?: QueryClient };
@@ -70,14 +83,24 @@ export function useCapUpdateFeed<TContext>(
     config
   ) as UseMutationOptions<
     CapUpdateFeedStatus200,
-    ResponseErrorConfig<CapUpdateFeedStatus422>,
+    ResponseErrorConfig<
+      | CapUpdateFeedStatus401
+      | CapUpdateFeedStatus403
+      | CapUpdateFeedStatus404
+      | CapUpdateFeedStatus422
+    >,
     CapUpdateFeedOptions,
     TContext
   >;
 
   return useMutation<
     CapUpdateFeedStatus200,
-    ResponseErrorConfig<CapUpdateFeedStatus422>,
+    ResponseErrorConfig<
+      | CapUpdateFeedStatus401
+      | CapUpdateFeedStatus403
+      | CapUpdateFeedStatus404
+      | CapUpdateFeedStatus422
+    >,
     CapUpdateFeedOptions,
     TContext
   >(
@@ -89,7 +112,12 @@ export function useCapUpdateFeed<TContext>(
     queryClient
   ) as UseMutationResult<
     CapUpdateFeedStatus200,
-    ResponseErrorConfig<CapUpdateFeedStatus422>,
+    ResponseErrorConfig<
+      | CapUpdateFeedStatus401
+      | CapUpdateFeedStatus403
+      | CapUpdateFeedStatus404
+      | CapUpdateFeedStatus422
+    >,
     CapUpdateFeedOptions,
     TContext
   >;

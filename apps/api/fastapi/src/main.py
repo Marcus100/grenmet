@@ -21,6 +21,7 @@ from starlette.requests import Request
 
 from src import operational_metrics
 from src.audit.router import router as audit_router
+from src.auth.app_router import account_router as account_apps_router
 from src.auth.app_router import router as app_auth_router
 from src.auth.browser import router as browser_auth_router
 from src.auth.modern import router as modern_auth_router
@@ -48,6 +49,7 @@ from src.exceptions import (
     validation_exception_handler,
 )
 from src.hr.absentee.router import router as hr_absentee_router
+from src.hr.attendance.clock_router import router as hr_clock_router
 from src.hr.attendance.router import router as hr_attendance_router
 from src.hr.calendar.router import router as hr_calendar_router
 from src.hr.dailystatus.router import router as hr_dailystatus_router
@@ -68,6 +70,12 @@ from src.logging_config import configure_logging
 from src.models import ValidationErrorResponse
 from src.notifications.router import router as notifications_router
 from src.rate_limit import limiter
+from src.request_context import (
+    REQUEST_ID_HEADER,
+    bind_request_id,
+    reset_request_id,
+    resolve_request_id,
+)
 
 # from src.shipments.router import router as shipments_router
 from src.storage.router import router as weather_images_router
@@ -293,16 +301,25 @@ logger = logging.getLogger("src.request")
 async def request_logging_middleware(request: Request, call_next: Any) -> Any:
     start = time.perf_counter()
     status = 500
+    request_id = resolve_request_id(request.headers.get(REQUEST_ID_HEADER))
+    token = bind_request_id(request_id)
+    sentry_sdk.set_tag("request_id", request_id)
     try:
         response = await call_next(request)
         status = response.status_code
+        response.headers[REQUEST_ID_HEADER] = request_id
     finally:
         duration_s = time.perf_counter() - start
         route = getattr(request.scope.get("route"), "path", "unmatched")
         logger.info(
-            "request route=%s status=%s duration=%.3fs", route, status, duration_s
+            "request route=%s status=%s duration=%.3fs request_id=%s",
+            route,
+            status,
+            duration_s,
+            request_id,
         )
         await operational_metrics.record_request(route, status, duration_s)
+        reset_request_id(token)
     return response
 
 
@@ -316,6 +333,7 @@ if settings.all_cors_origins:
         # Browser clients and observability integrations may add headers beyond
         # the authentication and content headers used by the API itself.
         allow_headers=["Authorization", "Content-Type"],
+        expose_headers=[REQUEST_ID_HEADER],
     )
 app.add_middleware(BaseHTTPMiddleware, dispatch=request_logging_middleware)
 # Include routers
@@ -333,6 +351,7 @@ app.include_router(hr_workflow_router, prefix="/api/v1")
 app.include_router(hr_roster_router, prefix="/api/v1")
 app.include_router(hr_calendar_router, prefix="/api/v1")
 app.include_router(hr_timesheet_router, prefix="/api/v1")
+app.include_router(hr_clock_router, prefix="/api/v1")
 app.include_router(hr_attendance_router, prefix="/api/v1")
 app.include_router(hr_training_router, prefix="/api/v1")
 app.include_router(hr_signatures_router, prefix="/api/v1")
@@ -390,6 +409,7 @@ def get_scalar_docs() -> Any:
 app.include_router(onboarding_router, prefix=settings.API_V1_STR)
 app.include_router(modern_auth_router, prefix=settings.API_V1_STR)
 app.include_router(app_auth_router, prefix=settings.API_V1_STR)
+app.include_router(account_apps_router, prefix=settings.API_V1_STR)
 
 app.include_router(staff_setup_router, prefix=settings.API_V1_STR)
 

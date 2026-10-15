@@ -15,6 +15,9 @@ import { wxwatchRetrievals } from "../clients/wxwatchRetrievals.js";
 import type {
   WxwatchRetrievalsOptions,
   WxwatchRetrievalsStatus200,
+  WxwatchRetrievalsStatus401,
+  WxwatchRetrievalsStatus403,
+  WxwatchRetrievalsStatus404,
   WxwatchRetrievalsStatus422,
 } from "../models/WxwatchRetrievals.js";
 
@@ -38,7 +41,12 @@ export function wxwatchRetrievalsQueryOptions(
   const queryKey = wxwatchRetrievalsQueryKey({ path, query });
   return queryOptions<
     WxwatchRetrievalsStatus200,
-    ResponseErrorConfig<WxwatchRetrievalsStatus422>,
+    ResponseErrorConfig<
+      | WxwatchRetrievalsStatus401
+      | WxwatchRetrievalsStatus403
+      | WxwatchRetrievalsStatus404
+      | WxwatchRetrievalsStatus422
+    >,
     WxwatchRetrievalsStatus200,
     typeof queryKey
   >({
@@ -80,7 +88,12 @@ export function useWxwatchRetrievals<
     query?: Partial<
       QueryObserverOptions<
         WxwatchRetrievalsStatus200,
-        ResponseErrorConfig<WxwatchRetrievalsStatus422>,
+        ResponseErrorConfig<
+          | WxwatchRetrievalsStatus401
+          | WxwatchRetrievalsStatus403
+          | WxwatchRetrievalsStatus404
+          | WxwatchRetrievalsStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -109,7 +122,12 @@ export function useWxwatchRetrievals<
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<WxwatchRetrievalsStatus422>
+    ResponseErrorConfig<
+      | WxwatchRetrievalsStatus401
+      | WxwatchRetrievalsStatus403
+      | WxwatchRetrievalsStatus404
+      | WxwatchRetrievalsStatus422
+    >
   > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;

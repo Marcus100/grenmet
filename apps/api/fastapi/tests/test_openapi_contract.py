@@ -86,6 +86,30 @@ def test_operations_are_described_and_have_success_responses() -> None:
     )
 
 
+def _missing_error_responses() -> set[str]:
+    offenders = set()
+    for _path, _method, operation in _operations():
+        addressed = any(
+            parameter.get("in") == "path"
+            for parameter in operation.get("parameters", [])
+        )
+        if not operation.get("security") and not addressed:
+            continue
+        responses = operation.get("responses", {})
+        if not any(code.startswith("4") and code != "422" for code in responses):
+            offenders.add(operation["operationId"])
+    return offenders
+
+
+def test_operations_document_error_responses() -> None:
+    # Authenticated or path-addressed operations must document a 4xx; spread
+    # the constants from src/openapi_responses.py into the route's responses=.
+    offenders = sorted(_missing_error_responses())
+    assert not offenders, "Operations missing a documented 4xx response: " + ", ".join(
+        offenders
+    )
+
+
 def test_openapi_has_no_anonymous_enums() -> None:
     offenders = list(
         _inline_enums(

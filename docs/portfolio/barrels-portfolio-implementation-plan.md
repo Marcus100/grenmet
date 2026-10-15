@@ -3,7 +3,8 @@
 **Status:** Authoritative portfolio plan  
 **Effective:** 2026-08-16  
 **Horizon:** Five-year strategy expressed through dependency horizons  
-**Owner:** Barrels Grenada
+**Owner:** Barrels Grenada  
+**Last updated:** 2026-10-08
 
 ## Purpose
 

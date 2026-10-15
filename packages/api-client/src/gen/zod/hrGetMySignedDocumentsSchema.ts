@@ -10,6 +10,7 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 export const hrGetMySignedDocumentsQueryPageSchema = z
   .int()
   .min(1)
+  .max(1000000)
   .optional()
   .default(1)
   .describe("Page number (1-indexed)");

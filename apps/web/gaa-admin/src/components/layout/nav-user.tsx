@@ -83,6 +83,18 @@ export function NavUser({ user }: { readonly user: NavUserData }) {
                 Log out
               </DropdownMenuItem>
             </form>
+            <form action="/auth/logout-all" method="post">
+              <DropdownMenuItem
+                nativeButton
+                onClick={(event) =>
+                  event.currentTarget.closest("form")?.requestSubmit()
+                }
+                render={<button type="button" />}
+              >
+                <LogOut />
+                Log out of all apps
+              </DropdownMenuItem>
+            </form>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>

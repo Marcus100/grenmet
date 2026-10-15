@@ -11,6 +11,10 @@ export const capGetIntegrationsStatus200Schema = z.record(
   z.array(z.looseObject({}))
 );
 
+export const capGetIntegrationsStatus401Schema = z.unknown();
+
+export const capGetIntegrationsStatus403Schema = z.unknown();
+
 export const capGetIntegrationsStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -19,4 +23,8 @@ export const capGetIntegrationsStatus422Schema =
 export const capGetIntegrationsResponseSchema =
   capGetIntegrationsStatus200Schema;
 
-export const capGetIntegrationsErrorSchema = capGetIntegrationsStatus422Schema;
+export const capGetIntegrationsErrorSchema = z.union([
+  capGetIntegrationsStatus401Schema,
+  capGetIntegrationsStatus403Schema,
+  capGetIntegrationsStatus422Schema,
+]);

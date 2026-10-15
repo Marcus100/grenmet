@@ -10,6 +10,10 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 
 export const transportGetCatalogueStatus200Schema = transportCatalogueSchema;
 
+export const transportGetCatalogueStatus401Schema = z.unknown();
+
+export const transportGetCatalogueStatus403Schema = z.unknown();
+
 export const transportGetCatalogueStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -23,6 +27,8 @@ export const transportGetCatalogueResponseSchema =
   transportGetCatalogueStatus200Schema;
 
 export const transportGetCatalogueErrorSchema = z.union([
+  transportGetCatalogueStatus401Schema,
+  transportGetCatalogueStatus403Schema,
   transportGetCatalogueStatus422Schema,
   transportGetCatalogueStatus503Schema,
 ]);

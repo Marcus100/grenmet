@@ -11,6 +11,7 @@ export type CapGetAuditQuery = {
   /**
    * @description Page number (1-indexed)
    * @minLength 1
+   * @maxLength 1000000
    * @default 1
    * @type integer | undefined
    */
@@ -27,6 +28,10 @@ export type CapGetAuditQuery = {
 
 export type CapGetAuditStatus200 = CapAuditEventListPublic;
 
+export type CapGetAuditStatus401 = unknown;
+
+export type CapGetAuditStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -42,6 +47,8 @@ export type CapGetAuditOptions = {
 
 export type CapGetAuditResponses = {
   "200": CapGetAuditStatus200;
+  "401": CapGetAuditStatus401;
+  "403": CapGetAuditStatus403;
   "422": CapGetAuditStatus422;
 };
 

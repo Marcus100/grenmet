@@ -87,7 +87,7 @@ This aligns with the IBF framework GMS is already moving toward. See [architectu
 
 GMS should not try to replace NHC. The value of GMS is national interpretation of regional guidance for Grenada-specific conditions.
 
-```
+```text
 NHC official guidance
         ↓
 GMS local interpretation

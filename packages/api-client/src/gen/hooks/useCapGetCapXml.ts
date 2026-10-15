@@ -15,6 +15,7 @@ import { capGetCapXml } from "../clients/capGetCapXml.js";
 import type {
   CapGetCapXmlOptions,
   CapGetCapXmlStatus200,
+  CapGetCapXmlStatus404,
   CapGetCapXmlStatus422,
 } from "../models/CapGetCapXml.js";
 
@@ -34,7 +35,7 @@ export function capGetCapXmlQueryOptions(
   const queryKey = capGetCapXmlQueryKey({ path });
   return queryOptions<
     CapGetCapXmlStatus200,
-    ResponseErrorConfig<CapGetCapXmlStatus422>,
+    ResponseErrorConfig<CapGetCapXmlStatus404 | CapGetCapXmlStatus422>,
     CapGetCapXmlStatus200,
     typeof queryKey
   >({
@@ -69,7 +70,7 @@ export function useCapGetCapXml<
     query?: Partial<
       QueryObserverOptions<
         CapGetCapXmlStatus200,
-        ResponseErrorConfig<CapGetCapXmlStatus422>,
+        ResponseErrorConfig<CapGetCapXmlStatus404 | CapGetCapXmlStatus422>,
         TData,
         TQueryData,
         TQueryKey
@@ -93,9 +94,10 @@ export function useCapGetCapXml<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient
-  ) as UseQueryResult<TData, ResponseErrorConfig<CapGetCapXmlStatus422>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<CapGetCapXmlStatus404 | CapGetCapXmlStatus422>
+  > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;
 

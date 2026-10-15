@@ -14,8 +14,8 @@ from typing import Any
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from markupsafe import Markup
-from weasyprint import CSS, HTML, Document  # type: ignore[import-untyped]
-from weasyprint.text.fonts import FontConfiguration  # type: ignore[import-untyped]
+from weasyprint import CSS, HTML, Document
+from weasyprint.text.fonts import FontConfiguration
 
 from src.wxwatch.nhc_schemas import ProductGuidance
 

@@ -32,6 +32,14 @@ vi.mock("./shift-types-manager", () => ({
     <p>Shared shifts: {canManage ? "editable" : "read only"}</p>
   ),
 }));
+vi.mock("./balance-import", () => ({
+  BalanceImport: () => <p>Balance import</p>,
+}));
+vi.mock("./roster-rules-manager", () => ({
+  RosterRulesManager: ({ canManage }: { canManage: boolean }) => (
+    <p>Roster rules: {canManage ? "editable" : "read only"}</p>
+  ),
+}));
 vi.mock("./notification-settings", () => ({
   NotificationSettings: () => null,
 }));

@@ -61,7 +61,7 @@ describe("coverage posts", () => {
     ).toBeInTheDocument();
     expect(screen.getAllByRole("row")).toHaveLength(20);
     // The first import of the page module is slow under a full parallel run.
-  }, 20_000);
+  });
 
   it("reproduces the Prime Minister's address with a link to the video", async () => {
     const { default: UpdatePage } = await import("./page");

@@ -4,7 +4,9 @@
 **Effective:** 2026-08-16  
 **Delivery owner:** Barrels Grenada  
 **Institutional authority:** Grenada Airports Authority  
-**Meteorological authority:** Grenada Meteorological Service
+**Meteorological authority:** Grenada Meteorological Service  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-10-08
 
 ## Current delivery focus — 7 October 2026
 

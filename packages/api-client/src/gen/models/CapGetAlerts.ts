@@ -12,6 +12,7 @@ export type CapGetAlertsQuery = {
   /**
    * @description Page number (1-indexed)
    * @minLength 1
+   * @maxLength 1000000
    * @default 1
    * @type integer | undefined
    */
@@ -28,6 +29,10 @@ export type CapGetAlertsQuery = {
 
 export type CapGetAlertsStatus200 = CapAlertListPublic;
 
+export type CapGetAlertsStatus401 = unknown;
+
+export type CapGetAlertsStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -43,6 +48,8 @@ export type CapGetAlertsOptions = {
 
 export type CapGetAlertsResponses = {
   "200": CapGetAlertsStatus200;
+  "401": CapGetAlertsStatus401;
+  "403": CapGetAlertsStatus403;
   "422": CapGetAlertsStatus422;
 };
 

@@ -7,17 +7,17 @@ from sqlalchemy.orm import Session
 from sqlalchemy.pool import NullPool
 
 # Import all models so their SQLAlchemy tables are registered before startup.
-from src.audit import listener as _audit_listener  # noqa: F401 - flush hook
-from src.audit.models import AuditEntry  # noqa: F401
-from src.auth.models import User  # noqa: F401
-from src.auth.modern_models import AuthChallenge, ExternalIdentity  # noqa: F401
-from src.baseline.models import (  # noqa: F401
+from src.audit import listener as _audit_listener  # flush hook
+from src.audit.models import AuditEntry
+from src.auth.models import User
+from src.auth.modern_models import AuthChallenge, ExternalIdentity
+from src.baseline.models import (
     ApprovalPolicy,
     BaselineAudit,
     BaselineStep,
     StaffCredential,
 )
-from src.cap.models import (  # noqa: F401
+from src.cap.models import (
     CapAlert,
     CapArea,
     CapAuditEvent,
@@ -37,11 +37,11 @@ from src.cap.models import (  # noqa: F401
 from src.config import settings
 from src.hr import audit as _hr_audit
 from src.hr import notifications as _hr_notifications
-from src.hr.absentee.models import AbsenteeReport  # noqa: F401
-from src.hr.dailystatus.models import StatusReport, StatusReportEntry  # noqa: F401
-from src.hr.exchange.models import ShiftSwapRequest  # noqa: F401
-from src.hr.leave.models import LeaveBalanceEvent, LeaveRequest  # noqa: F401
-from src.hr.models import (  # noqa: F401
+from src.hr.absentee.models import AbsenteeReport
+from src.hr.dailystatus.models import StatusReport, StatusReportEntry
+from src.hr.exchange.models import ShiftSwapRequest
+from src.hr.leave.models import LeaveBalanceEvent, LeaveRequest
+from src.hr.models import (
     ApprovalAuthority,
     Department,
     EmploymentRecord,
@@ -54,7 +54,7 @@ from src.hr.models import (  # noqa: F401
     UserAddress,
     UserProfile,
 )
-from src.hr.roster.models import (  # noqa: F401
+from src.hr.roster.models import (
     PublicHoliday,
     RosterAssignment,
     RosterImportJob,
@@ -63,31 +63,34 @@ from src.hr.roster.models import (  # noqa: F401
     RosterRevision,
     ShiftCatalog,
 )
-from src.hr.signatures.models import SavedSignature, SignedDocument  # noqa: F401
-from src.hr.timesheet.models import (  # noqa: F401
+from src.hr.signatures.models import SavedSignature, SignedDocument
+from src.hr.timesheet.models import (
     DepartmentPolicy,
     Timesheet,
     TimesheetEntry,
     TimesheetSubmission,
 )
-from src.hr.training.models import TrainingRecord  # noqa: F401
-from src.hr.workflow.models import (  # noqa: F401
+from src.hr.training.models import TrainingRecord
+from src.hr.workflow.models import (
     ApprovalActionLog,
     WorkflowInstance,
     WorkflowStepInstance,
     WorkflowStepTemplate,
     WorkflowTemplate,
 )
-from src.notifications.models import (  # noqa: F401
+from src.notifications.models import (
     Notification,
     NotificationDelivery,
     NotificationPreference,
     NotificationSetting,
+    NotificationSnooze,
 )
+from src.wxwatch import alerts as _wxwatch_alerts
 
 # Modules register what they audit and notify about before any session exists.
 _hr_audit.register()
 _hr_notifications.register()
+_wxwatch_alerts.register()
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 

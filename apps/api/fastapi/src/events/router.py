@@ -11,6 +11,7 @@ from typing import Annotated, Any, Literal
 from fastapi import APIRouter, Path, Query, Request, Response, status
 
 from src.models import Message
+from src.openapi_responses import UNAUTHENTICATED
 from src.rate_limit import limiter
 
 from . import schemas, service
@@ -57,7 +58,9 @@ def _viewer_id(viewer: Any) -> uuid.UUID | None:
     status_code=status.HTTP_200_OK,
     summary="List upcoming events",
     description="Published public events, soonest first, filtered by Grenada-calendar window, category, parish, price, tag or text.",
-    responses={},
+    responses={
+        **UNAUTHENTICATED,
+    },
 )
 async def list_listings(
     *,
@@ -72,7 +75,7 @@ async def list_listings(
     organiser: Annotated[str | None, Query(pattern=schemas.SLUG_PATTERN)] = None,
     include_past: bool = False,
     limit: Annotated[int, Query(ge=1, le=200)] = 100,
-    offset: Annotated[int, Query(ge=0)] = 0,
+    offset: Annotated[int, Query(ge=0, le=100000)] = 0,
 ) -> schemas.ListingCardList:
     data, count = await service.list_listings(
         session,
@@ -125,7 +128,9 @@ async def get_organiser(
     status_code=status.HTTP_200_OK,
     summary="List groups",
     description="Every group with member counts and its next meetup.",
-    responses={},
+    responses={
+        **UNAUTHENTICATED,
+    },
 )
 async def list_groups(
     *, session: EventsSession, viewer: EventsViewer

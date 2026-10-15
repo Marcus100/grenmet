@@ -10,7 +10,7 @@ To add a new HR form module, follow `docs/hr/adding-a-form-module.md` (recipe) a
 
 ## Project Layout
 
-```
+```text
 src/
 ├── {domain}/
 │   ├── router.py       — APIRouter: endpoints only, no business logic
@@ -157,6 +157,9 @@ async def create_leave_request_endpoint(
 
 - Use `*` to make all route params keyword-only.
 - Always set `response_model`, `status_code`, `summary`, `description`, `tags`, and `responses`.
+- Document errors with the constants in `src/openapi_responses.py`, e.g.
+  `responses={**AUTHENTICATED, **NOT_FOUND}`. `tests/test_openapi_contract.py`
+  fails any authenticated or path-addressed operation without a documented 4xx.
 
 ## Async and Blocking I/O
 
@@ -252,6 +255,11 @@ async def test_create_leave_request(
 
 - Authenticate with real JWTs (`superuser_token_headers_async`, `normal_user_token_headers_async`); use `app.dependency_overrides` only for external services or forced error paths (see `TESTING.md`).
 - Use a real database (the `db_async` fixture hits the actual DB). Don't mock `AsyncSession`.
+- `tests/test_api_fuzz.py` (Schemathesis) calls every GET operation with
+  generated inputs as the superuser and fails on any 5xx except 503 (a
+  separate-database domain without its database). It found the unbounded
+  `page` overflow fixed in `src/pagination.py`; bound every numeric query
+  parameter (`le=`) so input never reaches PostgreSQL out of range.
 - The sync `client` and `db` fixtures are legacy — don't add new tests that use them.
 - Running from the agent dev container? There's no docker CLI and Compose service
   names such as `db` and `grenmet-postgres` are not resolvable there. Run

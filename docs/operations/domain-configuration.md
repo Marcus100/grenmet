@@ -1,5 +1,9 @@
 # Domain configuration handoff
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-10-05
+
 Initially checked 2 October 2026; HTTPS rechecked 5 October 2026. Cloudflare hosts DNS for `barrels.gd` and
 `eugine.me`. This document records live settings, not a request to redeploy the
 DigitalOcean applications.

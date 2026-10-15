@@ -17,6 +17,12 @@ export type CapValidateAlertPath = {
 
 export type CapValidateAlertStatus200 = CapValidationResult;
 
+export type CapValidateAlertStatus401 = unknown;
+
+export type CapValidateAlertStatus403 = unknown;
+
+export type CapValidateAlertStatus404 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -32,6 +38,9 @@ export type CapValidateAlertOptions = {
 
 export type CapValidateAlertResponses = {
   "200": CapValidateAlertStatus200;
+  "401": CapValidateAlertStatus401;
+  "403": CapValidateAlertStatus403;
+  "404": CapValidateAlertStatus404;
   "422": CapValidateAlertStatus422;
 };
 

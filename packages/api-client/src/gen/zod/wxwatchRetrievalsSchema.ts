@@ -25,6 +25,12 @@ export const wxwatchRetrievalsQueryLimitSchema = z
 
 export const wxwatchRetrievalsStatus200Schema = archiveHistorySchema;
 
+export const wxwatchRetrievalsStatus401Schema = z.unknown();
+
+export const wxwatchRetrievalsStatus403Schema = z.unknown();
+
+export const wxwatchRetrievalsStatus404Schema = z.unknown();
+
 export const wxwatchRetrievalsStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -32,4 +38,9 @@ export const wxwatchRetrievalsStatus422Schema =
 
 export const wxwatchRetrievalsResponseSchema = wxwatchRetrievalsStatus200Schema;
 
-export const wxwatchRetrievalsErrorSchema = wxwatchRetrievalsStatus422Schema;
+export const wxwatchRetrievalsErrorSchema = z.union([
+  wxwatchRetrievalsStatus401Schema,
+  wxwatchRetrievalsStatus403Schema,
+  wxwatchRetrievalsStatus404Schema,
+  wxwatchRetrievalsStatus422Schema,
+]);

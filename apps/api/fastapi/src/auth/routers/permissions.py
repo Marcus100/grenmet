@@ -13,6 +13,7 @@ from src.auth.constants import ERROR_PERMISSION_NOT_FOUND
 from src.auth.dependencies import get_current_active_superuser
 from src.auth.schemas import PermissionCreate, PermissionPublic
 from src.dependencies import SessionDep
+from src.openapi_responses import AUTHENTICATED
 from src.pagination import PaginatedResponse, PaginationParams, get_pagination_params
 
 router = APIRouter(
@@ -27,7 +28,10 @@ router = APIRouter(
     response_model=PaginatedResponse[PermissionPublic],
     summary="List permissions",
     description="Return permissions (superuser only).",
-    responses={status.HTTP_200_OK: {"description": "Permissions returned"}},
+    responses={
+        **AUTHENTICATED,
+        status.HTTP_200_OK: {"description": "Permissions returned"},
+    },
 )
 async def read_permissions(
     session: SessionDep,
@@ -72,7 +76,10 @@ async def read_permission(session: SessionDep, permission_id: uuid.UUID) -> Any:
     status_code=status.HTTP_201_CREATED,
     summary="Create permission",
     description="Create a permission (superuser only).",
-    responses={status.HTTP_201_CREATED: {"description": "Permission created"}},
+    responses={
+        **AUTHENTICATED,
+        status.HTTP_201_CREATED: {"description": "Permission created"},
+    },
 )
 async def create_permission(
     *, session: SessionDep, permission_in: PermissionCreate

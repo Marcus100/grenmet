@@ -14,6 +14,8 @@ import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { janitorialSpec } from "../clients/janitorialSpec.js";
 import type {
   JanitorialSpecStatus200,
+  JanitorialSpecStatus401,
+  JanitorialSpecStatus403,
   JanitorialSpecStatus422,
 } from "../models/JanitorialSpec.js";
 
@@ -30,7 +32,11 @@ export function janitorialSpecQueryOptions(
   const queryKey = janitorialSpecQueryKey();
   return queryOptions<
     JanitorialSpecStatus200,
-    ResponseErrorConfig<JanitorialSpecStatus422>,
+    ResponseErrorConfig<
+      | JanitorialSpecStatus401
+      | JanitorialSpecStatus403
+      | JanitorialSpecStatus422
+    >,
     JanitorialSpecStatus200,
     typeof queryKey
   >({
@@ -59,7 +65,11 @@ export function useJanitorialSpec<
     query?: Partial<
       QueryObserverOptions<
         JanitorialSpecStatus200,
-        ResponseErrorConfig<JanitorialSpecStatus422>,
+        ResponseErrorConfig<
+          | JanitorialSpecStatus401
+          | JanitorialSpecStatus403
+          | JanitorialSpecStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -81,9 +91,14 @@ export function useJanitorialSpec<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient
-  ) as UseQueryResult<TData, ResponseErrorConfig<JanitorialSpecStatus422>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      | JanitorialSpecStatus401
+      | JanitorialSpecStatus403
+      | JanitorialSpecStatus422
+    >
+  > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;
 

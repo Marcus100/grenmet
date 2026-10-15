@@ -3,7 +3,8 @@
 **Status:** Research/reference asset — not an adoption decision
 **Recorded:** 2026-09-10
 **Owner:** Barrels Grenada
-**Horizon:** Loyalty remains *Explore* in the
+**Horizon:** Loyalty remains *Explore* in the  
+**Last updated:** 2026-09-10
 [portfolio implementation plan](../portfolio/barrels-portfolio-implementation-plan.md)
 
 This document records reference products worth studying before Barrels designs

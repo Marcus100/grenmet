@@ -14,6 +14,8 @@ import { wxwatchFinishRun } from "../clients/wxwatchFinishRun.js";
 import type {
   WxwatchFinishRunOptions,
   WxwatchFinishRunStatus204,
+  WxwatchFinishRunStatus401,
+  WxwatchFinishRunStatus409,
   WxwatchFinishRunStatus422,
 } from "../models/WxwatchFinishRun.js";
 
@@ -28,7 +30,11 @@ export function wxwatchFinishRunMutationOptions<TContext = unknown>(
   const mutationKey = wxwatchFinishRunMutationKey();
   return mutationOptions<
     WxwatchFinishRunStatus204,
-    ResponseErrorConfig<WxwatchFinishRunStatus422>,
+    ResponseErrorConfig<
+      | WxwatchFinishRunStatus401
+      | WxwatchFinishRunStatus409
+      | WxwatchFinishRunStatus422
+    >,
     WxwatchFinishRunOptions,
     TContext
   >({
@@ -54,7 +60,11 @@ export function useWxwatchFinishRun<TContext>(
   options: {
     mutation?: UseMutationOptions<
       WxwatchFinishRunStatus204,
-      ResponseErrorConfig<WxwatchFinishRunStatus422>,
+      ResponseErrorConfig<
+        | WxwatchFinishRunStatus401
+        | WxwatchFinishRunStatus409
+        | WxwatchFinishRunStatus422
+      >,
       WxwatchFinishRunOptions,
       TContext
     > & { client?: QueryClient };
@@ -72,14 +82,22 @@ export function useWxwatchFinishRun<TContext>(
     config
   ) as UseMutationOptions<
     WxwatchFinishRunStatus204,
-    ResponseErrorConfig<WxwatchFinishRunStatus422>,
+    ResponseErrorConfig<
+      | WxwatchFinishRunStatus401
+      | WxwatchFinishRunStatus409
+      | WxwatchFinishRunStatus422
+    >,
     WxwatchFinishRunOptions,
     TContext
   >;
 
   return useMutation<
     WxwatchFinishRunStatus204,
-    ResponseErrorConfig<WxwatchFinishRunStatus422>,
+    ResponseErrorConfig<
+      | WxwatchFinishRunStatus401
+      | WxwatchFinishRunStatus409
+      | WxwatchFinishRunStatus422
+    >,
     WxwatchFinishRunOptions,
     TContext
   >(
@@ -91,7 +109,11 @@ export function useWxwatchFinishRun<TContext>(
     queryClient
   ) as UseMutationResult<
     WxwatchFinishRunStatus204,
-    ResponseErrorConfig<WxwatchFinishRunStatus422>,
+    ResponseErrorConfig<
+      | WxwatchFinishRunStatus401
+      | WxwatchFinishRunStatus409
+      | WxwatchFinishRunStatus422
+    >,
     WxwatchFinishRunOptions,
     TContext
   >;

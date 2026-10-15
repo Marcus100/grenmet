@@ -12,6 +12,12 @@ export const capUpdateFeedPathFeedIdSchema = z.uuid();
 
 export const capUpdateFeedStatus200Schema = capFeedImportPublicSchema;
 
+export const capUpdateFeedStatus401Schema = z.unknown();
+
+export const capUpdateFeedStatus403Schema = z.unknown();
+
+export const capUpdateFeedStatus404Schema = z.unknown();
+
 export const capUpdateFeedStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -19,6 +25,11 @@ export const capUpdateFeedStatus422Schema =
 
 export const capUpdateFeedResponseSchema = capUpdateFeedStatus200Schema;
 
-export const capUpdateFeedErrorSchema = capUpdateFeedStatus422Schema;
+export const capUpdateFeedErrorSchema = z.union([
+  capUpdateFeedStatus401Schema,
+  capUpdateFeedStatus403Schema,
+  capUpdateFeedStatus404Schema,
+  capUpdateFeedStatus422Schema,
+]);
 
 export const capUpdateFeedBodySchema = capFeedImportUpdateSchema;

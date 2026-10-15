@@ -11,6 +11,10 @@ export const capGetPredefinedAreasStatus200Schema = z.array(
   capPredefinedAreaPublicSchema
 );
 
+export const capGetPredefinedAreasStatus401Schema = z.unknown();
+
+export const capGetPredefinedAreasStatus403Schema = z.unknown();
+
 export const capGetPredefinedAreasStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -19,5 +23,8 @@ export const capGetPredefinedAreasStatus422Schema =
 export const capGetPredefinedAreasResponseSchema =
   capGetPredefinedAreasStatus200Schema;
 
-export const capGetPredefinedAreasErrorSchema =
-  capGetPredefinedAreasStatus422Schema;
+export const capGetPredefinedAreasErrorSchema = z.union([
+  capGetPredefinedAreasStatus401Schema,
+  capGetPredefinedAreasStatus403Schema,
+  capGetPredefinedAreasStatus422Schema,
+]);

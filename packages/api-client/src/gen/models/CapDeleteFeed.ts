@@ -16,6 +16,12 @@ export type CapDeleteFeedPath = {
 
 export type CapDeleteFeedStatus204 = unknown;
 
+export type CapDeleteFeedStatus401 = unknown;
+
+export type CapDeleteFeedStatus403 = unknown;
+
+export type CapDeleteFeedStatus404 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -31,6 +37,9 @@ export type CapDeleteFeedOptions = {
 
 export type CapDeleteFeedResponses = {
   "204": CapDeleteFeedStatus204;
+  "401": CapDeleteFeedStatus401;
+  "403": CapDeleteFeedStatus403;
+  "404": CapDeleteFeedStatus404;
   "422": CapDeleteFeedStatus422;
 };
 

@@ -11,7 +11,7 @@ from .schemas import AttendanceWeekPublic
 
 
 def render_week_pdf(week: AttendanceWeekPublic) -> bytes:
-    from weasyprint import HTML  # type: ignore[import-untyped]
+    from weasyprint import HTML
 
     def local(value: datetime | None) -> str:
         if value is None:

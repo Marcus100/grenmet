@@ -1,0 +1,137 @@
+[
+  {
+    "prompt": "I added a field to the leave request schema; update the TS client.",
+    "should_use": ["api-change"],
+    "should_not_use": ["gaa-admin-change"]
+  },
+  {
+    "prompt": "CI is red on my PR, figure out why.",
+    "should_use": ["ci-triage"],
+    "should_not_use": ["diagnosing-bugs"]
+  },
+  {
+    "prompt": "Help me design a deeper interface for the notifications module.",
+    "should_use": ["codebase-design"],
+    "should_not_use": ["improve-codebase-architecture"]
+  },
+  {
+    "prompt": "Commit this and push dev.",
+    "should_use": ["commit"],
+    "should_not_use": ["release"]
+  },
+  {
+    "prompt": "Critique the HR dashboard layout and give me ranked fixes.",
+    "should_use": ["design-critique"],
+    "should_not_use": ["ui-check"]
+  },
+  {
+    "prompt": "The roster endpoint got slow since yesterday, diagnose it.",
+    "should_use": ["diagnosing-bugs"],
+    "should_not_use": ["ci-triage"]
+  },
+  {
+    "prompt": "Let's pin down what 'bulletin' versus 'product' means in our domain.",
+    "should_use": ["domain-modeling"],
+    "should_not_use": ["codebase-design"]
+  },
+  {
+    "prompt": "File the friction we hit with the flaky Docker gate.",
+    "should_use": ["file-friction"],
+    "should_not_use": ["triage"]
+  },
+  {
+    "prompt": "Change the sidebar in gaa-admin's shared layout.",
+    "should_use": ["gaa-admin-change"],
+    "should_not_use": ["ui-check"]
+  },
+  {
+    "prompt": "Grill me on this caching plan before I build it.",
+    "should_use": ["grilling"],
+    "should_not_use": ["to-prd"]
+  },
+  {
+    "prompt": "Write a handoff so Codex can continue this.",
+    "should_use": ["handoff"],
+    "should_not_use": ["to-prd"]
+  },
+  {
+    "prompt": "Implement issue #412 from the PRD.",
+    "should_use": ["implement"],
+    "should_not_use": ["to-issues"]
+  },
+  {
+    "prompt": "Scan the codebase for architecture improvement opportunities.",
+    "should_use": ["improve-codebase-architecture"],
+    "should_not_use": ["codebase-design"]
+  },
+  {
+    "prompt": "Run the pre-merge checks on this branch.",
+    "should_use": ["pre-merge"],
+    "should_not_use": ["commit"]
+  },
+  {
+    "prompt": "Build a throwaway prototype to test the shift-swap state machine.",
+    "should_use": ["prototype"],
+    "should_not_use": ["implement"]
+  },
+  {
+    "prompt": "Why does this card look off? Fix the visual hierarchy.",
+    "should_use": ["refactoring-ui"],
+    "should_not_use": ["design-critique"]
+  },
+  {
+    "prompt": "Promote dev to staging.",
+    "should_use": ["release"],
+    "should_not_use": ["commit"]
+  },
+  {
+    "prompt": "My rebase stopped with conflicts in openapi.json.",
+    "should_use": ["resolving-merge-conflicts"],
+    "should_not_use": ["ci-triage"]
+  },
+  {
+    "prompt": "Ports keep colliding and Docker is acting weird, check my stack.",
+    "should_use": ["stack-doctor"],
+    "should_not_use": ["diagnosing-bugs"]
+  },
+  {
+    "prompt": "Fix the timesheet rounding bug test-first, red-green-refactor.",
+    "should_use": ["tdd"],
+    "should_not_use": ["diagnosing-bugs"]
+  },
+  {
+    "prompt": "Teach me how Alembic migrations work.",
+    "should_use": ["teach"],
+    "should_not_use": ["grilling"]
+  },
+  {
+    "prompt": "Break this PRD into GitHub issues.",
+    "should_use": ["to-issues"],
+    "should_not_use": ["to-prd"]
+  },
+  {
+    "prompt": "Turn our conversation into a PRD.",
+    "should_use": ["to-prd"],
+    "should_not_use": ["to-issues"]
+  },
+  {
+    "prompt": "Triage the new issues and external PRs.",
+    "should_use": ["triage"],
+    "should_not_use": ["file-friction"]
+  },
+  {
+    "prompt": "Make this component match the design reference.",
+    "should_use": ["ui-check"],
+    "should_not_use": ["design-critique"]
+  },
+  {
+    "prompt": "Help me write a new skill properly.",
+    "should_use": ["writing-great-skills"],
+    "should_not_use": ["teach"]
+  },
+  {
+    "prompt": "What does the wxwatch router return for /metadata?",
+    "should_use": [],
+    "should_not_use": ["teach", "diagnosing-bugs"]
+  }
+]

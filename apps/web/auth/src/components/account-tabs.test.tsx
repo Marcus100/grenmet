@@ -7,7 +7,7 @@ describe("AccountTabs", () => {
   it("lists the five account tabs in order", () => {
     render(<AccountTabs current="/" />);
     expect(screen.getAllByRole("link").map((link) => link.textContent)).toEqual(
-      ["Profile", "Password", "Security", "Sessions", "Access"]
+      ["Profile", "Password", "Security", "Sessions", "Apps", "Access"]
     );
   });
 

@@ -5,6 +5,7 @@ from sqlalchemy import text
 
 from src.auth.browser import BrowserUser
 from src.models import ApiError
+from src.openapi_responses import AUTHENTICATED
 
 from . import access
 from .catalogue.router import router as catalogue_router
@@ -48,6 +49,7 @@ async def get_access(*, user: BrowserUser, session: JanitorialSession) -> Any:
     response_model=list[BuildingView],
     summary="Get the janitorial catalogue",
     description="Returns the building, section, area, and task hierarchy used by the janitorial workflow.",
+    responses={**AUTHENTICATED},
 )
 async def spec(_user: BrowserUser, session: Session) -> list[BuildingView]:
     result = await session.execute(

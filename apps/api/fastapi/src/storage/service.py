@@ -13,8 +13,8 @@ from __future__ import annotations
 import logging
 from typing import Any, cast
 
-import boto3  # type: ignore[import-untyped]
-from botocore.config import Config as BotoConfig  # type: ignore[import-untyped]
+import boto3
+from botocore.config import Config as BotoConfig
 
 from src.storage.config import StorageConfig, storage_settings
 

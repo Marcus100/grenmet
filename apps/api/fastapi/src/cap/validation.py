@@ -7,8 +7,8 @@ from urllib.parse import urlparse
 from uuid import UUID
 
 from fastapi.concurrency import run_in_threadpool
-from shapely.geometry import shape  # type: ignore[import-untyped]
-from shapely.validation import explain_validity  # type: ignore[import-untyped]
+from shapely.geometry import shape
+from shapely.validation import explain_validity
 
 from src.cap.exceptions import CapImportError
 from src.cap.levels import validate_level

@@ -14,6 +14,8 @@ import { capCreateAlert } from "../clients/capCreateAlert.js";
 import type {
   CapCreateAlertOptions,
   CapCreateAlertStatus201,
+  CapCreateAlertStatus401,
+  CapCreateAlertStatus403,
   CapCreateAlertStatus422,
 } from "../models/CapCreateAlert.js";
 
@@ -28,7 +30,11 @@ export function capCreateAlertMutationOptions<TContext = unknown>(
   const mutationKey = capCreateAlertMutationKey();
   return mutationOptions<
     CapCreateAlertStatus201,
-    ResponseErrorConfig<CapCreateAlertStatus422>,
+    ResponseErrorConfig<
+      | CapCreateAlertStatus401
+      | CapCreateAlertStatus403
+      | CapCreateAlertStatus422
+    >,
     CapCreateAlertOptions,
     TContext
   >({
@@ -48,7 +54,11 @@ export function useCapCreateAlert<TContext>(
   options: {
     mutation?: UseMutationOptions<
       CapCreateAlertStatus201,
-      ResponseErrorConfig<CapCreateAlertStatus422>,
+      ResponseErrorConfig<
+        | CapCreateAlertStatus401
+        | CapCreateAlertStatus403
+        | CapCreateAlertStatus422
+      >,
       CapCreateAlertOptions,
       TContext
     > & { client?: QueryClient };
@@ -66,14 +76,22 @@ export function useCapCreateAlert<TContext>(
     config
   ) as UseMutationOptions<
     CapCreateAlertStatus201,
-    ResponseErrorConfig<CapCreateAlertStatus422>,
+    ResponseErrorConfig<
+      | CapCreateAlertStatus401
+      | CapCreateAlertStatus403
+      | CapCreateAlertStatus422
+    >,
     CapCreateAlertOptions,
     TContext
   >;
 
   return useMutation<
     CapCreateAlertStatus201,
-    ResponseErrorConfig<CapCreateAlertStatus422>,
+    ResponseErrorConfig<
+      | CapCreateAlertStatus401
+      | CapCreateAlertStatus403
+      | CapCreateAlertStatus422
+    >,
     CapCreateAlertOptions,
     TContext
   >(
@@ -85,7 +103,11 @@ export function useCapCreateAlert<TContext>(
     queryClient
   ) as UseMutationResult<
     CapCreateAlertStatus201,
-    ResponseErrorConfig<CapCreateAlertStatus422>,
+    ResponseErrorConfig<
+      | CapCreateAlertStatus401
+      | CapCreateAlertStatus403
+      | CapCreateAlertStatus422
+    >,
     CapCreateAlertOptions,
     TContext
   >;

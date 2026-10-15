@@ -12,6 +12,10 @@ export type AuthGetRoleAssignmentsQuery = {
 
 export type AuthGetRoleAssignmentsStatus200 = UserRoleAssignmentsPublic;
 
+export type AuthGetRoleAssignmentsStatus401 = unknown;
+
+export type AuthGetRoleAssignmentsStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -27,6 +31,8 @@ export type AuthGetRoleAssignmentsOptions = {
 
 export type AuthGetRoleAssignmentsResponses = {
   "200": AuthGetRoleAssignmentsStatus200;
+  "401": AuthGetRoleAssignmentsStatus401;
+  "403": AuthGetRoleAssignmentsStatus403;
   "422": AuthGetRoleAssignmentsStatus422;
 };
 

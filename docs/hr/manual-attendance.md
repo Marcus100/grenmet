@@ -1,5 +1,9 @@
 # Manual shift attendance
 
+**Status:** Active reference  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-09-28
+
 GAA staff record their own actual arrival, departure and break duration against a
 published roster assignment. This is an attendance record, not evidence inferred
 from scheduled hours. D staff record one attendance record; M/E status reports
@@ -32,8 +36,11 @@ cancelled attendance is excluded from the supervisor-approved total.
 Existing `timesheet.submit.self` and scoped `timesheet.submit.proxy` permissions
 govern recording. Department reads require scoped `timesheet.read.department`;
 record review allows the employee, a scoped reader/approver, or a named approver.
-No public access or new permission grant is added. Future clock hardware must
-submit into this attendance journey; no device integration is included here.
+No public access or new permission grant is added. Token-based clock-in (NFC tag or
+QR poster, see [contracts](../api/contracts.md#clock-in)) submits into this same
+attendance journey; manual entry remains the fallback and no device integration is
+included. A static token accepts the risk of a photographed tag (ADR-0009); rotate a
+clock point when its tag is lost or copied.
 
 The additive migration follows the daily-status `UNCONFIRMED` migration. Apply the
 main database migrations before enabling the new UI. Historical roster assignments

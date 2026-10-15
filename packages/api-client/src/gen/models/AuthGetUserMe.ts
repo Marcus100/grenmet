@@ -8,6 +8,10 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type AuthGetUserMeStatus200 = UserPublic;
 
+export type AuthGetUserMeStatus401 = unknown;
+
+export type AuthGetUserMeStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -23,6 +27,8 @@ export type AuthGetUserMeOptions = {
 
 export type AuthGetUserMeResponses = {
   "200": AuthGetUserMeStatus200;
+  "401": AuthGetUserMeStatus401;
+  "403": AuthGetUserMeStatus403;
   "422": AuthGetUserMeStatus422;
 };
 

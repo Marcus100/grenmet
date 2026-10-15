@@ -70,7 +70,7 @@ describe("NotificationSettings", () => {
     expect(await screen.findByText(overdue.description)).toBeInTheDocument();
     expect(screen.getByText(DOMAIN_LIMIT)).toBeInTheDocument();
     expect(screen.getByText("pat@gmail.com")).toBeInTheDocument();
-  }, 20_000);
+  });
 
   it("saves a changed reminder timing", async () => {
     const saved: Record<string, unknown>[] = [];
@@ -99,5 +99,5 @@ describe("NotificationSettings", () => {
       enabled: true,
       params: { remind_after_days: 3 },
     });
-  }, 20_000);
+  });
 });

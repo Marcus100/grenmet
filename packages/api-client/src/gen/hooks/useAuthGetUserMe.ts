@@ -14,6 +14,8 @@ import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { authGetUserMe } from "../clients/authGetUserMe.js";
 import type {
   AuthGetUserMeStatus200,
+  AuthGetUserMeStatus401,
+  AuthGetUserMeStatus403,
   AuthGetUserMeStatus422,
 } from "../models/AuthGetUserMe.js";
 
@@ -30,7 +32,9 @@ export function authGetUserMeQueryOptions(
   const queryKey = authGetUserMeQueryKey();
   return queryOptions<
     AuthGetUserMeStatus200,
-    ResponseErrorConfig<AuthGetUserMeStatus422>,
+    ResponseErrorConfig<
+      AuthGetUserMeStatus401 | AuthGetUserMeStatus403 | AuthGetUserMeStatus422
+    >,
     AuthGetUserMeStatus200,
     typeof queryKey
   >({
@@ -59,7 +63,11 @@ export function useAuthGetUserMe<
     query?: Partial<
       QueryObserverOptions<
         AuthGetUserMeStatus200,
-        ResponseErrorConfig<AuthGetUserMeStatus422>,
+        ResponseErrorConfig<
+          | AuthGetUserMeStatus401
+          | AuthGetUserMeStatus403
+          | AuthGetUserMeStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -81,9 +89,12 @@ export function useAuthGetUserMe<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient
-  ) as UseQueryResult<TData, ResponseErrorConfig<AuthGetUserMeStatus422>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      AuthGetUserMeStatus401 | AuthGetUserMeStatus403 | AuthGetUserMeStatus422
+    >
+  > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;
 

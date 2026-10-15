@@ -4,6 +4,7 @@ from datetime import date
 from pydantic import Field
 
 from src.hr.models import RequestStatus
+from src.hr.roster.schemas import RosterRulesPublic, RuleViolationPublic
 from src.hr.signatures.schemas import SignatureConsent
 from src.hr.submission import SubmittedFormPublic
 from src.models import BaseModel, UtcDateTime
@@ -64,3 +65,12 @@ class ShiftSwapRequestsPublic(BaseModel):
     count: int
     page: int = 1
     size: int = 100
+
+
+class ShiftSwapRuleCheckPublic(BaseModel):
+    """Warn-only rule breaches the exchange would introduce, never blocking it."""
+
+    shift_swap_id: uuid.UUID
+    rules: RosterRulesPublic
+    violations: list[RuleViolationPublic]
+    count: int

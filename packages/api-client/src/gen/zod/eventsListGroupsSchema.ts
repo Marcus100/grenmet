@@ -9,6 +9,8 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 
 export const eventsListGroupsStatus200Schema = z.array(groupSummarySchema);
 
+export const eventsListGroupsStatus401Schema = z.unknown();
+
 export const eventsListGroupsStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -16,4 +18,7 @@ export const eventsListGroupsStatus422Schema =
 
 export const eventsListGroupsResponseSchema = eventsListGroupsStatus200Schema;
 
-export const eventsListGroupsErrorSchema = eventsListGroupsStatus422Schema;
+export const eventsListGroupsErrorSchema = z.union([
+  eventsListGroupsStatus401Schema,
+  eventsListGroupsStatus422Schema,
+]);

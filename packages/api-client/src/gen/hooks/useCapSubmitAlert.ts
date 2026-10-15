@@ -14,6 +14,9 @@ import { capSubmitAlert } from "../clients/capSubmitAlert.js";
 import type {
   CapSubmitAlertOptions,
   CapSubmitAlertStatus200,
+  CapSubmitAlertStatus401,
+  CapSubmitAlertStatus403,
+  CapSubmitAlertStatus404,
   CapSubmitAlertStatus422,
 } from "../models/CapSubmitAlert.js";
 
@@ -28,7 +31,12 @@ export function capSubmitAlertMutationOptions<TContext = unknown>(
   const mutationKey = capSubmitAlertMutationKey();
   return mutationOptions<
     CapSubmitAlertStatus200,
-    ResponseErrorConfig<CapSubmitAlertStatus422>,
+    ResponseErrorConfig<
+      | CapSubmitAlertStatus401
+      | CapSubmitAlertStatus403
+      | CapSubmitAlertStatus404
+      | CapSubmitAlertStatus422
+    >,
     CapSubmitAlertOptions,
     TContext
   >({
@@ -53,7 +61,12 @@ export function useCapSubmitAlert<TContext>(
   options: {
     mutation?: UseMutationOptions<
       CapSubmitAlertStatus200,
-      ResponseErrorConfig<CapSubmitAlertStatus422>,
+      ResponseErrorConfig<
+        | CapSubmitAlertStatus401
+        | CapSubmitAlertStatus403
+        | CapSubmitAlertStatus404
+        | CapSubmitAlertStatus422
+      >,
       CapSubmitAlertOptions,
       TContext
     > & { client?: QueryClient };
@@ -71,14 +84,24 @@ export function useCapSubmitAlert<TContext>(
     config
   ) as UseMutationOptions<
     CapSubmitAlertStatus200,
-    ResponseErrorConfig<CapSubmitAlertStatus422>,
+    ResponseErrorConfig<
+      | CapSubmitAlertStatus401
+      | CapSubmitAlertStatus403
+      | CapSubmitAlertStatus404
+      | CapSubmitAlertStatus422
+    >,
     CapSubmitAlertOptions,
     TContext
   >;
 
   return useMutation<
     CapSubmitAlertStatus200,
-    ResponseErrorConfig<CapSubmitAlertStatus422>,
+    ResponseErrorConfig<
+      | CapSubmitAlertStatus401
+      | CapSubmitAlertStatus403
+      | CapSubmitAlertStatus404
+      | CapSubmitAlertStatus422
+    >,
     CapSubmitAlertOptions,
     TContext
   >(
@@ -90,7 +113,12 @@ export function useCapSubmitAlert<TContext>(
     queryClient
   ) as UseMutationResult<
     CapSubmitAlertStatus200,
-    ResponseErrorConfig<CapSubmitAlertStatus422>,
+    ResponseErrorConfig<
+      | CapSubmitAlertStatus401
+      | CapSubmitAlertStatus403
+      | CapSubmitAlertStatus404
+      | CapSubmitAlertStatus422
+    >,
     CapSubmitAlertOptions,
     TContext
   >;

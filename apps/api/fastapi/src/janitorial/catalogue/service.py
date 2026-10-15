@@ -9,6 +9,7 @@ import logging
 import re
 from collections import defaultdict
 
+from pydantic import TypeAdapter
 from sqlalchemy import func, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -28,6 +29,10 @@ from . import schemas
 
 logger = logging.getLogger(__name__)
 
+_BUILDING_KIND = TypeAdapter(schemas.BuildingKind)
+_PERIOD_UNIT = TypeAdapter(schemas.PeriodUnit)
+_SPACE_TYPE = TypeAdapter(schemas.SpaceType)
+
 
 def _slug(value: str) -> str:
     return re.sub(r"^-+|-+$", "", re.sub(r"[^a-z0-9]+", "-", value.lower()))
@@ -37,7 +42,7 @@ def _frequency(task: AreaTask) -> schemas.JanitorialFrequency:
     return schemas.JanitorialFrequency(
         count=task.freq_count,
         periodValue=task.freq_period_value,
-        periodUnit=task.freq_period_unit,  # type: ignore[arg-type]
+        periodUnit=_PERIOD_UNIT.validate_python(task.freq_period_unit),
     )
 
 
@@ -128,7 +133,7 @@ def _area(
         code=area.code,
         name=area.name,
         sectionId=area.section_id,
-        spaceType=area.space_type,  # type: ignore[arg-type]
+        spaceType=_SPACE_TYPE.validate_python(area.space_type),
         cleanlinessLevel=area.cleanliness_level,
         quantity=area.quantity,
         active=area.active,
@@ -188,7 +193,7 @@ async def catalogue(
                 siteId=building.site_id,
                 code=building.code,
                 name=building.name,
-                kind=building.kind,  # type: ignore[arg-type]
+                kind=_BUILDING_KIND.validate_python(building.kind),
                 active=building.active,
                 revision=building.revision,
                 sections=[_section(section) for section in sections[building.id]],
@@ -211,7 +216,7 @@ def _building(building: Building) -> schemas.JanitorialBuilding:
         siteId=building.site_id,
         code=building.code,
         name=building.name,
-        kind=building.kind,  # type: ignore[arg-type]
+        kind=_BUILDING_KIND.validate_python(building.kind),
         active=building.active,
         revision=building.revision,
         sections=[],

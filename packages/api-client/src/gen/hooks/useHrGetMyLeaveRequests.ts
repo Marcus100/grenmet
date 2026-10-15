@@ -15,6 +15,8 @@ import { hrGetMyLeaveRequests } from "../clients/hrGetMyLeaveRequests.js";
 import type {
   HrGetMyLeaveRequestsOptions,
   HrGetMyLeaveRequestsStatus200,
+  HrGetMyLeaveRequestsStatus401,
+  HrGetMyLeaveRequestsStatus403,
   HrGetMyLeaveRequestsStatus422,
 } from "../models/HrGetMyLeaveRequests.js";
 
@@ -36,7 +38,11 @@ export function hrGetMyLeaveRequestsQueryOptions(
   const queryKey = hrGetMyLeaveRequestsQueryKey({ query });
   return queryOptions<
     HrGetMyLeaveRequestsStatus200,
-    ResponseErrorConfig<HrGetMyLeaveRequestsStatus422>,
+    ResponseErrorConfig<
+      | HrGetMyLeaveRequestsStatus401
+      | HrGetMyLeaveRequestsStatus403
+      | HrGetMyLeaveRequestsStatus422
+    >,
     HrGetMyLeaveRequestsStatus200,
     typeof queryKey
   >({
@@ -73,7 +79,11 @@ export function useHrGetMyLeaveRequests<
     query?: Partial<
       QueryObserverOptions<
         HrGetMyLeaveRequestsStatus200,
-        ResponseErrorConfig<HrGetMyLeaveRequestsStatus422>,
+        ResponseErrorConfig<
+          | HrGetMyLeaveRequestsStatus401
+          | HrGetMyLeaveRequestsStatus403
+          | HrGetMyLeaveRequestsStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -101,7 +111,11 @@ export function useHrGetMyLeaveRequests<
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<HrGetMyLeaveRequestsStatus422>
+    ResponseErrorConfig<
+      | HrGetMyLeaveRequestsStatus401
+      | HrGetMyLeaveRequestsStatus403
+      | HrGetMyLeaveRequestsStatus422
+    >
   > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;

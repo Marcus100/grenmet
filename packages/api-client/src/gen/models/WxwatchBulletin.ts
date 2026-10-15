@@ -17,6 +17,12 @@ export type WxwatchBulletinPath = {
 
 export type WxwatchBulletinStatus200 = ArchiveBulletin;
 
+export type WxwatchBulletinStatus401 = unknown;
+
+export type WxwatchBulletinStatus403 = unknown;
+
+export type WxwatchBulletinStatus404 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -32,6 +38,9 @@ export type WxwatchBulletinOptions = {
 
 export type WxwatchBulletinResponses = {
   "200": WxwatchBulletinStatus200;
+  "401": WxwatchBulletinStatus401;
+  "403": WxwatchBulletinStatus403;
+  "404": WxwatchBulletinStatus404;
   "422": WxwatchBulletinStatus422;
 };
 

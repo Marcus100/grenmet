@@ -18,6 +18,12 @@ export type CapUpdateFeedPath = {
 
 export type CapUpdateFeedStatus200 = CapFeedImportPublic;
 
+export type CapUpdateFeedStatus401 = unknown;
+
+export type CapUpdateFeedStatus403 = unknown;
+
+export type CapUpdateFeedStatus404 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -35,6 +41,9 @@ export type CapUpdateFeedOptions = {
 
 export type CapUpdateFeedResponses = {
   "200": CapUpdateFeedStatus200;
+  "401": CapUpdateFeedStatus401;
+  "403": CapUpdateFeedStatus403;
+  "404": CapUpdateFeedStatus404;
   "422": CapUpdateFeedStatus422;
 };
 

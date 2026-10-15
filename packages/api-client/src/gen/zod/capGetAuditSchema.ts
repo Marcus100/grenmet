@@ -14,6 +14,7 @@ export const capGetAuditQueryAlertIdSchema = z
 export const capGetAuditQueryPageSchema = z
   .int()
   .min(1)
+  .max(1000000)
   .optional()
   .default(1)
   .describe("Page number (1-indexed)");
@@ -28,6 +29,10 @@ export const capGetAuditQuerySizeSchema = z
 
 export const capGetAuditStatus200Schema = capAuditEventListPublicSchema;
 
+export const capGetAuditStatus401Schema = z.unknown();
+
+export const capGetAuditStatus403Schema = z.unknown();
+
 export const capGetAuditStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -35,4 +40,8 @@ export const capGetAuditStatus422Schema =
 
 export const capGetAuditResponseSchema = capGetAuditStatus200Schema;
 
-export const capGetAuditErrorSchema = capGetAuditStatus422Schema;
+export const capGetAuditErrorSchema = z.union([
+  capGetAuditStatus401Schema,
+  capGetAuditStatus403Schema,
+  capGetAuditStatus422Schema,
+]);

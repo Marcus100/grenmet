@@ -15,6 +15,8 @@ import { hrGetDocumentEmployees } from "../clients/hrGetDocumentEmployees.js";
 import type {
   HrGetDocumentEmployeesOptions,
   HrGetDocumentEmployeesStatus200,
+  HrGetDocumentEmployeesStatus401,
+  HrGetDocumentEmployeesStatus403,
   HrGetDocumentEmployeesStatus422,
 } from "../models/HrGetDocumentEmployees.js";
 
@@ -39,7 +41,11 @@ export function hrGetDocumentEmployeesQueryOptions(
   const queryKey = hrGetDocumentEmployeesQueryKey({ query });
   return queryOptions<
     HrGetDocumentEmployeesStatus200,
-    ResponseErrorConfig<HrGetDocumentEmployeesStatus422>,
+    ResponseErrorConfig<
+      | HrGetDocumentEmployeesStatus401
+      | HrGetDocumentEmployeesStatus403
+      | HrGetDocumentEmployeesStatus422
+    >,
     HrGetDocumentEmployeesStatus200,
     typeof queryKey
   >({
@@ -76,7 +82,11 @@ export function useHrGetDocumentEmployees<
     query?: Partial<
       QueryObserverOptions<
         HrGetDocumentEmployeesStatus200,
-        ResponseErrorConfig<HrGetDocumentEmployeesStatus422>,
+        ResponseErrorConfig<
+          | HrGetDocumentEmployeesStatus401
+          | HrGetDocumentEmployeesStatus403
+          | HrGetDocumentEmployeesStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -104,7 +114,11 @@ export function useHrGetDocumentEmployees<
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<HrGetDocumentEmployeesStatus422>
+    ResponseErrorConfig<
+      | HrGetDocumentEmployeesStatus401
+      | HrGetDocumentEmployeesStatus403
+      | HrGetDocumentEmployeesStatus422
+    >
   > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;

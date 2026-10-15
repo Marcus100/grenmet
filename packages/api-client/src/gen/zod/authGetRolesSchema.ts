@@ -10,6 +10,7 @@ import { validationErrorResponseSchema } from "./validationErrorResponseSchema.j
 export const authGetRolesQueryPageSchema = z
   .int()
   .min(1)
+  .max(1000000)
   .optional()
   .default(1)
   .describe("Page number (1-indexed)");
@@ -24,6 +25,10 @@ export const authGetRolesQuerySizeSchema = z
 
 export const authGetRolesStatus200Schema = paginatedResponseRolePublicSchema;
 
+export const authGetRolesStatus401Schema = z.unknown();
+
+export const authGetRolesStatus403Schema = z.unknown();
+
 export const authGetRolesStatus422Schema =
   validationErrorResponseSchema.describe(
     "Validation error envelope returned for malformed requests."
@@ -31,4 +36,8 @@ export const authGetRolesStatus422Schema =
 
 export const authGetRolesResponseSchema = authGetRolesStatus200Schema;
 
-export const authGetRolesErrorSchema = authGetRolesStatus422Schema;
+export const authGetRolesErrorSchema = z.union([
+  authGetRolesStatus401Schema,
+  authGetRolesStatus403Schema,
+  authGetRolesStatus422Schema,
+]);

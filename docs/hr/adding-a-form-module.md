@@ -85,7 +85,7 @@ params. Delegate to `service`; never put business logic in the route.
 
 ## 7. Migration
 
-```
+```bash
 docker compose exec api uv run --frozen --package fast-back alembic revision --autogenerate -m "hr <form>"
 ```
 
@@ -93,7 +93,7 @@ Then **review the generated file** — autogenerate currently also surfaces unre
 pre-existing CAP-domain drift; strip those `cap.*` operations out. Hand-edit for the
 PostgreSQL enum gotchas below, then:
 
-```
+```bash
 docker compose exec api uv run --frozen --package fast-back alembic upgrade head
 ```
 
@@ -138,7 +138,7 @@ ordered `WorkflowStepTemplate`s (the signature chain) per department via the
 Add `tests/hr/test_<form>_service.py` (async, use `db_async` + the factories). Cover:
 permission-required, happy path, list scoping, and any business rules. Run:
 
-```
+```bash
 docker compose exec api uv run --frozen --package fast-back pytest tests/hr/test_<form>_service.py -q
 ```
 

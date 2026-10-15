@@ -68,3 +68,19 @@ account Writer or Publisher access to CMS, independent of GMS employment.
 Publishers manage all CMS content but cannot grant access. No grant is the default.
 CMS therefore uses app-scoped tokens, replacing its initial staff-token path;
 GAA Admin retains the staff gate. See the [CMS access guide](../../apps/web/cms/README.md).
+
+## Leave and sign-out amendment — 15 October 2026
+
+- **Leaving an app** is an account action on `auth.barrels.gd/apps`
+  (`POST /auth/account/apps/{app}/leave`). It removes the app's default role and
+  ends that person's sessions in that app only; the account, other apps and
+  anything granted another way (a staff-granted role, an organisation
+  assignment) are untouched, and the reply says when access remains. Staff apps
+  are not self-service and cannot be left this way. Joining from the same page
+  uses `POST /auth/account/apps/{app}/join` with the same email-verified rule
+  as the handoff.
+- **App sign-out lands on auth.** Redirecting an app's Log out straight to its
+  sign-in sends the browser back through the live account session and signs it
+  in again, so gaa-admin and cms now land on `auth.barrels.gd/signed-out`, which
+  offers Sign in again or Sign out of all apps. Apps whose pages are public
+  (Events, gms, mbia) are unchanged.

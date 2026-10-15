@@ -1,7 +1,8 @@
 # Repository integration audit — 3 October 2026
 
 **Status:** Architecture and configuration audit; operational limits recorded below
-**Owner:** Barrels Grenada engineering
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-10-03
 
 ## Assessment
 

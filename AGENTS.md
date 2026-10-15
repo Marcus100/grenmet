@@ -1,20 +1,17 @@
 # AGENTS.md
 
 Canonical instructions for every coding agent in this monorepo (Codex, Claude
-Code, and others). `AGENTS.md` files are the default instruction files for all
-agents; do not create or maintain `CLAUDE.md` files.
+Code, and others). Do not create `CLAUDE.md` files; Claude Code reads
+`AGENTS.md` natively when none exists.
 
-**Project in one paragraph:** Barrels Grenada is the software company. Grenada
-Airports Authority (GAA) is a client organisation; Grenada Meteorological
-Service (GMS) is its meteorological department. Neither is a Barrels product.
-This pnpm/Turborepo monorepo holds Next.js 16 / React 19 web apps, a FastAPI
+**Project:** Barrels Grenada is the software company. Grenada Airports
+Authority (GAA) is a client organisation; Grenada Meteorological Service (GMS)
+is its meteorological department. Neither is a Barrels product. This
+pnpm/Turborepo monorepo holds Next.js 16 / React 19 web apps, a FastAPI
 (Python 3.14) modular-monolith API, shared packages, and GMS operational
 tooling. Start with `docs/technical-overview.md`.
 
 ## Instruction map — read the nested file before editing its directory
-
-Agents auto-load only the root file and nested files they read. **Before
-editing under a path below, open its `AGENTS.md`.**
 
 | Path | Covers |
 | --- | --- |
@@ -31,221 +28,83 @@ editing under a path below, open its `AGENTS.md`.**
 pnpm install  # dependencies
 pnpm start  # Docker services (Postgres, Redis, FastAPI, worker) — HOST ONLY
 pnpm dev:web:<app>  # auth:3000 gaa-admin:3001 docs:3002 gms:3003 signal:3004 mbia:3005 cms:3006 elections:3007 events:3009 — HOST ONLY
-pnpm fix:changed  # formats all dirty files; select explicit paths in shared checkouts
+pnpm verify:changed  # only the gates this diff needs (--dry-run to list)
+pnpm fix:changed  # formats dirty files; in shared checkouts use `pnpm exec ultracite fix <owned-files>`
 pnpm type-check  # TypeScript across all packages
-pnpm fix  # repo-wide fix — only when deliberate (e.g. dependency bump)
+pnpm e2e  # Playwright smoke tests (needs the app's dev server)
 turbo run test --filter=@barrelsgd/<package>  # one package's tests
-pnpm vitest run src/path/to/file.test.ts  # one test file (from the app dir)
-pnpm generate:api-client  # Kubb client from apps/api/fastapi/openapi.json
-pnpm check:drift  # client/openapi drift (fails CI)
+pnpm generate:api-client && pnpm check:drift  # regenerate the client; drift fails CI
 pnpm guardrails:staged  # FastAPI contract pairing check on staged files
-pnpm docs:check-links && pnpm docs:check-portfolio && pnpm test:docs  # docs gates
-pnpm design-system:check  # token gate
 ```
 
 FastAPI (from `apps/api/fastapi`; host stack uses `docker compose exec api …`):
 
 ```bash
 uv run --frozen --package fast-back pytest [tests/<domain>/]  # tests
-uv run --frozen --package fast-back alembic upgrade head  # main DB migrations
-uv run --frozen --package fast-back alembic -c src/<domain>/alembic.ini upgrade head  # separate-DB domains
+uv run --frozen --package fast-back alembic [-c src/<domain>/alembic.ini] upgrade head  # migrations
 ./scripts/lint.sh  # Ruff + format check + mypy
-./scripts/format.sh  # Ruff fix + format
 PROJECT_NAME='Barrels Grenada' uv run --frozen --package fast-back python -c "from src.main import app; import json; json.dump(app.openapi(), open('openapi.json', 'w'), indent=2)"  # regen openapi.json
 ```
 
-**Inside the agent dev container** there is no docker CLI and Compose hostnames
-(`db`, `grenmet-postgres`) don't resolve. Point tests at the host stack:
-`POSTGRES_SERVER=host.docker.internal REDIS_URL=redis://host.docker.internal:6379/0 uv run --frozen --package fast-back pytest`
-(full variable list in `apps/api/fastapi/AGENTS.md` → Testing).
+Inside the agent dev container there is no docker CLI and Compose hostnames don't
+resolve: prefix tests with `POSTGRES_SERVER=host.docker.internal
+REDIS_URL=redis://host.docker.internal:6379/0` (full list in
+`apps/api/fastapi/AGENTS.md` → Testing).
 
-## Behavioral Tiers
+## Always
 
-### Always (no confirmation needed)
-- Work locally first: implement, inspect the diff, and run formatting, types, affected tests and integration checks before pushing; CI is extra verification, not the first test run.
-- Stage, commit, push and open PRs for authorized work after required formatting, types, affected tests and blast-radius checks pass; review the diff, preserve unrelated changes and never bypass hooks or force-push.
-- Run `pnpm fix:changed` then `pnpm type-check` before marking any task done. In shared checkouts, use `pnpm exec ultracite fix <owned-files>` to preserve unrelated edits.
-  Repo-wide `pnpm fix` reformats unrelated in-progress files; use it deliberately.
-- Treat GAA as the client organisation and GMS as its meteorological department; never describe either as a Barrels product. Software is Barrels IP; client data, marks and `Owner: GAA/GMS` docs are GAA's. The repo is public: never commit GAA confidential material; keep it in gitignored `/private/`
-- Put backend logic in Python (FastAPI). The only TypeScript backend is the Payload CMS (`apps/web/cms`). Next.js route handlers may only validate, proxy to FastAPI, or render (e.g. email HTML); never add database access, business rules, or delivery there
-- Use Biome/Ultracite through `pnpm fix` for linting and formatting; never invoke Prettier or ESLint
-- Before marking a task done, grep every importer/callsite of changed symbols and confirm the change is complete across all affected layers — see Blast-Radius Gate
-- Follow existing patterns in the codebase before proposing new ones
+- Work locally first: run formatting, types, affected tests and integration checks before pushing; CI is extra verification, not the first test run.
+- Before calling a task done, run `pnpm fix:changed` and `pnpm type-check` (or `pnpm verify:changed`), then grep every importer and callsite of changed symbols and finish every affected layer. See the blast-radius table in `docs/agents/workflow.md`.
+- Put backend logic in Python (FastAPI). The only TypeScript backend is the Payload CMS (`apps/web/cms`). Next.js route handlers may only validate, proxy to FastAPI, or render; never add database access, business rules, or delivery there.
+- Every new feature or significant logic change ships with tests in the same task; if there is no clear test target, say what you verified and its limits.
+- Follow existing patterns. Before introducing a new pattern, library or abstraction, state the problem, why the existing approach falls short, and the tradeoffs.
+- Treat GAA as the client and GMS as its meteorological department. Software is Barrels IP; client data, marks and `Owner: GAA/GMS` docs are GAA's. The repo is public: keep confidential client material in gitignored `/private/`.
+- Before acting on a setup or diagnosis theory, confirm the environment with a cheap check (host vs devcontainer, which Docker daemon, which port or config file). Run `pnpm start` and `pnpm dev:web:*` on the host only.
+- Lead with the answer or next step in plain language; keep responses short, and teach one concept at a time with a hands-on command. Apply user corrections immediately and record lasting rules in the relevant doc or `AGENTS.md`.
 
-### Ask First (stop before proceeding)
-- Work outside the task or domain the user has authorized
-- Adding any npm package not in `pnpm-workspace.yaml` catalog, or any Python dependency
-- Modifying `turbo.json`, `biome.jsonc`, or any `tsconfig*.json`
-- Destructive schema/data changes, breaking API changes, or widening public access or permissions
-- Cross-project architecture changes or business-policy decisions the repository and session do not resolve
+## Ask first
 
-Existing session authorization counts; do not request it again. Within an assigned
-task, proceed with related files, tests, documentation, generated clients, shared
-package changes, compatible API changes, and additive migrations; apply the
-Blast-Radius Gate and explain material tradeoffs.
+- Work outside the task or domain the user has authorized. The requested outcome is the scope: related source, tests, contracts, generated artifacts, docs and additive migrations are included; respect explicit file limits. Existing session authorization counts.
+- Adding an npm package not in the `pnpm-workspace.yaml` catalog, or any Python dependency.
+- Modifying `turbo.json`, `biome.jsonc`, or any `tsconfig*.json`.
+- Destructive schema or data changes, breaking API changes, or widening public access or permissions.
+- Cross-project architecture changes or business-policy decisions the repository and session do not resolve.
 
-### Never
-- Merge to `main`, publish production releases, or run production deploy commands without explicit user authorization. Standing staging authorization is defined below.
-- Destructive Git operations remain blocked by `.claude/hooks/block-dangerous-git.mjs`.
-- Write to `.env.*` or `.env.local` files — blocked by `.claude/hooks/protect-files.mjs`
-- Manually edit `packages/api-client/src/gen/` — blocked by the same hook
-- Implement a review-only or planning-only request before the user authorizes implementation
+## Never
 
-## Behavioral Rules
+- Merge to `main`, publish releases, or deploy to production without explicit user authorization.
+- Force-push, bypass hooks, or run destructive git commands (blocked by `.claude/hooks/block-dangerous-git.mjs`).
+- Write `.env*` files or hand-edit `packages/api-client/src/gen/` (blocked by `.claude/hooks/protect-files.mjs`).
+- Implement a review-only or planning-only request before the user authorizes implementation.
+- Use Prettier or ESLint; Biome/Ultracite through `pnpm fix` is the only formatter and linter.
 
-### Scope Gate
-Treat the requested outcome as scope: related source, tests, contracts, generated
-artifacts, and documentation are authorized even when filenames are not listed.
-Respect explicit file limits; ask before expanding into unrelated work.
+## Git, parallel agents and handoff
 
-### Host/Container Boundary
-Run `pnpm start` and `pnpm dev:web:*` on the host, never inside the
-devcontainer; use the devcontainer for editing, agents, linting,
-type-checking, and tests.
+- **Attended sessions:** work in a worktree per task, merge into local `dev`, validate, then push `dev`. Standing authorization covers creating and merging the `dev → staging` PR once all its checks pass (`--match-head-commit`). **Unattended routines** push only their own branch and open a PR to `dev` (`docs/agents/routines.md`). Full rules: `docs/agents/workflow.md`.
+- Never hand-merge `openapi.json` or `packages/api-client/src/gen/`; regenerate both.
+- Read `SESSION_LOG.md` (main checkout root) before assuming a task is untouched; append one entry after meaningful work. Run the `file-friction` skill if you worked around anything. Tool switches: `docs/agents/tool-usage.md`.
+- Use the `api-change` skill for FastAPI contract changes and `gaa-admin-change` before touching `apps/web/gaa-admin`. Check `.claude/skills/` (also `.agents/skills`) before improvising CI triage, pre-merge, release or diagnosis.
+- Issues: GitHub Issues for `Marcus100/grenmet` via `gh`. Triage labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix` (`docs/agents/triage-labels.md`). Domain language: root `CONTEXT.md` (created lazily by `/domain-modeling`) plus `docs/adr/` (`docs/agents/domain.md`).
+- Claude Code: spawn sub-agents only when the user asks, and pass them the relevant nested `AGENTS.md` paths.
 
-### Parallel Agents
-Several agents often run at once: give each its own git worktree and branch
-(Claude: `claude --worktree <topic>`, which creates `.claude/worktrees/<topic>`
-from the current `dev` HEAD; Codex: its worktree mode). Run `pnpm install` in a
-new worktree. Commit there, then merge completed branches into local `dev` in a
-clean integration checkout; follow the Git and GitHub Workflow below. Never hand-merge
-`openapi.json` or `packages/api-client/src/gen/`: take either side, regenerate
-(openapi command above → `pnpm generate:api-client` → `pnpm check:drift`).
-Dev servers stay on the host in the main checkout.
-- **Shared stashes:** Git stashes are shared across worktrees. Record and apply the exact stash SHA; never use an implicit latest stash during parallel work.
+## Code conventions
 
-### Git and GitHub Workflow
-- Merge completed task branches into local `dev`, validate the combined result, then push `dev` directly; do not push feature branches or create feature-to-dev PRs unless the user requests them.
-- Fetch first and integrate current `origin/dev`; run `pnpm fix:changed`, `pnpm type-check`, affected tests, staged guardrails and blast-radius review before pushing. If remote dev advances, integrate it locally and revalidate before retrying; never force-push or bypass hooks.
-- Standing authorization: after local validation and direct `dev` push, create/update the `dev → staging` PR and merge it automatically once all applicable checks pass for its current head. Review the promotion diff, verify dev has not advanced, and use `--match-head-commit`; never bypass protection or merge pending/failing checks.
-- Monitor the resulting staging deployment and report actionable failures or readiness for acceptance. Reuse an open promotion PR; production promotion (`staging → main`) and publication/deployment remain separately authorized. Do not promote unrelated or unfinished work.
+Frontend (full style rules in `.agents/rules/ultracite.mdc`):
+- No `any` (use `unknown` and narrow); no `forwardRef` (React 19 `ref` prop).
+- No `process.env` in app code: use the app's typed env module (`src/env.ts` or `src/lib/env.ts`; except `next.config.*`, `instrumentation.ts`, `sentry.*.config.ts`).
+- Server Components by default; React Query only for client-side mutations and polling.
+- `catalog:` for shared deps; `@/` path alias; UI primitives from `@barrelsgd/ui/components/ui/<name>`, `cn` from `@barrelsgd/ui/lib/utils`.
+- Types, fetch clients, hooks and Zod schemas come from `@barrelsgd/api-client`; never hand-write a FastAPI response type.
+- Let unexpected errors throw to `error.tsx`/`global-error.tsx`. If you catch and show a fallback, call `reportError(error, "<area>")` from the app's `src/lib/report-error.ts`. Never import `@sentry/nextjs` in a shared package; never put user data in Sentry.
 
-### Communication
-Lead with the answer or the next step in plain language; keep responses short
-and offer deeper detail only when asked. When teaching, go one concept at a
-time with a hands-on command — never a comprehensive architecture dump.
+Backend (details in `apps/api/fastapi/AGENTS.md`):
+- SQLAlchemy models in `models.py`, `src.models.BaseModel` schemas in `schemas.py`; never expose ORM models.
+- Thin routers, logic in `service.py`, typed `AppException` subclasses; filter, join and paginate in SQL.
+- `require_permission(current_user=…, permission_key=…)` with every key in `src/auth/permissions.py`.
+- No sync network calls in `async def`; background work goes to the ARQ worker.
+- geonetcast runs devcontainer-first; never `uv sync --package geonetcast` on the host.
 
-### Verify Environment Before Theorizing
-Before acting on any setup/diagnosis theory, confirm the environment with a
-cheap check (host vs devcontainer, which Docker daemon, which port/config
-file) and state the assumption being tested. Never bundle a speculative
-environment change with a fix.
-
-### Blast-Radius Gate
-A change is not done when the named file passes `pnpm fix` + `pnpm type-check`.
-Run `pnpm guardrails:staged` (FastAPI route/schema changes must be paired with
-`openapi.json`; same check CI runs), then grep for every remaining consumer of
-the symbols you touched and verify each affected layer — the script covers one
-case, not the general one. Use the `api-change` skill for FastAPI contract
-changes and the `gaa-admin-change` skill before touching `apps/web/gaa-admin`
-(five formerly separate apps: cap/hr/wxwatch/wxproducts/salesbus).
-
-This gate finds impact; it does not override explicit file limits or authorize
-unrelated work. Complete affected layers within the authorized task.
-
-| If you change… | Also verify… |
-| --- | --- |
-| A FastAPI route or schema | regen `openapi.json` → `pnpm generate:api-client` → `pnpm check:drift`; `docs/api/contracts.md`; every web consumer of the generated hook/type |
-| A SQLAlchemy model | Alembic revision for the right database (main or `src/<domain>/alembic.ini`); seeds; `openapi.json` if it surfaces in a schema |
-| A permission key | `src/auth/permissions.py` catalogue (enforced by `tests/auth/test_permission_registry.py`); UI gating in gaa-admin |
-| Auth behavior (`packages/auth`) | all apps using it + delegating apps (docs, gms via `AUTH_API_URL`) |
-| A domain baseline (`src/<domain>/migrations/drizzle-history.json`) | never edit it — it verifies adopted production history; new schema work is a new Alembic revision |
-| A consolidated admin route | the other folded modules in gaa-admin |
-| A `@barrelsgd/ui` primitive | every app importing it |
-
-### Reasoning Gate
-Before introducing any new pattern, library, abstraction, or approach: state
-(1) the problem it solves, (2) why the existing approach is insufficient,
-(3) the tradeoffs. Routine choices within authorized work can proceed; wait only
-when an Ask First boundary applies.
-
-### Tests Alongside Features
-Every new feature, component, server action, or significant logic change
-includes tests in the same task. If there is no clear test target, explain the
-verification used and its limits.
-
-### Correction Handling
-Apply user clarifications to ongoing work immediately. Record durable domain
-rules in domain docs and durable agent conventions in the relevant `AGENTS.md`;
-ask only when the lasting rule or its scope is ambiguous.
-
-### AGENTS.md Update Protocol
-Keep root instructions under 20 KB. Put behavior in Behavioral Rules, code
-conventions in Code Conventions, CI facts in CI/CD Conventions, and lookup
-links in Where to Look. Put directory rules in nested `AGENTS.md` and update
-the Instruction map; put operational detail in domain docs. Keep entries short.
-
-- **Worktree cleanup:** A clean worktree may still back another live session. Confirm session ownership and preserve ignored local files before removal; keep uncertain worktrees and never remove another session's working directory.
-
-### Session Handoff
-Claude Code and Codex share one working tree. A `SessionStart` hook tails
-`SESSION_LOG.md` (main checkout root, gitignored; shared by every worktree) into context — read it before
-assuming a task is untouched. After a meaningful chunk of work, append one
-entry: timestamp, tool, one-line summary, files touched, next step. Newest at
-the bottom. For tool switches, follow `docs/agents/tool-usage.md`.
-
-## Tool Usage
-
-Read `docs/agents/tool-usage.md` before investigation or delegation.
-
-## Playbooks and hooks
-
-- Reusable playbooks: `.claude/skills/*/SKILL.md` and `.claude/commands/*.md`
-  (plain markdown, usable by any agent). `.agents/skills` is a symlink to
-  `.claude/skills`; edit the canonical `.claude/skills`. Check for a playbook
-  before improvising CI triage, pre-merge, release, API changes, or diagnosis.
-- Hooks: scripts in `.claude/hooks/`, wired in `.claude/settings.json` (Claude)
-  and `.codex/config.toml` (Codex). Edit scripts once; both tools pick them up.
-  `scripts/guardrails/*.test.mjs` self-checks the wiring and this instruction layout.
-
-## Code Conventions
-
-Frontend (TypeScript/React) — full style rules in `.agents/rules/ultracite.mdc` (Ultracite/Biome):
-- **No `any`** — use `unknown` and narrow. Biome enforces this.
-- **No `forwardRef`** — React 19: pass `ref` as a prop.
-- **No `process.env` in app code** — use the app's typed `src/env.ts`. Exceptions: `next.config.*`, `instrumentation.ts`, `sentry.*.config.ts`.
-- **Server Components by default** — `"use client"` only for interactivity or browser hooks.
-- **No React Query for server-fetchable data** — fetch in Server Components; React Query is for client-side mutations/polling (gaa-admin).
-- **`catalog:` for shared deps** — never hardcode a version for a catalogued dep.
-- **Path aliases** — `@/` (maps to `src/`), not deep relative imports.
-- **UI primitives** — `@barrelsgd/ui/components/ui/<name>`; utils from `@barrelsgd/ui/lib/utils`.
-- **Class composition** — use `cn` from `@barrelsgd/ui/lib/utils` for conditional utilities and caller `className`; keep custom `text-*` size/color pairs intact when `cn` would merge them.
-- **Generated client** — types, fetch clients, hooks, and Zod schemas come from `@barrelsgd/api-client`; never hand-write a FastAPI response type.
-- **Sentry everywhere** — let unexpected errors throw to the app's `error.tsx` / `global-error.tsx` (both report to Sentry). If you catch an error and show a fallback instead, call `reportError(error, "<area>")` from the app's `src/lib/report-error.ts` (it skips expected 4xx via the shared `shouldReportError` rule). Never import `@sentry/nextjs` in a shared package — it would resolve an uninitialised copy of the SDK. Only `area` and `digest` tags survive the privacy scrubber; never put user data in Sentry.
-
-Backend (Python/FastAPI) — details in `apps/api/fastapi/AGENTS.md`:
-- **Two layers** — SQLAlchemy models in `models.py`, `src.models.BaseModel` schemas in `schemas.py`; never expose ORM models.
-- **Thin routers** — logic in `service.py`; `Annotated` dependency aliases; typed `AppException` subclasses.
-- **SQL first** — filter/join/paginate in SQL; Pydantic at the HTTP seam only.
-- **Permissions** — `require_permission(current_user=…, permission_key=…)`; every key in `src/auth/permissions.py`.
-- **Async I/O** — no sync network calls in `async def`; background work goes to the ARQ worker.
-
-Other:
-- **geonetcast runs devcontainer-first** — its `gdal` pin tracks the devcontainer's libgdal; never `uv sync --package geonetcast` on the host.
-
-### Claude Code
-
-- Claude Code loads `AGENTS.md` natively when no `CLAUDE.md` or `CLAUDE.local.md` exists in the working directory or an ancestor.
-- Invoke repo playbooks with the Skill tool or `/<name>` (for example `/api-change`, `/gaa-admin-change`, `/pre-merge`, `/ci-triage`, `/release`, `/commit`, `/ui-check`, `/design-critique`, `/tdd`, `/diagnosing-bugs`, and `/stack-doctor`).
-- Only spawn sub-agents when the user asks; when doing so, pass the Blast-Radius Gate and relevant nested `AGENTS.md` paths.
-- Claude hooks live in `.claude/settings.json`; `format-changed-file.mjs` formats each edited file automatically.
-
-## CI/CD Conventions
-
-- **Promotion workflow:** after authorized work lands on `dev`, create or update one `dev` → `staging` PR and report its checks; merge it under the standing authorization in Git and GitHub Workflow. Production (`staging` → `main`), releases and deploys need explicit authorization.
-- **Sentry:** shared projects are `grenmet-staging` and `grenmet-production`; route only through the matching environment secret, never cross-environment fallback. Telemetry, analytics and monitoring rules: `docs/agents/extended-rules.md`.
-
-- Docker image names in GitHub workflows must be lowercase.
-- Pin all GitHub Actions to SHAs, not tags.
-- After modifying Biome config, verify both `assist` and `formatter` override keys — Linux CI formatting can differ from macOS.
-- `outputFileTracingRoot` in Next.js config must be top-level, not inside `experimental`.
-- `packages/api-client/src/gen/` must stay in sync with `apps/api/fastapi/openapi.json` — drift fails CI.
-
-## Design
-
-- Before building UI, read the lane spec `docs/design/<gms|gaa-admin|mbia|signal|elections|events>.md`; loop in `docs/design-workflow.md`, tokens in `docs/design-system.md`.
-- **Figma is not linked to this repo.** Ignore Figma tools and node URLs; never ask for a Figma frame URL.
-- Style only with `--gm-*` tokens / Tailwind aliases / shadcn semantics — never hardcode color/spacing/radius. New or changed `--gm-*` tokens need approval. Brand colors, logo, accessibility and token commands: `docs/agents/extended-rules.md`.
+Design: read the lane spec `docs/design/<lane>.md` before building UI; style only with `--gm-*` tokens, Tailwind aliases or shadcn semantics; new tokens need approval. Figma is not linked; never ask for a Figma URL. Details, CI/CD and telemetry rules: `docs/agents/extended-rules.md`.
 
 ## Where to Look
 
@@ -273,11 +132,7 @@ Other:
 | GMS programme / SOPs | `docs/internal/` |
 | HR forms and new form modules | `docs/hr/adding-a-form-module.md` |
 | HR forms, roster, attendance and timesheet alignment | `docs/hr/end-to-end-alignment.md` |
+| Agent workflow, git, blast radius, hooks | `docs/agents/workflow.md` |
+| Agent helpers, principles, routines, run records, benchmarks | `docs/agents/README.md` |
 | Agent configuration (how this layout works) | `docs/agent-configuration-guide.md` |
 | Vendored ops apps (SURFACE, wis2box) | `VENDORED.md` |
-
-## Issue tracking and domain docs
-
-- Issues: GitHub Issues for `Marcus100/grenmet` via `gh`; external PRs are not a triage surface. See `docs/agents/issue-tracker.md`.
-- Triage labels: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
-- Domain language: root `CONTEXT.md` (created lazily by `/domain-modeling`) plus `docs/adr/`. See `docs/agents/domain.md`.

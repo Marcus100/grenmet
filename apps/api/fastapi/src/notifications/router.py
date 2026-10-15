@@ -14,6 +14,8 @@ from .schemas import (
     NotificationSettingPublic,
     NotificationSettingsPublic,
     NotificationSettingUpdate,
+    NotificationSnoozeCreate,
+    NotificationSnoozePublic,
     UnreadCountPublic,
 )
 
@@ -164,4 +166,75 @@ async def update_notification_setting(
         organisation_id=organisation_id,
         event_key=event_key,
         payload=payload,
+    )
+
+
+@router.get(
+    "/snoozes",
+    response_model=list[NotificationSnoozePublic],
+    status_code=200,
+    summary="List active notification snoozes",
+    description="Notifications currently silenced for the organisation. Requires notifications.manage.",
+    responses={403: {"description": "Insufficient scope for this organisation"}},
+)
+async def read_notification_snoozes(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    organisation_id: str | None = None,
+) -> Any:
+    return await service.list_snoozes(
+        session=session, actor=current_user, organisation_id=organisation_id
+    )
+
+
+@router.post(
+    "/snoozes",
+    response_model=NotificationSnoozePublic,
+    status_code=201,
+    summary="Snooze a notification",
+    description="Silence a notification, or one entity of it, until a set time, e.g. during planned work. Requires notifications.manage.",
+    responses={
+        400: {"description": "Snooze must end in the future, or entity is incomplete"},
+        403: {"description": "Insufficient scope for this organisation"},
+        404: {"description": "Unknown notification"},
+    },
+)
+async def create_notification_snooze(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    payload: NotificationSnoozeCreate,
+    organisation_id: str | None = None,
+) -> Any:
+    return await service.create_snooze(
+        session=session,
+        actor=current_user,
+        organisation_id=organisation_id,
+        payload=payload,
+    )
+
+
+@router.delete(
+    "/snoozes/{snooze_id}",
+    status_code=204,
+    summary="End a notification snooze",
+    description="Removes a snooze so the notification resumes. Requires notifications.manage.",
+    responses={
+        403: {"description": "Insufficient scope for this organisation"},
+        404: {"description": "Snooze not found"},
+    },
+)
+async def delete_notification_snooze(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    snooze_id: uuid.UUID,
+    organisation_id: str | None = None,
+) -> None:
+    await service.delete_snooze(
+        session=session,
+        actor=current_user,
+        organisation_id=organisation_id,
+        snooze_id=snooze_id,
     )

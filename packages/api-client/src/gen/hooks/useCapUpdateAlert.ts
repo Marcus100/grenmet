@@ -14,6 +14,9 @@ import { capUpdateAlert } from "../clients/capUpdateAlert.js";
 import type {
   CapUpdateAlertOptions,
   CapUpdateAlertStatus200,
+  CapUpdateAlertStatus401,
+  CapUpdateAlertStatus403,
+  CapUpdateAlertStatus404,
   CapUpdateAlertStatus422,
 } from "../models/CapUpdateAlert.js";
 
@@ -28,7 +31,12 @@ export function capUpdateAlertMutationOptions<TContext = unknown>(
   const mutationKey = capUpdateAlertMutationKey();
   return mutationOptions<
     CapUpdateAlertStatus200,
-    ResponseErrorConfig<CapUpdateAlertStatus422>,
+    ResponseErrorConfig<
+      | CapUpdateAlertStatus401
+      | CapUpdateAlertStatus403
+      | CapUpdateAlertStatus404
+      | CapUpdateAlertStatus422
+    >,
     CapUpdateAlertOptions,
     TContext
   >({
@@ -53,7 +61,12 @@ export function useCapUpdateAlert<TContext>(
   options: {
     mutation?: UseMutationOptions<
       CapUpdateAlertStatus200,
-      ResponseErrorConfig<CapUpdateAlertStatus422>,
+      ResponseErrorConfig<
+        | CapUpdateAlertStatus401
+        | CapUpdateAlertStatus403
+        | CapUpdateAlertStatus404
+        | CapUpdateAlertStatus422
+      >,
       CapUpdateAlertOptions,
       TContext
     > & { client?: QueryClient };
@@ -71,14 +84,24 @@ export function useCapUpdateAlert<TContext>(
     config
   ) as UseMutationOptions<
     CapUpdateAlertStatus200,
-    ResponseErrorConfig<CapUpdateAlertStatus422>,
+    ResponseErrorConfig<
+      | CapUpdateAlertStatus401
+      | CapUpdateAlertStatus403
+      | CapUpdateAlertStatus404
+      | CapUpdateAlertStatus422
+    >,
     CapUpdateAlertOptions,
     TContext
   >;
 
   return useMutation<
     CapUpdateAlertStatus200,
-    ResponseErrorConfig<CapUpdateAlertStatus422>,
+    ResponseErrorConfig<
+      | CapUpdateAlertStatus401
+      | CapUpdateAlertStatus403
+      | CapUpdateAlertStatus404
+      | CapUpdateAlertStatus422
+    >,
     CapUpdateAlertOptions,
     TContext
   >(
@@ -90,7 +113,12 @@ export function useCapUpdateAlert<TContext>(
     queryClient
   ) as UseMutationResult<
     CapUpdateAlertStatus200,
-    ResponseErrorConfig<CapUpdateAlertStatus422>,
+    ResponseErrorConfig<
+      | CapUpdateAlertStatus401
+      | CapUpdateAlertStatus403
+      | CapUpdateAlertStatus404
+      | CapUpdateAlertStatus422
+    >,
     CapUpdateAlertOptions,
     TContext
   >;

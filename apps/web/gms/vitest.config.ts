@@ -1,5 +1,5 @@
 import path from "node:path";
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 
 export default defineConfig({
   resolve: {
@@ -20,6 +20,8 @@ export default defineConfig({
     testTimeout: 30_000,
     hookTimeout: 30_000,
     environment: "jsdom",
+    // Playwright specs live in e2e/ and run through `pnpm e2e`, not Vitest.
+    exclude: [...configDefaults.exclude, "e2e/**"],
     globals: true,
     maxWorkers: 2,
     setupFiles: ["./src/test/setup.ts"],

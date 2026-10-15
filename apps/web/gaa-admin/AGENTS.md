@@ -35,7 +35,7 @@ Consumes FastAPI HR + Auth endpoints via `@barrelsgd/api-client`. Initialised in
 
 ## Route groups
 
-```
+```text
 src/app/
   (admin)/           ← main authenticated layout (AppSidebar + AppHeader)
     page.tsx         ← GMS operations dashboard (live panels in `_components/`)
@@ -99,7 +99,7 @@ pnpm --filter @barrelsgd/web-gaa-admin exec vitest run --project node
 pnpm --filter @barrelsgd/web-gaa-admin exec vitest run --project dom
 ```
 
-Two Vitest projects: `node` runs `.test.ts`, `dom` runs `.test.tsx` (jsdom). A DOM-dependent `.test.ts` must be added to the `dom` include list and excluded from `node`. Setup: `src/test/setup.ts`; `@testing-library/react`; `msw` (`msw/node` `setupServer`) for API mocking. Async Server Component pages are tested by rendering `await Page()` with the server-only query module mocked (pattern: `src/app/(admin)/janitor/page.test.tsx`). Don't call `mockReset()` in `beforeEach` on those mocks: under Vitest 5 it makes a caught rejection surface as a test failure. Set each test's implementation instead. There is no e2e script in this app (Playwright e2e exists only in `apps/web/auth`). See `docs/web/testing.md`.
+Two Vitest projects: `node` runs `.test.ts`, `dom` runs `.test.tsx` (jsdom). A DOM-dependent `.test.ts` must be added to the `dom` include list and excluded from `node`. Setup: `src/test/setup.ts`; `@testing-library/react`; `msw` (`msw/node` `setupServer`) for API mocking. Async Server Component pages are tested by rendering `await Page()` with the server-only query module mocked (pattern: `src/app/(admin)/janitor/page.test.tsx`). Don't call `mockReset()` in `beforeEach` on those mocks: under Vitest 5 it makes a caught rejection surface as a test failure. Set each test's implementation instead. Playwright smoke tests live in `e2e/` (`auth-redirect.spec.ts`); run them from the repo root with `pnpm e2e` while the dev server is up (it skips with a message when it is not). See `docs/web/testing.md`.
 
 ## Important conventions
 

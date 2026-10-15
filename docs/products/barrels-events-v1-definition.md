@@ -3,7 +3,8 @@
 **Status:** Draft for approval — clears the *Now* exit gate in [`barrels-portfolio-implementation-plan.md`](../portfolio/barrels-portfolio-implementation-plan.md) (lines 77-80)
 **Effective:** 2026-08-28
 **Owner:** Barrels product owner
-**Surface:** `apps/web/events` (`@barrelsgd/web-events`, port 3009)
+**Surface:** `apps/web/events` (`@barrelsgd/web-events`, port 3009)  
+**Last updated:** 2026-10-05
 
 The gate requires an approved problem statement, actor model, operational loop,
 payment/payout feasibility decision, and pilot acceptance criteria. Sections 1-3

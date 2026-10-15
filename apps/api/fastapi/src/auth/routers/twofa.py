@@ -11,6 +11,7 @@ from src.auth.schemas import (
     TwoFactorStatusPublic,
 )
 from src.dependencies import AccountUser, SessionDep
+from src.openapi_responses import AUTHENTICATED
 
 router = APIRouter(prefix="/2fa", tags=["2fa"])
 
@@ -20,6 +21,7 @@ router = APIRouter(prefix="/2fa", tags=["2fa"])
     response_model=TwoFactorStatusPublic,
     summary="Get 2FA status",
     description="Returns whether two-factor authentication is enabled for the current account.",
+    responses={**AUTHENTICATED},
 )
 async def twofa_status(*, current_user: AccountUser) -> TwoFactorStatusPublic:
     return TwoFactorStatusPublic(enabled=current_user.totp_enabled)
@@ -31,6 +33,7 @@ async def twofa_status(*, current_user: AccountUser) -> TwoFactorStatusPublic:
     summary="Begin 2FA enrollment",
     description="Generate a new TOTP secret and provisioning URI. 2FA is not active "
     "until a code is confirmed via /2fa/activate.",
+    responses={**AUTHENTICATED},
 )
 async def twofa_setup(
     *, session: SessionDep, current_user: AccountUser

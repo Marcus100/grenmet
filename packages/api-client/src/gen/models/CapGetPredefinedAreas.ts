@@ -8,6 +8,10 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type CapGetPredefinedAreasStatus200 = CapPredefinedAreaPublic[];
 
+export type CapGetPredefinedAreasStatus401 = unknown;
+
+export type CapGetPredefinedAreasStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -23,6 +27,8 @@ export type CapGetPredefinedAreasOptions = {
 
 export type CapGetPredefinedAreasResponses = {
   "200": CapGetPredefinedAreasStatus200;
+  "401": CapGetPredefinedAreasStatus401;
+  "403": CapGetPredefinedAreasStatus403;
   "422": CapGetPredefinedAreasStatus422;
 };
 

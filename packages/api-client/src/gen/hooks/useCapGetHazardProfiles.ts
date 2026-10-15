@@ -14,6 +14,8 @@ import type { RequestConfig, ResponseErrorConfig } from "../.kubb/client.js";
 import { capGetHazardProfiles } from "../clients/capGetHazardProfiles.js";
 import type {
   CapGetHazardProfilesStatus200,
+  CapGetHazardProfilesStatus401,
+  CapGetHazardProfilesStatus403,
   CapGetHazardProfilesStatus422,
 } from "../models/CapGetHazardProfiles.js";
 
@@ -32,7 +34,11 @@ export function capGetHazardProfilesQueryOptions(
   const queryKey = capGetHazardProfilesQueryKey();
   return queryOptions<
     CapGetHazardProfilesStatus200,
-    ResponseErrorConfig<CapGetHazardProfilesStatus422>,
+    ResponseErrorConfig<
+      | CapGetHazardProfilesStatus401
+      | CapGetHazardProfilesStatus403
+      | CapGetHazardProfilesStatus422
+    >,
     CapGetHazardProfilesStatus200,
     typeof queryKey
   >({
@@ -61,7 +67,11 @@ export function useCapGetHazardProfiles<
     query?: Partial<
       QueryObserverOptions<
         CapGetHazardProfilesStatus200,
-        ResponseErrorConfig<CapGetHazardProfilesStatus422>,
+        ResponseErrorConfig<
+          | CapGetHazardProfilesStatus401
+          | CapGetHazardProfilesStatus403
+          | CapGetHazardProfilesStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -85,7 +95,11 @@ export function useCapGetHazardProfiles<
     queryClient
   ) as UseQueryResult<
     TData,
-    ResponseErrorConfig<CapGetHazardProfilesStatus422>
+    ResponseErrorConfig<
+      | CapGetHazardProfilesStatus401
+      | CapGetHazardProfilesStatus403
+      | CapGetHazardProfilesStatus422
+    >
   > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;

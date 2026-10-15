@@ -193,7 +193,7 @@ async def build_document_snapshot(
 
 def render_leave_pdf(snapshot: DocumentSnapshot, image: bytes | None) -> bytes:
     """Render the GAA leave sheet for the live preview and immutable signed copy."""
-    from weasyprint import HTML  # type: ignore[import-untyped]
+    from weasyprint import HTML
 
     form = snapshot["form"]
 

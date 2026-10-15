@@ -10,6 +10,7 @@ export type HrGetMySignedDocumentsQuery = {
   /**
    * @description Page number (1-indexed)
    * @minLength 1
+   * @maxLength 1000000
    * @default 1
    * @type integer | undefined
    */

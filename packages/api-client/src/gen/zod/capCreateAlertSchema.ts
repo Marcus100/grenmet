@@ -3,11 +3,16 @@
  * Do not edit manually.
  */
 
+import * as z from "zod";
 import { capAlertCreateSchema } from "./capAlertCreateSchema.js";
 import { capAlertPublicSchema } from "./capAlertPublicSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
 export const capCreateAlertStatus201Schema = capAlertPublicSchema;
+
+export const capCreateAlertStatus401Schema = z.unknown();
+
+export const capCreateAlertStatus403Schema = z.unknown();
 
 export const capCreateAlertStatus422Schema =
   validationErrorResponseSchema.describe(
@@ -16,6 +21,10 @@ export const capCreateAlertStatus422Schema =
 
 export const capCreateAlertResponseSchema = capCreateAlertStatus201Schema;
 
-export const capCreateAlertErrorSchema = capCreateAlertStatus422Schema;
+export const capCreateAlertErrorSchema = z.union([
+  capCreateAlertStatus401Schema,
+  capCreateAlertStatus403Schema,
+  capCreateAlertStatus422Schema,
+]);
 
 export const capCreateAlertBodySchema = capAlertCreateSchema;

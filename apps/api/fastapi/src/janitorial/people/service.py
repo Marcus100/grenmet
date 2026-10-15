@@ -7,6 +7,7 @@ value and reads names through the auth service, never the auth tables directly.
 import logging
 from uuid import UUID
 
+from pydantic import TypeAdapter
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,6 +20,8 @@ from src.janitorial.models import Building, BuildingGrant, Contractor, Staff
 from . import schemas
 
 logger = logging.getLogger(__name__)
+
+_STAFF_ROLE = TypeAdapter(schemas.StaffRole)
 
 NO_ACCOUNT = "No Barrels Login account uses that email. Create the account first."
 
@@ -46,7 +49,7 @@ def _staff(member: Staff, user: User | None) -> schemas.JanitorialStaffMember:
         email=user.email if user else None,
         accountActive=bool(user and user.is_active),
         contractorId=member.contractor_id,
-        role=member.role,  # type: ignore[arg-type]
+        role=_STAFF_ROLE.validate_python(member.role),
         badgeNo=member.badge_no,
         active=member.active,
         revision=member.revision,

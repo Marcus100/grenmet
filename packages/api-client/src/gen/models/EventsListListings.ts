@@ -32,6 +32,7 @@ export type EventsListListingsQuery = {
   limit?: number;
   /**
    * @minLength 0
+   * @maxLength 100000
    * @default 0
    * @type integer | undefined
    */
@@ -39,6 +40,8 @@ export type EventsListListingsQuery = {
 };
 
 export type EventsListListingsStatus200 = ListingCardList;
+
+export type EventsListListingsStatus401 = unknown;
 
 /**
  * @description Validation error envelope returned for malformed requests.
@@ -55,6 +58,7 @@ export type EventsListListingsOptions = {
 
 export type EventsListListingsResponses = {
   "200": EventsListListingsStatus200;
+  "401": EventsListListingsStatus401;
   "422": EventsListListingsStatus422;
 };
 

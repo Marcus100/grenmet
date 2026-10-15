@@ -2,6 +2,8 @@
 
 Decision record: ADR-0017 (proposed), building on ADR-0016.
 Status: **steps 1–4 built; each site's "Sign in" switches on with its secret.** Each phase ships and
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-10-13
 is reviewed on its own.
 
 ## Goal
@@ -22,7 +24,7 @@ Signing out of one app leaves the others signed in; "sign out everywhere" ends a
 
 ## Flow
 
-```
+```text
 app (no cookie) ─► app /auth/start        sets host-only state cookie (10 min)
                 ─► auth /continue?app&state&returnTo
 auth: account session valid + eligible?
@@ -118,6 +120,9 @@ app /auth/callback: state == cookie?
   gms, mbia, signal, docs and elections mount `/auth/{start,callback,me,logout}`
   and show "Sign in" when their `<SITE>_SSO_CLIENT_SECRET` is set.
 - Not yet: `/sessions` grouped by app (auth logout already calls logout-all).
+- *Done (15 Oct 2026):* gaa-admin and cms Log out land on `auth /signed-out`
+  (plus a Log out of all apps item); `auth /apps` lists apps with Join and Leave
+  (`/auth/account/apps*`).
 - Update ADR-0002 (superseded in part), ADR-0016 (amended), `packages/auth`
   README and AGENTS, and `apps/web/auth/AGENTS.md`.
 

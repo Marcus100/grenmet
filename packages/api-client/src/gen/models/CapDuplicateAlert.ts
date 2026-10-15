@@ -17,6 +17,12 @@ export type CapDuplicateAlertPath = {
 
 export type CapDuplicateAlertStatus200 = CapAlertPublic;
 
+export type CapDuplicateAlertStatus401 = unknown;
+
+export type CapDuplicateAlertStatus403 = unknown;
+
+export type CapDuplicateAlertStatus404 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -32,6 +38,9 @@ export type CapDuplicateAlertOptions = {
 
 export type CapDuplicateAlertResponses = {
   "200": CapDuplicateAlertStatus200;
+  "401": CapDuplicateAlertStatus401;
+  "403": CapDuplicateAlertStatus403;
+  "404": CapDuplicateAlertStatus404;
   "422": CapDuplicateAlertStatus422;
 };
 

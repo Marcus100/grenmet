@@ -1,5 +1,6 @@
 import uuid
 from datetime import date
+from decimal import Decimal
 
 from pydantic import Field
 
@@ -236,4 +237,40 @@ class RosterRevisionPublic(BaseModel):
 
 class RosterRevisionsPublic(BaseModel):
     data: list[RosterRevisionPublic]
+    count: int
+
+
+class RosterRulesPublic(BaseModel):
+    department_id: str
+    min_rest_hours: Decimal | None = None
+    max_consecutive_days: int | None = None
+    max_weekly_hours: Decimal | None = None
+
+
+class RosterRulesUpdate(BaseModel):
+    """Replace all limits for a department; null disables a rule."""
+
+    min_rest_hours: Decimal | None = Field(
+        default=None, ge=0, le=72, decimal_places=2, allow_inf_nan=False
+    )
+    max_consecutive_days: int | None = Field(default=None, ge=1, le=31)
+    max_weekly_hours: Decimal | None = Field(
+        default=None, gt=0, le=168, decimal_places=2, allow_inf_nan=False
+    )
+
+
+class RuleViolationPublic(BaseModel):
+    code: str
+    user_id: uuid.UUID
+    start_date: date
+    end_date: date
+    observed: Decimal
+    limit: Decimal
+    detail: str
+
+
+class RosterRuleCheckPublic(BaseModel):
+    period_id: uuid.UUID
+    rules: RosterRulesPublic
+    violations: list[RuleViolationPublic]
     count: int

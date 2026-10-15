@@ -15,6 +15,8 @@ import { wxwatchArchive } from "../clients/wxwatchArchive.js";
 import type {
   WxwatchArchiveOptions,
   WxwatchArchiveStatus200,
+  WxwatchArchiveStatus401,
+  WxwatchArchiveStatus403,
   WxwatchArchiveStatus422,
 } from "../models/WxwatchArchive.js";
 
@@ -34,7 +36,11 @@ export function wxwatchArchiveQueryOptions(
   const queryKey = wxwatchArchiveQueryKey({ query });
   return queryOptions<
     WxwatchArchiveStatus200,
-    ResponseErrorConfig<WxwatchArchiveStatus422>,
+    ResponseErrorConfig<
+      | WxwatchArchiveStatus401
+      | WxwatchArchiveStatus403
+      | WxwatchArchiveStatus422
+    >,
     WxwatchArchiveStatus200,
     typeof queryKey
   >({
@@ -71,7 +77,11 @@ export function useWxwatchArchive<
     query?: Partial<
       QueryObserverOptions<
         WxwatchArchiveStatus200,
-        ResponseErrorConfig<WxwatchArchiveStatus422>,
+        ResponseErrorConfig<
+          | WxwatchArchiveStatus401
+          | WxwatchArchiveStatus403
+          | WxwatchArchiveStatus422
+        >,
         TData,
         TQueryData,
         TQueryKey
@@ -97,9 +107,14 @@ export function useWxwatchArchive<
       queryKey,
     } as unknown as QueryObserverOptions,
     queryClient
-  ) as UseQueryResult<TData, ResponseErrorConfig<WxwatchArchiveStatus422>> & {
-    queryKey: TQueryKey;
-  };
+  ) as UseQueryResult<
+    TData,
+    ResponseErrorConfig<
+      | WxwatchArchiveStatus401
+      | WxwatchArchiveStatus403
+      | WxwatchArchiveStatus422
+    >
+  > & { queryKey: TQueryKey };
 
   queryResult.queryKey = queryKey as TQueryKey;
 

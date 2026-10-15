@@ -14,6 +14,8 @@ import { utilsTestEmail } from "../clients/utilsTestEmail.js";
 import type {
   UtilsTestEmailOptions,
   UtilsTestEmailStatus201,
+  UtilsTestEmailStatus401,
+  UtilsTestEmailStatus403,
   UtilsTestEmailStatus422,
 } from "../models/UtilsTestEmail.js";
 
@@ -28,7 +30,11 @@ export function utilsTestEmailMutationOptions<TContext = unknown>(
   const mutationKey = utilsTestEmailMutationKey();
   return mutationOptions<
     UtilsTestEmailStatus201,
-    ResponseErrorConfig<UtilsTestEmailStatus422>,
+    ResponseErrorConfig<
+      | UtilsTestEmailStatus401
+      | UtilsTestEmailStatus403
+      | UtilsTestEmailStatus422
+    >,
     UtilsTestEmailOptions,
     TContext
   >({
@@ -48,7 +54,11 @@ export function useUtilsTestEmail<TContext>(
   options: {
     mutation?: UseMutationOptions<
       UtilsTestEmailStatus201,
-      ResponseErrorConfig<UtilsTestEmailStatus422>,
+      ResponseErrorConfig<
+        | UtilsTestEmailStatus401
+        | UtilsTestEmailStatus403
+        | UtilsTestEmailStatus422
+      >,
       UtilsTestEmailOptions,
       TContext
     > & { client?: QueryClient };
@@ -66,14 +76,22 @@ export function useUtilsTestEmail<TContext>(
     config
   ) as UseMutationOptions<
     UtilsTestEmailStatus201,
-    ResponseErrorConfig<UtilsTestEmailStatus422>,
+    ResponseErrorConfig<
+      | UtilsTestEmailStatus401
+      | UtilsTestEmailStatus403
+      | UtilsTestEmailStatus422
+    >,
     UtilsTestEmailOptions,
     TContext
   >;
 
   return useMutation<
     UtilsTestEmailStatus201,
-    ResponseErrorConfig<UtilsTestEmailStatus422>,
+    ResponseErrorConfig<
+      | UtilsTestEmailStatus401
+      | UtilsTestEmailStatus403
+      | UtilsTestEmailStatus422
+    >,
     UtilsTestEmailOptions,
     TContext
   >(
@@ -85,7 +103,11 @@ export function useUtilsTestEmail<TContext>(
     queryClient
   ) as UseMutationResult<
     UtilsTestEmailStatus201,
-    ResponseErrorConfig<UtilsTestEmailStatus422>,
+    ResponseErrorConfig<
+      | UtilsTestEmailStatus401
+      | UtilsTestEmailStatus403
+      | UtilsTestEmailStatus422
+    >,
     UtilsTestEmailOptions,
     TContext
   >;

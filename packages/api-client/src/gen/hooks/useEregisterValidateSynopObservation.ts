@@ -14,6 +14,8 @@ import { eregisterValidateSynopObservation } from "../clients/eregisterValidateS
 import type {
   EregisterValidateSynopObservationOptions,
   EregisterValidateSynopObservationStatus200,
+  EregisterValidateSynopObservationStatus401,
+  EregisterValidateSynopObservationStatus403,
   EregisterValidateSynopObservationStatus422,
 } from "../models/EregisterValidateSynopObservation.js";
 
@@ -30,7 +32,11 @@ export function eregisterValidateSynopObservationMutationOptions<
   const mutationKey = eregisterValidateSynopObservationMutationKey();
   return mutationOptions<
     EregisterValidateSynopObservationStatus200,
-    ResponseErrorConfig<EregisterValidateSynopObservationStatus422>,
+    ResponseErrorConfig<
+      | EregisterValidateSynopObservationStatus401
+      | EregisterValidateSynopObservationStatus403
+      | EregisterValidateSynopObservationStatus422
+    >,
     EregisterValidateSynopObservationOptions,
     TContext
   >({
@@ -54,7 +60,11 @@ export function useEregisterValidateSynopObservation<TContext>(
   options: {
     mutation?: UseMutationOptions<
       EregisterValidateSynopObservationStatus200,
-      ResponseErrorConfig<EregisterValidateSynopObservationStatus422>,
+      ResponseErrorConfig<
+        | EregisterValidateSynopObservationStatus401
+        | EregisterValidateSynopObservationStatus403
+        | EregisterValidateSynopObservationStatus422
+      >,
       EregisterValidateSynopObservationOptions,
       TContext
     > & { client?: QueryClient };
@@ -73,14 +83,22 @@ export function useEregisterValidateSynopObservation<TContext>(
     config
   ) as UseMutationOptions<
     EregisterValidateSynopObservationStatus200,
-    ResponseErrorConfig<EregisterValidateSynopObservationStatus422>,
+    ResponseErrorConfig<
+      | EregisterValidateSynopObservationStatus401
+      | EregisterValidateSynopObservationStatus403
+      | EregisterValidateSynopObservationStatus422
+    >,
     EregisterValidateSynopObservationOptions,
     TContext
   >;
 
   return useMutation<
     EregisterValidateSynopObservationStatus200,
-    ResponseErrorConfig<EregisterValidateSynopObservationStatus422>,
+    ResponseErrorConfig<
+      | EregisterValidateSynopObservationStatus401
+      | EregisterValidateSynopObservationStatus403
+      | EregisterValidateSynopObservationStatus422
+    >,
     EregisterValidateSynopObservationOptions,
     TContext
   >(
@@ -92,7 +110,11 @@ export function useEregisterValidateSynopObservation<TContext>(
     queryClient
   ) as UseMutationResult<
     EregisterValidateSynopObservationStatus200,
-    ResponseErrorConfig<EregisterValidateSynopObservationStatus422>,
+    ResponseErrorConfig<
+      | EregisterValidateSynopObservationStatus401
+      | EregisterValidateSynopObservationStatus403
+      | EregisterValidateSynopObservationStatus422
+    >,
     EregisterValidateSynopObservationOptions,
     TContext
   >;

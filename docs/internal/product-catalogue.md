@@ -157,7 +157,7 @@ All three begin with `digitalStatus: Planned`, `v1Priority: false`, `productType
 
 ## Product Numbering Convention
 
-```
+```text
 GMS-{AREA}-{CODE}
 
 AREA:

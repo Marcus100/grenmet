@@ -14,6 +14,9 @@ import { capApproveAlert } from "../clients/capApproveAlert.js";
 import type {
   CapApproveAlertOptions,
   CapApproveAlertStatus200,
+  CapApproveAlertStatus401,
+  CapApproveAlertStatus403,
+  CapApproveAlertStatus404,
   CapApproveAlertStatus422,
 } from "../models/CapApproveAlert.js";
 
@@ -28,7 +31,12 @@ export function capApproveAlertMutationOptions<TContext = unknown>(
   const mutationKey = capApproveAlertMutationKey();
   return mutationOptions<
     CapApproveAlertStatus200,
-    ResponseErrorConfig<CapApproveAlertStatus422>,
+    ResponseErrorConfig<
+      | CapApproveAlertStatus401
+      | CapApproveAlertStatus403
+      | CapApproveAlertStatus404
+      | CapApproveAlertStatus422
+    >,
     CapApproveAlertOptions,
     TContext
   >({
@@ -53,7 +61,12 @@ export function useCapApproveAlert<TContext>(
   options: {
     mutation?: UseMutationOptions<
       CapApproveAlertStatus200,
-      ResponseErrorConfig<CapApproveAlertStatus422>,
+      ResponseErrorConfig<
+        | CapApproveAlertStatus401
+        | CapApproveAlertStatus403
+        | CapApproveAlertStatus404
+        | CapApproveAlertStatus422
+      >,
       CapApproveAlertOptions,
       TContext
     > & { client?: QueryClient };
@@ -71,14 +84,24 @@ export function useCapApproveAlert<TContext>(
     config
   ) as UseMutationOptions<
     CapApproveAlertStatus200,
-    ResponseErrorConfig<CapApproveAlertStatus422>,
+    ResponseErrorConfig<
+      | CapApproveAlertStatus401
+      | CapApproveAlertStatus403
+      | CapApproveAlertStatus404
+      | CapApproveAlertStatus422
+    >,
     CapApproveAlertOptions,
     TContext
   >;
 
   return useMutation<
     CapApproveAlertStatus200,
-    ResponseErrorConfig<CapApproveAlertStatus422>,
+    ResponseErrorConfig<
+      | CapApproveAlertStatus401
+      | CapApproveAlertStatus403
+      | CapApproveAlertStatus404
+      | CapApproveAlertStatus422
+    >,
     CapApproveAlertOptions,
     TContext
   >(
@@ -90,7 +113,12 @@ export function useCapApproveAlert<TContext>(
     queryClient
   ) as UseMutationResult<
     CapApproveAlertStatus200,
-    ResponseErrorConfig<CapApproveAlertStatus422>,
+    ResponseErrorConfig<
+      | CapApproveAlertStatus401
+      | CapApproveAlertStatus403
+      | CapApproveAlertStatus404
+      | CapApproveAlertStatus422
+    >,
     CapApproveAlertOptions,
     TContext
   >;

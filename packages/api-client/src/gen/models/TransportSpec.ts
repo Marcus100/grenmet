@@ -8,6 +8,10 @@ import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
 export type TransportSpecStatus200 = RouteView[];
 
+export type TransportSpecStatus401 = unknown;
+
+export type TransportSpecStatus403 = unknown;
+
 /**
  * @description Validation error envelope returned for malformed requests.
  * @type object
@@ -27,6 +31,8 @@ export type TransportSpecOptions = {
 
 export type TransportSpecResponses = {
   "200": TransportSpecStatus200;
+  "401": TransportSpecStatus401;
+  "403": TransportSpecStatus403;
   "422": TransportSpecStatus422;
 };
 

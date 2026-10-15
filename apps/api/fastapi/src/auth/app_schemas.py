@@ -75,3 +75,28 @@ class AppHandoffRedeem(BaseModel):
     state: str = Field(min_length=16, max_length=200)
     #: The app's own secret, so only its web server can redeem codes.
     client_secret: str = Field(min_length=1, max_length=200)
+
+
+class AccountSessionRequest(BaseModel):
+    #: The auth.barrels.gd account session secret (never an app session).
+    session_token: str = Field(min_length=1, max_length=500)
+
+
+class AccountAppPublic(BaseModel):
+    key: str
+    label: str
+    #: Whether this account can use the app now.
+    joined: bool
+    #: Whether the person may join or leave themselves (self sign-up apps).
+    can_leave: bool
+
+
+class AppJoinResult(BaseModel):
+    joined: bool
+
+
+class AppLeaveResult(BaseModel):
+    left: bool
+    #: True when a role granted some other way (an administrator, an
+    #: organisation assignment) still gives access, so leaving changed nothing.
+    still_has_access: bool

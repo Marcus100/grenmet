@@ -289,7 +289,7 @@ describe("ShiftExchangeEditor (wired)", () => {
       signature_version: "11111111-1111-4111-8111-111111111111",
       co_approver_user_ids: [],
     });
-  }, 20_000);
+  });
 
   it("does not post when no counterpart is selected", async () => {
     let postCount = 0;
@@ -312,5 +312,5 @@ describe("ShiftExchangeEditor (wired)", () => {
       ).not.toBeDisabled();
     });
     expect(postCount).toBe(0);
-  }, 20_000);
+  });
 });
