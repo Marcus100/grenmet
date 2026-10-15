@@ -789,6 +789,11 @@ export {
   useHrCheckPeriodRules,
 } from "./useHrCheckPeriodRules.js";
 export {
+  hrClockMutationKey,
+  hrClockMutationOptions,
+  useHrClock,
+} from "./useHrClock.js";
+export {
   hrClosePeriodMutationKey,
   hrClosePeriodMutationOptions,
   useHrClosePeriod,
@@ -803,6 +808,11 @@ export {
   hrCreateCalendarEventMutationOptions,
   useHrCreateCalendarEvent,
 } from "./useHrCreateCalendarEvent.js";
+export {
+  hrCreateClockSiteMutationKey,
+  hrCreateClockSiteMutationOptions,
+  useHrCreateClockSite,
+} from "./useHrCreateClockSite.js";
 export {
   hrCreateDepartmentMutationKey,
   hrCreateDepartmentMutationOptions,
@@ -1144,6 +1154,11 @@ export {
   useHrListCalendarEvents,
 } from "./useHrListCalendarEvents.js";
 export {
+  hrListClockSitesQueryKey,
+  hrListClockSitesQueryOptions,
+  useHrListClockSites,
+} from "./useHrListClockSites.js";
+export {
   hrListDepartmentMembersQueryKey,
   hrListDepartmentMembersQueryOptions,
   useHrListDepartmentMembers,
@@ -1244,6 +1259,11 @@ export {
   useHrRenameOrganisation,
 } from "./useHrRenameOrganisation.js";
 export {
+  hrRotateClockSiteMutationKey,
+  hrRotateClockSiteMutationOptions,
+  useHrRotateClockSite,
+} from "./useHrRotateClockSite.js";
+export {
   hrSaveAttendanceMutationKey,
   hrSaveAttendanceMutationOptions,
   useHrSaveAttendance,
@@ -1258,6 +1278,11 @@ export {
   hrSaveWorkflowConfigurationMutationOptions,
   useHrSaveWorkflowConfiguration,
 } from "./useHrSaveWorkflowConfiguration.js";
+export {
+  hrSetClockSiteActiveMutationKey,
+  hrSetClockSiteActiveMutationOptions,
+  useHrSetClockSiteActive,
+} from "./useHrSetClockSiteActive.js";
 export {
   hrSubmitAbsenteeReportMutationKey,
   hrSubmitAbsenteeReportMutationOptions,

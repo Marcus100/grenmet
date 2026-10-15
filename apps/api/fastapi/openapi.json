@@ -4826,6 +4826,290 @@
         }
       }
     },
+    "/api/v1/hr/attendance/clock": {
+      "post": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Clock in or out at a clock point",
+        "description": "Records arrival against the caller's rostered work shift, or departure when a shift is already open. The token proves presence at a department clock point. It feeds the same attendance record and supervisor review as manual attendance. Late, early-departure and overtime minutes are informational only.",
+        "operationId": "hrClock",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClockRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClockResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid attendance for this shift"
+          },
+          "403": {
+            "description": "Clock point belongs to another department"
+          },
+          "404": {
+            "description": "Clock-in code is not valid"
+          },
+          "409": {
+            "description": "No rostered shift to clock in to at this time"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
+    "/api/v1/hr/attendance/clock-sites": {
+      "get": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "List clock sites for a department",
+        "description": "Clock points for a department. Tokens are never returned. Requires roster.manage in the department scope.",
+        "operationId": "hrListClockSites",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Department Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClockSitesPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient permission or department outside your scope"
+          },
+          "404": {
+            "description": "Clock site not found"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Create a clock site",
+        "description": "Creates a clock point and returns its token once, for the NFC tag or QR poster. Only a hash is stored. Requires roster.manage in the department scope.",
+        "operationId": "hrCreateClockSite",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClockSiteCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClockSiteIssued"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient permission or department outside your scope"
+          },
+          "404": {
+            "description": "Clock site not found"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance/clock-sites/{site_id}/rotate": {
+      "post": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Rotate a clock site token",
+        "description": "Issues a new token, invalidating the old one, and returns it once. Use when a tag or poster is photographed or lost. Requires roster.manage in the department scope.",
+        "operationId": "hrRotateClockSite",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Site Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClockSiteIssued"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient permission or department outside your scope"
+          },
+          "404": {
+            "description": "Clock site not found"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/attendance/clock-sites/{site_id}/active": {
+      "put": {
+        "tags": [
+          "hr-attendance"
+        ],
+        "summary": "Activate or deactivate a clock site",
+        "description": "A deactivated site rejects every scan. Requires roster.manage in the department scope.",
+        "operationId": "hrSetClockSiteActive",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "site_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Site Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClockSiteActive"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClockSitePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient permission or department outside your scope"
+          },
+          "404": {
+            "description": "Clock site not found"
+          }
+        }
+      }
+    },
     "/api/v1/hr/attendance/week/pdf": {
       "get": {
         "tags": [
@@ -28737,6 +29021,187 @@
         ],
         "title": "CheckoutSessionPublic"
       },
+      "ClockRequest": {
+        "properties": {
+          "token": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 8,
+            "title": "Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "token"
+        ],
+        "title": "ClockRequest"
+      },
+      "ClockResult": {
+        "properties": {
+          "action": {
+            "$ref": "#/components/schemas/ClockResultPropertiesActionEnum"
+          },
+          "site_name": {
+            "type": "string",
+            "title": "Site Name"
+          },
+          "attendance": {
+            "$ref": "#/components/schemas/AttendanceShiftPublic"
+          },
+          "late_minutes": {
+            "type": "integer",
+            "title": "Late Minutes",
+            "default": 0
+          },
+          "early_departure_minutes": {
+            "type": "integer",
+            "title": "Early Departure Minutes",
+            "default": 0
+          },
+          "overtime_minutes": {
+            "type": "integer",
+            "title": "Overtime Minutes",
+            "default": 0
+          }
+        },
+        "type": "object",
+        "required": [
+          "action",
+          "site_name",
+          "attendance"
+        ],
+        "title": "ClockResult"
+      },
+      "ClockSiteActive": {
+        "properties": {
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "is_active"
+        ],
+        "title": "ClockSiteActive"
+      },
+      "ClockSiteCreate": {
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "department_id",
+          "name"
+        ],
+        "title": "ClockSiteCreate"
+      },
+      "ClockSiteIssued": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "token": {
+            "type": "string",
+            "title": "Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "department_id",
+          "name",
+          "is_active",
+          "created_at",
+          "token"
+        ],
+        "title": "ClockSiteIssued",
+        "description": "Returned only when a site is created or its token rotated."
+      },
+      "ClockSitePublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "department_id",
+          "name",
+          "is_active",
+          "created_at"
+        ],
+        "title": "ClockSitePublic"
+      },
+      "ClockSitesPublic": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/ClockSitePublic"
+            },
+            "type": "array",
+            "title": "Data"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "data",
+          "count"
+        ],
+        "title": "ClockSitesPublic"
+      },
       "ConnectionCreate": {
         "properties": {
           "handle": {
@@ -48221,6 +48686,13 @@
           "observed"
         ],
         "default": ">="
+      },
+      "ClockResultPropertiesActionEnum": {
+        "type": "string",
+        "enum": [
+          "ARRIVED",
+          "DEPARTED"
+        ]
       },
       "ConnectionPublicPropertiesStateEnum": {
         "type": "string",

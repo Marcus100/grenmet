@@ -1047,6 +1047,14 @@ export { capValidationResultSchema } from "./capValidationResultSchema.js";
 export { catalogueApplySchema } from "./catalogueApplySchema.js";
 export { cataloguePreviewSchema } from "./cataloguePreviewSchema.js";
 export { checkoutSessionPublicSchema } from "./checkoutSessionPublicSchema.js";
+export { clockRequestSchema } from "./clockRequestSchema.js";
+export { clockResultPropertiesActionEnumSchema } from "./clockResultPropertiesActionEnumSchema.js";
+export { clockResultSchema } from "./clockResultSchema.js";
+export { clockSiteActiveSchema } from "./clockSiteActiveSchema.js";
+export { clockSiteCreateSchema } from "./clockSiteCreateSchema.js";
+export { clockSiteIssuedSchema } from "./clockSiteIssuedSchema.js";
+export { clockSitePublicSchema } from "./clockSitePublicSchema.js";
+export { clockSitesPublicSchema } from "./clockSitesPublicSchema.js";
 export { connectionCreateSchema } from "./connectionCreateSchema.js";
 export { connectionPublicPropertiesStateEnumSchema } from "./connectionPublicPropertiesStateEnumSchema.js";
 export { connectionPublicSchema } from "./connectionPublicSchema.js";
@@ -1592,6 +1600,17 @@ export {
   hrCheckPeriodRulesStatus422Schema,
 } from "./hrCheckPeriodRulesSchema.js";
 export {
+  hrClockBodySchema,
+  hrClockErrorSchema,
+  hrClockResponseSchema,
+  hrClockStatus200Schema,
+  hrClockStatus400Schema,
+  hrClockStatus403Schema,
+  hrClockStatus404Schema,
+  hrClockStatus409Schema,
+  hrClockStatus422Schema,
+} from "./hrClockSchema.js";
+export {
   hrClosePeriodErrorSchema,
   hrClosePeriodPathPeriodIdSchema,
   hrClosePeriodResponseSchema,
@@ -1620,6 +1639,15 @@ export {
   hrCreateCalendarEventStatus404Schema,
   hrCreateCalendarEventStatus422Schema,
 } from "./hrCreateCalendarEventSchema.js";
+export {
+  hrCreateClockSiteBodySchema,
+  hrCreateClockSiteErrorSchema,
+  hrCreateClockSiteResponseSchema,
+  hrCreateClockSiteStatus201Schema,
+  hrCreateClockSiteStatus403Schema,
+  hrCreateClockSiteStatus404Schema,
+  hrCreateClockSiteStatus422Schema,
+} from "./hrCreateClockSiteSchema.js";
 export {
   hrCreateDepartmentBodySchema,
   hrCreateDepartmentErrorSchema,
@@ -2280,6 +2308,15 @@ export {
   hrListCalendarEventsStatus422Schema,
 } from "./hrListCalendarEventsSchema.js";
 export {
+  hrListClockSitesErrorSchema,
+  hrListClockSitesQueryDepartmentIdSchema,
+  hrListClockSitesResponseSchema,
+  hrListClockSitesStatus200Schema,
+  hrListClockSitesStatus403Schema,
+  hrListClockSitesStatus404Schema,
+  hrListClockSitesStatus422Schema,
+} from "./hrListClockSitesSchema.js";
+export {
   hrListDepartmentMembersErrorSchema,
   hrListDepartmentMembersPathDepartmentIdSchema,
   hrListDepartmentMembersResponseSchema,
@@ -2470,6 +2507,15 @@ export {
   hrRenameOrganisationStatus422Schema,
 } from "./hrRenameOrganisationSchema.js";
 export {
+  hrRotateClockSiteErrorSchema,
+  hrRotateClockSitePathSiteIdSchema,
+  hrRotateClockSiteResponseSchema,
+  hrRotateClockSiteStatus200Schema,
+  hrRotateClockSiteStatus403Schema,
+  hrRotateClockSiteStatus404Schema,
+  hrRotateClockSiteStatus422Schema,
+} from "./hrRotateClockSiteSchema.js";
+export {
   hrSaveAttendanceBodySchema,
   hrSaveAttendanceErrorSchema,
   hrSaveAttendanceResponseSchema,
@@ -2500,6 +2546,16 @@ export {
   hrSaveWorkflowConfigurationStatus409Schema,
   hrSaveWorkflowConfigurationStatus422Schema,
 } from "./hrSaveWorkflowConfigurationSchema.js";
+export {
+  hrSetClockSiteActiveBodySchema,
+  hrSetClockSiteActiveErrorSchema,
+  hrSetClockSiteActivePathSiteIdSchema,
+  hrSetClockSiteActiveResponseSchema,
+  hrSetClockSiteActiveStatus200Schema,
+  hrSetClockSiteActiveStatus403Schema,
+  hrSetClockSiteActiveStatus404Schema,
+  hrSetClockSiteActiveStatus422Schema,
+} from "./hrSetClockSiteActiveSchema.js";
 export {
   hrSubmitAbsenteeReportBodySchema,
   hrSubmitAbsenteeReportErrorSchema,

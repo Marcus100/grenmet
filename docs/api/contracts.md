@@ -445,6 +445,25 @@ separately approved migration prerequisite. Do not enable another organisation
 on the strength of these document checks alone.
 
 
+### Clock-in
+
+| Endpoint | Permission | Purpose |
+| --- | --- | --- |
+| `POST /api/v1/hr/attendance/clock` | `timesheet.submit.self` | Record arrival, or departure when a shift is open |
+| `GET /api/v1/hr/attendance/clock-sites` | `roster.manage` in the department scope | List a department's clock points (no tokens) |
+| `POST /api/v1/hr/attendance/clock-sites` | `roster.manage` in the department scope | Create a clock point; the token is returned once |
+| `POST /api/v1/hr/attendance/clock-sites/{site_id}/rotate` | `roster.manage` in the department scope | Replace the token; the old one stops working |
+| `PUT /api/v1/hr/attendance/clock-sites/{site_id}/active` | `roster.manage` in the department scope | Activate or deactivate a clock point |
+
+A clock point proves presence with a static token on an NFC tag or QR poster; only
+its SHA-256 hash is stored. A scan feeds the existing attendance record through
+`save_attendance`, so roster, permission and revision rules and the supervisor
+workflow are those of manual attendance. Arrival needs a published work shift that
+started at most two hours ago or ends within the next hour; with none, the call
+returns 409 and no shift is invented. A second scan within 60 seconds changes
+nothing. The clock point must belong to the caller's own department. `late_minutes`,
+`early_departure_minutes` and `overtime_minutes` are informational and not stored.
+
 ### Roster rule limits and check
 
 | Endpoint | Permission | Purpose |

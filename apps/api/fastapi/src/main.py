@@ -48,6 +48,7 @@ from src.exceptions import (
     validation_exception_handler,
 )
 from src.hr.absentee.router import router as hr_absentee_router
+from src.hr.attendance.clock_router import router as hr_clock_router
 from src.hr.attendance.router import router as hr_attendance_router
 from src.hr.calendar.router import router as hr_calendar_router
 from src.hr.dailystatus.router import router as hr_dailystatus_router
@@ -349,6 +350,7 @@ app.include_router(hr_workflow_router, prefix="/api/v1")
 app.include_router(hr_roster_router, prefix="/api/v1")
 app.include_router(hr_calendar_router, prefix="/api/v1")
 app.include_router(hr_timesheet_router, prefix="/api/v1")
+app.include_router(hr_clock_router, prefix="/api/v1")
 app.include_router(hr_attendance_router, prefix="/api/v1")
 app.include_router(hr_training_router, prefix="/api/v1")
 app.include_router(hr_signatures_router, prefix="/api/v1")

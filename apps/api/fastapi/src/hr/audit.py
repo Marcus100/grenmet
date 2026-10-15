@@ -18,7 +18,7 @@ from src.exceptions import AppException
 from src.orm import Base
 
 from .absentee.models import AbsenteeReport
-from .attendance.models import AttendanceCorrection, AttendanceRecord
+from .attendance.models import AttendanceCorrection, AttendanceRecord, ClockSite
 from .calendar.models import CalendarEvent
 from .dailystatus.models import StatusReport, StatusReportEntry
 from .documents.models import EmployeeDocument
@@ -378,4 +378,17 @@ def register() -> None:
         entity_type="roster_rules",
         entity_id_attr="department_id",
         label="Roster rules and timesheet policy",
+    )
+
+    # Clock points: who created, rotated or deactivated them. The token hash is
+    # never exposed.
+    registry.register_entity(
+        "clock_site",
+        _department_permission(ClockSite, "roster.manage", uuid_id=True),
+    )
+    registry.track(
+        ClockSite,
+        record_type="clock_site",
+        label="Clock point",
+        exclude=("token_hash",),
     )

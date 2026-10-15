@@ -1170,6 +1170,15 @@ export type { CapValidationResult } from "./CapValidationResult.js";
 export type { CatalogueApply } from "./CatalogueApply.js";
 export type { CataloguePreview } from "./CataloguePreview.js";
 export type { CheckoutSessionPublic } from "./CheckoutSessionPublic.js";
+export type { ClockRequest } from "./ClockRequest.js";
+export type { ClockResult } from "./ClockResult.js";
+export type { ClockResultPropertiesActionEnum } from "./ClockResultPropertiesActionEnum.js";
+export { clockResultPropertiesActionEnum } from "./ClockResultPropertiesActionEnum.js";
+export type { ClockSiteActive } from "./ClockSiteActive.js";
+export type { ClockSiteCreate } from "./ClockSiteCreate.js";
+export type { ClockSiteIssued } from "./ClockSiteIssued.js";
+export type { ClockSitePublic } from "./ClockSitePublic.js";
+export type { ClockSitesPublic } from "./ClockSitesPublic.js";
 export type { ConnectionCreate } from "./ConnectionCreate.js";
 export type { ConnectionPublic } from "./ConnectionPublic.js";
 export type { ConnectionPublicPropertiesStateEnum } from "./ConnectionPublicPropertiesStateEnum.js";
@@ -1770,6 +1779,18 @@ export type {
   HrCheckPeriodRulesStatus422,
 } from "./HrCheckPeriodRules.js";
 export type {
+  HrClockBody,
+  HrClockOptions,
+  HrClockResponse,
+  HrClockResponses,
+  HrClockStatus200,
+  HrClockStatus400,
+  HrClockStatus403,
+  HrClockStatus404,
+  HrClockStatus409,
+  HrClockStatus422,
+} from "./HrClock.js";
+export type {
   HrClosePeriodOptions,
   HrClosePeriodPath,
   HrClosePeriodResponse,
@@ -1801,6 +1822,16 @@ export type {
   HrCreateCalendarEventStatus404,
   HrCreateCalendarEventStatus422,
 } from "./HrCreateCalendarEvent.js";
+export type {
+  HrCreateClockSiteBody,
+  HrCreateClockSiteOptions,
+  HrCreateClockSiteResponse,
+  HrCreateClockSiteResponses,
+  HrCreateClockSiteStatus201,
+  HrCreateClockSiteStatus403,
+  HrCreateClockSiteStatus404,
+  HrCreateClockSiteStatus422,
+} from "./HrCreateClockSite.js";
 export type {
   HrCreateDepartmentBody,
   HrCreateDepartmentOptions,
@@ -2491,6 +2522,16 @@ export type {
   HrListCalendarEventsStatus422,
 } from "./HrListCalendarEvents.js";
 export type {
+  HrListClockSitesOptions,
+  HrListClockSitesQuery,
+  HrListClockSitesResponse,
+  HrListClockSitesResponses,
+  HrListClockSitesStatus200,
+  HrListClockSitesStatus403,
+  HrListClockSitesStatus404,
+  HrListClockSitesStatus422,
+} from "./HrListClockSites.js";
+export type {
   HrListDepartmentMembersOptions,
   HrListDepartmentMembersPath,
   HrListDepartmentMembersResponse,
@@ -2699,6 +2740,16 @@ export type {
   HrRenameOrganisationStatus422,
 } from "./HrRenameOrganisation.js";
 export type {
+  HrRotateClockSiteOptions,
+  HrRotateClockSitePath,
+  HrRotateClockSiteResponse,
+  HrRotateClockSiteResponses,
+  HrRotateClockSiteStatus200,
+  HrRotateClockSiteStatus403,
+  HrRotateClockSiteStatus404,
+  HrRotateClockSiteStatus422,
+} from "./HrRotateClockSite.js";
+export type {
   HrSaveAttendanceBody,
   HrSaveAttendanceOptions,
   HrSaveAttendanceResponse,
@@ -2732,6 +2783,17 @@ export type {
   HrSaveWorkflowConfigurationStatus409,
   HrSaveWorkflowConfigurationStatus422,
 } from "./HrSaveWorkflowConfiguration.js";
+export type {
+  HrSetClockSiteActiveBody,
+  HrSetClockSiteActiveOptions,
+  HrSetClockSiteActivePath,
+  HrSetClockSiteActiveResponse,
+  HrSetClockSiteActiveResponses,
+  HrSetClockSiteActiveStatus200,
+  HrSetClockSiteActiveStatus403,
+  HrSetClockSiteActiveStatus404,
+  HrSetClockSiteActiveStatus422,
+} from "./HrSetClockSiteActive.js";
 export type {
   HrSubmitAbsenteeReportBody,
   HrSubmitAbsenteeReportOptions,

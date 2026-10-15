@@ -159,9 +159,11 @@ export { hrArchiveDocument } from "./clients/hrArchiveDocument.js";
 export { hrArchiveTrainingRecord } from "./clients/hrArchiveTrainingRecord.js";
 export { hrBulkAssignments } from "./clients/hrBulkAssignments.js";
 export { hrCheckPeriodRules } from "./clients/hrCheckPeriodRules.js";
+export { hrClock } from "./clients/hrClock.js";
 export { hrClosePeriod } from "./clients/hrClosePeriod.js";
 export { hrCreateAbsenteeReport } from "./clients/hrCreateAbsenteeReport.js";
 export { hrCreateCalendarEvent } from "./clients/hrCreateCalendarEvent.js";
+export { hrCreateClockSite } from "./clients/hrCreateClockSite.js";
 export { hrCreateDepartment } from "./clients/hrCreateDepartment.js";
 export { hrCreateHoliday } from "./clients/hrCreateHoliday.js";
 export { hrCreateHrEmployment } from "./clients/hrCreateHrEmployment.js";
@@ -230,6 +232,7 @@ export { hrImportOrganisation } from "./clients/hrImportOrganisation.js";
 export { hrIssueParkingDecal } from "./clients/hrIssueParkingDecal.js";
 export { hrListAssignments } from "./clients/hrListAssignments.js";
 export { hrListCalendarEvents } from "./clients/hrListCalendarEvents.js";
+export { hrListClockSites } from "./clients/hrListClockSites.js";
 export { hrListDepartmentMembers } from "./clients/hrListDepartmentMembers.js";
 export { hrListDepartments } from "./clients/hrListDepartments.js";
 export { hrListHolidays } from "./clients/hrListHolidays.js";
@@ -250,9 +253,11 @@ export { hrPublishPeriod } from "./clients/hrPublishPeriod.js";
 export { hrPutDepartmentRules } from "./clients/hrPutDepartmentRules.js";
 export { hrRemoveHoliday } from "./clients/hrRemoveHoliday.js";
 export { hrRenameOrganisation } from "./clients/hrRenameOrganisation.js";
+export { hrRotateClockSite } from "./clients/hrRotateClockSite.js";
 export { hrSaveAttendance } from "./clients/hrSaveAttendance.js";
 export { hrSaveMySignature } from "./clients/hrSaveMySignature.js";
 export { hrSaveWorkflowConfiguration } from "./clients/hrSaveWorkflowConfiguration.js";
+export { hrSetClockSiteActive } from "./clients/hrSetClockSiteActive.js";
 export { hrSubmitAbsenteeReport } from "./clients/hrSubmitAbsenteeReport.js";
 export { hrSubmitAttendance } from "./clients/hrSubmitAttendance.js";
 export { hrSubmitLeaveRequest } from "./clients/hrSubmitLeaveRequest.js";
@@ -1157,6 +1162,11 @@ export {
   useHrCheckPeriodRules,
 } from "./hooks/useHrCheckPeriodRules.js";
 export {
+  hrClockMutationKey,
+  hrClockMutationOptions,
+  useHrClock,
+} from "./hooks/useHrClock.js";
+export {
   hrClosePeriodMutationKey,
   hrClosePeriodMutationOptions,
   useHrClosePeriod,
@@ -1171,6 +1181,11 @@ export {
   hrCreateCalendarEventMutationOptions,
   useHrCreateCalendarEvent,
 } from "./hooks/useHrCreateCalendarEvent.js";
+export {
+  hrCreateClockSiteMutationKey,
+  hrCreateClockSiteMutationOptions,
+  useHrCreateClockSite,
+} from "./hooks/useHrCreateClockSite.js";
 export {
   hrCreateDepartmentMutationKey,
   hrCreateDepartmentMutationOptions,
@@ -1512,6 +1527,11 @@ export {
   useHrListCalendarEvents,
 } from "./hooks/useHrListCalendarEvents.js";
 export {
+  hrListClockSitesQueryKey,
+  hrListClockSitesQueryOptions,
+  useHrListClockSites,
+} from "./hooks/useHrListClockSites.js";
+export {
   hrListDepartmentMembersQueryKey,
   hrListDepartmentMembersQueryOptions,
   useHrListDepartmentMembers,
@@ -1612,6 +1632,11 @@ export {
   useHrRenameOrganisation,
 } from "./hooks/useHrRenameOrganisation.js";
 export {
+  hrRotateClockSiteMutationKey,
+  hrRotateClockSiteMutationOptions,
+  useHrRotateClockSite,
+} from "./hooks/useHrRotateClockSite.js";
+export {
   hrSaveAttendanceMutationKey,
   hrSaveAttendanceMutationOptions,
   useHrSaveAttendance,
@@ -1626,6 +1651,11 @@ export {
   hrSaveWorkflowConfigurationMutationOptions,
   useHrSaveWorkflowConfiguration,
 } from "./hooks/useHrSaveWorkflowConfiguration.js";
+export {
+  hrSetClockSiteActiveMutationKey,
+  hrSetClockSiteActiveMutationOptions,
+  useHrSetClockSiteActive,
+} from "./hooks/useHrSetClockSiteActive.js";
 export {
   hrSubmitAbsenteeReportMutationKey,
   hrSubmitAbsenteeReportMutationOptions,
@@ -3363,6 +3393,15 @@ export type { CapValidationResult } from "./models/CapValidationResult.js";
 export type { CatalogueApply } from "./models/CatalogueApply.js";
 export type { CataloguePreview } from "./models/CataloguePreview.js";
 export type { CheckoutSessionPublic } from "./models/CheckoutSessionPublic.js";
+export type { ClockRequest } from "./models/ClockRequest.js";
+export type { ClockResult } from "./models/ClockResult.js";
+export type { ClockResultPropertiesActionEnum } from "./models/ClockResultPropertiesActionEnum.js";
+export { clockResultPropertiesActionEnum } from "./models/ClockResultPropertiesActionEnum.js";
+export type { ClockSiteActive } from "./models/ClockSiteActive.js";
+export type { ClockSiteCreate } from "./models/ClockSiteCreate.js";
+export type { ClockSiteIssued } from "./models/ClockSiteIssued.js";
+export type { ClockSitePublic } from "./models/ClockSitePublic.js";
+export type { ClockSitesPublic } from "./models/ClockSitesPublic.js";
 export type { ConnectionCreate } from "./models/ConnectionCreate.js";
 export type { ConnectionPublic } from "./models/ConnectionPublic.js";
 export type { ConnectionPublicPropertiesStateEnum } from "./models/ConnectionPublicPropertiesStateEnum.js";
@@ -3963,6 +4002,18 @@ export type {
   HrCheckPeriodRulesStatus422,
 } from "./models/HrCheckPeriodRules.js";
 export type {
+  HrClockBody,
+  HrClockOptions,
+  HrClockResponse,
+  HrClockResponses,
+  HrClockStatus200,
+  HrClockStatus400,
+  HrClockStatus403,
+  HrClockStatus404,
+  HrClockStatus409,
+  HrClockStatus422,
+} from "./models/HrClock.js";
+export type {
   HrClosePeriodOptions,
   HrClosePeriodPath,
   HrClosePeriodResponse,
@@ -3994,6 +4045,16 @@ export type {
   HrCreateCalendarEventStatus404,
   HrCreateCalendarEventStatus422,
 } from "./models/HrCreateCalendarEvent.js";
+export type {
+  HrCreateClockSiteBody,
+  HrCreateClockSiteOptions,
+  HrCreateClockSiteResponse,
+  HrCreateClockSiteResponses,
+  HrCreateClockSiteStatus201,
+  HrCreateClockSiteStatus403,
+  HrCreateClockSiteStatus404,
+  HrCreateClockSiteStatus422,
+} from "./models/HrCreateClockSite.js";
 export type {
   HrCreateDepartmentBody,
   HrCreateDepartmentOptions,
@@ -4684,6 +4745,16 @@ export type {
   HrListCalendarEventsStatus422,
 } from "./models/HrListCalendarEvents.js";
 export type {
+  HrListClockSitesOptions,
+  HrListClockSitesQuery,
+  HrListClockSitesResponse,
+  HrListClockSitesResponses,
+  HrListClockSitesStatus200,
+  HrListClockSitesStatus403,
+  HrListClockSitesStatus404,
+  HrListClockSitesStatus422,
+} from "./models/HrListClockSites.js";
+export type {
   HrListDepartmentMembersOptions,
   HrListDepartmentMembersPath,
   HrListDepartmentMembersResponse,
@@ -4892,6 +4963,16 @@ export type {
   HrRenameOrganisationStatus422,
 } from "./models/HrRenameOrganisation.js";
 export type {
+  HrRotateClockSiteOptions,
+  HrRotateClockSitePath,
+  HrRotateClockSiteResponse,
+  HrRotateClockSiteResponses,
+  HrRotateClockSiteStatus200,
+  HrRotateClockSiteStatus403,
+  HrRotateClockSiteStatus404,
+  HrRotateClockSiteStatus422,
+} from "./models/HrRotateClockSite.js";
+export type {
   HrSaveAttendanceBody,
   HrSaveAttendanceOptions,
   HrSaveAttendanceResponse,
@@ -4925,6 +5006,17 @@ export type {
   HrSaveWorkflowConfigurationStatus409,
   HrSaveWorkflowConfigurationStatus422,
 } from "./models/HrSaveWorkflowConfiguration.js";
+export type {
+  HrSetClockSiteActiveBody,
+  HrSetClockSiteActiveOptions,
+  HrSetClockSiteActivePath,
+  HrSetClockSiteActiveResponse,
+  HrSetClockSiteActiveResponses,
+  HrSetClockSiteActiveStatus200,
+  HrSetClockSiteActiveStatus403,
+  HrSetClockSiteActiveStatus404,
+  HrSetClockSiteActiveStatus422,
+} from "./models/HrSetClockSiteActive.js";
 export type {
   HrSubmitAbsenteeReportBody,
   HrSubmitAbsenteeReportOptions,
@@ -7638,6 +7730,14 @@ export { capValidationResultSchema } from "./zod/capValidationResultSchema.js";
 export { catalogueApplySchema } from "./zod/catalogueApplySchema.js";
 export { cataloguePreviewSchema } from "./zod/cataloguePreviewSchema.js";
 export { checkoutSessionPublicSchema } from "./zod/checkoutSessionPublicSchema.js";
+export { clockRequestSchema } from "./zod/clockRequestSchema.js";
+export { clockResultPropertiesActionEnumSchema } from "./zod/clockResultPropertiesActionEnumSchema.js";
+export { clockResultSchema } from "./zod/clockResultSchema.js";
+export { clockSiteActiveSchema } from "./zod/clockSiteActiveSchema.js";
+export { clockSiteCreateSchema } from "./zod/clockSiteCreateSchema.js";
+export { clockSiteIssuedSchema } from "./zod/clockSiteIssuedSchema.js";
+export { clockSitePublicSchema } from "./zod/clockSitePublicSchema.js";
+export { clockSitesPublicSchema } from "./zod/clockSitesPublicSchema.js";
 export { connectionCreateSchema } from "./zod/connectionCreateSchema.js";
 export { connectionPublicPropertiesStateEnumSchema } from "./zod/connectionPublicPropertiesStateEnumSchema.js";
 export { connectionPublicSchema } from "./zod/connectionPublicSchema.js";
@@ -8183,6 +8283,17 @@ export {
   hrCheckPeriodRulesStatus422Schema,
 } from "./zod/hrCheckPeriodRulesSchema.js";
 export {
+  hrClockBodySchema,
+  hrClockErrorSchema,
+  hrClockResponseSchema,
+  hrClockStatus200Schema,
+  hrClockStatus400Schema,
+  hrClockStatus403Schema,
+  hrClockStatus404Schema,
+  hrClockStatus409Schema,
+  hrClockStatus422Schema,
+} from "./zod/hrClockSchema.js";
+export {
   hrClosePeriodErrorSchema,
   hrClosePeriodPathPeriodIdSchema,
   hrClosePeriodResponseSchema,
@@ -8211,6 +8322,15 @@ export {
   hrCreateCalendarEventStatus404Schema,
   hrCreateCalendarEventStatus422Schema,
 } from "./zod/hrCreateCalendarEventSchema.js";
+export {
+  hrCreateClockSiteBodySchema,
+  hrCreateClockSiteErrorSchema,
+  hrCreateClockSiteResponseSchema,
+  hrCreateClockSiteStatus201Schema,
+  hrCreateClockSiteStatus403Schema,
+  hrCreateClockSiteStatus404Schema,
+  hrCreateClockSiteStatus422Schema,
+} from "./zod/hrCreateClockSiteSchema.js";
 export {
   hrCreateDepartmentBodySchema,
   hrCreateDepartmentErrorSchema,
@@ -8871,6 +8991,15 @@ export {
   hrListCalendarEventsStatus422Schema,
 } from "./zod/hrListCalendarEventsSchema.js";
 export {
+  hrListClockSitesErrorSchema,
+  hrListClockSitesQueryDepartmentIdSchema,
+  hrListClockSitesResponseSchema,
+  hrListClockSitesStatus200Schema,
+  hrListClockSitesStatus403Schema,
+  hrListClockSitesStatus404Schema,
+  hrListClockSitesStatus422Schema,
+} from "./zod/hrListClockSitesSchema.js";
+export {
   hrListDepartmentMembersErrorSchema,
   hrListDepartmentMembersPathDepartmentIdSchema,
   hrListDepartmentMembersResponseSchema,
@@ -9061,6 +9190,15 @@ export {
   hrRenameOrganisationStatus422Schema,
 } from "./zod/hrRenameOrganisationSchema.js";
 export {
+  hrRotateClockSiteErrorSchema,
+  hrRotateClockSitePathSiteIdSchema,
+  hrRotateClockSiteResponseSchema,
+  hrRotateClockSiteStatus200Schema,
+  hrRotateClockSiteStatus403Schema,
+  hrRotateClockSiteStatus404Schema,
+  hrRotateClockSiteStatus422Schema,
+} from "./zod/hrRotateClockSiteSchema.js";
+export {
   hrSaveAttendanceBodySchema,
   hrSaveAttendanceErrorSchema,
   hrSaveAttendanceResponseSchema,
@@ -9091,6 +9229,16 @@ export {
   hrSaveWorkflowConfigurationStatus409Schema,
   hrSaveWorkflowConfigurationStatus422Schema,
 } from "./zod/hrSaveWorkflowConfigurationSchema.js";
+export {
+  hrSetClockSiteActiveBodySchema,
+  hrSetClockSiteActiveErrorSchema,
+  hrSetClockSiteActivePathSiteIdSchema,
+  hrSetClockSiteActiveResponseSchema,
+  hrSetClockSiteActiveStatus200Schema,
+  hrSetClockSiteActiveStatus403Schema,
+  hrSetClockSiteActiveStatus404Schema,
+  hrSetClockSiteActiveStatus422Schema,
+} from "./zod/hrSetClockSiteActiveSchema.js";
 export {
   hrSubmitAbsenteeReportBodySchema,
   hrSubmitAbsenteeReportErrorSchema,
