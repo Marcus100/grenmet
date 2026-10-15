@@ -89,7 +89,9 @@ Adminer and grenmet-postgres.
 
 ## Where each web-app port lives
 
-Changing a web app's port means editing **all** of these so they agree:
+Changing a web app's port means editing **all** of these so they agree.
+`node scripts/ci/check-ports.mjs` (run by `pnpm test:delivery` in CI) fails when any of them
+disagrees with this file, when two apps share a port, or when an app uses a port reserved for another:
 
 1. `apps/web/<app>/package.json` — `dev` and `start` (`--port`)
 2. `apps/web/<app>/Dockerfile` — `EXPOSE` and `ENV PORT=` (deployed apps only)
