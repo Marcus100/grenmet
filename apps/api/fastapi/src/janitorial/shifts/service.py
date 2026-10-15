@@ -10,6 +10,7 @@ from collections import defaultdict
 from datetime import date, time, timedelta
 from uuid import UUID
 
+from pydantic import TypeAdapter
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -32,6 +33,7 @@ from . import schemas
 logger = logging.getLogger(__name__)
 
 MAX_RANGE_DAYS = 62
+_ASSIGNMENT_STATUS = TypeAdapter(schemas.AssignmentStatus)
 
 
 def _clock(value: time) -> str:
@@ -73,7 +75,7 @@ def _assignment(row: ShiftAssignment) -> schemas.JanitorialShiftAssignment:
         shiftPatternId=row.shift_pattern_id,
         staffId=row.staff_id,
         zoneId=row.zone_id,
-        status=row.status,  # type: ignore[arg-type]
+        status=_ASSIGNMENT_STATUS.validate_python(row.status),
         note=row.note,
         revision=row.revision,
     )
