@@ -136,6 +136,50 @@ async def run_notification_sweeps(ctx: dict[str, Any]) -> int:
         return result
 
 
+async def check_nhc_failures(ctx: dict[str, Any]) -> int:
+    from src.database import async_session_factory
+    from src.wxwatch import alerts, database
+
+    archive = database.create_session()
+    if archive is None:
+        return 0
+    async with archive, async_session_factory() as session:
+        try:
+            result = await alerts.notify_failed_jobs(session=session, archive=archive)
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "check_nhc_failures",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+        await operational_metrics.record_job(
+            ctx.get("redis"), "check_nhc_failures", str(ctx.get("job_id", "")), True
+        )
+        return result
+
+
+async def check_alert_outbox(ctx: dict[str, Any]) -> int:
+    """Fail loudly when due emails sit unsent, so job metrics show the alert path is stuck."""
+    from datetime import timedelta
+
+    from src.database import async_session_factory
+    from src.notifications import service as notification_service
+
+    async with async_session_factory() as session:
+        stalled = await notification_service.count_stalled_deliveries(
+            session, older_than=timedelta(minutes=10)
+        )
+    healthy = stalled == 0
+    await operational_metrics.record_job(
+        ctx.get("redis"), "check_alert_outbox", str(ctx.get("job_id", "")), healthy
+    )
+    if not healthy:
+        raise RuntimeError(f"{stalled} notification emails stalled for over 10 minutes")
+    return 0
+
+
 class WorkerSettings:
     # Bound heartbeat staleness and prevent another worker masking this one.
     health_check_interval = 30
@@ -147,6 +191,8 @@ class WorkerSettings:
         ingest_cap_feeds,
         send_notification_emails,
         run_notification_sweeps,
+        check_nhc_failures,
+        check_alert_outbox,
     ]
     # A poll/ingest run must not hang a worker slot; retries of the cron function
     # itself are pointless because the durable outbox already tracks per-job
@@ -170,4 +216,8 @@ class WorkerSettings:
         cron(send_notification_emails, second={0, 30}, run_at_startup=True),
         # Daily reminders (expiries, overdue approvals) at 06:00 Grenada (UTC-4).
         cron(run_notification_sweeps, hour=10, minute=0, run_at_startup=False),
+        # NHC job failures every 5 minutes; the 1-hour window stops repeat messages.
+        cron(check_nhc_failures, minute=set(range(0, 60, 5)), run_at_startup=False),
+        # Is the email outbox draining? Every 15 minutes.
+        cron(check_alert_outbox, minute={0, 15, 30, 45}, run_at_startup=False),
     ]

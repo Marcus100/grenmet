@@ -87,3 +87,22 @@ class NotificationSettingsPublic(BaseModel):
     events: list[NotificationSettingPublic]
     # Staff whose address is outside allowed_domains; they only see in-app.
     unreachable: list[UnreachableRecipientPublic]
+
+
+class NotificationSnoozeCreate(BaseModel):
+    event_key: str = Field(max_length=80)
+    # Leave both empty to silence the whole event for the organisation.
+    entity_type: str | None = Field(default=None, max_length=60)
+    entity_id: str | None = Field(default=None, max_length=100)
+    until: UtcDateTime
+    reason: str = Field(default="", max_length=300)
+
+
+class NotificationSnoozePublic(BaseModel):
+    id: uuid.UUID
+    event_key: str
+    entity_type: str | None
+    entity_id: str | None
+    until: UtcDateTime
+    reason: str
+    created_at: UtcDateTime

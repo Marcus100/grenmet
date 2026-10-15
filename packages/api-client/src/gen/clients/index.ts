@@ -309,8 +309,11 @@ export { janitorialUpdateShiftPattern } from "./janitorialUpdateShiftPattern.js"
 export { janitorialUpdateStaff } from "./janitorialUpdateStaff.js";
 export { janitorialUpdateTask } from "./janitorialUpdateTask.js";
 export { janitorialUpdateZone } from "./janitorialUpdateZone.js";
+export { notificationsCreateNotificationSnooze } from "./notificationsCreateNotificationSnooze.js";
+export { notificationsDeleteNotificationSnooze } from "./notificationsDeleteNotificationSnooze.js";
 export { notificationsGetNotificationPreferences } from "./notificationsGetNotificationPreferences.js";
 export { notificationsGetNotificationSettings } from "./notificationsGetNotificationSettings.js";
+export { notificationsGetNotificationSnoozes } from "./notificationsGetNotificationSnoozes.js";
 export { notificationsGetNotifications } from "./notificationsGetNotifications.js";
 export { notificationsGetUnreadCount } from "./notificationsGetUnreadCount.js";
 export { notificationsMarkAllNotificationsRead } from "./notificationsMarkAllNotificationsRead.js";

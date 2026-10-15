@@ -2,6 +2,7 @@ import logging
 import uuid
 from collections.abc import Iterable
 from dataclasses import dataclass
+from datetime import timedelta
 from typing import Any
 
 from sqlalchemy import func, select, update
@@ -21,6 +22,7 @@ from .models import (
     NotificationDelivery,
     NotificationPreference,
     NotificationSetting,
+    NotificationSnooze,
 )
 from .schemas import (
     NotificationParams,
@@ -30,6 +32,8 @@ from .schemas import (
     NotificationSettingPublic,
     NotificationSettingsPublic,
     NotificationSettingUpdate,
+    NotificationSnoozeCreate,
+    NotificationSnoozePublic,
     UnreachableRecipientPublic,
     UnreadCountPublic,
 )
@@ -135,6 +139,36 @@ async def users_with_roles(
     return {grant.user_id for grant in grants if grant.id in live_ids[grant.user_id]}
 
 
+async def is_snoozed(
+    session: AsyncSession,
+    organisation_id: str | None,
+    event_key: str,
+    entity_type: str | None,
+    entity_id: str | None,
+) -> bool:
+    """True while a snooze covers this event for the organisation.
+
+    A snooze with no entity covers the whole event; one with an entity covers
+    only that entity.
+    """
+    statement = select(NotificationSnooze.id).where(
+        NotificationSnooze.event_key == event_key,
+        NotificationSnooze.until > utc_now(),
+        NotificationSnooze.organisation_id.is_(None)
+        if organisation_id is None
+        else (
+            NotificationSnooze.organisation_id.is_(None)
+            | (NotificationSnooze.organisation_id == organisation_id)
+        ),
+        (NotificationSnooze.entity_id.is_(None))
+        | (
+            (NotificationSnooze.entity_type == entity_type)
+            & (NotificationSnooze.entity_id == entity_id)
+        ),
+    )
+    return (await session.execute(statement.limit(1))).first() is not None
+
+
 async def notify(
     session: AsyncSession,
     *,
@@ -147,18 +181,27 @@ async def notify(
     entity_id: str | None = None,
     department_id: str | None = None,
     dedupe_key: str | None = None,
+    suppress_within: timedelta | None = None,
     exclude: Iterable[uuid.UUID] = (),
 ) -> int:
     """Queue ``event_key`` for ``recipients`` plus the event's configured roles.
 
     Adds rows to the caller's transaction and never sends anything itself. The
     person who caused the event is normally in ``exclude``. With ``dedupe_key``
-    each recipient is told at most once for that key. Returns how many people
-    were notified.
+    each recipient is told at most once for that key. With ``suppress_within``
+    a recipient already told about the same event and entity inside that window
+    is skipped, and an active snooze for the event (or entity) silences it.
+    Returns how many people were notified.
     """
     event = events.get(event_key)
     setting = await effective_setting(session, organisation_id, event_key)
     if not setting.enabled:
+        return 0
+    if await is_snoozed(session, organisation_id, event_key, entity_type, entity_id):
+        logger.info(
+            "Notification snoozed",
+            extra={"event_key": event_key, "entity_id": entity_id},
+        )
         return 0
     targets = set(recipients) | await users_with_roles(
         session,
@@ -194,6 +237,21 @@ async def notify(
             .all()
         )
         active = {user_id for user_id in active if keys[user_id] not in sent}
+    if suppress_within is not None and active:
+        recent = select(Notification.recipient_user_id).where(
+            Notification.recipient_user_id.in_(active),
+            Notification.event_key == event_key,
+            Notification.created_at >= utc_now() - suppress_within,
+        )
+        recent = recent.where(
+            Notification.entity_type.is_(None)
+            if entity_type is None
+            else Notification.entity_type == entity_type,
+            Notification.entity_id.is_(None)
+            if entity_id is None
+            else Notification.entity_id == entity_id,
+        )
+        active -= set((await session.execute(recent)).scalars().all())
     if not active:
         return 0
     muted = set(
@@ -517,3 +575,102 @@ async def update_setting(
         extra={"event_key": event_key, "organisation_id": organisation_id},
     )
     return _setting_public(event, row)
+
+
+async def count_stalled_deliveries(
+    session: AsyncSession, *, older_than: timedelta
+) -> int:
+    """Emails that are due but still unsent: the outbox worker is not draining."""
+    now = utc_now()
+    return (
+        await session.scalar(
+            select(func.count())
+            .select_from(NotificationDelivery)
+            .where(
+                NotificationDelivery.status == DeliveryStatus.PENDING.value,
+                NotificationDelivery.created_at < now - older_than,
+                (NotificationDelivery.next_retry_at.is_(None))
+                | (NotificationDelivery.next_retry_at <= now),
+            )
+        )
+        or 0
+    )
+
+
+# ── Snoozes ───────────────────────────────────────────────────────────────────
+
+
+async def create_snooze(
+    *,
+    session: AsyncSession,
+    actor: User,
+    organisation_id: str | None,
+    payload: NotificationSnoozeCreate,
+) -> NotificationSnoozePublic:
+    organisation_id = await _require_manage(session, actor, organisation_id)
+    try:
+        events.get(payload.event_key)
+    except KeyError:
+        raise NotFoundError("Unknown notification") from None
+    if (payload.entity_type is None) != (payload.entity_id is None):
+        raise AppException("Give both entity type and entity id, or neither", 400)
+    if payload.until <= utc_now():
+        raise AppException("A snooze must end in the future", 400)
+    row = NotificationSnooze(
+        organisation_id=organisation_id,
+        event_key=payload.event_key,
+        entity_type=payload.entity_type,
+        entity_id=payload.entity_id,
+        until=payload.until,
+        reason=payload.reason,
+        created_by_user_id=actor.id,
+    )
+    session.add(row)
+    await session.commit()
+    await session.refresh(row)
+    return NotificationSnoozePublic.model_validate(row, from_attributes=True)
+
+
+async def list_snoozes(
+    *, session: AsyncSession, actor: User, organisation_id: str | None
+) -> list[NotificationSnoozePublic]:
+    """Active snoozes for the organisation, soonest to end first."""
+    organisation_id = await _require_manage(session, actor, organisation_id)
+    rows = (
+        (
+            await session.execute(
+                select(NotificationSnooze)
+                .where(
+                    NotificationSnooze.organisation_id == organisation_id,
+                    NotificationSnooze.until > utc_now(),
+                )
+                .order_by(NotificationSnooze.until)
+            )
+        )
+        .scalars()
+        .all()
+    )
+    return [
+        NotificationSnoozePublic.model_validate(row, from_attributes=True)
+        for row in rows
+    ]
+
+
+async def delete_snooze(
+    *,
+    session: AsyncSession,
+    actor: User,
+    organisation_id: str | None,
+    snooze_id: uuid.UUID,
+) -> None:
+    organisation_id = await _require_manage(session, actor, organisation_id)
+    row = await session.scalar(
+        select(NotificationSnooze).where(
+            NotificationSnooze.id == snooze_id,
+            NotificationSnooze.organisation_id == organisation_id,
+        )
+    )
+    if row is None:
+        raise NotFoundError("Snooze not found")
+    await session.delete(row)
+    await session.commit()

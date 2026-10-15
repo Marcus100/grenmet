@@ -3532,6 +3532,31 @@ export type { NotificationPublic } from "./NotificationPublic.js";
 export type { NotificationSettingPublic } from "./NotificationSettingPublic.js";
 export type { NotificationSettingsPublic } from "./NotificationSettingsPublic.js";
 export type { NotificationSettingUpdate } from "./NotificationSettingUpdate.js";
+export type { NotificationSnoozeCreate } from "./NotificationSnoozeCreate.js";
+export type { NotificationSnoozePublic } from "./NotificationSnoozePublic.js";
+export type {
+  NotificationsCreateNotificationSnoozeBody,
+  NotificationsCreateNotificationSnoozeOptions,
+  NotificationsCreateNotificationSnoozeQuery,
+  NotificationsCreateNotificationSnoozeResponse,
+  NotificationsCreateNotificationSnoozeResponses,
+  NotificationsCreateNotificationSnoozeStatus201,
+  NotificationsCreateNotificationSnoozeStatus400,
+  NotificationsCreateNotificationSnoozeStatus403,
+  NotificationsCreateNotificationSnoozeStatus404,
+  NotificationsCreateNotificationSnoozeStatus422,
+} from "./NotificationsCreateNotificationSnooze.js";
+export type {
+  NotificationsDeleteNotificationSnoozeOptions,
+  NotificationsDeleteNotificationSnoozePath,
+  NotificationsDeleteNotificationSnoozeQuery,
+  NotificationsDeleteNotificationSnoozeResponse,
+  NotificationsDeleteNotificationSnoozeResponses,
+  NotificationsDeleteNotificationSnoozeStatus204,
+  NotificationsDeleteNotificationSnoozeStatus403,
+  NotificationsDeleteNotificationSnoozeStatus404,
+  NotificationsDeleteNotificationSnoozeStatus422,
+} from "./NotificationsDeleteNotificationSnooze.js";
 export type {
   NotificationsGetNotificationPreferencesOptions,
   NotificationsGetNotificationPreferencesResponse,
@@ -3549,6 +3574,15 @@ export type {
   NotificationsGetNotificationSettingsStatus403,
   NotificationsGetNotificationSettingsStatus422,
 } from "./NotificationsGetNotificationSettings.js";
+export type {
+  NotificationsGetNotificationSnoozesOptions,
+  NotificationsGetNotificationSnoozesQuery,
+  NotificationsGetNotificationSnoozesResponse,
+  NotificationsGetNotificationSnoozesResponses,
+  NotificationsGetNotificationSnoozesStatus200,
+  NotificationsGetNotificationSnoozesStatus403,
+  NotificationsGetNotificationSnoozesStatus422,
+} from "./NotificationsGetNotificationSnoozes.js";
 export type {
   NotificationsGetNotificationsOptions,
   NotificationsGetNotificationsQuery,
