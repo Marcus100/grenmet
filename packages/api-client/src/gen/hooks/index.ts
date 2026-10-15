@@ -789,6 +789,11 @@ export {
   useHrCheckPeriodRules,
 } from "./useHrCheckPeriodRules.js";
 export {
+  hrCheckShiftSwapRulesQueryKey,
+  hrCheckShiftSwapRulesQueryOptions,
+  useHrCheckShiftSwapRules,
+} from "./useHrCheckShiftSwapRules.js";
+export {
   hrClockMutationKey,
   hrClockMutationOptions,
   useHrClock,

@@ -36,7 +36,7 @@ def rules_from_policy(policy: DepartmentPolicy | None) -> RosterRules:
     )
 
 
-async def _policy_for(
+async def policy_for(
     session: AsyncSession, department_id: str
 ) -> DepartmentPolicy | None:
     result = await session.execute(
@@ -50,7 +50,7 @@ async def read_department_rules(
 ) -> DepartmentPolicy | None:
     require_permission(current_user=current_user, permission_key="roster.view")
     await require_roster_read_scope(session, current_user, department_id)
-    return await _policy_for(session, department_id)
+    return await policy_for(session, department_id)
 
 
 async def update_department_rules(
@@ -63,7 +63,7 @@ async def update_department_rules(
     require_permission(current_user=current_user, permission_key="roster.manage")
     await require_roster_manage_scope(session, current_user, department_id)
     audit_service.set_actor(session, current_user.id)
-    policy = await _policy_for(session, department_id)
+    policy = await policy_for(session, department_id)
     if policy is None:
         policy = DepartmentPolicy(department_id=department_id)
         session.add(policy)
@@ -113,7 +113,7 @@ async def check_period_rules(
     require_permission(current_user=current_user, permission_key="roster.view")
     period = await get_roster_period_or_404(session=session, period_id=period_id)
     await require_roster_read_scope(session, current_user, period.department_id)
-    rules = rules_from_policy(await _policy_for(session, period.department_id))
+    rules = rules_from_policy(await policy_for(session, period.department_id))
     if rules == RosterRules():
         return period, rules, []
     violations = check_roster_rules(await _window_shifts(session, period, rules), rules)

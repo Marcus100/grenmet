@@ -156,6 +156,7 @@ export { hrArchiveDocument } from "./hrArchiveDocument.js";
 export { hrArchiveTrainingRecord } from "./hrArchiveTrainingRecord.js";
 export { hrBulkAssignments } from "./hrBulkAssignments.js";
 export { hrCheckPeriodRules } from "./hrCheckPeriodRules.js";
+export { hrCheckShiftSwapRules } from "./hrCheckShiftSwapRules.js";
 export { hrClock } from "./hrClock.js";
 export { hrClosePeriod } from "./hrClosePeriod.js";
 export { hrCreateAbsenteeReport } from "./hrCreateAbsenteeReport.js";

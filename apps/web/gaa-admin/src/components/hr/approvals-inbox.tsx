@@ -23,6 +23,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Check, CornerUpLeft, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { SwapRuleWarnings } from "./shift/swap-rule-warnings";
 import { AttendanceReview } from "./timesheet/attendance-review";
 
 function approvalActionLabel(purpose: string | undefined): string {
@@ -132,6 +133,9 @@ export function ApprovalsInbox() {
                 <TableCell className="font-medium">
                   {WORKFLOW_TYPE_LABELS[item.workflow_type] ??
                     item.workflow_type}
+                  {item.entity_type === "shift_swap" && (
+                    <SwapRuleWarnings swapId={item.entity_id} />
+                  )}
                   {(item.entity_type === "attendance" ||
                     item.entity_type === "attendance_correction") && (
                     <AttendanceReview

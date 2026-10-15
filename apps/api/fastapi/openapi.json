@@ -7324,6 +7324,61 @@
         }
       }
     },
+    "/api/v1/hr/shift-swaps/{shift_swap_id}/rule-check": {
+      "get": {
+        "tags": [
+          "hr-exchange"
+        ],
+        "summary": "Check a shift exchange against department roster rules",
+        "description": "Return warn-only breaches of the department's rest, consecutive-day and weekly-hour limits that this exchange would introduce for the two employees. Never blocks approval. Available to the two employees and to holders of roster.view in the department scope.",
+        "operationId": "hrCheckShiftSwapRules",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "shift_swap_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Shift Swap Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rule check returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ShiftSwapRuleCheckPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Not permitted to view this swap"
+          },
+          "404": {
+            "description": "Shift swap not found"
+          }
+        }
+      }
+    },
     "/api/v1/hr/status-reports/staffing": {
       "get": {
         "tags": [
@@ -41728,6 +41783,38 @@
           "count"
         ],
         "title": "ShiftSwapRequestsPublic"
+      },
+      "ShiftSwapRuleCheckPublic": {
+        "properties": {
+          "shift_swap_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Shift Swap Id"
+          },
+          "rules": {
+            "$ref": "#/components/schemas/RosterRulesPublic"
+          },
+          "violations": {
+            "items": {
+              "$ref": "#/components/schemas/RuleViolationPublic"
+            },
+            "type": "array",
+            "title": "Violations"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "shift_swap_id",
+          "rules",
+          "violations",
+          "count"
+        ],
+        "title": "ShiftSwapRuleCheckPublic",
+        "description": "Warn-only rule breaches the exchange would introduce, never blocking it."
       },
       "ShiftSwapSubmit": {
         "properties": {

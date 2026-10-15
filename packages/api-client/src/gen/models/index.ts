@@ -1784,6 +1784,16 @@ export type {
   HrCheckPeriodRulesStatus422,
 } from "./HrCheckPeriodRules.js";
 export type {
+  HrCheckShiftSwapRulesOptions,
+  HrCheckShiftSwapRulesPath,
+  HrCheckShiftSwapRulesResponse,
+  HrCheckShiftSwapRulesResponses,
+  HrCheckShiftSwapRulesStatus200,
+  HrCheckShiftSwapRulesStatus403,
+  HrCheckShiftSwapRulesStatus404,
+  HrCheckShiftSwapRulesStatus422,
+} from "./HrCheckShiftSwapRules.js";
+export type {
   HrClockBody,
   HrClockOptions,
   HrClockResponse,
@@ -3782,6 +3792,7 @@ export type { ShiftSwapAction } from "./ShiftSwapAction.js";
 export type { ShiftSwapRequestCreate } from "./ShiftSwapRequestCreate.js";
 export type { ShiftSwapRequestPublic } from "./ShiftSwapRequestPublic.js";
 export type { ShiftSwapRequestsPublic } from "./ShiftSwapRequestsPublic.js";
+export type { ShiftSwapRuleCheckPublic } from "./ShiftSwapRuleCheckPublic.js";
 export type { ShiftSwapSubmit } from "./ShiftSwapSubmit.js";
 export type { ShiftView } from "./ShiftView.js";
 export type { SignatureInput } from "./SignatureInput.js";

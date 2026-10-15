@@ -159,6 +159,7 @@ export { hrArchiveDocument } from "./clients/hrArchiveDocument.js";
 export { hrArchiveTrainingRecord } from "./clients/hrArchiveTrainingRecord.js";
 export { hrBulkAssignments } from "./clients/hrBulkAssignments.js";
 export { hrCheckPeriodRules } from "./clients/hrCheckPeriodRules.js";
+export { hrCheckShiftSwapRules } from "./clients/hrCheckShiftSwapRules.js";
 export { hrClock } from "./clients/hrClock.js";
 export { hrClosePeriod } from "./clients/hrClosePeriod.js";
 export { hrCreateAbsenteeReport } from "./clients/hrCreateAbsenteeReport.js";
@@ -1162,6 +1163,11 @@ export {
   hrCheckPeriodRulesQueryOptions,
   useHrCheckPeriodRules,
 } from "./hooks/useHrCheckPeriodRules.js";
+export {
+  hrCheckShiftSwapRulesQueryKey,
+  hrCheckShiftSwapRulesQueryOptions,
+  useHrCheckShiftSwapRules,
+} from "./hooks/useHrCheckShiftSwapRules.js";
 export {
   hrClockMutationKey,
   hrClockMutationOptions,
@@ -4013,6 +4019,16 @@ export type {
   HrCheckPeriodRulesStatus422,
 } from "./models/HrCheckPeriodRules.js";
 export type {
+  HrCheckShiftSwapRulesOptions,
+  HrCheckShiftSwapRulesPath,
+  HrCheckShiftSwapRulesResponse,
+  HrCheckShiftSwapRulesResponses,
+  HrCheckShiftSwapRulesStatus200,
+  HrCheckShiftSwapRulesStatus403,
+  HrCheckShiftSwapRulesStatus404,
+  HrCheckShiftSwapRulesStatus422,
+} from "./models/HrCheckShiftSwapRules.js";
+export type {
   HrClockBody,
   HrClockOptions,
   HrClockResponse,
@@ -6011,6 +6027,7 @@ export type { ShiftSwapAction } from "./models/ShiftSwapAction.js";
 export type { ShiftSwapRequestCreate } from "./models/ShiftSwapRequestCreate.js";
 export type { ShiftSwapRequestPublic } from "./models/ShiftSwapRequestPublic.js";
 export type { ShiftSwapRequestsPublic } from "./models/ShiftSwapRequestsPublic.js";
+export type { ShiftSwapRuleCheckPublic } from "./models/ShiftSwapRuleCheckPublic.js";
 export type { ShiftSwapSubmit } from "./models/ShiftSwapSubmit.js";
 export type { ShiftView } from "./models/ShiftView.js";
 export type { SignatureInput } from "./models/SignatureInput.js";
@@ -8309,6 +8326,15 @@ export {
   hrCheckPeriodRulesStatus422Schema,
 } from "./zod/hrCheckPeriodRulesSchema.js";
 export {
+  hrCheckShiftSwapRulesErrorSchema,
+  hrCheckShiftSwapRulesPathShiftSwapIdSchema,
+  hrCheckShiftSwapRulesResponseSchema,
+  hrCheckShiftSwapRulesStatus200Schema,
+  hrCheckShiftSwapRulesStatus403Schema,
+  hrCheckShiftSwapRulesStatus404Schema,
+  hrCheckShiftSwapRulesStatus422Schema,
+} from "./zod/hrCheckShiftSwapRulesSchema.js";
+export {
   hrClockBodySchema,
   hrClockErrorSchema,
   hrClockResponseSchema,
@@ -10145,6 +10171,7 @@ export { shiftSwapActionSchema } from "./zod/shiftSwapActionSchema.js";
 export { shiftSwapRequestCreateSchema } from "./zod/shiftSwapRequestCreateSchema.js";
 export { shiftSwapRequestPublicSchema } from "./zod/shiftSwapRequestPublicSchema.js";
 export { shiftSwapRequestsPublicSchema } from "./zod/shiftSwapRequestsPublicSchema.js";
+export { shiftSwapRuleCheckPublicSchema } from "./zod/shiftSwapRuleCheckPublicSchema.js";
 export { shiftSwapSubmitSchema } from "./zod/shiftSwapSubmitSchema.js";
 export { shiftViewSchema } from "./zod/shiftViewSchema.js";
 export { signatureInputSchema } from "./zod/signatureInputSchema.js";

@@ -85,6 +85,11 @@ non-compliant state.
 
 Exit: seeded violations are caught on every path.
 
+Status 2026-10-15: the checker, department limits, a settings tab, publish-time
+warnings and a shift-exchange check are built and warn-only. Leave and absence
+changes and overtime extension do not call it yet, and no limit has been entered
+because GAA HR has not confirmed values.
+
 ### Phase 2: time-check clock-in
 
 - Implement the ADR-0009 design: method-agnostic clock-in endpoint, static site
@@ -98,8 +103,9 @@ reports.
 
 ### Phase 3: competency and qualification layer
 
-- Extend training records into role requirements, licences and currency, with
-  expiry alerts through the notifications service.
+- Extend training records into role requirements, licences and currency. Expiry
+  reminders to the employee already exist (daily sweep); reminders to supervisors
+  and role requirements do not.
 - Add a rostering eligibility rule: a qualification-bound slot cannot be filled by
   someone without a current qualification.
 - Add a per-employee skills map with documents as evidence.

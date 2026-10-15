@@ -34,8 +34,13 @@ Migration `c1d2e3f4a5b6` adds only `hr.training_record`. No workflow type is add
 this is a maintained register, not an approval request. The new public API contract
 is documented in [contracts](../api/contracts.md#employee-training-history).
 
-No course catalogue, competency assessments, role training profiles, skills matrix,
-reminder sending or storage setup is included. Certificate files remain separately
+A daily notification sweep (`sweep_training_expiry` in `hr/notifications.py`) reminds
+the employee before a certificate expires, at the lead times set for the
+`training.expiring` event (30 and 7 days by default), and only for the latest record
+of each course.
+
+No course catalogue, competency assessments, role training profiles, skills matrix
+or storage setup is included. Certificate files remain separately
 managed in Employee Documents. No deployed-database migration has been performed.
 
 Backend integration tests live in `tests/hr/test_training.py`, covering scope,

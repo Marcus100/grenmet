@@ -495,7 +495,10 @@ never blocks saving, publishing or swaps. It also reads neighbouring published
 periods so a run or rest gap that crosses a period boundary is seen. Weeks run
 Sunday to Saturday by shift start date. Publishing also runs the check and records any
 warnings on the `PUBLISHED` revision (summary and a `rule_warnings` snapshot entry,
-present only when there are warnings); swap approval does not call it yet. Changes
+present only when there are warnings); a shift exchange can be checked with `GET /api/v1/hr/shift-swaps/{shift_swap_id}/rule-check`,
+which reports only the breaches the exchange would introduce for the two employees
+(visible to them and to `roster.view` holders in the department) and never blocks
+approval; the approvals inbox shows it for shift exchanges. Changes
 to the limits are audited under entity `roster_rules` for the department.
 
 ### Roster calendar feed
