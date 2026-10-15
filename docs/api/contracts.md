@@ -458,8 +458,10 @@ on `hr.department_policy`. A null limit disables that rule and no defaults are
 assumed, because GAA HR has not confirmed any values. The check is warn-only: it
 never blocks saving, publishing or swaps. It also reads neighbouring published
 periods so a run or rest gap that crosses a period boundary is seen. Weeks run
-Sunday to Saturday by shift start date. Checks run only on the rule-check
-endpoint for now; publish and swap approval do not call them yet.
+Sunday to Saturday by shift start date. Publishing also runs the check and records any
+warnings on the `PUBLISHED` revision (summary and a `rule_warnings` snapshot entry,
+present only when there are warnings); swap approval does not call it yet. Changes
+to the limits are audited under entity `roster_rules` for the department.
 
 ### Roster calendar feed
 

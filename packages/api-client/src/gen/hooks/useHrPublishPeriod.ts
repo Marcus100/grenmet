@@ -48,7 +48,7 @@ export function hrPublishPeriodMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Transition a draft roster period to published. Requires roster.manage permission.
+ * @description Transition a draft roster period to published. Roster rule warnings are recorded on the published revision and never block publishing. Requires roster.manage permission.
  * @summary Publish roster period
  * {@link /api/v1/hr/rosters/periods/:period_id/publish}
  */

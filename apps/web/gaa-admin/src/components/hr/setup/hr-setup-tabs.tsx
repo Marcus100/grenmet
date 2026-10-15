@@ -16,6 +16,7 @@ import { reportError } from "@/lib/report-error";
 import { DepartmentsManager } from "./departments-manager";
 import { NotificationSettings } from "./notification-settings";
 import { OrganisationIdentity } from "./organisation-identity";
+import { RosterRulesManager } from "./roster-rules-manager";
 import { ShiftTypesManager } from "./shift-types-manager";
 import { StaffSetupManager } from "./staff-setup";
 
@@ -28,6 +29,8 @@ export function HrSetupTabs() {
   const globalKeys = accessQuery.data?.global_permission_keys ?? [];
   const canManageSharedShifts =
     actor.is_superuser || globalKeys.includes("roster.manage");
+  const canManageRosterRules =
+    actor.is_superuser || allScopeKeys.includes("roster.manage");
   const canManageNotifications =
     actor.is_superuser || allScopeKeys.includes("notifications.manage");
   const organisationsQuery = useHrGetOrganisations();
@@ -68,6 +71,7 @@ export function HrSetupTabs() {
             )}
             <TabsTrigger value="shifts">Shift types</TabsTrigger>
             <TabsTrigger value="departments">Departments</TabsTrigger>
+            <TabsTrigger value="rules">Roster rules</TabsTrigger>
             {canManageNotifications && (
               <TabsTrigger value="notifications">Notifications</TabsTrigger>
             )}
@@ -86,6 +90,12 @@ export function HrSetupTabs() {
           </TabsContent>
           <TabsContent className="w-full min-w-0" value="departments">
             <DepartmentsManager organisationId={organisationId} />
+          </TabsContent>
+          <TabsContent className="w-full min-w-0" value="rules">
+            <RosterRulesManager
+              canManage={canManageRosterRules}
+              organisationId={organisationId}
+            />
           </TabsContent>
           {canManageNotifications && (
             <TabsContent className="w-full min-w-0" value="notifications">

@@ -36,7 +36,7 @@ from .models import (
 from .organisations import permitted_departments
 from .parking.models import ParkingPermit
 from .roster.models import PublicHoliday
-from .timesheet.models import Timesheet, TimesheetEntry
+from .timesheet.models import DepartmentPolicy, Timesheet, TimesheetEntry
 from .training.models import TrainingRecord
 from .workflow.models import (
     WorkflowInstance,
@@ -366,3 +366,16 @@ def register() -> None:
     registry.track(CalendarEvent, record_type="calendar_event", label="Calendar entry")
     registry.register_entity("public_holiday", _permission("calendar.view"))
     registry.track(PublicHoliday, record_type="public_holiday", label="Public holiday")
+
+    # Roster rule limits share a row with the timesheet submission policy; both are
+    # history under the department, readable by those who manage its roster.
+    registry.register_entity(
+        "roster_rules", _department_permission(Department, "roster.manage")
+    )
+    registry.track(
+        DepartmentPolicy,
+        record_type="department_policy",
+        entity_type="roster_rules",
+        entity_id_attr="department_id",
+        label="Roster rules and timesheet policy",
+    )

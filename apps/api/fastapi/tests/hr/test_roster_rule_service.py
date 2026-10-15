@@ -2,8 +2,10 @@ from datetime import date
 from decimal import Decimal
 
 import pytest
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.audit.models import AuditEntry
 from src.auth.models import User
 from src.auth.schemas import UserCreate
 from src.auth.service import create_user
@@ -12,6 +14,8 @@ from src.hr.models import Department
 from src.hr.roster.models import (
     RosterPeriod,
     RosterPeriodStatus,
+    RosterRevision,
+    RosterRevisionAction,
     ShiftCatalog,
     ShiftCategory,
 )
@@ -142,9 +146,29 @@ async def test_rest_violation_is_reported_and_publish_still_succeeds(
     assert violation.user_id == manager.id
 
     published = await publish_roster_period(
-        session=db_async, current_user=manager, period_id=period.id
+        session=db_async,
+        current_user=manager,
+        period_id=period.id,
+        rule_warnings=violations,
     )
     assert published.status == RosterPeriodStatus.PUBLISHED
+    revision = (
+        await db_async.execute(
+            select(RosterRevision).where(
+                RosterRevision.roster_period_id == period.id,
+                RosterRevision.action == RosterRevisionAction.PUBLISHED,
+            )
+        )
+    ).scalar_one()
+    assert revision.summary is not None
+    assert revision.summary.endswith("; 1 rule warnings")
+    snapshot = revision.snapshot
+    assert isinstance(snapshot, dict)
+    warnings = snapshot["rule_warnings"]
+    assert isinstance(warnings, list)
+    [recorded] = warnings
+    assert recorded["code"] == "MIN_REST"
+    assert recorded["user_id"] == str(manager.id)
 
 
 async def test_update_replaces_all_limits(db_async: AsyncSession) -> None:
@@ -178,3 +202,29 @@ async def test_user_without_roster_manage_cannot_set_limits(
             department_id=DEPT,
             data=RosterRulesUpdate(min_rest_hours=Decimal(11)),
         )
+
+
+async def test_limit_changes_are_audited_under_the_department(
+    db_async: AsyncSession,
+) -> None:
+    manager, _ = await _night_then_morning(db_async)
+    await update_department_rules(
+        session=db_async,
+        current_user=manager,
+        department_id=DEPT,
+        data=RosterRulesUpdate(max_weekly_hours=Decimal(48)),
+    )
+    entries = (
+        (
+            await db_async.execute(
+                select(AuditEntry).where(
+                    AuditEntry.entity_type == "roster_rules",
+                    AuditEntry.entity_id == DEPT,
+                )
+            )
+        )
+        .scalars()
+        .all()
+    )
+    assert entries
+    assert {entry.actor_user_id for entry in entries} == {manager.id}

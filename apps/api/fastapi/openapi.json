@@ -3684,7 +3684,7 @@
           "hr-rosters"
         ],
         "summary": "Publish roster period",
-        "description": "Transition a draft roster period to published. Requires roster.manage permission.",
+        "description": "Transition a draft roster period to published. Roster rule warnings are recorded on the published revision and never block publishing. Requires roster.manage permission.",
         "operationId": "hrPublishPeriod",
         "security": [
           {

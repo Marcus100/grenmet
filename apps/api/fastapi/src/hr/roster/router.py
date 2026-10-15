@@ -426,7 +426,11 @@ async def import_csv(
     "/periods/{period_id}/publish",
     response_model=RosterPeriodPublic,
     summary="Publish roster period",
-    description="Transition a draft roster period to published. Requires roster.manage permission.",
+    description=(
+        "Transition a draft roster period to published. Roster rule warnings "
+        "are recorded on the published revision and never block publishing. "
+        "Requires roster.manage permission."
+    ),
     responses={
         status.HTTP_200_OK: {"description": "Roster period published"},
         status.HTTP_400_BAD_REQUEST: {
@@ -439,8 +443,15 @@ async def import_csv(
 async def publish_period(
     *, session: SessionDep, current_user: CurrentUser, period: RosterPeriodDep
 ) -> Any:
-    return await service.publish_roster_period(
+    # Warn-only: violations are recorded on the revision but never block publish.
+    _, _, warnings = await rule_service.check_period_rules(
         session=session, current_user=current_user, period_id=period.id
+    )
+    return await service.publish_roster_period(
+        session=session,
+        current_user=current_user,
+        period_id=period.id,
+        rule_warnings=warnings,
     )
 
 

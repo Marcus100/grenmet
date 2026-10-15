@@ -11,6 +11,7 @@ from datetime import timedelta
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.audit import service as audit_service
 from src.auth.models import User
 from src.auth.policy import require_permission
 from src.hr.dependencies import get_roster_period_or_404
@@ -61,6 +62,7 @@ async def update_department_rules(
 ) -> DepartmentPolicy:
     require_permission(current_user=current_user, permission_key="roster.manage")
     await require_roster_manage_scope(session, current_user, department_id)
+    audit_service.set_actor(session, current_user.id)
     policy = await _policy_for(session, department_id)
     if policy is None:
         policy = DepartmentPolicy(department_id=department_id)
