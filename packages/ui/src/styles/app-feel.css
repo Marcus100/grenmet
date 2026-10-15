@@ -1,0 +1,64 @@
+/*
+ * App feel: native-app touch behaviour for the web apps, without any PWA
+ * features (no manifest, no service worker). Behaviour only: colours, spacing
+ * and type stay with each app's own tokens. Each app imports this right after
+ * Tailwind. Rules sit in the base layer, so app utilities still win.
+ *
+ * Deliberately not here: viewport-fit=cover (content could slip under the
+ * iPhone notch in landscape without per-element safe-area padding) and smooth
+ * scrolling (it conflicts with Next.js scroll handling on navigation).
+ */
+@layer base {
+  html {
+    /* iOS must not enlarge text when a phone turns to landscape. */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    /* No grey flash on tap; controls give their own pressed feedback. */
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Controls respond at once: no double-tap-to-zoom wait. Pinch zoom still works. */
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  label,
+  summary,
+  [role="button"],
+  [role="link"],
+  [role="tab"],
+  [role="menuitem"],
+  [role="option"] {
+    touch-action: manipulation;
+  }
+
+  /* Pressing and holding a control neither selects its label nor opens the iOS callout. */
+  button,
+  [role="button"],
+  [role="tab"] {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+
+  /* Scrolling inside a dialog, menu or list never scrolls the page behind it. */
+  [role="dialog"],
+  [role="alertdialog"],
+  [role="menu"],
+  [role="listbox"] {
+    overscroll-behavior: contain;
+  }
+}
+
+/* People who ask their device for less motion get none from CSS animation. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
