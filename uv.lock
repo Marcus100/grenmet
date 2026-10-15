@@ -1764,9 +1764,9 @@ wheels = [
 
 [[package]]
 name = "gdal"
-version = "3.6.2"
+version = "3.13.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/49/4f/174743caf64d1999c46ab2ee72b2cb0d77a47bd7ed04f954f863e35a25fd/GDAL-3.6.2.tar.gz", hash = "sha256:a167cde1813707d91a938dad1a22f280f5ad28c45980d42e948fb8c59f890f5a", size = 757691, upload-time = "2023-01-05T07:36:55.213Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/92/55/0ae08a59293443bbbb8b692d1f4b6d9ca54562c359a48d0426684ac9ea06/gdal-3.13.1.tar.gz", hash = "sha256:94bb64d729ce73ceb75a314a15cba92696cdd854d99b6bf6b88a7b551227db74", size = 940649, upload-time = "2026-06-05T10:50:14.929Z" }
 
 [[package]]
 name = "geonetcast"
@@ -1792,7 +1792,7 @@ dependencies = [
 requires-dist = [
     { name = "boto3", specifier = ">=1.43.42" },
     { name = "cartopy", specifier = ">=0.25.0" },
-    { name = "gdal", specifier = "==3.6.2" },
+    { name = "gdal", specifier = "==3.13.1" },
     { name = "imageio", specifier = ">=2.38.1" },
     { name = "matplotlib", specifier = ">=3.11.0" },
     { name = "metpy", specifier = ">=1.7.1" },
