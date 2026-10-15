@@ -77,6 +77,30 @@ test("agent configuration changes run guardrails", () => {
     assert.ok(names(planChecks([file])).includes("guardrails"), file);
 });
 
+test("source changes run guardrails so the suppression ratchet is checked locally", () => {
+  for (const file of [
+    "notebooks/tests/test_forecast_metadata.py",
+    "apps/api/fastapi/src/hr/service.py",
+    "apps/web/mbia/src/app/page.tsx",
+    "scripts/verification/changed.mjs",
+  ])
+    assert.ok(names(planChecks([file])).includes("guardrails"), file);
+});
+
+test("guardrails are planned once even when several rules want them", () => {
+  const checks = names(
+    planChecks(["AGENTS.md", "apps/web/mbia/src/app/page.tsx"])
+  );
+  assert.equal(checks.filter((name) => name === "guardrails").length, 1);
+});
+
+test("a deleted source file alone does not add guardrails", () => {
+  const file = "apps/web/docs/src/components/icons/BellIcon.tsx";
+  assert.ok(
+    !names(planChecks([file], { deleted: [file] })).includes("guardrails")
+  );
+});
+
 test("no changes plan no checks", () => {
   assert.deepEqual(planChecks([]), []);
 });
