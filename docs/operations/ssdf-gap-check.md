@@ -55,13 +55,22 @@ States: **Meets** has repository evidence; **Partial** is present with a stated 
 
 | Practice | Evidence | State |
 | --- | --- | --- |
-| Find vulnerabilities continuously | Trivy scans every image and uploads results to the Security tab. GitHub reports secret scanning, push protection, Dependabot alerts and Dependabot security updates **disabled**. No `SECURITY.md` or other private disclosure channel. | Partial |
+| Find vulnerabilities continuously | Trivy scans every image and uploads results to the Security tab. GitHub reported secret scanning, push protection, Dependabot alerts and Dependabot security updates **disabled** and there was no `SECURITY.md`; all are now fixed (see the changes section below). | Meets after the 2026-10-15 changes |
 | Assess and fix | Image vulnerability policy with exceptions and review dates; Dependabot pull requests (two open on 2026-10-15, both green) | Meets |
 | Find root causes | Post-launch review, friction issues and run records. A formal incident-response SOP is a listed gap in the continuity plan. | Partial |
 
+## Changes made on 2026-10-15
+
+After this assessment the repository owner enabled, and a read-back confirmed:
+secret scanning with push protection, Dependabot alerts, Dependabot security updates,
+approval of workflow runs for every external contributor, and GitHub private
+vulnerability reporting. [`SECURITY.md`](../../SECURITY.md) now tells researchers how to
+report. The first three priorities below are done; the tables above show the state
+before these changes.
+
 ## Priorities
 
-**High, cheap, mostly settings**
+**High, cheap, mostly settings (done 2026-10-15)**
 1. Turn on secret scanning with push protection, Dependabot alerts and Dependabot
    security updates. They are available for public repositories and need the repository
    owner. A leaked key in a public repository is the highest-impact failure here.
