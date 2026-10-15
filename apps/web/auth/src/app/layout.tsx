@@ -11,6 +11,8 @@ const notoSans = Noto_Sans({
 });
 
 export const metadata: Metadata = {
+  // Staff-only: keep it out of search engines.
+  robots: { index: false, follow: false },
   title: "Grenmet Auth",
   description: "Shared sign-in and session management for Grenmet apps.",
   icons: {

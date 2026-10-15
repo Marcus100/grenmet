@@ -27,7 +27,7 @@ export function Photo({
           alt={photo.alt}
           className="object-cover"
           fill
-          priority={priority}
+          preload={priority}
           sizes={sizes}
           src={photo.src}
         />
