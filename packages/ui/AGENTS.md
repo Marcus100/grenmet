@@ -41,6 +41,16 @@ Shared components required by an authorized task may proceed after checking cons
 
 If you find yourself re-implementing a button or input from scratch inside an app, stop and use `@barrelsgd/ui`.
 
+## App feel stylesheet
+
+`@barrelsgd/ui/styles/app-feel` holds brand-neutral, behaviour-only CSS that makes
+the web apps feel like native apps without PWA features: no tap flash, no
+double-tap zoom wait on controls, no label selection on long-press, dialogs that
+do not scroll the page behind them, and no CSS motion for people who ask for
+reduced motion. Every Tailwind web app imports it right after Tailwind
+(`scripts/guardrails/app-feel.test.mjs` enforces this). Keep colours, spacing and
+type out of it.
+
 ## Token rules
 
 All apps receive the GrenMet v1 foundation block when they import `@barrelsgd/ui`. Use tokens — not hardcoded values.
