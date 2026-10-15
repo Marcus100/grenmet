@@ -445,6 +445,22 @@ separately approved migration prerequisite. Do not enable another organisation
 on the strength of these document checks alone.
 
 
+### Opening leave balance import
+
+| Endpoint | Permission | Purpose |
+| --- | --- | --- |
+| `POST /api/v1/hr/setup/staff/balances/import` | Superuser | Check, or apply, opening leave balances from a CSV |
+
+The body carries `organisation_id`, a `source` description, an `as_of` date, the CSV
+text and `apply`. The CSV needs `employee_number`, `leave_type` and `balance` columns;
+other columns (such as names) are ignored and never stored. `leave_type` must be an
+exact leave type code, because mapping another system's leave names is a policy
+decision HR has not made. With `apply` false the call only reports each row. With
+`apply` true nothing is posted unless every row is valid, then every balance is
+posted through the leave ledger (`OPENING`, or `ADJUSTMENT` when an entry exists) with
+the source and as-of date in the reason and the baseline audit. The ledger has no
+separate as-of column yet.
+
 ### Clock-in
 
 | Endpoint | Permission | Purpose |

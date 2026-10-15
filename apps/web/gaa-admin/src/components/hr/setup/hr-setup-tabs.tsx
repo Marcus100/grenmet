@@ -13,6 +13,7 @@ import {
 } from "@barrelsgd/ui/components/ui/tabs";
 import { useEffect, useState } from "react";
 import { reportError } from "@/lib/report-error";
+import { BalanceImport } from "./balance-import";
 import { DepartmentsManager } from "./departments-manager";
 import { NotificationSettings } from "./notification-settings";
 import { OrganisationIdentity } from "./organisation-identity";
@@ -79,6 +80,9 @@ export function HrSetupTabs() {
           {actor.is_superuser && (
             <TabsContent className="w-full min-w-0" value="staff">
               <StaffSetupManager organisationId={organisationId} />
+              <div className="mt-8 border-t pt-6">
+                <BalanceImport organisationId={organisationId ?? ""} />
+              </div>
             </TabsContent>
           )}
           <TabsContent className="w-full min-w-0" value="shifts">

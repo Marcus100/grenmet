@@ -21770,6 +21770,62 @@
         }
       }
     },
+    "/api/v1/hr/setup/staff/balances/import": {
+      "post": {
+        "tags": [
+          "staff-setup"
+        ],
+        "summary": "Validate or apply opening leave balances from a CSV export",
+        "description": "Reads a CSV with employee_number, leave_type and balance columns (other columns are ignored), checks every row, and posts through the leave ledger only when apply is true and every row is valid. Superuser only.",
+        "operationId": "hrImportStaffBalances",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BalanceImportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BalanceImportResult"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Administrator access required"
+          },
+          "404": {
+            "description": "Record not found"
+          },
+          "409": {
+            "description": "Setup conflict"
+          }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/hr/setup/grades": {
       "get": {
         "tags": [
@@ -25571,6 +25627,131 @@
           "recorded_at"
         ],
         "title": "AviationRevisionRead"
+      },
+      "BalanceImportRequest": {
+        "properties": {
+          "organisation_id": {
+            "type": "string",
+            "maxLength": 100,
+            "title": "Organisation Id"
+          },
+          "source": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 3,
+            "title": "Source"
+          },
+          "as_of": {
+            "type": "string",
+            "format": "date",
+            "title": "As Of"
+          },
+          "csv": {
+            "type": "string",
+            "maxLength": 500000,
+            "minLength": 1,
+            "title": "Csv"
+          },
+          "apply": {
+            "type": "boolean",
+            "title": "Apply",
+            "default": false
+          }
+        },
+        "type": "object",
+        "required": [
+          "organisation_id",
+          "source",
+          "as_of",
+          "csv"
+        ],
+        "title": "BalanceImportRequest",
+        "description": "Opening leave balances from a spreadsheet export (for example HrPlus).\n\nThe CSV needs the columns ``employee_number``, ``leave_type`` (an exact leave\ntype code) and ``balance``; other columns, such as names, are ignored and never\nstored. Nothing is posted unless ``apply`` is true and every row is valid."
+      },
+      "BalanceImportResult": {
+        "properties": {
+          "applied": {
+            "type": "boolean",
+            "title": "Applied"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "valid": {
+            "type": "integer",
+            "title": "Valid"
+          },
+          "invalid": {
+            "type": "integer",
+            "title": "Invalid"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/BalanceImportRow"
+            },
+            "type": "array",
+            "title": "Rows"
+          }
+        },
+        "type": "object",
+        "required": [
+          "applied",
+          "total",
+          "valid",
+          "invalid",
+          "rows"
+        ],
+        "title": "BalanceImportResult"
+      },
+      "BalanceImportRow": {
+        "properties": {
+          "row": {
+            "type": "integer",
+            "title": "Row"
+          },
+          "employee_number": {
+            "type": "string",
+            "title": "Employee Number"
+          },
+          "leave_type": {
+            "type": "string",
+            "title": "Leave Type"
+          },
+          "balance": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Balance"
+          },
+          "status": {
+            "$ref": "#/components/schemas/BalanceImportRowPropertiesStatusEnum"
+          },
+          "message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Message"
+          }
+        },
+        "type": "object",
+        "required": [
+          "row",
+          "employee_number",
+          "leave_type",
+          "status"
+        ],
+        "title": "BalanceImportRow"
       },
       "BalanceInput": {
         "properties": {
@@ -48631,6 +48812,13 @@
           "METAR",
           "SPECI",
           "TAF"
+        ]
+      },
+      "BalanceImportRowPropertiesStatusEnum": {
+        "type": "string",
+        "enum": [
+          "OK",
+          "ERROR"
         ]
       },
       "BuildingCreatePropertiesKindEnum": {

@@ -229,6 +229,7 @@ export { hrImportCatalogue } from "./clients/hrImportCatalogue.js";
 export { hrImportCsv } from "./clients/hrImportCsv.js";
 export { hrImportGrid } from "./clients/hrImportGrid.js";
 export { hrImportOrganisation } from "./clients/hrImportOrganisation.js";
+export { hrImportStaffBalances } from "./clients/hrImportStaffBalances.js";
 export { hrIssueParkingDecal } from "./clients/hrIssueParkingDecal.js";
 export { hrListAssignments } from "./clients/hrListAssignments.js";
 export { hrListCalendarEvents } from "./clients/hrListCalendarEvents.js";
@@ -1511,6 +1512,11 @@ export {
   hrImportOrganisationMutationOptions,
   useHrImportOrganisation,
 } from "./hooks/useHrImportOrganisation.js";
+export {
+  hrImportStaffBalancesMutationKey,
+  hrImportStaffBalancesMutationOptions,
+  useHrImportStaffBalances,
+} from "./hooks/useHrImportStaffBalances.js";
 export {
   hrIssueParkingDecalMutationKey,
   hrIssueParkingDecalMutationOptions,
@@ -3002,6 +3008,11 @@ export { aviationDraftReadPropertiesKindEnum } from "./models/AviationDraftReadP
 export type { AviationDraftWrite } from "./models/AviationDraftWrite.js";
 export type { AviationHistory } from "./models/AviationHistory.js";
 export type { AviationRevisionRead } from "./models/AviationRevisionRead.js";
+export type { BalanceImportRequest } from "./models/BalanceImportRequest.js";
+export type { BalanceImportResult } from "./models/BalanceImportResult.js";
+export type { BalanceImportRow } from "./models/BalanceImportRow.js";
+export type { BalanceImportRowPropertiesStatusEnum } from "./models/BalanceImportRowPropertiesStatusEnum.js";
+export { balanceImportRowPropertiesStatusEnum } from "./models/BalanceImportRowPropertiesStatusEnum.js";
 export type { BalanceInput } from "./models/BalanceInput.js";
 export type {
   BillingCreateSubscriptionCheckoutOptions,
@@ -4708,6 +4719,17 @@ export type {
   HrImportOrganisationStatus409,
   HrImportOrganisationStatus422,
 } from "./models/HrImportOrganisation.js";
+export type {
+  HrImportStaffBalancesBody,
+  HrImportStaffBalancesOptions,
+  HrImportStaffBalancesResponse,
+  HrImportStaffBalancesResponses,
+  HrImportStaffBalancesStatus200,
+  HrImportStaffBalancesStatus403,
+  HrImportStaffBalancesStatus404,
+  HrImportStaffBalancesStatus409,
+  HrImportStaffBalancesStatus422,
+} from "./models/HrImportStaffBalances.js";
 export type {
   HrIssueParkingDecalBody,
   HrIssueParkingDecalOptions,
@@ -7390,6 +7412,10 @@ export { aviationDraftReadSchema } from "./zod/aviationDraftReadSchema.js";
 export { aviationDraftWriteSchema } from "./zod/aviationDraftWriteSchema.js";
 export { aviationHistorySchema } from "./zod/aviationHistorySchema.js";
 export { aviationRevisionReadSchema } from "./zod/aviationRevisionReadSchema.js";
+export { balanceImportRequestSchema } from "./zod/balanceImportRequestSchema.js";
+export { balanceImportResultSchema } from "./zod/balanceImportResultSchema.js";
+export { balanceImportRowPropertiesStatusEnumSchema } from "./zod/balanceImportRowPropertiesStatusEnumSchema.js";
+export { balanceImportRowSchema } from "./zod/balanceImportRowSchema.js";
 export { balanceInputSchema } from "./zod/balanceInputSchema.js";
 export {
   billingCreateSubscriptionCheckoutErrorSchema,
@@ -8952,6 +8978,16 @@ export {
   hrImportOrganisationStatus409Schema,
   hrImportOrganisationStatus422Schema,
 } from "./zod/hrImportOrganisationSchema.js";
+export {
+  hrImportStaffBalancesBodySchema,
+  hrImportStaffBalancesErrorSchema,
+  hrImportStaffBalancesResponseSchema,
+  hrImportStaffBalancesStatus200Schema,
+  hrImportStaffBalancesStatus403Schema,
+  hrImportStaffBalancesStatus404Schema,
+  hrImportStaffBalancesStatus409Schema,
+  hrImportStaffBalancesStatus422Schema,
+} from "./zod/hrImportStaffBalancesSchema.js";
 export {
   hrIssueParkingDecalBodySchema,
   hrIssueParkingDecalErrorSchema,

@@ -779,6 +779,11 @@ export { aviationDraftReadPropertiesKindEnum } from "./AviationDraftReadProperti
 export type { AviationDraftWrite } from "./AviationDraftWrite.js";
 export type { AviationHistory } from "./AviationHistory.js";
 export type { AviationRevisionRead } from "./AviationRevisionRead.js";
+export type { BalanceImportRequest } from "./BalanceImportRequest.js";
+export type { BalanceImportResult } from "./BalanceImportResult.js";
+export type { BalanceImportRow } from "./BalanceImportRow.js";
+export type { BalanceImportRowPropertiesStatusEnum } from "./BalanceImportRowPropertiesStatusEnum.js";
+export { balanceImportRowPropertiesStatusEnum } from "./BalanceImportRowPropertiesStatusEnum.js";
 export type { BalanceInput } from "./BalanceInput.js";
 export type {
   BillingCreateSubscriptionCheckoutOptions,
@@ -2485,6 +2490,17 @@ export type {
   HrImportOrganisationStatus409,
   HrImportOrganisationStatus422,
 } from "./HrImportOrganisation.js";
+export type {
+  HrImportStaffBalancesBody,
+  HrImportStaffBalancesOptions,
+  HrImportStaffBalancesResponse,
+  HrImportStaffBalancesResponses,
+  HrImportStaffBalancesStatus200,
+  HrImportStaffBalancesStatus403,
+  HrImportStaffBalancesStatus404,
+  HrImportStaffBalancesStatus409,
+  HrImportStaffBalancesStatus422,
+} from "./HrImportStaffBalances.js";
 export type {
   HrIssueParkingDecalBody,
   HrIssueParkingDecalOptions,

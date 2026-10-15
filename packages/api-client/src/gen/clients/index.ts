@@ -226,6 +226,7 @@ export { hrImportCatalogue } from "./hrImportCatalogue.js";
 export { hrImportCsv } from "./hrImportCsv.js";
 export { hrImportGrid } from "./hrImportGrid.js";
 export { hrImportOrganisation } from "./hrImportOrganisation.js";
+export { hrImportStaffBalances } from "./hrImportStaffBalances.js";
 export { hrIssueParkingDecal } from "./hrIssueParkingDecal.js";
 export { hrListAssignments } from "./hrListAssignments.js";
 export { hrListCalendarEvents } from "./hrListCalendarEvents.js";

@@ -62,7 +62,8 @@ The register can be reviewed immediately; missing inputs block only the rules th
 
 | Path | Effect through the ledger |
 | --- | --- |
-| [`baseline/service.py::set_balance`](../../apps/api/fastapi/src/baseline/service.py) and [staff setup UI](../../apps/web/gaa-admin/src/components/hr/setup/staff-setup.tsx) | `ledger.set_to`: the first entry is `OPENING`, later ones `ADJUSTMENT`. Still no as-of date or import identifier (Stage 3.1c). |
+| [`baseline/service.py::set_balance`](../../apps/api/fastapi/src/baseline/service.py) and [staff setup UI](../../apps/web/gaa-admin/src/components/hr/setup/staff-setup.tsx) | `ledger.set_to`: the first entry is `OPENING`, later ones `ADJUSTMENT`. Still no as-of date or import identifier column (Stage 3.1c). |
+| [`baseline/balance_import.py`](../../apps/api/fastapi/src/baseline/balance_import.py) and [balance import panel](../../apps/web/gaa-admin/src/components/hr/setup/balance-import.tsx) | Bulk opening balances from a CSV of the official leave records, posted through `ledger.set_to`. The source and as-of date are kept in the entry reason and the baseline audit, not in a column. Leave types must be exact codes; no mapping from another system's names is assumed. |
 | [`hr/leave/service.py::action_leave_request`](../../apps/api/fastapi/src/hr/leave/service.py) | Legacy approval re-reads the request under the employee lock and posts one `APPROVAL_DEBIT`; a concurrent second approval is refused. |
 | [`hr/workflow/finalize.py::finalize_entity`](../../apps/api/fastapi/src/hr/workflow/finalize.py) | Final workflow approval posts one `APPROVAL_DEBIT`; a repeat returns the existing entry. |
 | `baseline/service.py::require_leave_ready`, leave request creation | `ledger.has_entry` checks that an opening exists. |
