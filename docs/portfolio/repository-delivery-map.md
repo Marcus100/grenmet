@@ -145,6 +145,7 @@ references rather than duplicated here.
 | --- | --- | --- | --- |
 | `AGENTS.md` and `CONTRIBUTING.md` | Repository governance | Active | Commands, safety rules, conventions, and review gates |
 | `README.md` | Repository entry point | Active | Orientation only; links to authoritative specialist documents |
+| `SECURITY.md` | Vulnerability reporting policy | Active | How researchers report privately through GitHub private vulnerability reporting, and which versions receive fixes; linked from the security baseline |
 | `VENDORED.md` | Third-party provenance policy | Active | Defines upgrade and local-change boundaries for vendored stacks |
 | `.agents/skills`, `.claude/skills`, and `.claude/commands` | Agent workflow playbooks | Active tooling | Support engineering work; they do not set portfolio priority |
 | `.codex` | Codex agent configuration and hooks | Active tooling | Preserve the same repository guardrails used by supported agent tools |

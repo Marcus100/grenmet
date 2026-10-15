@@ -113,6 +113,16 @@ test("deleted files still plan checks but are never formatted", () => {
   assert.deepEqual(names(checks), ["type-check", "test"]);
 });
 
+test("root governance documents run the portfolio coverage check", () => {
+  for (const file of ["SECURITY.md", "VENDORED.md", "CONTEXT.md"])
+    assert.ok(names(planChecks([file])).includes("portfolio coverage"), file);
+  assert.ok(
+    !names(planChecks(["docs/hr/policy-rules.md"])).includes(
+      "portfolio coverage"
+    )
+  );
+});
+
 test("changes under governed parents run the portfolio coverage check", () => {
   for (const file of [
     "scripts/agents/new-tool.mjs",
