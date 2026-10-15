@@ -48,7 +48,9 @@ Edit the prompt here first, then update the live routine to match.
   claiming the UI was checked.
 - **Sandbox limits.** The cloud sandbox may not have the Python patch version in
   `.python-version`. If `uv sync` cannot find it, use the nearest 3.14 patch with
-  `uv sync --frozen --python 3.14 --package fast-back --package gms-ingest`, run
+  `uv sync --frozen --python 3.14 --package fast-back --package gms-ingest`, set
+  `UV_PYTHON=3.14` for every later `uv run`, `git commit` (the ruff pre-commit hook)
+  and `bash scripts/lint.sh`, run
   `pnpm install --frozen-lockfile` first, then run the steps of `pnpm verify:changed`
   by hand. Record `verify: skipped` in the run record and list exactly which gates
   you ran in the PR body. CI is the full check; a human reviews the PR.

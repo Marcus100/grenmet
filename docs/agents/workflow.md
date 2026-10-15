@@ -16,6 +16,15 @@ agent instructions. Nothing here relaxes a root rule.
 - A new worktree needs `pnpm install --frozen-lockfile`; API work also needs
   `uv sync --frozen --package fast-back --package gms-ingest`, and web
   type-checks need `pnpm turbo run build --filter=@barrelsgd/api-client`.
+- A worktree has no gitignored API `.env.local` (only the main checkout does), so API
+  tests fail at import with a `Settings` validation error. Prefix API commands with
+  `scripts/agents/api-env.sh` (local-development placeholders; values already in
+  your environment win; it never writes an env file), for example
+  `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests/hr -q`.
+- If a worktree shows ` T .agents/skills`, that worktree was created by a tool that
+  cannot make symlinks (`git worktree add` run inside WSL makes it correctly).
+  Run `git restore .agents/skills` there instead of staging or committing the
+  typechange; `git rebase` refuses to start while it is dirty.
 - Commit in the worktree, then merge completed branches into local `dev` in a
   clean integration checkout. Dev servers stay on the host in the main checkout.
 - Never hand-merge `openapi.json` or `packages/api-client/src/gen/`: take either
