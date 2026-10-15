@@ -363,6 +363,8 @@ reminder sweep at 10:00 UTC. Emails carry only a summary and a portal link.
 | `GET/PUT /api/v1/notifications/preferences` | Own email opt-outs per event; approval events (`email_mutable: false`) cannot be muted → 400 |
 | `GET /api/v1/notifications/settings?organisation_id=` | `notifications.manage` in the organisation: every event with effective settings, plus staff whose email domain is outside `NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS` |
 | `PUT /api/v1/notifications/settings/{event_key}?organisation_id=` | `notifications.manage`: on/off, email on/off, extra recipient roles, title/body Jinja templates (validated), timings (`remind_after_days`, `escalate_after_days`, `expiry_days_before`) |
+| `GET/POST /api/v1/notifications/snoozes?organisation_id=` | `notifications.manage`: list active snoozes / silence an event, or one entity of it (`entity_type` + `entity_id` together), until a future `until`; unknown event → 404 |
+| `DELETE /api/v1/notifications/snoozes/{id}?organisation_id=` | `notifications.manage`: end a snooze (204); another organisation's → 404 |
 
 ## HR Contract
 

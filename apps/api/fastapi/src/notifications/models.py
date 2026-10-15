@@ -114,3 +114,23 @@ class NotificationPreference(Base):
     event_key: Mapped[str] = mapped_column(String(80), primary_key=True)
     email_enabled: Mapped[bool] = mapped_column(default=True)
     updated_at: Mapped[datetime] = mapped_column(default=utc_now)
+
+
+class NotificationSnooze(Base):
+    """Silences an event (or one entity of it) until ``until``, e.g. planned work."""
+
+    __tablename__ = "notification_snooze"
+    __table_args__ = (sa.Index("ix_notification_snooze_event", "event_key", "until"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
+    # None covers every organisation.
+    organisation_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    event_key: Mapped[str] = mapped_column(String(80))
+    entity_type: Mapped[str | None] = mapped_column(String(60), nullable=True)
+    entity_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    until: Mapped[datetime]
+    reason: Mapped[str] = mapped_column(String(300), default="")
+    created_by_user_id: Mapped[uuid.UUID | None] = mapped_column(
+        ForeignKey("user.id", ondelete="SET NULL"), nullable=True
+    )
+    created_at: Mapped[datetime] = mapped_column(default=utc_now)

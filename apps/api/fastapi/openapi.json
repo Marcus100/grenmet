@@ -9445,6 +9445,204 @@
         }
       }
     },
+    "/api/v1/notifications/snoozes": {
+      "get": {
+        "tags": [
+          "notifications"
+        ],
+        "summary": "List active notification snoozes",
+        "description": "Notifications currently silenced for the organisation. Requires notifications.manage.",
+        "operationId": "notificationsGetNotificationSnoozes",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Organisation Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NotificationSnoozePublic"
+                  },
+                  "title": "Response Notificationsgetnotificationsnoozes"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient scope for this organisation"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "notifications"
+        ],
+        "summary": "Snooze a notification",
+        "description": "Silence a notification, or one entity of it, until a set time, e.g. during planned work. Requires notifications.manage.",
+        "operationId": "notificationsCreateNotificationSnooze",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Organisation Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationSnoozeCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationSnoozePublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "400": {
+            "description": "Snooze must end in the future, or entity is incomplete"
+          },
+          "403": {
+            "description": "Insufficient scope for this organisation"
+          },
+          "404": {
+            "description": "Unknown notification"
+          }
+        }
+      }
+    },
+    "/api/v1/notifications/snoozes/{snooze_id}": {
+      "delete": {
+        "tags": [
+          "notifications"
+        ],
+        "summary": "End a notification snooze",
+        "description": "Removes a snooze so the notification resumes. Requires notifications.manage.",
+        "operationId": "notificationsDeleteNotificationSnooze",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "snooze_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Snooze Id"
+            }
+          },
+          {
+            "name": "organisation_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Organisation Id"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient scope for this organisation"
+          },
+          "404": {
+            "description": "Snooze not found"
+          }
+        }
+      }
+    },
     "/api/v1/cap/hazard-profiles": {
       "get": {
         "tags": [
@@ -36456,6 +36654,116 @@
           "unreachable"
         ],
         "title": "NotificationSettingsPublic"
+      },
+      "NotificationSnoozeCreate": {
+        "properties": {
+          "event_key": {
+            "type": "string",
+            "maxLength": 80,
+            "title": "Event Key"
+          },
+          "entity_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Type"
+          },
+          "entity_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Id"
+          },
+          "until": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Until"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 300,
+            "title": "Reason",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "event_key",
+          "until"
+        ],
+        "title": "NotificationSnoozeCreate"
+      },
+      "NotificationSnoozePublic": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "event_key": {
+            "type": "string",
+            "title": "Event Key"
+          },
+          "entity_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Type"
+          },
+          "entity_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entity Id"
+          },
+          "until": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Until"
+          },
+          "reason": {
+            "type": "string",
+            "title": "Reason"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "event_key",
+          "entity_type",
+          "entity_id",
+          "until",
+          "reason",
+          "created_at"
+        ],
+        "title": "NotificationSnoozePublic"
       },
       "ObservationList": {
         "properties": {

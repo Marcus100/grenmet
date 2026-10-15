@@ -16,6 +16,8 @@ class WxWatchConfig(BaseSettings):
     LOCAL_IMAGES_DIR: Path | None = None
     LOCAL_ASSET_ROOTS: dict[str, Path] = Field(default_factory=dict)
     NHC_ROOT: Path | None = None
+    # Organisation whose notification settings choose who hears about NHC failures.
+    ALERT_ORGANISATION_ID: str = "gaa"
 
 
 wxwatch_settings = WxWatchConfig()

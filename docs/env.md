@@ -300,6 +300,7 @@ Its typed defaults allow it to run without an env file.
 | Variable | Purpose |
 |---|---|
 | `WXWATCH_API_URL` | Archive endpoint base; default `http://127.0.0.1:8000/api/v1/wxwatch` |
+| `WXWATCH_ALERT_ORGANISATION_ID` | Organisation whose notification settings choose who is told about NHC job failures; default `gaa` |
 | `WXWATCH_INGEST_TOKEN` | Random secret of at least 32 characters, also configured in FastAPI |
 
 Collector `DB_*` variables are retired. Only FastAPI uses `WXWATCH_DATABASE_URL`.

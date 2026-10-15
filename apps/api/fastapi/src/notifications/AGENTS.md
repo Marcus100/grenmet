@@ -6,6 +6,7 @@
 - Modules register events in `events.py` (`register`, `register_sweep`) and call `service.notify(...)` **inside their own transaction**.
 - Email is delivered later by the ARQ worker from `NotificationDelivery` rows (`send_notification_emails` every 30 s; daily `run_notification_sweeps`).
 - Users manage email opt-outs per event; approval events (`email_mutable: false`) cannot be muted.
+- `notify(..., suppress_within=timedelta)` skips anyone already told about the same event and entity inside the window (use it for alerts that repeat; `dedupe_key` stays for exact once-only reminders). An unexpired `NotificationSnooze` (event, optionally one entity, per organisation) makes `notify` return 0 and log. Snoozes are managed under `/api/v1/notifications/snoozes` with `notifications.manage`.
 - Routes: `/api/v1/notifications` (list, unread count, mark read, read-all, preferences).
 
 ## Invariants

@@ -316,8 +316,11 @@ export { janitorialUpdateShiftPattern } from "./clients/janitorialUpdateShiftPat
 export { janitorialUpdateStaff } from "./clients/janitorialUpdateStaff.js";
 export { janitorialUpdateTask } from "./clients/janitorialUpdateTask.js";
 export { janitorialUpdateZone } from "./clients/janitorialUpdateZone.js";
+export { notificationsCreateNotificationSnooze } from "./clients/notificationsCreateNotificationSnooze.js";
+export { notificationsDeleteNotificationSnooze } from "./clients/notificationsDeleteNotificationSnooze.js";
 export { notificationsGetNotificationPreferences } from "./clients/notificationsGetNotificationPreferences.js";
 export { notificationsGetNotificationSettings } from "./clients/notificationsGetNotificationSettings.js";
+export { notificationsGetNotificationSnoozes } from "./clients/notificationsGetNotificationSnoozes.js";
 export { notificationsGetNotifications } from "./clients/notificationsGetNotifications.js";
 export { notificationsGetUnreadCount } from "./clients/notificationsGetUnreadCount.js";
 export { notificationsMarkAllNotificationsRead } from "./clients/notificationsMarkAllNotificationsRead.js";
@@ -1952,6 +1955,16 @@ export {
   useJanitorialUpdateZone,
 } from "./hooks/useJanitorialUpdateZone.js";
 export {
+  notificationsCreateNotificationSnoozeMutationKey,
+  notificationsCreateNotificationSnoozeMutationOptions,
+  useNotificationsCreateNotificationSnooze,
+} from "./hooks/useNotificationsCreateNotificationSnooze.js";
+export {
+  notificationsDeleteNotificationSnoozeMutationKey,
+  notificationsDeleteNotificationSnoozeMutationOptions,
+  useNotificationsDeleteNotificationSnooze,
+} from "./hooks/useNotificationsDeleteNotificationSnooze.js";
+export {
   notificationsGetNotificationPreferencesQueryKey,
   notificationsGetNotificationPreferencesQueryOptions,
   useNotificationsGetNotificationPreferences,
@@ -1961,6 +1974,11 @@ export {
   notificationsGetNotificationSettingsQueryOptions,
   useNotificationsGetNotificationSettings,
 } from "./hooks/useNotificationsGetNotificationSettings.js";
+export {
+  notificationsGetNotificationSnoozesQueryKey,
+  notificationsGetNotificationSnoozesQueryOptions,
+  useNotificationsGetNotificationSnoozes,
+} from "./hooks/useNotificationsGetNotificationSnoozes.js";
 export {
   notificationsGetNotificationsQueryKey,
   notificationsGetNotificationsQueryOptions,
@@ -5947,6 +5965,31 @@ export type { NotificationPublic } from "./models/NotificationPublic.js";
 export type { NotificationSettingPublic } from "./models/NotificationSettingPublic.js";
 export type { NotificationSettingsPublic } from "./models/NotificationSettingsPublic.js";
 export type { NotificationSettingUpdate } from "./models/NotificationSettingUpdate.js";
+export type { NotificationSnoozeCreate } from "./models/NotificationSnoozeCreate.js";
+export type { NotificationSnoozePublic } from "./models/NotificationSnoozePublic.js";
+export type {
+  NotificationsCreateNotificationSnoozeBody,
+  NotificationsCreateNotificationSnoozeOptions,
+  NotificationsCreateNotificationSnoozeQuery,
+  NotificationsCreateNotificationSnoozeResponse,
+  NotificationsCreateNotificationSnoozeResponses,
+  NotificationsCreateNotificationSnoozeStatus201,
+  NotificationsCreateNotificationSnoozeStatus400,
+  NotificationsCreateNotificationSnoozeStatus403,
+  NotificationsCreateNotificationSnoozeStatus404,
+  NotificationsCreateNotificationSnoozeStatus422,
+} from "./models/NotificationsCreateNotificationSnooze.js";
+export type {
+  NotificationsDeleteNotificationSnoozeOptions,
+  NotificationsDeleteNotificationSnoozePath,
+  NotificationsDeleteNotificationSnoozeQuery,
+  NotificationsDeleteNotificationSnoozeResponse,
+  NotificationsDeleteNotificationSnoozeResponses,
+  NotificationsDeleteNotificationSnoozeStatus204,
+  NotificationsDeleteNotificationSnoozeStatus403,
+  NotificationsDeleteNotificationSnoozeStatus404,
+  NotificationsDeleteNotificationSnoozeStatus422,
+} from "./models/NotificationsDeleteNotificationSnooze.js";
 export type {
   NotificationsGetNotificationPreferencesOptions,
   NotificationsGetNotificationPreferencesResponse,
@@ -5964,6 +6007,15 @@ export type {
   NotificationsGetNotificationSettingsStatus403,
   NotificationsGetNotificationSettingsStatus422,
 } from "./models/NotificationsGetNotificationSettings.js";
+export type {
+  NotificationsGetNotificationSnoozesOptions,
+  NotificationsGetNotificationSnoozesQuery,
+  NotificationsGetNotificationSnoozesResponse,
+  NotificationsGetNotificationSnoozesResponses,
+  NotificationsGetNotificationSnoozesStatus200,
+  NotificationsGetNotificationSnoozesStatus403,
+  NotificationsGetNotificationSnoozesStatus422,
+} from "./models/NotificationsGetNotificationSnoozes.js";
 export type {
   NotificationsGetNotificationsOptions,
   NotificationsGetNotificationsQuery,
@@ -10297,6 +10349,29 @@ export { notificationPublicSchema } from "./zod/notificationPublicSchema.js";
 export { notificationSettingPublicSchema } from "./zod/notificationSettingPublicSchema.js";
 export { notificationSettingsPublicSchema } from "./zod/notificationSettingsPublicSchema.js";
 export { notificationSettingUpdateSchema } from "./zod/notificationSettingUpdateSchema.js";
+export { notificationSnoozeCreateSchema } from "./zod/notificationSnoozeCreateSchema.js";
+export { notificationSnoozePublicSchema } from "./zod/notificationSnoozePublicSchema.js";
+export {
+  notificationsCreateNotificationSnoozeBodySchema,
+  notificationsCreateNotificationSnoozeErrorSchema,
+  notificationsCreateNotificationSnoozeQueryOrganisationIdSchema,
+  notificationsCreateNotificationSnoozeResponseSchema,
+  notificationsCreateNotificationSnoozeStatus201Schema,
+  notificationsCreateNotificationSnoozeStatus400Schema,
+  notificationsCreateNotificationSnoozeStatus403Schema,
+  notificationsCreateNotificationSnoozeStatus404Schema,
+  notificationsCreateNotificationSnoozeStatus422Schema,
+} from "./zod/notificationsCreateNotificationSnoozeSchema.js";
+export {
+  notificationsDeleteNotificationSnoozeErrorSchema,
+  notificationsDeleteNotificationSnoozePathSnoozeIdSchema,
+  notificationsDeleteNotificationSnoozeQueryOrganisationIdSchema,
+  notificationsDeleteNotificationSnoozeResponseSchema,
+  notificationsDeleteNotificationSnoozeStatus204Schema,
+  notificationsDeleteNotificationSnoozeStatus403Schema,
+  notificationsDeleteNotificationSnoozeStatus404Schema,
+  notificationsDeleteNotificationSnoozeStatus422Schema,
+} from "./zod/notificationsDeleteNotificationSnoozeSchema.js";
 export {
   notificationsGetNotificationPreferencesErrorSchema,
   notificationsGetNotificationPreferencesResponseSchema,
@@ -10312,6 +10387,14 @@ export {
   notificationsGetNotificationSettingsStatus403Schema,
   notificationsGetNotificationSettingsStatus422Schema,
 } from "./zod/notificationsGetNotificationSettingsSchema.js";
+export {
+  notificationsGetNotificationSnoozesErrorSchema,
+  notificationsGetNotificationSnoozesQueryOrganisationIdSchema,
+  notificationsGetNotificationSnoozesResponseSchema,
+  notificationsGetNotificationSnoozesStatus200Schema,
+  notificationsGetNotificationSnoozesStatus403Schema,
+  notificationsGetNotificationSnoozesStatus422Schema,
+} from "./zod/notificationsGetNotificationSnoozesSchema.js";
 export {
   notificationsGetNotificationsErrorSchema,
   notificationsGetNotificationsQueryPageSchema,
