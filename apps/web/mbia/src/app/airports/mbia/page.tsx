@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { AirportPage } from "@/components/airport-page";
 
 export const metadata: Metadata = {
@@ -57,7 +58,7 @@ export default function MbiaPage() {
         GAA&rsquo;s 30-year master plan — modernising infrastructure, operations
         and services to make it one of the most advanced airports in the
         Caribbean. Follow progress in our{" "}
-        <a href="/development">development section</a>.
+        <Link href="/development">development section</Link>.
       </p>
     </AirportPage>
   );
