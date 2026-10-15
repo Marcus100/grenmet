@@ -4009,6 +4009,171 @@
         }
       }
     },
+    "/api/v1/hr/rosters/departments/{department_id}/rules": {
+      "get": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Read department roster rule limits",
+        "description": "Return the roster rule limits for a department. A null limit means the rule is disabled. Requires roster.view within the department scope.",
+        "operationId": "hrGetDepartmentRules",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Department Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rule limits returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRulesPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Department outside your scope"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Set department roster rule limits",
+        "description": "Replace the roster rule limits for a department; null disables a rule. Rules only produce warnings and never block publishing. Requires roster.manage within the department scope.",
+        "operationId": "hrPutDepartmentRules",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "department_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Department Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RosterRulesUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Rule limits saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRulesPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Insufficient permission"
+          }
+        }
+      }
+    },
+    "/api/v1/hr/rosters/periods/{period_id}/rule-check": {
+      "get": {
+        "tags": [
+          "hr-rosters"
+        ],
+        "summary": "Check a roster period against department rules",
+        "description": "Return warn-only violations of the department's rest, consecutive-day and weekly-hour limits for a roster period. Neighbouring published periods are included so runs crossing the boundary are seen. Requires roster.view.",
+        "operationId": "hrCheckPeriodRules",
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "period_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Period Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rule check returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RosterRuleCheckPublic"
+                }
+              }
+            }
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Content"
+          },
+          "403": {
+            "description": "Department outside your scope"
+          },
+          "404": {
+            "description": "Roster period not found"
+          }
+        }
+      }
+    },
     "/api/v1/hr/calendar/events": {
       "get": {
         "tags": [
@@ -39326,6 +39491,135 @@
         ],
         "title": "RosterRevisionsPublic"
       },
+      "RosterRuleCheckPublic": {
+        "properties": {
+          "period_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Period Id"
+          },
+          "rules": {
+            "$ref": "#/components/schemas/RosterRulesPublic"
+          },
+          "violations": {
+            "items": {
+              "$ref": "#/components/schemas/RuleViolationPublic"
+            },
+            "type": "array",
+            "title": "Violations"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "type": "object",
+        "required": [
+          "period_id",
+          "rules",
+          "violations",
+          "count"
+        ],
+        "title": "RosterRuleCheckPublic"
+      },
+      "RosterRulesPublic": {
+        "properties": {
+          "department_id": {
+            "type": "string",
+            "title": "Department Id"
+          },
+          "min_rest_hours": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Rest Hours"
+          },
+          "max_consecutive_days": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Consecutive Days"
+          },
+          "max_weekly_hours": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Weekly Hours"
+          }
+        },
+        "type": "object",
+        "required": [
+          "department_id"
+        ],
+        "title": "RosterRulesPublic"
+      },
+      "RosterRulesUpdate": {
+        "properties": {
+          "min_rest_hours": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 72.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Min Rest Hours"
+          },
+          "max_consecutive_days": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 31.0,
+                "minimum": 1.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Consecutive Days"
+          },
+          "max_weekly_hours": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 168.0,
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Weekly Hours"
+          }
+        },
+        "type": "object",
+        "title": "RosterRulesUpdate",
+        "description": "Replace all limits for a department; null disables a rule."
+      },
       "RouteView": {
         "properties": {
           "id": {
@@ -39356,6 +39650,52 @@
           "shifts"
         ],
         "title": "RouteView"
+      },
+      "RuleViolationPublic": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "user_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "User Id"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Start Date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "title": "End Date"
+          },
+          "observed": {
+            "type": "string",
+            "title": "Observed"
+          },
+          "limit": {
+            "type": "string",
+            "title": "Limit"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "required": [
+          "code",
+          "user_id",
+          "start_date",
+          "end_date",
+          "observed",
+          "limit",
+          "detail"
+        ],
+        "title": "RuleViolationPublic"
       },
       "RunFinish": {
         "properties": {

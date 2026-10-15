@@ -784,6 +784,11 @@ export {
   useHrBulkAssignments,
 } from "./useHrBulkAssignments.js";
 export {
+  hrCheckPeriodRulesQueryKey,
+  hrCheckPeriodRulesQueryOptions,
+  useHrCheckPeriodRules,
+} from "./useHrCheckPeriodRules.js";
+export {
   hrClosePeriodMutationKey,
   hrClosePeriodMutationOptions,
   useHrClosePeriod,
@@ -928,6 +933,11 @@ export {
   hrGetAttendanceWeekPdfQueryOptions,
   useHrGetAttendanceWeekPdf,
 } from "./useHrGetAttendanceWeekPdf.js";
+export {
+  hrGetDepartmentRulesQueryKey,
+  hrGetDepartmentRulesQueryOptions,
+  useHrGetDepartmentRules,
+} from "./useHrGetDepartmentRules.js";
 export {
   hrGetDepartmentTimesheetsQueryKey,
   hrGetDepartmentTimesheetsQueryOptions,
@@ -1218,6 +1228,11 @@ export {
   hrPublishPeriodMutationOptions,
   useHrPublishPeriod,
 } from "./useHrPublishPeriod.js";
+export {
+  hrPutDepartmentRulesMutationKey,
+  hrPutDepartmentRulesMutationOptions,
+  useHrPutDepartmentRules,
+} from "./useHrPutDepartmentRules.js";
 export {
   hrRemoveHolidayMutationKey,
   hrRemoveHolidayMutationOptions,

@@ -1760,6 +1760,16 @@ export type {
   HrBulkAssignmentsStatus422,
 } from "./HrBulkAssignments.js";
 export type {
+  HrCheckPeriodRulesOptions,
+  HrCheckPeriodRulesPath,
+  HrCheckPeriodRulesResponse,
+  HrCheckPeriodRulesResponses,
+  HrCheckPeriodRulesStatus200,
+  HrCheckPeriodRulesStatus403,
+  HrCheckPeriodRulesStatus404,
+  HrCheckPeriodRulesStatus422,
+} from "./HrCheckPeriodRules.js";
+export type {
   HrClosePeriodOptions,
   HrClosePeriodPath,
   HrClosePeriodResponse,
@@ -2069,6 +2079,15 @@ export type {
   HrGetAttendanceWeekPdfStatus409,
   HrGetAttendanceWeekPdfStatus422,
 } from "./HrGetAttendanceWeekPdf.js";
+export type {
+  HrGetDepartmentRulesOptions,
+  HrGetDepartmentRulesPath,
+  HrGetDepartmentRulesResponse,
+  HrGetDepartmentRulesResponses,
+  HrGetDepartmentRulesStatus200,
+  HrGetDepartmentRulesStatus403,
+  HrGetDepartmentRulesStatus422,
+} from "./HrGetDepartmentRules.js";
 export type {
   HrGetDepartmentTimesheetsOptions,
   HrGetDepartmentTimesheetsQuery,
@@ -2648,6 +2667,16 @@ export type {
   HrPublishPeriodStatus404,
   HrPublishPeriodStatus422,
 } from "./HrPublishPeriod.js";
+export type {
+  HrPutDepartmentRulesBody,
+  HrPutDepartmentRulesOptions,
+  HrPutDepartmentRulesPath,
+  HrPutDepartmentRulesResponse,
+  HrPutDepartmentRulesResponses,
+  HrPutDepartmentRulesStatus200,
+  HrPutDepartmentRulesStatus403,
+  HrPutDepartmentRulesStatus422,
+} from "./HrPutDepartmentRules.js";
 export type {
   HrRemoveHolidayOptions,
   HrRemoveHolidayPath,
@@ -3632,7 +3661,11 @@ export type { RosterRevisionAction } from "./RosterRevisionAction.js";
 export { rosterRevisionAction } from "./RosterRevisionAction.js";
 export type { RosterRevisionPublic } from "./RosterRevisionPublic.js";
 export type { RosterRevisionsPublic } from "./RosterRevisionsPublic.js";
+export type { RosterRuleCheckPublic } from "./RosterRuleCheckPublic.js";
+export type { RosterRulesPublic } from "./RosterRulesPublic.js";
+export type { RosterRulesUpdate } from "./RosterRulesUpdate.js";
 export type { RouteView } from "./RouteView.js";
+export type { RuleViolationPublic } from "./RuleViolationPublic.js";
 export type { RunFinish } from "./RunFinish.js";
 export type { RunFinishPropertiesStatusEnum } from "./RunFinishPropertiesStatusEnum.js";
 export { runFinishPropertiesStatusEnum } from "./RunFinishPropertiesStatusEnum.js";

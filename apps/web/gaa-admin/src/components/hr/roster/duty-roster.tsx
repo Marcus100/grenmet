@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  hrCheckPeriodRulesQueryKey,
   hrGetPeriodQueryKey,
   hrListPeriodsQueryKey,
   type RosterAssignmentInput,
@@ -40,6 +41,7 @@ import {
 import { Fragment, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { rosterLabel } from "@/lib/people";
+import { RosterRuleWarnings } from "./roster-rule-warnings";
 import {
   buildAssignmentMap,
   buildCycleCodes,
@@ -104,6 +106,10 @@ export function DutyRoster() {
   );
   const members = membersQuery.data?.data ?? [];
   const memberGroups = useMemo(() => groupByGrade(members), [members]);
+  const memberLabels = useMemo(
+    () => new Map(members.map((m) => [m.user_id, rosterLabel(m)])),
+    [members]
+  );
 
   const periodsQuery = useHrListPeriods(
     { query: { department_id: activeDepartmentId ?? "" } },
@@ -217,11 +223,18 @@ export function DutyRoster() {
     await bulkMutation.mutateAsync({
       body: { roster_period_id: period.id, assignments },
     });
-    await queryClient.invalidateQueries({
-      queryKey: hrGetPeriodQueryKey({
-        path: { period_id: period.id },
+    await Promise.all([
+      queryClient.invalidateQueries({
+        queryKey: hrGetPeriodQueryKey({
+          path: { period_id: period.id },
+        }),
       }),
-    });
+      queryClient.invalidateQueries({
+        queryKey: hrCheckPeriodRulesQueryKey({
+          path: { period_id: period.id },
+        }),
+      }),
+    ]);
     setPendingEdits({});
     toast.success(`Saved ${assignments.length} assignment(s)`);
   }
@@ -376,6 +389,10 @@ export function DutyRoster() {
           </span>
         ) : null}
       </div>
+
+      {period ? (
+        <RosterRuleWarnings labels={memberLabels} periodId={period.id} />
+      ) : null}
 
       {period ? null : (
         <div className="flex items-center justify-between rounded-xl border border-dashed px-4 py-3 text-sm">

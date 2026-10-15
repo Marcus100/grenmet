@@ -445,6 +445,22 @@ separately approved migration prerequisite. Do not enable another organisation
 on the strength of these document checks alone.
 
 
+### Roster rule limits and check
+
+| Endpoint | Permission | Purpose |
+| --- | --- | --- |
+| `GET /api/v1/hr/rosters/departments/{department_id}/rules` | `roster.view` in the department scope | Read the department's limits |
+| `PUT /api/v1/hr/rosters/departments/{department_id}/rules` | `roster.manage` in the department scope | Replace the limits |
+| `GET /api/v1/hr/rosters/periods/{period_id}/rule-check` | `roster.view` in the department scope | Violations for one period |
+
+Limits are `min_rest_hours`, `max_consecutive_days` and `max_weekly_hours`, stored
+on `hr.department_policy`. A null limit disables that rule and no defaults are
+assumed, because GAA HR has not confirmed any values. The check is warn-only: it
+never blocks saving, publishing or swaps. It also reads neighbouring published
+periods so a run or rest gap that crosses a period boundary is seen. Weeks run
+Sunday to Saturday by shift start date. Checks run only on the rule-check
+endpoint for now; publish and swap approval do not call them yet.
+
 ### Roster calendar feed
 
 | Endpoint | Permission | Purpose |

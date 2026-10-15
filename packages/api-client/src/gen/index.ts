@@ -158,6 +158,7 @@ export { hrApproveTimesheet } from "./clients/hrApproveTimesheet.js";
 export { hrArchiveDocument } from "./clients/hrArchiveDocument.js";
 export { hrArchiveTrainingRecord } from "./clients/hrArchiveTrainingRecord.js";
 export { hrBulkAssignments } from "./clients/hrBulkAssignments.js";
+export { hrCheckPeriodRules } from "./clients/hrCheckPeriodRules.js";
 export { hrClosePeriod } from "./clients/hrClosePeriod.js";
 export { hrCreateAbsenteeReport } from "./clients/hrCreateAbsenteeReport.js";
 export { hrCreateCalendarEvent } from "./clients/hrCreateCalendarEvent.js";
@@ -187,6 +188,7 @@ export { hrGetAbsenteeReports } from "./clients/hrGetAbsenteeReports.js";
 export { hrGetAttendanceReview } from "./clients/hrGetAttendanceReview.js";
 export { hrGetAttendanceWeek } from "./clients/hrGetAttendanceWeek.js";
 export { hrGetAttendanceWeekPdf } from "./clients/hrGetAttendanceWeekPdf.js";
+export { hrGetDepartmentRules } from "./clients/hrGetDepartmentRules.js";
 export { hrGetDepartmentTimesheets } from "./clients/hrGetDepartmentTimesheets.js";
 export { hrGetDocument } from "./clients/hrGetDocument.js";
 export { hrGetDocumentEmployees } from "./clients/hrGetDocumentEmployees.js";
@@ -245,6 +247,7 @@ export { hrPreviewShiftSwapPdf } from "./clients/hrPreviewShiftSwapPdf.js";
 export { hrPreviewStatusReportPdf } from "./clients/hrPreviewStatusReportPdf.js";
 export { hrProposeAttendanceCorrection } from "./clients/hrProposeAttendanceCorrection.js";
 export { hrPublishPeriod } from "./clients/hrPublishPeriod.js";
+export { hrPutDepartmentRules } from "./clients/hrPutDepartmentRules.js";
 export { hrRemoveHoliday } from "./clients/hrRemoveHoliday.js";
 export { hrRenameOrganisation } from "./clients/hrRenameOrganisation.js";
 export { hrSaveAttendance } from "./clients/hrSaveAttendance.js";
@@ -1149,6 +1152,11 @@ export {
   useHrBulkAssignments,
 } from "./hooks/useHrBulkAssignments.js";
 export {
+  hrCheckPeriodRulesQueryKey,
+  hrCheckPeriodRulesQueryOptions,
+  useHrCheckPeriodRules,
+} from "./hooks/useHrCheckPeriodRules.js";
+export {
   hrClosePeriodMutationKey,
   hrClosePeriodMutationOptions,
   useHrClosePeriod,
@@ -1293,6 +1301,11 @@ export {
   hrGetAttendanceWeekPdfQueryOptions,
   useHrGetAttendanceWeekPdf,
 } from "./hooks/useHrGetAttendanceWeekPdf.js";
+export {
+  hrGetDepartmentRulesQueryKey,
+  hrGetDepartmentRulesQueryOptions,
+  useHrGetDepartmentRules,
+} from "./hooks/useHrGetDepartmentRules.js";
 export {
   hrGetDepartmentTimesheetsQueryKey,
   hrGetDepartmentTimesheetsQueryOptions,
@@ -1583,6 +1596,11 @@ export {
   hrPublishPeriodMutationOptions,
   useHrPublishPeriod,
 } from "./hooks/useHrPublishPeriod.js";
+export {
+  hrPutDepartmentRulesMutationKey,
+  hrPutDepartmentRulesMutationOptions,
+  useHrPutDepartmentRules,
+} from "./hooks/useHrPutDepartmentRules.js";
 export {
   hrRemoveHolidayMutationKey,
   hrRemoveHolidayMutationOptions,
@@ -3935,6 +3953,16 @@ export type {
   HrBulkAssignmentsStatus422,
 } from "./models/HrBulkAssignments.js";
 export type {
+  HrCheckPeriodRulesOptions,
+  HrCheckPeriodRulesPath,
+  HrCheckPeriodRulesResponse,
+  HrCheckPeriodRulesResponses,
+  HrCheckPeriodRulesStatus200,
+  HrCheckPeriodRulesStatus403,
+  HrCheckPeriodRulesStatus404,
+  HrCheckPeriodRulesStatus422,
+} from "./models/HrCheckPeriodRules.js";
+export type {
   HrClosePeriodOptions,
   HrClosePeriodPath,
   HrClosePeriodResponse,
@@ -4244,6 +4272,15 @@ export type {
   HrGetAttendanceWeekPdfStatus409,
   HrGetAttendanceWeekPdfStatus422,
 } from "./models/HrGetAttendanceWeekPdf.js";
+export type {
+  HrGetDepartmentRulesOptions,
+  HrGetDepartmentRulesPath,
+  HrGetDepartmentRulesResponse,
+  HrGetDepartmentRulesResponses,
+  HrGetDepartmentRulesStatus200,
+  HrGetDepartmentRulesStatus403,
+  HrGetDepartmentRulesStatus422,
+} from "./models/HrGetDepartmentRules.js";
 export type {
   HrGetDepartmentTimesheetsOptions,
   HrGetDepartmentTimesheetsQuery,
@@ -4823,6 +4860,16 @@ export type {
   HrPublishPeriodStatus404,
   HrPublishPeriodStatus422,
 } from "./models/HrPublishPeriod.js";
+export type {
+  HrPutDepartmentRulesBody,
+  HrPutDepartmentRulesOptions,
+  HrPutDepartmentRulesPath,
+  HrPutDepartmentRulesResponse,
+  HrPutDepartmentRulesResponses,
+  HrPutDepartmentRulesStatus200,
+  HrPutDepartmentRulesStatus403,
+  HrPutDepartmentRulesStatus422,
+} from "./models/HrPutDepartmentRules.js";
 export type {
   HrRemoveHolidayOptions,
   HrRemoveHolidayPath,
@@ -5807,7 +5854,11 @@ export type { RosterRevisionAction } from "./models/RosterRevisionAction.js";
 export { rosterRevisionAction } from "./models/RosterRevisionAction.js";
 export type { RosterRevisionPublic } from "./models/RosterRevisionPublic.js";
 export type { RosterRevisionsPublic } from "./models/RosterRevisionsPublic.js";
+export type { RosterRuleCheckPublic } from "./models/RosterRuleCheckPublic.js";
+export type { RosterRulesPublic } from "./models/RosterRulesPublic.js";
+export type { RosterRulesUpdate } from "./models/RosterRulesUpdate.js";
 export type { RouteView } from "./models/RouteView.js";
+export type { RuleViolationPublic } from "./models/RuleViolationPublic.js";
 export type { RunFinish } from "./models/RunFinish.js";
 export type { RunFinishPropertiesStatusEnum } from "./models/RunFinishPropertiesStatusEnum.js";
 export { runFinishPropertiesStatusEnum } from "./models/RunFinishPropertiesStatusEnum.js";
@@ -8123,6 +8174,15 @@ export {
   hrBulkAssignmentsStatus422Schema,
 } from "./zod/hrBulkAssignmentsSchema.js";
 export {
+  hrCheckPeriodRulesErrorSchema,
+  hrCheckPeriodRulesPathPeriodIdSchema,
+  hrCheckPeriodRulesResponseSchema,
+  hrCheckPeriodRulesStatus200Schema,
+  hrCheckPeriodRulesStatus403Schema,
+  hrCheckPeriodRulesStatus404Schema,
+  hrCheckPeriodRulesStatus422Schema,
+} from "./zod/hrCheckPeriodRulesSchema.js";
+export {
   hrClosePeriodErrorSchema,
   hrClosePeriodPathPeriodIdSchema,
   hrClosePeriodResponseSchema,
@@ -8408,6 +8468,14 @@ export {
   hrGetAttendanceWeekStatus409Schema,
   hrGetAttendanceWeekStatus422Schema,
 } from "./zod/hrGetAttendanceWeekSchema.js";
+export {
+  hrGetDepartmentRulesErrorSchema,
+  hrGetDepartmentRulesPathDepartmentIdSchema,
+  hrGetDepartmentRulesResponseSchema,
+  hrGetDepartmentRulesStatus200Schema,
+  hrGetDepartmentRulesStatus403Schema,
+  hrGetDepartmentRulesStatus422Schema,
+} from "./zod/hrGetDepartmentRulesSchema.js";
 export {
   hrGetDepartmentTimesheetsErrorSchema,
   hrGetDepartmentTimesheetsQueryDepartmentIdSchema,
@@ -8964,6 +9032,15 @@ export {
   hrPublishPeriodStatus404Schema,
   hrPublishPeriodStatus422Schema,
 } from "./zod/hrPublishPeriodSchema.js";
+export {
+  hrPutDepartmentRulesBodySchema,
+  hrPutDepartmentRulesErrorSchema,
+  hrPutDepartmentRulesPathDepartmentIdSchema,
+  hrPutDepartmentRulesResponseSchema,
+  hrPutDepartmentRulesStatus200Schema,
+  hrPutDepartmentRulesStatus403Schema,
+  hrPutDepartmentRulesStatus422Schema,
+} from "./zod/hrPutDepartmentRulesSchema.js";
 export {
   hrRemoveHolidayErrorSchema,
   hrRemoveHolidayPathHolidayIdSchema,
@@ -9846,7 +9923,11 @@ export { rosterPreferencesUpdateSchema } from "./zod/rosterPreferencesUpdateSche
 export { rosterRevisionActionSchema } from "./zod/rosterRevisionActionSchema.js";
 export { rosterRevisionPublicSchema } from "./zod/rosterRevisionPublicSchema.js";
 export { rosterRevisionsPublicSchema } from "./zod/rosterRevisionsPublicSchema.js";
+export { rosterRuleCheckPublicSchema } from "./zod/rosterRuleCheckPublicSchema.js";
+export { rosterRulesPublicSchema } from "./zod/rosterRulesPublicSchema.js";
+export { rosterRulesUpdateSchema } from "./zod/rosterRulesUpdateSchema.js";
 export { routeViewSchema } from "./zod/routeViewSchema.js";
+export { ruleViolationPublicSchema } from "./zod/ruleViolationPublicSchema.js";
 export { runFinishPropertiesStatusEnumSchema } from "./zod/runFinishPropertiesStatusEnumSchema.js";
 export { runFinishSchema } from "./zod/runFinishSchema.js";
 export { runInputPropertiesSourceEnumSchema } from "./zod/runInputPropertiesSourceEnumSchema.js";
