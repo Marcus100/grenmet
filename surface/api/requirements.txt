@@ -309,7 +309,7 @@ pygments==2.19.2
     # via rich
 pyiceberg==0.10.0
     # via storage3
-pyjwt==2.4.0
+pyjwt==2.15.0
     # via
     #   -r requirements.in
     #   djangorestframework-simplejwt
