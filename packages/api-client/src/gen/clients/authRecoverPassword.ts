@@ -13,7 +13,7 @@ import type {
 /**
  * @description Password Recovery.
  * @summary Recover Password
- * {@link /api/v1/password-recovery/:email}
+ * {@link /api/v1/auth/password/recovery}
  */
 export function authRecoverPassword<ThrowOnError extends boolean = true>(
   options: Options<AuthRecoverPasswordOptions, ThrowOnError>
@@ -23,7 +23,7 @@ export function authRecoverPassword<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "POST",
-      url: "/api/v1/password-recovery/{email}",
+      url: "/api/v1/auth/password/recovery",
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthRecoverPasswordResponses, ThrowOnError>>

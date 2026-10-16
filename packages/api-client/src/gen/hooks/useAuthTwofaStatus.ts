@@ -20,7 +20,7 @@ import type {
 } from "../models/AuthTwofaStatus.js";
 
 export const authTwofaStatusQueryKey = () =>
-  [{ url: "/api/v1/2fa/status" }] as const;
+  [{ url: "/api/v1/auth/users/me/security/2fa" }] as const;
 
 type AuthTwofaStatusQueryKey = ReturnType<typeof authTwofaStatusQueryKey>;
 
@@ -54,7 +54,7 @@ export function authTwofaStatusQueryOptions(
 /**
  * @description Returns whether two-factor authentication is enabled for the current account.
  * @summary Get 2FA status
- * {@link /api/v1/2fa/status}
+ * {@link /api/v1/auth/users/me/security/2fa}
  */
 export function useAuthTwofaStatus<
   TData = AuthTwofaStatusStatus200,

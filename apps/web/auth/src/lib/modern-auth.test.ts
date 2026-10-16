@@ -32,7 +32,7 @@ it("preserves forwarded headers, JSON body, prefix, and timeout through the Kubb
   await expect(googleStart(body)).resolves.toEqual(response);
   expect(fetchMock).toHaveBeenCalledOnce();
   const [url, init] = fetchMock.mock.calls[0] ?? [];
-  expect(url).toBe("https://auth-api.test/backend/v1/auth/modern/google/start");
+  expect(url).toBe("https://auth-api.test/backend/v1/auth/google/start");
   expect(init?.method).toBe("POST");
   expect(JSON.parse(String(init?.body))).toEqual(body);
   expect(new Headers(init?.headers).get("user-agent")).toBe("test-browser");

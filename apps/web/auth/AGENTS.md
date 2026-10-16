@@ -4,7 +4,7 @@ Port **3000**. The sole sign-in/sign-up hub for the entire monorepo. Every other
 
 ## Auth pattern
 
-This IS the auth app — it does not delegate to itself. It integrates directly with FastAPI's auth endpoints (`/api/v1/auth/`, `/api/v1/login/`).
+This IS the auth app — it does not delegate to itself. It integrates directly with FastAPI's auth endpoints (all under `/api/v1/auth/`).
 
 - Session helpers: `src/lib/session.ts` — `createSession`, cookie read/write
 - Auth config: `src/lib/auth-config.ts`

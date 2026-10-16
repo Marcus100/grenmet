@@ -13,7 +13,7 @@ import type {
 /**
  * @description Show verified sign-in methods and active sessions for the current account, without exposing session secrets.
  * @summary Read account security
- * {@link /api/v1/auth/modern/security}
+ * {@link /api/v1/auth/users/me/security}
  */
 export function authGetAccountSecurity<ThrowOnError extends boolean = true>(
   options: Options<AuthGetAccountSecurityOptions, ThrowOnError> = {}
@@ -23,7 +23,7 @@ export function authGetAccountSecurity<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "GET",
-      url: "/api/v1/auth/modern/security",
+      url: "/api/v1/auth/users/me/security",
       security: [{ type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,

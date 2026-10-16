@@ -13,7 +13,7 @@ import type {
 /**
  * @description Verify the code and open an account session (ADR-0017); the first verified code creates the account when sign-up is open.
  * @summary Sign in to the Barrels account with an email code
- * {@link /api/v1/auth/modern/email-code/verify}
+ * {@link /api/v1/auth/email-code/verify}
  */
 export function authAccountEmailCodeVerify<ThrowOnError extends boolean = true>(
   options: Options<AuthAccountEmailCodeVerifyOptions, ThrowOnError>
@@ -25,7 +25,7 @@ export function authAccountEmailCodeVerify<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "POST",
-      url: "/api/v1/auth/modern/email-code/verify",
+      url: "/api/v1/auth/email-code/verify",
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

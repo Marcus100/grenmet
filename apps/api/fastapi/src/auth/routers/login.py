@@ -36,6 +36,7 @@ from src.auth.devices import remember_device, schedule_new_sign_in_alert
 from src.auth.lockout import login_lockout
 from src.auth.models import User
 from src.auth.modern_models import AuthChallenge
+from src.auth.modern_schemas import EmailRequest
 from src.auth.schemas import (
     NewPassword,
     SessionAccessTokenResponse,
@@ -60,7 +61,7 @@ from src.utils.datetime import utc_now
 
 from ..utils import create_access_token
 
-router = APIRouter(tags=["login"])
+router = APIRouter(prefix="/auth", tags=["login"])
 
 
 def _request_metadata(request: Request) -> tuple[str | None, str | None]:
@@ -113,7 +114,7 @@ def _session_auth_response(
 
 
 @router.post(
-    "/login/access-token",
+    "/token",
     response_model=Token,
     status_code=status.HTTP_200_OK,
     summary="Login with OAuth2",
@@ -140,7 +141,7 @@ async def login_access_token(
     """
     OAuth2 compatible token login, get an access token for future requests.
 
-    Accounts with 2FA enabled must use /login/session (which carries the TOTP code);
+    Accounts with 2FA enabled must use /auth/sessions (which carries the TOTP code);
     this legacy OAuth2 endpoint rejects them rather than bypassing 2FA.
     """
     _ = request
@@ -168,7 +169,7 @@ async def login_access_token(
     if user.totp_enabled:
         raise HTTPException(
             status_code=400,
-            detail="This account uses two-factor authentication; sign in via /login/session",
+            detail="This account uses two-factor authentication; sign in via /auth/sessions",
         )
     await login_lockout.reset(form_data.username)
     access_token_expires = service.get_legacy_access_token_expires_delta()
@@ -178,7 +179,7 @@ async def login_access_token(
 
 
 @router.post(
-    "/login/session",
+    "/sessions",
     response_model=SessionLoginResponse,
     status_code=status.HTTP_200_OK,
     summary="Create a persisted web session",
@@ -269,7 +270,7 @@ async def login_session(
 
 
 @router.post(
-    "/login/session/access-token",
+    "/sessions/access-token",
     response_model=SessionAccessTokenResponse,
     status_code=status.HTTP_200_OK,
     summary="Exchange a session secret for a short-lived access token",
@@ -306,7 +307,7 @@ async def exchange_session_for_access_token(
 
 
 @router.post(
-    "/login/session/refresh",
+    "/sessions/refresh",
     response_model=SessionLoginResponse,
     status_code=status.HTTP_200_OK,
     summary="Rotate a persisted session",
@@ -372,7 +373,7 @@ async def refresh_session(
 
 
 @router.post(
-    "/login/session/logout",
+    "/sessions/logout",
     response_model=Message,
     status_code=status.HTTP_200_OK,
     summary="Revoke a persisted session",
@@ -389,7 +390,7 @@ async def logout_session(session: SessionDep, body: SessionTokenRequest) -> Mess
 
 
 @router.post(
-    "/login/session/logout-all",
+    "/sessions/logout-all",
     response_model=Message,
     status_code=status.HTTP_200_OK,
     summary="Revoke every session for the current user",
@@ -412,30 +413,35 @@ async def logout_all_sessions(
     return Message(message=SUCCESS_LOGGED_OUT_ALL)
 
 
-@router.post(
-    "/login/test-token", response_model=UserPublic, responses={**AUTHENTICATED}
+@router.get(
+    "/staff/me",
+    response_model=UserPublic,
+    summary="Check the staff gate",
+    description="Return the current user if the access token passes the staff gate (approval and privileged two-step verification).",
+    responses={**AUTHENTICATED},
 )
-async def test_token(current_user: CurrentUser) -> Any:
+async def read_staff_me(current_user: CurrentUser) -> Any:
     """
-    Test access token.
+    Return the current staff user.
     """
     return current_user
 
 
 @router.post(
-    "/password-recovery/{email}",
+    "/password/recovery",
     responses={
         status.HTTP_429_TOO_MANY_REQUESTS: {"description": "Rate limit exceeded"},
     },
 )
 @limiter.limit("5/minute")
 async def recover_password(
-    request: Request, email: str, session: SessionDep
+    request: Request, body: EmailRequest, session: SessionDep
 ) -> Message:
     """
     Password Recovery.
     """
     _ = request
+    email = body.email
     user = await service.get_user_by_email(session=session, email=email)
     if user and user.is_active:
         await session.execute(
@@ -465,7 +471,7 @@ async def recover_password(
 
 
 @router.post(
-    "/reset-password/",
+    "/password/reset",
     responses={
         status.HTTP_429_TOO_MANY_REQUESTS: {"description": "Rate limit exceeded"},
     },
@@ -489,15 +495,16 @@ async def reset_password(
 
 
 @router.post(
-    "/password-recovery-html-content/{email}",
+    "/password/recovery/preview",
     dependencies=[Depends(get_current_active_superuser)],
     response_class=HTMLResponse,
     responses={**AUTHENTICATED, **NOT_FOUND},
 )
-async def recover_password_html_content(email: str, session: SessionDep) -> Any:
+async def recover_password_html_content(body: EmailRequest, session: SessionDep) -> Any:
     """
     HTML Content for Password Recovery.
     """
+    email = body.email
     user = await service.get_user_by_email(session=session, email=email)
 
     if not user:
@@ -508,5 +515,5 @@ async def recover_password_html_content(email: str, session: SessionDep) -> Any:
     )
 
     return HTMLResponse(
-        content=email_data.html_content, headers={"subject:": email_data.subject}
+        content=email_data.html_content, headers={"X-Email-Subject": email_data.subject}
     )

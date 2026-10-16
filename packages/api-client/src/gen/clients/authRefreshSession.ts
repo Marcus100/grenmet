@@ -13,7 +13,7 @@ import type {
 /**
  * @description Rotate a valid session secret and mint a fresh short-lived access token.
  * @summary Rotate a persisted session
- * {@link /api/v1/login/session/refresh}
+ * {@link /api/v1/auth/sessions/refresh}
  */
 export function authRefreshSession<ThrowOnError extends boolean = true>(
   options: Options<AuthRefreshSessionOptions, ThrowOnError>
@@ -23,7 +23,7 @@ export function authRefreshSession<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "POST",
-      url: "/api/v1/login/session/refresh",
+      url: "/api/v1/auth/sessions/refresh",
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthRefreshSessionResponses, ThrowOnError>>

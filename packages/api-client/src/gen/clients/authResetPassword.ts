@@ -13,7 +13,7 @@ import type {
 /**
  * @description Reset password.
  * @summary Reset Password
- * {@link /api/v1/reset-password/}
+ * {@link /api/v1/auth/password/reset}
  */
 export function authResetPassword<ThrowOnError extends boolean = true>(
   options: Options<AuthResetPasswordOptions, ThrowOnError>
@@ -23,7 +23,7 @@ export function authResetPassword<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "POST",
-      url: "/api/v1/reset-password/",
+      url: "/api/v1/auth/password/reset",
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthResetPasswordResponses, ThrowOnError>>

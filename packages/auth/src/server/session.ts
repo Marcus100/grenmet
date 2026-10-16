@@ -23,7 +23,7 @@ export function exchangeSessionForAccessToken(
 ): Promise<SessionAccessTokenResponse> {
   return authApiFetch<SessionAccessTokenResponse>(
     config,
-    "/login/session/access-token",
+    "/auth/sessions/access-token",
     sessionAccessTokenResponseSchema,
     {
       body: { session_token: sessionToken },
@@ -36,7 +36,7 @@ export async function logoutSession(
   config: AuthConfig,
   sessionToken: string
 ): Promise<void> {
-  await authApiFetch(config, "/login/session/logout", messageSchema, {
+  await authApiFetch(config, "/auth/sessions/logout", messageSchema, {
     body: { session_token: sessionToken },
     method: "POST",
   });
@@ -46,7 +46,7 @@ export async function logoutAllSessions(
   config: AuthConfig,
   sessionToken: string
 ): Promise<void> {
-  await authApiFetch(config, "/login/session/logout-all", messageSchema, {
+  await authApiFetch(config, "/auth/sessions/logout-all", messageSchema, {
     body: { session_token: sessionToken },
     method: "POST",
   });
@@ -62,7 +62,7 @@ export function createSession(
     clientType?: string;
   }
 ): Promise<SessionLoginResponse> {
-  return authApiFetch(config, "/login/session", sessionLoginResponseSchema, {
+  return authApiFetch(config, "/auth/sessions", sessionLoginResponseSchema, {
     body: {
       email: input.email,
       password: input.password,
@@ -80,7 +80,7 @@ export function refreshSession(
 ): Promise<SessionLoginResponse> {
   return authApiFetch(
     config,
-    "/login/session/refresh",
+    "/auth/sessions/refresh",
     sessionLoginResponseSchema,
     {
       body: { session_token: sessionToken },
@@ -91,29 +91,27 @@ export function refreshSession(
 
 /**
  * Trigger a password-recovery email.
- * Maps to POST /password-recovery/{email} — email is a URL path segment.
+ * Maps to POST /auth/password/recovery with body { email }.
  */
 export function requestPasswordRecovery(
   config: AuthConfig,
   email: string
 ): Promise<MessageResponse> {
-  return authApiFetch(
-    config,
-    `/password-recovery/${encodeURIComponent(email)}`,
-    messageSchema,
-    { method: "POST" }
-  );
+  return authApiFetch(config, "/auth/password/recovery", messageSchema, {
+    body: { email },
+    method: "POST",
+  });
 }
 
 /**
  * Complete a password reset using the token from the recovery email.
- * Maps to POST /reset-password/ with body { token, new_password }.
+ * Maps to POST /auth/password/reset with body { token, new_password }.
  */
 export function resetPassword(
   config: AuthConfig,
   input: { token: string; newPassword: string }
 ): Promise<MessageResponse> {
-  return authApiFetch(config, "/reset-password/", messageSchema, {
+  return authApiFetch(config, "/auth/password/reset", messageSchema, {
     body: { token: input.token, new_password: input.newPassword },
     method: "POST",
   });
@@ -151,7 +149,7 @@ export function signUp(
 
 /**
  * OAuth2 password grant — returns a short-lived bearer token.
- * Maps to POST /login/access-token (application/x-www-form-urlencoded).
+ * Maps to POST /auth/token (application/x-www-form-urlencoded).
  * Use the session flow for browser auth; this is for machine / API consumers.
  */
 export function loginWithPassword(
@@ -160,7 +158,7 @@ export function loginWithPassword(
 ): Promise<Token> {
   return authApiFormFetch(
     config,
-    "/login/access-token",
+    "/auth/token",
     {
       grant_type: "password",
       username: input.username,

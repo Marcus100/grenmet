@@ -19,7 +19,7 @@ import type {
 } from "../models/AuthResetPassword.js";
 
 export const authResetPasswordMutationKey = () =>
-  [{ url: "/api/v1/reset-password/" }] as const;
+  [{ url: "/api/v1/auth/password/reset" }] as const;
 
 export function authResetPasswordMutationOptions<TContext = unknown>(
   config: Partial<
@@ -49,7 +49,7 @@ export function authResetPasswordMutationOptions<TContext = unknown>(
 /**
  * @description Reset password.
  * @summary Reset Password
- * {@link /api/v1/reset-password/}
+ * {@link /api/v1/auth/password/reset}
  */
 export function useAuthResetPassword<TContext>(
   options: {

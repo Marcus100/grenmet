@@ -504,6 +504,15 @@ export type {
   AuthGetRolesStatus422,
 } from "./AuthGetRoles.js";
 export type {
+  AuthGetStaffMeOptions,
+  AuthGetStaffMeResponse,
+  AuthGetStaffMeResponses,
+  AuthGetStaffMeStatus200,
+  AuthGetStaffMeStatus401,
+  AuthGetStaffMeStatus403,
+  AuthGetStaffMeStatus422,
+} from "./AuthGetStaffMe.js";
+export type {
   AuthGetUserByIdOptions,
   AuthGetUserByIdPath,
   AuthGetUserByIdResponse,
@@ -658,8 +667,8 @@ export type {
   AuthRecordAccessReviewStatus422,
 } from "./AuthRecordAccessReview.js";
 export type {
+  AuthRecoverPasswordBody,
   AuthRecoverPasswordOptions,
-  AuthRecoverPasswordPath,
   AuthRecoverPasswordResponse,
   AuthRecoverPasswordResponses,
   AuthRecoverPasswordStatus200,
@@ -667,8 +676,8 @@ export type {
   AuthRecoverPasswordStatus429,
 } from "./AuthRecoverPassword.js";
 export type {
+  AuthRecoverPasswordHtmlContentBody,
   AuthRecoverPasswordHtmlContentOptions,
-  AuthRecoverPasswordHtmlContentPath,
   AuthRecoverPasswordHtmlContentResponse,
   AuthRecoverPasswordHtmlContentResponses,
   AuthRecoverPasswordHtmlContentStatus200,
@@ -740,15 +749,6 @@ export type {
   AuthRevokeSecuritySessionStatus404,
   AuthRevokeSecuritySessionStatus422,
 } from "./AuthRevokeSecuritySession.js";
-export type {
-  AuthTestTokenOptions,
-  AuthTestTokenResponse,
-  AuthTestTokenResponses,
-  AuthTestTokenStatus200,
-  AuthTestTokenStatus401,
-  AuthTestTokenStatus403,
-  AuthTestTokenStatus422,
-} from "./AuthTestToken.js";
 export type {
   AuthTwofaActivateBody,
   AuthTwofaActivateOptions,

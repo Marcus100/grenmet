@@ -40,7 +40,7 @@ async def enrol(session, user):
 
 async def login(client, user, code=None):
     body = {"email": user.email, "password": "password123", "totp_code": code}
-    return await client.post("/api/v1/login/session", json=body)
+    return await client.post("/api/v1/auth/sessions", json=body)
 
 
 def test_enforce_requires_dedicated_valid_key():
@@ -94,23 +94,24 @@ async def test_rollout_defaults_keep_old_admin_and_enrolment_reachable(
     response = await login(async_client, user)
     token = response.json()["access_token"]
     assert (
-        await async_client.post(
-            "/api/v1/login/test-token", headers={"Authorization": f"Bearer {token}"}
+        await async_client.get(
+            "/api/v1/auth/staff/me", headers={"Authorization": f"Bearer {token}"}
         )
     ).status_code == 200
     monkeypatch.setattr(auth_settings, "AUTH_PRIVILEGED_MFA_MODE", "enforce")
     assert (
-        await async_client.post(
-            "/api/v1/login/test-token", headers={"Authorization": f"Bearer {token}"}
+        await async_client.get(
+            "/api/v1/auth/staff/me", headers={"Authorization": f"Bearer {token}"}
         )
     ).status_code == 403
     security = await async_client.get(
-        "/api/v1/auth/modern/security", headers={"Authorization": f"Bearer {token}"}
+        "/api/v1/auth/users/me/security", headers={"Authorization": f"Bearer {token}"}
     )
     assert security.status_code == 200
     assert security.json()["privileged_mfa_required"] is True
     setup = await async_client.post(
-        "/api/v1/2fa/setup", headers={"Authorization": f"Bearer {token}"}
+        "/api/v1/auth/users/me/security/2fa/setup",
+        headers={"Authorization": f"Bearer {token}"},
     )
     assert setup.status_code == 200
 
@@ -124,7 +125,7 @@ async def test_enrolment_does_not_upgrade_password_session_and_recovery_is_once(
     monkeypatch.setattr(auth_settings, "AUTH_PRIVILEGED_MFA_MODE", "enforce")
     old_headers = {"Authorization": f"Bearer {original['access_token']}"}
     assert (
-        await async_client.post("/api/v1/login/test-token", headers=old_headers)
+        await async_client.get("/api/v1/auth/staff/me", headers=old_headers)
     ).status_code == 403
     recovered = await login(async_client, user, codes[0])
     assert recovered.status_code == 200
@@ -135,14 +136,14 @@ async def test_enrolment_does_not_upgrade_password_session_and_recovery_is_once(
     )
     assert claims["sid"] == data["session"]["id"]
     assert (
-        await async_client.post(
-            "/api/v1/login/test-token",
+        await async_client.get(
+            "/api/v1/auth/staff/me",
             headers={"Authorization": f"Bearer {data['access_token']}"},
         )
     ).status_code == 200
     assert (await login(async_client, user, codes[0])).status_code == 400
     refreshed = await async_client.post(
-        "/api/v1/login/session/refresh", json={"session_token": data["session_token"]}
+        "/api/v1/auth/sessions/refresh", json={"session_token": data["session_token"]}
     )
     assert refreshed.status_code == 200
     assert (
@@ -150,14 +151,14 @@ async def test_enrolment_does_not_upgrade_password_session_and_recovery_is_once(
         == data["session"]["mfa_verified_at"]
     )
     assert (
-        await async_client.post(
-            "/api/v1/login/test-token",
+        await async_client.get(
+            "/api/v1/auth/staff/me",
             headers={"Authorization": f"Bearer {data['access_token']}"},
         )
     ).status_code == 403
     assert (
-        await async_client.post(
-            "/api/v1/login/test-token",
+        await async_client.get(
+            "/api/v1/auth/staff/me",
             headers={"Authorization": f"Bearer {refreshed.json()['access_token']}"},
         )
     ).status_code == 200
@@ -206,8 +207,8 @@ async def test_delegated_user_manage_is_privileged_but_ordinary_staff_are_not(
     manager_token = (await login(async_client, manager)).json()["access_token"]
     monkeypatch.setattr(auth_settings, "AUTH_PRIVILEGED_MFA_MODE", "enforce")
     for token, expected in [(ordinary_token, 200), (manager_token, 403)]:
-        response = await async_client.post(
-            "/api/v1/login/test-token", headers={"Authorization": f"Bearer {token}"}
+        response = await async_client.get(
+            "/api/v1/auth/staff/me", headers={"Authorization": f"Bearer {token}"}
         )
         assert response.status_code == expected
 
@@ -288,14 +289,14 @@ async def test_handoff_and_exchange_preserve_only_live_source_mfa(
         == authenticated["session"]["mfa_verified_at"]
     )
     exchanged = await async_client.post(
-        "/api/v1/login/session/access-token",
+        "/api/v1/auth/sessions/access-token",
         json={"session_token": app_login["session_token"]},
     )
     assert exchanged.status_code == 200
     # Source revocation between issue/redeem must not create another MFA session.
     challenge = await async_client.post(f"{base}/handoff", json=body)
     await async_client.post(
-        "/api/v1/login/session/logout",
+        "/api/v1/auth/sessions/logout",
         json={"session_token": authenticated["session_token"]},
     )
     redeem_body["code"] = challenge.json()["code"]
@@ -305,7 +306,7 @@ async def test_handoff_and_exchange_preserve_only_live_source_mfa(
     # Disable clears all downstream evidence, including app exchanges.
     await service.disable_totp(session=db_async, user=user)
     rejected = await async_client.post(
-        "/api/v1/login/session/access-token",
+        "/api/v1/auth/sessions/access-token",
         json={"session_token": app_login["session_token"]},
     )
     assert rejected.status_code == 403
@@ -339,9 +340,11 @@ async def test_missing_key_blocks_setup_and_explains_readiness(
     headers = {"Authorization": f"Bearer {token}"}
     monkeypatch.setattr(auth_settings, "AUTH_TOTP_ENCRYPTION_KEYS", [])
     assert (
-        await async_client.post("/api/v1/2fa/setup", headers=headers)
+        await async_client.post(
+            "/api/v1/auth/users/me/security/2fa/setup", headers=headers
+        )
     ).status_code == 503
-    details = await async_client.get("/api/v1/auth/modern/security", headers=headers)
+    details = await async_client.get("/api/v1/auth/users/me/security", headers=headers)
     assert details.status_code == 200
     assert details.json()["authenticator_storage_ready"] is False
 
@@ -368,11 +371,7 @@ async def test_primary_code_waits_for_enrolled_factor_then_is_consumed(
     await db_async.commit()
     _, codes = await enrol(db_async, user)
     phone = method == "phone"
-    base = (
-        "/api/v1/auth/modern"
-        if method == "account-email"
-        else "/api/v1/auth/apps/events"
-    )
+    base = "/api/v1/auth" if method == "account-email" else "/api/v1/auth/apps/events"
     route = "phone" if phone else "email"
     identity = {"phone": user.phone_e164} if phone else {"email": user.email}
     assert (
@@ -396,8 +395,8 @@ async def test_primary_code_waits_for_enrolled_factor_then_is_consumed(
         await async_client.post(f"{base}/{route}-code/verify", json=body)
     ).status_code == 400
     if method != "account-email":
-        denied = await async_client.post(
-            "/api/v1/login/test-token",
+        denied = await async_client.get(
+            "/api/v1/auth/staff/me",
             headers={"Authorization": "Bearer " + verified.json()["access_token"]},
         )
         assert denied.status_code == 401
@@ -529,8 +528,8 @@ async def test_wrong_key_still_prompts_for_recovery_and_completes_sign_in(
     recovered = await login(async_client, user, codes[0])
     assert recovered.status_code == 200, recovered.text
     assert recovered.json()["session"]["mfa_verified_at"] is not None
-    admitted = await async_client.post(
-        "/api/v1/login/test-token",
+    admitted = await async_client.get(
+        "/api/v1/auth/staff/me",
         headers={"Authorization": "Bearer " + recovered.json()["access_token"]},
     )
     assert admitted.status_code == 200
@@ -586,7 +585,7 @@ async def test_google_factor_completion_mints_actual_scoped_evidence(
     endpoint = (
         f"/api/v1/auth/apps/{app_key}/google/finish"
         if app_key
-        else "/api/v1/auth/modern/google/finish"
+        else "/api/v1/auth/google/finish"
     )
 
     async def challenge():
@@ -613,8 +612,8 @@ async def test_google_factor_completion_mints_actual_scoped_evidence(
     )
     assert claims["sid"] == body["session"]["id"]
     assert claims.get("app") == app_key
-    staff = await async_client.post(
-        "/api/v1/login/test-token",
+    staff = await async_client.get(
+        "/api/v1/auth/staff/me",
         headers={"Authorization": f"Bearer {body['access_token']}"},
     )
     assert staff.status_code == (401 if app_key else 200)

@@ -13,7 +13,7 @@ import type {
 /**
  * @description Email a 6-digit code for signing in at auth.barrels.gd. The reply never reveals whether the address has an account.
  * @summary Send a Barrels account sign-in code
- * {@link /api/v1/auth/modern/email-code/start}
+ * {@link /api/v1/auth/email-code/start}
  */
 export function authAccountEmailCodeStart<ThrowOnError extends boolean = true>(
   options: Options<AuthAccountEmailCodeStartOptions, ThrowOnError>
@@ -25,7 +25,7 @@ export function authAccountEmailCodeStart<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "POST",
-      url: "/api/v1/auth/modern/email-code/start",
+      url: "/api/v1/auth/email-code/start",
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

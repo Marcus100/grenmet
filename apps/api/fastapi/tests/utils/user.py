@@ -12,7 +12,7 @@ async def user_authentication_headers_async(
 ) -> dict[str, str]:
     """Get authentication headers for a user (async client)."""
     data = {"username": email, "password": password}
-    r = await client.post(f"{settings.API_V1_STR}/login/access-token", data=data)
+    r = await client.post(f"{settings.API_V1_STR}/auth/token", data=data)
     r.raise_for_status()
     tokens = r.json()
     return {"Authorization": f"Bearer {tokens['access_token']}"}
