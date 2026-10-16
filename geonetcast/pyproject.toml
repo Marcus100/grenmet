@@ -13,7 +13,7 @@ dependencies = [
     "matplotlib>=3.11.0",
     "metpy>=1.7.1",
     "netcdf4>=1.7.4",
-    "numpy>=2.5.1",
+    "numpy>=2.5.4",
     "pygrib>=2.1.8",
     # HDF4 reader (`from pyhdf.SD import SD`) — builds against libhdf4-alt-dev.
     "pyhdf>=0.11.6",
