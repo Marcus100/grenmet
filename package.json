@@ -37,6 +37,7 @@
     "guardrails": "node scripts/guardrails/check-blast-radius.mjs",
     "guardrails:tier": "node scripts/guardrails/risk-tier.mjs --base origin/dev",
     "guardrails:staged": "node scripts/guardrails/check-blast-radius.mjs --staged",
+    "guardrails:boundaries": "node scripts/guardrails/check-boundaries.mjs",
     "guardrails:private": "node scripts/guardrails/check-private-content.mjs --staged",
     "test:guardrails": "node --test scripts/guardrails/*.test.mjs scripts/agents/*.test.mjs",
     "session-log:archive": "node scripts/agents/archive-session-log.mjs",

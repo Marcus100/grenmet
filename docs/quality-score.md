@@ -49,13 +49,11 @@ re-audited at that time; rows marked "not graded" have no audit yet.
 | Exec plans | Active plan tracked | B |
 | CI enforcement of docs | Local file and heading links enforced | B |
 | Design-system CI enforcement | Generated blocks and warning contrast enforced | A |
-| Dependency direction lints | Not yet implemented | D |
+| Dependency direction lints | `check-boundaries.mjs`: app/package direction, Sentry, brand-neutral UI, DB clients in route handlers | B |
 
 ## Priority gaps
 
 1. Shared-package tests — `@barrelsgd/ui`, `gms`, `theme` and `email-templates`
    have none, and every web app depends on `ui`
-2. Dependency direction lints — package and app import boundaries are not
-   mechanically enforced
-3. `docs` app has no tests
-4. Design system — brand-neutral UI and GMS package separation is in progress
+2. `docs` app has no tests
+3. Design system — brand-neutral UI and GMS package separation is in progress

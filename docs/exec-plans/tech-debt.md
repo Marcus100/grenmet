@@ -12,12 +12,12 @@ what unblocks resolution.
 | Item | Area | Why deferred | Unblocked by |
 |---|---|---|---|
 | `@barrelsgd/ui` and other shared packages have no tests | `packages/ui`, `gms`, `theme`, `email-templates` | Not yet prioritised | Component test harness for `packages/ui` |
-| Import boundaries are not enforced | `apps/*`, `packages/*` | Not yet prioritised | Dependency-direction lint (see `docs/quality-score.md`) |
 
 ## Resolved
 
 | Item | Resolved | How |
 |---|---|---|
+| Import boundaries not enforced | 2026-10-15 | `scripts/guardrails/check-boundaries.mjs`, run by `pnpm test:guardrails` in CI |
 | Hono API was a stub | 2026-09-23 | Retired; FastAPI is the backend ([ADR-0015](../adr/0015-retire-hono-python-backend.md)) |
 | `salesbus` auth not wired | 2026-06 | App decommissioned — folded into `gaa-admin` during the consolidation |
 | `AGENTS.md` was empty | 2026-05-31 | Written — 78 lines, commands-first, self-contained for Codex |
