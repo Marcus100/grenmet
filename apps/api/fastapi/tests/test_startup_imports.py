@@ -5,18 +5,10 @@ import subprocess
 import sys
 from pathlib import Path
 
-# Loaded only when a request needs them; importing them at startup made the
-# staging API miss its deploy healthcheck (16 October 2026).
-LAZY = ("weasyprint",)
 
-
-def test_app_import_skips_lazy_libraries(tmp_path: Path) -> None:
-    script = (
-        "import sys\n"
-        "import src.main\n"
-        f"loaded = [name for name in {LAZY!r} if name in sys.modules]\n"
-        "assert not loaded, loaded\n"
-    )
+def test_app_import_skips_weasyprint(tmp_path: Path) -> None:
+    # WeasyPrint is loaded only when a PDF is rendered; importing it at
+    # startup made the staging API miss its deploy healthcheck (16 Oct 2026).
     env = {
         **os.environ,
         "PYTHONPATH": str(Path(__file__).resolve().parents[1]),
@@ -29,8 +21,12 @@ def test_app_import_skips_lazy_libraries(tmp_path: Path) -> None:
         "FIRST_SUPERUSER": "ci@example.com",
         "FIRST_SUPERUSER_PASSWORD": "ci-password-long-enough",
     }
-    result = subprocess.run(  # noqa: S603 - fixed script
-        [sys.executable, "-c", script],
+    result = subprocess.run(
+        [
+            sys.executable,
+            "-c",
+            "import sys, src.main; assert 'weasyprint' not in sys.modules",
+        ],
         cwd=tmp_path,
         env=env,
         capture_output=True,
