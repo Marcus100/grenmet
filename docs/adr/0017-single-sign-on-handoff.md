@@ -77,10 +77,28 @@ GAA Admin retains the staff gate. See the [CMS access guide](../../apps/web/cms/
   anything granted another way (a staff-granted role, an organisation
   assignment) are untouched, and the reply says when access remains. Staff apps
   are not self-service and cannot be left this way. Joining from the same page
-  uses `POST /auth/account/apps/{app}/join` with the same email-verified rule
-  as the handoff.
+  uses `POST /auth/account/apps/{app}/join` with the same rules as the
+  handoff.
 - **App sign-out lands on auth.** Redirecting an app's Log out straight to its
   sign-in sends the browser back through the live account session and signs it
   in again, so gaa-admin and cms now land on `auth.barrels.gd/signed-out`, which
   offers Sign in again or Sign out of all apps. Apps whose pages are public
   (Events, gms, mbia) are unchanged.
+
+## Simple join amendment — 16 October 2026
+
+Owner-approved, to make registration and onboarding as simple as possible:
+
+- **Email verification never gates access.** We still send the verification
+  email, people can verify from Security, and administrators see the status,
+  but sign-in, joining, app access and staff approval no longer wait for it.
+  Accepted risk: someone can register an address they don't own; staff tools
+  stay protected by administrator approval, and staff setup warns when an
+  address is unverified.
+- **Every app asks "Join <app>?" once** (information sites no longer join
+  silently). Self-service apps join instantly.
+- **GAA Admin (admin.barrels.gd): Join requests access.** It records the staff
+  access request; the person sees "waiting for approval" until an
+  administrator approves in staff setup.
+- **CMS stays granted, not joined:** a superuser gives Writer or Publisher.
+

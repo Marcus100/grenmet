@@ -20,7 +20,7 @@ import type {
 } from "../models/AuthGoogleComplete.js";
 
 export const authGoogleCompleteMutationKey = () =>
-  [{ url: "/api/v1/auth/modern/google/complete" }] as const;
+  [{ url: "/api/v1/auth/google/complete" }] as const;
 
 export function authGoogleCompleteMutationOptions<TContext = unknown>(
   config: Partial<
@@ -52,7 +52,7 @@ export function authGoogleCompleteMutationOptions<TContext = unknown>(
 /**
  * @description Verify Google callback. Intentionally public; proof of account ownership is required to establish a session.
  * @summary Verify Google callback
- * {@link /api/v1/auth/modern/google/complete}
+ * {@link /api/v1/auth/google/complete}
  */
 export function useAuthGoogleComplete<TContext>(
   options: {

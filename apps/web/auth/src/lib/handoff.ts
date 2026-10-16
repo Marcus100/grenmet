@@ -9,9 +9,10 @@ import { isAuthApiError } from "./session";
 /** Single sign-on into another app (ADR-0017). */
 export type HandoffResult =
   | { kind: "redirect"; url: Route }
-  | { kind: "join"; label: string }
+  /** `request`: a staff app, where joining asks an administrator. */
+  | { kind: "join"; label: string; request: boolean }
+  | { kind: "pending"; label: string }
   | { kind: "denied"; label: string; detail: string }
-  | { kind: "verify-email" }
   | { kind: "mfa-enrol" }
   | { kind: "mfa-sign-in" }
   | { kind: "sign-in" }
@@ -37,6 +38,9 @@ export function parseHandoffRequest(
 export function continuePath({ app, state }: HandoffRequest): Route {
   return `/continue?${new URLSearchParams({ app, state })}`;
 }
+
+/** FastAPI's reply once a staff-app access request is waiting. */
+const STAFF_REQUEST_PENDING = "Your request is waiting for an administrator";
 
 async function appLabel(app: string): Promise<string> {
   try {
@@ -80,11 +84,8 @@ export async function startHandoff(
           return { kind: "mfa-enrol" };
         if (error.detail.startsWith("Sign in again with your authenticator"))
           return { kind: "mfa-sign-in" };
-        if (
-          error.detail ===
-          "Verify your email address before signing in to this app."
-        ) {
-          return { kind: "verify-email" };
+        if (error.detail.startsWith(STAFF_REQUEST_PENDING)) {
+          return { kind: "pending", label: await appLabel(request.app) };
         }
         return {
           kind: "denied",
@@ -94,7 +95,11 @@ export async function startHandoff(
       case 404:
         return { kind: "unavailable" };
       case 409:
-        return { kind: "join", label: await appLabel(request.app) };
+        return {
+          kind: "join",
+          label: await appLabel(request.app),
+          request: error.detail.startsWith("Request access"),
+        };
       default:
         throw error;
     }

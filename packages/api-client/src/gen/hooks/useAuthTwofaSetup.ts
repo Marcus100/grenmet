@@ -19,7 +19,7 @@ import type {
 } from "../models/AuthTwofaSetup.js";
 
 export const authTwofaSetupMutationKey = () =>
-  [{ url: "/api/v1/2fa/setup" }] as const;
+  [{ url: "/api/v1/auth/users/me/security/2fa/setup" }] as const;
 
 export function authTwofaSetupMutationOptions<TContext = unknown>(
   config: Partial<
@@ -45,9 +45,9 @@ export function authTwofaSetupMutationOptions<TContext = unknown>(
 }
 
 /**
- * @description Generate a new TOTP secret and provisioning URI. 2FA is not active until a code is confirmed via /2fa/activate.
+ * @description Generate a new TOTP secret and provisioning URI. 2FA is not active until a code is confirmed via /auth/users/me/security/2fa/activate.
  * @summary Begin 2FA enrollment
- * {@link /api/v1/2fa/setup}
+ * {@link /api/v1/auth/users/me/security/2fa/setup}
  */
 export function useAuthTwofaSetup<TContext>(
   options: {

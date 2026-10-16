@@ -13,7 +13,7 @@ import type {
 /**
  * @description Returns eight recovery codes once after confirming password and an authenticator or existing recovery code. Only hashes are stored.
  * @summary Replace MFA recovery codes
- * {@link /api/v1/auth/modern/security/recovery-codes}
+ * {@link /api/v1/auth/users/me/security/recovery-codes}
  */
 export function authReplaceRecoveryCodes<ThrowOnError extends boolean = true>(
   options: Options<AuthReplaceRecoveryCodesOptions, ThrowOnError>
@@ -23,7 +23,7 @@ export function authReplaceRecoveryCodes<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "POST",
-      url: "/api/v1/auth/modern/security/recovery-codes",
+      url: "/api/v1/auth/users/me/security/recovery-codes",
       security: [{ type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,

@@ -18,7 +18,6 @@ from src.auth.assignments import (
 )
 from src.auth.config import auth_settings
 from src.auth.eligibility import (
-    cms_identity_ready,
     has_effective_permission,
     is_eligible_for_app,
     is_staff_eligible,
@@ -87,7 +86,6 @@ __all__ = [
     "activate_totp",
     "audit_assignment",
     "begin_totp_setup",
-    "cms_identity_ready",
     "count_role_assignments_for_role",
     "create_permission",
     "create_role",

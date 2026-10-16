@@ -19,7 +19,7 @@ import type {
 } from "../models/AuthReplaceRecoveryCodes.js";
 
 export const authReplaceRecoveryCodesMutationKey = () =>
-  [{ url: "/api/v1/auth/modern/security/recovery-codes" }] as const;
+  [{ url: "/api/v1/auth/users/me/security/recovery-codes" }] as const;
 
 export function authReplaceRecoveryCodesMutationOptions<TContext = unknown>(
   config: Partial<
@@ -49,7 +49,7 @@ export function authReplaceRecoveryCodesMutationOptions<TContext = unknown>(
 /**
  * @description Returns eight recovery codes once after confirming password and an authenticator or existing recovery code. Only hashes are stored.
  * @summary Replace MFA recovery codes
- * {@link /api/v1/auth/modern/security/recovery-codes}
+ * {@link /api/v1/auth/users/me/security/recovery-codes}
  */
 export function useAuthReplaceRecoveryCodes<TContext>(
   options: {

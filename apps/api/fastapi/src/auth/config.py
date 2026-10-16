@@ -56,9 +56,9 @@ class AuthConfig(BaseSettings):
     AUTH_TOTP_ENCRYPTION_KEYS: list[str] = []
 
     SECRET_KEY: str = secrets.token_urlsafe(32)
-    # Legacy OAuth2 bearer token (login/access-token). Short-lived by default: the
+    # Legacy OAuth2 bearer token (/auth/token). Short-lived by default: the
     # primary web path is the cookie-session (15-min access + 30-day rotating
-    # session via /login/session/refresh), so bearer tokens need not be long-lived.
+    # session via /auth/sessions/refresh), so bearer tokens need not be long-lived.
     # Override ACCESS_TOKEN_EXPIRE_MINUTES for non-interactive/service clients if needed.
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     SESSION_ACCESS_TOKEN_EXPIRE_MINUTES: int = 15

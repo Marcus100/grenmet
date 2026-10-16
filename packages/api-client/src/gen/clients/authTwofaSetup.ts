@@ -11,9 +11,9 @@ import type {
 } from "../models/AuthTwofaSetup.js";
 
 /**
- * @description Generate a new TOTP secret and provisioning URI. 2FA is not active until a code is confirmed via /2fa/activate.
+ * @description Generate a new TOTP secret and provisioning URI. 2FA is not active until a code is confirmed via /auth/users/me/security/2fa/activate.
  * @summary Begin 2FA enrollment
- * {@link /api/v1/2fa/setup}
+ * {@link /api/v1/auth/users/me/security/2fa/setup}
  */
 export function authTwofaSetup<ThrowOnError extends boolean = true>(
   options: Options<AuthTwofaSetupOptions, ThrowOnError> = {}
@@ -23,7 +23,7 @@ export function authTwofaSetup<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "POST",
-      url: "/api/v1/2fa/setup",
+      url: "/api/v1/auth/users/me/security/2fa/setup",
       security: [{ type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,

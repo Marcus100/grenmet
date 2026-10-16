@@ -20,7 +20,7 @@ import type {
 } from "../models/AuthAccountEmailCodeStart.js";
 
 export const authAccountEmailCodeStartMutationKey = () =>
-  [{ url: "/api/v1/auth/modern/email-code/start" }] as const;
+  [{ url: "/api/v1/auth/email-code/start" }] as const;
 
 export function authAccountEmailCodeStartMutationOptions<TContext = unknown>(
   config: Partial<
@@ -52,7 +52,7 @@ export function authAccountEmailCodeStartMutationOptions<TContext = unknown>(
 /**
  * @description Email a 6-digit code for signing in at auth.barrels.gd. The reply never reveals whether the address has an account.
  * @summary Send a Barrels account sign-in code
- * {@link /api/v1/auth/modern/email-code/start}
+ * {@link /api/v1/auth/email-code/start}
  */
 export function useAuthAccountEmailCodeStart<TContext>(
   options: {

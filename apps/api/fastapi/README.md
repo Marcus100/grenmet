@@ -4,7 +4,7 @@ Containerized FastAPI backend for the Barrels Grenada platform (serving GAA and
 GMS). The root `pnpm start`
 command orchestrates its Compose stack together with shared infrastructure.
 
-Domains: **Auth** (`/api/v1/auth/`, `/api/v1/login/`), **HR** (`/api/v1/hr/`), **CAP** (`/api/v1/cap/`, `/api/cap/`), **Webhooks** (`/api/v1/webhooks/`).
+Domains: **Auth** (`/api/v1/auth/`), **HR** (`/api/v1/hr/`), **CAP** (`/api/v1/cap/`, `/api/cap/`), **Webhooks** (`/api/v1/webhooks/`).
 
 ## Quick start
 

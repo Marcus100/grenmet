@@ -20,7 +20,7 @@ import type {
 } from "../models/AuthEmailRequest.js";
 
 export const authEmailRequestMutationKey = () =>
-  [{ url: "/api/v1/auth/modern/email/request" }] as const;
+  [{ url: "/api/v1/auth/password/setup" }] as const;
 
 export function authEmailRequestMutationOptions<TContext = unknown>(
   config: Partial<
@@ -48,7 +48,7 @@ export function authEmailRequestMutationOptions<TContext = unknown>(
 /**
  * @description Request verified password setup. Intentionally public; proof of account ownership is required to establish a session.
  * @summary Request verified password setup
- * {@link /api/v1/auth/modern/email/request}
+ * {@link /api/v1/auth/password/setup}
  */
 export function useAuthEmailRequest<TContext>(
   options: {

@@ -20,7 +20,7 @@ import type {
 } from "../models/AuthGoogleFinish.js";
 
 export const authGoogleFinishMutationKey = () =>
-  [{ url: "/api/v1/auth/modern/google/finish" }] as const;
+  [{ url: "/api/v1/auth/google/finish" }] as const;
 
 export function authGoogleFinishMutationOptions<TContext = unknown>(
   config: Partial<
@@ -48,7 +48,7 @@ export function authGoogleFinishMutationOptions<TContext = unknown>(
 /**
  * @description Finish Google sign-in with MFA. Intentionally public; proof of account ownership is required to establish a session.
  * @summary Finish Google sign-in with MFA
- * {@link /api/v1/auth/modern/google/finish}
+ * {@link /api/v1/auth/google/finish}
  */
 export function useAuthGoogleFinish<TContext>(
   options: {

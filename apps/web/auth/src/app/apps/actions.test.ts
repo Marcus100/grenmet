@@ -45,11 +45,19 @@ afterEach(() => vi.clearAllMocks());
 describe("apps actions", () => {
   it("joins and reports it", async () => {
     readSessionCookie.mockResolvedValue("account-session");
-    joinAccountApp.mockResolvedValue({ joined: true });
+    joinAccountApp.mockResolvedValue({ joined: true, pending: false });
     expect(await destination(joinAppFromAccount(form("events")))).toBe(
       "/apps?notice=joined"
     );
     expect(joinAccountApp).toHaveBeenCalledWith("events", "account-session");
+  });
+
+  it("reports a staff-app join as a request", async () => {
+    readSessionCookie.mockResolvedValue("account-session");
+    joinAccountApp.mockResolvedValue({ joined: false, pending: true });
+    expect(await destination(joinAppFromAccount(form("gaa-admin")))).toBe(
+      "/apps?notice=requested"
+    );
   });
 
   it("leaves and reports it", async () => {

@@ -13,7 +13,7 @@ import type {
 /**
  * @description Start Google sign-in. Intentionally public; proof of account ownership is required to establish a session.
  * @summary Start Google sign-in
- * {@link /api/v1/auth/modern/google/start}
+ * {@link /api/v1/auth/google/start}
  */
 export function authGoogleStart<ThrowOnError extends boolean = true>(
   options: Options<AuthGoogleStartOptions, ThrowOnError>
@@ -23,7 +23,7 @@ export function authGoogleStart<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "POST",
-      url: "/api/v1/auth/modern/google/start",
+      url: "/api/v1/auth/google/start",
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthGoogleStartResponses, ThrowOnError>>

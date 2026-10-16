@@ -17,7 +17,7 @@ remaining manual steps. Companion to `docs/fastapi-cap-audit.md`.
 | Rate limiting | slowapi now uses Redis store when `REDIS_URL` set (multi-instance safe) | in-memory fallback when unset |
 | CAP drift | Reconciled FK `ondelete=CASCADE` + TEXT types on the **model** side; consolidated `alert.identifier` to a unique index | `alembic check` → "No new upgrade operations detected" |
 | Auth | Redis-backed **account lockout** (fail-open) on both login endpoints | `LOGIN_*` settings; disabled when `REDIS_URL` unset |
-| Auth | **2FA (TOTP)**: `/2fa/setup|activate|disable|status`; enforced at both login endpoints (`totp_code` in session body, `X-TOTP-Code` header for OAuth2) | `pyotp`; `User.totp_secret`/`totp_enabled` (migration `b2d4f6a8c1e3`) |
+| Auth | **2FA (TOTP)**: `/auth/users/me/security/2fa` (GET status; `/setup`, `/activate`, `/disable`); enforced at both login endpoints (`totp_code` in session body, `X-TOTP-Code` header for OAuth2) | `pyotp`; `User.totp_secret`/`totp_enabled` (migration `b2d4f6a8c1e3`) |
 | Auth | **Token TTL cutover**: legacy bearer default 8 days → **60 min**; session access 15 min | ⚠ `.env.local` pins `ACCESS_TOKEN_EXPIRE_MINUTES=11520` — lower it for the new default to take effect |
 | CAP publishers | **PDF** (fpdf2), **social image** + **static map** (Pillow, no tiles) → Spaces | MQTT/WIS2 still out of scope (separate wis2box) |
 | Contract | `openapi.json` regenerated with 2FA routes | Run `pnpm generate:api-client` to sync the TS client |

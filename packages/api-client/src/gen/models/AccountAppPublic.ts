@@ -7,5 +7,11 @@ export type AccountAppPublic = {
   key: string;
   label: string;
   joined: boolean;
+  can_join: boolean;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  pending?: boolean;
   can_leave: boolean;
 };

@@ -19,7 +19,7 @@ import type {
 } from "../models/AuthRevokeSecuritySession.js";
 
 export const authRevokeSecuritySessionMutationKey = () =>
-  [{ url: "/api/v1/auth/modern/security/sessions/:session_id" }] as const;
+  [{ url: "/api/v1/auth/users/me/security/sessions/:session_id" }] as const;
 
 export function authRevokeSecuritySessionMutationOptions<TContext = unknown>(
   config: Partial<
@@ -49,7 +49,7 @@ export function authRevokeSecuritySessionMutationOptions<TContext = unknown>(
 /**
  * @description Revokes only a session owned by the authenticated user.
  * @summary Revoke one of your sessions
- * {@link /api/v1/auth/modern/security/sessions/:session_id}
+ * {@link /api/v1/auth/users/me/security/sessions/:session_id}
  */
 export function useAuthRevokeSecuritySession<TContext>(
   options: {

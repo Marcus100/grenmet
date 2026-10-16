@@ -13,7 +13,7 @@ import type {
 /**
  * @description Authenticate a user, create an opaque persisted session, and mint a short-lived access token.
  * @summary Create a persisted web session
- * {@link /api/v1/login/session}
+ * {@link /api/v1/auth/sessions}
  */
 export function authLoginSession<ThrowOnError extends boolean = true>(
   options: Options<AuthLoginSessionOptions, ThrowOnError>
@@ -23,7 +23,7 @@ export function authLoginSession<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "POST",
-      url: "/api/v1/login/session",
+      url: "/api/v1/auth/sessions",
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthLoginSessionResponses, ThrowOnError>>

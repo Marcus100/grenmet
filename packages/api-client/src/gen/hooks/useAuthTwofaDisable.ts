@@ -19,7 +19,7 @@ import type {
 } from "../models/AuthTwofaDisable.js";
 
 export const authTwofaDisableMutationKey = () =>
-  [{ url: "/api/v1/2fa/disable" }] as const;
+  [{ url: "/api/v1/auth/users/me/security/2fa/disable" }] as const;
 
 export function authTwofaDisableMutationOptions<TContext = unknown>(
   config: Partial<
@@ -43,7 +43,7 @@ export function authTwofaDisableMutationOptions<TContext = unknown>(
 /**
  * @description Disable 2FA after confirming the account password.
  * @summary Disable 2FA
- * {@link /api/v1/2fa/disable}
+ * {@link /api/v1/auth/users/me/security/2fa/disable}
  */
 export function useAuthTwofaDisable<TContext>(
   options: {

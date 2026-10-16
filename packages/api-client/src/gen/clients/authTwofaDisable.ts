@@ -13,7 +13,7 @@ import type {
 /**
  * @description Disable 2FA after confirming the account password.
  * @summary Disable 2FA
- * {@link /api/v1/2fa/disable}
+ * {@link /api/v1/auth/users/me/security/2fa/disable}
  */
 export function authTwofaDisable<ThrowOnError extends boolean = true>(
   options: Options<AuthTwofaDisableOptions, ThrowOnError>
@@ -23,7 +23,7 @@ export function authTwofaDisable<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "POST",
-      url: "/api/v1/2fa/disable",
+      url: "/api/v1/auth/users/me/security/2fa/disable",
       security: [{ type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,

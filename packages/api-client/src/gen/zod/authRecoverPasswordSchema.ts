@@ -4,10 +4,9 @@
  */
 
 import * as z from "zod";
+import { emailRequestSchema } from "./emailRequestSchema.js";
 import { messageSchema } from "./messageSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
-
-export const authRecoverPasswordPathEmailSchema = z.string();
 
 export const authRecoverPasswordStatus200Schema = messageSchema;
 
@@ -25,3 +24,5 @@ export const authRecoverPasswordErrorSchema = z.union([
   authRecoverPasswordStatus422Schema,
   authRecoverPasswordStatus429Schema,
 ]);
+
+export const authRecoverPasswordBodySchema = emailRequestSchema;

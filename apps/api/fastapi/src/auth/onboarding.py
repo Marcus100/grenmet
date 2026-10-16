@@ -206,8 +206,6 @@ async def status(
         common.append(AccessBlocker.INACTIVE)
     if user.password_setup_pending and user.email_verified_at is None:
         common.append(AccessBlocker.PASSWORD_SETUP)
-    if user.email_verification_required and user.email_verified_at is None:
-        common.append(AccessBlocker.EMAIL_VERIFICATION)
     requires_mfa = auth_settings.AUTH_PRIVILEGED_MFA_MODE == "enforce" and (
         user.is_superuser
         or await service.has_effective_permission(
@@ -220,11 +218,6 @@ async def status(
     if user.registration_pending:
         staff.append(AccessBlocker.STAFF_APPROVAL)
     cms = [*common]
-    if (
-        not service.cms_identity_ready(user)
-        and AccessBlocker.EMAIL_VERIFICATION not in cms
-    ):
-        cms.append(AccessBlocker.EMAIL_VERIFICATION)
     if not user.is_superuser and user.cms_access not in {"writer", "publisher"}:
         cms.append(AccessBlocker.CMS_GRANT)
     pending = await session.scalar(

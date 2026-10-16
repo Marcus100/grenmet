@@ -10,6 +10,7 @@ import logging
 import secrets
 import uuid
 from datetime import datetime, timedelta
+from typing import NoReturn
 from urllib.parse import urlencode
 
 import httpx
@@ -631,6 +632,23 @@ async def _account_session_user(
     return account, user
 
 
+STAFF_REQUEST_PENDING = "Your request is waiting for an administrator to approve it."
+
+
+async def _staff_app_request(
+    session: AsyncSession, user: User, app: AppDefinition, *, join: bool
+) -> NoReturn:
+    """A staff app's "Join" asks for staff access; an administrator approves it."""
+    if not user.registration_pending:
+        raise AppException(
+            "Ask an administrator to approve your account for staff tools.", 403
+        )
+    if user.staff_access_requested_at is None and not join:
+        raise AppException(f"Request access to {app.label} to continue.", 409)
+    await service.request_staff_access(session=session, user=user)
+    raise AppException(STAFF_REQUEST_PENDING, 403)
+
+
 async def handoff_start(
     *, session: AsyncSession, app: AppDefinition, body: AppHandoffStart
 ) -> AppHandoffCode:
@@ -643,22 +661,13 @@ async def handoff_start(
     account, user = await _account_session_user(session, body.session_token)
     if app.scope == "staff":
         if not service.is_staff_eligible(user):
-            raise AppException(
-                "Ask an administrator to approve your account for staff tools.",
-                403,
-            )
-    elif user.email_verified_at is None and not (
-        app.key == "cms" and service.cms_identity_ready(user)
-    ):
-        raise AppException(
-            "Verify your email address before signing in to this app.", 403
-        )
+            await _staff_app_request(session, user, app, join=body.join)
     elif not await service.is_eligible_for_app(
         session=session, user=user, app_key=app.key
     ):
         if not app.self_signup:
             raise AppException("Ask the team to give you access to this app.", 403)
-        if app.join_prompt and not body.join:
+        if not body.join:
             raise AppException(f"Join {app.label} to continue.", 409)
         await ensure_member(session, user, app)
         if not await service.is_eligible_for_app(
@@ -828,33 +837,63 @@ def _self_service(app: AppDefinition) -> bool:
     return app.scope == "app" and app.self_signup
 
 
+def _can_join(app: AppDefinition) -> bool:
+    """Self-service apps join instantly; staff apps take an access request."""
+    return _self_service(app) or app.scope == "staff"
+
+
+async def _uses_app(session: AsyncSession, user: User, app: AppDefinition) -> bool:
+    if app.scope == "staff":
+        return service.is_staff_eligible(user)
+    return await service.is_eligible_for_app(
+        session=session, user=user, app_key=app.key
+    )
+
+
 async def list_account_apps(
     *, session: AsyncSession, session_token: str
 ) -> list[AccountAppPublic]:
     """Every single sign-on app, and whether this account can use it now."""
     _, user = await _account_session_user(session, session_token)
-    return [
-        AccountAppPublic(
-            key=app.key,
-            label=app.label,
-            joined=await service.is_eligible_for_app(
-                session=session, user=user, app_key=app.key
-            ),
-            can_leave=_self_service(app),
+    apps: list[AccountAppPublic] = []
+    for app in registered_apps():
+        joined = await _uses_app(session, user, app)
+        apps.append(
+            AccountAppPublic(
+                key=app.key,
+                label=app.label,
+                joined=joined,
+                can_join=_can_join(app),
+                pending=app.scope == "staff"
+                and not joined
+                and user.registration_pending
+                and user.staff_access_requested_at is not None,
+                can_leave=_self_service(app),
+            )
         )
-        for app in registered_apps()
-    ]
+    return apps
 
 
 async def join_account_app(
     *, session: AsyncSession, app: AppDefinition, session_token: str
 ) -> AppJoinResult:
-    """Join an app from the account page, without signing in to it."""
+    """Join an app from the account page, without signing in to it.
+
+    Self-service apps join instantly; a staff app records an access request
+    for an administrator to approve.
+    """
     _, user = await _account_session_user(session, session_token)
+    if app.scope == "staff":
+        if service.is_staff_eligible(user):
+            return AppJoinResult(joined=True)
+        if not user.registration_pending:
+            raise AppException(
+                "Ask an administrator to approve your account for staff tools.", 403
+            )
+        await service.request_staff_access(session=session, user=user)
+        return AppJoinResult(joined=False, pending=True)
     if not _self_service(app):
         raise AppException("Ask the team to give you access to this app.", 403)
-    if user.email_verified_at is None:
-        raise AppException("Verify your email address before joining an app.", 403)
     await ensure_member(session, user, app)
     return AppJoinResult(joined=True)
 

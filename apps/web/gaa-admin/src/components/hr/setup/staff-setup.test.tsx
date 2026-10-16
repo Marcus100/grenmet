@@ -181,7 +181,7 @@ it("prefills and persists verified service facts and exposes server validation",
   ).toBeInTheDocument();
 });
 
-it("permits staff approval after administrator activation without a mailbox", async () => {
+it("permits staff approval with an unverified email and no mailbox, with a warning", async () => {
   const approved: string[] = [];
   server.use(
     http.get(`${BASE}/api/v1/hr/setup/staff`, () =>
@@ -207,6 +207,9 @@ it("permits staff approval after administrator activation without a mailbox", as
   fireEvent.click(await screen.findByText("Test Staff · draft"));
   const button = screen.getByRole("button", { name: "Approve staff access" });
   expect(button).toBeEnabled();
+  expect(screen.getByRole("note")).toHaveTextContent(
+    "This email address isn’t verified yet."
+  );
   fireEvent.click(button);
   await waitFor(() => expect(approved).toEqual([user.user_id]));
   expect(
@@ -214,7 +217,7 @@ it("permits staff approval after administrator activation without a mailbox", as
   ).not.toBeChecked();
 });
 
-it("blocks staff approval while identity activation is incomplete", async () => {
+it("blocks staff approval until the account is ready", async () => {
   server.use(
     http.get(`${BASE}/api/v1/hr/setup/staff`, () =>
       HttpResponse.json([

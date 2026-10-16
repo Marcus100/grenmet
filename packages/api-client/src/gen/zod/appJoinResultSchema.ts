@@ -7,4 +7,5 @@ import * as z from "zod";
 
 export const appJoinResultSchema = z.object({
   joined: z.boolean(),
+  pending: z.boolean().optional().default(false),
 });

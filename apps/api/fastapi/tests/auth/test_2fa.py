@@ -63,13 +63,13 @@ async def test_login_requires_totp_when_enabled(
     await db_async.commit()
 
     no_code = await async_client.post(
-        "/api/v1/login/session",
+        "/api/v1/auth/sessions",
         json={"email": user.email, "password": "password123"},
     )
     assert no_code.status_code == 400
 
     with_code = await async_client.post(
-        "/api/v1/login/session",
+        "/api/v1/auth/sessions",
         json={
             "email": user.email,
             "password": "password123",

@@ -13,7 +13,7 @@ import type {
 /**
  * @description Returns whether two-factor authentication is enabled for the current account.
  * @summary Get 2FA status
- * {@link /api/v1/2fa/status}
+ * {@link /api/v1/auth/users/me/security/2fa}
  */
 export function authTwofaStatus<ThrowOnError extends boolean = true>(
   options: Options<AuthTwofaStatusOptions, ThrowOnError> = {}
@@ -23,7 +23,7 @@ export function authTwofaStatus<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "GET",
-      url: "/api/v1/2fa/status",
+      url: "/api/v1/auth/users/me/security/2fa",
       security: [{ type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,

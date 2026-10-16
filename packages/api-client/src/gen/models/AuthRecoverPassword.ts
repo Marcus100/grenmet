@@ -3,12 +3,9 @@
  * Do not edit manually.
  */
 
+import type { EmailRequest } from "./EmailRequest.js";
 import type { Message } from "./Message.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
-
-export type AuthRecoverPasswordPath = {
-  email: string;
-};
 
 export type AuthRecoverPasswordStatus200 = Message;
 
@@ -20,9 +17,11 @@ export type AuthRecoverPasswordStatus422 = ValidationErrorResponse;
 
 export type AuthRecoverPasswordStatus429 = unknown;
 
+export type AuthRecoverPasswordBody = EmailRequest;
+
 export type AuthRecoverPasswordOptions = {
-  body?: never;
-  path: AuthRecoverPasswordPath;
+  body: AuthRecoverPasswordBody;
+  path?: never;
   query?: never;
   headers?: never;
 };

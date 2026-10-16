@@ -5,7 +5,11 @@ Two scopes:
 - ``app`` (self-service, e.g. Events): described below.
 - ``staff`` (GAA Admin): sessions come only from the auth.barrels.gd
   handoff, require an approved staff account, and mint ordinary staff tokens
-  so existing staff routes keep working.
+  so existing staff routes keep working. "Join" asks for staff access; an
+  administrator approves it.
+
+Every app asks "Join <app>?" once. Self-service apps join instantly; CMS is
+granted by a superuser and cannot be joined.
 
 An app-scoped session belongs to one app: its access tokens carry an ``app``
 claim, only that app's routes accept them, and staff (legacy) routes refuse
@@ -40,9 +44,6 @@ class AppDefinition:
     #: Path on ``url`` that redeems a handoff code.
     callback_path: str = "/auth/callback"
     scope: Scope = "app"
-    #: Ask "Join <app>?" before granting the default role. Information sites
-    #: join silently and show a "signed in with your Barrels account" notice.
-    join_prompt: bool = True
 
     @property
     def access_permission(self) -> str:
@@ -106,7 +107,6 @@ def _apps() -> dict[str, AppDefinition]:
             google_redirect_uri="",
             methods=frozenset(),
             client_secret=secret,
-            join_prompt=False,
         )
         for key, label, url, secret in (
             (

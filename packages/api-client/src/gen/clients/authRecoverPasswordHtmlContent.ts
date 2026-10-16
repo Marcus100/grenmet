@@ -13,7 +13,7 @@ import type {
 /**
  * @description HTML Content for Password Recovery.
  * @summary Recover Password Html Content
- * {@link /api/v1/password-recovery-html-content/:email}
+ * {@link /api/v1/auth/password/recovery/preview}
  */
 export function authRecoverPasswordHtmlContent<
   ThrowOnError extends boolean = true,
@@ -27,7 +27,7 @@ export function authRecoverPasswordHtmlContent<
   return withUnwrap(
     request({
       method: "POST",
-      url: "/api/v1/password-recovery-html-content/{email}",
+      url: "/api/v1/auth/password/recovery/preview",
       security: [{ type: "oauth2" }],
       responseType: "text",
       ...config,

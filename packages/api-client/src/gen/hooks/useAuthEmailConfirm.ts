@@ -20,7 +20,7 @@ import type {
 } from "../models/AuthEmailConfirm.js";
 
 export const authEmailConfirmMutationKey = () =>
-  [{ url: "/api/v1/auth/modern/email/confirm" }] as const;
+  [{ url: "/api/v1/auth/password/setup/confirm" }] as const;
 
 export function authEmailConfirmMutationOptions<TContext = unknown>(
   config: Partial<
@@ -48,7 +48,7 @@ export function authEmailConfirmMutationOptions<TContext = unknown>(
 /**
  * @description Verify email and establish password. Intentionally public; proof of account ownership is required to establish a session.
  * @summary Verify email and establish password
- * {@link /api/v1/auth/modern/email/confirm}
+ * {@link /api/v1/auth/password/setup/confirm}
  */
 export function useAuthEmailConfirm<TContext>(
   options: {

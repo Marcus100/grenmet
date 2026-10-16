@@ -20,7 +20,7 @@ import type {
 } from "../models/AuthGetAccountSecurity.js";
 
 export const authGetAccountSecurityQueryKey = () =>
-  [{ url: "/api/v1/auth/modern/security" }] as const;
+  [{ url: "/api/v1/auth/users/me/security" }] as const;
 
 type AuthGetAccountSecurityQueryKey = ReturnType<
   typeof authGetAccountSecurityQueryKey
@@ -56,7 +56,7 @@ export function authGetAccountSecurityQueryOptions(
 /**
  * @description Show verified sign-in methods and active sessions for the current account, without exposing session secrets.
  * @summary Read account security
- * {@link /api/v1/auth/modern/security}
+ * {@link /api/v1/auth/users/me/security}
  */
 export function useAuthGetAccountSecurity<
   TData = AuthGetAccountSecurityStatus200,

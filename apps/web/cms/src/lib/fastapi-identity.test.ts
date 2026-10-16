@@ -19,7 +19,7 @@ function mockIdentity({
     if (!(input instanceof Request)) throw new Error("Expected Request");
     expect(input.cache).toBe("no-store");
     const url = new URL(input.url);
-    if (url.pathname.endsWith("/session/access-token")) {
+    if (url.pathname.endsWith("/sessions/access-token")) {
       expect(await input.json()).toEqual({ session_token: "valid-session" });
       return Response.json({
         user: { id: "staff-id", is_active: active },
