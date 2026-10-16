@@ -11,7 +11,7 @@ import { SiteSearch } from "@/components/site-search";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { WarningRibbon } from "@/components/warning-ribbon";
 import { WarningStatusPill } from "@/components/warning-status-pill";
-import type { AlertsResult } from "@/lib/cap";
+import type { AlertsResult } from "@/lib/cap-alerts";
 import { cn } from "@/lib/utils";
 
 interface HeaderProps {

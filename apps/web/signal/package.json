@@ -33,6 +33,7 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "remark-gfm": "catalog:",
+    "server-only": "catalog:",
     "zod": "catalog:"
   },
   "devDependencies": {

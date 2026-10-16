@@ -639,6 +639,9 @@ importers:
       remark-mdx:
         specifier: ^3.1.1
         version: 3.1.1(supports-color@8.1.1)
+      server-only:
+        specifier: 'catalog:'
+        version: 0.0.1
       shiki:
         specifier: ^4.5.0
         version: 4.5.0
@@ -1051,6 +1054,9 @@ importers:
       react-markdown:
         specifier: 'catalog:'
         version: 10.1.0(@types/react@19.3.0)(react@19.3.0)(supports-color@8.1.1)
+      server-only:
+        specifier: 'catalog:'
+        version: 0.0.1
       zod:
         specifier: 'catalog:'
         version: 4.6.5
@@ -1151,6 +1157,9 @@ importers:
       remark-gfm:
         specifier: 'catalog:'
         version: 4.0.1(supports-color@8.1.1)
+      server-only:
+        specifier: 'catalog:'
+        version: 0.0.1
       zod:
         specifier: 'catalog:'
         version: 4.6.5
@@ -1245,6 +1254,9 @@ importers:
       remark-gfm:
         specifier: 'catalog:'
         version: 4.0.1(supports-color@8.1.1)
+      server-only:
+        specifier: 'catalog:'
+        version: 0.0.1
       zod:
         specifier: 'catalog:'
         version: 4.6.5

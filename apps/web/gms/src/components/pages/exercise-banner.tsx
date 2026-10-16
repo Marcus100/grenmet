@@ -1,4 +1,4 @@
-import { type AlertsResult, exerciseStatuses } from "@/lib/cap";
+import { type AlertsResult, exerciseStatuses } from "@/lib/cap-alerts";
 
 /**
  * Shown whenever any active CAP message carries a status other than `Actual`.

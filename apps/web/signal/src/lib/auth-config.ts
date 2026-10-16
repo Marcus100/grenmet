@@ -1,3 +1,4 @@
+import "server-only";
 import type { AuthConfig } from "@barrelsgd/auth";
 import { env } from "@/lib/env";
 

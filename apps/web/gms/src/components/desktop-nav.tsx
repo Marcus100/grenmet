@@ -7,7 +7,11 @@ import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { RefObject } from "react";
-import { type AlertsResult, alertsLevel, alertsSummary } from "@/lib/cap";
+import {
+  type AlertsResult,
+  alertsLevel,
+  alertsSummary,
+} from "@/lib/cap-alerts";
 import {
   NAV_SECTIONS,
   type NavFeature,

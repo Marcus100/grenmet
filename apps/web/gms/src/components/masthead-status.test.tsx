@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { MobileTabBar } from "@/components/mobile-tab-bar";
 import { WarningRibbon } from "@/components/warning-ribbon";
-import type { AlertsResult } from "@/lib/cap";
+import type { AlertsResult } from "@/lib/cap-alerts";
 
 const route = vi.hoisted(() => ({ pathname: "/alerts" }));
 vi.mock("next/navigation", () => ({ usePathname: () => route.pathname }));

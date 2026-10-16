@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { LocationSwitcher } from "@/components/home/location-switcher";
-import type { AlertsResult, PublicAlert } from "@/lib/cap";
+import type { AlertsResult, PublicAlert } from "@/lib/cap-alerts";
 import { REFERENCE_WEATHER } from "@/lib/forecast-data";
 import { alertsForLocation, weatherForLocation } from "@/lib/location-data";
 import {

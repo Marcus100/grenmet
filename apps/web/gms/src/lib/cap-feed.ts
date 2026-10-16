@@ -1,3 +1,4 @@
+import "server-only";
 import { env } from "@/lib/env";
 import { reportError } from "@/lib/report-error";
 

@@ -1,6 +1,10 @@
 import { TriangleAlertIcon } from "lucide-react";
 import Link from "next/link";
-import { type AlertsResult, alertsLevel, alertsSummary } from "@/lib/cap";
+import {
+  type AlertsResult,
+  alertsLevel,
+  alertsSummary,
+} from "@/lib/cap-alerts";
 import { cn } from "@/lib/utils";
 import { WARNING_LEVEL_SURFACE } from "@/lib/warning-level";
 

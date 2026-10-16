@@ -43,6 +43,7 @@
     "remark": "^15.0.1",
     "remark-gfm": "catalog:",
     "remark-mdx": "^3.1.1",
+    "server-only": "catalog:",
     "shiki": "^4.5.0",
     "unist-util-visit": "^5.1.0",
     "zod": "catalog:",
