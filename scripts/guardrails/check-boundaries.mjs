@@ -12,23 +12,28 @@ import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const SOURCE = /\.(?:[cm]?[jt]sx?)$/;
+// Skipped at any depth.
 const SKIP_DIRS = new Set([
   "node_modules",
   ".next",
   ".turbo",
-  "dist",
-  "build",
   "coverage",
-  "gen",
   "playwright-report",
   "test-results",
 ]);
+// Build output directly inside a workspace, and the generated API client.
+const SKIP_WORKSPACE_DIRS = new Set(["dist", "build"]);
+const GENERATED = "packages/api-client/src/gen";
 // from "x" | import "x" | import("x") | require("x")
 const SPECIFIER =
   /(?:\bfrom\s*|\bimport\s*\(?\s*|\brequire\s*\(\s*)["']([^"'\n]+)["']/g;
 const DATABASE_CLIENT =
   /^(?:pg|pg-pool|postgres|mysql2?|kysely|ioredis|redis|@prisma\/client|drizzle-orm(?:\/.*)?|@vercel\/postgres|@neondatabase\/serverless)$/;
 const ROUTE_HANDLER = /(?:^|\/)route\.[cm]?[jt]sx?$/;
+
+function posix(root, path) {
+  return relative(root, path).split(sep).join("/");
+}
 
 /** The workspace an absolute path belongs to: "apps/web/gms", "packages/ui", or null. */
 function workspaceOf(root, file) {
@@ -37,6 +42,18 @@ function workspaceOf(root, file) {
     return parts.slice(0, 3).join("/");
   if (parts[0] === "packages" && parts[1]) return parts.slice(0, 2).join("/");
   return null;
+}
+
+function isOwnPackage(specifier, own) {
+  return specifier === own || specifier.startsWith(`${own}/`);
+}
+
+// Blanks out comments but keeps newlines, so match offsets map to line numbers.
+// `//` preceded by `:` is left alone so URLs in strings survive.
+function stripComments(source) {
+  return source
+    .replace(/\/\*[\s\S]*?\*\//g, (comment) => comment.replace(/[^\n]/g, " "))
+    .replace(/(^|[^:])\/\/[^\n]*/g, (_, before) => before);
 }
 
 export const rules = [
@@ -55,7 +72,7 @@ export const rules = [
       from.startsWith("apps/web/") &&
       ((specifier.startsWith("@barrelsgd/web-") &&
         // An app's own package name is allowed (rare, but not a boundary leak).
-        specifier !== `@barrelsgd/web-${from.split("/")[2]}`) ||
+        !isOwnPackage(specifier, `@barrelsgd/web-${from.split("/")[2]}`)) ||
         (target?.startsWith("apps/") === true && target !== from)),
   },
   {
@@ -84,7 +101,7 @@ export const rules = [
   },
 ];
 
-function* sourceFiles(directory) {
+function* sourceFiles(root, directory) {
   let entries;
   try {
     entries = readdirSync(directory, { withFileTypes: true });
@@ -92,11 +109,17 @@ function* sourceFiles(directory) {
     return;
   }
   for (const entry of entries) {
+    const path = join(directory, entry.name);
     if (entry.isDirectory()) {
-      if (!SKIP_DIRS.has(entry.name) && !entry.name.startsWith("."))
-        yield* sourceFiles(join(directory, entry.name));
+      const skip =
+        SKIP_DIRS.has(entry.name) ||
+        entry.name.startsWith(".") ||
+        (SKIP_WORKSPACE_DIRS.has(entry.name) &&
+          posix(root, directory) === workspaceOf(root, directory)) ||
+        posix(root, path) === GENERATED;
+      if (!skip) yield* sourceFiles(root, path);
     } else if (SOURCE.test(entry.name) && !entry.name.endsWith(".d.ts")) {
-      yield join(directory, entry.name);
+      yield path;
     }
   }
 }
@@ -105,30 +128,28 @@ function* sourceFiles(directory) {
 export function findViolations(root) {
   const violations = [];
   for (const base of [join(root, "apps", "web"), join(root, "packages")]) {
-    for (const path of sourceFiles(base)) {
+    for (const path of sourceFiles(root, base)) {
       const from = workspaceOf(root, path);
       if (!from) continue;
-      const file = relative(root, path).split(sep).join("/");
-      const lines = readFileSync(path, "utf8").split("\n");
-      lines.forEach((text, index) => {
-        if (/^\s*(?:\/\/|\*)/.test(text)) return;
-        for (const match of text.matchAll(SPECIFIER)) {
-          const specifier = match[1];
-          const target = specifier.startsWith(".")
-            ? workspaceOf(root, resolve(dirname(path), specifier))
-            : null;
-          for (const rule of rules) {
-            if (rule.test({ from, file, specifier, target }))
-              violations.push({
-                file,
-                line: index + 1,
-                specifier,
-                rule: rule.id,
-                why: rule.why,
-              });
-          }
+      const file = posix(root, path);
+      const code = stripComments(readFileSync(path, "utf8"));
+      for (const match of code.matchAll(SPECIFIER)) {
+        const specifier = match[1];
+        const line = code.slice(0, match.index).split("\n").length;
+        const target = specifier.startsWith(".")
+          ? workspaceOf(root, resolve(dirname(path), specifier))
+          : null;
+        for (const rule of rules) {
+          if (rule.test({ from, file, specifier, target }))
+            violations.push({
+              file,
+              line,
+              specifier,
+              rule: rule.id,
+              why: rule.why,
+            });
         }
-      });
+      }
     }
   }
   return violations;

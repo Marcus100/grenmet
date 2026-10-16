@@ -79,7 +79,7 @@ Useful commands on a server (confirm names with `docker ps -a`):
 
 ```bash
 docker ps -a --filter label=com.docker.compose.project=grenmet
-docker logs grenmet-api-1 --tail 100
+docker compose -p grenmet logs api --tail 100
 docker logs grenmet-prestart-1 --tail 100
 docker logs grenmet-proxy-1 --tail 100
 docker logs grenmet-db-1 --tail 100

@@ -72,6 +72,21 @@ test("apps cannot import another app's source", () => {
   );
 });
 
+test("multi-line imports, own-package subpaths and nested build folders", () => {
+  assert.deepEqual(
+    rulesIn({
+      "packages/auth/src/a.ts": 'import {\n  x,\n} from\n  "@sentry/nextjs";',
+      "apps/web/auth/src/a.ts": 'import { y } from "@barrelsgd/web-auth/lib";',
+      "apps/web/gms/src/app/build/route.ts": 'import { Pool } from "pg";',
+      "apps/web/gms/build/out.js": 'import { Pool } from "pg";',
+    }),
+    [
+      "apps/web/gms/src/app/build/route.ts route-handler-database",
+      "packages/auth/src/a.ts package-imports-sentry",
+    ]
+  );
+});
+
 test("route handlers outside the CMS cannot open a database client", () => {
   assert.deepEqual(
     rulesIn({
@@ -86,8 +101,12 @@ test("route handlers outside the CMS cannot open a database client", () => {
 test("comments, generated code and node_modules are ignored", () => {
   assert.deepEqual(
     rulesIn({
-      "packages/ui/src/a.ts":
-        '// import "@sentry/nextjs";\n * from "@sentry/x"',
+      "packages/ui/src/a.ts": [
+        '// import "@sentry/nextjs";',
+        'const a = 1; // import "@sentry/node"',
+        '/* import "@sentry/x";',
+        ' * from "@sentry/y" */',
+      ].join("\n"),
       "packages/ui/node_modules/x/index.js": 'require("@sentry/node");',
       "packages/api-client/src/gen/x.ts": 'import "@barrelsgd/web-gms";',
     }),

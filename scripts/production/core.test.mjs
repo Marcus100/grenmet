@@ -79,19 +79,17 @@ state=$(dirname "$TEST_LOG")
 args="$*"
 # Rolling starts: each routed service runs old-<service> until a scaled start adds new-<service>.
 case "$*" in
+  *" ps -aq --status "*)
+    service=\${args##* }
+    [[ "$service" != "$TEST_STALE_SERVICE" ]] || echo "stale-$service"
+    exit 0 ;;
   *" ps -q "*)
     service=\${args##* }
-    echo "old-$service"
+    [[ -n "$TEST_NO_OLD" ]] || echo "old-$service"
     [[ ! -e "$state/scaled-$service" ]] || echo "new-$service"
-    exit 0 ;;
-  *" config --images "?*)
-    echo "ghcr.io/example/\${args##* }@sha256:new"
     exit 0 ;;
   *"--no-recreate --scale "*)
     touch "$state/scaled-\${args##* }"
-    exit 0 ;;
-  "inspect --format {{.Config.Image}} old-"*)
-    echo "ghcr.io/example/\${args##*old-}@sha256:$TEST_RUNNING_DIGEST"
     exit 0 ;;
   "inspect --format {{if .State.Health}}"*" new-"*)
     if [[ "\${args##*new-}" == "$TEST_UNHEALTHY_SERVICE" ]]; then echo unhealthy; else echo healthy; fi
@@ -141,6 +139,9 @@ printf '/dev/test 50000000 1000 %s 10%% /\\n' "$free"
 `,
       { mode: 0o700 }
     );
+    // Exist even when core.sh exits before calling any tool.
+    writeFileSync(join(root, "calls"), "");
+    writeFileSync(join(root, "summary"), "");
     const result = spawnSync(
       "bash",
       [join(root, "scripts/production/core.sh"), "deploy"],
@@ -164,7 +165,8 @@ printf '/dev/test 50000000 1000 %s 10%% /\\n' "$free"
           SECRET_KEY: SECRET_MARKER,
           DIAGNOSTIC_TIMEOUT: "2",
           TEST_LOG: join(root, "calls"),
-          TEST_RUNNING_DIGEST: "old",
+          TEST_NO_OLD: "",
+          TEST_STALE_SERVICE: "",
           TEST_UNHEALTHY_SERVICE: "",
           ROLLOUT_SETTLE_SECONDS: "0",
           ROLLOUT_POLL_SECONDS: "0",
@@ -416,12 +418,34 @@ test("rolling start keeps the old container when the new one is unhealthy", () =
   assert.equal(calls.includes("smoke"), false);
 });
 
-test("rolling start uses an ordinary start when the image is unchanged", () => {
+test("rolling start removes stopped leftovers before scaling", () => {
   const { result, calls } = runDeploy({
     environment: "staging",
-    extraEnv: { ROLLING_DEPLOY: "1", TEST_RUNNING_DIGEST: "new" },
+    extraEnv: { ROLLING_DEPLOY: "true", TEST_STALE_SERVICE: "web-docs" },
+  });
+  assert.equal(result.status, 0, result.stderr);
+  const removed = calls.indexOf("docker rm stale-web-docs\n");
+  const scaled = calls.indexOf("--scale web-docs=2 web-docs\n");
+  assert.ok(removed >= 0, "stale container must be removed");
+  assert.ok(scaled > removed, "removal must come before the scaled start");
+});
+
+test("rolling start uses an ordinary start when nothing is running yet", () => {
+  const { result, calls } = runDeploy({
+    environment: "staging",
+    extraEnv: { ROLLING_DEPLOY: "1", TEST_NO_OLD: "1" },
   });
   assert.equal(result.status, 0, result.stderr);
   assert.equal(calls.includes("--no-recreate --scale"), false);
   assert.ok(calls.includes("up -d --no-deps --wait --wait-timeout 300 api\n"));
+});
+
+test("an unrecognised ROLLING_DEPLOY value stops before any change", () => {
+  const { result, calls } = runDeploy({
+    environment: "staging",
+    extraEnv: { ROLLING_DEPLOY: "yes" },
+  });
+  assert.equal(result.status, 2);
+  assert.match(result.stderr, /ROLLING_DEPLOY must be/);
+  assert.equal(calls.includes("docker"), false);
 });

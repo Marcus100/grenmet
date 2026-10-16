@@ -19,6 +19,12 @@ if [[ "$operation" == backup ]]; then
   exit
 fi
 : "${GITHUB_SHA:?}" "${GHCR_TOKEN:?}" "${GITHUB_ACTOR:?}"
+# Checked before anything changes: a typo must not silently skip rolling starts.
+case "${ROLLING_DEPLOY:-}" in
+  "" | 0 | false) rolling=false ;;
+  1 | true) rolling=true ;;
+  *) echo "ROLLING_DEPLOY must be 1, true, 0, false or unset; got '$ROLLING_DEPLOY'" >&2; exit 2 ;;
+esac
 umask 077
 cleanup() {
   rm -f runtime/.env.local runtime/deploy.lock.yml runtime/bootstrap-result runtime/images.txt
@@ -74,6 +80,10 @@ finish() {
     end_phase ok
   else
     end_phase failed
+    if [[ -n "$rollout_new" ]]; then
+      echo "Removing unfinished rollout container $rollout_new; the previous one keeps serving."
+      docker rm -f "$rollout_new" >/dev/null 2>&1
+    fi
     echo "::error::Core delivery failed in phase '$current_phase' (last completed: $completed_phase) for revision $GITHUB_SHA"
     if [[ "$current_phase" == databases ]]; then
       echo "Database services were starting; migrations did not run."
@@ -103,51 +113,63 @@ finish() {
 trap finish EXIT
 
 # Returns once a container is healthy (or running, when it has no healthcheck);
-# fails as soon as it is unhealthy or stopped, or after ROLLOUT_TIMEOUT seconds.
+# fails as soon as it is unhealthy, stopped or gone, or after ROLLOUT_TIMEOUT seconds.
 wait_healthy() {
   local id=$1 state deadline=$(($(date +%s) + ${ROLLOUT_TIMEOUT:-300}))
   while (($(date +%s) < deadline)); do
-    state=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$id")
+    state=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$id") || return 1
     case "$state" in
       healthy | running) return 0 ;;
-      unhealthy | exited | dead) return 1 ;;
+      starting | created | restarting) ;;
+      *) return 1 ;;
     esac
     sleep "${ROLLOUT_POLL_SECONDS:-3}"
   done
   return 1
 }
 
+# The new container of an unfinished rollout; finish() removes it if the deploy
+# fails or is cancelled mid-rollout, so two releases are never left serving.
+rollout_new=""
+
 # Replaces one routed service without a gap: start the new container beside the
 # old one, wait until it is healthy (Traefik only routes to healthy containers),
 # then retire the old one. If the new container never becomes healthy it is
 # removed and the old one keeps serving, and the deploy fails.
 rollout() {
-  local service=$1 old new image running
+  local service=$1 old new stale
   local compose=(docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT")
-  old=$("${compose[@]}" ps -q "$service")
-  image=$("${compose[@]}" config --images "$service")
+  # Stopped containers count towards --scale, and --no-recreate would restart one
+  # on its old image instead of creating a new container. Remove them first.
+  stale=$("${compose[@]}" ps -aq --status exited --status created --status dead "$service")
   # shellcheck disable=SC2086
-  running=$([[ -z "$old" ]] || docker inspect --format '{{.Config.Image}}' $old | sort -u)
-  if [[ -z "$old" || "$running" == "$image" ]]; then
-    # First start, or the same image: an ordinary start is already gap-free or a no-op.
+  [[ -z "$stale" ]] || docker rm $stale >/dev/null
+  old=$("${compose[@]}" ps -q "$service")
+  if [[ -z "$old" ]]; then
+    # First start: nothing is serving yet, so there is no gap to avoid.
     "${compose[@]}" up -d --no-deps --wait --wait-timeout 300 "$service"
     return
   fi
+  # Always roll, even for an unchanged image: a changed environment or label
+  # also recreates the container, and recreating stops the old one first.
   echo "Rolling $service"
   "${compose[@]}" up -d --no-deps --no-recreate --scale "$service=$(($(wc -l <<<"$old") + 1))" "$service"
   new=$(comm -13 <(sort <<<"$old") <("${compose[@]}" ps -q "$service" | sort))
-  if [[ -z "$new" ]]; then
-    echo "::error::Rolling start of $service created no new container" >&2
+  if [[ -z "$new" || "$new" == *$'\n'* ]]; then
+    echo "::error::Rolling start of $service expected one new container, found: ${new:-none}" >&2
     return 1
   fi
+  rollout_new=$new
   if ! wait_healthy "$new"; then
     echo "::error::New $service container did not become healthy; the previous one is still serving" >&2
     docker logs --tail "${DIAGNOSTIC_LOG_LINES:-200}" "$new" 2>&1 || true
     docker rm -f "$new" >/dev/null
+    rollout_new=""
     return 1
   fi
   # Give Traefik's Docker provider time to add the new backend before the old one goes.
   sleep "${ROLLOUT_SETTLE_SECONDS:-5}"
+  rollout_new=""
   # shellcheck disable=SC2086
   docker stop --time 30 $old >/dev/null
   # shellcheck disable=SC2086
@@ -222,7 +244,7 @@ phase start
 # Allow the admin's 120s start period and five 30s probe intervals to finish.
 # Staging's worker recovered just after the former 180s deadline on 2026-10-06.
 # --remove-orphans retires containers of services no longer in the deployment file.
-if [[ "${ROLLING_DEPLOY:-0}" == 1 ]]; then
+if [[ "$rolling" == true ]]; then
   # Recreating a routed service stops its only container first, so Traefik has no
   # backend and every route 404s until the new one is healthy (staging run
   # 37131928180). Roll those services instead; start the rest as before.
