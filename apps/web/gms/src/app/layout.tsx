@@ -48,11 +48,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  // Deduplicated with the weather layout's call via React cache in lib/cap.
-  const alerts = await fetchActiveAlerts();
+  // Not awaited: the page renders at once and the masthead's warning status
+  // streams in when the feed answers. React cache in lib/cap shares this
+  // request with the weather surface.
+  const alerts = fetchActiveAlerts();
 
   return (
     // gm-site scopes the GMS dark palette (packages/gms foundation) to this

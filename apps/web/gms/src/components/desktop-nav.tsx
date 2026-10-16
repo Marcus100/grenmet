@@ -8,6 +8,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { RefObject } from "react";
 import {
+  type AlertsSource,
+  CHECKING_ALERTS,
+  WithAlerts,
+} from "@/components/with-alerts";
+import {
   type AlertsResult,
   alertsLevel,
   alertsSummary,
@@ -21,7 +26,7 @@ import { cn } from "@/lib/utils";
 import { WARNING_LEVEL_SURFACE } from "@/lib/warning-level";
 
 interface DesktopNavProps {
-  alerts: AlertsResult;
+  alerts: AlertsSource;
   /** The masthead; the open menu spans its full width, directly below it. */
   anchor: RefObject<HTMLElement | null>;
 }
@@ -35,11 +40,32 @@ const TRIGGER =
 const MENU_LINK =
   "block py-1 text-body text-gm-text-inverse/90 leading-body outline-none hover:text-gm-text-inverse hover:underline focus-visible:underline";
 
+function AlertsStatusNow({ alerts }: { alerts: AlertsResult }) {
+  const level = alertsLevel(alerts);
+  return (
+    <>
+      <span
+        className={cn(
+          "w-fit rounded-md px-2.5 py-1 font-bold text-body leading-body",
+          WARNING_LEVEL_SURFACE[level]
+        )}
+      >
+        {alertsSummary(alerts)}
+      </span>
+      <span className="text-body-sm text-gm-text-inverse/80 leading-body-sm">
+        {level === "unknown"
+          ? "Warning information cannot be retrieved right now. This is not an all-clear."
+          : "Live status for Grenada, Carriacou and Petite Martinique."}
+      </span>
+    </>
+  );
+}
+
 function Featured({
   alerts,
   feature,
 }: {
-  alerts: AlertsResult;
+  alerts: AlertsSource;
   feature: NavFeature;
 }) {
   const card =
@@ -50,23 +76,19 @@ function Featured({
     "mt-1 flex items-center gap-1 font-semibold text-body text-gm-lime leading-body hover:underline";
 
   if (feature.kind === "alerts") {
-    const level = alertsLevel(alerts);
     return (
       <div className={card}>
         <span className={eyebrow}>Status now</span>
-        <span
-          className={cn(
-            "w-fit rounded-md px-2.5 py-1 font-bold text-body leading-body",
-            WARNING_LEVEL_SURFACE[level]
-          )}
+        <WithAlerts
+          alerts={alerts}
+          fallback={
+            <span className="w-fit rounded-md bg-gm-text-inverse/10 px-2.5 py-1 font-bold text-body text-gm-text-inverse leading-body">
+              {CHECKING_ALERTS}
+            </span>
+          }
         >
-          {alertsSummary(alerts)}
-        </span>
-        <span className="text-body-sm text-gm-text-inverse/80 leading-body-sm">
-          {level === "unknown"
-            ? "Warning information cannot be retrieved right now. This is not an all-clear."
-            : "Live status for Grenada, Carriacou and Petite Martinique."}
-        </span>
+          {(result) => <AlertsStatusNow alerts={result} />}
+        </WithAlerts>
         <NavigationMenuPrimitive.Link
           className={cta}
           render={<Link href="/alerts" />}
@@ -108,7 +130,7 @@ function Panel({
   alerts,
   section,
 }: {
-  alerts: AlertsResult;
+  alerts: AlertsSource;
   section: NavSection;
 }) {
   // Groups flow into four columns, left to right, like the mockup.
