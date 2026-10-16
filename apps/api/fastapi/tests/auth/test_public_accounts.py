@@ -45,7 +45,7 @@ async def _public_account(db_async, email="resident@example.com") -> User:
 
 async def _sign_in(async_client, email="resident@example.com"):
     response = await async_client.post(
-        "/api/v1/login/session", json={"email": email, "password": PASSWORD}
+        "/api/v1/auth/sessions", json={"email": email, "password": PASSWORD}
     )
     assert response.status_code == 200, response.text
     return response.json()
@@ -64,7 +64,7 @@ async def test_public_accounts_sign_in_and_manage_only_their_account(
     assert me.status_code == 200
     assert me.json()["registration_pending"] is True
     assert (
-        await async_client.get("/api/v1/auth/modern/security", headers=headers)
+        await async_client.get("/api/v1/auth/users/me/security", headers=headers)
     ).status_code == 200
     assert (
         await async_client.get("/api/v1/auth/access/me", headers=headers)
@@ -76,12 +76,12 @@ async def test_public_accounts_sign_in_and_manage_only_their_account(
 
     # Exchange and refresh keep working without staff approval.
     exchanged = await async_client.post(
-        "/api/v1/login/session/access-token",
+        "/api/v1/auth/sessions/access-token",
         json={"session_token": body["session_token"]},
     )
     assert exchanged.status_code == 200
     refreshed = await async_client.post(
-        "/api/v1/login/session/refresh",
+        "/api/v1/auth/sessions/refresh",
         json={"session_token": body["session_token"]},
     )
     assert refreshed.status_code == 200
@@ -158,11 +158,11 @@ def fixed_code(monkeypatch):
 
 async def _code_sign_in(async_client, email, code="123456"):
     await async_client.post(
-        "/api/v1/auth/modern/email-code/start",
+        "/api/v1/auth/email-code/start",
         json={"email": email, "first_name": "Kezia", "last_name": "Mitchell"},
     )
     return await async_client.post(
-        "/api/v1/auth/modern/email-code/verify", json={"email": email, "code": code}
+        "/api/v1/auth/email-code/verify", json={"email": email, "code": code}
     )
 
 

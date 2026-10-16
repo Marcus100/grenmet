@@ -18,9 +18,7 @@ async def test_get_access_token(
         "username": settings.FIRST_SUPERUSER,
         "password": settings.FIRST_SUPERUSER_PASSWORD,
     }
-    r = await async_client.post(
-        f"{settings.API_V1_STR}/login/access-token", data=login_data
-    )
+    r = await async_client.post(f"{settings.API_V1_STR}/auth/token", data=login_data)
     tokens = r.json()
     assert r.status_code == 200
     assert "access_token" in tokens
@@ -34,7 +32,7 @@ async def test_create_persisted_session(
     """Test session-backed login for web clients."""
     _ = db_async
     response = await async_client.post(
-        f"{settings.API_V1_STR}/login/session",
+        f"{settings.API_V1_STR}/auth/sessions",
         json={
             "email": settings.FIRST_SUPERUSER,
             "password": settings.FIRST_SUPERUSER_PASSWORD,
@@ -66,7 +64,7 @@ async def test_exchange_session_for_access_token(
     """Test exchanging a persisted session for a short-lived access token."""
     _ = db_async
     login_response = await async_client.post(
-        f"{settings.API_V1_STR}/login/session",
+        f"{settings.API_V1_STR}/auth/sessions",
         json={
             "email": settings.FIRST_SUPERUSER,
             "password": settings.FIRST_SUPERUSER_PASSWORD,
@@ -76,7 +74,7 @@ async def test_exchange_session_for_access_token(
     session_token = login_response.json()["session_token"]
 
     exchange_response = await async_client.post(
-        f"{settings.API_V1_STR}/login/session/access-token",
+        f"{settings.API_V1_STR}/auth/sessions/access-token",
         json={"session_token": session_token},
     )
     exchange_payload = exchange_response.json()
@@ -84,8 +82,8 @@ async def test_exchange_session_for_access_token(
     assert exchange_response.status_code == 200
     assert exchange_payload["access_token"]
 
-    me_response = await async_client.post(
-        f"{settings.API_V1_STR}/login/test-token",
+    me_response = await async_client.get(
+        f"{settings.API_V1_STR}/auth/staff/me",
         headers={"Authorization": f"Bearer {exchange_payload['access_token']}"},
     )
     assert me_response.status_code == 200
@@ -99,7 +97,7 @@ async def test_refresh_session_rotates_secret(
     """Test refreshing a session rotates the opaque session secret."""
     _ = db_async
     login_response = await async_client.post(
-        f"{settings.API_V1_STR}/login/session",
+        f"{settings.API_V1_STR}/auth/sessions",
         json={
             "email": settings.FIRST_SUPERUSER,
             "password": settings.FIRST_SUPERUSER_PASSWORD,
@@ -108,7 +106,7 @@ async def test_refresh_session_rotates_secret(
     old_session_token = login_response.json()["session_token"]
 
     refresh_response = await async_client.post(
-        f"{settings.API_V1_STR}/login/session/refresh",
+        f"{settings.API_V1_STR}/auth/sessions/refresh",
         json={"session_token": old_session_token},
     )
     refresh_payload = refresh_response.json()
@@ -118,13 +116,13 @@ async def test_refresh_session_rotates_secret(
     assert refresh_payload["session_token"] != old_session_token
 
     stale_exchange = await async_client.post(
-        f"{settings.API_V1_STR}/login/session/access-token",
+        f"{settings.API_V1_STR}/auth/sessions/access-token",
         json={"session_token": old_session_token},
     )
     assert stale_exchange.status_code == 401
 
     fresh_exchange = await async_client.post(
-        f"{settings.API_V1_STR}/login/session/access-token",
+        f"{settings.API_V1_STR}/auth/sessions/access-token",
         json={"session_token": refresh_payload["session_token"]},
     )
     assert fresh_exchange.status_code == 200
@@ -137,7 +135,7 @@ async def test_logout_revokes_session(
     """Test logging out revokes the supplied session."""
     _ = db_async
     login_response = await async_client.post(
-        f"{settings.API_V1_STR}/login/session",
+        f"{settings.API_V1_STR}/auth/sessions",
         json={
             "email": settings.FIRST_SUPERUSER,
             "password": settings.FIRST_SUPERUSER_PASSWORD,
@@ -146,14 +144,14 @@ async def test_logout_revokes_session(
     session_token = login_response.json()["session_token"]
 
     logout_response = await async_client.post(
-        f"{settings.API_V1_STR}/login/session/logout",
+        f"{settings.API_V1_STR}/auth/sessions/logout",
         json={"session_token": session_token},
     )
     assert logout_response.status_code == 200
     assert logout_response.json()["message"] == "Signed out successfully"
 
     exchange_response = await async_client.post(
-        f"{settings.API_V1_STR}/login/session/access-token",
+        f"{settings.API_V1_STR}/auth/sessions/access-token",
         json={"session_token": session_token},
     )
     assert exchange_response.status_code == 401
@@ -166,7 +164,7 @@ async def test_logout_all_revokes_every_session(
     """Test logging out all sessions invalidates multiple active sessions."""
     _ = db_async
     first_login = await async_client.post(
-        f"{settings.API_V1_STR}/login/session",
+        f"{settings.API_V1_STR}/auth/sessions",
         json={
             "email": settings.FIRST_SUPERUSER,
             "password": settings.FIRST_SUPERUSER_PASSWORD,
@@ -174,7 +172,7 @@ async def test_logout_all_revokes_every_session(
         },
     )
     second_login = await async_client.post(
-        f"{settings.API_V1_STR}/login/session",
+        f"{settings.API_V1_STR}/auth/sessions",
         json={
             "email": settings.FIRST_SUPERUSER,
             "password": settings.FIRST_SUPERUSER_PASSWORD,
@@ -185,18 +183,18 @@ async def test_logout_all_revokes_every_session(
     second_token = second_login.json()["session_token"]
 
     logout_all = await async_client.post(
-        f"{settings.API_V1_STR}/login/session/logout-all",
+        f"{settings.API_V1_STR}/auth/sessions/logout-all",
         json={"session_token": first_token},
     )
     assert logout_all.status_code == 200
     assert logout_all.json()["message"] == "Signed out from all sessions successfully"
 
     first_exchange = await async_client.post(
-        f"{settings.API_V1_STR}/login/session/access-token",
+        f"{settings.API_V1_STR}/auth/sessions/access-token",
         json={"session_token": first_token},
     )
     second_exchange = await async_client.post(
-        f"{settings.API_V1_STR}/login/session/access-token",
+        f"{settings.API_V1_STR}/auth/sessions/access-token",
         json={"session_token": second_token},
     )
     assert first_exchange.status_code == 401
@@ -211,9 +209,7 @@ async def test_get_access_token_incorrect_password(
         "username": settings.FIRST_SUPERUSER,
         "password": "incorrect",
     }
-    r = await async_client.post(
-        f"{settings.API_V1_STR}/login/access-token", data=login_data
-    )
+    r = await async_client.post(f"{settings.API_V1_STR}/auth/token", data=login_data)
     assert r.status_code == 400
 
 
@@ -221,8 +217,8 @@ async def test_use_access_token(
     async_client: httpx.AsyncClient,
     superuser_token_headers_async: dict[str, str],
 ) -> None:
-    r = await async_client.post(
-        f"{settings.API_V1_STR}/login/test-token",
+    r = await async_client.get(
+        f"{settings.API_V1_STR}/auth/staff/me",
         headers=superuser_token_headers_async,
     )
     result = r.json()
@@ -236,10 +232,33 @@ async def test_recover_password_returns_success_for_unknown_email(
 ) -> None:
     """Password recovery should not leak whether an email exists."""
     r = await async_client.post(
-        f"{settings.API_V1_STR}/password-recovery/nonexistent@example.com",
+        f"{settings.API_V1_STR}/auth/password/recovery",
         headers=superuser_token_headers_async,
+        json={"email": "nonexistent@example.com"},
     )
     assert r.status_code == 200
+
+
+async def test_recovery_preview_takes_email_in_body(
+    async_client: httpx.AsyncClient,
+    superuser_token_headers_async: dict[str, str],
+) -> None:
+    """The superuser preview reads the email from the body, never the URL."""
+    url = f"{settings.API_V1_STR}/auth/password/recovery/preview"
+    r = await async_client.post(
+        url,
+        headers=superuser_token_headers_async,
+        json={"email": settings.FIRST_SUPERUSER},
+    )
+    assert r.status_code == 200
+    assert "text/html" in r.headers["content-type"]
+    assert r.headers["x-email-subject"]
+    r = await async_client.post(
+        url,
+        headers=superuser_token_headers_async,
+        json={"email": "nonexistent@example.com"},
+    )
+    assert r.status_code == 404
 
 
 async def test_reset_password_invalid_token(
@@ -247,7 +266,7 @@ async def test_reset_password_invalid_token(
 ) -> None:
     """Reset with an invalid token returns 400."""
     r = await async_client.post(
-        f"{settings.API_V1_STR}/reset-password/",
+        f"{settings.API_V1_STR}/auth/password/reset",
         json={"new_password": "long-new-password", "token": "invalid"},
     )
     assert r.status_code == 400
@@ -274,7 +293,7 @@ async def test_reset_password(
     )
     await db_async.commit()
     r = await async_client.post(
-        f"{settings.API_V1_STR}/reset-password/",
+        f"{settings.API_V1_STR}/auth/password/reset",
         json={"new_password": "newpassword123", "token": token},
     )
     assert r.status_code == 200

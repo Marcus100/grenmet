@@ -5,12 +5,14 @@
 ## What lives here
 - Users, roles, permissions, role assignments (`models.py`, `routers/`), 2FA/TOTP (`totp.py`, `routers/twofa.py`), lockout, devices, account security.
 - Core account logic in `service.py` (user writes, `authenticate`, `set_password`, `update_password`), with the rest split by area and re-exported through `service.__all__`, so `service.<name>` still works everywhere: `user_queries.py` (lookups), `eligibility.py` (app and staff eligibility, effective permission), `totp_enrolment.py`, `sessions.py` (sessions and access tokens), `roles.py` (roles and permission catalogue), `assignments.py` (role assignments and delegated authority). Imports point one way: `sessions` ← `eligibility`, `user_queries`; `assignments` ← `roles`; never import `service` from these. Tests patch `service.verify_password_async`, so functions that call it (`authenticate`, `update_password`) stay in `service.py`, and so do the ones that log through `service`'s logger.
-- Modern sign-in flows (`modern.py`, `modern_service.py`: email codes, Google, recovery codes) under `/api/v1/auth/modern`.
+- Account sign-in flows (`modern.py`, `modern_service.py`: email codes, Google, password setup, account security and recovery codes) under `/api/v1/auth`.
+- Sessions, tokens and passwords (`routers/login.py`): `/auth/sessions*`, `/auth/token` (OAuth2 `tokenUrl`), `/auth/staff/me` (staff gate check), `/auth/password/{recovery,reset}`. 2FA (`routers/twofa.py`) lives at `/auth/users/me/security/2fa`.
 - Browser session auth for web apps (`browser.py`) — opaque sessions per ADR-0002.
 - App-scoped sign-in (`apps.py`, `app_router.py`, `app_service.py`, `app_dependencies.py`, `otp.py`) under `/api/v1/auth/apps/{app}` — ADR-0016; single sign-on handoff (`/handoff`, `/handoff/redeem`) — ADR-0017.
 - Authorization: `policy.py` (`has_permission`, `require_permission`, `can_act_on_user…`) and `access.py` (effective roles, access reviews).
 
 ## Invariants
+- **Every auth route lives under `/api/v1/auth`.** No new top-level prefixes (the old `/login`, `/2fa`, `/password-recovery`, `/reset-password` and `/auth/modern` paths were removed on 16 October 2026 with no aliases). Never put an email address or other personal data in a path; send it in the body.
 - **Activation:** administrator approval never sets `email_verified_at`; use hashed, expiring, one-use challenges and audit lifecycle events without secrets. See `docs/operations/staff-onboarding.md`.
 - **CMS access:** `User.cms_access` is superuser-managed and independent of employment. CMS issues app-scoped tokens; live identity and session exchange recheck grants, and changes revoke CMS sessions.
 - `permissions.py` is the single catalogue. Every key passed to `require_permission(..., permission_key=...)` must exist in `PERMISSIONS`; `tests/auth/test_permission_registry.py` fails otherwise. Seeders are idempotent and run at prestart.

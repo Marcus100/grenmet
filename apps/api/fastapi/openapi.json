@@ -17,7 +17,7 @@
     }
   ],
   "paths": {
-    "/api/v1/login/access-token": {
+    "/api/v1/auth/token": {
       "post": {
         "tags": [
           "login"
@@ -65,7 +65,7 @@
         }
       }
     },
-    "/api/v1/login/session": {
+    "/api/v1/auth/sessions": {
       "post": {
         "tags": [
           "login"
@@ -113,7 +113,7 @@
         }
       }
     },
-    "/api/v1/login/session/access-token": {
+    "/api/v1/auth/sessions/access-token": {
       "post": {
         "tags": [
           "login"
@@ -155,7 +155,7 @@
         }
       }
     },
-    "/api/v1/login/session/refresh": {
+    "/api/v1/auth/sessions/refresh": {
       "post": {
         "tags": [
           "login"
@@ -197,7 +197,7 @@
         }
       }
     },
-    "/api/v1/login/session/logout": {
+    "/api/v1/auth/sessions/logout": {
       "post": {
         "tags": [
           "login"
@@ -239,7 +239,7 @@
         }
       }
     },
-    "/api/v1/login/session/logout-all": {
+    "/api/v1/auth/sessions/logout-all": {
       "post": {
         "tags": [
           "login"
@@ -281,14 +281,14 @@
         }
       }
     },
-    "/api/v1/login/test-token": {
-      "post": {
+    "/api/v1/auth/staff/me": {
+      "get": {
         "tags": [
           "login"
         ],
-        "summary": "Test Token",
-        "description": "Test access token.",
-        "operationId": "authTestToken",
+        "summary": "Check the staff gate",
+        "description": "Return the current user if the access token passes the staff gate (approval and privileged two-step verification).",
+        "operationId": "authGetStaffMe",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -324,7 +324,7 @@
         ]
       }
     },
-    "/api/v1/password-recovery/{email}": {
+    "/api/v1/auth/password/recovery": {
       "post": {
         "tags": [
           "login"
@@ -332,17 +332,16 @@
         "summary": "Recover Password",
         "description": "Password Recovery.",
         "operationId": "authRecoverPassword",
-        "parameters": [
-          {
-            "name": "email",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Email"
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailRequest"
+              }
             }
-          }
-        ],
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -355,14 +354,14 @@
             }
           },
           "422": {
+            "description": "Unprocessable Content",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ValidationErrorResponse"
                 }
               }
-            },
-            "description": "Unprocessable Content"
+            }
           },
           "429": {
             "description": "Rate limit exceeded"
@@ -370,7 +369,7 @@
         }
       }
     },
-    "/api/v1/reset-password/": {
+    "/api/v1/auth/password/reset": {
       "post": {
         "tags": [
           "login"
@@ -415,7 +414,7 @@
         }
       }
     },
-    "/api/v1/password-recovery-html-content/{email}": {
+    "/api/v1/auth/password/recovery/preview": {
       "post": {
         "tags": [
           "login"
@@ -423,22 +422,16 @@
         "summary": "Recover Password Html Content",
         "description": "HTML Content for Password Recovery.",
         "operationId": "authRecoverPasswordHtmlContent",
-        "security": [
-          {
-            "OAuth2PasswordBearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "email",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Email"
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailRequest"
+              }
             }
-          }
-        ],
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -451,14 +444,14 @@
             }
           },
           "422": {
+            "description": "Unprocessable Content",
             "content": {
               "text/html": {
                 "schema": {
                   "$ref": "#/components/schemas/ValidationErrorResponse"
                 }
               }
-            },
-            "description": "Unprocessable Content"
+            }
           },
           "401": {
             "description": "Missing or invalid credentials"
@@ -469,7 +462,12 @@
           "404": {
             "description": "Resource not found"
           }
-        }
+        },
+        "security": [
+          {
+            "OAuth2PasswordBearer": []
+          }
+        ]
       }
     },
     "/api/v1/auth/users": {
@@ -1034,7 +1032,7 @@
         }
       }
     },
-    "/api/v1/2fa/status": {
+    "/api/v1/auth/users/me/security/2fa": {
       "get": {
         "tags": [
           "2fa"
@@ -1077,13 +1075,13 @@
         ]
       }
     },
-    "/api/v1/2fa/setup": {
+    "/api/v1/auth/users/me/security/2fa/setup": {
       "post": {
         "tags": [
           "2fa"
         ],
         "summary": "Begin 2FA enrollment",
-        "description": "Generate a new TOTP secret and provisioning URI. 2FA is not active until a code is confirmed via /2fa/activate.",
+        "description": "Generate a new TOTP secret and provisioning URI. 2FA is not active until a code is confirmed via /auth/users/me/security/2fa/activate.",
         "operationId": "authTwofaSetup",
         "responses": {
           "200": {
@@ -1120,7 +1118,7 @@
         ]
       }
     },
-    "/api/v1/2fa/activate": {
+    "/api/v1/auth/users/me/security/2fa/activate": {
       "post": {
         "tags": [
           "2fa"
@@ -1170,7 +1168,7 @@
         ]
       }
     },
-    "/api/v1/2fa/disable": {
+    "/api/v1/auth/users/me/security/2fa/disable": {
       "post": {
         "tags": [
           "2fa"
@@ -20710,7 +20708,7 @@
         }
       }
     },
-    "/api/v1/auth/modern/email/request": {
+    "/api/v1/auth/password/setup": {
       "post": {
         "tags": [
           "modern-auth"
@@ -20758,7 +20756,7 @@
         }
       }
     },
-    "/api/v1/auth/modern/email/confirm": {
+    "/api/v1/auth/password/setup/confirm": {
       "post": {
         "tags": [
           "modern-auth"
@@ -20806,7 +20804,7 @@
         }
       }
     },
-    "/api/v1/auth/modern/google/start": {
+    "/api/v1/auth/google/start": {
       "post": {
         "tags": [
           "modern-auth"
@@ -20854,7 +20852,7 @@
         }
       }
     },
-    "/api/v1/auth/modern/google/complete": {
+    "/api/v1/auth/google/complete": {
       "post": {
         "tags": [
           "modern-auth"
@@ -20902,7 +20900,7 @@
         }
       }
     },
-    "/api/v1/auth/modern/google/finish": {
+    "/api/v1/auth/google/finish": {
       "post": {
         "tags": [
           "modern-auth"
@@ -20950,7 +20948,7 @@
         }
       }
     },
-    "/api/v1/auth/modern/security": {
+    "/api/v1/auth/users/me/security": {
       "get": {
         "tags": [
           "modern-auth"
@@ -20993,7 +20991,7 @@
         ]
       }
     },
-    "/api/v1/auth/modern/security/recovery-codes": {
+    "/api/v1/auth/users/me/security/recovery-codes": {
       "post": {
         "tags": [
           "modern-auth"
@@ -21043,7 +21041,7 @@
         ]
       }
     },
-    "/api/v1/auth/modern/security/sessions/{session_id}": {
+    "/api/v1/auth/users/me/security/sessions/{session_id}": {
       "delete": {
         "tags": [
           "modern-auth"
@@ -21095,7 +21093,7 @@
         }
       }
     },
-    "/api/v1/auth/modern/email-code/start": {
+    "/api/v1/auth/email-code/start": {
       "post": {
         "tags": [
           "modern-auth"
@@ -21143,7 +21141,7 @@
         }
       }
     },
-    "/api/v1/auth/modern/email-code/verify": {
+    "/api/v1/auth/email-code/verify": {
       "post": {
         "tags": [
           "modern-auth"
@@ -50471,7 +50469,7 @@
         "flows": {
           "password": {
             "scopes": {},
-            "tokenUrl": "/api/v1/login/access-token"
+            "tokenUrl": "/api/v1/auth/token"
           }
         }
       },

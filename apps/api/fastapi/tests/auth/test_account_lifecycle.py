@@ -48,11 +48,11 @@ async def test_registration_requires_verification_and_staff_approval(
     )
     for path, kwargs in [
         (
-            "/api/v1/login/session",
+            "/api/v1/auth/sessions",
             {"json": {"email": user.email, "password": password}},
         ),
         (
-            "/api/v1/login/access-token",
+            "/api/v1/auth/token",
             {"data": {"username": user.email, "password": password}},
         ),
     ]:
@@ -114,7 +114,7 @@ async def test_registration_requires_verification_and_staff_approval(
     assert card.employment_ready is False
     assert (
         await async_client.post(
-            "/api/v1/login/session", json={"email": user.email, "password": password}
+            "/api/v1/auth/sessions", json={"email": user.email, "password": password}
         )
     ).status_code == 200
 
@@ -130,10 +130,10 @@ async def test_password_reset_is_single_use_and_revokes_sessions(
     await db_async.commit()
     body = {"token": token, "new_password": "new-long-password"}
     assert (
-        await async_client.post("/api/v1/reset-password/", json=body)
+        await async_client.post("/api/v1/auth/password/reset", json=body)
     ).status_code == 200
     assert (
-        await async_client.post("/api/v1/reset-password/", json=body)
+        await async_client.post("/api/v1/auth/password/reset", json=body)
     ).status_code == 400
     assert (
         await service.get_active_session_by_secret(
@@ -274,15 +274,15 @@ async def test_registration_profile_and_offboarding_api_journey(
     token = parse_qs(urlparse(link).query)["token"][0]
     verify_body = {"token": token, "new_password": password}
     assert (
-        await async_client.post("/api/v1/auth/modern/email/confirm", json=verify_body)
+        await async_client.post("/api/v1/auth/password/setup/confirm", json=verify_body)
     ).status_code == 200
     assert (
-        await async_client.post("/api/v1/auth/modern/email/confirm", json=verify_body)
+        await async_client.post("/api/v1/auth/password/setup/confirm", json=verify_body)
     ).status_code == 400
     login_body = {"email": "api.journey@example.com", "password": password}
     # Before approval: an account session (ADR-0017) that manages the account
     # but is refused by every staff route.
-    pending = await async_client.post("/api/v1/login/session", json=login_body)
+    pending = await async_client.post("/api/v1/auth/sessions", json=login_body)
     assert pending.status_code == 200
     pending_headers = {"Authorization": "Bearer " + pending.json()["access_token"]}
     assert (
@@ -297,7 +297,7 @@ async def test_registration_profile_and_offboarding_api_journey(
     assert (
         await async_client.post(approve_url, headers=admin_headers)
     ).status_code == 409
-    login = await async_client.post("/api/v1/login/session", json=login_body)
+    login = await async_client.post("/api/v1/auth/sessions", json=login_body)
     assert login.status_code == 200
     headers = {"Authorization": "Bearer " + login.json()["access_token"]}
     assert (await async_client.post(approve_url, headers=headers)).status_code == 403
@@ -324,7 +324,7 @@ async def test_registration_profile_and_offboarding_api_journey(
         await async_client.get("/api/v1/hr/staff-card/me", headers=headers)
     ).status_code == 401
     assert (
-        await async_client.post("/api/v1/login/session", json=login_body)
+        await async_client.post("/api/v1/auth/sessions", json=login_body)
     ).status_code == 400
 
 
@@ -343,25 +343,27 @@ async def test_mfa_recovery_and_disable_api_journey(
     }
     proof = {"password": "password123", "code": pyotp.TOTP(secret).now()}
     codes_response = await async_client.post(
-        "/api/v1/auth/modern/security/recovery-codes", headers=headers, json=proof
+        "/api/v1/auth/users/me/security/recovery-codes", headers=headers, json=proof
     )
     assert codes_response.status_code == 200
     codes = codes_response.json()["codes"]
     body = {"email": user.email, "password": "password123", "totp_code": codes[0]}
     assert (
-        await async_client.post("/api/v1/login/session", json=body)
+        await async_client.post("/api/v1/auth/sessions", json=body)
     ).status_code == 200
     assert (
-        await async_client.post("/api/v1/login/session", json=body)
+        await async_client.post("/api/v1/auth/sessions", json=body)
     ).status_code == 400
     assert (
         await async_client.post(
-            "/api/v1/2fa/disable", headers=headers, json={"password": "password123"}
+            "/api/v1/auth/users/me/security/2fa/disable",
+            headers=headers,
+            json={"password": "password123"},
         )
     ).status_code == 422
     assert (
         await async_client.post(
-            "/api/v1/2fa/disable",
+            "/api/v1/auth/users/me/security/2fa/disable",
             headers=headers,
             json={"password": "password123", "code": codes[1]},
         )

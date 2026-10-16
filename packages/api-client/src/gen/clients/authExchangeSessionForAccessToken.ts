@@ -13,7 +13,7 @@ import type {
 /**
  * @description Validate a persisted session and mint a fresh access token for server-side API calls.
  * @summary Exchange a session secret for a short-lived access token
- * {@link /api/v1/login/session/access-token}
+ * {@link /api/v1/auth/sessions/access-token}
  */
 export function authExchangeSessionForAccessToken<
   ThrowOnError extends boolean = true,
@@ -27,7 +27,7 @@ export function authExchangeSessionForAccessToken<
   return withUnwrap(
     request({
       method: "POST",
-      url: "/api/v1/login/session/access-token",
+      url: "/api/v1/auth/sessions/access-token",
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<

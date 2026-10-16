@@ -13,7 +13,7 @@ import type {
 /**
  * @description Invalidate all persisted sessions belonging to the current user.
  * @summary Revoke every session for the current user
- * {@link /api/v1/login/session/logout-all}
+ * {@link /api/v1/auth/sessions/logout-all}
  */
 export function authLogoutAllSessions<ThrowOnError extends boolean = true>(
   options: Options<AuthLogoutAllSessionsOptions, ThrowOnError>
@@ -23,7 +23,7 @@ export function authLogoutAllSessions<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "POST",
-      url: "/api/v1/login/session/logout-all",
+      url: "/api/v1/auth/sessions/logout-all",
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthLogoutAllSessionsResponses, ThrowOnError>>

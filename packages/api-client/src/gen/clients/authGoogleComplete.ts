@@ -13,7 +13,7 @@ import type {
 /**
  * @description Verify Google callback. Intentionally public; proof of account ownership is required to establish a session.
  * @summary Verify Google callback
- * {@link /api/v1/auth/modern/google/complete}
+ * {@link /api/v1/auth/google/complete}
  */
 export function authGoogleComplete<ThrowOnError extends boolean = true>(
   options: Options<AuthGoogleCompleteOptions, ThrowOnError>
@@ -23,7 +23,7 @@ export function authGoogleComplete<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "POST",
-      url: "/api/v1/auth/modern/google/complete",
+      url: "/api/v1/auth/google/complete",
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthGoogleCompleteResponses, ThrowOnError>>

@@ -176,7 +176,7 @@ async function readErrorDetail(
 
 /**
  * Like authApiFetch but sends application/x-www-form-urlencoded body.
- * Used for OAuth2 /login/access-token which requires form encoding.
+ * Used for OAuth2 /auth/token which requires form encoding.
  */
 export async function authApiFormFetch<T>(
   config: AuthConfig,

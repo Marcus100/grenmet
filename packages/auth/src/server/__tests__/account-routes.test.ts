@@ -125,7 +125,7 @@ describe("signOutResponse", () => {
     );
     expect(response.status).toBe(200);
     expect(String(fetchMock.mock.calls[0]?.[0])).toBe(
-      "http://api.test/api/v1/login/session/logout"
+      "http://api.test/api/v1/auth/sessions/logout"
     );
     expect(response.cookies.get("weather_session")?.value).toBe("");
   });

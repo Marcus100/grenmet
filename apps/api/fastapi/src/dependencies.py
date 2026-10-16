@@ -47,7 +47,7 @@ from src.models import TokenPayload
 # OAuth2 scheme for token extraction
 # This extracts the Bearer token from the Authorization header
 reusable_oauth2 = OAuth2PasswordBearer(
-    tokenUrl=f"{auth_settings.API_V1_STR}/login/access-token"
+    tokenUrl=f"{auth_settings.API_V1_STR}/auth/token"
 )
 
 

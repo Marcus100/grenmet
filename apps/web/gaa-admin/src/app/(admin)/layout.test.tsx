@@ -82,11 +82,10 @@ it("checks staff admission for a legacy account-session cookie", async () => {
     )
   );
   render(await AdminLayout({ children: <p>private legacy content</p> }));
-  expect(staffCheck).toHaveBeenCalledWith(
-    "/login/test-token",
-    expect.anything(),
-    { method: "POST", accessToken: "account-token" }
-  );
+  expect(staffCheck).toHaveBeenCalledWith("/auth/staff/me", expect.anything(), {
+    method: "GET",
+    accessToken: "account-token",
+  });
   expect(screen.queryByText("private legacy content")).not.toBeInTheDocument();
   expect(
     screen.getByRole("link", { name: "Sign in again" })

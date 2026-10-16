@@ -21,7 +21,7 @@ import type {
 } from "../models/AuthAccountEmailCodeVerify.js";
 
 export const authAccountEmailCodeVerifyMutationKey = () =>
-  [{ url: "/api/v1/auth/modern/email-code/verify" }] as const;
+  [{ url: "/api/v1/auth/email-code/verify" }] as const;
 
 export function authAccountEmailCodeVerifyMutationOptions<TContext = unknown>(
   config: Partial<
@@ -54,7 +54,7 @@ export function authAccountEmailCodeVerifyMutationOptions<TContext = unknown>(
 /**
  * @description Verify the code and open an account session (ADR-0017); the first verified code creates the account when sign-up is open.
  * @summary Sign in to the Barrels account with an email code
- * {@link /api/v1/auth/modern/email-code/verify}
+ * {@link /api/v1/auth/email-code/verify}
  */
 export function useAuthAccountEmailCodeVerify<TContext>(
   options: {

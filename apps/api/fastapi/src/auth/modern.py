@@ -24,11 +24,11 @@ from src.dependencies import AccountUser, SessionDep
 from src.models import Message
 from src.rate_limit import limiter
 
-router = APIRouter(prefix="/auth/modern", tags=["modern-auth"])
+router = APIRouter(prefix="/auth", tags=["modern-auth"])
 
 
 @router.post(
-    "/email/request",
+    "/password/setup",
     response_model=Message,
     summary="Request verified password setup",
     status_code=200,
@@ -46,7 +46,7 @@ async def email_request(
 
 
 @router.post(
-    "/email/confirm",
+    "/password/setup/confirm",
     response_model=Message,
     summary="Verify email and establish password",
     status_code=200,
@@ -118,7 +118,7 @@ async def google_finish(
 
 
 @router.get(
-    "/security",
+    "/users/me/security",
     response_model=AccountSecurityPublic,
     status_code=200,
     summary="Read account security",
@@ -135,7 +135,7 @@ async def read_account_security(
 
 
 @router.post(
-    "/security/recovery-codes",
+    "/users/me/security/recovery-codes",
     response_model=RecoveryCodesPublic,
     status_code=200,
     summary="Replace MFA recovery codes",
@@ -157,7 +157,7 @@ async def replace_recovery_codes(
 
 
 @router.delete(
-    "/security/sessions/{session_id}",
+    "/users/me/security/sessions/{session_id}",
     response_model=Message,
     status_code=200,
     summary="Revoke one of your sessions",

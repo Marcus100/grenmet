@@ -141,7 +141,7 @@ async def test_app_session_exchange_and_refresh_keep_the_app_claim(
     _ = (db_async, fixed_code)
     secret = (await _sign_up(async_client)).json()["session_token"]
     exchanged = await async_client.post(
-        "/api/v1/login/session/access-token", json={"session_token": secret}
+        "/api/v1/auth/sessions/access-token", json={"session_token": secret}
     )
     assert exchanged.status_code == 200
     claims = jwt.decode(
@@ -151,7 +151,7 @@ async def test_app_session_exchange_and_refresh_keep_the_app_claim(
     )
     assert claims["app"] == "events"
     refreshed = await async_client.post(
-        "/api/v1/login/session/refresh", json={"session_token": secret}
+        "/api/v1/auth/sessions/refresh", json={"session_token": secret}
     )
     assert refreshed.status_code == 200
     assert refreshed.json()["session"]["app_name"] == "events"
@@ -169,7 +169,7 @@ async def test_legacy_login_cannot_claim_an_app_name(async_client, db_async):
     db_async.add(user)
     await db_async.commit()
     response = await async_client.post(
-        "/api/v1/login/session",
+        "/api/v1/auth/sessions",
         json={
             "email": "staffer@example.com",
             "password": "Staff-password-123!",
@@ -221,7 +221,7 @@ async def test_revoking_access_ends_app_sessions(async_client, db_async, fixed_c
     db_async.add(user)
     await db_async.commit()
     response = await async_client.post(
-        "/api/v1/login/session/access-token", json={"session_token": secret}
+        "/api/v1/auth/sessions/access-token", json={"session_token": secret}
     )
     assert response.status_code == 401
     rows = (

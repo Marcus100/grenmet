@@ -177,7 +177,7 @@ async def test_only_a_live_account_session_can_start_a_handoff(
 
     secret = await _account_session(db_async)
     await async_client.post(
-        "/api/v1/login/session/logout", json={"session_token": secret}
+        "/api/v1/auth/sessions/logout", json={"session_token": secret}
     )
     assert (await _start(async_client, secret, _state(), join=True)).status_code == 401
 
@@ -250,7 +250,7 @@ async def test_staff_apps_get_staff_tokens_and_cookie_access(
 
     # Exchange and refresh keep it an ordinary staff session.
     exchanged = await async_client.post(
-        "/api/v1/login/session/access-token",
+        "/api/v1/auth/sessions/access-token",
         json={"session_token": body["session_token"]},
     )
     assert "app" not in jwt.decode(
@@ -295,7 +295,7 @@ async def test_legacy_login_cannot_claim_a_staff_app_session(async_client, db_as
     db_async.add(user)
     await db_async.commit()
     response = await async_client.post(
-        "/api/v1/login/session",
+        "/api/v1/auth/sessions",
         json={
             "email": "staffer2@example.com",
             "password": "Staff-password-123!",

@@ -13,7 +13,7 @@ import type {
 /**
  * @description Finish Google sign-in with MFA. Intentionally public; proof of account ownership is required to establish a session.
  * @summary Finish Google sign-in with MFA
- * {@link /api/v1/auth/modern/google/finish}
+ * {@link /api/v1/auth/google/finish}
  */
 export function authGoogleFinish<ThrowOnError extends boolean = true>(
   options: Options<AuthGoogleFinishOptions, ThrowOnError>
@@ -23,7 +23,7 @@ export function authGoogleFinish<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "POST",
-      url: "/api/v1/auth/modern/google/finish",
+      url: "/api/v1/auth/google/finish",
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthGoogleFinishResponses, ThrowOnError>>

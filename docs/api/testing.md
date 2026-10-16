@@ -73,7 +73,7 @@ docker compose -p grenmet-api --env-file .env.local -f docker-compose.yml exec a
 ```bash
 curl http://localhost:8000/api/v1/utils/health-check/
 curl http://localhost:8000/api/v1/openapi.json
-curl -X POST http://localhost:8000/api/v1/login/access-token \
+curl -X POST http://localhost:8000/api/v1/auth/token \
     -H "Content-Type: application/x-www-form-urlencoded" \
     -d "username=admin@weather.gd&password=changethis"
 ```

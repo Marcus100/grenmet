@@ -13,7 +13,7 @@ import type {
 /**
  * @description Confirms a TOTP code and enables two-factor authentication for the current account.
  * @summary Activate 2FA
- * {@link /api/v1/2fa/activate}
+ * {@link /api/v1/auth/users/me/security/2fa/activate}
  */
 export function authTwofaActivate<ThrowOnError extends boolean = true>(
   options: Options<AuthTwofaActivateOptions, ThrowOnError>
@@ -23,7 +23,7 @@ export function authTwofaActivate<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "POST",
-      url: "/api/v1/2fa/activate",
+      url: "/api/v1/auth/users/me/security/2fa/activate",
       security: [{ type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,

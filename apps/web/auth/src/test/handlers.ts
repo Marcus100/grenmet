@@ -28,47 +28,47 @@ const SESSION_SUCCESS = {
   },
 };
 
-export const signInSuccess = http.post(`${BASE}/login/session`, () =>
+export const signInSuccess = http.post(`${BASE}/auth/sessions`, () =>
   HttpResponse.json(SESSION_SUCCESS)
 );
 
-export const signInMalformedResponse = http.post(`${BASE}/login/session`, () =>
+export const signInMalformedResponse = http.post(`${BASE}/auth/sessions`, () =>
   HttpResponse.json({
     ...SESSION_SUCCESS,
     session_expires_at: "2026-09-20T19:13:54+0000",
   })
 );
 
-export const signInBadCredentials = http.post(`${BASE}/login/session`, () =>
+export const signInBadCredentials = http.post(`${BASE}/auth/sessions`, () =>
   HttpResponse.json({ detail: "Incorrect email or password" }, { status: 400 })
 );
 
-export const signInMfaRequired = http.post(`${BASE}/login/session`, () =>
+export const signInMfaRequired = http.post(`${BASE}/auth/sessions`, () =>
   HttpResponse.json(
     { detail: "Two-factor authentication code required or invalid" },
     { status: 400 }
   )
 );
 
-export const signInVerifyRequired = http.post(`${BASE}/login/session`, () =>
+export const signInVerifyRequired = http.post(`${BASE}/auth/sessions`, () =>
   HttpResponse.json(
     { detail: "Verify your email and set your password before signing in" },
     { status: 403 }
   )
 );
 
-export const signInAwaitingApproval = http.post(`${BASE}/login/session`, () =>
+export const signInAwaitingApproval = http.post(`${BASE}/auth/sessions`, () =>
   HttpResponse.json(
     { detail: "Your registration is awaiting administrator approval" },
     { status: 403 }
   )
 );
 
-export const signInServiceDown = http.post(`${BASE}/login/session`, () =>
+export const signInServiceDown = http.post(`${BASE}/auth/sessions`, () =>
   HttpResponse.error()
 );
 
-export const signOutSuccess = http.post(`${BASE}/login/session/logout`, () =>
+export const signOutSuccess = http.post(`${BASE}/auth/sessions/logout`, () =>
   HttpResponse.json({ message: "Logged out" })
 );
 

@@ -18,7 +18,7 @@ import type {
 } from "../models/AuthLogoutSession.js";
 
 export const authLogoutSessionMutationKey = () =>
-  [{ url: "/api/v1/login/session/logout" }] as const;
+  [{ url: "/api/v1/auth/sessions/logout" }] as const;
 
 export function authLogoutSessionMutationOptions<TContext = unknown>(
   config: Partial<
@@ -46,7 +46,7 @@ export function authLogoutSessionMutationOptions<TContext = unknown>(
 /**
  * @description Revoke the current persisted session. This endpoint is idempotent.
  * @summary Revoke a persisted session
- * {@link /api/v1/login/session/logout}
+ * {@link /api/v1/auth/sessions/logout}
  */
 export function useAuthLogoutSession<TContext>(
   options: {

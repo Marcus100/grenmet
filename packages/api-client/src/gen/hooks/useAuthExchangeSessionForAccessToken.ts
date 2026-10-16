@@ -18,7 +18,7 @@ import type {
 } from "../models/AuthExchangeSessionForAccessToken.js";
 
 export const authExchangeSessionForAccessTokenMutationKey = () =>
-  [{ url: "/api/v1/login/session/access-token" }] as const;
+  [{ url: "/api/v1/auth/sessions/access-token" }] as const;
 
 export function authExchangeSessionForAccessTokenMutationOptions<
   TContext = unknown,
@@ -48,7 +48,7 @@ export function authExchangeSessionForAccessTokenMutationOptions<
 /**
  * @description Validate a persisted session and mint a fresh access token for server-side API calls.
  * @summary Exchange a session secret for a short-lived access token
- * {@link /api/v1/login/session/access-token}
+ * {@link /api/v1/auth/sessions/access-token}
  */
 export function useAuthExchangeSessionForAccessToken<TContext>(
   options: {

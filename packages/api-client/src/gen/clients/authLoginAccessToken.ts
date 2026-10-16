@@ -13,7 +13,7 @@ import type {
 /**
  * @description OAuth2 compatible token login. Returns an access token for future requests.
  * @summary Login with OAuth2
- * {@link /api/v1/login/access-token}
+ * {@link /api/v1/auth/token}
  */
 export function authLoginAccessToken<ThrowOnError extends boolean = true>(
   options: Options<AuthLoginAccessTokenOptions, ThrowOnError>
@@ -23,7 +23,7 @@ export function authLoginAccessToken<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "POST",
-      url: "/api/v1/login/access-token",
+      url: "/api/v1/auth/token",
       contentType: { request: "application/x-www-form-urlencoded" },
       ...config,
       throwOnError: config.throwOnError ?? true,

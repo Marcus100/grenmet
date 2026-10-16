@@ -18,7 +18,7 @@ import type {
 } from "../models/AuthRefreshSession.js";
 
 export const authRefreshSessionMutationKey = () =>
-  [{ url: "/api/v1/login/session/refresh" }] as const;
+  [{ url: "/api/v1/auth/sessions/refresh" }] as const;
 
 export function authRefreshSessionMutationOptions<TContext = unknown>(
   config: Partial<
@@ -46,7 +46,7 @@ export function authRefreshSessionMutationOptions<TContext = unknown>(
 /**
  * @description Rotate a valid session secret and mint a fresh short-lived access token.
  * @summary Rotate a persisted session
- * {@link /api/v1/login/session/refresh}
+ * {@link /api/v1/auth/sessions/refresh}
  */
 export function useAuthRefreshSession<TContext>(
   options: {

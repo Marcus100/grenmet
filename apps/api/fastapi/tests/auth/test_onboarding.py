@@ -75,7 +75,7 @@ async def test_activation_without_email_preserves_grants_and_records_audit(
     state = await async_client.get(f"{BASE}/{uid}", headers=headers)
     assert state.json()["apps"][1]["available"] is True
     login = await async_client.post(
-        "/api/v1/login/session", json={"email": user.email, "password": PASSWORD}
+        "/api/v1/auth/sessions", json={"email": user.email, "password": PASSWORD}
     )
     assert login.status_code == 200, login.text
     replay = await async_client.post(
@@ -219,7 +219,7 @@ async def test_password_setup_cannot_be_bypassed_by_email_exemption(
     await db_async.commit()
     assert (
         await async_client.post(
-            "/api/v1/login/session", json={"email": user.email, "password": PASSWORD}
+            "/api/v1/auth/sessions", json={"email": user.email, "password": PASSWORD}
         )
     ).status_code == 403
     assert not service.is_staff_eligible(user)
@@ -293,7 +293,7 @@ async def test_activation_revokes_sessions_but_preserves_mfa(
     assert user.mfa_recovery_hashes == ["existing-recovery-hash"]
     assert await db_async.get(LoginSession, old_session_id) is None
     response = await async_client.post(
-        "/api/v1/login/session", json={"email": user.email, "password": PASSWORD}
+        "/api/v1/auth/sessions", json={"email": user.email, "password": PASSWORD}
     )
     assert response.status_code == 400 and "Two-factor" in response.json()["detail"]
 

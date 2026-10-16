@@ -25,7 +25,7 @@ on every endpoint that only required "signed in".
 2. **App registry.** `src/auth/apps.py` lists the scoped apps (key, URL,
    self sign-up, default role, Google redirect URI, enabled methods).
    Free-form `app_name` values on legacy sessions are not scoped; legacy
-   `/login/session` may not claim a registered key.
+   `/auth/sessions` may not claim a registered key.
 3. **Access is a permission.** `app.<key>.access` grants the app; module keys
    (`events.member.write`, `events.organiser.manage`, `events.moderate`) narrow
    it. Self sign-up grants only the app's default role (`events-member`) as a
