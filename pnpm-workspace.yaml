@@ -77,7 +77,7 @@ catalog:
   "@tanstack/react-query": ^5.104.1
 
   # UI
-  lucide-react: ^1.52.0
+  lucide-react: ^1.53.0
   "@base-ui/react": "^1.8.0"
   class-variance-authority: "^0.7.1"
   cn: ^0.4.0
@@ -149,7 +149,7 @@ catalog:
   "react-day-picker": "^10.0.2"
 
   # Error tracking
-  "@sentry/nextjs": ^11.5.0
+  "@sentry/nextjs": ^11.6.0
 
   # Analytics
   "posthog-js": ^1.438.2

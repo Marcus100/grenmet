@@ -100,6 +100,28 @@ tables only in a later release, once no deployed version reads them. That is wha
 lets the previous release keep running against the newer schema. A migration that
 cannot satisfy this needs a written recovery plan in the pull request before it merges.
 
+## Dependabot pull requests
+
+Version updates already target `dev` (`target-branch` in `.github/dependabot.yml`).
+Security updates ignore that setting and open against `main`. The **Dependabot
+retarget** workflow (`dependabot-retarget.yml`) moves each one to `dev` when it
+opens, so it follows dev → staging → main like any other change.
+
+1. **Rebase after a retarget.** The branch was cut from `main`, and a change made
+   with the workflow token does not start CI. Comment `@dependabot rebase` on the
+   pull request, then review it on `dev` once CI passes.
+2. **Vendored apps** (`surface/`, `wis2box/`): apply the bump on `dev` and record it
+   under "Local security pins" in `VENDORED.md`, so the next upstream reconcile
+   keeps it.
+3. **Deliberate pins**, for example `gdal`, which follows the devcontainer's
+   libgdal: close the pull request with the reason and make sure an `ignore` entry
+   in `.github/dependabot.yml` names it.
+4. **Superseded pull requests:** close them only once the bump is on `dev`.
+
+The workflow runs on `pull_request_target`, so it has a write token. It never
+checks out pull request code; it only changes the base branch and posts a comment.
+Keep it that way.
+
 
 ## CI acceleration rollout acceptance
 
