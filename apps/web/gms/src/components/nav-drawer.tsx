@@ -14,10 +14,11 @@ import {
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect } from "react";
 import {
-  type AlertsResult,
-  alertsLevel,
-  alertsSummary,
-} from "@/lib/cap-alerts";
+  type AlertsSource,
+  CHECKING_ALERTS,
+  WithAlerts,
+} from "@/components/with-alerts";
+import { alertsLevel, alertsSummary } from "@/lib/cap-alerts";
 import { menuSheet } from "@/lib/motion";
 import { NAV_SECTIONS } from "@/lib/nav-sections";
 import { cn } from "@/lib/utils";
@@ -34,11 +35,30 @@ interface NavDrawerProps {
   /** Shows "Sign in" with the Barrels account (ADR-0017) when configured. */
   accountLabel?: string;
   /** Live warning status, shown as a tag on the Alerts section. */
-  alerts?: AlertsResult;
+  alerts?: AlertsSource;
   onClose: () => void;
   open: boolean;
   /** Viewport y of the header's bottom edge; the menu opens beneath it. */
   top?: number;
+}
+
+function AlertsTag({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className: string;
+}) {
+  return (
+    <span
+      className={cn(
+        "truncate rounded-md px-2 py-0.5 font-bold text-caption leading-caption",
+        className
+      )}
+    >
+      {children}
+    </span>
+  );
 }
 
 export function NavDrawer({
@@ -120,14 +140,24 @@ export function NavDrawer({
                             {/* The live warning status rides on the Alerts
                                 section instead of a row of its own. */}
                             {section.href === "/alerts" && alerts && (
-                              <span
-                                className={cn(
-                                  "truncate rounded-md px-2 py-0.5 font-bold text-caption leading-caption",
-                                  WARNING_LEVEL_SURFACE[alertsLevel(alerts)]
-                                )}
+                              <WithAlerts
+                                alerts={alerts}
+                                fallback={
+                                  <AlertsTag className="bg-gm-surface-muted text-gm-text-secondary">
+                                    {CHECKING_ALERTS}
+                                  </AlertsTag>
+                                }
                               >
-                                {alertsSummary(alerts)}
-                              </span>
+                                {(result) => (
+                                  <AlertsTag
+                                    className={
+                                      WARNING_LEVEL_SURFACE[alertsLevel(result)]
+                                    }
+                                  >
+                                    {alertsSummary(result)}
+                                  </AlertsTag>
+                                )}
+                              </WithAlerts>
                             )}
                           </span>
                           <div className="flex size-11 items-center justify-center">

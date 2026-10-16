@@ -10,14 +10,18 @@ import { NavDrawer } from "@/components/nav-drawer";
 import { SiteSearch } from "@/components/site-search";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { WarningRibbon } from "@/components/warning-ribbon";
-import { WarningStatusPill } from "@/components/warning-status-pill";
-import type { AlertsResult } from "@/lib/cap-alerts";
+import {
+  CheckingStatusPill,
+  WarningStatusPill,
+} from "@/components/warning-status-pill";
+import { type AlertsSource, WithAlerts } from "@/components/with-alerts";
 import { cn } from "@/lib/utils";
 
 interface HeaderProps {
   /** Shows "Sign in" with the Barrels account (ADR-0017) when configured. */
   accountLabel?: string;
-  alerts: AlertsResult;
+  /** The warning feed; a promise streams in without holding up the page. */
+  alerts: AlertsSource;
 }
 
 const UTILITY_LINKS = [
@@ -44,7 +48,11 @@ export function Header({ alerts, accountLabel }: HeaderProps) {
 
   return (
     <>
-      <WarningRibbon alerts={alerts} />
+      {/* No ribbon while checking: it only appears for a warning or an
+          outage, and saying either before the feed answers would be wrong. */}
+      <WithAlerts alerts={alerts} fallback={null}>
+        {(result) => <WarningRibbon alerts={result} />}
+      </WithAlerts>
       <header
         className="sticky top-0 z-40 bg-gm-navy text-gm-text-inverse"
         ref={headerRef}
@@ -57,7 +65,17 @@ export function Header({ alerts, accountLabel }: HeaderProps) {
             </span>
             {/* 1024–1279px: the main bar has no room for the pill, so the
                 status sits here instead — it is never hidden. */}
-            <WarningStatusPill alerts={alerts} className="flex h-7 xl:hidden" />
+            <WithAlerts
+              alerts={alerts}
+              fallback={<CheckingStatusPill className="flex h-7 xl:hidden" />}
+            >
+              {(result) => (
+                <WarningStatusPill
+                  alerts={result}
+                  className="flex h-7 xl:hidden"
+                />
+              )}
+            </WithAlerts>
             {UTILITY_LINKS.map(({ href, label, Icon }) => (
               <Link
                 className="flex items-center gap-1.5 hover:text-gm-text-inverse hover:underline"
@@ -95,10 +113,19 @@ export function Header({ alerts, accountLabel }: HeaderProps) {
                 <AccountButton appLabel={accountLabel} />
               </div>
             ) : null}
-            <WarningStatusPill
+            <WithAlerts
               alerts={alerts}
-              className="flex lg:hidden xl:flex"
-            />
+              fallback={
+                <CheckingStatusPill className="flex lg:hidden xl:flex" />
+              }
+            >
+              {(result) => (
+                <WarningStatusPill
+                  alerts={result}
+                  className="flex lg:hidden xl:flex"
+                />
+              )}
+            </WithAlerts>
             <button
               aria-controls="site-menu"
               aria-expanded={navOpen}
