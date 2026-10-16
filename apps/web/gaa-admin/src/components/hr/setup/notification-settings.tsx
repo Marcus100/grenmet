@@ -39,6 +39,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Pencil } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { NotificationSnoozes } from "./notification-snoozes";
 
 const PARAM_LABELS: Record<keyof NotificationParams, string> = {
   remind_after_days: "Remind the approver after (days)",
@@ -339,6 +340,10 @@ export function NotificationSettings({
           </TableBody>
         </Table>
       </div>
+      <NotificationSnoozes
+        events={events}
+        organisationId={query.data.organisation_id}
+      />
       {unreachable.length > 0 ? (
         <div className="flex flex-col gap-2 rounded-xl border p-4">
           <h3 className="font-medium">

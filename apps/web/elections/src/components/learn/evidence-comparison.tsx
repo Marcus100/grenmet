@@ -1,4 +1,5 @@
 "use client";
+import type { Route } from "next";
 import Link from "next/link";
 import { useId, useState } from "react";
 import type { EvidenceMetric, MetricEvidence } from "@/data/evidence";
@@ -89,7 +90,7 @@ export function EvidenceComparison({
               return (
                 <tr className="border-el-rule border-b align-top" key={row.id}>
                   <th className="p-2 font-normal" scope="row">
-                    <Link className="underline" href={row.href}>
+                    <Link className="underline" href={row.href as Route}>
                       {row.year}
                     </Link>
                   </th>

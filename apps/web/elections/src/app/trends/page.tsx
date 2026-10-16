@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { ChartViewport } from "@/components/chart-viewport";
 import { SeatBar } from "@/components/results/seat-bar";
@@ -856,7 +856,7 @@ export default function TrendsPage() {
                   <th className="pr-2 text-left font-normal" scope="row">
                     <Link
                       className="hover:underline"
-                      href={constituencyHref(results, code)}
+                      href={constituencyHref(results, code) as Route}
                     >
                       {constituencyName(results, code)}
                     </Link>
@@ -956,7 +956,7 @@ export default function TrendsPage() {
               <li key={code}>
                 <Link
                   className="font-semibold text-base hover:underline"
-                  href={constituencyHref(results, code)}
+                  href={constituencyHref(results, code) as Route}
                 >
                   {constituencyName(results, code)}
                 </Link>
@@ -1058,7 +1058,7 @@ export default function TrendsPage() {
                 <li className="flex justify-between gap-3 py-1.5" key={b.code}>
                   <Link
                     className="hover:underline"
-                    href={constituencyHref(results, b.code)}
+                    href={constituencyHref(results, b.code) as Route}
                   >
                     {constituencyName(results, b.code)}
                   </Link>

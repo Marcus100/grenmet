@@ -276,6 +276,10 @@ async def test_create_leave_request(
     uv run --frozen --package fast-back pytest
   ```
 
+- In a fresh git worktree there is no `.env.local`; run commands through
+  `scripts/agents/api-env.sh` from the repo root (it sets the placeholder
+  values above unless you already set them), e.g.
+  `scripts/agents/api-env.sh uv run --frozen --package fast-back pytest tests/hr -q`.
 - Before pushing API changes, run the touched domains' tests
   (`pytest tests/<domain>/`); the pre-push hook does not run pytest. Parallelise
   with at most `-n 2`, as CI does — higher worker counts against the shared local

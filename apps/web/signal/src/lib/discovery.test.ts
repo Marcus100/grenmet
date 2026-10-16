@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import { describe, expect, it } from "vitest";
 import { COLLECTIONS, searchEntries, selectStories } from "./discovery";
 import { SECTIONS } from "./nav";
@@ -32,7 +33,7 @@ describe("reader discovery", () => {
   it("matches all search words without treating the query as a regular expression", () => {
     const entries = [
       {
-        href: "/weather-ready/dust",
+        href: "/weather-ready/dust" as Route,
         title: "Saharan dust",
         description: "Hazy skies",
         label: "Weather & Environment",

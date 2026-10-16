@@ -14,6 +14,7 @@ import {
   MAIN_CONTENT_ID,
   SkipLink,
 } from "@barrelsgd/ui/components/ui/skip-link";
+import { env } from "@/lib/env";
 
 const notoSans = Noto_Sans({
   subsets: ["latin"],
@@ -33,6 +34,8 @@ const barlowCondensed = Barlow_Condensed({
 const THEME_DEFAULTS = { theme_mode: "system" } as const;
 
 export const metadata: Metadata = {
+  // Absolute base for share-preview links; set per environment at build time.
+  metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
   title: "Grenada Meteorological Service",
   description:
     "Official weather forecasts, alerts, and bulletins for Grenada, Carriacou & Petite Martinique.",

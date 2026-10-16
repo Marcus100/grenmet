@@ -27,6 +27,7 @@ import {
 } from "@barrelsgd/ui/components/ui/sidebar";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { ChevronRight } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type {
@@ -175,8 +176,7 @@ function NavLinkItem({ item, isActive, showIconFallback }: NavLinkItemProps) {
         isActive={isActive}
         render={
           <Link
-            href={item.url}
-            prefetch={false}
+            href={item.url as Route}
             rel={item.newTab ? "noreferrer" : undefined}
             target={item.newTab ? "_blank" : undefined}
           />
@@ -248,8 +248,7 @@ function NavDropdownItem({
                         isSubItemActive(subItem.url) ? "page" : undefined
                       }
                       className="flex items-center gap-2"
-                      href={subItem.url}
-                      prefetch={false}
+                      href={subItem.url as Route}
                       rel={subItem.newTab ? "noreferrer" : undefined}
                       target={subItem.newTab ? "_blank" : undefined}
                     />
@@ -314,8 +313,7 @@ function NavCollapsibleItem({
                   isActive={isSubItemActive(subItem.url)}
                   render={
                     <Link
-                      href={subItem.url}
-                      prefetch={false}
+                      href={subItem.url as Route}
                       rel={subItem.newTab ? "noreferrer" : undefined}
                       target={subItem.newTab ? "_blank" : undefined}
                     />

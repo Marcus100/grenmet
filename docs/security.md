@@ -88,6 +88,8 @@ The following are not globally implemented yet:
 
 Do not document these as complete controls until code or infrastructure exists.
 
+The [secure development gap check](operations/ssdf-gap-check.md) compares the repository with the NIST SSDF and ranks further gaps, including disabled secret scanning and Dependabot alerts.
+
 
 
 ## Image vulnerability policy

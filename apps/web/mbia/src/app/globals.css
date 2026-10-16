@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* Native-app touch behaviour shared by every app (no PWA features). */
+@import "@barrelsgd/ui/styles/app-feel";
 @import "@barrelsgd/ui/styles/globals";
 @plugin "@tailwindcss/typography";
 

@@ -43,6 +43,25 @@ const buttonVariants = cva(
   }
 );
 
+interface LinkElementProps {
+  children?: React.ReactNode;
+  className?: string;
+  href?: unknown;
+}
+
+/** The link this button should render as, if it was given one (anything with an `href`). */
+function linkElement(
+  asChild: boolean | undefined,
+  children: React.ReactNode,
+  render: ButtonPrimitive.Props["render"]
+): React.ReactElement<LinkElementProps> | null {
+  const candidate = asChild ? children : render;
+  return React.isValidElement<LinkElementProps>(candidate) &&
+    candidate.props.href !== undefined
+    ? candidate
+    : null;
+}
+
 function Button({
   className,
   variant = "default",
@@ -53,6 +72,27 @@ function Button({
 }: ButtonPrimitive.Props &
   VariantProps<typeof buttonVariants> & { asChild?: boolean }) {
   const buttonClass = cn(buttonVariants({ variant, size, className }));
+
+  // A control that navigates must stay a link for keyboard and screen-reader
+  // users. Base UI's button gives a non-native element role="button", so a
+  // link is rendered itself with the button's styling instead.
+  const link = linkElement(asChild, children, props.render);
+  if (link) {
+    const {
+      render: _render,
+      nativeButton: _nativeButton,
+      focusableWhenDisabled: _focusable,
+      type: _type,
+      disabled: _disabled,
+      ...linkProps
+    } = props;
+    return React.cloneElement(link, {
+      ...(linkProps as Record<string, unknown>),
+      className: cn(buttonClass, link.props.className),
+      "data-slot": "button",
+      children: asChild ? link.props.children : children,
+    } as LinkElementProps);
+  }
 
   // Backward-compat: legacy call sites use `asChild` to render a child element
   // (e.g. a Next.js <Link>) as the button. Base UI expresses this via the

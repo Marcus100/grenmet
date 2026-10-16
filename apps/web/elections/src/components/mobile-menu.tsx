@@ -2,6 +2,7 @@
 
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { AnimatePresence, motion } from "motion/react";
+import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -126,7 +127,7 @@ export function MobileMenu({ status }: { status?: string }) {
                                 : undefined
                             }
                             className={SUB_ROW}
-                            href={link.href}
+                            href={link.href as Route}
                             onClick={close}
                           >
                             {link.label}
@@ -141,7 +142,7 @@ export function MobileMenu({ status }: { status?: string }) {
                       isCurrent(item.href, pathname) ? "page" : undefined
                     }
                     className={ROW}
-                    href={item.href}
+                    href={item.href as Route}
                     key={item.href}
                     onClick={close}
                   >

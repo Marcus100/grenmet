@@ -10,6 +10,7 @@ import {
   CommandList,
 } from "@barrelsgd/ui/components/ui/command";
 import { FileTextIcon, SearchIcon } from "lucide-react";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -87,7 +88,7 @@ export function SiteSearch({ className }: { className?: string }) {
   const go = (href: string) => {
     setOpen(false);
     setQuery("");
-    router.push(href);
+    router.push(href as Route);
   };
 
   const shown = query.trim() ? results : quick;

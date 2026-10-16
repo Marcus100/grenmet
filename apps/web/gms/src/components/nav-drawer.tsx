@@ -13,7 +13,11 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect } from "react";
-import { type AlertsResult, alertsLevel, alertsSummary } from "@/lib/cap";
+import {
+  type AlertsResult,
+  alertsLevel,
+  alertsSummary,
+} from "@/lib/cap-alerts";
 import { menuSheet } from "@/lib/motion";
 import { NAV_SECTIONS } from "@/lib/nav-sections";
 import { cn } from "@/lib/utils";

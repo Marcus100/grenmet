@@ -2,6 +2,7 @@ import { AccountButton } from "@barrelsgd/ui/components/account-button";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { CloseButton } from "@headlessui/react";
 import { motion, useScroll, useTransform } from "motion/react";
+import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/Button";
@@ -25,7 +26,7 @@ function TopLevelNavItem({
     <li>
       <Link
         className="text-sm/5 text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-        href={href}
+        href={href as Route}
       >
         {children}
       </Link>
@@ -78,7 +79,7 @@ export function Header({
       <Search />
       <div className={cn("flex items-center gap-5", !catalogue && "lg:hidden")}>
         <MobileNavigation />
-        <CloseButton aria-label="Home" as={Link} href="/">
+        <CloseButton aria-label="Home" as={Link} href={"/" as Route}>
           <Logo className="h-6" />
         </CloseButton>
       </div>

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { AlertsIcon, AlertsSummary } from "@/components/alerts-summary";
-import { type AlertsResult, alertsLevel } from "@/lib/cap";
+import { type AlertsResult, alertsLevel } from "@/lib/cap-alerts";
 import { cn } from "@/lib/utils";
 import { WARNING_LEVEL_SURFACE } from "@/lib/warning-level";
 

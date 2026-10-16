@@ -8,10 +8,11 @@ import {
   DropdownMenuTrigger,
 } from "@barrelsgd/ui/components/ui/dropdown-menu";
 import { MoreHorizontal } from "lucide-react";
+import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { isOptimizableImage } from "@/lib/cms";
+import { isOptimizableImage } from "@/lib/cms-images";
 import type { ProductPost } from "@/lib/editorial";
 import { cn } from "@/lib/utils";
 
@@ -79,7 +80,7 @@ export function ProductUpdateFeed({
               </div>
             </header>
             <h3 className="font-bold text-gm-heading text-nav leading-nav">
-              <Link href={post.href}>{post.title}</Link>
+              <Link href={post.href as Route}>{post.title}</Link>
             </h3>
             {mobileCarousel ? (
               <p className="line-clamp-4 text-gm-text-secondary">
@@ -95,7 +96,7 @@ export function ProductUpdateFeed({
             <Link
               aria-label={`Read ${post.title}`}
               className="relative block overflow-hidden rounded-xl"
-              href={post.href}
+              href={post.href as Route}
             >
               <Image
                 alt=""
@@ -117,7 +118,7 @@ export function ProductUpdateFeed({
             <div className="flex items-center justify-between gap-3">
               <Link
                 className="font-semibold text-gm-blue-ink underline"
-                href={post.href}
+                href={post.href as Route}
               >
                 Open update
               </Link>
@@ -184,7 +185,7 @@ function DesktopFeed({
                 <DropdownMenuItem onClick={() => onShare(post)}>
                   Share update
                 </DropdownMenuItem>
-                <DropdownMenuItem render={<Link href={post.href} />}>
+                <DropdownMenuItem render={<Link href={post.href as Route} />}>
                   Open update
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -193,7 +194,7 @@ function DesktopFeed({
           <div className="flex flex-col gap-1">
             <Link
               className="font-bold text-body-base text-gm-text-primary leading-body-base"
-              href={post.href}
+              href={post.href as Route}
             >
               {post.title}
             </Link>
@@ -204,7 +205,7 @@ function DesktopFeed({
           <Link
             aria-label={`Read ${post.title}`}
             className="relative mt-auto block overflow-hidden rounded-lg"
-            href={post.href}
+            href={post.href as Route}
           >
             <Image
               alt=""

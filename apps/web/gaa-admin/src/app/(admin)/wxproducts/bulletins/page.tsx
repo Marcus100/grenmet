@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import { redirect } from "next/navigation";
 
 export default async function BulletinsPage({
@@ -11,5 +12,5 @@ export default async function BulletinsPage({
       for (const item of value) params.append(key, item);
     else if (value !== undefined) params.set(key, value);
   }
-  redirect(`/wxproducts/alerts${params.size ? `?${params}` : ""}`);
+  redirect(`/wxproducts/alerts${params.size ? `?${params}` : ""}` as Route);
 }

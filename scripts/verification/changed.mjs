@@ -20,8 +20,9 @@ const CONTRACT =
 
 // Portfolio coverage fails when a directory under these parents is not listed in
 // docs/portfolio/repository-delivery-map.md, so any change there can break it.
+// Root documents such as SECURITY.md are governed surfaces too.
 const PORTFOLIO_SURFACE =
-  /^(?:scripts|packages|infra|docs\/portfolio|\.github|\.claude|\.agents)\//;
+  /^(?:(?:scripts|packages|infra|docs\/portfolio|\.github|\.claude|\.agents)\/|[A-Z][A-Z_]*\.md$)/;
 // Smoke tests exist for these apps; they skip themselves when no dev server is up.
 const WEB_UI =
   /^apps\/web\/(?:gms|gaa-admin)\/(?:src|e2e|playwright\.config\.ts)/;
@@ -33,6 +34,9 @@ const AGENT_CONFIG =
   /^(?:\.claude|\.codex|\.agents|scripts\/(?:guardrails|agents)|\.github)\//;
 const VERIFICATION = /^scripts\/(?:verification|integrations|perf)\//;
 const DELIVERY = /^scripts\/(?:ci|production)\//;
+// The suppression ratchet in the guardrail tests counts lint and type suppressions
+// in every first-party source file, so any added or edited source file can fail it.
+const SUPPRESSIBLE = /\.(?:py|[cm]?[jt]sx?)$/;
 
 const check = (name, command, args, cwd) => ({ name, command, args, cwd });
 const pnpm = (name, ...args) => check(name, "pnpm", args);
@@ -140,6 +144,12 @@ export function planChecks(files, { base, testFiles = [], deleted = [] } = {}) {
   checks.push(...apiChecks(files, testFiles));
   for (const [matches, ruleChecks] of RULES)
     if (files.some(matches)) checks.push(...ruleChecks);
+  // CI runs the guardrail tests on every change; a deleted file cannot add a suppression.
+  if (
+    files.some((file) => SUPPRESSIBLE.test(file) && !gone.has(file)) &&
+    !checks.some((c) => c.name === "guardrails")
+  )
+    checks.push(pnpm("guardrails", "test:guardrails"));
   if (base)
     checks.push(
       check("risk tier", "node", [

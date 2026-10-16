@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import {
   type ContentCollection,
   fetchPublishedContent,
@@ -84,9 +85,12 @@ export async function News({
         <p className="font-bold text-gm-heading text-heading-sm leading-heading-sm lg:text-heading-md lg:leading-heading-md">
           {title}
         </p>
-        <a className="text-gm-blue-ink underline" href="/climate/publications">
+        <Link
+          className="text-gm-blue-ink underline"
+          href="/climate/publications"
+        >
           Reports and publications
-        </a>
+        </Link>
       </div>
 
       {result.status === "unavailable" && (

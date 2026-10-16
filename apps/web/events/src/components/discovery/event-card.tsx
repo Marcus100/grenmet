@@ -1,6 +1,7 @@
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { MapPin, Repeat } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { GoingAvatars } from "@/components/community/person-avatar";
 import { PARISH_LABELS, priceLabel } from "@/domain/labels";
@@ -36,7 +37,7 @@ export function EventCard({
   /** A lime "happening" label such as "Tonight". */
   highlight?: string;
   /** Overrides the link target, e.g. a preview with no live page. */
-  href?: string | null;
+  href?: Route | null;
   layout?: "stacked" | "row";
 }) {
   const body = (

@@ -43,7 +43,8 @@ const SETTINGS = {
 const server = setupServer(
   http.get(`${BASE}/api/v1/notifications/settings`, () =>
     HttpResponse.json(SETTINGS)
-  )
+  ),
+  http.get(`${BASE}/api/v1/notifications/snoozes`, () => HttpResponse.json([]))
 );
 
 beforeAll(() => {

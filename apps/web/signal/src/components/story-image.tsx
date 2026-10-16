@@ -29,7 +29,7 @@ export function StoryImage({
           alt={image.alt}
           className="object-cover"
           fill
-          priority={priority}
+          preload={priority}
           sizes={compact ? "224px" : "(max-width: 768px) 100vw, 640px"}
           src={image.src}
         />

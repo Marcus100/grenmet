@@ -137,7 +137,7 @@ jobs:
           push: false
           load: true
           build-args: |
-            NEXT_PUBLIC_SITE_URL=https://${{ matrix.app }}.${{ steps.ctx.outputs.environment == 'staging' && 'staging.barrels.gd' || 'barrels.gd' }}
+            NEXT_PUBLIC_SITE_URL=https://${{ matrix.host || matrix.app }}.${{ steps.ctx.outputs.environment == 'staging' && 'staging.barrels.gd' || 'barrels.gd' }}
             NEXT_PUBLIC_API_URL=${{ steps.ctx.outputs.api_url }}
             NEXT_PUBLIC_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
             NEXT_PUBLIC_SENTRY_DSN=${{ steps.telemetry.outputs.sentry_dsn }}
@@ -181,7 +181,7 @@ jobs:
           target: ${{ matrix.target || 'runner' }}
           push: true
           build-args: |
-            NEXT_PUBLIC_SITE_URL=https://${{ matrix.app }}.${{ steps.ctx.outputs.environment == 'staging' && 'staging.barrels.gd' || 'barrels.gd' }}
+            NEXT_PUBLIC_SITE_URL=https://${{ matrix.host || matrix.app }}.${{ steps.ctx.outputs.environment == 'staging' && 'staging.barrels.gd' || 'barrels.gd' }}
             NEXT_PUBLIC_API_URL=${{ steps.ctx.outputs.api_url }}
             NEXT_PUBLIC_ENVIRONMENT=${{ steps.ctx.outputs.environment }}
             NEXT_PUBLIC_SENTRY_DSN=${{ steps.telemetry.outputs.sentry_dsn }}

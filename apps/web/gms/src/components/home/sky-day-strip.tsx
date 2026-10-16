@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { TabLink } from "@/components/home/hero-selection";
 import type { ForecastDay } from "@/lib/forecast-days";
 import { cn } from "@/lib/utils";
 import { type WeatherCondition, weatherIcon } from "@/lib/weather-icons";
@@ -28,11 +28,8 @@ const SKY_TINT: Record<WeatherCondition, string> = {
 const TAB =
   "flex h-full flex-col items-center gap-0.5 border-b-4 px-1 pt-2.5 pb-2 text-center outline-none hover:bg-gm-text-inverse/10 focus-visible:ring-2 focus-visible:ring-gm-lime focus-visible:ring-inset sm:gap-1 sm:pt-3 sm:pb-3";
 
-function tabState(current: boolean) {
-  return current
-    ? "border-gm-lime bg-gm-text-inverse/20"
-    : "border-transparent";
-}
+const CURRENT = "border-gm-lime bg-gm-text-inverse/20";
+const IDLE = "border-transparent";
 
 function SkyIcon({ sky, hidden }: { hidden?: boolean; sky: WeatherCondition }) {
   const Icon = weatherIcon(sky);
@@ -52,32 +49,29 @@ function SkyIcon({ sky, hidden }: { hidden?: boolean; sky: WeatherCondition }) {
 /**
  * The forecast days as the hero's tabs: day, date, sky, the maximum and
  * minimum, and the chance of rain. On phones a compact Now column leads the
- * strip (wider screens show the Now card beside it instead). Each tab links
- * to its route, which keeps the page and changes only the panel; the
- * selected tab gets a lime underline and `aria-current`.
+ * strip (wider screens show the Now card beside it instead). Each tab is a
+ * real link to its route, and a plain click switches the panel instantly on the
+ * client; the selected tab gets a lime underline and `aria-current`.
  */
 export function SkyDayStrip({
   days,
   now,
-  selected,
 }: {
   days: StripDay[];
   now: StripNow;
-  /** `now`, or the `YYYY-MM-DD` of the day shown in the panel. */
-  selected: string;
 }) {
-  const nowCurrent = selected === "now";
   return (
     <nav aria-label="Forecast days" className="h-full">
       <ul className="grid h-full grid-cols-6 overflow-hidden rounded-gm-card bg-gm-scrim sm:grid-cols-5">
         <li className="min-w-0 sm:hidden">
-          <Link
-            aria-current={nowCurrent ? "page" : undefined}
-            className={cn(TAB, tabState(nowCurrent))}
+          <TabLink
+            className={TAB}
+            currentClassName={CURRENT}
             data-analytics-day="now"
             data-analytics-event="forecast_tab_selected"
             href={now.href}
-            scroll={false}
+            idleClassName={IDLE}
+            slug="now"
           >
             <span className="font-bold text-body-base leading-body-base">
               Now
@@ -91,23 +85,23 @@ export function SkyDayStrip({
                 ? "—"
                 : `${Math.round(now.temperature)}°`}
             </span>
-          </Link>
+          </TabLink>
         </li>
         {days.map((day) => {
-          const current = day.slug === selected;
           const missing = day.high === null && day.low === null;
           return (
             <li
               className="min-w-0 border-gm-text-inverse/10 border-l sm:first:border-l-0"
               key={day.slug}
             >
-              <Link
-                aria-current={current ? "page" : undefined}
-                className={cn(TAB, tabState(current))}
+              <TabLink
+                className={TAB}
+                currentClassName={CURRENT}
                 data-analytics-day={day.isToday ? "today" : "next"}
                 data-analytics-event="forecast_tab_selected"
                 href={day.href}
-                scroll={false}
+                idleClassName={IDLE}
+                slug={day.slug}
               >
                 <span className="font-bold text-body-base leading-body-base sm:text-heading-sm sm:leading-heading-sm">
                   {day.dayName}
@@ -137,7 +131,7 @@ export function SkyDayStrip({
                     </>
                   )}
                 </span>
-              </Link>
+              </TabLink>
             </li>
           );
         })}

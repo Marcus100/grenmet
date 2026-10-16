@@ -8,6 +8,7 @@ import {
 } from "@barrelsgd/ui/components/ui/card";
 import type { LucideIcon } from "lucide-react";
 import { AlertTriangle, CloudSun, Inbox, Radar } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { grenadaToday, summarizeImagery, summarizeProducts } from "./home-data";
 import { loadAlerts, loadHr, loadImagery, loadProducts } from "./home-loaders";
@@ -135,7 +136,7 @@ function StatusTile({ tile }: { tile: Tile }) {
   return (
     <Link
       className="rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      href={tile.href}
+      href={tile.href as Route}
     >
       <Card className="h-full transition-colors hover:border-primary/40">
         <CardHeader>

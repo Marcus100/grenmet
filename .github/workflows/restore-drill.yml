@@ -1,0 +1,127 @@
+name: Restore Drill
+
+# ADR-0021. Proves the latest off-host backups rebuild every core database, match the
+# code's migration heads, and restore inside the recovery target. Manual only: add a
+# schedule after one human-timed run passes. It reads backups with a read-only
+# credential, restores into a tmpfs-backed throwaway PostgreSQL container, and never
+# connects to a live database. Recovery time is not proven end to end until the API
+# start phase (ADR-0021 step 4) exists.
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Release tag whose migration heads the backup must match (empty = latest published release)"
+        required: false
+        default: ""
+      environment:
+        description: "Backup set to restore"
+        required: true
+        default: production
+        type: choice
+        options: [production, staging]
+      postgres_image:
+        description: "PostgreSQL image for the throwaway container (use the reviewed core image)"
+        required: false
+        default: "postgres:17"
+
+permissions:
+  contents: read
+
+# Shares a group with the backup and deploy jobs so the drill never competes with them
+# for the production runner.
+concurrency:
+  group: prod-droplet
+  cancel-in-progress: false
+
+jobs:
+  heads:
+    name: Migration heads of the release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    outputs:
+      ref: ${{ steps.pick.outputs.ref }}
+    steps:
+      - name: Pick the release
+        id: pick
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_REF: ${{ inputs.ref }}
+        run: |
+          set -euo pipefail
+          ref="${INPUT_REF:-$(gh release list --repo "$GITHUB_REPOSITORY" --exclude-drafts --exclude-pre-releases --limit 1 --json tagName --jq '.[0].tagName')}"
+          [[ "$ref" =~ ^v[0-9]+\.[0-9]+$ ]] || { echo "Expected a release tag like v0.27, got: $ref"; exit 1; }
+          echo "ref=$ref" >> "$GITHUB_OUTPUT"
+          echo "Checking migration heads of $ref"
+
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          ref: ${{ steps.pick.outputs.ref }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+
+      - name: Sync API dependencies
+        run: uv sync --frozen --package fast-back
+
+      - name: Read the Alembic heads
+        run: scripts/agents/api-env.sh bash scripts/production/restore-drill-heads.sh > heads.json
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: restore-drill-heads
+          path: heads.json
+          retention-days: 7
+
+  drill:
+    name: Restore and verify
+    needs: heads
+    runs-on: [self-hosted, production]
+    timeout-minutes: 150
+    environment:
+      name: production-backup
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.DO_SPACES_READ_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.DO_SPACES_READ_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ${{ secrets.DO_SPACES_REGION }}
+      AWS_EC2_METADATA_DISABLED: "true"
+      DO_SPACES_BUCKET: ${{ secrets.DO_SPACES_BUCKET }}
+      DO_SPACES_ENDPOINT: ${{ secrets.DO_SPACES_ENDPOINT }}
+    steps:
+      - name: Require the read-only credential
+        run: |
+          set -euo pipefail
+          # Never fall back to the write credential the backup job uses.
+          : "${AWS_ACCESS_KEY_ID:?Add DO_SPACES_READ_ACCESS_KEY_ID to the production-backup environment}"
+          : "${AWS_SECRET_ACCESS_KEY:?Add DO_SPACES_READ_SECRET_ACCESS_KEY to the production-backup environment}"
+
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          ref: ${{ needs.heads.outputs.ref }}
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: restore-drill-heads
+
+      - name: Restore drill
+        env:
+          DRILL_ENVIRONMENT: ${{ inputs.environment }}
+          DRILL_IMAGE: ${{ inputs.postgres_image }}
+          TMPDIR: ${{ runner.temp }}
+        run: |
+          set -euo pipefail
+          python3 scripts/production/restore-drill.py "$DRILL_ENVIRONMENT" \
+            --heads heads.json \
+            --floors docs/operations/restore-drill-floors.json \
+            --image "$DRILL_IMAGE" \
+            --result-file restore-drill-result.json
+
+      # Counts and timings only; the result never contains row contents.
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: always()
+        with:
+          name: restore-drill-result
+          path: restore-drill-result.json
+          if-no-files-found: ignore
+          retention-days: 90

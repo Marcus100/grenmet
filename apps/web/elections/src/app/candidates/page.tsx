@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
 import {
   CandidateDirectory,
@@ -123,7 +123,7 @@ export default function CandidatesPage() {
                             <span className="block text-base text-el-muted">
                               <Link
                                 className="hover:underline"
-                                href={constituencyHref(results, code)}
+                                href={constituencyHref(results, code) as Route}
                               >
                                 {constituencyName(results, code)}
                               </Link>
@@ -132,7 +132,7 @@ export default function CandidatesPage() {
                                   {" · "}
                                   <Link
                                     className="underline underline-offset-2"
-                                    href={personHref(past)}
+                                    href={personHref(past) as Route}
                                   >
                                     past record ({past.races.length} race
                                     {past.races.length === 1 ? "" : "s"})

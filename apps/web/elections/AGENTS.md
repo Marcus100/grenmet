@@ -52,3 +52,13 @@ Elections and the separate Barrels holding page use Vercel; the operational apps
 - Readability: 18px reading text, 16px supporting prose/controls/tables, 14px minimum short labels; never shrink source notes to establish hierarchy. Keep chart labels legible in a local scroll viewport and check 375px plus enlarged text.
 - Tests: `pnpm vitest run` from this directory.
 - **Sign in:** Barrels account via auth.barrels.gd (ADR-0017): `AccountButton` in the masthead, `src/app/auth/*` routes, typed env in `src/lib/env.ts` (key `elections`). Vercel settings: `docs/web/elections-deployment.md`.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

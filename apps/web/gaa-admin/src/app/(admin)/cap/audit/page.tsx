@@ -1,6 +1,7 @@
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
 import { Label } from "@barrelsgd/ui/components/ui/label";
+import type { Route } from "next";
 import Link from "next/link";
 import {
   CapAdminHeading,
@@ -66,12 +67,12 @@ export default async function AuditPage({
       ))}
       <nav aria-label="Audit pages" className="flex gap-4">
         {page > 1 ? (
-          <Link className="underline" href={href(page - 1)}>
+          <Link className="underline" href={href(page - 1) as Route}>
             Previous
           </Link>
         ) : null}
         {page * 25 < data.count ? (
-          <Link className="underline" href={href(page + 1)}>
+          <Link className="underline" href={href(page + 1) as Route}>
             Next
           </Link>
         ) : null}

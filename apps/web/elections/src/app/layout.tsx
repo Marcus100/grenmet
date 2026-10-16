@@ -12,6 +12,7 @@ import { calendarFrom, electionStatus } from "@/data/election-2026";
 import { campaign } from "@/data/load";
 import { APP_LABEL, signInEnabled } from "@/lib/auth-config";
 import "./globals.css";
+import { env } from "@/lib/env";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -29,6 +30,8 @@ const sourceSerif = Source_Serif_4({
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
+  // Absolute base for share-preview links; set per environment at build time.
+  metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
   title: {
     default: "Elections Grenada: understand the election",
     template: "%s · Elections Grenada",

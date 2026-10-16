@@ -1,4 +1,5 @@
 import { ArrowRightIcon, BadgeCheckIcon } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
@@ -71,7 +72,7 @@ export default async function QuestionPage({ params }: { params: Params }) {
               <li key={`${item.collection}-${item.slug}`}>
                 <Link
                   className="inline-flex items-center gap-1 font-semibold text-gm-blue-ink hover:underline"
-                  href={relatedHref(item)}
+                  href={relatedHref(item) as Route}
                 >
                   {item.title}
                   <ArrowRightIcon aria-hidden="true" className="size-4" />

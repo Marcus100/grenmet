@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 import { ArticleMeta } from "@/components/article-meta";
 import { Eyebrow } from "@/components/eyebrow";
@@ -5,7 +6,7 @@ import { Eyebrow } from "@/components/eyebrow";
 export interface StoryListItemProps {
   author: string;
   eyebrow: string;
-  href: string;
+  href: Route;
   publishedAt: string;
   title: string;
 }

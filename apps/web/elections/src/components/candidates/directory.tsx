@@ -1,4 +1,5 @@
 "use client";
+import type { Route } from "next";
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -183,7 +184,10 @@ export function CandidateDirectory({
             {filtered.slice(0, limit).map((r) => (
               <tr className="border-el-rule border-b" key={r.href}>
                 <td className="py-2 pr-3">
-                  <Link className="font-semibold hover:underline" href={r.href}>
+                  <Link
+                    className="font-semibold hover:underline"
+                    href={r.href as Route}
+                  >
                     {r.name}
                   </Link>
                 </td>

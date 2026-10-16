@@ -91,7 +91,7 @@ export function Logo({
       <Image
         alt={alt}
         className={className}
-        priority={priority}
+        preload={priority}
         sizes={sizes}
         src={light}
       />
@@ -103,14 +103,14 @@ export function Logo({
       <Image
         alt={alt}
         className={cn("dark:hidden", className)}
-        priority={priority}
+        preload={priority}
         sizes={sizes}
         src={light}
       />
       <Image
         alt={alt}
         className={cn("hidden dark:block", className)}
-        priority={priority}
+        preload={priority}
         sizes={sizes}
         src={dark}
       />

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChartViewport } from "@/components/chart-viewport";
@@ -99,7 +99,7 @@ export default async function PersonPage({ params }: Props) {
                 for the {partyInfo(n.party).name} in{" "}
                 <Link
                   className="underline underline-offset-2"
-                  href={constituencyHref(results, n.code)}
+                  href={constituencyHref(results, n.code) as Route}
                 >
                   {results.cons[n.code][0]}
                 </Link>
@@ -227,7 +227,7 @@ export default async function PersonPage({ params }: Props) {
                       {r.code ? (
                         <Link
                           className="hover:underline"
-                          href={constituencyHref(results, r.code)}
+                          href={constituencyHref(results, r.code) as Route}
                         >
                           {r.constituency}
                         </Link>

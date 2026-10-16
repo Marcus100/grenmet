@@ -12,6 +12,8 @@ This is the first delivery step under the [GAA/GMS programme](../portfolio/gaa-g
 
 Operating facts below were supplied by the user in this conversation. Repository implementation, deployment and institutional acceptance are separate evidence categories. No live EDIS submission, ADDS lookup, CMO exchange, hardware inspection or recovery exercise was performed for this document.
 
+See also the [weather operations requirements](gms-weather-requirements.md), which restates the services below as functional and non-functional requirements with their sources.
+
 ## Current service register
 
 | Service | Current operation / evidence | Target and remaining acceptance |

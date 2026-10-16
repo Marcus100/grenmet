@@ -3,10 +3,15 @@
 import { NavigationMenuItem } from "@barrelsgd/ui/components/ui/navigation-menu";
 import { NavigationMenu as NavigationMenuPrimitive } from "@base-ui/react/navigation-menu";
 import { ArrowRightIcon, ChevronDownIcon } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { RefObject } from "react";
-import { type AlertsResult, alertsLevel, alertsSummary } from "@/lib/cap";
+import {
+  type AlertsResult,
+  alertsLevel,
+  alertsSummary,
+} from "@/lib/cap-alerts";
 import {
   NAV_SECTIONS,
   type NavFeature,
@@ -90,7 +95,7 @@ function Featured({
       </span>
       <NavigationMenuPrimitive.Link
         className={cta}
-        render={<Link href={content.href} />}
+        render={<Link href={content.href as Route} />}
       >
         {content.cta}
         <ArrowRightIcon aria-hidden="true" className="size-4" />
@@ -121,7 +126,7 @@ function Panel({
         </p>
         <NavigationMenuPrimitive.Link
           className="ml-auto flex items-center gap-1 whitespace-nowrap font-semibold text-body text-gm-lime leading-body hover:underline"
-          render={<Link href={section.href} />}
+          render={<Link href={section.href as Route} />}
         >
           All {section.label.toLowerCase()}
           <ArrowRightIcon aria-hidden="true" className="size-4" />
@@ -140,7 +145,7 @@ function Panel({
                   <li key={link.href}>
                     <NavigationMenuPrimitive.Link
                       className={MENU_LINK}
-                      render={<Link href={link.href} />}
+                      render={<Link href={link.href as Route} />}
                     >
                       {link.name}
                     </NavigationMenuPrimitive.Link>
