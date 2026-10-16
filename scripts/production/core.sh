@@ -102,6 +102,58 @@ finish() {
 }
 trap finish EXIT
 
+# Returns once a container is healthy (or running, when it has no healthcheck);
+# fails as soon as it is unhealthy or stopped, or after ROLLOUT_TIMEOUT seconds.
+wait_healthy() {
+  local id=$1 state deadline=$(($(date +%s) + ${ROLLOUT_TIMEOUT:-300}))
+  while (($(date +%s) < deadline)); do
+    state=$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}{{.State.Status}}{{end}}' "$id")
+    case "$state" in
+      healthy | running) return 0 ;;
+      unhealthy | exited | dead) return 1 ;;
+    esac
+    sleep "${ROLLOUT_POLL_SECONDS:-3}"
+  done
+  return 1
+}
+
+# Replaces one routed service without a gap: start the new container beside the
+# old one, wait until it is healthy (Traefik only routes to healthy containers),
+# then retire the old one. If the new container never becomes healthy it is
+# removed and the old one keeps serving, and the deploy fails.
+rollout() {
+  local service=$1 old new image running
+  local compose=(docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT")
+  old=$("${compose[@]}" ps -q "$service")
+  image=$("${compose[@]}" config --images "$service")
+  # shellcheck disable=SC2086
+  running=$([[ -z "$old" ]] || docker inspect --format '{{.Config.Image}}' $old | sort -u)
+  if [[ -z "$old" || "$running" == "$image" ]]; then
+    # First start, or the same image: an ordinary start is already gap-free or a no-op.
+    "${compose[@]}" up -d --no-deps --wait --wait-timeout 300 "$service"
+    return
+  fi
+  echo "Rolling $service"
+  "${compose[@]}" up -d --no-deps --no-recreate --scale "$service=$(($(wc -l <<<"$old") + 1))" "$service"
+  new=$(comm -13 <(sort <<<"$old") <("${compose[@]}" ps -q "$service" | sort))
+  if [[ -z "$new" ]]; then
+    echo "::error::Rolling start of $service created no new container" >&2
+    return 1
+  fi
+  if ! wait_healthy "$new"; then
+    echo "::error::New $service container did not become healthy; the previous one is still serving" >&2
+    docker logs --tail "${DIAGNOSTIC_LOG_LINES:-200}" "$new" 2>&1 || true
+    docker rm -f "$new" >/dev/null
+    return 1
+  fi
+  # Give Traefik's Docker provider time to add the new backend before the old one goes.
+  sleep "${ROLLOUT_SETTLE_SECONDS:-5}"
+  # shellcheck disable=SC2086
+  docker stop --time 30 $old >/dev/null
+  # shellcheck disable=SC2086
+  docker rm $old >/dev/null
+}
+
 # Fails before any change to the running stack when a disk is too full.
 require_free_space() {
   local path=$1 required_gb=$2 purpose=$3 free_kb
@@ -170,8 +222,23 @@ phase start
 # Allow the admin's 120s start period and five 30s probe intervals to finish.
 # Staging's worker recovered just after the former 180s deadline on 2026-10-06.
 # --remove-orphans retires containers of services no longer in the deployment file.
-# shellcheck disable=SC2086
-docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --no-deps --remove-orphans --wait --wait-timeout 300 $app_services
+if [[ "${ROLLING_DEPLOY:-0}" == 1 ]]; then
+  # Recreating a routed service stops its only container first, so Traefik has no
+  # backend and every route 404s until the new one is healthy (staging run
+  # 37131928180). Roll those services instead; start the rest as before.
+  routed_services=$(node ../../scripts/ci/check-release-scope.mjs --print routed)
+  for service in $routed_services; do
+    rollout "$service"
+  done
+  remaining_services=$(for service in $app_services; do
+    [[ " $routed_services " == *" $service "* ]] || printf '%s ' "$service"
+  done)
+  # shellcheck disable=SC2086
+  docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --no-deps --remove-orphans --wait --wait-timeout 300 $remaining_services
+else
+  # shellcheck disable=SC2086
+  docker compose -f runtime/deploy.lock.yml -p "$COMPOSE_PROJECT" up -d --no-deps --remove-orphans --wait --wait-timeout 300 $app_services
+fi
 
 phase smoke
 domain=$(python3 -c 'import sys; from pathlib import Path; print(next(line.split("=", 1)[1] for line in Path(sys.argv[1]).read_text().splitlines() if line.startswith("BASE_DOMAIN=")))' "$DEPLOY_ENV.env")

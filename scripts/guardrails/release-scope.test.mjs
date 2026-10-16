@@ -9,6 +9,7 @@ import {
   coreServices,
   dataServices,
   migrationServices,
+  routedServices,
   releaseScope,
   validateComposeScope,
   validateReleaseConfiguration,
@@ -180,4 +181,30 @@ test("each web image is built with the public address in docs/deployment.md", ()
     }
   }
   assert.ok(checked >= 10, `only ${checked} addresses checked`);
+});
+
+test("routed services can run twice during a rolling start", () => {
+  assert.ok(routedServices.includes("api"));
+  assert.equal(routedServices.includes("proxy"), false);
+  assert.equal(routedServices.includes("worker"), false);
+  for (const service of routedServices)
+    assert.ok(appServices.includes(service));
+  const services = Object.fromEntries(
+    coreServices.map((service) => [service, {}])
+  );
+  for (const blocker of [
+    { ports: ["3000:3000"] },
+    { container_name: "pinned" },
+  ])
+    assert.throws(
+      () =>
+        validateComposeScope({
+          services: { ...services, "web-auth": blocker },
+        }),
+      /rolling replacement/
+    );
+  // The proxy publishes 80/443 and is not rolled, so its ports are allowed.
+  validateComposeScope({
+    services: { ...services, proxy: { ports: ["443:443"] } },
+  });
 });

@@ -53,6 +53,12 @@ export const appServices = [
     .map((image) => `web-${image.app}`),
   "proxy",
 ];
+// Traefik-routed services that a rolling start may briefly run twice (old and
+// new container side by side). They must not publish host ports or pin a
+// container_name, or the second container cannot start.
+export const routedServices = appServices.filter(
+  (service) => service === "api" || service.startsWith("web-")
+);
 export const coreServices = [
   ...dataServices,
   ...migrationServices,
@@ -70,4 +76,11 @@ export function validateComposeScope(model) {
     throw new Error(
       "Deployment includes a service outside the reviewed core scope"
     );
+  for (const service of routedServices) {
+    const definition = model.services[service] ?? {};
+    if (definition.ports?.length || definition.container_name)
+      throw new Error(
+        `${service} is started with a rolling replacement, so it cannot publish host ports or set container_name`
+      );
+  }
 }

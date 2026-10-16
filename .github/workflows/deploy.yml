@@ -132,6 +132,8 @@ jobs:
           CAP_SIGNING_KEY: ${{ secrets.CAP_SIGNING_KEY }}
           CAP_SIGNING_KEY_REF: ${{ vars.CAP_SIGNING_KEY_REF || 'cap-signing-key' }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Set to 1 on a GitHub environment to replace routed services without a gap.
+          ROLLING_DEPLOY: ${{ vars.ROLLING_DEPLOY }}
         run: bash ../../scripts/production/core.sh deploy
       - name: Install declared monitoring after application acceptance
         if: vars.MONITORING_DEPLOY_ENABLED == 'true'
