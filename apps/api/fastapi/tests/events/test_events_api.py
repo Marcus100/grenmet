@@ -82,7 +82,9 @@ async def events_db(
         await engine.dispose()
 
 
-def client_as(user: User | None, *, organiser: bool = False) -> httpx.AsyncClient:
+def client_as(
+    user: User | None, *, organiser: bool = False, moderator: bool = False
+) -> httpx.AsyncClient:
     """Act as ``user`` (None = anonymous) with an Events app session."""
 
     def member() -> User:
@@ -102,6 +104,15 @@ def client_as(user: User | None, *, organiser: bool = False) -> httpx.AsyncClien
 
     app.dependency_overrides[deps.require_organiser] = (
         (lambda: user) if organiser and user is not None else not_organiser
+    )
+
+    def not_moderator() -> User:
+        from src.events.exceptions import EventsForbidden
+
+        raise EventsForbidden("Moderator access is required")
+
+    app.dependency_overrides[deps.require_moderator] = (
+        (lambda: user) if moderator and user is not None else not_moderator
     )
     return httpx.AsyncClient(
         transport=httpx.ASGITransport(app=app), base_url="http://test"
@@ -383,6 +394,193 @@ async def test_anyone_can_suggest_an_event(events_db):
             },
         )
         assert response.status_code == 201
+
+
+def _listing_payload(**overrides: object) -> dict[str, object]:
+    start = (utc_now() + timedelta(days=10)).replace(microsecond=0)
+    payload: dict[str, object] = {
+        "title": "Harbour Lights Fete",
+        "summary": "Lantern night on the water",
+        "category": "fete",
+        "parish": "st-george",
+        "venue": "Carenage",
+        "starts_at": f"{start.isoformat()}Z",
+        "ends_at": f"{(start + timedelta(hours=5)).isoformat()}Z",
+        "admission": "rsvp",
+        "capacity": 300,
+        "status": "published",
+    }
+    payload.update(overrides)
+    return payload
+
+
+@pytest.mark.asyncio
+async def test_moderation_queues_need_the_moderator_permission(events_db):
+    _ = events_db
+    async with client_as(ALEX) as client:
+        for path in ("moderation/reports", "moderation/suggestions"):
+            assert (await client.get(f"{BASE}/{path}")).status_code == 403
+        refused = await client.patch(
+            f"{BASE}/moderation/reports/{uuid4()}", json={"status": "dismissed"}
+        )
+        assert refused.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_reports_are_queued_and_resolved_by_moderators(events_db):
+    await _seed(events_db)
+    await _profiles(events_db, ALEX, DANA)
+    async with client_as(ALEX) as client:
+        created = await client.post(
+            f"{BASE}/reports",
+            json={"subject_type": "profile", "subject_id": "dana", "reason": "Spam"},
+        )
+        assert created.status_code == 201, created.text
+    async with client_as(KAYLA, moderator=True) as client:
+        queue = (await client.get(f"{BASE}/moderation/reports")).json()
+        assert len(queue) == 1
+        report = queue[0]
+        assert report["subject_id"] == "dana"
+        assert report["status"] == "open"
+        # Moderators see what was reported, never who reported it.
+        assert "reporter_id" not in report
+        reopen = await client.patch(
+            f"{BASE}/moderation/reports/{report['id']}", json={"status": "open"}
+        )
+        assert reopen.status_code == 422
+        resolved = await client.patch(
+            f"{BASE}/moderation/reports/{report['id']}", json={"status": "dismissed"}
+        )
+        assert resolved.status_code == 200
+        assert resolved.json()["status"] == "dismissed"
+        assert (await client.get(f"{BASE}/moderation/reports")).json() == []
+        missing = await client.patch(
+            f"{BASE}/moderation/reports/{uuid4()}", json={"status": "actioned"}
+        )
+        assert missing.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_suggestions_are_reviewed_by_moderators(events_db):
+    _ = events_db
+    async with client_as(None) as client:
+        created = await client.post(
+            f"{BASE}/suggestions",
+            json={
+                "title": "Fish Friday",
+                "event_date": "2026-11-06",
+                "venue": "Gouyave",
+                "category": "food",
+                "parish": "st-john",
+            },
+        )
+        assert created.status_code == 201
+    async with client_as(KAYLA, moderator=True) as client:
+        queue = (await client.get(f"{BASE}/moderation/suggestions")).json()
+        assert [row["title"] for row in queue] == ["Fish Friday"]
+        approved = await client.patch(
+            f"{BASE}/moderation/suggestions/{queue[0]['id']}",
+            json={"status": "approved"},
+        )
+        assert approved.status_code == 200
+        assert approved.json()["status"] == "approved"
+        assert (await client.get(f"{BASE}/moderation/suggestions")).json() == []
+        missing = await client.patch(
+            f"{BASE}/moderation/suggestions/{uuid4()}", json={"status": "rejected"}
+        )
+        assert missing.status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_organisers_cannot_edit_another_organisers_listing(events_db):
+    await _seed(events_db)
+    async with events_db() as db:
+        rival = Organiser(slug="harbour-co", name="Harbour Co")
+        db.add(rival)
+        await db.flush()
+        db.add(OrganiserMember(organiser_id=rival.id, user_id=KAYLA.id))
+        theirs = Listing(
+            slug="harbour-night",
+            title="Harbour night",
+            summary="Boats and music",
+            category="music",
+            parish="st-george",
+            venue="Carenage",
+            starts_at=utc_now() + timedelta(days=5),
+            ends_at=utc_now() + timedelta(days=5, hours=3),
+            admission="free",
+            organiser_id=rival.id,
+            status="published",
+        )
+        db.add(theirs)
+        await db.commit()
+        theirs_id = theirs.id
+    async with client_as(DANA, organiser=True) as client:
+        hijack = await client.put(
+            f"{BASE}/manage/listings/{theirs_id}",
+            json=_listing_payload(title="Hijacked", status="cancelled"),
+        )
+        assert hijack.status_code == 404
+    async with events_db() as db:
+        row = await db.get(Listing, theirs_id)
+        assert row is not None
+        assert (row.title, row.status) == ("Harbour night", "published")
+
+
+@pytest.mark.asyncio
+async def test_listing_updates_validate_and_cancelling_unpublishes(events_db):
+    await _seed(events_db)
+    async with client_as(DANA, organiser=True) as client:
+        created = await client.post(f"{BASE}/manage/listings", json=_listing_payload())
+        assert created.status_code == 201, created.text
+        listing_id = created.json()["id"]
+        payload = _listing_payload()
+        backwards = await client.put(
+            f"{BASE}/manage/listings/{listing_id}",
+            json={**payload, "ends_at": payload["starts_at"]},
+        )
+        assert backwards.status_code == 409
+        unpriced = await client.put(
+            f"{BASE}/manage/listings/{listing_id}",
+            json=_listing_payload(
+                admission="ticketed",
+                tiers=[{"name": "Free", "price_minor": 0, "allocation": 10}],
+            ),
+        )
+        assert unpriced.status_code == 409
+        cancelled = await client.put(
+            f"{BASE}/manage/listings/{listing_id}",
+            json=_listing_payload(status="cancelled"),
+        )
+        assert cancelled.status_code == 200
+        assert cancelled.json()["status"] == "cancelled"
+    async with client_as(None) as client:
+        assert (
+            await client.get(f"{BASE}/listings/harbour-lights-fete")
+        ).status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_following_an_organiser_is_idempotent(events_db):
+    await _seed(events_db)
+    async with client_as(ALEX) as client:
+        for _ in range(2):
+            followed = await client.put(f"{BASE}/organisers/spice-isle-tech/follow")
+            assert followed.status_code == 204
+        organiser = (await client.get(f"{BASE}/organisers/spice-isle-tech")).json()
+        assert organiser["follower_count"] == 1
+        assert organiser["viewer_following"] is True
+        for _ in range(2):
+            unfollowed = await client.delete(
+                f"{BASE}/organisers/spice-isle-tech/follow"
+            )
+            assert unfollowed.status_code == 204
+        organiser = (await client.get(f"{BASE}/organisers/spice-isle-tech")).json()
+        assert organiser["follower_count"] == 0
+        assert organiser["viewer_following"] is False
+        assert (
+            await client.put(f"{BASE}/organisers/no-such-organiser/follow")
+        ).status_code == 404
 
 
 def test_weekend_window_uses_grenada_dates():
