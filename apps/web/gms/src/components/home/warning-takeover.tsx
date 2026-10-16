@@ -1,7 +1,11 @@
 import { TriangleAlertIcon } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
-import { type AlertsResult, alertsLevel, severityLevel } from "@/lib/cap";
+import {
+  type AlertsResult,
+  alertsLevel,
+  severityLevel,
+} from "@/lib/cap-alerts";
 import { formatWarningTime, warningHref } from "@/lib/warning-detail";
 
 /**

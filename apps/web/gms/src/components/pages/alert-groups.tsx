@@ -6,7 +6,7 @@ import {
   type HazardGroup,
   type PublicAlert,
   severityLevel,
-} from "@/lib/cap";
+} from "@/lib/cap-alerts";
 import { cn } from "@/lib/utils";
 import { formatWarningTime, warningHref } from "@/lib/warning-detail";
 import {
