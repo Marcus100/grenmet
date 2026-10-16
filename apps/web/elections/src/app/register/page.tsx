@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { ChartViewport } from "@/components/chart-viewport";
 import { CalculationNote, EvidenceCitation } from "@/components/learn/evidence";
@@ -337,7 +337,7 @@ export default function RegisterPage() {
                     <td className="py-1.5 pr-3">
                       <Link
                         className="hover:underline"
-                        href={constituencyHref(results, r.code)}
+                        href={constituencyHref(results, r.code) as Route}
                       >
                         {constituencyName(results, r.code)}
                       </Link>

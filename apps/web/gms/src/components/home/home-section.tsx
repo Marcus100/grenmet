@@ -1,4 +1,5 @@
 import { ArrowRightIcon } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 
@@ -48,7 +49,7 @@ export function HomeSection({
           {link && (
             <Link
               className="ml-auto flex items-center gap-1 font-semibold text-body text-gm-blue-ink leading-body hover:underline"
-              href={link.href}
+              href={link.href as Route}
             >
               {link.label}
               <ArrowRightIcon aria-hidden="true" className="size-4" />

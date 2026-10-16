@@ -1,4 +1,5 @@
 "use client";
+import type { Route } from "next";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -32,7 +33,7 @@ function PageLink({
       <Link
         aria-hidden="true"
         className="font-semibold text-base text-zinc-900 transition hover:text-zinc-600 dark:text-white dark:hover:text-zinc-300"
-        href={page.href}
+        href={page.href as Route}
         tabIndex={-1}
       >
         {page.title}

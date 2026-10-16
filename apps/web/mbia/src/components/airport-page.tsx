@@ -1,4 +1,5 @@
 import { Button } from "@barrelsgd/ui/components/ui/button";
+import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -86,7 +87,7 @@ export function AirportPage({
                   key={link.href}
                   variant="secondary"
                 >
-                  <Link href={link.href}>{link.label}</Link>
+                  <Link href={link.href as Route}>{link.label}</Link>
                 </Button>
               ))}
             </div>

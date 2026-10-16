@@ -6,6 +6,7 @@ import {
   PlaneLanding,
   PlaneTakeoff,
 } from "lucide-react";
+import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { FlightBoard } from "@/components/flight-board";
@@ -140,7 +141,7 @@ function QuickTasks() {
         return (
           <Link
             className="group flex items-start gap-4 rounded-2xl border border-gaa-rule bg-white p-5 transition-all hover:-translate-y-0.5 hover:border-gaa-sea/40 hover:shadow-lg"
-            href={task.href}
+            href={task.href as Route}
             key={task.href}
           >
             <span className="rounded-xl bg-gaa-mist p-3 text-gaa-navy transition-colors group-hover:bg-gaa-navy group-hover:text-white">
@@ -186,7 +187,7 @@ function SectionHeading({
       {href && linkLabel ? (
         <Link
           className="flex items-center gap-1.5 font-medium text-gaa-sea text-sm hover:text-gaa-navy"
-          href={href}
+          href={href as Route}
         >
           {linkLabel}
           <ArrowRight aria-hidden="true" className="size-4" />

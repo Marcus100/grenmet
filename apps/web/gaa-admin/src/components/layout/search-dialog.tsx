@@ -12,6 +12,7 @@ import {
   CommandSeparator,
 } from "@barrelsgd/ui/components/ui/command";
 import { FileBarChart, LayoutGrid, Search } from "lucide-react";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useState } from "react";
 import { type NavMainItem, sidebarItems } from "@/navigation/sidebar-items";
@@ -132,7 +133,7 @@ export function SearchDialog() {
     if (item.newTab) {
       window.open(item.url, "_blank", "noopener,noreferrer");
     } else {
-      router.push(item.url);
+      router.push(item.url as Route);
     }
   };
 

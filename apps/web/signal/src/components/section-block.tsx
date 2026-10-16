@@ -1,7 +1,8 @@
+import type { Route } from "next";
 import Link from "next/link";
 
 export interface SectionBlockProps {
-  action?: { label: string; href: string };
+  action?: { label: string; href: Route };
   children: React.ReactNode;
   id?: string;
   title: string;

@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import { PageIntro } from "@/components/editorial";
 import { SearchReader } from "@/components/search-reader";
 import { getBriefs, getCurrentArticles } from "@/lib/content";
@@ -6,7 +7,7 @@ export const metadata = { title: "Search" };
 export default function SearchPage() {
   const entries = [
     ...getCurrentArticles().map((article) => ({
-      href: `/${article.section}/${article.slug}`,
+      href: `/${article.section}/${article.slug}` as Route,
       title: article.title,
       description: article.dek,
       label: getSection(article.section)?.label ?? article.section,
@@ -14,7 +15,7 @@ export default function SearchPage() {
     ...getBriefs()
       .filter((brief) => brief.reviewStatus === "editorial-preview")
       .map((brief) => ({
-        href: `/today/${brief.date}`,
+        href: `/today/${brief.date}` as Route,
         title: brief.title,
         description: brief.dek,
         label: "Daily Signal",

@@ -2,6 +2,7 @@ import { Card, CardContent } from "@barrelsgd/ui/components/ui/card";
 import { Skeleton } from "@barrelsgd/ui/components/ui/skeleton";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { ArrowRight, TriangleAlert } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
@@ -32,7 +33,7 @@ export function Panel({
         {action ? (
           <Link
             className="flex shrink-0 items-center gap-1 rounded-md text-primary text-xs outline-none hover:underline focus-visible:ring-2 focus-visible:ring-ring"
-            href={action.href}
+            href={action.href as Route}
           >
             {action.label}
             <ArrowRight className="size-3" />

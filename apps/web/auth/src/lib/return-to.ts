@@ -1,3 +1,5 @@
+import type { Route } from "next";
+
 function firstValue(value: string | string[] | undefined): string | null {
   if (typeof value === "string") return value;
   if (Array.isArray(value)) return value[0] ?? null;
@@ -31,9 +33,11 @@ export function readQueryParam(
   return first ? first.trim() : null;
 }
 
+// The result is validated here (same-origin path or an allowed host), which is
+// why it can be typed as a Route for redirect() and links.
 export function getSafeReturnTo(
   returnTo: string | null | undefined
-): string | null {
+): Route | null {
   if (!returnTo) return null;
 
   const value = returnTo.trim();
@@ -42,7 +46,7 @@ export function getSafeReturnTo(
   if (value.startsWith("/")) {
     try {
       const base = "https://return.invalid";
-      return new URL(value, base).origin === base ? value : null;
+      return new URL(value, base).origin === base ? (value as Route) : null;
     } catch {
       return null;
     }
@@ -53,7 +57,9 @@ export function getSafeReturnTo(
     if (parsedUrl.protocol !== "https:" && parsedUrl.protocol !== "http:") {
       return null;
     }
-    return isAllowedReturnHost(parsedUrl.host) ? parsedUrl.toString() : null;
+    return isAllowedReturnHost(parsedUrl.host)
+      ? (parsedUrl.toString() as Route)
+      : null;
   } catch {
     return null;
   }

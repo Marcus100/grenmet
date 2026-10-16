@@ -6,6 +6,7 @@ import {
   useMotionTemplate,
   useMotionValue,
 } from "motion/react";
+import type { Route } from "next";
 import Link from "next/link";
 
 import { GridPattern } from "@/components/GridPattern";
@@ -146,7 +147,7 @@ function Resource({ resource }: { resource: Resource }) {
       <div className="relative rounded-2xl px-4 pt-16 pb-4">
         <ResourceIcon icon={resource.icon} />
         <h3 className="mt-4 font-semibold text-sm/7 text-zinc-900 dark:text-white">
-          <Link href={resource.href}>
+          <Link href={resource.href as Route}>
             <span className="absolute inset-0 rounded-2xl" />
             {resource.name}
           </Link>

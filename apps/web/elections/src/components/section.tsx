@@ -1,4 +1,5 @@
 import { cn } from "@barrelsgd/ui/lib/utils";
+import type { Route } from "next";
 import Link from "next/link";
 import { FlagStripe } from "@/components/flag-stripe";
 import { PageLearning } from "@/components/learn/page-learning";
@@ -36,7 +37,7 @@ export function Section({
         {more && (
           <Link
             className="font-semibold text-base underline decoration-el-rule-2 underline-offset-4 hover:decoration-el-ink"
-            href={more.href}
+            href={more.href as Route}
           >
             {more.label} →
           </Link>

@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 export function OperationsHub({
   title,
@@ -29,7 +30,10 @@ export function OperationsHub({
             <ul className="space-y-2">
               {section.links.map((link) => (
                 <li key={link.href}>
-                  <Link className="text-primary underline" href={link.href}>
+                  <Link
+                    className="text-primary underline"
+                    href={link.href as Route}
+                  >
                     {link.label}
                   </Link>
                 </li>

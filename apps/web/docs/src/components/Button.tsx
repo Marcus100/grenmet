@@ -1,4 +1,5 @@
 import { cn } from "@barrelsgd/ui/lib/utils";
+import type { Route } from "next";
 import Link from "next/link";
 
 function ArrowIcon(props: React.ComponentPropsWithoutRef<"svg">) {
@@ -26,11 +27,15 @@ const variantStyles = {
   text: "text-emerald-500 hover:text-emerald-600 dark:text-emerald-400 dark:hover:text-emerald-500",
 };
 
+// Every docs page is served by one optional catch-all route, so typed routes
+// cannot check these paths; the href is a plain string, cast once below.
 type ButtonProps = {
   variant?: keyof typeof variantStyles;
   arrow?: "left" | "right";
 } & (
-  | React.ComponentPropsWithoutRef<typeof Link>
+  | (Omit<React.ComponentPropsWithoutRef<typeof Link>, "href"> & {
+      href: string;
+    })
   | (React.ComponentPropsWithoutRef<"button"> & { href?: undefined })
 );
 
@@ -75,7 +80,7 @@ export function Button({
   }
 
   return (
-    <Link className={className} {...props}>
+    <Link className={className} {...props} href={props.href as Route}>
       {inner}
     </Link>
   );

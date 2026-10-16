@@ -1,6 +1,7 @@
 "use client";
 
 import { Calendar } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { formatPrice } from "@/lib/salesbus/types";
 
@@ -59,7 +60,7 @@ export function TransactionSummaryCard({
       <div className="flex justify-end">
         <Link
           className="-mr-4 inline-flex min-h-12 touch-manipulation items-center px-4 text-sm text-white/80 transition-colors hover:text-white"
-          href={href}
+          href={href as Route}
         >
           See more &gt;
         </Link>

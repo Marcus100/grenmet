@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DenominatorLab } from "@/components/learn/denominator-lab";
@@ -81,7 +81,7 @@ export default async function GuidePage({ params }: Props) {
             <li key={link.href}>
               <Link
                 className="font-semibold underline underline-offset-4"
-                href={link.href}
+                href={link.href as Route}
               >
                 {link.label} →
               </Link>

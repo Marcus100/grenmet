@@ -2,6 +2,7 @@
 
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useState } from "react";
 
@@ -64,7 +65,7 @@ export function SignInForm({ returnTo }: { returnTo: string }) {
       setStep("code");
       return;
     }
-    router.replace(returnTo);
+    router.replace(returnTo as Route);
     router.refresh();
   }
 

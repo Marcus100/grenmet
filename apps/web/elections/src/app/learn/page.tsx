@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { PageHead, Section } from "@/components/section";
 import { GUIDES } from "@/data/learning";
@@ -67,7 +67,7 @@ export default function LearnPage() {
           ].map(([href, label]) => (
             <Link
               className="underline underline-offset-4"
-              href={href ?? "/learn"}
+              href={(href ?? "/learn") as Route}
               key={href}
             >
               {label}

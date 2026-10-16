@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 
 /**
@@ -21,7 +22,7 @@ export function SectionHero({
         {eyebrowHref ? (
           <Link
             className="font-semibold text-gaa-gold text-xs uppercase tracking-[0.2em] hover:text-white"
-            href={eyebrowHref}
+            href={eyebrowHref as Route}
           >
             {eyebrow}
           </Link>

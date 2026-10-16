@@ -14,7 +14,7 @@ import {
   TableRow,
 } from "@barrelsgd/ui/components/ui/table";
 import { QrCode } from "lucide-react";
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
@@ -81,7 +81,10 @@ export default async function JanitorAreasPage({
       <JanitorHeader
         actions={
           <>
-            <Button render={<Link href={labelsHref} />} variant="outline">
+            <Button
+              render={<Link href={labelsHref as Route} />}
+              variant="outline"
+            >
               <QrCode data-icon="inline-start" />
               Print QR labels
             </Button>

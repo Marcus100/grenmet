@@ -1,6 +1,5 @@
 "use client";
 import type { HrDashboardPublic } from "@barrelsgd/api-client";
-
 import { useSessionUser } from "@barrelsgd/auth";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { buttonVariants } from "@barrelsgd/ui/components/ui/button";
@@ -22,6 +21,7 @@ import {
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { format, parseISO } from "date-fns";
 import { ChevronDown, Plus } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { useState } from "react";
 import {
@@ -113,7 +113,7 @@ function GlanceLink({ href, children }: { href: string; children: string }) {
   return (
     <Link
       className="font-medium text-primary text-sm hover:underline"
-      href={href}
+      href={href as Route}
     >
       {children}
     </Link>
@@ -301,7 +301,7 @@ function OtherFormsItem({ item }: { item: NewRequestItem }) {
   return (
     <DropdownMenuItem
       className="items-start gap-3 px-2 py-2"
-      render={<Link href={item.href} />}
+      render={<Link href={item.href as Route} />}
     >
       <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
         <Icon className="size-4" />
