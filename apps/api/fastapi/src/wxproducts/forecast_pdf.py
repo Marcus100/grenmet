@@ -10,18 +10,22 @@ import re
 from datetime import date, datetime
 from functools import cache
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from markupsafe import Markup
-from weasyprint import CSS, HTML, Document
-from weasyprint.text.fonts import FontConfiguration
 
 from src.wxwatch.nhc_schemas import ProductGuidance
 
 from . import advisories, units
 from .presentation import conditions as _conditions
 from .validation import FIELDS, GRENADA, optional_number, period_values
+
+if TYPE_CHECKING:
+    # WeasyPrint loads Pango/Cairo (seconds); import it only when rendering, so
+    # the API starts fast enough for its deploy healthcheck.
+    from weasyprint import CSS, Document
+    from weasyprint.text.fonts import FontConfiguration
 
 BASE = Path(__file__).parent
 ASSETS = BASE / "assets"
@@ -194,11 +198,15 @@ def _environment() -> Environment:
 
 @cache
 def _fonts() -> FontConfiguration:
+    from weasyprint.text.fonts import FontConfiguration
+
     return FontConfiguration()
 
 
 @cache
 def _stylesheet() -> CSS:
+    from weasyprint import CSS
+
     return CSS(
         string=token_css() + (TEMPLATES / "sheet.css").read_text(),
         base_url=str(BASE) + "/",
@@ -492,6 +500,8 @@ def render_document(
     if guidance and guidance.systems:
         context["chances"] = []
     html = _environment().get_template(template).render(**context)
+    from weasyprint import HTML
+
     return HTML(string=html, base_url=str(BASE) + "/").render(
         stylesheets=[_stylesheet()], font_config=_fonts()
     )
