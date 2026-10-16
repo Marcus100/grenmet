@@ -6,6 +6,7 @@ import {
   FileTextIcon,
   SmartphoneIcon,
 } from "lucide-react";
+import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { HOME_CARD, HomeSection } from "@/components/home/home-section";
@@ -59,7 +60,7 @@ function DeskListItem({ item }: { item: PublishedContent }) {
     <li className="border-gm-border border-t first:border-t-0">
       <Link
         className="grid grid-cols-[auto_1fr_auto] items-center gap-3 px-4 py-3 hover:bg-gm-surface"
-        href={contentHref(item)}
+        href={contentHref(item) as Route}
       >
         <span className="flex size-9 items-center justify-center rounded-lg bg-gm-surface-panel text-gm-heading">
           <FileTextIcon aria-hidden="true" className="size-4" />
@@ -120,7 +121,10 @@ export async function ForecastDesk() {
                 </p>
               )}
               <h3 className="text-balance font-bold text-gm-heading text-heading-sm leading-heading-sm">
-                <Link className="hover:underline" href={contentHref(lead)}>
+                <Link
+                  className="hover:underline"
+                  href={contentHref(lead) as Route}
+                >
                   {lead.title}
                 </Link>
               </h3>
@@ -172,7 +176,10 @@ export async function Stories() {
       >
         {lead && (
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
-            <Link className="group flex flex-col gap-2" href={lead.href}>
+            <Link
+              className="group flex flex-col gap-2"
+              href={lead.href as Route}
+            >
               <span className="relative aspect-video overflow-hidden rounded-gm-card bg-gm-surface-panel">
                 <Image
                   alt=""
@@ -198,7 +205,7 @@ export async function Stories() {
                 <li key={story.id}>
                   <Link
                     className="group grid grid-cols-[7.5rem_minmax(0,1fr)] gap-3"
-                    href={story.href}
+                    href={story.href as Route}
                   >
                     <span className="relative aspect-video overflow-hidden rounded-lg bg-gm-surface-panel">
                       <Image
@@ -276,7 +283,7 @@ export async function Explained() {
                 <li className="border-gm-border border-b" key={item.id}>
                   <Link
                     className="flex items-center justify-between gap-3 py-3.5 font-semibold text-body-base text-gm-heading leading-body-base hover:underline"
-                    href={questionHref(item.slug)}
+                    href={questionHref(item.slug) as Route}
                   >
                     {item.question}
                     <ChevronRightIcon
@@ -331,7 +338,10 @@ export async function LatestReports() {
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
             <article className={`${HOME_CARD} flex flex-col gap-3`}>
               <h3 className="text-balance font-bold text-gm-heading text-heading-sm leading-heading-sm">
-                <Link className="hover:underline" href={contentHref(lead)}>
+                <Link
+                  className="hover:underline"
+                  href={contentHref(lead) as Route}
+                >
                   {lead.title}
                 </Link>
               </h3>
@@ -350,7 +360,7 @@ export async function LatestReports() {
                   <li key={note.id}>
                     <Link
                       className={`${HOME_CARD} flex flex-col gap-1 hover:border-gm-blue-ink`}
-                      href={contentHref(note)}
+                      href={contentHref(note) as Route}
                     >
                       {note.linkedProduct?.kind &&
                         isProductKind(note.linkedProduct.kind) && (

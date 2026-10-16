@@ -1,4 +1,5 @@
 "use client";
+import type { Route } from "next";
 
 import Link from "next/link";
 import {
@@ -103,7 +104,7 @@ export function TabLink({
     <Link
       aria-current={current ? "page" : undefined}
       className={cn(className, current ? currentClassName : idleClassName)}
-      href={href}
+      href={href as Route}
       onClick={onClick}
       scroll={false}
       {...rest}

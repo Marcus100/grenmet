@@ -1,4 +1,5 @@
 import { cn } from "@barrelsgd/ui/lib/utils";
+import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { Flag } from "@/components/flag";
@@ -158,7 +159,7 @@ function UpdateStory({
               {u.href ? (
                 <Link
                   className="hover:underline hover:decoration-2 hover:underline-offset-4"
-                  href={u.href}
+                  href={u.href as Route}
                 >
                   {u.title}
                 </Link>

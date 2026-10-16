@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CampaignTimeline } from "@/components/campaign/timeline";
@@ -201,7 +201,7 @@ export default async function PartyPage({ params }: Props) {
                 <li key={p.key}>
                   <Link
                     className="font-semibold hover:underline"
-                    href={personHref(p)}
+                    href={personHref(p) as Route}
                   >
                     {p.name}
                   </Link>

@@ -1,4 +1,5 @@
 import { Mail, MapPin, Phone } from "lucide-react";
+import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { NAV_GROUPS } from "@/lib/nav";
@@ -53,7 +54,7 @@ export function SiteFooter() {
           <nav aria-label={group.label} key={group.label}>
             <Link
               className="font-bold font-display text-sm text-white uppercase tracking-wider hover:text-gaa-gold"
-              href={group.href}
+              href={group.href as Route}
             >
               {group.label}
             </Link>
@@ -62,7 +63,7 @@ export function SiteFooter() {
                 <li key={link.href}>
                   <Link
                     className="text-sm text-white/70 transition-colors hover:text-white"
-                    href={link.href}
+                    href={link.href as Route}
                   >
                     {link.label}
                   </Link>

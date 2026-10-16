@@ -74,7 +74,7 @@ export const SERIES = [
     href: "/opportunity",
     description: "Scholarships, work and funding worth a look.",
   },
-];
+] as const;
 export const NAV_LINKS = [
   { label: "Latest", href: "/" },
   { label: "News", href: "/news-community" },
@@ -86,7 +86,7 @@ export const NAV_LINKS = [
   { label: "Guides & explainers", href: "/learn" },
   { label: "Archive", href: "/archive" },
   { label: "Search", href: "/search" },
-];
+] as const;
 export function getSection(slug: string): SectionMeta | undefined {
   return SECTIONS.find((section) => section.slug === slug);
 }

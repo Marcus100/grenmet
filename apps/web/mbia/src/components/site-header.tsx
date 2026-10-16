@@ -18,6 +18,7 @@ import {
   SheetTrigger,
 } from "@barrelsgd/ui/components/ui/sheet";
 import { Mail, Menu, Phone, PlaneTakeoff } from "lucide-react";
+import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -76,7 +77,7 @@ function DesktopNav() {
               <div className="grid w-[420px] grid-cols-2 gap-1 p-3">
                 <NavigationMenuLink
                   className="col-span-2 rounded-lg bg-gaa-mist p-3 font-display font-semibold text-gaa-navy text-sm hover:bg-gaa-rule"
-                  render={<Link href={group.href} />}
+                  render={<Link href={group.href as Route} />}
                 >
                   {group.label} overview →
                 </NavigationMenuLink>
@@ -84,7 +85,7 @@ function DesktopNav() {
                   <NavigationMenuLink
                     className="rounded-lg p-2.5 text-gaa-ink text-sm hover:bg-gaa-mist hover:text-gaa-navy"
                     key={link.href}
-                    render={<Link href={link.href} />}
+                    render={<Link href={link.href as Route} />}
                   >
                     {link.label}
                   </NavigationMenuLink>
@@ -129,7 +130,7 @@ function MobileNav() {
               <Link
                 className="mb-2 block font-bold font-display text-gaa-navy text-sm uppercase tracking-wide"
                 data-analytics-event="navigation_category_selected"
-                href={group.href}
+                href={group.href as Route}
                 onClick={() => setOpen(false)}
               >
                 {group.label}
@@ -139,7 +140,7 @@ function MobileNav() {
                   <Link
                     className="px-3 py-1.5 text-gaa-muted text-sm hover:text-gaa-navy"
                     data-analytics-event="navigation_category_selected"
-                    href={link.href}
+                    href={link.href as Route}
                     key={link.href}
                     onClick={() => setOpen(false)}
                   >

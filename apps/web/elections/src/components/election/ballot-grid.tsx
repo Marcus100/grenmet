@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 import { Flag } from "@/components/flag";
 import { PartyDot } from "@/components/party-chip";
@@ -47,7 +48,7 @@ export function BallotGrid({ seats }: { seats: SeatOutlook[] }) {
         <li className="bg-background p-4" key={seat.code}>
           <Link
             className="font-bold font-serif text-lg leading-tight hover:underline"
-            href={seat.href}
+            href={seat.href as Route}
           >
             {seat.name}
           </Link>

@@ -1,4 +1,5 @@
 "use client";
+import type { Route } from "next";
 
 const APPLE_DEVICE_REGEX = /(Mac|iPhone|iPod|iPad)/i;
 
@@ -45,7 +46,7 @@ function useAutocomplete({ onNavigate }: { onNavigate: () => void }) {
 
   function navigate({ itemUrl }: { itemUrl?: string }) {
     if (itemUrl) {
-      router.push(itemUrl);
+      router.push(itemUrl as Route);
     }
 
     onNavigate();

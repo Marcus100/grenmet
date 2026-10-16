@@ -1,5 +1,5 @@
 import { TriangleAlertIcon } from "lucide-react";
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { PageHeader } from "@/components/page-header";
@@ -63,7 +63,7 @@ export default async function WarningPage({ params, searchParams }: Props) {
   if (result.alert.replaced_by_identifier) {
     const from = encodeURIComponent(result.alert.identifier);
     redirect(
-      `${warningHref(result.alert.replaced_by_identifier)}?updatedFrom=${from}`
+      `${warningHref(result.alert.replaced_by_identifier)}?updatedFrom=${from}` as Route
     );
   }
 

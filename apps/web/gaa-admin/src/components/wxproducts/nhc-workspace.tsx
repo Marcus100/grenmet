@@ -9,6 +9,7 @@ import {
 } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
+import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -47,7 +48,7 @@ export function NhcWorkspace({
     ","
   );
   const requestId = params.get("request");
-  function href(updates: Record<string, string>) {
+  function href(updates: Record<string, string>): Route {
     const next = new URLSearchParams(query);
     for (const [key, value] of Object.entries(updates)) {
       if (value) next.set(key, value);

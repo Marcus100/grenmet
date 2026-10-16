@@ -4,6 +4,8 @@ import type { NextConfig } from "next";
 import { routeMoveRedirects } from "./src/lib/route-moves";
 
 const nextConfig: NextConfig = {
+  // Link hrefs are checked against the app's routes at build time.
+  typedRoutes: true,
   // Do not advertise the framework in every response.
   poweredByHeader: false,
   reactCompiler: true,

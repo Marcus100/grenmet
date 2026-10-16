@@ -1,4 +1,5 @@
 import { MapPinIcon } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import {
   enabledLocations,
@@ -38,7 +39,7 @@ export function LocationSwitcher({
                     ? "border-gm-text-inverse bg-gm-text-inverse text-gm-navy"
                     : "border-gm-text-inverse/60 bg-gm-scrim"
                 )}
-                href={locationHref(place)}
+                href={locationHref(place) as Route}
               >
                 {active && (
                   <MapPinIcon aria-hidden="true" className="size-3.5" />

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { FlightBoard } from "@/components/flight-board";
 import { SectionHero } from "@/components/section-hero";
@@ -46,7 +46,7 @@ export default async function FlightsPage({
           {HELP_LINKS.map((link) => (
             <Link
               className="rounded-xl border border-gaa-rule px-4 py-3 text-center font-medium text-gaa-navy text-sm transition-colors hover:border-gaa-sea/40 hover:bg-gaa-mist"
-              href={link.href}
+              href={link.href as Route}
               key={link.href}
             >
               {link.label}

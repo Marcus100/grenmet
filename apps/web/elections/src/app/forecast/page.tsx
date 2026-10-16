@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { ChartViewport } from "@/components/chart-viewport";
 import { Flag } from "@/components/flag";
@@ -309,7 +309,7 @@ export default function ForecastPage() {
                     />
                     <Link
                       className="w-32 shrink-0 truncate hover:underline sm:w-40"
-                      href={constituencyHref(results, code)}
+                      href={constituencyHref(results, code) as Route}
                     >
                       <span className="sm:hidden">
                         {constituencyShortName(results, code)}
@@ -863,7 +863,7 @@ export default function ForecastPage() {
                         {record ? (
                           <Link
                             className="font-semibold hover:underline"
-                            href={personHref(record)}
+                            href={personHref(record) as Route}
                           >
                             {p.name}
                           </Link>

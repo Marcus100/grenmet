@@ -1,4 +1,5 @@
 import { ArrowRightIcon } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import {
   type AlertsResult,
@@ -26,7 +27,7 @@ function AlertCard({ alert }: { alert: PublicAlert }) {
     <li>
       <Link
         className="group grid grid-cols-[6px_minmax(0,1fr)] overflow-hidden rounded-gm-card border border-gm-border bg-background hover:border-gm-blue-ink focus-visible:border-gm-blue-ink"
-        href={warningHref(alert.identifier)}
+        href={warningHref(alert.identifier) as Route}
       >
         <span aria-hidden="true" className={WARNING_LEVEL_SWATCH[level]} />
         <span className="flex min-w-0 flex-col gap-2 p-4 lg:p-5">

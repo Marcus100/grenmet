@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { Flag } from "@/components/flag";
@@ -50,7 +50,7 @@ export default async function ConstituencyPage({ params }: Props) {
   if (!code) notFound();
   // Old links by PEO letter (/constituencies/n) go to the named address.
   const href = constituencyHref(results, code);
-  if (`/constituencies/${slug}` !== href) permanentRedirect(href);
+  if (`/constituencies/${slug}` !== href) permanentRedirect(href as Route);
 
   const seat = seatOutlook(results, campaign).find((s) => s.code === code);
   const contest = generalResult(results, "2022", code);

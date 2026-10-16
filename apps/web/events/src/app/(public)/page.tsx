@@ -2,6 +2,7 @@ import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { buttonVariants } from "@barrelsgd/ui/components/ui/button";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { ArrowRight, Search } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { ToggleButton } from "@/components/community/toggle-button";
 import { CATEGORY_STYLE } from "@/components/discovery/category-style";
@@ -69,13 +70,15 @@ export default async function HomePage() {
             </form>
           </search>
           <div className="flex flex-wrap gap-2">
-            {[
-              ["Tonight", "/events?when=tonight"],
-              ["This weekend", "/events?when=weekend"],
-              ["Free", "/events?price=free"],
-              ["Meetups", "/groups"],
-              ["Spicemas season", "/season/spicemas"],
-            ].map(([label, href]) => (
+            {(
+              [
+                ["Tonight", "/events?when=tonight"],
+                ["This weekend", "/events?when=weekend"],
+                ["Free", "/events?price=free"],
+                ["Meetups", "/groups"],
+                ["Spicemas season", "/season/spicemas"],
+              ] as const
+            ).map(([label, href]) => (
               <Link
                 className="rounded-full border border-border bg-card px-3.5 py-1.5 font-medium text-caption hover:border-foreground"
                 href={href ?? "/events"}
@@ -222,7 +225,7 @@ function Section({
   title,
 }: {
   children: React.ReactNode;
-  href?: string;
+  href?: Route;
   title: string;
 }) {
   return (

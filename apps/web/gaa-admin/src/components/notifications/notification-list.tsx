@@ -13,6 +13,7 @@ import { cn } from "@barrelsgd/ui/lib/utils";
 import { useQueryClient } from "@tanstack/react-query";
 import { formatDistanceToNow } from "date-fns";
 import { CheckCheck } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 
 /** Refresh the badge and every inbox page after a read-state change. */
@@ -72,7 +73,7 @@ function NotificationRow({
       {notification.link_path ? (
         <Link
           className={className}
-          href={notification.link_path}
+          href={notification.link_path as Route}
           onClick={() => onOpen(notification)}
         >
           {dot}

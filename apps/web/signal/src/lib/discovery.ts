@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import type { ArticleLike } from "./content-utils";
 export const COLLECTIONS = [
   {
@@ -46,7 +47,7 @@ export function selectStories<T extends ArticleLike>(
 }
 export interface SearchEntry {
   description: string;
-  href: string;
+  href: Route;
   label: string;
   title: string;
 }

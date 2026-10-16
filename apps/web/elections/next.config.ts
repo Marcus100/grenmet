@@ -3,6 +3,8 @@ import { withSentryConfig } from "@sentry/nextjs/config";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Link hrefs are checked against the app's routes at build time.
+  typedRoutes: true,
   // Do not advertise the framework in every response.
   poweredByHeader: false,
   output: "standalone",

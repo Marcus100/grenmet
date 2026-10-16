@@ -1,6 +1,6 @@
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Card, CardContent } from "@barrelsgd/ui/components/ui/card";
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
 import {
   type NewRequestItem,
@@ -68,7 +68,7 @@ function FormCard({ item }: { item: NewRequestItem }) {
   return (
     <Link
       className="group rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      href={item.href}
+      href={item.href as Route}
     >
       <Card className="h-full gap-0 py-4 transition-colors group-hover:border-primary/40">
         <CardContent className="px-4">

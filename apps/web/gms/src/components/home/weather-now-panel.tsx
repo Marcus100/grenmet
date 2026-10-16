@@ -9,6 +9,7 @@ import {
   WavesIcon,
   WindIcon,
 } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { useId, useState } from "react";
 import type { MediaEmbed } from "@/lib/media-embed";
@@ -210,7 +211,7 @@ export function WeatherNowPanel({
 
         <Link
           className="flex w-fit items-center gap-1 px-1 font-semibold text-body text-gm-lime leading-body hover:underline"
-          href={active.href}
+          href={active.href as Route}
         >
           Open the full {active.label.toLowerCase()} page
           <ArrowRightIcon aria-hidden="true" className="size-4" />

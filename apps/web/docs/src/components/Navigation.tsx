@@ -3,6 +3,7 @@
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { CloseButton } from "@headlessui/react";
 import { AnimatePresence, motion, useIsPresent } from "motion/react";
+import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useRef } from "react";
@@ -38,7 +39,7 @@ function TopLevelNavItem({
         as={Link}
         className="block py-1 text-sm text-zinc-600 transition hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
         data-analytics-event="navigation_category_selected"
-        href={href}
+        href={href as Route}
       >
         {children}
       </CloseButton>
@@ -71,7 +72,7 @@ function NavLink({
           : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
       )}
       data-analytics-event="navigation_category_selected"
-      href={href}
+      href={href as Route}
     >
       <span className="truncate">{children}</span>
       {tag && (

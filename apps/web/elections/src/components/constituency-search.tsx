@@ -2,6 +2,7 @@
 
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { SearchIcon } from "lucide-react";
+import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState } from "react";
 import { type SearchEntry, searchConstituencies } from "@/data/search";
@@ -64,7 +65,7 @@ export function ConstituencySearch({
     setOpen(false);
     setQuery("");
     inputRef.current?.blur();
-    router.push(entry.href);
+    router.push(entry.href as Route);
   }
 
   function onKeyDown(event: React.KeyboardEvent<HTMLInputElement>) {

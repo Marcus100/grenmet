@@ -6,7 +6,7 @@ import {
 } from "@barrelsgd/ui/components/ui/empty";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { CalendarDays, List, Plus } from "lucide-react";
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { EventCard } from "@/components/discovery/event-card";
 import { FilterBar } from "@/components/discovery/filter-bar";
@@ -40,7 +40,7 @@ export default async function CalendarPage({
   const days = groupByDay(events);
   const today = grenadaDateKey(now);
 
-  const viewHref = (next: "list" | "month") => {
+  const viewHref = (next: "list" | "month"): Route => {
     const query = new URLSearchParams();
     for (const [key, value] of Object.entries(params)) {
       if (typeof value === "string" && key !== "view") {

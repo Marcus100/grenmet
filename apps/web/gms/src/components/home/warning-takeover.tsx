@@ -1,4 +1,5 @@
 import { TriangleAlertIcon } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { type AlertsResult, alertsLevel, severityLevel } from "@/lib/cap";
 import { formatWarningTime, warningHref } from "@/lib/warning-detail";
@@ -61,7 +62,7 @@ export function WarningTakeover({ alerts }: { alerts: AlertsResult }) {
               </dl>
               <Link
                 className="mt-3 inline-flex h-11 items-center rounded-md bg-gm-warning-red-bg px-4 font-bold text-body text-gm-warning-red-fg leading-body"
-                href={warningHref(alert.identifier)}
+                href={warningHref(alert.identifier) as Route}
               >
                 Read the warning
               </Link>

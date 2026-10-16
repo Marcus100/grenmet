@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 
 export const metadata = { title: "Weather products" };
@@ -44,7 +45,7 @@ export default function WeatherProductsPage() {
             <li key={desk.href}>
               <Link
                 className="block h-full space-y-2 rounded-lg border bg-card p-6 text-card-foreground transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                href={desk.href}
+                href={desk.href as Route}
               >
                 <h2 className="font-semibold text-heading-sm">{desk.title}</h2>
                 <p className="text-body text-muted-foreground">

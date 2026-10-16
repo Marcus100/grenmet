@@ -10,6 +10,7 @@ import {
   SunIcon,
   WavesIcon,
 } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { HOME_CARD, HomeSection } from "@/components/home/home-section";
 import {
@@ -205,7 +206,7 @@ export async function ExploreToday() {
               {reading && (
                 <Link
                   className="px-1 font-semibold text-body-sm text-gm-blue-ink leading-body-sm hover:underline"
-                  href={relatedHref(reading)}
+                  href={relatedHref(reading) as Route}
                 >
                   <span className="sr-only">{service.sector}: </span>
                   Read: {reading.title}
