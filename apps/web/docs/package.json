@@ -39,7 +39,7 @@
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "react-highlight-words": "^0.21.0",
+    "react-highlight-words": "^1.0.0",
     "remark": "^15.0.1",
     "remark-gfm": "catalog:",
     "remark-mdx": "^3.1.1",
