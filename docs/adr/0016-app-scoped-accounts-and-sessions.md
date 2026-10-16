@@ -33,7 +33,8 @@ on every endpoint that only required "signed in".
 4. **Tokens carry the app.** App sessions mint access tokens with an `app`
    claim. `get_current_user` (every staff route) refuses them; app routes use
    `app_user(key)` / `optional_app_user(key)`, which accept only their own app's
-   tokens and require an active, verified account holding the app permission.
+   tokens and require an active account holding the app permission (email
+   verification is not required; see the 16 October 2026 amendment in ADR-0017).
 5. **Staff approval stays separate.** Self-service accounts keep
    `registration_pending=True`, so the existing staff gate continues to refuse
    them everywhere else. App eligibility ignores that flag.

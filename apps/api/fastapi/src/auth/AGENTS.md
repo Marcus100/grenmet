@@ -12,6 +12,8 @@
 - Authorization: `policy.py` (`has_permission`, `require_permission`, `can_act_on_user…`) and `access.py` (effective roles, access reviews).
 
 ## Invariants
+- **Email verification never gates access** (owner, 16 October 2026): no check on `email_verified_at` / `email_verification_required` in sign-in, handoff, join, app eligibility, the staff gate or staff approval. Verification itself (emails, `/auth/password/setup`, Security) stays.
+- **Joining:** every app asks "Join" once. Self-service apps join instantly; `scope="staff"` (GAA Admin) Join records a staff access request for an administrator; CMS is superuser-granted and cannot be joined.
 - **Every auth route lives under `/api/v1/auth`.** No new top-level prefixes (the old `/login`, `/2fa`, `/password-recovery`, `/reset-password` and `/auth/modern` paths were removed on 16 October 2026 with no aliases). Never put an email address or other personal data in a path; send it in the body.
 - **Activation:** administrator approval never sets `email_verified_at`; use hashed, expiring, one-use challenges and audit lifecycle events without secrets. See `docs/operations/staff-onboarding.md`.
 - **CMS access:** `User.cms_access` is superuser-managed and independent of employment. CMS issues app-scoped tokens; live identity and session exchange recheck grants, and changes revoke CMS sessions.

@@ -27,11 +27,12 @@ export function SignUpForm() {
           className="rounded-lg border border-border bg-muted px-5 py-4 text-sm leading-6"
           role="status"
         >
-          <p className="font-medium text-foreground">Check your email</p>
+          <p className="font-medium text-foreground">Account created</p>
           <p className="mt-1 text-muted-foreground">
-            We sent a verification link to {state.email || "your inbox"}. Once
-            you verify, you can sign in to every Barrels app. Work at GAA or
-            GMS? Ask for staff access from your account page.
+            You can sign in now and join the apps you need. We also sent a
+            verification link to {state.email || "your inbox"}; verify when you
+            can. Work at GAA or GMS? Join GAA Admin and an administrator
+            approves it.
           </p>
         </div>
         <Link className={secondaryButtonClass} href="/">

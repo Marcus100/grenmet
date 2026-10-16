@@ -201,16 +201,26 @@ async def test_email_code_respects_closed_sign_up(
 
 
 @pytest.mark.asyncio
-async def test_information_sites_join_without_a_prompt(
+async def test_information_sites_ask_to_join_then_join_instantly(
     async_client, db_async, seeded, monkeypatch
 ):
     _ = seeded
     monkeypatch.setattr(auth_settings, "WEATHER_SSO_CLIENT_SECRET", SECRET)
     user = await _public_account(db_async)
     account = (await _sign_in(async_client))["session_token"]
-    started = await async_client.post(
+    asked = await async_client.post(
         "/api/v1/auth/apps/weather/handoff",
         json={"session_token": account, "state": secrets.token_urlsafe(24)},
+    )
+    assert asked.status_code == 409, asked.text
+    assert asked.json()["detail"].startswith("Join ")
+    started = await async_client.post(
+        "/api/v1/auth/apps/weather/handoff",
+        json={
+            "session_token": account,
+            "state": secrets.token_urlsafe(24),
+            "join": True,
+        },
     )
     assert started.status_code == 200, started.text
     assert await service.is_eligible_for_app(

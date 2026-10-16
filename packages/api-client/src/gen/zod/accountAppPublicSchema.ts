@@ -9,5 +9,7 @@ export const accountAppPublicSchema = z.object({
   key: z.string(),
   label: z.string(),
   joined: z.boolean(),
+  can_join: z.boolean(),
+  pending: z.boolean().optional().default(false),
   can_leave: z.boolean(),
 });

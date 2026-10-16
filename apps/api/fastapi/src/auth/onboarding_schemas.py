@@ -30,7 +30,6 @@ class ActivationConfirm(BaseModel):
 class AccessBlocker(str, Enum):
     INACTIVE = "inactive"
     PASSWORD_SETUP = "password_setup"
-    EMAIL_VERIFICATION = "email_verification"
     STAFF_APPROVAL = "staff_approval"
     CMS_GRANT = "cms_grant"
     MFA_ENROLMENT = "mfa_enrolment"

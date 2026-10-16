@@ -57,7 +57,7 @@ function describeSignInError(
   return {
     error: error.detail,
     email,
-    next: error.detail.startsWith("Verify your email") ? "verify" : null,
+    next: null,
   };
 }
 

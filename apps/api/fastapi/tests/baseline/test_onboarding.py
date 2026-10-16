@@ -94,7 +94,8 @@ async def test_staff_approval_after_audited_activation_without_email(db_async):
         person.id,
         StaffInput(department_id=department.id, grade_id=grade.id, mailbox_ready=False),
     )
-    assert not await service.identity_ready_for_approval(db_async, person)
+    # Approval never waits for email verification.
+    assert service.identity_ready_for_approval(person)
     link = await onboarding.issue_activation(db_async, actor, person.id, True)
     token = link.activation_url.split("token=", 1)[1]
     await onboarding.confirm_activation(
@@ -102,7 +103,7 @@ async def test_staff_approval_after_audited_activation_without_email(db_async):
     )
     assert person.registration_pending  # Activation never approves staff access.
     assert person.email_verified_at is None
-    assert await service.identity_ready_for_approval(db_async, person)
+    assert service.identity_ready_for_approval(person)
     await service.approve_registration(db_async, actor, person.id)
     assert not person.registration_pending
     assert person.email_verified_at is None
@@ -115,8 +116,10 @@ async def test_staff_approval_after_audited_activation_without_email(db_async):
 
 
 @pytest.mark.asyncio
-async def test_public_account_flags_are_not_activation_evidence(db_async):
+async def test_unverified_public_account_can_be_approved(db_async):
     actor, person, department, grade = await setup_staff(db_async)
+    if not await db_async.scalar(select(Role.id).where(Role.name == "staff")):
+        db_async.add(Role(name="staff", permissions=[]))
     person.is_active = True
     person.registration_pending = True
     person.email_verified_at = None
@@ -129,7 +132,23 @@ async def test_public_account_flags_are_not_activation_evidence(db_async):
         person.id,
         StaffInput(department_id=department.id, grade_id=grade.id, mailbox_ready=True),
     )
-    assert not await service.identity_ready_for_approval(db_async, person)
-    with pytest.raises(AppException, match="administrator-approved activation"):
+    # Staff setup shows "Email verification pending"; the administrator decides.
+    assert service.identity_ready_for_approval(person)
+    await service.approve_registration(db_async, actor, person.id)
+    assert not person.registration_pending and person.email_verified_at is None
+
+
+async def test_inactive_account_cannot_be_approved(db_async):
+    actor, person, department, grade = await setup_staff(db_async)
+    person.is_active = False
+    person.registration_pending = True
+    await db_async.commit()
+    await service.save_staff(
+        db_async,
+        actor,
+        person.id,
+        StaffInput(department_id=department.id, grade_id=grade.id, mailbox_ready=True),
+    )
+    assert not service.identity_ready_for_approval(person)
+    with pytest.raises(AppException, match="must be active"):
         await service.approve_registration(db_async, actor, person.id)
-    assert person.registration_pending and person.email_verified_at is None

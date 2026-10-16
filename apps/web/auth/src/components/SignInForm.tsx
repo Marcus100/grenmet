@@ -66,14 +66,6 @@ export function SignInForm({ appName, returnTo }: SignInFormProps) {
         {state.error ? (
           <div className={errorBoxClass} role="alert">
             {state.error}
-            {state.next === "verify" ? (
-              <Link
-                className="mt-1 block font-medium underline underline-offset-4"
-                href="/verify-email"
-              >
-                Verify your email
-              </Link>
-            ) : null}
           </div>
         ) : null}
 

@@ -229,7 +229,7 @@ async def test_password_setup_cannot_be_bypassed_by_email_exemption(
 
 
 @pytest.mark.asyncio
-async def test_public_unverified_cms_grantee_still_needs_email(
+async def test_public_unverified_cms_grantee_can_sign_in(
     async_client, db_async, monkeypatch
 ):
     from src.auth.config import auth_settings
@@ -254,8 +254,8 @@ async def test_public_unverified_cms_grantee_still_needs_email(
         "/api/v1/auth/apps/cms/handoff",
         json={"session_token": secret, "state": "a" * 32},
     )
-    assert response.status_code == 403
-    assert "Verify your email" in response.json()["detail"]
+    # The superuser grant decides CMS access; email verification never gates.
+    assert response.status_code == 200, response.text
 
 
 @pytest.mark.asyncio

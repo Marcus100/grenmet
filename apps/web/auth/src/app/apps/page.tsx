@@ -17,6 +17,7 @@ export const dynamic = "force-dynamic";
 const NOTICES: Record<string, string> = {
   failed: "That didn't work. Try again, or ask the team if it keeps happening.",
   joined: "You joined the app.",
+  requested: "Request sent. You can sign in once an administrator approves it.",
   left: "You left the app and signed out of it. Your other apps are unchanged.",
   "left-still":
     "You left the app, but an administrator still gives you access through a role.",
@@ -24,6 +25,29 @@ const NOTICES: Record<string, string> = {
 
 const BUTTON =
   "rounded-lg border border-border px-3 py-1.5 font-medium text-foreground text-sm transition hover:bg-muted";
+
+type AccountApp = Awaited<ReturnType<typeof listAccountApps>>[number];
+
+function describe(app: AccountApp): string {
+  if (app.can_leave) {
+    return "Leaving ends your sessions in this app. You can join again any time.";
+  }
+  if (!app.can_join || app.joined) {
+    return "Access is given by an administrator.";
+  }
+  return app.pending
+    ? "Your request is waiting for an administrator to approve it."
+    : "Join to ask for access. An administrator approves it.";
+}
+
+function badge(app: AccountApp): {
+  label: string;
+  tone: "on" | "off" | "neutral";
+} {
+  if (app.joined) return { label: "Joined", tone: "on" };
+  if (app.pending) return { label: "Waiting for approval", tone: "neutral" };
+  return { label: "Not joined", tone: "off" };
+}
 
 interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
@@ -47,33 +71,33 @@ export default async function AppsPage({ searchParams }: PageProps) {
         </p>
       ) : null}
       <SettingsSection title="Your apps">
-        {apps.map((app) => (
-          <SettingsRow
-            action={
-              app.can_leave ? (
-                <form
-                  action={app.joined ? leaveAppFromAccount : joinAppFromAccount}
-                >
-                  <input name="app" type="hidden" value={app.key} />
-                  <button className={BUTTON} type="submit">
-                    {app.joined ? "Leave" : "Join"}
-                  </button>
-                </form>
-              ) : null
-            }
-            description={
-              app.can_leave
-                ? "Leaving ends your sessions in this app. You can join again any time."
-                : "Access is given by an administrator."
-            }
-            key={app.key}
-            title={app.label}
-          >
-            <StatusBadge tone={app.joined ? "on" : "off"}>
-              {app.joined ? "Joined" : "Not joined"}
-            </StatusBadge>
-          </SettingsRow>
-        ))}
+        {apps.map((app) => {
+          const canLeave = app.joined && app.can_leave;
+          const canJoin = !(app.joined || app.pending) && app.can_join;
+          return (
+            <SettingsRow
+              action={
+                canLeave || canJoin ? (
+                  <form
+                    action={canLeave ? leaveAppFromAccount : joinAppFromAccount}
+                  >
+                    <input name="app" type="hidden" value={app.key} />
+                    <button className={BUTTON} type="submit">
+                      {canLeave ? "Leave" : "Join"}
+                    </button>
+                  </form>
+                ) : null
+              }
+              description={describe(app)}
+              key={app.key}
+              title={app.label}
+            >
+              <StatusBadge tone={badge(app).tone}>
+                {badge(app).label}
+              </StatusBadge>
+            </SettingsRow>
+          );
+        })}
       </SettingsSection>
     </AccountLayout>
   );

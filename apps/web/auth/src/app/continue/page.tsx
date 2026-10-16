@@ -94,20 +94,12 @@ export default async function ContinuePage({ searchParams }: PageProps) {
           there.
         </Notice>
       );
-    case "verify-email":
+    case "pending":
       return (
-        <AuthShell
-          greeting="Barrels account"
-          subtitle="One account, every app."
-        >
-          <AuthHeading title="Verify your email address">
-            Verify your account email, then return to the app and choose Sign in
-            again. Administrators must verify their email too.
-          </AuthHeading>
-          <a className="text-foreground text-sm underline" href="/verify-email">
-            Verify email
-          </a>
-        </AuthShell>
+        <Notice title={`Waiting for approval to use ${result.label}`}>
+          Your request was sent. You can sign in once an administrator approves
+          it.
+        </Notice>
       );
     case "denied":
       return (
@@ -122,7 +114,9 @@ export default async function ContinuePage({ searchParams }: PageProps) {
           subtitle="One account, every app."
         >
           <AuthHeading title={`Join ${result.label}?`}>
-            {`You'll use your Barrels account to sign in to ${result.label}. You only need to do this once.`}
+            {result.request
+              ? `An administrator approves access to ${result.label}. Join to send your request.`
+              : `You'll use your Barrels account to sign in to ${result.label}. You only need to do this once.`}
           </AuthHeading>
           <form action={joinApp} className="grid grid-cols-2 gap-3">
             <input name="app" type="hidden" value={request.app} />

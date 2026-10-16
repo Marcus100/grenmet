@@ -16,8 +16,6 @@ import { reportError } from "@/lib/report-error";
 const reasons: Record<AccessBlocker, string> = {
   inactive: "Account is disabled. Review this before enabling access.",
   password_setup: "Give the person an activation link to set their password.",
-  email_verification:
-    "Verify email, or use administrator-approved activation below.",
   staff_approval: "Staff approval is still required.",
   cms_grant: "Choose Writer or Publisher under CMS access.",
   mfa_enrolment:

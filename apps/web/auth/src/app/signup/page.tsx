@@ -14,7 +14,8 @@ export default function SignUpPage() {
       subtitle="One account for every app."
     >
       <AuthHeading title="Create your account">
-        Verify your email, then an administrator approves staff access.
+        Create your account, then join the apps you need. We'll send a link to
+        verify your email.
       </AuthHeading>
       <SignUpForm />
     </AuthShell>

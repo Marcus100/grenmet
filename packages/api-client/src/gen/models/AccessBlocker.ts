@@ -6,7 +6,6 @@
 export const accessBlocker = {
   inactive: "inactive",
   password_setup: "password_setup",
-  email_verification: "email_verification",
   staff_approval: "staff_approval",
   cms_grant: "cms_grant",
   mfa_enrolment: "mfa_enrolment",
