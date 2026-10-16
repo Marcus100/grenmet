@@ -4,7 +4,10 @@ import pytest
 
 from src.auth import app_service, service
 from src.auth.config import auth_settings
+from src.auth.models import User
+from src.auth.utils import get_password_hash
 from tests.auth.test_app_handoff import (
+    ADMIN,
     CLIENT_SECRET,
     _account_session,
     _redeem,
@@ -67,7 +70,7 @@ async def test_join_adds_the_default_role_without_a_handoff(
         f"{BASE}/events/join", json={"session_token": secret}
     )
     assert joined.status_code == 200, joined.text
-    assert joined.json() == {"joined": True}
+    assert joined.json() == {"joined": True, "pending": False}
     assert _by_key(await _list(async_client, secret))["events"]["joined"] is True
     # Joining twice is harmless.
     again = await async_client.post(
@@ -181,3 +184,101 @@ async def test_leaving_events_does_not_touch_other_users(
         is not None
     )
     assert _by_key(await _list(async_client, second))["events"]["joined"] is True
+
+
+async def _public_account(db_async, email="resident@example.com") -> tuple[User, str]:
+    """A self-registered account: no staff approval, email not verified."""
+    user = User(
+        email=email,
+        username=email.split("@", 1)[0],
+        first_name="Public",
+        last_name="Resident",
+        hashed_password=get_password_hash("Resident-password-123!"),
+        registration_pending=True,
+        email_verification_required=True,
+    )
+    db_async.add(user)
+    await db_async.commit()
+    _, secret = await service.create_session(
+        session=db_async, user=user, app_name="auth", enforce_approval=False
+    )
+    return user, secret
+
+
+async def test_unverified_account_joins_self_service_apps_instantly(
+    async_client, db_async, seeded
+):
+    _ = seeded
+    user, secret = await _public_account(db_async)
+    assert user.email_verified_at is None
+    joined = await async_client.post(
+        f"{BASE}/events/join", json={"session_token": secret}
+    )
+    assert joined.status_code == 200, joined.text
+    assert joined.json() == {"joined": True, "pending": False}
+    state = _state()
+    started = await _start(async_client, secret, state)
+    assert started.status_code == 200, started.text
+
+
+async def test_admin_join_requests_access_and_waits_for_approval(
+    async_client, db_async, seeded
+):
+    _ = seeded
+    user, secret = await _public_account(db_async)
+
+    asked = await _start(async_client, secret, _state(), base=ADMIN)
+    assert asked.status_code == 409, asked.text
+    assert asked.json()["detail"].startswith("Request access")
+    assert user.staff_access_requested_at is None
+
+    requested = await _start(async_client, secret, _state(), join=True, base=ADMIN)
+    assert requested.status_code == 403
+    assert requested.json()["detail"] == app_service.STAFF_REQUEST_PENDING
+    await db_async.refresh(user)
+    assert user.staff_access_requested_at is not None
+    # Later visits keep waiting rather than asking again.
+    again = await _start(async_client, secret, _state(), base=ADMIN)
+    assert again.json()["detail"] == app_service.STAFF_REQUEST_PENDING
+    admin = _by_key(await _list(async_client, secret))["gaa-admin"]
+    assert admin == {
+        "key": "gaa-admin",
+        "label": admin["label"],
+        "joined": False,
+        "can_join": True,
+        "pending": True,
+        "can_leave": False,
+    }
+
+    # An administrator approves (email still unverified); the handoff works.
+    user.registration_pending = False
+    db_async.add(user)
+    await db_async.commit()
+    state = _state()
+    approved = await _start(async_client, secret, state, base=ADMIN)
+    assert approved.status_code == 200, approved.text
+    assert _by_key(await _list(async_client, secret))["gaa-admin"]["joined"] is True
+
+
+async def test_account_page_join_requests_admin_access(async_client, db_async, seeded):
+    _ = seeded
+    user, secret = await _public_account(db_async)
+    joined = await async_client.post(
+        f"{BASE}/gaa-admin/join", json={"session_token": secret}
+    )
+    assert joined.status_code == 200, joined.text
+    assert joined.json() == {"joined": False, "pending": True}
+    await db_async.refresh(user)
+    assert user.staff_access_requested_at is not None and user.registration_pending
+
+
+async def test_cms_is_granted_not_joined(async_client, db_async, seeded, monkeypatch):
+    _ = seeded
+    monkeypatch.setattr(auth_settings, "CMS_SSO_CLIENT_SECRET", CLIENT_SECRET)
+    _, secret = await _public_account(db_async)
+    cms = _by_key(await _list(async_client, secret))["cms"]
+    assert cms["can_join"] is False and cms["joined"] is False
+    refused = await async_client.post(
+        f"{BASE}/cms/join", json={"session_token": secret}
+    )
+    assert refused.status_code == 403

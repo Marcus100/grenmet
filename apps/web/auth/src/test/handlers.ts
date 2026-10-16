@@ -50,13 +50,6 @@ export const signInMfaRequired = http.post(`${BASE}/auth/sessions`, () =>
   )
 );
 
-export const signInVerifyRequired = http.post(`${BASE}/auth/sessions`, () =>
-  HttpResponse.json(
-    { detail: "Verify your email and set your password before signing in" },
-    { status: 403 }
-  )
-);
-
 export const signInAwaitingApproval = http.post(`${BASE}/auth/sessions`, () =>
   HttpResponse.json(
     { detail: "Your registration is awaiting administrator approval" },

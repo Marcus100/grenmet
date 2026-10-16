@@ -84,7 +84,7 @@ async def test_cookie_journey_and_bearer_compatibility(
 
 @pytest.mark.parametrize(
     "condition,expected",
-    [("expired", 401), ("inactive", 401), ("pending", 403), ("unverified", 403)],
+    [("expired", 401), ("inactive", 401), ("pending", 403), ("unverified", 200)],
 )
 async def test_cookie_rechecks_account_and_expiry(
     async_client, db_async, browser_identity, condition, expected

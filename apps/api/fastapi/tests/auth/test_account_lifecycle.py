@@ -5,11 +5,9 @@ import pyotp
 import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from starlette.requests import Request
 
 from src.auth import account_security, modern_service, service
 from src.auth.models import User
-from src.auth.modern_schemas import EmailConfirm
 from src.auth.utils import create_access_token
 from src.baseline.schemas import StaffInput
 from src.baseline.service import approve_registration, card_for, save_staff
@@ -18,7 +16,7 @@ from src.hr.models import Grade
 from tests.factories import make_department, make_role_with_permission, make_user
 
 
-async def test_registration_requires_verification_and_staff_approval(
+async def test_registration_signs_in_at_once_and_staff_needs_approval(
     async_client: httpx.AsyncClient, db_async: AsyncSession
 ) -> None:
     password = "long-registration-password"
@@ -46,39 +44,25 @@ async def test_registration_requires_verification_and_staff_approval(
         .scalars()
         .one()
     )
-    for path, kwargs in [
-        (
-            "/api/v1/auth/sessions",
-            {"json": {"email": user.email, "password": password}},
-        ),
-        (
-            "/api/v1/auth/token",
-            {"data": {"username": user.email, "password": password}},
-        ),
-    ]:
-        assert (await async_client.post(path, **kwargs)).status_code == 403
+    # An unverified account signs in at once; email verification never gates.
+    signed_in = await async_client.post(
+        "/api/v1/auth/sessions", json={"email": user.email, "password": password}
+    )
+    assert signed_in.status_code == 200, signed_in.text
+    assert user.email_verified_at is None
+    # Staff tools still wait for an administrator.
     assert (
-        await async_client.get(
-            "/api/v1/hr/profile/me",
-            headers={
-                "Authorization": "Bearer "
-                + create_access_token(user.id, timedelta(minutes=5))
-            },
+        await async_client.post(
+            "/api/v1/auth/token",
+            data={"username": user.email, "password": password},
         )
     ).status_code == 403
-    actor = await make_user(db_async, superuser=True)
-    with pytest.raises(AppException):
-        await approve_registration(db_async, actor, user.id)
-    await db_async.rollback()
-    user = (
-        (
-            await db_async.execute(
-                select(User).where(User.email == "new.staff@example.com")
-            )
-        )
-        .scalars()
-        .one()
-    )
+    staff_headers = {
+        "Authorization": "Bearer " + create_access_token(user.id, timedelta(minutes=5))
+    }
+    assert (
+        await async_client.get("/api/v1/auth/staff/me", headers=staff_headers)
+    ).status_code == 403
     actor = await make_user(db_async, superuser=True)
     dept = await make_department(db_async)
     grade = Grade(
@@ -97,18 +81,9 @@ async def test_registration_requires_verification_and_staff_approval(
         user.id,
         StaffInput(department_id=dept.id, grade_id=grade.id, mailbox_ready=True),
     )
-    token = await modern_service.issue(
-        db_async, "email", user_id=user.id, data={"email": user.email}
-    )
-    await db_async.commit()
-    result = await modern_service.email_confirm(
-        Request({"type": "http", "headers": []}),
-        db_async,
-        EmailConfirm(token=token, new_password=password),
-    )
-    # Verified accounts can sign in at once; staff access still needs approval.
-    assert "You can now sign in" in result.message
     await approve_registration(db_async, actor, user.id)
+    await db_async.refresh(user)
+    assert user.email_verified_at is None
     card = await card_for(db_async, user)
     assert card.status == "active"
     assert card.employment_ready is False
@@ -116,6 +91,9 @@ async def test_registration_requires_verification_and_staff_approval(
         await async_client.post(
             "/api/v1/auth/sessions", json={"email": user.email, "password": password}
         )
+    ).status_code == 200
+    assert (
+        await async_client.get("/api/v1/auth/staff/me", headers=staff_headers)
     ).status_code == 200
 
 

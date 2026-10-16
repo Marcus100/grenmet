@@ -24268,7 +24268,6 @@
         "enum": [
           "inactive",
           "password_setup",
-          "email_verification",
           "staff_approval",
           "cms_grant",
           "mfa_enrolment"
@@ -24321,6 +24320,15 @@
             "type": "boolean",
             "title": "Joined"
           },
+          "can_join": {
+            "type": "boolean",
+            "title": "Can Join"
+          },
+          "pending": {
+            "type": "boolean",
+            "title": "Pending",
+            "default": false
+          },
           "can_leave": {
             "type": "boolean",
             "title": "Can Leave"
@@ -24331,6 +24339,7 @@
           "key",
           "label",
           "joined",
+          "can_join",
           "can_leave"
         ],
         "title": "AccountAppPublic"
@@ -24925,6 +24934,11 @@
           "joined": {
             "type": "boolean",
             "title": "Joined"
+          },
+          "pending": {
+            "type": "boolean",
+            "title": "Pending",
+            "default": false
           }
         },
         "type": "object",

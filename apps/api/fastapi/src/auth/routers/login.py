@@ -159,12 +159,10 @@ async def login_access_token(
     elif not user.is_active:
         raise HTTPException(status_code=400, detail=ERROR_INACTIVE_USER)
     service.require_approved_account(user)
-    if user.password_setup_pending or (
-        user.email_verification_required and user.email_verified_at is None
-    ):
+    if user.password_setup_pending:
         raise HTTPException(
             status_code=403,
-            detail="Verify your email and set your password before signing in",
+            detail="Finish setting your password before signing in",
         )
     if user.totp_enabled:
         raise HTTPException(
@@ -218,12 +216,10 @@ async def login_session(
         raise HTTPException(status_code=400, detail=ERROR_INACTIVE_USER)
     # Any account may hold an account session (ADR-0017); staff approval is
     # checked by staff routes and the staff-app handoff, not at sign-in.
-    if user.password_setup_pending or (
-        user.email_verification_required and user.email_verified_at is None
-    ):
+    if user.password_setup_pending:
         raise HTTPException(
             status_code=403,
-            detail="Verify your email and set your password before signing in",
+            detail="Finish setting your password before signing in",
         )
     if user.totp_enabled and not await verify_factor(
         session, user, body.totp_code or ""

@@ -74,10 +74,14 @@ function StaffEditor({
           <p className="font-medium">Registration awaiting approval</p>
           <p className="text-sm">
             Verify the employee’s identity, save their department and grade,
-            then approve staff access. The person can verify email or complete
-            an administrator-issued activation link. Personnel details can be
-            completed later.
+            then approve staff access. Personnel details can be completed later.
           </p>
+          {staff.email_verified ? null : (
+            <p className="text-sm" role="note">
+              This email address isn’t verified yet. You can still approve;
+              confirm who the person is first.
+            </p>
+          )}
           <Button
             disabled={
               busy ||

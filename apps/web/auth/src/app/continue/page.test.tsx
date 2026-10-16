@@ -91,21 +91,31 @@ describe("/continue", () => {
     ).toBeTruthy();
   });
 
-  it("directs unverified administrators to email verification", async () => {
+  it("explains that joining a staff app asks an administrator", async () => {
     readSessionCookie.mockResolvedValue("account-session");
-    startHandoff.mockResolvedValue({ kind: "verify-email" });
-    render(await page({ app: "cms", state: STATE }));
+    startHandoff.mockResolvedValue({
+      kind: "join",
+      label: "GAA Admin",
+      request: true,
+    });
+    render(await page({ app: "gaa-admin", state: STATE }));
     expect(
-      screen.getByRole("heading", { name: "Verify your email address" })
-    ).toBeTruthy();
-    expect(
-      screen.getByRole("link", { name: "Verify email" }).getAttribute("href")
-    ).toBe("/verify-email");
-    expect(
-      screen.queryByText(
-        "Ask an administrator to give your account access, then try again."
+      screen.getByText(
+        "An administrator approves access to GAA Admin. Join to send your request."
       )
-    ).toBeNull();
+    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Join GAA Admin" })).toBeTruthy();
+  });
+
+  it("shows a waiting notice once access is requested", async () => {
+    readSessionCookie.mockResolvedValue("account-session");
+    startHandoff.mockResolvedValue({ kind: "pending", label: "GAA Admin" });
+    render(await page({ app: "gaa-admin", state: STATE }));
+    expect(
+      screen.getByRole("heading", {
+        name: "Waiting for approval to use GAA Admin",
+      })
+    ).toBeTruthy();
   });
 
   it("explains a missing grant and a broken link", async () => {

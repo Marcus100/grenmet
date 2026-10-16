@@ -153,13 +153,6 @@ async def get_authenticated_user(
         raise HTTPException(
             status_code=403, detail="Finish account activation before continuing"
         )
-    if user.email_verification_required and user.email_verified_at is None:
-        raise HTTPException(
-            status_code=403,
-            detail="Verify your email before using the staff portal"
-            if not allow_unapproved
-            else "Verify your email to manage your account",
-        )
     from sqlalchemy.orm.attributes import set_committed_value
 
     from src.auth.access import effective_roles

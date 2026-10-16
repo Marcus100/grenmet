@@ -15,7 +15,7 @@ Owner: Barrels platform. Client acceptance: GAA/GMS.
 
 For an existing account, open **Users → row menu → Manage roles & access**. Account setup explains missing steps. Superusers and established verified accounts use existing sign-in/recovery rather than activation. Existing active, approved staff exempt from email verification can already use their explicit CMS grant without an activation link.
 
-Closing the panel hides the link. **Replace activation link** invalidates the old one; **Revoke activation link** cancels it. No emails are sent by this flow. Email remains unverified until an actual verification flow succeeds. Activation keeps any configured MFA and replaces the password, signs out sessions, and invalidates outstanding challenges.
+Closing the panel hides the link. **Replace activation link** invalidates the old one; **Revoke activation link** cancels it. No emails are sent by this flow. Email remains unverified until an actual verification flow succeeds; that is shown to administrators but never blocks access or approval. Activation keeps any configured MFA and replaces the password, signs out sessions, and invalidates outstanding challenges.
 
 ## Staff workflows and current limits
 

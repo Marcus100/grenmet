@@ -202,6 +202,18 @@ outliers moved, with no aliases (operation IDs unchanged unless noted):
 
 ### App-scoped sign-in (ADR-0016)
 
+**Joining apps (16 October 2026).** Every app with sign-in asks "Join <app>?"
+once: the handoff returns 409 until it is called with `join: true`.
+Self-service apps (Events, weather, mbia, signal, docs, elections) then join
+instantly. GAA Admin (`scope="staff"`): the 409 detail starts "Request access";
+`join: true` records `staff_access_requested_at` and returns 403
+`"Your request is waiting for an administrator to approve it."` until an
+administrator approves. CMS cannot be joined (superuser grant). On
+`POST /auth/account/apps`, `AccountAppPublic` adds `can_join` and `pending`;
+`POST /auth/account/apps/{app}/join` returns `{joined, pending}`. Email
+verification never gates any of these. `OnboardingStatus` no longer reports an
+`email_verification` blocker.
+
 Self-service apps (Barrels Events first) sign people in on their own pages and keep
 their own host-only cookie. All routes are public and rate-limited:
 
@@ -232,7 +244,7 @@ ordinary staff tokens without an `app` claim. `POST /auth/sessions` ignores an
 `app_name` that names any registered app. The cookie-authenticated routes read
 GAA Admin's host-only cookie, `admin_session` (`BROWSER_SESSION_COOKIE_NAME`).
 
-**Public accounts (ADR-0017 step 4).** Any active, verified account can sign in at
+**Public accounts (ADR-0017 step 4).** Any active account can sign in at
 auth.barrels.gd (`POST /auth/sessions`, Google) and hold an *account session*:
 a session that belongs to no registered app. Its token has no `app` claim, but
 staff approval (`registration_pending=false`) is still required by every staff
@@ -673,9 +685,9 @@ HR form submission dates: leave, shift swap, absentee, daily status and parking 
 
 ### Registration approval and recovery
 
-Public signup creates an active but `registration_pending` account and requires email verification. `ALLOW_PUBLIC_SIGNUP` defaults to true; explicitly setting it false closes registration. Pending accounts cannot obtain sessions, use bearer-authenticated endpoints, or complete Google sign-in. Existing accounts default to approved when the migration is applied. Signup accepts passwords of 12–128 characters and ignores privilege fields. Verification delivery failure preserves the pending account so verification can be requested again.
+Public signup creates an active but `registration_pending` account and sends a verification email; verification is recorded (`email_verified_at`) but never blocks sign-in, joining, app access or staff approval (16 October 2026). `ALLOW_PUBLIC_SIGNUP` defaults to true; explicitly setting it false closes registration. Pending accounts cannot obtain sessions, use bearer-authenticated endpoints, or complete Google sign-in. Existing accounts default to approved when the migration is applied. Signup accepts passwords of 12–128 characters and ignores privilege fields. Verification delivery failure preserves the pending account so verification can be requested again.
 
-After email verification, an administrator saves department/grade membership and issues the permanent staff credential, then calls `POST /api/v1/hr/setup/staff/{user_id}/approve-registration`. Approval requires active employment and a non-revoked credential, grants the existing `staff` role with self scope, and writes an audit entry. It does not infer management privileges from a grade. Missing employee number, employment type or start date does not block credential activation; `StaffCard.employment_ready` reports this separately from account approval and email verification. HR submission readiness rules still apply.
+An administrator saves department/grade membership and issues the permanent staff credential, then calls `POST /api/v1/hr/setup/staff/{user_id}/approve-registration`. Approval requires active employment and a non-revoked credential, grants the existing `staff` role with self scope, and writes an audit entry. It does not infer management privileges from a grade. Missing employee number, employment type or start date does not block credential activation; `StaffCard.employment_ready` reports this separately from account approval and email verification. HR submission readiness rules still apply.
 
 Password recovery uses a hashed, expiring, single-use challenge. Resetting or changing a password invalidates outstanding challenges and saved sessions. Old JWT-based reset links must be replaced by requesting a new link. New and changed passwords require 12–128 characters.
 
@@ -1443,9 +1455,8 @@ and self-service profile updates cannot grant CMS access.
 editorial permission keys. It requires a bearer token for the named app and
 rechecks admission. CMS handoff and session exchange require an active,
 account with a usable sign-in method and an explicit grant (or a system
-administrator). The identity gate accepts either a verified email or approved
-staff whose email verification is not required. Public accounts still need
-verified email. CMS tokens cannot access staff APIs.
+administrator). Email verification is not required. CMS tokens cannot access
+staff APIs.
 Access changes revoke CMS sessions; already-issued tokens read current grants.
 The additive `cmsaccess20261007` migration defaults existing users to `none`;
 system administrators retain full CMS access.

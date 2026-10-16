@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 from sqlalchemy.sql.elements import ColumnElement
 
-from src.audit.models import AuditEntry
 from src.auth import service as auth_service
 from src.auth.models import Permission, Role, User, UserImage, UserRoleAssignment
 from src.auth.models import Session as LoginSession
@@ -212,7 +211,7 @@ async def list_staff(
                 else "",
                 mailbox_ready=credential.mailbox_ready if credential else False,
                 account_active=user.is_active,
-                staff_approval_ready=await identity_ready_for_approval(session, user),
+                staff_approval_ready=identity_ready_for_approval(user),
                 email_verified=user.email_verified_at is not None,
                 employment_ready=employment_complete(employment),
                 employee_number=employment.employee_number if employment else None,
@@ -635,28 +634,9 @@ async def update_role_configuration(
     )
 
 
-async def identity_ready_for_approval(session: AsyncSession, user: User) -> bool:
-    if not user.is_active or (
-        user.password_setup_pending and user.email_verified_at is None
-    ):
-        return False
-    if user.email_verified_at is not None:
-        return True
-    if user.email_verification_required or user.password_setup_pending:
-        return False
-    # An exemption alone is not proof that a pending public account was activated.
-    return bool(
-        await session.scalar(
-            select(AuditEntry.id)
-            .where(
-                AuditEntry.entity_type == "account",
-                AuditEntry.entity_id == str(user.id),
-                AuditEntry.record_type == "account_activation",
-                AuditEntry.action == "activated",
-            )
-            .limit(1)
-        )
-    )
+def identity_ready_for_approval(user: User) -> bool:
+    """Any active account can be approved; email verification is shown, not required."""
+    return user.is_active
 
 
 async def approve_registration(
@@ -680,9 +660,9 @@ async def approve_registration(
         raise AppException("This registration has already been resolved", 409)
     employment = await employment_for(session, user_id)
     credential = await session.get(StaffCredential, user_id)
-    if not await identity_ready_for_approval(session, user):
+    if not identity_ready_for_approval(user):
         raise AppException(
-            "The account must be active with verified email or completed administrator-approved activation before approval",
+            "The account must be active before approval",
             409,
         )
     grade = (

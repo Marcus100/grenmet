@@ -53,8 +53,22 @@ afterEach(() => vi.clearAllMocks());
 describe("/apps", () => {
   it("offers Leave on a joined app and Join on one not joined", async () => {
     listAccountApps.mockResolvedValue([
-      { key: "events", label: "Barrels Events", joined: true, can_leave: true },
-      { key: "docs", label: "Docs", joined: false, can_leave: true },
+      {
+        key: "events",
+        label: "Barrels Events",
+        joined: true,
+        can_join: true,
+        pending: false,
+        can_leave: true,
+      },
+      {
+        key: "docs",
+        label: "Docs",
+        joined: false,
+        can_join: true,
+        pending: false,
+        can_leave: true,
+      },
     ]);
     await show();
     expect(
@@ -67,16 +81,70 @@ describe("/apps", () => {
     ).toBeTruthy();
   });
 
-  it("shows no button for staff apps granted by an administrator", async () => {
+  it("offers Join on a staff app, then shows the wait for approval", async () => {
     listAccountApps.mockResolvedValue([
-      { key: "gaa-admin", label: "GAA Admin", joined: true, can_leave: false },
+      {
+        key: "gaa-admin",
+        label: "GAA Admin",
+        joined: false,
+        can_join: true,
+        pending: false,
+        can_leave: false,
+      },
     ]);
     await show();
     const row = screen.getByTestId("GAA Admin");
-    expect(within(row).queryByRole("button")).toBeNull();
+    expect(within(row).getByRole("button", { name: "Join" })).toBeTruthy();
     expect(
-      within(row).getByText("Access is given by an administrator.")
+      within(row).getByText(
+        "Join to ask for access. An administrator approves it."
+      )
     ).toBeTruthy();
+
+    document.body.innerHTML = "";
+    listAccountApps.mockResolvedValue([
+      {
+        key: "gaa-admin",
+        label: "GAA Admin",
+        joined: false,
+        can_join: true,
+        pending: true,
+        can_leave: false,
+      },
+    ]);
+    await show();
+    const waiting = screen.getByTestId("GAA Admin");
+    expect(within(waiting).queryByRole("button")).toBeNull();
+    expect(within(waiting).getByText("Waiting for approval")).toBeTruthy();
+  });
+
+  it("shows no button for apps granted by an administrator", async () => {
+    listAccountApps.mockResolvedValue([
+      {
+        key: "cms",
+        label: "GMS content",
+        joined: false,
+        can_join: false,
+        pending: false,
+        can_leave: false,
+      },
+      {
+        key: "gaa-admin",
+        label: "GAA Admin",
+        joined: true,
+        can_join: true,
+        pending: false,
+        can_leave: false,
+      },
+    ]);
+    await show();
+    for (const name of ["GMS content", "GAA Admin"]) {
+      const row = screen.getByTestId(name);
+      expect(within(row).queryByRole("button")).toBeNull();
+      expect(
+        within(row).getByText("Access is given by an administrator.")
+      ).toBeTruthy();
+    }
   });
 
   it("shows a fixed message for a known notice and ignores anything else", async () => {

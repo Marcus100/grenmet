@@ -8,7 +8,6 @@ import * as z from "zod";
 export const accessBlockerSchema = z.enum([
   "inactive",
   "password_setup",
-  "email_verification",
   "staff_approval",
   "cms_grant",
   "mfa_enrolment",
