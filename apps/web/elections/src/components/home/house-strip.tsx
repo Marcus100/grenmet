@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 import { PartyDot, SeatSquare } from "@/components/party-chip";
 import { currentHouse, type SeatOutlook } from "@/data/election-2026";
@@ -29,7 +30,7 @@ export function HouseStrip({ seats }: { seats: SeatOutlook[] }) {
         {sorted.map((seat) => (
           <Link
             className="rounded-[2px] focus-visible:outline-2 focus-visible:outline-el-focus focus-visible:outline-offset-1"
-            href={seat.href}
+            href={seat.href as Route}
             key={seat.code}
           >
             <SeatSquare
@@ -71,7 +72,10 @@ export function HouseStrip({ seats }: { seats: SeatOutlook[] }) {
                       <span className="inline-block w-5 font-bold tabular-nums">
                         {seat.code}
                       </span>
-                      <Link className="hover:underline" href={seat.href}>
+                      <Link
+                        className="hover:underline"
+                        href={seat.href as Route}
+                      >
                         {seat.name}
                       </Link>
                     </li>

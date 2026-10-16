@@ -1,3 +1,4 @@
+import type { Route } from "next";
 /**
  * Get the URL path for serving an image from the public folder.
  * This is a client-safe utility function.
@@ -31,11 +32,11 @@ export function getSynopticHour(date: Date): string {
 /**
  * Format a date as YYYY/MM/DD for URL routing.
  */
-export function formatDateForUrl(date: Date): string {
+export function formatDateForUrl(date: Date): Route {
   const year = date.getUTCFullYear();
   const month = (date.getUTCMonth() + 1).toString().padStart(2, "0");
   const day = date.getUTCDate().toString().padStart(2, "0");
-  return `/wxwatch/${year}/${month}/${day}`;
+  return `/wxwatch/${year}/${month}/${day}` as Route;
 }
 
 /**

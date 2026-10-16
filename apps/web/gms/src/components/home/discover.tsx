@@ -5,6 +5,7 @@ import {
   MoonIcon,
   TornadoIcon,
 } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { HomeSection } from "@/components/home/home-section";
 import {
@@ -155,7 +156,10 @@ function CardLink({ card }: { card: Card }) {
     );
   if (card.href.startsWith("/"))
     return (
-      <Link className={`${CARD} hover:border-gm-blue-ink`} href={card.href}>
+      <Link
+        className={`${CARD} hover:border-gm-blue-ink`}
+        href={card.href as Route}
+      >
         <CardBody card={card} />
       </Link>
     );

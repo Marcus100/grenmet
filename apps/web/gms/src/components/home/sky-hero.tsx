@@ -1,5 +1,9 @@
-import Link from "next/link";
 import { DayPanel, DaySummary } from "@/components/home/day-panel";
+import {
+  ByTab,
+  HeroSelectionProvider,
+  TabLink,
+} from "@/components/home/hero-selection";
 import { NowPanel, NowSummary } from "@/components/home/now-card";
 import { SkyDayStrip, type StripDay } from "@/components/home/sky-day-strip";
 import { localTime } from "@/lib/current-conditions";
@@ -11,7 +15,6 @@ import {
   locationHref,
   type SiteLocation,
 } from "@/lib/locations";
-import { cn } from "@/lib/utils";
 
 /** "Maurice Bishop International (MBIA)" → "MBIA". */
 const STATION_CODE = /^.*\((.+)\)$/;
@@ -61,77 +64,87 @@ export function SkyHero({
   const station = location.station.replace(STATION_CODE, "$1");
   const nowHref = locationHref(location, "/");
   const current = weather.current;
-  const nowCurrent = tab === "now";
+
+  // Every tab's content is rendered up front so switching tabs needs no server trip.
+  const summaries: Record<string, React.ReactNode> = {
+    now: <NowSummary now={now} station={station} weather={weather} />,
+  };
+  const panels: Record<string, React.ReactNode> = {
+    now: <NowPanel weather={weather} />,
+  };
+  days.forEach((day, dayIndex) => {
+    const issued = weather.days[dayIndex];
+    summaries[day.slug] = <DaySummary day={day} />;
+    if (issued) {
+      panels[day.slug] = (
+        <DayPanel
+          day={issued}
+          index={dayIndex}
+          note={location.isDefault ? undefined : weather.label}
+        />
+      );
+    }
+  });
 
   return (
-    <section
-      aria-labelledby="sky-hero-title"
-      className="bg-gm-gradient-sky text-gm-text-inverse"
-    >
-      <div className="mx-auto grid max-w-6xl grid-cols-1 gap-2 px-4 pt-2 pb-4 sm:px-6 lg:gap-2.5 lg:pt-3 lg:pb-6 xl:px-8">
-        {/* The place is shown in the first card; the heading is for screen readers. */}
-        <h1 className="sr-only" id="sky-hero-title">
-          {location.name} weather, {station}
-        </h1>
-        <div className="flex min-h-11 flex-wrap items-center justify-between gap-x-3 gap-y-1">
-          {/* Brand line: large bold type, readable on the gradient. */}
-          <p className="font-bold font-gm-display text-heading-md uppercase leading-heading-md tracking-wide">
-            Your spice weather
-          </p>
-          {switcher}
+    <HeroSelectionProvider initial={tab}>
+      <section
+        aria-labelledby="sky-hero-title"
+        className="bg-gm-gradient-sky text-gm-text-inverse"
+      >
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-2 px-4 pt-2 pb-4 sm:px-6 lg:gap-2.5 lg:pt-3 lg:pb-6 xl:px-8">
+          {/* The place is shown in the first card; the heading is for screen readers. */}
+          <h1 className="sr-only" id="sky-hero-title">
+            {location.name} weather, {station}
+          </h1>
+          <div className="flex min-h-11 flex-wrap items-center justify-between gap-x-3 gap-y-1">
+            {/* Brand line: large bold type, readable on the gradient. */}
+            <p className="font-bold font-gm-display text-heading-md uppercase leading-heading-md tracking-wide">
+              Your spice weather
+            </p>
+            {switcher}
+          </div>
+
+          <div className="rounded-gm-card bg-gm-scrim p-4 sm:hidden">
+            <ByTab panels={summaries} />
+          </div>
+
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,2fr)_minmax(0,5fr)] lg:gap-2.5">
+            <TabLink
+              className="hidden rounded-gm-card border-b-4 bg-gm-scrim p-3 outline-none hover:bg-gm-text-inverse/10 focus-visible:ring-2 focus-visible:ring-gm-lime sm:block lg:p-4"
+              currentClassName="border-gm-lime bg-gm-text-inverse/20"
+              data-analytics-day="now"
+              data-analytics-event="forecast_tab_selected"
+              href={nowHref}
+              idleClassName="border-transparent"
+              slug="now"
+            >
+              <NowSummary
+                compact
+                now={now}
+                station={station}
+                weather={weather}
+              />
+            </TabLink>
+            <SkyDayStrip
+              days={days}
+              now={{
+                href: nowHref,
+                sky: skyFromWords(current?.weather ?? null),
+                temperature:
+                  current?.temperature ??
+                  weather.observation?.temperature ??
+                  null,
+                time: current ? localTime(current.observedAt) : null,
+              }}
+            />
+          </div>
+
+          <ByTab panels={panels} />
+
+          {children}
         </div>
-
-        <div className="rounded-gm-card bg-gm-scrim p-4 sm:hidden">
-          {nowCurrent || !selectedDay ? (
-            <NowSummary now={now} station={station} weather={weather} />
-          ) : (
-            <DaySummary day={selectedDay} />
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,2fr)_minmax(0,5fr)] lg:gap-2.5">
-          <Link
-            aria-current={nowCurrent ? "page" : undefined}
-            className={cn(
-              "hidden rounded-gm-card border-b-4 bg-gm-scrim p-3 outline-none hover:bg-gm-text-inverse/10 focus-visible:ring-2 focus-visible:ring-gm-lime sm:block lg:p-4",
-              nowCurrent
-                ? "border-gm-lime bg-gm-text-inverse/20"
-                : "border-transparent"
-            )}
-            data-analytics-day="now"
-            data-analytics-event="forecast_tab_selected"
-            href={nowHref}
-            scroll={false}
-          >
-            <NowSummary compact now={now} station={station} weather={weather} />
-          </Link>
-          <SkyDayStrip
-            days={days}
-            now={{
-              href: nowHref,
-              sky: skyFromWords(current?.weather ?? null),
-              temperature:
-                current?.temperature ??
-                weather.observation?.temperature ??
-                null,
-              time: current ? localTime(current.observedAt) : null,
-            }}
-            selected={tab}
-          />
-        </div>
-
-        {nowCurrent || !weather.days[index] ? (
-          <NowPanel weather={weather} />
-        ) : (
-          <DayPanel
-            day={weather.days[index]}
-            index={index}
-            note={location.isDefault ? undefined : weather.label}
-          />
-        )}
-
-        {children}
-      </div>
-    </section>
+      </section>
+    </HeroSelectionProvider>
   );
 }

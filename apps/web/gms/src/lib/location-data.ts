@@ -1,4 +1,4 @@
-import type { AlertsResult } from "@/lib/cap";
+import type { AlertsResult } from "@/lib/cap-alerts";
 import type { WeatherSnapshot } from "@/lib/forecast-data";
 import { alertCoversLocation, type SiteLocation } from "@/lib/locations";
 

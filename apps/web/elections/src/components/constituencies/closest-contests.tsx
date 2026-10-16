@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 import { PartyDot } from "@/components/party-chip";
 import type { SeatOutlook } from "@/data/election-2026";
@@ -19,7 +20,7 @@ export function ClosestContests({
         <li key={seat.code}>
           <Link
             className="flex items-baseline gap-3 py-3 hover:bg-el-paper-2"
-            href={seat.href}
+            href={seat.href as Route}
           >
             <span className="min-w-0 flex-1">
               <b className="font-semibold font-serif">{seat.name}</b>

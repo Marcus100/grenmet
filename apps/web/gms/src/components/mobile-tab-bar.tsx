@@ -9,7 +9,11 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { type AlertsResult, alertsLevel, alertsSummary } from "@/lib/cap";
+import {
+  type AlertsResult,
+  alertsLevel,
+  alertsSummary,
+} from "@/lib/cap-alerts";
 import { cn } from "@/lib/utils";
 import { WARNING_LEVEL_SURFACE } from "@/lib/warning-level";
 

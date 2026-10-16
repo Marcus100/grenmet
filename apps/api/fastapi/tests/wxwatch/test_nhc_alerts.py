@@ -90,6 +90,27 @@ async def test_recent_failure_notifies_once(
     assert await _inbox_count(db_async, user) == 1
 
 
+async def test_default_roles_are_told_when_no_setting_exists(
+    db_async: AsyncSession,
+    archive_sessions,
+) -> None:
+    recipients = []
+    for role_name in alerts.events.get(alerts.PULL_FAILED).default_roles:
+        role, _ = await make_role_with_permission(
+            db_async, "notifications.manage", role_name=f"{role_name}"
+        )
+        user = await make_user(db_async)
+        await assign_role(db_async, user=user, role=role, scope=RoleAssignmentScope.ALL)
+        recipients.append(user)
+    outsider = await make_user(db_async)
+    await db_async.commit()
+    await _job(archive_sessions, status="failed", age=timedelta(minutes=1))
+
+    assert await _run(db_async, archive_sessions) == 2
+    assert [await _inbox_count(db_async, user) for user in recipients] == [1, 1]
+    assert await _inbox_count(db_async, outsider) == 0
+
+
 async def test_old_and_successful_jobs_are_ignored(
     db_async: AsyncSession,
     archive_sessions,

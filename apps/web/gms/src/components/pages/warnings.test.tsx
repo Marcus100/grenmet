@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { AlertGroups } from "@/components/pages/alert-groups";
 import { WarningLegend } from "@/components/pages/warning-legend";
 import { WarningStatusBand } from "@/components/pages/warning-status-band";
-import type { AlertsResult, PublicAlert } from "@/lib/cap";
+import type { AlertsResult, PublicAlert } from "@/lib/cap-alerts";
 
 const NOT_ALL_CLEAR = /not an all-clear/i;
 const NOT_RETRIEVED = /cannot be retrieved right now/i;

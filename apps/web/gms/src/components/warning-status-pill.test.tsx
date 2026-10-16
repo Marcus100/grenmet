@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { expect, it } from "vitest";
 import { WarningStatusPill } from "@/components/warning-status-pill";
-import type { AlertsResult } from "@/lib/cap";
+import type { AlertsResult } from "@/lib/cap-alerts";
 
 const ONE_ACTIVE = /· 1 active$/;
 

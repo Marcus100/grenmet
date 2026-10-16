@@ -8,6 +8,7 @@ import type {
 import { archiveBulletinSchema } from "@barrelsgd/api-client";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { Input } from "@barrelsgd/ui/components/ui/input";
+import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -29,10 +30,10 @@ export function ArchiveBrowser({
   const params = new URLSearchParams(query);
   const basePath = nhcOnly ? "/wxproducts/nhc" : "/wxwatch/archive";
   const [selected, setSelected] = useState<ArchiveEdition[]>([]);
-  function href(updates: Record<string, string>) {
+  function href(updates: Record<string, string>): Route {
     const next = new URLSearchParams(query);
     for (const [key, value] of Object.entries(updates)) next.set(key, value);
-    return `${basePath}?${next}`;
+    return `${basePath}?${next}` as Route;
   }
   function toggle(item: ArchiveEdition) {
     setSelected((current) =>

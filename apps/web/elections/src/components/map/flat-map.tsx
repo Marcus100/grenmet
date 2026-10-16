@@ -1,4 +1,5 @@
 import { cn } from "@barrelsgd/ui/lib/utils";
+import type { Route } from "next";
 import Link from "next/link";
 import type { GeoFile, Ring } from "@/data/types";
 
@@ -29,7 +30,7 @@ function Region({ region, rings }: { region: MapRegion; rings: Ring[] }) {
     </path>
   );
   return region.href ? (
-    <Link aria-label={region.title} href={region.href}>
+    <Link aria-label={region.title} href={region.href as Route}>
       {path}
     </Link>
   ) : (

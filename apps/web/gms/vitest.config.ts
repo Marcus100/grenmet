@@ -5,6 +5,14 @@ export default defineConfig({
   resolve: {
     alias: [
       { find: "@", replacement: path.resolve(import.meta.dirname, "./src") },
+      // server-only is a Next.js guard that throws outside Next; tests run outside it.
+      {
+        find: "server-only",
+        replacement: path.resolve(
+          import.meta.dirname,
+          "./src/test/server-only-mock.ts"
+        ),
+      },
       // Static image imports: see src/test/image-stub.ts.
       {
         find: /^.*\.(png|jpe?g|gif|svg|webp|avif)$/,

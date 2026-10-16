@@ -1,4 +1,5 @@
 "use client";
+import type { Route } from "next";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { type SiteSearchEntry, searchSite } from "@/data/site-search";
@@ -84,7 +85,7 @@ export function SiteSearch() {
             </p>
             <Link
               className="font-semibold font-serif text-xl underline-offset-4 hover:underline"
-              href={entry.href}
+              href={entry.href as Route}
             >
               {entry.title}
             </Link>

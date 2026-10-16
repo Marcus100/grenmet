@@ -3,7 +3,7 @@ import {
   CircleHelpIcon,
   TriangleAlertIcon,
 } from "lucide-react";
-import { type AlertsResult, alertsSummary } from "@/lib/cap";
+import { type AlertsResult, alertsSummary } from "@/lib/cap-alerts";
 import { cn } from "@/lib/utils";
 
 /**

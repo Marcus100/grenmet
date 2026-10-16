@@ -29,10 +29,11 @@ def register() -> None:
             key=PULL_FAILED,
             label="NHC request failed",
             description="An NHC pull or point request failed in the archive worker.",
-            audience="Roles chosen in notification settings (nobody until set)",
+            audience="cap-admin and management by default; change the roles in notification settings",
             title="NHC {{ kind }} request failed",
             body="An NHC {{ kind }} request failed. Check source status in the NHC workspace and retry.",
             variables=("kind",),
+            default_roles=("cap-admin", "management"),
         )
     )
 

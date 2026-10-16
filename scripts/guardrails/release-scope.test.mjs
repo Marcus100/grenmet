@@ -12,6 +12,7 @@ import {
   releaseScope,
   validateComposeScope,
   validateReleaseConfiguration,
+  webImages,
 } from "../ci/release-scope.mjs";
 
 const CHECK_SCRIPT = fileURLToPath(
@@ -136,4 +137,47 @@ test("build environment and Sentry selection keep staging isolated when its key 
       );
     }
   }
+});
+
+const SITE_URL_ARG = /NEXT_PUBLIC_SITE_URL=(.+)$/gm;
+const DOMAIN_ROW =
+  /^\| [^|]+ \| (\d{4}) \| (https:\/\/[a-z.]+)[^|]*\| (https:\/\/[a-z.]+)?/gm;
+
+test("each web image is built with the public address in docs/deployment.md", () => {
+  const workflow = readFileSync(
+    new URL("../../.github/workflows/build-web-images.yml", import.meta.url),
+    "utf8"
+  );
+  const templates = [...workflow.matchAll(SITE_URL_ARG)].map((m) =>
+    m[1].trim()
+  );
+  assert.equal(templates.length, 2);
+  assert.equal(templates[0], templates[1]);
+  const deployment = readFileSync(
+    new URL("../../docs/deployment.md", import.meta.url),
+    "utf8"
+  );
+  const documented = new Map(
+    [...deployment.matchAll(DOMAIN_ROW)].map((m) => [
+      Number(m[1]),
+      { production: m[2], staging: m[3] },
+    ])
+  );
+  let checked = 0;
+  for (const image of webImages) {
+    const expected = documented.get(image.port);
+    if (!expected) continue;
+    for (const environment of ["production", "staging"]) {
+      if (!expected[environment]) continue;
+      const url = templates[0].replace(/\$\{\{(.+?)\}\}/g, (_, expression) =>
+        runInNewContext(expression, {
+          matrix: image,
+          steps: { ctx: { outputs: { environment } } },
+        })
+      );
+      assert.equal(url, expected[environment], `${image.app} ${environment}`);
+      checked += 1;
+    }
+  }
+  assert.ok(checked >= 10, `only ${checked} addresses checked`);
 });

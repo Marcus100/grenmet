@@ -25,6 +25,11 @@ export default defineConfig({
         "./.content-collections/generated/index.js"
       ),
       "@": path.resolve(import.meta.dirname, "./src"),
+      // server-only is a Next.js guard that throws outside Next; tests run outside it.
+      "server-only": path.resolve(
+        import.meta.dirname,
+        "./src/test/server-only-mock.ts"
+      ),
     },
   },
 });

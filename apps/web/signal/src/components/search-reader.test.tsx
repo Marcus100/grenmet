@@ -1,5 +1,6 @@
 import { cleanup, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { Route } from "next";
 import { afterEach, expect, it, vi } from "vitest";
 import { SearchReader } from "./search-reader";
 
@@ -15,7 +16,7 @@ it("searches locally, links to original URLs and explains empty results", async 
     <SearchReader
       entries={[
         {
-          href: "/weather-ready/dust",
+          href: "/weather-ready/dust" as Route,
           title: "Dust over Grenada",
           description: "Hazy skies",
           label: "Weather",

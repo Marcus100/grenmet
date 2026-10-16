@@ -120,21 +120,21 @@ export function ArchiveInvitation() {
               title: "Catch up",
               text: "Revisit Daily Signal for the headlines and useful details from an earlier edition.",
               label: "Browse past editions",
-              href: "/briefs",
+              href: "/briefs" as const,
             },
             {
               number: "02",
               title: "Go deeper",
               text: "Find explanations and practical guides to the decisions, opportunities and changes around you.",
               label: "Read the guides",
-              href: "/learn",
+              href: "/learn" as const,
             },
             {
               number: "03",
               title: "Follow your curiosity",
               text: "From culture and sport to money and the wider Caribbean—choose what interests you.",
               label: "Explore every topic",
-              href: "/topics",
+              href: "/topics" as const,
             },
           ].map((item) => (
             <div

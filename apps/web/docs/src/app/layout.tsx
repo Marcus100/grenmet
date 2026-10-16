@@ -9,6 +9,7 @@ import type { Section } from "@/components/SectionProvider";
 import { APP_LABEL, signInEnabled } from "@/lib/auth-config";
 
 import "@/styles/tailwind.css";
+import { env } from "@/lib/env";
 
 const notoSans = Noto_Sans({
   subsets: ["latin"],
@@ -17,6 +18,8 @@ const notoSans = Noto_Sans({
 });
 
 export const metadata: Metadata = {
+  // Absolute base for share-preview links; set per environment at build time.
+  metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
   title: {
     template: "%s - GMS Documentation",
     default: "GMS Documentation",

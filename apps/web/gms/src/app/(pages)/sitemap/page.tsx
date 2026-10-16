@@ -1,4 +1,5 @@
 import { BULLETIN_CATEGORIES } from "@barrelsgd/gms/products";
+import type { Route } from "next";
 import Link from "next/link";
 import { PageHeader } from "@/components/page-header";
 import { groupId, NAV_SECTIONS, sectionId } from "@/lib/nav-sections";
@@ -23,7 +24,7 @@ export default function SitemapPage() {
             key={section.label}
           >
             <h2 className={SECTION_HEADING}>
-              <Link className="hover:underline" href={section.href}>
+              <Link className="hover:underline" href={section.href as Route}>
                 {section.label}
               </Link>
             </h2>
@@ -42,7 +43,7 @@ export default function SitemapPage() {
                       <li key={link.href}>
                         <Link
                           className="text-gm-blue-ink underline"
-                          href={link.href}
+                          href={link.href as Route}
                         >
                           {link.name}
                         </Link>

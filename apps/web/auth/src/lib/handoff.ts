@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import "server-only";
 
 import { appHandoffCodeSchema, appPublicSchema } from "@barrelsgd/api-client";
@@ -7,7 +8,7 @@ import { isAuthApiError } from "./session";
 
 /** Single sign-on into another app (ADR-0017). */
 export type HandoffResult =
-  | { kind: "redirect"; url: string }
+  | { kind: "redirect"; url: Route }
   | { kind: "join"; label: string }
   | { kind: "denied"; label: string; detail: string }
   | { kind: "verify-email" }
@@ -33,7 +34,7 @@ export function parseHandoffRequest(
     : null;
 }
 
-export function continuePath({ app, state }: HandoffRequest): string {
+export function continuePath({ app, state }: HandoffRequest): Route {
   return `/continue?${new URLSearchParams({ app, state })}`;
 }
 
@@ -68,7 +69,7 @@ export async function startHandoff(
     const url = new URL(callback_url);
     url.searchParams.set("code", code);
     url.searchParams.set("state", request.state);
-    return { kind: "redirect", url: url.toString() };
+    return { kind: "redirect", url: url.toString() as Route };
   } catch (error) {
     if (!isAuthApiError(error)) throw error;
     switch (error.status) {

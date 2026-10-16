@@ -12,6 +12,8 @@ import { fontVars } from "@/lib/fonts/registry";
 import { QueryProvider } from "@/providers/QueryProvider";
 
 export const metadata: Metadata = {
+  // Staff-only: keep it out of search engines.
+  robots: { index: false, follow: false },
   title: {
     default: "Grenada Meteorological Service",
     template: "%s | Grenada Meteorological Service",

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import { unstable_noStore as noStore } from "next/cache";
 import { redirect } from "next/navigation";
 import { AuthHeading, AuthShell } from "@/components/auth-shell";
@@ -19,7 +19,7 @@ interface PageProps {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }
 
-function signInPath(request: HandoffRequest, reauth = false): string {
+function signInPath(request: HandoffRequest, reauth = false): Route {
   return `/?${new URLSearchParams({ app: request.app, returnTo: continuePath(request), ...(reauth ? { reauth: "1" } : {}) })}`;
 }
 

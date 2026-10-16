@@ -8,6 +8,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@barrelsgd/ui/components/ui/breadcrumb";
+import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Fragment } from "react";
@@ -37,7 +38,7 @@ export function SiteBreadcrumbs() {
                   ) : (
                     <BreadcrumbLink
                       className="underline-offset-4 hover:text-gm-blue-ink hover:underline"
-                      render={<Link href={crumb.href} />}
+                      render={<Link href={crumb.href as Route} />}
                     >
                       {crumb.label}
                     </BreadcrumbLink>

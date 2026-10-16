@@ -5,6 +5,10 @@ import type { NextConfig } from "next";
 const SVG_REGEX = /\.svg$/;
 
 const nextConfig: NextConfig = {
+  // Link hrefs are checked against the app's routes at build time.
+  typedRoutes: true,
+  // Do not advertise the framework in every response.
+  poweredByHeader: false,
   reactCompiler: true,
   output: "standalone",
   ...(process.env.NODE_ENV === "production" && {

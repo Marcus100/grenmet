@@ -13,6 +13,7 @@ import {
   BreadcrumbSeparator,
 } from "@barrelsgd/ui/components/ui/breadcrumb";
 import { AlertTriangle, CircleX } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { VERSION_STATE_LABELS } from "@/lib/transport/timetable";
@@ -35,7 +36,7 @@ export function BusHeader({
           <BreadcrumbList>
             {crumbs.map((crumb) => (
               <BreadcrumbItem key={crumb.href}>
-                <BreadcrumbLink render={<Link href={crumb.href} />}>
+                <BreadcrumbLink render={<Link href={crumb.href as Route} />}>
                   {crumb.label}
                 </BreadcrumbLink>
                 <BreadcrumbSeparator />

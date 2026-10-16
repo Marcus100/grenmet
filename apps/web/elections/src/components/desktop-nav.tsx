@@ -9,6 +9,7 @@ import {
   NavigationMenuTrigger,
 } from "@barrelsgd/ui/components/ui/navigation-menu";
 import { cn } from "@barrelsgd/ui/lib/utils";
+import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { isCurrent, isGroup, NAV } from "@/lib/nav";
@@ -36,7 +37,7 @@ export function DesktopNav() {
                     "flex items-center hover:bg-transparent hover:text-el-ink",
                     current && ACTIVE
                   )}
-                  render={<Link href={item.href} />}
+                  render={<Link href={item.href as Route} />}
                 >
                   {item.label}
                 </NavigationMenuLink>
@@ -60,7 +61,7 @@ export function DesktopNav() {
                           isCurrent(link.href, pathname) ? "page" : undefined
                         }
                         className="py-3 text-base aria-[current=page]:font-semibold"
-                        render={<Link href={link.href} />}
+                        render={<Link href={link.href as Route} />}
                       >
                         {link.label}
                       </NavigationMenuLink>

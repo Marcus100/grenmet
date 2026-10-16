@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Bricolage_Grotesque, Inter, Noto_Sans } from "next/font/google";
+import { env } from "@/env";
 
 const notoSans = Noto_Sans({
   subsets: ["latin"],
@@ -21,6 +22,8 @@ const bricolage = Bricolage_Grotesque({
 });
 
 export const metadata: Metadata = {
+  // Absolute base for share-preview links; set per environment at build time.
+  metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
   title: {
     default: "Barrels Events — What's on in Grenada",
     template: "%s | Barrels Events",

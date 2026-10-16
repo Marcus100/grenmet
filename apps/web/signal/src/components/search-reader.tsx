@@ -44,7 +44,6 @@ export function SearchReader({ entries }: { entries: SearchEntry[] }) {
               <Link
                 className="hover:text-signal-green hover:underline"
                 href={entry.href}
-                prefetch={false}
               >
                 {entry.title}
               </Link>

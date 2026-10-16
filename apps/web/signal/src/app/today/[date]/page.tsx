@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import { notFound } from "next/navigation";
 import { ArchiveInvitation, DemoNote } from "@/components/editorial";
 import { Eyebrow } from "@/components/eyebrow";
@@ -60,7 +60,7 @@ export default async function BriefPage({ params }: Props) {
               <StoryListItem
                 author={article.author}
                 eyebrow={getSection(article.section)?.label ?? article.section}
-                href={`/${article.section}/${article.slug}`}
+                href={`/${article.section}/${article.slug}` as Route}
                 key={`${article.section}/${article.slug}`}
                 publishedAt={article.publishedAt}
                 title={article.title}

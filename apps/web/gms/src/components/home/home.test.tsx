@@ -4,7 +4,7 @@ import { ExploreToday, GrenadaInData } from "@/components/home/sample-sections";
 import { SkyHero } from "@/components/home/sky-hero";
 import { WarningTakeover } from "@/components/home/warning-takeover";
 import { WeatherNow } from "@/components/home/weather-now";
-import type { AlertsResult, PublicAlert } from "@/lib/cap";
+import type { AlertsResult, PublicAlert } from "@/lib/cap-alerts";
 import { REFERENCE_WEATHER } from "@/lib/forecast-data";
 import { unavailableWeather } from "@/lib/forecast-selection";
 

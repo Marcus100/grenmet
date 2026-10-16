@@ -1,4 +1,5 @@
 import { cn } from "@barrelsgd/ui/lib/utils";
+import type { Route } from "next";
 import Link from "next/link";
 import { ClosestContests } from "@/components/constituencies/closest-contests";
 import { HouseMap } from "@/components/constituencies/house-map";
@@ -278,7 +279,7 @@ export default function FrontPage() {
                     <li className="py-2.5" key={s.code}>
                       <Link
                         className="font-semibold font-serif hover:underline"
-                        href={s.href}
+                        href={s.href as Route}
                       >
                         {s.name}
                       </Link>

@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* Native-app touch behaviour shared by every app (no PWA features). */
+@import "@barrelsgd/ui/styles/app-feel";
 /* GMS brand palette — this surface is Grenada Meteorological Service facing.
    Palette only; the semantic layer still resolves from @barrelsgd/ui. */
 @import "@barrelsgd/gms/styles/foundation";

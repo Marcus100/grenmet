@@ -17,12 +17,13 @@ import {
   UserRound,
   Users,
 } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 interface NavItem {
-  readonly href: string;
+  readonly href: Route;
   readonly icon: LucideIcon;
   readonly label: string;
 }
@@ -37,7 +38,7 @@ const NAV_ITEMS: readonly NavItem[] = [
   { href: "/messages", label: "Messages", icon: MessageSquare },
 ];
 
-function isActive(pathname: string, href: string): boolean {
+function isActive(pathname: string, href: Route): boolean {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
 

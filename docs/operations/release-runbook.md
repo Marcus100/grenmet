@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-07
+**Last updated:** 2026-10-15
 
 How a change ships from `dev` to production. Agents (Claude Code / Codex) may run
 local verification, direct dev pushes, and automatic staging PR creation and
@@ -71,6 +71,15 @@ required checks on `staging` and `main` PRs.
   must be online or the job queues silently — check with
   `gh run list --workflow=pipeline-prod.yml --limit 1`.
 
+### Release notes checklist
+
+The draft's generated notes only list pull request titles. Before publishing, add:
+
+- **Migrations:** every Alembic revision in the release (`git diff --name-only <last tag>..main -- '*/alembic/versions/*' '*/migrations/*'`), and whether each is additive.
+- **Manual steps:** anything an operator must do after deploy, such as choosing alert recipient roles in notification settings or setting a new environment variable.
+- **Known gaps:** features that ship switched off, API-only, or without a screen.
+- **Rollback note:** whether the previous release still runs against the new schema.
+
 ## 5. Verify prod
 
 - API health: `curl -fsS https://api.barrels.gd/api/v1/utils/health-check/`
@@ -84,6 +93,12 @@ tag. For a release before the domain migration, select that release tag as the
 workflow ref too, so its matching Compose definition is used. The
 `deploy-prod.yml` and `deploy-staging.yml` entries delegate to the same Deploy
 workflow; they no longer use separate legacy Compose files.
+
+Redeploying an older tag does not undo database migrations. Keep each release's
+migrations additive (new tables and nullable columns), and remove old columns or
+tables only in a later release, once no deployed version reads them. That is what
+lets the previous release keep running against the newer schema. A migration that
+cannot satisfy this needs a written recovery plan in the pull request before it merges.
 
 
 ## CI acceleration rollout acceptance

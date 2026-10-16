@@ -1,4 +1,5 @@
 import { ArrowRight } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 
 export function PageCard({
@@ -15,7 +16,7 @@ export function PageCard({
   return (
     <Link
       className="group flex flex-col rounded-2xl border border-gaa-rule bg-white p-6 transition-all hover:-translate-y-0.5 hover:border-gaa-sea/40 hover:shadow-lg"
-      href={href}
+      href={href as Route}
     >
       {meta ? (
         <p className="mb-2 font-medium text-gaa-sea text-xs uppercase tracking-wider">

@@ -1,6 +1,7 @@
 import { productTitle } from "@barrelsgd/gms/products";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Check, Clock } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { grenadaToday, summarizeProducts } from "./home-data";
 import { loadProducts } from "./home-loaders";
@@ -40,7 +41,7 @@ export async function ProductsPanel({ className }: { className?: string }) {
           <li key={item.kind}>
             <Link
               className="-mx-2 flex items-center gap-3 rounded-lg px-2 py-2 outline-none transition-colors hover:bg-muted focus-visible:ring-2 focus-visible:ring-ring"
-              href={item.href}
+              href={item.href as Route}
             >
               <div
                 className={

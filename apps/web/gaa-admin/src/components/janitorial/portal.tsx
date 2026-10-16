@@ -18,6 +18,7 @@ import {
 import { cn } from "@barrelsgd/ui/lib/utils";
 import type { LucideIcon } from "lucide-react";
 import { RadioTower } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import {
@@ -48,7 +49,7 @@ export function JanitorHeader({
           <BreadcrumbList>
             {crumbs.map((crumb) => (
               <BreadcrumbItem key={crumb.href}>
-                <BreadcrumbLink render={<Link href={crumb.href} />}>
+                <BreadcrumbLink render={<Link href={crumb.href as Route} />}>
                   {crumb.label}
                 </BreadcrumbLink>
                 <BreadcrumbSeparator />
@@ -100,7 +101,7 @@ export function SiteSwitcher({
               ? "bg-background text-foreground shadow-xs"
               : "text-muted-foreground hover:text-foreground"
           )}
-          href={href(code)}
+          href={href(code) as Route}
           key={code}
         >
           {SITE_NAMES[code]}

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FlatMap } from "@/components/map/flat-map";
@@ -304,7 +304,7 @@ export default async function EventPage({ params }: Props) {
                       {code ? (
                         <Link
                           className="hover:underline"
-                          href={constituencyHref(results, code)}
+                          href={constituencyHref(results, code) as Route}
                         >
                           {name}
                         </Link>

@@ -1,6 +1,6 @@
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { JanitorHeader, SiteSwitcher } from "@/components/janitorial/portal";
@@ -70,7 +70,7 @@ export default async function JanitorShiftsPage({
 
       <nav aria-label="Week" className="flex flex-wrap items-center gap-2">
         <Button
-          render={<Link href={weekHref(addDays(start, -7))} />}
+          render={<Link href={weekHref(addDays(start, -7)) as Route} />}
           size="sm"
           variant="outline"
         >
@@ -78,14 +78,16 @@ export default async function JanitorShiftsPage({
           Previous week
         </Button>
         <Button
-          render={<Link href={weekHref(weekStart(undefined, today))} />}
+          render={
+            <Link href={weekHref(weekStart(undefined, today)) as Route} />
+          }
           size="sm"
           variant="ghost"
         >
           This week
         </Button>
         <Button
-          render={<Link href={weekHref(addDays(start, 7))} />}
+          render={<Link href={weekHref(addDays(start, 7)) as Route} />}
           size="sm"
           variant="outline"
         >

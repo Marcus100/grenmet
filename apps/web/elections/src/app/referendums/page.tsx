@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { Flag } from "@/components/flag";
 import { FlatMap } from "@/components/map/flat-map";
@@ -110,7 +110,7 @@ function ConstituencyTable({ id }: { id: "2016r" | "2018r" }) {
                 <td className="py-2 pr-3">
                   <Link
                     className="hover:underline"
-                    href={constituencyHref(results, code)}
+                    href={constituencyHref(results, code) as Route}
                   >
                     {constituencyName(results, code)}
                   </Link>

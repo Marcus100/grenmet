@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 import { PartyDot, SeatSquare } from "@/components/party-chip";
 import type { SeatOutlook } from "@/data/election-2026";
@@ -9,7 +10,7 @@ export function ConstituencyCard({ seat }: { seat: SeatOutlook }) {
   return (
     <Link
       className="group flex h-full gap-3 bg-background p-4 hover:bg-el-paper-2"
-      href={seat.href}
+      href={seat.href as Route}
     >
       <SeatSquare
         className="size-8 shrink-0"
