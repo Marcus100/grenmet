@@ -20,7 +20,7 @@ import type {
 } from "../models/AuthLoginSession.js";
 
 export const authLoginSessionMutationKey = () =>
-  [{ url: "/api/v1/login/session" }] as const;
+  [{ url: "/api/v1/auth/sessions" }] as const;
 
 export function authLoginSessionMutationOptions<TContext = unknown>(
   config: Partial<
@@ -48,7 +48,7 @@ export function authLoginSessionMutationOptions<TContext = unknown>(
 /**
  * @description Authenticate a user, create an opaque persisted session, and mint a short-lived access token.
  * @summary Create a persisted web session
- * {@link /api/v1/login/session}
+ * {@link /api/v1/auth/sessions}
  */
 export function useAuthLoginSession<TContext>(
   options: {

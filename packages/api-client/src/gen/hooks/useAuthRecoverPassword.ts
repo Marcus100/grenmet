@@ -19,7 +19,7 @@ import type {
 } from "../models/AuthRecoverPassword.js";
 
 export const authRecoverPasswordMutationKey = () =>
-  [{ url: "/api/v1/password-recovery/:email" }] as const;
+  [{ url: "/api/v1/auth/password/recovery" }] as const;
 
 export function authRecoverPasswordMutationOptions<TContext = unknown>(
   config: Partial<
@@ -36,10 +36,10 @@ export function authRecoverPasswordMutationOptions<TContext = unknown>(
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ path }) => {
+    mutationFn: async ({ body }) => {
       return authRecoverPassword({
         ...config,
-        path,
+        body,
         throwOnError: true,
       }).unwrap();
     },
@@ -49,7 +49,7 @@ export function authRecoverPasswordMutationOptions<TContext = unknown>(
 /**
  * @description Password Recovery.
  * @summary Recover Password
- * {@link /api/v1/password-recovery/:email}
+ * {@link /api/v1/auth/password/recovery}
  */
 export function useAuthRecoverPassword<TContext>(
   options: {

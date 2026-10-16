@@ -181,10 +181,38 @@ The API supports two auth paths:
 
 | Flow | Endpoint | Use |
 | --- | --- | --- |
-| OAuth2 password grant | `POST /api/v1/login/access-token` | Direct API consumers and tests |
-| Web session | `POST /api/v1/login/session` then `POST /api/v1/login/session/access-token` | Browser apps using an opaque session cookie |
+| OAuth2 password grant | `POST /api/v1/auth/token` | Direct API consumers and tests |
+| Web session | `POST /api/v1/auth/sessions` then `POST /api/v1/auth/sessions/access-token` | Browser apps using an opaque session cookie |
+
+Every auth route lives under `/api/v1/auth`. On 16 October 2026 the remaining
+outliers moved, with no aliases (operation IDs unchanged unless noted):
+
+| Before | After |
+| --- | --- |
+| `/login/access-token` | `/auth/token` |
+| `/login/session`, `/login/session/{access-token,refresh,logout,logout-all}` | `/auth/sessions`, `/auth/sessions/{access-token,refresh,logout,logout-all}` |
+| `POST /login/test-token` (`authTestToken`) | `GET /auth/staff/me` (`authGetStaffMe`): the staff gate check |
+| `POST /password-recovery/{email}` | `POST /auth/password/recovery` with `{ "email" }` in the body |
+| `POST /password-recovery-html-content/{email}` | `POST /auth/password/recovery/preview` with `{ "email" }`; subject in `X-Email-Subject` |
+| `POST /reset-password/` | `POST /auth/password/reset` |
+| `/auth/modern/email/{request,confirm}` | `/auth/password/setup`, `/auth/password/setup/confirm` |
+| `/auth/modern/{email-code,google}/*` | `/auth/{email-code,google}/*` |
+| `/auth/modern/security*` | `/auth/users/me/security*` |
+| `GET /2fa/status`, `POST /2fa/{setup,activate,disable}` | `GET /auth/users/me/security/2fa`, `POST /auth/users/me/security/2fa/{setup,activate,disable}` |
 
 ### App-scoped sign-in (ADR-0016)
+
+**Joining apps (16 October 2026).** Every app with sign-in asks "Join <app>?"
+once: the handoff returns 409 until it is called with `join: true`.
+Self-service apps (Events, weather, mbia, signal, docs, elections) then join
+instantly. GAA Admin (`scope="staff"`): the 409 detail starts "Request access";
+`join: true` records `staff_access_requested_at` and returns 403
+`"Your request is waiting for an administrator to approve it."` until an
+administrator approves. CMS cannot be joined (superuser grant). On
+`POST /auth/account/apps`, `AccountAppPublic` adds `can_join` and `pending`;
+`POST /auth/account/apps/{app}/join` returns `{joined, pending}`. Email
+verification never gates any of these. `OnboardingStatus` no longer reports an
+`email_verification` blocker.
 
 Self-service apps (Barrels Events first) sign people in on their own pages and keep
 their own host-only cookie. All routes are public and rate-limited:
@@ -204,7 +232,7 @@ their own host-only cookie. All routes are public and rate-limited:
 
 Responses are `SessionLoginResponse`. Access tokens from these sessions carry an
 `app` claim: staff routes return 401 for them, and app routes accept only their own
-app's tokens. `/login/session/access-token` and `/login/session/refresh` keep the
+app's tokens. `/auth/sessions/access-token` and `/auth/sessions/refresh` keep the
 claim for app sessions. The cookie-authenticated routes (`/auth/browser/session` and
 the `BrowserUser` routes) refuse app-scoped sessions, matching the token rule.
 Single sign-on is available only for apps with a configured client secret
@@ -212,23 +240,23 @@ Single sign-on is available only for apps with a configured client secret
 Only the account session from auth.barrels.gd (a session belonging to no registered
 app) can start a handoff. Staff apps (`gaa-admin`, `cms`) have no sign-in routes of
 their own: their handoff requires an approved staff account and their sessions mint
-ordinary staff tokens without an `app` claim. `POST /login/session` ignores an
+ordinary staff tokens without an `app` claim. `POST /auth/sessions` ignores an
 `app_name` that names any registered app. The cookie-authenticated routes read
 GAA Admin's host-only cookie, `admin_session` (`BROWSER_SESSION_COOKIE_NAME`).
 
-**Public accounts (ADR-0017 step 4).** Any active, verified account can sign in at
-auth.barrels.gd (`POST /login/session`, Google) and hold an *account session*:
+**Public accounts (ADR-0017 step 4).** Any active account can sign in at
+auth.barrels.gd (`POST /auth/sessions`, Google) and hold an *account session*:
 a session that belongs to no registered app. Its token has no `app` claim, but
 staff approval (`registration_pending=false`) is still required by every staff
 route. Only these self-service routes accept unapproved accounts (`AccountUser`):
-`GET /auth/users/me`, `PATCH /auth/users/me/password`, `/auth/2fa/*`,
-`GET /auth/modern/security`, `POST /auth/modern/security/recovery-codes`,
-`DELETE /auth/modern/security/sessions/{id}`, `GET /auth/access/me` and
+`GET /auth/users/me`, `PATCH /auth/users/me/password`, `/auth/users/me/security/2fa*`,
+`GET /auth/users/me/security`, `POST /auth/users/me/security/recovery-codes`,
+`DELETE /auth/users/me/security/sessions/{id}`, `GET /auth/access/me` and
 `POST /auth/users/me/staff-access-request`. The last one sets
 `UserPublic.staff_access_requested_at` (idempotent); staff setup
 (`GET /setup/staff`) lists approved staff plus accounts that asked.
-`POST /login/access-token` (machine clients) still requires staff approval.
-`POST /auth/modern/email-code/start` and `/verify` sign in to the account with a
+`POST /auth/token` (machine clients) still requires staff approval.
+`POST /auth/email-code/start` and `/verify` sign in to the account with a
 6-digit emailed code (the first verified code creates the account when sign-up is
 open); they open the same account session as password and Google sign-in.
 
@@ -648,7 +676,7 @@ Leave balances come only from the append-only `hr.leave_balance_event` ledger, w
 
 ### Employee membership and account security
 
-Employment records may represent confirmed department/grade membership with a null employee number or employment type. `EmploymentPublic` includes `grade`, `supervisor_name` and `details_complete`; clients must display unknown fields explicitly rather than infer values. `GET /api/v1/auth/modern/security` returns current-account security status and active-session metadata (app, client type, recorded `user_agent` and `ip_address`, last-used and expiry times), never bearer tokens, session secrets or TOTP secrets. The IP and user agent are shown only to the account owner so they can recognise their own devices. The response also carries `password_changed_at` (null until the password is next changed, reset or set up after the column shipped). Password and Google sign-in remember the browser/OS family of each device (`user.known_device_keys`, capped at 20); a sign-in from an unfamiliar family after the first ever device emails the account owner a "New sign-in" alert in the background, linking to `/sessions`. Alert failures are logged and never block sign-in. Existing `/2fa/setup` and `/2fa/activate` endpoints provide enrollment; setup rejects an already-enabled authenticator.
+Employment records may represent confirmed department/grade membership with a null employee number or employment type. `EmploymentPublic` includes `grade`, `supervisor_name` and `details_complete`; clients must display unknown fields explicitly rather than infer values. `GET /api/v1/auth/users/me/security` returns current-account security status and active-session metadata (app, client type, recorded `user_agent` and `ip_address`, last-used and expiry times), never bearer tokens, session secrets or TOTP secrets. The IP and user agent are shown only to the account owner so they can recognise their own devices. The response also carries `password_changed_at` (null until the password is next changed, reset or set up after the column shipped). Password and Google sign-in remember the browser/OS family of each device (`user.known_device_keys`, capped at 20); a sign-in from an unfamiliar family after the first ever device emails the account owner a "New sign-in" alert in the background, linking to `/sessions`. Alert failures are logged and never block sign-in. Existing `/auth/users/me/security/2fa/setup` and `/auth/users/me/security/2fa/activate` endpoints provide enrollment; setup rejects an already-enabled authenticator.
 
 Managed HR workflows must be created through their form submission endpoints. Public generic workflow creation cannot attach a new workflow to a managed HR record. Finalization validates the record's authoritative workflow and department before status or balance changes. The dashboard honours `roster.view` for department data and preserves personal roster access when that permission is absent.
 
@@ -657,13 +685,13 @@ HR form submission dates: leave, shift swap, absentee, daily status and parking 
 
 ### Registration approval and recovery
 
-Public signup creates an active but `registration_pending` account and requires email verification. `ALLOW_PUBLIC_SIGNUP` defaults to true; explicitly setting it false closes registration. Pending accounts cannot obtain sessions, use bearer-authenticated endpoints, or complete Google sign-in. Existing accounts default to approved when the migration is applied. Signup accepts passwords of 12–128 characters and ignores privilege fields. Verification delivery failure preserves the pending account so verification can be requested again.
+Public signup creates an active but `registration_pending` account and sends a verification email; verification is recorded (`email_verified_at`) but never blocks sign-in, joining, app access or staff approval (16 October 2026). `ALLOW_PUBLIC_SIGNUP` defaults to true; explicitly setting it false closes registration. Pending accounts cannot obtain sessions, use bearer-authenticated endpoints, or complete Google sign-in. Existing accounts default to approved when the migration is applied. Signup accepts passwords of 12–128 characters and ignores privilege fields. Verification delivery failure preserves the pending account so verification can be requested again.
 
-After email verification, an administrator saves department/grade membership and issues the permanent staff credential, then calls `POST /api/v1/hr/setup/staff/{user_id}/approve-registration`. Approval requires active employment and a non-revoked credential, grants the existing `staff` role with self scope, and writes an audit entry. It does not infer management privileges from a grade. Missing employee number, employment type or start date does not block credential activation; `StaffCard.employment_ready` reports this separately from account approval and email verification. HR submission readiness rules still apply.
+An administrator saves department/grade membership and issues the permanent staff credential, then calls `POST /api/v1/hr/setup/staff/{user_id}/approve-registration`. Approval requires active employment and a non-revoked credential, grants the existing `staff` role with self scope, and writes an audit entry. It does not infer management privileges from a grade. Missing employee number, employment type or start date does not block credential activation; `StaffCard.employment_ready` reports this separately from account approval and email verification. HR submission readiness rules still apply.
 
 Password recovery uses a hashed, expiring, single-use challenge. Resetting or changing a password invalidates outstanding challenges and saved sessions. Old JWT-based reset links must be replaced by requesting a new link. New and changed passwords require 12–128 characters.
 
-`POST /api/v1/auth/modern/security/recovery-codes` requires the current password and an authenticator or existing recovery code. It returns eight new codes once, stores only their hashes and invalidates previous codes. Recovery codes can replace the authenticator code at password or Google sign-in and are consumed once. `/2fa/disable` requires both password and a factor code, and clears recovery codes. `DELETE /api/v1/auth/modern/security/sessions/{session_id}` revokes only a session owned by the caller; foreign or missing sessions return 404. Already-issued bearer tokens retain their configured short lifetime.
+`POST /api/v1/auth/users/me/security/recovery-codes` requires the current password and an authenticator or existing recovery code. It returns eight new codes once, stores only their hashes and invalidates previous codes. Recovery codes can replace the authenticator code at password or Google sign-in and are consumed once. `/auth/users/me/security/2fa/disable` requires both password and a factor code, and clears recovery codes. `DELETE /api/v1/auth/users/me/security/sessions/{session_id}` revokes only a session owned by the caller; foreign or missing sessions return 404. Already-issued bearer tokens retain their configured short lifetime.
 
 Apply Alembic migrations through `c3d5e7f9a1b2` before deploying these account controls. Configure the email provider and Google OAuth callback for the target environment before advertising those flows; application code alone does not configure providers.
 
@@ -1427,9 +1455,8 @@ and self-service profile updates cannot grant CMS access.
 editorial permission keys. It requires a bearer token for the named app and
 rechecks admission. CMS handoff and session exchange require an active,
 account with a usable sign-in method and an explicit grant (or a system
-administrator). The identity gate accepts either a verified email or approved
-staff whose email verification is not required. Public accounts still need
-verified email. CMS tokens cannot access staff APIs.
+administrator). Email verification is not required. CMS tokens cannot access
+staff APIs.
 Access changes revoke CMS sessions; already-issued tokens read current grants.
 The additive `cmsaccess20261007` migration defaults existing users to `none`;
 system administrators retain full CMS access.

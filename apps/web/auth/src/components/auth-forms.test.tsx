@@ -66,12 +66,15 @@ describe("SignInForm", () => {
     ).toBeInTheDocument();
   });
 
-  it("links to email verification only when the account needs it", () => {
-    setState({ error: "Verify your email first", next: "verify" });
+  it("shows sign-in errors without asking for email verification", () => {
+    setState({ error: "Incorrect email or password", next: null });
     render(<SignInForm appName={null} returnTo={null} />);
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Incorrect email or password"
+    );
     expect(
-      screen.getByRole("link", { name: "Verify your email" })
-    ).toHaveAttribute("href", "/verify-email");
+      screen.queryByRole("link", { name: "Verify your email" })
+    ).toBeNull();
   });
 });
 
@@ -89,7 +92,7 @@ describe("SignUpForm", () => {
   it("sends a new account back to sign-in after signup", () => {
     setState({ success: true, email: "jane@example.com" });
     render(<SignUpForm />);
-    expect(screen.getByText("Check your email")).toBeInTheDocument();
+    expect(screen.getByText("Account created")).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: "Back to sign in" })
     ).toHaveAttribute("href", "/");

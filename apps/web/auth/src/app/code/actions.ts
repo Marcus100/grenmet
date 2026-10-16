@@ -34,7 +34,7 @@ export async function emailCodeAction(
     try {
       await authApiFetch(
         getAuthConfig(),
-        "/auth/modern/email-code/start",
+        "/auth/email-code/start",
         messageSchema,
         { body: { email }, method: "POST" }
       );
@@ -52,7 +52,7 @@ export async function emailCodeAction(
   try {
     const session = await authApiFetch(
       getAuthConfig(),
-      "/auth/modern/email-code/verify",
+      "/auth/email-code/verify",
       sessionLoginResponseSchema,
       {
         body: { email, code, totp_code: totpCode || null },

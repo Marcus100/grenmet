@@ -21,7 +21,7 @@ import type {
 } from "../models/AuthRecoverPasswordHtmlContent.js";
 
 export const authRecoverPasswordHtmlContentMutationKey = () =>
-  [{ url: "/api/v1/password-recovery-html-content/:email" }] as const;
+  [{ url: "/api/v1/auth/password/recovery/preview" }] as const;
 
 export function authRecoverPasswordHtmlContentMutationOptions<
   TContext = unknown,
@@ -43,10 +43,10 @@ export function authRecoverPasswordHtmlContentMutationOptions<
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ path }) => {
+    mutationFn: async ({ body }) => {
       return authRecoverPasswordHtmlContent({
         ...config,
-        path,
+        body,
         throwOnError: true,
       }).unwrap();
     },
@@ -56,7 +56,7 @@ export function authRecoverPasswordHtmlContentMutationOptions<
 /**
  * @description HTML Content for Password Recovery.
  * @summary Recover Password Html Content
- * {@link /api/v1/password-recovery-html-content/:email}
+ * {@link /api/v1/auth/password/recovery/preview}
  */
 export function useAuthRecoverPasswordHtmlContent<TContext>(
   options: {

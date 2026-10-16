@@ -42,6 +42,7 @@ export { authGetRole } from "./clients/authGetRole.js";
 export { authGetRoleAssignment } from "./clients/authGetRoleAssignment.js";
 export { authGetRoleAssignments } from "./clients/authGetRoleAssignments.js";
 export { authGetRoles } from "./clients/authGetRoles.js";
+export { authGetStaffMe } from "./clients/authGetStaffMe.js";
 export { authGetUserById } from "./clients/authGetUserById.js";
 export { authGetUserMe } from "./clients/authGetUserMe.js";
 export { authGetUsers } from "./clients/authGetUsers.js";
@@ -66,7 +67,6 @@ export { authRequestStaffAccess } from "./clients/authRequestStaffAccess.js";
 export { authResetPassword } from "./clients/authResetPassword.js";
 export { authRevokeActivation } from "./clients/authRevokeActivation.js";
 export { authRevokeSecuritySession } from "./clients/authRevokeSecuritySession.js";
-export { authTestToken } from "./clients/authTestToken.js";
 export { authTwofaActivate } from "./clients/authTwofaActivate.js";
 export { authTwofaDisable } from "./clients/authTwofaDisable.js";
 export { authTwofaSetup } from "./clients/authTwofaSetup.js";
@@ -585,6 +585,11 @@ export {
   useAuthGetRoles,
 } from "./hooks/useAuthGetRoles.js";
 export {
+  authGetStaffMeQueryKey,
+  authGetStaffMeQueryOptions,
+  useAuthGetStaffMe,
+} from "./hooks/useAuthGetStaffMe.js";
+export {
   authGetUserByIdQueryKey,
   authGetUserByIdQueryOptions,
   useAuthGetUserById,
@@ -704,11 +709,6 @@ export {
   authRevokeSecuritySessionMutationOptions,
   useAuthRevokeSecuritySession,
 } from "./hooks/useAuthRevokeSecuritySession.js";
-export {
-  authTestTokenMutationKey,
-  authTestTokenMutationOptions,
-  useAuthTestToken,
-} from "./hooks/useAuthTestToken.js";
 export {
   authTwofaActivateMutationKey,
   authTwofaActivateMutationOptions,
@@ -2775,6 +2775,15 @@ export type {
   AuthGetRolesStatus422,
 } from "./models/AuthGetRoles.js";
 export type {
+  AuthGetStaffMeOptions,
+  AuthGetStaffMeResponse,
+  AuthGetStaffMeResponses,
+  AuthGetStaffMeStatus200,
+  AuthGetStaffMeStatus401,
+  AuthGetStaffMeStatus403,
+  AuthGetStaffMeStatus422,
+} from "./models/AuthGetStaffMe.js";
+export type {
   AuthGetUserByIdOptions,
   AuthGetUserByIdPath,
   AuthGetUserByIdResponse,
@@ -2929,8 +2938,8 @@ export type {
   AuthRecordAccessReviewStatus422,
 } from "./models/AuthRecordAccessReview.js";
 export type {
+  AuthRecoverPasswordBody,
   AuthRecoverPasswordOptions,
-  AuthRecoverPasswordPath,
   AuthRecoverPasswordResponse,
   AuthRecoverPasswordResponses,
   AuthRecoverPasswordStatus200,
@@ -2938,8 +2947,8 @@ export type {
   AuthRecoverPasswordStatus429,
 } from "./models/AuthRecoverPassword.js";
 export type {
+  AuthRecoverPasswordHtmlContentBody,
   AuthRecoverPasswordHtmlContentOptions,
-  AuthRecoverPasswordHtmlContentPath,
   AuthRecoverPasswordHtmlContentResponse,
   AuthRecoverPasswordHtmlContentResponses,
   AuthRecoverPasswordHtmlContentStatus200,
@@ -3011,15 +3020,6 @@ export type {
   AuthRevokeSecuritySessionStatus404,
   AuthRevokeSecuritySessionStatus422,
 } from "./models/AuthRevokeSecuritySession.js";
-export type {
-  AuthTestTokenOptions,
-  AuthTestTokenResponse,
-  AuthTestTokenResponses,
-  AuthTestTokenStatus200,
-  AuthTestTokenStatus401,
-  AuthTestTokenStatus403,
-  AuthTestTokenStatus422,
-} from "./models/AuthTestToken.js";
 export type {
   AuthTwofaActivateBody,
   AuthTwofaActivateOptions,
@@ -7432,6 +7432,14 @@ export {
   authGetRolesStatus422Schema,
 } from "./zod/authGetRolesSchema.js";
 export {
+  authGetStaffMeErrorSchema,
+  authGetStaffMeResponseSchema,
+  authGetStaffMeStatus200Schema,
+  authGetStaffMeStatus401Schema,
+  authGetStaffMeStatus403Schema,
+  authGetStaffMeStatus422Schema,
+} from "./zod/authGetStaffMeSchema.js";
+export {
   authGetUserByIdErrorSchema,
   authGetUserByIdPathUserIdSchema,
   authGetUserByIdResponseSchema,
@@ -7572,8 +7580,8 @@ export {
   authRecordAccessReviewStatus422Schema,
 } from "./zod/authRecordAccessReviewSchema.js";
 export {
+  authRecoverPasswordHtmlContentBodySchema,
   authRecoverPasswordHtmlContentErrorSchema,
-  authRecoverPasswordHtmlContentPathEmailSchema,
   authRecoverPasswordHtmlContentResponseSchema,
   authRecoverPasswordHtmlContentStatus200Schema,
   authRecoverPasswordHtmlContentStatus401Schema,
@@ -7582,8 +7590,8 @@ export {
   authRecoverPasswordHtmlContentStatus422Schema,
 } from "./zod/authRecoverPasswordHtmlContentSchema.js";
 export {
+  authRecoverPasswordBodySchema,
   authRecoverPasswordErrorSchema,
-  authRecoverPasswordPathEmailSchema,
   authRecoverPasswordResponseSchema,
   authRecoverPasswordStatus200Schema,
   authRecoverPasswordStatus422Schema,
@@ -7645,14 +7653,6 @@ export {
   authRevokeSecuritySessionStatus404Schema,
   authRevokeSecuritySessionStatus422Schema,
 } from "./zod/authRevokeSecuritySessionSchema.js";
-export {
-  authTestTokenErrorSchema,
-  authTestTokenResponseSchema,
-  authTestTokenStatus200Schema,
-  authTestTokenStatus401Schema,
-  authTestTokenStatus403Schema,
-  authTestTokenStatus422Schema,
-} from "./zod/authTestTokenSchema.js";
 export {
   authTwofaActivateBodySchema,
   authTwofaActivateErrorSchema,

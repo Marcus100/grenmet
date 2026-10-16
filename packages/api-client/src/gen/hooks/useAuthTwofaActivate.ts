@@ -19,7 +19,7 @@ import type {
 } from "../models/AuthTwofaActivate.js";
 
 export const authTwofaActivateMutationKey = () =>
-  [{ url: "/api/v1/2fa/activate" }] as const;
+  [{ url: "/api/v1/auth/users/me/security/2fa/activate" }] as const;
 
 export function authTwofaActivateMutationOptions<TContext = unknown>(
   config: Partial<
@@ -49,7 +49,7 @@ export function authTwofaActivateMutationOptions<TContext = unknown>(
 /**
  * @description Confirms a TOTP code and enables two-factor authentication for the current account.
  * @summary Activate 2FA
- * {@link /api/v1/2fa/activate}
+ * {@link /api/v1/auth/users/me/security/2fa/activate}
  */
 export function useAuthTwofaActivate<TContext>(
   options: {

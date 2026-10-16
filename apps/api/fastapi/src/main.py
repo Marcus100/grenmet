@@ -105,7 +105,7 @@ def _operation_domain(route: APIRoute) -> str:
     path = route.path
     if path.startswith("/api/cap") or "/cap/" in path:
         return "cap"
-    if "/auth/" in path or "/login" in path or "/2fa/" in path:
+    if "/auth/" in path:
         return "auth"
     for domain in (
         "hr",

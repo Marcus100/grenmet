@@ -28,8 +28,8 @@ export default async function AdminLayout({
   let mfaDetail: string | undefined;
   try {
     const response = await exchangeSessionForAccessToken(sessionToken);
-    await authApiFetch("/login/test-token", userPublicSchema, {
-      method: "POST",
+    await authApiFetch("/auth/staff/me", userPublicSchema, {
+      method: "GET",
       accessToken: response.access_token,
     });
     user = response.user;

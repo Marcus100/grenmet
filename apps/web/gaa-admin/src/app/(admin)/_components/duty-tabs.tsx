@@ -1,5 +1,3 @@
-"use client";
-
 import type { DashboardPerson } from "@barrelsgd/api-client";
 import {
   Tabs,

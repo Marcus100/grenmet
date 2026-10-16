@@ -13,7 +13,7 @@ import type {
 /**
  * @description Revokes only a session owned by the authenticated user.
  * @summary Revoke one of your sessions
- * {@link /api/v1/auth/modern/security/sessions/:session_id}
+ * {@link /api/v1/auth/users/me/security/sessions/:session_id}
  */
 export function authRevokeSecuritySession<ThrowOnError extends boolean = true>(
   options: Options<AuthRevokeSecuritySessionOptions, ThrowOnError>
@@ -25,7 +25,7 @@ export function authRevokeSecuritySession<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "DELETE",
-      url: "/api/v1/auth/modern/security/sessions/{session_id}",
+      url: "/api/v1/auth/users/me/security/sessions/{session_id}",
       security: [{ type: "oauth2" }],
       ...config,
       throwOnError: config.throwOnError ?? true,

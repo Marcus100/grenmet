@@ -13,7 +13,7 @@ import type {
 /**
  * @description Verify email and establish password. Intentionally public; proof of account ownership is required to establish a session.
  * @summary Verify email and establish password
- * {@link /api/v1/auth/modern/email/confirm}
+ * {@link /api/v1/auth/password/setup/confirm}
  */
 export function authEmailConfirm<ThrowOnError extends boolean = true>(
   options: Options<AuthEmailConfirmOptions, ThrowOnError>
@@ -23,7 +23,7 @@ export function authEmailConfirm<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "POST",
-      url: "/api/v1/auth/modern/email/confirm",
+      url: "/api/v1/auth/password/setup/confirm",
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthEmailConfirmResponses, ThrowOnError>>

@@ -8,7 +8,7 @@ import { isAuthApiError, readSessionCookie } from "@/lib/session";
 const APP_KEY = /^[a-z][a-z0-9-]{1,30}$/;
 
 /** Fixed codes the page maps to text, so no message is reflected from a URL. */
-type Notice = "joined" | "left" | "left-still" | "failed";
+type Notice = "joined" | "requested" | "left" | "left-still" | "failed";
 
 async function change(
   formData: FormData,
@@ -31,8 +31,8 @@ async function change(
 
 export async function joinAppFromAccount(formData: FormData): Promise<never> {
   return await change(formData, async (app, token) => {
-    await joinAccountApp(app, token);
-    return "joined";
+    const result = await joinAccountApp(app, token);
+    return result.pending ? "requested" : "joined";
   });
 }
 

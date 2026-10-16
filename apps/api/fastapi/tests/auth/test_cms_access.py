@@ -79,7 +79,7 @@ async def test_cms_grant_downgrade_revoke_and_staff_isolation(
     await grant("writer")
     assert (
         await async_client.post(
-            "/api/v1/login/session/access-token",
+            "/api/v1/auth/sessions/access-token",
             json={"session_token": old["session_token"]},
         )
     ).status_code == 401

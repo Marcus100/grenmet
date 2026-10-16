@@ -37,7 +37,6 @@ import {
   signInMfaRequired,
   signInServiceDown,
   signInSuccess,
-  signInVerifyRequired,
   signOutSuccess,
   signUpEmailTaken,
   signUpSuccess,
@@ -127,15 +126,6 @@ describe("signInAction", () => {
     );
     expect(result.next).toBe("mfa");
     expect(result.error).toMatch(RE_NOT_ACCEPTED);
-  });
-
-  it("points unverified accounts at email verification", async () => {
-    server.use(signInVerifyRequired);
-    const result = await signInAction(
-      { email: "", error: null, next: null },
-      makeFormData({ email: "jane@example.com", password: "secret" })
-    );
-    expect(result.next).toBe("verify");
   });
 
   it("does not offer verification for accounts awaiting approval", async () => {

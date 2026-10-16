@@ -204,6 +204,11 @@ export {
   useAuthGetRoles,
 } from "./useAuthGetRoles.js";
 export {
+  authGetStaffMeQueryKey,
+  authGetStaffMeQueryOptions,
+  useAuthGetStaffMe,
+} from "./useAuthGetStaffMe.js";
+export {
   authGetUserByIdQueryKey,
   authGetUserByIdQueryOptions,
   useAuthGetUserById,
@@ -323,11 +328,6 @@ export {
   authRevokeSecuritySessionMutationOptions,
   useAuthRevokeSecuritySession,
 } from "./useAuthRevokeSecuritySession.js";
-export {
-  authTestTokenMutationKey,
-  authTestTokenMutationOptions,
-  useAuthTestToken,
-} from "./useAuthTestToken.js";
 export {
   authTwofaActivateMutationKey,
   authTwofaActivateMutationOptions,

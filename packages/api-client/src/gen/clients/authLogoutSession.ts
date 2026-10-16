@@ -13,7 +13,7 @@ import type {
 /**
  * @description Revoke the current persisted session. This endpoint is idempotent.
  * @summary Revoke a persisted session
- * {@link /api/v1/login/session/logout}
+ * {@link /api/v1/auth/sessions/logout}
  */
 export function authLogoutSession<ThrowOnError extends boolean = true>(
   options: Options<AuthLogoutSessionOptions, ThrowOnError>
@@ -23,7 +23,7 @@ export function authLogoutSession<ThrowOnError extends boolean = true>(
   return withUnwrap(
     request({
       method: "POST",
-      url: "/api/v1/login/session/logout",
+      url: "/api/v1/auth/sessions/logout",
       ...config,
       throwOnError: config.throwOnError ?? true,
     }) as Promise<RequestResult<AuthLogoutSessionResponses, ThrowOnError>>

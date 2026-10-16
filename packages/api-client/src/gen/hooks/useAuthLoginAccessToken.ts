@@ -20,7 +20,7 @@ import type {
 } from "../models/AuthLoginAccessToken.js";
 
 export const authLoginAccessTokenMutationKey = () =>
-  [{ url: "/api/v1/login/access-token" }] as const;
+  [{ url: "/api/v1/auth/token" }] as const;
 
 export function authLoginAccessTokenMutationOptions<TContext = unknown>(
   config: Partial<
@@ -52,7 +52,7 @@ export function authLoginAccessTokenMutationOptions<TContext = unknown>(
 /**
  * @description OAuth2 compatible token login. Returns an access token for future requests.
  * @summary Login with OAuth2
- * {@link /api/v1/login/access-token}
+ * {@link /api/v1/auth/token}
  */
 export function useAuthLoginAccessToken<TContext>(
   options: {

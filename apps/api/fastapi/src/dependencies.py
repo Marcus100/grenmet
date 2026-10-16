@@ -47,7 +47,7 @@ from src.models import TokenPayload
 # OAuth2 scheme for token extraction
 # This extracts the Bearer token from the Authorization header
 reusable_oauth2 = OAuth2PasswordBearer(
-    tokenUrl=f"{auth_settings.API_V1_STR}/login/access-token"
+    tokenUrl=f"{auth_settings.API_V1_STR}/auth/token"
 )
 
 
@@ -152,13 +152,6 @@ async def get_authenticated_user(
     if user.password_setup_pending and user.email_verified_at is None:
         raise HTTPException(
             status_code=403, detail="Finish account activation before continuing"
-        )
-    if user.email_verification_required and user.email_verified_at is None:
-        raise HTTPException(
-            status_code=403,
-            detail="Verify your email before using the staff portal"
-            if not allow_unapproved
-            else "Verify your email to manage your account",
         )
     from sqlalchemy.orm.attributes import set_committed_value
 

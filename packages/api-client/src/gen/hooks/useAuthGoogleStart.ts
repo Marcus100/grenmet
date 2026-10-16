@@ -20,7 +20,7 @@ import type {
 } from "../models/AuthGoogleStart.js";
 
 export const authGoogleStartMutationKey = () =>
-  [{ url: "/api/v1/auth/modern/google/start" }] as const;
+  [{ url: "/api/v1/auth/google/start" }] as const;
 
 export function authGoogleStartMutationOptions<TContext = unknown>(
   config: Partial<
@@ -48,7 +48,7 @@ export function authGoogleStartMutationOptions<TContext = unknown>(
 /**
  * @description Start Google sign-in. Intentionally public; proof of account ownership is required to establish a session.
  * @summary Start Google sign-in
- * {@link /api/v1/auth/modern/google/start}
+ * {@link /api/v1/auth/google/start}
  */
 export function useAuthGoogleStart<TContext>(
   options: {

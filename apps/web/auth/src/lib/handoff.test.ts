@@ -44,7 +44,7 @@ describe("startHandoff", () => {
   it.each([
     [401, { kind: "sign-in" }],
     [404, { kind: "unavailable" }],
-    [409, { kind: "join", label: "Barrels Events" }],
+    [409, { kind: "join", label: "Barrels Events", request: false }],
     [403, { kind: "denied", label: "Barrels Events", detail: "No access" }],
   ])("maps a %s to the right screen", async (status, expected) => {
     authApiFetch
@@ -53,17 +53,27 @@ describe("startHandoff", () => {
     expect(await startHandoff(request, "account-session")).toEqual(expected);
   });
 
-  it("distinguishes email verification from missing CMS permission", async () => {
-    authApiFetch.mockRejectedValueOnce(
-      new AuthApiError(
-        403,
-        "Verify your email address before signing in to this app."
+  it("asks staff apps to request access, then shows the wait", async () => {
+    authApiFetch
+      .mockRejectedValueOnce(
+        new AuthApiError(409, "Request access to GAA Admin to continue.")
       )
-    );
+      .mockResolvedValueOnce({ label: "GAA Admin" });
     expect(
-      await startHandoff({ app: "cms", state: STATE }, "account-session")
-    ).toEqual({ kind: "verify-email" });
-    expect(authApiFetch).toHaveBeenCalledTimes(1);
+      await startHandoff({ app: "gaa-admin", state: STATE }, "account-session")
+    ).toEqual({ kind: "join", label: "GAA Admin", request: true });
+
+    authApiFetch
+      .mockRejectedValueOnce(
+        new AuthApiError(
+          403,
+          "Your request is waiting for an administrator to approve it."
+        )
+      )
+      .mockResolvedValueOnce({ label: "GAA Admin" });
+    expect(
+      await startHandoff({ app: "gaa-admin", state: STATE }, "account-session")
+    ).toEqual({ kind: "pending", label: "GAA Admin" });
   });
 
   it("lets outages surface", async () => {

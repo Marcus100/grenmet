@@ -87,12 +87,19 @@ class AccountAppPublic(BaseModel):
     label: str
     #: Whether this account can use the app now.
     joined: bool
-    #: Whether the person may join or leave themselves (self sign-up apps).
+    #: Whether "Join" is offered: instant for self-service apps, an access
+    #: request for staff apps; never for superuser-granted apps (CMS).
+    can_join: bool
+    #: Staff apps: access was requested and awaits an administrator.
+    pending: bool = False
+    #: Whether the person may leave themselves (self sign-up apps).
     can_leave: bool
 
 
 class AppJoinResult(BaseModel):
     joined: bool
+    #: True when joining asked an administrator for access (staff apps).
+    pending: bool = False
 
 
 class AppLeaveResult(BaseModel):

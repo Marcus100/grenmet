@@ -38,7 +38,7 @@ async def test_google_start_never_exposes_verifier(async_client, db_async, monke
         "https://auth.example.test/google/callback",
     )
     result = await async_client.post(
-        "/api/v1/auth/modern/google/start", json={"browser_binding": "a" * 64}
+        "/api/v1/auth/google/start", json={"browser_binding": "a" * 64}
     )
     assert result.status_code == 200
     url = result.json()["authorization_url"]
@@ -76,7 +76,7 @@ async def test_email_confirmation_verifies_address_once_and_revokes_sessions(
     )
     await db_async.commit()
     body = {"token": token, "new_password": "Verified-password-123!"}
-    response = await async_client.post("/api/v1/auth/modern/email/confirm", json=body)
+    response = await async_client.post("/api/v1/auth/password/setup/confirm", json=body)
     assert response.status_code == 200
     await db_async.refresh(user)
     assert user.email_verified_at and not user.password_setup_pending
@@ -90,7 +90,7 @@ async def test_email_confirmation_verifies_address_once_and_revokes_sessions(
         .all()
     )
     assert (
-        await async_client.post("/api/v1/auth/modern/email/confirm", json=body)
+        await async_client.post("/api/v1/auth/password/setup/confirm", json=body)
     ).status_code == 400
     assert old_session
 
@@ -122,7 +122,7 @@ async def test_email_proof_rejects_changed_or_disabled_account(
     db_async.add(user)
     await db_async.commit()
     response = await async_client.post(
-        "/api/v1/auth/modern/email/confirm",
+        "/api/v1/auth/password/setup/confirm",
         json={"token": token, "new_password": "Verified-password-123!"},
     )
     assert response.status_code == 400
@@ -169,7 +169,7 @@ async def test_linked_google_identity_cannot_verify_changed_email(
 
     monkeypatch.setattr(modern, "google_claims", claims)
     response = await async_client.post(
-        "/api/v1/auth/modern/google/complete",
+        "/api/v1/auth/google/complete",
         json={"state": state, "code": "code", "browser_binding": "a" * 64},
     )
     assert response.status_code == 403
@@ -201,7 +201,7 @@ async def test_google_mfa_failure_consumes_login_challenge(async_client, db_asyn
     )
     await db_async.commit()
     response = await async_client.post(
-        "/api/v1/auth/modern/google/finish", json={"challenge": token, "totp_code": ""}
+        "/api/v1/auth/google/finish", json={"challenge": token, "totp_code": ""}
     )
     assert response.status_code == 400
     assert await db_async.get(AuthChallenge, modern.digest(token)) is None

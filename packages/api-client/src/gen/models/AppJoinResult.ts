@@ -5,4 +5,9 @@
 
 export type AppJoinResult = {
   joined: boolean;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  pending?: boolean;
 };

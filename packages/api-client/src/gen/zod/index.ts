@@ -463,6 +463,14 @@ export {
   authGetRolesStatus422Schema,
 } from "./authGetRolesSchema.js";
 export {
+  authGetStaffMeErrorSchema,
+  authGetStaffMeResponseSchema,
+  authGetStaffMeStatus200Schema,
+  authGetStaffMeStatus401Schema,
+  authGetStaffMeStatus403Schema,
+  authGetStaffMeStatus422Schema,
+} from "./authGetStaffMeSchema.js";
+export {
   authGetUserByIdErrorSchema,
   authGetUserByIdPathUserIdSchema,
   authGetUserByIdResponseSchema,
@@ -603,8 +611,8 @@ export {
   authRecordAccessReviewStatus422Schema,
 } from "./authRecordAccessReviewSchema.js";
 export {
+  authRecoverPasswordHtmlContentBodySchema,
   authRecoverPasswordHtmlContentErrorSchema,
-  authRecoverPasswordHtmlContentPathEmailSchema,
   authRecoverPasswordHtmlContentResponseSchema,
   authRecoverPasswordHtmlContentStatus200Schema,
   authRecoverPasswordHtmlContentStatus401Schema,
@@ -613,8 +621,8 @@ export {
   authRecoverPasswordHtmlContentStatus422Schema,
 } from "./authRecoverPasswordHtmlContentSchema.js";
 export {
+  authRecoverPasswordBodySchema,
   authRecoverPasswordErrorSchema,
-  authRecoverPasswordPathEmailSchema,
   authRecoverPasswordResponseSchema,
   authRecoverPasswordStatus200Schema,
   authRecoverPasswordStatus422Schema,
@@ -676,14 +684,6 @@ export {
   authRevokeSecuritySessionStatus404Schema,
   authRevokeSecuritySessionStatus422Schema,
 } from "./authRevokeSecuritySessionSchema.js";
-export {
-  authTestTokenErrorSchema,
-  authTestTokenResponseSchema,
-  authTestTokenStatus200Schema,
-  authTestTokenStatus401Schema,
-  authTestTokenStatus403Schema,
-  authTestTokenStatus422Schema,
-} from "./authTestTokenSchema.js";
 export {
   authTwofaActivateBodySchema,
   authTwofaActivateErrorSchema,

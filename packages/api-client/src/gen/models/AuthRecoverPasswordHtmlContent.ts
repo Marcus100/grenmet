@@ -3,11 +3,8 @@
  * Do not edit manually.
  */
 
+import type { EmailRequest } from "./EmailRequest.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
-
-export type AuthRecoverPasswordHtmlContentPath = {
-  email: string;
-};
 
 export type AuthRecoverPasswordHtmlContentStatus200 = string;
 
@@ -23,9 +20,11 @@ export type AuthRecoverPasswordHtmlContentStatus404 = unknown;
  */
 export type AuthRecoverPasswordHtmlContentStatus422 = ValidationErrorResponse;
 
+export type AuthRecoverPasswordHtmlContentBody = EmailRequest;
+
 export type AuthRecoverPasswordHtmlContentOptions = {
-  body?: never;
-  path: AuthRecoverPasswordHtmlContentPath;
+  body: AuthRecoverPasswordHtmlContentBody;
+  path?: never;
   query?: never;
   headers?: never;
 };

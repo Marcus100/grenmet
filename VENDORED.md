@@ -22,6 +22,22 @@ in `api/production.env` records the release.
   `data/postgresql/` is the live database), `.env`, `api/production.env`
   (secrets). Committed templates: `.env.example`, `api/production.env.example`.
 
+### Local security pins
+
+Our own changes to upstream's `api/requirements.in` and `api/requirements.txt`.
+Each pin came from a GitHub security alert. Keep them, or newer versions, when
+reconciling an upstream release.
+
+| Package | Upstream | Ours | Source | Note |
+| --- | --- | --- | --- | --- |
+| `PyJWT` | 2.4.0 | 2.15.0 | Dependabot #388 | Pinned in `requirements.in` too. Checked against `djangorestframework-simplejwt` 5.0.0 on Python 3.11: tokens round-trip and tampered tokens are rejected |
+| `werkzeug` | 3.1.4 | 3.1.9 | Dependabot #389 | Transitive via `flask` |
+| `fsspec` | 2025.12.0 | 2026.6.0 | Dependabot #391 | Transitive via `pyiceberg` |
+| `multidict` | 6.7.0 | 6.9.1 | Dependabot #393 | Transitive via `yarl` |
+
+The transitive pins are edited in place in the pip-compiled `requirements.txt`.
+If you re-run `pip-compile`, keep these versions as lower bounds.
+
 ## wis2box/
 
 Deployment configuration only (compose files, `wis2box-ctl.py`, monitoring
