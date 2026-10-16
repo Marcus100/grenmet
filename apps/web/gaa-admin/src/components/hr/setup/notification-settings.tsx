@@ -3,6 +3,7 @@
 import {
   type NotificationParams,
   type NotificationSettingPublic,
+  type NotificationSettingsPublic,
   type NotificationSettingUpdate,
   notificationsGetNotificationSettingsQueryKey,
   useNotificationsGetNotificationSettings,
@@ -223,6 +224,11 @@ export function NotificationSettings({
   const [editing, setEditing] = useState<NotificationSettingPublic | null>(
     null
   );
+  // Every organisation's settings share this prefix.
+  const settingsKey = notificationsGetNotificationSettingsQueryKey({}).slice(
+    0,
+    1
+  );
 
   async function save(eventKey: string, body: NotificationSettingUpdate) {
     try {
@@ -231,13 +237,46 @@ export function NotificationSettings({
         query: { organisation_id: query.data?.organisation_id },
         body,
       });
-      await queryClient.invalidateQueries({
-        queryKey: notificationsGetNotificationSettingsQueryKey({}).slice(0, 1),
-      });
+      await queryClient.invalidateQueries({ queryKey: settingsKey });
       setEditing(null);
       toast.success("Notification saved");
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Save failed");
+    }
+  }
+
+  /** Flip a switch at once; roll back with a toast if the save fails. */
+  async function toggle(
+    setting: NotificationSettingPublic,
+    patch: Partial<Pick<NotificationSettingUpdate, "enabled" | "email_enabled">>
+  ) {
+    await queryClient.cancelQueries({ queryKey: settingsKey });
+    const previous = queryClient.getQueriesData<NotificationSettingsPublic>({
+      queryKey: settingsKey,
+    });
+    queryClient.setQueriesData<NotificationSettingsPublic>(
+      { queryKey: settingsKey },
+      (current) =>
+        current && {
+          ...current,
+          events: current.events.map((row) =>
+            row.event_key === setting.event_key ? { ...row, ...patch } : row
+          ),
+        }
+    );
+    try {
+      await update.mutateAsync({
+        path: { event_key: setting.event_key },
+        query: { organisation_id: query.data?.organisation_id },
+        body: toUpdate(setting, patch),
+      });
+    } catch (error) {
+      for (const [key, data] of previous) {
+        queryClient.setQueryData(key, data);
+      }
+      toast.error(error instanceof Error ? error.message : "Save failed");
+    } finally {
+      await queryClient.invalidateQueries({ queryKey: settingsKey });
     }
   }
 
@@ -303,10 +342,7 @@ export function NotificationSettings({
                     checked={setting.enabled}
                     disabled={update.isPending}
                     onCheckedChange={(checked) =>
-                      save(
-                        setting.event_key,
-                        toUpdate(setting, { enabled: checked })
-                      )
+                      toggle(setting, { enabled: checked })
                     }
                   />
                 </TableCell>
@@ -316,10 +352,7 @@ export function NotificationSettings({
                     checked={setting.email_enabled}
                     disabled={update.isPending || !setting.enabled}
                     onCheckedChange={(checked) =>
-                      save(
-                        setting.event_key,
-                        toUpdate(setting, { email_enabled: checked })
-                      )
+                      toggle(setting, { email_enabled: checked })
                     }
                   />
                 </TableCell>

@@ -3,11 +3,23 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import { toast } from "sonner";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { NotificationSettings } from "./notification-settings";
+
+vi.mock("sonner", () => ({ toast: { error: vi.fn(), success: vi.fn() } }));
 
 const EDIT_REMINDER = /Edit Approval reminder/;
 const DOMAIN_LIMIT = /limited to barrels.gd/;
+const EMAIL_SWITCH = "Approval reminder by email";
 
 const BASE = "http://localhost";
 
@@ -51,7 +63,10 @@ beforeAll(() => {
   configureApiClient({ baseURL: BASE });
   server.listen({ onUnhandledRequest: "error" });
 });
-afterEach(() => server.resetHandlers());
+afterEach(() => {
+  server.resetHandlers();
+  vi.clearAllMocks();
+});
 afterAll(() => server.close());
 
 function renderSettings() {
@@ -100,5 +115,53 @@ describe("NotificationSettings", () => {
       enabled: true,
       params: { remind_after_days: 3 },
     });
+  });
+
+  it("flips a switch before the save answers", async () => {
+    let answer: () => void = () => undefined;
+    const answered = new Promise<void>((resolve) => {
+      answer = resolve;
+    });
+    server.use(
+      http.put(
+        `${BASE}/api/v1/notifications/settings/:key`,
+        async ({ request }) => {
+          const body = (await request.json()) as Record<string, unknown>;
+          await answered;
+          return HttpResponse.json({ ...overdue, ...body });
+        }
+      )
+    );
+    renderSettings();
+    const email = await screen.findByRole("switch", { name: EMAIL_SWITCH });
+    expect(email).toBeChecked();
+
+    fireEvent.click(email);
+
+    await waitFor(() => expect(email).not.toBeChecked());
+    answer();
+  });
+
+  it("rolls a switch back and explains when the save fails", async () => {
+    let answer: () => void = () => undefined;
+    const answered = new Promise<void>((resolve) => {
+      answer = resolve;
+    });
+    server.use(
+      http.put(`${BASE}/api/v1/notifications/settings/:key`, async () => {
+        await answered;
+        return HttpResponse.json({ detail: "Not allowed" }, { status: 403 });
+      })
+    );
+    renderSettings();
+    const email = await screen.findByRole("switch", { name: EMAIL_SWITCH });
+
+    fireEvent.click(email);
+    await waitFor(() => expect(email).not.toBeChecked());
+    answer();
+
+    await waitFor(() => expect(toast.error).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(email).toBeChecked());
+    expect(toast.success).not.toHaveBeenCalled();
   });
 });
