@@ -1,0 +1,36 @@
+name: Dependabot retarget
+
+# Dependabot security updates ignore `target-branch` and open against the default
+# branch (main). Merging there skips dev and staging and leaves main ahead of the
+# promotion flow, so retarget them to dev, where every other change starts.
+#
+# pull_request_target runs with a write token, so this job never checks out or
+# runs PR code: it only edits the PR's base branch and leaves a comment. See
+# docs/operations/release-runbook.md -> Dependabot pull requests.
+
+on:
+  pull_request_target:
+    types: [opened, reopened]
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  retarget:
+    name: Retarget to dev
+    if: >-
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Change the base branch to dev
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          gh pr edit "$PR" --base dev
+          gh pr comment "$PR" --body "Retargeted from \`main\` to \`dev\` so this update follows the promotion flow (dev → staging → main). A maintainer should comment \`@dependabot rebase\` so the branch is rebuilt on dev and CI runs against it."
