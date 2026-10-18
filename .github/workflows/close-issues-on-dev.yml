@@ -1,0 +1,43 @@
+name: Close issues on dev
+
+# GitHub only honours closing keywords ("Fixes #12") when a commit reaches the
+# default branch (main). Work lands on dev days before main, so this closes the
+# referenced issues when the commit is pushed to dev, with a link to it. Only
+# same-repository issues that are still open are touched.
+
+on:
+  push:
+    branches: [dev]
+
+permissions: {}
+
+concurrency:
+  group: close-issues-on-dev
+  cancel-in-progress: false
+
+jobs:
+  close:
+    name: Close referenced issues
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          sparse-checkout: scripts/ci
+      - name: Close issues named by closing keywords
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          SERVER: ${{ github.server_url }}
+        run: |
+          node scripts/ci/closing-issues.mjs "$GITHUB_EVENT_PATH" | while read -r issue sha; do
+            state=$(gh issue view "$issue" --json state --jq .state 2>/dev/null || echo MISSING)
+            if [ "$state" != "OPEN" ]; then
+              echo "#$issue: $state, skipped"
+              continue
+            fi
+            gh issue close "$issue" --comment "Closed by $SERVER/$GH_REPO/commit/$sha on \`dev\`. It reaches staging and main through the normal promotion flow."
+          done
