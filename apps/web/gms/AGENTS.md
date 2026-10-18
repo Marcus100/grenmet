@@ -101,6 +101,10 @@ src/app/
   `system`, `ThemeToggle` in the main bar beside search and the alert pill). Headings use
   `text-gm-heading`, not `text-gm-navy`; printable products sit in `.gm-paper`.
 
+## Forms
+
+`/climate/data-request` renders `DataRequestForm` (`components/pages/data-request-form.tsx`), which posts to `src/app/api/data-request/route.ts`, a validate-and-proxy handler for FastAPI `POST /api/v1/contact/data-requests` (stored, emailed to `GMS_DATA_REQUEST_RECIPIENT`, confirmation to the requester). Schema in `src/lib/data-request.ts`; hidden honeypot field `website`; consent is required.
+
 ## Key dependencies (unique to this app)
 
 - `lucide-react` — icons (migrated off `@heroicons/react`)

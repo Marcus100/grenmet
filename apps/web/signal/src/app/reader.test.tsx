@@ -16,6 +16,7 @@ import SearchPage from "./search/page";
 import TopicsPage from "./topics/page";
 
 const SAMPLE_NOTICE = /Human editorial review pending/;
+const NOT_AVAILABLE = /subscriptions are not available/i;
 const SAMPLE_CAUTION = /Do not rely on it/;
 vi.mock("@/lib/content", () => {
   const articles = [
@@ -128,9 +129,29 @@ describe("editorial reader", () => {
     }
     for (const link of screen.getAllByRole("link"))
       expect(link.getAttribute("href")).not.toBe("#");
+    // The header and footer only link to sign-up; the form lives on About.
     expect(
       screen.queryByRole("button", { name: "Subscribe" })
     ).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Newsletter" })).toHaveAttribute(
+      "href",
+      "/about#newsletter"
+    );
+  });
+  it("offers the newsletter sign-up on the About page", () => {
+    render(<AboutPage />);
+    expect(
+      screen.getByRole("heading", { name: "Get the newsletter" })
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Email address")).toHaveAttribute(
+      "type",
+      "email"
+    );
+    expect(screen.getByRole("checkbox")).toBeRequired();
+    expect(
+      screen.getByRole("button", { name: "Subscribe" })
+    ).toBeInTheDocument();
+    expect(screen.queryByText(NOT_AVAILABLE)).toBeNull();
   });
   it("renders missing images as intentional text stories", () => {
     const base = getPublishedArticles()[1];

@@ -14877,6 +14877,96 @@
         }
       }
     },
+    "/api/v1/contact/data-requests": {
+      "post": {
+        "tags": [
+          "contact"
+        ],
+        "summary": "Send a climate data request",
+        "description": "Public GMS climate data request form. Stores the request, emails it to the configured inbox and sends the requester a confirmation.",
+        "operationId": "contactSendDataRequest",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DataRequestCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactMessageAccepted"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request"
+          }
+        }
+      }
+    },
+    "/api/v1/feedback": {
+      "post": {
+        "tags": [
+          "feedback"
+        ],
+        "summary": "Send page feedback",
+        "description": "Public, anonymous 'Was this page helpful?' answer from a website. Stores the site key, page path, yes/no and an optional short comment.",
+        "operationId": "feedbackSendPageFeedback",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PageFeedbackCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageFeedbackAccepted"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Malformed request"
+          }
+        }
+      }
+    },
     "/api/v1/flights/board": {
       "get": {
         "tags": [
@@ -34256,6 +34346,129 @@
         ],
         "title": "DashboardRequest"
       },
+      "DataFormat": {
+        "type": "string",
+        "enum": [
+          "csv",
+          "excel",
+          "pdf"
+        ],
+        "title": "DataFormat"
+      },
+      "DataParameter": {
+        "type": "string",
+        "enum": [
+          "rainfall",
+          "temperature",
+          "wind",
+          "humidity",
+          "pressure",
+          "other"
+        ],
+        "title": "DataParameter"
+      },
+      "DataRequestCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Name"
+          },
+          "email": {
+            "type": "string",
+            "maxLength": 254,
+            "format": "email",
+            "title": "Email"
+          },
+          "organisation": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Organisation"
+          },
+          "purpose": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 10,
+            "title": "Purpose"
+          },
+          "parameters": {
+            "items": {
+              "$ref": "#/components/schemas/DataParameter"
+            },
+            "type": "array",
+            "maxItems": 6,
+            "minItems": 1,
+            "title": "Parameters"
+          },
+          "stations": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 2,
+            "title": "Stations"
+          },
+          "period_start": {
+            "type": "string",
+            "format": "date",
+            "title": "Period Start"
+          },
+          "period_end": {
+            "type": "string",
+            "format": "date",
+            "title": "Period End"
+          },
+          "data_format": {
+            "$ref": "#/components/schemas/DataFormat"
+          },
+          "intended_use": {
+            "$ref": "#/components/schemas/IntendedUse"
+          },
+          "consent": {
+            "type": "boolean",
+            "title": "Consent"
+          },
+          "website": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Website"
+          },
+          "turnstile_token": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2048
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turnstile Token"
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "email",
+          "organisation",
+          "purpose",
+          "parameters",
+          "stations",
+          "period_start",
+          "period_end",
+          "data_format",
+          "intended_use",
+          "consent"
+        ],
+        "title": "DataRequestCreate"
+      },
       "DeliveryLine": {
         "properties": {
           "line_id": {
@@ -37314,6 +37527,17 @@
           "FAILED"
         ],
         "title": "ImportStatus"
+      },
+      "IntendedUse": {
+        "type": "string",
+        "enum": [
+          "student",
+          "academic",
+          "commercial",
+          "government",
+          "other"
+        ],
+        "title": "IntendedUse"
       },
       "InvitationAccept": {
         "properties": {
@@ -42303,6 +42527,57 @@
         "additionalProperties": false,
         "type": "object",
         "title": "OutlookValuesDraft"
+      },
+      "PageFeedbackAccepted": {
+        "properties": {
+          "ok": {
+            "type": "boolean",
+            "title": "Ok"
+          }
+        },
+        "type": "object",
+        "required": [
+          "ok"
+        ],
+        "title": "PageFeedbackAccepted"
+      },
+      "PageFeedbackCreate": {
+        "properties": {
+          "site": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]{1,39}$",
+            "title": "Site"
+          },
+          "page_path": {
+            "type": "string",
+            "maxLength": 300,
+            "pattern": "^/[^?#\\s]{0,298}$",
+            "title": "Page Path"
+          },
+          "helpful": {
+            "type": "boolean",
+            "title": "Helpful"
+          },
+          "comment": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 1000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comment"
+          }
+        },
+        "type": "object",
+        "required": [
+          "site",
+          "page_path",
+          "helpful"
+        ],
+        "title": "PageFeedbackCreate"
       },
       "PaginatedResponse_AuditEntryPublic_": {
         "properties": {
@@ -56473,6 +56748,10 @@
     {
       "name": "contact",
       "description": "Public website contact forms (no sign-in)."
+    },
+    {
+      "name": "feedback",
+      "description": "Anonymous 'Was this page helpful?' answers (no sign-in)."
     },
     {
       "name": "subscriptions",

@@ -15,6 +15,9 @@ class ContactConfig(BaseSettings):
     MBIA_CONTACT_RECIPIENT: str | None = None
     # Inbox for messages from the Barrels Grenada website (barrels.gd).
     BARRELS_CONTACT_RECIPIENT: str | None = None
+    # Inbox for climate data requests from the GMS website. Unset: requests are
+    # stored and logged only.
+    GMS_DATA_REQUEST_RECIPIENT: str | None = None
 
 
 contact_settings = ContactConfig()

@@ -115,6 +115,7 @@ export { capUpdateCapSettings } from "./clients/capUpdateCapSettings.js";
 export { capUpdateFeed } from "./clients/capUpdateFeed.js";
 export { capValidateAlert } from "./clients/capValidateAlert.js";
 export { contactSendContactMessage } from "./clients/contactSendContactMessage.js";
+export { contactSendDataRequest } from "./clients/contactSendDataRequest.js";
 export { eregisterCreateRegisterObservation } from "./clients/eregisterCreateRegisterObservation.js";
 export { eregisterEmailRegisterObservation } from "./clients/eregisterEmailRegisterObservation.js";
 export { eregisterListObservationSends } from "./clients/eregisterListObservationSends.js";
@@ -159,6 +160,7 @@ export { eventsUpdateManagedListing } from "./clients/eventsUpdateManagedListing
 export { eventsUpdateMyProfile } from "./clients/eventsUpdateMyProfile.js";
 export { eventsUpdateReport } from "./clients/eventsUpdateReport.js";
 export { eventsUpdateSuggestion } from "./clients/eventsUpdateSuggestion.js";
+export { feedbackSendPageFeedback } from "./clients/feedbackSendPageFeedback.js";
 export { flightsGetFlightBoard } from "./clients/flightsGetFlightBoard.js";
 export { hrActionLeaveRequest } from "./clients/hrActionLeaveRequest.js";
 export { hrActionShiftSwap } from "./clients/hrActionShiftSwap.js";
@@ -998,6 +1000,11 @@ export {
   useContactSendContactMessage,
 } from "./hooks/useContactSendContactMessage.js";
 export {
+  contactSendDataRequestMutationKey,
+  contactSendDataRequestMutationOptions,
+  useContactSendDataRequest,
+} from "./hooks/useContactSendDataRequest.js";
+export {
   eregisterCreateRegisterObservationMutationKey,
   eregisterCreateRegisterObservationMutationOptions,
   useEregisterCreateRegisterObservation,
@@ -1217,6 +1224,11 @@ export {
   eventsUpdateSuggestionMutationOptions,
   useEventsUpdateSuggestion,
 } from "./hooks/useEventsUpdateSuggestion.js";
+export {
+  feedbackSendPageFeedbackMutationKey,
+  feedbackSendPageFeedbackMutationOptions,
+  useFeedbackSendPageFeedback,
+} from "./hooks/useFeedbackSendPageFeedback.js";
 export {
   flightsGetFlightBoardQueryKey,
   flightsGetFlightBoardQueryOptions,
@@ -3898,6 +3910,15 @@ export type {
   ContactSendContactMessageStatus400,
   ContactSendContactMessageStatus422,
 } from "./models/ContactSendContactMessage.js";
+export type {
+  ContactSendDataRequestBody,
+  ContactSendDataRequestOptions,
+  ContactSendDataRequestResponse,
+  ContactSendDataRequestResponses,
+  ContactSendDataRequestStatus202,
+  ContactSendDataRequestStatus400,
+  ContactSendDataRequestStatus422,
+} from "./models/ContactSendDataRequest.js";
 export type { ContactSite } from "./models/ContactSite.js";
 export { contactSite } from "./models/ContactSite.js";
 export type { ContractorCreate } from "./models/ContractorCreate.js";
@@ -3906,6 +3927,11 @@ export type { CurrentOrganisationPublic } from "./models/CurrentOrganisationPubl
 export type { DashboardApproval } from "./models/DashboardApproval.js";
 export type { DashboardPerson } from "./models/DashboardPerson.js";
 export type { DashboardRequest } from "./models/DashboardRequest.js";
+export type { DataFormat } from "./models/DataFormat.js";
+export { dataFormat } from "./models/DataFormat.js";
+export type { DataParameter } from "./models/DataParameter.js";
+export { dataParameter } from "./models/DataParameter.js";
+export type { DataRequestCreate } from "./models/DataRequestCreate.js";
 export type { DeliveryLine } from "./models/DeliveryLine.js";
 export type { DepartmentCreate } from "./models/DepartmentCreate.js";
 export type { DepartmentMemberPublic } from "./models/DepartmentMemberPublic.js";
@@ -4423,6 +4449,15 @@ export type {
   EventsUpdateSuggestionStatus422,
   EventsUpdateSuggestionStatus429,
 } from "./models/EventsUpdateSuggestion.js";
+export type {
+  FeedbackSendPageFeedbackBody,
+  FeedbackSendPageFeedbackOptions,
+  FeedbackSendPageFeedbackResponse,
+  FeedbackSendPageFeedbackResponses,
+  FeedbackSendPageFeedbackStatus202,
+  FeedbackSendPageFeedbackStatus400,
+  FeedbackSendPageFeedbackStatus422,
+} from "./models/FeedbackSendPageFeedback.js";
 export type { FlightBoardResponse } from "./models/FlightBoardResponse.js";
 export type { FlightBoardResponsePropertiesBoardEnum } from "./models/FlightBoardResponsePropertiesBoardEnum.js";
 export { flightBoardResponsePropertiesBoardEnum } from "./models/FlightBoardResponsePropertiesBoardEnum.js";
@@ -5960,6 +5995,8 @@ export { imageInputPropertiesTimeBasisEnum } from "./models/ImageInputProperties
 export type { ImageResult } from "./models/ImageResult.js";
 export type { ImportStatus } from "./models/ImportStatus.js";
 export { importStatus } from "./models/ImportStatus.js";
+export type { IntendedUse } from "./models/IntendedUse.js";
+export { intendedUse } from "./models/IntendedUse.js";
 export type { InvitationAccept } from "./models/InvitationAccept.js";
 export type { InvitationCreate } from "./models/InvitationCreate.js";
 export type { InvitationPublic } from "./models/InvitationPublic.js";
@@ -6738,6 +6775,8 @@ export type { OutlookProductPreviewInput } from "./models/OutlookProductPreviewI
 export type { OutlookProductWrite } from "./models/OutlookProductWrite.js";
 export type { OutlookStoredProduct } from "./models/OutlookStoredProduct.js";
 export type { OutlookValuesDraft } from "./models/OutlookValuesDraft.js";
+export type { PageFeedbackAccepted } from "./models/PageFeedbackAccepted.js";
+export type { PageFeedbackCreate } from "./models/PageFeedbackCreate.js";
 export type { PaginatedResponseAuditEntryPublic } from "./models/PaginatedResponseAuditEntryPublic.js";
 export type { PaginatedResponseNotificationPublic } from "./models/PaginatedResponseNotificationPublic.js";
 export type { PaginatedResponsePermissionPublic } from "./models/PaginatedResponsePermissionPublic.js";
@@ -9112,6 +9151,14 @@ export {
   contactSendContactMessageStatus400Schema,
   contactSendContactMessageStatus422Schema,
 } from "./zod/contactSendContactMessageSchema.js";
+export {
+  contactSendDataRequestBodySchema,
+  contactSendDataRequestErrorSchema,
+  contactSendDataRequestResponseSchema,
+  contactSendDataRequestStatus202Schema,
+  contactSendDataRequestStatus400Schema,
+  contactSendDataRequestStatus422Schema,
+} from "./zod/contactSendDataRequestSchema.js";
 export { contactSiteSchema } from "./zod/contactSiteSchema.js";
 export { contractorCreateSchema } from "./zod/contractorCreateSchema.js";
 export { contractorUpdateSchema } from "./zod/contractorUpdateSchema.js";
@@ -9119,6 +9166,9 @@ export { currentOrganisationPublicSchema } from "./zod/currentOrganisationPublic
 export { dashboardApprovalSchema } from "./zod/dashboardApprovalSchema.js";
 export { dashboardPersonSchema } from "./zod/dashboardPersonSchema.js";
 export { dashboardRequestSchema } from "./zod/dashboardRequestSchema.js";
+export { dataFormatSchema } from "./zod/dataFormatSchema.js";
+export { dataParameterSchema } from "./zod/dataParameterSchema.js";
+export { dataRequestCreateSchema } from "./zod/dataRequestCreateSchema.js";
 export { deliveryLineSchema } from "./zod/deliveryLineSchema.js";
 export { departmentCreateSchema } from "./zod/departmentCreateSchema.js";
 export { departmentMemberPublicSchema } from "./zod/departmentMemberPublicSchema.js";
@@ -9597,6 +9647,14 @@ export {
   eventsUpdateSuggestionStatus422Schema,
   eventsUpdateSuggestionStatus429Schema,
 } from "./zod/eventsUpdateSuggestionSchema.js";
+export {
+  feedbackSendPageFeedbackBodySchema,
+  feedbackSendPageFeedbackErrorSchema,
+  feedbackSendPageFeedbackResponseSchema,
+  feedbackSendPageFeedbackStatus202Schema,
+  feedbackSendPageFeedbackStatus400Schema,
+  feedbackSendPageFeedbackStatus422Schema,
+} from "./zod/feedbackSendPageFeedbackSchema.js";
 export { flightBoardResponsePropertiesBoardEnumSchema } from "./zod/flightBoardResponsePropertiesBoardEnumSchema.js";
 export { flightBoardResponseSchema } from "./zod/flightBoardResponseSchema.js";
 export { flightRowSchema } from "./zod/flightRowSchema.js";
@@ -11022,6 +11080,7 @@ export { imageInputPropertiesTimeBasisEnumSchema } from "./zod/imageInputPropert
 export { imageInputSchema } from "./zod/imageInputSchema.js";
 export { imageResultSchema } from "./zod/imageResultSchema.js";
 export { importStatusSchema } from "./zod/importStatusSchema.js";
+export { intendedUseSchema } from "./zod/intendedUseSchema.js";
 export { invitationAcceptSchema } from "./zod/invitationAcceptSchema.js";
 export { invitationCreateSchema } from "./zod/invitationCreateSchema.js";
 export { invitationPublicSchema } from "./zod/invitationPublicSchema.js";
@@ -11733,6 +11792,8 @@ export { outlookProductPreviewSchema } from "./zod/outlookProductPreviewSchema.j
 export { outlookProductWriteSchema } from "./zod/outlookProductWriteSchema.js";
 export { outlookStoredProductSchema } from "./zod/outlookStoredProductSchema.js";
 export { outlookValuesDraftSchema } from "./zod/outlookValuesDraftSchema.js";
+export { pageFeedbackAcceptedSchema } from "./zod/pageFeedbackAcceptedSchema.js";
+export { pageFeedbackCreateSchema } from "./zod/pageFeedbackCreateSchema.js";
 export { paginatedResponseAuditEntryPublicSchema } from "./zod/paginatedResponseAuditEntryPublicSchema.js";
 export { paginatedResponseNotificationPublicSchema } from "./zod/paginatedResponseNotificationPublicSchema.js";
 export { paginatedResponsePermissionPublicSchema } from "./zod/paginatedResponsePermissionPublicSchema.js";

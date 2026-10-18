@@ -1339,6 +1339,15 @@ export type {
   ContactSendContactMessageStatus400,
   ContactSendContactMessageStatus422,
 } from "./ContactSendContactMessage.js";
+export type {
+  ContactSendDataRequestBody,
+  ContactSendDataRequestOptions,
+  ContactSendDataRequestResponse,
+  ContactSendDataRequestResponses,
+  ContactSendDataRequestStatus202,
+  ContactSendDataRequestStatus400,
+  ContactSendDataRequestStatus422,
+} from "./ContactSendDataRequest.js";
 export type { ContactSite } from "./ContactSite.js";
 export { contactSite } from "./ContactSite.js";
 export type { ContractorCreate } from "./ContractorCreate.js";
@@ -1347,6 +1356,11 @@ export type { CurrentOrganisationPublic } from "./CurrentOrganisationPublic.js";
 export type { DashboardApproval } from "./DashboardApproval.js";
 export type { DashboardPerson } from "./DashboardPerson.js";
 export type { DashboardRequest } from "./DashboardRequest.js";
+export type { DataFormat } from "./DataFormat.js";
+export { dataFormat } from "./DataFormat.js";
+export type { DataParameter } from "./DataParameter.js";
+export { dataParameter } from "./DataParameter.js";
+export type { DataRequestCreate } from "./DataRequestCreate.js";
 export type { DeliveryLine } from "./DeliveryLine.js";
 export type { DepartmentCreate } from "./DepartmentCreate.js";
 export type { DepartmentMemberPublic } from "./DepartmentMemberPublic.js";
@@ -1864,6 +1878,15 @@ export type {
   EventsUpdateSuggestionStatus422,
   EventsUpdateSuggestionStatus429,
 } from "./EventsUpdateSuggestion.js";
+export type {
+  FeedbackSendPageFeedbackBody,
+  FeedbackSendPageFeedbackOptions,
+  FeedbackSendPageFeedbackResponse,
+  FeedbackSendPageFeedbackResponses,
+  FeedbackSendPageFeedbackStatus202,
+  FeedbackSendPageFeedbackStatus400,
+  FeedbackSendPageFeedbackStatus422,
+} from "./FeedbackSendPageFeedback.js";
 export type { FlightBoardResponse } from "./FlightBoardResponse.js";
 export type { FlightBoardResponsePropertiesBoardEnum } from "./FlightBoardResponsePropertiesBoardEnum.js";
 export { flightBoardResponsePropertiesBoardEnum } from "./FlightBoardResponsePropertiesBoardEnum.js";
@@ -3401,6 +3424,8 @@ export { imageInputPropertiesTimeBasisEnum } from "./ImageInputPropertiesTimeBas
 export type { ImageResult } from "./ImageResult.js";
 export type { ImportStatus } from "./ImportStatus.js";
 export { importStatus } from "./ImportStatus.js";
+export type { IntendedUse } from "./IntendedUse.js";
+export { intendedUse } from "./IntendedUse.js";
 export type { InvitationAccept } from "./InvitationAccept.js";
 export type { InvitationCreate } from "./InvitationCreate.js";
 export type { InvitationPublic } from "./InvitationPublic.js";
@@ -4179,6 +4204,8 @@ export type { OutlookProductPreviewInput } from "./OutlookProductPreviewInput.js
 export type { OutlookProductWrite } from "./OutlookProductWrite.js";
 export type { OutlookStoredProduct } from "./OutlookStoredProduct.js";
 export type { OutlookValuesDraft } from "./OutlookValuesDraft.js";
+export type { PageFeedbackAccepted } from "./PageFeedbackAccepted.js";
+export type { PageFeedbackCreate } from "./PageFeedbackCreate.js";
 export type { PaginatedResponseAuditEntryPublic } from "./PaginatedResponseAuditEntryPublic.js";
 export type { PaginatedResponseNotificationPublic } from "./PaginatedResponseNotificationPublic.js";
 export type { PaginatedResponsePermissionPublic } from "./PaginatedResponsePermissionPublic.js";
