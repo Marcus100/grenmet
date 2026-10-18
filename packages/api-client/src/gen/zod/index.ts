@@ -15,6 +15,8 @@ export { activationLinkSchema } from "./activationLinkSchema.js";
 export { activityEntrySchema } from "./activityEntrySchema.js";
 export { addressPublicSchema } from "./addressPublicSchema.js";
 export { addressUpdateSchema } from "./addressUpdateSchema.js";
+export { admissionCreateSchema } from "./admissionCreateSchema.js";
+export { admissionPublicSchema } from "./admissionPublicSchema.js";
 export { announcementPublicSchema } from "./announcementPublicSchema.js";
 export { apiErrorSchema } from "./apiErrorSchema.js";
 export { appAccessStatusSchema } from "./appAccessStatusSchema.js";
@@ -1345,6 +1347,20 @@ export {
   eventsAcceptConnectionStatus429Schema,
 } from "./eventsAcceptConnectionSchema.js";
 export {
+  eventsAdmitTicketBodySchema,
+  eventsAdmitTicketErrorSchema,
+  eventsAdmitTicketPathListingIdSchema,
+  eventsAdmitTicketQueryOrganiserSchema,
+  eventsAdmitTicketResponseSchema,
+  eventsAdmitTicketStatus200Schema,
+  eventsAdmitTicketStatus401Schema,
+  eventsAdmitTicketStatus403Schema,
+  eventsAdmitTicketStatus404Schema,
+  eventsAdmitTicketStatus409Schema,
+  eventsAdmitTicketStatus422Schema,
+  eventsAdmitTicketStatus429Schema,
+} from "./eventsAdmitTicketSchema.js";
+export {
   eventsBlockMemberErrorSchema,
   eventsBlockMemberPathHandleSchema,
   eventsBlockMemberResponseSchema,
@@ -1365,6 +1381,29 @@ export {
   eventsCancelListingRsvpStatus422Schema,
   eventsCancelListingRsvpStatus429Schema,
 } from "./eventsCancelListingRsvpSchema.js";
+export {
+  eventsCancelMyTicketErrorSchema,
+  eventsCancelMyTicketPathTicketIdSchema,
+  eventsCancelMyTicketResponseSchema,
+  eventsCancelMyTicketStatus200Schema,
+  eventsCancelMyTicketStatus401Schema,
+  eventsCancelMyTicketStatus404Schema,
+  eventsCancelMyTicketStatus409Schema,
+  eventsCancelMyTicketStatus422Schema,
+  eventsCancelMyTicketStatus429Schema,
+} from "./eventsCancelMyTicketSchema.js";
+export {
+  eventsClaimTicketsBodySchema,
+  eventsClaimTicketsErrorSchema,
+  eventsClaimTicketsPathSlugSchema,
+  eventsClaimTicketsResponseSchema,
+  eventsClaimTicketsStatus201Schema,
+  eventsClaimTicketsStatus401Schema,
+  eventsClaimTicketsStatus404Schema,
+  eventsClaimTicketsStatus409Schema,
+  eventsClaimTicketsStatus422Schema,
+  eventsClaimTicketsStatus429Schema,
+} from "./eventsClaimTicketsSchema.js";
 export {
   eventsCreateManagedListingBodySchema,
   eventsCreateManagedListingErrorSchema,
@@ -1449,6 +1488,19 @@ export {
   eventsGetManagedOrganiserStatus429Schema,
 } from "./eventsGetManagedOrganiserSchema.js";
 export {
+  eventsGetManifestErrorSchema,
+  eventsGetManifestPathListingIdSchema,
+  eventsGetManifestQueryOrganiserSchema,
+  eventsGetManifestResponseSchema,
+  eventsGetManifestStatus200Schema,
+  eventsGetManifestStatus401Schema,
+  eventsGetManifestStatus403Schema,
+  eventsGetManifestStatus404Schema,
+  eventsGetManifestStatus409Schema,
+  eventsGetManifestStatus422Schema,
+  eventsGetManifestStatus429Schema,
+} from "./eventsGetManifestSchema.js";
+export {
   eventsGetMyNetworkErrorSchema,
   eventsGetMyNetworkResponseSchema,
   eventsGetMyNetworkStatus200Schema,
@@ -1475,6 +1527,16 @@ export {
   eventsGetMyProfileStatus422Schema,
   eventsGetMyProfileStatus429Schema,
 } from "./eventsGetMyProfileSchema.js";
+export {
+  eventsGetMyTicketErrorSchema,
+  eventsGetMyTicketPathTicketIdSchema,
+  eventsGetMyTicketResponseSchema,
+  eventsGetMyTicketStatus200Schema,
+  eventsGetMyTicketStatus401Schema,
+  eventsGetMyTicketStatus404Schema,
+  eventsGetMyTicketStatus422Schema,
+  eventsGetMyTicketStatus429Schema,
+} from "./eventsGetMyTicketSchema.js";
 export {
   eventsGetOrganiserErrorSchema,
   eventsGetOrganiserPathSlugSchema,
@@ -1547,6 +1609,15 @@ export {
   eventsListListingsStatus401Schema,
   eventsListListingsStatus422Schema,
 } from "./eventsListListingsSchema.js";
+export {
+  eventsListMyTicketsErrorSchema,
+  eventsListMyTicketsResponseSchema,
+  eventsListMyTicketsStatus200Schema,
+  eventsListMyTicketsStatus401Schema,
+  eventsListMyTicketsStatus404Schema,
+  eventsListMyTicketsStatus422Schema,
+  eventsListMyTicketsStatus429Schema,
+} from "./eventsListMyTicketsSchema.js";
 export {
   eventsListPendingOrganisersErrorSchema,
   eventsListPendingOrganisersResponseSchema,
@@ -3525,6 +3596,8 @@ export { locationPublicSchema } from "./locationPublicSchema.js";
 export { locationUpdateSchema } from "./locationUpdateSchema.js";
 export { managedListingSchema } from "./managedListingSchema.js";
 export { managedOrganiserSchema } from "./managedOrganiserSchema.js";
+export { manifestRowSchema } from "./manifestRowSchema.js";
+export { manifestSchema } from "./manifestSchema.js";
 export { memberListPublicSchema } from "./memberListPublicSchema.js";
 export { memberPublicSchema } from "./memberPublicSchema.js";
 export { memberRoleUpdateSchema } from "./memberRoleUpdateSchema.js";
@@ -3671,6 +3744,9 @@ export { observationSendPropertiesStatusEnumSchema } from "./observationSendProp
 export { observationSendPropertiesTargetEnumSchema } from "./observationSendPropertiesTargetEnumSchema.js";
 export { observationSendSchema } from "./observationSendSchema.js";
 export { onboardingStatusSchema } from "./onboardingStatusSchema.js";
+export { orderCreateSchema } from "./orderCreateSchema.js";
+export { orderItemInputSchema } from "./orderItemInputSchema.js";
+export { orderPublicSchema } from "./orderPublicSchema.js";
 export { organisationAdminDetailSchema } from "./organisationAdminDetailSchema.js";
 export { organisationAdminListPublicSchema } from "./organisationAdminListPublicSchema.js";
 export { organisationAdminPublicSchema } from "./organisationAdminPublicSchema.js";
@@ -4354,6 +4430,9 @@ export { threadCreateSchema } from "./threadCreateSchema.js";
 export { threadDetailPropertiesKindEnumSchema } from "./threadDetailPropertiesKindEnumSchema.js";
 export { threadDetailSchema } from "./threadDetailSchema.js";
 export { threadSummarySchema } from "./threadSummarySchema.js";
+export { ticketDetailPropertiesStatusEnumSchema } from "./ticketDetailPropertiesStatusEnumSchema.js";
+export { ticketDetailSchema } from "./ticketDetailSchema.js";
+export { ticketSummarySchema } from "./ticketSummarySchema.js";
 export { tierInputSchema } from "./tierInputSchema.js";
 export { tierPublicSchema } from "./tierPublicSchema.js";
 export { timesheetCreateSchema } from "./timesheetCreateSchema.js";

@@ -8,12 +8,14 @@ from src.events import backfill
 from src.events.models import Organiser, OrganiserMember
 from src.events.service import create_organiser
 from src.organisations import service as organisation_service
+from src.organisations import verification
 from src.organisations.models import (
     Membership,
     MembershipRole,
     MembershipStatus,
     PlatformOrganisation,
 )
+from src.utils.datetime import utc_now
 from tests.events.roles import user_with_role
 from tests.events.support import BASE, SessionFactory, client_with_real_roles
 from tests.events.test_organiser_admin import _organiser, _payload
@@ -52,6 +54,16 @@ async def test_platform_only_member_gets_access(
         response = await client.get(MANAGE)
         assert response.status_code == 200
         assert response.json()["organisation_id"] == organisation.id
+        # Unverified: drafts are fine, publishing waits for platform verification.
+        draft = await client.post(f"{MANAGE}/listings", json=_payload(status="draft"))
+        assert draft.status_code == 201
+        assert (
+            await client.post(f"{MANAGE}/listings", json=_payload())
+        ).status_code == 403
+        organisation.verified_at = utc_now()
+        db_async.add(organisation)
+        await db_async.commit()
+        verification.clear_cache()
         assert (
             await client.post(f"{MANAGE}/listings", json=_payload())
         ).status_code == 201

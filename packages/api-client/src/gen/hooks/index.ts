@@ -619,6 +619,11 @@ export {
   useEventsAcceptConnection,
 } from "./useEventsAcceptConnection.js";
 export {
+  eventsAdmitTicketMutationKey,
+  eventsAdmitTicketMutationOptions,
+  useEventsAdmitTicket,
+} from "./useEventsAdmitTicket.js";
+export {
   eventsBlockMemberMutationKey,
   eventsBlockMemberMutationOptions,
   useEventsBlockMember,
@@ -628,6 +633,16 @@ export {
   eventsCancelListingRsvpMutationOptions,
   useEventsCancelListingRsvp,
 } from "./useEventsCancelListingRsvp.js";
+export {
+  eventsCancelMyTicketMutationKey,
+  eventsCancelMyTicketMutationOptions,
+  useEventsCancelMyTicket,
+} from "./useEventsCancelMyTicket.js";
+export {
+  eventsClaimTicketsMutationKey,
+  eventsClaimTicketsMutationOptions,
+  useEventsClaimTickets,
+} from "./useEventsClaimTickets.js";
 export {
   eventsCreateManagedListingMutationKey,
   eventsCreateManagedListingMutationOptions,
@@ -669,6 +684,11 @@ export {
   useEventsGetManagedOrganiser,
 } from "./useEventsGetManagedOrganiser.js";
 export {
+  eventsGetManifestQueryKey,
+  eventsGetManifestQueryOptions,
+  useEventsGetManifest,
+} from "./useEventsGetManifest.js";
+export {
   eventsGetMyNetworkQueryKey,
   eventsGetMyNetworkQueryOptions,
   useEventsGetMyNetwork,
@@ -683,6 +703,11 @@ export {
   eventsGetMyProfileQueryOptions,
   useEventsGetMyProfile,
 } from "./useEventsGetMyProfile.js";
+export {
+  eventsGetMyTicketQueryKey,
+  eventsGetMyTicketQueryOptions,
+  useEventsGetMyTicket,
+} from "./useEventsGetMyTicket.js";
 export {
   eventsGetOrganiserQueryKey,
   eventsGetOrganiserQueryOptions,
@@ -718,6 +743,11 @@ export {
   eventsListListingsQueryOptions,
   useEventsListListings,
 } from "./useEventsListListings.js";
+export {
+  eventsListMyTicketsQueryKey,
+  eventsListMyTicketsQueryOptions,
+  useEventsListMyTickets,
+} from "./useEventsListMyTickets.js";
 export {
   eventsListPendingOrganisersQueryKey,
   eventsListPendingOrganisersQueryOptions,

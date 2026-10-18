@@ -42,6 +42,12 @@ export default async function MyPlansPage() {
         <div className="flex gap-2">
           <Link
             className={cn(buttonVariants({ variant: "outline" }))}
+            href="/me/tickets"
+          >
+            My tickets
+          </Link>
+          <Link
+            className={cn(buttonVariants({ variant: "outline" }))}
             href="/welcome"
           >
             Edit interests

@@ -16,4 +16,19 @@ export type TierPublic = {
   price_minor: number;
   currency: ListingCardPropertiesCurrencyEnum;
   allocation: number;
+  /**
+   * @default 4
+   * @type integer | undefined
+   */
+  per_account_limit?: number;
+  /**
+   * @default 0
+   * @type integer | undefined
+   */
+  remaining?: number;
+  /**
+   * @default 0
+   * @type integer | undefined
+   */
+  held?: number;
 };

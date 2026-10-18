@@ -308,7 +308,7 @@ export function EventEditor({
                   </legend>
                   {draft.tiers.map((tier, index) => (
                     <div
-                      className="grid grid-cols-[1fr_6rem_6rem_auto] items-end gap-2"
+                      className="grid grid-cols-[1fr_6rem_6rem_6rem_auto] items-end gap-2"
                       key={tier.id}
                     >
                       <Field>
@@ -331,7 +331,7 @@ export function EventEditor({
                           className={index > 0 ? "sr-only" : undefined}
                           htmlFor={`${tier.id}-price`}
                         >
-                          Price
+                          Price (0 = free)
                         </FieldLabel>
                         <Input
                           id={`${tier.id}-price`}
@@ -371,6 +371,29 @@ export function EventEditor({
                           value={tier.allocation}
                         />
                       </Field>
+                      <Field>
+                        <FieldLabel
+                          className={index > 0 ? "sr-only" : undefined}
+                          htmlFor={`${tier.id}-limit`}
+                        >
+                          Per person
+                        </FieldLabel>
+                        <Input
+                          id={`${tier.id}-limit`}
+                          max={50}
+                          min={1}
+                          onChange={(e) =>
+                            updateTier(tier.id, {
+                              perAccountLimit: Math.min(
+                                50,
+                                Math.max(1, Number(e.target.value) || 1)
+                              ),
+                            })
+                          }
+                          type="number"
+                          value={tier.perAccountLimit}
+                        />
+                      </Field>
                       <Button
                         aria-label={`Remove ${tier.name || "tier"}`}
                         onClick={() =>
@@ -395,6 +418,7 @@ export function EventEditor({
                           name: "",
                           priceMajor: 0,
                           allocation: 0,
+                          perAccountLimit: 4,
                         },
                       ])
                     }

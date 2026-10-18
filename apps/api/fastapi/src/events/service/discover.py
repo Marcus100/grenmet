@@ -29,6 +29,7 @@ from ..models import (
     SavedListing,
     Thread,
     ThreadParticipant,
+    Ticket,
     TicketTier,
 )
 from .common import GOING_PREVIEW, _pairs, when_window
@@ -244,14 +245,43 @@ async def _organiser_public(
     )
 
 
-async def _tiers(db: AsyncSession, listing_id: uuid.UUID) -> list[schemas.TierPublic]:
-    rows = await db.scalars(
-        select(TicketTier)
-        .where(TicketTier.listing_id == listing_id)
-        .order_by(TicketTier.sort_order)
+async def _tiers(
+    db: AsyncSession, listing_id: uuid.UUID, viewer_id: uuid.UUID | None = None
+) -> list[schemas.TierPublic]:
+    rows = (
+        await db.scalars(
+            select(TicketTier)
+            .where(TicketTier.listing_id == listing_id)
+            .order_by(TicketTier.sort_order)
+        )
+    ).all()
+    valid = Ticket.status == "valid"
+    sold = _pairs(
+        await db.execute(
+            select(Ticket.tier_id, func.count())
+            .where(Ticket.listing_id == listing_id, valid)
+            .group_by(Ticket.tier_id)
+        )
     )
+    held: dict[uuid.UUID, int] = {}
+    if viewer_id is not None:
+        held = _pairs(
+            await db.execute(
+                select(Ticket.tier_id, func.count())
+                .where(
+                    Ticket.listing_id == listing_id, Ticket.user_id == viewer_id, valid
+                )
+                .group_by(Ticket.tier_id)
+            )
+        )
     return [
-        schemas.TierPublic.model_validate(row, from_attributes=True) for row in rows
+        schemas.TierPublic.model_validate(row, from_attributes=True).model_copy(
+            update={
+                "remaining": max(row.allocation - sold.get(row.id, 0), 0),
+                "held": held.get(row.id, 0),
+            }
+        )
+        for row in rows
     ]
 
 
@@ -272,7 +302,7 @@ async def get_listing(
         capacity=listing.capacity,
         organiser=await _organiser_public(db, organiser, viewer_id),
         group=(await _group_summaries(db, [group], viewer_id))[0] if group else None,
-        tiers=await _tiers(db, listing.id),
+        tiers=await _tiers(db, listing.id, viewer_id),
     )
 
 

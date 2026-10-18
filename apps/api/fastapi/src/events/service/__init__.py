@@ -10,6 +10,7 @@ edge. Safety rules live here so every client gets them:
 - ``visibility="connections"`` profiles show only name and headline to people
   outside the member's network."""
 
+from .admission import admit_ticket, manifest
 from .common import FRIDAY, GOING_PREVIEW, GRENADA, SUNDAY, UTC_TZ, when_window
 from .discover import (
     get_group,
@@ -59,6 +60,7 @@ from .people import (
     my_profile,
     update_profile,
 )
+from .ticketing import cancel_ticket, claim_tickets, my_ticket, my_tickets
 
 __all__ = [
     "FRIDAY",
@@ -67,8 +69,14 @@ __all__ = [
     "SUNDAY",
     "UTC_TZ",
     "accept_connection",
+    "admit_ticket",
+    "manifest",
     "blocked_ids",
     "can_message",
+    "cancel_ticket",
+    "claim_tickets",
+    "my_ticket",
+    "my_tickets",
     "connection_state",
     "create_listing",
     "create_report",

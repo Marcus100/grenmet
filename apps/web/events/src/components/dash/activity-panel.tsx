@@ -7,6 +7,7 @@ const ACTION_LABELS: Record<string, string> = {
   "listing.published": "Published the event",
   "listing.rescheduled": "Changed the start time",
   "listing.cancelled": "Cancelled the event",
+  "ticket.admitted": "Admitted a ticket at the door",
 };
 
 const FIELD_LABELS: Record<string, string> = {

@@ -2,8 +2,11 @@
 
 import {
   eventsAcceptConnection,
+  eventsAdmitTicket,
   eventsBlockMember,
   eventsCancelListingRsvp,
+  eventsCancelMyTicket,
+  eventsClaimTickets,
   eventsCreateManagedListing,
   eventsCreateReport,
   eventsCreateSuggestion,
@@ -34,6 +37,7 @@ import { apiOptions } from "@/lib/api";
 import { reportError } from "@/lib/report-error";
 import { getSession } from "@/lib/session";
 import { type ActionResult, SIGN_IN_REQUIRED } from "./action-result";
+import { toDoorAdmission } from "./api-mappers";
 import { chosenOrganiser, rememberOrganiser } from "./organiser-choice";
 
 /**
@@ -90,6 +94,35 @@ export async function setGoing(slug: string, going: boolean) {
   return await run("events-rsvp", async (options) => {
     const request = going ? eventsRsvpListing : eventsCancelListingRsvp;
     await request({ ...options, path: { slug } });
+  });
+}
+
+/** Claims free or registration tickets; resolves to the number issued. */
+export async function claimTickets(
+  slug: string,
+  items: readonly { readonly quantity: number; readonly tierId: string }[]
+) {
+  return await run("events-tickets", async (options) => {
+    const order = await eventsClaimTickets({
+      ...options,
+      path: { slug },
+      body: {
+        items: items.map((item) => ({
+          tier_id: item.tierId,
+          quantity: item.quantity,
+        })),
+      },
+    }).unwrap();
+    return order.tickets.length;
+  });
+}
+
+export async function cancelTicket(ticketId: string) {
+  return await run("events-ticket-cancel", async (options) => {
+    await eventsCancelMyTicket({
+      ...options,
+      path: { ticket_id: ticketId },
+    });
   });
 }
 
@@ -231,4 +264,26 @@ export async function requestOrganiser(organiser: OrganiserCreate) {
     await rememberOrganiser(created.slug);
     return created.slug;
   });
+}
+
+/**
+ * Admits a ticket at the door from a scanned QR token or a typed code. The
+ * idempotency key lets a retried scan replay its own success.
+ */
+export async function admitTicket(
+  listingId: string,
+  code: string,
+  idempotencyKey: string
+) {
+  const organiser = await chosenOrganiser();
+  return await run("events-admission", async (options) =>
+    toDoorAdmission(
+      await eventsAdmitTicket({
+        ...options,
+        path: { listing_id: listingId },
+        query: organiser ? { organiser } : {},
+        body: { code, idempotency_key: idempotencyKey },
+      }).unwrap()
+    )
+  );
 }

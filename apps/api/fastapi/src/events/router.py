@@ -642,6 +642,48 @@ async def get_listing_activity(
     )
 
 
+@router.post(
+    "/manage/{listing_id}/admissions",
+    response_model=schemas.AdmissionPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Admit a ticket at the door",
+    description="Scan a ticket's QR token or enter its code. A ticket is admitted once; a second scan is refused with who admitted it and when, unless it repeats the same idempotency key.",
+    responses={
+        **_ORGANISER,
+        409: {"description": "Already admitted, cancelled or for another event"},
+    },
+)
+async def admit_ticket(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    body: schemas.AdmissionCreate,
+    organiser: _ManagedSlug = None,
+) -> schemas.AdmissionPublic:
+    return await service.admit_ticket(session, user, listing_id, body, scope, organiser)
+
+
+@router.get(
+    "/manage/{listing_id}/manifest",
+    response_model=schemas.Manifest,
+    status_code=status.HTTP_200_OK,
+    summary="Get the door manifest",
+    description="Every valid ticket for the event with its holder and admission time, plus live counts. Used for the printable door list.",
+    responses=_ORGANISER,
+)
+async def get_manifest(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    organiser: _ManagedSlug = None,
+) -> schemas.Manifest:
+    return await service.manifest(session, user, listing_id, scope, organiser)
+
+
 @router.put(
     "/manage/listings/{listing_id}",
     response_model=schemas.ManagedListing,
@@ -662,6 +704,77 @@ async def update_managed_listing(
     return await service.update_listing(
         session, user, listing_id, body, scope, organiser
     )
+
+
+# --- Tickets -------------------------------------------------------------------------
+
+_CLAIM: dict[int | str, dict[str, Any]] = {
+    **_MEMBER,
+    409: {"description": "Sold out, over the per-account limit, paid tier or ended"},
+}
+
+
+@router.post(
+    "/listings/{slug}/orders",
+    response_model=schemas.OrderPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Claim tickets",
+    description="Claim free or registration tickets as the signed-in member. Each tier has an allocation and a per-account limit; paid tiers are refused until online payment exists.",
+    responses=_CLAIM,
+)
+@limiter.limit("20/minute")
+async def claim_tickets(
+    *,
+    request: Request,
+    session: EventsSession,
+    user: EventsMember,
+    slug: Slug,
+    body: schemas.OrderCreate,
+) -> schemas.OrderPublic:
+    _ = request
+    return await service.claim_tickets(session, user, slug, body)
+
+
+@router.get(
+    "/me/tickets",
+    response_model=list[schemas.TicketSummary],
+    status_code=status.HTTP_200_OK,
+    summary="List my tickets",
+    description="The member's tickets, soonest event first, including cancelled ones.",
+    responses=_MEMBER,
+)
+async def list_my_tickets(
+    *, session: EventsSession, user: EventsMember
+) -> list[schemas.TicketSummary]:
+    return await service.my_tickets(session, user)
+
+
+@router.get(
+    "/me/tickets/{ticket_id}",
+    response_model=schemas.TicketDetail,
+    status_code=status.HTTP_200_OK,
+    summary="Get one of my tickets",
+    description="A ticket with the signed token to render as its QR code.",
+    responses=_MEMBER,
+)
+async def get_my_ticket(
+    *, session: EventsSession, user: EventsMember, ticket_id: uuid.UUID
+) -> schemas.TicketDetail:
+    return await service.my_ticket(session, user, ticket_id)
+
+
+@router.post(
+    "/me/tickets/{ticket_id}/cancel",
+    response_model=schemas.TicketSummary,
+    status_code=status.HTTP_200_OK,
+    summary="Cancel my ticket",
+    description="Cancel an unused ticket before the event starts; the seat goes back on sale.",
+    responses={**_MEMBER, 409: {"description": "Already cancelled or event started"}},
+)
+async def cancel_my_ticket(
+    *, session: EventsSession, user: EventsMember, ticket_id: uuid.UUID
+) -> schemas.TicketSummary:
+    return await service.cancel_ticket(session, user, ticket_id)
 
 
 # --- Moderation ----------------------------------------------------------------------

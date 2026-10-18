@@ -20,15 +20,21 @@ const sunset: EventDetail = {
   group: makeGroup(),
   tiers: [
     {
-      id: "t1",
+      id: "11111111-1111-4111-8111-111111111111",
       name: "General",
       allocation: 900,
+      held: 0,
+      perAccountLimit: 4,
+      remaining: 900,
       price: { amountMinor: 15_000, currency: "XCD" },
     },
     {
       id: "t2",
       name: "VIP",
       allocation: 300,
+      held: 0,
+      perAccountLimit: 2,
+      remaining: 300,
       price: { amountMinor: 30_000, currency: "XCD" },
     },
   ],
@@ -61,6 +67,16 @@ describe("draftToCard", () => {
   it("prices from the cheapest tier", () => {
     const card = draftToCard(draftFromEvent(sunset));
     expect(card.priceFrom).toEqual({ amountMinor: 15_000, currency: "XCD" });
+  });
+
+  it("lets a tier be free and prices from it", () => {
+    const draft = draftFromEvent(sunset);
+    const free = {
+      ...draft,
+      tiers: [{ ...draft.tiers[0], priceMajor: 0 }, ...draft.tiers.slice(1)],
+    } as typeof draft;
+    expect(draftIssues(free)).toEqual([]);
+    expect(draftToCard(free).priceFrom?.amountMinor).toBe(0);
   });
 
   it("shows placeholders for an empty draft", () => {
@@ -97,11 +113,16 @@ describe("draftToUpsert", () => {
     expect(body.status).toBe("published");
     expect(body.starts_at).toBe("2026-10-03T16:00:00-04:00");
     expect(body.tiers?.[0]).toEqual({
+      id: "11111111-1111-4111-8111-111111111111",
       name: "General",
       price_minor: 15_000,
       currency: "XCD",
       allocation: 900,
+      per_account_limit: 4,
     });
+    // New tiers (no saved id yet) are sent without one.
+    expect(body.tiers?.[1]).not.toHaveProperty("id");
+    expect(body.tiers?.[1]?.per_account_limit).toBe(2);
     expect(body.group_slug).toBe("anse-runners");
   });
 

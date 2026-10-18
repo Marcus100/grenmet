@@ -125,8 +125,11 @@ export { eregisterPublicMonthSummary } from "./clients/eregisterPublicMonthSumma
 export { eregisterPublishRegisterObservation } from "./clients/eregisterPublishRegisterObservation.js";
 export { eregisterValidateSynopObservation } from "./clients/eregisterValidateSynopObservation.js";
 export { eventsAcceptConnection } from "./clients/eventsAcceptConnection.js";
+export { eventsAdmitTicket } from "./clients/eventsAdmitTicket.js";
 export { eventsBlockMember } from "./clients/eventsBlockMember.js";
 export { eventsCancelListingRsvp } from "./clients/eventsCancelListingRsvp.js";
+export { eventsCancelMyTicket } from "./clients/eventsCancelMyTicket.js";
+export { eventsClaimTickets } from "./clients/eventsClaimTickets.js";
 export { eventsCreateManagedListing } from "./clients/eventsCreateManagedListing.js";
 export { eventsCreateReport } from "./clients/eventsCreateReport.js";
 export { eventsCreateSuggestion } from "./clients/eventsCreateSuggestion.js";
@@ -135,9 +138,11 @@ export { eventsGetGroup } from "./clients/eventsGetGroup.js";
 export { eventsGetListing } from "./clients/eventsGetListing.js";
 export { eventsGetListingActivity } from "./clients/eventsGetListingActivity.js";
 export { eventsGetManagedOrganiser } from "./clients/eventsGetManagedOrganiser.js";
+export { eventsGetManifest } from "./clients/eventsGetManifest.js";
 export { eventsGetMyNetwork } from "./clients/eventsGetMyNetwork.js";
 export { eventsGetMyPlans } from "./clients/eventsGetMyPlans.js";
 export { eventsGetMyProfile } from "./clients/eventsGetMyProfile.js";
+export { eventsGetMyTicket } from "./clients/eventsGetMyTicket.js";
 export { eventsGetOrganiser } from "./clients/eventsGetOrganiser.js";
 export { eventsGetPerson } from "./clients/eventsGetPerson.js";
 export { eventsGetThread } from "./clients/eventsGetThread.js";
@@ -145,6 +150,7 @@ export { eventsJoinGroup } from "./clients/eventsJoinGroup.js";
 export { eventsLeaveGroup } from "./clients/eventsLeaveGroup.js";
 export { eventsListGroups } from "./clients/eventsListGroups.js";
 export { eventsListListings } from "./clients/eventsListListings.js";
+export { eventsListMyTickets } from "./clients/eventsListMyTickets.js";
 export { eventsListPendingOrganisers } from "./clients/eventsListPendingOrganisers.js";
 export { eventsListReports } from "./clients/eventsListReports.js";
 export { eventsListSuggestions } from "./clients/eventsListSuggestions.js";
@@ -1054,6 +1060,11 @@ export {
   useEventsAcceptConnection,
 } from "./hooks/useEventsAcceptConnection.js";
 export {
+  eventsAdmitTicketMutationKey,
+  eventsAdmitTicketMutationOptions,
+  useEventsAdmitTicket,
+} from "./hooks/useEventsAdmitTicket.js";
+export {
   eventsBlockMemberMutationKey,
   eventsBlockMemberMutationOptions,
   useEventsBlockMember,
@@ -1063,6 +1074,16 @@ export {
   eventsCancelListingRsvpMutationOptions,
   useEventsCancelListingRsvp,
 } from "./hooks/useEventsCancelListingRsvp.js";
+export {
+  eventsCancelMyTicketMutationKey,
+  eventsCancelMyTicketMutationOptions,
+  useEventsCancelMyTicket,
+} from "./hooks/useEventsCancelMyTicket.js";
+export {
+  eventsClaimTicketsMutationKey,
+  eventsClaimTicketsMutationOptions,
+  useEventsClaimTickets,
+} from "./hooks/useEventsClaimTickets.js";
 export {
   eventsCreateManagedListingMutationKey,
   eventsCreateManagedListingMutationOptions,
@@ -1104,6 +1125,11 @@ export {
   useEventsGetManagedOrganiser,
 } from "./hooks/useEventsGetManagedOrganiser.js";
 export {
+  eventsGetManifestQueryKey,
+  eventsGetManifestQueryOptions,
+  useEventsGetManifest,
+} from "./hooks/useEventsGetManifest.js";
+export {
   eventsGetMyNetworkQueryKey,
   eventsGetMyNetworkQueryOptions,
   useEventsGetMyNetwork,
@@ -1118,6 +1144,11 @@ export {
   eventsGetMyProfileQueryOptions,
   useEventsGetMyProfile,
 } from "./hooks/useEventsGetMyProfile.js";
+export {
+  eventsGetMyTicketQueryKey,
+  eventsGetMyTicketQueryOptions,
+  useEventsGetMyTicket,
+} from "./hooks/useEventsGetMyTicket.js";
 export {
   eventsGetOrganiserQueryKey,
   eventsGetOrganiserQueryOptions,
@@ -1153,6 +1184,11 @@ export {
   eventsListListingsQueryOptions,
   useEventsListListings,
 } from "./hooks/useEventsListListings.js";
+export {
+  eventsListMyTicketsQueryKey,
+  eventsListMyTicketsQueryOptions,
+  useEventsListMyTickets,
+} from "./hooks/useEventsListMyTickets.js";
 export {
   eventsListPendingOrganisersQueryKey,
   eventsListPendingOrganisersQueryOptions,
@@ -2612,6 +2648,8 @@ export type { ActivationLink } from "./models/ActivationLink.js";
 export type { ActivityEntry } from "./models/ActivityEntry.js";
 export type { AddressPublic } from "./models/AddressPublic.js";
 export type { AddressUpdate } from "./models/AddressUpdate.js";
+export type { AdmissionCreate } from "./models/AdmissionCreate.js";
+export type { AdmissionPublic } from "./models/AdmissionPublic.js";
 export type { AnnouncementPublic } from "./models/AnnouncementPublic.js";
 export type { ApiError } from "./models/ApiError.js";
 export type { AppAccessStatus } from "./models/AppAccessStatus.js";
@@ -4086,6 +4124,21 @@ export type {
   EventsAcceptConnectionStatus429,
 } from "./models/EventsAcceptConnection.js";
 export type {
+  EventsAdmitTicketBody,
+  EventsAdmitTicketOptions,
+  EventsAdmitTicketPath,
+  EventsAdmitTicketQuery,
+  EventsAdmitTicketResponse,
+  EventsAdmitTicketResponses,
+  EventsAdmitTicketStatus200,
+  EventsAdmitTicketStatus401,
+  EventsAdmitTicketStatus403,
+  EventsAdmitTicketStatus404,
+  EventsAdmitTicketStatus409,
+  EventsAdmitTicketStatus422,
+  EventsAdmitTicketStatus429,
+} from "./models/EventsAdmitTicket.js";
+export type {
   EventsBlockMemberOptions,
   EventsBlockMemberPath,
   EventsBlockMemberResponse,
@@ -4108,6 +4161,31 @@ export type {
   EventsCancelListingRsvpStatus422,
   EventsCancelListingRsvpStatus429,
 } from "./models/EventsCancelListingRsvp.js";
+export type {
+  EventsCancelMyTicketOptions,
+  EventsCancelMyTicketPath,
+  EventsCancelMyTicketResponse,
+  EventsCancelMyTicketResponses,
+  EventsCancelMyTicketStatus200,
+  EventsCancelMyTicketStatus401,
+  EventsCancelMyTicketStatus404,
+  EventsCancelMyTicketStatus409,
+  EventsCancelMyTicketStatus422,
+  EventsCancelMyTicketStatus429,
+} from "./models/EventsCancelMyTicket.js";
+export type {
+  EventsClaimTicketsBody,
+  EventsClaimTicketsOptions,
+  EventsClaimTicketsPath,
+  EventsClaimTicketsResponse,
+  EventsClaimTicketsResponses,
+  EventsClaimTicketsStatus201,
+  EventsClaimTicketsStatus401,
+  EventsClaimTicketsStatus404,
+  EventsClaimTicketsStatus409,
+  EventsClaimTicketsStatus422,
+  EventsClaimTicketsStatus429,
+} from "./models/EventsClaimTickets.js";
 export type {
   EventsCreateManagedListingBody,
   EventsCreateManagedListingOptions,
@@ -4199,6 +4277,20 @@ export type {
   EventsGetManagedOrganiserStatus429,
 } from "./models/EventsGetManagedOrganiser.js";
 export type {
+  EventsGetManifestOptions,
+  EventsGetManifestPath,
+  EventsGetManifestQuery,
+  EventsGetManifestResponse,
+  EventsGetManifestResponses,
+  EventsGetManifestStatus200,
+  EventsGetManifestStatus401,
+  EventsGetManifestStatus403,
+  EventsGetManifestStatus404,
+  EventsGetManifestStatus409,
+  EventsGetManifestStatus422,
+  EventsGetManifestStatus429,
+} from "./models/EventsGetManifest.js";
+export type {
   EventsGetMyNetworkOptions,
   EventsGetMyNetworkResponse,
   EventsGetMyNetworkResponses,
@@ -4228,6 +4320,17 @@ export type {
   EventsGetMyProfileStatus422,
   EventsGetMyProfileStatus429,
 } from "./models/EventsGetMyProfile.js";
+export type {
+  EventsGetMyTicketOptions,
+  EventsGetMyTicketPath,
+  EventsGetMyTicketResponse,
+  EventsGetMyTicketResponses,
+  EventsGetMyTicketStatus200,
+  EventsGetMyTicketStatus401,
+  EventsGetMyTicketStatus404,
+  EventsGetMyTicketStatus422,
+  EventsGetMyTicketStatus429,
+} from "./models/EventsGetMyTicket.js";
 export type {
   EventsGetOrganiserOptions,
   EventsGetOrganiserPath,
@@ -4300,6 +4403,16 @@ export type { EventsListListingsParametersSchemaAnyOfEnum } from "./models/Event
 export { eventsListListingsParametersSchemaAnyOfEnum } from "./models/EventsListListingsParametersSchemaAnyOfEnum.js";
 export type { EventsListListingsParametersSchemaAnyOfEnum2 } from "./models/EventsListListingsParametersSchemaAnyOfEnum2.js";
 export { eventsListListingsParametersSchemaAnyOfEnum2 } from "./models/EventsListListingsParametersSchemaAnyOfEnum2.js";
+export type {
+  EventsListMyTicketsOptions,
+  EventsListMyTicketsResponse,
+  EventsListMyTicketsResponses,
+  EventsListMyTicketsStatus200,
+  EventsListMyTicketsStatus401,
+  EventsListMyTicketsStatus404,
+  EventsListMyTicketsStatus422,
+  EventsListMyTicketsStatus429,
+} from "./models/EventsListMyTickets.js";
 export type {
   EventsListPendingOrganisersOptions,
   EventsListPendingOrganisersResponse,
@@ -6445,6 +6558,8 @@ export type { LocationPublic } from "./models/LocationPublic.js";
 export type { LocationUpdate } from "./models/LocationUpdate.js";
 export type { ManagedListing } from "./models/ManagedListing.js";
 export type { ManagedOrganiser } from "./models/ManagedOrganiser.js";
+export type { Manifest } from "./models/Manifest.js";
+export type { ManifestRow } from "./models/ManifestRow.js";
 export type { MemberListPublic } from "./models/MemberListPublic.js";
 export type { MemberPublic } from "./models/MemberPublic.js";
 export type { MemberRoleUpdate } from "./models/MemberRoleUpdate.js";
@@ -6615,6 +6730,9 @@ export { observationSendPropertiesStatusEnum } from "./models/ObservationSendPro
 export type { ObservationSendPropertiesTargetEnum } from "./models/ObservationSendPropertiesTargetEnum.js";
 export { observationSendPropertiesTargetEnum } from "./models/ObservationSendPropertiesTargetEnum.js";
 export type { OnboardingStatus } from "./models/OnboardingStatus.js";
+export type { OrderCreate } from "./models/OrderCreate.js";
+export type { OrderItemInput } from "./models/OrderItemInput.js";
+export type { OrderPublic } from "./models/OrderPublic.js";
 export type { OrganisationAdminDetail } from "./models/OrganisationAdminDetail.js";
 export type { OrganisationAdminListPublic } from "./models/OrganisationAdminListPublic.js";
 export type { OrganisationAdminPublic } from "./models/OrganisationAdminPublic.js";
@@ -7343,6 +7461,10 @@ export type { ThreadDetail } from "./models/ThreadDetail.js";
 export type { ThreadDetailPropertiesKindEnum } from "./models/ThreadDetailPropertiesKindEnum.js";
 export { threadDetailPropertiesKindEnum } from "./models/ThreadDetailPropertiesKindEnum.js";
 export type { ThreadSummary } from "./models/ThreadSummary.js";
+export type { TicketDetail } from "./models/TicketDetail.js";
+export type { TicketDetailPropertiesStatusEnum } from "./models/TicketDetailPropertiesStatusEnum.js";
+export { ticketDetailPropertiesStatusEnum } from "./models/TicketDetailPropertiesStatusEnum.js";
+export type { TicketSummary } from "./models/TicketSummary.js";
 export type { TierInput } from "./models/TierInput.js";
 export type { TierPublic } from "./models/TierPublic.js";
 export type { TimesheetCreate } from "./models/TimesheetCreate.js";
@@ -8035,6 +8157,8 @@ export { activationLinkSchema } from "./zod/activationLinkSchema.js";
 export { activityEntrySchema } from "./zod/activityEntrySchema.js";
 export { addressPublicSchema } from "./zod/addressPublicSchema.js";
 export { addressUpdateSchema } from "./zod/addressUpdateSchema.js";
+export { admissionCreateSchema } from "./zod/admissionCreateSchema.js";
+export { admissionPublicSchema } from "./zod/admissionPublicSchema.js";
 export { announcementPublicSchema } from "./zod/announcementPublicSchema.js";
 export { apiErrorSchema } from "./zod/apiErrorSchema.js";
 export { appAccessStatusSchema } from "./zod/appAccessStatusSchema.js";
@@ -9365,6 +9489,20 @@ export {
   eventsAcceptConnectionStatus429Schema,
 } from "./zod/eventsAcceptConnectionSchema.js";
 export {
+  eventsAdmitTicketBodySchema,
+  eventsAdmitTicketErrorSchema,
+  eventsAdmitTicketPathListingIdSchema,
+  eventsAdmitTicketQueryOrganiserSchema,
+  eventsAdmitTicketResponseSchema,
+  eventsAdmitTicketStatus200Schema,
+  eventsAdmitTicketStatus401Schema,
+  eventsAdmitTicketStatus403Schema,
+  eventsAdmitTicketStatus404Schema,
+  eventsAdmitTicketStatus409Schema,
+  eventsAdmitTicketStatus422Schema,
+  eventsAdmitTicketStatus429Schema,
+} from "./zod/eventsAdmitTicketSchema.js";
+export {
   eventsBlockMemberErrorSchema,
   eventsBlockMemberPathHandleSchema,
   eventsBlockMemberResponseSchema,
@@ -9385,6 +9523,29 @@ export {
   eventsCancelListingRsvpStatus422Schema,
   eventsCancelListingRsvpStatus429Schema,
 } from "./zod/eventsCancelListingRsvpSchema.js";
+export {
+  eventsCancelMyTicketErrorSchema,
+  eventsCancelMyTicketPathTicketIdSchema,
+  eventsCancelMyTicketResponseSchema,
+  eventsCancelMyTicketStatus200Schema,
+  eventsCancelMyTicketStatus401Schema,
+  eventsCancelMyTicketStatus404Schema,
+  eventsCancelMyTicketStatus409Schema,
+  eventsCancelMyTicketStatus422Schema,
+  eventsCancelMyTicketStatus429Schema,
+} from "./zod/eventsCancelMyTicketSchema.js";
+export {
+  eventsClaimTicketsBodySchema,
+  eventsClaimTicketsErrorSchema,
+  eventsClaimTicketsPathSlugSchema,
+  eventsClaimTicketsResponseSchema,
+  eventsClaimTicketsStatus201Schema,
+  eventsClaimTicketsStatus401Schema,
+  eventsClaimTicketsStatus404Schema,
+  eventsClaimTicketsStatus409Schema,
+  eventsClaimTicketsStatus422Schema,
+  eventsClaimTicketsStatus429Schema,
+} from "./zod/eventsClaimTicketsSchema.js";
 export {
   eventsCreateManagedListingBodySchema,
   eventsCreateManagedListingErrorSchema,
@@ -9469,6 +9630,19 @@ export {
   eventsGetManagedOrganiserStatus429Schema,
 } from "./zod/eventsGetManagedOrganiserSchema.js";
 export {
+  eventsGetManifestErrorSchema,
+  eventsGetManifestPathListingIdSchema,
+  eventsGetManifestQueryOrganiserSchema,
+  eventsGetManifestResponseSchema,
+  eventsGetManifestStatus200Schema,
+  eventsGetManifestStatus401Schema,
+  eventsGetManifestStatus403Schema,
+  eventsGetManifestStatus404Schema,
+  eventsGetManifestStatus409Schema,
+  eventsGetManifestStatus422Schema,
+  eventsGetManifestStatus429Schema,
+} from "./zod/eventsGetManifestSchema.js";
+export {
   eventsGetMyNetworkErrorSchema,
   eventsGetMyNetworkResponseSchema,
   eventsGetMyNetworkStatus200Schema,
@@ -9495,6 +9669,16 @@ export {
   eventsGetMyProfileStatus422Schema,
   eventsGetMyProfileStatus429Schema,
 } from "./zod/eventsGetMyProfileSchema.js";
+export {
+  eventsGetMyTicketErrorSchema,
+  eventsGetMyTicketPathTicketIdSchema,
+  eventsGetMyTicketResponseSchema,
+  eventsGetMyTicketStatus200Schema,
+  eventsGetMyTicketStatus401Schema,
+  eventsGetMyTicketStatus404Schema,
+  eventsGetMyTicketStatus422Schema,
+  eventsGetMyTicketStatus429Schema,
+} from "./zod/eventsGetMyTicketSchema.js";
 export {
   eventsGetOrganiserErrorSchema,
   eventsGetOrganiserPathSlugSchema,
@@ -9567,6 +9751,15 @@ export {
   eventsListListingsStatus401Schema,
   eventsListListingsStatus422Schema,
 } from "./zod/eventsListListingsSchema.js";
+export {
+  eventsListMyTicketsErrorSchema,
+  eventsListMyTicketsResponseSchema,
+  eventsListMyTicketsStatus200Schema,
+  eventsListMyTicketsStatus401Schema,
+  eventsListMyTicketsStatus404Schema,
+  eventsListMyTicketsStatus422Schema,
+  eventsListMyTicketsStatus429Schema,
+} from "./zod/eventsListMyTicketsSchema.js";
 export {
   eventsListPendingOrganisersErrorSchema,
   eventsListPendingOrganisersResponseSchema,
@@ -11545,6 +11738,8 @@ export { locationPublicSchema } from "./zod/locationPublicSchema.js";
 export { locationUpdateSchema } from "./zod/locationUpdateSchema.js";
 export { managedListingSchema } from "./zod/managedListingSchema.js";
 export { managedOrganiserSchema } from "./zod/managedOrganiserSchema.js";
+export { manifestRowSchema } from "./zod/manifestRowSchema.js";
+export { manifestSchema } from "./zod/manifestSchema.js";
 export { memberListPublicSchema } from "./zod/memberListPublicSchema.js";
 export { memberPublicSchema } from "./zod/memberPublicSchema.js";
 export { memberRoleUpdateSchema } from "./zod/memberRoleUpdateSchema.js";
@@ -11691,6 +11886,9 @@ export { observationSendPropertiesStatusEnumSchema } from "./zod/observationSend
 export { observationSendPropertiesTargetEnumSchema } from "./zod/observationSendPropertiesTargetEnumSchema.js";
 export { observationSendSchema } from "./zod/observationSendSchema.js";
 export { onboardingStatusSchema } from "./zod/onboardingStatusSchema.js";
+export { orderCreateSchema } from "./zod/orderCreateSchema.js";
+export { orderItemInputSchema } from "./zod/orderItemInputSchema.js";
+export { orderPublicSchema } from "./zod/orderPublicSchema.js";
 export { organisationAdminDetailSchema } from "./zod/organisationAdminDetailSchema.js";
 export { organisationAdminListPublicSchema } from "./zod/organisationAdminListPublicSchema.js";
 export { organisationAdminPublicSchema } from "./zod/organisationAdminPublicSchema.js";
@@ -12374,6 +12572,9 @@ export { threadCreateSchema } from "./zod/threadCreateSchema.js";
 export { threadDetailPropertiesKindEnumSchema } from "./zod/threadDetailPropertiesKindEnumSchema.js";
 export { threadDetailSchema } from "./zod/threadDetailSchema.js";
 export { threadSummarySchema } from "./zod/threadSummarySchema.js";
+export { ticketDetailPropertiesStatusEnumSchema } from "./zod/ticketDetailPropertiesStatusEnumSchema.js";
+export { ticketDetailSchema } from "./zod/ticketDetailSchema.js";
+export { ticketSummarySchema } from "./zod/ticketSummarySchema.js";
 export { tierInputSchema } from "./zod/tierInputSchema.js";
 export { tierPublicSchema } from "./zod/tierPublicSchema.js";
 export { timesheetCreateSchema } from "./zod/timesheetCreateSchema.js";

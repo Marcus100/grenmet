@@ -428,6 +428,33 @@ that the worker turns into notifications; no endpoint is involved.
 (`ActivityEntry`: action, actor id and current display name, changed-field summary),
 newest first, for its organiser only.
 
+### Events tickets (E1)
+
+`POST /events/listings/{slug}/orders` (Events member, 20/minute) claims free or
+registration tickets: `{items: [{tier_id, quantity}]}`, 201 with the order and its
+tickets. 409 when a tier is sold out, the claim exceeds the tier's `per_account_limit`
+(set by the organiser on the tier, default 4, counted over the account's valid
+tickets), the tier is paid (online payment is not built yet) or the event ended.
+`TierPublic` carries `remaining` and the viewer's `held` count. `GET /events/me/tickets`
+lists the member's tickets; `GET /events/me/tickets/{id}` adds `qr_token`, a signed
+token (`BT1.<code>.<tag>`, no personal data) to render as the QR code;
+`POST /events/me/tickets/{id}/cancel` cancels an unused ticket before the event
+starts and puts the seat back on sale. `TierInput.id` updates an existing tier in
+place; tiers with tickets issued cannot be removed or shrunk below their valid tickets.
+Issuing tickets writes a `ticket.issued` outbox row for the buyer's notification.
+
+### Events door admission (E2)
+
+`POST /events/manage/{listing_id}/admissions` (organiser access, that organiser's event
+only) admits a ticket from `{code, idempotency_key?}`; `code` is the scanned QR token or a
+typed ticket code. 200 returns the holder, tier and who admitted it; repeating the same
+`idempotency_key` replays that success (`repeat: true`). Any other second scan, a cancelled
+ticket or another event's ticket is 409 (`Already admitted at HH:MM by <name>`); an unknown
+code is 404. `GET /events/manage/{listing_id}/manifest` returns every valid ticket with its
+holder, tier and admission time plus `issued`, `admitted`, `waiting` and `cancelled` counts.
+Each admission writes a `ticket.admitted` row to the listing's activity history, and the
+member's ticket carries `admitted_at`; used tickets cannot be cancelled.
+
 ## Pagination
 
 The standard helper is `src.pagination`:

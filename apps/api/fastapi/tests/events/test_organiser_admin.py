@@ -47,7 +47,9 @@ async def _organiser(
     """A real ``events-organiser`` user who is a member of organiser ``slug``."""
     user = await user_with_role(db_async, "events-organiser")
     async with factory() as db:
-        organiser = Organiser(slug=slug, name=slug.replace("-", " ").title())
+        organiser = Organiser(
+            slug=slug, name=slug.replace("-", " ").title(), verified=True
+        )
         db.add(organiser)
         await db.flush()
         db.add(OrganiserMember(organiser_id=organiser.id, user_id=user.id))
@@ -81,11 +83,7 @@ async def test_managing_needs_the_permission_and_an_organiser_membership(
             {"ends_at": "2030-01-01T10:00:00Z", "starts_at": "2030-01-01T10:00:00Z"},
             "End time must be after the start time",
         ),
-        ({"tiers": []}, "Ticketed events need at least one priced tier"),
-        (
-            {"tiers": [{"name": "Free", "price_minor": 0, "allocation": 10}]},
-            "Ticketed events need at least one priced tier",
-        ),
+        ({"tiers": []}, "Ticketed events need at least one ticket tier"),
         ({"capacity": 100}, "Tier allocations exceed capacity"),
     ],
 )
@@ -163,3 +161,38 @@ async def test_status_and_visibility_changes_control_public_access(
         )
         assert updated.json()["tiers"] == []  # tiers only apply to ticketed events
     assert await public_view() == (200, [])  # opens by slug, never listed
+
+
+@pytest.mark.asyncio
+async def test_only_verified_organisers_can_publish(
+    events_db: SessionFactory, db_async: AsyncSession
+):
+    user = await user_with_role(db_async, "events-organiser")
+    async with events_db() as db:
+        organiser = Organiser(slug="new-crew", name="New Crew")
+        db.add(organiser)
+        await db.flush()
+        db.add(OrganiserMember(organiser_id=organiser.id, user_id=user.id))
+        await db.commit()
+    async with client_with_real_roles(user) as client:
+        refused = await client.post(MANAGE, json=_payload())
+        assert refused.status_code == 403
+        assert "Only verified organisers can publish" in refused.text
+        draft = await client.post(MANAGE, json=_payload(status="draft"))
+        assert draft.status_code == 201
+        listing_id = draft.json()["id"]
+        refused = await client.put(f"{MANAGE}/{listing_id}", json=_payload())
+        assert refused.status_code == 403
+        # Drafts stay editable, and nothing went public.
+        assert (
+            await client.put(f"{MANAGE}/{listing_id}", json=_payload(status="draft"))
+        ).status_code == 200
+    async with events_db() as db:
+        row = await db.scalar(select(Organiser))
+        assert row is not None
+        row.verified = True
+        await db.commit()
+    async with client_with_real_roles(user) as client:
+        done = await client.put(f"{MANAGE}/{listing_id}", json=_payload())
+        assert done.status_code == 200
+        assert done.json()["status"] == "published"

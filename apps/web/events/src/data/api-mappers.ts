@@ -1,4 +1,5 @@
 import type {
+  AdmissionPublic,
   GroupDetail as ApiGroupDetail,
   GroupSummary as ApiGroupSummary,
   PersonChip as ApiPersonChip,
@@ -8,20 +9,27 @@ import type {
   ListingCard,
   ListingDetail,
   ManagedListing,
+  Manifest,
   MessagePublic,
   MyProfile,
   NetworkPublic,
   OrganiserPublic,
   PlansPublic,
   ProfilePublic,
+  TicketDetail,
+  TicketSummary,
 } from "@barrelsgd/api-client";
 import type {
   Connection,
+  DoorAdmission,
+  DoorManifest,
   EventDetail,
   Group,
   GroupDetail,
   ManagedEvent,
   Message,
+  MyTicket,
+  MyTicketDetail,
   Network,
   Organiser,
   PersonChip,
@@ -113,7 +121,10 @@ export function toEventDetail(listing: ListingDetail): EventDetail {
       id: tier.id,
       name: tier.name,
       allocation: tier.allocation,
+      held: tier.held ?? 0,
+      perAccountLimit: tier.per_account_limit ?? 4,
       price: money(tier.price_minor, tier.currency),
+      remaining: tier.remaining ?? 0,
     })),
   };
 }
@@ -236,5 +247,57 @@ export function toThread(thread: ApiThreadDetail): ThreadDetail {
     canSend: thread.can_send,
     participants: thread.participants.map(toPersonChip),
     messages: thread.messages.map(toMessage),
+  };
+}
+
+export function toMyTicket(ticket: TicketSummary): MyTicket {
+  return {
+    id: ticket.id,
+    code: ticket.code,
+    status: ticket.status,
+    tierName: ticket.tier_name,
+    listingSlug: ticket.listing_slug,
+    listingTitle: ticket.listing_title,
+    venue: ticket.venue,
+    parish: ticket.parish,
+    startsAt: ticket.starts_at,
+    endsAt: ticket.ends_at,
+    canCancel: ticket.can_cancel,
+    admittedAt: ticket.admitted_at ?? null,
+  };
+}
+
+export function toMyTicketDetail(ticket: TicketDetail): MyTicketDetail {
+  return { ...toMyTicket(ticket), qrToken: ticket.qr_token };
+}
+
+export function toDoorManifest(manifest: Manifest): DoorManifest {
+  return {
+    listingId: manifest.listing_id,
+    title: manifest.title,
+    startsAt: manifest.starts_at,
+    generatedAt: manifest.generated_at,
+    issued: manifest.issued,
+    admitted: manifest.admitted,
+    waiting: manifest.waiting,
+    cancelled: manifest.cancelled,
+    rows: manifest.rows.map((row) => ({
+      ticketId: row.ticket_id,
+      code: row.code,
+      holderName: row.holder_name ?? null,
+      tierName: row.tier_name,
+      admittedAt: row.admitted_at ?? null,
+    })),
+  };
+}
+
+export function toDoorAdmission(admission: AdmissionPublic): DoorAdmission {
+  return {
+    code: admission.code,
+    tierName: admission.tier_name,
+    holderName: admission.holder_name ?? null,
+    admittedAt: admission.admitted_at,
+    admittedByName: admission.admitted_by_name ?? null,
+    repeat: admission.repeat ?? false,
   };
 }
