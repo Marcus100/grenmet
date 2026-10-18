@@ -31,6 +31,8 @@ from tests.database_target import (
 
 configure_database(os.environ)
 
+from tests.sharding import parse_shard, shard_of
+
 
 def _bootstrap_test_database() -> None:
     import psycopg
@@ -315,6 +317,43 @@ async def async_client(test_database: None) -> AsyncGenerator[httpx.AsyncClient]
         base_url="http://test",
     ) as client:
         yield client
+
+
+def pytest_addoption(parser: pytest.Parser) -> None:
+    parser.addoption(
+        "--shard",
+        default=None,
+        metavar="INDEX/TOTAL",
+        help="Run one of TOTAL balanced, file-aligned slices of the selected tests (1-based).",
+    )
+
+
+class _ShardSelector:
+    """Deselects tests outside this shard, after ``-m`` and other filters ran."""
+
+    def __init__(self, index: int, total: int) -> None:
+        self.index = index
+        self.total = total
+
+    @pytest.hookimpl(trylast=True)
+    def pytest_collection_modifyitems(
+        self, config: pytest.Config, items: list[pytest.Item]
+    ) -> None:
+        mine = shard_of(
+            [item.path.as_posix() for item in items], self.index, self.total
+        )
+        kept = [item for item in items if item.path.as_posix() in mine]
+        dropped = [item for item in items if item.path.as_posix() not in mine]
+        if dropped:
+            config.hook.pytest_deselected(items=dropped)
+        items[:] = kept
+
+
+def pytest_configure(config: pytest.Config) -> None:
+    shard = config.getoption("--shard")
+    if shard:
+        index, total = parse_shard(shard)
+        config.pluginmanager.register(_ShardSelector(index, total), "shard-selector")
 
 
 def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
