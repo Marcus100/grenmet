@@ -3,6 +3,7 @@
 import json
 import uuid
 from collections.abc import Callable
+from unittest.mock import MagicMock
 from urllib.parse import parse_qs
 
 import httpx
@@ -94,14 +95,16 @@ async def test_disabled_skips_the_check(monkeypatch: pytest.MonkeyPatch) -> None
     await turnstile.require_turnstile(_request(), None)
 
 
-async def test_enabled_without_secret_is_503(
-    monkeypatch: pytest.MonkeyPatch, caplog: pytest.LogCaptureFixture
-) -> None:
+async def test_enabled_without_secret_is_503(monkeypatch: pytest.MonkeyPatch) -> None:
+    # Patch the module logger, not caplog: other tests in a shard may
+    # reconfigure logging, and the alert must not depend on test order.
+    logged = MagicMock()
+    monkeypatch.setattr(turnstile, "logger", logged)
     _enable(monkeypatch, secret=None)
     with pytest.raises(turnstile.VerificationUnavailableError) as info:
         await turnstile.require_turnstile(_request(), "tok")
     assert info.value.status_code == 503
-    assert "TURNSTILE_SECRET_KEY" in caplog.text
+    assert "TURNSTILE_SECRET_KEY" in logged.error.call_args.args[0]
 
 
 async def test_enabled_requires_a_token(monkeypatch: pytest.MonkeyPatch) -> None:
