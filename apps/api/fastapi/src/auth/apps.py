@@ -172,6 +172,11 @@ def registered_apps() -> list[AppDefinition]:
     return [app for app in _apps().values() if app.sso]
 
 
+def all_apps() -> list[AppDefinition]:
+    """Every registered app, single sign-on or not, in registry order."""
+    return list(_apps().values())
+
+
 def is_registered(app_name: str | None) -> bool:
     """Whether a session belongs to a registered app rather than the account."""
     return app_name is not None and app_name in _apps()

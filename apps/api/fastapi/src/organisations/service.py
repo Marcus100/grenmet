@@ -13,7 +13,9 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
+from src.audit import service as audit_service
 from src.auth import apps as auth_apps
+from src.auth.models import User
 from src.exceptions import AppException
 from src.hr.models import Organisation as HrOrganisation
 from src.organisations.exceptions import (
@@ -32,6 +34,7 @@ from src.organisations.models import (
     new_membership_id,
     new_organisation_id,
 )
+from src.utils.datetime import utc_now
 
 logger = logging.getLogger(__name__)
 
@@ -373,3 +376,133 @@ async def admin_get_organisation(
         .all()
     )
     return organisation, counts.get(organisation.id, 0), list(apps)
+
+
+# ── Control plane writes (C2, superuser only) ────────────────────────────────
+
+_SLUG_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
+
+
+async def _load(session: AsyncSession, organisation_id: str) -> PlatformOrganisation:
+    organisation = await session.get(
+        PlatformOrganisation, organisation_id, with_for_update=True
+    )
+    if organisation is None:
+        raise OrganisationNotFoundError()
+    return organisation
+
+
+def _clean_reason(reason: str) -> str:
+    clean = reason.strip()
+    if not clean:
+        raise AppException("A reason is required", 422)
+    return clean
+
+
+async def _ensure_slug_free(
+    session: AsyncSession, slug: str, *, exclude_id: str | None
+) -> None:
+    if not _SLUG_PATTERN.match(slug):
+        raise AppException("Slug must be lowercase letters, digits and hyphens", 422)
+    taken = await session.scalar(
+        select(PlatformOrganisation.id).where(
+            PlatformOrganisation.slug == slug,
+            PlatformOrganisation.id != (exclude_id or ""),
+        )
+    )
+    if taken is not None:
+        raise AppException("That slug is already in use", 409)
+
+
+async def admin_create_organisation(
+    session: AsyncSession,
+    actor: User,
+    *,
+    name: str,
+    kind: OrganisationKind,
+    slug: str | None,
+) -> PlatformOrganisation:
+    audit_service.set_actor(session, actor.id)
+    if slug is not None:
+        await _ensure_slug_free(session, slug, exclude_id=None)
+    return await create_organisation(session, name=name, kind=kind, slug=slug)
+
+
+async def admin_update_organisation(
+    session: AsyncSession,
+    actor: User,
+    organisation_id: str,
+    *,
+    name: str | None,
+    slug: str | None,
+    status: OrganisationStatus | None,
+    kind: OrganisationKind | None,
+) -> PlatformOrganisation:
+    if name is None and slug is None and status is None and kind is None:
+        raise AppException("Nothing to change", 422)
+    organisation = await _load(session, organisation_id)
+    audit_service.set_actor(session, actor.id)
+    if name is not None:
+        clean = name.strip()
+        if not clean:
+            raise AppException("Organisation name is required", 422)
+        organisation.name = clean
+    if slug is not None and slug != organisation.slug:
+        await _ensure_slug_free(session, slug, exclude_id=organisation.id)
+        organisation.slug = slug
+    if status is not None:
+        organisation.status = status.value
+    if kind is not None:
+        organisation.kind = kind.value
+    await session.flush()
+    return organisation
+
+
+async def admin_set_verified(
+    session: AsyncSession,
+    actor: User,
+    organisation_id: str,
+    *,
+    verified: bool,
+    reason: str,
+) -> PlatformOrganisation:
+    clean = _clean_reason(reason)
+    organisation = await _load(session, organisation_id)
+    audit_service.set_actor(session, actor.id)
+    if verified:
+        if organisation.verified_at is not None:
+            raise AppException("Organisation is already verified", 409)
+        organisation.verified_at = utc_now()
+    else:
+        if organisation.verified_at is None:
+            raise AppException("Organisation is not verified", 409)
+        organisation.verified_at = None
+    await audit_service.record_change(
+        session,
+        entity_type="platform_organisation",
+        entity_id=organisation.id,
+        record_type="platform_organisation",
+        record_id=organisation.id,
+        action="verify" if verified else "unverify",
+        changes={"reason": (None, clean)},
+        organisation_id=organisation.id,
+    )
+    await session.flush()
+    return organisation
+
+
+async def admin_set_app(
+    session: AsyncSession,
+    actor: User,
+    organisation_id: str,
+    app_key: str,
+    *,
+    enabled: bool,
+) -> OrganisationApp:
+    if not auth_apps.is_registered(app_key):
+        raise AppException("Unknown app", 422)
+    await _load(session, organisation_id)
+    audit_service.set_actor(session, actor.id)
+    return await set_app_enabled(
+        session, organisation_id=organisation_id, app_key=app_key, enabled=enabled
+    )

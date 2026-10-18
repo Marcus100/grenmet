@@ -80,8 +80,15 @@ def accept_link(token: str) -> str:
 async def list_members(
     session: AsyncSession, context: OrgContext, page: PaginationParams
 ) -> tuple[list[tuple[Membership, User]], int]:
+    return await list_members_of(session, context.organisation_id, page)
+
+
+async def list_members_of(
+    session: AsyncSession, organisation_id: str, page: PaginationParams
+) -> tuple[list[tuple[Membership, User]], int]:
+    """Active roster of one organisation (also used by the superuser control plane)."""
     where = (
-        Membership.organisation_id == context.organisation_id,
+        Membership.organisation_id == organisation_id,
         Membership.status == MembershipStatus.ACTIVE.value,
     )
     total = await session.scalar(

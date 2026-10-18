@@ -8,9 +8,11 @@ from typing import Any, Literal
 
 from pydantic import TypeAdapter
 from sqlalchemy import Select, delete, func, or_, select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
+from src.organisations import verification
 from src.utils.datetime import utc_now
 
 from .. import schemas
@@ -208,6 +210,17 @@ async def list_listings(
     return await _cards(db, [(row[0], row[1]) for row in rows], viewer_id), int(total)
 
 
+async def _organiser_verified(organiser: Organiser) -> bool:
+    """Linked organisers take verification from the platform organisation (F5, C2);
+    legacy unlinked ones keep their own flag. A lookup failure falls back to it."""
+    if organiser.organisation_id is None:
+        return organiser.verified
+    try:
+        return await verification.organisation_is_verified(organiser.organisation_id)
+    except SQLAlchemyError, OSError, TimeoutError:
+        return organiser.verified
+
+
 async def _organiser_public(
     db: AsyncSession, organiser: Organiser, viewer_id: uuid.UUID | None
 ) -> schemas.OrganiserPublic:
@@ -224,7 +237,7 @@ async def _organiser_public(
         slug=organiser.slug,
         name=organiser.name,
         bio=organiser.bio,
-        verified=organiser.verified,
+        verified=await _organiser_verified(organiser),
         organisation_id=organiser.organisation_id,
         follower_count=int(followers or 0),
         viewer_following=following,

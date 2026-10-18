@@ -10,9 +10,13 @@ console. Lane spec: `docs/design/admin.md`. Plan: slice C1/C2 in
 - **Barrels staff only.** No GMS or GAA business modules here, and it never
   merges with the client portal (`apps/web/gaa-admin`). Do not import
   `gaa-admin` code or `@barrelsgd/gms`.
-- **Read only for now (C1).** Status cards, organisation list and detail.
-  Verification review and app entitlement changes are C2; leave placeholders,
-  never fake data.
+- **Organisation management (C2).** Detail page actions: verify/unverify with a
+  required reason, edit, suspend/reactivate (confirm), per-app entitlement
+  toggles, members and change history; `/organisations/new` creates one. They are
+  plain forms posting to server actions (`organisations/actions.ts`) that
+  validate with `src/lib/organisation-form.ts`, proxy to FastAPI and redirect with
+  a fixed `?notice=` code. Disclosures are native `<details>`; no client state.
+  Never fake data.
 - Backend logic stays in FastAPI. This app validates, proxies and renders; it
   has no database access and no business rules.
 
@@ -40,7 +44,7 @@ console. Lane spec: `docs/design/admin.md`. Plan: slice C1/C2 in
 Server-side only, through `authApiFetch` with the session's access token and
 Zod schemas from `@barrelsgd/api-client` (`src/lib/api.ts`):
 
-- `GET /organisations`, `GET /organisations/{id}` (superuser only; see
+- `GET /organisations`, `GET /organisations/{id}`, `POST/PATCH /organisations`, `POST /organisations/{id}/verify|unverify`, `PUT /organisations/{id}/apps/{key}`, `GET /organisations/{id}/admin/members`, `GET /audit/platform_organisation/{id}` (superuser only; see
   `apps/api/fastapi/src/organisations/AGENTS.md`).
 - Status probes (`src/lib/status.ts`): `GET /utils/health-check/` and
   `GET /utils/ready/`. The API has no worker heartbeat or deploy-history

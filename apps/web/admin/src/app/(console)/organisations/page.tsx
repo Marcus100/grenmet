@@ -65,11 +65,19 @@ export default async function OrganisationsPage({
 
   return (
     <>
-      <div className="space-y-1">
-        <h1 className="font-semibold text-2xl">Organisations</h1>
-        <p className="text-muted-foreground">
-          Every organisation on the platform. Read only for now.
-        </p>
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="space-y-1">
+          <h1 className="font-semibold text-2xl">Organisations</h1>
+          <p className="text-muted-foreground">
+            Every organisation on the platform.
+          </p>
+        </div>
+        <Link
+          className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+          href="/organisations/new"
+        >
+          New organisation
+        </Link>
       </div>
 
       <form className="flex flex-wrap items-end gap-3" method="get">

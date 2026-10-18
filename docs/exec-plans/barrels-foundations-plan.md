@@ -72,7 +72,7 @@ Alembic head.
 | E4 | Settlement report replacing `/dash` demo fixtures | M | U |
 | E5 | Cancel, postpone and manual refund | M | U |
 | C1 | `apps/web/admin` shell at `admin.barrels.gd` (port 3012), superuser via auth handoff, status cards (**built, pending merge**; deploy wiring and the `admin.*` host cutover deliberately not done, see "Host move") | L | U |
-| C2 | Control-plane organisations: list, detail, verify, app entitlements, members | M | U |
+| C2 | Control-plane organisations: list, detail, verify, app entitlements, members (**built, pending merge**) | M | U |
 | P1 | Invoice core: customer, invoice, lines, numbering, totals in minor units; entity, VAT and prefix are provisional settings | M | U |
 | P2 | Issue and email invoice PDF (stored through F8) | M | U |
 | P3 | Manual payments, receivables and ageing in the control plane | M | U |
