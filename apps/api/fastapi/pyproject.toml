@@ -75,6 +75,8 @@ exclude = ["venv", ".venv", "alembic"]
 module = [
     "boto3",
     "cdsapi.*",
+    "eccodes.*",
+    "ecmwf.*",
     "copernicusmarine.*",
     "pandas.*",
     "botocore.*",

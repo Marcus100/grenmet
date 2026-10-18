@@ -150,7 +150,9 @@ class GfsFetcher:
                     return candidate
         return None
 
-    def _query(self, run_time: datetime, step: int, points: list[GuidancePoint]):
+    def _query(
+        self, run_time: datetime, step: int, points: list[GuidancePoint]
+    ) -> dict[str, str]:
         lats = [p.latitude for p in points]
         lons = [p.longitude % 360.0 for p in points]
         pad = 0.5

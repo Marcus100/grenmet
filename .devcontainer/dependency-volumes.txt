@@ -8,6 +8,7 @@ apps/web/elections/node_modules
 apps/web/events/node_modules
 apps/web/gaa-admin/node_modules
 apps/web/gms/node_modules
+apps/web/gmsdash/node_modules
 apps/web/mbia/node_modules
 apps/web/signal/node_modules
 packages/cms-migrations/node_modules
@@ -28,6 +29,7 @@ apps/web/elections/.next
 apps/web/events/.next
 apps/web/gaa-admin/.next
 apps/web/gms/.next
+apps/web/gmsdash/.next
 apps/web/mbia/.next
 apps/web/signal/.next
 .venv

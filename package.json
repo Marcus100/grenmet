@@ -20,6 +20,7 @@
     "dev:web": "turbo run dev --filter=@barrelsgd/web-*",
     "dev:web:admin": "turbo run dev --filter=@barrelsgd/web-admin",
     "dev:web:cap": "turbo run dev --filter=@barrelsgd/web-cap",
+    "dev:web:gmsdash": "turbo run dev --filter=@barrelsgd/web-gmsdash",
     "dev:web:gaa-admin": "turbo run dev --filter=@barrelsgd/web-gaa-admin",
     "dev:web:docs": "turbo run dev --filter=@barrelsgd/web-docs",
     "dev:web:auth": "turbo run dev --filter=@barrelsgd/web-auth",

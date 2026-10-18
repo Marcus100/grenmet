@@ -26,6 +26,12 @@ export const webImages = [
   { app: "mbia", image: "web-mbia", path: "apps/web/mbia", port: 3005 },
   { app: "events", image: "web-events", path: "apps/web/events", port: 3009 },
   { app: "cap", image: "web-cap", path: "apps/web/cap", port: 3010 },
+  {
+    app: "gmsdash",
+    image: "web-gmsdash",
+    path: "apps/web/gmsdash",
+    port: 3013,
+  },
 ];
 export const weatherImages = [];
 export const releaseScope = {
