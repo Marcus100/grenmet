@@ -656,7 +656,7 @@ is released. Alerts without `GMS:product` currently validate with a warning.
 
 These are not implemented as universal API contracts yet:
 
-- Request IDs and correlation IDs.
+- Propagating the request ID into ARQ jobs (each enqueue site must pass it; not done yet).
 - RFC 7807 Problem Details.
 - Idempotency keys.
 - Global response validation middleware.

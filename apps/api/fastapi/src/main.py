@@ -9,6 +9,7 @@ from typing import Any, cast
 import sentry_sdk
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
+from fastapi.responses import JSONResponse, Response
 from fastapi.routing import APIRoute
 from pydantic import ValidationError
 from scalar_fastapi import get_scalar_api_reference
@@ -302,6 +303,7 @@ async def request_logging_middleware(request: Request, call_next: Any) -> Any:
     start = time.perf_counter()
     status = 500
     request_id = resolve_request_id(request.headers.get(REQUEST_ID_HEADER))
+    request.state.request_id = request_id
     token = bind_request_id(request_id)
     sentry_sdk.set_tag("request_id", request_id)
     try:
@@ -322,6 +324,18 @@ async def request_logging_middleware(request: Request, call_next: Any) -> Any:
         reset_request_id(token)
     return response
 
+
+async def unhandled_exception_handler(request: Request, _exc: Exception) -> Response:
+    # Runs in ServerErrorMiddleware, outside the logging middleware, so the
+    # header is added here; Starlette re-raises afterwards so Sentry still sees it.
+    request_id = getattr(request.state, "request_id", None)
+    headers = {REQUEST_ID_HEADER: request_id} if request_id else {}
+    return JSONResponse(
+        {"detail": "Internal Server Error"}, status_code=500, headers=headers
+    )
+
+
+app.add_exception_handler(Exception, unhandled_exception_handler)
 
 # Set all CORS enabled origins
 if settings.all_cors_origins:
