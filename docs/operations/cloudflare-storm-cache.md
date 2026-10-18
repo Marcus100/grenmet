@@ -1,5 +1,9 @@
 # Cloudflare storm cache runbook (GMS public site)
 
+**Status:** Active runbook — Cloudflare settings not yet applied  
+**Owner:** Barrels Grenada engineering  
+**Last updated:** 2026-10-18
+
 Goal: during a storm or an origin outage, people still get the last good alerts,
 CAP feeds and satellite images. Cloudflare serves a stale copy when the origin
 (Next.js on the server, FastAPI, database) is down. Free plan features only.
