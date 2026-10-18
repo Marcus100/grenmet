@@ -26,7 +26,7 @@ function show(card) {
 
 function sync() {
   // Nothing optional runs here, so there is nothing to ask about.
-  if (!config?.ga4) return;
+  if (!(config?.ga4 && settings)) return;
   accept.disabled = browserOptOut();
   const consent = readConsent();
   description.hidden = !browserOptOut();
@@ -70,7 +70,7 @@ document
   .addEventListener("click", () => choose("declined"));
 document
   .querySelector('a[href="https://eugine.me/"]')
-  .addEventListener("click", () => {
+  ?.addEventListener("click", () => {
     if (config && readConsent() === "accepted")
       captureGoogleEvent(config, "personal_site_clicked", {});
   });

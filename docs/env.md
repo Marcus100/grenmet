@@ -114,7 +114,7 @@ the API image and the local source mount contain the same migration assets.
 | `DOMAIN` | Root domain for routing |
 | `FRONTEND_HOST` | Client origin used in CORS and emails |
 | `API_V1_STR` | API version prefix (default: `/api/v1`) |
-| `BACKEND_CORS_ORIGINS` | Comma-separated or JSON array of allowed origins |
+| `BACKEND_CORS_ORIGINS` | Comma-separated or JSON array of allowed origins. The static Barrels site calls the API from the browser (contact and newsletter forms), so production must list `https://barrels.gd` and `https://www.barrels.gd`. Staging has no documented Barrels site origin yet; add one when it exists |
 | `SECRET_KEY` | JWT signing secret — generate with `openssl rand -base64 32` |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | Legacy bearer-token lifetime in minutes (default: `60`) |
 | `SESSION_ACCESS_TOKEN_EXPIRE_MINUTES` | Cookie-session access-token lifetime (default: `15`) |
