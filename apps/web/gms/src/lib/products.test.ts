@@ -6,6 +6,7 @@ vi.mock("@/lib/env", () => ({
 }));
 
 import {
+  fetchMonthSummary,
   fetchPublicForecast,
   fetchPublishedProduct,
   fetchPublishedProducts,
@@ -139,5 +140,48 @@ describe("one published product", () => {
       status: "not-found",
     });
     expect(fetcher).not.toHaveBeenCalled();
+  });
+});
+
+describe("month summary feed", () => {
+  const summary = {
+    station_id: "78958",
+    month: "2026-09",
+    period_start: "2026-09-01T00:00:00Z",
+    period_end: "2026-09-08T12:00:00Z",
+    last_observation_at: "2026-09-08T09:00:00Z",
+    observation_count: 3,
+    days_elapsed: 8,
+    rain_report_days: 1,
+    rainfall_mm: 4.2,
+    rain_days: 1,
+    rain_day_threshold_mm: 0.2,
+    provisional: true,
+  };
+  it("reads the anonymous eregister endpoint", async () => {
+    const fetcher = vi.fn().mockResolvedValue(Response.json({ summary }));
+    vi.stubGlobal("fetch", fetcher);
+    expect(await fetchMonthSummary()).toMatchObject({ rainfall_mm: 4.2 });
+    expect(String(fetcher.mock.calls[0]?.[0])).toBe(
+      "http://api.example.test/api/v1/eregister/public/month-summary"
+    );
+    expect(fetcher.mock.calls[0]?.[1]).toMatchObject({ credentials: "omit" });
+  });
+  it("is null when empty, unavailable or off-contract", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(Response.json({ summary: null }))
+    );
+    expect(await fetchMonthSummary()).toBeNull();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(Response.json({ error: "x" }, { status: 503 }))
+    );
+    expect(await fetchMonthSummary()).toBeNull();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(Response.json({ summary: { month: 1 } }))
+    );
+    expect(await fetchMonthSummary()).toBeNull();
   });
 });

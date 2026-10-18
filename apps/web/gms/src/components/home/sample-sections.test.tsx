@@ -1,7 +1,9 @@
+import type { PublicMonthSummary } from "@barrelsgd/api-client";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, expect, it, vi } from "vitest";
 import { ExploreToday, GrenadaInData } from "@/components/home/sample-sections";
 import { fetchHomeContent, type HomeContent } from "@/lib/cms";
+import { fetchMonthSummary } from "@/lib/products";
 
 vi.mock("@/lib/cms", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/cms")>();
@@ -15,10 +17,32 @@ vi.mock("@/lib/cms", async (importOriginal) => {
       ),
   };
 });
+vi.mock("@/lib/products", () => ({ fetchMonthSummary: vi.fn() }));
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
 });
+
+const RAIN_UNIT = "mm";
+const SUMMARY: PublicMonthSummary = {
+  station_id: "78958",
+  station_name: "MBIA",
+  month: "2026-10",
+  period_start: "2026-10-01T00:00:00Z",
+  period_end: "2026-10-18T15:00:00Z",
+  last_observation_at: "2026-10-18T12:00:00Z",
+  observation_count: 6,
+  days_elapsed: 18,
+  rain_report_days: 4,
+  rainfall_mm: 12.3,
+  rain_days: 2,
+  rain_day_threshold_mm: 0.2,
+  max_temperature_c: 32.6,
+  max_temperature_at: "2026-10-05T12:00:00Z",
+  min_temperature_c: 23.9,
+  min_temperature_at: "2026-10-01T12:00:00Z",
+  provisional: true,
+};
 
 const RIP_LINK = /Tourism:.*Read: What is a rip current\?/;
 const READ_MORE = /^Read:/;
@@ -93,6 +117,27 @@ it("uses the editors' wording and keeps the standard wording when blank", async 
   ).toBeInTheDocument();
   expect(screen.getByText("Plan your week")).toBeInTheDocument();
   expect(screen.getByText("Plan ahead.")).toBeInTheDocument();
+});
+
+it("shows the live month summary with its provisional label", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
+  vi.mocked(fetchMonthSummary).mockResolvedValue({ ...SUMMARY });
+  render(await GrenadaInData());
+  expect(screen.getByText("12.3")).toBeInTheDocument();
+  expect(screen.getByText("32.6")).toBeInTheDocument();
+  expect(
+    screen.getByText("Month to date · MBIA · provisional · to 18 October")
+  ).toBeInTheDocument();
+  expect(screen.queryByRole("status")).not.toBeInTheDocument();
+});
+
+it("shows an unavailable state instead of figures when the summary is missing", async () => {
+  vi.mocked(fetchHomeContent).mockResolvedValue(home({}));
+  vi.mocked(fetchMonthSummary).mockResolvedValue(null);
+  render(await GrenadaInData());
+  expect(screen.getByRole("status")).toHaveTextContent("not available");
+  expect(screen.queryByText("32.6")).not.toBeInTheDocument();
+  expect(screen.queryByText(RAIN_UNIT)).not.toBeInTheDocument();
 });
 
 it.each([
