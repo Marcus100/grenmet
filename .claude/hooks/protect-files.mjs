@@ -18,6 +18,11 @@ import { stripQuotedLiterals } from "./block-dangerous-git.mjs";
 
 const GENERATED_CLIENT_MARKER = "packages/api-client/src/gen/";
 
+// Committed, non-secret deploy config whose names happen to contain ".env"
+// (their headers say secrets never go in them). Owner decision 2026-10-18:
+// agents may edit these; real git-ignored env files stay blocked.
+const COMMITTED_DEPLOY_CONFIG = /(?:^|\/)infra\/docker\/(?:staging|production)\.env$/;
+
 export function findProtectedViolation(filePath) {
   const normalized = filePath.replaceAll("\\", "/");
 
@@ -26,7 +31,11 @@ export function findProtectedViolation(filePath) {
   // Never-tier. Note: this must NOT match ordinary `env.ts`/`env.md` files
   // (e.g. apps/web/auth/src/env.ts, which AGENTS.md itself tells agents to
   // edit regularly) — only a literal ".env" substring, not any "env".
-  if (normalized.includes(".env") && !normalized.endsWith(".example")) {
+  if (
+    normalized.includes(".env") &&
+    !normalized.endsWith(".example") &&
+    !COMMITTED_DEPLOY_CONFIG.test(normalized)
+  ) {
     return {
       pattern: ".env*",
       message: `BLOCKED: '${filePath}' matches protected pattern '.env*' — see the Never tier in AGENTS.md. Ask the user to edit env files directly.`,
