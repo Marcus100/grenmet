@@ -70,6 +70,7 @@ from src.janitorial.router import router as janitorial_router
 from src.logging_config import configure_logging
 from src.models import ValidationErrorResponse
 from src.notifications.router import router as notifications_router
+from src.organisations.dependencies import ORGANISATION_HEADER
 from src.organisations.router import router as organisations_router
 from src.rate_limit import limiter
 from src.request_context import (
@@ -351,7 +352,7 @@ if settings.all_cors_origins:
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         # Browser clients and observability integrations may add headers beyond
         # the authentication and content headers used by the API itself.
-        allow_headers=["Authorization", "Content-Type"],
+        allow_headers=["Authorization", "Content-Type", ORGANISATION_HEADER],
         expose_headers=[REQUEST_ID_HEADER],
     )
 app.add_middleware(BaseHTTPMiddleware, dispatch=request_logging_middleware)

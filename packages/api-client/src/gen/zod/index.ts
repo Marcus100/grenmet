@@ -1193,6 +1193,7 @@ export { connectionPublicPropertiesStateEnumSchema } from "./connectionPublicPro
 export { connectionPublicSchema } from "./connectionPublicSchema.js";
 export { contractorCreateSchema } from "./contractorCreateSchema.js";
 export { contractorUpdateSchema } from "./contractorUpdateSchema.js";
+export { currentOrganisationPublicSchema } from "./currentOrganisationPublicSchema.js";
 export { dashboardApprovalSchema } from "./dashboardApprovalSchema.js";
 export { dashboardPersonSchema } from "./dashboardPersonSchema.js";
 export { dashboardRequestSchema } from "./dashboardRequestSchema.js";
@@ -3495,6 +3496,17 @@ export { organisationPreviewSchema } from "./organisationPreviewSchema.js";
 export { organisationPublicSchema } from "./organisationPublicSchema.js";
 export { organisationStatusSchema } from "./organisationStatusSchema.js";
 export { organisationSummarySchema } from "./organisationSummarySchema.js";
+export {
+  organisationsGetCurrentErrorSchema,
+  organisationsGetCurrentHeaderXBarrelsOrganisationSchema,
+  organisationsGetCurrentResponseSchema,
+  organisationsGetCurrentStatus200Schema,
+  organisationsGetCurrentStatus400Schema,
+  organisationsGetCurrentStatus401Schema,
+  organisationsGetCurrentStatus403Schema,
+  organisationsGetCurrentStatus404Schema,
+  organisationsGetCurrentStatus422Schema,
+} from "./organisationsGetCurrentSchema.js";
 export {
   organisationsListMineErrorSchema,
   organisationsListMineResponseSchema,

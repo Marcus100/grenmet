@@ -1322,6 +1322,7 @@ export type { ConnectionPublicPropertiesStateEnum } from "./ConnectionPublicProp
 export { connectionPublicPropertiesStateEnum } from "./ConnectionPublicPropertiesStateEnum.js";
 export type { ContractorCreate } from "./ContractorCreate.js";
 export type { ContractorUpdate } from "./ContractorUpdate.js";
+export type { CurrentOrganisationPublic } from "./CurrentOrganisationPublic.js";
 export type { DashboardApproval } from "./DashboardApproval.js";
 export type { DashboardPerson } from "./DashboardPerson.js";
 export type { DashboardRequest } from "./DashboardRequest.js";
@@ -3825,6 +3826,18 @@ export type { OrganisationPublic } from "./OrganisationPublic.js";
 export type { OrganisationStatus } from "./OrganisationStatus.js";
 export { organisationStatus } from "./OrganisationStatus.js";
 export type { OrganisationSummary } from "./OrganisationSummary.js";
+export type {
+  OrganisationsGetCurrentHeaders,
+  OrganisationsGetCurrentOptions,
+  OrganisationsGetCurrentResponse,
+  OrganisationsGetCurrentResponses,
+  OrganisationsGetCurrentStatus200,
+  OrganisationsGetCurrentStatus400,
+  OrganisationsGetCurrentStatus401,
+  OrganisationsGetCurrentStatus403,
+  OrganisationsGetCurrentStatus404,
+  OrganisationsGetCurrentStatus422,
+} from "./OrganisationsGetCurrent.js";
 export type {
   OrganisationsListMineOptions,
   OrganisationsListMineResponse,

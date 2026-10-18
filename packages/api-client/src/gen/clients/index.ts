@@ -324,6 +324,7 @@ export { notificationsMarkAllNotificationsRead } from "./notificationsMarkAllNot
 export { notificationsMarkNotificationRead } from "./notificationsMarkNotificationRead.js";
 export { notificationsUpdateNotificationPreferences } from "./notificationsUpdateNotificationPreferences.js";
 export { notificationsUpdateNotificationSetting } from "./notificationsUpdateNotificationSetting.js";
+export { organisationsGetCurrent } from "./organisationsGetCurrent.js";
 export { organisationsListMine } from "./organisationsListMine.js";
 export { transportAddTimetableTrip } from "./transportAddTimetableTrip.js";
 export { transportCreateRouteEntry } from "./transportCreateRouteEntry.js";

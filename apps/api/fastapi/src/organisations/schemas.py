@@ -22,3 +22,10 @@ class MyMembershipPublic(BaseModel):
     status: MembershipStatus
     joined_at: UtcDateTime
     organisation: OrganisationSummary
+
+
+class CurrentOrganisationPublic(BaseModel):
+    """The organisation resolved from ``X-Barrels-Organisation`` and the caller's role."""
+
+    organisation: OrganisationSummary
+    role: MembershipRole

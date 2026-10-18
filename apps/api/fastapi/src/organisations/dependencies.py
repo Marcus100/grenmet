@@ -1,0 +1,109 @@
+"""``OrgContext``: the organisation a request acts for (ADR-0022, decision 4).
+
+Resolution order and error contract:
+
+1. ``X-Barrels-Organisation`` missing or blank -> 400.
+2. Unknown organisation, or the caller has no active membership -> 404 with the
+   same message, so an organisation's existence is never revealed to outsiders.
+3. Organisation suspended -> 403.
+4. Member whose role is too low for the route -> 403 (``OrgAdmin``, ``OrgOwner``).
+
+There is deliberately no superuser bypass. A route is only organisation-isolated
+if it uses one of these aliases **and** has a cross-organisation denial test.
+"""
+
+from collections.abc import AsyncGenerator, Awaitable, Callable
+from dataclasses import dataclass
+from typing import Annotated
+
+from fastapi import Depends, Header
+
+from src.auth.models import User
+from src.dependencies import AccountUser, SessionDep
+from src.organisations import service
+from src.organisations.exceptions import (
+    OrganisationContextRequiredError,
+    OrganisationNotFoundError,
+)
+from src.organisations.models import Membership, MembershipRole, PlatformOrganisation
+from src.request_context import bind_organisation_id, reset_organisation_id
+
+ORGANISATION_HEADER = "X-Barrels-Organisation"
+_MAX_ID_LENGTH = 100
+
+
+@dataclass(frozen=True)
+class OrgContext:
+    """The resolved organisation, the caller's membership in it, and the caller."""
+
+    organisation: PlatformOrganisation
+    membership: Membership
+    user: User
+
+    @property
+    def organisation_id(self) -> str:
+        return self.organisation.id
+
+    @property
+    def role(self) -> MembershipRole:
+        return MembershipRole(self.membership.role)
+
+    def require_role(self, minimum: MembershipRole) -> None:
+        """Raise 403 unless the caller's role is at least ``minimum``."""
+        service.require_role(self.membership.role, minimum)
+
+
+async def get_org_context(
+    session: SessionDep,
+    current_user: AccountUser,
+    organisation: Annotated[
+        str | None,
+        Header(
+            alias=ORGANISATION_HEADER,
+            description=(
+                "Id of the organisation the request acts for. The caller must be "
+                "an active member."
+            ),
+        ),
+    ] = None,
+) -> AsyncGenerator[OrgContext]:
+    organisation_id = (organisation or "").strip()
+    if not organisation_id:
+        raise OrganisationContextRequiredError()
+    if len(organisation_id) > _MAX_ID_LENGTH:
+        raise OrganisationNotFoundError()
+    resolved = await service.resolve_membership(
+        session, user_id=current_user.id, organisation_id=organisation_id
+    )
+    token = bind_organisation_id(resolved.organisation.id)
+    try:
+        yield OrgContext(
+            organisation=resolved.organisation,
+            membership=resolved.membership,
+            user=current_user,
+        )
+    finally:
+        try:
+            reset_organisation_id(token)
+        except ValueError:
+            # Teardown ran in a different context; the request task is ending.
+            pass
+
+
+def require_org_role(
+    minimum: MembershipRole,
+) -> Callable[..., Awaitable[OrgContext]]:
+    """Build a dependency that resolves ``OrgContext`` and enforces a minimum role."""
+
+    async def dependency(
+        context: Annotated[OrgContext, Depends(get_org_context)],
+    ) -> OrgContext:
+        context.require_role(minimum)
+        return context
+
+    return dependency
+
+
+OrgMember = Annotated[OrgContext, Depends(get_org_context)]
+OrgAdmin = Annotated[OrgContext, Depends(require_org_role(MembershipRole.ADMIN))]
+OrgOwner = Annotated[OrgContext, Depends(require_org_role(MembershipRole.OWNER))]

@@ -7,6 +7,7 @@ path writes the platform row in the same transaction as the HR row).
 import logging
 import re
 import uuid
+from dataclasses import dataclass
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -15,6 +16,11 @@ from sqlalchemy.orm import Session
 from src.auth import apps as auth_apps
 from src.exceptions import AppException
 from src.hr.models import Organisation as HrOrganisation
+from src.organisations.exceptions import (
+    OrganisationNotFoundError,
+    OrganisationRoleError,
+    OrganisationSuspendedError,
+)
 from src.organisations.models import (
     Membership,
     MembershipRole,
@@ -30,6 +36,11 @@ from src.organisations.models import (
 logger = logging.getLogger(__name__)
 
 BARRELS_ORGANISATION_ID = "barrels"
+_ROLE_RANK = {
+    MembershipRole.MEMBER.value: 1,
+    MembershipRole.ADMIN.value: 2,
+    MembershipRole.OWNER.value: 3,
+}
 
 
 def slugify(value: str) -> str:
@@ -215,3 +226,44 @@ async def list_my_memberships(
         .order_by(PlatformOrganisation.name, PlatformOrganisation.id)
     )
     return [(m, o) for m, o in rows.all()]
+
+
+@dataclass(frozen=True)
+class ResolvedMembership:
+    organisation: PlatformOrganisation
+    membership: Membership
+
+
+async def resolve_membership(
+    session: AsyncSession, *, user_id: uuid.UUID, organisation_id: str
+) -> ResolvedMembership:
+    """Active membership in an organisation, or 404 (never reveals existence)."""
+    row = (
+        await session.execute(
+            select(Membership, PlatformOrganisation)
+            .join(
+                PlatformOrganisation,
+                PlatformOrganisation.id == Membership.organisation_id,
+            )
+            .where(
+                Membership.user_id == user_id,
+                Membership.organisation_id == organisation_id,
+                Membership.status == MembershipStatus.ACTIVE.value,
+            )
+        )
+    ).first()
+    if row is None:
+        raise OrganisationNotFoundError()
+    membership, organisation = row
+    if organisation.status != OrganisationStatus.ACTIVE.value:
+        raise OrganisationSuspendedError()
+    return ResolvedMembership(organisation=organisation, membership=membership)
+
+
+def role_allows(role: str, minimum: MembershipRole) -> bool:
+    return _ROLE_RANK.get(role, 0) >= _ROLE_RANK[minimum.value]
+
+
+def require_role(role: str, minimum: MembershipRole) -> None:
+    if not role_allows(role, minimum):
+        raise OrganisationRoleError()
