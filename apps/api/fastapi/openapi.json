@@ -15147,6 +15147,66 @@
         }
       }
     },
+    "/api/v1/wxproducts/aviation/drafts/validate": {
+      "post": {
+        "tags": [
+          "wxproducts"
+        ],
+        "summary": "Validate a coded METAR, SPECI or TAF",
+        "description": "Checks the coded text against WMO-No. 306 FM 15/16/51 and ICAO Annex 3 coding rules. Findings are advisory: errors are code violations, warnings are reporting practice. Nothing is saved, issued or transmitted.",
+        "operationId": "wxproductsValidateAviationMessage",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AviationValidationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AviationValidationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthoringError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyCookie": []
+          },
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/wxproducts/aviation/drafts/{draft_id}/history": {
       "get": {
         "tags": [
@@ -29049,6 +29109,45 @@
         ],
         "title": "AviationHistory"
       },
+      "AviationIssue": {
+        "properties": {
+          "severity": {
+            "$ref": "#/components/schemas/AviationIssuePropertiesSeverityEnum"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "group": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Group"
+          },
+          "message": {
+            "type": "string",
+            "title": "Message"
+          },
+          "rule": {
+            "type": "string",
+            "title": "Rule"
+          }
+        },
+        "type": "object",
+        "required": [
+          "severity",
+          "code",
+          "message",
+          "rule"
+        ],
+        "title": "AviationIssue",
+        "description": "One coded-message finding. `error` is a code violation; `warning` is practice."
+      },
       "AviationRevisionRead": {
         "properties": {
           "kind": {
@@ -29143,6 +29242,101 @@
           "recorded_at"
         ],
         "title": "AviationRevisionRead"
+      },
+      "AviationValidationRequest": {
+        "properties": {
+          "kind": {
+            "$ref": "#/components/schemas/AviationDraftReadPropertiesKindEnum"
+          },
+          "station": {
+            "type": "string",
+            "pattern": "^[A-Z]{4}$",
+            "title": "Station"
+          },
+          "message": {
+            "type": "string",
+            "maxLength": 6000,
+            "minLength": 1,
+            "title": "Message"
+          },
+          "observed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Observed At"
+          },
+          "issued_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Issued At"
+          },
+          "valid_from": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid From"
+          },
+          "valid_to": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Valid To"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kind",
+          "station",
+          "message"
+        ],
+        "title": "AviationValidationRequest",
+        "description": "A coded message to check; same fields as a draft, nothing is saved."
+      },
+      "AviationValidationResponse": {
+        "properties": {
+          "valid": {
+            "type": "boolean",
+            "title": "Valid"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/AviationIssue"
+            },
+            "type": "array",
+            "title": "Issues"
+          }
+        },
+        "type": "object",
+        "required": [
+          "valid"
+        ],
+        "title": "AviationValidationResponse"
       },
       "BalanceImportRequest": {
         "properties": {
@@ -49134,7 +49328,7 @@
             "title": "Message"
           },
           "severity": {
-            "$ref": "#/components/schemas/SynopValidationIssuePropertiesSeverityEnum"
+            "$ref": "#/components/schemas/AviationIssuePropertiesSeverityEnum"
           }
         },
         "type": "object",
@@ -54285,6 +54479,13 @@
           "TAF"
         ]
       },
+      "AviationIssuePropertiesSeverityEnum": {
+        "type": "string",
+        "enum": [
+          "error",
+          "warning"
+        ]
+      },
       "BalanceImportRowPropertiesStatusEnum": {
         "type": "string",
         "enum": [
@@ -54783,14 +54984,6 @@
           "approved",
           "rejected"
         ]
-      },
-      "SynopValidationIssuePropertiesSeverityEnum": {
-        "type": "string",
-        "enum": [
-          "error",
-          "warning"
-        ],
-        "default": "error"
       },
       "ThreadDetailPropertiesKindEnum": {
         "type": "string",

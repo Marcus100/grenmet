@@ -4,6 +4,8 @@ import { AviationDraft } from "./aviation-draft";
 
 const CONFLICT = /Reload it before saving/;
 const SAVED = /Revision 1 saved to FastAPI/;
+const NORTH = /North is 360, not 000/;
+const RULE_LINE = /wind_north · WMO-No. 306 FM 15/;
 const IMPORTED = /Browser draft loaded as a new unsaved draft/;
 const ID = "11111111-1111-4111-8111-111111111111";
 const saved = {
@@ -135,4 +137,47 @@ it("keeps seconds when loading an existing draft and prompts before replacing ed
   expect(screen.getByLabelText("Coded message (UTC time groups)")).toHaveValue(
     saved.message
   );
+});
+
+it("shows which group and rule failed, and clears findings when the text changes", async () => {
+  let posted: Record<string, unknown> = {};
+  vi.stubGlobal(
+    "fetch",
+    vi.fn((url: string, init?: RequestInit) => {
+      if (url.includes("browser-session"))
+        return Promise.resolve(json({ csrfToken: "token", userId: ID }));
+      expect(url).toContain("/aviation/drafts/validate");
+      posted = JSON.parse(String(init?.body)) as Record<string, unknown>;
+      return Promise.resolve(
+        json({
+          valid: false,
+          issues: [
+            {
+              severity: "error",
+              code: "wind_north",
+              group: "00008KT",
+              message: "North is 360, not 000.",
+              rule: "WMO-No. 306 FM 15; ICAO Annex 3 App. 3",
+            },
+            {
+              severity: "warning",
+              code: "no_terminator",
+              group: null,
+              message: "End the message with =.",
+              rule: "WMO-No. 306 FM 15; ICAO Annex 3 App. 3",
+            },
+          ],
+        })
+      );
+    })
+  );
+  render(<AviationDraft />);
+  typeMessage("METAR TGPY 181200Z 00008KT");
+  fireEvent.click(screen.getByText("Check coding"));
+  await screen.findByText(NORTH);
+  expect(screen.getByText("00008KT")).toBeTruthy();
+  expect(screen.getByText(RULE_LINE)).toBeTruthy();
+  expect(posted).toMatchObject({ kind: "METAR", station: "TGPY" });
+  typeMessage("METAR TGPY 181200Z 36008KT");
+  expect(screen.queryByText(NORTH)).toBeNull();
 });

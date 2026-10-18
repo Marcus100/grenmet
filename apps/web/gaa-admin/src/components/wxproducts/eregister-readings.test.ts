@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { READINGS } from "./eregister-readings";
+import { READINGS, tenthsToCelsius } from "./eregister-readings";
 
 // Paper register, Thursday 30 March 2023, 12 UTC (r1.jpg).
 const row: Record<string, string> = {
@@ -48,5 +48,14 @@ it("is blank while empty and a dash-worthy null for an invalid code", () => {
   expect(read("air_temp", {})).toBe("");
   expect(read("visibility", { visibility: "52" })).toBeNull();
   expect(read("wind_dir", { wind_dir: "070" })).toBeNull();
+  expect(read("s3_layer1_height", { s3_layer1_height: "53" })).toBeNull();
+});
+
+it("rejects a sign digit other than 0 or 1 and decodes high layer heights", () => {
+  expect(tenthsToCelsius("2254")).toBeNull();
+  expect(tenthsToCelsius("1034")).toBe(-3.4);
+  expect(read("s3_layer1_height", { s3_layer1_height: "81" })).toBe("10500");
+  expect(read("s3_layer1_height", { s3_layer1_height: "88" })).toBe("21000");
+  expect(read("s3_layer1_height", { s3_layer1_height: "89" })).toBe(">21000");
   expect(read("s3_layer1_height", { s3_layer1_height: "53" })).toBeNull();
 });

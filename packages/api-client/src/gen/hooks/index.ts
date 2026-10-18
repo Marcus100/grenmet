@@ -1974,6 +1974,11 @@ export {
   wxproductsSaveProductMutationOptions,
 } from "./useWxproductsSaveProduct.js";
 export {
+  useWxproductsValidateAviationMessage,
+  wxproductsValidateAviationMessageMutationKey,
+  wxproductsValidateAviationMessageMutationOptions,
+} from "./useWxproductsValidateAviationMessage.js";
+export {
   useWxwatchArchive,
   wxwatchArchiveQueryKey,
   wxwatchArchiveQueryOptions,

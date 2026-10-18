@@ -842,7 +842,12 @@ export type { AviationDraftReadPropertiesKindEnum } from "./AviationDraftReadPro
 export { aviationDraftReadPropertiesKindEnum } from "./AviationDraftReadPropertiesKindEnum.js";
 export type { AviationDraftWrite } from "./AviationDraftWrite.js";
 export type { AviationHistory } from "./AviationHistory.js";
+export type { AviationIssue } from "./AviationIssue.js";
+export type { AviationIssuePropertiesSeverityEnum } from "./AviationIssuePropertiesSeverityEnum.js";
+export { aviationIssuePropertiesSeverityEnum } from "./AviationIssuePropertiesSeverityEnum.js";
 export type { AviationRevisionRead } from "./AviationRevisionRead.js";
+export type { AviationValidationRequest } from "./AviationValidationRequest.js";
+export type { AviationValidationResponse } from "./AviationValidationResponse.js";
 export type { BalanceImportRequest } from "./BalanceImportRequest.js";
 export type { BalanceImportResult } from "./BalanceImportResult.js";
 export type { BalanceImportRow } from "./BalanceImportRow.js";
@@ -4502,8 +4507,6 @@ export type { SynopticImageGroup } from "./SynopticImageGroup.js";
 export type { SynopticImageGroups } from "./SynopticImageGroups.js";
 export type { SynopticSlots } from "./SynopticSlots.js";
 export type { SynopValidationIssue } from "./SynopValidationIssue.js";
-export type { SynopValidationIssuePropertiesSeverityEnum } from "./SynopValidationIssuePropertiesSeverityEnum.js";
-export { synopValidationIssuePropertiesSeverityEnum } from "./SynopValidationIssuePropertiesSeverityEnum.js";
 export type { SynopValidationRequest } from "./SynopValidationRequest.js";
 export type { SynopValidationResponse } from "./SynopValidationResponse.js";
 export type { SynopWorkbook } from "./SynopWorkbook.js";
@@ -4967,6 +4970,15 @@ export type {
   WxproductsSaveProductStatus422,
   WxproductsSaveProductStatus503,
 } from "./WxproductsSaveProduct.js";
+export type {
+  WxproductsValidateAviationMessageBody,
+  WxproductsValidateAviationMessageOptions,
+  WxproductsValidateAviationMessageResponse,
+  WxproductsValidateAviationMessageResponses,
+  WxproductsValidateAviationMessageStatus200,
+  WxproductsValidateAviationMessageStatus403,
+  WxproductsValidateAviationMessageStatus422,
+} from "./WxproductsValidateAviationMessage.js";
 export type {
   WxwatchArchiveOptions,
   WxwatchArchiveQuery,

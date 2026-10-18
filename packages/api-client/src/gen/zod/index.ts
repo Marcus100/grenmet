@@ -767,7 +767,11 @@ export { aviationDraftReadPropertiesKindEnumSchema } from "./aviationDraftReadPr
 export { aviationDraftReadSchema } from "./aviationDraftReadSchema.js";
 export { aviationDraftWriteSchema } from "./aviationDraftWriteSchema.js";
 export { aviationHistorySchema } from "./aviationHistorySchema.js";
+export { aviationIssuePropertiesSeverityEnumSchema } from "./aviationIssuePropertiesSeverityEnumSchema.js";
+export { aviationIssueSchema } from "./aviationIssueSchema.js";
 export { aviationRevisionReadSchema } from "./aviationRevisionReadSchema.js";
+export { aviationValidationRequestSchema } from "./aviationValidationRequestSchema.js";
+export { aviationValidationResponseSchema } from "./aviationValidationResponseSchema.js";
 export { balanceImportRequestSchema } from "./balanceImportRequestSchema.js";
 export { balanceImportResultSchema } from "./balanceImportResultSchema.js";
 export { balanceImportRowPropertiesStatusEnumSchema } from "./balanceImportRowPropertiesStatusEnumSchema.js";
@@ -4124,7 +4128,6 @@ export { synopDecodedSchema } from "./synopDecodedSchema.js";
 export { synopticImageGroupSchema } from "./synopticImageGroupSchema.js";
 export { synopticImageGroupsSchema } from "./synopticImageGroupsSchema.js";
 export { synopticSlotsSchema } from "./synopticSlotsSchema.js";
-export { synopValidationIssuePropertiesSeverityEnumSchema } from "./synopValidationIssuePropertiesSeverityEnumSchema.js";
 export { synopValidationIssueSchema } from "./synopValidationIssueSchema.js";
 export { synopValidationRequestSchema } from "./synopValidationRequestSchema.js";
 export { synopValidationResponseSchema } from "./synopValidationResponseSchema.js";
@@ -4551,6 +4554,14 @@ export {
   wxproductsSaveProductStatus422Schema,
   wxproductsSaveProductStatus503Schema,
 } from "./wxproductsSaveProductSchema.js";
+export {
+  wxproductsValidateAviationMessageBodySchema,
+  wxproductsValidateAviationMessageErrorSchema,
+  wxproductsValidateAviationMessageResponseSchema,
+  wxproductsValidateAviationMessageStatus200Schema,
+  wxproductsValidateAviationMessageStatus403Schema,
+  wxproductsValidateAviationMessageStatus422Schema,
+} from "./wxproductsValidateAviationMessageSchema.js";
 export {
   wxwatchArchiveAssetErrorSchema,
   wxwatchArchiveAssetPathAssetIdSchema,

@@ -417,3 +417,22 @@ class AviationRevisionRead(AviationContent):
 
 class AviationHistory(BaseModel):
     revisions: list[AviationRevisionRead]
+
+
+class AviationValidationRequest(AviationContent):
+    """A coded message to check; same fields as a draft, nothing is saved."""
+
+
+class AviationIssue(BaseModel):
+    """One coded-message finding. `error` is a code violation; `warning` is practice."""
+
+    severity: Literal["error", "warning"]
+    code: str
+    group: str | None = None
+    message: str
+    rule: str
+
+
+class AviationValidationResponse(BaseModel):
+    valid: bool
+    issues: list[AviationIssue] = Field(default_factory=list)

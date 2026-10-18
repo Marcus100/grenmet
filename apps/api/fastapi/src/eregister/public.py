@@ -82,8 +82,18 @@ def _code(text_value: str) -> int | None:
 
 
 def temperature(text_value: str) -> float | None:
-    """Workbook temperatures are entered in °C (e.g. ``25.4``)."""
-    value = _number(text_value)
+    """Degrees C from the coded group (``254``, ``1034``) or a plain value (``25.4``).
+
+    The register keys TTT or snTTT in tenths (sn 0 positive, 1 negative); earlier
+    clients saved plain degrees. A decimal point marks the plain form.
+    """
+    if text_value.isdigit() and len(text_value) in (3, 4):
+        if len(text_value) == 4 and text_value[0] not in "01":  # noqa: PLR2004
+            return None
+        sign = -1 if len(text_value) == 4 and text_value[0] == "1" else 1  # noqa: PLR2004
+        value: float | None = sign * int(text_value[-3:]) / 10
+    else:
+        value = _number(text_value)
     return value if value is not None and -10 <= value <= 50 else None
 
 
@@ -151,6 +161,13 @@ def rain(text_value: str) -> tuple[float | None, bool]:
     return float(value), False
 
 
+def rain_24h_mm(text_value: str) -> float | None:
+    """Group 7R24R24R24R24: four digits in tenths of a millimetre, 9999 trace."""
+    if text_value.isdigit() and len(text_value) == 4:  # noqa: PLR2004
+        return 0.0 if text_value == "9999" else int(text_value) / 10
+    return _number(text_value)
+
+
 def weather(code: str) -> str | None:
     value = _code(code)
     if value is None:
@@ -168,7 +185,7 @@ def decode(row: dict[str, Any]) -> PublicObservation:
     calm, direction, speed_kt = wind(workbook)
     change = _code(_value(workbook, "pressure_change"))
     amount, trace = rain(_value(workbook, "precip_amount"))
-    rain_24h, _ = rain(_value(workbook, "s3_rainfall_24h"))
+    rain_24h = rain_24h_mm(_value(workbook, "s3_rainfall_24h"))
     oktas = _code(_value(workbook, "total_cloud"))
     return PublicObservation(
         station_id=row["station_id"],
