@@ -175,7 +175,16 @@ class OutboundEmail(Base):
     """
 
     __tablename__ = "outbound_email"
-    __table_args__ = (sa.Index("ix_outbound_email_due", "status", "next_retry_at"),)
+    __table_args__ = (
+        sa.Index("ix_outbound_email_due", "status", "next_retry_at"),
+        # One row per dedupe key (e.g. a CAP alert and one subscriber).
+        sa.Index(
+            "uq_outbound_email_dedupe_key",
+            "dedupe_key",
+            unique=True,
+            postgresql_where=sa.text("dedupe_key IS NOT NULL"),
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     to_email: Mapped[str] = mapped_column(String(320))
@@ -184,6 +193,7 @@ class OutboundEmail(Base):
     props: Mapped[dict[str, Any]] = mapped_column(JSON, default=dict)
     html: Mapped[str | None] = mapped_column(sa.Text, nullable=True)
     transactional: Mapped[bool] = mapped_column(default=False)
+    dedupe_key: Mapped[str | None] = mapped_column(String(200), nullable=True)
     status: Mapped[str] = mapped_column(
         String(20), default=OutboundEmailStatus.PENDING.value
     )

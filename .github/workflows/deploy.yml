@@ -144,6 +144,9 @@ jobs:
           WIS2BOX_S3_SECRET_ACCESS_KEY: ${{ secrets.WIS2BOX_S3_SECRET_ACCESS_KEY }}
           OPENSKY_CLIENT_ID: ${{ secrets.OPENSKY_CLIENT_ID }}
           OPENSKY_CLIENT_SECRET: ${{ secrets.OPENSKY_CLIENT_SECRET }}
+          WEBPUSH_VAPID_PUBLIC_KEY: ${{ vars.WEBPUSH_VAPID_PUBLIC_KEY }}
+          WEBPUSH_CONTACT: ${{ vars.WEBPUSH_CONTACT }}
+          WEBPUSH_VAPID_PRIVATE_KEY: ${{ secrets.WEBPUSH_VAPID_PRIVATE_KEY }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash ../../scripts/production/core.sh deploy
       - name: Install declared monitoring after application acceptance

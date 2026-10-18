@@ -68,9 +68,13 @@ Three anonymous, rate-limited (per IP) endpoints back public site forms. They
 never read existing data and return a fixed acknowledgement:
 
 - `POST /api/v1/subscriptions` (`subscriptionsSubscribe`): double opt-in sign-up
-  for a list key (`signal`, `barrels`); the reply is identical for every address state.
+  for a list key (`signal`, `barrels`, `gms-alerts`); the reply is identical for every address state.
   `GET /subscriptions/confirm` and `/subscriptions/unsubscribe` take a signed
   `token` and 303-redirect to the list's site.
+- `GET /api/v1/push/vapid-public-key` (`pushVapidPublicKey`), `POST` and
+  `DELETE /api/v1/push/subscriptions` (`pushSubscribe`, `pushUnsubscribe`):
+  browser Web Push for the `gms-alerts` list. Endpoints must belong to a known
+  push service; `enabled: false` / 503 until the `WEBPUSH_*` keys are set.
 - `POST /api/v1/contact/messages` (`contactSendContactMessage`): stores a
   website message and emails it to the inbox of its `site` (`mbia` by default,
   or `barrels`). `turnstile_token` is accepted but not verified yet.
