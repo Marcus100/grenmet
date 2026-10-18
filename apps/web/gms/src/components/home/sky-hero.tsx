@@ -53,7 +53,7 @@ export function SkyHero({
       return {
         ...day,
         href: day.path,
-        rain: issued ? rainChance(issued, index) : null,
+        rain: issued ? rainChance(issued) : null,
       };
     }
   );
@@ -79,7 +79,6 @@ export function SkyHero({
       panels[day.slug] = (
         <DayPanel
           day={issued}
-          index={dayIndex}
           note={location.isDefault ? undefined : weather.label}
         />
       );

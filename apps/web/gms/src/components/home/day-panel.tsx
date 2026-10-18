@@ -54,12 +54,9 @@ export function DaySummary({ day }: { day: StripDay }) {
  */
 export function DayPanel({
   day,
-  index,
   note,
 }: {
   day: ForecastDayData;
-  /** Day offset from today; picks the day's samples. */
-  index: number;
   /** Extra context, e.g. the national forecast on a place page. */
   note?: string;
 }) {
@@ -73,7 +70,7 @@ export function DayPanel({
   );
   if (!isIssued(day)) {
     // Same heading as an issued day, but no figures: an unissued day never
-    // gets sample values.
+    // gets invented values.
     return (
       <section
         aria-label="Forecast details"
@@ -133,7 +130,7 @@ export function DayPanel({
           )}
         </div>
       </div>
-      <ReadingGrid readings={dayReadings(day, index)} />
+      <ReadingGrid readings={dayReadings(day)} />
     </section>
   );
 }

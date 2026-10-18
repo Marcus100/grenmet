@@ -2,9 +2,9 @@ import { MapPinIcon } from "lucide-react";
 import { ReadingGrid } from "@/components/home/reading-grid";
 import { SkyScene } from "@/components/home/sky-scene";
 import { isStale, localTime } from "@/lib/current-conditions";
+import { feelsLike } from "@/lib/feels-like";
 import type { WeatherSnapshot } from "@/lib/forecast-data";
 import { nowReadings, skyFromWords } from "@/lib/hero-readings";
-import { feelsLike } from "@/lib/hero-samples";
 import { cn } from "@/lib/utils";
 
 function Numeral({

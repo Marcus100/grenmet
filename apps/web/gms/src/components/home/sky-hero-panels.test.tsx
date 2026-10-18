@@ -1,3 +1,6 @@
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import type { PublicObservation } from "@barrelsgd/api-client";
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -8,12 +11,14 @@ import { REFERENCE_WEATHER } from "@/lib/forecast-data";
 import { unavailableWeather } from "@/lib/forecast-selection";
 import {
   dayReadings,
+  NOT_AVAILABLE,
   nowReadings,
   rainChance,
   skyFromWords,
 } from "@/lib/hero-readings";
-import { SAMPLE_DAYS, SAMPLE_NOW } from "@/lib/hero-samples";
 
+const CLOCK = /^\d{2}:\d{2}$/;
+const SAMPLE_REFERENCE = /hero-samples|SAMPLE_/;
 const FEELS_LIKE = /^Feels like \d+°$/;
 const CHANCE_OF_RAIN = /chance of rain/;
 const OBSERVED_AT = "2026-09-29T17:00:00Z"; // 13:00 AST
@@ -281,7 +286,7 @@ describe("Day panel", () => {
 
 describe("hero readings", () => {
   it("prefers issued values and keeps every tide time", () => {
-    const rows = dayReadings(issued(), 0);
+    const rows = dayReadings(issued());
     const values = Object.fromEntries(
       rows.map((row) => [row.label, row.value])
     );
@@ -301,15 +306,25 @@ describe("hero readings", () => {
     });
   });
 
-  it("fills gaps in an issued day from the samples", () => {
+  it("says not available for gaps in an issued day and computes sun times", () => {
     const day = issued({ conditions: [{ label: "Wind", value: "E 10 mph" }] });
-    const values = Object.fromEntries(
-      dayReadings(day, 2).map((row) => [row.label, row.value])
-    );
-    expect(values["Chance of rain"]).toBe(`${SAMPLE_DAYS[2]?.rainChance}%`);
-    expect(values.Gusts).toBe(SAMPLE_DAYS[2]?.gusts);
-    expect(values["High tides"]).toBe(SAMPLE_DAYS[2]?.highTides);
-    expect(values.Rainfall).toBe(SAMPLE_DAYS[2]?.rainfall);
+    const rows = dayReadings(day);
+    const byLabel = Object.fromEntries(rows.map((row) => [row.label, row]));
+    for (const label of [
+      "Chance of rain",
+      "Gusts",
+      "High tides",
+      "Rainfall",
+      "Air quality",
+    ]) {
+      expect(byLabel[label]).toMatchObject({
+        unavailable: true,
+        value: NOT_AVAILABLE,
+      });
+    }
+    expect(byLabel.Sunrise?.value).toMatch(CLOCK);
+    expect(byLabel.Sunset?.value).toMatch(CLOCK);
+    expect(byLabel.Sunrise?.unavailable).toBeUndefined();
   });
 
   it("never invents a forecast for an outage", () => {
@@ -317,11 +332,11 @@ describe("hero readings", () => {
     if (!outage) {
       throw new Error("expected an outage placeholder day");
     }
-    expect(dayReadings(outage, 0)).toEqual([]);
-    expect(rainChance(outage, 0)).toBeNull();
+    expect(dayReadings(outage)).toEqual([]);
+    expect(rainChance(outage)).toBeNull();
   });
 
-  it("takes register values first and samples only for gaps", () => {
+  it("shows register values and says not available for unrecorded fields", () => {
     const rows = nowReadings(currentConditions(reading));
     const byLabel = Object.fromEntries(rows.map((row) => [row.label, row]));
     expect(byLabel.Pressure).toMatchObject({
@@ -329,11 +344,28 @@ describe("hero readings", () => {
       value: "1014.2 hPa",
     });
     expect(byLabel.Rain?.value).toBe("0.4 mm");
-    expect(byLabel["UV index"]?.value).toBe(SAMPLE_NOW.uvIndex);
-    expect(byLabel["Air quality"]).toMatchObject({
-      tag: SAMPLE_NOW.airQuality.level,
-      value: `${SAMPLE_NOW.airQuality.index} AQI`,
-    });
+    for (const label of ["UV index", "Air quality", "Visibility", "Gusts"]) {
+      expect(byLabel[label]).toMatchObject({
+        unavailable: true,
+        value: NOT_AVAILABLE,
+      });
+      expect(byLabel[label]?.tag).toBeUndefined();
+    }
+  });
+
+  it("never reads constant sample values: readings come from the inputs", () => {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const source = readFileSync(
+      join(here, "../../lib/hero-readings.ts"),
+      "utf8"
+    );
+    expect(source).not.toMatch(SAMPLE_REFERENCE);
+    expect(existsSync(join(here, "../../lib/hero-samples.ts"))).toBe(false);
+    const hot = currentConditions({ ...reading, relative_humidity: 91 });
+    const cool = currentConditions({ ...reading, relative_humidity: 40 });
+    const humidity = (c: typeof hot) =>
+      nowReadings(c).find((row) => row.label === "Humidity")?.value;
+    expect(humidity(hot)).not.toBe(humidity(cool));
   });
 
   it.each([
