@@ -12,6 +12,8 @@ const SHARED_SENTRY_APPS = new Set([
   "gaa-admin",
   "docs",
   "gms",
+  "cap",
+  "gmsdash",
   "signal",
   "mbia",
   "events",
