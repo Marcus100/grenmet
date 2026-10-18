@@ -37,6 +37,7 @@ Port **3009**. Package: `@barrelsgd/web-events`. Design lane:
   "available when ticketing launches" empty states, never figures. The listing editor
   shows the listing's History (`ActivityPanel`, `getListingActivity`). No page
   renders the demo fixtures in `src/data/fixtures.ts`.
+- **Tickets (E1):** event pages with `admission="ticketed"` render `TicketClaim` (free and registration tiers; paid tiers stay disabled until online payment exists). Claiming needs an Events sign-in (guests browse); quantity is clamped to `min(perAccountLimit - held, remaining)`. `/me/tickets` lists the member's tickets and `/me/tickets/[id]` shows the QR as inline SVG (`lib/qr.ts` builds the path from the `qrcode` catalog package; no `dangerouslySetInnerHTML`), the printable code and Cancel. The QR token comes from the API; never build or sign one in the web app. Tier editor ids are sent only when they are API UUIDs, so saving keeps issued tickets on their tier.
 - Tests build events with `src/test/factories.ts`; never reintroduce runtime
   fixtures for public data.
 - Deployment requires `EVENTS_DB_PASSWORD`; the shared runtime renderer provisions the Events URL and backups include its database. Keep API/auth workspace sources in the web Docker build.

@@ -69,6 +69,9 @@ describe("toEventDetail", () => {
           price_minor: 15_000,
           currency: "XCD",
           allocation: 900,
+          per_account_limit: 2,
+          remaining: 850,
+          held: 1,
         },
       ],
     };
@@ -76,6 +79,11 @@ describe("toEventDetail", () => {
     expect(mapped.organiser.viewerFollowing).toBe(false);
     expect(mapped.group).toBeNull();
     expect(mapped.tiers[0]?.price.amountMinor).toBe(15_000);
+    expect(mapped.tiers[0]).toMatchObject({
+      perAccountLimit: 2,
+      remaining: 850,
+      held: 1,
+    });
     expect(mapped.capacity).toBe(1200);
   });
 });
