@@ -1211,6 +1211,23 @@ convention) for night trips. Stop `timepoint: false` marks an approximate time;
 the v1 group times are migrated as approximate. Route 6 trips are migrated as
 `awaiting_confirmation` pending GAA HR.
 
+### Stores requisition
+
+The gaa-admin Stores module (routes still under `/salesbus`) is backed by the
+`stores` schema of the main database. Callers are placed by their HR employment
+record; a client never supplies an organisation or department.
+
+| Route | Access | Contract |
+| --- | --- | --- |
+| `GET /stores/access` | employed staff | Organisation, department and which actions the caller may take; UI hint only |
+| `GET /stores/items`, `/locations`, `/stock`, `/stock-movements` | `stores.view` | Organisation-scoped reads; items carry total `on_hand` |
+| `POST /stores/items`, `PATCH /stores/items/{item_id}`, `POST/PATCH /stores/locations[/{location_id}]` | organisation-wide `stores.manage` | SKU and location code unique per organisation (409); items and locations are deactivated, never deleted |
+| `POST /stores/stock-movements` | organisation-wide `stores.manage` | `RECEIPT` adds, `ISSUE` removes (reason required), `ADJUSTMENT` sets the counted level (reason required); stock below zero is refused (409) |
+| `GET /stores/requisitions[/{requisition_id}]` | `stores.view` | Own requisitions plus submitted-or-later ones of departments where the caller holds `stores.approve` or `stores.manage`; others get 404. `can_*` flags tell the UI what the caller may do |
+| `POST /stores/requisitions`, `PATCH …/{id}`, `POST …/{id}/submit`, `POST …/{id}/cancel` | `stores.request`, requester only | `submit: true` on create files and submits at once; edits only while a draft |
+| `POST …/{id}/approve`, `POST …/{id}/reject` | `stores.approve` for the requisition's department | Never the requester (403); approval may lower line quantities; rejection needs a note |
+| `POST …/{id}/deliver` | `stores.manage` for the requisition's department | Partial delivery allowed; stock is decremented in the same transaction; shortfall 409, over-delivery 422 |
+
 ## OpenAPI and generated-client rules
 
 FastAPI is the source of truth for the committed OpenAPI document. Regenerate it

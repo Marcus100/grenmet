@@ -90,6 +90,14 @@ from src.notifications.models import (
     NotificationSetting,
 )
 from src.orm import POSTGRES_INDEXES_NAMING_CONVENTION, Base
+from src.stores.models import (
+    Requisition,
+    RequisitionLine,
+    StockLevel,
+    StockMovement,
+    StoreItem,
+    StoreLocation,
+)
 
 config = context.config
 config.set_main_option("sqlalchemy.url", str(settings.SQLALCHEMY_DATABASE_URI))
@@ -101,7 +109,7 @@ Base.metadata.naming_convention = POSTGRES_INDEXES_NAMING_CONVENTION
 target_metadata = Base.metadata
 
 # Schemas tracked by autogenerate. Extend this set when adding a new schema.
-_TRACKED_SCHEMAS = {None, "public", "hr", "cap"}
+_TRACKED_SCHEMAS = {None, "public", "hr", "cap", "stores"}
 
 
 def _include_object(

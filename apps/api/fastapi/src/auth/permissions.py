@@ -202,6 +202,20 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "Grant buildings to supervisors; act on every building",
     ),
     PermissionDef("janitorial.work", "Record cleaning work in the janitor app"),
+    # Stores — internal supplies requisition
+    PermissionDef(
+        "stores.view",
+        "View the stores catalogue, stock levels and own or department requisitions",
+    ),
+    PermissionDef("stores.request", "Raise stores requisitions for own department"),
+    PermissionDef(
+        "stores.approve",
+        "Approve or reject submitted requisitions of departments in scope (never own)",
+    ),
+    PermissionDef(
+        "stores.manage",
+        "Keep the catalogue, store locations and stock; deliver approved requisitions",
+    ),
 )
 
 ALL_PERMISSION_KEYS: frozenset[str] = frozenset(p.key for p in PERMISSIONS)
@@ -451,6 +465,18 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "janitorial-contractor-supervisor": (
         "Cleaning contractor supervisor: works in the janitor app",
         ("janitorial.work",),
+    ),
+    "stores-requester": (
+        "Raises stores requisitions for own department",
+        ("stores.view", "stores.request"),
+    ),
+    "stores-approver": (
+        "Approves stores requisitions for the departments in scope",
+        ("stores.view", "stores.request", "stores.approve"),
+    ),
+    "stores-keeper": (
+        "Storekeeper: catalogue, locations, stock and deliveries",
+        ("stores.view", "stores.request", "stores.manage"),
     ),
     "workflow-admin": (
         "Workflow administrator",

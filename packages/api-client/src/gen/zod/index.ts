@@ -32,6 +32,7 @@ export { appPhoneCodeVerifySchema } from "./appPhoneCodeVerifySchema.js";
 export { appPublicSchema } from "./appPublicSchema.js";
 export { approvalAuthorityPublicSchema } from "./approvalAuthorityPublicSchema.js";
 export { approvalAuthorityUpdateSchema } from "./approvalAuthorityUpdateSchema.js";
+export { approvalLineSchema } from "./approvalLineSchema.js";
 export { archiveBulletinSchema } from "./archiveBulletinSchema.js";
 export { archiveEditionSchema } from "./archiveEditionSchema.js";
 export { archiveHistorySchema } from "./archiveHistorySchema.js";
@@ -1196,6 +1197,7 @@ export { contractorUpdateSchema } from "./contractorUpdateSchema.js";
 export { dashboardApprovalSchema } from "./dashboardApprovalSchema.js";
 export { dashboardPersonSchema } from "./dashboardPersonSchema.js";
 export { dashboardRequestSchema } from "./dashboardRequestSchema.js";
+export { deliveryLineSchema } from "./deliveryLineSchema.js";
 export { departmentCreateSchema } from "./departmentCreateSchema.js";
 export { departmentMemberPublicSchema } from "./departmentMemberPublicSchema.js";
 export { departmentMembersPublicSchema } from "./departmentMembersPublicSchema.js";
@@ -3022,6 +3024,10 @@ export { imageInputPropertiesTimeBasisEnumSchema } from "./imageInputPropertiesT
 export { imageInputSchema } from "./imageInputSchema.js";
 export { imageResultSchema } from "./imageResultSchema.js";
 export { importStatusSchema } from "./importStatusSchema.js";
+export { itemCreateSchema } from "./itemCreateSchema.js";
+export { itemListPublicSchema } from "./itemListPublicSchema.js";
+export { itemPublicSchema } from "./itemPublicSchema.js";
+export { itemUpdateSchema } from "./itemUpdateSchema.js";
 export { janitorialAccessSchema } from "./janitorialAccessSchema.js";
 export { janitorialAreaSchema } from "./janitorialAreaSchema.js";
 export { janitorialBuildingSchema } from "./janitorialBuildingSchema.js";
@@ -3348,11 +3354,16 @@ export { listingDetailSchema } from "./listingDetailSchema.js";
 export { listingUpsertPropertiesStatusEnumSchema } from "./listingUpsertPropertiesStatusEnumSchema.js";
 export { listingUpsertPropertiesVisibilityEnumSchema } from "./listingUpsertPropertiesVisibilityEnumSchema.js";
 export { listingUpsertSchema } from "./listingUpsertSchema.js";
+export { locationCreateSchema } from "./locationCreateSchema.js";
+export { locationListPublicSchema } from "./locationListPublicSchema.js";
+export { locationPublicSchema } from "./locationPublicSchema.js";
+export { locationUpdateSchema } from "./locationUpdateSchema.js";
 export { managedListingSchema } from "./managedListingSchema.js";
 export { managedOrganiserSchema } from "./managedOrganiserSchema.js";
 export { messageCreateSchema } from "./messageCreateSchema.js";
 export { messagePublicSchema } from "./messagePublicSchema.js";
 export { messageSchema } from "./messageSchema.js";
+export { movementKindSchema } from "./movementKindSchema.js";
 export { myProfilePropertiesIntentsItemsEnumSchema } from "./myProfilePropertiesIntentsItemsEnumSchema.js";
 export { myProfilePropertiesVisibilityEnumSchema } from "./myProfilePropertiesVisibilityEnumSchema.js";
 export { myProfileSchema } from "./myProfileSchema.js";
@@ -3559,6 +3570,16 @@ export { reportPublicSchema } from "./reportPublicSchema.js";
 export { reportUpdatePropertiesStatusEnumSchema } from "./reportUpdatePropertiesStatusEnumSchema.js";
 export { reportUpdateSchema } from "./reportUpdateSchema.js";
 export { requestStatusSchema } from "./requestStatusSchema.js";
+export { requisitionApproveSchema } from "./requisitionApproveSchema.js";
+export { requisitionCreateSchema } from "./requisitionCreateSchema.js";
+export { requisitionDeliverSchema } from "./requisitionDeliverSchema.js";
+export { requisitionLineCreateSchema } from "./requisitionLineCreateSchema.js";
+export { requisitionLinePublicSchema } from "./requisitionLinePublicSchema.js";
+export { requisitionListPublicSchema } from "./requisitionListPublicSchema.js";
+export { requisitionPublicSchema } from "./requisitionPublicSchema.js";
+export { requisitionRejectSchema } from "./requisitionRejectSchema.js";
+export { requisitionStatusSchema } from "./requisitionStatusSchema.js";
+export { requisitionUpdateSchema } from "./requisitionUpdateSchema.js";
 export { reviewAssignmentSchema } from "./reviewAssignmentSchema.js";
 export { reviewInputPropertiesDecisionEnumSchema } from "./reviewInputPropertiesDecisionEnumSchema.js";
 export { reviewInputSchema } from "./reviewInputSchema.js";
@@ -3652,7 +3673,240 @@ export { statusReportPublicSchema } from "./statusReportPublicSchema.js";
 export { statusReportSubmitSchema } from "./statusReportSubmitSchema.js";
 export { statusStaffingEntrySchema } from "./statusStaffingEntrySchema.js";
 export { statusStaffingPublicSchema } from "./statusStaffingPublicSchema.js";
+export { stockLevelListPublicSchema } from "./stockLevelListPublicSchema.js";
+export { stockLevelPublicSchema } from "./stockLevelPublicSchema.js";
+export { stockMovementCreateSchema } from "./stockMovementCreateSchema.js";
+export { stockMovementListPublicSchema } from "./stockMovementListPublicSchema.js";
+export { stockMovementPublicSchema } from "./stockMovementPublicSchema.js";
 export { stopViewSchema } from "./stopViewSchema.js";
+export { storesAccessPublicSchema } from "./storesAccessPublicSchema.js";
+export {
+  storesApproveRequisitionBodySchema,
+  storesApproveRequisitionErrorSchema,
+  storesApproveRequisitionPathRequisitionIdSchema,
+  storesApproveRequisitionResponseSchema,
+  storesApproveRequisitionStatus200Schema,
+  storesApproveRequisitionStatus400Schema,
+  storesApproveRequisitionStatus401Schema,
+  storesApproveRequisitionStatus403Schema,
+  storesApproveRequisitionStatus404Schema,
+  storesApproveRequisitionStatus409Schema,
+  storesApproveRequisitionStatus422Schema,
+} from "./storesApproveRequisitionSchema.js";
+export {
+  storesCancelRequisitionErrorSchema,
+  storesCancelRequisitionPathRequisitionIdSchema,
+  storesCancelRequisitionResponseSchema,
+  storesCancelRequisitionStatus200Schema,
+  storesCancelRequisitionStatus400Schema,
+  storesCancelRequisitionStatus401Schema,
+  storesCancelRequisitionStatus403Schema,
+  storesCancelRequisitionStatus404Schema,
+  storesCancelRequisitionStatus409Schema,
+  storesCancelRequisitionStatus422Schema,
+} from "./storesCancelRequisitionSchema.js";
+export {
+  storesCreateItemBodySchema,
+  storesCreateItemErrorSchema,
+  storesCreateItemResponseSchema,
+  storesCreateItemStatus201Schema,
+  storesCreateItemStatus400Schema,
+  storesCreateItemStatus401Schema,
+  storesCreateItemStatus403Schema,
+  storesCreateItemStatus404Schema,
+  storesCreateItemStatus409Schema,
+  storesCreateItemStatus422Schema,
+} from "./storesCreateItemSchema.js";
+export {
+  storesCreateLocationBodySchema,
+  storesCreateLocationErrorSchema,
+  storesCreateLocationResponseSchema,
+  storesCreateLocationStatus201Schema,
+  storesCreateLocationStatus400Schema,
+  storesCreateLocationStatus401Schema,
+  storesCreateLocationStatus403Schema,
+  storesCreateLocationStatus404Schema,
+  storesCreateLocationStatus409Schema,
+  storesCreateLocationStatus422Schema,
+} from "./storesCreateLocationSchema.js";
+export {
+  storesCreateRequisitionBodySchema,
+  storesCreateRequisitionErrorSchema,
+  storesCreateRequisitionResponseSchema,
+  storesCreateRequisitionStatus201Schema,
+  storesCreateRequisitionStatus400Schema,
+  storesCreateRequisitionStatus401Schema,
+  storesCreateRequisitionStatus403Schema,
+  storesCreateRequisitionStatus404Schema,
+  storesCreateRequisitionStatus409Schema,
+  storesCreateRequisitionStatus422Schema,
+} from "./storesCreateRequisitionSchema.js";
+export {
+  storesCreateStockMovementBodySchema,
+  storesCreateStockMovementErrorSchema,
+  storesCreateStockMovementResponseSchema,
+  storesCreateStockMovementStatus201Schema,
+  storesCreateStockMovementStatus400Schema,
+  storesCreateStockMovementStatus401Schema,
+  storesCreateStockMovementStatus403Schema,
+  storesCreateStockMovementStatus404Schema,
+  storesCreateStockMovementStatus409Schema,
+  storesCreateStockMovementStatus422Schema,
+} from "./storesCreateStockMovementSchema.js";
+export {
+  storesDeliverRequisitionBodySchema,
+  storesDeliverRequisitionErrorSchema,
+  storesDeliverRequisitionPathRequisitionIdSchema,
+  storesDeliverRequisitionResponseSchema,
+  storesDeliverRequisitionStatus200Schema,
+  storesDeliverRequisitionStatus400Schema,
+  storesDeliverRequisitionStatus401Schema,
+  storesDeliverRequisitionStatus403Schema,
+  storesDeliverRequisitionStatus404Schema,
+  storesDeliverRequisitionStatus409Schema,
+  storesDeliverRequisitionStatus422Schema,
+} from "./storesDeliverRequisitionSchema.js";
+export {
+  storesGetAccessErrorSchema,
+  storesGetAccessResponseSchema,
+  storesGetAccessStatus200Schema,
+  storesGetAccessStatus401Schema,
+  storesGetAccessStatus403Schema,
+  storesGetAccessStatus422Schema,
+} from "./storesGetAccessSchema.js";
+export {
+  storesGetRequisitionErrorSchema,
+  storesGetRequisitionPathRequisitionIdSchema,
+  storesGetRequisitionResponseSchema,
+  storesGetRequisitionStatus200Schema,
+  storesGetRequisitionStatus401Schema,
+  storesGetRequisitionStatus403Schema,
+  storesGetRequisitionStatus404Schema,
+  storesGetRequisitionStatus422Schema,
+} from "./storesGetRequisitionSchema.js";
+export {
+  storesListItemsErrorSchema,
+  storesListItemsQueryActiveSchema,
+  storesListItemsQueryCategorySchema,
+  storesListItemsQueryPageSchema,
+  storesListItemsQueryQSchema,
+  storesListItemsQuerySizeSchema,
+  storesListItemsResponseSchema,
+  storesListItemsStatus200Schema,
+  storesListItemsStatus401Schema,
+  storesListItemsStatus403Schema,
+  storesListItemsStatus422Schema,
+} from "./storesListItemsSchema.js";
+export {
+  storesListLocationsErrorSchema,
+  storesListLocationsResponseSchema,
+  storesListLocationsStatus200Schema,
+  storesListLocationsStatus401Schema,
+  storesListLocationsStatus403Schema,
+  storesListLocationsStatus422Schema,
+} from "./storesListLocationsSchema.js";
+export {
+  storesListRequisitionsErrorSchema,
+  storesListRequisitionsQueryDepartmentIdSchema,
+  storesListRequisitionsQueryMineSchema,
+  storesListRequisitionsQueryPageSchema,
+  storesListRequisitionsQuerySizeSchema,
+  storesListRequisitionsQueryStatusSchema,
+  storesListRequisitionsResponseSchema,
+  storesListRequisitionsStatus200Schema,
+  storesListRequisitionsStatus401Schema,
+  storesListRequisitionsStatus403Schema,
+  storesListRequisitionsStatus422Schema,
+} from "./storesListRequisitionsSchema.js";
+export {
+  storesListStockMovementsErrorSchema,
+  storesListStockMovementsQueryItemIdSchema,
+  storesListStockMovementsQueryLocationIdSchema,
+  storesListStockMovementsQueryPageSchema,
+  storesListStockMovementsQueryRequisitionIdSchema,
+  storesListStockMovementsQuerySizeSchema,
+  storesListStockMovementsResponseSchema,
+  storesListStockMovementsStatus200Schema,
+  storesListStockMovementsStatus401Schema,
+  storesListStockMovementsStatus403Schema,
+  storesListStockMovementsStatus422Schema,
+} from "./storesListStockMovementsSchema.js";
+export {
+  storesListStockErrorSchema,
+  storesListStockQueryItemIdSchema,
+  storesListStockQueryLocationIdSchema,
+  storesListStockQueryPageSchema,
+  storesListStockQuerySizeSchema,
+  storesListStockResponseSchema,
+  storesListStockStatus200Schema,
+  storesListStockStatus401Schema,
+  storesListStockStatus403Schema,
+  storesListStockStatus422Schema,
+} from "./storesListStockSchema.js";
+export {
+  storesRejectRequisitionBodySchema,
+  storesRejectRequisitionErrorSchema,
+  storesRejectRequisitionPathRequisitionIdSchema,
+  storesRejectRequisitionResponseSchema,
+  storesRejectRequisitionStatus200Schema,
+  storesRejectRequisitionStatus400Schema,
+  storesRejectRequisitionStatus401Schema,
+  storesRejectRequisitionStatus403Schema,
+  storesRejectRequisitionStatus404Schema,
+  storesRejectRequisitionStatus409Schema,
+  storesRejectRequisitionStatus422Schema,
+} from "./storesRejectRequisitionSchema.js";
+export {
+  storesSubmitRequisitionErrorSchema,
+  storesSubmitRequisitionPathRequisitionIdSchema,
+  storesSubmitRequisitionResponseSchema,
+  storesSubmitRequisitionStatus200Schema,
+  storesSubmitRequisitionStatus400Schema,
+  storesSubmitRequisitionStatus401Schema,
+  storesSubmitRequisitionStatus403Schema,
+  storesSubmitRequisitionStatus404Schema,
+  storesSubmitRequisitionStatus409Schema,
+  storesSubmitRequisitionStatus422Schema,
+} from "./storesSubmitRequisitionSchema.js";
+export {
+  storesUpdateItemBodySchema,
+  storesUpdateItemErrorSchema,
+  storesUpdateItemPathItemIdSchema,
+  storesUpdateItemResponseSchema,
+  storesUpdateItemStatus200Schema,
+  storesUpdateItemStatus400Schema,
+  storesUpdateItemStatus401Schema,
+  storesUpdateItemStatus403Schema,
+  storesUpdateItemStatus404Schema,
+  storesUpdateItemStatus409Schema,
+  storesUpdateItemStatus422Schema,
+} from "./storesUpdateItemSchema.js";
+export {
+  storesUpdateLocationBodySchema,
+  storesUpdateLocationErrorSchema,
+  storesUpdateLocationPathLocationIdSchema,
+  storesUpdateLocationResponseSchema,
+  storesUpdateLocationStatus200Schema,
+  storesUpdateLocationStatus400Schema,
+  storesUpdateLocationStatus401Schema,
+  storesUpdateLocationStatus403Schema,
+  storesUpdateLocationStatus404Schema,
+  storesUpdateLocationStatus409Schema,
+  storesUpdateLocationStatus422Schema,
+} from "./storesUpdateLocationSchema.js";
+export {
+  storesUpdateRequisitionBodySchema,
+  storesUpdateRequisitionErrorSchema,
+  storesUpdateRequisitionPathRequisitionIdSchema,
+  storesUpdateRequisitionResponseSchema,
+  storesUpdateRequisitionStatus200Schema,
+  storesUpdateRequisitionStatus400Schema,
+  storesUpdateRequisitionStatus401Schema,
+  storesUpdateRequisitionStatus403Schema,
+  storesUpdateRequisitionStatus404Schema,
+  storesUpdateRequisitionStatus409Schema,
+  storesUpdateRequisitionStatus422Schema,
+} from "./storesUpdateRequisitionSchema.js";
 export { submissionModeSchema } from "./submissionModeSchema.js";
 export { suggestionCreateSchema } from "./suggestionCreateSchema.js";
 export { suggestionPublicPropertiesStatusEnumSchema } from "./suggestionPublicPropertiesStatusEnumSchema.js";
