@@ -33,5 +33,12 @@ export default defineConfig({
     globals: true,
     maxWorkers: 2,
     setupFiles: ["./src/test/setup.ts"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json", "json-summary", "html"],
+      // Default scope (files the suite loads), the basis the floors were measured on.
+      // Floors only rise; mirrored in scripts/guardrails/coverage-baseline.json.
+      thresholds: { lines: 90, branches: 79 },
+    },
   },
 });
