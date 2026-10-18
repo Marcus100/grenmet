@@ -2,7 +2,7 @@
 
 **Status:** Active plan — owner decisions recorded 2026-10-18  
 **Owner:** Barrels Grenada  
-**Last updated:** 2026-10-18
+**Last updated:** 2026-10-18 (late: staging deploy and edge review)
 
 ## Purpose
 
@@ -86,7 +86,7 @@ section decides.
 | Topic | Decision |
 | --- | --- |
 | Acceptance of GMS public pages | Owner approves; GMS informed |
-| Release cadence | Daily: the agent opens the `dev` → `staging` PR each evening with a summary; the owner merges before bed. Production on the owner's go |
+| Release cadence | The agent opens the `dev` → `staging` PR right after every successful `dev` push, with a summary and checklist; the owner merges. Production on the owner's go |
 | Staging breakage | Agent fixes forward on `dev` with tests; read-only checks on VMs only |
 | Order inside GMS | CAP first (weeks 1–2: hub, authoring move, signing seam, channels, Alert Hub paperwork; week 3: drill), pages in parallel weeks 2–4 |
 
@@ -100,6 +100,11 @@ section decides.
 - Deploy variables: contact, data-request and eRegister recipients.
 - `AUTH_TOTP_ENCRYPTION_KEYS` secret to enforce privileged MFA.
 - Edit barrels.gd copy; GAA HR inputs; gust group 910ff/911ff with observers.
+- GA4 measurement ID for `cap.barrels.gd` (item 30).
+- Email identity for the Cloudflare Access policy on the admin tools (item 22).
+- Security contact address for `security.txt` (item 28).
+- Later, each on its own go: DMARC `quarantine`, CSP enforcement, HSTS preload.
+- Optional: compact Docker Desktop's disk (`diskpart /s C:\Users\eugin\compact-docker.txt` after `wsl --shutdown`).
 
 ## Next work list (from the 2026-10-18 codebase audit)
 
@@ -113,34 +118,85 @@ approved to build when a product pulls them (paid providers still flagged
 first); hashing suppressed/unsubscribed emails approved after a verified
 backup. GMS real data sources are ready; the work is integration.
 
-| # | Item | Lane | Size | Needs owner |
-| --- | --- | --- | --- | --- |
-| 1 | Push `dev`, open the evening `dev` → `staging` PR with a checklist | Platform | S | Merge |
-| 2 | Remove invented figures: `PlaceholderNotice` becomes "Not yet available from GMS"; strip figures from ~26 pages; hero uses real observations and computed sun times, "not available yet" elsewhere | GMS | M | Page approval |
-| 3 | Privileged MFA covers `cap.alert.approve`/`cap.alert.publish`; approval required before publish, emergency publish role audited | CAP | S | `AUTH_TOTP_ENCRYPTION_KEYS` secret |
-| 4 | `apps/web/cap` (3010): public hub (current, map, history, feeds), Dockerfile, compose service, Traefik `cap.*` | CAP | L | — |
-| 5 | Signing seam: temporary self-signed key generator, `CAP_SIGNING_TEMPORARY` label in XML, feed and hub; deploy vars | CAP | M | Government PKI request |
-| 6 | CAP email list (`gms-alerts`) and publish-to-subscribers job; wire GMS get-alerts | CAP | M | — |
-| 7 | Web Push (VAPID, `pywebpush`): subscription storage and publish handler | CAP | M | — |
-| 8 | Turnstile verified server-side on every public form; `TURNSTILE_SECRET_KEY` | Platform | S | Site key and secret |
-| 9 | Staleness 90 min / 12 h / 30 min and a shared provenance chip (source, time, status, "not a GMS product") | GMS | M | — |
-| 10 | Public latest-satellite endpoint (wxwatch) and the satellite page | GMS | M | — |
-| 11 | Storm mode: cache headers on alert pages and feeds; last-known-good alerts page written to object storage on publish | GMS | M | — |
-| 12 | Uptime monitors for the alert hub, feeds and production API | Platform | S | Monitor account |
-| 13 | Copernicus Marine (waves, swell, SST) and CAMS (UV, dust) ingestion and pages | GMS | L | Copernicus credentials |
-| 14 | Climate importer for GMS spreadsheets with QC flags; normals, monthly, records, rainfall pages | GMS | L | Spreadsheets in `/private/` |
-| 15 | ECMWF open data / AIFS / GFS point meteograms in the worker; `apps/web/gmsdash` (3013) scaffold with org access requests | GMS | L | — |
-| 16 | `JURY_DUTY` leave type; holiday table in timesheets; extra-day-for-holiday-in-vacation suggestion | HR | M | GAA HR rule confirmation |
-| 17 | DPA purge job and email hashing migration (after verified backup) | Platform | M | — |
-| 18 | E3 outlet cash, E4 settlement report, E5 organiser cancel/refund | Barrels | L | — |
-| 19 | C1 deploy wiring for `apps/web/admin` once `admin.*` is freed by the gmsadmin cutover | Barrels | M | — |
-| 20 | Test speed: auto workers (CPUs − 2), pre-push runs changed-package tests, CI shards for API and gaa-admin, fuzz in CI only | Platform | M | — |
-| 21 | Doc fixes: missing env.md rows, invoice settings in deploy, transition-plan port conflicts, note that compose `web-admin` is gaa-admin | Platform | S | — |
+| # | Item | Lane | Size | Needs owner | Status |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Push `dev`, open the evening `dev` → `staging` PR with a checklist | Platform | S | Merge | Done (#412–#414) |
+| 2 | Remove invented figures: `PlaceholderNotice` becomes "Not yet available from GMS"; strip figures from ~26 pages; hero uses real observations and computed sun times, "not available yet" elsewhere | GMS | M | Page approval | Done, on staging |
+| 3 | Privileged MFA covers `cap.alert.approve`/`cap.alert.publish`; approval required before publish, emergency publish role audited | CAP | S | `AUTH_TOTP_ENCRYPTION_KEYS` secret | Done, on staging (MFA enforced once the key secret is set) |
+| 4 | `apps/web/cap` (3010): public hub (current, map, history, feeds), Dockerfile, compose service, Traefik `cap.*` | CAP | L | — | Done, on staging |
+| 5 | Signing seam: temporary self-signed key generator, `CAP_SIGNING_TEMPORARY` label in XML, feed and hub; deploy vars | CAP | M | Government PKI request | Open |
+| 6 | CAP email list (`gms-alerts`) and publish-to-subscribers job; wire GMS get-alerts | CAP | M | — | Done, on staging |
+| 7 | Web Push (VAPID, `pywebpush`): subscription storage and publish handler | CAP | M | — | Done, on staging (needs VAPID keys) |
+| 8 | Turnstile verified server-side on every public form; `TURNSTILE_SECRET_KEY` | Platform | S | Site key and secret | Done, on staging (needs keys) |
+| 9 | Staleness 90 min / 12 h / 30 min and a shared provenance chip (source, time, status, "not a GMS product") | GMS | M | — | Done, on staging |
+| 10 | Public latest-satellite endpoint (wxwatch) and the satellite page | GMS | M | — | Done, on staging |
+| 11 | Storm mode: cache headers on alert pages and feeds; last-known-good alerts page written to object storage on publish | GMS | M | — | Done, on staging |
+| 12 | Uptime monitors for the alert hub, feeds and production API | Platform | S | Monitor account | Open |
+| 13 | Copernicus Marine (waves, swell, SST) and CAMS (UV, dust) ingestion and pages | GMS | L | Copernicus credentials | Done, on staging (needs credentials) |
+| 14 | Climate importer for GMS spreadsheets with QC flags; normals, monthly, records, rainfall pages | GMS | L | Spreadsheets in `/private/` | Open (request form only) |
+| 15 | ECMWF open data / AIFS / GFS point meteograms in the worker; `apps/web/gmsdash` (3013) scaffold with org access requests | GMS | L | — | Done, on staging (sign-in needs `GMSDASH_SSO_CLIENT_SECRET`) |
+| 16 | `JURY_DUTY` leave type; holiday table in timesheets; extra-day-for-holiday-in-vacation suggestion | HR | M | GAA HR rule confirmation | Done, on staging |
+| 17 | DPA purge job and email hashing migration (after verified backup) | Platform | M | — | Held for `EMAIL_HASH_PEPPER` |
+| 18 | E3 outlet cash, E4 settlement report, E5 organiser cancel/refund | Barrels | L | — | Done, on staging |
+| 19 | C1 deploy wiring for `apps/web/admin` once `admin.*` is freed by the gmsadmin cutover | Barrels | M | — | Open (app built, not deployed) |
+| 20 | Test speed: auto workers (CPUs − 2), pre-push runs changed-package tests, CI shards for API and gaa-admin, fuzz in CI only | Platform | M | — | Done, on staging |
+| 21 | Doc fixes: missing env.md rows, invoice settings in deploy, transition-plan port conflicts, note that compose `web-admin` is gaa-admin | Platform | S | — | Partly: domain map in `docs/ports.md`; the rest open |
 
-Known risks: one account can still publish a national warning with a password
-only (items 3); CAP XML publishes unsigned when no certificate is set (item 5);
-observation staleness is 3 h in code (item 9); Turnstile always passes (item 8);
-emails are stored in plaintext indefinitely (item 17).
+Known risks (updated 2026-10-18 late):
+- CAP XML publishes unsigned when no certificate is set (item 5).
+- Privileged MFA for approve and publish is enforced only once `AUTH_TOTP_ENCRYPTION_KEYS` is set (item 3).
+- Turnstile is off until its keys are set (item 8).
+- Emails are stored in plaintext indefinitely (item 17).
+- The admin tools are public behind basic auth (item 22).
+- A staging subdomain could plant cookies for production (item 23).
+
+Closed tonight: single-person publish (item 3) and the 3 h staleness (item 9).
+
+## Edge, domains and API hardening (review 2026-10-18)
+
+A web-researched review of ports, domains, subdomains and the API against
+current best practice. Every hostname by environment is in
+[`docs/ports.md`](../ports.md#domains-by-environment).
+
+Already in line with best practice:
+- one port per app, enforced by `check-ports`; only Traefik is published;
+- host-only `HttpOnly`/`SameSite=Lax`/`Secure` session cookies;
+- HTTPS everywhere, with HSTS including subdomains;
+- a versioned API, with separate liveness (`/api/v1/utils/health-check/`) and readiness (`/api/v1/utils/ready/`) probes;
+- SPF and DKIM for Resend mail.
+
+Owner decisions (2026-10-18):
+- Cloudflare Access (free tier) in front of the admin tools.
+- Keep staging under `*.staging.barrels.gd` and harden it with `__Host-` session cookies; no paid separate domain.
+- The agent may make the DMARC reporting, CAA and Access changes in Cloudflare.
+- The CAP hub gets its own GA4 property.
+
+| # | Item | Lane | Size | Needs owner | Status |
+| --- | --- | --- | --- | --- | --- |
+| 22 | Cloudflare Access in front of `traefik.*` and `adminer.*` (staging and production): proxy those records, add an Access application and policy, keep basic auth as break-glass | Platform | S | Policy email | Approved |
+| 23 | `__Host-` prefix on every app session cookie when `secure` is true (localhost keeps plain names); one forced sign-out per app; check the Payload CMS and FastAPI cookies separately | Platform | M | — | Open |
+| 24 | DMARC: add a `rua=` reporting address (Cloudflare DMARC Management) and `sp=`; review 2–4 weeks, then `quarantine`, then `reject` | Platform | S | Go for quarantine | Approved (reporting) |
+| 25 | CAA records: `issue "letsencrypt.org"` plus the CAs Vercel and Cloudflare need (verify first), and an `iodef` contact | Platform | S | — | Approved |
+| 26 | Security headers: nonce-based CSP in report-only, then enforced; Permissions-Policy; HSTS from 30 days to 1 year after a clean week; preload later | Platform | M | Go to enforce; go to preload | Open |
+| 27 | Health checks: every web app serves `/api/health` (cap and gmsdash already do) and Traefik and compose use it; document the API's liveness and readiness probes | Platform | S | — | Open |
+| 28 | `/.well-known/security.txt` (RFC 9116: `Contact`, `Expires` under a year) on barrels.gd and the public apps | Platform | S | Security contact | Open |
+| 29 | Explicit DNS records for every host, then remove the wildcard | Platform | S | — | Open |
+| 30 | GA4 for `cap.barrels.gd` in the service catalogue, production only (`publicAnalytics: true`) | CAP | S | GA4 ID | Open |
+| 31 | Tidy stale config: catalogue `gaa-admin` origin to `gmsadmin.*` (with item 19); retired hosts in `infra/docker/.env.*.example` CORS lists | Platform | S | — | Open |
+
+Let's Encrypt allows about 50 certificates per registered domain per week,
+shared by staging and production. Today's roughly 28 hosts fit; keep
+`acme.json` on its volume so a redeploy never reissues everything.
+
+## Delivery gate parity (lessons from 2026-10-18)
+
+Three staging failures tonight passed every local gate:
+
+| # | Item | Lane | Size | Status |
+| --- | --- | --- | --- | --- |
+| 32 | Make the local gate match CI: run coverage floors for changed apps in `verify:changed`; add a CI-order pytest option; always pass turbo filters directly, because under pnpm 12 `pnpm test --filter` skips turbo's `^build` | Platform | M | Open |
+| 33 | One source for app lists: derive the shared-Sentry app lists in `scripts/integrations/catalogue.mjs` and `scripts/production/render-env.py` from the service catalogue, and fail CI when a release-scope app has no catalogue entry | Platform | S | Open |
+| 34 | Host tooling notes: `jq` is not installed (use `gh --jq`); turn Docker Desktop's WSL integration back on after a disk compaction | Platform | S | Open |
 
 ## What exists today
 
