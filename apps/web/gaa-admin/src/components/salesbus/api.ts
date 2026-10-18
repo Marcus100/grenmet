@@ -5,6 +5,7 @@ import {
   requisitionCreateSchema,
   requisitionDeliverSchema,
   requisitionRejectSchema,
+  requisitionUpdateSchema,
   stockMovementCreateSchema,
   storesApproveRequisition,
   storesCancelRequisition,
@@ -15,6 +16,7 @@ import {
   storesDeliverRequisition,
   storesRejectRequisition,
   storesSubmitRequisition,
+  storesUpdateRequisition,
 } from "@barrelsgd/api-client";
 
 // Client-side mutations through the gaa-admin API proxy. Bodies are parsed with
@@ -23,6 +25,12 @@ import {
 export const createRequisition = (body: unknown) =>
   storesCreateRequisition({
     body: requisitionCreateSchema.parse(body),
+  }).unwrap();
+
+export const updateRequisition = (requisitionId: string, body: unknown) =>
+  storesUpdateRequisition({
+    path: { requisition_id: requisitionId },
+    body: requisitionUpdateSchema.parse(body),
   }).unwrap();
 
 export const submitRequisition = (requisitionId: string) =>

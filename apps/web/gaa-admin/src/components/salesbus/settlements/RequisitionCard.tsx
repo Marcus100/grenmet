@@ -8,6 +8,8 @@ import type {
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
 import { Button } from "@barrelsgd/ui/components/ui/button";
 import { useMutation } from "@tanstack/react-query";
+import type { Route } from "next";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -31,6 +33,12 @@ const BADGE: Record<
   DELIVERED: "light-success",
   CANCELLED: "light-light",
 };
+
+function cancelWording(status: RequisitionStatus) {
+  return status === "DRAFT"
+    ? { action: "Discard", done: "Draft discarded" }
+    : { action: "Cancel", done: "Requisition cancelled" };
+}
 
 type Dialog = "approve" | "reject" | "deliver" | null;
 
@@ -134,6 +142,13 @@ export function RequisitionCard({
       {hasActions ? (
         <footer className="mt-3 flex flex-wrap justify-end gap-2">
           {requisition.can_edit ? (
+            <Button asChild size="sm" variant="outline">
+              <Link href={`/salesbus/sales/drafts/${requisition.id}` as Route}>
+                Edit
+              </Link>
+            </Button>
+          ) : null}
+          {requisition.can_edit ? (
             <Button
               disabled={simple.isPending}
               onClick={() =>
@@ -153,13 +168,13 @@ export function RequisitionCard({
               onClick={() =>
                 run(
                   () => cancelRequisition(requisition.id),
-                  "Requisition cancelled"
+                  cancelWording(requisition.status).done
                 )
               }
               size="sm"
               variant="outline"
             >
-              Cancel
+              {cancelWording(requisition.status).action}
             </Button>
           ) : null}
           {requisition.can_approve ? (

@@ -27,6 +27,12 @@ export default async function SalesPage() {
       : Promise.resolve(null),
     access.can_manage ? getLocations() : Promise.resolve([]),
   ]);
+  const drafts = mine.data.filter(
+    (requisition) => requisition.status === "DRAFT"
+  );
+  const raised = mine.data.filter(
+    (requisition) => requisition.status !== "DRAFT"
+  );
   const toApprove =
     submitted?.data.filter((requisition) => requisition.can_approve) ?? [];
 
@@ -49,6 +55,13 @@ export default async function SalesPage() {
         </section>
       ) : null}
 
+      {drafts.length > 0 ? (
+        <section className="flex flex-col gap-3">
+          <h2 className="font-semibold text-foreground text-lg">Your drafts</h2>
+          <TransactionList locations={locations} requisitions={drafts} />
+        </section>
+      ) : null}
+
       <section className="flex flex-col gap-3">
         <h2 className="font-semibold text-foreground text-lg">
           Your requisitions
@@ -56,7 +69,7 @@ export default async function SalesPage() {
         <TransactionList
           emptyMessage="You have not raised a requisition yet"
           locations={locations}
-          requisitions={mine.data}
+          requisitions={raised}
         />
       </section>
     </div>

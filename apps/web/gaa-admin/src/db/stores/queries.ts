@@ -2,6 +2,7 @@ import "server-only";
 
 import {
   storesGetAccessResponseSchema,
+  storesGetRequisitionResponseSchema,
   storesListItemsResponseSchema,
   storesListLocationsResponseSchema,
   storesListRequisitionsResponseSchema,
@@ -41,6 +42,7 @@ async function storesGet<T extends z.ZodType>(
     }
   );
   if (response.status === 403) throw new StoresAccessError();
+  if (response.status === 404) throw new StoresNotFoundError();
   if (!response.ok) throw new Error("Stores data unavailable");
   return schema.parse(await response.json());
 }
@@ -49,6 +51,13 @@ async function storesGet<T extends z.ZodType>(
 export class StoresAccessError extends Error {
   constructor() {
     super("Stores access needed");
+  }
+}
+
+/** The record does not exist or is outside the caller's reach. */
+export class StoresNotFoundError extends Error {
+  constructor() {
+    super("Not found");
   }
 }
 
@@ -97,4 +106,17 @@ export async function getRequisitions(
     storesListRequisitionsResponseSchema
   );
   return result;
+}
+
+/** One requisition the caller can read, or null when it is not theirs to see. */
+export async function getRequisition(id: string) {
+  try {
+    return await storesGet(
+      `/requisitions/${encodeURIComponent(id)}`,
+      storesGetRequisitionResponseSchema
+    );
+  } catch (error) {
+    if (error instanceof StoresNotFoundError) return null;
+    throw error;
+  }
 }

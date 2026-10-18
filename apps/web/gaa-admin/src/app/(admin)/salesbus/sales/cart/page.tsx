@@ -19,7 +19,7 @@ export default function CartPage() {
   const [purpose, setPurpose] = useState("");
   const [neededBy, setNeededBy] = useState("");
   const submit = useMutation({
-    mutationFn: () =>
+    mutationFn: (asDraft: boolean) =>
       createRequisition({
         purpose: purpose.trim() || null,
         needed_by: neededBy || null,
@@ -27,18 +27,29 @@ export default function CartPage() {
           item_id: item.itemId,
           quantity: item.quantity,
         })),
-        submit: true,
+        submit: !asDraft,
       }),
   });
 
-  const handleDone = async () => {
+  const handleDone = async (asDraft: boolean) => {
     try {
-      await submit.mutateAsync();
+      await submit.mutateAsync(asDraft);
     } catch (caught) {
-      toast.error(errorMessage(caught, "Could not submit the requisition"));
+      toast.error(
+        errorMessage(
+          caught,
+          asDraft
+            ? "Could not save the draft"
+            : "Could not submit the requisition"
+        )
+      );
       return;
     }
-    toast.success("Requisition submitted for approval");
+    toast.success(
+      asDraft
+        ? "Draft saved. Find it under Your drafts"
+        : "Requisition submitted for approval"
+    );
     clearCart();
     router.push("/salesbus/sales");
     router.refresh();
@@ -108,9 +119,18 @@ export default function CartPage() {
         )}
       >
         <Button
+          className="mb-3 flex w-full justify-center"
+          disabled={items.length === 0 || submit.isPending}
+          onClick={() => handleDone(true)}
+          size="touch"
+          variant="outline"
+        >
+          <span className="text-base sm:text-lg">SAVE AS DRAFT</span>
+        </Button>
+        <Button
           className="flex w-full justify-between bg-gm-blue-ink hover:bg-gm-navy"
           disabled={items.length === 0 || submit.isPending}
-          onClick={handleDone}
+          onClick={() => handleDone(false)}
           size="touch"
         >
           <span className="text-base sm:text-lg">SUBMIT FOR APPROVAL</span>

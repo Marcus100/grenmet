@@ -12,7 +12,7 @@ from src.auth.policy import has_permission
 from src.hr.models import Department
 from src.utils.datetime import utc_now
 
-from . import access, stock
+from . import access, notifications, stock
 from .access import Context
 from .exceptions import (
     StoresNotFoundError,
@@ -432,6 +432,10 @@ async def create_requisition(
         lines=lines,
     )
     session.add(req)
+    if payload.submit:
+        await session.flush()
+        await session.refresh(req)
+        await notifications.submitted(session, req, reference(req.number))
     await session.commit()
     await session.refresh(req)
     logger.info("Requisition created", extra={"requisition_id": str(req.id)})
@@ -478,6 +482,7 @@ async def submit_requisition(
     audit_service.set_actor(session, ctx.user.id)
     req.status = RequisitionStatus.SUBMITTED
     req.submitted_at = utc_now()
+    await notifications.submitted(session, req, reference(req.number))
     await session.commit()
     await session.refresh(req)
     return req
@@ -536,6 +541,9 @@ async def approve_requisition(
     req.decided_at = utc_now()
     req.decided_by_user_id = ctx.user.id
     req.decision_note = payload.note.strip() if payload.note else None
+    await notifications.decided(
+        session, req, reference(req.number), approved=True, actor_id=ctx.user.id
+    )
     await session.commit()
     await session.refresh(req)
     logger.info("Requisition approved", extra={"requisition_id": str(req.id)})
@@ -555,6 +563,9 @@ async def reject_requisition(
     req.decided_at = utc_now()
     req.decided_by_user_id = ctx.user.id
     req.decision_note = payload.note
+    await notifications.decided(
+        session, req, reference(req.number), approved=False, actor_id=ctx.user.id
+    )
     await session.commit()
     await session.refresh(req)
     logger.info("Requisition rejected", extra={"requisition_id": str(req.id)})
@@ -617,6 +628,9 @@ async def deliver_requisition(
         else RequisitionStatus.PARTIALLY_DELIVERED
     )
     req.delivered_at = utc_now()
+    await notifications.delivered(
+        session, req, reference(req.number), complete=complete, actor_id=ctx.user.id
+    )
     await session.commit()
     await session.refresh(req)
     logger.info(

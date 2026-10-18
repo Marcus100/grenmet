@@ -17,13 +17,27 @@
 - Items, locations and requisition lines are never deleted — deactivate. SKU is unique per organisation (case-insensitive check).
 - A requisition outside the caller's reach answers 404, not 403.
 
+## Notifications
+
+`notifications.py` registers five events with `src.notifications.events` (registered in `src/database.py`) and calls `notify()` inside the requisition's own transaction, so a rolled-back change never notifies. Submitted (direct create with `submit` or draft submit) → holders of `stores-approver` whose grant covers the department (`default_roles`, tunable in notification settings; "waiting for approval" cannot be muted by email opt-out). Approved / rejected → requester. Partially delivered / delivered → requester. The actor is excluded; texts hold only reference, requester and department (never approver notes). `dedupe_key` is `<event>:<requisition>`; delivery events add the running delivered total, so a retried delivery is silent and each real delivery is announced once. A user's per-event email opt-out and any snooze are honoured by `notify()`. Approvers who hold `stores.approve` through another role (not `stores-approver`) are not told unless the role is added to the event in notification settings.
+
+## Granting the stores roles (admin note)
+
+Roles are seeded (`stores-requester`, `stores-approver`, `stores-keeper`) and not changed on existing roles. A superuser grants them in gaa-admin: **Users** → open the person → **Manage user** → role assignments → pick the role, a scope and, for `DEPARTMENT`, the department. Everyone must also have an active HR employment record (it fixes their organisation and department).
+
+- `stores-requester`: scope `SELF` is enough; requisitions always file under the employment department.
+- `stores-approver`: scope `DEPARTMENT` + the department they approve (or `ALL` for every department of the organisation). They cannot approve their own requisitions.
+- `stores-keeper`: scope `ALL` to maintain the catalogue, locations and stock (organisation-wide manage); a `DEPARTMENT` keeper can deliver only that department's requisitions.
+
+With no UI: `POST /api/v1/auth/role-assignments` (superuser) with `{"user_id": "<uuid>", "role_id": "<uuid of the stores role>", "scope": "DEPARTMENT", "department_id": "<department id>", "organisation_id": "<org id>"}`; list roles with `GET /api/v1/auth/roles` to find the `role_id`.
+
 ## Not built yet
 
-Notifications to approvers/requesters, reservation of stock at approval, reorder levels, units of measure beyond a label, and moving stock between locations.
+Reservation of stock at approval (approval does not hold stock; availability is only checked at delivery), reorder levels, units of measure beyond a label, and moving stock between locations.
 
 ## Tests
 
-`tests/stores/test_stores.py` — lifecycle, partial delivery, self-approval, cross-department denial, org-wide manage gate, stock invariants, adjustment audit. Use real JWT fixtures and `db_async`.
+`tests/stores/test_notifications.py` — recipients, dedupe, opt-outs, no secrets in text. `tests/stores/test_stores.py` — lifecycle, partial delivery, self-approval, cross-department denial, org-wide manage gate, stock invariants, adjustment audit. Use real JWT fixtures and `db_async`.
 
 ## Related
 

@@ -87,6 +87,7 @@ from src.notifications.models import (
 )
 from src.organisations import audit as _organisations_audit
 from src.stores import audit as _stores_audit
+from src.stores import notifications as _stores_notifications
 from src.stores.models import (
     Requisition,
     RequisitionLine,
@@ -102,6 +103,7 @@ _hr_audit.register()
 _hr_notifications.register()
 _wxwatch_alerts.register()
 _stores_audit.register()
+_stores_notifications.register()
 _organisations_audit.register()
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))

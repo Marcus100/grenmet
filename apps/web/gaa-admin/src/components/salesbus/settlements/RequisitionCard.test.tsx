@@ -184,4 +184,20 @@ describe("RequisitionCard", () => {
       note: null,
     });
   });
+
+  it("links a draft to its editor and calls cancelling a draft discarding", () => {
+    renderCard(
+      requisition({ status: "DRAFT", can_edit: true, can_cancel: true })
+    );
+
+    expect(screen.getByRole("link", { name: "Edit" })).toHaveAttribute(
+      "href",
+      `/salesbus/sales/drafts/${REQUISITION_ID}`
+    );
+    expect(screen.getByRole("button", { name: "Submit" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Discard" })).toBeVisible();
+    expect(
+      screen.queryByRole("button", { name: "Cancel" })
+    ).not.toBeInTheDocument();
+  });
 });
