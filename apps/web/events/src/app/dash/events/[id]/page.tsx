@@ -30,7 +30,13 @@ export default async function EditEventPage({
   }
 
   return (
-    <DashShell active="build" eventName={event.title} isDemo={false}>
+    <DashShell
+      active="build"
+      currentOrganiser={managed.organiser.slug}
+      eventName={event.title}
+      isDemo={false}
+      organisers={managed.organisers}
+    >
       <main className="mx-auto max-w-7xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div>
           <Link

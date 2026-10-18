@@ -32,6 +32,7 @@ import { apiOptions } from "@/lib/api";
 import { reportError } from "@/lib/report-error";
 import { getSession } from "@/lib/session";
 import { type ActionResult, SIGN_IN_REQUIRED } from "./action-result";
+import { chosenOrganiser, rememberOrganiser } from "./organiser-choice";
 
 /**
  * Every Events write goes through here: the member's token is read from the
@@ -193,17 +194,27 @@ export async function updateProfile(update: ProfileUpdate) {
 
 /** Creates (no id) or updates an organiser listing; resolves to its id. */
 export async function saveListing(id: string | null, listing: ListingUpsert) {
+  const organiser = await chosenOrganiser();
+  const query = organiser ? { organiser } : {};
   return await run("events-listing", async (options) => {
     const saved = id
       ? await eventsUpdateManagedListing({
           ...options,
           path: { listing_id: id },
+          query,
           body: listing,
         }).unwrap()
       : await eventsCreateManagedListing({
           ...options,
+          query,
           body: listing,
         }).unwrap();
     return saved.id;
   });
+}
+
+/** Remembers which organiser the /dash console acts for. */
+export async function switchOrganiser(slug: string) {
+  await rememberOrganiser(slug);
+  revalidatePath("/dash", "layout");
 }

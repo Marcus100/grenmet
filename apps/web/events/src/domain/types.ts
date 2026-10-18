@@ -201,11 +201,20 @@ export interface Organiser {
   readonly followerCount: number;
   readonly id: string;
   readonly name: string;
+  /** Platform organisation backing this organiser; null while legacy. */
+  readonly organisationId?: string | null;
   readonly slug: string;
   /** Verification is earned, never bought or transferred. */
   readonly verified: boolean;
   /** Null for visitors who are not signed in. */
   readonly viewerFollowing: boolean | null;
+}
+
+/** An organiser the signed-in member can manage (for the console switcher). */
+export interface OrganiserOption {
+  readonly name: string;
+  readonly organisationId: string | null;
+  readonly slug: string;
 }
 
 export interface PublicEvent {

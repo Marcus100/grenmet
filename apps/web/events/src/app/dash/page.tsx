@@ -21,6 +21,7 @@ export default async function DashOverviewPage() {
       listings={managed.listings}
       now={new Date()}
       organiser={managed.organiser}
+      organisers={managed.organisers}
     />
   );
 }

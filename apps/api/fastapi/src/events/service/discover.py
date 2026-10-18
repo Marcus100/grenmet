@@ -225,6 +225,7 @@ async def _organiser_public(
         name=organiser.name,
         bio=organiser.bio,
         verified=organiser.verified,
+        organisation_id=organiser.organisation_id,
         follower_count=int(followers or 0),
         viewer_following=following,
     )

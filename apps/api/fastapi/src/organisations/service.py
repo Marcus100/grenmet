@@ -64,13 +64,17 @@ async def create_organisation(
     name: str,
     kind: OrganisationKind = OrganisationKind.BUSINESS,
     slug: str | None = None,
+    organisation_id: str | None = None,
 ) -> PlatformOrganisation:
-    """Create a new organisation with an immutable generated ``org_<hex>`` id."""
+    """Create a new organisation with an immutable ``org_<hex>`` id.
+
+    The id is generated unless a caller needs a deterministic one (idempotent
+    cross-database backfills)."""
     clean = name.strip()
     if not clean:
         raise AppException("Organisation name is required", 422)
     organisation = PlatformOrganisation(
-        id=new_organisation_id(),
+        id=organisation_id or new_organisation_id(),
         slug=await _unique_slug(session, slug or clean),
         name=clean,
         kind=kind.value,
@@ -267,3 +271,24 @@ def role_allows(role: str, minimum: MembershipRole) -> bool:
 def require_role(role: str, minimum: MembershipRole) -> None:
     if not role_allows(role, minimum):
         raise OrganisationRoleError()
+
+
+async def list_managed_organisation_ids(
+    session: AsyncSession, user_id: uuid.UUID
+) -> list[str]:
+    """Ids of active organisations where the user is an active admin or owner."""
+    rows = await session.scalars(
+        select(Membership.organisation_id)
+        .join(
+            PlatformOrganisation, PlatformOrganisation.id == Membership.organisation_id
+        )
+        .where(
+            Membership.user_id == user_id,
+            Membership.status == MembershipStatus.ACTIVE.value,
+            Membership.role.in_(
+                [MembershipRole.ADMIN.value, MembershipRole.OWNER.value]
+            ),
+            PlatformOrganisation.status == OrganisationStatus.ACTIVE.value,
+        )
+    )
+    return list(rows.all())

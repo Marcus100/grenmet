@@ -1321,6 +1321,7 @@ export {
 export {
   eventsCreateManagedListingBodySchema,
   eventsCreateManagedListingErrorSchema,
+  eventsCreateManagedListingQueryOrganiserSchema,
   eventsCreateManagedListingResponseSchema,
   eventsCreateManagedListingStatus201Schema,
   eventsCreateManagedListingStatus401Schema,
@@ -1376,6 +1377,7 @@ export {
 } from "./eventsGetListingSchema.js";
 export {
   eventsGetManagedOrganiserErrorSchema,
+  eventsGetManagedOrganiserQueryOrganiserSchema,
   eventsGetManagedOrganiserResponseSchema,
   eventsGetManagedOrganiserStatus200Schema,
   eventsGetManagedOrganiserStatus401Schema,
@@ -1611,6 +1613,7 @@ export {
   eventsUpdateManagedListingBodySchema,
   eventsUpdateManagedListingErrorSchema,
   eventsUpdateManagedListingPathListingIdSchema,
+  eventsUpdateManagedListingQueryOrganiserSchema,
   eventsUpdateManagedListingResponseSchema,
   eventsUpdateManagedListingStatus200Schema,
   eventsUpdateManagedListingStatus401Schema,
@@ -3683,6 +3686,7 @@ export {
   organisationsUpdateMemberStatus422Schema,
 } from "./organisationsUpdateMemberSchema.js";
 export { organisationUpdateSchema } from "./organisationUpdateSchema.js";
+export { organiserOptionSchema } from "./organiserOptionSchema.js";
 export { organiserPublicSchema } from "./organiserPublicSchema.js";
 export { outlookProductPreviewInputSchema } from "./outlookProductPreviewInputSchema.js";
 export { outlookProductPreviewSchema } from "./outlookProductPreviewSchema.js";

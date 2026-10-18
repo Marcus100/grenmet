@@ -1,8 +1,13 @@
 import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { ManagedEvent } from "@/domain/types";
 import { makeEvent, makeOrganiser } from "@/test/factories";
 import { countListings, OrganiserOverview } from "./organiser-overview";
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: () => undefined }),
+}));
+vi.mock("@/data/actions", () => ({ switchOrganiser: () => undefined }));
 
 const AVAILABLE_LABEL = /Available when ticketing launches/;
 const SAMPLE_LABEL = /sample data/i;

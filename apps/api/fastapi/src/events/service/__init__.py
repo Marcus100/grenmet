@@ -40,7 +40,12 @@ from .network import (
     request_connection,
     set_block,
 )
-from .organiser_admin import create_listing, managed_organiser, update_listing
+from .organiser_admin import (
+    create_listing,
+    create_organiser,
+    managed_organiser,
+    update_listing,
+)
 from .people import (
     blocked_ids,
     can_message,
@@ -74,6 +79,7 @@ __all__ = [
     "list_reports",
     "list_suggestions",
     "list_threads",
+    "create_organiser",
     "managed_organiser",
     "my_profile",
     "network",

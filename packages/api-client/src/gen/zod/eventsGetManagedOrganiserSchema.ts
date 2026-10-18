@@ -7,6 +7,11 @@ import * as z from "zod";
 import { managedOrganiserSchema } from "./managedOrganiserSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
+export const eventsGetManagedOrganiserQueryOrganiserSchema = z
+  .union([z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/), z.null()])
+  .optional()
+  .describe("Organiser to act for when the member manages several.");
+
 export const eventsGetManagedOrganiserStatus200Schema = managedOrganiserSchema;
 
 export const eventsGetManagedOrganiserStatus401Schema = z.unknown();

@@ -6,6 +6,13 @@
 import type { ManagedOrganiser } from "./ManagedOrganiser.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
+export type EventsGetManagedOrganiserQuery = {
+  /**
+   * @description Organiser to act for when the member manages several.
+   */
+  organiser?: string | null;
+};
+
 export type EventsGetManagedOrganiserStatus200 = ManagedOrganiser;
 
 export type EventsGetManagedOrganiserStatus401 = unknown;
@@ -27,7 +34,7 @@ export type EventsGetManagedOrganiserStatus429 = unknown;
 export type EventsGetManagedOrganiserOptions = {
   body?: never;
   path?: never;
-  query?: never;
+  query?: EventsGetManagedOrganiserQuery;
   headers?: never;
 };
 

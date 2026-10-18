@@ -81,6 +81,7 @@ export function toOrganiser(organiser: OrganiserPublic): Organiser {
     name: organiser.name,
     bio: organiser.bio,
     verified: organiser.verified,
+    organisationId: organiser.organisation_id ?? null,
     followerCount: organiser.follower_count,
     viewerFollowing: organiser.viewer_following ?? null,
   };

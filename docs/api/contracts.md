@@ -384,6 +384,15 @@ Only a SHA-256 of the token is stored; the token appears only in the email link
 (`/organisations/accept?token=` on the auth app). Changes are audited under the
 `organisation` history subject (`GET /audit/organisation/{id}`, admins and owners).
 
+### Events organisers (F5)
+
+Events organiser payloads carry `organisation_id` (the platform organisation
+backing the organiser, null for legacy organisers). `GET /events/manage` also
+returns `organisers` (every organiser the member manages), and `GET /events/manage`,
+`POST /events/manage/listings` and `PUT /events/manage/listings/{id}` accept an
+optional `?organiser=<slug>` to act for one of them. Access is the
+`events.organiser.manage` permission or an active admin/owner platform membership.
+
 ## Pagination
 
 The standard helper is `src.pagination`:

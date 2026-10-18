@@ -45,9 +45,10 @@ export function eventsCreateManagedListingMutationOptions<TContext = unknown>(
     TContext
   >({
     mutationKey,
-    mutationFn: async ({ body }) => {
+    mutationFn: async ({ query, body }) => {
       return eventsCreateManagedListing({
         ...config,
+        query,
         body,
         throwOnError: true,
       }).unwrap();

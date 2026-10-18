@@ -14,6 +14,7 @@ export type OrganiserPublic = {
   name: string;
   bio: string;
   verified: boolean;
+  organisation_id?: string | null;
   follower_count: number;
   viewer_following?: boolean | null;
 };

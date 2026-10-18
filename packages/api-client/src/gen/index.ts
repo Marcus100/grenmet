@@ -3956,6 +3956,7 @@ export type {
 export type {
   EventsCreateManagedListingBody,
   EventsCreateManagedListingOptions,
+  EventsCreateManagedListingQuery,
   EventsCreateManagedListingResponse,
   EventsCreateManagedListingResponses,
   EventsCreateManagedListingStatus201,
@@ -4017,6 +4018,7 @@ export type {
 } from "./models/EventsGetListing.js";
 export type {
   EventsGetManagedOrganiserOptions,
+  EventsGetManagedOrganiserQuery,
   EventsGetManagedOrganiserResponse,
   EventsGetManagedOrganiserResponses,
   EventsGetManagedOrganiserStatus200,
@@ -4268,6 +4270,7 @@ export type {
   EventsUpdateManagedListingBody,
   EventsUpdateManagedListingOptions,
   EventsUpdateManagedListingPath,
+  EventsUpdateManagedListingQuery,
   EventsUpdateManagedListingResponse,
   EventsUpdateManagedListingResponses,
   EventsUpdateManagedListingStatus200,
@@ -6519,6 +6522,7 @@ export type {
   OrganisationsUpdateMemberStatus422,
 } from "./models/OrganisationsUpdateMember.js";
 export type { OrganisationUpdate } from "./models/OrganisationUpdate.js";
+export type { OrganiserOption } from "./models/OrganiserOption.js";
 export type { OrganiserPublic } from "./models/OrganiserPublic.js";
 export type { OutlookProductPreview } from "./models/OutlookProductPreview.js";
 export type { OutlookProductPreviewInput } from "./models/OutlookProductPreviewInput.js";
@@ -9008,6 +9012,7 @@ export {
 export {
   eventsCreateManagedListingBodySchema,
   eventsCreateManagedListingErrorSchema,
+  eventsCreateManagedListingQueryOrganiserSchema,
   eventsCreateManagedListingResponseSchema,
   eventsCreateManagedListingStatus201Schema,
   eventsCreateManagedListingStatus401Schema,
@@ -9063,6 +9068,7 @@ export {
 } from "./zod/eventsGetListingSchema.js";
 export {
   eventsGetManagedOrganiserErrorSchema,
+  eventsGetManagedOrganiserQueryOrganiserSchema,
   eventsGetManagedOrganiserResponseSchema,
   eventsGetManagedOrganiserStatus200Schema,
   eventsGetManagedOrganiserStatus401Schema,
@@ -9298,6 +9304,7 @@ export {
   eventsUpdateManagedListingBodySchema,
   eventsUpdateManagedListingErrorSchema,
   eventsUpdateManagedListingPathListingIdSchema,
+  eventsUpdateManagedListingQueryOrganiserSchema,
   eventsUpdateManagedListingResponseSchema,
   eventsUpdateManagedListingStatus200Schema,
   eventsUpdateManagedListingStatus401Schema,
@@ -11370,6 +11377,7 @@ export {
   organisationsUpdateMemberStatus422Schema,
 } from "./zod/organisationsUpdateMemberSchema.js";
 export { organisationUpdateSchema } from "./zod/organisationUpdateSchema.js";
+export { organiserOptionSchema } from "./zod/organiserOptionSchema.js";
 export { organiserPublicSchema } from "./zod/organiserPublicSchema.js";
 export { outlookProductPreviewInputSchema } from "./zod/outlookProductPreviewInputSchema.js";
 export { outlookProductPreviewSchema } from "./zod/outlookProductPreviewSchema.js";

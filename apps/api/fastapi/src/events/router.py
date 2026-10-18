@@ -21,12 +21,20 @@ from .dependencies import (
     EventsOrganiser,
     EventsSession,
     EventsViewer,
+    OrganiserScope,
 )
 
 router = APIRouter(prefix="/events", tags=["events"])
 
 Slug = Annotated[str, Path(pattern=schemas.SLUG_PATTERN)]
 Handle = Annotated[str, Path(pattern=schemas.HANDLE_PATTERN)]
+_ManagedSlug = Annotated[
+    str | None,
+    Query(
+        pattern=schemas.SLUG_PATTERN,
+        description="Organiser to act for when the member manages several.",
+    ),
+]
 
 _NOT_FOUND: dict[int | str, dict[str, Any]] = {404: {"description": "Not found"}}
 _MEMBER: dict[int | str, dict[str, Any]] = {
@@ -555,9 +563,13 @@ async def send_message(
     responses=_ORGANISER,
 )
 async def get_managed_organiser(
-    *, session: EventsSession, user: EventsOrganiser
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    organiser: _ManagedSlug = None,
 ) -> schemas.ManagedOrganiser:
-    return await service.managed_organiser(session, user)
+    return await service.managed_organiser(session, user, scope, organiser)
 
 
 @router.post(
@@ -569,9 +581,14 @@ async def get_managed_organiser(
     responses=_ORGANISER,
 )
 async def create_managed_listing(
-    *, session: EventsSession, user: EventsOrganiser, body: schemas.ListingUpsert
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    body: schemas.ListingUpsert,
+    organiser: _ManagedSlug = None,
 ) -> schemas.ManagedListing:
-    return await service.create_listing(session, user, body)
+    return await service.create_listing(session, user, body, scope, organiser)
 
 
 @router.put(
@@ -586,10 +603,14 @@ async def update_managed_listing(
     *,
     session: EventsSession,
     user: EventsOrganiser,
+    scope: OrganiserScope,
     listing_id: uuid.UUID,
     body: schemas.ListingUpsert,
+    organiser: _ManagedSlug = None,
 ) -> schemas.ManagedListing:
-    return await service.update_listing(session, user, listing_id, body)
+    return await service.update_listing(
+        session, user, listing_id, body, scope, organiser
+    )
 
 
 # --- Moderation ----------------------------------------------------------------------

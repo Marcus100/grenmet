@@ -56,7 +56,7 @@ Alembic head.
 | F3 | `OrgContext` (`X-Barrels-Organisation`), `org.*` permission keys, `organisation_id` in log context, cross-organisation denial tests | M | U — built, pending merge (no `org.*` permission keys needed: access is by membership role) |
 | F4 | Membership invites (hashed, expiring, single use), accept, role change, removal, last-owner protection, audit | M | U — built, pending merge |
 | A1 | Account "Organisations" tab in `apps/web/auth` | S | U — built, pending merge |
-| F5 | Events organiser to organisation bridge (`organisers.organisation_id`), `require_organiser` accepts platform membership or legacy rows | M | U |
+| F5 | Events organiser to organisation bridge (`organisers.organisation_id`), `require_organiser` accepts platform membership or legacy rows | M | U — built, pending merge |
 | F6 | Events outbox drained by the worker into `notifications.notify` with a dedupe key | M | U |
 | F7 | Events append-only activity log | S–M | U |
 | F8 | Organisation-scoped uploads (presigned, size and type limits) | M | U |

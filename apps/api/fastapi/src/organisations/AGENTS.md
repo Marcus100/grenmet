@@ -10,6 +10,7 @@
 - **Membership management (F4, `members.py`):** `org.invitation` (organisation, normalised email, role, SHA-256 `token_hash`, `expires_at` 7 days, `accepted_at`, `revoked_at`). Invitations are single-use, expiring and revocable; re-inviting an address revokes its pending invitation. The email goes through the `notifications` outbox (`organisation-invitation` template, transactional) and holds the only copy of the token. Accept takes the token in the body and requires the signed-in account's email to equal the invitation's. Admins manage members and admins; only owners invite owners or touch the owner role; the last active owner is protected (409). Removal sets `status = removed`; a later invitation reactivates the same row. Path `{organisation_id}` must equal the header organisation.
 - **Audit:** `audit.py` registers organisation, membership, invitation (without `token_hash`) and app rows under the `organisation` history subject, readable by that organisation's admins and owners. Services set the audit actor.
 - Routes use `AccountUser` (any active account, staff-approved or not), not `CurrentUser`, because organisation members need not be staff.
+- **Events bridge (F5):** `events.organisers.organisation_id` points at an organisation here; `service.list_managed_organisation_ids` feeds the Events organiser gate.
 - Public schemas never expose ORM models.
 
 ## Tests

@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
+import type { OrganiserOption } from "@/domain/types";
+import { OrganiserSwitcher } from "./organiser-switcher";
 
 export type DashSection = "overview" | "events" | "build";
 
@@ -120,14 +122,24 @@ function NavigationLink({
 export function DashShell({
   active,
   children,
+  currentOrganiser,
   eventName,
   isDemo,
+  organisers = [],
 }: {
   active: DashSection;
   children: React.ReactNode;
+  /** Slug of the organiser the console is acting for. */
+  currentOrganiser?: string;
   eventName: string;
   isDemo: boolean;
+  /** Everything the member manages; a switcher shows when there are several. */
+  organisers?: readonly OrganiserOption[];
 }) {
+  const switcher =
+    currentOrganiser && organisers.length > 1 ? (
+      <OrganiserSwitcher current={currentOrganiser} organisers={organisers} />
+    ) : null;
   return (
     <div className="min-h-screen bg-muted/40">
       <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col bg-sidebar text-sidebar-foreground lg:flex">
@@ -142,6 +154,10 @@ export function DashShell({
             <p className="text-caption text-sidebar-foreground/70">Organiser</p>
           </div>
         </div>
+
+        {switcher ? (
+          <div className="px-3 pb-3 text-sidebar-foreground">{switcher}</div>
+        ) : null}
 
         <div className="px-3">
           <Button
@@ -234,6 +250,7 @@ export function DashShell({
               <Bell />
             </Button>
           </div>
+          {switcher ? <div className="mt-3">{switcher}</div> : null}
           <nav
             aria-label="Mobile event workspace"
             className="-mx-4 mt-3 flex gap-2 overflow-x-auto border-border border-t px-4 pt-3"

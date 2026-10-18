@@ -29,6 +29,8 @@ class Organiser(EventsModel):
     name: Mapped[str] = mapped_column(Text)
     bio: Mapped[str] = mapped_column(Text, default="")
     verified: Mapped[bool] = mapped_column(default=False)
+    # Platform ``org.organisation.id`` (main database, no cross-DB FK); NULL = legacy.
+    organisation_id: Mapped[str | None] = mapped_column(Text, unique=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
 
