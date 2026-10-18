@@ -21,6 +21,7 @@ export function SiteFooter() {
             ...NAV_LINKS,
             { label: "Daily Signal", href: "/briefs" as const },
             { label: "About Signal", href: "/about" as const },
+            { label: "Newsletter", href: "/about#newsletter" as const },
             { label: "Editorial approach", href: "/about#editorial" as const },
           ].map((link) => (
             <Link
