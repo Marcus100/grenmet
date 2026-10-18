@@ -17,6 +17,15 @@ console. Lane spec: `docs/design/admin.md`. Plan: slice C1/C2 in
   validate with `src/lib/organisation-form.ts`, proxy to FastAPI and redirect with
   a fixed `?notice=` code. Disclosures are native `<details>`; no client state.
   Never fake data.
+- **Invoicing (P1-P3).** `/invoices` (list with status, search and overdue
+  filters), `/invoices/new` and `/invoices/[id]` (draft editor with eight line
+  rows, issue, delete draft, record payment, void with reason, PDF download via
+  the proxy route `/invoices/[id]/pdf`), `/receivables` (ageing buckets) and
+  `/customers`. Same plain-form pattern as C2: server actions in
+  `invoices/actions.ts` validate with `src/lib/invoice-form.ts`, proxy through
+  `src/lib/billing-api.ts` and redirect with a fixed `?notice=` code. Amounts are
+  typed in dollars and converted to minor units by string parsing; this app never
+  computes a total or tax figure, FastAPI does. Backend: `src/billing/AGENTS.md`.
 - Backend logic stays in FastAPI. This app validates, proxies and renders; it
   has no database access and no business rules.
 
@@ -46,6 +55,7 @@ Zod schemas from `@barrelsgd/api-client` (`src/lib/api.ts`):
 
 - `GET /organisations`, `GET /organisations/{id}`, `POST/PATCH /organisations`, `POST /organisations/{id}/verify|unverify`, `PUT /organisations/{id}/apps/{key}`, `GET /organisations/{id}/admin/members`, `GET /audit/platform_organisation/{id}` (superuser only; see
   `apps/api/fastapi/src/organisations/AGENTS.md`).
+- `/billing/customers`, `/billing/invoices` (+ `/issue`, `/void`, `/payments`, `/pdf`) and `/billing/receivables` (`billing.manage` or superuser; `src/lib/billing-api.ts`).
 - Status probes (`src/lib/status.ts`): `GET /utils/health-check/` and
   `GET /utils/ready/`. The API has no worker heartbeat or deploy-history
   endpoint, so those cards say "Unknown"/"Not set". Add the endpoint first,
