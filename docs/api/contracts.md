@@ -1126,7 +1126,15 @@ return 409; draft and revision snapshot commit together.
 `GET /api/v1/wxproducts/aviation/drafts/{id}/history` returns up to 100 latest
 revision snapshots with author identity and recorded time.
 
-All three routes require the separate `aviation` product-access policy, using
+`POST /api/v1/wxproducts/aviation/drafts/validate` takes the same fields without
+`id`/`expected_revision` and returns `{valid, issues[]}`; each issue has
+`severity` (`error` for a code violation, `warning` for reporting practice),
+`code`, the offending `group` (or null), a `message` and the `rule` source
+(WMO-No. 306 FM 15/16/51, ICAO Annex 3). Findings are advisory: saving a draft
+is never blocked, and nothing is saved or transmitted by the check. Rules and
+gaps: `docs/operations/eregister-wmo-conformance.md`.
+
+All four routes require the separate `aviation` product-access policy, using
 the existing configurable GMS-grade controls (manager, assistant manager and
 senior technician defaults). Browser mutations use the existing session/CSRF
 flow. Responses are no-store; no aviation draft is included in public products.
@@ -1222,7 +1230,10 @@ regulations and returns `valid`, field-level `issues`, the normalized workbook
 and `decoded` SI values (K, Pa, m s-1, m, kg m-2) for later BUFR, TAC and IWXXM
 encoders. Each issue has a `severity`: `error` entries are impossible or
 malformed and make the workbook invalid; `warning` entries are reporting
-practice advice and never change `valid`. GAA Admin validates before saving and
+practice advice and never change `valid`. Beyond code ranges the endpoint checks
+cross-field rules: the iR/ix indicators against the groups present, the pressure
+tendency against its change, cloud type and layer amounts against N and Nh,
+and wind speeds of 99 or more as three-digit 00fff. GAA Admin validates before saving and
 blocks the save on errors only. A workbook with only identification fields is a
 NIL report (`decoded.is_nil_report`). Optional entries beyond the original
 workbook are the wet bulb (`wet_bulb`), wind gust (`wind_gust`), relative

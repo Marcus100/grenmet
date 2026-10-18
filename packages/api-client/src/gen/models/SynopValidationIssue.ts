@@ -3,15 +3,11 @@
  * Do not edit manually.
  */
 
-import type { SynopValidationIssuePropertiesSeverityEnum } from "./SynopValidationIssuePropertiesSeverityEnum.js";
+import type { AviationIssuePropertiesSeverityEnum } from "./AviationIssuePropertiesSeverityEnum.js";
 
 export type SynopValidationIssue = {
   field: string;
   code: string;
   message: string;
-  /**
-   * @default 'error'
-   * @type string | undefined
-   */
-  severity?: SynopValidationIssuePropertiesSeverityEnum;
+  severity?: AviationIssuePropertiesSeverityEnum;
 };

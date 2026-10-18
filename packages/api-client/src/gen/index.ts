@@ -387,6 +387,7 @@ export { wxproductsProductRevisionPdf } from "./clients/wxproductsProductRevisio
 export { wxproductsPublicForecast } from "./clients/wxproductsPublicForecast.js";
 export { wxproductsSaveAviationDraft } from "./clients/wxproductsSaveAviationDraft.js";
 export { wxproductsSaveProduct } from "./clients/wxproductsSaveProduct.js";
+export { wxproductsValidateAviationMessage } from "./clients/wxproductsValidateAviationMessage.js";
 export { wxwatchArchive } from "./clients/wxwatchArchive.js";
 export { wxwatchArchiveAsset } from "./clients/wxwatchArchiveAsset.js";
 export { wxwatchBulletin } from "./clients/wxwatchBulletin.js";
@@ -2337,6 +2338,11 @@ export {
   wxproductsSaveProductMutationOptions,
 } from "./hooks/useWxproductsSaveProduct.js";
 export {
+  useWxproductsValidateAviationMessage,
+  wxproductsValidateAviationMessageMutationKey,
+  wxproductsValidateAviationMessageMutationOptions,
+} from "./hooks/useWxproductsValidateAviationMessage.js";
+export {
   useWxwatchArchive,
   wxwatchArchiveQueryKey,
   wxwatchArchiveQueryOptions,
@@ -3275,7 +3281,12 @@ export type { AviationDraftReadPropertiesKindEnum } from "./models/AviationDraft
 export { aviationDraftReadPropertiesKindEnum } from "./models/AviationDraftReadPropertiesKindEnum.js";
 export type { AviationDraftWrite } from "./models/AviationDraftWrite.js";
 export type { AviationHistory } from "./models/AviationHistory.js";
+export type { AviationIssue } from "./models/AviationIssue.js";
+export type { AviationIssuePropertiesSeverityEnum } from "./models/AviationIssuePropertiesSeverityEnum.js";
+export { aviationIssuePropertiesSeverityEnum } from "./models/AviationIssuePropertiesSeverityEnum.js";
 export type { AviationRevisionRead } from "./models/AviationRevisionRead.js";
+export type { AviationValidationRequest } from "./models/AviationValidationRequest.js";
+export type { AviationValidationResponse } from "./models/AviationValidationResponse.js";
 export type { BalanceImportRequest } from "./models/BalanceImportRequest.js";
 export type { BalanceImportResult } from "./models/BalanceImportResult.js";
 export type { BalanceImportRow } from "./models/BalanceImportRow.js";
@@ -6807,8 +6818,6 @@ export type { SynopticImageGroup } from "./models/SynopticImageGroup.js";
 export type { SynopticImageGroups } from "./models/SynopticImageGroups.js";
 export type { SynopticSlots } from "./models/SynopticSlots.js";
 export type { SynopValidationIssue } from "./models/SynopValidationIssue.js";
-export type { SynopValidationIssuePropertiesSeverityEnum } from "./models/SynopValidationIssuePropertiesSeverityEnum.js";
-export { synopValidationIssuePropertiesSeverityEnum } from "./models/SynopValidationIssuePropertiesSeverityEnum.js";
 export type { SynopValidationRequest } from "./models/SynopValidationRequest.js";
 export type { SynopValidationResponse } from "./models/SynopValidationResponse.js";
 export type { SynopWorkbook } from "./models/SynopWorkbook.js";
@@ -7272,6 +7281,15 @@ export type {
   WxproductsSaveProductStatus422,
   WxproductsSaveProductStatus503,
 } from "./models/WxproductsSaveProduct.js";
+export type {
+  WxproductsValidateAviationMessageBody,
+  WxproductsValidateAviationMessageOptions,
+  WxproductsValidateAviationMessageResponse,
+  WxproductsValidateAviationMessageResponses,
+  WxproductsValidateAviationMessageStatus200,
+  WxproductsValidateAviationMessageStatus403,
+  WxproductsValidateAviationMessageStatus422,
+} from "./models/WxproductsValidateAviationMessage.js";
 export type {
   WxwatchArchiveOptions,
   WxwatchArchiveQuery,
@@ -8254,7 +8272,11 @@ export { aviationDraftReadPropertiesKindEnumSchema } from "./zod/aviationDraftRe
 export { aviationDraftReadSchema } from "./zod/aviationDraftReadSchema.js";
 export { aviationDraftWriteSchema } from "./zod/aviationDraftWriteSchema.js";
 export { aviationHistorySchema } from "./zod/aviationHistorySchema.js";
+export { aviationIssuePropertiesSeverityEnumSchema } from "./zod/aviationIssuePropertiesSeverityEnumSchema.js";
+export { aviationIssueSchema } from "./zod/aviationIssueSchema.js";
 export { aviationRevisionReadSchema } from "./zod/aviationRevisionReadSchema.js";
+export { aviationValidationRequestSchema } from "./zod/aviationValidationRequestSchema.js";
+export { aviationValidationResponseSchema } from "./zod/aviationValidationResponseSchema.js";
 export { balanceImportRequestSchema } from "./zod/balanceImportRequestSchema.js";
 export { balanceImportResultSchema } from "./zod/balanceImportResultSchema.js";
 export { balanceImportRowPropertiesStatusEnumSchema } from "./zod/balanceImportRowPropertiesStatusEnumSchema.js";
@@ -11488,7 +11510,6 @@ export { synopDecodedSchema } from "./zod/synopDecodedSchema.js";
 export { synopticImageGroupSchema } from "./zod/synopticImageGroupSchema.js";
 export { synopticImageGroupsSchema } from "./zod/synopticImageGroupsSchema.js";
 export { synopticSlotsSchema } from "./zod/synopticSlotsSchema.js";
-export { synopValidationIssuePropertiesSeverityEnumSchema } from "./zod/synopValidationIssuePropertiesSeverityEnumSchema.js";
 export { synopValidationIssueSchema } from "./zod/synopValidationIssueSchema.js";
 export { synopValidationRequestSchema } from "./zod/synopValidationRequestSchema.js";
 export { synopValidationResponseSchema } from "./zod/synopValidationResponseSchema.js";
@@ -11915,6 +11936,14 @@ export {
   wxproductsSaveProductStatus422Schema,
   wxproductsSaveProductStatus503Schema,
 } from "./zod/wxproductsSaveProductSchema.js";
+export {
+  wxproductsValidateAviationMessageBodySchema,
+  wxproductsValidateAviationMessageErrorSchema,
+  wxproductsValidateAviationMessageResponseSchema,
+  wxproductsValidateAviationMessageStatus200Schema,
+  wxproductsValidateAviationMessageStatus403Schema,
+  wxproductsValidateAviationMessageStatus422Schema,
+} from "./zod/wxproductsValidateAviationMessageSchema.js";
 export {
   wxwatchArchiveAssetErrorSchema,
   wxwatchArchiveAssetPathAssetIdSchema,

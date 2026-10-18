@@ -1,10 +1,12 @@
 "use client";
 import {
   type AviationDraftRead,
+  type AviationIssue,
   type AviationRevisionRead,
   aviationDraftListSchema,
   aviationDraftReadSchema,
   aviationHistorySchema,
+  aviationValidationResponseSchema,
   browserSessionSchema,
 } from "@barrelsgd/api-client";
 import { Badge } from "@barrelsgd/ui/components/ui/badge";
@@ -55,6 +57,42 @@ function utcInput(value: string | null | undefined) {
   return value ? new Date(value).toISOString().slice(0, -1) : "";
 }
 
+function CodingFindings({ issues }: { issues: AviationIssue[] | null }) {
+  if (issues === null) return null;
+  if (issues.length === 0) {
+    return <p className="text-xs">Coding check: no findings.</p>;
+  }
+  return (
+    <ul aria-label="Coding findings" className="space-y-2 text-xs">
+      {issues.map((issue) => (
+        <li
+          className={
+            issue.severity === "error"
+              ? "rounded-md border border-destructive/30 border-l-4 border-l-destructive bg-destructive/5 px-3 py-2"
+              : "rounded-md border border-border border-l-4 border-l-warning bg-card px-3 py-2"
+          }
+          key={`${issue.code}-${issue.group ?? ""}-${issue.message}`}
+        >
+          <p>
+            <strong>{issue.severity === "error" ? "Error" : "Note"}</strong>
+            {issue.group ? (
+              <>
+                {" · "}
+                <code className="font-mono">{issue.group}</code>
+              </>
+            ) : null}
+            {": "}
+            {issue.message}
+          </p>
+          <p className="text-muted-foreground">
+            {issue.code} · {issue.rule}
+          </p>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function AviationDraft() {
   const [kind, setKind] = useState<AviationKind>("METAR");
   const [station, setStation] = useState("TGPY");
@@ -67,6 +105,11 @@ export function AviationDraft() {
   const [history, setHistory] = useState<AviationRevisionRead[]>([]);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("");
+  const [coding, setCoding] = useState<{
+    issues: AviationIssue[];
+    key: string;
+  } | null>(null);
+  const draftKey = JSON.stringify({ kind, station, form });
   const dirty = JSON.stringify(form) !== JSON.stringify(baseline);
   let draftState = "New draft";
   if (revision) draftState = `Saved revision ${revision}`;
@@ -122,17 +165,48 @@ export function AviationDraft() {
       setBusy(false);
     }
   }
+  function utcTimes() {
+    return Object.fromEntries(
+      TIMES.map(([key]) => [
+        key,
+        form[key] ? new Date(`${form[key]}Z`).toISOString() : null,
+      ])
+    );
+  }
+  async function checkCoding() {
+    await action(async () => {
+      const session = browserSessionSchema.parse(
+        await request("/_backend/browser-session")
+      );
+      const result = aviationValidationResponseSchema.parse(
+        await request(`${BASE}/validate`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": session.csrfToken,
+          },
+          body: JSON.stringify({
+            kind,
+            station,
+            message: form.message,
+            ...utcTimes(),
+          }),
+        })
+      );
+      setCoding({ issues: result.issues, key: draftKey });
+      setStatus(
+        result.valid
+          ? "Coding check passed. Drafts can still be saved with notes."
+          : "Coding check found errors. See the review panel; the draft can still be saved."
+      );
+    });
+  }
   async function save() {
     await action(async () => {
       const session = browserSessionSchema.parse(
         await request("/_backend/browser-session")
       );
-      const times = Object.fromEntries(
-        TIMES.map(([key]) => [
-          key,
-          form[key] ? new Date(`${form[key]}Z`).toISOString() : null,
-        ])
-      );
+      const times = utcTimes();
       const result = aviationDraftReadSchema.parse(
         await request(BASE, {
           method: "POST",
@@ -339,6 +413,14 @@ export function AviationDraft() {
                 Save draft
               </Button>
               <Button
+                disabled={!form.message.trim()}
+                onClick={checkCoding}
+                type="button"
+                variant="outline"
+              >
+                Check coding
+              </Button>
+              <Button
                 onClick={importBrowserDraft}
                 type="button"
                 variant="outline"
@@ -402,8 +484,9 @@ export function AviationDraft() {
         >
           <div className="space-y-4 p-4">
             <p className="text-muted-foreground text-xs">
-              Review the coded text before saving. Full coded-message validation
-              is not available in this workspace.
+              Review the coded text, then use Check coding to test it against
+              the WMO/ICAO rules. Findings advise; they never block saving, and
+              nothing is transmitted.
             </p>
             <div className="rounded-lg bg-muted p-3">
               <p className="mb-2 font-medium text-xs">
@@ -413,6 +496,9 @@ export function AviationDraft() {
                 {form.message || "Enter a message to review it here."}
               </code>
             </div>
+            <CodingFindings
+              issues={coding?.key === draftKey ? coding.issues : null}
+            />
             <dl className="grid gap-2 text-xs">
               {TIMES.map(([key, label]) => (
                 <div className="flex justify-between gap-3" key={key}>

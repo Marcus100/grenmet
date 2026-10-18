@@ -384,6 +384,7 @@ export { wxproductsProductRevisionPdf } from "./wxproductsProductRevisionPdf.js"
 export { wxproductsPublicForecast } from "./wxproductsPublicForecast.js";
 export { wxproductsSaveAviationDraft } from "./wxproductsSaveAviationDraft.js";
 export { wxproductsSaveProduct } from "./wxproductsSaveProduct.js";
+export { wxproductsValidateAviationMessage } from "./wxproductsValidateAviationMessage.js";
 export { wxwatchArchive } from "./wxwatchArchive.js";
 export { wxwatchArchiveAsset } from "./wxwatchArchiveAsset.js";
 export { wxwatchBulletin } from "./wxwatchBulletin.js";
