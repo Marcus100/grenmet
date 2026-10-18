@@ -308,6 +308,17 @@ class OrganiserOption(BaseModel):
     slug: str
     name: str
     organisation_id: str | None = None
+    verified: bool = False
+
+
+class OrganiserCreate(BaseModel):
+    name: str = Field(min_length=2, max_length=80)
+    slug: str | None = Field(default=None, pattern=SLUG_PATTERN, max_length=60)
+    bio: str = Field(default="", max_length=500)
+
+
+class OrganiserReview(BaseModel):
+    verified: bool
 
 
 class ManagedOrganiser(OrganiserPublic):

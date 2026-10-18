@@ -10,6 +10,7 @@ from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Path, Query, Request, Response, status
 
+from src.dependencies import SessionDep
 from src.models import Message
 from src.openapi_responses import UNAUTHENTICATED
 from src.rate_limit import limiter
@@ -573,6 +574,33 @@ async def get_managed_organiser(
 
 
 @router.post(
+    "/manage/organiser",
+    response_model=schemas.OrganiserPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Request an organiser account",
+    description=(
+        "Create an organiser backed by a new platform organisation with me as owner. "
+        "It starts unverified (pending) until a moderator verifies it."
+    ),
+    responses={
+        **_MEMBER,
+        409: {"description": "Name taken or request already pending"},
+    },
+)
+@limiter.limit("5/hour")
+async def request_organiser(
+    *,
+    request: Request,
+    session: EventsSession,
+    platform: SessionDep,
+    user: EventsMember,
+    body: schemas.OrganiserCreate,
+) -> schemas.OrganiserPublic:
+    _ = request
+    return await service.request_organiser(session, platform, user, body)
+
+
+@router.post(
     "/manage/listings",
     response_model=schemas.ManagedListing,
     status_code=status.HTTP_201_CREATED,
@@ -690,3 +718,37 @@ async def update_suggestion(
     _ = user
     row = await service.update_suggestion(session, suggestion_id, body)
     return schemas.SuggestionPublic.model_validate(row, from_attributes=True)
+
+
+@router.get(
+    "/moderation/organisers",
+    response_model=list[schemas.OrganiserPublic],
+    status_code=status.HTTP_200_OK,
+    summary="List organiser requests",
+    description="Organisers awaiting verification.",
+    responses=_MODERATOR,
+)
+async def list_pending_organisers(
+    *, session: EventsSession, user: EventsModerator
+) -> list[schemas.OrganiserPublic]:
+    rows = await service.pending_organisers(session)
+    return [await service.organiser_public(session, row, user.id) for row in rows]
+
+
+@router.patch(
+    "/moderation/organisers/{organiser_id}",
+    response_model=schemas.OrganiserPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Verify an organiser",
+    description="Approve (or withdraw approval of) an organiser account.",
+    responses=_MODERATOR,
+)
+async def review_organiser(
+    *,
+    session: EventsSession,
+    user: EventsModerator,
+    organiser_id: uuid.UUID,
+    body: schemas.OrganiserReview,
+) -> schemas.OrganiserPublic:
+    row = await service.review_organiser(session, organiser_id, body.verified)
+    return await service.organiser_public(session, row, user.id)

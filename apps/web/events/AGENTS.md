@@ -32,7 +32,7 @@ Port **3009**. Package: `@barrelsgd/web-events`. Design lane:
 - A 404 from the API is `null`; any other read failure throws to `error.tsx`.
 - The `/dash` console acts for one organiser: the member's choice is the host-only `events_organiser` cookie (`data/organiser-choice.ts`, set by the `switchOrganiser` action from `OrganiserSwitcher`, shown when they manage several) and is sent as `?organiser=`.
 - `/dash/events` uses the organiser API (`/manage`); members without organiser
-  access see `NoOrganiserAccess`. The `/dash` overview uses the same listings
+  access see `NoOrganiserAccess`, which hosts `OrganiserRequestForm` (the `requestOrganiser` action creates an unverified organiser they own; `/dash` shows an awaiting-verification notice until a moderator verifies it). The `/dash` overview uses the same listings
   (counts and titles). Sales and settlement have no API yet, so they are
   "available when ticketing launches" empty states, never figures. No page
   renders the demo fixtures in `src/data/fixtures.ts`.

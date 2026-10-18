@@ -13,4 +13,9 @@ export type OrganiserOption = {
   slug: string;
   name: string;
   organisation_id?: string | null;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  verified?: boolean;
 };

@@ -115,6 +115,7 @@ async def managed_organiser(
                 slug=row.slug,
                 name=row.name,
                 organisation_id=row.organisation_id,
+                verified=row.verified,
             )
             for row in await my_organisers(db, user, org_ids)
         ],
@@ -253,4 +254,56 @@ async def create_organiser(
     )
     events.add(organiser)
     await events.commit()
+    return organiser
+
+
+async def request_organiser(
+    events: AsyncSession,
+    platform: AsyncSession,
+    user: User,
+    body: schemas.OrganiserCreate,
+) -> schemas.OrganiserPublic:
+    """Self-service organiser account: created unverified (pending) with the member
+    as owner. One pending request per member; a moderator verifies it."""
+    owned = await organisations.list_managed_organisation_ids(platform, user.id)
+    if owned and await events.scalar(
+        select(Organiser.id).where(
+            Organiser.organisation_id.in_(owned), Organiser.verified.is_(False)
+        )
+    ):
+        raise EventsConflict("Your organiser request is awaiting review")
+    organiser = await create_organiser(
+        events, platform, user, name=body.name, slug=body.slug, bio=body.bio
+    )
+    return await _organiser_public(events, organiser, user.id)
+
+
+async def organiser_public(
+    db: AsyncSession, organiser: Organiser, viewer_id: uuid.UUID
+) -> schemas.OrganiserPublic:
+    return await _organiser_public(db, organiser, viewer_id)
+
+
+async def pending_organisers(db: AsyncSession) -> list[Organiser]:
+    return list(
+        (
+            await db.scalars(
+                select(Organiser)
+                .where(Organiser.verified.is_(False))
+                .where(Organiser.organisation_id.is_not(None))
+                .order_by(Organiser.created_at, Organiser.id)
+            )
+        ).all()
+    )
+
+
+async def review_organiser(
+    db: AsyncSession, organiser_id: uuid.UUID, verified: bool
+) -> Organiser:
+    organiser = await db.get(Organiser, organiser_id)
+    if organiser is None:
+        raise EventsNotFound("Organiser not found")
+    organiser.verified = verified
+    db.add(organiser)
+    await db.commit()
     return organiser

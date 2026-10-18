@@ -44,6 +44,10 @@ from .organiser_admin import (
     create_listing,
     create_organiser,
     managed_organiser,
+    organiser_public,
+    pending_organisers,
+    request_organiser,
+    review_organiser,
     update_listing,
 )
 from .people import (
@@ -80,7 +84,11 @@ __all__ = [
     "list_suggestions",
     "list_threads",
     "create_organiser",
+    "pending_organisers",
+    "request_organiser",
+    "review_organiser",
     "managed_organiser",
+    "organiser_public",
     "my_profile",
     "network",
     "open_direct_thread",

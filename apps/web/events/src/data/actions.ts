@@ -13,6 +13,7 @@ import {
   eventsOpenThread,
   eventsRemoveConnection,
   eventsRequestConnection,
+  eventsRequestOrganiser,
   eventsRsvpListing,
   eventsSaveListing,
   eventsSendMessage,
@@ -22,6 +23,7 @@ import {
   eventsUpdateManagedListing,
   eventsUpdateMyProfile,
   type ListingUpsert,
+  type OrganiserCreate,
   type ProfileUpdate,
   type ReportCreate,
   ResponseError,
@@ -217,4 +219,16 @@ export async function saveListing(id: string | null, listing: ListingUpsert) {
 export async function switchOrganiser(slug: string) {
   await rememberOrganiser(slug);
   revalidatePath("/dash", "layout");
+}
+
+/** Creates an organiser account for the member (unverified until reviewed). */
+export async function requestOrganiser(organiser: OrganiserCreate) {
+  return await run("events-organiser-request", async (options) => {
+    const created = await eventsRequestOrganiser({
+      ...options,
+      body: organiser,
+    }).unwrap();
+    await rememberOrganiser(created.slug);
+    return created.slug;
+  });
 }
