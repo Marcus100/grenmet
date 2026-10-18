@@ -35,6 +35,7 @@ async def startup(ctx: dict[str, Any]) -> None:  # noqa: ARG001 - arq passes ctx
         "src.notifications.scheduler",
         "src.events.outbox",
         "src.eregister.publisher",
+        "src.billing.reminders",
     ):
         import_module(module)
     from src.config import settings
@@ -185,6 +186,28 @@ async def send_wis2_publications(ctx: dict[str, Any]) -> int:
         return result
 
 
+async def send_invoice_reminders(ctx: dict[str, Any]) -> int:
+    """Queue payment reminders for open invoices (7 days before, due day, 7 days after)."""
+    from src.billing import reminders
+    from src.database import async_session_factory
+
+    async with async_session_factory() as session:
+        try:
+            result = await reminders.send_due_reminders(session)
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "send_invoice_reminders",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+        await operational_metrics.record_job(
+            ctx.get("redis"), "send_invoice_reminders", str(ctx.get("job_id", "")), True
+        )
+        return result
+
+
 async def run_notification_sweeps(ctx: dict[str, Any]) -> int:
     from src.database import async_session_factory
     from src.notifications import scheduler
@@ -283,6 +306,7 @@ class WorkerSettings:
         drain_events_outbox,
         send_wis2_publications,
         run_notification_sweeps,
+        send_invoice_reminders,
         check_nhc_failures,
         check_alert_outbox,
         poll_flights,
@@ -315,6 +339,8 @@ class WorkerSettings:
         cron(send_wis2_publications, second={20, 50}, run_at_startup=False),
         # Daily reminders (expiries, overdue approvals) at 06:00 Grenada (UTC-4).
         cron(run_notification_sweeps, hour=10, minute=0, run_at_startup=False),
+        # Invoice payment reminders at 07:00 Grenada (UTC-4); idempotent per stage.
+        cron(send_invoice_reminders, hour=11, minute=0, run_at_startup=False),
         # NHC job failures every 5 minutes; the 1-hour window stops repeat messages.
         cron(check_nhc_failures, minute=set(range(0, 60, 5)), run_at_startup=False),
         # Is the email outbox draining? Every 15 minutes.

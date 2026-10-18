@@ -106,6 +106,11 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "notifications.manage",
         "Configure organisation notifications: on/off, recipients, wording, timings",
     ),
+    # Platform — Barrels invoicing (customers, invoices, payments, receivables)
+    PermissionDef(
+        "billing.manage",
+        "Manage Barrels invoicing: customers, invoices, manual payments and receivables",
+    ),
     # CMS editorial publishing
     PermissionDef("cms.article.create", "Create CMS articles"),
     PermissionDef("cms.article.edit.own", "Edit own CMS article drafts"),

@@ -17,6 +17,7 @@ from src.baseline.models import (
     BaselineStep,
     StaffCredential,
 )
+from src.billing import audit as _billing_audit
 from src.cap.models import (
     CapAlert,
     CapArea,
@@ -107,6 +108,7 @@ _events_notifications.register()
 _stores_audit.register()
 _stores_notifications.register()
 _organisations_audit.register()
+_billing_audit.register()
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 

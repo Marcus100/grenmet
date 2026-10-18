@@ -482,6 +482,31 @@ Local Stripe test-mode flow:
 5. Open the returned URL and use Stripe's interactive test card
    `4242 4242 4242 4242`, any future expiry, and any three-digit CVC.
 
+### Barrels invoicing (P1-P3)
+
+Barrels invoices its own service-line clients; a customer is a platform
+organisation. Every route below needs a superuser or the `billing.manage`
+permission (403 otherwise). Money is integer minor units (XCD cents). Totals and
+tax are computed on the server (`Decimal`, half-up per line); clients never send
+or trust a total.
+
+| Endpoint | Contract |
+| --- | --- |
+| `GET/POST /api/v1/billing/customers`, `GET/PATCH /api/v1/billing/customers/{customer_id}` | One customer per organisation (409 if already a customer, 404 for an unknown organisation) |
+| `GET /api/v1/billing/invoices` | Paginated, newest first; filters `status`, `customer_id`, `q` (number or customer name), `overdue` |
+| `POST /api/v1/billing/invoices` | Create a draft with lines (`description`, `quantity` up to 3 dp, `unit_price_minor`, optional `tax_rate` percent up to 2 dp, default from `BILLING_INVOICE_DEFAULT_TAX_RATE`) |
+| `GET/PUT/DELETE /api/v1/billing/invoices/{invoice_id}` | Read; replace a draft; delete a draft (409 once issued) |
+| `POST /api/v1/billing/invoices/{invoice_id}/issue` | Draft only. Assigns the gapless `<prefix>-YYYY-NNNN` number, issue date (optional body) and due date (net 30), stores the PDF privately when storage is configured and queues the customer email |
+| `POST /api/v1/billing/invoices/{invoice_id}/void` | Issued and unpaid only; `reason` required and audited |
+| `POST /api/v1/billing/invoices/{invoice_id}/payments` | Manual `bank_transfer`, `cash` or `cheque`; 422 when above the outstanding balance or dated in the future; 409 on a non-open invoice |
+| `GET /api/v1/billing/invoices/{invoice_id}/pdf` | `application/pdf`, rendered on demand |
+| `GET /api/v1/billing/receivables` | Open invoices with ageing buckets `current`, `days_1_30`, `days_31_60`, `days_61_90`, `over_90` and a paginated list |
+
+Status machine: `draft -> issued -> partially_paid -> paid`, and `issued -> void`.
+Reminder emails (7 days before due, on the due date, 7 days overdue) are sent by
+the worker once per invoice and stage. The legal entity name, VAT rate and number
+format are provisional settings (`docs/env.md`).
+
 ## Change history and notifications (platform core)
 
 Shared services (ADR-0009) that any module can use; HR is the first. Both require an
