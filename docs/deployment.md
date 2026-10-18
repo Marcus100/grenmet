@@ -483,6 +483,7 @@ hurricane/spice hosts; no legacy redirects are installed.
 | Signal | 3004 | https://signal.barrels.gd | https://signal.staging.barrels.gd |
 | MBIA | 3005 | https://mbia.barrels.gd | https://mbia.staging.barrels.gd |
 | Events | 3009 | https://events.barrels.gd | https://events.staging.barrels.gd |
+| CAP alert hub | 3010 | https://cap.barrels.gd | https://cap.staging.barrels.gd |
 | Elections | 3007 | https://elections.barrels.gd (Vercel) | Vercel preview deployments |
 | FastAPI | 8000 | https://api.barrels.gd | https://api.staging.barrels.gd |
 
