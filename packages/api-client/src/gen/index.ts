@@ -155,6 +155,7 @@ export { eventsUpdateManagedListing } from "./clients/eventsUpdateManagedListing
 export { eventsUpdateMyProfile } from "./clients/eventsUpdateMyProfile.js";
 export { eventsUpdateReport } from "./clients/eventsUpdateReport.js";
 export { eventsUpdateSuggestion } from "./clients/eventsUpdateSuggestion.js";
+export { flightsGetFlightBoard } from "./clients/flightsGetFlightBoard.js";
 export { hrActionLeaveRequest } from "./clients/hrActionLeaveRequest.js";
 export { hrActionShiftSwap } from "./clients/hrActionShiftSwap.js";
 export { hrApproveStaffRegistration } from "./clients/hrApproveStaffRegistration.js";
@@ -1176,6 +1177,11 @@ export {
   eventsUpdateSuggestionMutationOptions,
   useEventsUpdateSuggestion,
 } from "./hooks/useEventsUpdateSuggestion.js";
+export {
+  flightsGetFlightBoardQueryKey,
+  flightsGetFlightBoardQueryOptions,
+  useFlightsGetFlightBoard,
+} from "./hooks/useFlightsGetFlightBoard.js";
 export {
   hrActionLeaveRequestMutationKey,
   hrActionLeaveRequestMutationOptions,
@@ -4241,6 +4247,18 @@ export type {
   EventsUpdateSuggestionStatus422,
   EventsUpdateSuggestionStatus429,
 } from "./models/EventsUpdateSuggestion.js";
+export type { FlightBoardResponse } from "./models/FlightBoardResponse.js";
+export type { FlightBoardResponsePropertiesBoardEnum } from "./models/FlightBoardResponsePropertiesBoardEnum.js";
+export { flightBoardResponsePropertiesBoardEnum } from "./models/FlightBoardResponsePropertiesBoardEnum.js";
+export type { FlightRow } from "./models/FlightRow.js";
+export type {
+  FlightsGetFlightBoardOptions,
+  FlightsGetFlightBoardQuery,
+  FlightsGetFlightBoardResponse,
+  FlightsGetFlightBoardResponses,
+  FlightsGetFlightBoardStatus200,
+  FlightsGetFlightBoardStatus422,
+} from "./models/FlightsGetFlightBoard.js";
 export type { ForecastCondition } from "./models/ForecastCondition.js";
 export type { ForecastObservation } from "./models/ForecastObservation.js";
 export type { ForecastPeriod } from "./models/ForecastPeriod.js";
@@ -9129,6 +9147,17 @@ export {
   eventsUpdateSuggestionStatus422Schema,
   eventsUpdateSuggestionStatus429Schema,
 } from "./zod/eventsUpdateSuggestionSchema.js";
+export { flightBoardResponsePropertiesBoardEnumSchema } from "./zod/flightBoardResponsePropertiesBoardEnumSchema.js";
+export { flightBoardResponseSchema } from "./zod/flightBoardResponseSchema.js";
+export { flightRowSchema } from "./zod/flightRowSchema.js";
+export {
+  flightsGetFlightBoardErrorSchema,
+  flightsGetFlightBoardQueryAirportSchema,
+  flightsGetFlightBoardQueryBoardSchema,
+  flightsGetFlightBoardResponseSchema,
+  flightsGetFlightBoardStatus200Schema,
+  flightsGetFlightBoardStatus422Schema,
+} from "./zod/flightsGetFlightBoardSchema.js";
 export { forecastConditionSchema } from "./zod/forecastConditionSchema.js";
 export { forecastObservationSchema } from "./zod/forecastObservationSchema.js";
 export { forecastPeriodSchema } from "./zod/forecastPeriodSchema.js";

@@ -152,6 +152,7 @@ export { eventsUpdateManagedListing } from "./eventsUpdateManagedListing.js";
 export { eventsUpdateMyProfile } from "./eventsUpdateMyProfile.js";
 export { eventsUpdateReport } from "./eventsUpdateReport.js";
 export { eventsUpdateSuggestion } from "./eventsUpdateSuggestion.js";
+export { flightsGetFlightBoard } from "./flightsGetFlightBoard.js";
 export { hrActionLeaveRequest } from "./hrActionLeaveRequest.js";
 export { hrActionShiftSwap } from "./hrActionShiftSwap.js";
 export { hrApproveStaffRegistration } from "./hrApproveStaffRegistration.js";

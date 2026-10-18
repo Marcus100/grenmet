@@ -1642,6 +1642,17 @@ export {
   eventsUpdateSuggestionStatus422Schema,
   eventsUpdateSuggestionStatus429Schema,
 } from "./eventsUpdateSuggestionSchema.js";
+export { flightBoardResponsePropertiesBoardEnumSchema } from "./flightBoardResponsePropertiesBoardEnumSchema.js";
+export { flightBoardResponseSchema } from "./flightBoardResponseSchema.js";
+export { flightRowSchema } from "./flightRowSchema.js";
+export {
+  flightsGetFlightBoardErrorSchema,
+  flightsGetFlightBoardQueryAirportSchema,
+  flightsGetFlightBoardQueryBoardSchema,
+  flightsGetFlightBoardResponseSchema,
+  flightsGetFlightBoardStatus200Schema,
+  flightsGetFlightBoardStatus422Schema,
+} from "./flightsGetFlightBoardSchema.js";
 export { forecastConditionSchema } from "./forecastConditionSchema.js";
 export { forecastObservationSchema } from "./forecastObservationSchema.js";
 export { forecastPeriodSchema } from "./forecastPeriodSchema.js";

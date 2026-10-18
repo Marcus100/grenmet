@@ -769,6 +769,11 @@ export {
   useEventsUpdateSuggestion,
 } from "./useEventsUpdateSuggestion.js";
 export {
+  flightsGetFlightBoardQueryKey,
+  flightsGetFlightBoardQueryOptions,
+  useFlightsGetFlightBoard,
+} from "./useFlightsGetFlightBoard.js";
+export {
   hrActionLeaveRequestMutationKey,
   hrActionLeaveRequestMutationOptions,
   useHrActionLeaveRequest,

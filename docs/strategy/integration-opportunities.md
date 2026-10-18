@@ -113,10 +113,36 @@ is chosen.
 | NASA FIRMS | Thermal anomalies (detections, not confirmed fires) | Medium |
 | NOAA Space Weather | Solar and geomagnetic context for aviation, GNSS, radio | Exploratory |
 | Global Fishing Watch | Fisheries research | Non-commercial use only; partnership needed |
-| OpenSky Network | Aircraft tracking research | Commercial use needs a written licence; check coverage |
+| OpenSky Network | Aircraft tracking research | Commercial use needs a written licence; check coverage. Built behind a flag, off by default; see [OpenSky flight board](#opensky-flight-board-experimental) |
 
 Copernicus Marine, NASA POWER, STAC, SensorThings, and EDR fit the existing
 Python, xarray, and PostGIS stack best.
+
+### OpenSky flight board (experimental)
+
+Built behind `FLIGHTS_OPENSKY_ENABLED` (off by default) in `src/flights`,
+consumed by the MBIA flight board.
+
+| Item | Detail |
+| --- | --- |
+| Owner | Barrels platform; MBIA site belongs to GAA as client |
+| Provider | OpenSky Network REST API, `GET /flights/arrival` and `/flights/departure` for ICAO `TGPY` |
+| Auth | Optional OAuth2 client credentials (`OPENSKY_CLIENT_ID`/`SECRET`, free account); anonymous works but has a very small daily quota |
+| Licence | OpenSky terms: research and non-commercial use; **commercial use needs a written licence**. **Owner decision needed** before enabling on any production GAA site. Keep the flag off until answered |
+| Rate limits | Per-account credit quota, much smaller anonymously; the worker makes 2 calls per 30 minutes (arrivals, departures) |
+| Cache | Redis keys `grenmet:flights:TGPY:<board>`, TTL 6 h; no `REDIS_URL` means unavailable |
+| Fallback | API returns `available: false` (flag off, empty cache, or no Redis); MBIA then shows the sample board labelled "Demo flight board ... sample data". A failed poll keeps the last cache until its TTL lapses |
+| Cost | Free |
+
+What it can and cannot do. The arrival/departure endpoints are batch-processed
+by OpenSky, so flights appear only after the nightly run: data is from the
+previous day or earlier (windows of at most 2 days). It is **not live** and not
+a FIDS. Rows carry callsign, the time the aircraft was last (arrivals) or first
+(departures) seen near the airport, and an estimated other-airport ICAO code.
+There is no schedule, airline name, gate or delay status. Coverage of TGPY
+depends on volunteer ADS-B receivers near Grenada and is unproven: an empty
+result is possible and is handled as "unavailable". The MBIA board therefore
+presents it as "Recent movements ... not a live board or a schedule".
 
 ### Economic and statistical data
 

@@ -151,6 +151,10 @@ the API image and the local source mount contain the same migration assets.
 | `NOTIFICATIONS_WEB_BASE_URL` | Staff portal base URL used for links in notification emails (local default `http://localhost:3001`). Deployment sets `https://admin.${BASE_DOMAIN}` for both API and worker. |
 | `NOTIFICATIONS_BATCH_SIZE`, `NOTIFICATIONS_MAX_ATTEMPTS` | Worker email outbox batch size (50) and retry limit (5); also used for the public-flow outbox (subscriptions, contact) |
 | `MBIA_CONTACT_RECIPIENT` | Inbox that receives MBIA website contact messages. Unset: messages are stored and logged only, nothing is emailed. Sent through the worker outbox as transactional mail |
+| `FLIGHTS_OPENSKY_ENABLED` | Feature flag, default `false`. When `true` the worker polls OpenSky every 30 minutes and `GET /api/v1/flights/board` serves the Redis-cached rows. Research use only: commercial use needs a written OpenSky licence (owner decision pending). Needs `REDIS_URL` |
+| `OPENSKY_CLIENT_ID`, `OPENSKY_CLIENT_SECRET` | Optional OpenSky OAuth2 client credentials (free account). Unset: anonymous access with a very small daily quota. Set in the environment secret store, never in a committed file |
+| `OPENSKY_API_URL`, `OPENSKY_TOKEN_URL`, `OPENSKY_TIMEOUT_SECONDS` | Override OpenSky endpoints and the request timeout (defaults: public API, public token URL, 20 s) |
+| `FLIGHTS_WINDOW_HOURS`, `FLIGHTS_CACHE_TTL_SECONDS` | History window requested from OpenSky (48, its maximum) and Redis cache lifetime (21600) |
 | `SUBSCRIPTIONS_SITE_URLS` | JSON object of mailing-list key to public site origin, e.g. `{"signal":"https://signal.barrels.gd"}` (local default `{"signal":"http://localhost:3004"}`). Confirm and unsubscribe links redirect only to these origins |
 | `SUBSCRIPTIONS_API_BASE_URL` | Public API origin used in confirmation-email links (falls back to `API_BASE_URL`, then `http://localhost:8000`) |
 | `SUBSCRIPTIONS_CONFIRM_TTL_DAYS`, `SUBSCRIPTIONS_RESEND_MINUTES` | Confirmation link lifetime (7) and the window in which a pending address is not mailed again (10) |
