@@ -105,6 +105,8 @@ src/app/
 
 `/climate/data-request` renders `DataRequestForm` (`components/pages/data-request-form.tsx`), which posts to `src/app/api/data-request/route.ts`, a validate-and-proxy handler for FastAPI `POST /api/v1/contact/data-requests` (stored, emailed to `GMS_DATA_REQUEST_RECIPIENT`, confirmation to the requester). Schema in `src/lib/data-request.ts`; hidden honeypot field `website`; consent is required.
 
+`/alerts/get-alerts` has email sign-up (`AlertEmailSignup` -> `src/app/api/alerts/subscribe/route.ts` -> FastAPI list `gms-alerts`, double opt-in) and a "Get browser notifications" button (`BrowserNotifications` -> `src/app/api/alerts/push/route.ts`, service worker `public/sw.js`). The service worker is registered and permission asked only on the button click. The confirm and unsubscribe links redirect to `/subscribe/status?result=`, which `ROUTE_MOVES` sends to `/alerts/get-alerts` (query kept) where `AlertSignupResult` shows the outcome. CAP stays the source; WhatsApp and SMS are not offered.
+
 ## Key dependencies (unique to this app)
 
 - `lucide-react` — icons (migrated off `@heroicons/react`)
