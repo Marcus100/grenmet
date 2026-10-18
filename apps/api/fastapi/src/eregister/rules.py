@@ -33,7 +33,7 @@ LAYERS = (1, 2, 3, 4)
 LAYER_HEIGHT_30M_MAX = 50
 LAYER_HEIGHT_300M_MIN = 56
 LAYER_HEIGHT_300M_MAX = 80
-# 81..89: 10 500 m upward in 1500 m steps (89 = above 21 000 m).
+# 81..88: 10 500 m upward in 1500 m steps; 89 is above 21 000 m (lower bound used).
 LAYER_HEIGHT_1500M_MIN = 81
 LAYER_HEIGHT_1500M_MAX = 89
 UNUSED_HEIGHT_CODES = range(51, 56)
@@ -227,7 +227,7 @@ def _layer_height_metres(code: int) -> float | None:
     if LAYER_HEIGHT_300M_MIN <= code <= LAYER_HEIGHT_300M_MAX:
         return (code - 50) * 300
     if LAYER_HEIGHT_1500M_MIN <= code <= LAYER_HEIGHT_1500M_MAX:
-        return 10500 + (code - 81) * 1500
+        return 10500 + (min(code, 88) - 81) * 1500
     return None
 
 

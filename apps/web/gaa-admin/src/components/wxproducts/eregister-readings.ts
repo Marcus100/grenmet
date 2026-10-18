@@ -75,8 +75,9 @@ function layerHeight(key: string): Reading {
     if (code === "" || code === null) return code;
     if (code <= 50) return String(code * 30);
     if (code >= 56 && code <= 80) return String((code - 50) * 300);
-    // 81 to 89 climb from 10 500 m in 1500 m steps (Code table 1677).
-    if (code >= 81 && code <= 89) return String(10_500 + (code - 81) * 1500);
+    // 81 to 88 climb from 10 500 m in 1500 m steps; 89 is above 21 000 m.
+    if (code >= 81 && code <= 88) return String(10_500 + (code - 81) * 1500);
+    if (code === 89) return ">21000";
     return null;
   };
 }

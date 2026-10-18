@@ -55,6 +55,7 @@ it("rejects a sign digit other than 0 or 1 and decodes high layer heights", () =
   expect(tenthsToCelsius("2254")).toBeNull();
   expect(tenthsToCelsius("1034")).toBe(-3.4);
   expect(read("s3_layer1_height", { s3_layer1_height: "81" })).toBe("10500");
-  expect(read("s3_layer1_height", { s3_layer1_height: "89" })).toBe("21000");
+  expect(read("s3_layer1_height", { s3_layer1_height: "88" })).toBe("21000");
+  expect(read("s3_layer1_height", { s3_layer1_height: "89" })).toBe(">21000");
   expect(read("s3_layer1_height", { s3_layer1_height: "53" })).toBeNull();
 });

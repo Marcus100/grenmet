@@ -20,7 +20,8 @@ const CODE_30M_MAX = 50;
 const CODE_300M_MIN = 56;
 const CODE_300M_MAX = 80;
 const CODE_1500M_MIN = 81;
-const CODE_1500M_MAX = 89;
+const CODE_1500M_MAX = 88; // 89 is above 21 000 m: use the lower bound
+const CODE_ABOVE_21KM = 89;
 const PRESSURE_THOUSANDS_BOUNDARY = 5000;
 const TEN_THOUSAND_FEET = 100;
 // Visibility VV 90..99 (Code table 4377) as METAR metres.
@@ -83,7 +84,7 @@ function layerFeet(code: number): number | null {
     metres = (code - 50) * 300;
   } else if (code >= CODE_1500M_MIN && code <= CODE_1500M_MAX) {
     metres = 10_500 + (code - CODE_1500M_MIN) * 1500;
-  }
+  } else if (code === CODE_ABOVE_21KM) metres = 21_000;
   return metres === null ? null : metres * FEET_PER_METRE;
 }
 
