@@ -4,6 +4,9 @@ import { apiTestTargets, planChecks } from "./changed.mjs";
 
 const HR_TESTS = /pytest -q tests\/hr$/;
 const FULL_SUITE = /pytest -q$/;
+const SETTINGS_FILE = /pytest -q tests\/test_settings\.py$/;
+const LINT_TESTS =
+  /ruff check src scripts tests .*ruff format src scripts tests --check/;
 const TEST_FILES = ["cap/", "hr/", "conftest.py", "test_eregister_public.py"];
 const names = (checks) => checks.map((check) => check.name);
 const find = (checks, name) => checks.find((check) => check.name === name);
@@ -51,13 +54,68 @@ test("API contract change adds drift and blast-radius checks", () => {
   ]);
 });
 
-test("shared API module or conftest change runs the full API suite", () => {
-  for (const file of ["src/dependencies.py", "tests/conftest.py"]) {
+test("shared API module or test infrastructure change runs the full API suite", () => {
+  for (const file of [
+    "src/dependencies.py",
+    "tests/conftest.py",
+    "tests/factories.py",
+  ]) {
     const checks = planChecks([`apps/api/fastapi/${file}`], {
       testFiles: TEST_FILES,
     });
     assert.match(find(checks, "api tests").args.at(-1), FULL_SUITE);
   }
+});
+
+test("main.py change runs the core subset, not the full suite", () => {
+  const checks = planChecks(["apps/api/fastapi/src/main.py"], {
+    testFiles: TEST_FILES,
+  });
+  const command = find(checks, "api tests").args.at(-1);
+  assert.doesNotMatch(command, FULL_SUITE);
+  for (const target of [
+    "tests/test_startup_imports.py",
+    "tests/test_openapi_contract.py",
+    "tests/test_settings.py",
+  ])
+    assert.ok(command.includes(target), target);
+  assert.ok(names(checks).includes("api client drift"));
+});
+
+test("dependency changes run API lint and the full suite", () => {
+  for (const file of [
+    "uv.lock",
+    "apps/api/fastapi/pyproject.toml",
+    "apps/api/fastapi/uv.lock",
+  ]) {
+    const checks = planChecks([file], { testFiles: TEST_FILES });
+    assert.ok(names(checks).includes("api lint+types"), file);
+    assert.match(find(checks, "api tests").args.at(-1), FULL_SUITE);
+  }
+});
+
+test("test-only changes lint tests and run just that directory or file", () => {
+  const dir = planChecks(["apps/api/fastapi/tests/hr/test_leave.py"], {
+    testFiles: TEST_FILES,
+  });
+  assert.match(find(dir, "api tests").args.at(-1), HR_TESTS);
+  const file = planChecks(["apps/api/fastapi/tests/test_settings.py"], {
+    testFiles: TEST_FILES,
+  });
+  assert.match(find(file, "api tests").args.at(-1), SETTINGS_FILE);
+  for (const checks of [dir, file])
+    assert.match(find(checks, "api lint+types").args.at(-1), LINT_TESTS);
+});
+
+test("API commands run through the local-environment wrapper", () => {
+  const checks = planChecks(["apps/api/fastapi/src/hr/service.py"], {
+    testFiles: TEST_FILES,
+  });
+  for (const name of ["api lint+types", "api tests"])
+    assert.equal(
+      find(checks, name).command,
+      "../../../scripts/agents/api-env.sh"
+    );
 });
 
 test("flat domain test files are found by prefix", () => {

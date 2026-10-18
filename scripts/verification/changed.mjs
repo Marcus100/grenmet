@@ -30,6 +30,9 @@ const WEB = /^(?:apps\/web|packages)\//;
 const API_DOMAIN = /^src\/([^/]+)\//;
 const API_SHARED = /^src\/[^/]+\.py$/;
 const API_TEST = /^tests\/.+\.py$/;
+// Test infrastructure every domain imports.
+const API_TEST_INFRA =
+  /^tests\/(?:conftest|factories|database_target|__init__)\.py$/;
 const AGENT_CONFIG =
   /^(?:\.claude|\.codex|\.agents|scripts\/(?:guardrails|agents)|\.github)\//;
 const VERIFICATION = /^scripts\/(?:verification|integrations|perf)\//;
@@ -85,39 +88,80 @@ export function apiTestTargets(domain, testFiles) {
   return targets;
 }
 
+// Dependency manifests: a bump can break any domain, so these run lint+types and
+// the full suite. The uv workspace lock lives at the repo root.
+const API_DEPENDENCIES = new Set([
+  "uv.lock",
+  "pyproject.toml",
+  `${API}pyproject.toml`,
+  `${API}uv.lock`,
+]);
+// main.py wires every router, middleware and handler. A change there is checked
+// by a core subset (startup, OpenAPI, settings, release contract) plus the
+// domains it touches, not the whole suite. CI still runs everything.
+const API_ENTRYPOINT = "src/main.py";
+const API_CORE_TESTS = [
+  "tests/test_startup_imports.py",
+  "tests/test_openapi_contract.py",
+  "tests/test_release_contract_inputs.py",
+  "tests/test_settings.py",
+  "tests/test_schema_datetime_guard.py",
+  "tests/utils",
+];
+// tests/<dir>/... runs that directory; tests/test_x.py runs itself.
+const API_TEST_DIR = /^tests\/([^/]+)\/.+$/;
+
+// Pytest targets for one changed API file: "full" for the whole suite, else a list.
+function apiFileTargets(file, testFiles) {
+  if (API_DEPENDENCIES.has(file)) return "full";
+  const rest = file.slice(API.length);
+  const domain = API_DOMAIN.exec(rest)?.[1];
+  if (domain) return apiTestTargets(domain, testFiles);
+  if (rest === API_ENTRYPOINT) return API_CORE_TESTS;
+  if (API_SHARED.test(rest) || API_TEST_INFRA.test(rest)) return "full";
+  const testDir = API_TEST_DIR.exec(rest)?.[1];
+  if (testDir) return [`tests/${testDir}`];
+  return API_TEST.test(rest) ? [rest] : [];
+}
+
 // Pytest targets for changed API files; an empty list means the full suite,
-// because shared modules and conftest affect every domain.
+// because shared modules, conftest and dependencies affect every domain.
 function apiPytestTargets(apiFiles, testFiles) {
   const targets = new Set();
   for (const file of apiFiles) {
-    const rest = file.slice(API.length);
-    const domain = API_DOMAIN.exec(rest)?.[1];
-    if (domain)
-      for (const target of apiTestTargets(domain, testFiles))
-        targets.add(target);
-    else if (API_SHARED.test(rest) || rest === "tests/conftest.py") return [];
-    else if (API_TEST.test(rest)) targets.add(rest);
+    const fileTargets = apiFileTargets(file, testFiles);
+    if (fileTargets === "full") return [];
+    for (const target of fileTargets) targets.add(target);
   }
   return targets.size > 0 ? [...targets].sort() : undefined;
 }
 
+// Runs from apps/api/fastapi; the wrapper supplies the local-development API
+// settings so a fresh worktree without .env.local still works.
+const API_ENV = "../../../scripts/agents/api-env.sh";
+
 function apiChecks(files, testFiles) {
-  const apiFiles = files.filter((f) => f.startsWith(API) && f.endsWith(".py"));
+  const apiFiles = files.filter(
+    (f) =>
+      API_DEPENDENCIES.has(f) ||
+      (f.startsWith(API) && (f.endsWith(".py") || f.startsWith(`${API}tests/`)))
+  );
   if (apiFiles.length === 0) return [];
   const lint = [
     API_SYNC,
-    `${UV_RUN} ruff check src scripts`,
-    `${UV_RUN} ruff format src scripts --check`,
+    `${UV_RUN} ruff check src scripts tests`,
+    `${UV_RUN} ruff format src scripts tests --check`,
     `${UV_RUN} mypy src`,
   ].join(" && ");
-  const checks = [check("api lint+types", "bash", ["-c", lint], API)];
+  const checks = [check("api lint+types", API_ENV, ["bash", "-c", lint], API)];
   const targets = apiPytestTargets(apiFiles, testFiles);
   if (targets)
     checks.push(
       check(
         "api tests",
-        "bash",
+        API_ENV,
         [
+          "bash",
           "-c",
           `${API_SYNC} && ${[UV_RUN, "pytest", "-q", ...targets].join(" ")}`,
         ],
