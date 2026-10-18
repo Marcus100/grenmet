@@ -147,6 +147,7 @@ async def _cards(
                 recurrence=listing.recurrence,
                 tags=list(listing.tags or []),
                 featured=listing.featured,
+                image_file_id=listing.image_file_id,
                 organiser_slug=organiser_slug,
                 going_count=int(counts.get(listing.id, 0)),
                 going_preview=previews.get(listing.id, []),
@@ -240,6 +241,7 @@ async def _organiser_public(
         bio=organiser.bio,
         verified=await _organiser_verified(organiser),
         organisation_id=organiser.organisation_id,
+        logo_file_id=organiser.logo_file_id,
         follower_count=int(followers or 0),
         viewer_following=following,
     )

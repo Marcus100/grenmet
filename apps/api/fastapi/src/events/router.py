@@ -601,6 +601,30 @@ async def request_organiser(
     return await service.request_organiser(session, platform, user, body)
 
 
+@router.put(
+    "/manage/organiser/logo",
+    response_model=schemas.OrganiserPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Set the organiser logo",
+    description=(
+        "Attach a completed `organiser-logo` upload of the organiser's organisation "
+        "(see `POST /storage/uploads`), or send null to clear it."
+    ),
+    responses=_ORGANISER,
+)
+async def set_organiser_logo(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    body: schemas.OrganiserLogoUpdate,
+    organiser: _ManagedSlug = None,
+) -> schemas.OrganiserPublic:
+    return await service.set_organiser_logo(
+        session, user, body.file_id, scope, organiser
+    )
+
+
 @router.post(
     "/manage/listings",
     response_model=schemas.ManagedListing,

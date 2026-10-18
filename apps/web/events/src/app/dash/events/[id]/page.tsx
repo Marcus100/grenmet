@@ -66,7 +66,11 @@ export default async function EditEventPage({
             </Link>
           ) : null}
         </div>
-        <EventEditor initial={draftFromEvent(event)} listingId={event.id} />
+        <EventEditor
+          initial={draftFromEvent(event)}
+          listingId={event.id}
+          organisationId={managed.organiser.organisationId ?? null}
+        />
         <ActivityPanel entries={activity} />
       </main>
     </DashShell>

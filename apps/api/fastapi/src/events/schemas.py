@@ -75,6 +75,8 @@ class ListingCard(BaseModel):
     recurrence: str | None
     tags: list[str]
     featured: bool
+    #: Stored cover image; render through the public storage redirect.
+    image_file_id: uuid.UUID | None = None
     organiser_slug: str
     going_count: int
     going_preview: list[PersonChip]
@@ -95,6 +97,8 @@ class OrganiserPublic(BaseModel):
     bio: str
     verified: bool
     organisation_id: str | None = None
+    #: Stored logo; render through the public storage redirect.
+    logo_file_id: uuid.UUID | None = None
     follower_count: int
     viewer_following: bool | None = None
 
@@ -306,6 +310,8 @@ class ListingUpsert(BaseModel):
     status: Literal["draft", "published", "cancelled"] = "draft"
     group_slug: str | None = Field(default=None, pattern=SLUG_PATTERN)
     tiers: list[TierInput] = Field(default_factory=list, max_length=20)
+    #: A completed `listing-image` upload of this organiser; null clears it.
+    image_file_id: uuid.UUID | None = None
 
 
 class ManagedListing(ListingDetail):
@@ -325,6 +331,11 @@ class OrganiserCreate(BaseModel):
     name: str = Field(min_length=2, max_length=80)
     slug: str | None = Field(default=None, pattern=SLUG_PATTERN, max_length=60)
     bio: str = Field(default="", max_length=500)
+
+
+class OrganiserLogoUpdate(BaseModel):
+    #: A completed `organiser-logo` upload of this organiser; null clears it.
+    file_id: uuid.UUID | None = None
 
 
 class OrganiserReview(BaseModel):

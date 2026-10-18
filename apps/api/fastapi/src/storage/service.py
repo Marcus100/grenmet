@@ -15,6 +15,7 @@ from typing import Any, cast
 
 import boto3
 from botocore.config import Config as BotoConfig
+from botocore.exceptions import ClientError
 
 from src.storage.config import StorageConfig, storage_settings
 
@@ -36,6 +37,10 @@ class StorageService:
                 "Object storage is not configured. Set STORAGE_ENDPOINT_URL, "
                 "STORAGE_BUCKET, STORAGE_ACCESS_KEY_ID and STORAGE_SECRET_ACCESS_KEY."
             )
+
+    @property
+    def is_configured(self) -> bool:
+        return self._config.enabled
 
     @property
     def bucket(self) -> str:
@@ -64,12 +69,19 @@ class StorageService:
         key: str,
         *,
         content_type: str | None = None,
+        content_length: int | None = None,
         expires_in: int | None = None,
     ) -> str:
-        """Presigned PUT URL for a client to upload directly to storage (local signing)."""
+        """Presigned PUT URL for a client to upload directly to storage (local signing).
+
+        With ``content_length`` the signature covers the header, so storage
+        rejects a body of any other size.
+        """
         params: dict[str, Any] = {"Bucket": self.bucket, "Key": key}
         if content_type:
             params["ContentType"] = content_type
+        if content_length is not None:
+            params["ContentLength"] = content_length
         return cast(
             str,
             self.client.generate_presigned_url(
@@ -105,6 +117,22 @@ class StorageService:
             extra["ContentType"] = content_type
         self.client.put_object(Bucket=self.bucket, Key=key, Body=data, **extra)
         logger.info("Stored object", extra={"key": key})
+
+    def head_object(self, key: str) -> dict[str, Any] | None:
+        """Object metadata, or None when absent (network I/O — use run_in_threadpool)."""
+        try:
+            return cast(
+                dict[str, Any],
+                self.client.head_object(Bucket=self.bucket, Key=key),
+            )
+        except ClientError as exc:
+            if exc.response.get("Error", {}).get("Code") in {
+                "404",
+                "NoSuchKey",
+                "NotFound",
+            }:
+                return None
+            raise
 
     def delete_object(self, key: str) -> None:
         """Delete an object (network I/O — wrap in run_in_threadpool from async code)."""

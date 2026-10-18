@@ -200,6 +200,8 @@ export interface Organiser {
   readonly bio: string;
   readonly followerCount: number;
   readonly id: string;
+  /** Stored logo (an organisation upload); render it with `storedImageUrl`. */
+  readonly logoFileId?: string | null;
   readonly name: string;
   /** Platform organisation backing this organiser; null while legacy. */
   readonly organisationId?: string | null;
@@ -239,6 +241,8 @@ export interface PublicEvent {
   readonly goingCount: number;
   readonly goingNames: readonly string[];
   readonly id: string;
+  /** Stored cover image (an organisation upload); render it with `storedImageUrl`. */
+  readonly imageFileId?: string | null;
   /** Slug of the hosting organiser. */
   readonly organiserSlug: string;
   readonly parish: Parish;

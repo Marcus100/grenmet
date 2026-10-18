@@ -26,6 +26,7 @@ export const listingCardSchema = z.object({
   recurrence: z.union([z.string(), z.null()]),
   tags: z.array(z.string()),
   featured: z.boolean(),
+  image_file_id: z.union([z.uuid(), z.null()]).optional(),
   organiser_slug: z.string(),
   going_count: z.int(),
   going_preview: z.array(personChipSchema),

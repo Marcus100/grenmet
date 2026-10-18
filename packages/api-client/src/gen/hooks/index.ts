@@ -879,6 +879,11 @@ export {
   useEventsSendMessage,
 } from "./useEventsSendMessage.js";
 export {
+  eventsSetOrganiserLogoMutationKey,
+  eventsSetOrganiserLogoMutationOptions,
+  useEventsSetOrganiserLogo,
+} from "./useEventsSetOrganiserLogo.js";
+export {
   eventsUnblockMemberMutationKey,
   eventsUnblockMemberMutationOptions,
   useEventsUnblockMember,
@@ -1883,6 +1888,26 @@ export {
   organisationsVerifyOneMutationOptions,
   useOrganisationsVerifyOne,
 } from "./useOrganisationsVerifyOne.js";
+export {
+  storageCompleteUploadMutationKey,
+  storageCompleteUploadMutationOptions,
+  useStorageCompleteUpload,
+} from "./useStorageCompleteUpload.js";
+export {
+  storageCreateUploadMutationKey,
+  storageCreateUploadMutationOptions,
+  useStorageCreateUpload,
+} from "./useStorageCreateUpload.js";
+export {
+  storageGetFileQueryKey,
+  storageGetFileQueryOptions,
+  useStorageGetFile,
+} from "./useStorageGetFile.js";
+export {
+  storagePublicFileQueryKey,
+  storagePublicFileQueryOptions,
+  useStoragePublicFile,
+} from "./useStoragePublicFile.js";
 export {
   storesApproveRequisitionMutationKey,
   storesApproveRequisitionMutationOptions,

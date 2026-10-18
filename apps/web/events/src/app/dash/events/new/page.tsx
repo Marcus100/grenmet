@@ -38,7 +38,11 @@ export default async function NewEventPage() {
             Create an event
           </h1>
         </div>
-        <EventEditor initial={emptyDraft(new Date())} listingId={null} />
+        <EventEditor
+          initial={emptyDraft(new Date())}
+          listingId={null}
+          organisationId={managed.organiser.organisationId ?? null}
+        />
       </main>
     </DashShell>
   );

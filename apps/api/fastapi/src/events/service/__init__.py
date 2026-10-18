@@ -50,6 +50,7 @@ from .organiser_admin import (
     pending_organisers,
     request_organiser,
     review_organiser,
+    set_organiser_logo,
     update_listing,
 )
 from .people import (
@@ -96,6 +97,7 @@ __all__ = [
     "pending_organisers",
     "request_organiser",
     "review_organiser",
+    "set_organiser_logo",
     "listing_activity",
     "managed_organiser",
     "organiser_public",

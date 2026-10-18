@@ -31,6 +31,8 @@ class Organiser(EventsModel):
     verified: Mapped[bool] = mapped_column(default=False)
     # Platform ``org.organisation.id`` (main database, no cross-DB FK); NULL = legacy.
     organisation_id: Mapped[str | None] = mapped_column(Text, unique=True)
+    #: Completed organisation upload (purpose organiser-logo); no cross-DB FK.
+    logo_file_id: Mapped[uuid.UUID | None] = mapped_column(default=None)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=utc_now)
 
 
@@ -109,6 +111,8 @@ class Listing(EventsModel):
     organiser_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("organisers.id"))
     group_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("groups.id"))
     featured: Mapped[bool] = mapped_column(default=False)
+    #: Completed organisation upload (purpose listing-image); no cross-DB FK.
+    image_file_id: Mapped[uuid.UUID | None] = mapped_column(default=None)
     recurrence: Mapped[str | None] = mapped_column(Text)
     tags: Mapped[list[str]] = mapped_column(ARRAY(Text), default=list)
     status: Mapped[str] = mapped_column(Text, default="draft")

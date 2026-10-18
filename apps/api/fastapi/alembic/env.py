@@ -109,6 +109,7 @@ from src.organisations.models import (  # noqa: F401
     PlatformOrganisation,
 )
 from src.orm import POSTGRES_INDEXES_NAMING_CONVENTION, Base
+from src.storage.models import OrgUpload
 from src.stores.models import (
     Requisition,
     RequisitionLine,

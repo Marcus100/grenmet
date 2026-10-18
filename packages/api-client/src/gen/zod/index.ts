@@ -1907,6 +1907,19 @@ export {
   eventsSendMessageStatus429Schema,
 } from "./eventsSendMessageSchema.js";
 export {
+  eventsSetOrganiserLogoBodySchema,
+  eventsSetOrganiserLogoErrorSchema,
+  eventsSetOrganiserLogoQueryOrganiserSchema,
+  eventsSetOrganiserLogoResponseSchema,
+  eventsSetOrganiserLogoStatus200Schema,
+  eventsSetOrganiserLogoStatus401Schema,
+  eventsSetOrganiserLogoStatus403Schema,
+  eventsSetOrganiserLogoStatus404Schema,
+  eventsSetOrganiserLogoStatus409Schema,
+  eventsSetOrganiserLogoStatus422Schema,
+  eventsSetOrganiserLogoStatus429Schema,
+} from "./eventsSetOrganiserLogoSchema.js";
+export {
   eventsUnblockMemberErrorSchema,
   eventsUnblockMemberPathHandleSchema,
   eventsUnblockMemberResponseSchema,
@@ -1993,6 +2006,7 @@ export {
   feedbackSendPageFeedbackStatus400Schema,
   feedbackSendPageFeedbackStatus422Schema,
 } from "./feedbackSendPageFeedbackSchema.js";
+export { fileAccessSchema } from "./fileAccessSchema.js";
 export { flightBoardResponsePropertiesBoardEnumSchema } from "./flightBoardResponsePropertiesBoardEnumSchema.js";
 export { flightBoardResponseSchema } from "./flightBoardResponseSchema.js";
 export { flightRowSchema } from "./flightRowSchema.js";
@@ -4138,6 +4152,7 @@ export {
 } from "./organisationsVerifyOneSchema.js";
 export { organisationUpdateSchema } from "./organisationUpdateSchema.js";
 export { organiserCreateSchema } from "./organiserCreateSchema.js";
+export { organiserLogoUpdateSchema } from "./organiserLogoUpdateSchema.js";
 export { organiserOptionSchema } from "./organiserOptionSchema.js";
 export { organiserPublicSchema } from "./organiserPublicSchema.js";
 export { organiserReviewSchema } from "./organiserReviewSchema.js";
@@ -4332,6 +4347,54 @@ export { stockMovementCreateSchema } from "./stockMovementCreateSchema.js";
 export { stockMovementListPublicSchema } from "./stockMovementListPublicSchema.js";
 export { stockMovementPublicSchema } from "./stockMovementPublicSchema.js";
 export { stopViewSchema } from "./stopViewSchema.js";
+export {
+  storageCompleteUploadErrorSchema,
+  storageCompleteUploadHeaderXBarrelsOrganisationSchema,
+  storageCompleteUploadPathUploadIdSchema,
+  storageCompleteUploadResponseSchema,
+  storageCompleteUploadStatus200Schema,
+  storageCompleteUploadStatus401Schema,
+  storageCompleteUploadStatus403Schema,
+  storageCompleteUploadStatus404Schema,
+  storageCompleteUploadStatus409Schema,
+  storageCompleteUploadStatus422Schema,
+  storageCompleteUploadStatus503Schema,
+} from "./storageCompleteUploadSchema.js";
+export {
+  storageCreateUploadBodySchema,
+  storageCreateUploadErrorSchema,
+  storageCreateUploadHeaderXBarrelsOrganisationSchema,
+  storageCreateUploadResponseSchema,
+  storageCreateUploadStatus201Schema,
+  storageCreateUploadStatus401Schema,
+  storageCreateUploadStatus403Schema,
+  storageCreateUploadStatus404Schema,
+  storageCreateUploadStatus422Schema,
+  storageCreateUploadStatus503Schema,
+} from "./storageCreateUploadSchema.js";
+export {
+  storageGetFileErrorSchema,
+  storageGetFileHeaderXBarrelsOrganisationSchema,
+  storageGetFilePathFileIdSchema,
+  storageGetFileResponseSchema,
+  storageGetFileStatus200Schema,
+  storageGetFileStatus401Schema,
+  storageGetFileStatus403Schema,
+  storageGetFileStatus404Schema,
+  storageGetFileStatus422Schema,
+  storageGetFileStatus503Schema,
+} from "./storageGetFileSchema.js";
+export {
+  storagePublicFileErrorSchema,
+  storagePublicFilePathFileIdSchema,
+  storagePublicFileResponseSchema,
+  storagePublicFileStatus307Schema,
+  storagePublicFileStatus404Schema,
+  storagePublicFileStatus422Schema,
+  storagePublicFileStatus503Schema,
+} from "./storagePublicFileSchema.js";
+export { storedFilePropertiesStatusEnumSchema } from "./storedFilePropertiesStatusEnumSchema.js";
+export { storedFileSchema } from "./storedFileSchema.js";
 export { storesAccessPublicSchema } from "./storesAccessPublicSchema.js";
 export {
   storesApproveRequisitionBodySchema,
@@ -4837,6 +4900,8 @@ export { unitSpecSchema } from "./unitSpecSchema.js";
 export { unreachableRecipientPublicSchema } from "./unreachableRecipientPublicSchema.js";
 export { unreadCountPublicSchema } from "./unreadCountPublicSchema.js";
 export { updatePasswordSchema } from "./updatePasswordSchema.js";
+export { uploadRequestSchema } from "./uploadRequestSchema.js";
+export { uploadTicketSchema } from "./uploadTicketSchema.js";
 export { userCreateSchema } from "./userCreateSchema.js";
 export { userProfilePublicSchema } from "./userProfilePublicSchema.js";
 export { userProfileUpdateMeSchema } from "./userProfileUpdateMeSchema.js";

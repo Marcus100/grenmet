@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from typing import Annotated
 
 from fastapi import Depends, Header
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
 from src.dependencies import AccountUser, SessionDep
@@ -53,6 +54,26 @@ class OrgContext:
         service.require_role(self.membership.role, minimum)
 
 
+async def resolve_org_context(
+    session: AsyncSession, user: User, organisation: str | None
+) -> OrgContext:
+    """Resolve the header value for ``user``; shared by every route family that
+    needs the same denial rules (including ones that accept app-scoped tokens)."""
+    organisation_id = (organisation or "").strip()
+    if not organisation_id:
+        raise OrganisationContextRequiredError()
+    if len(organisation_id) > _MAX_ID_LENGTH:
+        raise OrganisationNotFoundError()
+    resolved = await service.resolve_membership(
+        session, user_id=user.id, organisation_id=organisation_id
+    )
+    return OrgContext(
+        organisation=resolved.organisation,
+        membership=resolved.membership,
+        user=user,
+    )
+
+
 async def get_org_context(
     session: SessionDep,
     current_user: AccountUser,
@@ -67,21 +88,10 @@ async def get_org_context(
         ),
     ] = None,
 ) -> AsyncGenerator[OrgContext]:
-    organisation_id = (organisation or "").strip()
-    if not organisation_id:
-        raise OrganisationContextRequiredError()
-    if len(organisation_id) > _MAX_ID_LENGTH:
-        raise OrganisationNotFoundError()
-    resolved = await service.resolve_membership(
-        session, user_id=current_user.id, organisation_id=organisation_id
-    )
-    token = bind_organisation_id(resolved.organisation.id)
+    context = await resolve_org_context(session, current_user, organisation)
+    token = bind_organisation_id(context.organisation.id)
     try:
-        yield OrgContext(
-            organisation=resolved.organisation,
-            membership=resolved.membership,
-            user=current_user,
-        )
+        yield context
     finally:
         try:
             reset_organisation_id(token)

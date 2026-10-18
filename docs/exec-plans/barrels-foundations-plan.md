@@ -131,7 +131,7 @@ Alembic head.
 | F5 | Events organiser to organisation bridge (`organisers.organisation_id`), `require_organiser` accepts platform membership or legacy rows | M | U — built, pending merge |
 | F6 | Events outbox drained by the worker into `notifications.notify` with a dedupe key | M | U — built, pending merge |
 | F7 | Events append-only activity log | S–M | U — built, pending merge |
-| F8 | Organisation-scoped uploads (presigned, size and type limits) | M | U |
+| F8 | Organisation-scoped uploads (presigned, size and type limits) | M | U — built, pending merge (`org.upload`, `/storage/uploads`; Events organiser logo and listing image; bucket CORS for browser PUT is an ops step) |
 | E1 | Orders and tickets for free and registration tiers; inventory guard; QR ticket page | L | U — built, pending merge (`events_0005`; per-account limit default 4 per tier; paid tiers refused until E6; verified-publish gate added with it) |
 | E2 | Idempotent admission scans, duplicate rejection, printable manifest | M | U — built, pending merge (`events_0006`; `/dash/events/[id]/door`, keyboard-scanner input, no camera) |
 | E3 | Outlet cash sales by the organiser's own staff, sharing inventory with online and door | M | U |

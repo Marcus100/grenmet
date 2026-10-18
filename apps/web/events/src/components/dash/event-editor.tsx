@@ -42,6 +42,7 @@ import {
   type EventDraft,
   type TierDraft,
 } from "./event-draft";
+import { ImageUpload } from "./image-upload";
 
 /**
  * Organiser event editor with a live public-page preview. The preview uses
@@ -51,10 +52,13 @@ import {
 export function EventEditor({
   initial,
   listingId,
+  organisationId = null,
 }: {
   initial: EventDraft;
   /** Null when creating a new listing. */
   listingId: string | null;
+  /** Organisation the cover image is stored under; null disables uploads. */
+  organisationId?: string | null;
 }) {
   const router = useRouter();
   const [draft, setDraft] = useState<EventDraft>(initial);
@@ -103,6 +107,16 @@ export function EventEditor({
                   id="ed-title"
                   onChange={(e) => update("title", e.target.value)}
                   value={draft.title}
+                />
+              </Field>
+              <Field>
+                <FieldLabel>Cover image</FieldLabel>
+                <ImageUpload
+                  label="Cover image"
+                  onChange={(fileId) => update("imageFileId", fileId)}
+                  organisationId={organisationId}
+                  purpose="listing-image"
+                  value={draft.imageFileId ?? null}
                 />
               </Field>
               <Field>

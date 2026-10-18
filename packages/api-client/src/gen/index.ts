@@ -177,6 +177,7 @@ export { eventsReviewOrganiser } from "./clients/eventsReviewOrganiser.js";
 export { eventsRsvpListing } from "./clients/eventsRsvpListing.js";
 export { eventsSaveListing } from "./clients/eventsSaveListing.js";
 export { eventsSendMessage } from "./clients/eventsSendMessage.js";
+export { eventsSetOrganiserLogo } from "./clients/eventsSetOrganiserLogo.js";
 export { eventsUnblockMember } from "./clients/eventsUnblockMember.js";
 export { eventsUnfollowOrganiser } from "./clients/eventsUnfollowOrganiser.js";
 export { eventsUnsaveListing } from "./clients/eventsUnsaveListing.js";
@@ -378,6 +379,10 @@ export { organisationsUnverifyOne } from "./clients/organisationsUnverifyOne.js"
 export { organisationsUpdateMember } from "./clients/organisationsUpdateMember.js";
 export { organisationsUpdateOne } from "./clients/organisationsUpdateOne.js";
 export { organisationsVerifyOne } from "./clients/organisationsVerifyOne.js";
+export { storageCompleteUpload } from "./clients/storageCompleteUpload.js";
+export { storageCreateUpload } from "./clients/storageCreateUpload.js";
+export { storageGetFile } from "./clients/storageGetFile.js";
+export { storagePublicFile } from "./clients/storagePublicFile.js";
 export { storesApproveRequisition } from "./clients/storesApproveRequisition.js";
 export { storesCancelRequisition } from "./clients/storesCancelRequisition.js";
 export { storesCreateItem } from "./clients/storesCreateItem.js";
@@ -1333,6 +1338,11 @@ export {
   eventsSendMessageMutationOptions,
   useEventsSendMessage,
 } from "./hooks/useEventsSendMessage.js";
+export {
+  eventsSetOrganiserLogoMutationKey,
+  eventsSetOrganiserLogoMutationOptions,
+  useEventsSetOrganiserLogo,
+} from "./hooks/useEventsSetOrganiserLogo.js";
 export {
   eventsUnblockMemberMutationKey,
   eventsUnblockMemberMutationOptions,
@@ -2338,6 +2348,26 @@ export {
   organisationsVerifyOneMutationOptions,
   useOrganisationsVerifyOne,
 } from "./hooks/useOrganisationsVerifyOne.js";
+export {
+  storageCompleteUploadMutationKey,
+  storageCompleteUploadMutationOptions,
+  useStorageCompleteUpload,
+} from "./hooks/useStorageCompleteUpload.js";
+export {
+  storageCreateUploadMutationKey,
+  storageCreateUploadMutationOptions,
+  useStorageCreateUpload,
+} from "./hooks/useStorageCreateUpload.js";
+export {
+  storageGetFileQueryKey,
+  storageGetFileQueryOptions,
+  useStorageGetFile,
+} from "./hooks/useStorageGetFile.js";
+export {
+  storagePublicFileQueryKey,
+  storagePublicFileQueryOptions,
+  useStoragePublicFile,
+} from "./hooks/useStoragePublicFile.js";
 export {
   storesApproveRequisitionMutationKey,
   storesApproveRequisitionMutationOptions,
@@ -4805,6 +4835,20 @@ export type {
   EventsSendMessageStatus429,
 } from "./models/EventsSendMessage.js";
 export type {
+  EventsSetOrganiserLogoBody,
+  EventsSetOrganiserLogoOptions,
+  EventsSetOrganiserLogoQuery,
+  EventsSetOrganiserLogoResponse,
+  EventsSetOrganiserLogoResponses,
+  EventsSetOrganiserLogoStatus200,
+  EventsSetOrganiserLogoStatus401,
+  EventsSetOrganiserLogoStatus403,
+  EventsSetOrganiserLogoStatus404,
+  EventsSetOrganiserLogoStatus409,
+  EventsSetOrganiserLogoStatus422,
+  EventsSetOrganiserLogoStatus429,
+} from "./models/EventsSetOrganiserLogo.js";
+export type {
   EventsUnblockMemberOptions,
   EventsUnblockMemberPath,
   EventsUnblockMemberResponse,
@@ -4899,6 +4943,7 @@ export type {
   FeedbackSendPageFeedbackStatus400,
   FeedbackSendPageFeedbackStatus422,
 } from "./models/FeedbackSendPageFeedback.js";
+export type { FileAccess } from "./models/FileAccess.js";
 export type { FlightBoardResponse } from "./models/FlightBoardResponse.js";
 export type { FlightBoardResponsePropertiesBoardEnum } from "./models/FlightBoardResponsePropertiesBoardEnum.js";
 export { flightBoardResponsePropertiesBoardEnum } from "./models/FlightBoardResponsePropertiesBoardEnum.js";
@@ -7225,6 +7270,7 @@ export type {
 } from "./models/OrganisationsVerifyOne.js";
 export type { OrganisationUpdate } from "./models/OrganisationUpdate.js";
 export type { OrganiserCreate } from "./models/OrganiserCreate.js";
+export type { OrganiserLogoUpdate } from "./models/OrganiserLogoUpdate.js";
 export type { OrganiserOption } from "./models/OrganiserOption.js";
 export type { OrganiserPublic } from "./models/OrganiserPublic.js";
 export type { OrganiserReview } from "./models/OrganiserReview.js";
@@ -7444,6 +7490,59 @@ export type { StockMovementCreate } from "./models/StockMovementCreate.js";
 export type { StockMovementListPublic } from "./models/StockMovementListPublic.js";
 export type { StockMovementPublic } from "./models/StockMovementPublic.js";
 export type { StopView } from "./models/StopView.js";
+export type {
+  StorageCompleteUploadHeaders,
+  StorageCompleteUploadOptions,
+  StorageCompleteUploadPath,
+  StorageCompleteUploadResponse,
+  StorageCompleteUploadResponses,
+  StorageCompleteUploadStatus200,
+  StorageCompleteUploadStatus401,
+  StorageCompleteUploadStatus403,
+  StorageCompleteUploadStatus404,
+  StorageCompleteUploadStatus409,
+  StorageCompleteUploadStatus422,
+  StorageCompleteUploadStatus503,
+} from "./models/StorageCompleteUpload.js";
+export type {
+  StorageCreateUploadBody,
+  StorageCreateUploadHeaders,
+  StorageCreateUploadOptions,
+  StorageCreateUploadResponse,
+  StorageCreateUploadResponses,
+  StorageCreateUploadStatus201,
+  StorageCreateUploadStatus401,
+  StorageCreateUploadStatus403,
+  StorageCreateUploadStatus404,
+  StorageCreateUploadStatus422,
+  StorageCreateUploadStatus503,
+} from "./models/StorageCreateUpload.js";
+export type {
+  StorageGetFileHeaders,
+  StorageGetFileOptions,
+  StorageGetFilePath,
+  StorageGetFileResponse,
+  StorageGetFileResponses,
+  StorageGetFileStatus200,
+  StorageGetFileStatus401,
+  StorageGetFileStatus403,
+  StorageGetFileStatus404,
+  StorageGetFileStatus422,
+  StorageGetFileStatus503,
+} from "./models/StorageGetFile.js";
+export type {
+  StoragePublicFileOptions,
+  StoragePublicFilePath,
+  StoragePublicFileResponse,
+  StoragePublicFileResponses,
+  StoragePublicFileStatus307,
+  StoragePublicFileStatus404,
+  StoragePublicFileStatus422,
+  StoragePublicFileStatus503,
+} from "./models/StoragePublicFile.js";
+export type { StoredFile } from "./models/StoredFile.js";
+export type { StoredFilePropertiesStatusEnum } from "./models/StoredFilePropertiesStatusEnum.js";
+export { storedFilePropertiesStatusEnum } from "./models/StoredFilePropertiesStatusEnum.js";
 export type { StoresAccessPublic } from "./models/StoresAccessPublic.js";
 export type {
   StoresApproveRequisitionBody,
@@ -7986,6 +8085,8 @@ export type { UnitSpec } from "./models/UnitSpec.js";
 export type { UnreachableRecipientPublic } from "./models/UnreachableRecipientPublic.js";
 export type { UnreadCountPublic } from "./models/UnreadCountPublic.js";
 export type { UpdatePassword } from "./models/UpdatePassword.js";
+export type { UploadRequest } from "./models/UploadRequest.js";
+export type { UploadTicket } from "./models/UploadTicket.js";
 export type { UserCreate } from "./models/UserCreate.js";
 export type { UserProfilePublic } from "./models/UserProfilePublic.js";
 export type { UserProfileUpdateMe } from "./models/UserProfileUpdateMe.js";
@@ -10318,6 +10419,19 @@ export {
   eventsSendMessageStatus429Schema,
 } from "./zod/eventsSendMessageSchema.js";
 export {
+  eventsSetOrganiserLogoBodySchema,
+  eventsSetOrganiserLogoErrorSchema,
+  eventsSetOrganiserLogoQueryOrganiserSchema,
+  eventsSetOrganiserLogoResponseSchema,
+  eventsSetOrganiserLogoStatus200Schema,
+  eventsSetOrganiserLogoStatus401Schema,
+  eventsSetOrganiserLogoStatus403Schema,
+  eventsSetOrganiserLogoStatus404Schema,
+  eventsSetOrganiserLogoStatus409Schema,
+  eventsSetOrganiserLogoStatus422Schema,
+  eventsSetOrganiserLogoStatus429Schema,
+} from "./zod/eventsSetOrganiserLogoSchema.js";
+export {
   eventsUnblockMemberErrorSchema,
   eventsUnblockMemberPathHandleSchema,
   eventsUnblockMemberResponseSchema,
@@ -10404,6 +10518,7 @@ export {
   feedbackSendPageFeedbackStatus400Schema,
   feedbackSendPageFeedbackStatus422Schema,
 } from "./zod/feedbackSendPageFeedbackSchema.js";
+export { fileAccessSchema } from "./zod/fileAccessSchema.js";
 export { flightBoardResponsePropertiesBoardEnumSchema } from "./zod/flightBoardResponsePropertiesBoardEnumSchema.js";
 export { flightBoardResponseSchema } from "./zod/flightBoardResponseSchema.js";
 export { flightRowSchema } from "./zod/flightRowSchema.js";
@@ -12549,6 +12664,7 @@ export {
 } from "./zod/organisationsVerifyOneSchema.js";
 export { organisationUpdateSchema } from "./zod/organisationUpdateSchema.js";
 export { organiserCreateSchema } from "./zod/organiserCreateSchema.js";
+export { organiserLogoUpdateSchema } from "./zod/organiserLogoUpdateSchema.js";
 export { organiserOptionSchema } from "./zod/organiserOptionSchema.js";
 export { organiserPublicSchema } from "./zod/organiserPublicSchema.js";
 export { organiserReviewSchema } from "./zod/organiserReviewSchema.js";
@@ -12743,6 +12859,54 @@ export { stockMovementCreateSchema } from "./zod/stockMovementCreateSchema.js";
 export { stockMovementListPublicSchema } from "./zod/stockMovementListPublicSchema.js";
 export { stockMovementPublicSchema } from "./zod/stockMovementPublicSchema.js";
 export { stopViewSchema } from "./zod/stopViewSchema.js";
+export {
+  storageCompleteUploadErrorSchema,
+  storageCompleteUploadHeaderXBarrelsOrganisationSchema,
+  storageCompleteUploadPathUploadIdSchema,
+  storageCompleteUploadResponseSchema,
+  storageCompleteUploadStatus200Schema,
+  storageCompleteUploadStatus401Schema,
+  storageCompleteUploadStatus403Schema,
+  storageCompleteUploadStatus404Schema,
+  storageCompleteUploadStatus409Schema,
+  storageCompleteUploadStatus422Schema,
+  storageCompleteUploadStatus503Schema,
+} from "./zod/storageCompleteUploadSchema.js";
+export {
+  storageCreateUploadBodySchema,
+  storageCreateUploadErrorSchema,
+  storageCreateUploadHeaderXBarrelsOrganisationSchema,
+  storageCreateUploadResponseSchema,
+  storageCreateUploadStatus201Schema,
+  storageCreateUploadStatus401Schema,
+  storageCreateUploadStatus403Schema,
+  storageCreateUploadStatus404Schema,
+  storageCreateUploadStatus422Schema,
+  storageCreateUploadStatus503Schema,
+} from "./zod/storageCreateUploadSchema.js";
+export {
+  storageGetFileErrorSchema,
+  storageGetFileHeaderXBarrelsOrganisationSchema,
+  storageGetFilePathFileIdSchema,
+  storageGetFileResponseSchema,
+  storageGetFileStatus200Schema,
+  storageGetFileStatus401Schema,
+  storageGetFileStatus403Schema,
+  storageGetFileStatus404Schema,
+  storageGetFileStatus422Schema,
+  storageGetFileStatus503Schema,
+} from "./zod/storageGetFileSchema.js";
+export {
+  storagePublicFileErrorSchema,
+  storagePublicFilePathFileIdSchema,
+  storagePublicFileResponseSchema,
+  storagePublicFileStatus307Schema,
+  storagePublicFileStatus404Schema,
+  storagePublicFileStatus422Schema,
+  storagePublicFileStatus503Schema,
+} from "./zod/storagePublicFileSchema.js";
+export { storedFilePropertiesStatusEnumSchema } from "./zod/storedFilePropertiesStatusEnumSchema.js";
+export { storedFileSchema } from "./zod/storedFileSchema.js";
 export { storesAccessPublicSchema } from "./zod/storesAccessPublicSchema.js";
 export {
   storesApproveRequisitionBodySchema,
@@ -13248,6 +13412,8 @@ export { unitSpecSchema } from "./zod/unitSpecSchema.js";
 export { unreachableRecipientPublicSchema } from "./zod/unreachableRecipientPublicSchema.js";
 export { unreadCountPublicSchema } from "./zod/unreadCountPublicSchema.js";
 export { updatePasswordSchema } from "./zod/updatePasswordSchema.js";
+export { uploadRequestSchema } from "./zod/uploadRequestSchema.js";
+export { uploadTicketSchema } from "./zod/uploadTicketSchema.js";
 export { userCreateSchema } from "./zod/userCreateSchema.js";
 export { userProfilePublicSchema } from "./zod/userProfilePublicSchema.js";
 export { userProfileUpdateMeSchema } from "./zod/userProfileUpdateMeSchema.js";

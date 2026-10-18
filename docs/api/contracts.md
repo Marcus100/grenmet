@@ -1827,3 +1827,21 @@ result. Reviewed values may be edited while native sample evidence stays unchang
 no interpolated values or automatic regional-to-local scalar inference is made.
 
 GRIB `dataDate`/`dataTime` identify reference cycles, not publication time. Grid edition issuance stays unknown unless explicitly advertised; available forecast validity timestamps are retained separately and native records preserve their exact validity and step range.
+
+## Organisation uploads (F8)
+
+Images for an organisation (Events organiser logo, listing image) go straight to
+object storage. Send `X-Barrels-Organisation` (active member of any role) with an
+account token or an app-scoped token for the same app.
+
+| Call | Behaviour |
+| --- | --- |
+| `POST /storage/uploads` | `{app, purpose, content_type, size_bytes}`; purposes `organiser-logo` (2 MB) and `listing-image` (5 MB), JPEG/PNG/WebP only (422 otherwise); returns `{id, method: "PUT", url, headers, expires_at, max_bytes}`. The presigned PUT expires in 15 minutes and signs the content type and exact size. 503 `Uploads are not configured` without storage settings |
+| `POST /storage/uploads/{id}/complete` | Checks the object (HEAD) matches the declared type and size, then marks it complete. 409 until the object exists or after the link expires; 422 (object deleted) on a mismatch; repeatable |
+| `GET /storage/files/{id}` | `{url, expires_in}`: a 5-minute presigned GET for a completed file of the caller's organisation. Other organisations, pending files and unknown ids are all 404 |
+| `GET /storage/public/{id}` | No sign-in. 307 to a 5-minute presigned GET with `Cache-Control: public, max-age=120`, only for completed files of public purposes (logo, listing image); 404 otherwise |
+
+Events stores the resulting file ids: `ListingUpsert.image_file_id`,
+`PUT /events/manage/organiser/logo` (`{file_id}`, null clears), returned as
+`ListingCard.image_file_id` and `OrganiserPublic.logo_file_id`. A new id must be a
+completed upload of that organiser's organisation and purpose, else 409.
