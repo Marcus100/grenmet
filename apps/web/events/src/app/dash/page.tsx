@@ -1,16 +1,26 @@
-import { notFound } from "next/navigation";
-import { EventOverview } from "@/components/event-overview";
-import { DEMO_EVENT_ID, getEventDashboard } from "@/data/events";
+import type { Metadata } from "next";
+import { NoOrganiserAccess } from "@/components/dash/no-organiser-access";
+import { OrganiserOverview } from "@/components/dash/organiser-overview";
+import { getManagedOrganiser } from "@/data/events-api";
+import { requireViewer } from "@/data/viewer";
 
 /** Organiser data is per-user and live; never prerender it. */
 export const dynamic = "force-dynamic";
 
-export default async function EventsPage() {
-  const dashboard = await getEventDashboard(DEMO_EVENT_ID);
+export const metadata: Metadata = { title: "Organiser overview" };
 
-  if (!dashboard) {
-    notFound();
+export default async function DashOverviewPage() {
+  await requireViewer("/dash");
+  const managed = await getManagedOrganiser();
+  if (!managed) {
+    return <NoOrganiserAccess />;
   }
 
-  return <EventOverview dashboard={dashboard} />;
+  return (
+    <OrganiserOverview
+      listings={managed.listings}
+      now={new Date()}
+      organiser={managed.organiser}
+    />
+  );
 }

@@ -31,9 +31,10 @@ Port **3009**. Package: `@barrelsgd/web-events`. Design lane:
   `/sign-in?returnTo=…`. Expected 4xx show the API's message; others go to Sentry.
 - A 404 from the API is `null`; any other read failure throws to `error.tsx`.
 - `/dash/events` uses the organiser API (`/manage`); members without organiser
-  access see `NoOrganiserAccess`. The `/dash` overview (sales, settlement,
-  readiness) is still demo fixtures in `src/data/fixtures.ts` — the API has no
-  ticketing or settlement yet; keep it labelled as demo.
+  access see `NoOrganiserAccess`. The `/dash` overview uses the same listings
+  (counts and titles). Sales and settlement have no API yet, so they are
+  "available when ticketing launches" empty states, never figures. No page
+  renders the demo fixtures in `src/data/fixtures.ts`.
 - Tests build events with `src/test/factories.ts`; never reintroduce runtime
   fixtures for public data.
 - Deployment requires `EVENTS_DB_PASSWORD`; the shared runtime renderer provisions the Events URL and backups include its database. Keep API/auth workspace sources in the web Docker build.

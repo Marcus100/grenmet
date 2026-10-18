@@ -19,7 +19,6 @@ import {
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
-import { DEMO_EVENT_ID } from "@/data/events";
 
 export type DashSection = "overview" | "events" | "build";
 
@@ -44,7 +43,7 @@ const navigation: NavigationItem[] = [
     key: "build",
     label: "Build event",
     icon: CalendarPlus2,
-    href: `/dash/events/${DEMO_EVENT_ID}` as Route,
+    href: "/dash/events/new",
   },
   { key: "tickets", label: "Tickets & capacity", icon: Ticket, href: null },
   { key: "orders", label: "Orders", icon: ReceiptText, href: null },
