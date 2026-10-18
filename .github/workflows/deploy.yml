@@ -131,6 +131,19 @@ jobs:
           CAP_SIGNING_CERT: ${{ secrets.CAP_SIGNING_CERT }}
           CAP_SIGNING_KEY: ${{ secrets.CAP_SIGNING_KEY }}
           CAP_SIGNING_KEY_REF: ${{ vars.CAP_SIGNING_KEY_REF || 'cap-signing-key' }}
+          MBIA_CONTACT_RECIPIENT: ${{ vars.MBIA_CONTACT_RECIPIENT }}
+          BARRELS_CONTACT_RECIPIENT: ${{ vars.BARRELS_CONTACT_RECIPIENT }}
+          GMS_DATA_REQUEST_RECIPIENT: ${{ vars.GMS_DATA_REQUEST_RECIPIENT }}
+          EREGISTER_OBS_RECIPIENTS: ${{ vars.EREGISTER_OBS_RECIPIENTS }}
+          EREGISTER_SEND_REQUIRE_ACCEPTED: ${{ vars.EREGISTER_SEND_REQUIRE_ACCEPTED }}
+          WIS2BOX_S3_ENDPOINT_URL: ${{ vars.WIS2BOX_S3_ENDPOINT_URL }}
+          WIS2BOX_S3_BUCKET: ${{ vars.WIS2BOX_S3_BUCKET }}
+          WIS2BOX_TOPIC_HIERARCHY: ${{ vars.WIS2BOX_TOPIC_HIERARCHY }}
+          FLIGHTS_OPENSKY_ENABLED: ${{ vars.FLIGHTS_OPENSKY_ENABLED }}
+          WIS2BOX_S3_ACCESS_KEY_ID: ${{ secrets.WIS2BOX_S3_ACCESS_KEY_ID }}
+          WIS2BOX_S3_SECRET_ACCESS_KEY: ${{ secrets.WIS2BOX_S3_SECRET_ACCESS_KEY }}
+          OPENSKY_CLIENT_ID: ${{ secrets.OPENSKY_CLIENT_ID }}
+          OPENSKY_CLIENT_SECRET: ${{ secrets.OPENSKY_CLIENT_SECRET }}
           GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: bash ../../scripts/production/core.sh deploy
       - name: Install declared monitoring after application acceptance

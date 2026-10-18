@@ -20,6 +20,7 @@
     "content:convert": "python3 scripts/convert-scrape.py"
   },
   "dependencies": {
+    "@barrelsgd/api-client": "workspace:*",
     "@barrelsgd/auth": "workspace:*",
     "@barrelsgd/ui": "workspace:*",
     "@content-collections/cli": "catalog:",

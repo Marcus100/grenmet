@@ -1,50 +1,43 @@
 import { PageHeader } from "@/components/page-header";
-import { InfoTable } from "@/components/pages/info-table";
 import { PageSection } from "@/components/pages/page-section";
-import { PlaceholderNotice } from "@/components/pages/placeholder-notice";
 import { StatTiles } from "@/components/pages/stat-tiles";
+import { UnavailableNotice } from "@/components/pages/unavailable-notice";
+import { fetchCurrentConditions } from "@/lib/products";
+import { stationReading } from "@/lib/weather-pages";
 
+export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Current conditions",
   description:
-    "The latest surface observations from Maurice Bishop International Airport and the GMS station network.",
+    "The latest surface observation from Maurice Bishop International Airport.",
 };
 
-export default function ConditionsPage() {
+export default async function ConditionsPage() {
+  const current = await fetchCurrentConditions();
+  const reading = stationReading(current?.observation);
   return (
     <>
       <PageHeader
-        description="The latest observations from the GMS station network."
+        description="The latest observation from Maurice Bishop International Airport (MBIA), the one station reporting here at present."
         title="Current conditions"
       />
-      <PlaceholderNotice product="Live surface observations" />
-      <PageSection heading="Point Salines — Maurice Bishop International Airport">
-        <StatTiles
-          stats={[
-            {
-              label: "Temperature",
-              value: "28 °C",
-              detail: "Feels like 32 °C",
-            },
-            { label: "Wind", value: "NE 14 kt", detail: "Gusting 20 kt" },
-            { label: "Humidity", value: "78%" },
-            { label: "Pressure", value: "1013.2 hPa", detail: "Steady" },
-          ]}
+      {reading ? (
+        <PageSection heading={reading.stationName}>
+          <p className="mb-4 text-body text-gm-text-secondary leading-body">
+            {reading.observedAt}
+            {reading.provisional && " · Provisional, not yet quality checked"}
+          </p>
+          <StatTiles stats={reading.tiles} />
+        </PageSection>
+      ) : (
+        <UnavailableNotice
+          product={
+            current
+              ? "No observation has been reported yet, so current conditions"
+              : "Current conditions"
+          }
         />
-      </PageSection>
-      <PageSection heading="Across the network">
-        <InfoTable
-          caption="Most recent hourly observation from each reporting station"
-          headers={["Station", "Temp", "Wind", "Rain (24 h)"]}
-          rows={[
-            ["Point Salines (MBIA)", "28 °C", "NE 14 kt", "2.4 mm"],
-            ["St. George's", "29 °C", "NE 10 kt", "4.1 mm"],
-            ["Pearls, St. Andrew", "28 °C", "ENE 12 kt", "8.6 mm"],
-            ["Grand Etang", "23 °C", "E 8 kt", "18.2 mm"],
-            ["Lauriston, Carriacou", "29 °C", "NE 16 kt", "0.8 mm"],
-          ]}
-        />
-      </PageSection>
+      )}
     </>
   );
 }

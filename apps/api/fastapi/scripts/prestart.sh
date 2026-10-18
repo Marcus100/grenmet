@@ -105,9 +105,6 @@ fi
 # /events routes while it is unset.
 if [ -n "${EVENTS_DATABASE_URL:-}" ]; then
     alembic -c src/events/alembic.ini upgrade head
-    if [ "${ENVIRONMENT:-local}" = "local" ]; then
-        python scripts/seed_events_demo.py --apply
-    fi
 else
     echo "EVENTS_DATABASE_URL not set; skipping Barrels Events migrations" >&2
 fi
@@ -123,6 +120,10 @@ python scripts/seed_auth_catalogue.py
 # Required bootstrap errors must fail deployment. Development users are opt-in.
 if [ "${ENVIRONMENT:-local}" = "local" ]; then
     python scripts/initial_data.py
+    # Demo organisers need an owning account, so seed after the first superuser.
+    if [ -n "${EVENTS_DATABASE_URL:-}" ]; then
+        python scripts/seed_events_demo.py --apply
+    fi
 else
     echo "Account/staff baseline is an explicit operator action"
 fi

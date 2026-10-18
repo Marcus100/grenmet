@@ -204,6 +204,20 @@ class PublicHolidayCreate(BaseModel):
     holiday_date: date
     is_recurring: bool = False
     country_code: str = "GD"
+    source: str | None = None
+    needs_verification: bool = False
+
+
+class PublicHolidayUpdate(BaseModel):
+    name: str
+    holiday_date: date
+    is_recurring: bool = False
+    source: str | None = None
+    needs_verification: bool = False
+
+
+class ProvisionalHolidaysRequest(BaseModel):
+    year: int
 
 
 class PublicHolidayPublic(BaseModel):
@@ -212,6 +226,8 @@ class PublicHolidayPublic(BaseModel):
     holiday_date: date
     is_recurring: bool
     country_code: str
+    source: str | None = None
+    needs_verification: bool = False
     created_by_user_id: uuid.UUID
     created_at: UtcDateTime
 

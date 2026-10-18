@@ -21,6 +21,8 @@ export const registerObservationReadSchema = z.object({
   id: z.uuid(),
   state: registerObservationReadPropertiesStateEnumSchema,
   qc_notes: z.union([z.string(), z.null()]).optional(),
+  qc_by: z.union([z.string(), z.null()]).optional(),
+  qc_at: z.union([z.iso.datetime(), z.null()]).optional(),
   wis2_topic: z.union([z.string(), z.null()]).optional(),
   wis2_message_id: z.union([z.string(), z.null()]).optional(),
   wis2_published_at: z.union([z.iso.datetime(), z.null()]).optional(),

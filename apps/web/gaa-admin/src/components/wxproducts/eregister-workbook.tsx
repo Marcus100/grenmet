@@ -31,6 +31,11 @@ import {
   type FieldColumn,
   REGISTER_SECTIONS,
 } from "./eregister-layout";
+import {
+  describeSends,
+  type SendController,
+  type SendTarget,
+} from "./eregister-send";
 import { RegisterTable, SectionCard } from "./eregister-ui";
 
 interface Props {
@@ -46,6 +51,7 @@ interface Props {
   onValidationStateChange: (state: Status) => void;
   onValueChange: (key: string, value: string) => void;
   saveStatus: SaveStatus;
+  send: SendController;
   station: Station;
   validationStatus: Status;
   values: Record<string, string>;
@@ -67,6 +73,60 @@ function issueSeverity(
   return matches.length > 0 ? "warning" : undefined;
 }
 
+const CONFIRM_TEXT: Record<SendTarget, string> = {
+  email: "Email this observation to the configured distribution list?",
+  wis2: "Queue this observation for WIS2 publication through wis2box?",
+};
+
+function SendStatus({ send }: { send: SendController }) {
+  const summary = describeSends(send.history);
+  let confirmLabel = send.repeat ? "Send again" : "Confirm";
+  if (send.pending !== null) confirmLabel = "Sending…";
+  return (
+    <div className="flex flex-col gap-2 text-xs">
+      {send.confirming && (
+        <fieldset
+          aria-label="Confirm send"
+          className="flex flex-wrap items-center gap-3 rounded-md border border-border border-l-4 border-l-primary bg-card px-3 py-2"
+        >
+          <p>
+            {send.repeat
+              ? "This observation was already sent to this target. Send it again?"
+              : CONFIRM_TEXT[send.confirming]}
+          </p>
+          <Button
+            disabled={send.pending !== null}
+            onClick={send.confirm}
+            size="sm"
+            type="button"
+          >
+            {confirmLabel}
+          </Button>
+          <Button
+            disabled={send.pending !== null}
+            onClick={send.cancel}
+            size="sm"
+            type="button"
+            variant="outline"
+          >
+            Cancel
+          </Button>
+        </fieldset>
+      )}
+      {send.error && (
+        <p className="text-destructive" role="alert">
+          {send.error}
+        </p>
+      )}
+      {summary && (
+        <p className="text-muted-foreground" role="status">
+          {summary}
+        </p>
+      )}
+    </div>
+  );
+}
+
 export function ERegisterWorkbook({
   station,
   values,
@@ -74,6 +134,7 @@ export function ERegisterWorkbook({
   issues,
   validationStatus,
   saveStatus,
+  send,
   metarPreview,
   onBack,
   onValueChange,
@@ -150,7 +211,7 @@ export function ERegisterWorkbook({
             }}
             placeholder={
               !upper && column.signed?.role === "sign"
-                ? `${column.signed.prefix}0`
+                ? `${column.signed.prefix}${column.signed.example ?? "0"}`
                 : undefined
             }
             value={
@@ -265,8 +326,8 @@ export function ERegisterWorkbook({
                 : "Validate observation"}
             </Button>
             <Button
-              disabled
-              title="Not connected yet"
+              disabled={send.pending !== null}
+              onClick={() => send.request("wis2")}
               type="button"
               variant="ghost"
             >
@@ -274,8 +335,8 @@ export function ERegisterWorkbook({
               Send last obs
             </Button>
             <Button
-              disabled
-              title="Not connected yet"
+              disabled={send.pending !== null}
+              onClick={() => send.request("email")}
               type="button"
               variant="ghost"
             >
@@ -288,6 +349,7 @@ export function ERegisterWorkbook({
             </Button>
           </div>
         </div>
+        <SendStatus send={send} />
         {saveStatus === "saved" && (
           <p className="text-muted-foreground text-xs" role="status">
             Draft saved. QC approval is still required.

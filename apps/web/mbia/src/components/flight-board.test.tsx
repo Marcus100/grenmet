@@ -6,6 +6,8 @@ import type { Flight } from "@/lib/flights";
 
 const DEPARTURES_RE = /departures/i;
 const LAURISTON_RE = /lauriston/i;
+const SAMPLE_RE = /sample data/i;
+const RECENT_RE = /recent movements.*not a live board/i;
 const NO_ARRIVALS_RE = /no arrivals listed/i;
 
 const FLIGHTS: Flight[] = [
@@ -73,5 +75,22 @@ describe("FlightBoard", () => {
   it("shows an empty state when no flights match", () => {
     render(<FlightBoard flights={[]} />);
     expect(screen.getByText(NO_ARRIVALS_RE)).toBeInTheDocument();
+  });
+
+  it("labels the default board as sample data", () => {
+    render(<FlightBoard flights={FLIGHTS} />);
+    expect(screen.getByText(SAMPLE_RE)).toBeInTheDocument();
+  });
+
+  it("labels provider data as recent movements, not sample or live", () => {
+    render(
+      <FlightBoard
+        fetchedAt="2026-10-18T12:00:00Z"
+        flights={FLIGHTS}
+        source="opensky"
+      />
+    );
+    expect(screen.getByText(RECENT_RE)).toBeInTheDocument();
+    expect(screen.queryByText(SAMPLE_RE)).not.toBeInTheDocument();
   });
 });

@@ -4,6 +4,7 @@
  */
 
 import type { ManagedListing } from "./ManagedListing.js";
+import type { OrganiserOption } from "./OrganiserOption.js";
 
 export type ManagedOrganiser = {
   /**
@@ -16,7 +17,10 @@ export type ManagedOrganiser = {
   name: string;
   bio: string;
   verified: boolean;
+  organisation_id?: string | null;
+  logo_file_id?: string | null;
   follower_count: number;
   viewer_following?: boolean | null;
+  organisers: OrganiserOption[];
   listings: ManagedListing[];
 };

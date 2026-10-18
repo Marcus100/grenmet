@@ -18,6 +18,7 @@ import test from "node:test";
 import { fileURLToPath } from "node:url";
 import { findBlockedPattern } from "../../.claude/hooks/block-dangerous-git.mjs";
 import {
+  findAskFirstEdit,
   findProtectedViolation,
   findShellWriteViolation,
 } from "../../.claude/hooks/protect-files.mjs";
@@ -113,6 +114,22 @@ test("protect-files: blocks real env files but not env.ts/env.md or example temp
   );
 });
 
+test("protect-files: allows committed infra deploy config, not real env files beside it", () => {
+  assert.equal(findProtectedViolation("infra/docker/staging.env"), null);
+  assert.equal(
+    findProtectedViolation("/home/x/grenmet/infra/docker/production.env"),
+    null
+  );
+  assert.ok(findProtectedViolation("infra/docker/.env"));
+  assert.ok(findProtectedViolation("infra/docker/.env.local"));
+  assert.ok(findProtectedViolation("infra/docker/production.env.local"));
+  assert.ok(findProtectedViolation("other/docker/production.env"));
+  assert.equal(
+    findShellWriteViolation("echo X >> infra/docker/staging.env"),
+    null
+  );
+});
+
 test("protect-files: blocks the generated API client, not ordinary api-client files", () => {
   assert.ok(
     findProtectedViolation("packages/api-client/src/gen/models/Foo.ts")
@@ -201,4 +218,61 @@ test("protect-files Codex patch allows ordinary edits mentioning protected paths
     },
   });
   assert.equal(result.status, 0);
+});
+
+test("protect-files: asks before shared toolchain config edits", () => {
+  assert.ok(findAskFirstEdit("turbo.json"));
+  assert.ok(findAskFirstEdit("biome.jsonc"));
+  assert.ok(findAskFirstEdit("apps/web/gms/tsconfig.json"));
+  assert.ok(findAskFirstEdit("packages/ui/tsconfig.build.json"));
+  assert.equal(findAskFirstEdit("apps/web/gms/src/turbo.ts"), null);
+  assert.equal(findAskFirstEdit("docs/tsconfig.md"), null);
+});
+
+test("protect-files: asks only when a manifest gains a non-catalog dependency", () => {
+  assert.ok(findAskFirstEdit("apps/web/gms/package.json", '"zod": "^3.24.0"'));
+  assert.ok(findAskFirstEdit("package.json", '"left-pad": "1.3.0"'));
+  assert.equal(findAskFirstEdit("package.json", '"zod": "catalog:"'), null);
+  assert.equal(
+    findAskFirstEdit("package.json", '"@barrelsgd/ui": "workspace:*"'),
+    null
+  );
+  assert.equal(findAskFirstEdit("package.json", '"version": "1.2.0"'), null);
+  assert.equal(
+    findAskFirstEdit("package.json", '"dev": "next dev --port 3003"'),
+    null
+  );
+  // Bumping an existing dependency is not a new dependency.
+  assert.equal(
+    findAskFirstEdit("package.json", '"zod": "^3.25.0"', '"zod": "^3.24.0"'),
+    null
+  );
+  assert.ok(
+    findAskFirstEdit("apps/api/fastapi/pyproject.toml", '  "httpx>=0.27",')
+  );
+  assert.equal(
+    findAskFirstEdit(
+      "apps/api/fastapi/pyproject.toml",
+      'requires-python = ">=3.14"'
+    ),
+    null
+  );
+});
+
+test("protect-files hook: emits an ask decision for Claude edits, nothing for Codex patches", () => {
+  const ask = runHook("protect-files.mjs", {
+    tool_name: "Edit",
+    tool_input: { file_path: "turbo.json", old_string: "a", new_string: "b" },
+  });
+  assert.equal(ask.status, 0);
+  assert.equal(
+    JSON.parse(ask.stdout).hookSpecificOutput.permissionDecision,
+    "ask"
+  );
+  const codex = runHook("protect-files.mjs", {
+    tool_name: "apply_patch",
+    tool_input: { command: "*** Update File: turbo.json" },
+  });
+  assert.equal(codex.status, 0);
+  assert.equal(codex.stdout, "");
 });

@@ -30,10 +30,16 @@ Port **3009**. Package: `@barrelsgd/web-events`. Design lane:
 - Client components run writes through `useMemberAction`; visitors are sent to
   `/sign-in?returnTo=…`. Expected 4xx show the API's message; others go to Sentry.
 - A 404 from the API is `null`; any other read failure throws to `error.tsx`.
+- The `/dash` console acts for one organiser: the member's choice is the host-only `events_organiser` cookie (`data/organiser-choice.ts`, set by the `switchOrganiser` action from `OrganiserSwitcher`, shown when they manage several) and is sent as `?organiser=`.
 - `/dash/events` uses the organiser API (`/manage`); members without organiser
-  access see `NoOrganiserAccess`. The `/dash` overview (sales, settlement,
-  readiness) is still demo fixtures in `src/data/fixtures.ts` — the API has no
-  ticketing or settlement yet; keep it labelled as demo.
+  access see `NoOrganiserAccess`, which hosts `OrganiserRequestForm` (the `requestOrganiser` action creates an unverified organiser they own; `/dash` shows an awaiting-verification notice until a moderator verifies it). The `/dash` overview uses the same listings
+  (counts and titles). Sales and settlement have no API yet, so they are
+  "available when ticketing launches" empty states, never figures. The listing editor
+  shows the listing's History (`ActivityPanel`, `getListingActivity`). No page
+  renders the demo fixtures in `src/data/fixtures.ts`.
+- **Tickets (E1):** event pages with `admission="ticketed"` render `TicketClaim` (free and registration tiers; paid tiers stay disabled until online payment exists). Claiming needs an Events sign-in (guests browse); quantity is clamped to `min(perAccountLimit - held, remaining)`. `/me/tickets` lists the member's tickets and `/me/tickets/[id]` shows the QR as inline SVG (`lib/qr.ts` builds the path from the `qrcode` catalog package; no `dangerouslySetInnerHTML`), the printable code and Cancel. The QR token comes from the API; never build or sign one in the web app. Tier editor ids are sent only when they are API UUIDs, so saving keeps issued tickets on their tier.
+- **Door (E2):** `/dash/events/[id]/door` (linked from the editor for ticketed events) renders `DoorConsole`: one text field that accepts a barcode scanner's keyboard input (it types the code and presses Enter) or a typed code, each scan sent with a fresh idempotency key through the `admitTicket` action; duplicate and invalid scans show the API's message ("Already admitted at HH:MM by …"). Counts and the door list come from the manifest and refresh every 15 s and after each scan; "Print list" prints the table (controls are `print:hidden`). No camera or scanning library is used.
+- **Images (F8):** the organiser logo (`OrganiserLogo` on the `/dash` overview) and the listing cover (`EventEditor`) use `ImageUpload`: the `startUpload` action presigns through `POST /storage/uploads` (with `X-Barrels-Organisation` from the organiser's `organisationId`), the browser PUTs the file to storage, `finishUpload` confirms, then the file id is saved with the listing or `saveOrganiserLogo`. Stored images render via the same-origin `/files/{id}` route (proxy of the API's cached public redirect); never put a bucket URL in a page. Uploads need an organisation-linked organiser and configured storage (the API's 503 "Uploads are not configured" is shown as is). Public pages do not render the images yet.
 - Tests build events with `src/test/factories.ts`; never reintroduce runtime
   fixtures for public data.
 - Deployment requires `EVENTS_DB_PASSWORD`; the shared runtime renderer provisions the Events URL and backups include its database. Keep API/auth workspace sources in the web Docker build.

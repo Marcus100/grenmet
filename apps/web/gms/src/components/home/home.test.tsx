@@ -10,6 +10,7 @@ import { unavailableWeather } from "@/lib/forecast-selection";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/" }));
 vi.mock("@/lib/env", () => ({ env: { CMS_API_URL: "" } }));
+vi.mock("@/lib/products", () => ({ fetchMonthSummary: async () => null }));
 
 const HERO_NAME = /^Grenada weather/;
 const STATION_NAME = /Maurice Bishop International \(MBIA\)/;

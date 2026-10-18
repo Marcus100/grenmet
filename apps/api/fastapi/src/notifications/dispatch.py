@@ -21,8 +21,15 @@ from src.auth.models import User
 from src.email_config import email_settings
 from src.utils.datetime import utc_now
 
+from . import service
 from .config import notification_settings
-from .models import DeliveryStatus, Notification, NotificationDelivery
+from .models import (
+    DeliveryStatus,
+    Notification,
+    NotificationDelivery,
+    OutboundEmail,
+    OutboundEmailStatus,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +63,7 @@ async def render_email(notification: Notification) -> tuple[str, str]:
     url = link_url(notification.link_path)
     if email_settings.EMAIL_RENDER_URL:
         try:
-            rendered = await email_module._render_remote(  # noqa: SLF001 - shared renderer
+            rendered = await email_module.render_remote(
                 "notification",
                 {
                     "projectName": project_name,
@@ -164,4 +171,107 @@ async def process_due_deliveries(
         handled += 1
     if handled:
         logger.info("Processed notification emails", extra={"count": handled})
+    return handled
+
+
+# ── Public-flow outbox (subscriptions, contact messages) ─────────────────────
+
+# React Email template name -> Jinja fallback file in email-templates/build.
+_OUTBOUND_JINJA = {
+    "subscription-confirm": "subscription_confirm.html",
+    "organisation-invitation": "organisation_invitation.html",
+}
+
+
+async def _render_outbound(row: OutboundEmail) -> tuple[str, str]:
+    if row.html is not None:
+        return row.subject, row.html
+    template = row.template or ""
+    if email_settings.EMAIL_RENDER_URL:
+        try:
+            rendered = await email_module.render_remote(template, row.props)
+            return rendered.subject, rendered.html_content
+        except Exception:  # noqa: BLE001 - any render failure falls back to Jinja
+            logger.warning("React Email render failed; using Jinja fallback")
+    html = _templates.get_template(_OUTBOUND_JINJA[template]).render(**row.props)
+    return row.subject, html
+
+
+async def _deliver_outbound(
+    session: AsyncSession, row: OutboundEmail, sender: Sender
+) -> None:
+    row.attempts += 1
+    skip_reason = None
+    if not row.transactional and await service.is_suppressed(
+        session=session, email=row.to_email
+    ):
+        skip_reason = "Address is on the suppression list"
+    elif not email_settings.emails_enabled:
+        skip_reason = "Email is not configured"
+    if skip_reason:
+        row.status = OutboundEmailStatus.SKIPPED.value
+        row.last_error = skip_reason
+        row.props = {}
+        return
+    try:
+        subject, html = await _render_outbound(row)
+        await asyncio.to_thread(
+            sender, email_to=row.to_email, subject=subject, html_content=html
+        )
+    except Exception as exc:  # noqa: BLE001 - one failure must not stop the batch
+        row.status = OutboundEmailStatus.FAILED.value
+        row.last_error = str(exc)[:1000]
+        row.next_retry_at = utc_now() + timedelta(
+            seconds=_retry_delay_seconds(row.attempts)
+        )
+        logger.warning("Outbound email failed", extra={"email_id": str(row.id)})
+        return
+    row.status = OutboundEmailStatus.SENT.value
+    row.sent_at = utc_now()
+    row.last_error = None
+    row.next_retry_at = None
+    # Links in props carry tokens; nothing needs them once the mail is out.
+    row.props = {}
+    row.html = None
+
+
+async def process_outbound_emails(
+    *,
+    session: AsyncSession,
+    limit: int | None = None,
+    max_attempts: int | None = None,
+    sender: Sender | None = None,
+) -> int:
+    """Send pending public-flow emails and due retries. Returns how many were handled."""
+    limit = limit or notification_settings.NOTIFICATIONS_BATCH_SIZE
+    max_attempts = max_attempts or notification_settings.NOTIFICATIONS_MAX_ATTEMPTS
+    send = sender or email_module.send_email
+    now = utc_now()
+    due = (
+        select(OutboundEmail)
+        .where(
+            or_(
+                OutboundEmail.status == OutboundEmailStatus.PENDING.value,
+                (OutboundEmail.status == OutboundEmailStatus.FAILED.value)
+                & (OutboundEmail.attempts < max_attempts)
+                & (
+                    OutboundEmail.next_retry_at.is_(None)
+                    | (OutboundEmail.next_retry_at <= now)
+                ),
+            )
+        )
+        .order_by(OutboundEmail.created_at)
+        .limit(1)
+        .with_for_update(skip_locked=True)
+    )
+    handled = 0
+    while handled < limit:
+        row = await session.scalar(due)
+        if row is None:
+            break
+        await _deliver_outbound(session, row, send)
+        await session.commit()
+        handled += 1
+    if handled:
+        logger.info("Processed outbound emails", extra={"count": handled})
     return handled

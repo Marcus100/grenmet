@@ -16,7 +16,8 @@ button loads the account in the browser (`/auth/me`), so pages stay static.
 
 No DB access. Two backends, never gaa-admin (it only authors into FastAPI):
 - **FastAPI = weather data** (`AUTH_API_URL` + `AUTH_API_V1_STR`, no cookies):
-  forecast, current conditions, published products (`src/lib/products.ts`,
+  forecast, current conditions, the MBIA month summary behind Grenada in data
+  (`fetchMonthSummary`, mapped by `src/lib/month-summary.ts`), published products (`src/lib/products.ts`,
   `src/lib/weather-snapshot.ts`); CAP alerts via `CAP_API_URL` (`src/lib/cap.ts`).
   Types/validators come from `@barrelsgd/api-client`; new data = new FastAPI
   public endpoint.
@@ -68,8 +69,8 @@ src/app/
   renders `<PlaceholderNotice />` (`compact` inside an otherwise live page).
   Sample figures must never read as an operational product, and sample status
   chips never use hazard colours.
-  Owner exception (30 Sep 2026): the home Explore today and Grenada in data
-  sections carry no notice, and the sky hero fills fields FastAPI does not
+  Owner exception (30 Sep 2026): the home Explore today section carries no
+  notice (Grenada in data is live from FastAPI and shows an unavailable state), and the sky hero fills fields FastAPI does not
   carry yet from `src/lib/hero-samples.ts` (only inside a real reading or
   issued day, never during an outage). Delete a sample once FastAPI supplies it.
 - **Home hero:** table layout at every width (9 Oct 2026): a Now tab, then five
@@ -99,6 +100,10 @@ src/app/
   follows the device via `@barrelsgd/theme` (`ThemeBootScript` defaults to
   `system`, `ThemeToggle` in the main bar beside search and the alert pill). Headings use
   `text-gm-heading`, not `text-gm-navy`; printable products sit in `.gm-paper`.
+
+## Forms
+
+`/climate/data-request` renders `DataRequestForm` (`components/pages/data-request-form.tsx`), which posts to `src/app/api/data-request/route.ts`, a validate-and-proxy handler for FastAPI `POST /api/v1/contact/data-requests` (stored, emailed to `GMS_DATA_REQUEST_RECIPIENT`, confirmation to the requester). Schema in `src/lib/data-request.ts`; hidden honeypot field `website`; consent is required.
 
 ## Key dependencies (unique to this app)
 

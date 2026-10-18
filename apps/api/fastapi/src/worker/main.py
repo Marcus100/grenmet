@@ -33,6 +33,9 @@ async def startup(ctx: dict[str, Any]) -> None:  # noqa: ARG001 - arq passes ctx
         "src.worker.dispatch",
         "src.notifications.dispatch",
         "src.notifications.scheduler",
+        "src.events.outbox",
+        "src.eregister.publisher",
+        "src.billing.reminders",
     ):
         import_module(module)
     from src.config import settings
@@ -112,6 +115,99 @@ async def send_notification_emails(ctx: dict[str, Any]) -> int:
         return result
 
 
+async def send_outbound_emails(ctx: dict[str, Any]) -> int:
+    from src.database import async_session_factory
+    from src.notifications import dispatch as notification_dispatch
+
+    async with async_session_factory() as session:
+        try:
+            result = await notification_dispatch.process_outbound_emails(
+                session=session
+            )
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "send_outbound_emails",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+        await operational_metrics.record_job(
+            ctx.get("redis"), "send_outbound_emails", str(ctx.get("job_id", "")), True
+        )
+        return result
+
+
+async def drain_events_outbox(ctx: dict[str, Any]) -> int:
+    """Turn Events outbox rows (published, cancelled, approved...) into notifications."""
+    from src.database import async_session_factory
+    from src.events import database as events_database
+    from src.events import outbox
+
+    events = events_database.create_session()
+    if events is None:
+        return 0
+    async with events, async_session_factory() as session:
+        try:
+            result = await outbox.drain(events, session)
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "drain_events_outbox",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+        await operational_metrics.record_job(
+            ctx.get("redis"), "drain_events_outbox", str(ctx.get("job_id", "")), True
+        )
+        return result
+
+
+async def send_wis2_publications(ctx: dict[str, Any]) -> int:
+    """Move queued eRegister CSV files to wis2box; no-op unless configured."""
+    from src.database import async_session_factory
+    from src.eregister import publisher
+
+    async with async_session_factory() as session:
+        try:
+            result = await publisher.process_due_publications(session=session)
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "send_wis2_publications",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+        await operational_metrics.record_job(
+            ctx.get("redis"), "send_wis2_publications", str(ctx.get("job_id", "")), True
+        )
+        return result
+
+
+async def send_invoice_reminders(ctx: dict[str, Any]) -> int:
+    """Queue payment reminders for open invoices (7 days before, due day, 7 days after)."""
+    from src.billing import reminders
+    from src.database import async_session_factory
+
+    async with async_session_factory() as session:
+        try:
+            result = await reminders.send_due_reminders(session)
+        except Exception:
+            await operational_metrics.record_job(
+                ctx.get("redis"),
+                "send_invoice_reminders",
+                str(ctx.get("job_id", "")),
+                False,
+            )
+            raise
+        await operational_metrics.record_job(
+            ctx.get("redis"), "send_invoice_reminders", str(ctx.get("job_id", "")), True
+        )
+        return result
+
+
 async def run_notification_sweeps(ctx: dict[str, Any]) -> int:
     from src.database import async_session_factory
     from src.notifications import scheduler
@@ -180,6 +276,22 @@ async def check_alert_outbox(ctx: dict[str, Any]) -> int:
     return 0
 
 
+async def poll_flights(ctx: dict[str, Any]) -> int:
+    """Refresh cached OpenSky movements. Does nothing unless the flag is on."""
+    from src.flights import service as flights_service
+    from src.flights.config import flights_settings
+
+    if not flights_settings.FLIGHTS_OPENSKY_ENABLED:
+        return 0
+    result = await flights_service.poll_flights()
+    # A fully failed poll (nothing cached) is a failure for job metrics.
+    healthy = bool(result)
+    await operational_metrics.record_job(
+        ctx.get("redis"), "poll_flights", str(ctx.get("job_id", "")), healthy
+    )
+    return sum(result.values())
+
+
 class WorkerSettings:
     # Bound heartbeat staleness and prevent another worker masking this one.
     health_check_interval = 30
@@ -190,9 +302,14 @@ class WorkerSettings:
         process_cap_jobs,
         ingest_cap_feeds,
         send_notification_emails,
+        send_outbound_emails,
+        drain_events_outbox,
+        send_wis2_publications,
         run_notification_sweeps,
+        send_invoice_reminders,
         check_nhc_failures,
         check_alert_outbox,
+        poll_flights,
     ]
     # A poll/ingest run must not hang a worker slot; retries of the cron function
     # itself are pointless because the durable outbox already tracks per-job
@@ -214,10 +331,20 @@ class WorkerSettings:
         ),
         # Drain the notification email outbox every 30 seconds.
         cron(send_notification_emails, second={0, 30}, run_at_startup=True),
+        # Drain the public-flow email outbox (subscriptions, contact) too.
+        cron(send_outbound_emails, second={15, 45}, run_at_startup=True),
+        # Events changes (publish, cancel, approve) become notifications.
+        cron(drain_events_outbox, second={5, 35}, run_at_startup=False),
+        # eRegister observations queued for wis2box (retries live on the row).
+        cron(send_wis2_publications, second={20, 50}, run_at_startup=False),
         # Daily reminders (expiries, overdue approvals) at 06:00 Grenada (UTC-4).
         cron(run_notification_sweeps, hour=10, minute=0, run_at_startup=False),
+        # Invoice payment reminders at 07:00 Grenada (UTC-4); idempotent per stage.
+        cron(send_invoice_reminders, hour=11, minute=0, run_at_startup=False),
         # NHC job failures every 5 minutes; the 1-hour window stops repeat messages.
         cron(check_nhc_failures, minute=set(range(0, 60, 5)), run_at_startup=False),
         # Is the email outbox draining? Every 15 minutes.
         cron(check_alert_outbox, minute={0, 15, 30, 45}, run_at_startup=False),
+        # OpenSky flight movements every 30 minutes; no-op unless the flag is on.
+        cron(poll_flights, minute={5, 35}, run_at_startup=False),
     ]

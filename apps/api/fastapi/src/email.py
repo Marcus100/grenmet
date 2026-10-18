@@ -98,7 +98,7 @@ def send_email(
 # ── React Email remote rendering ──────────────────────────────────────────────
 
 
-async def _render_remote(template: str, props: dict[str, Any]) -> EmailData:
+async def render_remote(template: str, props: dict[str, Any]) -> EmailData:
     """Call the web-auth Next.js render endpoint to get React Email HTML.
 
     Raises httpx.HTTPStatusError on non-2xx responses.
@@ -190,7 +190,7 @@ async def generate_reset_password_email(
 
     if email_settings.EMAIL_RENDER_URL:
         try:
-            return await _render_remote(
+            return await render_remote(
                 "reset-password",
                 {
                     "projectName": settings.PROJECT_NAME,
@@ -233,7 +233,7 @@ async def generate_new_account_email(
 
     if email_settings.EMAIL_RENDER_URL:
         try:
-            return await _render_remote(
+            return await render_remote(
                 "welcome",
                 {
                     "projectName": settings.PROJECT_NAME,

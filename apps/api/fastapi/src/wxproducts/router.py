@@ -9,7 +9,16 @@ from pydantic import TypeAdapter, ValidationError
 from sqlalchemy.exc import SQLAlchemyError
 from starlette.concurrency import run_in_threadpool
 
-from . import advisories, forecast, forecast_pdf, guidance, pdf, service, validation
+from . import (
+    advisories,
+    aviation_rules,
+    forecast,
+    forecast_pdf,
+    guidance,
+    pdf,
+    service,
+    validation,
+)
 from .dependencies import (
     AdvisorySessionDep,
     AuthorDep,
@@ -29,6 +38,8 @@ from .schemas import (
     AviationHistory,
     AviationKind,
     AviationRevisionRead,
+    AviationValidationRequest,
+    AviationValidationResponse,
     ProductFeedError,
     ProductHistory,
     ProductHistoryEntry,
@@ -356,6 +367,41 @@ async def save_aviation_draft(
         )
     except SQLAlchemyError, OSError, TimeoutError:
         raise WeatherUnavailable()
+
+
+@router.post(
+    "/wxproducts/aviation/drafts/validate",
+    response_model=AviationValidationResponse,
+    tags=["wxproducts"],
+    responses={403: {"model": AuthoringError}},
+    summary="Validate a coded METAR, SPECI or TAF",
+    description=(
+        "Checks the coded text against WMO-No. 306 FM 15/16/51 and ICAO Annex 3 "
+        "coding rules. Findings are advisory: errors are code violations, warnings "
+        "are reporting practice. Nothing is saved, issued or transmitted."
+    ),
+)
+async def validate_aviation_message(
+    *,
+    author: AuthorDep,
+    response: Response,
+    body: AviationValidationRequest,
+) -> AviationValidationResponse:
+    response.headers.update(NO_STORE)
+    author.require_kind("aviation")
+    issues = aviation_rules.validate_aviation(
+        body.kind,
+        body.station,
+        body.message,
+        observed_at=body.observed_at,
+        issued_at=body.issued_at,
+        valid_from=body.valid_from,
+        valid_to=body.valid_to,
+        previous_message=body.previous_message,
+    )
+    return AviationValidationResponse(
+        valid=not any(issue.severity == "error" for issue in issues), issues=issues
+    )
 
 
 @router.get(

@@ -12,7 +12,7 @@ Migration `0001` adopts verified Drizzle history and intentionally refuses to in
 ## Invariants
 - Self-publish actions `draft` / `publish` / `withdraw` (schemas `action` literal); saved revisions are immutable and render to PDF via `/products/{id}/revisions/{revision}/pdf`.
 - Public reads return only current published products (`is_current`).
-- Aviation drafts are saved and previewed only; nothing is transmitted.
+- Aviation drafts are saved and previewed only; nothing is transmitted. `aviation_rules.py` (pure; METAR/SPECI/TAF coding rules, served by `POST /wxproducts/aviation/drafts/validate`) is advisory: findings never block saving a draft. `aviation_changes.py` holds the SPECI (App. 3 2.3) and TAF change-group (App. 5 1.3) criteria; SPECI is compared only when the validate request carries `previous_message`. Rules and gaps: `docs/operations/eregister-wmo-conformance.md`.
 - The forecaster on every product is the signed-in user, stamped by `validation.normalize`; never make it an editable field. Forecast area is fixed ("Grenada, Carriacou and Petite Martinique").
 - Forecast/bulletin/outlook PDFs have one renderer (WeasyPrint) for the live draft preview and saved revisions; it needs Pango/HarfBuzz/fontconfig in the image. Style with `--gm-*` variables only; `PALETTE` mirrors `foundation.css`.
 - New schema changes: add an Alembic revision with `-c src/wxproducts/alembic.ini`. Never add Drizzle migrations in gaa-admin.

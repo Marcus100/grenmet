@@ -41,6 +41,15 @@ light mode, no DB. "Sign in" with the Barrels account (ADR-0017) via
 feed exists, swap the source in this one file; `FlightBoard` and `/flights`
 consume it via `flightsFor()`.
 
+`src/lib/live-flights.ts` `loadFlightData()` calls FastAPI `GET /api/v1/flights/board`
+(OpenSky "recent movements", flag `FLIGHTS_OPENSKY_ENABLED`, off by default) on `/`
+and `/flights` (`revalidate = 1800`, pages stay static). It returns live rows only
+when the API says `available`; otherwise (flag off, API down) the labelled sample
+board. `FlightBoard` shows a banner per `source`: never remove the "sample" label
+for sample data. Live data is previous-day-or-earlier and TGPY only, so Lauriston
+shows an empty state when live. Licence: OpenSky is research-only (see
+`docs/strategy/integration-opportunities.md`).
+
 ## Design system
 
 - `src/app/globals.css` imports `@barrelsgd/ui/styles/globals` then **overrides**
@@ -58,8 +67,10 @@ consume it via `flightsFor()`.
 ## Contact form
 
 `contact-form.tsx` → `POST /api/contact`, validation in `src/lib/contact.ts`
-(Zod). **Delivery deferred** — the route validates and logs only. Keep the
-schema when wiring real delivery (email to gaa@gaa.gd).
+(Zod). The route validates and proxies to FastAPI `POST /api/v1/contact/messages`
+(site `mbia`; `src/contact` stores it and emails `MBIA_CONTACT_RECIPIENT`
+through the worker outbox). `turnstileToken` is forwarded but not verified yet
+(`contact.service.verify_turnstile`). The form does not send a token today.
 
 ## Testing
 

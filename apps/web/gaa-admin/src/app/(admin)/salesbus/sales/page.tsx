@@ -1,60 +1,77 @@
-"use client";
+import type { Metadata } from "next";
+import { NoAccess } from "@/components/salesbus/NoAccess";
+import { RequisitionBuilder } from "@/components/salesbus/sales/RequisitionBuilder";
+import { TransactionList } from "@/components/salesbus/settlements";
+import {
+  getCatalogue,
+  getLocations,
+  getRequisitions,
+  getStoresAccessOrNull,
+} from "@/db/stores/queries";
 
-import { useState } from "react";
-import { ProductCard } from "@/components/salesbus/sales";
-import { ProductDetailModal } from "@/components/salesbus/sales/ProductDetailModal";
-import { SearchBar } from "@/components/salesbus/ui";
-import { products } from "@/lib/salesbus/mock-data";
-import type { Product } from "@/lib/salesbus/types";
+export const metadata: Metadata = { title: "Stores requisition" };
 
-export default function SalesPage() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+export const dynamic = "force-dynamic";
 
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase())
+export default async function SalesPage() {
+  const access = await getStoresAccessOrNull();
+  if (!access) return <NoAccess />;
+
+  const [items, mine, submitted, locations] = await Promise.all([
+    access.can_request
+      ? getCatalogue({ activeOnly: true })
+      : Promise.resolve([]),
+    getRequisitions({ mine: true }),
+    access.can_approve
+      ? getRequisitions({ statuses: ["SUBMITTED"] })
+      : Promise.resolve(null),
+    access.can_manage ? getLocations() : Promise.resolve([]),
+  ]);
+  const drafts = mine.data.filter(
+    (requisition) => requisition.status === "DRAFT"
   );
-
-  const handleAddProduct = (product: Product) => {
-    setSelectedProduct(product);
-  };
-
-  const handleCloseModal = () => {
-    setSelectedProduct(null);
-  };
+  const raised = mine.data.filter(
+    (requisition) => requisition.status !== "DRAFT"
+  );
+  const toApprove =
+    submitted?.data.filter((requisition) => requisition.can_approve) ?? [];
 
   return (
-    <div className="mx-auto flex max-w-4xl flex-col gap-4 p-4 sm:gap-5 sm:p-5">
-      <SearchBar
-        onSearch={setSearchQuery}
-        placeholder="Search products..."
-        value={searchQuery}
-      />
-
-      {/* Product list - single column on mobile, 2 columns on tablet landscape */}
-      <div className="grid grid-cols-1 gap-3 sm:gap-4 landscape:grid-cols-2">
-        {filteredProducts.map((product) => (
-          <ProductCard
-            key={product.id}
-            onAdd={handleAddProduct}
-            product={product}
-          />
-        ))}
-      </div>
-
-      {filteredProducts.length === 0 && (
-        <div className="py-12 text-center text-muted-foreground">
-          <p className="text-base sm:text-lg">
-            No products found matching &quot;{searchQuery}&quot;
-          </p>
-        </div>
+    <div className="mx-auto flex max-w-4xl flex-col gap-8 p-4 sm:p-5">
+      {access.can_request ? (
+        <RequisitionBuilder items={items} />
+      ) : (
+        <p className="text-muted-foreground text-sm">
+          You can view the stores but not raise requisitions.
+        </p>
       )}
 
-      <ProductDetailModal
-        isOpen={selectedProduct !== null}
-        onClose={handleCloseModal}
-        product={selectedProduct}
-      />
+      {toApprove.length > 0 ? (
+        <section className="flex flex-col gap-3">
+          <h2 className="font-semibold text-foreground text-lg">
+            Awaiting your approval
+          </h2>
+          <TransactionList locations={locations} requisitions={toApprove} />
+        </section>
+      ) : null}
+
+      {drafts.length > 0 ? (
+        <section className="flex flex-col gap-3">
+          <h2 className="font-semibold text-foreground text-lg">Your drafts</h2>
+          <TransactionList locations={locations} requisitions={drafts} />
+        </section>
+      ) : null}
+
+      <section className="flex flex-col gap-3">
+        <h2 className="font-semibold text-foreground text-lg">
+          Your requisitions
+        </h2>
+        <TransactionList
+          emptyMessage="You have not raised a requisition yet"
+          locations={locations}
+          requisitions={raised}
+        />
+      </section>
     </div>
   );
 }

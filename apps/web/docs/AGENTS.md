@@ -17,6 +17,10 @@ pnpm build  # runs: node scripts/generate-sections.mjs && next build --turbopack
 routes `src/app/auth/{start,callback,me,logout}`, config `src/lib/auth-config.ts`
 (registry key `docs`). Off until `DOCS_SSO_CLIENT_SECRET` is set.
 
+## Page feedback
+
+`Feedback.tsx` ("Was this page helpful?") posts `{ pagePath, helpful }` to `src/app/api/feedback/route.ts`, which validates (`src/lib/feedback.ts`) and proxies to FastAPI `POST /api/v1/feedback` with site key `docs`. Anonymous: no personal data is sent or stored. Tests: `pnpm --filter @barrelsgd/web-docs test`.
+
 ## MDX pipeline — Content Collections
 
 MDX is compiled outside the Turbopack pipeline via `@content-collections/next`. This is how custom remark/rehype/recma plugins (which are functions) can be used with Turbopack — they run in a separate Node.js process, not as loader options.

@@ -23,7 +23,11 @@ Use this procedure when the user requests this task. Respect the current request
 
 2. Run `pnpm verify:changed` (`--dry-run` lists the checks it picks for this
    diff), plus any check from `AGENTS.md` it does not cover. Review the final
-   diff and resolve failures before committing.
+   diff and resolve failures before committing. Then run
+   `node scripts/guardrails/risk-tier.mjs --base origin/dev`: for `standard` or
+   `high` risk, run `/code-review` first (Codex: `/review`; a fresh-context reviewer) unless it
+   already ran on this diff, and fix or answer each finding. If a gate fails twice
+   on the same error, stop and report it (failure budget in `AGENTS.md`).
    For web UI changes in `gms` or `gaa-admin` it also runs `pnpm e2e` (a SKIP
    means no dev server is running; say so in the recap).
 

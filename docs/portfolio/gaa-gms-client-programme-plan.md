@@ -6,7 +6,7 @@
 **Institutional authority:** Grenada Airports Authority  
 **Meteorological authority:** Grenada Meteorological Service  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-08
+**Last updated:** 2026-10-18
 
 ## Current delivery focus — 7 October 2026
 
@@ -251,19 +251,20 @@ gate.
 
 ### Productization gate
 
-After the GAA programme has proven reusable behavior, Barrels may separately
-evaluate a workforce product. Approval requires:
+Barrels approved the investment in a separate Barrels Human Resource product on
+2026-10-18. It reuses the Barrels-owned workforce code; it never includes GAA
+data, marks, or GAA-specific configuration. Before it is offered to another
+organisation, it requires:
 
 - evidence that multiple organisations have the same problem;
 - a signed GAA licence that confirms Barrels' software ownership, plus clear
   data rights (see [IP boundary](../strategy/barrels-ip-boundary.md));
 - tenant-isolation and security requirements;
 - a support, onboarding, configuration, and pricing model;
-- proof that client-specific logic can be removed or configured; and
-- an explicit Barrels investment decision.
+- proof that client-specific logic can be removed or configured.
 
-Until that gate passes, documentation must describe the system as the GAA staff
-platform, not as a committed Barrels HR product.
+The GAA deployment remains the GAA staff platform, a client programme. It is not
+itself the Barrels Human Resource product, and GAA acceptance still governs it.
 
 ## Shared dependencies and collision rules
 

@@ -18,7 +18,7 @@ The five folded modules, their route prefix, and data source:
 |---|---|---|
 | `/hr` | FastAPI `/api/v1/hr/*` | duty roster, approvals inbox, HR Setup |
 | `/cap` | FastAPI `/api/cap/*` (server-side direct, `CAP_API_URL`) | |
-| `/salesbus` | mock data (api-client planned) | own `CartProvider`, own `AppShell`; PWA dropped |
+| `/salesbus` | FastAPI `/api/v1/stores/*` (Stores module: internal requisition) | own `CartProvider`, own `AppShell`; PWA dropped; URL kept until a rename is approved |
 | `/wxwatch` | FastAPI `/api/v1/wxwatch/*` | image downloads via `/_backend/wxwatch/` |
 | `/wxproducts` | FastAPI `/api/v1/wxproducts/*`, **separate wxproducts Postgres** | Saved-revision PDF export via FastAPI `/products/{id}/revisions/{revision}/pdf` |
 

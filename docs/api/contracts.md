@@ -57,12 +57,45 @@ HMAC signatures over the original bytes, supports multiple rotation signatures,
 and rejects timestamps outside the five-minute tolerance. Invalid credentials or
 signatures return 401; signed invalid JSON, invalid encoding or malformed event
 envelopes return 400. Valid events return `{"received": true}`. Delivery events
-are logged; suppression and unsubscribe automation remain unimplemented.
+are logged. `email.bounced` with `bounce.type` `Permanent` and `email.complained`
+add the address to `email_suppression` (idempotent on replay); complaints also
+unsubscribe it from every mailing list. Non-transactional outbox mail skips
+suppressed addresses; transactional mail does not.
+
+## Public forms
+
+Three anonymous, rate-limited (per IP) endpoints back public site forms. They
+never read existing data and return a fixed acknowledgement:
+
+- `POST /api/v1/subscriptions` (`subscriptionsSubscribe`): double opt-in sign-up
+  for a list key (`signal`, `barrels`); the reply is identical for every address state.
+  `GET /subscriptions/confirm` and `/subscriptions/unsubscribe` take a signed
+  `token` and 303-redirect to the list's site.
+- `POST /api/v1/contact/messages` (`contactSendContactMessage`): stores a
+  website message and emails it to the inbox of its `site` (`mbia` by default,
+  or `barrels`). `turnstile_token` is accepted but not verified yet.
+- `POST /api/v1/contact/data-requests` (`contactSendDataRequest`): GMS climate
+  data request (structured fields, required `consent`, hidden `website`
+  honeypot). Emails `GMS_DATA_REQUEST_RECIPIENT` and confirms to the requester.
+- `POST /api/v1/feedback` (`feedbackSendPageFeedback`): anonymous "Was this page
+  helpful?" answer (`site`, `page_path`, `helpful`, optional `comment` up to
+  1000 characters); 10/min per IP; stores no personal data.
 
 See [integration readiness](../operations/integration-readiness.md) for matching
 environment endpoints and provider setup. Changes to this hidden callback's
 implementation do not alter generated client types; changing its registration,
 signature or schema exposure still invokes the contract companion gate.
+
+## Public flight board
+
+`GET /api/v1/flights/board?airport=TGPY&board=arrivals|departures`
+(`flightsGetFlightBoard`) is anonymous and rate-limited (60/min per IP). It
+returns Redis-cached OpenSky "recent movements" (`rows` with callsign,
+`time` seen, `other_airport_icao`), `source`, `fetched_at` and `is_sample`
+(always false). `available` is false when `FLIGHTS_OPENSKY_ENABLED` is off
+(the default) or nothing is cached; clients must show their own labelled
+sample then. Data is previous-day-or-earlier and research-licensed; see
+`docs/strategy/integration-opportunities.md`.
 
 ## Public weather products
 
@@ -303,6 +336,125 @@ Sentry tag, so a failed call can be traced from the browser to the API log and
 the Sentry event. It is random and carries no user data. The header is not part
 of the OpenAPI schema.
 
+## Organisations (ADR-0022)
+
+Platform organisations live in the `org` schema. `GET /api/v1/organisations/mine`
+returns the signed-in account's active memberships (`membership_id`, `role`
+`owner | admin | member`, `status`, `joined_at`) each with an organisation summary
+(`id`, `slug`, `name`, `kind` `barrels | client | business`, `status`,
+`verified_at`). It needs any active Barrels account, not staff approval. Existing
+HR employers keep their `hr.organisation` id (for example `gaa`); new
+organisations get immutable `org_<hex>` ids.
+
+Control plane (superuser only, used by `apps/web/admin`): `GET /api/v1/organisations`
+lists every organisation ordered by name (`page`, `size`, `q` on name or slug,
+`status`, `kind`) with `active_member_count`, and `GET /api/v1/organisations/{id}`
+adds the app entitlements (`apps`). Both return 403 to non-superusers, including
+organisation owners, and 404 for an unknown id. They read across organisations on
+purpose and take no `X-Barrels-Organisation` header. The detail also lists
+`available_apps` (every key in the app registry).
+
+Control-plane writes (superuser only, all return the refreshed detail and are
+audited under the `platform_organisation` history subject): `POST /organisations`
+(`name`, `kind` barrels, client or business, optional `slug`; 409 when taken),
+`PATCH /organisations/{id}` (`name`, `slug`, `kind`, `status` active or
+suspended; at least one field), `POST /organisations/{id}/verify` and
+`/unverify` (body `{reason}`, 3 to 500 characters; 409 when already in that
+state), `PUT /organisations/{id}/apps/{app_key}` (body `{enabled}`; 422 for a key
+outside the registry) and `GET /organisations/{id}/admin/members` (roster of any
+organisation). A suspended organisation is refused with 403 by every
+`X-Barrels-Organisation` route. A verified organisation shows its linked Events
+organiser as `verified`.
+
+### Organisation context
+
+Routes that act for one organisation read it from the `X-Barrels-Organisation`
+request header (an `org_<hex>` id, or a legacy HR key such as `gaa`) through the
+`OrgContext` dependency (`src/organisations/dependencies.py`). Browsers may send
+the header cross-origin (it is in the CORS allow list).
+
+| Situation | Status |
+| --- | --- |
+| Header missing or blank | 400 |
+| Organisation unknown, or caller is not an active member | 404 `Organisation not found` (identical, so existence is not revealed) |
+| Organisation suspended | 403 |
+| Member whose role is too low for the route (`owner` > `admin` > `member`) | 403 |
+
+There is no superuser bypass. The caller needs any active Barrels account (the
+same as the account routes), not staff approval. The resolved organisation id is
+written to every log line for the request as `organisation_id`. A route is only
+described as organisation-isolated if it uses `OrgContext` and has a
+cross-organisation denial test.
+
+`GET /api/v1/organisations/current` returns the header's organisation and the
+caller's role.
+
+### Members and invitations (F4)
+
+All routes below need `OrgContext` with at least the `admin` role, and the path
+`{organisation_id}` must equal the header's organisation (otherwise 404).
+
+| Route | Behaviour |
+| --- | --- |
+| `GET /organisations/{id}/members` | Active members (`page`, `size`) |
+| `GET /organisations/{id}/invitations` | Pending invitations |
+| `POST /organisations/{id}/invitations` | `{email, role}`; emails a single-use link valid 7 days; re-inviting replaces the pending one; 409 if already a member |
+| `DELETE /organisations/{id}/invitations/{invitation_id}` | Revoke (409 once accepted) |
+| `PATCH /organisations/{id}/members/{membership_id}` | `{role}` |
+| `DELETE /organisations/{id}/members/{membership_id}` | Sets the membership to `removed` |
+| `POST /organisations/invitations/accept` | `{token}` in the body, any signed-in account; 400 unknown, expired, used or revoked; 403 when the invitation was sent to another email address |
+
+Admins manage members and admins; only owners invite owners or grant, change or
+remove the owner role. The last active owner cannot be demoted or removed (409).
+Only a SHA-256 of the token is stored; the token appears only in the email link
+(`/organisations/accept?token=` on the auth app). Changes are audited under the
+`organisation` history subject (`GET /audit/organisation/{id}`, admins and owners).
+
+### Events organisers (F5)
+
+Events organiser payloads carry `organisation_id` (the platform organisation
+backing the organiser, null for legacy organisers). `GET /events/manage` also
+returns `organisers` (every organiser the member manages), and `GET /events/manage`,
+`POST /events/manage/listings` and `PUT /events/manage/listings/{id}` accept an
+optional `?organiser=<slug>` to act for one of them. Access is the
+`events.organiser.manage` permission or an active admin/owner platform membership.
+`POST /events/manage/organiser` (any Events member) creates an unverified organiser
+backed by a new platform organisation with the caller as owner (409 for a taken
+address or a second pending request); moderators verify it through
+`PATCH /events/moderation/organisers/{id}`. Publishing, cancelling or rescheduling a
+listing and approving an organiser also write `outbox` rows (same Events transaction)
+that the worker turns into notifications; no endpoint is involved.
+`GET /events/manage/{listing_id}/activity` returns that listing's append-only history
+(`ActivityEntry`: action, actor id and current display name, changed-field summary),
+newest first, for its organiser only.
+
+### Events tickets (E1)
+
+`POST /events/listings/{slug}/orders` (Events member, 20/minute) claims free or
+registration tickets: `{items: [{tier_id, quantity}]}`, 201 with the order and its
+tickets. 409 when a tier is sold out, the claim exceeds the tier's `per_account_limit`
+(set by the organiser on the tier, default 4, counted over the account's valid
+tickets), the tier is paid (online payment is not built yet) or the event ended.
+`TierPublic` carries `remaining` and the viewer's `held` count. `GET /events/me/tickets`
+lists the member's tickets; `GET /events/me/tickets/{id}` adds `qr_token`, a signed
+token (`BT1.<code>.<tag>`, no personal data) to render as the QR code;
+`POST /events/me/tickets/{id}/cancel` cancels an unused ticket before the event
+starts and puts the seat back on sale. `TierInput.id` updates an existing tier in
+place; tiers with tickets issued cannot be removed or shrunk below their valid tickets.
+Issuing tickets writes a `ticket.issued` outbox row for the buyer's notification.
+
+### Events door admission (E2)
+
+`POST /events/manage/{listing_id}/admissions` (organiser access, that organiser's event
+only) admits a ticket from `{code, idempotency_key?}`; `code` is the scanned QR token or a
+typed ticket code. 200 returns the holder, tier and who admitted it; repeating the same
+`idempotency_key` replays that success (`repeat: true`). Any other second scan, a cancelled
+ticket or another event's ticket is 409 (`Already admitted at HH:MM by <name>`); an unknown
+code is 404. `GET /events/manage/{listing_id}/manifest` returns every valid ticket with its
+holder, tier and admission time plus `issued`, `admitted`, `waiting` and `cancelled` counts.
+Each admission writes a `ticket.admitted` row to the listing's activity history, and the
+member's ticket carries `admitted_at`; used tickets cannot be cancelled.
+
 ## Pagination
 
 The standard helper is `src.pagination`:
@@ -357,6 +509,31 @@ Local Stripe test-mode flow:
 5. Open the returned URL and use Stripe's interactive test card
    `4242 4242 4242 4242`, any future expiry, and any three-digit CVC.
 
+### Barrels invoicing (P1-P3)
+
+Barrels invoices its own service-line clients; a customer is a platform
+organisation. Every route below needs a superuser or the `billing.manage`
+permission (403 otherwise). Money is integer minor units (XCD cents). Totals and
+tax are computed on the server (`Decimal`, half-up per line); clients never send
+or trust a total.
+
+| Endpoint | Contract |
+| --- | --- |
+| `GET/POST /api/v1/billing/customers`, `GET/PATCH /api/v1/billing/customers/{customer_id}` | One customer per organisation (409 if already a customer, 404 for an unknown organisation) |
+| `GET /api/v1/billing/invoices` | Paginated, newest first; filters `status`, `customer_id`, `q` (number or customer name), `overdue` |
+| `POST /api/v1/billing/invoices` | Create a draft with lines (`description`, `quantity` up to 3 dp, `unit_price_minor`, optional `tax_rate` percent up to 2 dp, default from `BILLING_INVOICE_DEFAULT_TAX_RATE`) |
+| `GET/PUT/DELETE /api/v1/billing/invoices/{invoice_id}` | Read; replace a draft; delete a draft (409 once issued) |
+| `POST /api/v1/billing/invoices/{invoice_id}/issue` | Draft only. Assigns the gapless `<prefix>-YYYY-NNNN` number, issue date (optional body) and due date (net 30), stores the PDF privately when storage is configured and queues the customer email |
+| `POST /api/v1/billing/invoices/{invoice_id}/void` | Issued and unpaid only; `reason` required and audited |
+| `POST /api/v1/billing/invoices/{invoice_id}/payments` | Manual `bank_transfer`, `cash` or `cheque`; 422 when above the outstanding balance or dated in the future; 409 on a non-open invoice |
+| `GET /api/v1/billing/invoices/{invoice_id}/pdf` | `application/pdf`, rendered on demand |
+| `GET /api/v1/billing/receivables` | Open invoices with ageing buckets `current`, `days_1_30`, `days_31_60`, `days_61_90`, `over_90` and a paginated list |
+
+Status machine: `draft -> issued -> partially_paid -> paid`, and `issued -> void`.
+Reminder emails (7 days before due, on the due date, 7 days overdue) are sent by
+the worker once per invoice and stage. The legal entity name, VAT rate and number
+format are provisional settings (`docs/env.md`).
+
 ## Change history and notifications (platform core)
 
 Shared services (ADR-0009) that any module can use; HR is the first. Both require an
@@ -401,6 +578,16 @@ by permission keys from `src/auth/permissions.py` (`tests/auth/test_permission_r
 fails if a key used in code is missing from the catalog). Routers:
 `profile`, `rosters`, `calendar`, `timesheets`, `attendance`, `leave-requests`, `shift-swaps`,
 `absentee-reports`, `status-reports`, `parking-permits`, `documents`, `workflows`.
+
+### Form prefill endpoints
+
+Read-only helpers that let the HR forms start from stored data. Each returns suggestions; the requester still edits and signs the figures.
+
+| Endpoint | Permission | Purpose |
+| --- | --- | --- |
+| `GET /api/v1/hr/leave/working-days?start=&end=` | `leave.request.create.self` | Working days for the caller (≤ 366 days). Uses the caller's published or closed roster work shifts when the roster covers every day in the range (`method: roster`), otherwise Monday to Friday (`method: weekdays`). Public holidays are excluded and listed; `provisional: true` marks dates HR has not verified |
+| `GET /api/v1/hr/timesheets/prefill?period=YYYY-MM` | `timesheet.submit.self` | The caller's published or closed roster work shifts for the month with shift times, scheduled hours and leave/absence availability. `roster_published: false` and no entries when there is none |
+| `GET /api/v1/hr/signed-documents/me?entity_type=` | authenticated | Existing list, narrowed to one form type (for example `leave_request`, `timesheet`) before paging |
 
 ### Manual shift attendance
 
@@ -520,6 +707,16 @@ nothing. The clock point must belong to the caller's own department. `late_minut
 | `PUT /api/v1/hr/rosters/departments/{department_id}/rules` | `roster.manage` in the department scope | Replace the limits |
 | `GET /api/v1/hr/rosters/periods/{period_id}/rule-check` | `roster.view` in the department scope | Violations for one period |
 
+### Public holidays
+
+| Endpoint | Permission | Purpose |
+| --- | --- | --- |
+| `GET /api/v1/hr/rosters/public-holidays` | `roster.view` | List holidays, optionally by `year` |
+| `POST /api/v1/hr/rosters/public-holidays` | global `roster.manage` | Add a holiday (optional `source`, `needs_verification`) |
+| `PUT /api/v1/hr/rosters/public-holidays/{holiday_id}` | global `roster.manage` | Edit name, date, source or verification flag; a date already in use returns 400 |
+| `POST /api/v1/hr/rosters/public-holidays/provisional` | global `roster.manage` | Add the provisional Grenada calendar for `year` (2000-2100), skipping dates already present; rows carry `source` "provisional - verify with GAA HR" |
+| `DELETE /api/v1/hr/rosters/public-holidays/{holiday_id}` | global `roster.manage` | Remove a holiday |
+
 Limits are `min_rest_hours`, `max_consecutive_days` and `max_weekly_hours`, stored
 on `hr.department_policy`. A null limit disables that rule and no defaults are
 assumed, because GAA HR has not confirmed any values. The check is warn-only: it
@@ -585,9 +782,9 @@ carries two time bases.
 | Access | Endpoints |
 | --- | --- |
 | Public (an Events token personalises) | `GET /listings` (`when`, `category`, `parish`, `price`, `tag`, `q`, `organiser`, `limit`, `offset`), `GET /listings/{slug}`, `GET /organisers/{slug}`, `GET /groups`, `GET /groups/{slug}`, `GET /people/{handle}`, `POST /suggestions` |
-| Events member | `GET`/`PATCH /me/profile`, `GET /me/plans`, `GET /me/network`, `PUT`/`DELETE /listings/{slug}/rsvp` and `/save`, `PUT`/`DELETE /organisers/{slug}/follow`, `PUT`/`DELETE /groups/{slug}/membership`, `POST /connections`, `POST /connections/{id}/accept`, `DELETE /connections/{id}`, `PUT`/`DELETE /blocks/{handle}`, `POST /reports`, `GET`/`POST /threads`, `GET /threads/{id}`, `POST /threads/{id}/messages` |
-| `events.organiser.manage` + organiser membership | `GET /manage`, `POST /manage/listings`, `PUT /manage/listings/{id}` |
-| `events.moderate` | `GET`/`PATCH /moderation/reports`, `GET`/`PATCH /moderation/suggestions` |
+| Events member | `POST /manage/organiser`, `GET`/`PATCH /me/profile`, `GET /me/plans`, `GET /me/network`, `PUT`/`DELETE /listings/{slug}/rsvp` and `/save`, `PUT`/`DELETE /organisers/{slug}/follow`, `PUT`/`DELETE /groups/{slug}/membership`, `POST /connections`, `POST /connections/{id}/accept`, `DELETE /connections/{id}`, `PUT`/`DELETE /blocks/{handle}`, `POST /reports`, `GET`/`POST /threads`, `GET /threads/{id}`, `POST /threads/{id}/messages` |
+| `events.organiser.manage` + organiser membership | `GET /manage`, `POST /manage/listings`, `PUT /manage/listings/{id}`, `GET /manage/{id}/activity` |
+| `events.moderate` | `GET`/`PATCH /moderation/reports`, `GET`/`PATCH /moderation/suggestions`, `GET /moderation/organisers`, `PATCH /moderation/organisers/{id}` |
 
 Prices are integer minor units (`price_from_minor`, tier `price_minor`); datetimes are UTC and
 clients render Grenada time. Direct threads open only between accepted connections or members
@@ -656,7 +853,7 @@ is released. Alerts without `GMS:product` currently validate with a warning.
 
 These are not implemented as universal API contracts yet:
 
-- Request IDs and correlation IDs.
+- Propagating the request ID into ARQ jobs (each enqueue site must pass it; not done yet).
 - RFC 7807 Problem Details.
 - Idempotency keys.
 - Global response validation middleware.
@@ -1033,6 +1230,21 @@ present weather and cloud cover. `status` is `provisional` until the reading is
 (actor, QC notes, raw TAC, WIS2 data) never leave `src/eregister/public.py`. No
 reading returns `{"observation": null}`; an unavailable register returns 503.
 
+### Public month summary
+
+`GET /api/v1/eregister/public/month-summary[?month=YYYY-MM]` is anonymous, rate
+limited (60/minute per IP) and cached (`public, max-age=300,
+stale-while-revalidate=600`; 503 is `no-store`). It aggregates, in SQL, the same
+non-rejected, non-superseded MBIA SYNOPs as `/public/current` for one UTC month
+(default: the current month to date; future months are empty). Rainfall is the sum
+of one daily total per UTC date, taken from the 24-hour rainfall group (RRR, trace
+990 counts as 0 mm); a rain day is a daily total of at least 0.2 mm (WMO-No. 100,
+`rain_day_threshold_mm`). Temperature extremes are the highest/lowest of the
+section 3 maximum/minimum groups and decimal air temperatures, with the time of
+each. `provisional` is true unless every contributing reading is `accepted`.
+`rain_report_days` out of `days_elapsed` shows completeness. No readings returns
+`{"summary": null}`; unreported figures are `null`, never zero.
+
 GMS now fetches this endpoint directly from the existing FastAPI origin
 `AUTH_API_URL` and prefix `AUTH_API_V1_STR`, without cookies. Its published-product
 pages use `/wxproducts/public/products` at the same origin and generated Kubb
@@ -1067,7 +1279,18 @@ return 409; draft and revision snapshot commit together.
 `GET /api/v1/wxproducts/aviation/drafts/{id}/history` returns up to 100 latest
 revision snapshots with author identity and recorded time.
 
-All three routes require the separate `aviation` product-access policy, using
+`POST /api/v1/wxproducts/aviation/drafts/validate` takes the same fields without
+`id`/`expected_revision` and returns `{valid, issues[]}`; each issue has
+`severity` (`error` for a code violation, `warning` for reporting practice),
+`code`, the offending `group` (or null), a `message` and the `rule` source
+(WMO-No. 306 FM 15/16/51, ICAO Annex 3). Findings are advisory: saving a draft
+is never blocked, and nothing is saved or transmitted by the check. The
+optional `previous_message` (the preceding METAR/SPECI, validate only) lets a
+SPECI be compared with the Annex 3 App. 3 2.3 criteria (`speci_no_change`
+warning); TAF change groups are checked against App. 5 1.3 (`taf_change_criteria`
+warning). Rules and gaps: `docs/operations/eregister-wmo-conformance.md`.
+
+All four routes require the separate `aviation` product-access policy, using
 the existing configurable GMS-grade controls (manager, assistant manager and
 senior technician defaults). Browser mutations use the existing session/CSRF
 flow. Responses are no-store; no aviation draft is included in public products.
@@ -1163,7 +1386,10 @@ regulations and returns `valid`, field-level `issues`, the normalized workbook
 and `decoded` SI values (K, Pa, m s-1, m, kg m-2) for later BUFR, TAC and IWXXM
 encoders. Each issue has a `severity`: `error` entries are impossible or
 malformed and make the workbook invalid; `warning` entries are reporting
-practice advice and never change `valid`. GAA Admin validates before saving and
+practice advice and never change `valid`. Beyond code ranges the endpoint checks
+cross-field rules: the iR/ix indicators against the groups present, the pressure
+tendency against its change, cloud type and layer amounts against N and Nh,
+and wind speeds of 99 or more as three-digit 00fff. GAA Admin validates before saving and
 blocks the save on errors only. A workbook with only identification fields is a
 NIL report (`decoded.is_nil_report`). Optional entries beyond the original
 workbook are the wet bulb (`wet_bulb`), wind gust (`wind_gust`), relative
@@ -1171,6 +1397,34 @@ humidity (`relative_humidity`) and observer initials (`observer_initials`, not
 an observation value). The endpoint does not save, publish, or
 transmit an observation; `POST /api/v1/eregister/observations` still stores a
 draft.
+
+#### eRegister send actions
+
+`POST /api/v1/eregister/observations/{id}/email` and `.../publish` (permission
+`eregister.send`, body `{"resend": false}` optional, `202` with an
+`ObservationSend`) queue a saved SYNOP: the first emails the FM 12 text and a
+decoded summary to `EREGISTER_OBS_RECIPIENTS` through the notifications outbox,
+the second writes a csv2bufr CSV for wis2box through an ARQ job with retries.
+`GET /api/v1/eregister/observations/{id}/sends` lists the history (`target`
+`email` or `wis2`, `status` `queued`, `sent` or `failed`). Errors: `404` unknown
+observation, `409` no recipients or WIS2 not configured, rejected or superseded
+or non-SYNOP observation, or already sent without `resend`, `422` the stored
+workbook fails validation. Details: `docs/operations/eregister-wmo-conformance.md`.
+
+#### eRegister QC
+
+`POST /api/v1/eregister/observations/{id}/accept`, `.../reject` and `.../reopen`
+(permission `eregister.qc`, body `{"reason": "..."}`, `200` with the
+`RegisterObservationRead`) move a SYNOP between `draft`/`qc_pending`,
+`accepted` and `rejected`. `reject` and `reopen` need a reason. The observer who
+saved an observation can never accept it (`403`, superusers included).
+`409` wrong state or non-SYNOP, or reopen after a WIS2 send; `422` missing
+reason or the workbook fails validation. `GET /api/v1/eregister/observations`
+takes `state=` (the QC queue is `draft` and `qc_pending`). `.../publish` (WIS2)
+now answers `409` unless the observation is `accepted`; `.../email` still
+accepts a validated draft unless `EREGISTER_SEND_REQUIRE_ACCEPTED` is set.
+`RegisterObservationRead` gains `qc_by` and `qc_at`. Every decision is audited
+(`eregister_observation`).
 
 ### GAA operational catalogues
 
@@ -1210,6 +1464,23 @@ Times are `HH:MM` after service-day midnight and may pass `24:00` (GTFS
 convention) for night trips. Stop `timepoint: false` marks an approximate time;
 the v1 group times are migrated as approximate. Route 6 trips are migrated as
 `awaiting_confirmation` pending GAA HR.
+
+### Stores requisition
+
+The gaa-admin Stores module (routes still under `/salesbus`) is backed by the
+`stores` schema of the main database. Callers are placed by their HR employment
+record; a client never supplies an organisation or department.
+
+| Route | Access | Contract |
+| --- | --- | --- |
+| `GET /stores/access` | employed staff | Organisation, department and which actions the caller may take; UI hint only |
+| `GET /stores/items`, `/locations`, `/stock`, `/stock-movements` | `stores.view` | Organisation-scoped reads; items carry total `on_hand` |
+| `POST /stores/items`, `PATCH /stores/items/{item_id}`, `POST/PATCH /stores/locations[/{location_id}]` | organisation-wide `stores.manage` | SKU and location code unique per organisation (409); items and locations are deactivated, never deleted |
+| `POST /stores/stock-movements` | organisation-wide `stores.manage` | `RECEIPT` adds, `ISSUE` removes (reason required), `ADJUSTMENT` sets the counted level (reason required); stock below zero is refused (409) |
+| `GET /stores/requisitions[/{requisition_id}]` | `stores.view` | Own requisitions plus submitted-or-later ones of departments where the caller holds `stores.approve` or `stores.manage`; others get 404. `can_*` flags tell the UI what the caller may do |
+| `POST /stores/requisitions`, `PATCH …/{id}`, `POST …/{id}/submit`, `POST …/{id}/cancel` | `stores.request`, requester only | `submit: true` on create files and submits at once; edits only while a draft |
+| `POST …/{id}/approve`, `POST …/{id}/reject` | `stores.approve` for the requisition's department | Never the requester (403); approval may lower line quantities; rejection needs a note |
+| `POST …/{id}/deliver` | `stores.manage` for the requisition's department | Partial delivery allowed; stock is decremented in the same transaction; shortfall 409, over-delivery 422 |
 
 ## OpenAPI and generated-client rules
 
@@ -1584,3 +1855,21 @@ result. Reviewed values may be edited while native sample evidence stays unchang
 no interpolated values or automatic regional-to-local scalar inference is made.
 
 GRIB `dataDate`/`dataTime` identify reference cycles, not publication time. Grid edition issuance stays unknown unless explicitly advertised; available forecast validity timestamps are retained separately and native records preserve their exact validity and step range.
+
+## Organisation uploads (F8)
+
+Images for an organisation (Events organiser logo, listing image) go straight to
+object storage. Send `X-Barrels-Organisation` (active member of any role) with an
+account token or an app-scoped token for the same app.
+
+| Call | Behaviour |
+| --- | --- |
+| `POST /storage/uploads` | `{app, purpose, content_type, size_bytes}`; purposes `organiser-logo` (2 MB) and `listing-image` (5 MB), JPEG/PNG/WebP only (422 otherwise); returns `{id, method: "PUT", url, headers, expires_at, max_bytes}`. The presigned PUT expires in 15 minutes and signs the content type and exact size. 503 `Uploads are not configured` without storage settings |
+| `POST /storage/uploads/{id}/complete` | Checks the object (HEAD) matches the declared type and size, then marks it complete. 409 until the object exists or after the link expires; 422 (object deleted) on a mismatch; repeatable |
+| `GET /storage/files/{id}` | `{url, expires_in}`: a 5-minute presigned GET for a completed file of the caller's organisation. Other organisations, pending files and unknown ids are all 404 |
+| `GET /storage/public/{id}` | No sign-in. 307 to a 5-minute presigned GET with `Cache-Control: public, max-age=120`, only for completed files of public purposes (logo, listing image); 404 otherwise |
+
+Events stores the resulting file ids: `ListingUpsert.image_file_id`,
+`PUT /events/manage/organiser/logo` (`{file_id}`, null clears), returned as
+`ListingCard.image_file_id` and `OrganiserPublic.logo_file_id`. A new id must be a
+completed upload of that organiser's organisation and purpose, else 409.

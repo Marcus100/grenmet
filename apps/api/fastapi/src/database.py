@@ -17,6 +17,7 @@ from src.baseline.models import (
     BaselineStep,
     StaffCredential,
 )
+from src.billing import audit as _billing_audit
 from src.cap.models import (
     CapAlert,
     CapArea,
@@ -35,6 +36,8 @@ from src.cap.models import (
     CapWebhook,
 )
 from src.config import settings
+from src.eregister import audit as _eregister_audit
+from src.events import notifications as _events_notifications
 from src.hr import audit as _hr_audit
 from src.hr import notifications as _hr_notifications
 from src.hr.absentee.models import AbsenteeReport
@@ -85,12 +88,29 @@ from src.notifications.models import (
     NotificationSetting,
     NotificationSnooze,
 )
+from src.organisations import audit as _organisations_audit
+from src.stores import audit as _stores_audit
+from src.stores import notifications as _stores_notifications
+from src.stores.models import (
+    Requisition,
+    RequisitionLine,
+    StockLevel,
+    StockMovement,
+    StoreItem,
+    StoreLocation,
+)
 from src.wxwatch import alerts as _wxwatch_alerts
 
 # Modules register what they audit and notify about before any session exists.
 _hr_audit.register()
 _hr_notifications.register()
 _wxwatch_alerts.register()
+_events_notifications.register()
+_stores_audit.register()
+_stores_notifications.register()
+_organisations_audit.register()
+_billing_audit.register()
+_eregister_audit.register()
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 

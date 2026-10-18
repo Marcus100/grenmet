@@ -1,6 +1,6 @@
 import { CapAdminUnavailable } from "@/components/cap/admin-status";
 import { NewAlertEditor } from "@/components/cap/alert-editor";
-import { loadCapCatalogs } from "@/db/cap/queries";
+import { loadCapCatalogs, loadCapSettings } from "@/db/cap/queries";
 import { reportError } from "@/lib/report-error";
 
 export default async function NewAlertPage() {
@@ -11,5 +11,12 @@ export default async function NewAlertPage() {
     reportError(error, "cap-admin");
     return <CapAdminUnavailable />;
   }
-  return <NewAlertEditor catalogs={catalogs} />;
+  // Sender details are a convenience: the composer still works without them.
+  let settings: Awaited<ReturnType<typeof loadCapSettings>> | null = null;
+  try {
+    settings = await loadCapSettings();
+  } catch (error) {
+    reportError(error, "cap-admin-settings");
+  }
+  return <NewAlertEditor catalogs={catalogs} settings={settings} />;
 }

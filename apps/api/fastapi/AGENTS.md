@@ -219,7 +219,7 @@ my_domain_settings = MyDomainConfig()
 
 **ddtrace** — Installed as a runtime dep. The production image defaults trace exports, instrumentation telemetry and remote configuration to disabled until a Datadog Agent is provisioned. In production, run the app via `ddtrace-run uvicorn src.main:app` so APM tracing, trace ID injection into logs, and auto-instrumentation of FastAPI/SQLAlchemy/httpx are active. Set `DD_LOGS_INJECTION=true`, `DD_SERVICE`, `DD_ENV`, `DD_VERSION` in the environment.
 
-**Sentry** — Captures exceptions automatically via `sentry_sdk.init` in `main.py` (API) and `src/worker/main.py` (worker), with the content-minimising policy in `src/telemetry.py`. `logger.error`/`logger.exception` calls are reported too, so never swallow an unexpected exception silently: log it or re-raise. Only `area` and `digest` tags survive scrubbing. Controlled by `SENTRY_DSN`.
+**Sentry** — Captures exceptions automatically via `sentry_sdk.init` in `main.py` (API) and `src/worker/main.py` (worker), with the content-minimising policy in `src/telemetry.py`. `logger.error`/`logger.exception` calls are reported too, so never swallow an unexpected exception silently: log it or re-raise. Only `area`, `digest` and `request_id` tags survive scrubbing. Controlled by `SENTRY_DSN`.
 
 **Domain logging** — Every service file has `logger = logging.getLogger(__name__)`. Log key business events at `INFO` with structured `extra={}` dicts. Log permission denials at `WARNING`.
 

@@ -8,6 +8,11 @@ import { listingUpsertSchema } from "./listingUpsertSchema.js";
 import { managedListingSchema } from "./managedListingSchema.js";
 import { validationErrorResponseSchema } from "./validationErrorResponseSchema.js";
 
+export const eventsCreateManagedListingQueryOrganiserSchema = z
+  .union([z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/), z.null()])
+  .optional()
+  .describe("Organiser to act for when the member manages several.");
+
 export const eventsCreateManagedListingStatus201Schema = managedListingSchema;
 
 export const eventsCreateManagedListingStatus401Schema = z.unknown();

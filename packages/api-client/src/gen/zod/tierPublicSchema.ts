@@ -12,4 +12,7 @@ export const tierPublicSchema = z.object({
   price_minor: z.int(),
   currency: listingCardPropertiesCurrencyEnumSchema,
   allocation: z.int(),
+  per_account_limit: z.int().optional().default(4),
+  remaining: z.int().optional().default(0),
+  held: z.int().optional().default(0),
 });

@@ -1,11 +1,15 @@
+import {
+  contactSendContactMessage,
+  ResponseError,
+} from "@barrelsgd/api-client";
 import { NextResponse } from "next/server";
 import { contactSchema } from "@/lib/contact";
+import { env } from "@/lib/env";
+import { reportError } from "@/lib/report-error";
 
 /**
- * Contact form endpoint. Delivery is deferred — this validates and logs only,
- * mirroring signal's subscribe seam. Real delivery (email to gaa@gaa.gd or a
- * ticketing system) belongs in a FastAPI endpoint, because backend logic is
- * Python; this route should then only validate and forward to it.
+ * Contact form endpoint. Validates the body and forwards it to FastAPI, which
+ * stores the message, rate-limits, and emails it to the GAA inbox.
  */
 export async function POST(request: Request) {
   let payload: unknown;
@@ -26,10 +30,33 @@ export async function POST(request: Request) {
     );
   }
 
-  // biome-ignore lint/suspicious/noConsole: log-only stub until real delivery is wired
-  console.info("[contact] message received", {
-    subject: parsed.data.subject,
-    email: parsed.data.email,
-  });
+  try {
+    await contactSendContactMessage({
+      baseURL: env.AUTH_API_URL,
+      body: {
+        site: "mbia",
+        name: parsed.data.name,
+        email: parsed.data.email,
+        subject: parsed.data.subject,
+        message: parsed.data.message,
+        turnstile_token: parsed.data.turnstileToken,
+      },
+    }).unwrap();
+  } catch (error) {
+    if (error instanceof ResponseError && error.status === 429) {
+      return NextResponse.json(
+        { ok: false, error: "Too many messages. Please try again shortly." },
+        { status: 429 }
+      );
+    }
+    reportError(error, "mbia-contact-route");
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "We could not send your message. Please try again later.",
+      },
+      { status: 502 }
+    );
+  }
   return NextResponse.json({ ok: true });
 }

@@ -5,7 +5,29 @@ needs: Biome on changed files, affected Turbo type-check and tests, FastAPI lint
 and the changed domains' pytest suites, drift, blast radius, guardrails and docs.
 `--dry-run` prints the plan; `--skip <check>` drops one (for example `api tests`
 when no database is reachable); `--base <ref>` changes the comparison. API tests
-use the same database environment as a direct `pytest` run.
+run through `scripts/agents/api-env.sh`, which supplies the local-development
+database settings (values already in the environment win).
+
+## Which API gates a change selects
+
+Lint+types (`ruff check`/`ruff format --check` over `src scripts tests`, then
+`mypy src`) runs for any change under `apps/api/fastapi/**/*.py`, under
+`apps/api/fastapi/tests/`, or to a dependency manifest. Pytest targets:
+
+| Changed path (under `apps/api/fastapi/`) | Pytest targets |
+| --- | --- |
+| `src/<domain>/...` | `tests/<domain>/` and `tests/test_<domain>_*.py` |
+| `src/main.py` | Core subset: `test_startup_imports.py`, `test_openapi_contract.py`, `test_release_contract_inputs.py`, `test_settings.py`, `test_schema_datetime_guard.py`, `tests/utils/` |
+| other `src/*.py` (shared modules) | Full suite |
+| `tests/<dir>/...` | `tests/<dir>/` |
+| `tests/test_*.py` | That file |
+| `tests/conftest.py`, `factories.py`, `database_target.py` | Full suite |
+| `pyproject.toml`, `uv.lock` (repo root or API) | Full suite |
+
+`main.py` is also a contract file, so API-client drift runs. The subset is a
+local fast path: CI (`ci-api.yml`) still runs the full suite on every push, and
+the schemathesis fuzz test (`test_api_fuzz.py`) runs there. Run
+`pnpm verify:changed --dry-run` to see the exact plan.
 
 Run `pnpm verify:quick` for lint, types and unit tests. The pre-push hook remains
 TypeScript plus unit tests. It does not claim backend or deployment acceptance.

@@ -12,6 +12,13 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json", "json-summary", "html"],
+      // Default scope (files the suite loads), the basis the floors were measured on.
+      // Floors only rise; mirrored in scripts/guardrails/coverage-baseline.json.
+      thresholds: { lines: 79, branches: 71 },
+    },
   },
   resolve: {
     // Shared auth and app imports must resolve the same Next instance for mocks.

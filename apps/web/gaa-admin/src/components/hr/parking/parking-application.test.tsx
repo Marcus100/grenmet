@@ -15,6 +15,7 @@ vi.mock("@barrelsgd/auth", () => ({
 vi.mock("@/components/hr/hr-pdf-preview", () => ({
   HrPdfPreview: () => <div>Python preview</div>,
   downloadHrPdf: vi.fn(),
+  fetchHrPdf: vi.fn(),
 }));
 vi.mock("@/components/hr/co-approver-picker", () => ({
   CoApproverPicker: () => null,
@@ -39,6 +40,9 @@ const record = {
   signed_document_id: null,
 };
 const server = setupServer(
+  http.get(`${BASE}/signed-documents/me`, () =>
+    HttpResponse.json({ data: [], count: 0 })
+  ),
   http.get(`${BASE}/profile/me`, () =>
     HttpResponse.json({
       employment: {

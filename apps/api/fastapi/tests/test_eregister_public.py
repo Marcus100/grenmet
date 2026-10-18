@@ -1,5 +1,6 @@
 """Public current conditions: SYNOP decoding and the anonymous endpoint."""
 
+import json
 from collections.abc import AsyncGenerator
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -74,7 +75,12 @@ def test_decode_workbook_into_public_units():
         ({"msl_pressure": "0149"}, "msl_pressure_hpa", 1014.9),
         ({"msl_pressure": "9985"}, "msl_pressure_hpa", 998.5),
         ({"msl_pressure": "12"}, "msl_pressure_hpa", None),
-        ({"air_temp": "254"}, "temperature_c", None),  # coded, not °C: never guess
+        ({"air_temp": "254"}, "temperature_c", 25.4),  # coded TTT in tenths
+        ({"air_temp": "1034"}, "temperature_c", -3.4),  # sn 1 is negative
+        ({"air_temp": "2254"}, "temperature_c", None),  # sign digit must be 0 or 1
+        ({"dew_point": "0243", "air_temp": "0280"}, "relative_humidity", 80),
+        ({"s3_rainfall_24h": "0123"}, "rain_24h_mm", 12.3),  # tenths, not mm
+        ({"s3_rainfall_24h": "9999"}, "rain_24h_mm", 0.0),  # trace
         ({"precip_amount": "993"}, "rain_mm", 0.3),
         ({"present_wx": "95"}, "weather", "Thunderstorm"),
         ({"pressure_tendency": "7"}, "pressure_trend", "falling"),
@@ -168,5 +174,150 @@ async def test_public_endpoint_selects_latest_usable_reading(register_db):
             transport=httpx.ASGITransport(app=app), base_url="http://test"
         ) as client:
             assert (await client.get(URL)).status_code == 503
+    finally:
+        app.dependency_overrides.pop(get_public_session, None)
+
+
+SUMMARY_URL = "/api/v1/eregister/public/month-summary"
+NOW = datetime(2026, 10, 18, 15, tzinfo=UTC)
+
+
+async def put(session, at, *, state="draft", station="78958", **fields):
+    await session.execute(
+        text(
+            """
+            INSERT INTO register_observations
+              (id, station_id, station_name, kind, observed_at, body, state, actor_id)
+            VALUES (:id, :station, 'MBIA', 'SYNOP', :at, CAST(:body AS jsonb),
+                    CAST(:state AS register_state), 'PRIVATE-ACTOR')
+            """
+        ),
+        {
+            "id": uuid4(),
+            "station": station,
+            "at": at,
+            "body": json.dumps(fields),
+            "state": state,
+        },
+    )
+    await session.commit()
+
+
+def test_month_bounds_handle_boundaries():
+    assert public.month_bounds(None, NOW)[0] == "2026-10"
+    assert public.month_bounds("2026-02", NOW) == (
+        "2026-02",
+        datetime(2026, 2, 1, tzinfo=UTC),
+        datetime(2026, 3, 1, tzinfo=UTC),
+    )
+    assert public.month_bounds("2026-12", NOW)[2] == datetime(2027, 1, 1, tzinfo=UTC)
+
+
+async def test_month_summary_aggregates_in_sql(register_db):
+    s = register_db
+    assert await public.month_summary(s, None, NOW) is None  # no data: not zeros
+
+    # Out of month, other station, rejected: all ignored.
+    await put(s, datetime(2026, 9, 30, 23, 59, tzinfo=UTC), s3_rainfall_24h="005")
+    await put(
+        s, datetime(2026, 10, 2, 12, tzinfo=UTC), station="78999", s3_rainfall_24h="400"
+    )
+    await put(
+        s,
+        datetime(2026, 10, 2, 12, tzinfo=UTC),
+        state="rejected",
+        s3_rainfall_24h="400",
+        s3_max_temp="0450",
+    )
+    # Only an air temperature so far: rain stays null, not zero.
+    await put(s, datetime(2026, 10, 1, 0, tzinfo=UTC), air_temp="24.1")
+    partial = await public.month_summary(s, None, NOW)
+    assert partial is not None
+    assert partial.rainfall_mm is None and partial.rain_days is None
+    assert (partial.max_temperature_c, partial.min_temperature_c) == (24.1, 24.1)
+
+    await put(
+        s,
+        datetime(2026, 10, 1, 12, tzinfo=UTC),
+        s3_rainfall_24h="990",  # trace: counts as 0 mm, not a rain day
+        s3_max_temp="0321",
+        s3_min_temp="0239",
+    )
+    await put(s, datetime(2026, 10, 3, 12, tzinfo=UTC), s3_rainfall_24h="992")  # 0.2
+    await put(s, datetime(2026, 10, 4, 12, tzinfo=UTC), s3_rainfall_24h="991")  # 0.1
+    await put(
+        s,
+        datetime(2026, 10, 5, 12, tzinfo=UTC),
+        state="accepted",
+        s3_rainfall_24h="012",
+        s3_max_temp="0326",
+    )
+    await put(
+        s,
+        datetime(2026, 10, 6, 12, tzinfo=UTC),
+        s3_rainfall_24h="n/a",  # junk is ignored, never read as zero
+        s3_min_temp="1015",  # sign digit 1: negative
+    )
+    await put(s, datetime(2026, 10, 18, 20, tzinfo=UTC), s3_rainfall_24h="999")
+
+    result = await public.month_summary(s, None, NOW)
+    assert result is not None
+    assert result.rainfall_mm == 12.3  # 0 + 0.2 + 0.1 + 12
+    assert (result.rain_report_days, result.rain_days) == (4, 2)
+    assert result.rain_day_threshold_mm == 0.2
+    assert result.max_temperature_c == 32.6
+    assert result.max_temperature_at == datetime(2026, 10, 5, 12, tzinfo=UTC)
+    assert result.min_temperature_c == -1.5
+    assert result.observation_count == 6  # future-dated typo excluded
+    assert result.days_elapsed == 18
+    assert result.period_end == NOW
+    assert result.provisional is True
+
+    # Past month: full period, nothing from October leaks in.
+    sept = await public.month_summary(s, "2026-09", NOW)
+    assert sept is not None and sept.rainfall_mm == 5.0
+    assert sept.period_end == datetime(2026, 10, 1, tzinfo=UTC)
+    assert await public.month_summary(s, "2026-11", NOW) is None
+
+
+async def test_month_summary_endpoint(register_db):
+    async def override():
+        yield register_db
+
+    app.dependency_overrides[get_public_session] = override
+    try:
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            empty = await client.get(SUMMARY_URL)
+            assert empty.status_code == 200 and empty.json() == {"summary": None}
+            bad = await client.get(SUMMARY_URL, params={"month": "2026-13"})
+            assert bad.status_code == 422
+
+            await put(
+                register_db,
+                datetime.now(UTC) - timedelta(minutes=5),
+                state="accepted",
+                s3_rainfall_24h="995",
+                air_temp="29.5",
+                notes="PRIVATE NOTE",
+            )
+            result = await client.get(SUMMARY_URL)
+            assert "max-age=300" in result.headers["cache-control"]
+            body = result.json()["summary"]
+            assert body["rainfall_mm"] == 0.5 and body["provisional"] is False
+            assert body["rain_days"] == 1 and body["station_id"] == "78958"
+            assert "PRIVATE" not in result.text
+
+        async def unavailable():
+            yield None
+
+        app.dependency_overrides[get_public_session] = unavailable
+        async with httpx.AsyncClient(
+            transport=httpx.ASGITransport(app=app), base_url="http://test"
+        ) as client:
+            down = await client.get(SUMMARY_URL)
+            assert down.status_code == 503
+            assert down.headers["cache-control"] == "no-store"
     finally:
         app.dependency_overrides.pop(get_public_session, None)

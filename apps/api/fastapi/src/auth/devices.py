@@ -14,7 +14,7 @@ from datetime import datetime
 
 from src.auth.models import User
 from src.config import settings
-from src.email import EmailData, _render_jinja2, _render_remote, send_email
+from src.email import EmailData, _render_jinja2, render_remote, send_email
 from src.email_config import email_settings
 
 logger = logging.getLogger(__name__)
@@ -94,7 +94,7 @@ async def _new_sign_in_email(
     )
     if email_settings.EMAIL_RENDER_URL:
         try:
-            return await _render_remote(
+            return await render_remote(
                 "notification",
                 {
                     "projectName": settings.PROJECT_NAME,

@@ -315,4 +315,43 @@ describe("NewAlertPage", () => {
       ],
     });
   });
+
+  it("seeds sender details from CAP settings but never any hazard content", () => {
+    render(
+      <NewAlertEditor
+        catalogs={catalogs}
+        settings={{
+          id: "s-1",
+          sender: "cap@gms.gd",
+          sender_name: "Grenada Met Service (settings)",
+          contact: "ops@gms.gd; 1-473-000-0000",
+          web: "https://gms.gd/alerts",
+          feed_limit: 50,
+          signing_enabled: false,
+          created_at: "2026-10-01T00:00:00Z",
+          updated_at: "2026-10-01T00:00:00Z",
+        }}
+      />
+    );
+    expect(
+      screen.getByPlaceholderText("e.g. Grenada Meteorological Service")
+    ).toHaveValue("Grenada Met Service (settings)");
+    expect(screen.getByPlaceholderText("Email and telephone")).toHaveValue(
+      "ops@gms.gd; 1-473-000-0000"
+    );
+    expect(screen.getByPlaceholderText("https://…")).toHaveValue(
+      "https://gms.gd/alerts"
+    );
+    expect(screen.getAllByText("From CAP settings")).toHaveLength(3);
+    for (const placeholder of [
+      "e.g. Tropical Storm Warning for Grenada",
+      "e.g. Tropical Storm",
+      "Describe the hazard and expected impact…",
+    ]) {
+      expect(screen.getByPlaceholderText(placeholder)).toHaveValue("");
+    }
+    // Editing a seeded value drops its source hint.
+    fill("e.g. Grenada Meteorological Service", "Another agency");
+    expect(screen.getAllByText("From CAP settings")).toHaveLength(2);
+  });
 });

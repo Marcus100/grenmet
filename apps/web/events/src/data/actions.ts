@@ -2,8 +2,11 @@
 
 import {
   eventsAcceptConnection,
+  eventsAdmitTicket,
   eventsBlockMember,
   eventsCancelListingRsvp,
+  eventsCancelMyTicket,
+  eventsClaimTickets,
   eventsCreateManagedListing,
   eventsCreateReport,
   eventsCreateSuggestion,
@@ -13,25 +16,32 @@ import {
   eventsOpenThread,
   eventsRemoveConnection,
   eventsRequestConnection,
+  eventsRequestOrganiser,
   eventsRsvpListing,
   eventsSaveListing,
   eventsSendMessage,
+  eventsSetOrganiserLogo,
   eventsUnblockMember,
   eventsUnfollowOrganiser,
   eventsUnsaveListing,
   eventsUpdateManagedListing,
   eventsUpdateMyProfile,
   type ListingUpsert,
+  type OrganiserCreate,
   type ProfileUpdate,
   type ReportCreate,
   ResponseError,
   type SuggestionCreate,
+  storageCompleteUpload,
+  storageCreateUpload,
 } from "@barrelsgd/api-client";
 import { revalidatePath } from "next/cache";
 import { apiOptions } from "@/lib/api";
 import { reportError } from "@/lib/report-error";
 import { getSession } from "@/lib/session";
 import { type ActionResult, SIGN_IN_REQUIRED } from "./action-result";
+import { toDoorAdmission } from "./api-mappers";
+import { chosenOrganiser, rememberOrganiser } from "./organiser-choice";
 
 /**
  * Every Events write goes through here: the member's token is read from the
@@ -41,6 +51,9 @@ import { type ActionResult, SIGN_IN_REQUIRED } from "./action-result";
  */
 
 type Options = ReturnType<typeof apiOptions>;
+
+/** The API's message when object storage is not set up; shown as is. */
+const UPLOADS_UNAVAILABLE = "Uploads are not configured";
 
 function detailOf(error: ResponseError): string | null {
   const data: unknown = error.data;
@@ -70,8 +83,8 @@ async function run<T>(
     }
     if (
       error instanceof ResponseError &&
-      error.status >= 400 &&
-      error.status < 500
+      ((error.status >= 400 && error.status < 500) ||
+        (error.status === 503 && detailOf(error) === UPLOADS_UNAVAILABLE))
     ) {
       return {
         ok: false,
@@ -87,6 +100,35 @@ export async function setGoing(slug: string, going: boolean) {
   return await run("events-rsvp", async (options) => {
     const request = going ? eventsRsvpListing : eventsCancelListingRsvp;
     await request({ ...options, path: { slug } });
+  });
+}
+
+/** Claims free or registration tickets; resolves to the number issued. */
+export async function claimTickets(
+  slug: string,
+  items: readonly { readonly quantity: number; readonly tierId: string }[]
+) {
+  return await run("events-tickets", async (options) => {
+    const order = await eventsClaimTickets({
+      ...options,
+      path: { slug },
+      body: {
+        items: items.map((item) => ({
+          tier_id: item.tierId,
+          quantity: item.quantity,
+        })),
+      },
+    }).unwrap();
+    return order.tickets.length;
+  });
+}
+
+export async function cancelTicket(ticketId: string) {
+  return await run("events-ticket-cancel", async (options) => {
+    await eventsCancelMyTicket({
+      ...options,
+      path: { ticket_id: ticketId },
+    });
   });
 }
 
@@ -193,17 +235,121 @@ export async function updateProfile(update: ProfileUpdate) {
 
 /** Creates (no id) or updates an organiser listing; resolves to its id. */
 export async function saveListing(id: string | null, listing: ListingUpsert) {
+  const organiser = await chosenOrganiser();
+  const query = organiser ? { organiser } : {};
   return await run("events-listing", async (options) => {
     const saved = id
       ? await eventsUpdateManagedListing({
           ...options,
           path: { listing_id: id },
+          query,
           body: listing,
         }).unwrap()
       : await eventsCreateManagedListing({
           ...options,
+          query,
           body: listing,
         }).unwrap();
     return saved.id;
+  });
+}
+
+/** Remembers which organiser the /dash console acts for. */
+export async function switchOrganiser(slug: string) {
+  await rememberOrganiser(slug);
+  revalidatePath("/dash", "layout");
+}
+
+/** Creates an organiser account for the member (unverified until reviewed). */
+export async function requestOrganiser(organiser: OrganiserCreate) {
+  return await run("events-organiser-request", async (options) => {
+    const created = await eventsRequestOrganiser({
+      ...options,
+      body: organiser,
+    }).unwrap();
+    await rememberOrganiser(created.slug);
+    return created.slug;
+  });
+}
+
+/**
+ * Admits a ticket at the door from a scanned QR token or a typed code. The
+ * idempotency key lets a retried scan replay its own success.
+ */
+export async function admitTicket(
+  listingId: string,
+  code: string,
+  idempotencyKey: string
+) {
+  const organiser = await chosenOrganiser();
+  return await run("events-admission", async (options) =>
+    toDoorAdmission(
+      await eventsAdmitTicket({
+        ...options,
+        path: { listing_id: listingId },
+        query: organiser ? { organiser } : {},
+        body: { code, idempotency_key: idempotencyKey },
+      }).unwrap()
+    )
+  );
+}
+
+const ORGANISATION_HEADER = "X-Barrels-Organisation";
+
+export type UploadPurpose = "listing-image" | "organiser-logo";
+
+/** A presigned PUT the browser sends the file to directly. */
+export interface UploadTarget {
+  readonly headers: Record<string, string>;
+  readonly id: string;
+  readonly url: string;
+}
+
+/** Step 1 of an image upload: the API checks type and size and presigns a PUT. */
+export async function startUpload(
+  organisationId: string,
+  upload: { contentType: string; purpose: UploadPurpose; sizeBytes: number }
+) {
+  return await run("events-upload", async (options) => {
+    const ticket = await storageCreateUpload({
+      ...options,
+      headers: { [ORGANISATION_HEADER]: organisationId },
+      body: {
+        app: "events",
+        purpose: upload.purpose,
+        content_type: upload.contentType,
+        size_bytes: upload.sizeBytes,
+      },
+    }).unwrap();
+    return {
+      id: ticket.id,
+      url: ticket.url,
+      headers: ticket.headers,
+    } satisfies UploadTarget;
+  });
+}
+
+/** Step 3: the API confirms the object arrived; resolves to the stored file id. */
+export async function finishUpload(organisationId: string, uploadId: string) {
+  return await run("events-upload", async (options) => {
+    const stored = await storageCompleteUpload({
+      ...options,
+      headers: { [ORGANISATION_HEADER]: organisationId },
+      path: { upload_id: uploadId },
+    }).unwrap();
+    return stored.id;
+  });
+}
+
+/** Sets (or, with null, clears) the organiser's logo from a completed upload. */
+export async function saveOrganiserLogo(fileId: string | null) {
+  const organiser = await chosenOrganiser();
+  const query = organiser ? { organiser } : {};
+  return await run("events-organiser-logo", async (options) => {
+    await eventsSetOrganiserLogo({
+      ...options,
+      query,
+      body: { file_id: fileId },
+    });
   });
 }

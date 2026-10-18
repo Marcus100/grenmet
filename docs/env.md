@@ -2,7 +2,7 @@
 
 **Status:** Active reference  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-15
+**Last updated:** 2026-10-18
 
 This document is the human-readable reference for supported environment variables
 in the Grenmet monorepo: what each variable does, where it is supplied, and which
@@ -114,13 +114,14 @@ the API image and the local source mount contain the same migration assets.
 | `DOMAIN` | Root domain for routing |
 | `FRONTEND_HOST` | Client origin used in CORS and emails |
 | `API_V1_STR` | API version prefix (default: `/api/v1`) |
-| `BACKEND_CORS_ORIGINS` | Comma-separated or JSON array of allowed origins |
+| `BACKEND_CORS_ORIGINS` | Comma-separated or JSON array of allowed origins. The static Barrels site calls the API from the browser (contact and newsletter forms), so production must list `https://barrels.gd` and `https://www.barrels.gd`. Staging has no documented Barrels site origin yet; add one when it exists |
 | `SECRET_KEY` | JWT signing secret — generate with `openssl rand -base64 32` |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | Legacy bearer-token lifetime in minutes (default: `60`) |
 | `SESSION_ACCESS_TOKEN_EXPIRE_MINUTES` | Cookie-session access-token lifetime (default: `15`) |
 | `SESSION_EXPIRE_DAYS` | Rotating session lifetime (default: `30`) |
 | `BROWSER_SESSION_COOKIE_NAME` | GAA Admin's session cookie, read by the cookie-authenticated routes (default `admin_session`); must match gaa-admin's `ADMIN_SESSION_COOKIE_NAME` |
 | `GAA_ADMIN_APP_URL` / `CMS_APP_URL` | Public URLs of the staff apps for single sign-on callbacks (ADR-0017). Defaults `http://localhost:3001` / `http://localhost:3006` |
+| `BARRELS_ADMIN_APP_URL` / `BARRELS_ADMIN_SSO_CLIENT_SECRET` | Barrels control plane (`apps/web/admin`, registry key `barrels-admin`, superusers only). Default URL `http://localhost:3012`. Empty secret (the default) leaves the app out of single sign-on; not wired into the deploy compose or GitHub secrets yet |
 | `GAA_ADMIN_SSO_CLIENT_SECRET` / `CMS_SSO_CLIENT_SECRET` | Secrets the staff apps present to redeem single sign-on codes; at least 32 characters (`openssl rand -base64 32`). Required GitHub environment secrets in staging and production, set to the same value in the matching web app. Empty locally switches single sign-on off for that app |
 | `LOGIN_MAX_FAILED_ATTEMPTS` | Failed attempts allowed before lockout (default: `10`) |
 | `LOGIN_LOCKOUT_SECONDS` | Account lockout duration (default: `900`) |
@@ -149,12 +150,27 @@ the API image and the local source mount contain the same migration assets.
 | `RESEND_WEBHOOK_SECRET` | Optional Svix signing secret for Resend webhook verification |
 | `NOTIFICATIONS_EMAIL_ALLOWED_DOMAINS` | Comma-separated domains notification email may go to. Deployment reads the GitHub environment variable of this name; missing/blank staging values default to `barrels.gd`, while missing/blank production values allow all domains. Explicit values must be domain names (no wildcards, URLs or email addresses). Local development must configure its own restriction. |
 | `NOTIFICATIONS_WEB_BASE_URL` | Staff portal base URL used for links in notification emails (local default `http://localhost:3001`). Deployment sets `https://admin.${BASE_DOMAIN}` for both API and worker. |
-| `NOTIFICATIONS_BATCH_SIZE`, `NOTIFICATIONS_MAX_ATTEMPTS` | Worker email outbox batch size (50) and retry limit (5) |
+| `NOTIFICATIONS_BATCH_SIZE`, `NOTIFICATIONS_MAX_ATTEMPTS` | Worker email outbox batch size (50) and retry limit (5); also used for the public-flow outbox (subscriptions, contact) |
+| `MBIA_CONTACT_RECIPIENT` | Inbox that receives MBIA website contact messages (`site: "mbia"`). Unset: messages are stored and logged only, nothing is emailed. Sent through the worker outbox as transactional mail |
+| `BARRELS_CONTACT_RECIPIENT` | Inbox that receives Barrels Grenada website contact messages (`site: "barrels"`). Same behaviour as `MBIA_CONTACT_RECIPIENT`; each site has its own inbox and a message is never sent to another site's inbox |
+| `GMS_DATA_REQUEST_RECIPIENT` | Inbox that receives GMS climate data requests (`POST /api/v1/contact/data-requests`). Unset: requests are stored and logged only; the requester's confirmation email is still queued. Transactional mail through the worker outbox |
+| `FLIGHTS_OPENSKY_ENABLED` | Feature flag, default `false`. When `true` the worker polls OpenSky every 30 minutes and `GET /api/v1/flights/board` serves the Redis-cached rows. Research use only: commercial use needs a written OpenSky licence (owner decision pending). Needs `REDIS_URL` |
+| `OPENSKY_CLIENT_ID`, `OPENSKY_CLIENT_SECRET` | Optional OpenSky OAuth2 client credentials (free account). Unset: anonymous access with a very small daily quota. Set in the environment secret store, never in a committed file |
+| `OPENSKY_API_URL`, `OPENSKY_TOKEN_URL`, `OPENSKY_TIMEOUT_SECONDS` | Override OpenSky endpoints and the request timeout (defaults: public API, public token URL, 20 s) |
+| `FLIGHTS_WINDOW_HOURS`, `FLIGHTS_CACHE_TTL_SECONDS` | History window requested from OpenSky (48, its maximum) and Redis cache lifetime (21600) |
+| `SUBSCRIPTIONS_SITE_URLS` | JSON object of mailing-list key to public site origin, e.g. `{"signal":"https://signal.barrels.gd","barrels":"https://barrels.gd"}` (local default `{"signal":"http://localhost:3004","barrels":"http://localhost:4173"}`; the Barrels entry is the static site's local preview origin). Confirm and unsubscribe links redirect only to these origins |
+| `SUBSCRIPTIONS_API_BASE_URL` | Public API origin used in confirmation-email links (falls back to `API_BASE_URL`, then `http://localhost:8000`) |
+| `SUBSCRIPTIONS_CONFIRM_TTL_DAYS`, `SUBSCRIPTIONS_RESEND_MINUTES` | Confirmation link lifetime (7) and the window in which a pending address is not mailed again (10) |
 | `BILLING_STRIPE_SECRET_KEY` | Stripe secret API key; use an `sk_test_...` key locally |
 | `BILLING_STRIPE_WEBHOOK_SECRET` | Stripe endpoint signing secret; locally use the `whsec_...` value printed by `stripe listen` |
 | `BILLING_STRIPE_PRICE_ID` | Recurring Stripe Price used by subscription Checkout Sessions |
 | `BILLING_CHECKOUT_SUCCESS_URL` | Stripe-hosted Checkout success redirect; may contain the literal `{CHECKOUT_SESSION_ID}` placeholder |
 | `BILLING_CHECKOUT_CANCEL_URL` | Stripe-hosted Checkout cancellation redirect |
+| `BILLING_INVOICE_LEGAL_ENTITY_NAME` | **Provisional.** Name printed on invoices and snapshotted onto each invoice when it is issued (default `Barrels Grenada`) |
+| `BILLING_INVOICE_DEFAULT_TAX_RATE` | **Provisional.** VAT percent applied to lines that do not set their own rate (default `15`) |
+| `BILLING_INVOICE_NUMBER_PREFIX`, `BILLING_INVOICE_NUMBER_PADDING` | **Provisional.** Invoice number is `<prefix>-YYYY-NNNN` (defaults `BG`, 4); the sequence is gapless and restarts each calendar year |
+| `BILLING_INVOICE_CURRENCY`, `BILLING_INVOICE_PAYMENT_TERMS_DAYS` | Invoice currency (`XCD`, minor units) and net terms in days (30); owner decision 2026-10-18 |
+| `BILLING_INVOICE_REMINDER_GRACE_DAYS` | Days after a reminder's trigger date (7 before due, due date, 7 after) in which a missed worker run may still send it (default 2). Reminders are sent by the 07:00 Grenada worker job, once per invoice and stage |
 | `STORAGE_ENDPOINT_URL` | Optional S3-compatible endpoint; storage is disabled when required storage values are absent |
 | `STORAGE_REGION` | S3 region label (default: `us-east-1`) |
 | `STORAGE_BUCKET` | S3 bucket or DigitalOcean Space name |
@@ -275,12 +291,26 @@ gaa-admin hosts the consolidated CAP/HR/wxwatch/wxproducts/eRegister/janitorial/
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Optional browser error reporting |
 | `NEXT_PUBLIC_POSTHOG_KEY` / `NEXT_PUBLIC_POSTHOG_HOST` | Optional browser analytics |
 
-### signal (`apps/web/signal/.env.local`)
+### admin (`apps/web/admin/.env.local`)
 
-Signal has no auth or database. All variables are optional client-side publics with sensible defaults.
+The Barrels control plane. It holds no database credentials and calls FastAPI only.
 
 | Variable | Purpose |
 |---|---|
+| `AUTH_APP_URL` | URL of the auth app (default `http://localhost:3000`) |
+| `AUTH_API_URL` | FastAPI base URL (default `http://localhost:8000`); also the target of the status probes |
+| `AUTH_API_V1_STR` | API version prefix (default `/api/v1`) |
+| `BARRELS_ADMIN_SESSION_COOKIE_NAME` | Host-only session cookie (default `barrels_admin_session`) |
+| `BARRELS_ADMIN_SSO_CLIENT_SECRET` | Same value as the API's; without it `/auth/callback` returns 503 and nobody can sign in |
+| `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` / `NEXT_PUBLIC_RELEASE` | Optional error reporting; the release label shows on the Overview. No analytics |
+
+### signal (`apps/web/signal/.env.local`)
+
+Signal has no database; newsletter sign-up is proxied to FastAPI (`/api/v1/subscriptions`). All variables are optional with sensible defaults.
+
+| Variable | Purpose |
+|---|---|
+| `AUTH_API_URL` | FastAPI origin the subscribe route proxies to (default `http://localhost:8000`) |
 | `NEXT_PUBLIC_SITE_URL` | Public site URL (default `http://localhost:3004`) |
 | `NEXT_PUBLIC_SENTRY_DSN` | Sentry DSN (optional) |
 | `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Sentry environment label (default: `development`) |
@@ -292,6 +322,7 @@ Its typed defaults allow it to run without an env file.
 
 | Variable | Purpose |
 |---|---|
+| `AUTH_API_URL` | FastAPI origin the contact route proxies to (default `http://localhost:8000`). The recipient inbox is FastAPI's `MBIA_CONTACT_RECIPIENT` |
 | `NEXT_PUBLIC_SITE_URL` | Public site URL (default: `http://localhost:3005`) |
 | `NEXT_PUBLIC_SENTRY_DSN` | Optional browser Sentry DSN |
 | `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Sentry environment label (default: `development`) |
@@ -619,6 +650,23 @@ Configure `WXWATCH_DATABASE_URL` in the FastAPI environment with access to the s
 
 `EREGISTER_DATABASE_URL` is the PostgreSQL URL for the dedicated manual observation register. `EREGISTER_DB_NAME` is the expected database name used by its Alembic guard (default `eregister`). Provision `EREGISTER_DB_USER`, `EREGISTER_DB_PASSWORD` and `EREGISTER_DB_NAME` alongside the other domain databases. The register stores manual SYNOP, METAR and SPECI entries, revisions, QC decisions and WIS2box publication state; it does not replace SURFACE's automated observation store.
 
+### eRegister send actions
+
+`EREGISTER_OBS_RECIPIENTS` is a comma-separated list of addresses that receive "Email observation" (one outbox email each, sent by the worker). Unset: the action answers 409 "No recipients configured". `EREGISTER_SEND_REQUIRE_ACCEPTED` (default `false`) requires QC state `accepted` for email too; by default email goes out for any validated, non-rejected observation (internal use, marked provisional). WIS2 publication always requires `accepted`, whatever this says.
+
+"Send last obs" writes a csv2bufr CSV for wis2box and needs one drop target, read by the API (to validate) and the worker (to transfer):
+
+| Variable | Meaning |
+| --- | --- |
+| `WIS2BOX_INCOMING_DIR` | Local directory that is (or mounts) the wis2box incoming data; takes precedence over S3 |
+| `WIS2BOX_S3_ENDPOINT_URL`, `WIS2BOX_S3_ACCESS_KEY_ID`, `WIS2BOX_S3_SECRET_ACCESS_KEY` | wis2box MinIO endpoint and credentials; the bucket defaults to `WIS2BOX_S3_BUCKET=wis2box-incoming` |
+| `WIS2BOX_TOPIC_HIERARCHY` | Object key prefix; must equal the wis2box dataset topic (default `origin/a/wis2/gd-metservice/data/core/weather/surface-based-observations/synop`) |
+| `WIS2BOX_WIGOS_ID` | Station WIGOS identifier (default `0-20000-0-78958`); only this station can be published |
+| `WIS2BOX_STATION_LATITUDE`, `_LONGITUDE`, `_STATION_HEIGHT_M`, `_BAROMETER_HEIGHT_M`, `_THERMOMETER_HEIGHT_M`, `_ANEMOMETER_HEIGHT_M` | Station metadata for the CSV (MBIA defaults) |
+| `WIS2BOX_MAX_ATTEMPTS` | Transfer attempts before the send is marked failed (default 5, backoff 1 min doubling to 1 h) |
+
+With none of the drop variables set, publish answers 409 "WIS2 publication is not configured". Grant the `eregister.send` permission (role `eregister-sender`) to people allowed to send, and `eregister.qc` (role `eregister-qc`, which also carries `eregister.send`) to the duty or senior forecasters who accept observations.
+
 ### Privileged MFA rollout
 
 FastAPI auth settings default to disabled enforcement; enable it only after the
@@ -636,3 +684,15 @@ with missing or malformed keys is rejected before deployment. Provision keys,
 convert existing secrets and verify privileged enrolment/recovery readiness while
 still disabled before enabling the gate; follow the MFA operator guide. This code
 change does not provision secrets or enable enforcement in production.
+
+## Deploy wiring for the 2026-10-18 integrations
+
+`deploy.yml` passes these to the API and worker containers. Unset values fall
+back to each setting's default.
+
+| Setting | Where to set it |
+| --- | --- |
+| `MBIA_CONTACT_RECIPIENT`, `BARRELS_CONTACT_RECIPIENT`, `GMS_DATA_REQUEST_RECIPIENT`, `EREGISTER_OBS_RECIPIENTS` | GitHub environment **variables** (staging and production) |
+| `EREGISTER_SEND_REQUIRE_ACCEPTED`, `WIS2BOX_S3_ENDPOINT_URL`, `WIS2BOX_S3_BUCKET`, `WIS2BOX_TOPIC_HIERARCHY`, `FLIGHTS_OPENSKY_ENABLED` | GitHub environment **variables** |
+| `WIS2BOX_S3_ACCESS_KEY_ID`, `WIS2BOX_S3_SECRET_ACCESS_KEY`, `OPENSKY_CLIENT_ID`, `OPENSKY_CLIENT_SECRET` | GitHub environment **secrets** |
+| `SUBSCRIPTIONS_SITE_URLS` | Committed in `infra/docker/staging.env` and `production.env` (non-secret) |

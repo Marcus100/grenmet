@@ -13,6 +13,8 @@ export interface TierDraft {
   readonly allocation: number;
   readonly id: string;
   readonly name: string;
+  /** Most valid tickets one account may hold for the tier. */
+  readonly perAccountLimit: number;
   /** Decimal dollars as typed; rounded to integer minor units at the edge. */
   readonly priceMajor: number;
 }
@@ -27,6 +29,8 @@ export interface EventDraft {
   readonly endTime: string;
   /** Carried through edits so saving never drops them. */
   readonly groupSlug: string | null;
+  /** Stored cover image; carried through edits so saving never drops it. */
+  readonly imageFileId?: string | null;
   readonly parish: Parish;
   readonly recurrence: string | null;
   readonly startTime: string;
@@ -39,6 +43,9 @@ export interface EventDraft {
 }
 
 const GRENADA_OFFSET = "-04:00";
+
+/** Saved tiers keep their API id so editing never drops issued tickets. */
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function timeOf(instant: string): string {
   return new Intl.DateTimeFormat("en-GB", {
@@ -68,11 +75,13 @@ export function draftFromEvent(
     recurrence: event.recurrence,
     tags: event.tags,
     groupSlug: event.group?.slug ?? null,
+    imageFileId: event.imageFileId ?? null,
     tiers: event.tiers.map((tier) => ({
       id: tier.id,
       name: tier.name,
       priceMajor: tier.price.amountMinor / 100,
       allocation: tier.allocation,
+      perAccountLimit: tier.perAccountLimit,
     })),
   };
 }
@@ -94,6 +103,7 @@ export function emptyDraft(now: Date): EventDraft {
     recurrence: null,
     tags: [],
     groupSlug: null,
+    imageFileId: null,
     tiers: [],
   };
 }
@@ -130,13 +140,16 @@ export function draftToUpsert(
     visibility: draft.visibility,
     status,
     group_slug: draft.groupSlug,
+    image_file_id: draft.imageFileId ?? null,
     tiers:
       draft.admission === "ticketed"
         ? draft.tiers.map((tier) => ({
+            ...(UUID.test(tier.id) ? { id: tier.id } : {}),
             name: tier.name.trim(),
             price_minor: Math.round(tier.priceMajor * 100),
             currency: "XCD" as const,
             allocation: tier.allocation,
+            per_account_limit: tier.perAccountLimit,
           }))
         : [],
   };
@@ -153,9 +166,7 @@ export function canSaveDraft(draft: EventDraft): boolean {
 
 /** What the public card will show, so the preview cannot drift from the site. */
 export function draftToCard(draft: EventDraft): EventCardData {
-  const prices = draft.tiers
-    .map((tier) => tier.priceMajor)
-    .filter((price) => price > 0);
+  const prices = draft.tiers.map((tier) => tier.priceMajor);
   const lowest = prices.length > 0 ? Math.min(...prices) : null;
 
   return {
@@ -193,8 +204,8 @@ export function draftIssues(draft: EventDraft): string[] {
     if (draft.tiers.length === 0) {
       issues.push("Add at least one ticket tier.");
     }
-    if (draft.tiers.some((tier) => tier.priceMajor <= 0 || !tier.name.trim())) {
-      issues.push("Every ticket tier needs a name and a price.");
+    if (draft.tiers.some((tier) => !tier.name.trim())) {
+      issues.push("Every ticket tier needs a name.");
     }
     const allocated = draft.tiers.reduce(
       (total, tier) => total + tier.allocation,

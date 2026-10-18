@@ -19,13 +19,19 @@ import hmac
 import json
 import logging
 import time
+from email.utils import parseaddr
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import JSONResponse
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.config import settings
+from src.dependencies import SessionDep
 from src.email_config import email_settings
+from src.notifications import service as notification_service
+from src.notifications.models import SuppressionReason
+from src.subscriptions import service as subscription_service
 
 logger = logging.getLogger(__name__)
 
@@ -82,6 +88,42 @@ def _verify_svix_signature(
     return any(hmac.compare_digest(computed, sig) for sig in provided_sigs)
 
 
+def _recipients(to_address: str | list[str]) -> list[str]:
+    if isinstance(to_address, str):
+        return [to_address] if to_address else []
+    if isinstance(to_address, list):
+        return [item for item in to_address if isinstance(item, str) and item]
+    return []
+
+
+async def _suppress(
+    session: AsyncSession,
+    recipients: list[str],
+    reason: SuppressionReason,
+    source_event_id: str | None,
+    *,
+    unsubscribe: bool = False,
+) -> None:
+    """Suppress non-transactional email to each recipient; safe to replay."""
+    for address in recipients:
+        # Resend may send "Name <user@host>"; keep just the address.
+        _, parsed = parseaddr(address)
+        email = parsed or address
+        added = await notification_service.suppress_email(
+            session=session,
+            email=email,
+            reason=reason,
+            source_event_id=source_event_id,
+        )
+        if unsubscribe:
+            await subscription_service.unsubscribe_address(session=session, email=email)
+        logger.info(
+            "Email suppression recorded",
+            extra={"reason": reason.value, "newly_added": added},
+        )
+    await session.commit()
+
+
 @router.post(
     "/resend",
     status_code=status.HTTP_200_OK,
@@ -89,7 +131,7 @@ def _verify_svix_signature(
     description="Receives and verifies Resend delivery events via the Svix protocol.",
     include_in_schema=False,
 )
-async def resend_webhook(request: Request) -> JSONResponse:
+async def resend_webhook(request: Request, session: SessionDep) -> JSONResponse:
     """Handle inbound Resend webhook events."""
     raw_body = await request.body()
 
@@ -157,6 +199,9 @@ async def resend_webhook(request: Request) -> JSONResponse:
         )
     email_id: str = data.get("email_id", "")
     to_address: str | list[str] = data.get("to", "")
+    recipients = _recipients(to_address)
+    # Svix re-sends the same id on retries; fall back to the email id locally.
+    source_event_id = request.headers.get("svix-id") or email_id or None
 
     logger.info(
         "Resend webhook received: type=%s email_id=%s to=%s",
@@ -174,7 +219,12 @@ async def resend_webhook(request: Request) -> JSONResponse:
                 to_address,
                 data.get("bounce", {}).get("type"),
             )
-            # TODO: add to suppression list / flag user
+            # Only permanent (hard) bounces suppress; transient and undetermined
+            # bounces may recover and Resend retries them itself.
+            if str(data.get("bounce", {}).get("type", "")).lower() == "permanent":
+                await _suppress(
+                    session, recipients, SuppressionReason.HARD_BOUNCE, source_event_id
+                )
 
         case "email.complained":
             logger.warning(
@@ -182,7 +232,13 @@ async def resend_webhook(request: Request) -> JSONResponse:
                 email_id,
                 to_address,
             )
-            # TODO: unsubscribe user from non-transactional emails
+            await _suppress(
+                session,
+                recipients,
+                SuppressionReason.COMPLAINT,
+                source_event_id,
+                unsubscribe=True,
+            )
 
         case "email.delivery_delayed":
             logger.warning("Email delivery delayed: email_id=%s", email_id)

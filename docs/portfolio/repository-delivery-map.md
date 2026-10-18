@@ -3,7 +3,7 @@
 **Status:** Authoritative repository coverage map  
 **Effective:** 2026-08-16  
 **Owner:** Barrels Grenada engineering  
-**Last updated:** 2026-10-10
+**Last updated:** 2026-10-18
 
 ## Purpose
 
@@ -28,6 +28,7 @@ acceptance.
 | Repository surface | Primary classification and owner | Lifecycle | Planning destination |
 | --- | --- | --- | --- |
 | `apps/web/auth` | Barrels platform identity | Active | Product-aware shared sign-in with application-scoped access |
+| `apps/web/admin` | Barrels control plane (superuser-only; status, organisations; no GMS or GAA modules) | Built (C1), not deployed | `admin.barrels.gd` after the GAA portal moves to `gmsadmin.barrels.gd`; never merges with the client portal |
 | `apps/web/barrels` | Barrels Grenada company holding page | Active | Independent static Vercel site at barrels.gd |
 | `apps/web/gaa-admin` | GAA staff portal with GMS and GAA modules | Active; renamed at transition boundary 7 | `apps/web/gaa-admin`; GMS pilot followed by GAA department rollout |
 | `apps/web/gms` | GMS public weather service | Active foundation; renamed at transition boundary 6 | `apps/web/gms`; forecasts, observations, warnings, and public products |
@@ -73,7 +74,8 @@ transition:
 | Billing | Barrels platform/product capability | Approved transactional products | Keep isolated until an approved product consumes it |
 | Storage | Barrels platform | Multiple domains | Preserve domain ownership, access controls, retention, and audit |
 | Worker and webhooks | Barrels platform runtime | Async product/client operations | Add consumers only with retry, idempotency, monitoring, and ownership |
-| Organizations, AI, Knowledge (planned, not present) | Barrels Core platform | Future Barrels products and approved client needs | Direction only per [ADR-0014](../adr/0014-barrels-platform-core-direction.md); each domain needs its own approval, migration, and contract update |
+| Organisations (`org` schema) | Barrels platform | All Barrels products; Events organisers, control plane and invoicing next | Built per [ADR-0022](../adr/0022-platform-organisations-and-memberships.md): organisations, memberships, app entitlements, HR dual-write and `OrgContext`; invites, Events bridge and control plane follow the [foundations plan](../exec-plans/barrels-foundations-plan.md) |
+| AI, Knowledge (planned, not present) | Barrels Core platform | Future Barrels products and approved client needs | Direction only per [ADR-0014](../adr/0014-barrels-platform-core-direction.md); each domain needs its own approval, migration, and contract update |
 
 WxWatch, WxProducts, eRegister, Janitorial, and Transport data remain in
 separate domain databases, but FastAPI now owns their schemas, migrations,
@@ -116,6 +118,7 @@ GMS or GAA.
 | `.github/security` | Barrels engineering security policy | Active | Versioned, reviewed vulnerability exceptions with bounded expiry |
 | `.github/actions` | Reusable Barrels CI actions | Active | Centralize supported setup behavior without hiding workflow permissions |
 | `.github/dependabot.yml` and `.github/labeler.yml` | Repository maintenance automation | Active | Dependency and change classification only; no product authority |
+| `.github/ISSUE_TEMPLATE` | Barrels engineering issue intake | Active | Agent-task template: deliverable, constraints, non-goals and acceptance check |
 | `docs/operations` | Mixed Barrels engineering and GMS operational controls | Active | Each runbook identifies its operational owner and environment |
 | `docs/products` | Product specifications and implementation plans, classified by their named owner | Planned/reference | Keep product scope and acceptance criteria aligned with the portfolio and client programme plans |
 | `docs/api` and `docs/web` | Barrels engineering references | Active | Describe current interfaces and delivery practice, not programme priority |
@@ -201,7 +204,7 @@ documented data boundaries.
 | GAA corporate site | GAA public-service delivery | Later | GAA content owner, domain, scope, and acceptance |
 | Barrels Shop | Barrels product option | Explore | Separate product discovery and investment approval |
 | Salesbus | Barrels product option/prototype extraction | Explore | Remove from client portal, then validate users and commercial case |
-| Reusable workforce product | Barrels productization option | Explore | GAA pilot evidence plus rights, demand, tenant, support, and pricing decisions |
+| Barrels Human Resource | Barrels product (investment approved 2026-10-18) | Next | Stays inside `apps/web/gaa-admin` for now; eventual own app at `hr.barrels.gd`. Organisation-scoped HR built from shared workforce code; launch needs GAA pilot evidence, signed licence, tenant isolation, support and pricing |
 | Streaming/media application | Barrels product option | Explore | Audience, rights, economics, operating model, and architecture approval |
 
 Reserved ports, package names, hosts, or images prevent naming collisions; they

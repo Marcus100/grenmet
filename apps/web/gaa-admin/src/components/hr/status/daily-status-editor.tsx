@@ -10,6 +10,7 @@ import {
   useHrGetHrProfileMe,
   useHrGetStatusReport,
   useHrGetStatusStaffing,
+  useHrListAssignments,
   useHrSubmitStatusReport,
   useHrUpdateStatusReport,
 } from "@barrelsgd/api-client";
@@ -36,7 +37,9 @@ import { DatePicker } from "@/components/document/date-picker";
 import { hrApiErrorMessage } from "@/components/hr/api-error";
 import { CoApproverPicker } from "@/components/hr/co-approver-picker";
 import { FormActionBar } from "@/components/hr/form-action-bar";
+import { HrFormDesk } from "@/components/hr/hr-form-desk";
 import { downloadHrPdf, HrPdfPreview } from "@/components/hr/hr-pdf-preview";
+import { PrefillInput, SourceHint } from "@/components/hr/prefill-field";
 import {
   signedDocumentsKey,
   useSigning,
@@ -335,240 +338,140 @@ export function DailyStatusEditor() {
   return (
     <form.Subscribe selector={(s) => s.values}>
       {(values) => (
-        <div className="grid @4xl:grid-cols-2 items-start gap-5">
-          <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
-            <div className="flex flex-col gap-3">
-              <SigningPanel submission={submission} />
-              <FormActionBar
-                isSaving={pendingAction === "save"}
-                isSubmitting={pendingAction === "submit"}
-                onDownloadPdf={handleDownloadPdf}
-                onReset={handleReset}
-                onSave={submission ? undefined : () => persist(values, true)}
-                onSubmit={submission ? undefined : () => persist(values, false)}
-                statusHint={statusHint}
-                submitDisabled={!(departmentId && signature.data)}
-                submitLabel="Sign & submit"
-              />
-            </div>
+        <HrFormDesk
+          editor={
+            <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
+              <div className="flex flex-col gap-3">
+                <SigningPanel submission={submission} />
+                <FormActionBar
+                  isSaving={pendingAction === "save"}
+                  isSubmitting={pendingAction === "submit"}
+                  onDownloadPdf={handleDownloadPdf}
+                  onReset={handleReset}
+                  onSave={submission ? undefined : () => persist(values, true)}
+                  onSubmit={
+                    submission ? undefined : () => persist(values, false)
+                  }
+                  statusHint={statusHint}
+                  submitDisabled={!(departmentId && signature.data)}
+                  submitLabel="Sign & submit"
+                />
+              </div>
 
-            {validationError && (
-              <p className="text-destructive text-sm" role="alert">
-                {validationError}
-              </p>
-            )}
-            <Separator />
+              {validationError && (
+                <p className="text-destructive text-sm" role="alert">
+                  {validationError}
+                </p>
+              )}
+              <Separator />
 
-            {!submission && (
-              <form
-                className="flex flex-col gap-4"
-                inert={pendingAction !== null}
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  form.handleSubmit();
-                }}
-              >
-                <FieldGroup>
-                  <div className="grid gap-5 md:grid-cols-2">
-                    <form.Field name="department">
-                      {(field) => (
-                        <Field className="gap-1">
-                          <FieldLabel className="text-xs" htmlFor={field.name}>
-                            Department
-                          </FieldLabel>
-                          <Input
+              {!submission && (
+                <form
+                  className="flex flex-col gap-4"
+                  inert={pendingAction !== null}
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    form.handleSubmit();
+                  }}
+                >
+                  <FieldGroup>
+                    <div className="grid gap-5 md:grid-cols-2">
+                      <form.Field name="department">
+                        {(field) => (
+                          <PrefillInput
                             id={field.name}
-                            readOnly
+                            label="Department"
+                            locked
+                            onChange={field.handleChange}
                             value={field.state.value}
                           />
-                        </Field>
-                      )}
-                    </form.Field>
-                    <form.Field name="date">
-                      {(field) => (
-                        <Field className="gap-1">
-                          <FieldLabel className="text-xs" htmlFor={field.name}>
-                            Date
-                          </FieldLabel>
-                          <DatePicker
-                            id={field.name}
-                            onChange={(date) => {
-                              field.handleChange(date);
-                              form.setFieldValue("entries", []);
-                            }}
-                            value={field.state.value}
-                          />
-                        </Field>
-                      )}
-                    </form.Field>
-                    <form.Field name="shift">
-                      {(field) => (
-                        <Field className="gap-1">
-                          <FieldLabel className="text-xs" htmlFor={field.name}>
-                            Shift
-                          </FieldLabel>
-                          <NativeSelect
-                            id={field.name}
-                            onChange={(event) => {
-                              field.handleChange(event.target.value);
-                              form.setFieldValue("entries", []);
-                            }}
-                            value={field.state.value}
-                          >
-                            <NativeSelectOption value="">
-                              Confirm answer
-                            </NativeSelectOption>
-                            {SHIFT_OPTIONS.map((s) => (
-                              <NativeSelectOption key={s} value={s}>
-                                {s}
+                        )}
+                      </form.Field>
+                      <form.Field name="date">
+                        {(field) => (
+                          <Field className="gap-1">
+                            <FieldLabel
+                              className="text-xs"
+                              htmlFor={field.name}
+                            >
+                              Date
+                            </FieldLabel>
+                            <DatePicker
+                              id={field.name}
+                              onChange={(date) => {
+                                field.handleChange(date);
+                                form.setFieldValue("entries", []);
+                              }}
+                              value={field.state.value}
+                            />
+                          </Field>
+                        )}
+                      </form.Field>
+                      <form.Field name="shift">
+                        {(field) => (
+                          <Field className="gap-1">
+                            <FieldLabel
+                              className="text-xs"
+                              htmlFor={field.name}
+                            >
+                              Shift
+                            </FieldLabel>
+                            <NativeSelect
+                              id={field.name}
+                              onChange={(event) => {
+                                field.handleChange(event.target.value);
+                                form.setFieldValue("entries", []);
+                              }}
+                              value={field.state.value}
+                            >
+                              <NativeSelectOption value="">
+                                Confirm answer
                               </NativeSelectOption>
-                            ))}
-                          </NativeSelect>
-                        </Field>
-                      )}
-                    </form.Field>
-                    <form.Field name="absenteeism">
+                              {SHIFT_OPTIONS.map((s) => (
+                                <NativeSelectOption key={s} value={s}>
+                                  {s}
+                                </NativeSelectOption>
+                              ))}
+                            </NativeSelect>
+                            <StatusShiftPrefill
+                              date={values.date}
+                              onPrefill={(code) =>
+                                form.setFieldValue("shift", code)
+                              }
+                              skip={Boolean(draftParam)}
+                            />
+                          </Field>
+                        )}
+                      </form.Field>
+                      <form.Field name="absenteeism">
+                        {(field) => (
+                          <Field className="gap-1">
+                            <FieldLabel
+                              className="text-xs"
+                              htmlFor={field.name}
+                            >
+                              Absenteeism
+                            </FieldLabel>
+                            <Input
+                              id={field.name}
+                              onChange={(e) =>
+                                field.handleChange(e.target.value)
+                              }
+                              value={field.state.value}
+                            />
+                          </Field>
+                        )}
+                      </form.Field>
+                    </div>
+
+                    <form.Field name="allReported">
                       {(field) => (
                         <Field className="gap-1">
                           <FieldLabel className="text-xs" htmlFor={field.name}>
-                            Absenteeism
+                            All persons reported on time?
                           </FieldLabel>
-                          <Input
-                            id={field.name}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            value={field.state.value}
-                          />
-                        </Field>
-                      )}
-                    </form.Field>
-                  </div>
-
-                  <form.Field name="allReported">
-                    {(field) => (
-                      <Field className="gap-1">
-                        <FieldLabel className="text-xs" htmlFor={field.name}>
-                          All persons reported on time?
-                        </FieldLabel>
-                        <NativeSelect
-                          id={field.name}
-                          onChange={(event) =>
-                            field.handleChange(event.target.value)
-                          }
-                          value={field.state.value}
-                        >
-                          <NativeSelectOption value="">
-                            Confirm answer
-                          </NativeSelectOption>
-                          {YES_NO.map((v) => (
-                            <NativeSelectOption key={v} value={v}>
-                              {v}
-                            </NativeSelectOption>
-                          ))}
-                        </NativeSelect>
-                      </Field>
-                    )}
-                  </form.Field>
-
-                  {values.allReported === "No" ? (
-                    <form.Field name="notReportedExplain">
-                      {(field) => (
-                        <Field className="gap-1">
-                          <FieldLabel className="text-xs" htmlFor={field.name}>
-                            If No, explain
-                          </FieldLabel>
-                          <Input
-                            id={field.name}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            value={field.state.value}
-                          />
-                        </Field>
-                      )}
-                    </form.Field>
-                  ) : null}
-
-                  <form.Field name="affectedEfficiency">
-                    {(field) => (
-                      <Field className="gap-1">
-                        <FieldLabel className="text-xs" htmlFor={field.name}>
-                          Affected status / efficiency of operations?
-                        </FieldLabel>
-                        <NativeSelect
-                          id={field.name}
-                          onChange={(event) =>
-                            field.handleChange(event.target.value)
-                          }
-                          value={field.state.value}
-                        >
-                          <NativeSelectOption value="">
-                            Confirm answer
-                          </NativeSelectOption>
-                          {YES_NO.map((v) => (
-                            <NativeSelectOption key={v} value={v}>
-                              {v}
-                            </NativeSelectOption>
-                          ))}
-                        </NativeSelect>
-                      </Field>
-                    )}
-                  </form.Field>
-
-                  {values.affectedEfficiency === "Yes" ? (
-                    <form.Field name="affectedExplain">
-                      {(field) => (
-                        <Field className="gap-1">
-                          <FieldLabel className="text-xs" htmlFor={field.name}>
-                            If Yes, explain
-                          </FieldLabel>
-                          <Input
-                            id={field.name}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            value={field.state.value}
-                          />
-                        </Field>
-                      )}
-                    </form.Field>
-                  ) : null}
-
-                  <form.Field name="comments">
-                    {(field) => (
-                      <Field className="gap-1">
-                        <FieldLabel className="text-xs" htmlFor={field.name}>
-                          Operational status comments
-                        </FieldLabel>
-                        <Textarea
-                          id={field.name}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          rows={4}
-                          value={field.state.value}
-                        />
-                      </Field>
-                    )}
-                  </form.Field>
-
-                  <StatusStaffing
-                    date={values.date}
-                    departmentId={departmentId}
-                    entries={values.entries}
-                    onChange={(entries) =>
-                      form.setFieldValue("entries", entries)
-                    }
-                    shift={values.shift}
-                  />
-                  {(
-                    [
-                      ["equipmentOperational", "All equipment operational?"],
-                      [
-                        "incidentsSubmitted",
-                        "All incident / accident reports submitted?",
-                      ],
-                    ] as const
-                  ).map(([name, label]) => (
-                    <form.Field key={name} name={name}>
-                      {(field) => (
-                        <Field>
-                          <FieldLabel htmlFor={name}>{label}</FieldLabel>
                           <NativeSelect
-                            id={name}
+                            id={field.name}
                             onChange={(event) =>
                               field.handleChange(event.target.value)
                             }
@@ -577,23 +480,117 @@ export function DailyStatusEditor() {
                             <NativeSelectOption value="">
                               Confirm answer
                             </NativeSelectOption>
-                            {YES_NO.map((answer) => (
-                              <NativeSelectOption key={answer} value={answer}>
-                                {answer}
+                            {YES_NO.map((v) => (
+                              <NativeSelectOption key={v} value={v}>
+                                {v}
                               </NativeSelectOption>
                             ))}
                           </NativeSelect>
                         </Field>
                       )}
                     </form.Field>
-                  ))}
-                  {values.equipmentOperational === "No" &&
-                    (
+
+                    {values.allReported === "No" ? (
+                      <form.Field name="notReportedExplain">
+                        {(field) => (
+                          <Field className="gap-1">
+                            <FieldLabel
+                              className="text-xs"
+                              htmlFor={field.name}
+                            >
+                              If No, explain
+                            </FieldLabel>
+                            <Input
+                              id={field.name}
+                              onChange={(e) =>
+                                field.handleChange(e.target.value)
+                              }
+                              value={field.state.value}
+                            />
+                          </Field>
+                        )}
+                      </form.Field>
+                    ) : null}
+
+                    <form.Field name="affectedEfficiency">
+                      {(field) => (
+                        <Field className="gap-1">
+                          <FieldLabel className="text-xs" htmlFor={field.name}>
+                            Affected status / efficiency of operations?
+                          </FieldLabel>
+                          <NativeSelect
+                            id={field.name}
+                            onChange={(event) =>
+                              field.handleChange(event.target.value)
+                            }
+                            value={field.state.value}
+                          >
+                            <NativeSelectOption value="">
+                              Confirm answer
+                            </NativeSelectOption>
+                            {YES_NO.map((v) => (
+                              <NativeSelectOption key={v} value={v}>
+                                {v}
+                              </NativeSelectOption>
+                            ))}
+                          </NativeSelect>
+                        </Field>
+                      )}
+                    </form.Field>
+
+                    {values.affectedEfficiency === "Yes" ? (
+                      <form.Field name="affectedExplain">
+                        {(field) => (
+                          <Field className="gap-1">
+                            <FieldLabel
+                              className="text-xs"
+                              htmlFor={field.name}
+                            >
+                              If Yes, explain
+                            </FieldLabel>
+                            <Input
+                              id={field.name}
+                              onChange={(e) =>
+                                field.handleChange(e.target.value)
+                              }
+                              value={field.state.value}
+                            />
+                          </Field>
+                        )}
+                      </form.Field>
+                    ) : null}
+
+                    <form.Field name="comments">
+                      {(field) => (
+                        <Field className="gap-1">
+                          <FieldLabel className="text-xs" htmlFor={field.name}>
+                            Operational status comments
+                          </FieldLabel>
+                          <Textarea
+                            id={field.name}
+                            onChange={(e) => field.handleChange(e.target.value)}
+                            rows={4}
+                            value={field.state.value}
+                          />
+                        </Field>
+                      )}
+                    </form.Field>
+
+                    <StatusStaffing
+                      date={values.date}
+                      departmentId={departmentId}
+                      entries={values.entries}
+                      onChange={(entries) =>
+                        form.setFieldValue("entries", entries)
+                      }
+                      shift={values.shift}
+                    />
+                    {(
                       [
-                        ["equipmentReason", "Equipment issue reason"],
+                        ["equipmentOperational", "All equipment operational?"],
                         [
-                          "equipmentRemedy",
-                          "Equipment remedy / action pending",
+                          "incidentsSubmitted",
+                          "All incident / accident reports submitted?",
                         ],
                       ] as const
                     ).map(([name, label]) => (
@@ -601,8 +598,61 @@ export function DailyStatusEditor() {
                         {(field) => (
                           <Field>
                             <FieldLabel htmlFor={name}>{label}</FieldLabel>
-                            <Textarea
+                            <NativeSelect
                               id={name}
+                              onChange={(event) =>
+                                field.handleChange(event.target.value)
+                              }
+                              value={field.state.value}
+                            >
+                              <NativeSelectOption value="">
+                                Confirm answer
+                              </NativeSelectOption>
+                              {YES_NO.map((answer) => (
+                                <NativeSelectOption key={answer} value={answer}>
+                                  {answer}
+                                </NativeSelectOption>
+                              ))}
+                            </NativeSelect>
+                          </Field>
+                        )}
+                      </form.Field>
+                    ))}
+                    {values.equipmentOperational === "No" &&
+                      (
+                        [
+                          ["equipmentReason", "Equipment issue reason"],
+                          [
+                            "equipmentRemedy",
+                            "Equipment remedy / action pending",
+                          ],
+                        ] as const
+                      ).map(([name, label]) => (
+                        <form.Field key={name} name={name}>
+                          {(field) => (
+                            <Field>
+                              <FieldLabel htmlFor={name}>{label}</FieldLabel>
+                              <Textarea
+                                id={name}
+                                maxLength={1000}
+                                onChange={(event) =>
+                                  field.handleChange(event.target.value)
+                                }
+                                value={field.state.value}
+                              />
+                            </Field>
+                          )}
+                        </form.Field>
+                      ))}
+                    {values.incidentsSubmitted === "No" && (
+                      <form.Field name="incidentExplain">
+                        {(field) => (
+                          <Field>
+                            <FieldLabel htmlFor="incidentExplain">
+                              Reason incident reports remain outstanding
+                            </FieldLabel>
+                            <Textarea
+                              id="incidentExplain"
                               maxLength={1000}
                               onChange={(event) =>
                                 field.handleChange(event.target.value)
@@ -612,55 +662,75 @@ export function DailyStatusEditor() {
                           </Field>
                         )}
                       </form.Field>
-                    ))}
-                  {values.incidentsSubmitted === "No" && (
-                    <form.Field name="incidentExplain">
-                      {(field) => (
-                        <Field>
-                          <FieldLabel htmlFor="incidentExplain">
-                            Reason incident reports remain outstanding
-                          </FieldLabel>
-                          <Textarea
-                            id="incidentExplain"
-                            maxLength={1000}
-                            onChange={(event) =>
-                              field.handleChange(event.target.value)
-                            }
-                            value={field.state.value}
-                          />
-                        </Field>
-                      )}
-                    </form.Field>
-                  )}
-                  <Field className="gap-1">
-                    <FieldLabel className="text-xs">
-                      Co-approvers (all must approve before it reaches HR)
-                    </FieldLabel>
-                    <CoApproverPicker
-                      departmentId={departmentId}
-                      excludeUserId={sessionUser.id}
-                      onChange={setCoApprovers}
-                      selected={coApprovers}
-                    />
-                  </Field>
-                </FieldGroup>
-              </form>
-            )}
-          </div>
-
-          <HrPdfPreview
-            payload={
-              departmentId ? buildStatusReportPayload(values, departmentId) : {}
-            }
-            previewPath="/api/v1/hr/status-reports/preview-pdf"
-            ready={Boolean(departmentId && values.date)}
-            signedDocumentId={submission?.signed_document_id}
-            title="Daily Airport Status Report"
-          />
-        </div>
+                    )}
+                    <Field className="gap-1">
+                      <FieldLabel className="text-xs">
+                        Co-approvers (all must approve before it reaches HR)
+                      </FieldLabel>
+                      <CoApproverPicker
+                        departmentId={departmentId}
+                        excludeUserId={sessionUser.id}
+                        onChange={setCoApprovers}
+                        selected={coApprovers}
+                      />
+                    </Field>
+                  </FieldGroup>
+                </form>
+              )}
+            </div>
+          }
+          entityType="status_report"
+          label="Daily Airport Status Report"
+          preview={
+            <HrPdfPreview
+              filename="daily-status-report.pdf"
+              payload={
+                departmentId
+                  ? buildStatusReportPayload(values, departmentId)
+                  : {}
+              }
+              previewPath="/api/v1/hr/status-reports/preview-pdf"
+              ready={Boolean(departmentId && values.date)}
+              signedDocumentId={submission?.signed_document_id}
+              title="Daily Airport Status Report"
+            />
+          }
+        />
       )}
     </form.Subscribe>
   );
+}
+
+/** Seeds the shift from the user's published roster entry for the report date. */
+function StatusShiftPrefill({
+  date,
+  onPrefill,
+  skip,
+}: {
+  date: string;
+  onPrefill: (code: string) => void;
+  skip: boolean;
+}) {
+  const roster = useHrListAssignments(
+    { query: { scope: "me", start: date, end: date } },
+    { query: { enabled: Boolean(date) && !skip } }
+  );
+  const appliedFor = useRef("");
+  const codes =
+    roster.data?.data
+      .filter((entry) => entry.category === "WORK" && !entry.is_draft)
+      .map((entry) => entry.shift_code) ?? [];
+  const code = codes.length === 1 ? codes[0] : undefined;
+  useEffect(() => {
+    if (!(code && SHIFT_OPTIONS.includes(code))) return;
+    const marker = `${date}:${code}`;
+    if (appliedFor.current === marker) return;
+    appliedFor.current = marker;
+    onPrefill(code);
+  }, [code, date, onPrefill]);
+  return code && SHIFT_OPTIONS.includes(code) ? (
+    <SourceHint>{`Roster shift for ${date}: ${code} (from the published duty roster)`}</SourceHint>
+  ) : null;
 }
 
 export function validateStatusValues(

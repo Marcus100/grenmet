@@ -8,6 +8,7 @@ import {
   type CapCertainty,
   type CapMessageType,
   type CapScope,
+  type CapSettingsPublic,
   type CapSeverity,
   type CapStatus,
   type CapUrgency,
@@ -127,9 +128,39 @@ function Section({
   );
 }
 
-export function NewAlertEditor({ catalogs }: { catalogs: CapCatalogsPublic }) {
+/**
+ * Sender details come from CAP settings (the organisation's configured sender)
+ * so every alert names the same authority. Only identity is seeded: no hazard
+ * content is ever prefilled. Falls back to the built-in values if settings
+ * could not be loaded.
+ */
+function initialForm(settings?: CapSettingsPublic | null): FormState {
+  if (!settings) {
+    return INITIAL_FORM;
+  }
+  return {
+    ...INITIAL_FORM,
+    senderName: settings.sender_name || INITIAL_FORM.senderName,
+    contact: settings.contact || INITIAL_FORM.contact,
+    web: settings.web ?? INITIAL_FORM.web,
+  };
+}
+
+function SettingsHint({ show }: { show: boolean }) {
+  return show ? (
+    <p className="text-muted-foreground text-xs">From CAP settings</p>
+  ) : null;
+}
+
+export function NewAlertEditor({
+  catalogs,
+  settings,
+}: {
+  catalogs: CapCatalogsPublic;
+  settings?: CapSettingsPublic | null;
+}) {
   const router = useRouter();
-  const [form, setForm] = useState<FormState>(INITIAL_FORM);
+  const [form, setForm] = useState<FormState>(() => initialForm(settings));
   const [categories, setCategories] = useState<CapCategory[]>([]);
   const [product, setProduct] = useState<GmsProduct | null>(null);
   const [colour, setColour] = useState<GmsColour | null>(null);
@@ -595,12 +626,24 @@ export function NewAlertEditor({ catalogs }: { catalogs: CapCatalogsPublic }) {
                   placeholder="e.g. Grenada Meteorological Service"
                   value={form.senderName}
                 />
+                <SettingsHint
+                  show={
+                    Boolean(settings) &&
+                    form.senderName === settings?.sender_name
+                  }
+                />
               </Field>
               <Field label="Contact">
                 <Input
                   onChange={(e) => update("contact", e.target.value)}
                   placeholder="Email and telephone"
                   value={form.contact}
+                />
+                <SettingsHint
+                  show={
+                    Boolean(settings?.contact) &&
+                    form.contact === settings?.contact
+                  }
                 />
               </Field>
             </div>
@@ -610,6 +653,9 @@ export function NewAlertEditor({ catalogs }: { catalogs: CapCatalogsPublic }) {
                 placeholder="https://…"
                 type="url"
                 value={form.web}
+              />
+              <SettingsHint
+                show={Boolean(settings?.web) && form.web === settings?.web}
               />
             </Field>
           </Section>

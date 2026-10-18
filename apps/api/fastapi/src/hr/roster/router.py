@@ -10,9 +10,11 @@ from src.hr.timesheet.models import DepartmentPolicy
 from . import rule_service, service
 from .models import RosterAvailability, RosterPeriodStatus
 from .schemas import (
+    ProvisionalHolidaysRequest,
     PublicHolidayCreate,
     PublicHolidayPublic,
     PublicHolidaysPublic,
+    PublicHolidayUpdate,
     RosterAssignmentBulkCreate,
     RosterAssignmentPublic,
     RosterCalendarEntry,
@@ -552,6 +554,60 @@ async def list_holidays(
             for h in holidays
         ],
         count=len(holidays),
+    )
+
+
+@router.put(
+    "/public-holidays/{holiday_id}",
+    response_model=PublicHolidayPublic,
+    summary="Update public holiday",
+    description="Edit a public holiday's name, date, source or verification flag. Requires global roster.manage permission.",
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"description": "Duplicate date"},
+        status.HTTP_404_NOT_FOUND: {"description": "Public holiday not found"},
+        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+    },
+)
+async def update_holiday(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    holiday: PublicHolidayDep,
+    payload: PublicHolidayUpdate,
+) -> Any:
+    return await service.update_public_holiday(
+        session=session,
+        current_user=current_user,
+        holiday_id=holiday.id,
+        payload=payload,
+    )
+
+
+@router.post(
+    "/public-holidays/provisional",
+    response_model=PublicHolidaysPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Load provisional public holidays",
+    description="Add the provisional Grenada public holidays for a year, skipping dates that already exist. Rows are marked provisional for GAA HR to verify and edit. Requires global roster.manage permission.",
+    responses={
+        status.HTTP_400_BAD_REQUEST: {"description": "Year out of range"},
+        status.HTTP_403_FORBIDDEN: {"description": "Insufficient permission"},
+    },
+)
+async def load_provisional_holidays(
+    *,
+    session: SessionDep,
+    current_user: CurrentUser,
+    payload: ProvisionalHolidaysRequest,
+) -> Any:
+    created = await service.load_provisional_holidays(
+        session=session, current_user=current_user, year=payload.year
+    )
+    return PublicHolidaysPublic(
+        data=[
+            PublicHolidayPublic.model_validate(h, from_attributes=True) for h in created
+        ],
+        count=len(created),
     )
 
 

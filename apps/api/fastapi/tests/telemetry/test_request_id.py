@@ -4,9 +4,11 @@ import logging
 
 import httpx
 import pytest
+from fastapi import FastAPI
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from src.config import settings
-from src.main import app
+from src.main import app, request_logging_middleware, unhandled_exception_handler
 from src.request_context import (
     REQUEST_ID_HEADER,
     RequestIdFilter,
@@ -99,3 +101,29 @@ def test_sentry_scrubber_keeps_the_request_id_tag_but_no_other_identifiers() -> 
         {"tags": {"request_id": "req-12345678", "email": "a@b.c", "area": "cap"}}, {}
     )
     assert event["tags"] == {"request_id": "req-12345678", "area": "cap"}
+
+
+async def test_client_error_responses_carry_the_id(client: httpx.AsyncClient) -> None:
+    response = await client.get(f"{settings.API_V1_STR}/no-such-route")
+    assert response.status_code == 404
+    assert len(response.headers[REQUEST_ID_HEADER]) == 32
+
+
+async def test_unhandled_server_errors_carry_the_id() -> None:
+    # Same middleware and handler wiring as the real app, with a route that crashes.
+    probe = FastAPI()
+    probe.add_exception_handler(Exception, unhandled_exception_handler)
+
+    @probe.get("/boom")
+    async def boom() -> None:
+        raise RuntimeError("secret detail")
+
+    probe.add_middleware(BaseHTTPMiddleware, dispatch=request_logging_middleware)
+    async with httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=probe, raise_app_exceptions=False),
+        base_url="http://test",
+    ) as http:
+        response = await http.get("/boom", headers={REQUEST_ID_HEADER: "web-4f9a2c71"})
+    assert response.status_code == 500
+    assert response.headers[REQUEST_ID_HEADER] == "web-4f9a2c71"
+    assert "secret detail" not in response.text

@@ -20,12 +20,12 @@ export function useSigning() {
   });
 }
 
-export function useSignedDocuments(page = 1) {
+export function useSignedDocuments(page = 1, entityType?: string) {
   return useQuery({
-    queryKey: [...signedDocumentsKey, page],
+    queryKey: [...signedDocumentsKey, page, entityType ?? null],
     queryFn: () =>
       hrGetMySignedDocuments({
-        query: { page, size: 20 },
+        query: { page, size: 20, entity_type: entityType },
       }).unwrap(),
   });
 }

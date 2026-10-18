@@ -10,6 +10,10 @@ export type EregisterListRegisterObservationsQuery = {
   station_id?: string | null;
   kind?: string | null;
   /**
+   * @description Only observations in this QC state (the QC queue is draft and qc_pending).
+   */
+  state?: string | null;
+  /**
    * @minLength 1
    * @maxLength 500
    * @default 100

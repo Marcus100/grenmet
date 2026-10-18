@@ -19,6 +19,7 @@
     "test:coverage": "content-collections build && vitest run --coverage"
   },
   "dependencies": {
+    "@barrelsgd/api-client": "workspace:*",
     "@barrelsgd/auth": "workspace:*",
     "@barrelsgd/ui": "workspace:*",
     "@content-collections/cli": "catalog:",

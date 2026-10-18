@@ -35,9 +35,12 @@ export default defineConfig({
     ],
     coverage: {
       provider: "v8",
-      reporter: ["text", "json", "html"],
+      reporter: ["text", "json", "json-summary", "html"],
       include: ["src/**/*.{ts,tsx}"],
       exclude: ["src/**/*.test.{ts,tsx}", "src/test/**"],
+      // Floors only rise; mirrored in scripts/guardrails/coverage-baseline.json.
+      // Kept at the committed floors (not rounded) so they are not lowered.
+      thresholds: { lines: 64.8, branches: 63.7 },
     },
   },
   resolve: {

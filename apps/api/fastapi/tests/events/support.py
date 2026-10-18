@@ -32,6 +32,7 @@ OVERRIDDEN = (
     deps.require_member,
     deps.optional_member,
     deps.require_organiser,
+    deps.organiser_scope,
     deps.require_moderator,
 )
 
@@ -69,6 +70,10 @@ def _client() -> httpx.AsyncClient:
     )
 
 
+def no_platform_scope() -> list[str]:
+    return []
+
+
 def client_as(user: User | None, *, organiser: bool = False) -> httpx.AsyncClient:
     """Act as ``user`` (None = anonymous) with an Events app session."""
     _act_as(user)
@@ -79,6 +84,7 @@ def client_as(user: User | None, *, organiser: bool = False) -> httpx.AsyncClien
     app.dependency_overrides[deps.require_organiser] = (
         (lambda: user) if organiser and user is not None else not_organiser
     )
+    app.dependency_overrides[deps.organiser_scope] = no_platform_scope
     return _client()
 
 
@@ -90,6 +96,7 @@ def client_with_real_roles(user: User) -> httpx.AsyncClient:
     """
     _act_as(user)
     app.dependency_overrides.pop(deps.require_organiser, None)
+    app.dependency_overrides.pop(deps.organiser_scope, None)
     app.dependency_overrides.pop(deps.require_moderator, None)
     return _client()
 

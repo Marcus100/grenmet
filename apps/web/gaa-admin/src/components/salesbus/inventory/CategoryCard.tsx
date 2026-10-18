@@ -1,28 +1,21 @@
-"use client";
-
-import { ChevronRight } from "lucide-react";
-import Image from "next/image";
+import { ChevronRight, Package } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
-import type { Category } from "@/lib/salesbus/types";
 
-interface CategoryCardProps {
-  category: Category;
+export interface CategorySummary {
+  itemCount: number;
+  name: string;
+  onHand: number;
 }
 
-export function CategoryCard({ category }: CategoryCardProps) {
+export function CategoryCard({ category }: { category: CategorySummary }) {
   return (
     <Link
       className="flex min-h-16 touch-manipulation items-center gap-4 rounded-xl bg-card p-3 transition-all hover:shadow-card active:bg-muted sm:p-4"
-      href={`/salesbus/inventory/${category.id}`}
+      href={`/salesbus/inventory/${encodeURIComponent(category.name)}` as Route}
     >
-      <div className="h-20 w-28 flex-shrink-0 overflow-hidden rounded-lg bg-muted sm:h-24 sm:w-32">
-        <Image
-          alt={category.name}
-          className="h-full w-full object-cover"
-          height={96}
-          src={category.image}
-          width={128}
-        />
+      <div className="flex h-20 w-28 flex-shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground sm:h-24 sm:w-32">
+        <Package className="h-8 w-8" />
       </div>
 
       <div className="min-w-0 flex-1">
@@ -30,7 +23,8 @@ export function CategoryCard({ category }: CategoryCardProps) {
           {category.name}
         </h3>
         <p className="mt-1 line-clamp-2 text-muted-foreground text-sm sm:text-base">
-          {category.description}
+          {category.itemCount} {category.itemCount === 1 ? "item" : "items"} •{" "}
+          {category.onHand} in stock
         </p>
       </div>
 

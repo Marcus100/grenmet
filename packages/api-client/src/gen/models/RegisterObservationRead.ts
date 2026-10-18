@@ -41,6 +41,8 @@ export type RegisterObservationRead = {
   id: string;
   state: RegisterObservationReadPropertiesStateEnum;
   qc_notes?: string | null;
+  qc_by?: string | null;
+  qc_at?: string | null;
   wis2_topic?: string | null;
   wis2_message_id?: string | null;
   wis2_published_at?: string | null;

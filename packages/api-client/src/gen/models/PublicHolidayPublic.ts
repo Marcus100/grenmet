@@ -19,6 +19,12 @@ export type PublicHolidayPublic = {
   holiday_date: string;
   is_recurring: boolean;
   country_code: string;
+  source?: string | null;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  needs_verification?: boolean;
   /**
    * @description
    * Format: `uuid`

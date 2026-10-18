@@ -221,7 +221,10 @@ export function toHolidayLayer(
 ): CalendarEvent[] {
   return holidays.map((holiday) => ({
     id: `holiday-${holiday.id}`,
-    title: holiday.name,
+    // Provisional dates must not read as confirmed to HR users.
+    title: holiday.needs_verification
+      ? `${holiday.name} (provisional, verify with HR)`
+      : holiday.name,
     start: holiday.holiday_date,
     allDay: true,
     color: "var(--gm-risk-red)",

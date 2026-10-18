@@ -7,6 +7,13 @@ import type { ListingUpsert } from "./ListingUpsert.js";
 import type { ManagedListing } from "./ManagedListing.js";
 import type { ValidationErrorResponse } from "./ValidationErrorResponse.js";
 
+export type EventsCreateManagedListingQuery = {
+  /**
+   * @description Organiser to act for when the member manages several.
+   */
+  organiser?: string | null;
+};
+
 export type EventsCreateManagedListingStatus201 = ManagedListing;
 
 export type EventsCreateManagedListingStatus401 = unknown;
@@ -30,7 +37,7 @@ export type EventsCreateManagedListingBody = ListingUpsert;
 export type EventsCreateManagedListingOptions = {
   body: EventsCreateManagedListingBody;
   path?: never;
-  query?: never;
+  query?: EventsCreateManagedListingQuery;
   headers?: never;
 };
 

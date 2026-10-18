@@ -8,9 +8,11 @@ from typing import Any, Literal
 
 from pydantic import TypeAdapter
 from sqlalchemy import Select, delete, func, or_, select
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
+from src.organisations import verification
 from src.utils.datetime import utc_now
 
 from .. import schemas
@@ -27,6 +29,7 @@ from ..models import (
     SavedListing,
     Thread,
     ThreadParticipant,
+    Ticket,
     TicketTier,
 )
 from .common import GOING_PREVIEW, _pairs, when_window
@@ -144,6 +147,7 @@ async def _cards(
                 recurrence=listing.recurrence,
                 tags=list(listing.tags or []),
                 featured=listing.featured,
+                image_file_id=listing.image_file_id,
                 organiser_slug=organiser_slug,
                 going_count=int(counts.get(listing.id, 0)),
                 going_preview=previews.get(listing.id, []),
@@ -208,6 +212,17 @@ async def list_listings(
     return await _cards(db, [(row[0], row[1]) for row in rows], viewer_id), int(total)
 
 
+async def _organiser_verified(organiser: Organiser) -> bool:
+    """Linked organisers take verification from the platform organisation (F5, C2);
+    legacy unlinked ones keep their own flag. A lookup failure falls back to it."""
+    if organiser.organisation_id is None:
+        return organiser.verified
+    try:
+        return await verification.organisation_is_verified(organiser.organisation_id)
+    except SQLAlchemyError, OSError, TimeoutError:
+        return organiser.verified
+
+
 async def _organiser_public(
     db: AsyncSession, organiser: Organiser, viewer_id: uuid.UUID | None
 ) -> schemas.OrganiserPublic:
@@ -224,20 +239,51 @@ async def _organiser_public(
         slug=organiser.slug,
         name=organiser.name,
         bio=organiser.bio,
-        verified=organiser.verified,
+        verified=await _organiser_verified(organiser),
+        organisation_id=organiser.organisation_id,
+        logo_file_id=organiser.logo_file_id,
         follower_count=int(followers or 0),
         viewer_following=following,
     )
 
 
-async def _tiers(db: AsyncSession, listing_id: uuid.UUID) -> list[schemas.TierPublic]:
-    rows = await db.scalars(
-        select(TicketTier)
-        .where(TicketTier.listing_id == listing_id)
-        .order_by(TicketTier.sort_order)
+async def _tiers(
+    db: AsyncSession, listing_id: uuid.UUID, viewer_id: uuid.UUID | None = None
+) -> list[schemas.TierPublic]:
+    rows = (
+        await db.scalars(
+            select(TicketTier)
+            .where(TicketTier.listing_id == listing_id)
+            .order_by(TicketTier.sort_order)
+        )
+    ).all()
+    valid = Ticket.status == "valid"
+    sold = _pairs(
+        await db.execute(
+            select(Ticket.tier_id, func.count())
+            .where(Ticket.listing_id == listing_id, valid)
+            .group_by(Ticket.tier_id)
+        )
     )
+    held: dict[uuid.UUID, int] = {}
+    if viewer_id is not None:
+        held = _pairs(
+            await db.execute(
+                select(Ticket.tier_id, func.count())
+                .where(
+                    Ticket.listing_id == listing_id, Ticket.user_id == viewer_id, valid
+                )
+                .group_by(Ticket.tier_id)
+            )
+        )
     return [
-        schemas.TierPublic.model_validate(row, from_attributes=True) for row in rows
+        schemas.TierPublic.model_validate(row, from_attributes=True).model_copy(
+            update={
+                "remaining": max(row.allocation - sold.get(row.id, 0), 0),
+                "held": held.get(row.id, 0),
+            }
+        )
+        for row in rows
     ]
 
 
@@ -258,7 +304,7 @@ async def get_listing(
         capacity=listing.capacity,
         organiser=await _organiser_public(db, organiser, viewer_id),
         group=(await _group_summaries(db, [group], viewer_id))[0] if group else None,
-        tiers=await _tiers(db, listing.id),
+        tiers=await _tiers(db, listing.id, viewer_id),
     )
 
 

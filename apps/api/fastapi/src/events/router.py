@@ -10,8 +10,10 @@ from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Path, Query, Request, Response, status
 
+from src.dependencies import SessionDep
 from src.models import Message
 from src.openapi_responses import UNAUTHENTICATED
+from src.organisations import verification
 from src.rate_limit import limiter
 
 from . import schemas, service
@@ -21,12 +23,20 @@ from .dependencies import (
     EventsOrganiser,
     EventsSession,
     EventsViewer,
+    OrganiserScope,
 )
 
 router = APIRouter(prefix="/events", tags=["events"])
 
 Slug = Annotated[str, Path(pattern=schemas.SLUG_PATTERN)]
 Handle = Annotated[str, Path(pattern=schemas.HANDLE_PATTERN)]
+_ManagedSlug = Annotated[
+    str | None,
+    Query(
+        pattern=schemas.SLUG_PATTERN,
+        description="Organiser to act for when the member manages several.",
+    ),
+]
 
 _NOT_FOUND: dict[int | str, dict[str, Any]] = {404: {"description": "Not found"}}
 _MEMBER: dict[int | str, dict[str, Any]] = {
@@ -555,9 +565,64 @@ async def send_message(
     responses=_ORGANISER,
 )
 async def get_managed_organiser(
-    *, session: EventsSession, user: EventsOrganiser
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    organiser: _ManagedSlug = None,
 ) -> schemas.ManagedOrganiser:
-    return await service.managed_organiser(session, user)
+    return await service.managed_organiser(session, user, scope, organiser)
+
+
+@router.post(
+    "/manage/organiser",
+    response_model=schemas.OrganiserPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Request an organiser account",
+    description=(
+        "Create an organiser backed by a new platform organisation with me as owner. "
+        "It starts unverified (pending) until a moderator verifies it."
+    ),
+    responses={
+        **_MEMBER,
+        409: {"description": "Name taken or request already pending"},
+    },
+)
+@limiter.limit("5/hour")
+async def request_organiser(
+    *,
+    request: Request,
+    session: EventsSession,
+    platform: SessionDep,
+    user: EventsMember,
+    body: schemas.OrganiserCreate,
+) -> schemas.OrganiserPublic:
+    _ = request
+    return await service.request_organiser(session, platform, user, body)
+
+
+@router.put(
+    "/manage/organiser/logo",
+    response_model=schemas.OrganiserPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Set the organiser logo",
+    description=(
+        "Attach a completed `organiser-logo` upload of the organiser's organisation "
+        "(see `POST /storage/uploads`), or send null to clear it."
+    ),
+    responses=_ORGANISER,
+)
+async def set_organiser_logo(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    body: schemas.OrganiserLogoUpdate,
+    organiser: _ManagedSlug = None,
+) -> schemas.OrganiserPublic:
+    return await service.set_organiser_logo(
+        session, user, body.file_id, scope, organiser
+    )
 
 
 @router.post(
@@ -569,9 +634,78 @@ async def get_managed_organiser(
     responses=_ORGANISER,
 )
 async def create_managed_listing(
-    *, session: EventsSession, user: EventsOrganiser, body: schemas.ListingUpsert
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    body: schemas.ListingUpsert,
+    organiser: _ManagedSlug = None,
 ) -> schemas.ManagedListing:
-    return await service.create_listing(session, user, body)
+    return await service.create_listing(session, user, body, scope, organiser)
+
+
+@router.get(
+    "/manage/{listing_id}/activity",
+    response_model=list[schemas.ActivityEntry],
+    status_code=status.HTTP_200_OK,
+    summary="Get a listing's activity history",
+    description="Append-only record of who changed the listing and what, newest first.",
+    responses=_ORGANISER,
+)
+async def get_listing_activity(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    organiser: _ManagedSlug = None,
+    limit: Annotated[int, Query(ge=1, le=200)] = 50,
+) -> list[schemas.ActivityEntry]:
+    return await service.listing_activity(
+        session, user, listing_id, scope, organiser, limit
+    )
+
+
+@router.post(
+    "/manage/{listing_id}/admissions",
+    response_model=schemas.AdmissionPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Admit a ticket at the door",
+    description="Scan a ticket's QR token or enter its code. A ticket is admitted once; a second scan is refused with who admitted it and when, unless it repeats the same idempotency key.",
+    responses={
+        **_ORGANISER,
+        409: {"description": "Already admitted, cancelled or for another event"},
+    },
+)
+async def admit_ticket(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    body: schemas.AdmissionCreate,
+    organiser: _ManagedSlug = None,
+) -> schemas.AdmissionPublic:
+    return await service.admit_ticket(session, user, listing_id, body, scope, organiser)
+
+
+@router.get(
+    "/manage/{listing_id}/manifest",
+    response_model=schemas.Manifest,
+    status_code=status.HTTP_200_OK,
+    summary="Get the door manifest",
+    description="Every valid ticket for the event with its holder and admission time, plus live counts. Used for the printable door list.",
+    responses=_ORGANISER,
+)
+async def get_manifest(
+    *,
+    session: EventsSession,
+    user: EventsOrganiser,
+    scope: OrganiserScope,
+    listing_id: uuid.UUID,
+    organiser: _ManagedSlug = None,
+) -> schemas.Manifest:
+    return await service.manifest(session, user, listing_id, scope, organiser)
 
 
 @router.put(
@@ -586,10 +720,85 @@ async def update_managed_listing(
     *,
     session: EventsSession,
     user: EventsOrganiser,
+    scope: OrganiserScope,
     listing_id: uuid.UUID,
     body: schemas.ListingUpsert,
+    organiser: _ManagedSlug = None,
 ) -> schemas.ManagedListing:
-    return await service.update_listing(session, user, listing_id, body)
+    return await service.update_listing(
+        session, user, listing_id, body, scope, organiser
+    )
+
+
+# --- Tickets -------------------------------------------------------------------------
+
+_CLAIM: dict[int | str, dict[str, Any]] = {
+    **_MEMBER,
+    409: {"description": "Sold out, over the per-account limit, paid tier or ended"},
+}
+
+
+@router.post(
+    "/listings/{slug}/orders",
+    response_model=schemas.OrderPublic,
+    status_code=status.HTTP_201_CREATED,
+    summary="Claim tickets",
+    description="Claim free or registration tickets as the signed-in member. Each tier has an allocation and a per-account limit; paid tiers are refused until online payment exists.",
+    responses=_CLAIM,
+)
+@limiter.limit("20/minute")
+async def claim_tickets(
+    *,
+    request: Request,
+    session: EventsSession,
+    user: EventsMember,
+    slug: Slug,
+    body: schemas.OrderCreate,
+) -> schemas.OrderPublic:
+    _ = request
+    return await service.claim_tickets(session, user, slug, body)
+
+
+@router.get(
+    "/me/tickets",
+    response_model=list[schemas.TicketSummary],
+    status_code=status.HTTP_200_OK,
+    summary="List my tickets",
+    description="The member's tickets, soonest event first, including cancelled ones.",
+    responses=_MEMBER,
+)
+async def list_my_tickets(
+    *, session: EventsSession, user: EventsMember
+) -> list[schemas.TicketSummary]:
+    return await service.my_tickets(session, user)
+
+
+@router.get(
+    "/me/tickets/{ticket_id}",
+    response_model=schemas.TicketDetail,
+    status_code=status.HTTP_200_OK,
+    summary="Get one of my tickets",
+    description="A ticket with the signed token to render as its QR code.",
+    responses=_MEMBER,
+)
+async def get_my_ticket(
+    *, session: EventsSession, user: EventsMember, ticket_id: uuid.UUID
+) -> schemas.TicketDetail:
+    return await service.my_ticket(session, user, ticket_id)
+
+
+@router.post(
+    "/me/tickets/{ticket_id}/cancel",
+    response_model=schemas.TicketSummary,
+    status_code=status.HTTP_200_OK,
+    summary="Cancel my ticket",
+    description="Cancel an unused ticket before the event starts; the seat goes back on sale.",
+    responses={**_MEMBER, 409: {"description": "Already cancelled or event started"}},
+)
+async def cancel_my_ticket(
+    *, session: EventsSession, user: EventsMember, ticket_id: uuid.UUID
+) -> schemas.TicketSummary:
+    return await service.cancel_ticket(session, user, ticket_id)
 
 
 # --- Moderation ----------------------------------------------------------------------
@@ -628,8 +837,7 @@ async def update_report(
     report_id: uuid.UUID,
     body: schemas.ReportUpdate,
 ) -> schemas.ReportPublic:
-    _ = user
-    row = await service.update_report(session, report_id, body)
+    row = await service.update_report(session, report_id, body, user)
     return schemas.ReportPublic.model_validate(row, from_attributes=True)
 
 
@@ -666,6 +874,52 @@ async def update_suggestion(
     suggestion_id: uuid.UUID,
     body: schemas.SuggestionUpdate,
 ) -> schemas.SuggestionPublic:
-    _ = user
-    row = await service.update_suggestion(session, suggestion_id, body)
+    row = await service.update_suggestion(session, suggestion_id, body, user)
     return schemas.SuggestionPublic.model_validate(row, from_attributes=True)
+
+
+@router.get(
+    "/moderation/organisers",
+    response_model=list[schemas.OrganiserPublic],
+    status_code=status.HTTP_200_OK,
+    summary="List organiser requests",
+    description="Organisers awaiting verification.",
+    responses=_MODERATOR,
+)
+async def list_pending_organisers(
+    *, session: EventsSession, user: EventsModerator
+) -> list[schemas.OrganiserPublic]:
+    rows = await service.pending_organisers(session)
+    return [await service.organiser_public(session, row, user.id) for row in rows]
+
+
+@router.patch(
+    "/moderation/organisers/{organiser_id}",
+    response_model=schemas.OrganiserPublic,
+    status_code=status.HTTP_200_OK,
+    summary="Verify an organiser",
+    description=(
+        "Approve (or withdraw approval of) an organiser account. "
+        "Approving queues a notification to the organiser's owners and admins."
+    ),
+    responses=_MODERATOR,
+)
+async def review_organiser(
+    *,
+    session: EventsSession,
+    platform: SessionDep,
+    user: EventsModerator,
+    organiser_id: uuid.UUID,
+    body: schemas.OrganiserReview,
+) -> schemas.OrganiserPublic:
+    row = await service.review_organiser(session, organiser_id, body.verified, user)
+    if row.organisation_id is not None:
+        # Linked organisers read verification from the platform organisation.
+        await verification.moderator_set_verified(
+            platform,
+            row.organisation_id,
+            verified=body.verified,
+            actor_id=user.id,
+            source="Events",
+        )
+    return await service.organiser_public(session, row, user.id)

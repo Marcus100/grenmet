@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { downloadHrPdf, HrPdfPreview } from "./hr-pdf-preview";
 
@@ -36,11 +36,13 @@ it("shows API validation details and reports caught failures through the app rep
       title="Absentee Report"
     />
   );
-  await act(() => vi.advanceTimersByTimeAsync(750));
+  // Nothing renders until the user asks for it.
+  expect(request).not.toHaveBeenCalled();
+  await previewNow();
   expect(
     screen.getByText("The employee does not belong to this department")
   ).toBeInTheDocument();
-  expect(screen.queryByTitle("Absentee Report PDF preview")).toBeNull();
+  expect(screen.queryByTitle("Absentee Report preview frame")).toBeNull();
   expect(report).toHaveBeenCalledWith(
     expect.objectContaining({ status: 403 }),
     "hr-pdf-preview"
@@ -48,7 +50,7 @@ it("shows API validation details and reports caught failures through the app rep
 });
 
 it("downloads the edited PDF without invoking browser print", async () => {
-  request.mockResolvedValue(pdfResponse());
+  request.mockImplementation(() => Promise.resolve(pdfResponse()));
   const click = vi
     .spyOn(HTMLAnchorElement.prototype, "click")
     .mockImplementation(function (this: HTMLAnchorElement) {
@@ -74,7 +76,7 @@ it("downloads the edited PDF without invoking browser print", async () => {
 });
 
 it("uses the saved signed document for downloads after submission", async () => {
-  request.mockResolvedValue(pdfResponse());
+  request.mockImplementation(() => Promise.resolve(pdfResponse()));
   const click = vi
     .spyOn(HTMLAnchorElement.prototype, "click")
     .mockImplementation(() => undefined);
@@ -107,8 +109,13 @@ function pdfResponse() {
   });
 }
 
-it("renders an edited form through the FastAPI PDF endpoint after edits settle", async () => {
-  request.mockResolvedValue(pdfResponse());
+async function previewNow() {
+  fireEvent.click(screen.getByRole("button", { name: "Preview" }));
+  await act(() => vi.advanceTimersByTimeAsync(0));
+}
+
+it("renders only when Preview is selected and flags edits made afterwards", async () => {
+  request.mockImplementation(() => Promise.resolve(pdfResponse()));
   const view = render(
     <HrPdfPreview
       payload={{ leave_type: "VACATION", days_requested: "1" }}
@@ -117,6 +124,20 @@ it("renders an edited form through the FastAPI PDF endpoint after edits settle",
       title="Leave Application"
     />
   );
+  await act(() => vi.advanceTimersByTimeAsync(5000));
+  expect(request).not.toHaveBeenCalled();
+
+  await previewNow();
+  expect(request).toHaveBeenCalledTimes(1);
+  expect(request.mock.calls[0]?.[0]).toBe(
+    "/api/v1/hr/leave-requests/preview-pdf"
+  );
+  expect(screen.getByTitle("Leave Application preview frame")).toHaveAttribute(
+    "src",
+    "blob:hr-preview#toolbar=0&navpanes=0&view=FitH"
+  );
+  expect(screen.queryByText("Preview out of date")).toBeNull();
+
   view.rerender(
     <HrPdfPreview
       payload={{ leave_type: "VACATION", days_requested: "2" }}
@@ -125,24 +146,52 @@ it("renders an edited form through the FastAPI PDF endpoint after edits settle",
       title="Leave Application"
     />
   );
-  await act(() => vi.advanceTimersByTimeAsync(749));
-  expect(request).not.toHaveBeenCalled();
-  await act(() => vi.advanceTimersByTimeAsync(1));
+  await act(() => vi.advanceTimersByTimeAsync(5000));
   expect(request).toHaveBeenCalledTimes(1);
-  expect(request.mock.calls[0]?.[0]).toBe(
-    "/api/v1/hr/leave-requests/preview-pdf"
-  );
-  expect(JSON.parse(request.mock.calls[0]?.[1]?.body)).toMatchObject({
+  expect(screen.getByText("Preview out of date")).toBeInTheDocument();
+
+  await previewNow();
+  expect(request).toHaveBeenCalledTimes(2);
+  expect(JSON.parse(request.mock.calls[1]?.[1]?.body)).toMatchObject({
     days_requested: "2",
   });
-  expect(screen.getByTitle("Leave Application PDF preview")).toHaveAttribute(
-    "src",
-    "blob:hr-preview#toolbar=0&navpanes=0&view=FitH"
-  );
+  expect(screen.queryByText("Preview out of date")).toBeNull();
 });
 
-it("loads the immutable signed PDF after submission", async () => {
-  request.mockResolvedValue(pdfResponse());
+it("keeps Preview disabled until the required fields are entered", () => {
+  render(
+    <HrPdfPreview
+      payload={{}}
+      previewPath="/api/v1/hr/leave-requests/preview-pdf"
+      ready={false}
+      title="Leave Application"
+    />
+  );
+  expect(screen.getByRole("button", { name: "Preview" })).toBeDisabled();
+});
+
+it("opens the rendered PDF full size and downloads it", async () => {
+  request.mockImplementation(() => Promise.resolve(pdfResponse()));
+  render(
+    <HrPdfPreview
+      filename="leave.pdf"
+      payload={{ start_date: "2026-10-01" }}
+      previewPath="/api/v1/hr/leave-requests/preview-pdf"
+      ready
+      title="Leave Application"
+    />
+  );
+  expect(screen.getByRole("button", { name: "Expand" })).toBeDisabled();
+  await previewNow();
+  fireEvent.click(screen.getByRole("button", { name: "Expand" }));
+  await act(() => vi.advanceTimersByTimeAsync(300));
+  expect(
+    screen.getByTitle("Leave Application preview full size")
+  ).toBeInTheDocument();
+});
+
+it("loads the immutable signed PDF after submission without a click", async () => {
+  request.mockImplementation(() => Promise.resolve(pdfResponse()));
   render(
     <HrPdfPreview
       payload={{}}
@@ -157,30 +206,4 @@ it("loads the immutable signed PDF after submission", async () => {
     "/api/v1/hr/signed-documents/signed-1/pdf"
   );
   expect(request.mock.calls[0]?.[1]?.method).toBe("GET");
-});
-
-it("clears an obsolete PDF when required form fields are removed", async () => {
-  request.mockResolvedValue(pdfResponse());
-  const view = render(
-    <HrPdfPreview
-      payload={{ start_date: "2026-10-01" }}
-      previewPath="/api/v1/hr/leave-requests/preview-pdf"
-      ready
-      title="Leave Application"
-    />
-  );
-  await act(() => vi.advanceTimersByTimeAsync(750));
-  expect(
-    screen.getByTitle("Leave Application PDF preview")
-  ).toBeInTheDocument();
-  view.rerender(
-    <HrPdfPreview
-      payload={{ start_date: "" }}
-      previewPath="/api/v1/hr/leave-requests/preview-pdf"
-      ready={false}
-      title="Leave Application"
-    />
-  );
-  expect(screen.queryByTitle("Leave Application PDF preview")).toBeNull();
-  expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:hr-preview");
 });

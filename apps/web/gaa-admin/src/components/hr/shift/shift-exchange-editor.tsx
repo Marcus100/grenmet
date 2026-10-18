@@ -33,14 +33,22 @@ import { DatePicker } from "@/components/document/date-picker";
 import { hrApiErrorMessage } from "@/components/hr/api-error";
 import { CoApproverPicker } from "@/components/hr/co-approver-picker";
 import { FormActionBar } from "@/components/hr/form-action-bar";
+import { HrFormDesk } from "@/components/hr/hr-form-desk";
 import { downloadHrPdf, HrPdfPreview } from "@/components/hr/hr-pdf-preview";
+import {
+  EmployeeNumberField,
+  PrefillInput,
+} from "@/components/hr/prefill-field";
 import {
   signedDocumentsKey,
   useSigning,
 } from "@/components/hr/signatures/signature-api";
 import { SigningPanel } from "@/components/hr/signatures/signing-panel";
 import type { SubmissionMetadata } from "@/components/hr/submission-date";
-import { useEditorPrefill } from "@/components/hr/use-editor-prefill";
+import {
+  useEditorPrefill,
+  useProfileReference,
+} from "@/components/hr/use-editor-prefill";
 import { displayName } from "@/lib/people";
 import { reportError } from "@/lib/report-error";
 import { EMPTY_SHIFT } from "./shift-exchange-document";
@@ -72,6 +80,7 @@ export function ShiftExchangeEditor() {
   const form = useForm({ defaultValues: EMPTY_FORM });
   const queryClient = useQueryClient();
   const signature = useSigning();
+  const reference = useProfileReference();
   const sessionUser = useSessionUser();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -305,258 +314,286 @@ export function ShiftExchangeEditor() {
   return (
     <form.Subscribe selector={(s) => s.values}>
       {(values) => (
-        <div className="grid @4xl:grid-cols-2 items-start gap-5">
-          <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
-            <div className="flex flex-col gap-3">
-              <SigningPanel submission={submission} />
-              <p className="text-muted-foreground text-xs">
-                The other employee must agree first. Supervisor review follows.
-                The roster changes only after final approval.
-              </p>
-              <FormActionBar
-                isSaving={pendingAction === "save"}
-                isSubmitting={pendingAction === "submit"}
-                onDownloadPdf={handleDownloadPdf}
-                onReset={handleReset}
-                onSave={submission ? undefined : () => persist(values, true)}
-                onSubmit={submission ? undefined : () => persist(values, false)}
-                statusHint={statusHint}
-                submitDisabled={!(departmentId && signature.data)}
-                submitLabel="Sign & submit"
-              />
-            </div>
+        <HrFormDesk
+          editor={
+            <div className="flex flex-col gap-4 rounded-xl border bg-card p-4">
+              <div className="flex flex-col gap-3">
+                <SigningPanel submission={submission} />
+                <p className="text-muted-foreground text-xs">
+                  The other employee must agree first. Supervisor review
+                  follows. The roster changes only after final approval.
+                </p>
+                <FormActionBar
+                  isSaving={pendingAction === "save"}
+                  isSubmitting={pendingAction === "submit"}
+                  onDownloadPdf={handleDownloadPdf}
+                  onReset={handleReset}
+                  onSave={submission ? undefined : () => persist(values, true)}
+                  onSubmit={
+                    submission ? undefined : () => persist(values, false)
+                  }
+                  statusHint={statusHint}
+                  submitDisabled={!(departmentId && signature.data)}
+                  submitLabel="Sign & submit"
+                />
+              </div>
 
-            <Separator />
+              <Separator />
 
-            {!submission && (
-              <form
-                className="flex flex-col gap-4"
-                inert={pendingAction !== null}
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  form.handleSubmit();
-                }}
-              >
-                <FieldGroup>
-                  <form.Field name="department">
-                    {(field) => (
-                      <Field className="gap-1">
-                        <FieldLabel className="text-xs" htmlFor={field.name}>
-                          Department
-                        </FieldLabel>
-                        <Input
-                          id={field.name}
-                          onBlur={field.handleBlur}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          readOnly
-                          value={field.state.value}
-                        />
-                      </Field>
-                    )}
-                  </form.Field>
-
-                  <form.Field name="requestingEmployee">
-                    {(field) => (
-                      <Field className="gap-1">
-                        <FieldLabel className="text-xs" htmlFor={field.name}>
-                          Employee Requesting Change
-                        </FieldLabel>
-                        <Input
-                          id={field.name}
-                          onBlur={field.handleBlur}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          readOnly
-                          value={field.state.value}
-                        />
-                      </Field>
-                    )}
-                  </form.Field>
-
-                  <div className="grid gap-5 md:grid-cols-2">
-                    <form.Field name="counterpartUserId">
+              {!submission && (
+                <form
+                  className="flex flex-col gap-4"
+                  inert={pendingAction !== null}
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    form.handleSubmit();
+                  }}
+                >
+                  <FieldGroup>
+                    <form.Field name="department">
                       {(field) => (
-                        <Field className="gap-1">
-                          <FieldLabel className="text-xs" htmlFor={field.name}>
-                            Exchange With (Department Member)
-                          </FieldLabel>
-                          <NativeSelect
-                            className="w-full"
-                            disabled={!departmentId || members.length === 0}
-                            id={field.name}
-                            onChange={(e) => {
-                              field.handleChange(e.target.value);
-                              const member = members.find(
-                                (m) => m.user_id === e.target.value
-                              );
-                              if (member) {
-                                form.setFieldValue(
-                                  "exchangeEmployee",
-                                  displayName(member)
+                        <PrefillInput
+                          id={field.name}
+                          label="Department"
+                          locked
+                          onChange={field.handleChange}
+                          value={field.state.value}
+                        />
+                      )}
+                    </form.Field>
+
+                    <form.Field name="requestingEmployee">
+                      {(field) => (
+                        <PrefillInput
+                          id={field.name}
+                          label="Employee Requesting Change"
+                          locked
+                          onChange={field.handleChange}
+                          value={field.state.value}
+                        />
+                      )}
+                    </form.Field>
+
+                    <EmployeeNumberField value={reference.employeeNumber} />
+
+                    <div className="grid gap-5 md:grid-cols-2">
+                      <form.Field name="counterpartUserId">
+                        {(field) => (
+                          <Field className="gap-1">
+                            <FieldLabel
+                              className="text-xs"
+                              htmlFor={field.name}
+                            >
+                              Exchange With (Department Member)
+                            </FieldLabel>
+                            <NativeSelect
+                              className="w-full"
+                              disabled={!departmentId || members.length === 0}
+                              id={field.name}
+                              onChange={(e) => {
+                                field.handleChange(e.target.value);
+                                const member = members.find(
+                                  (m) => m.user_id === e.target.value
                                 );
+                                if (member) {
+                                  form.setFieldValue(
+                                    "exchangeEmployee",
+                                    displayName(member)
+                                  );
+                                }
+                              }}
+                              value={field.state.value}
+                            >
+                              <NativeSelectOption value="">
+                                Select member…
+                              </NativeSelectOption>
+                              {members
+                                .filter(
+                                  (member) => member.user_id !== sessionUser.id
+                                )
+                                .map((member) => (
+                                  <NativeSelectOption
+                                    key={member.user_id}
+                                    value={member.user_id}
+                                  >
+                                    {displayName(member)}
+                                  </NativeSelectOption>
+                                ))}
+                            </NativeSelect>
+                          </Field>
+                        )}
+                      </form.Field>
+
+                      <form.Field name="exchangeEmployee">
+                        {(field) => (
+                          <Field className="gap-1">
+                            <FieldLabel
+                              className="text-xs"
+                              htmlFor={field.name}
+                            >
+                              Employee With Whom Change Is Desired
+                            </FieldLabel>
+                            <Input
+                              id={field.name}
+                              onBlur={field.handleBlur}
+                              onChange={(e) =>
+                                field.handleChange(e.target.value)
                               }
-                            }}
-                            value={field.state.value}
-                          >
-                            <NativeSelectOption value="">
-                              Select member…
-                            </NativeSelectOption>
-                            {members
-                              .filter(
-                                (member) => member.user_id !== sessionUser.id
-                              )
-                              .map((member) => (
-                                <NativeSelectOption
-                                  key={member.user_id}
-                                  value={member.user_id}
-                                >
-                                  {displayName(member)}
-                                </NativeSelectOption>
-                              ))}
-                          </NativeSelect>
-                        </Field>
-                      )}
-                    </form.Field>
+                              readOnly
+                              value={field.state.value}
+                            />
+                          </Field>
+                        )}
+                      </form.Field>
+                    </div>
 
-                    <form.Field name="exchangeEmployee">
+                    <div className="grid gap-5 md:grid-cols-2">
+                      <form.Field name="sourceDate">
+                        {(field) => (
+                          <Field className="gap-1">
+                            <FieldLabel
+                              className="text-xs"
+                              htmlFor={field.name}
+                            >
+                              Date Requested for Change
+                            </FieldLabel>
+                            <DatePicker
+                              id={field.name}
+                              onChange={(date) => {
+                                field.handleChange(date);
+                                form.setFieldValue("sourceShiftCode", "");
+                              }}
+                              value={field.state.value}
+                            />
+                          </Field>
+                        )}
+                      </form.Field>
+
+                      <form.Field name="sourceShiftCode">
+                        {(field) => (
+                          <Field className="gap-1">
+                            <FieldLabel
+                              className="text-xs"
+                              htmlFor={field.name}
+                            >
+                              Shift Requested for Change
+                            </FieldLabel>
+                            <Input
+                              id={field.name}
+                              onChange={(e) =>
+                                field.handleChange(e.target.value)
+                              }
+                              placeholder="e.g. M"
+                              value={field.state.value}
+                            />
+                          </Field>
+                        )}
+                      </form.Field>
+                    </div>
+
+                    <div className="grid gap-5 md:grid-cols-2">
+                      <form.Field name="targetDate">
+                        {(field) => (
+                          <Field className="gap-1">
+                            <FieldLabel
+                              className="text-xs"
+                              htmlFor={field.name}
+                            >
+                              Date of Return Shift
+                            </FieldLabel>
+                            <DatePicker
+                              id={field.name}
+                              onChange={field.handleChange}
+                              value={field.state.value}
+                            />
+                          </Field>
+                        )}
+                      </form.Field>
+
+                      <form.Field name="targetShiftCode">
+                        {(field) => (
+                          <Field className="gap-1">
+                            <FieldLabel
+                              className="text-xs"
+                              htmlFor={field.name}
+                            >
+                              Return Shift
+                            </FieldLabel>
+                            <Input
+                              id={field.name}
+                              onChange={(e) =>
+                                field.handleChange(e.target.value)
+                              }
+                              placeholder="e.g. E"
+                              value={field.state.value}
+                            />
+                          </Field>
+                        )}
+                      </form.Field>
+                    </div>
+
+                    <form.Field name="reason">
                       {(field) => (
                         <Field className="gap-1">
                           <FieldLabel className="text-xs" htmlFor={field.name}>
-                            Employee With Whom Change Is Desired
+                            Reason(s) for Request
                           </FieldLabel>
-                          <Input
+                          <Textarea
                             id={field.name}
-                            onBlur={field.handleBlur}
+                            maxLength={1000}
                             onChange={(e) => field.handleChange(e.target.value)}
-                            readOnly
-                            value={field.state.value}
-                          />
-                        </Field>
-                      )}
-                    </form.Field>
-                  </div>
-
-                  <div className="grid gap-5 md:grid-cols-2">
-                    <form.Field name="sourceDate">
-                      {(field) => (
-                        <Field className="gap-1">
-                          <FieldLabel className="text-xs" htmlFor={field.name}>
-                            Date Requested for Change
-                          </FieldLabel>
-                          <DatePicker
-                            id={field.name}
-                            onChange={(date) => {
-                              field.handleChange(date);
-                              form.setFieldValue("sourceShiftCode", "");
-                            }}
                             value={field.state.value}
                           />
                         </Field>
                       )}
                     </form.Field>
 
-                    <form.Field name="sourceShiftCode">
-                      {(field) => (
-                        <Field className="gap-1">
-                          <FieldLabel className="text-xs" htmlFor={field.name}>
-                            Shift Requested for Change
-                          </FieldLabel>
-                          <Input
-                            id={field.name}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            placeholder="e.g. M"
-                            value={field.state.value}
-                          />
-                        </Field>
-                      )}
-                    </form.Field>
-                  </div>
-
-                  <div className="grid gap-5 md:grid-cols-2">
-                    <form.Field name="targetDate">
-                      {(field) => (
-                        <Field className="gap-1">
-                          <FieldLabel className="text-xs" htmlFor={field.name}>
-                            Date of Return Shift
-                          </FieldLabel>
-                          <DatePicker
-                            id={field.name}
-                            onChange={field.handleChange}
-                            value={field.state.value}
-                          />
-                        </Field>
-                      )}
-                    </form.Field>
-
-                    <form.Field name="targetShiftCode">
-                      {(field) => (
-                        <Field className="gap-1">
-                          <FieldLabel className="text-xs" htmlFor={field.name}>
-                            Return Shift
-                          </FieldLabel>
-                          <Input
-                            id={field.name}
-                            onChange={(e) => field.handleChange(e.target.value)}
-                            placeholder="e.g. E"
-                            value={field.state.value}
-                          />
-                        </Field>
-                      )}
-                    </form.Field>
-                  </div>
-
-                  <form.Field name="reason">
-                    {(field) => (
-                      <Field className="gap-1">
-                        <FieldLabel className="text-xs" htmlFor={field.name}>
-                          Reason(s) for Request
-                        </FieldLabel>
-                        <Textarea
-                          id={field.name}
-                          maxLength={1000}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          value={field.state.value}
-                        />
-                      </Field>
-                    )}
-                  </form.Field>
-
-                  <Field className="gap-1">
-                    <FieldLabel className="text-xs">
-                      Additional co-approvers (the exchange employee is always
-                      required)
-                    </FieldLabel>
-                    <CoApproverPicker
-                      departmentId={departmentId}
-                      excludeUserId={sessionUser.id}
-                      onChange={setCoApprovers}
-                      selected={coApprovers}
-                    />
-                  </Field>
-                </FieldGroup>
-              </form>
-            )}
-          </div>
-
-          <ExchangeShiftPrefill
-            date={values.sourceDate}
-            onPrefill={(code) => form.setFieldValue("sourceShiftCode", code)}
-            selected={values.sourceShiftCode}
-          />
-          <HrPdfPreview
-            payload={buildPayload(values, departmentId ?? "")}
-            previewPath="/api/v1/hr/shift-swaps/preview-pdf"
-            ready={Boolean(
-              departmentId &&
-                values.counterpartUserId &&
-                values.sourceDate &&
-                values.targetDate &&
-                values.sourceShiftCode &&
-                values.targetShiftCode
-            )}
-            signedDocumentId={submission?.signed_document_id}
-            title="Shift Exchange Requisition"
-          />
-        </div>
+                    <Field className="gap-1">
+                      <FieldLabel className="text-xs">
+                        Additional co-approvers (the exchange employee is always
+                        required)
+                      </FieldLabel>
+                      <CoApproverPicker
+                        departmentId={departmentId}
+                        excludeUserId={sessionUser.id}
+                        onChange={setCoApprovers}
+                        selected={coApprovers}
+                      />
+                    </Field>
+                  </FieldGroup>
+                </form>
+              )}
+            </div>
+          }
+          entityType="shift_swap"
+          label="Shift Exchange Requisition"
+          preview={
+            <>
+              <ExchangeShiftPrefill
+                date={values.sourceDate}
+                onPrefill={(code) =>
+                  form.setFieldValue("sourceShiftCode", code)
+                }
+                selected={values.sourceShiftCode}
+              />
+              <HrPdfPreview
+                filename="shift-exchange.pdf"
+                payload={buildPayload(values, departmentId ?? "")}
+                previewPath="/api/v1/hr/shift-swaps/preview-pdf"
+                ready={Boolean(
+                  departmentId &&
+                    values.counterpartUserId &&
+                    values.sourceDate &&
+                    values.targetDate &&
+                    values.sourceShiftCode &&
+                    values.targetShiftCode
+                )}
+                signedDocumentId={submission?.signed_document_id}
+                title="Shift Exchange Requisition"
+              />
+            </>
+          }
+        />
       )}
     </form.Subscribe>
   );

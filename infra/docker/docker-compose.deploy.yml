@@ -187,6 +187,21 @@ services:
       ELECTIONS_APP_URL: https://elections.${BASE_DOMAIN}
       ELECTIONS_SSO_CLIENT_SECRET: ${ELECTIONS_SSO_CLIENT_SECRET:-}
       RESEND_API_KEY: ${RESEND_API_KEY}
+      # Optional integrations (2026-10-18); empty values fall back to defaults.
+      MBIA_CONTACT_RECIPIENT: ${MBIA_CONTACT_RECIPIENT:-}
+      BARRELS_CONTACT_RECIPIENT: ${BARRELS_CONTACT_RECIPIENT:-}
+      GMS_DATA_REQUEST_RECIPIENT: ${GMS_DATA_REQUEST_RECIPIENT:-}
+      EREGISTER_OBS_RECIPIENTS: ${EREGISTER_OBS_RECIPIENTS:-}
+      EREGISTER_SEND_REQUIRE_ACCEPTED: ${EREGISTER_SEND_REQUIRE_ACCEPTED:-}
+      WIS2BOX_S3_ENDPOINT_URL: ${WIS2BOX_S3_ENDPOINT_URL:-}
+      WIS2BOX_S3_BUCKET: ${WIS2BOX_S3_BUCKET:-}
+      WIS2BOX_TOPIC_HIERARCHY: ${WIS2BOX_TOPIC_HIERARCHY:-}
+      FLIGHTS_OPENSKY_ENABLED: ${FLIGHTS_OPENSKY_ENABLED:-}
+      WIS2BOX_S3_ACCESS_KEY_ID: ${WIS2BOX_S3_ACCESS_KEY_ID:-}
+      WIS2BOX_S3_SECRET_ACCESS_KEY: ${WIS2BOX_S3_SECRET_ACCESS_KEY:-}
+      OPENSKY_CLIENT_ID: ${OPENSKY_CLIENT_ID:-}
+      OPENSKY_CLIENT_SECRET: ${OPENSKY_CLIENT_SECRET:-}
+      SUBSCRIPTIONS_SITE_URLS: ${SUBSCRIPTIONS_SITE_URLS:-}
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
       GOOGLE_REDIRECT_URI: https://auth.${BASE_DOMAIN}/google/callback
@@ -274,6 +289,21 @@ services:
       CAP_SIGNING_KEY_REF: ${CAP_SIGNING_KEY_REF:-cap-signing-key}
       PROJECT_NAME: ${PROJECT_NAME}
       RESEND_API_KEY: ${RESEND_API_KEY}
+      # Optional integrations (2026-10-18); empty values fall back to defaults.
+      MBIA_CONTACT_RECIPIENT: ${MBIA_CONTACT_RECIPIENT:-}
+      BARRELS_CONTACT_RECIPIENT: ${BARRELS_CONTACT_RECIPIENT:-}
+      GMS_DATA_REQUEST_RECIPIENT: ${GMS_DATA_REQUEST_RECIPIENT:-}
+      EREGISTER_OBS_RECIPIENTS: ${EREGISTER_OBS_RECIPIENTS:-}
+      EREGISTER_SEND_REQUIRE_ACCEPTED: ${EREGISTER_SEND_REQUIRE_ACCEPTED:-}
+      WIS2BOX_S3_ENDPOINT_URL: ${WIS2BOX_S3_ENDPOINT_URL:-}
+      WIS2BOX_S3_BUCKET: ${WIS2BOX_S3_BUCKET:-}
+      WIS2BOX_TOPIC_HIERARCHY: ${WIS2BOX_TOPIC_HIERARCHY:-}
+      FLIGHTS_OPENSKY_ENABLED: ${FLIGHTS_OPENSKY_ENABLED:-}
+      WIS2BOX_S3_ACCESS_KEY_ID: ${WIS2BOX_S3_ACCESS_KEY_ID:-}
+      WIS2BOX_S3_SECRET_ACCESS_KEY: ${WIS2BOX_S3_SECRET_ACCESS_KEY:-}
+      OPENSKY_CLIENT_ID: ${OPENSKY_CLIENT_ID:-}
+      OPENSKY_CLIENT_SECRET: ${OPENSKY_CLIENT_SECRET:-}
+      SUBSCRIPTIONS_SITE_URLS: ${SUBSCRIPTIONS_SITE_URLS:-}
       EMAILS_FROM_EMAIL: ${EMAILS_FROM_EMAIL}
       EMAIL_RENDER_URL: ${EMAIL_RENDER_URL:-}
       EMAIL_RENDER_SECRET: ${EMAIL_RENDER_SECRET:-}
@@ -460,6 +490,12 @@ services:
       - "traefik.http.routers.web-admin${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
       - "traefik.http.services.web-admin${ROUTER_SUFFIX}.loadbalancer.server.port=3001"
       - "traefik.http.services.web-admin${ROUTER_SUFFIX}.loadbalancer.healthcheck.path=/api/ready"
+      # gmsadmin.* is the portal's new host (2026-10-18); a separate router keeps
+      # its certificate independent, so a missing DNS record cannot break admin.*.
+      - "traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.rule=Host(`gmsadmin.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.routers.web-gmsadmin${ROUTER_SUFFIX}.service=web-admin${ROUTER_SUFFIX}"
     networks:
       - grenmet
 

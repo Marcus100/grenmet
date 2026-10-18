@@ -200,12 +200,34 @@ export interface Organiser {
   readonly bio: string;
   readonly followerCount: number;
   readonly id: string;
+  /** Stored logo (an organisation upload); render it with `storedImageUrl`. */
+  readonly logoFileId?: string | null;
   readonly name: string;
+  /** Platform organisation backing this organiser; null while legacy. */
+  readonly organisationId?: string | null;
   readonly slug: string;
   /** Verification is earned, never bought or transferred. */
   readonly verified: boolean;
   /** Null for visitors who are not signed in. */
   readonly viewerFollowing: boolean | null;
+}
+
+/** An organiser the signed-in member can manage (for the console switcher). */
+export interface OrganiserOption {
+  readonly name: string;
+  readonly organisationId: string | null;
+  readonly slug: string;
+}
+
+/** One row of a listing's append-only history (organiser console). */
+export interface ActivityEntry {
+  readonly action: string;
+  readonly actorName: string | null;
+  /** Names of the fields the change touched. */
+  readonly changed: readonly string[];
+  /** ISO 8601, UTC. */
+  readonly createdAt: string;
+  readonly id: string;
 }
 
 export interface PublicEvent {
@@ -219,6 +241,8 @@ export interface PublicEvent {
   readonly goingCount: number;
   readonly goingNames: readonly string[];
   readonly id: string;
+  /** Stored cover image (an organisation upload); render it with `storedImageUrl`. */
+  readonly imageFileId?: string | null;
   /** Slug of the hosting organiser. */
   readonly organiserSlug: string;
   readonly parish: Parish;
@@ -246,10 +270,38 @@ export interface EventDetail extends PublicEvent {
   readonly organiser: Organiser;
   readonly tiers: readonly {
     readonly allocation: number;
+    /** Valid tickets the signed-in viewer already holds for this tier. */
+    readonly held: number;
     readonly id: string;
     readonly name: string;
+    /** Most valid tickets one account may hold for this tier. */
+    readonly perAccountLimit: number;
     readonly price: Money;
+    /** Tickets still available. */
+    readonly remaining: number;
   }[];
+}
+
+/** A ticket the signed-in member holds. */
+export interface MyTicket {
+  readonly admittedAt: string | null;
+  readonly canCancel: boolean;
+  /** Printed under the QR code for manual entry at the door. */
+  readonly code: string;
+  readonly endsAt: string;
+  readonly id: string;
+  readonly listingSlug: string;
+  readonly listingTitle: string;
+  readonly parish: Parish;
+  readonly startsAt: string;
+  readonly status: "valid" | "cancelled";
+  readonly tierName: string;
+  readonly venue: string;
+}
+
+/** A ticket with the signed token its QR code encodes. */
+export interface MyTicketDetail extends MyTicket {
+  readonly qrToken: string;
 }
 
 /** What an organiser edits; adds publishing state to the public listing. */
@@ -404,4 +456,37 @@ export interface EventFilters {
   readonly query?: string;
   readonly tag?: string;
   readonly when?: "tonight" | "weekend" | "week" | "month";
+}
+
+/** One ticket on the door list. */
+export interface DoorRow {
+  readonly admittedAt: string | null;
+  readonly code: string;
+  readonly holderName: string | null;
+  readonly ticketId: string;
+  readonly tierName: string;
+}
+
+/** The door list for one event, with live counts. */
+export interface DoorManifest {
+  readonly admitted: number;
+  readonly cancelled: number;
+  readonly generatedAt: string;
+  readonly issued: number;
+  readonly listingId: string;
+  readonly rows: readonly DoorRow[];
+  readonly startsAt: string;
+  readonly title: string;
+  readonly waiting: number;
+}
+
+/** The outcome of admitting one ticket. */
+export interface DoorAdmission {
+  readonly admittedAt: string;
+  readonly admittedByName: string | null;
+  readonly code: string;
+  readonly holderName: string | null;
+  /** True when the scan repeated an earlier one with the same key. */
+  readonly repeat: boolean;
+  readonly tierName: string;
 }

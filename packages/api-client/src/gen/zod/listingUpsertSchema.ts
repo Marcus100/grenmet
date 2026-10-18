@@ -32,4 +32,5 @@ export const listingUpsertSchema = z.object({
     .union([z.string().regex(/^[a-z0-9][a-z0-9-]{1,79}$/), z.null()])
     .optional(),
   tiers: z.array(tierInputSchema).max(20).optional(),
+  image_file_id: z.union([z.uuid(), z.null()]).optional(),
 });

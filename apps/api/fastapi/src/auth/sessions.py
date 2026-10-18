@@ -7,7 +7,7 @@ from typing import Any
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.auth.apps import is_app_scoped, is_registered
+from src.auth.apps import get_app, is_app_scoped, is_registered
 from src.auth.config import auth_settings
 from src.auth.eligibility import (
     is_eligible_for_app,
@@ -271,7 +271,11 @@ async def exchange_session_for_access_token(
         )
     elif is_registered(db_session.app_name):
         # Staff-app session (GAA Admin): keep the staff gate.
-        eligible = user is not None and is_staff_eligible(user)
+        eligible = (
+            user is not None
+            and is_staff_eligible(user)
+            and get_app(db_session.app_name or "").allows(user)
+        )
     else:
         # Account session from auth.barrels.gd: any active account. Its
         # unscoped token still fails every staff route for unapproved users.

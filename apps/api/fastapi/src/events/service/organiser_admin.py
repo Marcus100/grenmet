@@ -3,26 +3,37 @@
 import re
 import secrets
 import uuid
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import TypeAdapter
-from sqlalchemy import delete, select
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.auth.models import User
+from src.organisations import service as organisations
+from src.organisations.models import MembershipRole, OrganisationKind
+from src.storage import uploads as org_uploads
 from src.utils.datetime import utc_now
 
-from .. import schemas
+from .. import activity, outbox, schemas
 from ..exceptions import EventsConflict, EventsForbidden, EventsNotFound
 from ..models import (
     Group,
     Listing,
     Organiser,
     OrganiserMember,
+    Ticket,
     TicketTier,
 )
-from .common import _naive_utc
-from .discover import _cards, _group, _group_summaries, _organiser_public, _tiers
+from .common import _naive_utc, _pairs
+from .discover import (
+    _cards,
+    _group,
+    _group_summaries,
+    _organiser_public,
+    _organiser_verified,
+    _tiers,
+)
 
 _STATUS = TypeAdapter(Literal["draft", "published", "cancelled"])
 _VISIBILITY = TypeAdapter(Literal["public", "unlisted"])
@@ -30,13 +41,44 @@ _VISIBILITY = TypeAdapter(Literal["public", "unlisted"])
 # --- Organiser management -------------------------------------------------------------------
 
 
-async def _my_organiser(db: AsyncSession, user: User) -> Organiser:
-    organiser = await db.scalar(
-        select(Organiser)
-        .join(OrganiserMember, OrganiserMember.organiser_id == Organiser.id)
-        .where(OrganiserMember.user_id == user.id)
-        .order_by(Organiser.name)
-        .limit(1)
+async def my_organisers(
+    db: AsyncSession, user: User, org_ids: list[str]
+) -> list[Organiser]:
+    """Organisers the user can manage: a platform admin/owner membership, or (for
+    organisers not yet linked to an organisation) a legacy ``organiser_members`` row.
+    Once linked, the platform membership is authoritative."""
+    return list(
+        (
+            await db.scalars(
+                select(Organiser)
+                .outerjoin(
+                    OrganiserMember,
+                    and_(
+                        OrganiserMember.organiser_id == Organiser.id,
+                        OrganiserMember.user_id == user.id,
+                    ),
+                )
+                .where(
+                    or_(
+                        and_(
+                            Organiser.organisation_id.is_(None),
+                            OrganiserMember.user_id.is_not(None),
+                        ),
+                        Organiser.organisation_id.in_(org_ids),
+                    )
+                )
+                .order_by(Organiser.name, Organiser.id)
+            )
+        ).all()
+    )
+
+
+async def _my_organiser(
+    db: AsyncSession, user: User, org_ids: list[str], slug: str | None = None
+) -> Organiser:
+    candidates = await my_organisers(db, user, org_ids)
+    organiser = next(
+        (row for row in candidates if slug is None or row.slug == slug), None
     )
     if organiser is None:
         raise EventsForbidden("You're not a member of an organiser yet")
@@ -56,14 +98,16 @@ async def _managed(
         capacity=listing.capacity,
         organiser=await _organiser_public(db, organiser, user.id),
         group=(await _group_summaries(db, [group], user.id))[0] if group else None,
-        tiers=await _tiers(db, listing.id),
+        tiers=await _tiers(db, listing.id, user.id),
         status=_STATUS.validate_python(listing.status),
         visibility=_VISIBILITY.validate_python(listing.visibility),
     )
 
 
-async def managed_organiser(db: AsyncSession, user: User) -> schemas.ManagedOrganiser:
-    organiser = await _my_organiser(db, user)
+async def managed_organiser(
+    db: AsyncSession, user: User, org_ids: list[str], slug: str | None = None
+) -> schemas.ManagedOrganiser:
+    organiser = await _my_organiser(db, user, org_ids, slug)
     listings = (
         await db.scalars(
             select(Listing)
@@ -74,6 +118,16 @@ async def managed_organiser(db: AsyncSession, user: User) -> schemas.ManagedOrga
     public = await _organiser_public(db, organiser, user.id)
     return schemas.ManagedOrganiser(
         **public.model_dump(),
+        organisers=[
+            schemas.OrganiserOption(
+                id=row.id,
+                slug=row.slug,
+                name=row.name,
+                organisation_id=row.organisation_id,
+                verified=row.verified,
+            )
+            for row in await my_organisers(db, user, org_ids)
+        ],
         listings=[await _managed(db, row, user) for row in listings],
     )
 
@@ -91,12 +145,29 @@ async def _unique_slug(db: AsyncSession, title: str) -> str:
     return candidate
 
 
+async def _require_file(
+    file_id: uuid.UUID | None, organiser: Organiser, purpose: str
+) -> None:
+    """A stored file must be a completed upload of this organiser's organisation.
+
+    Only checked when the id changes, so existing references stay valid.
+    """
+    if file_id is None:
+        return
+    if organiser.organisation_id is None:
+        raise EventsConflict("Link this organiser to an organisation before uploading")
+    if not await org_uploads.file_is_usable(
+        file_id, organisation_id=organiser.organisation_id, purpose=purpose
+    ):
+        raise EventsConflict("That upload is not available for this organiser")
+
+
 def _validate_listing(body: schemas.ListingUpsert) -> None:
     if body.ends_at <= body.starts_at:
         raise EventsConflict("End time must be after the start time")
     if body.admission == "ticketed":
-        if not body.tiers or any(tier.price_minor <= 0 for tier in body.tiers):
-            raise EventsConflict("Ticketed events need at least one priced tier")
+        if not body.tiers:
+            raise EventsConflict("Ticketed events need at least one ticket tier")
         if sum(tier.allocation for tier in body.tiers) > body.capacity:
             raise EventsConflict("Tier allocations exceed capacity")
 
@@ -131,37 +202,374 @@ async def _apply_listing(
     listing.tags = [tag.strip().lower()[:30] for tag in body.tags if tag.strip()]
     listing.group_id = group_id
     listing.organiser_id = organiser.id
+    if body.image_file_id != listing.image_file_id:
+        await _require_file(body.image_file_id, organiser, "listing-image")
+        listing.image_file_id = body.image_file_id
     listing.updated_at = utc_now()
     db.add(listing)
     await db.flush()
-    await db.execute(delete(TicketTier).where(TicketTier.listing_id == listing.id))
-    db.add_all(
-        [
-            TicketTier(listing_id=listing.id, sort_order=index, **tier.model_dump())
-            for index, tier in enumerate(
-                body.tiers if body.admission == "ticketed" else []
+    await _sync_tiers(db, listing, body.tiers if body.admission == "ticketed" else [])
+
+
+async def _sync_tiers(
+    db: AsyncSession, listing: Listing, wanted: list[schemas.TierInput]
+) -> None:
+    """Update tiers in place so issued tickets keep their tier.
+
+    A tier with any ticket cannot be removed, and its allocation cannot drop
+    below the tickets already valid.
+    """
+    existing = {
+        row.id: row
+        for row in await db.scalars(
+            select(TicketTier)
+            .where(TicketTier.listing_id == listing.id)
+            .with_for_update()
+        )
+    }
+    issued = _pairs(
+        await db.execute(
+            select(Ticket.tier_id, func.count())
+            .where(Ticket.listing_id == listing.id)
+            .group_by(Ticket.tier_id)
+        )
+    )
+    valid = _pairs(
+        await db.execute(
+            select(Ticket.tier_id, func.count())
+            .where(Ticket.listing_id == listing.id, Ticket.status == "valid")
+            .group_by(Ticket.tier_id)
+        )
+    )
+    keep: set[uuid.UUID] = set()
+    for index, tier in enumerate(wanted):
+        row = None
+        if tier.id is not None:
+            row = existing.get(tier.id)
+            if row is None or tier.id in keep:
+                raise EventsConflict("Unknown ticket tier")
+        values = tier.model_dump(exclude={"id"})
+        if row is None:
+            db.add(TicketTier(listing_id=listing.id, sort_order=index, **values))
+            continue
+        if tier.allocation < valid.get(row.id, 0):
+            raise EventsConflict(
+                f"{row.name} already has {valid[row.id]} tickets; "
+                "allocation can't go below that"
             )
-        ]
+        keep.add(row.id)
+        row.sort_order = index
+        for key, value in values.items():
+            setattr(row, key, value)
+    for tier_id, row in existing.items():
+        if tier_id in keep:
+            continue
+        if issued.get(tier_id, 0):
+            raise EventsConflict(f"{row.name} has tickets issued and can't be removed")
+        await db.delete(row)
+    await db.flush()
+
+
+async def _snapshot(db: AsyncSession, listing: Listing) -> dict[str, Any]:
+    """The listing's comparable state, for the activity diff."""
+    tiers = (
+        await db.execute(
+            select(TicketTier.name, TicketTier.price_minor, TicketTier.allocation)
+            .where(TicketTier.listing_id == listing.id)
+            .order_by(TicketTier.sort_order)
+        )
+    ).all()
+    return {
+        "title": listing.title,
+        "summary": listing.summary,
+        "description": listing.description,
+        "category": listing.category,
+        "parish": listing.parish,
+        "venue": listing.venue,
+        "admission": listing.admission,
+        "capacity": listing.capacity,
+        "recurrence": listing.recurrence,
+        "visibility": listing.visibility,
+        "status": listing.status,
+        "starts_at": listing.starts_at.isoformat(),
+        "ends_at": listing.ends_at.isoformat(),
+        "tags": list(listing.tags),
+        "group_id": str(listing.group_id) if listing.group_id else None,
+        "image_file_id": str(listing.image_file_id) if listing.image_file_id else None,
+        "tiers": [[row.name, row.price_minor, row.allocation] for row in tiers],
+    }
+
+
+async def _record_listing_change(
+    db: AsyncSession,
+    listing: Listing,
+    actor: User,
+    *,
+    before: dict[str, Any] | None,
+) -> None:
+    """One activity row, plus outbox rows for effects other people care about,
+    both in the caller's transaction. ``before`` is None for a new listing."""
+    after = await _snapshot(db, listing)
+    before_status = before["status"] if before else None
+    before_starts = before["starts_at"] if before else None
+    key = str(listing.id)
+    payload = {"actor_id": str(actor.id), "starts_at": listing.starts_at.isoformat()}
+    kind: str | None = None
+    dedupe = ""
+    if listing.status == "published" and before_status != "published":
+        kind, action, dedupe = (
+            outbox.PUBLISHED,
+            "listing.published",
+            f"listing.published:{key}",
+        )
+    elif listing.status == "cancelled" and before_status != "cancelled":
+        kind, action, dedupe = (
+            outbox.CANCELLED,
+            "listing.cancelled",
+            f"listing.cancelled:{key}",
+        )
+    elif (
+        listing.status == "published"
+        and before_status == "published"
+        and before_starts != after["starts_at"]
+    ):
+        kind, action = outbox.POSTPONED, "listing.rescheduled"
+        dedupe = f"listing.postponed:{key}:{after['starts_at']}"
+    elif before is None:
+        action = "listing.created"
+    else:
+        action = "listing.updated"
+    if kind is not None:
+        await outbox.enqueue(
+            db,
+            kind=kind,
+            entity_type="listing",
+            entity_id=key,
+            dedupe_key=dedupe,
+            payload=payload,
+        )
+    summary = activity.diff(before or {}, after)
+    summary["created"] = before is None
+    activity.record(
+        db,
+        actor_id=actor.id,
+        action=action,
+        entity_type="listing",
+        entity_id=key,
+        organiser_id=listing.organiser_id,
+        summary=summary,
     )
 
 
+UNVERIFIED_PUBLISH = (
+    "Only verified organisers can publish events. Save this one as a draft; "
+    "it can go live once Barrels verifies your organiser account."
+)
+
+
+async def _require_verified_to_publish(
+    organiser: Organiser, status: str, before_status: str | None
+) -> None:
+    """Publishing is for verified organisers; drafts are open to everyone."""
+    if status == "published" and before_status != "published":
+        if not await _organiser_verified(organiser):
+            raise EventsForbidden(UNVERIFIED_PUBLISH)
+
+
 async def create_listing(
-    db: AsyncSession, user: User, body: schemas.ListingUpsert
+    db: AsyncSession,
+    user: User,
+    body: schemas.ListingUpsert,
+    org_ids: list[str],
+    slug: str | None = None,
 ) -> schemas.ManagedListing:
-    organiser = await _my_organiser(db, user)
+    organiser = await _my_organiser(db, user, org_ids, slug)
+    await _require_verified_to_publish(organiser, body.status, None)
     listing = Listing(slug=await _unique_slug(db, body.title))
     await _apply_listing(db, listing, body, organiser)
+    await _record_listing_change(db, listing, user, before=None)
     await db.commit()
     return await _managed(db, listing, user)
 
 
 async def update_listing(
-    db: AsyncSession, user: User, listing_id: uuid.UUID, body: schemas.ListingUpsert
+    db: AsyncSession,
+    user: User,
+    listing_id: uuid.UUID,
+    body: schemas.ListingUpsert,
+    org_ids: list[str],
+    slug: str | None = None,
 ) -> schemas.ManagedListing:
-    organiser = await _my_organiser(db, user)
+    organiser = await _my_organiser(db, user, org_ids, slug)
     listing = await db.get(Listing, listing_id)
     if listing is None or listing.organiser_id != organiser.id:
         raise EventsNotFound("Event not found")
+    before = await _snapshot(db, listing)
+    await _require_verified_to_publish(organiser, body.status, before["status"])
     await _apply_listing(db, listing, body, organiser)
+    await _record_listing_change(db, listing, user, before=before)
     await db.commit()
     return await _managed(db, listing, user)
+
+
+async def listing_activity(
+    db: AsyncSession,
+    user: User,
+    listing_id: uuid.UUID,
+    org_ids: list[str],
+    slug: str | None = None,
+    limit: int = 50,
+) -> list[schemas.ActivityEntry]:
+    organiser = await _my_organiser(db, user, org_ids, slug)
+    listing = await db.get(Listing, listing_id)
+    if listing is None or listing.organiser_id != organiser.id:
+        raise EventsNotFound("Event not found")
+    return await activity.entries(
+        db, entity_type="listing", entity_id=str(listing.id), limit=limit
+    )
+
+
+async def create_organiser(
+    events: AsyncSession,
+    platform: AsyncSession,
+    user: User,
+    *,
+    name: str,
+    slug: str | None = None,
+    bio: str = "",
+) -> Organiser:
+    """Create an organiser backed by a new platform organisation, with the creator
+    as its owner. The platform side commits first; if the Events insert then fails
+    the orphan organisation is harmless and can be removed from the platform."""
+    clean = name.strip()
+    wanted = _SLUG_STRIP.sub("-", (slug or clean).lower()).strip("-")[:60]
+    if not clean or not wanted:
+        raise EventsConflict("An organiser needs a name")
+    if await events.scalar(select(Organiser.id).where(Organiser.slug == wanted)):
+        raise EventsConflict("That organiser address is taken")
+    organisation = await organisations.create_organisation(
+        platform, name=clean, kind=OrganisationKind.BUSINESS, slug=wanted
+    )
+    await organisations.add_member(
+        platform,
+        organisation_id=organisation.id,
+        user_id=user.id,
+        role=MembershipRole.OWNER,
+    )
+    await platform.commit()
+    organiser = Organiser(
+        id=uuid.uuid4(),
+        slug=wanted,
+        name=clean,
+        bio=bio,
+        organisation_id=organisation.id,
+    )
+    events.add(organiser)
+    activity.record(
+        events,
+        actor_id=user.id,
+        action="organiser.created",
+        entity_type="organiser",
+        entity_id=str(organiser.id),
+        organiser_id=organiser.id,
+        summary={"slug": wanted},
+    )
+    await events.commit()
+    return organiser
+
+
+async def set_organiser_logo(
+    db: AsyncSession,
+    user: User,
+    file_id: uuid.UUID | None,
+    org_ids: list[str],
+    slug: str | None = None,
+) -> schemas.OrganiserPublic:
+    """Set or clear the organiser's logo (a completed `organiser-logo` upload)."""
+    organiser = await _my_organiser(db, user, org_ids, slug)
+    if file_id != organiser.logo_file_id:
+        await _require_file(file_id, organiser, "organiser-logo")
+        organiser.logo_file_id = file_id
+        activity.record(
+            db,
+            actor_id=user.id,
+            action="organiser.logo_changed",
+            entity_type="organiser",
+            entity_id=str(organiser.id),
+            organiser_id=organiser.id,
+            summary={"changed": ["logo_file_id"]},
+        )
+        await db.commit()
+    return await _organiser_public(db, organiser, user.id)
+
+
+async def request_organiser(
+    events: AsyncSession,
+    platform: AsyncSession,
+    user: User,
+    body: schemas.OrganiserCreate,
+) -> schemas.OrganiserPublic:
+    """Self-service organiser account: created unverified (pending) with the member
+    as owner. One pending request per member; a moderator verifies it."""
+    owned = await organisations.list_managed_organisation_ids(platform, user.id)
+    if owned and await events.scalar(
+        select(Organiser.id).where(
+            Organiser.organisation_id.in_(owned), Organiser.verified.is_(False)
+        )
+    ):
+        raise EventsConflict("Your organiser request is awaiting review")
+    organiser = await create_organiser(
+        events, platform, user, name=body.name, slug=body.slug, bio=body.bio
+    )
+    return await _organiser_public(events, organiser, user.id)
+
+
+async def organiser_public(
+    db: AsyncSession, organiser: Organiser, viewer_id: uuid.UUID
+) -> schemas.OrganiserPublic:
+    return await _organiser_public(db, organiser, viewer_id)
+
+
+async def pending_organisers(db: AsyncSession) -> list[Organiser]:
+    return list(
+        (
+            await db.scalars(
+                select(Organiser)
+                .where(Organiser.verified.is_(False))
+                .where(Organiser.organisation_id.is_not(None))
+                .order_by(Organiser.created_at, Organiser.id)
+            )
+        ).all()
+    )
+
+
+async def review_organiser(
+    db: AsyncSession, organiser_id: uuid.UUID, verified: bool, actor: User
+) -> Organiser:
+    organiser = await db.get(Organiser, organiser_id)
+    if organiser is None:
+        raise EventsNotFound("Organiser not found")
+    was_verified = organiser.verified
+    organiser.verified = verified
+    db.add(organiser)
+    if verified != was_verified:
+        activity.record(
+            db,
+            actor_id=actor.id,
+            action="organiser.verified" if verified else "organiser.unverified",
+            entity_type="organiser",
+            entity_id=str(organiser.id),
+            organiser_id=organiser.id,
+            summary={"verified": verified},
+        )
+    if verified and not was_verified:
+        await outbox.enqueue(
+            db,
+            kind=outbox.ORGANISER_APPROVED,
+            entity_type="organiser",
+            entity_id=str(organiser.id),
+            dedupe_key=f"organiser.approved:{organiser.id}",
+            payload={"actor_id": str(actor.id)},
+        )
+    await db.commit()
+    return organiser

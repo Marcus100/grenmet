@@ -1,18 +1,38 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import "./build.mjs";
 
 const HIDDEN_PRIVACY_CARD = /<section[^>]*hidden[^>]*id="analytics-settings"/s;
 const PRIVACY_DIALOG = /<section[^>]*role="dialog"/s;
+const OVERCLAIM = /certified|ISO\s?\d|Microsoft Partner|Google Partner/i;
+const ELEMENT_ID = /\sid="([\w-]+)"/g;
+const WHITESPACE = /\s+/;
+const LOCAL_SRC = /src="\/[^"]+"/;
+const DESCRIBED_BY = /aria-describedby="([^"]+)"/g;
+const SCRIPT_OPEN = /<script\b([^>]*)>/g;
+const SCRIPT_SRC = /<script[^>]*src="([^"]+)"/g;
+const STYLE_BLOCK = /<style\b/;
+const STYLE_ATTRIBUTE = /\sstyle="/;
+const EVENT_ATTRIBUTE = /\son[a-z]+="/i;
+const PACKAGE_HEADING = /<h2 id="package-[\w-]+">([^<]+)<\/h2>/g;
+const H1_TAG = /<h1>/g;
+const CSS_VARIABLE = /var\((--[\w-]+)\)/g;
+const NEWSLETTER_LABEL = /<label for="newsletter-email">/;
+const PAGES = [
+  "index.html",
+  "services/index.html",
+  "contact/index.html",
+  "subscribe/status/index.html",
+];
+
+const read = (path) =>
+  readFileSync(new URL(`./dist/${path}`, import.meta.url), "utf8");
 
 test("holding page ships accessible content and only local analytics wiring", () => {
-  const html = readFileSync(
-    new URL("./dist/index.html", import.meta.url),
-    "utf8"
-  );
+  const html = read("index.html");
   assert.ok(html.includes('<html lang="en">'));
-  assert.ok(html.includes("<main>") && html.includes("<h1>"));
+  assert.ok(html.includes("<main") && html.includes("<h1>"));
   assert.ok(html.includes('href="https://eugine.me/"'));
   assert.ok(html.includes("Built by Eugine Whint"));
   assert.ok(html.includes('src="/analytics.mjs"'));
@@ -24,30 +44,132 @@ test("holding page ships accessible content and only local analytics wiring", ()
   assert.match(html, PRIVACY_DIALOG);
 });
 
+test("every page is built from the shared partials and exists in dist", () => {
+  for (const page of PAGES) {
+    assert.ok(existsSync(new URL(`./dist/${page}`, import.meta.url)), page);
+    const html = read(page);
+    assert.ok(!html.includes("@include"), `${page} has an unresolved include`);
+    assert.ok(html.includes('class="skip-link"'), `${page} skip link`);
+    assert.ok(html.includes('aria-label="Main"'), `${page} main navigation`);
+    assert.ok(html.includes('class="site-footer"'), `${page} footer`);
+    assert.match(html, HIDDEN_PRIVACY_CARD, `${page} privacy card`);
+    assert.equal((html.match(H1_TAG) ?? []).length, 1, `${page} one h1`);
+  }
+});
+
+test("home page says who Barrels is and keeps the client boundary accurate", () => {
+  const html = read("index.html");
+  assert.ok(html.includes("software-led technology company"));
+  assert.ok(html.includes("Grenada Airports Authority"));
+  assert.ok(html.includes("Grenada Meteorological Service"));
+  assert.ok(html.includes("They are not Barrels products."));
+  assert.ok(!OVERCLAIM.test(html));
+});
+
+test("services page lists exactly the four first-catalogue packages", () => {
+  const html = read("services/index.html");
+  const headings = [...html.matchAll(PACKAGE_HEADING)].map((match) => match[1]);
+  assert.deepEqual(headings, [
+    "Web and Software",
+    "Managed IT",
+    "AI and Data",
+    "Cloud and Security",
+  ]);
+  assert.ok(html.includes("DRAFT COPY"), "services copy is marked as draft");
+  assert.ok(!OVERCLAIM.test(html));
+});
+
+test("contact form is labelled, validated in place and posts to the barrels site", () => {
+  const html = read("contact/index.html");
+  assert.ok(html.includes('id="contact-form"'));
+  assert.ok(html.includes('method="post"'));
+  for (const field of ["name", "email", "subject", "message"]) {
+    assert.ok(
+      html.includes(`<label for="contact-${field}">`),
+      `label for ${field}`
+    );
+    assert.ok(
+      html.includes(`id="contact-${field}-error"`),
+      `error for ${field}`
+    );
+  }
+  assert.ok(html.includes('type="email"'));
+  assert.ok(html.includes('name="website"'), "honeypot field present");
+  assert.ok(html.includes('aria-live="polite"'), "status region announced");
+  assert.ok(html.includes("<noscript>"), "no-JavaScript notice");
+});
+
+test("newsletter form has a labelled email field and the honeypot", () => {
+  const html = read("index.html");
+  assert.ok(html.includes('id="newsletter-form"'));
+  assert.match(html, NEWSLETTER_LABEL);
+  assert.ok(html.includes('id="newsletter-email"'));
+  assert.ok(html.includes('name="website"'));
+  assert.ok(html.includes("novalidate"));
+});
+
+test("every described field refers to an element that exists", () => {
+  for (const page of PAGES) {
+    const html = read(page);
+    const ids = new Set([...html.matchAll(ELEMENT_ID)].map((m) => m[1]));
+    for (const [, refs] of html.matchAll(DESCRIBED_BY))
+      for (const ref of refs.split(WHITESPACE))
+        assert.ok(ids.has(ref), `${page} describes missing #${ref}`);
+  }
+});
+
+test("pages keep to the CSP: no inline script, style or event handlers", () => {
+  for (const page of PAGES) {
+    const html = read(page);
+    for (const [, tag] of html.matchAll(SCRIPT_OPEN))
+      assert.match(tag, LOCAL_SRC, `${page} inline script`);
+    assert.ok(!STYLE_BLOCK.test(html), `${page} inline style block`);
+    assert.ok(!STYLE_ATTRIBUTE.test(html), `${page} inline style attribute`);
+    assert.ok(!EVENT_ATTRIBUTE.test(html), `${page} inline event handler`);
+  }
+});
+
+test("forms post JSON to FastAPI with the barrels site and list, never a native submit", () => {
+  const forms = read("forms.mjs");
+  assert.ok(forms.includes("/api/v1/contact/messages"));
+  assert.ok(forms.includes("/api/v1/subscriptions"));
+  assert.ok(forms.includes('site: "barrels"'));
+  assert.ok(forms.includes('list_key: "barrels"'));
+  assert.ok(forms.includes("event.preventDefault()"));
+  assert.ok(forms.includes('"Content-Type": "application/json"'));
+  // Honeypot: a filled field is never sent.
+  assert.ok(forms.includes('input[name="website"]'));
+});
+
+test("subscription status page maps the API result values", () => {
+  const html = read("subscribe/status/index.html");
+  assert.ok(html.includes('id="status-text"'));
+  assert.ok(html.includes('content="noindex"'));
+  const forms = read("forms.mjs");
+  for (const result of ["confirmed", "unsubscribed", "invalid"])
+    assert.ok(forms.includes(`${result}:`), `status text for ${result}`);
+});
+
+test("no third-party script is loaded by the forms or the status page", () => {
+  for (const page of PAGES) {
+    const html = read(page);
+    for (const [, src] of html.matchAll(SCRIPT_SRC))
+      assert.ok(src.startsWith("/"), `${page} loads ${src}`);
+  }
+});
+
 test("all stylesheet tokens resolve from the shared foundation", () => {
-  const css = readFileSync(
-    new URL("./dist/style.css", import.meta.url),
-    "utf8"
-  );
-  const tokens = readFileSync(
-    new URL("./dist/tokens.css", import.meta.url),
-    "utf8"
-  );
-  for (const [, token] of css.matchAll(/var\((--[\w-]+)\)/g))
+  const css = read("style.css");
+  const tokens = read("tokens.css");
+  for (const [, token] of css.matchAll(CSS_VARIABLE))
     assert.ok(tokens.includes(`${token}:`), `Missing ${token}`);
 });
 
-test("static modules share the reader policy and CSP permits only the required tag endpoints", () => {
-  const policy = readFileSync(
-    new URL("./dist/analytics-policy.js", import.meta.url),
-    "utf8"
-  );
+test("static modules share the reader policy and CSP permits only the required endpoints", () => {
+  const policy = read("analytics-policy.js");
   assert.ok(policy.includes('"id":"barrels"'));
   assert.ok(!policy.includes('"id":"gms"'));
-  const transport = readFileSync(
-    new URL("./dist/google-analytics.js", import.meta.url),
-    "utf8"
-  );
+  const transport = read("google-analytics.js");
   assert.ok(transport.includes("dataLayer.push(arguments)"));
   const config = JSON.parse(
     readFileSync(new URL("./vercel.json", import.meta.url), "utf8")
@@ -56,5 +178,9 @@ test("static modules share the reader policy and CSP permits only the required t
     (header) => header.key === "Content-Security-Policy"
   ).value;
   assert.ok(csp.includes("script-src 'self' https://www.googletagmanager.com"));
+  assert.ok(
+    csp.includes("connect-src") && csp.includes("https://api.barrels.gd")
+  );
+  assert.ok(csp.includes("form-action 'none'"));
   assert.ok(!csp.includes("unsafe-inline"));
 });

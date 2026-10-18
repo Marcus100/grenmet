@@ -74,6 +74,9 @@ export function priceLabel(event: {
   if (event.admission !== "ticketed" || !event.priceFrom) {
     return ADMISSION_LABELS[event.admission];
   }
+  if (event.priceFrom.amountMinor === 0) {
+    return "Free tickets";
+  }
   const symbol = event.priceFrom.currency === "XCD" ? "EC$" : "US$";
   const major = Math.trunc(event.priceFrom.amountMinor / 100);
   return `From ${symbol}${major.toLocaleString("en-US")}`;

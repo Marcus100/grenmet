@@ -1,27 +1,11 @@
-"use client";
-
-import { AccountButton } from "@barrelsgd/ui/components/account-button";
 import { Button } from "@barrelsgd/ui/components/ui/button";
-import {
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-} from "@barrelsgd/ui/components/ui/navigation-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@barrelsgd/ui/components/ui/sheet";
-import { Mail, Menu, Phone, PlaneTakeoff } from "lucide-react";
+import { ChevronDownIcon, Mail, Phone, PlaneTakeoff } from "lucide-react";
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { AccountSlot } from "@/components/account-slot";
+import { MobileNavToggle } from "@/components/mobile-nav-toggle";
+import { NavMenuDismiss } from "@/components/nav-menu-dismiss";
 import { NAV_GROUPS } from "@/lib/nav";
 
 function UtilityBar() {
@@ -64,103 +48,51 @@ function UtilityBar() {
   );
 }
 
+/**
+ * Desktop mega-menu as native disclosures: `<summary>` gives keyboard
+ * (Enter/Space) and screen-reader expanded state for free. `name` makes the
+ * groups exclusive where the browser supports it; `NavMenuDismiss` covers
+ * outside clicks, Escape and link clicks everywhere else.
+ */
 function DesktopNav() {
   return (
-    <NavigationMenu className="hidden lg:block">
-      <NavigationMenuList>
+    <nav aria-label="Main" className="hidden lg:block">
+      <ul className="flex items-center justify-center">
         {NAV_GROUPS.map((group) => (
-          <NavigationMenuItem key={group.label}>
-            <NavigationMenuTrigger className="bg-transparent">
-              {group.label}
-            </NavigationMenuTrigger>
-            <NavigationMenuContent>
-              <div className="grid w-[420px] grid-cols-2 gap-1 p-3">
-                <NavigationMenuLink
-                  className="col-span-2 rounded-lg bg-gaa-mist p-3 font-display font-semibold text-gaa-navy text-sm hover:bg-gaa-rule"
-                  render={<Link href={group.href as Route} />}
-                >
-                  {group.label} overview →
-                </NavigationMenuLink>
-                {group.links.map((link) => (
-                  <NavigationMenuLink
-                    className="rounded-lg p-2.5 text-gaa-ink text-sm hover:bg-gaa-mist hover:text-gaa-navy"
-                    key={link.href}
-                    render={<Link href={link.href as Route} />}
-                  >
-                    {link.label}
-                  </NavigationMenuLink>
-                ))}
-              </div>
-            </NavigationMenuContent>
-          </NavigationMenuItem>
-        ))}
-      </NavigationMenuList>
-    </NavigationMenu>
-  );
-}
-
-function MobileNav() {
-  const [open, setOpen] = useState(false);
-  return (
-    <Sheet onOpenChange={setOpen} open={open}>
-      <SheetTrigger
-        aria-label="Open menu"
-        className="inline-flex size-9 items-center justify-center rounded-md text-gaa-navy hover:bg-secondary lg:hidden"
-      >
-        <Menu className="size-5" />
-      </SheetTrigger>
-      <SheetContent className="w-80 overflow-y-auto" side="right">
-        <SheetHeader>
-          <SheetTitle className="text-left font-display text-gaa-navy">
-            Grenada Airports Authority
-          </SheetTitle>
-        </SheetHeader>
-        <nav className="flex flex-col gap-6 px-4 pb-10">
-          <Button
-            asChild
-            className="bg-gaa-gold text-gaa-navy-ink hover:bg-gaa-gold-deep"
-          >
-            <Link href="/flights" onClick={() => setOpen(false)}>
-              <PlaneTakeoff aria-hidden="true" className="size-4" />
-              Flight Information
-            </Link>
-          </Button>
-          {NAV_GROUPS.map((group) => (
-            <div key={group.label}>
-              <Link
-                className="mb-2 block font-bold font-display text-gaa-navy text-sm uppercase tracking-wide"
-                data-analytics-event="navigation_category_selected"
-                href={group.href as Route}
-                onClick={() => setOpen(false)}
-              >
+          <li className="relative" key={group.label}>
+            <details className="group" data-site-nav="" name="site-nav">
+              <summary className="inline-flex h-9 w-max cursor-pointer list-none items-center justify-center rounded-lg px-2.5 py-1.5 font-medium text-sm outline-none transition-all hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 group-open:bg-muted/50 [&::-webkit-details-marker]:hidden">
                 {group.label}
-              </Link>
-              <div className="flex flex-col border-gaa-rule border-l">
-                {group.links.map((link) => (
+                <ChevronDownIcon
+                  aria-hidden="true"
+                  className="relative top-px ml-1 size-3 transition duration-300 group-open:rotate-180"
+                />
+              </summary>
+              <div className="absolute top-full left-0 z-50 mt-2 rounded-lg bg-popover text-popover-foreground shadow ring-1 ring-foreground/10">
+                <div className="grid w-[420px] grid-cols-2 gap-1 p-3">
                   <Link
-                    className="px-3 py-1.5 text-gaa-muted text-sm hover:text-gaa-navy"
-                    data-analytics-event="navigation_category_selected"
-                    href={link.href as Route}
-                    key={link.href}
-                    onClick={() => setOpen(false)}
+                    className="col-span-2 rounded-lg bg-gaa-mist p-3 font-display font-semibold text-gaa-navy text-sm hover:bg-gaa-rule"
+                    href={group.href as Route}
                   >
-                    {link.label}
+                    {group.label} overview →
                   </Link>
-                ))}
+                  {group.links.map((link) => (
+                    <Link
+                      className="rounded-lg p-2.5 text-gaa-ink text-sm hover:bg-gaa-mist hover:text-gaa-navy"
+                      href={link.href as Route}
+                      key={link.href}
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
-          <Link
-            className="font-semibold text-gaa-navy text-sm"
-            data-analytics-event="navigation_category_selected"
-            href="/contact"
-            onClick={() => setOpen(false)}
-          >
-            Contact Us
-          </Link>
-        </nav>
-      </SheetContent>
-    </Sheet>
+            </details>
+          </li>
+        ))}
+      </ul>
+      <NavMenuDismiss />
+    </nav>
   );
 }
 
@@ -183,7 +115,7 @@ export function SiteHeader({ accountLabel }: { accountLabel?: string }) {
         </Link>
         <DesktopNav />
         <div className="flex items-center gap-2">
-          {accountLabel ? <AccountButton appLabel={accountLabel} /> : null}
+          {accountLabel ? <AccountSlot appLabel={accountLabel} /> : null}
           <Button
             asChild
             className="hidden bg-gaa-gold font-semibold text-gaa-navy-ink hover:bg-gaa-gold-deep sm:inline-flex"
@@ -193,7 +125,7 @@ export function SiteHeader({ accountLabel }: { accountLabel?: string }) {
               Flight Info
             </Link>
           </Button>
-          <MobileNav />
+          <MobileNavToggle />
         </div>
       </div>
     </header>

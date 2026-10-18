@@ -62,7 +62,11 @@ class SynopWorkbook(BaseModel):
     s3_layer4_amount: str | None = Field(default=None, max_length=2)
     s3_layer4_form: str | None = Field(default=None, max_length=2)
     s3_layer4_height: str | None = Field(default=None, max_length=4)
-    s3_special_phenomena: str | None = Field(default=None, max_length=32)
+    s3_special_phenomena: str | None = Field(default=None, max_length=120)
+    s3_sunshine_24h: str | None = Field(default=None, max_length=3)
+    s3_ground_state: str | None = Field(default=None, max_length=1)
+    s3_ground_jjj: str | None = Field(default=None, max_length=3)
+    s5_national: str | None = Field(default=None, max_length=400)
     s3_remarks: str | None = Field(default=None, max_length=4000)
     observer_initials: str | None = Field(default=None, max_length=4)
     notes: str | None = Field(default=None, max_length=4000)
@@ -99,6 +103,9 @@ class SynopDecoded(BaseModel):
     total_cloud_percent: int | None = None
     precipitation_kg_m2: float | None = None
     rainfall_24h_kg_m2: float | None = None
+    pressure_change_24h_pa: float | None = None
+    sunshine_24h_hours: float | None = None
+    ground_state: int | None = None
 
 
 class SynopValidationResponse(BaseModel):
@@ -125,6 +132,8 @@ class RegisterObservationRead(RegisterObservationWrite):
     id: UUID
     state: RegisterState
     qc_notes: str | None = None
+    qc_by: str | None = None
+    qc_at: UtcDateTime | None = None
     wis2_topic: str | None = None
     wis2_message_id: str | None = None
     wis2_published_at: UtcDateTime | None = None
@@ -147,6 +156,14 @@ class RegisterObservationCreate(RegisterObservationWrite):
     observed_at: Annotated[UtcDateTime, AwareDatetime()]
     issued_at: Annotated[UtcDateTime, AwareDatetime()] | None = None
     id: UUID = Field(default_factory=uuid4)
+
+
+class QcDecisionRequest(BaseModel):
+    reason: str | None = Field(
+        default=None,
+        max_length=1000,
+        description="Required to reject or reopen; optional note when accepting.",
+    )
 
 
 PressureTrend = Literal["rising", "steady", "falling"]
@@ -181,3 +198,58 @@ class PublicObservation(BaseModel):
 
 class PublicCurrentConditions(BaseModel):
     observation: PublicObservation | None = None
+
+
+class PublicMonthSummary(BaseModel):
+    """MBIA month-to-date figures aggregated from the register; no staff fields."""
+
+    station_id: str
+    station_name: str | None = None
+    month: str
+    period_start: UtcDateTime
+    period_end: UtcDateTime
+    last_observation_at: UtcDateTime
+    observation_count: int
+    days_elapsed: int
+    rain_report_days: int
+    rainfall_mm: float | None = None
+    rain_days: int | None = None
+    rain_day_threshold_mm: float
+    max_temperature_c: float | None = None
+    max_temperature_at: UtcDateTime | None = None
+    min_temperature_c: float | None = None
+    min_temperature_at: UtcDateTime | None = None
+    provisional: bool
+
+
+class PublicMonthSummaryResponse(BaseModel):
+    summary: PublicMonthSummary | None = None
+
+
+SendTarget = Literal["email", "wis2"]
+SendStatus = Literal["queued", "sent", "failed"]
+
+
+class SendObservationRequest(BaseModel):
+    resend: bool = Field(
+        default=False,
+        description="Send again although this observation already went to the same target.",
+    )
+
+
+class ObservationSend(BaseModel):
+    """One email or WIS2 hand-off of a register observation."""
+
+    id: UUID
+    observation_id: UUID
+    target: SendTarget
+    status: SendStatus
+    recipients: int | None = None
+    attempts: int
+    last_error: str | None = None
+    queued_at: UtcDateTime
+    sent_at: UtcDateTime | None = None
+
+
+class ObservationSendList(BaseModel):
+    sends: list[ObservationSend]

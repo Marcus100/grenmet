@@ -106,6 +106,11 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "notifications.manage",
         "Configure organisation notifications: on/off, recipients, wording, timings",
     ),
+    # Platform — Barrels invoicing (customers, invoices, payments, receivables)
+    PermissionDef(
+        "billing.manage",
+        "Manage Barrels invoicing: customers, invoices, manual payments and receivables",
+    ),
     # CMS editorial publishing
     PermissionDef("cms.article.create", "Create CMS articles"),
     PermissionDef("cms.article.edit.own", "Edit own CMS article drafts"),
@@ -129,6 +134,15 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
     PermissionDef("cms.article.unpublish", "Unpublish CMS articles"),
     PermissionDef("cms.article.social.manage", "Manage CMS social publishing"),
     PermissionDef("cms.article.manage", "Manage CMS editorial settings"),
+    # eRegister
+    PermissionDef(
+        "eregister.send",
+        "Email a register observation and queue it for WIS2 publication",
+    ),
+    PermissionDef(
+        "eregister.qc",
+        "Accept, reject or reopen a register observation (QC; a different person from the observer)",
+    ),
     # CAP — alert lifecycle
     PermissionDef("cap.alert.create", "Create CAP alerts"),
     PermissionDef("cap.alert.edit", "Edit CAP alerts"),
@@ -202,6 +216,20 @@ PERMISSIONS: tuple[PermissionDef, ...] = (
         "Grant buildings to supervisors; act on every building",
     ),
     PermissionDef("janitorial.work", "Record cleaning work in the janitor app"),
+    # Stores — internal supplies requisition
+    PermissionDef(
+        "stores.view",
+        "View the stores catalogue, stock levels and own or department requisitions",
+    ),
+    PermissionDef("stores.request", "Raise stores requisitions for own department"),
+    PermissionDef(
+        "stores.approve",
+        "Approve or reject submitted requisitions of departments in scope (never own)",
+    ),
+    PermissionDef(
+        "stores.manage",
+        "Keep the catalogue, store locations and stock; deliver approved requisitions",
+    ),
 )
 
 ALL_PERMISSION_KEYS: frozenset[str] = frozenset(p.key for p in PERMISSIONS)
@@ -366,6 +394,14 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
         "Barrels Events moderator: handles reports and suggestions",
         ("app.events.access", "events.member.write", "events.moderate"),
     ),
+    "eregister-sender": (
+        "eRegister: email observations and queue them for WIS2",
+        ("eregister.send",),
+    ),
+    "eregister-qc": (
+        "eRegister QC: duty or senior forecaster who accepts observations",
+        ("eregister.qc", "eregister.send"),
+    ),
     "weather-member": (
         "Weather website member: granted on first sign-in",
         ("app.weather.access",),
@@ -451,6 +487,18 @@ DEFAULT_ROLES: dict[str, tuple[str, tuple[str, ...]]] = {
     "janitorial-contractor-supervisor": (
         "Cleaning contractor supervisor: works in the janitor app",
         ("janitorial.work",),
+    ),
+    "stores-requester": (
+        "Raises stores requisitions for own department",
+        ("stores.view", "stores.request"),
+    ),
+    "stores-approver": (
+        "Approves stores requisitions for the departments in scope",
+        ("stores.view", "stores.request", "stores.approve"),
+    ),
+    "stores-keeper": (
+        "Storekeeper: catalogue, locations, stock and deliveries",
+        ("stores.view", "stores.request", "stores.manage"),
     ),
     "workflow-admin": (
         "Workflow administrator",
