@@ -74,7 +74,12 @@ def test_decode_workbook_into_public_units():
         ({"msl_pressure": "0149"}, "msl_pressure_hpa", 1014.9),
         ({"msl_pressure": "9985"}, "msl_pressure_hpa", 998.5),
         ({"msl_pressure": "12"}, "msl_pressure_hpa", None),
-        ({"air_temp": "254"}, "temperature_c", None),  # coded, not °C: never guess
+        ({"air_temp": "254"}, "temperature_c", 25.4),  # coded TTT in tenths
+        ({"air_temp": "1034"}, "temperature_c", -3.4),  # sn 1 is negative
+        ({"air_temp": "2254"}, "temperature_c", None),  # sign digit must be 0 or 1
+        ({"dew_point": "0243", "air_temp": "0280"}, "relative_humidity", 80),
+        ({"s3_rainfall_24h": "0123"}, "rain_24h_mm", 12.3),  # tenths, not mm
+        ({"s3_rainfall_24h": "9999"}, "rain_24h_mm", 0.0),  # trace
         ({"precip_amount": "993"}, "rain_mm", 0.3),
         ({"present_wx": "95"}, "weather", "Thunderstorm"),
         ({"pressure_tendency": "7"}, "pressure_trend", "falling"),

@@ -33,6 +33,10 @@ LAYERS = (1, 2, 3, 4)
 LAYER_HEIGHT_30M_MAX = 50
 LAYER_HEIGHT_300M_MIN = 56
 LAYER_HEIGHT_300M_MAX = 80
+# 81..89: 10 500 m upward in 1500 m steps (89 = above 21 000 m).
+LAYER_HEIGHT_1500M_MIN = 81
+LAYER_HEIGHT_1500M_MAX = 89
+UNUSED_HEIGHT_CODES = range(51, 56)
 PRECIP_TRACE = 990
 RAIN_24H_TRACE = 9999
 OBSCURED = 9
@@ -42,8 +46,13 @@ VISIBILITY_OVER_70KM_M = 81900
 UNUSED_VISIBILITY_CODES = range(51, 56)
 VISIBILITY_90_99 = (0, 50, 200, 500, 1000, 2000, 4000, 10000, 20000, 50000)
 WIND_VARIABLE = 99
+WIND_FFF_MIN = 99
 DAYS_IN_MONTH_MAX = 31
 BAROMETER_REFERENCE_CODE = 5000
+STEADY_TENDENCY = 4
+CHANGING_TENDENCY = (1, 2, 3, 6, 7)
+FOG_AT_STATION = range(41, 50)
+FOG_VISIBILITY_M = 1000
 
 
 class _Checker:
@@ -99,6 +108,36 @@ class _Checker:
             return None
         return number
 
+    def wind_speed(self, field: str, label: str) -> int | None:
+        """Parse ff (two digits) or fff (three digits, 99 or more; group 00fff)."""
+        value = self.raw(field)
+        if not self.present(field):
+            return None
+        if not value.isdigit() or len(value) not in (2, 3):
+            self.add(
+                field,
+                "wrong_length" if value.isdigit() else "not_integer",
+                f"{label} must be two digits, or three digits from 099 (group 00fff).",
+            )
+            return None
+        number = int(value)
+        if len(value) == 3 and number < WIND_FFF_MIN:  # noqa: PLR2004
+            self.add(
+                field,
+                "wrong_length",
+                f"{label} below 99 is two digits; three digits (00fff) start at 099.",
+            )
+            return None
+        if number == WIND_FFF_MIN and len(value) == 2:  # noqa: PLR2004
+            self.add(
+                field,
+                "speed_needs_fff",
+                f"{label} 99 means 99 or more: key the full speed as three digits "
+                "(group 00fff) when known.",
+                "warning",
+            )
+        return number
+
     def percent(self, field: str, label: str) -> int | None:
         """Parse a one to three digit whole percentage (UUU), 0 to 100."""
         value = self.raw(field)
@@ -132,12 +171,21 @@ class _Checker:
                 return None
             sign = -1 if value[0] == "1" else 1
         degrees = sign * int(value[-3:]) / 10
+        if sign == -1 and int(value[-3:]) == 0:
+            self.add(
+                field,
+                "negative_zero",
+                f"{label}: 0.0 is coded with sign 0 (e.g. 0000), never 1000.",
+                "warning",
+            )
         if not -90 <= degrees <= 60:  # noqa: PLR2004
             self.add(field, "out_of_range", f"{label} must be between -90 and 60 °C.")
             return None
         return degrees
 
-    def pressure(self, field: str, label: str) -> float | None:
+    def pressure(
+        self, field: str, label: str, low: float = 870, high: float = 1085.7
+    ) -> float | None:
         """Decode a four-digit tenths-of-hPa group with the thousands omitted."""
         value = self.raw(field)
         if not self.present(field):
@@ -151,9 +199,11 @@ class _Checker:
             return None
         group = int(value)
         hpa = group / 10 + (0 if group >= BAROMETER_REFERENCE_CODE else 1000)
-        if not 900 <= hpa <= 1100:  # noqa: PLR2004
+        if not low <= hpa <= high:
             self.add(
-                field, "out_of_range", f"{label} must be between 900 and 1100 hPa."
+                field,
+                "out_of_range",
+                f"{label} must be between {low:g} and {high:g} hPa.",
             )
             return None
         return hpa
@@ -176,6 +226,8 @@ def _layer_height_metres(code: int) -> float | None:
         return code * 30
     if LAYER_HEIGHT_300M_MIN <= code <= LAYER_HEIGHT_300M_MAX:
         return (code - 50) * 300
+    if LAYER_HEIGHT_1500M_MIN <= code <= LAYER_HEIGHT_1500M_MAX:
+        return 10500 + (code - 81) * 1500
     return None
 
 
@@ -203,6 +255,13 @@ def _check_identification(c: _Checker) -> tuple[int | None, int | None]:
     for field, label in (("day", "Day"), ("time_utc", "UTC hour")):
         if c.raw(field) == "":
             c.add(field, "required", f"{label} is required.")
+    if hour is not None and hour % 3:
+        c.add(
+            "time_utc",
+            "non_synoptic_hour",
+            "SYNOP is made at the standard hours 00, 03, 06, 09, 12, 15, 18 and 21 UTC.",
+            "warning",
+        )
     station = c.raw("station_id")
     if station == "":
         c.add("station_id", "required", "Station identifier is required (B/C1.2.1).")
@@ -227,7 +286,7 @@ def _check_wind(c: _Checker) -> tuple[int | None, float | None, float | None]:
         width=2,
         extra=(WIND_VARIABLE,),
     )
-    speed = c.integer("wind_speed", "Wind speed", 0, 99, width=2)
+    speed = c.wind_speed("wind_speed", "Wind speed")
     if direction is not None and speed is not None and (direction == 0) != (speed == 0):
         c.add(
             "wind_dir",
@@ -242,7 +301,7 @@ def _check_wind(c: _Checker) -> tuple[int | None, float | None, float | None]:
             "Wind indicator iw gives the unit of wind speed.",
             "warning",
         )
-    gust = c.integer("wind_gust", "Wind gust", 0, 99, width=2)
+    gust = c.wind_speed("wind_gust", "Wind gust")
     if gust is not None and speed is not None and gust < speed:
         c.add(
             "wind_gust",
@@ -276,12 +335,34 @@ def _check_clouds(c: _Checker) -> int | None:
     total = c.integer("total_cloud", "Total cloud N", 0, 9, width=1)
     low = c.integer("low_cloud_amount", "Low cloud amount Nh", 0, 9, width=1)
     c.integer("cloud_base", "Lowest cloud height h", 0, 9, width=1)
+    types = {}
     for field, label in (
         ("low_cloud_type", "Low cloud type CL"),
         ("mid_cloud_type", "Middle cloud type CM"),
         ("high_cloud_type", "High cloud type CH"),
     ):
-        c.integer(field, label, 0, 9, width=1)
+        types[field] = c.integer(field, label, 0, 9, width=1)
+    # Code figure 0 of CL/CM/CH is "no cloud of that kind": a type cannot be
+    # reported when there is no cloud (N=0), nor CL/CM when Nh=0 (Nh counts CL, else CM).
+    absent = (
+        ("low_cloud_type", "mid_cloud_type", "high_cloud_type")
+        if total == 0
+        else ("low_cloud_type", "mid_cloud_type")
+        if low == 0
+        else ()
+    )
+    for field in absent:
+        if types[field] not in (None, 0):
+            c.add(
+                field,
+                "type_without_cloud",
+                "Cloud type must be 0 when "
+                + (
+                    "total cloud N is 0."
+                    if total == 0
+                    else "Nh is 0 (no CL or CM cloud)."
+                ),
+            )
     if total == 0:
         if low not in (None, 0):
             c.add(
@@ -342,6 +423,30 @@ def _check_layers(c: _Checker, total: int | None) -> None:
                 "inconsistent_cloud",
                 "No cloud layers are reported when total cloud is 0.",
             )
+        elif (
+            amount is not None
+            and total is not None
+            and total != OBSCURED
+            and amount != OBSCURED
+            and amount > total
+        ):
+            c.add(
+                f"s3_layer{n}_amount",
+                "layer_exceeds_total",
+                f"Layer {n} amount cannot exceed total cloud N.",
+            )
+        if amount == 0 and (form is not None or code is not None):
+            c.add(
+                f"s3_layer{n}_amount",
+                "layer_amount_zero",
+                f"Layer {n} amount Ns is 1 to 8 oktas (9 for an obscured sky).",
+            )
+        if code in UNUSED_HEIGHT_CODES:
+            c.add(
+                f"s3_layer{n}_height",
+                "unused_code",
+                f"Layer {n} height codes 51 to 55 are not used (Code table 1677).",
+            )
         previous_present = present
         if form is not None:
             forms.append(form)
@@ -371,12 +476,27 @@ def _check_precipitation(
     c.integer("station_wx_indicator", "Station/weather indicator ix", 1, 7, width=1)
     amount = c.integer("precip_amount", "Precipitation RRR", 0, 999, width=3)
     c.integer("precip_period", "Precipitation period tR", 1, 9, width=1)
-    if c.raw("precip_indicator") == "1" and c.raw("precip_amount") == "":
+    indicator = c.raw("precip_indicator")
+    if indicator in ("0", "1", "2") and c.raw("precip_amount") == "":
         c.add(
             "precip_amount",
             "missing_group",
-            "iR=1 means the 6RRRtR group is included.",
+            f"iR={indicator} means the 6RRRtR group is included"
+            + (
+                " (sections 1 and 3)."
+                if indicator == "0"
+                else " (section 1)."
+                if indicator == "1"
+                else " (section 3)."
+            ),
             "warning",
+        )
+    if indicator in ("3", "4") and c.present("precip_amount"):
+        c.add(
+            "precip_amount",
+            "indicator_conflict",
+            f"iR={indicator} means 6RRRtR is omitted; clear the group or set iR to 0, 1 or 2 "
+            "(Code table 1819).",
         )
     if amount is not None and c.raw("precip_period") == "":
         c.add(
@@ -435,13 +555,21 @@ def _check_section3(c: _Checker) -> tuple[float | None, float | None]:
         c.add(
             "s3_baro_change_24h",
             "invalid_format",
-            "24 h pressure change must be four digits (5appp).",
+            "24 h pressure change must be four digits: sign j1 (0 or 1) then P24P24P24 in tenths.",
+        )
+    elif c.present("s3_baro_change_24h") and change[0] not in "01":
+        c.add(
+            "s3_baro_change_24h",
+            "invalid_sign",
+            "24 h pressure change sign j1 is 0 or 1.",
+            "warning",
         )
     return tmax, tmin
 
 
 def _check_pressure_and_weather(c: _Checker) -> tuple[float | None, float | None]:
-    station = c.pressure("station_pressure", "Station pressure")
+    # Station pressure may be well below sea level pressure at elevated sites.
+    station = c.pressure("station_pressure", "Station pressure", 500, 1085.7)
     sea_level = c.pressure("msl_pressure", "MSL pressure")
     if sea_level is not None and station is None:
         c.add(
@@ -450,16 +578,101 @@ def _check_pressure_and_weather(c: _Checker) -> tuple[float | None, float | None
             "Station pressure is reported with mean sea level pressure (B/C1.3.1.1).",
             "warning",
         )
-    c.integer("pressure_tendency", "Pressure tendency a", 0, 8, width=1)
+    tendency = c.integer("pressure_tendency", "Pressure tendency a", 0, 8, width=1)
     change = c.raw("pressure_change")
-    if c.present("pressure_change") and (not change.isdigit() or len(change) != 3):  # noqa: PLR2004
+    amount: int | None = None
+    if c.present("pressure_change"):
+        if not change.isdigit() or len(change) != 3:  # noqa: PLR2004
+            c.add(
+                "pressure_change",
+                "invalid_format",
+                "Pressure change ppp must be three digits in tenths of hPa.",
+            )
+        else:
+            amount = int(change)
+    _check_tendency(c, tendency, amount)
+    ww = c.integer("present_wx", "Present weather ww", 0, 99, width=2)
+    w1 = c.integer("past_wx_1", "Past weather W1", 0, 9, width=1)
+    w2 = c.integer("past_wx_2", "Past weather W2", 0, 9, width=1)
+    if w1 is not None and w2 is not None and w1 < w2:
         c.add(
-            "pressure_change", "invalid_format", "Pressure change must be three digits."
+            "past_wx_1",
+            "past_weather_order",
+            "W1 carries the higher code figure (more significant weather); "
+            "W2 the lower (B/C1.4.6).",
+            "warning",
         )
-    c.integer("present_wx", "Present weather ww", 0, 99, width=2)
-    c.integer("past_wx_1", "Past weather W1", 0, 9, width=1)
-    c.integer("past_wx_2", "Past weather W2", 0, 9, width=1)
+    _check_weather_indicator(c, ww, w1, w2)
     return station, sea_level
+
+
+def _check_tendency(c: _Checker, tendency: int | None, amount: int | None) -> None:
+    """Code table 0200: a states the characteristic, ppp the 3 h change (tenths hPa)."""
+    if tendency is None or amount is None:
+        if (tendency is None) != (amount is None) and (
+            c.present("pressure_tendency") or c.present("pressure_change")
+        ):
+            c.add(
+                "pressure_change" if tendency is not None else "pressure_tendency",
+                "missing_group",
+                "Group 5appp needs both the tendency a and the change ppp.",
+                "warning",
+            )
+        return
+    if tendency == STEADY_TENDENCY and amount != 0:
+        c.add(
+            "pressure_change",
+            "tendency_mismatch",
+            "Tendency 4 (steady) means the 3 h change ppp is 000.",
+        )
+    elif tendency in CHANGING_TENDENCY and amount == 0:
+        c.add(
+            "pressure_change",
+            "tendency_mismatch",
+            f"Tendency {tendency} means pressure is now "
+            + ("higher" if tendency < STEADY_TENDENCY else "lower")
+            + " than 3 h ago; ppp cannot be 000.",
+        )
+
+
+def _check_weather_indicator(
+    c: _Checker, ww: int | None, w1: int | None, w2: int | None
+) -> None:
+    """Code table 1860 ix: groups 7wwW1W2 included (1, 4, 7) or omitted (2, 3, 5, 6)."""
+    ix = c.raw("station_wx_indicator")
+    reported = any(v is not None for v in (ww, w1, w2))
+    if ix in ("2", "3", "5", "6") and reported:
+        c.add(
+            "present_wx",
+            "indicator_conflict",
+            f"ix={ix} means group 7wwW1W2 is omitted; clear it or set ix to 1, 4 or 7 "
+            "(Code table 1860).",
+        )
+    elif ix in ("1", "4", "7") and not reported:
+        c.add(
+            "present_wx",
+            "missing_group",
+            f"ix={ix} means group 7wwW1W2 is included.",
+            "warning",
+        )
+
+
+def _check_fog_visibility(c: _Checker, visibility_code: int | None) -> None:
+    """ww 41-49 (fog at the station) goes with visibility below 1000 m (Code table 4677)."""
+    ww = c.raw("present_wx")
+    if (
+        visibility_code is not None
+        and ww.isdigit()
+        and int(ww) in FOG_AT_STATION
+        and _visibility_metres(visibility_code) >= FOG_VISIBILITY_M
+    ):
+        c.add(
+            "present_wx",
+            "fog_visibility",
+            f"ww={ww} is fog at the station; visibility is normally below 1000 m "
+            "(VV 00 to 10 or 90 to 94).",
+            "warning",
+        )
 
 
 def validate_synop(
@@ -494,6 +707,7 @@ def validate_synop(
         c.add("visibility", "unused_code", "Visibility codes 51 to 55 are not used.")
         visibility_code = None
     total = _check_clouds(c)
+    _check_fog_visibility(c, visibility_code)
     _check_layers(c, total)
     station, sea_level = _check_pressure_and_weather(c)
     precipitation, rainfall_24h = _check_precipitation(c, hour)

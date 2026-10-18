@@ -117,11 +117,11 @@ def test_cloud_layers_follow_the_manned_station_limits() -> None:
         for n in (1, 2, 3, 4)
         for part, value in (("amount", "2"), ("form", "8"), ("height", "20"))
     }
-    issues, _ = check(**layers)
+    issues, _ = check(total_cloud="8", **layers)
     assert issues["error:s3_layer4_amount"] == "too_many_layers"
     # A fourth layer is allowed when it is Cumulonimbus (B/C1.4.5.1.1).
     cb = {**layers, "s3_layer4_form": "9"}
-    issues, _ = check(**cb)
+    issues, _ = check(total_cloud="8", **cb)
     assert "error:s3_layer4_amount" not in issues
 
 
@@ -260,3 +260,209 @@ def test_observer_initials_do_not_make_a_nil_report_a_data_report() -> None:
     )
     _, decoded = rules.validate_synop(workbook)
     assert decoded.is_nil_report is True
+
+
+# --- WMO conformance: indicators, groups and code-table rules ------------------
+
+
+def only_errors(issues: dict[str, str]) -> dict[str, str]:
+    return {k: v for k, v in issues.items() if k.startswith("error")}
+
+
+@pytest.mark.parametrize(
+    ("speed", "error", "warning"),
+    [
+        ("15", None, None),
+        ("99", None, "speed_needs_fff"),  # ff=99 means 99 or more: needs 00fff
+        ("105", None, None),
+        ("098", "wrong_length", None),
+        ("1", "wrong_length", None),
+        ("1x", "not_integer", None),
+    ],
+)
+def test_wind_speed_ff_and_00fff(
+    speed: str, error: str | None, warning: str | None
+) -> None:
+    issues, decoded = check(wind_speed=speed)
+    assert issues.get("error:wind_speed") == error
+    assert issues.get("warning:wind_speed") == warning
+    if speed == "105":
+        assert decoded.wind_speed_ms == 54.0  # 105 kt
+
+
+def test_gust_accepts_three_digits() -> None:
+    issues, decoded = check(wind_speed="60", wind_gust="110")
+    assert "error:wind_gust" not in issues
+    assert decoded.wind_gust_ms == 56.6
+
+
+@pytest.mark.parametrize(
+    ("changes", "key", "code"),
+    [
+        # iR 3 and 4: group 6 omitted. iR 0, 1, 2: group 6 included.
+        (
+            {"precip_indicator": "3", "precip_amount": "005", "precip_period": "1"},
+            "error:precip_amount",
+            "indicator_conflict",
+        ),
+        (
+            {"precip_indicator": "4", "precip_amount": "005", "precip_period": "1"},
+            "error:precip_amount",
+            "indicator_conflict",
+        ),
+        ({"precip_indicator": "0"}, "warning:precip_amount", "missing_group"),
+        ({"precip_indicator": "2"}, "warning:precip_amount", "missing_group"),
+        # ix 2, 3, 5, 6: group 7 omitted. ix 1, 4, 7: included.
+        ({"station_wx_indicator": "2"}, "error:present_wx", "indicator_conflict"),
+        ({"station_wx_indicator": "6"}, "error:present_wx", "indicator_conflict"),
+        (
+            {
+                "station_wx_indicator": "1",
+                "present_wx": "",
+                "past_wx_1": "",
+                "past_wx_2": "",
+            },
+            "warning:present_wx",
+            "missing_group",
+        ),
+    ],
+)
+def test_iR_and_ix_agree_with_the_groups_present(
+    changes: dict[str, str], key: str, code: str
+) -> None:
+    issues, _ = check(**changes)
+    assert issues[key] == code
+
+
+def test_iR_with_omitted_group_and_ix_with_omitted_weather_are_clean() -> None:
+    issues, _ = check(
+        precip_indicator="3",
+        station_wx_indicator="2",
+        present_wx="",
+        past_wx_1="",
+        past_wx_2="",
+    )
+    assert only_errors(issues) == {}
+    assert "warning:precip_amount" not in issues
+    assert "warning:present_wx" not in issues
+
+
+@pytest.mark.parametrize(
+    ("tendency", "change", "code"),
+    [
+        ("4", "000", None),
+        ("4", "012", "tendency_mismatch"),
+        ("2", "000", "tendency_mismatch"),
+        ("7", "000", "tendency_mismatch"),
+        ("0", "000", None),  # higher or the same
+        ("5", "000", None),  # lower or the same
+        ("2", "012", None),
+    ],
+)
+def test_pressure_tendency_agrees_with_change(
+    tendency: str, change: str, code: str | None
+) -> None:
+    issues, _ = check(pressure_tendency=tendency, pressure_change=change)
+    assert issues.get("error:pressure_change") == code
+
+
+def test_5appp_needs_both_parts() -> None:
+    issues, _ = check(pressure_tendency="2", pressure_change="")
+    assert issues["warning:pressure_change"] == "missing_group"
+    issues, _ = check(pressure_tendency="", pressure_change="012")
+    assert issues["warning:pressure_tendency"] == "missing_group"
+
+
+def test_past_weather_w1_carries_the_higher_code() -> None:
+    issues, _ = check(past_wx_1="3", past_wx_2="6")
+    assert issues["warning:past_wx_1"] == "past_weather_order"
+    issues, _ = check(past_wx_1="6", past_wx_2="3")
+    assert "warning:past_wx_1" not in issues
+
+
+def test_cloud_types_are_zero_when_there_is_no_cloud() -> None:
+    issues, _ = check(total_cloud="0", low_cloud_amount="0", low_cloud_type="3")
+    assert issues["error:low_cloud_type"] == "type_without_cloud"
+    issues, _ = check(
+        total_cloud="3", low_cloud_amount="0", low_cloud_type="0", mid_cloud_type="2"
+    )
+    assert issues["error:mid_cloud_type"] == "type_without_cloud"
+    issues, _ = check(total_cloud="3", low_cloud_amount="0", high_cloud_type="1")
+    assert "error:high_cloud_type" not in issues
+
+
+def test_layer_amount_cannot_exceed_total_cloud() -> None:
+    issues, _ = check(
+        total_cloud="3",
+        low_cloud_amount="3",
+        s3_layer1_amount="5",
+        s3_layer1_form="2",
+        s3_layer1_height="10",
+    )
+    assert issues["error:s3_layer1_amount"] == "layer_exceeds_total"
+
+
+def test_layer_heights_follow_code_table_1677() -> None:
+    issues, _ = check(
+        total_cloud="3",
+        s3_layer1_amount="2",
+        s3_layer1_form="2",
+        s3_layer1_height="53",
+    )
+    assert issues["error:s3_layer1_height"] == "unused_code"
+    # 81 to 89 continue in 1500 m steps from 10 500 m, so they still order layers.
+    issues, _ = check(
+        total_cloud="8",
+        low_cloud_amount="2",
+        s3_layer1_amount="2",
+        s3_layer1_form="0",
+        s3_layer1_height="82",
+        s3_layer2_amount="3",
+        s3_layer2_form="2",
+        s3_layer2_height="70",
+    )
+    assert issues["warning:s3_layer2_height"] == "layer_order"
+    assert rules._layer_height_metres(80) == 9000  # noqa: SLF001
+    assert rules._layer_height_metres(81) == 10500  # noqa: SLF001
+    assert rules._layer_height_metres(88) == 21000  # noqa: SLF001
+
+
+def test_negative_zero_is_a_coding_error_in_practice() -> None:
+    issues, _ = check(air_temp="1000", dew_point="1000")
+    assert issues["warning:air_temp"] == "negative_zero"
+    issues, _ = check(air_temp="0000", dew_point="0000")
+    assert "warning:air_temp" not in issues
+
+
+def test_deep_pressure_is_valid_in_a_hurricane() -> None:
+    # Tropical cyclone MSL pressures fall below 900 hPa; the WMO extreme range is 870-1085.7.
+    issues, decoded = check(msl_pressure="8820", station_pressure="8800")
+    assert "error:msl_pressure" not in issues
+    assert decoded.mean_sea_level_pressure_pa == 88200
+    issues, _ = check(msl_pressure="8000")
+    assert issues["error:msl_pressure"] == "out_of_range"
+
+
+def test_fog_at_station_needs_low_visibility() -> None:
+    issues, _ = check(present_wx="45", visibility="60")
+    assert issues["warning:present_wx"] == "fog_visibility"
+    issues, _ = check(present_wx="45", visibility="05")
+    assert "warning:present_wx" not in issues
+    issues, _ = check(present_wx="40", visibility="60")  # fog at a distance
+    assert "warning:present_wx" not in issues
+
+
+def test_non_synoptic_hour_is_advised() -> None:
+    issues, _ = check(time_utc="07")
+    assert issues["warning:time_utc"] == "non_synoptic_hour"
+    issues, _ = check(time_utc="09")
+    assert "warning:time_utc" not in issues
+
+
+def test_24h_pressure_change_group_is_j1_and_three_digits() -> None:
+    issues, _ = check(s3_baro_change_24h="0012")
+    assert "error:s3_baro_change_24h" not in issues
+    issues, _ = check(s3_baro_change_24h="012")
+    assert issues["error:s3_baro_change_24h"] == "invalid_format"
+    issues, _ = check(s3_baro_change_24h="5012")
+    assert issues["warning:s3_baro_change_24h"] == "invalid_sign"
