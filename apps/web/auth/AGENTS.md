@@ -23,6 +23,8 @@ src/app/
   continue/page.tsx               ← single sign-on into another app (ADR-0017): hand off, "Join <app>?", or "no access"
   organisations/page.tsx          ← account tab: my memberships (`GET /organisations/mine`)
   organisations/accept/page.tsx   ← emailed invitation link (`?token=`); a form posts the token in the body (ADR-0022)
+  tickets/page.tsx                ← account tab: my Events tickets (`GET /rewards/me/tickets`, read-only)
+  rewards/page.tsx                ← account tab: stamp cards, redeem (server action), trust badges
   api/email/render/route.ts       ← internal endpoint: FastAPI calls this to render email templates
   api/health/route.ts
 ```
