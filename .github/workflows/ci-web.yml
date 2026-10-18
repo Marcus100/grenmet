@@ -192,9 +192,38 @@ jobs:
         uses: ./.github/actions/setup-node
 
       - name: Run all TypeScript unit tests
+        # gaa-admin is the slowest suite and runs sharded in `gaa-admin-tests`
+        # below, so every other package runs here.
         env:
           TURBO_SCM_BASE: ${{ (github.event_name == 'pull_request' && github.base_ref == 'dev') && 'origin/dev' || '' }}
-        run: pnpm test ${{ (github.event_name == 'pull_request' && github.base_ref == 'dev') && '--affected' || '' }}
+        run: pnpm test --filter='!@barrelsgd/web-gaa-admin' ${{ (github.event_name == 'pull_request' && github.base_ref == 'dev') && '--affected' || '' }}
+
+  # Job 6b: gaa-admin Vitest suite split into three parallel shards. Together the
+  # shards run every test file exactly once, with the same affected-only scope on
+  # dev PRs as the job above. Coverage for gaa-admin is not enforced in CI (see
+  # coverageApps in scripts/ci/select-images.mjs), so there is nothing to merge.
+  gaa-admin-tests:
+    name: gaa-admin Tests (shard ${{ matrix.shard }}/3)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.3.1
+        with:
+          fetch-depth: 0
+          # Full history for diffs, but no historic blobs (the repo carries ~2 GB of old images).
+          filter: blob:none
+
+      - name: Setup Node.js with pnpm
+        uses: ./.github/actions/setup-node
+
+      - name: Run gaa-admin tests (shard ${{ matrix.shard }}/3)
+        env:
+          TURBO_SCM_BASE: ${{ (github.event_name == 'pull_request' && github.base_ref == 'dev') && 'origin/dev' || '' }}
+        run: pnpm exec turbo run test --concurrency=2 --filter=@barrelsgd/web-gaa-admin ${{ (github.event_name == 'pull_request' && github.base_ref == 'dev') && '--affected' || '' }} -- --shard=${{ matrix.shard }}/3
 
   # Job 7: Vitest coverage floors for the apps in coverageApps (select-images.mjs).
   # Runs beside the test job, one matrix entry per app, and fails when a measured
@@ -241,7 +270,7 @@ jobs:
   # Runtime Dockerfiles already compile each application; do not rebuild with pnpm.
   build:
     name: Build Web Apps
-    needs: [image-selection, biome, type-check, peer-check, guardrails, drift, tests, web-coverage, container-smoke, storage-integration, weather-images]
+    needs: [image-selection, biome, type-check, peer-check, guardrails, drift, tests, gaa-admin-tests, web-coverage, container-smoke, storage-integration, weather-images]
     if: always()
     runs-on: ubuntu-latest
     timeout-minutes: 5

@@ -27,6 +27,7 @@ function webResults(selected = true) {
       "guardrails",
       "drift",
       "tests",
+      "gaa-admin-tests",
       "container-smoke",
       "storage-integration",
       "weather-images",

@@ -28,6 +28,9 @@ from src.transport.config import transport_settings
 from src.wxproducts.config import wxproducts_settings
 from src.wxwatch.config import wxwatch_settings
 
+# Skipped by default (pyproject addopts); run with `pytest -m fuzz`.
+pytestmark = pytest.mark.fuzz
+
 # Build from app.openapi() directly: fetching the document over ASGI takes longer
 # than the client's 10 s timeout on a cold app with ~365 routes.
 schema = schemathesis.openapi.from_dict(app.openapi())
