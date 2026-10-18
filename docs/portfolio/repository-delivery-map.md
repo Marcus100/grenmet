@@ -118,6 +118,7 @@ GMS or GAA.
 | `.github/security` | Barrels engineering security policy | Active | Versioned, reviewed vulnerability exceptions with bounded expiry |
 | `.github/actions` | Reusable Barrels CI actions | Active | Centralize supported setup behavior without hiding workflow permissions |
 | `.github/dependabot.yml` and `.github/labeler.yml` | Repository maintenance automation | Active | Dependency and change classification only; no product authority |
+| `.github/ISSUE_TEMPLATE` | Barrels engineering issue intake | Active | Agent-task template: deliverable, constraints, non-goals and acceptance check |
 | `docs/operations` | Mixed Barrels engineering and GMS operational controls | Active | Each runbook identifies its operational owner and environment |
 | `docs/products` | Product specifications and implementation plans, classified by their named owner | Planned/reference | Keep product scope and acceptance criteria aligned with the portfolio and client programme plans |
 | `docs/api` and `docs/web` | Barrels engineering references | Active | Describe current interfaces and delivery practice, not programme priority |
