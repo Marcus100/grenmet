@@ -310,6 +310,17 @@ The Barrels control plane. It holds no database credentials and calls FastAPI on
 | `BARRELS_ADMIN_SSO_CLIENT_SECRET` | Same value as the API's; without it `/auth/callback` returns 503 and nobody can sign in |
 | `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` / `NEXT_PUBLIC_RELEASE` | Optional error reporting; the release label shows on the Overview. No analytics |
 
+### cap (`apps/web/cap/.env.local`)
+
+The public CAP alert hub. No sign-in, no database; it reads the unauthenticated `/api/cap/*` feeds from FastAPI on the server, so the browser never calls the API.
+
+| Variable | Purpose |
+|---|---|
+| `CAP_API_URL` | FastAPI base URL for the public CAP feeds (default `http://localhost:8000`; `http://api:8000` in deployment) |
+| `GMS_SITE_URL` | GMS website, for "official source" and "how to get alerts" links (default `https://weather.barrels.gd`) |
+| `NEXT_PUBLIC_SITE_URL` | Canonical address for absolute links (build-time; default `http://localhost:3010`) |
+| `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` / `NEXT_PUBLIC_RELEASE` | Optional server-side error reporting. No client SDK and no analytics, to keep pages light |
+
 ### signal (`apps/web/signal/.env.local`)
 
 Signal has no database; newsletter sign-up is proxied to FastAPI (`/api/v1/subscriptions`). All variables are optional with sensible defaults.

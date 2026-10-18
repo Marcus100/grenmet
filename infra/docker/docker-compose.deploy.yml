@@ -635,6 +635,34 @@ services:
     networks:
       - grenmet
 
+  web-cap:
+    logging: *bounded-logging
+    image: ghcr.io/${GHCR_OWNER}/barrelsgd-web-cap:${WEB_TAG}
+    restart: always
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3010/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    environment:
+      # Public alert hub: server-side fetches of the unauthenticated CAP feeds
+      # only, so there is no sign-in, cookie or CORS configuration here.
+      CAP_API_URL: http://api:8000
+      GMS_SITE_URL: https://weather.${BASE_DOMAIN}
+      NEXT_PUBLIC_SENTRY_DSN: ${SENTRY_DSN_CAP:-}
+      NEXT_PUBLIC_SENTRY_ENVIRONMENT: ${ENVIRONMENT}
+    labels:
+      - "traefik.enable=true"
+      # Its own router (and so its own certificate): a missing cap.* DNS record
+      # cannot affect any other host.
+      - "traefik.http.routers.web-cap${ROUTER_SUFFIX}.rule=Host(`cap.${BASE_DOMAIN}`)"
+      - "traefik.http.routers.web-cap${ROUTER_SUFFIX}.entrypoints=websecure"
+      - "traefik.http.routers.web-cap${ROUTER_SUFFIX}.tls.certresolver=letsencrypt"
+      - "traefik.http.services.web-cap${ROUTER_SUFFIX}.loadbalancer.server.port=3010"
+    networks:
+      - grenmet
+
 
   # ── Database UI (staging only, via COMPOSE_PROFILES=staging) ─────────────────
   adminer:
