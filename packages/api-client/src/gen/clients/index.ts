@@ -333,6 +333,8 @@ export { organisationsAcceptInvitation } from "./organisationsAcceptInvitation.j
 export { organisationsCreateInvitation } from "./organisationsCreateInvitation.js";
 export { organisationsDeleteMember } from "./organisationsDeleteMember.js";
 export { organisationsGetCurrent } from "./organisationsGetCurrent.js";
+export { organisationsGetOne } from "./organisationsGetOne.js";
+export { organisationsListAll } from "./organisationsListAll.js";
 export { organisationsListInvitations } from "./organisationsListInvitations.js";
 export { organisationsListMembers } from "./organisationsListMembers.js";
 export { organisationsListMine } from "./organisationsListMine.js";

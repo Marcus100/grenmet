@@ -1,16 +1,23 @@
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 
 from src.auth.models import User
-from src.dependencies import AccountUser, SessionDep
+from src.dependencies import AccountUser, AdminUser, SessionDep
 from src.openapi_responses import AUTHENTICATED, BAD_REQUEST, CONFLICT, NOT_FOUND
 from src.organisations.dependencies import OrgAdmin, OrgMember
 from src.pagination import PaginationDep
 
 from . import members, service
 from .exceptions import OrganisationNotFoundError
-from .models import Membership, MembershipRole, MembershipStatus
+from .models import (
+    Membership,
+    MembershipRole,
+    MembershipStatus,
+    OrganisationKind,
+    OrganisationStatus,
+    PlatformOrganisation,
+)
 from .schemas import (
     CurrentOrganisationPublic,
     InvitationAccept,
@@ -20,6 +27,10 @@ from .schemas import (
     MemberPublic,
     MemberRoleUpdate,
     MyMembershipPublic,
+    OrganisationAdminDetail,
+    OrganisationAdminListPublic,
+    OrganisationAdminPublic,
+    OrganisationAppPublic,
     OrganisationSummary,
 )
 
@@ -74,6 +85,82 @@ async def get_current(*, context: OrgMember) -> Any:
             context.organisation, from_attributes=True
         ),
         role=context.role,
+    )
+
+
+# ── Control plane (C1, superuser only) ───────────────────────────────────────
+
+
+def _admin_row(
+    organisation: PlatformOrganisation, member_count: int
+) -> OrganisationAdminPublic:
+    return OrganisationAdminPublic(
+        **OrganisationSummary.model_validate(
+            organisation, from_attributes=True
+        ).model_dump(),
+        active_member_count=member_count,
+        created_at=organisation.created_at,
+        updated_at=organisation.updated_at,
+    )
+
+
+@router.get(
+    "",
+    response_model=OrganisationAdminListPublic,
+    summary="List every organisation",
+    description=(
+        "Control-plane list for superusers: all organisations ordered by name, "
+        "with active member counts. Filter by `q` (name or slug), `status` and "
+        "`kind`."
+    ),
+    responses={**AUTHENTICATED},
+)
+async def list_all(
+    *,
+    session: SessionDep,
+    _admin: AdminUser,
+    pagination: PaginationDep,
+    q: str | None = Query(default=None, max_length=100),
+    status: OrganisationStatus | None = None,
+    kind: OrganisationKind | None = None,
+) -> Any:
+    rows, total = await service.admin_list_organisations(
+        session,
+        skip=pagination.skip,
+        limit=pagination.limit,
+        query=q,
+        status=status,
+        kind=kind,
+    )
+    return OrganisationAdminListPublic(
+        data=[_admin_row(org, count) for org, count in rows],
+        count=total,
+        page=pagination.page,
+        size=pagination.size,
+    )
+
+
+@router.get(
+    "/{organisation_id}",
+    response_model=OrganisationAdminDetail,
+    summary="Read any organisation",
+    description=(
+        "Control-plane detail for superusers: the organisation, its active "
+        "member count and app entitlements."
+    ),
+    responses={**AUTHENTICATED, **NOT_FOUND},
+)
+async def get_one(
+    *, session: SessionDep, _admin: AdminUser, organisation_id: str
+) -> Any:
+    organisation, count, apps = await service.admin_get_organisation(
+        session, organisation_id
+    )
+    return OrganisationAdminDetail(
+        **_admin_row(organisation, count).model_dump(),
+        apps=[
+            OrganisationAppPublic(app_key=a.app_key, enabled=a.enabled) for a in apps
+        ],
     )
 
 

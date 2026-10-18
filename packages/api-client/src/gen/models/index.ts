@@ -3897,6 +3897,10 @@ export type { ObservationRecord } from "./ObservationRecord.js";
 export type { ObservationRecordPropertiesKindEnum } from "./ObservationRecordPropertiesKindEnum.js";
 export { observationRecordPropertiesKindEnum } from "./ObservationRecordPropertiesKindEnum.js";
 export type { OnboardingStatus } from "./OnboardingStatus.js";
+export type { OrganisationAdminDetail } from "./OrganisationAdminDetail.js";
+export type { OrganisationAdminListPublic } from "./OrganisationAdminListPublic.js";
+export type { OrganisationAdminPublic } from "./OrganisationAdminPublic.js";
+export type { OrganisationAppPublic } from "./OrganisationAppPublic.js";
 export type { OrganisationCatalogue } from "./OrganisationCatalogue.js";
 export type { OrganisationCreate } from "./OrganisationCreate.js";
 export type { OrganisationKind } from "./OrganisationKind.js";
@@ -3958,6 +3962,27 @@ export type {
   OrganisationsGetCurrentStatus404,
   OrganisationsGetCurrentStatus422,
 } from "./OrganisationsGetCurrent.js";
+export type {
+  OrganisationsGetOneOptions,
+  OrganisationsGetOnePath,
+  OrganisationsGetOneResponse,
+  OrganisationsGetOneResponses,
+  OrganisationsGetOneStatus200,
+  OrganisationsGetOneStatus401,
+  OrganisationsGetOneStatus403,
+  OrganisationsGetOneStatus404,
+  OrganisationsGetOneStatus422,
+} from "./OrganisationsGetOne.js";
+export type {
+  OrganisationsListAllOptions,
+  OrganisationsListAllQuery,
+  OrganisationsListAllResponse,
+  OrganisationsListAllResponses,
+  OrganisationsListAllStatus200,
+  OrganisationsListAllStatus401,
+  OrganisationsListAllStatus403,
+  OrganisationsListAllStatus422,
+} from "./OrganisationsListAll.js";
 export type {
   OrganisationsListInvitationsHeaders,
   OrganisationsListInvitationsOptions,

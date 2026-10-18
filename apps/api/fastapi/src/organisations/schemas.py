@@ -73,3 +73,27 @@ class InvitationPublic(BaseModel):
 
 class InvitationAccept(BaseModel):
     token: str = Field(min_length=10, max_length=200)
+
+
+class OrganisationAdminPublic(OrganisationSummary):
+    """Control-plane row (superuser only): the summary plus size and dates."""
+
+    active_member_count: int
+    created_at: UtcDateTime
+    updated_at: UtcDateTime
+
+
+class OrganisationAppPublic(BaseModel):
+    app_key: str
+    enabled: bool
+
+
+class OrganisationAdminDetail(OrganisationAdminPublic):
+    apps: list[OrganisationAppPublic]
+
+
+class OrganisationAdminListPublic(BaseModel):
+    data: list[OrganisationAdminPublic]
+    count: int
+    page: int
+    size: int

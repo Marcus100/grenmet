@@ -336,6 +336,8 @@ export { organisationsAcceptInvitation } from "./clients/organisationsAcceptInvi
 export { organisationsCreateInvitation } from "./clients/organisationsCreateInvitation.js";
 export { organisationsDeleteMember } from "./clients/organisationsDeleteMember.js";
 export { organisationsGetCurrent } from "./clients/organisationsGetCurrent.js";
+export { organisationsGetOne } from "./clients/organisationsGetOne.js";
+export { organisationsListAll } from "./clients/organisationsListAll.js";
 export { organisationsListInvitations } from "./clients/organisationsListInvitations.js";
 export { organisationsListMembers } from "./clients/organisationsListMembers.js";
 export { organisationsListMine } from "./clients/organisationsListMine.js";
@@ -2091,6 +2093,16 @@ export {
   organisationsGetCurrentQueryOptions,
   useOrganisationsGetCurrent,
 } from "./hooks/useOrganisationsGetCurrent.js";
+export {
+  organisationsGetOneQueryKey,
+  organisationsGetOneQueryOptions,
+  useOrganisationsGetOne,
+} from "./hooks/useOrganisationsGetOne.js";
+export {
+  organisationsListAllQueryKey,
+  organisationsListAllQueryOptions,
+  useOrganisationsListAll,
+} from "./hooks/useOrganisationsListAll.js";
 export {
   organisationsListInvitationsQueryKey,
   organisationsListInvitationsQueryOptions,
@@ -6390,6 +6402,10 @@ export type { ObservationRecord } from "./models/ObservationRecord.js";
 export type { ObservationRecordPropertiesKindEnum } from "./models/ObservationRecordPropertiesKindEnum.js";
 export { observationRecordPropertiesKindEnum } from "./models/ObservationRecordPropertiesKindEnum.js";
 export type { OnboardingStatus } from "./models/OnboardingStatus.js";
+export type { OrganisationAdminDetail } from "./models/OrganisationAdminDetail.js";
+export type { OrganisationAdminListPublic } from "./models/OrganisationAdminListPublic.js";
+export type { OrganisationAdminPublic } from "./models/OrganisationAdminPublic.js";
+export type { OrganisationAppPublic } from "./models/OrganisationAppPublic.js";
 export type { OrganisationCatalogue } from "./models/OrganisationCatalogue.js";
 export type { OrganisationCreate } from "./models/OrganisationCreate.js";
 export type { OrganisationKind } from "./models/OrganisationKind.js";
@@ -6451,6 +6467,27 @@ export type {
   OrganisationsGetCurrentStatus404,
   OrganisationsGetCurrentStatus422,
 } from "./models/OrganisationsGetCurrent.js";
+export type {
+  OrganisationsGetOneOptions,
+  OrganisationsGetOnePath,
+  OrganisationsGetOneResponse,
+  OrganisationsGetOneResponses,
+  OrganisationsGetOneStatus200,
+  OrganisationsGetOneStatus401,
+  OrganisationsGetOneStatus403,
+  OrganisationsGetOneStatus404,
+  OrganisationsGetOneStatus422,
+} from "./models/OrganisationsGetOne.js";
+export type {
+  OrganisationsListAllOptions,
+  OrganisationsListAllQuery,
+  OrganisationsListAllResponse,
+  OrganisationsListAllResponses,
+  OrganisationsListAllStatus200,
+  OrganisationsListAllStatus401,
+  OrganisationsListAllStatus403,
+  OrganisationsListAllStatus422,
+} from "./models/OrganisationsListAll.js";
 export type {
   OrganisationsListInvitationsHeaders,
   OrganisationsListInvitationsOptions,
@@ -11248,6 +11285,10 @@ export { observationProvenanceSchema } from "./zod/observationProvenanceSchema.j
 export { observationRecordPropertiesKindEnumSchema } from "./zod/observationRecordPropertiesKindEnumSchema.js";
 export { observationRecordSchema } from "./zod/observationRecordSchema.js";
 export { onboardingStatusSchema } from "./zod/onboardingStatusSchema.js";
+export { organisationAdminDetailSchema } from "./zod/organisationAdminDetailSchema.js";
+export { organisationAdminListPublicSchema } from "./zod/organisationAdminListPublicSchema.js";
+export { organisationAdminPublicSchema } from "./zod/organisationAdminPublicSchema.js";
+export { organisationAppPublicSchema } from "./zod/organisationAppPublicSchema.js";
 export { organisationCatalogueSchema } from "./zod/organisationCatalogueSchema.js";
 export { organisationCreateSchema } from "./zod/organisationCreateSchema.js";
 export { organisationKindSchema } from "./zod/organisationKindSchema.js";
@@ -11304,6 +11345,29 @@ export {
   organisationsGetCurrentStatus404Schema,
   organisationsGetCurrentStatus422Schema,
 } from "./zod/organisationsGetCurrentSchema.js";
+export {
+  organisationsGetOneErrorSchema,
+  organisationsGetOnePathOrganisationIdSchema,
+  organisationsGetOneResponseSchema,
+  organisationsGetOneStatus200Schema,
+  organisationsGetOneStatus401Schema,
+  organisationsGetOneStatus403Schema,
+  organisationsGetOneStatus404Schema,
+  organisationsGetOneStatus422Schema,
+} from "./zod/organisationsGetOneSchema.js";
+export {
+  organisationsListAllErrorSchema,
+  organisationsListAllQueryKindSchema,
+  organisationsListAllQueryPageSchema,
+  organisationsListAllQueryQSchema,
+  organisationsListAllQuerySizeSchema,
+  organisationsListAllQueryStatusSchema,
+  organisationsListAllResponseSchema,
+  organisationsListAllStatus200Schema,
+  organisationsListAllStatus401Schema,
+  organisationsListAllStatus403Schema,
+  organisationsListAllStatus422Schema,
+} from "./zod/organisationsListAllSchema.js";
 export {
   organisationsListInvitationsErrorSchema,
   organisationsListInvitationsHeaderXBarrelsOrganisationSchema,

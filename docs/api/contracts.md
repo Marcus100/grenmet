@@ -340,6 +340,13 @@ returns the signed-in account's active memberships (`membership_id`, `role`
 HR employers keep their `hr.organisation` id (for example `gaa`); new
 organisations get immutable `org_<hex>` ids.
 
+Control plane (superuser only, used by `apps/web/admin`): `GET /api/v1/organisations`
+lists every organisation ordered by name (`page`, `size`, `q` on name or slug,
+`status`, `kind`) with `active_member_count`, and `GET /api/v1/organisations/{id}`
+adds the app entitlements (`apps`). Both return 403 to non-superusers, including
+organisation owners, and 404 for an unknown id. They read across organisations on
+purpose and take no `X-Barrels-Organisation` header.
+
 ### Organisation context
 
 Routes that act for one organisation read it from the `X-Barrels-Organisation`
