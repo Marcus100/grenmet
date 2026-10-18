@@ -56,6 +56,19 @@ export function selectImages(paths, mode = "affected") {
   };
 }
 
+// Web apps whose Vitest coverage floors CI enforces (scripts/guardrails/
+// coverage-baseline.json). gaa-admin is left out: its full coverage run takes
+// about 40 minutes locally (docs/testing.md, Coverage floors).
+export const coverageApps = ["auth", "gms", "mbia", "signal"];
+
+// Coverage runs follow the same scope as the image checks: dev PRs and dev
+// pushes run the affected apps, every other event runs all of them.
+export function selectCoverage(paths, mode = "affected") {
+  return selectImages(paths, mode).web.filter((image) =>
+    coverageApps.includes(image.app)
+  );
+}
+
 export function changedPaths(
   event,
   git = (args) => execFileSync("git", args, { encoding: "utf8" })
@@ -79,17 +92,22 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     GITHUB_OUTPUT: output,
   } = process.env;
   let selection;
+  let coverage;
   try {
-    selection = selectImages(
+    const paths =
       mode === "affected"
         ? changedPaths(JSON.parse(readFileSync(eventPath, "utf8")))
-        : [],
-      mode
-    );
+        : [];
+    selection = selectImages(paths, mode);
+    coverage = selectCoverage(paths, mode);
   } catch {
     console.error("Image comparison unavailable; checking every image.");
     selection = selectImages([], "full");
+    coverage = selectCoverage([], "full");
   }
   for (const [key, value] of Object.entries(selection))
     appendFileSync(output, `${key}=${JSON.stringify(value)}\n`);
+  // Matrix entries for the web coverage job: app name and package directory.
+  const coverageMatrix = coverage.map(({ app, path }) => ({ app, path }));
+  appendFileSync(output, `coverage=${JSON.stringify(coverageMatrix)}\n`);
 }
