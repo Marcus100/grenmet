@@ -3,7 +3,7 @@
 Lets HR see which holidays are provisional and still need confirming.
 
 Revision ID: holidaysrc20261018
-Revises: notifsnooze20261017
+Revises: listsubcontact20261017
 """
 
 import sqlalchemy as sa
@@ -11,7 +11,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision = "holidaysrc20261018"
-down_revision = "notifsnooze20261017"
+down_revision = "listsubcontact20261017"
 branch_labels = None
 depends_on = None
 
