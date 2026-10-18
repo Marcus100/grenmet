@@ -61,7 +61,7 @@ with `SKIP_ENV_VALIDATION` and fixed values from `vitest.config.ts`.
 
 Not deployed. There is deliberately no Traefik router or compose service: the
 `admin.*` host still serves the GAA staff portal until the move to
-`gms-admin.*` finishes (plan, "Host move"). The Dockerfile builds the image for
+`gmsadmin.*` finishes (plan, "Host move"). The Dockerfile builds the image for
 when that happens. To deploy: add the service and `admin.${BASE_DOMAIN}` router
 to `infra/docker/docker-compose.deploy.yml`, wire `BARRELS_ADMIN_SSO_CLIENT_SECRET`
 (API and web, GitHub environment secrets, env examples, `docs/deployment.md`),
