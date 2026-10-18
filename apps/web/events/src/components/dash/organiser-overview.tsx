@@ -3,7 +3,7 @@ import { buttonVariants } from "@barrelsgd/ui/components/ui/button";
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { Plus } from "lucide-react";
 import Link from "next/link";
-import type { ManagedEvent, Organiser } from "@/domain/types";
+import type { ManagedEvent, Organiser, OrganiserOption } from "@/domain/types";
 import { formatEventDate } from "@/lib/datetime";
 import { DashShell } from "./dash-shell";
 
@@ -77,10 +77,12 @@ export function OrganiserOverview({
   listings,
   now,
   organiser,
+  organisers = [],
 }: {
   listings: readonly ManagedEvent[];
   now: Date;
   organiser: Organiser;
+  organisers?: readonly OrganiserOption[];
 }) {
   const counts = countListings(listings, now);
   const recent = [...listings]
@@ -88,7 +90,13 @@ export function OrganiserOverview({
     .slice(0, RECENT_LIMIT);
 
   return (
-    <DashShell active="overview" eventName={organiser.name} isDemo={false}>
+    <DashShell
+      active="overview"
+      currentOrganiser={organiser.slug}
+      eventName={organiser.name}
+      isDemo={false}
+      organisers={organisers}
+    >
       <main className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6 lg:px-8">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>

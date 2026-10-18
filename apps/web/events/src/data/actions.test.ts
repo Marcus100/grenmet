@@ -11,6 +11,10 @@ vi.mock("@/lib/session", () => ({ getSession: () => getSession() }));
 vi.mock("@/lib/report-error", () => ({
   reportError: (...args: unknown[]) => reportError(...args),
 }));
+vi.mock("./organiser-choice", () => ({
+  chosenOrganiser: async () => undefined,
+  rememberOrganiser: vi.fn(),
+}));
 vi.mock("@/lib/api", () => ({ apiOptions: () => ({}) }));
 vi.mock("@barrelsgd/api-client", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@barrelsgd/api-client")>()),

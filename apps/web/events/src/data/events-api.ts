@@ -22,6 +22,7 @@ import type {
   ManagedEvent,
   Network,
   Organiser,
+  OrganiserOption,
   PersonProfile,
   Plans,
   PublicEvent,
@@ -43,6 +44,7 @@ import {
   toThread,
   toThreadSummary,
 } from "./api-mappers";
+import { chosenOrganiser } from "./organiser-choice";
 
 /**
  * Server-side reads from the Events API. Each call carries the signed-in
@@ -157,15 +159,42 @@ export async function getThread(id: string): Promise<ThreadDetail | null> {
   return thread ? toThread(thread) : null;
 }
 
-/** The organiser's own listings, drafts included. Null without organiser access. */
-export async function getManagedOrganiser(): Promise<{
-  organiser: Organiser;
+export interface ManagedWorkspace {
   listings: ManagedEvent[];
-} | null> {
+  organiser: Organiser;
+  organisers: OrganiserOption[];
+}
+
+/**
+ * The organiser's own listings, drafts included, for the organiser picked in
+ * the switcher (cookie) or the first one. Null without organiser access.
+ */
+export async function getManagedOrganiser(): Promise<ManagedWorkspace | null> {
+  const chosen = await chosenOrganiser();
+  const load = async (organiser: string | undefined) =>
+    await eventsGetManagedOrganiser({
+      ...(await options()),
+      ...(organiser ? { query: { organiser } } : {}),
+    }).unwrap();
   try {
-    const managed = await eventsGetManagedOrganiser(await options()).unwrap();
+    let managed: Awaited<ReturnType<typeof load>>;
+    try {
+      managed = await load(chosen);
+    } catch (error) {
+      // A remembered organiser the member no longer manages: fall back.
+      if (chosen && error instanceof ResponseError && error.status === 403) {
+        managed = await load(undefined);
+      } else {
+        throw error;
+      }
+    }
     return {
       organiser: toOrganiser(managed),
+      organisers: managed.organisers.map((row) => ({
+        slug: row.slug,
+        name: row.name,
+        organisationId: row.organisation_id ?? null,
+      })),
       listings: managed.listings.map(toManagedEvent),
     };
   } catch (error) {

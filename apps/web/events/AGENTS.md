@@ -30,6 +30,7 @@ Port **3009**. Package: `@barrelsgd/web-events`. Design lane:
 - Client components run writes through `useMemberAction`; visitors are sent to
   `/sign-in?returnTo=…`. Expected 4xx show the API's message; others go to Sentry.
 - A 404 from the API is `null`; any other read failure throws to `error.tsx`.
+- The `/dash` console acts for one organiser: the member's choice is the host-only `events_organiser` cookie (`data/organiser-choice.ts`, set by the `switchOrganiser` action from `OrganiserSwitcher`, shown when they manage several) and is sent as `?organiser=`.
 - `/dash/events` uses the organiser API (`/manage`); members without organiser
   access see `NoOrganiserAccess`. The `/dash` overview uses the same listings
   (counts and titles). Sales and settlement have no API yet, so they are

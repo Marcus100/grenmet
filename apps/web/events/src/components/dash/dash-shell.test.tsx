@@ -1,6 +1,11 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { DashShell } from "./dash-shell";
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: () => undefined }),
+}));
+vi.mock("@/data/actions", () => ({ switchOrganiser: () => undefined }));
 
 describe("DashShell", () => {
   it("points Build event at the create route, not a demo event id", () => {
