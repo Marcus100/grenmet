@@ -12,12 +12,14 @@
     "check": "biome check .",
     "check:fix": "biome check --write .",
     "check:ci": "biome ci .",
+    "test": "vitest run",
     "type-check": "rm -f next-env.d.ts && rm -rf .next/dev/types && next typegen && content-collections build && tsc --noEmit"
   },
   "type": "module",
   "browserslist": "defaults, not ie <= 11",
   "dependencies": {
     "@algolia/autocomplete-core": "^1.19.12",
+    "@barrelsgd/api-client": "workspace:*",
     "@barrelsgd/auth": "workspace:*",
     "@barrelsgd/gms": "workspace:*",
     "@barrelsgd/ui": "workspace:*",
@@ -59,6 +61,7 @@
     "babel-plugin-react-compiler": "catalog:",
     "sharp": "0.35.5",
     "tailwindcss": "catalog:",
-    "typescript": "catalog:"
+    "typescript": "catalog:",
+    "vitest": "catalog:"
   }
 }

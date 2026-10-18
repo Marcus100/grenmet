@@ -2,7 +2,9 @@
 
 import { cn } from "@barrelsgd/ui/lib/utils";
 import { Transition } from "@headlessui/react";
+import { usePathname } from "next/navigation";
 import { forwardRef, useState } from "react";
+import { reportError } from "@/lib/report-error";
 
 function CheckIcon(props: React.ComponentPropsWithoutRef<"svg">) {
   return (
@@ -79,15 +81,36 @@ const FeedbackThanks = forwardRef<
 });
 
 export function Feedback() {
+  const pathname = usePathname();
   const [submitted, setSubmitted] = useState(false);
+  const [failed, setFailed] = useState(false);
 
-  function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
-    // event.nativeEvent.submitter.dataset.response
-    // => "yes" or "no"
-
-    setSubmitted(true);
+    const submitter = (event.nativeEvent as SubmitEvent).submitter;
+    const response = submitter?.getAttribute("data-response");
+    if (response !== "yes" && response !== "no") {
+      return;
+    }
+    setFailed(false);
+    try {
+      const result = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pagePath: pathname,
+          helpful: response === "yes",
+        }),
+      });
+      if (!result.ok) {
+        setFailed(true);
+        return;
+      }
+      setSubmitted(true);
+    } catch (error) {
+      reportError(error, "docs-feedback");
+      setFailed(true);
+    }
   }
 
   return (
@@ -98,6 +121,14 @@ export function Feedback() {
           onSubmit={onSubmit}
         />
       </Transition>
+      {failed && (
+        <p
+          className="absolute inset-x-0 top-9 text-center text-red-700 text-sm md:text-left dark:text-red-400"
+          role="alert"
+        >
+          We could not save your feedback. Please try again.
+        </p>
+      )}
       <Transition show={submitted}>
         <FeedbackThanks className="delay-150 duration-300 data-closed:opacity-0" />
       </Transition>
