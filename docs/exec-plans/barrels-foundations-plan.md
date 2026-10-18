@@ -101,6 +101,47 @@ section decides.
 - `AUTH_TOTP_ENCRYPTION_KEYS` secret to enforce privileged MFA.
 - Edit barrels.gd copy; GAA HR inputs; gust group 910ff/911ff with observers.
 
+## Next work list (from the 2026-10-18 codebase audit)
+
+Owner decisions on 2026-10-18 (late): remove every invented figure from GMS
+pages including the home hero (reverses the 30 Sep decision); CAP requires
+approval by a different person, with an audited emergency publish only for a
+duty-supervisor role; Python dependencies approved: `pywebpush`,
+`ecmwf-opendata`, `cfgrib`/`eccodes`, `copernicusmarine`, `cdsapi`; the
+integrations recommended in `docs/strategy/integration-opportunities.md` are
+approved to build when a product pulls them (paid providers still flagged
+first); hashing suppressed/unsubscribed emails approved after a verified
+backup. GMS real data sources are ready; the work is integration.
+
+| # | Item | Lane | Size | Needs owner |
+| --- | --- | --- | --- | --- |
+| 1 | Push `dev`, open the evening `dev` → `staging` PR with a checklist | Platform | S | Merge |
+| 2 | Remove invented figures: `PlaceholderNotice` becomes "Not yet available from GMS"; strip figures from ~26 pages; hero uses real observations and computed sun times, "not available yet" elsewhere | GMS | M | Page approval |
+| 3 | Privileged MFA covers `cap.alert.approve`/`cap.alert.publish`; approval required before publish, emergency publish role audited | CAP | S | `AUTH_TOTP_ENCRYPTION_KEYS` secret |
+| 4 | `apps/web/cap` (3010): public hub (current, map, history, feeds), Dockerfile, compose service, Traefik `cap.*` | CAP | L | — |
+| 5 | Signing seam: temporary self-signed key generator, `CAP_SIGNING_TEMPORARY` label in XML, feed and hub; deploy vars | CAP | M | Government PKI request |
+| 6 | CAP email list (`gms-alerts`) and publish-to-subscribers job; wire GMS get-alerts | CAP | M | — |
+| 7 | Web Push (VAPID, `pywebpush`): subscription storage and publish handler | CAP | M | — |
+| 8 | Turnstile verified server-side on every public form; `TURNSTILE_SECRET_KEY` | Platform | S | Site key and secret |
+| 9 | Staleness 90 min / 12 h / 30 min and a shared provenance chip (source, time, status, "not a GMS product") | GMS | M | — |
+| 10 | Public latest-satellite endpoint (wxwatch) and the satellite page | GMS | M | — |
+| 11 | Storm mode: cache headers on alert pages and feeds; last-known-good alerts page written to object storage on publish | GMS | M | — |
+| 12 | Uptime monitors for the alert hub, feeds and production API | Platform | S | Monitor account |
+| 13 | Copernicus Marine (waves, swell, SST) and CAMS (UV, dust) ingestion and pages | GMS | L | Copernicus credentials |
+| 14 | Climate importer for GMS spreadsheets with QC flags; normals, monthly, records, rainfall pages | GMS | L | Spreadsheets in `/private/` |
+| 15 | ECMWF open data / AIFS / GFS point meteograms in the worker; `apps/web/gmsdash` (3013) scaffold with org access requests | GMS | L | — |
+| 16 | `JURY_DUTY` leave type; holiday table in timesheets; extra-day-for-holiday-in-vacation suggestion | HR | M | GAA HR rule confirmation |
+| 17 | DPA purge job and email hashing migration (after verified backup) | Platform | M | — |
+| 18 | E3 outlet cash, E4 settlement report, E5 organiser cancel/refund | Barrels | L | — |
+| 19 | C1 deploy wiring for `apps/web/admin` once `admin.*` is freed by the gmsadmin cutover | Barrels | M | — |
+| 20 | Test speed: auto workers (CPUs − 2), pre-push runs changed-package tests, CI shards for API and gaa-admin, fuzz in CI only | Platform | M | — |
+| 21 | Doc fixes: missing env.md rows, invoice settings in deploy, transition-plan port conflicts, note that compose `web-admin` is gaa-admin | Platform | S | — |
+
+Known risks: one account can still publish a national warning with a password
+only (items 3); CAP XML publishes unsigned when no certificate is set (item 5);
+observation staleness is 3 h in code (item 9); Turnstile always passes (item 8);
+emails are stored in plaintext indefinitely (item 17).
+
 ## What exists today
 
 | Capability | Evidence | Gap |
