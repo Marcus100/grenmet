@@ -16,5 +16,6 @@ export const leaveTypeSchema = z.enum([
   "PROFESSIONAL_APPOINTMENT",
   "BEREAVEMENT",
   "WITHOUT_PAY",
+  "JURY_DUTY",
   "OTHER",
 ]);

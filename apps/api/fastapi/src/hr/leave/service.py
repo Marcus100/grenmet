@@ -36,7 +36,13 @@ from src.hr.workflow.service import start_workflow_for_entity, submit_draft_work
 from src.utils.datetime import utc_now
 
 from . import ledger
-from .models import LeaveEntryKind, LeaveRequest, LeaveType, ProfAppointmentType
+from .models import (
+    UNTRACKED_LEAVE_TYPES,
+    LeaveEntryKind,
+    LeaveRequest,
+    LeaveType,
+    ProfAppointmentType,
+)
 from .schemas import (
     LeaveRequestAction,
     LeaveRequestCreate,
@@ -82,6 +88,8 @@ def validate_leave_fields(
         raise HRValidationError("Enter a positive number of days requested")
     if submitting and leave_type == LeaveType.OTHER and not (reason or "").strip():
         raise HRValidationError("State the reason for other leave")
+    if submitting and leave_type == LeaveType.JURY_DUTY and not (reason or "").strip():
+        raise HRValidationError("Enter the jury summons reference as the reason")
     if (
         submitting
         and leave_type == LeaveType.PROFESSIONAL_APPOINTMENT
@@ -160,10 +168,13 @@ async def create_leave_request(
         session, payload.department_id, payload.acting_officer_id
     )
     await require_ready(session, current_user.id, payload.department_id)
-    if await session.get(
-        StaffCredential, current_user.id
-    ) and not await ledger.has_entry(
-        session, current_user.id, payload.leave_type.value
+    credential = await session.get(StaffCredential, current_user.id)
+    if (
+        credential is not None
+        and payload.leave_type not in UNTRACKED_LEAVE_TYPES
+        and not await ledger.has_entry(
+            session, current_user.id, payload.leave_type.value
+        )
     ):
         raise HRValidationError(
             "An administrator must verify the opening balance for this leave type first"
@@ -461,7 +472,10 @@ async def action_leave_request(
         leave_request.head_of_dept_comments = payload.head_of_dept_comments
     leave_request.updated_at = utc_now()
     session.add(leave_request)
-    if payload.status == RequestStatus.APPROVED:
+    if (
+        payload.status == RequestStatus.APPROVED
+        and leave_request.leave_type not in UNTRACKED_LEAVE_TYPES
+    ):
         await ledger.post(
             session,
             user_id=leave_request.user_id,
@@ -505,7 +519,12 @@ _FIRST_WEEKEND_DAY = 5
 
 
 async def working_days_between(
-    *, session: AsyncSession, current_user: User, start: date, end: date
+    *,
+    session: AsyncSession,
+    current_user: User,
+    start: date,
+    end: date,
+    leave_type: LeaveType | None = None,
 ) -> WorkingDaysPublic:
     """Working days in a range for the caller, excluding public holidays.
 
@@ -569,18 +588,29 @@ async def working_days_between(
     days = [start + timedelta(days=offset) for offset in range(calendar_days)]
     use_roster = all(day in rostered for day in days)
     counted = 0
+    extra_days = 0
     for day in days:
+        would_work = rostered[day] if use_roster else day.weekday() < _FIRST_WEEKEND_DAY
         if day in holiday_dates:
+            extra_days += 1 if would_work else 0
             continue
-        if use_roster:
-            counted += 1 if rostered[day] else 0
-        elif day.weekday() < _FIRST_WEEKEND_DAY:
-            counted += 1
+        counted += 1 if would_work else 0
+    suggested_extra = extra_days if leave_type == LeaveType.VACATION else 0
     return WorkingDaysPublic(
         start=start,
         end=end,
         calendar_days=calendar_days,
         working_days=counted,
+        suggested_extra_days=suggested_extra,
+        suggested_extra_days_note=(
+            f"Policy (provisional): {suggested_extra} public holiday"
+            f"{'' if suggested_extra == 1 else 's'} inside this vacation. "
+            f"HR may grant {suggested_extra} extra day"
+            f"{'' if suggested_extra == 1 else 's'}; nothing is added "
+            "to your balance automatically."
+            if suggested_extra
+            else None
+        ),
         method="roster" if use_roster else "weekdays",
         holidays=[
             WorkingDayHoliday(

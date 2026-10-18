@@ -30,7 +30,9 @@ from src.hr.models import Department, EmploymentRecord, EmploymentStatus
 from src.hr.organisations import require_organisation_permission
 from src.hr.roster import service as roster_service
 from src.hr.roster.expansion import shift_hours
+from src.hr.roster.holidays import PROVISIONAL_SOURCE
 from src.hr.roster.models import (
+    PublicHoliday,
     RosterAssignment,
     RosterAvailability,
     RosterPeriod,
@@ -62,6 +64,7 @@ from .schemas import (
     ShiftHoursSummary,
     TimesheetCreate,
     TimesheetPrefillEntry,
+    TimesheetPrefillHoliday,
     TimesheetPrefillPublic,
     TimesheetSummaryByShift,
 )
@@ -643,6 +646,26 @@ async def prefill_from_roster(
     availability = await roster_service.assignment_availability(
         session, [assignment.id for assignment, _ in rows]
     )
+    holiday_rows = (
+        await session.scalars(
+            select(PublicHoliday)
+            .where(
+                PublicHoliday.holiday_date >= period_start,
+                PublicHoliday.holiday_date <= period_end,
+                PublicHoliday.country_code == "GD",
+            )
+            .order_by(PublicHoliday.holiday_date)
+        )
+    ).all()
+    holidays = [
+        TimesheetPrefillHoliday(
+            holiday_date=row.holiday_date,
+            name=row.name,
+            provisional=row.needs_verification or row.source == PROVISIONAL_SOURCE,
+        )
+        for row in holiday_rows
+    ]
+    holiday_by_date = {holiday.holiday_date: holiday for holiday in holidays}
     entries = [
         TimesheetPrefillEntry(
             entry_date=assignment.assignment_date,
@@ -653,6 +676,16 @@ async def prefill_from_roster(
             roster_hours=shift_hours(shift) or Decimal("0.00"),
             roster_assignment_id=assignment.id,
             availability=availability.get(assignment.id, RosterAvailability.SCHEDULED),
+            holiday_name=(
+                holiday_by_date[assignment.assignment_date].name
+                if assignment.assignment_date in holiday_by_date
+                else None
+            ),
+            holiday_provisional=(
+                holiday_by_date[assignment.assignment_date].provisional
+                if assignment.assignment_date in holiday_by_date
+                else False
+            ),
         )
         for assignment, shift in rows
     ]
@@ -663,4 +696,5 @@ async def prefill_from_roster(
         period_end=period_end,
         roster_published=bool(entries),
         entries=entries,
+        holidays=holidays,
     )

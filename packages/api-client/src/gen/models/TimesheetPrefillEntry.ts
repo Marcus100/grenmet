@@ -28,4 +28,10 @@ export type TimesheetPrefillEntry = {
    * @type string | undefined
    */
   availability?: RosterAvailability;
+  holiday_name?: string | null;
+  /**
+   * @default false
+   * @type boolean | undefined
+   */
+  holiday_provisional?: boolean;
 };

@@ -22,6 +22,7 @@ from src.baseline.schemas import (
 )
 from src.exceptions import AppException
 from src.hr.leave import ledger
+from src.hr.leave.models import UNTRACKED_LEAVE_TYPES
 from src.hr.models import (
     Department,
     EmploymentRecord,
@@ -492,6 +493,8 @@ async def require_leave_ready(
     session: AsyncSession, user_id: uuid.UUID, department_id: str, leave_type: str
 ) -> None:
     await require_ready(session, user_id, department_id)
+    if leave_type in {item.value for item in UNTRACKED_LEAVE_TYPES}:
+        return
     if await session.get(StaffCredential, user_id) and not await ledger.has_entry(
         session, user_id, leave_type
     ):

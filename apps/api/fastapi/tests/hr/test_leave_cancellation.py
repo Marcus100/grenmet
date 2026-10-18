@@ -6,7 +6,7 @@ from sqlalchemy import select
 
 from src.hr.leave import ledger
 from src.hr.leave import service as leave_service
-from src.hr.leave.models import LeaveBalanceEvent, LeaveEntryKind
+from src.hr.leave.models import LeaveBalanceEvent, LeaveEntryKind, LeaveType
 from src.hr.leave.schemas import LeaveRequestAction
 from src.hr.models import RequestStatus
 from src.hr.workflow import service as workflows
@@ -99,3 +99,23 @@ async def test_pending_cancellation_does_not_create_a_balance(db_async):
             LeaveBalanceEvent.related_leave_request_id == leave.id
         )
     )
+
+
+async def test_jury_duty_approval_posts_no_ledger_entry(db_async):
+    actor, dept, _ = await setup(db_async)
+    approver = await make_user(db_async, superuser=True)
+    leave = await leave_service.create_leave_request(
+        session=db_async,
+        current_user=actor,
+        payload=leave_payload(dept.id).model_copy(
+            update={"leave_type": LeaveType.JURY_DUTY, "reason": "HC-2026/9"}
+        ),
+    )
+    assert leave.leave_type == LeaveType.JURY_DUTY
+    before = await ledger.balance(db_async, actor.id, "VACATION")
+    await action(db_async, approver, leave.workflow_instance_id, WorkflowAction.APPROVE)
+    assert await ledger.balance(db_async, actor.id, "VACATION") == before
+    # Untracked type: no JURY_DUTY ledger row either, and cancelling is a no-op.
+    assert await ledger.balance(db_async, actor.id, "JURY_DUTY") is None
+    await action(db_async, approver, leave.workflow_instance_id, WorkflowAction.CANCEL)
+    assert await ledger.balance(db_async, actor.id, "VACATION") == before

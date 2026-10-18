@@ -21,14 +21,31 @@ export interface LeaveValues {
   travelToDate: string;
 }
 
+export const JURY_DUTY_LABEL = "Jury Duty (provisional)";
+
 export const LEAVE_TYPES = [
   "Annual Vacation",
   "Maternity Leave",
   "Professional Appointment",
   "Family Bereavement",
   "Paternity Leave",
+  JURY_DUTY_LABEL,
   "Other",
 ];
+
+/** The paper-form label, with the free-text reason on the selected line. */
+function leaveTypeLabel(label: string, values: LeaveValues): string {
+  if (label !== values.leaveType) {
+    return label;
+  }
+  if (label === "Other") {
+    return `Other — ${values.otherReason || "…"}`;
+  }
+  if (label === JURY_DUTY_LABEL) {
+    return `${label} — summons ${values.otherReason || "…"}`;
+  }
+  return label;
+}
 
 export const EMPTY_LEAVE: LeaveValues = {
   employeeName: "",
@@ -122,9 +139,7 @@ export function LeaveDocument({
                 >
                   {checked ? "✓" : ""}
                 </span>
-                {t === "Other" && values.leaveType === "Other"
-                  ? `Other — ${values.otherReason || "…"}`
-                  : t}
+                {leaveTypeLabel(t, values)}
               </span>
             );
           })}

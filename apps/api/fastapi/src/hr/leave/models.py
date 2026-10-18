@@ -24,7 +24,14 @@ class LeaveType(str, Enum):
     PROFESSIONAL_APPOINTMENT = "PROFESSIONAL_APPOINTMENT"
     BEREAVEMENT = "BEREAVEMENT"
     WITHOUT_PAY = "WITHOUT_PAY"
+    # Provisional (GAA-LV-JURY-01): the summons reference goes in the reason.
+    JURY_DUTY = "JURY_DUTY"
     OTHER = "OTHER"
+
+
+# Provisional (GAA-LV-JURY-01): leave types with no entitlement to track. They
+# need no opening balance and approval posts no ledger debit.
+UNTRACKED_LEAVE_TYPES = frozenset({LeaveType.JURY_DUTY})
 
 
 class LeaveEntryKind(str, Enum):

@@ -15,4 +15,6 @@ export const timesheetPrefillEntrySchema = z.object({
   roster_hours: z.string(),
   roster_assignment_id: z.uuid(),
   availability: rosterAvailabilitySchema.optional().default("SCHEDULED"),
+  holiday_name: z.union([z.string(), z.null()]).optional(),
+  holiday_provisional: z.boolean().optional().default(false),
 });

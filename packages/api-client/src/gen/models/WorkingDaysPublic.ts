@@ -23,4 +23,10 @@ export type WorkingDaysPublic = {
   working_days: number;
   method: WorkingDaysPublicPropertiesMethodEnum;
   holidays: WorkingDayHoliday[];
+  /**
+   * @default 0
+   * @type integer | undefined
+   */
+  suggested_extra_days?: number;
+  suggested_extra_days_note?: string | null;
 };

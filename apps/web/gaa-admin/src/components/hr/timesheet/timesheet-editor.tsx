@@ -99,7 +99,15 @@ export function rosterEntryToRow(
     actualHours: worked,
     totalHours: worked,
     hoursWorked: worked,
-    remarks: [entry.shift_code, REMARK_BY_AVAILABILITY[availability]]
+    remarks: [
+      entry.shift_code,
+      REMARK_BY_AVAILABILITY[availability],
+      entry.holiday_name
+        ? `Public holiday: ${entry.holiday_name}${
+            entry.holiday_provisional ? " (provisional, HR to verify)" : ""
+          }`
+        : undefined,
+    ]
       .filter(Boolean)
       .join(" - "),
   };
@@ -162,8 +170,17 @@ export function TimesheetEditor() {
           format(new Date(`${rosterMonth}-01T00:00:00`), "MMMM yyyy")
         );
       }
+      const holidayDays = prefill.entries.filter((entry) => entry.holiday_name);
+      const holidayNote =
+        holidayDays.length > 0
+          ? ` ${holidayDays.length} rostered ${
+              holidayDays.length === 1 ? "day is a" : "days are"
+            } public ${
+              holidayDays.length === 1 ? "holiday" : "holidays"
+            } (marked in remarks; pay treatment is for HR to decide).`
+          : "";
       setRosterNote(
-        `${added.length} of ${prefill.entries.length} rostered shifts added from your published roster. Scheduled hours are copied into actual hours; edit them to what you worked.`
+        `${added.length} of ${prefill.entries.length} rostered shifts added from your published roster. Scheduled hours are copied into actual hours; edit them to what you worked.${holidayNote}`
       );
     } catch (error) {
       reportError(error, "hr-timesheet-roster-prefill");

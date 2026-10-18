@@ -386,6 +386,7 @@ function BalanceEditor({ userId }: { userId: string }) {
             "PROFESSIONAL_APPOINTMENT",
             "BEREAVEMENT",
             "WITHOUT_PAY",
+            "JURY_DUTY",
             "OTHER",
           ].map((type) => (
             <option key={type}>{type}</option>
