@@ -24,7 +24,10 @@ authoritative for priority. Tenancy follows
 | Control plane | Separate `apps/web/admin` at `admin.barrels.gd`, superuser-only, dev and staging first |
 | Pay/Invoice v1 | Barrels invoicing its own service-line clients, manual payments (bank, cash, cheque); no card rail; new Stripe work parked |
 | Barrels HR | Next; stays in `apps/web/gaa-admin`; eventual host `hr.barrels.gd` |
-| Still open | Legal entity name, VAT treatment and invoice number format (P1); hub copy and brand (H1); ePay webhook (E6) |
+| Build order | Approved as written (2026-10-18) |
+| Invoicing details | Configurable settings with provisional defaults: entity "Barrels Grenada", VAT 15%, numbers `BG-YYYY-NNNN`; confirm with an accountant |
+| Hub copy | Agent drafts neutral copy from the service-lines doc; owner edits later |
+| Still open | ePay webhook (E6); first rewards merchants (U3) and Passport trail (U5) |
 
 ## What exists today
 
@@ -64,10 +67,10 @@ Alembic head.
 | E5 | Cancel, postpone and manual refund | M | U |
 | C1 | `apps/web/admin` shell at `admin.barrels.gd` (port 3012), superuser via auth handoff, status cards | L | U |
 | C2 | Control-plane organisations: list, detail, verify, app entitlements, members | M | U |
-| P1 | Invoice core: customer, invoice, lines, numbering, totals in minor units | M | O (entity, VAT, numbering) |
+| P1 | Invoice core: customer, invoice, lines, numbering, totals in minor units; entity, VAT and prefix are provisional settings | M | U |
 | P2 | Issue and email invoice PDF (stored through F8) | M | U |
 | P3 | Manual payments, receivables and ageing in the control plane | M | U |
-| H1 | `barrels.gd` services page with contact and newsletter forms posting to FastAPI | S–M | O (copy, brand) |
+| H1 | `barrels.gd` services page with contact and newsletter forms posting to FastAPI; drafted copy | S–M | U |
 | E6 | Provider-neutral online payment adapter | L | Blocked (ePay) |
 | R1 | Phase 2 HR foreign key, then HR reads through `OrgContext` | L | O |
 
