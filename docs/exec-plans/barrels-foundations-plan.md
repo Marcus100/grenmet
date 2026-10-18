@@ -35,6 +35,72 @@ authoritative for priority. Tenancy follows
 | eRegister QC | Add a QC accept step; only accepted observations go to WIS2; email allowed earlier for internal use. Gust group `910ff` stays flagged unconfirmed until observers confirm |
 | Still open | ePay webhook (E6) |
 
+## 30-day plan (2026-10-18 to 2026-11-17)
+
+Owner interview, 2026-10-18. When lanes compete for time or review, this
+section decides.
+
+### Goals
+
+1. **GMS public accuracy (lead goal).** Every GMS public page shows real data or
+   an honest "not yet available from GMS" notice; never sample numbers.
+2. **CAP warning loop, end to end**, accepted through a full GMS plus NaDMA drill.
+3. **GAA HR acceptance (equal priority).** Phase 0 journeys with GAA HR on
+   staging; agents fix findings within a day; no new HR features.
+4. **Barrels lanes continue in parallel** (Events E3–E5, rewards, control plane,
+   invoicing) without displacing goals 1–3.
+
+### Functional requirements
+
+| Area | Requirement |
+| --- | --- |
+| Placeholder pages (60 of 136) | Stay visible with an honest notice; no sample figures |
+| Satellite and tropics | GOES-East imagery via the GeoNetCast/wxwatch pipeline; NHC products already ingested |
+| Sun, UV, dust, heat | Sun times computed locally; UV and Saharan dust from Copernicus CAMS (free registration) |
+| Climate | Normals, monthly, records and rainfall computed from GMS historical spreadsheets imported with QC flags (files supplied into gitignored `/private/`), plus eRegister data |
+| Marine | Waves, swell and sea temperature from Copernicus Marine; tides via a harmonic model; coastal from wxproducts |
+| Models and GeoNetCast | ECMWF open data, AIFS and GFS; point meteograms and maps; GeoNetCast for imagery, model fields, lightning/fire and offline resilience (investigation first) |
+| `cap.barrels.gd` | GMS-branded public alert hub (current warnings, map, history, CAP XML/RSS/GeoJSON) **and** CAP authoring moved there behind sign-in; `@barrelsgd/web-cap` on port 3010 |
+| CAP signing | Government PKI certificate; if not issued by the drill, a clearly labelled temporary self-signed key (signer configurable) |
+| CAP dissemination | Feeds, WMO Register of Alerting Authorities / Alert Hub, email and web push subscribers, partner distribution lists, social auto-post (free tiers) |
+| CAP drill | Full GMS + NaDMA exercise including amend and cancel |
+| Public alert subscriptions | Email (subscriptions domain) and free Web Push (VAPID); CAP remains the source |
+| `gmsdash.barrels.gd` | GMS client service for external users with premium products (models and more). Barrels ID sign-in, organisations request access, GMS approves (tenancy and entitlements). GAA/GMS set pricing and terms; Barrels bills. In 30 days: scaffold plus one meteogram page |
+| barrels.gd hub | Goes public after the owner edits the drafted copy |
+
+### Non-functional requirements
+
+| Area | Requirement |
+| --- | --- |
+| Storm resilience | Cloudflare-cached pages plus a last-known-good alerts page that works when the VM is unreachable; "last updated" shown |
+| Freshness | Observations flagged stale after 90 min, forecasts after 12 h, satellite after 30 min; stale data shown with a warning, never silently |
+| Performance | Built for residents on mobile data (target under 200 KB first-load JS, usable within 3 s), plus mariners, aviation and visitors |
+| Provenance | Every value shows source, time and status (provisional or verified); external data labelled "not a GMS product" |
+| Security | Privileged MFA enforced for anyone who can approve or publish CAP |
+| Monitoring | Free external uptime checks on the alert hub, feeds and API, alerting the owner |
+| Privacy (DPA 2023) | Contact and data requests deleted 24 months after closing; unconfirmed subscriptions after 30 days; unsubscribed emails kept only as a suppression hash; privacy notice per site; scheduled purge job |
+| Abuse | Cloudflare Turnstile verified server-side on every public form |
+
+### Ways of working
+
+| Topic | Decision |
+| --- | --- |
+| Acceptance of GMS public pages | Owner approves; GMS informed |
+| Release cadence | Daily: the agent opens the `dev` → `staging` PR each evening with a summary; the owner merges before bed. Production on the owner's go |
+| Staging breakage | Agent fixes forward on `dev` with tests; read-only checks on VMs only |
+| Order inside GMS | CAP first (weeks 1–2: hub, authoring move, signing seam, channels, Alert Hub paperwork; week 3: drill), pages in parallel weeks 2–4 |
+
+### Owner actions
+
+- GMS historical spreadsheets into `/private/`.
+- Government PKI request for CAP signing.
+- WMO Register of Alerting Authorities entry (through the GMS Permanent Representative).
+- NaDMA drill date and participants.
+- Copernicus (Marine and CAMS) free account credentials into GitHub secrets.
+- Deploy variables: contact, data-request and eRegister recipients.
+- `AUTH_TOTP_ENCRYPTION_KEYS` secret to enforce privileged MFA.
+- Edit barrels.gd copy; GAA HR inputs; gust group 910ff/911ff with observers.
+
 ## What exists today
 
 | Capability | Evidence | Gap |
